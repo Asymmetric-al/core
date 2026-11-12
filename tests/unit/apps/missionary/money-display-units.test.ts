@@ -1,64 +1,62 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1931: Verify the missionary partner money formatter at its app boundary.
-import { formatCurrency } from "../../../../apps/missionary/app/donors/donors-model";
 import {
   formatCents,
+  moneyProgress,
+  summarizeMoney,
   formatCurrencyFromCents,
-  formatDollars,
-  toDollarBreakdown,
 } from "../../../../packages/missionary/components/money-units";
 
-// Donations, donor totals and pledges are stored in cents (BIGINT). The donor
-// app and missionary analytics already divide by 100; these surfaces must too,
-// or a $110 gift reads as $11,000.
-describe("missionary money displays use cents", () => {
-  it("formats partner amounts from cents", () => {
-    // Exact amounts always show cents, like the donor app ("$50.00").
-    expect(formatCurrency(11000)).toBe("$110.00");
-    expect(formatCurrency(20400)).toBe("$204.00");
-    expect(formatCurrency(1916667)).toBe("$19,166.67");
-    expect(formatCurrency(12550)).toBe("$125.50");
-    expect(formatCurrency(null)).toBe("$0.00");
+describe("missionary currency displays", () => {
+  it("compares support only when both currencies are explicitly known and equal", () => {
+    expect(moneyProgress(1000, "JPY", 2000, "USD")).toBeNull();
+    expect(moneyProgress(1000, "USD", 2000, null)).toBeNull();
+    expect(moneyProgress(null, "USD", 2000, "USD")).toBeNull();
+    expect(moneyProgress(1000, "jpy", 2000, "JPY")).toEqual({
+      covered: 1000,
+      remaining: 1000,
+      percent: 50,
+    });
   });
-
-  // An exact amount always shows cents, as the donor app does ("$50.00").
-  // Rounding a real amount to whole dollars would misstate it, and mixing
-  // "$755" with "$706.67" on one card reads as two kinds of number.
-  it("shows cents on every exact amount", () => {
-    expect(formatCents(75500)).toBe("$755.00");
-    expect(formatCents(70667)).toBe("$706.67");
-    expect(formatCents(5000)).toBe("$50.00");
-    expect(formatCents(1250)).toBe("$12.50");
-    expect(formatCents(123456700)).toBe("$1,234,567.00");
-    expect(formatCents(0)).toBe("$0.00");
-  });
-
-  it("formats dashboard tile amounts from cents", () => {
-    expect(formatCurrencyFromCents(55000)).toBe("$550");
-    expect(formatCurrencyFromCents(1250)).toBe("$12.50");
-    expect(formatCurrencyFromCents(3000000)).toBe("$30k");
-    expect(formatCurrencyFromCents(0)).toBe("$0");
-  });
-
-  it("formats chart tooltip dollars with consistent decimals", () => {
-    expect(formatDollars(300)).toBe("$300");
-    expect(formatDollars(125.5)).toBe("$125.50");
-  });
-
-  it("converts the giving breakdown to dollars for the chart", () => {
+  it("contains unlike, unknown and unsafe aggregates", () => {
     expect(
-      toDollarBreakdown([
-        {
-          month: "Jan",
-          recurring: 0,
-          oneTime: 30000,
-          offline: 0,
-          total: 30000,
-        },
+      summarizeMoney([
+        { amountCents: 1000, currency: "JPY" },
+        { amountCents: 1000, currency: "USD" },
       ]),
-    ).toEqual([
-      { month: "Jan", recurring: 0, oneTime: 300, offline: 0, total: 300 },
-    ]);
+    ).toEqual({ total: null, currency: null });
+    expect(
+      summarizeMoney([{ amountCents: 1000, currency: null }]).total,
+    ).toBeNull();
+    expect(
+      summarizeMoney([
+        { amountCents: Number.MAX_SAFE_INTEGER, currency: "USD" },
+        { amountCents: 1, currency: "USD" },
+      ]).total,
+    ).toBeNull();
+  });
+  it.each([
+    [70667, "USD", "$706.67"],
+    [1000, "JPY", "¥1,000"],
+    [1234, "BHD", "BHD 1.234"],
+    [Number.MAX_SAFE_INTEGER, "USD", "$90,071,992,547,409.91"],
+  ])("formats %s minor units in %s exactly", (amount, currency, expected) => {
+    expect(formatCents(amount, currency)).toBe(expected);
+  });
+
+  it.each([null, undefined, "", "ZZZ"])(
+    "does not invent USD for currency %s",
+    (currency) => {
+      expect(formatCents(1000, currency)).toBe("Unavailable");
+      expect(formatCurrencyFromCents(3000000, currency)).toBe("Unavailable");
+    },
+  );
+
+  it("keeps compact USD labels separate from exact money", () => {
+    expect(formatCurrencyFromCents(3000000, "USD")).toBe("$30k");
+    expect(formatCurrencyFromCents(70667, "USD")).toBe("$706.67");
+    expect(formatCurrencyFromCents(1000, "JPY")).toBe("¥1,000");
+    expect(formatCents(null, "USD")).toBe("Unavailable");
+    expect(formatCents(Number.MAX_SAFE_INTEGER + 1, "USD")).toBe("Unavailable");
   });
 });

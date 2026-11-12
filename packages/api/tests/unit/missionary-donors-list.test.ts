@@ -289,10 +289,10 @@ describe("buildMissionaryDonorRows", () => {
       "Called Ada",
       "follow-up",
     ]);
-    // support stats stay visible (§7.2)
-    expect(a.total_given).toBe(50000);
+    // Unqualified money is unavailable; non-monetary support stats stay visible (§7.2)
+    expect(a.total_given).toBeNull();
     expect(a.last_gift_date).toBe("2026-07-01");
-    expect(a.last_gift_amount).toBe(10000);
+    expect(a.last_gift_amount).toBeNull();
     expect(a.frequency).toBe("Monthly");
     expect(a.score).toBe(90);
     expect(a.status).toBe("Active");

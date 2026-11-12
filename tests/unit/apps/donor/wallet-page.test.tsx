@@ -20,6 +20,7 @@ const state = vi.hoisted(() => ({
   },
   portal: { mutateAsync: vi.fn(), isPending: false, error: null },
   snapshotFailed: false,
+  gift: { amountCents: 3000, currency: "usd" },
 }));
 
 vi.mock("@asym/database/hooks", () => ({
@@ -35,9 +36,9 @@ vi.mock("@asym/database/hooks", () => ({
             recurringGifts: [
               {
                 id: "pledge-1",
-                amountCents: 3000,
+                amountCents: state.gift.amountCents,
                 amount: 30,
-                currency: "usd",
+                currency: state.gift.currency,
                 frequency: "monthly",
                 status: "active",
                 designation: {
@@ -66,6 +67,7 @@ beforeEach(() => {
   state.wallet.isLoading = false;
   state.wallet.error = null;
   state.snapshotFailed = false;
+  state.gift = { amountCents: 3000, currency: "usd" };
   state.wallet.data = {
     status: "linked",
     methods: [
@@ -109,7 +111,41 @@ afterEach(() => {
 });
 
 describe("WalletPage", () => {
-  it("lists the donor's real saved payment methods and what they pay for", () => {
+  it.each([
+    [1000, "jpy", "¥1,000 a month"],
+    [1234, "kwd", "KWD 1.234 a month"],
+    [9007199254740991, "usd", "$90,071,992,547,409.91 a month"],
+  ])(
+    "formats %i minor units in %s exactly",
+    (amountCents, currency, expected) => {
+      state.gift = { amountCents, currency };
+      render(<WalletPage />);
+      const visa = screen.getByRole("listitem", {
+        name: "Visa ending in 4242",
+      });
+      expect(within(visa).getByText(expected)).toBeTruthy();
+    },
+  );
+
+  it.each([
+    [1000, ""],
+    [1000, "unknown"],
+    [1.5, "usd"],
+    [-1, "usd"],
+    [9007199254740992, "usd"],
+  ])(
+    "does not invent an amount for %s minor units in %s",
+    (amountCents, currency) => {
+      state.gift = { amountCents, currency };
+      render(<WalletPage />);
+      const visa = screen.getByRole("listitem", {
+        name: "Visa ending in 4242",
+      });
+      expect(within(visa).getByText("Amount unavailable")).toBeTruthy();
+    },
+  );
+
+  it("shows recorded gift links without claiming current billing use", () => {
     render(<WalletPage />);
     expect(
       screen.getByRole("heading", { name: "Payment methods" }),
@@ -120,13 +156,14 @@ describe("WalletPage", () => {
     expect(within(visa).getByText("Expires 12/2028")).toBeTruthy();
     expect(within(visa).getByText("Nairobi Water Wells")).toBeTruthy();
     expect(within(visa).getByText("$30.00 a month")).toBeTruthy();
+    expect(within(visa).getByText("Recorded recurring gifts")).toBeTruthy();
 
     const mastercard = screen.getByRole("listitem", {
       name: "Mastercard ending in 5454",
     });
     expect(within(mastercard).getByText("Expires soon")).toBeTruthy();
     expect(
-      within(mastercard).getByText("Not used for a recurring gift"),
+      within(mastercard).getByText("Recurring use not confirmed"),
     ).toBeTruthy();
 
     const amex = screen.getByRole("listitem", { name: "Amex ending in 0005" });
@@ -140,7 +177,9 @@ describe("WalletPage", () => {
     state.snapshotFailed = true;
     render(<WalletPage />);
     const visa = screen.getByRole("listitem", { name: "Visa ending in 4242" });
-    expect(within(visa).getByText("Pays for 1 recurring gift")).toBeTruthy();
+    expect(
+      within(visa).getByText("Recorded for 1 recurring gift"),
+    ).toBeTruthy();
     expect(
       within(visa).queryByText("Not used for a recurring gift"),
     ).toBeNull();
@@ -148,7 +187,7 @@ describe("WalletPage", () => {
       name: "Mastercard ending in 5454",
     });
     expect(
-      within(mastercard).getByText("Not used for a recurring gift"),
+      within(mastercard).getByText("Recurring use not confirmed"),
     ).toBeTruthy();
   });
 
@@ -172,7 +211,7 @@ describe("WalletPage", () => {
     state.wallet.data = { status: "not_linked", methods: [] };
     render(<WalletPage />);
     expect(
-      screen.getByRole("heading", { name: "No saved payment methods" }),
+      screen.getByRole("heading", { name: "No payment methods to show here" }),
     ).toBeTruthy();
     expect(
       screen
@@ -182,6 +221,19 @@ describe("WalletPage", () => {
     expect(
       screen.queryByRole("button", { name: "Manage payment methods" }),
     ).toBeNull();
+  });
+
+  it("directs an empty linked wallet to Stripe without declaring it has no saved methods", () => {
+    state.wallet.data = { status: "linked", methods: [] };
+    render(<WalletPage />);
+    expect(
+      screen.getByRole("heading", { name: "No payment methods to show here" }),
+    ).toBeTruthy();
+    expect(screen.getByText(/other or older payment details/i)).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "View payment methods in Stripe" }),
+    ).toBeTruthy();
+    expect(screen.queryByText("No saved payment methods")).toBeNull();
   });
 
   it("offers a retry when the payment methods couldn't load", () => {

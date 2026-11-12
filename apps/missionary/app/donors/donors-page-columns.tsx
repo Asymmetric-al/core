@@ -74,7 +74,7 @@ function PartnerSummary({
           </span>
           <span className="shrink-0 pl-2 text-xs font-semibold tabular-nums text-foreground">
             {/* Everything given, not a monthly figure beside "Monthly". */}
-            {`${formatCurrency(donor.total_given)} given`}
+            {`${formatCurrency(donor.total_given, null)} given`}
           </span>
         </span>
       </span>
@@ -175,7 +175,7 @@ export function createDonorColumns(): ColumnDef<Donor>[] {
       ),
       cell: ({ row }) => (
         <div className="text-right font-semibold text-foreground tabular-nums">
-          {formatCurrency(row.original.total_given)}
+          {formatCurrency(row.original.total_given, null)}
         </div>
       ),
     },
@@ -229,7 +229,7 @@ export function createGivingHistoryColumns(): ColumnDef<Activity>[] {
       ),
       cell: ({ row }) => (
         <div className="text-right font-semibold text-foreground">
-          {formatCurrency(row.original.amount || 0)}
+          {formatCurrency(row.original.amount, row.original.currency)}
         </div>
       ),
     },

@@ -135,9 +135,6 @@ export const PATCH = withOperation(
     if (patch.givingPreferences !== undefined) {
       donorUpdate.giving_preferences = patch.givingPreferences;
     }
-    if (patch.address !== undefined) {
-      donorUpdate.address = patch.address;
-    }
 
     const fullName = fullNameFromPatch(patch);
     if (fullName !== undefined) {

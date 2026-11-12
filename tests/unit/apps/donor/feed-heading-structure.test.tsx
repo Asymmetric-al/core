@@ -18,6 +18,9 @@ const feed = vi.hoisted(() => ({
   hasMore: false,
   isLoadingMore: false,
   loadMore: vi.fn(),
+  retry: vi.fn(),
+  accessDenied: false,
+  isNextPageError: false,
 }));
 vi.mock("@asym/database/hooks", () => ({
   useDonorFeedPostPages: () => ({ ...feed, isLoading: false }),
@@ -62,6 +65,9 @@ beforeEach(() => {
   feed.hasMore = false;
   feed.isLoadingMore = false;
   feed.loadMore = vi.fn();
+  feed.retry = vi.fn();
+  feed.accessDenied = false;
+  feed.isNextPageError = false;
   vi.stubGlobal(
     "IntersectionObserver",
     class {
@@ -372,6 +378,19 @@ it("offers more updates instead of claiming the end while more remain", () => {
   expect(feed.loadMore).toHaveBeenCalledTimes(1);
 });
 
+it("hides loaded articles after access is denied", () => {
+  feed.data = twoPosts();
+  feed.error = Object.assign(new Error("Denied"), { status: 403 });
+  feed.accessDenied = true;
+  render(<DonorFeedPage />);
+  expect(screen.queryAllByRole("article")).toHaveLength(0);
+  expect(
+    screen.getByRole("heading", { name: "Couldn’t load updates" }),
+  ).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(feed.retry).toHaveBeenCalledTimes(1);
+});
+
 it("says the donor is caught up only at the real end of the feed", () => {
   feed.data = twoPosts();
   render(<DonorFeedPage />);
@@ -379,4 +398,22 @@ it("says the donor is caught up only at the real end of the feed", () => {
   expect(
     screen.queryByRole("button", { name: "Load more updates" }),
   ).toBeNull();
+});
+
+it("keeps loaded updates and offers a retry when a later page fails", () => {
+  feed.data = twoPosts();
+  feed.error = new Error("Offline fixture");
+  feed.hasMore = true;
+  feed.isNextPageError = true;
+  render(<DonorFeedPage />);
+  // The updates already read stay on screen.
+  expect(screen.getAllByRole("article").length).toBeGreaterThan(0);
+  expect(
+    screen.queryByRole("heading", { name: "Couldn’t load updates" }),
+  ).toBeNull();
+  expect(screen.getByRole("alert").textContent).toContain(
+    "Couldn’t load more updates.",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(feed.retry).toHaveBeenCalledTimes(1);
 });

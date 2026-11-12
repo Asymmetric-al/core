@@ -144,14 +144,14 @@ describe("donor overview", () => {
         id: "expiring-pm",
         title: "Your card expires soon",
         detail:
-          "Your Visa ending in 4242 expires at the end of December. It pays for 1 recurring gift.",
+          "Your Visa ending in 4242 expires at the end of December. Our records link it to 1 recurring gift.",
         href: "/donor-dashboard/wallet",
         action: "Update card",
       },
     ]);
   });
 
-  it("stays quiet when the card is fine and a later gift went through", () => {
+  it("stays quiet when the card is fine and the failed gift is now paid", () => {
     const alerts = overviewAlerts({
       snapshot: snapshot({
         donations: [
@@ -163,7 +163,7 @@ describe("donor overview", () => {
           donation({
             id: "failed",
             date: "2026-10-20T15:00:00.000Z",
-            status: "Failed",
+            status: "Paid",
             missionary: team,
           }),
         ],
@@ -173,6 +173,66 @@ describe("donor overview", () => {
     });
     expect(alerts).toEqual([]);
   });
+
+  it("does not treat another recipient or gift type as recovery", () => {
+    const failed = donation({
+      id: "failed",
+      date: "2026-10-20T15:00:00.000Z",
+      status: "Failed",
+      missionary: team,
+    });
+    const alertsAfter = (later: Record<string, unknown>) =>
+      overviewAlerts({
+        snapshot: snapshot({
+          donations: [
+            donation({
+              id: "later",
+              date: "2026-11-01T15:00:00.000Z",
+              ...later,
+            }),
+            failed,
+          ],
+        }),
+        wallet: wallet(4, 2029),
+        now: NOW,
+      }).map((alert) => alert.id);
+
+    expect(alertsAfter({ missionary: team, type: "One-Time" })).toEqual([
+      "failed-failed",
+    ]);
+    expect(
+      alertsAfter({
+        missionary: { id: "m-other", name: "Field Team 1", avatarUrl: null },
+      }),
+    ).toEqual(["failed-failed"]);
+  });
+
+  it.each(["fund-water", "fund-books"])(
+    "keeps a failed gift visible after a separate paid gift to %s",
+    (paidFundId) => {
+      const failed = donation({
+        id: "failed-water",
+        date: "2026-10-20T15:00:00.000Z",
+        status: "Failed",
+        fund: { id: "fund-water", name: "Water" },
+        designation: { id: "fund-water", name: "Water", type: "fund" },
+      });
+      const later = donation({
+        id: "paid-books",
+        date: "2026-11-01T15:00:00.000Z",
+        fund: { id: paidFundId, name: "Fund" },
+        designation: { id: paidFundId, name: "Fund", type: "fund" },
+      });
+      const alerts = (paid: Record<string, unknown>) =>
+        overviewAlerts({
+          snapshot: snapshot({ donations: [paid, failed] }),
+          wallet: undefined,
+          now: NOW,
+        }).map((alert) => alert.id);
+
+      expect(alerts(later)).toEqual(["failed-failed-water"]);
+    },
+  );
 
   it("finds the next scheduled gift among active recurring gifts", () => {
     expect(nextScheduledGift(snapshot(), NOW)).toEqual({

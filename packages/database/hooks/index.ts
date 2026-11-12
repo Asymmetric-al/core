@@ -44,6 +44,7 @@ export {
   postImages,
   postCategory,
   postInitials,
+  postPlainText,
   postReadTime,
   postTitle,
   useDonorFeedPostPages,

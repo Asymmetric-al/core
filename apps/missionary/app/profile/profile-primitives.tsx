@@ -411,6 +411,7 @@ export function UnsavedChangesBar({
 }
 
 export type ProfileHeaderActionsProps = {
+  canWrite?: boolean;
   hasChanges: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
@@ -419,6 +420,7 @@ export type ProfileHeaderActionsProps = {
 };
 
 export function ProfileHeaderActions({
+  canWrite = true,
   hasChanges,
   isSaving,
   saveSuccess,
@@ -454,7 +456,7 @@ export function ProfileHeaderActions({
           aria-labelledby={`${pendingActionLabelId}-28`}
           focusableWhenDisabled={isSaving}
           onClick={onSave}
-          disabled={isSaving || !hasChanges}
+          disabled={isSaving || !hasChanges || !canWrite}
           size="sm"
         >
           <span id={`${pendingActionLabelId}-28`} className="sr-only">

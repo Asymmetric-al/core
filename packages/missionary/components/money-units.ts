@@ -1,53 +1,87 @@
-import type { MonthlyChartDataPoint } from "@asym/lib/hooks";
+import { formatMoney, isSupportedCurrency } from "@asym/api/money";
 
-// Donation amounts are stored as integer cents (BIGINT since the 2026-02-14
-// money migration). Dashboard displays work in dollars, like analytics.
-function centsToDollars(cents: number): number {
-  return cents / 100;
+export const MONEY_UNAVAILABLE =
+  "Money totals and comparisons are unavailable when currencies are mixed or unknown.";
+
+export function moneyCurrency(
+  currency: string | null | undefined,
+): string | null {
+  return currency && isSupportedCurrency(currency)
+    ? currency.trim().toUpperCase()
+    : null;
 }
 
-/** Whole dollars drop the decimals ("$110"); others keep both ("$12.50"). */
-export function formatDollars(dollars: number): string {
-  return `$${dollars.toLocaleString("en-US", {
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-const EXACT_DOLLARS = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-/**
- * Exact amount from cents, always with cents ("$130.00", "$706.67"), the
- * same way the donor app shows money. Rounding to whole dollars would
- * misstate a real amount.
- */
-export function formatCents(cents: number): string {
-  return EXACT_DOLLARS.format(centsToDollars(cents));
-}
-
-/** Compact dollar label for dashboard tiles, e.g. 3000000 cents -> "$30k". */
-export function formatCurrencyFromCents(cents: number): string {
-  const dollars = centsToDollars(cents);
-  if (dollars >= 1000) {
-    return `$${(dollars / 1000).toFixed(dollars % 1000 === 0 ? 0 : 1)}k`;
+export function summarizeMoney(
+  rows: readonly { amountCents: number | null; currency?: string | null }[],
+) {
+  const currency = moneyCurrency(rows[0]?.currency);
+  const unavailable = { total: null, currency: null };
+  if (!currency) return unavailable;
+  let total = 0;
+  for (const row of rows) {
+    if (
+      row.amountCents == null ||
+      !Number.isSafeInteger(row.amountCents) ||
+      row.amountCents < 0 ||
+      moneyCurrency(row.currency) !== currency
+    )
+      return unavailable;
+    total += row.amountCents;
+    if (!Number.isSafeInteger(total)) return unavailable;
   }
-  return formatDollars(dollars);
+  return { total, currency };
 }
 
-/** Converts the monthly giving breakdown from cents to dollars for charting. */
-export function toDollarBreakdown(
-  points: readonly MonthlyChartDataPoint[],
-): MonthlyChartDataPoint[] {
-  return points.map((point) => ({
-    ...point,
-    recurring: centsToDollars(point.recurring),
-    oneTime: centsToDollars(point.oneTime),
-    offline: centsToDollars(point.offline),
-    total: centsToDollars(point.total),
-  }));
+export function moneyProgress(
+  committed: number | null | undefined,
+  committedCurrency: string | null | undefined,
+  goal: number | null | undefined,
+  goalCurrency: string | null | undefined,
+) {
+  const currency = moneyCurrency(committedCurrency);
+  if (
+    !currency ||
+    currency !== moneyCurrency(goalCurrency) ||
+    committed == null ||
+    goal == null ||
+    !Number.isSafeInteger(committed) ||
+    !Number.isSafeInteger(goal) ||
+    committed < 0 ||
+    goal <= 0
+  )
+    return null;
+  const covered = Math.min(committed, goal);
+  return {
+    covered,
+    remaining: Math.max(0, goal - committed),
+    percent: Math.round((covered / goal) * 100),
+  };
+}
+
+export function formatCents(
+  minorUnits: number | null | undefined,
+  currency: string | null | undefined,
+): string {
+  if (
+    minorUnits == null ||
+    !Number.isSafeInteger(minorUnits) ||
+    !currency ||
+    !isSupportedCurrency(currency)
+  ) {
+    return "Unavailable";
+  }
+  return formatMoney(minorUnits, currency, "en-US");
+}
+
+export function formatCurrencyFromCents(
+  minorUnits: number | null | undefined,
+  currency: string | null | undefined,
+): string {
+  const exact = formatCents(minorUnits, currency);
+  if (exact === "Unavailable" || minorUnits == null) return exact;
+  if (currency?.trim().toUpperCase() === "USD" && minorUnits >= 100000) {
+    const thousands = minorUnits / 100000;
+    return `$${thousands.toFixed(Number.isInteger(thousands) ? 0 : 1)}k`;
+  }
+  return exact;
 }

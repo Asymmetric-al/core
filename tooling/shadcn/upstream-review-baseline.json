@@ -2666,11 +2666,11 @@
     },
     {
       "path": "tests/unit/scripts/design-system-health.test.ts",
-      "sha256": "07a124375803de7adb17ca7b64fdac74d9fe595774ef84810053b3219190fde4"
+      "sha256": "b92e6c78cfbb0248f24599754f3afdf2e17f24828063e80a7e2a3d92d3155cad"
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",
-      "sha256": "8a1250c2181465358d6ea3403672a068f2e5767e57eab2854d2f6d24e5105de2"
+      "sha256": "c73d2ab996e37564b75e9b76cbabf48254a5da195f326300d3ab609ffa1f066f"
     }
   ],
   "sourceMappings": [

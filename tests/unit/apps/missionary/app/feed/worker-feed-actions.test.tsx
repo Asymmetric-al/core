@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, waitFor } from "@testing-library/react";
+import { renderDraftHook as renderHook } from "../../../../fixtures/retained-drafts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ refresh: vi.fn() }));

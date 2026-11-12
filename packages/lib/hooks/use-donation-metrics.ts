@@ -13,7 +13,6 @@ export interface ChartDataPoint {
 
 export interface MonthlyChartDataPoint {
   month: string;
-  /** Calendar year of the month, so labels can tell years apart. */
   year: number;
   recurring: number;
   oneTime: number;
@@ -22,7 +21,7 @@ export interface MonthlyChartDataPoint {
 }
 
 export interface MetricData {
-  total: number;
+  total: number | null;
   /** Percent change vs the prior period; null when the prior period had no gifts. */
   change: number | null;
   trend: "up" | "down" | "neutral";
@@ -32,6 +31,7 @@ export interface MetricData {
 /** One gift as the metrics API returns it, in any status (cents). */
 export interface MetricsGift {
   amountCents: number;
+  currency: string | null;
   date: string;
   donorId: string | null;
   type: DonationType;
@@ -39,21 +39,19 @@ export interface MetricsGift {
 }
 
 export interface DonationMetrics {
+  currency: string | null;
   thisMonth: MetricData;
   lastMonth: MetricData;
   yearToDate: MetricData;
   monthlyBreakdown: MonthlyChartDataPoint[];
-  /** Every gift in the requested window, for analytics. */
   gifts: MetricsGift[];
   isLoading: boolean;
   error: Error | null;
-  /** Fetch the gifts again, e.g. after a failed load. */
   retry: () => void;
 }
 
 export type DonationType = "recurring" | "one_time" | "offline";
 
-/** Months of gifts the metrics API returns (and the giving chart spans). */
 const HISTORY_MONTHS = 13;
 
 /**
@@ -71,10 +69,28 @@ function localDayKey(date: Date): string {
 interface RawDonation {
   id: string;
   amount: number;
+  currency: string | null;
   donation_type: DonationType;
   created_at: string;
+  /** The day the gift was given (SQL DATE); entry time is the fallback. */
+  gift_date?: string | null;
   status: string;
   donor_id?: string | null;
+}
+
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * When a gift counts: its gift date, read as a local calendar day (a bare
+ * "2026-02-01" would otherwise parse as UTC midnight and slip a day west of
+ * UTC), or the time it was recorded when there is no gift date.
+ */
+function giftTime(d: RawDonation): Date {
+  const match = d.gift_date ? DATE_ONLY.exec(d.gift_date) : null;
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+  return new Date(d.created_at);
 }
 
 /**
@@ -95,7 +111,7 @@ function aggregateByDay(
   }
 
   donations.forEach((d) => {
-    const date = new Date(d.created_at);
+    const date = giftTime(d);
     if (date >= startDate && date <= endDate && d.status === "completed") {
       const key = localDayKey(date);
       dayMap.set(key, (dayMap.get(key) ?? 0) + Number(d.amount));
@@ -114,8 +130,8 @@ function aggregateByDay(
 function aggregateByMonth(
   donations: RawDonation[],
   months: number,
+  now: Date,
 ): MonthlyChartDataPoint[] {
-  const now = new Date();
   const monthMap = new Map<
     string,
     { recurring: number; oneTime: number; offline: number }
@@ -129,7 +145,7 @@ function aggregateByMonth(
 
   donations.forEach((d) => {
     if (d.status !== "completed") return;
-    const date = new Date(d.created_at);
+    const date = giftTime(d);
     const key = localMonthKey(date);
     const entry = monthMap.get(key);
     if (entry) {
@@ -200,15 +216,19 @@ export function useDonationMetrics(
   options: { months?: number } = {},
 ): DonationMetrics {
   const months = options.months ?? HISTORY_MONTHS;
-  // The API defaults to HISTORY_MONTHS, so only a wider window is asked for.
   const query = options.months === undefined ? "" : `?months=${months}`;
-  const [donations, setDonations] = useState<RawDonation[]>([]);
+  const [{ donations, currency }, setMoney] = useState<{
+    donations: RawDonation[];
+    currency: string | null;
+  }>({ donations: [], currency: null });
+  const [calendarAnchor, setCalendarAnchor] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => setAttempt((count) => count + 1), []);
 
   useEffect(() => {
+    setCalendarAnchor(new Date());
     if (!missionaryId) {
       setIsLoading(false);
       return;
@@ -245,7 +265,11 @@ export function useDonationMetrics(
           throw new Error("Donation metrics are unavailable.");
         }
 
-        setDonations(result.donations || []);
+        setMoney({
+          donations: result.donations || [],
+          currency:
+            typeof result.currency === "string" ? result.currency : null,
+        });
       } catch (e) {
         if (!isMounted) return;
         setError(
@@ -270,13 +294,52 @@ export function useDonationMetrics(
     DonationMetrics,
     "isLoading" | "error" | "retry"
   > => {
-    const now = new Date();
+    const gifts = donations.map((donation) => ({
+      amountCents: donation.amount,
+      currency: donation.currency ?? null,
+      date: giftTime(donation).toISOString(),
+      donorId: donation.donor_id ?? null,
+      type: donation.donation_type,
+      status: donation.status,
+    }));
+    const completed = donations.filter(
+      (donation) => donation.status === "completed",
+    );
+    let checkedTotal = 0;
+    const available =
+      currency !== null &&
+      completed.every((donation) => {
+        checkedTotal += donation.amount;
+        return (
+          donation.currency === currency &&
+          Number.isSafeInteger(donation.amount) &&
+          donation.amount >= 0 &&
+          Number.isSafeInteger(checkedTotal)
+        );
+      });
+    if (calendarAnchor === null || !available) {
+      const unavailable: MetricData = {
+        total: null,
+        change: null,
+        trend: "neutral",
+        data: [],
+      };
+      return {
+        currency: null,
+        thisMonth: unavailable,
+        lastMonth: unavailable,
+        yearToDate: unavailable,
+        monthlyBreakdown: [],
+        gifts,
+      };
+    }
+    const now = calendarAnchor;
 
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const lastMonthEnd = new Date(thisMonthStart.getTime() - 1);
 
     const twoMonthsAgoStart = new Date(
       now.getFullYear(),
@@ -301,7 +364,7 @@ export function useDonationMetrics(
     const sumPeriod = (start: Date, end: Date) =>
       donations
         .filter((d) => {
-          const date = new Date(d.created_at);
+          const date = giftTime(d);
           return date >= start && date < end && d.status === "completed";
         })
         .reduce((sum, d) => sum + Number(d.amount), 0);
@@ -323,6 +386,7 @@ export function useDonationMetrics(
         : calculateChange(ytdTotal, lastYtdTotal);
 
     return {
+      currency,
       thisMonth: {
         total: thisMonthTotal,
         ...thisMonthChange,
@@ -338,20 +402,14 @@ export function useDonationMetrics(
         ...ytdChange,
         data: aggregateByDay(donations, yearStart, now),
       },
-      monthlyBreakdown: aggregateByMonth(donations, HISTORY_MONTHS),
-      gifts: donations.map((d) => ({
-        amountCents: Number(d.amount),
-        date: d.created_at,
-        donorId: d.donor_id ?? null,
-        type: d.donation_type,
-        status: d.status,
-      })),
+      monthlyBreakdown: aggregateByMonth(donations, HISTORY_MONTHS, now),
+      gifts,
     };
-  }, [donations, months]);
+  }, [donations, currency, months, calendarAnchor]);
 
   return {
     ...metrics,
-    isLoading,
+    isLoading: isLoading || calendarAnchor === null,
     error,
     retry,
   };

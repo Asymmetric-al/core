@@ -45,6 +45,8 @@ import { GIFT_TYPE_LABELS, type Transaction } from "./types";
 
 import type { MonthlyGivingPoint } from "./monthly-giving-chart";
 
+import { makeDisplayDate } from "@/lib/dates";
+
 // Recharts loads only when the summary chart is on screen.
 const MonthlyGivingChart = dynamic(() => import("./monthly-giving-chart"), {
   ssr: false,
@@ -136,7 +138,7 @@ export function monthlyGivingSeries(
   const totalsCents = Array.from({ length: 12 }, () => 0);
   for (const transaction of transactions) {
     if (transaction.status !== "Paid") continue;
-    const date = new Date(transaction.date);
+    const date = makeDisplayDate(transaction.date);
     if (Number.isNaN(date.getTime())) continue;
     if (date.getFullYear().toString() !== year) continue;
     const month = date.getMonth();
@@ -463,7 +465,7 @@ export default function DonorHistoryPage() {
   const yearTransactions = useMemo(
     () =>
       transactions.filter(
-        (t) => new Date(t.date).getFullYear().toString() === yearFilter,
+        (t) => makeDisplayDate(t.date).getFullYear().toString() === yearFilter,
       ),
     [transactions, yearFilter],
   );
@@ -482,7 +484,10 @@ export default function DonorHistoryPage() {
           statusFilter === "All" || t.status === statusFilter;
         return matchesSearch && matchesType && matchesStatus;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort(
+        (a, b) =>
+          makeDisplayDate(b.date).getTime() - makeDisplayDate(a.date).getTime(),
+      );
   }, [searchTerm, yearTransactions, typeFilter, statusFilter]);
 
   return (

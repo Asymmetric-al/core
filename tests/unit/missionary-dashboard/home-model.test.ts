@@ -8,6 +8,35 @@ import {
 
 const NOW = new Date(2026, 10, 10, 12);
 
+it("retains gift currency in home cards and thank-you prompts", () => {
+  for (const [currency, expected] of [
+    ["JPY", "¥1,000"],
+    ["BHD", "BHD 1.000"],
+    [null, "their gift"],
+  ]) {
+    const source = snapshot({
+      recentGifts: [
+        {
+          id: "known",
+          donorId: "taylor",
+          amountCents: 1000,
+          currency,
+          type: "One-Time",
+          date: "2026-11-05",
+        },
+      ],
+    });
+    expect(recentGifts(source)[0]?.currency).toBe(currency);
+    const title = buildNeedsYou({
+      snapshot: source,
+      followRequestCount: 0,
+      now: NOW,
+    }).find((item) => item.kind === "thank")?.title;
+    expect(title).toContain(expected);
+    expect(title).not.toContain("$");
+  }
+});
+
 const partner = (overrides: Record<string, unknown>) => ({
   id: "p",
   displayName: "Partner",
@@ -64,6 +93,7 @@ const snapshot = (overrides: Record<string, unknown> = {}) =>
         id: "g3",
         donorId: null,
         amountCents: 2_000,
+        currency: "USD",
         date: "2026-11-08T09:00:00.000Z",
         type: "One-Time",
       },
@@ -71,6 +101,7 @@ const snapshot = (overrides: Record<string, unknown> = {}) =>
         id: "g1",
         donorId: "taylor",
         amountCents: 5_000,
+        currency: "USD",
         date: "2026-11-05T09:00:00.000Z",
         type: "One-Time",
       },
@@ -78,6 +109,7 @@ const snapshot = (overrides: Record<string, unknown> = {}) =>
         id: "g0",
         donorId: "taylor",
         amountCents: 5_000,
+        currency: "USD",
         date: "2026-10-05T09:00:00.000Z",
         type: "Recurring",
       },
@@ -85,6 +117,7 @@ const snapshot = (overrides: Record<string, unknown> = {}) =>
         id: "g2",
         donorId: "grace",
         amountCents: 10_000,
+        currency: "USD",
         date: "2026-08-01T09:00:00.000Z",
         type: "Recurring",
       },
@@ -178,6 +211,7 @@ describe("buildNeedsYou", () => {
             id: "t2",
             donorId: "taylor",
             amountCents: 5_000,
+            currency: "USD",
             date: "2026-11-05T09:00:00.000Z",
             type: "Recurring",
           },
@@ -185,6 +219,7 @@ describe("buildNeedsYou", () => {
             id: "t1",
             donorId: "taylor",
             amountCents: 5_000,
+            currency: "USD",
             date: "2026-10-05T09:00:00.000Z",
             type: "Recurring",
           },
@@ -193,6 +228,7 @@ describe("buildNeedsYou", () => {
             id: "c1",
             donorId: "old",
             amountCents: 2_500,
+            currency: "USD",
             date: "2026-11-08T09:00:00.000Z",
             type: "Recurring",
           },
@@ -272,6 +308,7 @@ describe("recentGifts", () => {
         partnerId: null,
         name: "Anonymous partner",
         amountCents: 2_000,
+        currency: "USD",
         date: "2026-11-08T09:00:00.000Z",
         avatarUrl: null,
         recurring: false,
@@ -281,6 +318,7 @@ describe("recentGifts", () => {
         partnerId: "taylor",
         name: "Taylor Nguyen",
         amountCents: 5_000,
+        currency: "USD",
         date: "2026-11-05T09:00:00.000Z",
         avatarUrl: null,
         recurring: false,

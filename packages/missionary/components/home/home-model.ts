@@ -33,6 +33,7 @@ export type RecentGift = {
   partnerId: string | null;
   name: string;
   amountCents: number;
+  currency: string | null;
   date: string;
   avatarUrl: string | null;
   recurring: boolean;
@@ -41,10 +42,6 @@ export type RecentGift = {
 /** Opens one partner on the Partners page (it reads `?partner=`). */
 function partnerHref(partnerId: string) {
   return `/donors?partner=${encodeURIComponent(partnerId)}`;
-}
-
-function plural(count: number, one: string, many: string) {
-  return count === 1 ? one : many;
 }
 
 /**
@@ -76,7 +73,7 @@ export function buildNeedsYou({
       id: "overdue-tasks",
       kind: "overdue-tasks",
       tone: "urgent",
-      title: `${overdue.length} overdue ${plural(overdue.length, "task", "tasks")}`,
+      title: `${overdue.length} overdue ${overdue.length === 1 ? "task" : "tasks"}`,
       detail: `Oldest: ${overdue[0]!.title}`,
       href: "/tasks",
       action: "Open tasks",
@@ -126,14 +123,14 @@ export function buildNeedsYou({
         .some((older) => older.partnerId === gift.partnerId && older.recurring);
     if (gift.recurring && !firstMonthly) continue;
     thanked.add(gift.partnerId);
-    const amount = formatCents(gift.amountCents);
+    const amount = formatCents(gift.amountCents, gift.currency);
     items.push({
       id: `thank-${gift.partnerId}`,
       kind: "thank",
       tone: "info",
       title: firstMonthly
-        ? `Thank ${gift.name} for their first monthly gift of ${amount}`
-        : `Thank ${gift.name} for ${amount}`,
+        ? `Thank ${gift.name} for their first monthly gift${amount === "Unavailable" ? "" : ` of ${amount}`}`
+        : `Thank ${gift.name} for ${amount === "Unavailable" ? "their gift" : amount}`,
       detail: `Gave on ${formatDay(gift.date)}`,
       href: partnerHref(gift.partnerId),
       action: "View partner",
@@ -191,6 +188,7 @@ export function recentGifts(
         partnerId: partner ? partner.id : null,
         name: partner?.displayName ?? "Anonymous partner",
         amountCents: gift.amountCents,
+        currency: gift.currency,
         date: gift.date,
         avatarUrl: partner?.avatarUrl ?? null,
         recurring: gift.type === "Recurring",

@@ -11,7 +11,7 @@ export interface WalletPaymentMethod {
   expMonth: number | null;
   expYear: number | null;
   isDefault: boolean;
-  /** Active recurring gifts charged to this method. */
+  /** Active or paused gifts linked to this method in local records. */
   recurringGiftIds: string[];
 }
 
@@ -77,10 +77,29 @@ function toWalletMethod(
   return null;
 }
 
+async function listSavedMethods(stripe: Stripe, customerId: string) {
+  const methods: Stripe.PaymentMethod[] = [];
+  let cursor: string | undefined;
+  for (;;) {
+    const page = await stripe.customers.listPaymentMethods(customerId, {
+      limit: 20,
+      ...(cursor ? { starting_after: cursor } : {}),
+    });
+    methods.push(...page.data);
+    if (!page.has_more) return methods;
+    const last = page.data.at(-1);
+    if (!last || last.id === cursor) {
+      throw new Error("Unable to finish loading payment methods");
+    }
+    cursor = last.id;
+  }
+}
+
 /**
  * The donor's saved payment methods, read from Stripe. Adding, removing and
  * choosing the default stay in Stripe's billing portal; this only reads.
- * Each method lists the active recurring gifts charged to it.
+ * Gift links reflect local records, not the subscription's current billing
+ * overrides. Legacy Sources and unsupported method types are not displayed.
  */
 export async function listDonorWallet({
   stripe,
@@ -103,17 +122,16 @@ export async function listDonorWallet({
     if (isMissingCustomer(error)) return { status: "not_linked", methods: [] };
     throw error;
   }
-  if ("deleted" in customer && customer.deleted) {
+  if (customer.deleted) {
     return { status: "not_linked", methods: [] };
   }
 
-  const rawDefault = (customer as Stripe.Customer).invoice_settings
-    ?.default_payment_method;
+  const rawDefault = customer.invoice_settings?.default_payment_method;
   const defaultId =
     typeof rawDefault === "string" ? rawDefault : (rawDefault?.id ?? null);
 
-  const [{ data: methods }, { data: pledges, error }] = await Promise.all([
-    stripe.customers.listPaymentMethods(customerId, { limit: 20 }),
+  const [methods, { data: pledges, error }] = await Promise.all([
+    listSavedMethods(stripe, customerId),
     supabaseAdmin
       .from("donor_pledges")
       .select("id, stripe_payment_method_id")

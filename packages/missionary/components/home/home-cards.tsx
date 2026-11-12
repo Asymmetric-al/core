@@ -29,7 +29,7 @@ import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
-import { formatCents } from "../money-units";
+import { formatCents, MONEY_UNAVAILABLE, moneyProgress } from "../money-units";
 import { postTypeLabel } from "./home-model";
 
 import type { NeedsYouItem, RecentGift } from "./home-model";
@@ -114,7 +114,10 @@ function Stat({
 /** Goal coverage first, then what has come in. */
 export function SupportCard({
   committedCents,
+  committedCurrency,
   goalCents,
+  goalCurrency,
+  metricsCurrency,
   thisMonthCents,
   lastMonthCents,
   yearCents,
@@ -123,20 +126,29 @@ export function SupportCard({
   metricsFailed = false,
   onRetryMetrics,
 }: {
-  committedCents: number;
-  goalCents: number;
-  thisMonthCents: number;
-  lastMonthCents: number;
-  yearCents: number;
+  committedCents: number | null;
+  committedCurrency: string | null;
+  goalCents: number | null;
+  goalCurrency: string | null;
+  metricsCurrency: string | null;
+  thisMonthCents: number | null;
+  lastMonthCents: number | null;
+  yearCents: number | null;
   monthlyPartners: number;
   metricsLoading: boolean;
   metricsFailed?: boolean;
   onRetryMetrics?: () => void;
 }) {
-  const hasGoal = goalCents > 0;
-  const covered = Math.max(0, Math.min(committedCents, goalCents));
-  const percent = hasGoal ? Math.round((covered / goalCents) * 100) : 0;
-  const stillNeeded = Math.max(0, goalCents - committedCents);
+  const progress = moneyProgress(
+    committedCents,
+    committedCurrency,
+    goalCents,
+    goalCurrency,
+  );
+  const hasGoal = progress !== null;
+  const covered = progress?.covered ?? 0;
+  const percent = progress?.percent ?? 0;
+  const stillNeeded = progress?.remaining ?? null;
 
   return (
     <RegionCard
@@ -148,11 +160,11 @@ export function SupportCard({
         <div className="flex flex-col gap-3">
           <p className="flex flex-wrap items-baseline gap-x-2">
             <span className="text-4xl font-semibold tracking-tight tabular-nums text-foreground">
-              {formatCents(committedCents)}
+              {formatCents(committedCents, committedCurrency)}
             </span>
             <span className="text-muted-foreground">
               {hasGoal
-                ? `a month of your ${formatCents(goalCents)} goal`
+                ? `a month of your ${formatCents(goalCents, goalCurrency)} goal`
                 : "a month"}
             </span>
           </p>
@@ -160,22 +172,26 @@ export function SupportCard({
             <>
               <Meter
                 value={covered}
-                max={goalCents}
+                max={goalCents ?? 1}
                 aria-label="Monthly support toward your goal"
                 getAriaValueText={() => `${percent}% of your monthly goal`}
               />
               <p className="text-sm text-muted-foreground">
                 {stillNeeded === 0
                   ? "You’ve reached your monthly goal."
-                  : `${percent}% of your goal · ${formatCents(stillNeeded)} a month still needed`}
+                  : `${percent}% of your goal · ${formatCents(stillNeeded, goalCurrency)} a month still needed`}
               </p>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No monthly goal is set yet.
+              Goal comparison unavailable: the goal and commitments need the
+              same known currency.
             </p>
           )}
         </div>
+        {!metricsLoading && !metricsCurrency && !metricsFailed ? (
+          <p className="text-sm text-muted-foreground">{MONEY_UNAVAILABLE}</p>
+        ) : null}
         {metricsFailed && !metricsLoading ? (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
             <p role="alert" className="text-sm text-foreground">
@@ -189,17 +205,17 @@ export function SupportCard({
           <dl className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
             <Stat
               label="This month so far"
-              value={formatCents(thisMonthCents)}
+              value={formatCents(thisMonthCents, metricsCurrency)}
               loading={metricsLoading}
             />
             <Stat
               label="Last month"
-              value={formatCents(lastMonthCents)}
+              value={formatCents(lastMonthCents, metricsCurrency)}
               loading={metricsLoading}
             />
             <Stat
               label="This year"
-              value={formatCents(yearCents)}
+              value={formatCents(yearCents, metricsCurrency)}
               loading={metricsLoading}
             />
             <Stat label="Monthly partners" value={String(monthlyPartners)} />
@@ -340,7 +356,7 @@ export function RecentGiftsCard({
                 </p>
               </div>
               <p className="text-sm font-semibold tabular-nums text-foreground">
-                {formatCents(gift.amountCents)}
+                {formatCents(gift.amountCents, gift.currency)}
               </p>
             </li>
           ))}

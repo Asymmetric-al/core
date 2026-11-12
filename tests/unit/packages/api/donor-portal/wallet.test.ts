@@ -20,7 +20,7 @@ const bank = (id: string, bankName: string, last4: string) => ({
 });
 
 function fakeStripe(options: {
-  methods?: unknown[];
+  methods?: Array<{ id: string; [key: string]: unknown }>;
   defaultId?: string | null;
   deleted?: boolean;
   missing?: boolean;
@@ -42,7 +42,23 @@ function fakeStripe(options: {
               },
             };
       }),
-      listPaymentMethods: vi.fn(async () => ({ data: options.methods ?? [] })),
+      listPaymentMethods: vi.fn(
+        async (
+          _customerId: string,
+          params: { limit: number; starting_after?: string },
+        ) => {
+          const methods = options.methods ?? [];
+          const start = params.starting_after
+            ? methods.findIndex(
+                (method) => method.id === params.starting_after,
+              ) + 1
+            : 0;
+          return {
+            data: methods.slice(start, start + params.limit),
+            has_more: start + params.limit < methods.length,
+          };
+        },
+      ),
     },
   } as never;
 }
@@ -114,6 +130,36 @@ describe("listDonorWallet", () => {
         },
       ],
     });
+  });
+
+  it("includes methods beyond the first page and puts a later default first", async () => {
+    const methods = Array.from({ length: 21 }, (_, index) =>
+      card(`pm_${index + 1}`, "visa", "4242", [12, 2028]),
+    );
+    const wallet = await listDonorWallet({
+      stripe: fakeStripe({ methods, defaultId: "pm_21" }),
+      supabaseAdmin: fakeDb([]),
+      donor,
+      tenantId: "tenant-1",
+    });
+    expect(wallet.methods).toHaveLength(21);
+    expect(wallet.methods[0]).toMatchObject({ id: "pm_21", isDefault: true });
+    expect(new Set(wallet.methods.map((method) => method.id)).size).toBe(21);
+  });
+
+  it("does not infer that an unrecorded pledge uses the customer default", async () => {
+    const wallet = await listDonorWallet({
+      stripe: fakeStripe({
+        methods: [card("pm_default", "visa", "4242", [12, 2028])],
+        defaultId: "pm_default",
+      }),
+      supabaseAdmin: fakeDb([
+        { id: "unrecorded-pledge", stripe_payment_method_id: null },
+      ]),
+      donor,
+      tenantId: "tenant-1",
+    });
+    expect(wallet.methods[0].recurringGiftIds).toEqual([]);
   });
 
   it("says there is nothing to show when no Stripe customer is linked", async () => {

@@ -196,7 +196,7 @@ describe("open partner's giving summary", () => {
       ?.textContent;
   }
 
-  it("shows exact amounts with cents and no made-up last gift", async () => {
+  it("keeps unqualified scalar totals unavailable and does not invent a last gift", async () => {
     fixture.rows = [
       { ...partner("r21-a", "Roster Partner A"), total_given: 75500 },
       {
@@ -222,18 +222,18 @@ describe("open partner's giving summary", () => {
     // The roster's amount is everything given, not a monthly figure, so it
     // says so beside a "Monthly" badge and in the row's name.
     const row = await screen.findByRole("button", {
-      name: /^Roster Partner A.*\$755\.00 given$/,
+      name: /^Roster Partner A.*Unavailable given$/,
     });
     fireEvent.click(row);
     await screen.findByRole("heading", { name: "Roster Partner A" });
-    expect(statValue("Lifetime")).toBe("$755.00");
+    expect(statValue("Lifetime")).toBe("Unavailable");
     // No gift on record: say so rather than show a $0.00 gift.
     expect(statValue("Last gift")).toBe("—");
 
     fireEvent.click(openControl("Roster Partner B"));
     await screen.findByRole("heading", { name: "Roster Partner B" });
-    await waitFor(() => expect(statValue("Lifetime")).toBe("$706.67"));
-    expect(statValue("Last gift")).toBe("$75.50");
+    await waitFor(() => expect(statValue("Lifetime")).toBe("Unavailable"));
+    expect(statValue("Last gift")).toBe("Unavailable");
 
     fireEvent.click(openControl("Roster Partner C"));
     await screen.findByRole("heading", { name: "Roster Partner C" });

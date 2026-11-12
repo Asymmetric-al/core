@@ -3,10 +3,12 @@
 import { refreshPendingFollowRequestCount } from "@asym/database/hooks";
 import { fetchJsonResult, fetchResult } from "@asym/lib/http/fetch-result";
 import { isPostContentEmpty } from "@asym/ui/components/shadcn/rich-text-editor";
+import { useRetainedDraft } from "@asym/ui/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { normalizeVisibility, placeSavedPost } from "./feed-model";
+import { writeExistingPost } from "./post-write-queue";
 
 import type {
   FollowerRequest,
@@ -35,6 +37,8 @@ function publishedFeedErrorMessage(failure: FetchFailure): string {
 }
 
 type WorkerFeedPageViewModel = {
+  canRead: boolean;
+  canWrite: boolean;
   postType: string;
   postTitle: string;
   postContent: string;
@@ -86,7 +90,67 @@ type WorkerFeedPageViewModel = {
   handleResolveRequest: (id: string, approved: boolean) => Promise<void>;
 };
 
+type ComposerDraft = Pick<
+  WorkerFeedUiState,
+  | "postType"
+  | "postTitle"
+  | "postContent"
+  | "editingPostId"
+  | "postPrivacy"
+  | "selectedMedia"
+> & { expectedUpdatedAt: string | null };
+
+const emptyComposer: ComposerDraft = {
+  postType: "Update",
+  postTitle: "",
+  postContent: "",
+  editingPostId: null,
+  postPrivacy: "public",
+  selectedMedia: [],
+  expectedUpdatedAt: null,
+};
+
+function composerSnapshot(
+  state: WorkerFeedUiState,
+  expectedUpdatedAt: string | null,
+): ComposerDraft {
+  return {
+    postType: state.postType,
+    postTitle: state.postTitle,
+    postContent: state.postContent,
+    editingPostId: state.editingPostId,
+    postPrivacy: state.postPrivacy,
+    selectedMedia: state.selectedMedia,
+    expectedUpdatedAt,
+  };
+}
+
+const composerFields = new Set<keyof WorkerFeedUiState>([
+  "postType",
+  "postTitle",
+  "postContent",
+  "editingPostId",
+  "postPrivacy",
+  "selectedMedia",
+]);
+
 export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
+  const {
+    value: retained,
+    dirty: hasUnsavedWriting,
+    read: readDraft,
+    update: retainDraft,
+    discard: discardDraft,
+    beginSave,
+    finishSave,
+    canRead,
+    canWrite,
+    canAutosave,
+    isCurrent,
+    isSaving: retainedSaving,
+    revokeRead,
+    revokeWrite,
+  } = useRetainedDraft<ComposerDraft>("missionary-feed-composer");
   const [uiState, setUiState] = useState<WorkerFeedUiState>({
     postType: "Update",
     postTitle: "",
@@ -100,7 +164,11 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     selectedMedia: [],
     isUploading: false,
     isLoadingRequests: true,
+    ...retained,
   });
+  const uiStateRef = useRef(uiState);
+  const revisions = useRef(new Map<string, string | null>());
+  const manualSaving = useRef(false);
   const {
     postType,
     postTitle,
@@ -114,26 +182,54 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     selectedMedia,
     isUploading,
     isLoadingRequests,
-  } = uiState;
+  } = { ...uiState, ...emptyComposer, ...retained };
 
   const setUiField = useCallback(
     <K extends keyof WorkerFeedUiState>(
       key: K,
       value: React.SetStateAction<WorkerFeedUiState[K]>,
     ) => {
-      setUiState((prev) => ({
-        ...prev,
+      if (composerFields.has(key) && !canWrite) return;
+      const previous = {
+        ...uiStateRef.current,
+        ...emptyComposer,
+        ...readDraft(),
+      };
+      const next = {
+        ...previous,
         [key]:
           typeof value === "function"
             ? (
                 value as (
                   prevValue: WorkerFeedUiState[K],
                 ) => WorkerFeedUiState[K]
-              )(prev[key])
+              )(previous[key])
             : value,
-      }));
+      };
+      uiStateRef.current = next;
+      if (composerFields.has(key)) {
+        const previousDraft = readDraft();
+        const snapshot = composerSnapshot(
+          next,
+          next.editingPostId
+            ? previousDraft?.editingPostId === next.editingPostId
+              ? previousDraft.expectedUpdatedAt
+              : (revisions.current.get(next.editingPostId) ?? null)
+            : null,
+        );
+        const dirty =
+          manualSaving.current ||
+          snapshot.editingPostId !== null ||
+          snapshot.postTitle.trim().length > 0 ||
+          !isPostContentEmpty(snapshot.postContent) ||
+          snapshot.postType !== emptyComposer.postType ||
+          snapshot.postPrivacy !== emptyComposer.postPrivacy ||
+          snapshot.selectedMedia.length > 0;
+        retainDraft(snapshot, { dirty });
+      }
+      setUiState(next);
     },
-    [],
+    [canWrite, readDraft, retainDraft],
   );
 
   const setPostType = useCallback(
@@ -221,6 +317,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       const result = await fetchJsonResult<{ posts?: Post[] }>(
         `/api/posts?status=${status}`,
       );
+      if (!isCurrent()) return;
       if (
         requestSequence !== null &&
         requestSequence !== publishedRequestSequenceRef.current
@@ -235,6 +332,11 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           setDraftsError(false);
         }
       } else {
+        if (
+          result.error.kind === "http" &&
+          (result.error.status === 401 || result.error.status === 403)
+        )
+          revokeRead();
         console.error("Failed to fetch posts:", toError(result.error));
         if (status === "published") {
           setFeedError(publishedFeedErrorMessage(result.error));
@@ -249,7 +351,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         setIsLoadingDrafts(false);
       }
     },
-    [setIsLoading],
+    [isCurrent, revokeRead, setIsLoading],
   );
 
   const reloadPosts = useCallback(async () => {
@@ -295,6 +397,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       );
       if (
         cancelled ||
+        !isCurrent() ||
         (requestSequence !== null &&
           requestSequence !== publishedRequestSequenceRef.current)
       )
@@ -308,6 +411,11 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           setDraftsError(false);
         }
       } else {
+        if (
+          result.error.kind === "http" &&
+          (result.error.status === 401 || result.error.status === 403)
+        )
+          revokeRead();
         console.error("Failed to fetch posts:", toError(result.error));
         if (status === "published") {
           setFeedError(publishedFeedErrorMessage(result.error));
@@ -351,31 +459,78 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       cancelled = true;
       publishedRequestSequenceRef.current += 1;
     };
-  }, [setIsLoading, setIsLoadingRequests]);
+  }, [isCurrent, revokeRead, setIsLoading, setIsLoadingRequests]);
+
+  const resetComposer = useCallback(() => {
+    discardDraft();
+    const next = { ...uiStateRef.current, ...emptyComposer };
+    uiStateRef.current = next;
+    setUiState(next);
+  }, [discardDraft]);
+
+  const prepareSave = useCallback(
+    (automatic = false) => {
+      if (!canWrite || !isCurrent()) return null;
+      const current = readDraft();
+      if (!current)
+        retainDraft(
+          composerSnapshot(
+            uiStateRef.current,
+            editingPostId
+              ? (revisions.current.get(editingPostId) ?? null)
+              : null,
+          ),
+        );
+      return beginSave({ automatic });
+    },
+    [beginSave, canWrite, editingPostId, isCurrent, readDraft, retainDraft],
+  );
 
   const handlePost = useCallback(
     async (status: PostStatus = "published") => {
-      if (isPostContentEmpty(postContent)) return;
+      if (manualSaving.current || !canWrite || isPostContentEmpty(postContent))
+        return;
+      const save = prepareSave();
+      if (!save) return;
+      const snapshot = save.value;
 
+      manualSaving.current = true;
       setIsSaving(true);
-      const method = editingPostId ? "PATCH" : "POST";
-      const url = editingPostId ? `/api/posts/${editingPostId}` : "/api/posts";
+      const updates = {
+        title: snapshot.postTitle,
+        content: snapshot.postContent,
+        post_type: snapshot.postType,
+        visibility: snapshot.postPrivacy,
+        status,
+        media: snapshot.selectedMedia,
+      };
+      const result = snapshot.editingPostId
+        ? await writeExistingPost(
+            snapshot.editingPostId,
+            updates,
+            snapshot.expectedUpdatedAt,
+            save.canDispatch,
+          )
+        : await fetchJsonResult<{ post: Post }>("/api/posts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updates),
+          });
 
-      const result = await fetchJsonResult<{ post: Post }>(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: postTitle,
-          content: postContent,
-          post_type: postType,
-          visibility: postPrivacy,
-          status,
-          media: selectedMedia,
-        }),
-      });
-
+      if (!save.isCurrent()) {
+        finishSave(save, false);
+        manualSaving.current = false;
+        setIsSaving(false);
+        return;
+      }
       if (result.ok) {
         const { post } = result.data;
+        const matched = finishSave(save, true, (current) => ({
+          ...current,
+          editingPostId: post.id,
+          expectedUpdatedAt: post.updated_at ?? null,
+        }));
+        revisions.current.set(post.id, post.updated_at ?? null);
         const wasPublished = posts.some((item) => item.id === post.id);
         const published = (post.status ?? status) === "published";
         // The post joins the list for its saved status, whichever tab is open.
@@ -389,31 +544,29 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           toast.success("Draft saved");
         }
 
-        setPostTitle("");
-        setPostContent("");
-        setEditingPostId(null);
-        setPostType("Update");
-        setSelectedMedia([]);
+        if (matched) resetComposer();
       } else {
+        finishSave(save, false);
+        if (result.error.kind === "http" && result.error.status === 401)
+          revokeRead();
+        if (result.error.kind === "http" && result.error.status === 403)
+          revokeWrite();
         toast.error("Couldn’t save your update. Try again.");
       }
+      manualSaving.current = false;
       setIsSaving(false);
     },
     [
-      editingPostId,
+      canWrite,
+      finishSave,
+      prepareSave,
+      resetComposer,
+      revokeRead,
+      revokeWrite,
       postContent,
-      postPrivacy,
-      postTitle,
-      postType,
       posts,
-      selectedMedia,
-      setEditingPostId,
       setIsSaving,
       setLastSaved,
-      setPostContent,
-      setPostTitle,
-      setPostType,
-      setSelectedMedia,
     ],
   );
 
@@ -425,63 +578,100 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
   // Unlike handlePost, autosave leaves the composer as it is.
   const autosaveDraft = useCallback(async () => {
-    if (!editingPostId) return;
-    const result = await fetchJsonResult<{ post: Post }>(
-      `/api/posts/${editingPostId}`,
+    if (!editingPostId || manualSaving.current || !canAutosave) return;
+    const save = prepareSave(true);
+    if (!save) return;
+    const snapshot = save.value;
+    const result = await writeExistingPost(
+      editingPostId,
       {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: postTitle,
-          content: postContent,
-          post_type: postType,
-          visibility: postPrivacy,
-          status: "draft",
-          media: selectedMedia,
-        }),
+        title: snapshot.postTitle,
+        content: snapshot.postContent,
+        post_type: snapshot.postType,
+        visibility: snapshot.postPrivacy,
+        status: "draft",
+        autosave: true,
+        media: snapshot.selectedMedia,
       },
+      snapshot.expectedUpdatedAt,
+      save.canDispatch,
     );
-    if (!result.ok) return;
+    if (!save.isCurrent() || !result.ok) {
+      finishSave(save, false);
+      if (!result.ok && save.isCurrent() && result.error.kind === "http") {
+        if (result.error.status === 401) revokeRead();
+        if (result.error.status === 403) revokeWrite();
+      }
+      return;
+    }
     const { post } = result.data;
+    finishSave(
+      save,
+      true,
+      (current) => ({ ...current, expectedUpdatedAt: post.updated_at ?? null }),
+      { retain: true },
+    );
+    revisions.current.set(post.id, post.updated_at ?? null);
     setDrafts((prev) => placeSavedPost(prev, post, true));
     setLastSaved(new Date());
   }, [
+    canAutosave,
+    finishSave,
+    prepareSave,
+    revokeRead,
+    revokeWrite,
     editingPostId,
-    postContent,
-    postPrivacy,
-    postTitle,
-    postType,
-    selectedMedia,
     setLastSaved,
   ]);
 
   useEffect(() => {
-    if (isPostContentEmpty(postContent) || isSaving || !isEditingDraft) return;
+    if (
+      isPostContentEmpty(postContent) ||
+      isSaving ||
+      !isEditingDraft ||
+      !canAutosave
+    )
+      return;
 
     const timer = setTimeout(() => {
       void autosaveDraft();
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, [autosaveDraft, isEditingDraft, isSaving, postContent]);
+  }, [
+    autosaveDraft,
+    canAutosave,
+    isEditingDraft,
+    isSaving,
+    postContent,
+    postTitle,
+    postType,
+    postPrivacy,
+    selectedMedia,
+  ]);
 
   const handleEditDraft = (draft: Post) => {
-    setPostTitle(draft.title ?? "");
-    setPostContent(draft.content);
-    setPostType(draft.post_type);
-    setPostPrivacy(normalizeVisibility(draft.visibility));
-    // Saving sends media, so load what the post already has.
-    setSelectedMedia(draft.media ?? []);
-    setEditingPostId(draft.id);
+    if (!canWrite || !isCurrent()) return;
+    discardDraft();
+    revisions.current.set(draft.id, draft.updated_at ?? null);
+    const composer = {
+      postTitle: draft.title ?? "",
+      postContent: draft.content,
+      postType: draft.post_type,
+      postPrivacy: normalizeVisibility(draft.visibility),
+      selectedMedia: draft.media ?? [],
+      editingPostId: draft.id,
+      expectedUpdatedAt: draft.updated_at ?? null,
+    };
+    const next = { ...uiStateRef.current, ...composer };
+    uiStateRef.current = next;
+    setUiState(next);
+    retainDraft(composer, { dirty: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Opening another post replaces the composer, so unsaved writing is
   // confirmed first.
-  const hasUnsavedWriting =
-    !isPostContentEmpty(postContent) ||
-    postTitle.trim() !== "" ||
-    selectedMedia.length > 0;
   const requestEditPost = (post: Post) => {
     if (hasUnsavedWriting && post.id !== editingPostId) {
       setPendingEdit(post);
@@ -495,20 +685,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   };
   const cancelEditPost = () => setPendingEdit(null);
 
-  // Leaving the page with unsaved writing asks the browser to confirm.
-  useEffect(() => {
-    if (!hasUnsavedWriting || isSaving) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [hasUnsavedWriting, isSaving]);
-
   const cancelEditing = () => {
-    setEditingPostId(null);
-    setPostTitle("");
-    setPostContent("");
-    setPostType("Update");
-    setSelectedMedia([]);
+    resetComposer();
   };
 
   const pendingDelete =
@@ -556,12 +734,14 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   };
 
   return {
+    canRead,
+    canWrite,
     postType,
     postTitle,
     postContent,
     activeTab,
     isLoading,
-    isSaving,
+    isSaving: isSaving || retainedSaving,
     editingPostId,
     lastSaved,
     postPrivacy,
@@ -575,8 +755,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     setEditingPostId,
     setPostPrivacy,
     setSelectedMedia,
-    posts,
-    drafts,
+    posts: canRead ? posts : [],
+    drafts: canRead ? drafts : [],
     pendingRequests,
     feedError,
     draftsError,

@@ -66,6 +66,7 @@ export interface Post {
   content: string;
   created_at: string;
   likes_count?: number;
+  updated_at?: string | null;
   prayers_count?: number;
   comments?: FeedComment[];
   media?: MediaItem[];

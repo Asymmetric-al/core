@@ -136,8 +136,7 @@ type DonorInfo = {
 type DonorInfoErrors = Partial<Record<keyof DonorInfo, string>>;
 
 const DONOR_INFO_FIELDS = ["firstName", "lastName", "email"] as const;
-// Deliberately loose: one @, something before it, and a dotted domain.
-/** A donor detail with its label, hint and error tied to the input by id. */
+
 function DetailsField({
   id,
   label,
@@ -174,6 +173,7 @@ function DetailsField({
   );
 }
 
+// Deliberately loose: one @, something before it, and a dotted domain.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const trimDonorInfo = (info: DonorInfo): DonorInfo => ({
@@ -181,16 +181,6 @@ const trimDonorInfo = (info: DonorInfo): DonorInfo => ({
   firstName: info.firstName.trim(),
   lastName: info.lastName.trim(),
 });
-
-const validateDonorInfo = (info: DonorInfo): DonorInfoErrors => {
-  const errors: DonorInfoErrors = {};
-  if (!info.firstName) errors.firstName = "Enter your first name.";
-  if (!info.lastName) errors.lastName = "Enter your last name.";
-  if (!info.email) errors.email = "Enter your email address.";
-  else if (!EMAIL_PATTERN.test(info.email))
-    errors.email = "Enter an email address like name@example.com.";
-  return errors;
-};
 
 /**
  * Each checkout step replaces the last one, so the flow hands every step
@@ -838,19 +828,28 @@ function DetailsStep({
   donorInfo: DonorInfo;
   onBack: () => void;
   onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
-  onNext: () => void;
+  onNext: () => void | Promise<void>;
 }) {
   const [errors, setErrors] = useState<DonorInfoErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionPendingRef = useRef(false);
 
   const updateField = (field: keyof DonorInfo, value: string) => {
+    if (submissionPendingRef.current) return;
     onDonorInfoChange({ [field]: value });
     if (errors[field]) setErrors((current) => ({ ...current, [field]: "" }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submissionPendingRef.current) return;
     const trimmed = trimDonorInfo(donorInfo);
-    const nextErrors = validateDonorInfo(trimmed);
+    const nextErrors: DonorInfoErrors = {};
+    if (!trimmed.firstName) nextErrors.firstName = "Enter your first name.";
+    if (!trimmed.lastName) nextErrors.lastName = "Enter your last name.";
+    if (!trimmed.email) nextErrors.email = "Enter your email address.";
+    else if (!EMAIL_PATTERN.test(trimmed.email))
+      nextErrors.email = "Enter an email address like name@example.com.";
     setErrors(nextErrors);
     const firstInvalid = DONOR_INFO_FIELDS.find((field) => nextErrors[field]);
     if (firstInvalid) {
@@ -859,7 +858,17 @@ function DetailsStep({
       return;
     }
     onDonorInfoChange(trimmed);
-    onNext();
+    submissionPendingRef.current = true;
+    try {
+      const preparation = onNext();
+      if (preparation) {
+        setIsSubmitting(true);
+        await preparation;
+      }
+    } finally {
+      submissionPendingRef.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -886,15 +895,28 @@ function DetailsStep({
       <form
         noValidate
         aria-label="Your details"
+        aria-busy={isSubmitting}
         onSubmit={handleSubmit}
         className="space-y-12"
       >
+        {Object.values(errors).some(Boolean) ? (
+          <Alert
+            role="alert"
+            aria-label="Check your details"
+            variant="destructive"
+          >
+            <AlertDescription>
+              Check the highlighted fields before continuing.
+            </AlertDescription>
+          </Alert>
+        ) : null}
         <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <DetailsField
               id="checkout-first-name"
               label="First Name"
               error={errors.firstName}
+              disabled={isSubmitting}
               name="firstName"
               value={donorInfo.firstName}
               onChange={(e) => updateField("firstName", e.target.value)}
@@ -905,6 +927,7 @@ function DetailsStep({
               id="checkout-last-name"
               label="Last Name"
               error={errors.lastName}
+              disabled={isSubmitting}
               name="lastName"
               value={donorInfo.lastName}
               onChange={(e) => updateField("lastName", e.target.value)}
@@ -916,6 +939,7 @@ function DetailsStep({
             id="checkout-email"
             label="Email Address"
             error={errors.email}
+            disabled={isSubmitting}
             description="Your receipt is sent here."
             name="email"
             type="email"
@@ -929,14 +953,42 @@ function DetailsStep({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6">
-          <Button type="button" variant="outline" onClick={onBack} size="lg">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={() => {
+              if (!submissionPendingRef.current) onBack();
+            }}
+            size="lg"
+          >
             Back
           </Button>
-          <Button type="submit" variant="maia" size="lg" className="grow">
-            Continue to Payment
+          <Button
+            type="submit"
+            variant="maia"
+            disabled={isSubmitting}
+            size="lg"
+            className="grow"
+          >
+            {isSubmitting
+              ? "Preparing secure checkout…"
+              : "Continue to Payment"}
           </Button>
         </div>
       </form>
+      <p
+        role="status"
+        aria-atomic="true"
+        className={cn(
+          "text-sm text-muted-foreground",
+          !isSubmitting && "sr-only",
+        )}
+      >
+        {isSubmitting
+          ? "Preparing secure checkout. No payment has been submitted."
+          : null}
+      </p>
     </motion.div>
   );
 }
@@ -1242,7 +1294,13 @@ function CheckoutConfigurationState({
   );
 }
 
-function CheckoutConfigurationError({ message }: { message: string | null }) {
+function CheckoutConfigurationError({
+  message,
+  onBack,
+}: {
+  message: string | null;
+  onBack: () => void;
+}) {
   return (
     <div className="space-y-12">
       <header className="space-y-4">
@@ -1264,6 +1322,9 @@ function CheckoutConfigurationError({ message }: { message: string | null }) {
             "Checkout configuration could not be loaded. Please refresh and try again."}
         </AlertDescription>
       </Alert>
+      <Button type="button" variant="outline" onClick={onBack} size="lg">
+        Back
+      </Button>
     </div>
   );
 }
@@ -1393,7 +1454,12 @@ function CheckoutPaymentPane({
   }
 
   if (runtimeConfig.status === "error") {
-    return <CheckoutConfigurationError message={runtimeConfig.error} />;
+    return (
+      <CheckoutConfigurationError
+        message={runtimeConfig.error}
+        onBack={onBack}
+      />
+    );
   }
 
   if (checkoutMode === "live" && runtimeConfig.stripePromise) {
@@ -1444,7 +1510,7 @@ function CheckoutActiveFlow({
   onCoverFeesChange: (value: boolean) => void;
   onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
-  onNext: () => void;
+  onNext: () => void | Promise<void>;
   paymentPane: React.ReactNode;
   step: Step;
   total: number;
@@ -1971,25 +2037,37 @@ function useCheckoutRuntimeConfiguration(
         : LOADING_RUNTIME_CONFIG,
   );
   const runtimeConfigAbortRef = useRef<AbortController | null>(null);
-  const runtimeConfigRequestedRef = useRef(false);
+  const runtimeConfigRequestRef =
+    useRef<Promise<CheckoutRuntimeConfig | null> | null>(null);
   // Starts (or restarts) the tenant config request. State is written only in
   // the promise callback, so the mount effect below performs no synchronous
   // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
   // user-initiated retries.
   const requestRuntimeConfig = () => {
-    runtimeConfigRequestedRef.current = true;
     runtimeConfigAbortRef.current?.abort();
     const abortController = new AbortController();
     runtimeConfigAbortRef.current = abortController;
 
-    void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
-      if (runtimeConfigAbortRef.current !== abortController) {
-        return;
-      }
-      if (next) {
-        setRuntimeConfig(next);
-      }
-    });
+    const request = fetchCheckoutRuntimeConfig(abortController.signal)
+      .then((next) => {
+        if (
+          runtimeConfigAbortRef.current !== abortController ||
+          abortController.signal.aborted
+        ) {
+          return null;
+        }
+        if (next) {
+          setRuntimeConfig(next);
+        }
+        return next;
+      })
+      .finally(() => {
+        if (runtimeConfigAbortRef.current === abortController) {
+          runtimeConfigRequestRef.current = null;
+        }
+      });
+    runtimeConfigRequestRef.current = request;
+    return request;
   };
 
   const loadCheckoutRuntimeConfig = () => {
@@ -1998,15 +2076,12 @@ function useCheckoutRuntimeConfiguration(
       return;
     }
 
-    if (
-      runtimeConfigRequestedRef.current &&
-      runtimeConfig.status === "loading"
-    ) {
-      return;
+    if (runtimeConfigRequestRef.current) {
+      return runtimeConfigRequestRef.current;
     }
 
     setRuntimeConfig(LOADING_RUNTIME_CONFIG);
-    requestRuntimeConfig();
+    return requestRuntimeConfig();
   };
 
   useEffect(() => {
@@ -2018,12 +2093,9 @@ function useCheckoutRuntimeConfiguration(
     requestRuntimeConfig();
 
     return () => {
-      // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
-      // the request flag so a re-run of this effect (StrictMode/Activity
-      // remounts) can start a fresh fetch instead of deadlocking on the
-      // in-flight guard.
-      runtimeConfigRequestedRef.current = false;
       runtimeConfigAbortRef.current?.abort();
+      runtimeConfigAbortRef.current = null;
+      runtimeConfigRequestRef.current = null;
     };
   }, [stripeOverride]);
 
@@ -2237,7 +2309,12 @@ function useCheckoutModel({
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (step === "config") setStep("details");
     else if (step === "details") {
-      loadCheckoutRuntimeConfig();
+      const configuration = loadCheckoutRuntimeConfig();
+      if (configuration) {
+        return configuration.then((next) => {
+          if (next) setStep("payment");
+        });
+      }
       setStep("payment");
     }
   };

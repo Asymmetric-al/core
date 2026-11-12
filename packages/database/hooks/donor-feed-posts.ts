@@ -77,7 +77,7 @@ async function fetchDonorFeedPostsResponse(
     } catch {
       // keep the status-based message
     }
-    throw new Error(message);
+    throw Object.assign(new Error(message), { status: response.status });
   }
 
   const body = (await response.json()) as { posts?: PostWithAuthor[] };
@@ -110,14 +110,22 @@ export function useDonorFeedPosts(options: DonorFeedPostsOptions = {}) {
   });
 
   return {
-    data: (query.data ?? []) as PostWithAuthor[],
+    data: accessDenied(query.error) ? [] : (query.data ?? []),
     isLoading: query.isLoading,
-    error: (query.error as Error | null) ?? null,
+    error: query.error,
   };
 }
 
 /** Updates per page on the donor Updates feed. */
 export const DONOR_FEED_PAGE_SIZE = 20;
+
+function accessDenied(error: Error | null): boolean {
+  return (
+    error !== null &&
+    "status" in error &&
+    (error.status === 401 || error.status === 403)
+  );
+}
 
 /**
  * The donor Updates feed, a page at a time. The endpoint returns a bare list,
@@ -152,11 +160,20 @@ export function useDonorFeedPostPages(
   });
 
   return {
-    data: (query.data?.pages.flat() ?? []) as PostWithAuthor[],
+    data: accessDenied(query.error) ? [] : (query.data?.pages.flat() ?? []),
     isLoading: query.isLoading,
-    error: (query.error as Error | null) ?? null,
+    error: query.error,
     hasMore: query.hasNextPage,
     isLoadingMore: query.isFetchingNextPage,
+    accessDenied: accessDenied(query.error),
+    isNextPageError: query.isFetchNextPageError,
+    retry: () => {
+      if (query.isFetchNextPageError) {
+        void query.fetchNextPage();
+      } else {
+        void query.refetch();
+      }
+    },
     loadMore: () => {
       if (query.hasNextPage && !query.isFetchingNextPage) {
         void query.fetchNextPage();
@@ -214,18 +231,61 @@ export function postCategory(post: DonorFeedPost): string | undefined {
   return post.post_type?.trim() || undefined;
 }
 
+type RichTextNode = { type?: string; text?: string; content?: RichTextNode[] };
+
+function nodeText(node: RichTextNode): string {
+  if (node.type === "text") return node.text ?? "";
+  if (node.type === "hardBreak") return " ";
+  const text = (node.content ?? []).map(nodeText).join("");
+  return node.type && RICH_TEXT_BLOCKS.has(node.type) ? `${text} ` : text;
+}
+
+const RICH_TEXT_BLOCKS = new Set([
+  "doc",
+  "paragraph",
+  "heading",
+  "blockquote",
+  "codeBlock",
+  "listItem",
+  "bulletList",
+  "orderedList",
+  "taskList",
+  "taskItem",
+  "table",
+  "tableRow",
+  "tableCell",
+  "tableHeader",
+]);
+
+/**
+ * A post's words as plain text. The update composer stores TipTap JSON;
+ * older posts hold HTML. Blocks are separated by a space.
+ */
+export function postPlainText(content: string): string {
+  if (content.trimStart().startsWith("{")) {
+    try {
+      const doc = JSON.parse(content) as RichTextNode;
+      if (doc?.type === "doc") {
+        return nodeText(doc).replace(/\s+/g, " ").trim();
+      }
+    } catch {
+      // Not JSON: read it as HTML below.
+    }
+  }
+  return content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * The post's own headline when the author supplied one; otherwise a short,
- * plain-text title derived from the (HTML) content: tags are stripped,
- * whitespace collapsed, and the result truncated with an ellipsis.
+ * plain-text title from its content, truncated with an ellipsis.
  */
 export function postTitle(post: DonorFeedPost, maxLength = 80): string {
   const ownTitle = post.title?.trim();
   if (ownTitle) return ownTitle;
-  const text = post.content
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  const text = postPlainText(post.content);
   if (text.length === 0) return "Ministry Update";
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}…`;
@@ -236,10 +296,7 @@ export function postTitle(post: DonorFeedPost, maxLength = 80): string {
  * minute, never less than one minute.
  */
 export function postReadTime(post: PostWithAuthor): string {
-  const words = post.content
-    .replace(/<[^>]*>/g, " ")
-    .split(/\s+/)
-    .filter(Boolean).length;
+  const words = postPlainText(post.content).split(" ").filter(Boolean).length;
   return `${Math.max(1, Math.round(words / 200))} min read`;
 }
 

@@ -46,12 +46,14 @@ export type MissionaryPortalSnapshot = {
     socialLinks: Record<string, unknown>;
   };
   support: {
-    goalCents: number;
-    raisedCents: number;
-    recurringMonthlyCents: number;
+    goalCents: number | null;
+    goalCurrency: string | null;
+    raisedCents: number | null;
+    recurringMonthlyCents: number | null;
+    recurringCurrency: string | null;
     /** Partners with an active recurring gift, anonymous ones included. */
     monthlyPartnerCount: number;
-    percentFunded: number;
+    percentFunded: number | null;
     activeDonorCount: number;
     giftCount: number;
     lastGiftAt: string | null;
@@ -65,9 +67,9 @@ export type MissionaryPortalSnapshot = {
     avatarUrl: string | null;
     location: string | null;
     status: string;
-    totalGivenCents: number;
+    totalGivenCents: number | null;
     lastGiftAt: string | null;
-    lastGiftAmountCents: number;
+    lastGiftAmountCents: number | null;
     giftCount: number;
     frequency: string | null;
     tags: string[];
@@ -77,8 +79,7 @@ export type MissionaryPortalSnapshot = {
     id: string;
     donorId: string | null;
     amountCents: number;
-    amount: number;
-    currency: string;
+    currency: string | null;
     type: "Recurring" | "One-Time";
     date: string;
   }>;

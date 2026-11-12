@@ -4,8 +4,14 @@
  * months.
  */
 
+import {
+  formatCents,
+  summarizeMoney,
+} from "@asym/missionary/components/money-units";
+
 export type AnalyticsGift = {
   amountCents: number;
+  currency: string | null;
   /** ISO timestamp of the gift. */
   date: string;
   /** Null for gifts that can't be tied to a partner. */
@@ -20,20 +26,7 @@ const MONTH_AND_YEAR = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
 });
-const MONEY = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-/**
- * "$1,250.00", "$706.67": an exact amount always shows its cents, the same
- * way the donor app shows money. Rounding to whole dollars would misstate it.
- */
-export function formatMoney(cents: number): string {
-  return MONEY.format(cents / 100);
-}
+export const formatMoney = formatCents;
 
 /** The two series of the year-over-year chart, as its legend names them. */
 export const YEAR_OVER_YEAR_SERIES = {
@@ -78,20 +71,26 @@ export function givingYear(gifts: AnalyticsGift[], now: Date) {
   const { priorStart, lastStart, end } = periods(now);
   const last = between(done, lastStart, end);
   const prior = between(done, priorStart, lastStart);
-  const last12Cents = sum(last);
-  const prior12Cents = sum(prior);
+  const { currency } = summarizeMoney([...last, ...prior]);
+  const last12Cents = currency ? sum(last) : null;
+  const prior12Cents = currency ? sum(prior) : null;
   return {
+    currency,
     last12Cents,
     prior12Cents,
     changePct:
-      prior12Cents > 0
+      last12Cents !== null && prior12Cents !== null && prior12Cents > 0
         ? Math.round(((last12Cents - prior12Cents) / prior12Cents) * 100)
         : null,
     giftCount: last.length,
     averageGiftCents:
-      last.length > 0 ? Math.round(last12Cents / last.length) : null,
+      last12Cents !== null && last.length > 0
+        ? Math.round(last12Cents / last.length)
+        : null,
     // The typical gift: one large gift can't pull it up the way it can an average.
-    medianGiftCents: median(last.map((gift) => gift.amountCents)),
+    medianGiftCents: currency
+      ? median(last.map((gift) => gift.amountCents))
+      : null,
   };
 }
 
@@ -128,8 +127,11 @@ export function partnerRetention(gifts: AnalyticsGift[], now: Date) {
 
 /** Each of the last 12 months beside the same month a year earlier. */
 export function monthlyYearOverYear(gifts: AnalyticsGift[], now: Date) {
+  const { priorStart, end } = periods(now);
+  const done = between(completed(gifts), priorStart, end);
+  if (!summarizeMoney(done).currency) return [];
   const totals = new Map<string, number>();
-  for (const gift of completed(gifts)) {
+  for (const gift of done) {
     const key = monthKey(new Date(gift.date));
     totals.set(key, (totals.get(key) ?? 0) + gift.amountCents);
   }
@@ -179,8 +181,9 @@ export function yearOverYearTable(months: YearOverYearMonth[]) {
 export function givingMix(gifts: AnalyticsGift[], now: Date) {
   const { lastStart, end } = periods(now);
   const last = between(completed(gifts), lastStart, end);
+  const { currency } = summarizeMoney(last);
   const byType = (type: AnalyticsGift["type"]) =>
-    sum(last.filter((gift) => gift.type === type));
+    currency ? sum(last.filter((gift) => gift.type === type)) : null;
   return {
     recurringCents: byType("recurring"),
     oneTimeCents: byType("one_time"),

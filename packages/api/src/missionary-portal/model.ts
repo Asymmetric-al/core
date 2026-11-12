@@ -1,3 +1,4 @@
+import { commonMoneyCurrency, knownCurrency } from "./currency";
 import {
   isAnonymousToRecipient,
   redactDonorRelationshipForMissionary,
@@ -143,12 +144,14 @@ export type MissionaryPortalSnapshot = {
     socialLinks: Record<string, unknown>;
   };
   support: {
-    goalCents: number;
-    raisedCents: number;
-    recurringMonthlyCents: number;
+    goalCents: number | null;
+    goalCurrency: string | null;
+    raisedCents: number | null;
+    recurringMonthlyCents: number | null;
+    recurringCurrency: string | null;
     /** Partners with an active recurring gift to this missionary. */
     monthlyPartnerCount: number;
-    percentFunded: number;
+    percentFunded: number | null;
     activeDonorCount: number;
     giftCount: number;
     lastGiftAt: string | null;
@@ -174,9 +177,9 @@ export type MissionaryPortalDonorRelationship = {
   avatarUrl: string | null;
   location: string | null;
   status: string;
-  totalGivenCents: number;
+  totalGivenCents: number | null;
   lastGiftAt: string | null;
-  lastGiftAmountCents: number;
+  lastGiftAmountCents: number | null;
   giftCount: number;
   frequency: string | null;
   tags: string[];
@@ -187,8 +190,7 @@ export type MissionaryPortalGift = {
   id: string;
   donorId: string | null;
   amountCents: number;
-  amount: number;
-  currency: string;
+  currency: string | null;
   type: "Recurring" | "One-Time";
   date: string;
 };
@@ -242,14 +244,6 @@ function displayNameFromParts(row: {
     .map((part) => part.trim());
 
   return parts.join(" ");
-}
-
-function centsToDollars(cents: number): number {
-  return Math.round(cents) / 100;
-}
-
-function normalizeCurrency(currency: string | null | undefined): string {
-  return (currency || "usd").toUpperCase();
 }
 
 function donationDate(row: MissionaryPortalDonationRow): string {
@@ -361,16 +355,19 @@ export function mapMissionaryTask(
 export type MissionaryPortalPledgeRow = {
   donor_id: string;
   amount: number | null;
+  currency: string | null;
   frequency: string | null;
   status: string | null;
 };
 
-const MONTHS_PER_PERIOD: Record<string, number> = {
-  monthly: 1,
-  quarterly: 3,
-  annually: 12,
-  annual: 12,
-  yearly: 12,
+const PERIODS_PER_YEAR: Record<string, number> = {
+  weekly: 52,
+  biweekly: 26,
+  monthly: 12,
+  quarterly: 4,
+  annually: 1,
+  annual: 1,
+  yearly: 1,
 };
 
 /**
@@ -379,23 +376,31 @@ const MONTHS_PER_PERIOD: Record<string, number> = {
  * count too — the total names no one. Home and Partners both read these.
  */
 function committedPledges(pledges: readonly MissionaryPortalPledgeRow[]) {
-  const byDonor = new Map<string, number>();
+  const byDonor = new Map<string, MissionaryPortalPledgeRow>();
   for (const pledge of pledges) {
     if (pledge.status?.toLowerCase() !== "active") continue;
     if (byDonor.has(pledge.donor_id)) continue;
-    const months = MONTHS_PER_PERIOD[pledge.frequency?.toLowerCase() ?? ""];
-    if (!months) continue;
-    byDonor.set(pledge.donor_id, Math.max(0, pledge.amount ?? 0) / months);
+    const periods = PERIODS_PER_YEAR[pledge.frequency?.toLowerCase() ?? ""];
+    if (!periods) continue;
+    byDonor.set(pledge.donor_id, pledge);
   }
   return byDonor;
 }
 
 export function monthlyCommittedCents(
   pledges: readonly MissionaryPortalPledgeRow[],
-): number {
-  let total = 0;
-  for (const monthly of committedPledges(pledges).values()) total += monthly;
-  return Math.round(total);
+): number | null {
+  const committed = [...committedPledges(pledges).values()];
+  if (!commonMoneyCurrency(committed)) return null;
+  // Keep one common denominator until the final rounding. Floating-point
+  // division per pledge can put an exact half-unit just below its boundary.
+  const annualTotal = committed.reduce((sum, pledge) => {
+    const periods =
+      PERIODS_PER_YEAR[pledge.frequency?.toLowerCase() ?? ""] ?? 12;
+    return sum + BigInt(pledge.amount ?? 0) * BigInt(periods);
+  }, 0n);
+  const total = (annualTotal + 6n) / 12n;
+  return total <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(total) : null;
 }
 
 export function buildMissionaryPortalSnapshot(input: {
@@ -426,8 +431,7 @@ export function buildMissionaryPortalSnapshot(input: {
           id: row.id,
           donorId: row.donor_id,
           amountCents: row.amount ?? 0,
-          amount: centsToDollars(row.amount ?? 0),
-          currency: normalizeCurrency(row.currency),
+          currency: knownCurrency(row.currency),
           type: giftType(row),
           date: donationDate(row),
         },
@@ -455,9 +459,9 @@ export function buildMissionaryPortalSnapshot(input: {
         avatarUrl: donor.avatar_url,
         location: donor.location,
         status: donor.status || "active",
-        totalGivenCents: donor.total_given ?? 0,
+        totalGivenCents: null,
         lastGiftAt: donor.last_gift_date,
-        lastGiftAmountCents: donor.last_gift_amount ?? 0,
+        lastGiftAmountCents: null,
         giftCount: donor.gift_count ?? 0,
         frequency: donor.frequency,
         tags: donor.tags ?? [],
@@ -470,16 +474,12 @@ export function buildMissionaryPortalSnapshot(input: {
   );
 
   const recurringMonthlyCents = monthlyCommittedCents(input.pledges ?? []);
-  const raisedCents =
-    input.missionary.current_funding ??
-    gifts.reduce((sum, gift) => sum + gift.amountCents, 0);
-  const goalCents = input.missionary.funding_goal ?? 0;
-  // The goal is a monthly support goal, so progress is committed monthly
-  // support against it, not lifetime funding.
-  const percentFunded =
-    goalCents > 0
-      ? Math.min(100, Math.round((recurringMonthlyCents / goalCents) * 100))
-      : 0;
+  const recurringCurrency =
+    recurringMonthlyCents === null
+      ? null
+      : commonMoneyCurrency([
+          ...committedPledges(input.pledges ?? []).values(),
+        ]);
   const displayName =
     displayNameFromParts(input.profile) || input.profile.email || "Missionary";
 
@@ -501,11 +501,13 @@ export function buildMissionaryPortalSnapshot(input: {
       socialLinks: input.missionary.social_links ?? {},
     },
     support: {
-      goalCents,
-      raisedCents,
+      goalCents: null,
+      goalCurrency: null,
+      raisedCents: null,
       recurringMonthlyCents,
+      recurringCurrency,
       monthlyPartnerCount: committedPledges(input.pledges ?? []).size,
-      percentFunded,
+      percentFunded: null,
       // Active partners only, as on the Partners page (not lapsed or at risk).
       activeDonorCount: donorRelationships.filter(
         (donor) => donor.status.toLowerCase() === "active",

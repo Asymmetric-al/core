@@ -2,6 +2,7 @@
 
 import { useAuth, useDonationMetrics } from "@asym/lib/hooks";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
+import { MONEY_UNAVAILABLE } from "@asym/missionary/components/money-units";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Card,
@@ -96,7 +97,13 @@ function StatRegion({
  * The chart's values for screen readers: the plotted bars are hidden from
  * them, so each month's exact amounts are read from this table instead.
  */
-function YearOverYearTable({ months }: { months: YearOverYearMonth[] }) {
+function YearOverYearTable({
+  months,
+  currency,
+}: {
+  months: YearOverYearMonth[];
+  currency: string;
+}) {
   const { period, rows } = yearOverYearTable(months);
   return (
     // A table grows to fit its content whatever its width, so the hidden
@@ -120,8 +127,8 @@ function YearOverYearTable({ months }: { months: YearOverYearMonth[] }) {
           {rows.map((month) => (
             <tr key={month.key}>
               <th scope="row">{month.name}</th>
-              <td>{formatMoney(month.thisYearCents)}</td>
-              <td>{formatMoney(month.lastYearCents)}</td>
+              <td>{formatMoney(month.thisYearCents, currency)}</td>
+              <td>{formatMoney(month.lastYearCents, currency)}</td>
             </tr>
           ))}
         </tbody>
@@ -130,11 +137,16 @@ function YearOverYearTable({ months }: { months: YearOverYearMonth[] }) {
   );
 }
 
-function changeSentence(changePct: number | null, priorCents: number) {
+function changeSentence(
+  changePct: number | null,
+  priorCents: number | null,
+  currency: string | null,
+) {
+  if (!currency) return MONEY_UNAVAILABLE;
   if (changePct === null) return "Nothing to compare with from the year before";
   if (changePct === 0)
-    return `The same as the 12 months before (${formatMoney(priorCents)})`;
-  return `${changePct > 0 ? "Up" : "Down"} ${Math.abs(changePct)}% on the 12 months before (${formatMoney(priorCents)})`;
+    return `The same as the 12 months before (${formatMoney(priorCents, currency)})`;
+  return `${changePct > 0 ? "Up" : "Down"} ${Math.abs(changePct)}% on the 12 months before (${formatMoney(priorCents, currency)})`;
 }
 
 function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
@@ -145,14 +157,14 @@ function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
   const months = monthlyYearOverYear(gifts, now);
   const chartData = months.map((month) => ({
     label: month.label,
-    thisYear: month.thisYearCents / 100,
-    lastYear: month.lastYearCents / 100,
+    thisYear: month.thisYearCents,
+    lastYear: month.lastYearCents,
   }));
   const bestMonth = [...months].sort(
     (a, b) => b.thisYearCents - a.thisYearCents,
   )[0];
 
-  if (year.giftCount === 0 && year.prior12Cents === 0) {
+  if (!gifts.some((gift) => gift.status === "completed")) {
     return (
       <Card>
         <CardContent>
@@ -185,7 +197,10 @@ function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
       cents: mix.offlineCents,
       swatch: "bg-chart-3",
     },
-  ].filter((row) => row.cents > 0);
+  ].filter(
+    (row): row is typeof row & { cents: number } =>
+      row.cents !== null && row.cents > 0,
+  );
   const mixTotal = mixRows.reduce((sum, row) => sum + row.cents, 0);
   const share = (cents: number) =>
     mixTotal > 0 ? Math.round((cents / mixTotal) * 100) : 0;
@@ -195,8 +210,12 @@ function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
       <div className="grid gap-4 md:grid-cols-3">
         <StatRegion
           title="Given in the last 12 months"
-          value={formatMoney(year.last12Cents)}
-          comparison={changeSentence(year.changePct, year.prior12Cents)}
+          value={formatMoney(year.last12Cents, year.currency)}
+          comparison={changeSentence(
+            year.changePct,
+            year.prior12Cents,
+            year.currency,
+          )}
         />
         <StatRegion
           title="Partners who gave again"
@@ -209,15 +228,13 @@ function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
         />
         <StatRegion
           title="Typical gift"
-          value={
-            year.medianGiftCents === null
-              ? "—"
-              : formatMoney(year.medianGiftCents)
-          }
+          value={formatMoney(year.medianGiftCents, year.currency)}
           comparison={
-            year.averageGiftCents === null
-              ? "No gifts yet"
-              : `Middle of ${year.giftCount} gifts · average ${formatMoney(year.averageGiftCents)}`
+            !year.currency
+              ? `${year.giftCount} gifts. ${MONEY_UNAVAILABLE}`
+              : year.averageGiftCents === null
+                ? "No gifts yet"
+                : `Middle of ${year.giftCount} gifts · average ${formatMoney(year.averageGiftCents, year.currency)}`
           }
         />
       </div>
@@ -226,64 +243,77 @@ function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
         title={YEAR_OVER_YEAR_TITLE}
         description={
           bestMonth && bestMonth.thisYearCents > 0
-            ? `Each month of the last 12 against the same month a year earlier. Your strongest month was ${bestMonth.label} (${formatMoney(bestMonth.thisYearCents)}).`
+            ? `Each month of the last 12 against the same month a year earlier. Your strongest month was ${bestMonth.label} (${formatMoney(bestMonth.thisYearCents, year.currency)}).`
             : "Each month of the last 12 against the same month a year earlier."
         }
       >
-        <div className="h-72">
-          <YearOverYearChart data={chartData} />
-        </div>
-        <YearOverYearTable months={months} />
+        {year.currency ? (
+          <>
+            <div className="h-72">
+              <YearOverYearChart data={chartData} currency={year.currency} />
+            </div>
+            <YearOverYearTable months={months} currency={year.currency} />
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">{MONEY_UNAVAILABLE}</p>
+        )}
       </Region>
 
       <Region
         title="How people gave"
         description="The last 12 months by kind of gift."
       >
-        <div className="flex flex-col gap-4">
-          <div
-            role="img"
-            aria-label={mixRows
-              .map((row) => `${row.label} ${share(row.cents)}%`)
-              .join(", ")}
-            className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted"
-          >
-            {mixRows.map((row) => (
-              <div
-                key={row.kind}
-                data-kind={row.kind}
-                className={cn(
-                  "h-full w-(--share) first:rounded-l-full last:rounded-r-full",
-                  row.swatch,
-                )}
-                style={
-                  {
-                    "--share": `${(row.cents / mixTotal) * 100}%`,
-                  } as React.CSSProperties
-                }
-              />
-            ))}
+        {year.currency ? (
+          <div className="flex flex-col gap-4">
+            <div
+              role="img"
+              aria-label={mixRows
+                .map((row) => `${row.label} ${share(row.cents)}%`)
+                .join(", ")}
+              className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted"
+            >
+              {mixRows.map((row) => (
+                <div
+                  key={row.kind}
+                  data-kind={row.kind}
+                  className={cn(
+                    "h-full w-(--share) first:rounded-l-full last:rounded-r-full",
+                    row.swatch,
+                  )}
+                  style={
+                    {
+                      "--share": `${(row.cents / mixTotal) * 100}%`,
+                    } as React.CSSProperties
+                  }
+                />
+              ))}
+            </div>
+            <ul className="flex flex-col gap-3">
+              {mixRows.map((row) => (
+                <li
+                  key={row.kind}
+                  className="flex items-center justify-between gap-3 text-sm"
+                >
+                  <span className="flex items-center gap-2 text-foreground">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "size-2.5 shrink-0 rounded-full",
+                        row.swatch,
+                      )}
+                    />
+                    {row.label}
+                  </span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {`${formatMoney(row.cents, year.currency)} · ${share(row.cents)}%`}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="flex flex-col gap-3">
-            {mixRows.map((row) => (
-              <li
-                key={row.kind}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="flex items-center gap-2 text-foreground">
-                  <span
-                    aria-hidden
-                    className={cn("size-2.5 shrink-0 rounded-full", row.swatch)}
-                  />
-                  {row.label}
-                </span>
-                <span className="tabular-nums text-muted-foreground">
-                  {`${formatMoney(row.cents)} · ${share(row.cents)}%`}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">{MONEY_UNAVAILABLE}</p>
+        )}
       </Region>
     </div>
   );

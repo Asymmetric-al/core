@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMoney, isSupportedCurrency } from "@asym/api/money";
 import {
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
@@ -7,7 +8,6 @@ import {
   type DonorPortalRecurringGift,
   type DonorWalletPaymentMethod,
 } from "@asym/database/hooks";
-import { formatCurrency } from "@asym/lib/utils";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -45,8 +45,15 @@ const FREQUENCY_WORDS: Record<string, string> = {
 };
 
 function giftAmount(gift: RecurringGift) {
+  if (
+    !Number.isSafeInteger(gift.amountCents) ||
+    gift.amountCents < 0 ||
+    !gift.currency ||
+    !isSupportedCurrency(gift.currency)
+  )
+    return "Amount unavailable";
   const every = FREQUENCY_WORDS[gift.frequency.toLowerCase()];
-  const amount = formatCurrency(gift.amountCents / 100);
+  const amount = formatMoney(gift.amountCents, gift.currency, "en-US");
   return every ? `${amount} ${every}` : amount;
 }
 
@@ -117,7 +124,7 @@ function PaymentMethodItem({
             {gifts.length > 0 && gifts.length === giftCount ? (
               <>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Pays for
+                  Recorded recurring gifts
                 </p>
                 <ul className="mt-1 space-y-1">
                   {gifts.map((gift) => (
@@ -133,16 +140,15 @@ function PaymentMethodItem({
                 </ul>
               </>
             ) : giftCount > 0 ? (
-              // The card's own record says what it pays for even when the
-              // gift details haven't loaded.
+              // Keep recorded links distinct from current Stripe billing use.
               <p className="text-sm text-muted-foreground">
                 {giftCount === 1
-                  ? "Pays for 1 recurring gift"
-                  : `Pays for ${giftCount} recurring gifts`}
+                  ? "Recorded for 1 recurring gift"
+                  : `Recorded for ${giftCount} recurring gifts`}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Not used for a recurring gift
+                Recurring use not confirmed
               </p>
             )}
           </div>
@@ -185,7 +191,7 @@ export default function WalletPage() {
     >
       <PageHeader
         title="Payment methods"
-        description="Cards and bank accounts saved for your gifts."
+        description="View cards and US bank accounts, or manage all saved methods in Stripe."
       >
         {linked ? (
           <div className="flex flex-col items-start gap-1.5 sm:items-end">
@@ -245,16 +251,18 @@ export default function WalletPage() {
               <WalletCards aria-hidden />
             </EmptyMedia>
             <EmptyTitle>
-              <h2>No saved payment methods</h2>
+              <h2>No payment methods to show here</h2>
             </EmptyTitle>
             <EmptyDescription>
-              When you give, you can save your card here for next time.
+              {linked
+                ? "Stripe may have other or older payment details. Open Stripe to view and manage your saved methods."
+                : "When you give, you can save a card for next time."}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             {linked ? (
               <Button variant="outline" onClick={() => void openPortal()}>
-                Add a payment method
+                View payment methods in Stripe
               </Button>
             ) : (
               <Link href="/workers" className={buttonVariants()}>
@@ -280,7 +288,8 @@ export default function WalletPage() {
 
       {linked && data && data.methods.length > 0 ? (
         <p className="text-sm text-muted-foreground">
-          To change which card pays for a gift, open{" "}
+          Gift links reflect our records. Confirm or change which method will be
+          charged in Stripe, through{" "}
           <Link
             href="/donor-dashboard/pledges"
             className="font-medium text-foreground underline underline-offset-4"

@@ -80,17 +80,36 @@ export const postWriteSchema = z.object({
 export type PostWriteInput = z.infer<typeof postWriteSchema>;
 
 /** Body of PATCH /api/posts/:postId: any subset of the same fields. */
-export const postUpdateSchema = z.object({
-  title: z
-    .preprocess((value) => {
-      if (typeof value !== "string") return value;
-      const trimmed = value.trim();
-      return trimmed.length > 0 ? trimmed : null;
-    }, z.string().max(120).nullable())
-    .optional(),
-  content: postWriteSchema.shape.content.optional(),
-  post_type: z.enum(POST_TYPES).optional(),
-  visibility: postVisibilitySchema.optional(),
-  status: z.enum(["published", "draft"]).optional(),
-  media: postMediaSchema.optional(),
-});
+export const postUpdateSchema = z
+  .object({
+    title: z
+      .preprocess((value) => {
+        if (typeof value !== "string") return value;
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+      }, z.string().max(120).nullable())
+      .optional(),
+    content: postWriteSchema.shape.content.optional(),
+    post_type: z.enum(POST_TYPES).optional(),
+    visibility: postVisibilitySchema.optional(),
+    status: z.enum(["published", "draft"]).optional(),
+    media: postMediaSchema.optional(),
+    autosave: z.literal(true).optional(),
+    expected_updated_at: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional(),
+  })
+  .superRefine((input, context) => {
+    if (
+      input.autosave &&
+      (input.status !== "draft" || input.expected_updated_at === undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["expected_updated_at"],
+        message: "Autosave requires a draft and its current revision",
+      });
+    }
+  });

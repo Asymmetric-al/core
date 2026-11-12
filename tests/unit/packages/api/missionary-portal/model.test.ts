@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMissionaryPortalSnapshot,
   mapMissionaryTask,
+  monthlyCommittedCents,
 } from "../../../../../packages/api/src/missionary-portal/model";
 
 describe("missionary portal model", () => {
@@ -104,24 +105,28 @@ describe("missionary portal model", () => {
         {
           donor_id: "donor-1",
           amount: 20_000,
+          currency: "USD",
           frequency: "monthly",
           status: "active",
         },
         {
           donor_id: "donor-1",
           amount: 9_000,
+          currency: "USD",
           frequency: "monthly",
           status: "active",
         },
         {
           donor_id: "donor-2",
           amount: 30_000,
+          currency: "USD",
           frequency: "quarterly",
           status: "active",
         },
         {
           donor_id: "donor-2",
           amount: 50_000,
+          currency: "USD",
           frequency: "monthly",
           status: "cancelled",
         },
@@ -169,12 +174,13 @@ describe("missionary portal model", () => {
 
     expect(snapshot.profile.displayName).toBe("Jane Missionary");
     expect(snapshot.support).toMatchObject({
-      goalCents: 600_000,
-      raisedCents: 450_000,
+      goalCents: null,
+      goalCurrency: null,
+      raisedCents: null,
+      recurringCurrency: "USD",
       // $200 monthly + $300 quarterly ($100/month) committed.
       recurringMonthlyCents: 30_000,
-      // Funded against the monthly goal, not lifetime funding.
-      percentFunded: 5,
+      percentFunded: null,
       // Lapsed partners aren't counted as active.
       activeDonorCount: 1,
       giftCount: 1,
@@ -188,9 +194,9 @@ describe("missionary portal model", () => {
       avatarUrl: null,
       location: "Austin",
       status: "active",
-      totalGivenCents: 100_000,
+      totalGivenCents: null,
       lastGiftAt: "2026-05-01T00:00:00.000Z",
-      lastGiftAmountCents: 20_000,
+      lastGiftAmountCents: null,
       giftCount: 5,
       frequency: "monthly",
       tags: ["church"],
@@ -262,4 +268,50 @@ describe("mapMissionaryTask legacy values", () => {
       "none",
     );
   });
+});
+
+describe("monthlyCommittedCents", () => {
+  // Weekly and every-two-weeks pledges are supported schedules; leaving them
+  // out would understate committed support.
+  it("counts weekly and every-two-weeks pledges at their monthly rate", () => {
+    expect(
+      monthlyCommittedCents([
+        {
+          donor_id: "a",
+          amount: 1200,
+          currency: "USD",
+          frequency: "weekly",
+          status: "active",
+        },
+        {
+          donor_id: "b",
+          amount: 2400,
+          currency: "USD",
+          frequency: "biweekly",
+          status: "active",
+        },
+        {
+          donor_id: "c",
+          amount: 5000,
+          currency: "USD",
+          frequency: "monthly",
+          status: "active",
+        },
+      ]),
+    ).toBe(5200 + 5200 + 5000);
+  });
+});
+
+it("rounds the exact combined biweekly support once", () => {
+  expect(
+    monthlyCommittedCents(
+      ["a", "b", "c"].map((donor_id) => ({
+        donor_id,
+        amount: 1001,
+        currency: "USD",
+        frequency: "biweekly",
+        status: "active",
+      })),
+    ),
+  ).toBe(6507);
 });

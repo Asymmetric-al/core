@@ -72,6 +72,8 @@ const snapshot = {
   profile: { id: "m1", displayName: "Jordan Hale", avatarUrl: null },
   support: {
     goalCents: 500000,
+    goalCurrency: "USD",
+    recurringCurrency: "USD",
     raisedCents: 200000,
     recurringMonthlyCents: 200000,
     percentFunded: 40,
@@ -94,6 +96,7 @@ const snapshot = {
       id: "g1",
       donorId: "taylor",
       amountCents: 5000,
+      currency: "USD",
       date: "2026-01-05T12:00:00.000Z",
       type: "Recurring",
     },
@@ -160,6 +163,7 @@ function setup(overrides: Record<string, unknown> = {}) {
     data: [],
   });
   mocks.metrics.mockReturnValue({
+    currency: "USD",
     thisMonth: metric(12500),
     lastMonth: metric(30000),
     yearToDate: metric(250000),
@@ -251,14 +255,18 @@ describe("missionary home", () => {
     );
   });
 
-  it("says no goal is set without pointing to a page that can't set one", () => {
+  it("explains an unavailable goal comparison without a settings link", () => {
     setup({
       data: { ...snapshot, support: { ...snapshot.support, goalCents: 0 } },
     });
     show();
     const card = screen.getByRole("region", { name: "Monthly support" });
     expect(within(card).queryByRole("meter")).toBeNull();
-    expect(within(card).getByText("No monthly goal is set yet.")).toBeTruthy();
+    expect(
+      within(card).getByText(
+        "Goal comparison unavailable: the goal and commitments need the same known currency.",
+      ),
+    ).toBeTruthy();
     expect(within(card).queryByRole("link")).toBeNull();
   });
 
@@ -373,5 +381,43 @@ describe("missionary home", () => {
         .getAttribute("aria-busy"),
     ).toBe("true");
     expect(screen.getByText("Inserted dashboard content")).toBeTruthy();
+  });
+});
+
+describe("Home currency containment", () => {
+  it.each([null, "JPY"])(
+    "does not compare commitments with an unknown or different goal currency %s",
+    (goalCurrency) => {
+      setup({
+        data: { ...snapshot, support: { ...snapshot.support, goalCurrency } },
+      });
+      show();
+      const card = screen.getByRole("region", { name: "Monthly support" });
+      expect(within(card).queryByRole("meter")).toBeNull();
+      expect(
+        within(card).getByText(/Goal comparison unavailable/),
+      ).toBeTruthy();
+      expect(card.textContent).not.toContain("40%");
+    },
+  );
+
+  it.each([
+    ["JPY", "¥5,000"],
+    ["BHD", "5.000"],
+    [null, "Unavailable"],
+  ])("keeps %s recent gifts qualified", (currency, expected) => {
+    setup({
+      data: {
+        ...snapshot,
+        recentGifts: snapshot.recentGifts.map((gift) => ({
+          ...gift,
+          currency,
+        })),
+      },
+    });
+    show();
+    const gifts = screen.getByRole("region", { name: "Recent gifts" });
+    expect(gifts.textContent).toContain(expected);
+    expect(gifts.textContent).not.toContain("$50");
   });
 });

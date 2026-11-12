@@ -6,7 +6,6 @@ import {
   useWithinViewTransitionRouteLayer,
 } from "@asym/lib/view-transitions";
 import { PageHeader } from "@asym/ui/components/page-header";
-import { UnsavedChangesGuard } from "@asym/ui/components/primitives/unsaved-changes-guard";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
 import { useRef } from "react";
@@ -37,6 +36,12 @@ export function ProfilePageClient() {
     return <ProfileSkeleton />;
   }
 
+  if (!vm.canRead) {
+    return (
+      <p role="status">Your giving page is unavailable in this account.</p>
+    );
+  }
+
   if (vm.fetchError) {
     return (
       <motion.div
@@ -63,13 +68,20 @@ export function ProfilePageClient() {
 
   return (
     <LayoutGroup>
-      <UnsavedChangesGuard when={vm.hasChanges} />
       <motion.div
         className="space-y-6 pb-20"
         initial={withinRouteVt ? false : "initial"}
         animate="animate"
         variants={staggerContainer}
       >
+        {!vm.canWrite ? (
+          <p role="status">
+            Your giving page is read-only.{" "}
+            {vm.hasChanges
+              ? "Your readable draft is kept, but cannot be submitted."
+              : "Changes cannot be submitted."}
+          </p>
+        ) : null}
         <motion.div
           ref={headerRef}
           tabIndex={-1}
@@ -83,6 +95,7 @@ export function ProfilePageClient() {
             description="Edit what supporters will see on your giving page. It isn’t live for supporters yet."
           >
             <ProfileHeaderActions
+              canWrite={vm.canWrite}
               hasChanges={vm.hasChanges}
               isSaving={vm.isSaving}
               saveSuccess={vm.saveSuccess}
@@ -113,6 +126,7 @@ export function ProfilePageClient() {
         {vm.hasChanges ? (
           <UnsavedChangesBar returnFocusTo={headerRef}>
             <ProfileHeaderActions
+              canWrite={vm.canWrite}
               hasChanges={vm.hasChanges}
               isSaving={vm.isSaving}
               saveSuccess={vm.saveSuccess}

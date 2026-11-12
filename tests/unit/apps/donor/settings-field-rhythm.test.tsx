@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { renderWithDrafts as render } from "../../fixtures/retained-drafts";
 
 vi.mock("@asym/database/hooks", () => ({
   useDonorPortalSnapshot: () => ({
@@ -53,38 +54,24 @@ function gaps(element: Element) {
   return [...element.classList].filter((name) => /(^|:)gap-/.test(name));
 }
 
-it("heads the mailing address with a legend and a separate hint, not one run-on label", () => {
+// Postal changes belong to the postal record's own command, so the profile
+// form does not edit the mailing address.
+it("offers no mailing-address editor in the profile form", () => {
   render(<DonorSettingsPage />);
-
-  const address = screen.getByRole("group", { name: "Mailing address" });
-  expect(address.tagName).toBe("FIELDSET");
-  expect(address.getAttribute("data-slot")).toBe("field-set");
-  const hintId = address.getAttribute("aria-describedby");
-  expect(hintId).toBeTruthy();
-  expect(document.getElementById(hintId!)?.textContent).toBe(
-    "Optional. Missionaries you support can use it to send you letters.",
-  );
+  expect(screen.queryByRole("group", { name: "Mailing address" })).toBeNull();
+  expect(screen.queryByRole("textbox", { name: "Street address" })).toBeNull();
 });
 
-it("spaces every row of the details form on one rhythm", () => {
+it("spaces the details form on one rhythm inside one field group", () => {
   render(<DonorSettingsPage />);
 
   const firstName = screen.getByRole("textbox", { name: "First name" });
-  const street = screen.getByRole("textbox", { name: "Street address" });
-  const country = screen.getByRole("textbox", { name: "Country" });
-
-  // Contact details and the address are two sections of one field group.
+  const phone = screen.getByRole("textbox", { name: "Phone" });
   const group = firstName.closest('[data-slot="field-group"]');
   expect(group).not.toBeNull();
-  expect(group!.contains(street)).toBe(true);
-
-  // The whole address sits in one grid, so its rows share one gap...
-  const addressGrid = street.closest(".grid")!;
-  expect(addressGrid.contains(country)).toBe(true);
-  // ...and that gap is the same as between the contact rows.
   const contactGrid = firstName.closest(".grid")!;
-  expect(contactGrid).not.toBe(addressGrid);
-  expect(gaps(contactGrid)).toEqual(gaps(addressGrid));
+  expect(contactGrid.contains(phone)).toBe(true);
+  expect(gaps(contactGrid)).toEqual(["gap-4"]);
 });
 
 it("puts the read-only sign-in email after the fields people can edit", () => {
@@ -101,17 +88,7 @@ it("puts the read-only sign-in email after the fields people can edit", () => {
 // technology and static audits both read, not only through a wrapper.
 it("ties every details field to its visible label explicitly", () => {
   render(<DonorSettingsPage />);
-  for (const name of [
-    "First name",
-    "Last name",
-    "Phone",
-    "Street address",
-    "Apartment, suite",
-    "City",
-    "State",
-    "ZIP code",
-    "Country",
-  ]) {
+  for (const name of ["First name", "Last name", "Phone"]) {
     const field = screen.getByRole("textbox", { name });
     expect(field.id, name).toMatch(/^settings-/);
     const label = document.querySelector(`label[for="${field.id}"]`);

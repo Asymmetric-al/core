@@ -90,6 +90,7 @@ beforeEach(() => {
           date: "2026-03-11T12:00:00Z",
           gift_type: "Bank Transfer",
           amount: 12550,
+          currency: "USD",
           status: "Failed",
         },
         {
@@ -98,11 +99,13 @@ beforeEach(() => {
           title: "Online gift fixture",
           date: "2026-02-05T12:00:00Z",
           amount: 7500,
+          currency: "USD",
         },
         {
           id: "giving-fixture-note",
           type: "note",
           title: "Non-gift fixture must stay outside giving",
+          currency: null,
           date: "2026-01-02T12:00:00Z",
         },
       ],

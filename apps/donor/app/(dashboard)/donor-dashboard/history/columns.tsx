@@ -37,11 +37,6 @@ const SORT_STATE = {
   desc: { icon: ArrowDown, label: ", sorted descending" },
 } as const;
 
-/**
- * A column title that sorts the gifts when pressed. Written in sentence case
- * like the rest of the portal (the shared column header shouts in capitals),
- * and named by its column, with the current order read out after it.
- */
 function SortableHeader({
   column,
   title,
@@ -58,7 +53,6 @@ function SortableHeader({
     <Button
       variant="ghost"
       size="xs"
-      // Pull the title into line with the cell text below it.
       className={align === "end" ? "-mr-2" : "-ml-2"}
       onClick={column.getToggleSortingHandler()}
     >
@@ -69,7 +63,6 @@ function SortableHeader({
   );
 }
 
-/** Names a receipt by its gift, so a partner's many receipts read apart. */
 function receiptLabel(tx: Transaction) {
   const date = format(makeDisplayDate(tx.date), "MMM d, yyyy");
   return `Download receipt for ${tx.recipient}, ${date}, ${formatCurrency(tx.amount)}`;
@@ -122,7 +115,6 @@ export const columns: ColumnDef<Transaction>[] = [
               {tx.recipient}
             </p>
             {tx.type === "Recurring" ? (
-              // Monthly gifts are managed on Recurring gifts.
               <Link
                 href="/donor-dashboard/pledges"
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"

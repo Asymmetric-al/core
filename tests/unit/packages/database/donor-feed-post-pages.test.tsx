@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   DONOR_FEED_PAGE_SIZE,
+  DONOR_FEED_POSTS_QUERY_KEY,
   useDonorFeedPostPages,
 } from "../../../../packages/database/hooks/donor-feed-posts";
 import { getQueryClient } from "../../../../packages/database/providers/query-client";
@@ -68,5 +69,45 @@ describe("useDonorFeedPostPages", () => {
     const { result } = renderPages();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.hasMore).toBe(false);
+  });
+
+  it.each([401, 403])(
+    "hides cached posts after access is denied with %s",
+    async (status) => {
+      const client = getQueryClient();
+      client.setQueryDefaults([DONOR_FEED_POSTS_QUERY_KEY], { retry: false });
+      const fetchMock = respondWith([[post(1)]]);
+      const { result } = renderPages();
+      await waitFor(() => expect(result.current.data).toHaveLength(1));
+      fetchMock.mockResolvedValue(
+        new Response(JSON.stringify({ error: "Denied" }), { status }),
+      );
+      await act(async () => {
+        await client.refetchQueries({ queryKey: [DONOR_FEED_POSTS_QUERY_KEY] });
+      });
+      await waitFor(() =>
+        expect(result.current.error).toMatchObject({ status }),
+      );
+      expect(result.current.data).toEqual([]);
+      expect(result.current.accessDenied).toBe(true);
+    },
+  );
+
+  it("retries a failed refresh even when there is no next page", async () => {
+    const client = getQueryClient();
+    client.setQueryDefaults([DONOR_FEED_POSTS_QUERY_KEY], { retry: false });
+    const fetchMock = respondWith([[post(1)]]);
+    const { result } = renderPages();
+    await waitFor(() => expect(result.current.data).toHaveLength(1));
+    fetchMock.mockResolvedValueOnce(new Response("{}", { status: 503 }));
+    await act(async () => {
+      await client.refetchQueries({ queryKey: [DONOR_FEED_POSTS_QUERY_KEY] });
+    });
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.hasMore).toBe(false);
+    expect(result.current.data).toHaveLength(1);
+    act(() => result.current.retry());
+    await waitFor(() => expect(result.current.error).toBeNull());
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

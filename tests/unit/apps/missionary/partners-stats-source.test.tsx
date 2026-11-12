@@ -1,11 +1,19 @@
 /** @vitest-environment jsdom */
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const currencyState = vi.hoisted(() => ({
+  support: {
+    recurringMonthlyCents: 70_667 as number | null,
+    recurringCurrency: "USD" as string | null,
+    monthlyPartnerCount: 7,
+  },
+}));
 
 vi.mock("@asym/database/hooks", () => ({
   useMissionaryPortalSnapshot: () => ({
     data: {
-      support: { recurringMonthlyCents: 70_667, monthlyPartnerCount: 7 },
+      support: currencyState.support,
     },
   }),
 }));
@@ -29,8 +37,31 @@ vi.mock("../../../../apps/missionary/app/donors/use-donors-page-view", () => ({
 import { DonorsPageStats } from "../../../../apps/missionary/app/donors/donors-page-stats";
 
 afterEach(cleanup);
+beforeEach(() => {
+  currencyState.support.recurringMonthlyCents = 70_667;
+  currencyState.support.recurringCurrency = "USD";
+});
 
 describe("Partners summary", () => {
+  it("does not replace unavailable snapshot money with roster sums", () => {
+    currencyState.support.recurringMonthlyCents = null;
+    currencyState.support.recurringCurrency = null;
+    render(<DonorsPageStats />);
+    expect(
+      screen.getByRole("button", { name: /Monthly partners/ }).textContent,
+    ).toContain("unavailable");
+    expect(screen.queryByText(/\$/)).toBeNull();
+    expect(screen.getByText(/Lifetime giving is unavailable/)).toBeTruthy();
+  });
+
+  it("uses the snapshot currency for monthly commitments", () => {
+    currencyState.support.recurringMonthlyCents = 1000;
+    currencyState.support.recurringCurrency = "JPY";
+    render(<DonorsPageStats />);
+    expect(
+      screen.getByRole("button", { name: /Monthly partners/ }).textContent,
+    ).toContain("¥1,000 a month committed");
+  });
   it("shows the same committed support as Home, anonymous partners included", () => {
     render(<DonorsPageStats />);
     const monthly = screen.getByRole("button", { name: /Monthly partners/ });

@@ -1564,6 +1564,155 @@ describe("CheckoutPageClient step focus", () => {
   });
 });
 
+describe("CheckoutPageClient payment preparation handoff", () => {
+  const completeDetails = () => {
+    fireEvent.click(screen.getByRole("button", { name: /next step/i }));
+    fireEvent.change(screen.getByLabelText(/first name/i), {
+      target: { value: "Ada" },
+    });
+    fireEvent.change(screen.getByLabelText(/last name/i), {
+      target: { value: "Lovelace" },
+    });
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: "ada@example.com" },
+    });
+    return screen.getByRole("form", { name: "Your details" });
+  };
+
+  it("keeps details editable until submission, then announces and locks the real configuration handoff", async () => {
+    let resolveConfig!: (response: Response) => void;
+    fetchMock().mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveConfig = resolve;
+      }),
+    );
+    renderCheckoutWithRuntimeConfig();
+    const form = completeDetails();
+    const submitButton = screen.getByRole("button", {
+      name: /continue to payment/i,
+    });
+    expect(submitButton).toHaveProperty("disabled", false);
+    expect(screen.getByLabelText(/first name/i)).toHaveProperty(
+      "disabled",
+      false,
+    );
+
+    fireEvent.submit(form);
+
+    expect(form.getAttribute("aria-busy")).toBe("true");
+    expect(
+      screen.getByRole("button", { name: /preparing secure checkout/i }),
+    ).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: "Back" })).toHaveProperty(
+      "disabled",
+      true,
+    );
+    for (const name of [/first name/i, /last name/i, /email address/i]) {
+      expect(screen.getByLabelText(name)).toHaveProperty("disabled", true);
+    }
+    const status = screen.getByRole("status");
+    expect(form.contains(status)).toBe(false);
+    expect(status.textContent).toMatch(/no payment has been submitted/i);
+    expect(
+      screen.queryByRole("heading", { name: "Secure Payment." }),
+    ).toBeNull();
+    expect(fetchCallsByMethod("GET")).toHaveLength(1);
+    expect(fetchCallsByMethod("POST")).toHaveLength(0);
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveConfig(await checkoutConfigResponse("pk_live_tenant"));
+    });
+
+    expect(screen.getByTestId("stripe-card-panel")).toBeTruthy();
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: "Secure Payment." }),
+    );
+    expect(screen.queryByRole("form", { name: "Your details" })).toBeNull();
+    expect(fetchCallsByMethod("POST")).toHaveLength(0);
+  });
+
+  it("starts only one refreshed handoff when submit repeats before React renders pending state", async () => {
+    let resolveConfig!: (response: Response) => void;
+    const configuration = new Promise<Response>((resolve) => {
+      resolveConfig = resolve;
+    });
+    fetchMock()
+      .mockImplementationOnce(() => checkoutConfigResponse("pk_live_tenant"))
+      .mockReturnValue(configuration);
+    renderCheckoutWithRuntimeConfig();
+    await waitFor(() =>
+      expect(stripeJsState.loadStripe).toHaveBeenCalledWith("pk_live_tenant"),
+    );
+    const form = completeDetails();
+    const back = screen.getByRole("button", { name: "Back" });
+
+    act(() => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+      back.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(fetchCallsByMethod("GET")).toHaveLength(2);
+    expect(fetchMock().mock.calls[1]?.[1]?.signal?.aborted).toBe(false);
+    expect(form.getAttribute("aria-busy")).toBe("true");
+    fireEvent.submit(form);
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(fetchCallsByMethod("GET")).toHaveLength(2);
+    expect(screen.getByRole("heading", { name: "Your Details." })).toBeTruthy();
+
+    await act(async () => {
+      resolveConfig(await checkoutConfigResponse("pk_live_tenant"));
+    });
+
+    expect(screen.getByTestId("stripe-card-panel")).toBeTruthy();
+    expect(fetchCallsByMethod("POST")).toHaveLength(0);
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+  });
+
+  it("releases a failed handoff and lets the donor return with details intact and retry", async () => {
+    let rejectConfig!: (error: Error) => void;
+    fetchMock()
+      .mockReturnValueOnce(
+        new Promise<Response>((_resolve, reject) => {
+          rejectConfig = reject;
+        }),
+      )
+      .mockImplementation(() => checkoutConfigResponse("pk_live_tenant"));
+    renderCheckoutWithRuntimeConfig();
+    fireEvent.submit(completeDetails());
+
+    await act(async () => {
+      rejectConfig(new Error("Configuration unavailable"));
+    });
+
+    expect(screen.getByRole("alert").textContent).toMatch(
+      /checkout configuration could not be loaded/i,
+    );
+    const back = screen.getByRole("button", { name: "Back" });
+    expect(back).toHaveProperty("disabled", false);
+    fireEvent.click(back);
+    expect(screen.getByLabelText(/email address/i)).toHaveProperty(
+      "value",
+      "ada@example.com",
+    );
+    const submitButton = screen.getByRole("button", {
+      name: /continue to payment/i,
+    });
+    expect(submitButton).toHaveProperty("disabled", false);
+    fireEvent.click(submitButton);
+
+    expect(await screen.findByTestId("stripe-card-panel")).toBeTruthy();
+    expect(fetchCallsByMethod("GET")).toHaveLength(2);
+    expect(fetchCallsByMethod("POST")).toHaveLength(0);
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+  });
+});
+
 describe("CheckoutPageClient donor details", () => {
   const goToDetails = () => {
     renderCheckout();
@@ -1573,6 +1722,24 @@ describe("CheckoutPageClient donor details", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /continue to payment/i }),
     );
+
+  it("announces invalid details and clears the summary when the fields are corrected", () => {
+    goToDetails();
+    expect(screen.queryByRole("alert")).toBeNull();
+    continueToPayment();
+    expect(
+      screen.getByRole("alert", { name: "Check your details" }).textContent,
+    ).toBe("Check the highlighted fields before continuing.");
+    for (const [name, value] of [
+      ["First Name", "Ada"],
+      ["Last Name", "Lovelace"],
+      ["Email Address", "ada@example.com"],
+    ])
+      fireEvent.change(screen.getByRole("textbox", { name }), {
+        target: { value },
+      });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 
   it("says what's missing instead of disabling Continue", () => {
     goToDetails();

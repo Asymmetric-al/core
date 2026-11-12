@@ -3,7 +3,7 @@ import { useDonationMetrics } from "@asym/lib/hooks";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import * as React from "react";
 
-import { toDollarBreakdown } from "./money-units";
+import { MONEY_UNAVAILABLE, moneyCurrency } from "./money-units";
 
 import type { DonationMetrics } from "@asym/lib/hooks";
 
@@ -38,7 +38,8 @@ function GivingBreakdownSkeleton() {
 
 interface GivingBreakdownChartProps {
   missionaryId: string;
-  committedCents?: number;
+  committedCents?: number | null;
+  committedCurrency?: string | null;
 }
 
 /**
@@ -48,9 +49,14 @@ interface GivingBreakdownChartProps {
 export function GivingBreakdownChartContent({
   metrics,
   committedCents,
+  committedCurrency,
 }: {
-  metrics: Pick<DonationMetrics, "monthlyBreakdown" | "isLoading" | "error">;
-  committedCents?: number;
+  metrics: Pick<
+    DonationMetrics,
+    "monthlyBreakdown" | "isLoading" | "error" | "currency"
+  >;
+  committedCents?: number | null;
+  committedCurrency?: string | null;
 }) {
   const { monthlyBreakdown, isLoading, error } = metrics;
 
@@ -66,6 +72,14 @@ export function GivingBreakdownChartContent({
     );
   }
 
+  const currency = moneyCurrency(metrics.currency);
+  if (!currency)
+    return (
+      <p className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        {MONEY_UNAVAILABLE}
+      </p>
+    );
+
   const hasData = monthlyBreakdown.some((m) => m.total > 0);
 
   if (!hasData) {
@@ -79,8 +93,10 @@ export function GivingBreakdownChartContent({
   return (
     <React.Suspense fallback={<GivingBreakdownSkeleton />}>
       <GivingBreakdownView
-        monthlyBreakdown={toDollarBreakdown(monthlyBreakdown)}
-        committedDollars={committedCents ? committedCents / 100 : undefined}
+        monthlyBreakdown={monthlyBreakdown}
+        currency={currency}
+        committedCents={committedCents}
+        committedCurrency={committedCurrency}
       />
     </React.Suspense>
   );
@@ -90,12 +106,14 @@ export function GivingBreakdownChartContent({
 export function GivingBreakdownChart({
   missionaryId,
   committedCents,
+  committedCurrency,
 }: GivingBreakdownChartProps) {
   const metrics = useDonationMetrics(missionaryId, { months: 25 });
   return (
     <GivingBreakdownChartContent
       metrics={metrics}
       committedCents={committedCents}
+      committedCurrency={committedCurrency}
     />
   );
 }

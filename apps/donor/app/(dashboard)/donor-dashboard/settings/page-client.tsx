@@ -3,7 +3,6 @@
 import {
   buildDonorProfileSettingsPatch,
   buildProfileFormState,
-  type DonorAddressFormState,
 } from "@asym/api/donor-portal/settings-patch";
 import {
   useDonorPortalSnapshot,
@@ -16,7 +15,6 @@ import { SignOutOtherSessions } from "@asym/ui/components/auth/sign-out-other-se
 import { PageHeader } from "@asym/ui/components/page-header";
 import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
 import { ReadOnlyField } from "@asym/ui/components/primitives/read-only-field";
-import { UnsavedChangesGuard } from "@asym/ui/components/primitives/unsaved-changes-guard";
 import { SettingsCard, SettingsLayout } from "@asym/ui/components/settings";
 import {
   Avatar,
@@ -31,16 +29,15 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
-  FieldSet,
 } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { TabsContent } from "@asym/ui/components/shadcn/tabs";
+import { useRetainedDraft } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { Loader2, Lock, Mail, UserRound } from "lucide-react";
-import React, { useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 
 type TabId = "profile" | "email" | "security";
 
@@ -50,25 +47,23 @@ const TABS: Array<{ id: TabId; label: string; icon: React.ElementType }> = [
   { id: "security", label: "Security", icon: Lock },
 ];
 
-const EMPTY_ADDRESS: DonorAddressFormState = {
-  street: "",
-  street2: "",
-  city: "",
-  state: "",
-  zip: "",
-  country: "",
-};
-
 type ProfileFormFields = {
   avatarUrl: string;
   email: string;
   firstName: string;
   lastName: string;
   phone: string;
-  address: DonorAddressFormState;
 };
 
-type TextField = Exclude<keyof ProfileFormFields, "address">;
+type TextField = keyof ProfileFormFields;
+
+function responseStatus(error: unknown): number | null {
+  return error instanceof Error &&
+    "status" in error &&
+    typeof error.status === "number"
+    ? error.status
+    : null;
+}
 
 function TabLoading({ label }: { label: string }) {
   return (
@@ -145,24 +140,22 @@ function PhotoCard({
 }
 
 function DetailsCard({
+  canWrite,
   errorMessage,
   form,
   onFieldChange,
-  onAddressChange,
   onSave,
   saving,
   success,
 }: {
+  canWrite: boolean;
   errorMessage: string | null;
   form: ProfileFormFields;
   onFieldChange: (key: TextField, value: string) => void;
-  onAddressChange: (key: keyof DonorAddressFormState, value: string) => void;
   onSave: () => void;
   saving: boolean;
   success: boolean;
 }) {
-  const address = form.address;
-  const addressHintId = useId();
   return (
     <SettingsCard
       title="Your details"
@@ -183,8 +176,8 @@ function DetailsCard({
           </p>
           <Button
             onClick={onSave}
-            disabled={saving}
-            focusableWhenDisabled={saving}
+            disabled={saving || !canWrite}
+            focusableWhenDisabled={saving || !canWrite}
           >
             {saving ? (
               <Loader2 className="animate-spin" data-icon="inline-start" />
@@ -234,84 +227,6 @@ function DetailsCard({
             description="Receipts go here. Your organization can change it."
           />
         </div>
-
-        <FieldSet aria-describedby={addressHintId}>
-          <FieldLegend>Mailing address</FieldLegend>
-          <FieldDescription id={addressHintId}>
-            Optional. Missionaries you support can use it to send you letters.
-          </FieldDescription>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="settings-street-address">
-                Street address
-              </FieldLabel>
-              <Input
-                id="settings-street-address"
-                autoComplete="address-line1"
-                value={address.street}
-                onChange={(event) =>
-                  onAddressChange("street", event.target.value)
-                }
-              />
-            </Field>
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="settings-apartment-suite">
-                Apartment, suite
-              </FieldLabel>
-              <Input
-                id="settings-apartment-suite"
-                autoComplete="address-line2"
-                value={address.street2}
-                onChange={(event) =>
-                  onAddressChange("street2", event.target.value)
-                }
-              />
-            </Field>
-            <Field className="col-span-2 md:col-span-1">
-              <FieldLabel htmlFor="settings-city">City</FieldLabel>
-              <Input
-                id="settings-city"
-                autoComplete="address-level2"
-                value={address.city}
-                onChange={(event) =>
-                  onAddressChange("city", event.target.value)
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="settings-state">State</FieldLabel>
-              <Input
-                id="settings-state"
-                autoComplete="address-level1"
-                value={address.state}
-                onChange={(event) =>
-                  onAddressChange("state", event.target.value)
-                }
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="settings-zip-code">ZIP code</FieldLabel>
-              <Input
-                id="settings-zip-code"
-                autoComplete="postal-code"
-                inputMode="numeric"
-                value={address.zip}
-                onChange={(event) => onAddressChange("zip", event.target.value)}
-              />
-            </Field>
-            <Field className="col-span-2 md:col-span-1">
-              <FieldLabel htmlFor="settings-country">Country</FieldLabel>
-              <Input
-                id="settings-country"
-                autoComplete="country-name"
-                value={address.country}
-                onChange={(event) =>
-                  onAddressChange("country", event.target.value)
-                }
-              />
-            </Field>
-          </div>
-        </FieldSet>
       </FieldGroup>
     </SettingsCard>
   );
@@ -321,65 +236,77 @@ function ProfileTab() {
   const snapshot = useDonorPortalSnapshot();
   const update = useUpdateDonorPortal();
 
-  const [form, setForm] = useState<ProfileFormFields>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    avatarUrl: "",
-    address: EMPTY_ADDRESS,
-  });
+  const retained =
+    useRetainedDraft<Omit<ProfileFormFields, "email">>("donor-profile");
+  const { revokeRead } = retained;
+  useEffect(() => {
+    const status = responseStatus(snapshot.error);
+    if (status === 401 || status === 403) revokeRead();
+  }, [snapshot.error, revokeRead]);
+  const baseline = buildProfileFormState({ ...snapshot.data?.profile });
+  const form = { ...baseline, ...retained.value };
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-  const [dirty, setDirty] = useState(false);
-
-  // Prefill once from the snapshot without overwriting edits in progress.
-  if (!hydrated && snapshot.data) {
-    setHydrated(true);
-    setForm({
-      ...buildProfileFormState({
-        displayName: snapshot.data.profile.displayName,
-        email: snapshot.data.profile.email,
-        phone: snapshot.data.profile.phone,
-        avatarUrl: snapshot.data.profile.avatarUrl,
-      }),
-      address: { ...EMPTY_ADDRESS, ...snapshot.data.donor?.address },
-    });
-  }
 
   const setField = (key: TextField, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setDirty(true);
+    if (key === "email" || !retained.canWrite) return;
+    const current = retained.read() ?? {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      phone: form.phone,
+      avatarUrl: form.avatarUrl,
+    };
+    const next = { ...current, [key]: value };
+    retained.update(next, {
+      dirty:
+        next.firstName !== baseline.firstName ||
+        next.lastName !== baseline.lastName ||
+        next.phone !== baseline.phone ||
+        next.avatarUrl !== baseline.avatarUrl,
+    });
     setSuccess(false);
     setErrorMessage(null);
   };
-  const setAddressField = (key: keyof DonorAddressFormState, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      address: { ...prev.address, [key]: value },
-    }));
-    setDirty(true);
-    setSuccess(false);
-    setErrorMessage(null);
-  };
-
   const handleSave = async () => {
+    if (!retained.canWrite || retained.isSaving || update.isPending) return;
     setErrorMessage(null);
     const savePatch = buildDonorProfileSettingsPatch(form);
     if (!savePatch.ok) {
       setErrorMessage(savePatch.errorMessage);
       return;
     }
+    if (!retained.read())
+      retained.update({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        phone: form.phone,
+        avatarUrl: form.avatarUrl,
+      });
+    const save = retained.beginSave();
+    if (!save) return;
     try {
       await update.mutateAsync(savePatch.patch);
-      setDirty(false);
-      setSuccess(true);
-    } catch {
+      const current = save.isCurrent();
+      const matched = retained.finishSave(save, true);
+      if (current) setSuccess(matched);
+    } catch (error) {
+      retained.finishSave(save, false);
+      if (!save.isCurrent()) return;
+      const status = responseStatus(error);
+      if (status === 401) retained.revokeRead();
+      if (status === 403) retained.revokeWrite();
       setErrorMessage("Couldn’t save your changes. Try again.");
     }
   };
 
+  if (!retained.canRead)
+    return (
+      <Card>
+        <CardContent>
+          <p role="status">Your profile is unavailable in this account.</p>
+        </CardContent>
+      </Card>
+    );
   if (snapshot.isLoading) return <TabLoading label="Loading profile" />;
   if (snapshot.error) return <TabError onRetry={() => snapshot.refetch()} />;
 
@@ -392,21 +319,28 @@ function ProfileTab() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <UnsavedChangesGuard when={dirty} />
+      {!retained.canWrite ? (
+        <p role="status">
+          Your profile is read-only.{" "}
+          {retained.dirty
+            ? "Your readable draft is kept, but cannot be submitted."
+            : "Changes cannot be submitted."}
+        </p>
+      ) : null}
       <PhotoCard
         avatarUrl={form.avatarUrl}
         initials={initials}
         onAvatarUrlChange={(url) => setField("avatarUrl", url)}
       />
       <DetailsCard
+        canWrite={retained.canWrite}
         errorMessage={errorMessage}
         form={form}
         onFieldChange={setField}
-        onAddressChange={setAddressField}
         onSave={() => {
           void handleSave();
         }}
-        saving={update.isPending}
+        saving={update.isPending || retained.isSaving}
         success={success}
       />
     </motion.div>
@@ -453,6 +387,12 @@ function EmailPrivacyTab() {
     news?: boolean;
     showName?: boolean;
   }>({});
+  // Each switch saves in click order: a later click waits for the earlier
+  // save, so a slow request can't land last with a value already reversed.
+  const queues = useRef<Partial<Record<"news" | "showName", Promise<void>>>>(
+    {},
+  );
+  const latest = useRef<Partial<Record<"news" | "showName", number>>>({});
 
   if (snapshot.isLoading) return <TabLoading label="Loading email settings" />;
   if (snapshot.error || !snapshot.data) {
@@ -462,8 +402,10 @@ function EmailPrivacyTab() {
   const donor = snapshot.data.donor;
   const givingPreferences = donor?.givingPreferences ?? {};
   const news = pending.news ?? !donor?.doNotEmail;
+  // Missionaries see a donor's name only after an explicit choice (the
+  // server fails closed), so the switch starts off until then.
   const showName =
-    pending.showName ?? givingPreferences.defaultAnonymousToRecipient !== true;
+    pending.showName ?? givingPreferences.defaultAnonymousToRecipient === false;
 
   const save = async (
     key: "news" | "showName",
@@ -472,14 +414,22 @@ function EmailPrivacyTab() {
   ) => {
     setPending((current) => ({ ...current, [key]: value }));
     setStatus("idle");
-    try {
-      await update.mutateAsync(patch);
-      setStatus("saved");
-    } catch {
-      setStatus("error");
-    } finally {
-      setPending((current) => ({ ...current, [key]: undefined }));
-    }
+    const turn = (latest.current[key] ?? 0) + 1;
+    latest.current[key] = turn;
+    const run = (queues.current[key] ?? Promise.resolve()).then(async () => {
+      try {
+        await update.mutateAsync(patch);
+        if (latest.current[key] === turn) setStatus("saved");
+      } catch {
+        if (latest.current[key] === turn) setStatus("error");
+      } finally {
+        if (latest.current[key] === turn) {
+          setPending((current) => ({ ...current, [key]: undefined }));
+        }
+      }
+    });
+    queues.current[key] = run;
+    await run;
   };
 
   return (
@@ -599,8 +549,8 @@ export default function DonorSettingsPage() {
         <TabsContent value="profile" keepMounted>
           <ProfileTab />
         </TabsContent>
-        <TabsContent value="email">
-          {activeTab === "email" && <EmailPrivacyTab />}
+        <TabsContent value="email" keepMounted>
+          <EmailPrivacyTab />
         </TabsContent>
         <TabsContent value="security">
           {activeTab === "security" && <SecurityTab />}

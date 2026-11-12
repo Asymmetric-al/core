@@ -60,13 +60,24 @@ it("keeps sign-out pending until the session operation finishes", async () => {
       }),
   );
   render(<SidebarAccountMenu roleLabel="Missionary" />);
-  fireEvent.click(
-    screen.getByRole("button", { name: "Account menu for Jordan Hale" }),
-  );
+  const trigger = screen.getByRole("button", {
+    name: "Account menu for Jordan Hale",
+  });
+  fireEvent.click(trigger);
   fireEvent.click(await screen.findByRole("menuitem", { name: "Sign out" }));
   expect(session.signOut).toHaveBeenCalledTimes(1);
+
+  fireEvent.click(trigger);
+  const pending = await screen.findByRole("menuitem", { name: "Signing out…" });
+  expect(pending.getAttribute("aria-disabled")).toBe("true");
+  fireEvent.click(pending);
+  expect(session.signOut).toHaveBeenCalledTimes(1);
+
   await act(async () => finish());
-  await waitFor(() => expect(session.signOut).toHaveBeenCalledTimes(1));
+  await waitFor(() => {
+    const ready = screen.getByRole("menuitem", { name: "Sign out" });
+    expect(ready.getAttribute("aria-disabled")).not.toBe("true");
+  });
 });
 
 it("offers settings and help from the account menu", async () => {

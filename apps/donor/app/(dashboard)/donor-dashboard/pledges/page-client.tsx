@@ -203,7 +203,7 @@ export default function DonorPledgesPage() {
   );
   const activeCount = activeGifts.length;
   const spreadsGifts = activeGifts.some(
-    (gift) => schedule(gift.frequency).months !== 1,
+    (gift) => schedule(gift.frequency).months > 1,
   );
 
   return (

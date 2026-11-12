@@ -6,6 +6,7 @@ import { useDonorPortalSnapshot } from "@asym/database/hooks";
 import { useAuth } from "@asym/lib/hooks";
 import { AccountMenu } from "@asym/ui/components/app-shell/account-menu";
 import { MobileTabBar } from "@asym/ui/components/app-shell/mobile-tab-bar";
+import { NavigationCommandPalette } from "@asym/ui/components/primitives/navigation-command-palette";
 import { ButtonLink, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
@@ -24,7 +25,7 @@ import {
   Settings,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef, useTransition } from "react";
 
 const SECTIONS = [
@@ -85,6 +86,7 @@ function currentBar(active: boolean) {
  */
 export function DonorPortalHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const { profile, user } = useAuth();
   // The donor record's name and photo, the same ones the pages use.
   const donor = useDonorPortalSnapshot().data?.profile;
@@ -163,6 +165,12 @@ export function DonorPortalHeader() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2 self-stretch">
+            <NavigationCommandPalette
+              title="Donor navigation"
+              triggerLabel="Search donor pages"
+              items={[...SECTIONS, { label: "Settings", href: SETTINGS_HREF }]}
+              onNavigate={(href) => router.push(href)}
+            />
             <Link href="/workers" className={buttonVariants({ size: "sm" })}>
               <Heart aria-hidden data-icon="inline-start" />
               Give

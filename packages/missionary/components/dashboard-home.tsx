@@ -92,9 +92,11 @@ function HomeFrame({
 function GivingTrendCard({
   metrics,
   committedCents,
+  committedCurrency,
 }: {
   metrics: DonationMetrics;
-  committedCents: number;
+  committedCents: number | null;
+  committedCurrency: string | null;
 }) {
   const titleId = React.useId();
   return (
@@ -104,8 +106,13 @@ function GivingTrendCard({
           <h2 id={titleId}>Giving by month</h2>
         </CardTitle>
         <CardDescription>
-          The last 13 months. The dashed line is what partners have committed
-          each month right now.
+          The last 13 months.{" "}
+          {metrics.currency &&
+          metrics.currency === committedCurrency &&
+          committedCents !== null &&
+          committedCents > 0
+            ? "The dashed line is what partners have committed each month right now."
+            : "A commitment line is shown only when its currency matches these gifts."}
         </CardDescription>
         <CardAction className="-mt-1.5">
           <Link
@@ -120,6 +127,7 @@ function GivingTrendCard({
         <GivingBreakdownChartContent
           metrics={metrics}
           committedCents={committedCents}
+          committedCurrency={committedCurrency}
         />
       </CardContent>
     </Card>
@@ -190,7 +198,8 @@ function DashboardHomeContent({
   }
 
   const { support } = buildMissionaryDashboardView(snapshot);
-  const committedCents = support?.monthlyCommittedCents ?? 0;
+  const committedCents = support?.monthlyCommittedCents ?? null;
+  const committedCurrency = support?.monthlyCommittedCurrency ?? null;
   const formatDay = (value: string) => formatDate(value, SHORT_DAY);
   const needsYou = buildNeedsYou({
     snapshot,
@@ -220,7 +229,10 @@ function DashboardHomeContent({
           <div className="min-w-0 lg:col-span-7 lg:col-start-1 lg:row-start-1">
             <SupportCard
               committedCents={committedCents}
-              goalCents={support?.goalCents ?? 0}
+              goalCents={support?.goalCents ?? null}
+              goalCurrency={support?.goalCurrency ?? null}
+              committedCurrency={committedCurrency}
+              metricsCurrency={metrics.currency}
               thisMonthCents={metrics.thisMonth.total}
               lastMonthCents={metrics.lastMonth.total}
               yearCents={metrics.yearToDate.total}
@@ -241,6 +253,7 @@ function DashboardHomeContent({
             <GivingTrendCard
               metrics={metrics}
               committedCents={committedCents}
+              committedCurrency={committedCurrency}
             />
           </div>
         </div>

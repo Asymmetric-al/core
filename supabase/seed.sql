@@ -262,7 +262,7 @@ ON CONFLICT (user_id, tenant_id, role, staff_role)
 DO UPDATE
 SET
   is_active = true,
-  updated_at = NOW();
+  updated_at = TIMESTAMPTZ '2026-11-11T00:00:00Z';
 
 -- ---------------------------------------------------------------------------
 -- 2) Missionaries, donors, funds (projects)
@@ -315,7 +315,9 @@ INSERT INTO public.missionaries (
 SELECT
   id,
   '00000000-0000-0000-0000-000000000001',
-  '11111111-1111-1111-1111-111111111111',
+  -- Display-only teams have no authenticated profile. The demo identity below
+  -- must resolve to exactly one missionary.
+  NULL::uuid,
   format('Mission team %s is building long-term partnerships and reporting monthly outcomes.', gs),
   mission_field,
   ((9000 + (gs * 1200)) * 100)::bigint,
@@ -1009,9 +1011,10 @@ FROM demo_donations;
 
 -- Demo missionary giving history. Jordan's partners give monthly (one
 -- quarterly), one stopped, one card is failing, and others give one-time.
--- Dates are relative to the day the seed runs so the dashboard, analytics
--- and giving history always read as current. Stripe subscription ids stay
--- empty: these are demo commitments, not live subscriptions.
+-- Dates count back from one fixed anchor (DATE '2026-11-11') so every
+-- reset loads the same data; move the anchor forward to refresh the demo.
+-- Stripe subscription ids stay empty: these are demo commitments, not live
+-- subscriptions.
 WITH demo_pledge_seed (n, donor_n, amount_cents, frequency, status, months_ago, billing_day, ended_months_ago, payment_method) AS (
   VALUES
     (1, 1, 5000::bigint, 'monthly', 'active', 22, 5, NULL::int, 'card'),
@@ -1026,11 +1029,11 @@ WITH demo_pledge_seed (n, donor_n, amount_cents, frequency, status, months_ago, 
 demo_pledge_dates AS (
   SELECT
     s.*,
-    (date_trunc('month', current_date) - make_interval(months => s.months_ago))::date
+    (date_trunc('month', DATE '2026-11-11') - make_interval(months => s.months_ago))::date
       + (s.billing_day - 1) AS start_on,
     CASE
       WHEN s.ended_months_ago IS NULL THEN NULL
-      ELSE (date_trunc('month', current_date) - make_interval(months => s.ended_months_ago))::date
+      ELSE (date_trunc('month', DATE '2026-11-11') - make_interval(months => s.ended_months_ago))::date
         + (s.billing_day - 1)
     END AS end_on,
     CASE WHEN s.frequency = 'quarterly' THEN 3 ELSE 1 END AS every_months
@@ -1088,10 +1091,10 @@ CROSS JOIN LATERAL (
   SELECT MIN(d)::date AS on_date
   FROM generate_series(
     p.start_on::timestamp,
-    current_date::timestamp + interval '4 months',
+    DATE '2026-11-11'::timestamp + interval '4 months',
     make_interval(months => p.every_months)
   ) AS d
-  WHERE d::date > current_date
+  WHERE d::date > DATE '2026-11-11'
 ) AS next_charge;
 
 -- One gift per billing cycle for each pledge, up to today (or the day it
@@ -1111,7 +1114,7 @@ WITH demo_charges AS (
   FROM public.donor_pledges p
   CROSS JOIN LATERAL generate_series(
     p.start_date::timestamp,
-    LEAST(COALESCE(p.end_date, current_date), current_date)::timestamp,
+    LEAST(COALESCE(p.end_date, DATE '2026-11-11'), DATE '2026-11-11')::timestamp,
     CASE WHEN p.frequency = 'quarterly' THEN interval '3 months' ELSE interval '1 month' END
   ) AS d
   WHERE p.id::text LIKE '61000000-%'
@@ -1244,11 +1247,11 @@ SELECT
   NULL,
   NULL,
   format('pi_demo_jh_ot_%s', lpad(s.n::text, 3, '0')),
-  (current_date - s.days_ago),
+  (DATE '2026-11-11' - s.days_ago),
   NULL,
   NULL,
-  ((current_date - s.days_ago)::timestamp + interval '18 hours')::timestamptz,
-  ((current_date - s.days_ago)::timestamp + interval '18 hours 2 minutes')::timestamptz,
+  ((DATE '2026-11-11' - s.days_ago)::timestamp + interval '18 hours')::timestamptz,
+  ((DATE '2026-11-11' - s.days_ago)::timestamp + interval '18 hours 2 minutes')::timestamptz,
   NULL,
   NULL,
   NULL,
@@ -1256,8 +1259,8 @@ SELECT
   NULL,
   0,
   'direct',
-  ((current_date - s.days_ago)::timestamp + interval '18 hours')::timestamptz,
-  ((current_date - s.days_ago)::timestamp + interval '18 hours 2 minutes')::timestamptz
+  ((DATE '2026-11-11' - s.days_ago)::timestamp + interval '18 hours')::timestamptz,
+  ((DATE '2026-11-11' - s.days_ago)::timestamp + interval '18 hours 2 minutes')::timestamptz
 FROM one_time_seed s;
 
 -- Partner standing follows that history: the failing card is at risk and

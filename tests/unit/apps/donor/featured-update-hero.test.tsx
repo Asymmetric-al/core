@@ -88,3 +88,18 @@ it("sizes an image-less story to its content instead of a dark media frame", () 
     screen.getByRole("heading", { name: "Wells completed in Kajiado" }),
   ).toBeTruthy();
 });
+
+it("previews an update written in the composer as words, not JSON", () => {
+  const content = JSON.stringify({
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Term two begins." }],
+      },
+    ],
+  });
+  render(<FeaturedUpdateHero post={{ ...post, content }} isLoading={false} />);
+  expect(screen.getByText("Term two begins.")).toBeTruthy();
+  expect(screen.queryByText(/"type":"doc"/)).toBeNull();
+});

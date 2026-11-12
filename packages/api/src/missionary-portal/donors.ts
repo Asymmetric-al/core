@@ -1,6 +1,7 @@
 import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
 
+import { knownCurrency } from "./currency";
 import { isAnonymousToRecipient, type GivingPreferences } from "./redaction";
 import { ApiHttpError } from "../shared/http-errors";
 import { withOperation } from "../shared/with-operation";
@@ -30,7 +31,8 @@ export interface MissionaryDonorActivity {
   date: string;
   title: string;
   description?: string;
-  amount?: number;
+  amount?: number | null;
+  currency: string | null;
   status?: string;
   gift_type?: string;
   note?: string;
@@ -39,6 +41,7 @@ export interface MissionaryDonorActivity {
 export interface MissionaryRecurringDonation {
   id: string;
   amount: number;
+  currency: string | null;
   frequency: string;
   status: string;
   start_date: string;
@@ -57,7 +60,7 @@ export interface MissionaryDonorRow {
   initials: string;
   type: "Individual" | "Organization" | "Church";
   status: "Active" | "Lapsed" | "New" | "At Risk";
-  total_given: number;
+  total_given: number | null;
   last_gift_date: string | null;
   last_gift_amount: number | null;
   frequency: string;
@@ -140,6 +143,7 @@ export interface DonorPledgeSourceRow {
   donor_id: string | null;
   missionary_id?: string | null;
   amount: number;
+  currency?: string | null;
   frequency?: string | null;
   status?: string | null;
   start_date?: string | null;
@@ -298,7 +302,8 @@ function mapActivity(
     date: activity.date ?? activity.created_at,
     title: activity.title,
     description: activity.description ?? undefined,
-    amount: activity.amount ?? undefined,
+    amount: activity.amount == null ? undefined : null,
+    currency: null,
     status: normalizeActivityStatus(activity.status),
     gift_type: normalizeGiftType(activity.gift_type),
     note: activity.note ?? undefined,
@@ -309,6 +314,7 @@ function mapPledge(pledge: DonorPledgeSourceRow): MissionaryRecurringDonation {
   return {
     id: pledge.id,
     amount: pledge.amount,
+    currency: knownCurrency(pledge.currency),
     frequency: normalizeFrequency(pledge.frequency ?? "Monthly"),
     status: pledge.status ?? "active",
     start_date: pledge.start_date ?? pledge.created_at,
@@ -384,29 +390,28 @@ export function buildMissionaryDonorRows(input: {
       const anonymous = isAnonymousToRecipient({
         givingPreferences: donor.giving_preferences,
       });
+      const pledges = pledgesByDonor.get(donor.id) ?? [];
 
       // Support stats stay visible for both named and anonymous donors (§7.2).
       const stats = {
         id: donor.id,
         type: normalizeDonorType(donor.type),
         status: normalizeDonorStatus(donor.status),
-        total_given: donor.total_given ?? 0,
+        total_given: null,
         last_gift_date: donor.last_gift_date ?? null,
-        last_gift_amount: donor.last_gift_amount ?? null,
+        last_gift_amount: null,
         frequency: normalizeFrequency(donor.frequency),
         score: donor.score ?? 0,
-        recurring_donations: pledgesByDonor.get(donor.id) ?? [],
+        recurring_donations: pledges,
         // From this missionary's pledges, not the stored (unmaintained) flag.
-        has_active_pledge: (pledgesByDonor.get(donor.id) ?? []).some(
+        has_active_pledge: pledges.some(
           (pledge) => pledge.status.toLowerCase() === "active",
         ),
         // A partner since their record, first pledge or first gift,
         // whichever came first.
         joined_date: earliestDate([
           donor.joined_date ?? donor.created_at,
-          ...(pledgesByDonor.get(donor.id) ?? []).map(
-            (pledge) => pledge.start_date,
-          ),
+          ...pledges.map((pledge) => pledge.start_date),
           ...(giftDatesByDonor.get(donor.id) ?? []),
         ]),
       };
@@ -578,7 +583,7 @@ export async function getMissionaryDonorRows(input: {
     input.supabaseAdmin
       .from("donor_pledges")
       .select(
-        "id, donor_id, missionary_id, amount, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method, missionary:missionaries!inner(profile_id)",
+        "id, donor_id, missionary_id, amount, currency, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method, missionary:missionaries!inner(profile_id)",
       )
       .eq("tenant_id", input.tenantId)
       // Pledges name the missionaries row (not the profile); scope through its

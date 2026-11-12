@@ -54,8 +54,16 @@ export async function PATCH(
 
     // Same closed vocabulary as creation, so an edit can't store a
     // visibility or type the feeds don't understand.
-    const { title, content, media, status, visibility, post_type } =
-      postUpdateSchema.parse(await request.json());
+    const {
+      title,
+      content,
+      media,
+      status,
+      visibility,
+      post_type,
+      autosave,
+      expected_updated_at,
+    } = postUpdateSchema.parse(await request.json());
 
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
@@ -93,6 +101,9 @@ export async function PATCH(
     if (visibility !== undefined) updateData.visibility = visibility;
     if (post_type !== undefined) updateData.post_type = post_type;
     if (title !== undefined) updateData.title = title;
+    if (autosave) updateData.expected_status = "draft";
+    if (expected_updated_at !== undefined)
+      updateData.expected_updated_at = expected_updated_at;
 
     const { error: rpcError } = await supabaseAdmin.rpc(
       "atomic_update_post_with_audit",
@@ -107,6 +118,15 @@ export async function PATCH(
       },
     );
     if (rpcError) {
+      if (rpcError.code === "40001") {
+        return NextResponse.json(
+          {
+            error:
+              "This update changed while you were editing. Reload it before saving again.",
+          },
+          { status: 409 },
+        );
+      }
       if (rpcError.code === "P0002") {
         return NextResponse.json({ error: "Post not found" }, { status: 404 });
       }

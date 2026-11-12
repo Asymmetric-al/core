@@ -92,7 +92,6 @@ export function AccountMenu({
         }
       />
       <DropdownMenuContent align="end">
-        {/* The signed-in identity labels the account group it heads. */}
         <DropdownMenuGroup>
           <DropdownMenuLabel>
             <span className="block truncate text-sm font-medium text-foreground">

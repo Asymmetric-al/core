@@ -25,9 +25,12 @@ function readPortalErrorMessage(payload: unknown): string | null {
 export async function parseJsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const payload: unknown = await response.json().catch(() => null);
-    throw new Error(
-      readPortalErrorMessage(payload) ??
-        `Request failed with status ${response.status}`,
+    throw Object.assign(
+      new Error(
+        readPortalErrorMessage(payload) ??
+          `Request failed with status ${response.status}`,
+      ),
+      { status: response.status },
     );
   }
 

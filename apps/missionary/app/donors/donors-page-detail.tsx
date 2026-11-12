@@ -598,18 +598,14 @@ function DonorDetailStats({
       {[
         {
           label: "Lifetime",
-          value: formatCurrency(selectedDonor.total_given),
+          value: formatCurrency(selectedDonor.total_given, null),
+          extra: "Currency is not established for this total.",
         },
         {
           label: "Last gift",
-          // No gift on record is not a $0.00 gift. Partners added by hand
-          // are stored with 0 and no date.
-          value:
-            selectedDonor.last_gift_amount === null ||
-            (selectedDonor.last_gift_amount === 0 &&
-              !selectedDonor.last_gift_date)
-              ? "—"
-              : formatCurrency(selectedDonor.last_gift_amount),
+          value: selectedDonor.last_gift_date
+            ? formatCurrency(selectedDonor.last_gift_amount, null)
+            : "—",
           extra: selectedDonor.last_gift_date
             ? formatDistanceToNow(
                 parseDisplayDate(selectedDonor.last_gift_date),

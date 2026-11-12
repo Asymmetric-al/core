@@ -12,8 +12,8 @@ export type DonorsPageSummary = {
   activePledgeCount: number;
   atRiskCount: number;
   lapsedCount: number;
-  monthlyPledgeTotal: number;
-  totalGiven: number;
+  monthlyPledgeTotal: number | null;
+  totalGiven: number | null;
 };
 
 export type DonorsStatFilterType =
@@ -217,9 +217,6 @@ export function createDonorsPageSummary(donors: Donor[]): DonorsPageSummary {
         summary.activePledgeCount += 1;
       }
 
-      summary.totalGiven += donor.total_given || 0;
-      summary.monthlyPledgeTotal += getMonthlyPledgeAmount(donor);
-
       return summary;
     },
     {
@@ -227,30 +224,10 @@ export function createDonorsPageSummary(donors: Donor[]): DonorsPageSummary {
       activePledgeCount: 0,
       atRiskCount: 0,
       lapsedCount: 0,
-      monthlyPledgeTotal: 0,
-      totalGiven: 0,
+      monthlyPledgeTotal: null,
+      totalGiven: null,
     },
   );
-}
-
-function getMonthlyPledgeAmount(donor: Donor): number {
-  const activeRecurring = donor.recurring_donations.find(
-    (pledge) => pledge.status === "active",
-  );
-
-  if (!activeRecurring) {
-    return 0;
-  }
-
-  if (activeRecurring.frequency === "Monthly") {
-    return activeRecurring.amount;
-  }
-
-  if (activeRecurring.frequency === "Quarterly") {
-    return activeRecurring.amount / 3;
-  }
-
-  return activeRecurring.amount / 12;
 }
 
 export function formatDonorAddress(address: Address): string[] {

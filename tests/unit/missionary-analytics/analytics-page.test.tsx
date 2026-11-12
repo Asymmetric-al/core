@@ -36,6 +36,7 @@ const gift = (
   type: "recurring" | "one_time" | "offline" = "recurring",
 ) => ({
   amountCents,
+  currency: "USD",
   date: monthsAgo(months),
   donorId,
   type,
@@ -282,4 +283,49 @@ describe("missionary analytics", () => {
       "We couldn’t load your giving history.",
     );
   });
+});
+
+describe("Analytics currency containment", () => {
+  it.each(["JPY", null, "XXX"])("does not combine USD with %s", (currency) => {
+    mocks.metrics.mockReturnValue({
+      gifts: [
+        gift(1, 70667, "a"),
+        { ...gift(2, 1000, "b"), currency },
+        gift(14, 1000, "a"),
+      ],
+      isLoading: false,
+      error: null,
+    });
+    render(<AnalyticsPage />);
+    expect(
+      screen.getAllByText(/currencies are mixed or unknown/).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(
+      screen.getByRole("region", { name: "Given in the last 12 months" })
+        .textContent,
+    ).not.toMatch(/\$|Up \d|Down \d/);
+    expect(
+      screen.getByRole("region", { name: "Partners who gave again" })
+        .textContent,
+    ).toContain("100%");
+  });
+
+  it.each([
+    ["JPY", 1000, "¥1,000"],
+    ["BHD", 1234, "1.234"],
+    ["USD", Number.MAX_SAFE_INTEGER, "$90,071,992,547,409.91"],
+  ])(
+    "keeps %s original units in the accessible chart table",
+    (currency, amount, expected) => {
+      mocks.metrics.mockReturnValue({
+        gifts: [{ ...gift(1, amount, "a"), currency }],
+        isLoading: false,
+        error: null,
+      });
+      render(<AnalyticsPage />);
+      expect(screen.getByRole("table").textContent).toContain(expected);
+    },
+  );
 });

@@ -5,6 +5,7 @@ import {
   postAuthorName,
   postCategory,
   postImages,
+  postPlainText,
   postTitle,
 } from "@asym/database/hooks";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -87,10 +88,7 @@ export function FeaturedUpdateHero({
   }
 
   const [image] = postImages(post);
-  const excerpt = post.content
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  const excerpt = postPlainText(post.content);
   const category = postCategory(post) ?? "Ministry update";
   const meta = `${postAuthorName(post)} · ${formatPostRelativeTime(post.created_at)}`;
   const title = postTitle(post);

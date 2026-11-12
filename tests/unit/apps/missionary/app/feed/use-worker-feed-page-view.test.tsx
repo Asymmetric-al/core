@@ -2,7 +2,8 @@
 
 import { readFileSync } from "node:fs";
 
-import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, waitFor } from "@testing-library/react";
+import { renderDraftHook as renderHook } from "../../../../fixtures/retained-drafts";
 import { StrictMode } from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -476,7 +477,7 @@ describe("composer autosave", () => {
 
     act(() => result.current.handleEditDraft(draft as never));
     act(() => result.current.setPostContent("<p>Draft, edited</p>"));
-    act(() => vi.advanceTimersByTime(31_000));
+    await act(async () => vi.advanceTimersByTime(31_000));
 
     expect(patchCalls()).toHaveLength(1);
     const [url, init] = patchCalls()[0]!;
@@ -503,6 +504,152 @@ describe("composer autosave", () => {
     expect(result.current.editingPostId).toBe("post-draft");
     expect(result.current.postTitle).toBe("Rainy season");
     expect(result.current.postContent).toBe("<p>Draft, edited</p>");
+  });
+
+  it("serializes overlapping autosaves before publishing", async () => {
+    mockFeed();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+    const finish: Array<(response: Response) => void> = [];
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (input, init) => {
+      if (
+        init?.method === "PATCH" &&
+        JSON.parse(String(init.body)).status === "draft"
+      ) {
+        return new Promise<Response>((resolve) => finish.push(resolve));
+      }
+      return base(input, init);
+    });
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    act(() => result.current.handleEditDraft(draft as never));
+    act(() => result.current.setPostContent("<p>First edit</p>"));
+    await act(async () => vi.advanceTimersByTime(31_000));
+    act(() => result.current.setPostContent("<p>Latest edit</p>"));
+    await act(async () => vi.advanceTimersByTime(31_000));
+    expect(patchCalls()).toHaveLength(1);
+    let publishing!: Promise<void>;
+    act(() => {
+      publishing = result.current.handlePost("published");
+    });
+    await act(async () => finish[0](jsonResponse(200, { post: draft })));
+    expect(patchCalls()).toHaveLength(2);
+    expect(JSON.parse(String(patchCalls()[1][1]?.body)).status).toBe("draft");
+    await act(async () => {
+      finish[1](jsonResponse(200, { post: draft }));
+      await publishing;
+    });
+    expect(patchCalls()).toHaveLength(3);
+    expect(JSON.parse(String(patchCalls()[2][1]?.body))).toMatchObject({
+      status: "published",
+      content: "<p>Latest edit</p>",
+    });
+  });
+
+  it("waits for an old composer's autosave after unmount and remount", async () => {
+    mockFeed();
+    const remountDraft = {
+      ...draft,
+      id: "post-remount",
+      updated_at: "2026-11-11T12:00:00.000Z",
+    };
+    let finishAutosave!: (response: Response) => void;
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (input, init) => {
+      if (String(input).startsWith("/api/posts?status=draft"))
+        return jsonResponse(200, { posts: [remountDraft] });
+      if (
+        String(input) === "/api/posts/post-remount" &&
+        init?.method === "PATCH"
+      ) {
+        if (JSON.parse(String(init.body)).status === "draft")
+          return new Promise<Response>((resolve) => {
+            finishAutosave = resolve;
+          });
+        return jsonResponse(200, {
+          post: { ...remountDraft, status: "published" },
+        });
+      }
+      return base(input, init);
+    });
+    const first = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(first.result.current.drafts).toHaveLength(1));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    act(() => first.result.current.handleEditDraft(remountDraft as never));
+    act(() => first.result.current.setPostContent("<p>Old editor</p>"));
+    await act(async () => vi.advanceTimersByTime(31_000));
+    vi.useRealTimers();
+    first.unmount();
+
+    const second = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(second.result.current.drafts).toHaveLength(1));
+    act(() => second.result.current.handleEditDraft(remountDraft as never));
+    act(() => second.result.current.setPostContent("<p>Latest editor</p>"));
+    let publishing!: Promise<void>;
+    act(() => {
+      publishing = second.result.current.handlePost("published");
+    });
+    await act(async () => {});
+    expect(patchCalls()).toHaveLength(1);
+    await act(async () => {
+      finishAutosave(
+        jsonResponse(200, {
+          post: { ...remountDraft, updated_at: "2026-11-11T12:01:00.000Z" },
+        }),
+      );
+      await publishing;
+    });
+    expect(patchCalls()).toHaveLength(2);
+    expect(JSON.parse(String(patchCalls()[1][1]?.body))).toMatchObject({
+      status: "published",
+      content: "<p>Latest editor</p>",
+      expected_updated_at: "2026-11-11T12:01:00.000Z",
+    });
+  });
+
+  // An autosave in flight writes status "draft"; if it landed after a
+  // publish it would unpublish the update, so publishing waits for it.
+  it("publishes only after an autosave in flight has finished", async () => {
+    mockFeed();
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.drafts).toHaveLength(1));
+
+    let finishAutosave = (_response: Response) => {};
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (input, init) => {
+      const body = init?.body ? JSON.parse(String(init.body)) : null;
+      if (init?.method === "PATCH" && body?.status === "draft") {
+        return new Promise<Response>((resolve) => (finishAutosave = resolve));
+      }
+      return base(input, init);
+    });
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+    act(() => result.current.handleEditDraft(draft as never));
+    act(() => result.current.setPostContent("<p>Draft, edited</p>"));
+    await act(async () => {
+      vi.advanceTimersByTime(31_000);
+    });
+    vi.useRealTimers();
+    await waitFor(() => expect(patchCalls()).toHaveLength(1));
+
+    let publishing!: Promise<void>;
+    act(() => {
+      publishing = result.current.handlePost("published");
+    });
+    // The publish waits behind the autosave rather than racing it.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(patchCalls()).toHaveLength(1);
+
+    await act(async () => {
+      finishAutosave(jsonResponse(200, { post: draft }));
+      await publishing;
+    });
+    expect(patchCalls()).toHaveLength(2);
+    const last = patchCalls()[1]!;
+    expect(JSON.parse(String((last[1] as RequestInit).body)).status).toBe(
+      "published",
+    );
   });
 });
 

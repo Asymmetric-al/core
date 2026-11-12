@@ -3,7 +3,6 @@
 
 import { useLocaleFormat } from "@asym/lib/hooks";
 import { PageHeader } from "@asym/ui/components/page-header";
-import { UnsavedChangesGuard } from "@asym/ui/components/primitives/unsaved-changes-guard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -244,10 +243,19 @@ function PostComposerCard({
   const titleId = useId();
   const editing = vm.editingPostId !== null;
   const isComposerEmpty = isPostContentEmpty(vm.postContent);
-  const postActionDisabled = vm.isSaving || vm.isUploading || isComposerEmpty;
+  const postActionDisabled =
+    vm.isSaving || vm.isUploading || isComposerEmpty || !vm.canWrite;
 
   return (
     <Card role="region" aria-labelledby={titleId}>
+      {!vm.canWrite ? (
+        <p role="status">
+          Your updates are read-only.{" "}
+          {vm.hasUnsavedWriting
+            ? "Your readable draft is kept, but cannot be submitted."
+            : "Changes cannot be submitted."}
+        </p>
+      ) : null}
       <CardHeader>
         <CardTitle>
           <h2 id={titleId}>{editing ? "Edit update" : "Share an update"}</h2>
@@ -476,9 +484,11 @@ function DiscardWritingDialog({
 
 function WorkerFeedPageView() {
   const vm = useWorkerFeedPageView();
+  if (!vm.canRead) {
+    return <p role="status">Your updates are unavailable in this account.</p>;
+  }
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-20">
-      <UnsavedChangesGuard when={vm.hasUnsavedWriting} />
       <PageHeader
         title="Updates"
         description="Share news, stories and prayer requests with your partners."

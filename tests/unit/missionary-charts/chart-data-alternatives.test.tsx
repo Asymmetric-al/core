@@ -96,44 +96,46 @@ function bodyRows(table: HTMLElement) {
     .map((row) => [...row.children].map((cell) => cell.textContent));
 }
 
-// Dollars, as the Home chart receives them.
+// Integer minor units, as the Home chart receives them.
 const homeMonths = [
   {
     month: "Oct",
     year: 2025,
-    recurring: 100,
-    oneTime: 25.5,
+    recurring: 10000,
+    oneTime: 2550,
     offline: 0,
-    total: 125.5,
+    total: 12550,
   },
   {
     month: "Jan",
     year: 2026,
-    recurring: 706.67,
+    recurring: 70667,
     oneTime: 0,
     offline: 0,
-    total: 706.67,
+    total: 70667,
   },
   {
     month: "Feb",
     year: 2026,
     recurring: 0,
-    oneTime: 50,
+    oneTime: 5000,
     offline: 0,
-    total: 50,
+    total: 5000,
   },
 ];
 
 describe("Home giving chart data alternative", () => {
   it("hides the plotted area and keeps it out of the tab order", () => {
     const { container } = render(
-      <GivingBreakdownView monthlyBreakdown={homeMonths} />,
+      <GivingBreakdownView currency="USD" monthlyBreakdown={homeMonths} />,
     );
     expectHiddenPlot(container);
   });
 
   it("lists each month's amounts by kind of gift in a visually hidden table", () => {
-    render(<GivingBreakdownView monthlyBreakdown={homeMonths} />);
+    render(
+      <GivingBreakdownView currency="USD" monthlyBreakdown={homeMonths} />,
+    );
     const table = screen.getByRole("table", {
       name: "Giving by month, October 2025 to February 2026",
     });
@@ -161,7 +163,7 @@ describe("Home giving chart data alternative", () => {
 
   it("keeps the legend visible to everyone", () => {
     const { container } = render(
-      <GivingBreakdownView monthlyBreakdown={homeMonths} />,
+      <GivingBreakdownView currency="USD" monthlyBreakdown={homeMonths} />,
     );
     const legend = container.querySelector(".recharts-legend-wrapper")!;
     expect(legend.closest("[aria-hidden]")).toBeNull();
@@ -171,7 +173,7 @@ describe("Home giving chart data alternative", () => {
 
   it("shows exact amounts with cents in the tooltip", async () => {
     const { container } = render(
-      <GivingBreakdownView monthlyBreakdown={homeMonths} />,
+      <GivingBreakdownView currency="USD" monthlyBreakdown={homeMonths} />,
     );
     const text = await firstMonthTooltip(container);
     expect(text).toContain("Recurring$100.00");
@@ -181,30 +183,125 @@ describe("Home giving chart data alternative", () => {
 
 describe("Analytics year-over-year chart", () => {
   const months = [
-    { label: "Oct", thisYear: 100, lastYear: 25.5 },
-    { label: "Nov", thisYear: 706.67, lastYear: 0 },
+    { label: "Oct", thisYear: 10000, lastYear: 2550 },
+    { label: "Nov", thisYear: 70667, lastYear: 0 },
   ];
 
   it("hides the plotted area and keeps it out of the tab order", () => {
-    const { container } = render(<YearOverYearChart data={months} />);
+    const { container } = render(
+      <YearOverYearChart currency="USD" data={months} />,
+    );
     expectHiddenPlot(container);
   });
 
   it("shows exact amounts with cents in the tooltip", async () => {
-    const { container } = render(<YearOverYearChart data={months} />);
+    const { container } = render(
+      <YearOverYearChart currency="USD" data={months} />,
+    );
     const text = await firstMonthTooltip(container);
     expect(text).toContain("Last 12 months$100.00");
     expect(text).toContain("Year before$25.50");
   });
 
-  it("keeps whole-dollar axis ticks", () => {
-    const { container } = render(<YearOverYearChart data={months} />);
+  it("formats axis ticks in the qualified currency", () => {
+    const { container } = render(
+      <YearOverYearChart currency="USD" data={months} />,
+    );
     const ticks = [
       ...container.querySelectorAll(
         ".recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value",
       ),
     ].map((tick) => tick.textContent);
     expect(ticks.length).toBeGreaterThan(0);
-    for (const tick of ticks) expect(tick).toMatch(/^\$\d+(\.\d)?k?$/);
+    for (const tick of ticks) expect(tick).toMatch(/^\$[\d,.]+k?$/);
   });
+});
+
+describe("chart currency correctness", () => {
+  it.each([
+    ["USD", 70667, "$706.67"],
+    ["JPY", 1000, "¥1,000"],
+    ["BHD", 1234, "1.234"],
+    ["USD", Number.MAX_SAFE_INTEGER, "$90,071,992,547,409.91"],
+  ])(
+    "preserves %s integer units in Home table and tooltip",
+    async (currency, amount, expected) => {
+      const { container } = render(
+        <GivingBreakdownView
+          currency={currency}
+          monthlyBreakdown={[
+            {
+              month: "Jan",
+              year: 2026,
+              recurring: amount,
+              oneTime: 0,
+              offline: 0,
+              total: amount,
+            },
+          ]}
+        />,
+      );
+      expect(screen.getByRole("table").textContent).toContain(expected);
+      expect(await firstMonthTooltip(container)).toContain(expected);
+    },
+  );
+
+  it.each([
+    ["USD", Number.MAX_SAFE_INTEGER, "$90,071,992,547,409.91"],
+    ["JPY", 1000, "¥1,000"],
+    ["BHD", 1234, "1.234"],
+  ])(
+    "preserves %s integer units in the Analytics tooltip",
+    async (currency, amount, expected) => {
+      const { container } = render(
+        <YearOverYearChart
+          currency={currency}
+          data={[{ label: "Jan", thisYear: amount, lastYear: 0 }]}
+        />,
+      );
+      expect(await firstMonthTooltip(container)).toContain(expected);
+    },
+  );
+
+  it.each(["", "XXX"])("does not plot unknown currency %s", (currency) => {
+    const { container } = render(
+      <>
+        <GivingBreakdownView
+          currency={currency}
+          monthlyBreakdown={homeMonths}
+        />
+        <YearOverYearChart
+          currency={currency}
+          data={[{ label: "Jan", thisYear: 1000, lastYear: 0 }]}
+        />
+      </>,
+    );
+    expect(container.querySelector("svg.recharts-surface")).toBeNull();
+    expect(container.textContent).toContain("currencies are mixed or unknown");
+    expect(container.textContent).not.toContain("$");
+  });
+
+  it.each([
+    ["USD", 1],
+    ["JPY", 0],
+    [null, 0],
+  ])(
+    "only compares commitments in matching currency %s",
+    (committedCurrency, lines) => {
+      const { container } = render(
+        <GivingBreakdownView
+          currency="USD"
+          monthlyBreakdown={homeMonths}
+          committedCents={10000}
+          committedCurrency={committedCurrency}
+        />,
+      );
+      expect(
+        container.querySelectorAll(".recharts-reference-line"),
+      ).toHaveLength(lines);
+      expect(
+        container.textContent?.includes("Committed-support line unavailable"),
+      ).toBe(lines === 0);
+    },
+  );
 });

@@ -1,3 +1,5 @@
+import { moneyProgress } from "./money-units";
+
 import type { MissionaryPortalSnapshot } from "@asym/database/hooks";
 
 /**
@@ -8,11 +10,13 @@ import type { MissionaryPortalSnapshot } from "@asym/database/hooks";
  */
 
 export interface DashboardSupportView {
-  goalCents: number;
+  goalCents: number | null;
+  goalCurrency: string | null;
+  monthlyCommittedCurrency: string | null;
   /** Active recurring pledges, normalised to a month. */
-  monthlyCommittedCents: number;
-  remainingCents: number;
-  percentFunded: number;
+  monthlyCommittedCents: number | null;
+  remainingCents: number | null;
+  percentFunded: number | null;
   giftCount: number;
   activeDonorCount: number;
   hasGoal: boolean;
@@ -70,18 +74,25 @@ export function buildMissionaryDashboardView(
   now: Date = new Date(),
 ): MissionaryDashboardView {
   const rawSupport = snapshot?.support ?? null;
+  const progress = rawSupport
+    ? moneyProgress(
+        rawSupport.recurringMonthlyCents,
+        rawSupport.recurringCurrency,
+        rawSupport.goalCents,
+        rawSupport.goalCurrency,
+      )
+    : null;
   const support: DashboardSupportView | null = rawSupport
     ? {
         goalCents: rawSupport.goalCents,
+        goalCurrency: rawSupport.goalCurrency,
+        monthlyCommittedCurrency: rawSupport.recurringCurrency,
         monthlyCommittedCents: rawSupport.recurringMonthlyCents,
-        remainingCents: Math.max(
-          0,
-          rawSupport.goalCents - rawSupport.recurringMonthlyCents,
-        ),
-        percentFunded: rawSupport.percentFunded,
+        remainingCents: progress?.remaining ?? null,
+        percentFunded: progress?.percent ?? null,
         giftCount: rawSupport.giftCount,
         activeDonorCount: rawSupport.activeDonorCount,
-        hasGoal: rawSupport.goalCents > 0,
+        hasGoal: progress !== null,
       }
     : null;
 

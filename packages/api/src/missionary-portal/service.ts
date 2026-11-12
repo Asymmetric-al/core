@@ -45,6 +45,14 @@ const MISSIONARY_SELECT = `
   social_links
 `;
 
+/** Rows per page when reading every active pledge. */
+const PLEDGE_PAGE_SIZE = 1000;
+
+type PledgePageRow = MissionaryPortalPledgeRow & {
+  id: string;
+  created_at: string | null;
+};
+
 const DONATION_SELECT = `
   id,
   donor_id,
@@ -241,18 +249,40 @@ export async function getMissionaryPortalSnapshot(input: {
   // Pledges name the missionaries row (not the profile), like donations.
   // Scoping by donor alone would count a partner's recurring gifts to other
   // missionaries as this missionary's support. Newest first so each
-  // partner's current commitment is the one counted.
-  const pledges = assertArrayResult(
-    (await input.supabaseAdmin
+  // partner's current commitment is the one counted. Read every page: the
+  // totals are money, so they can't stop at a row limit.
+  const pledges: PledgePageRow[] = [];
+  let afterId: string | undefined;
+  for (;;) {
+    let query = input.supabaseAdmin
       .from("donor_pledges")
-      .select("donor_id, amount, frequency, status")
+      .select("id, created_at, donor_id, amount, currency, frequency, status")
       .eq("tenant_id", input.tenantId)
       .eq("missionary_id", missionary.id)
       .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(500)) as unknown as SupabaseResult<MissionaryPortalPledgeRow[]>,
-    "Unable to load missionary pledges",
-  );
+      .order("id", { ascending: true })
+      .limit(PLEDGE_PAGE_SIZE);
+    if (afterId) query = query.gt("id", afterId);
+    const page = assertArrayResult(
+      (await query) as unknown as SupabaseResult<PledgePageRow[]>,
+      "Unable to load missionary pledges",
+    );
+    pledges.push(...page);
+    const last = page.at(-1);
+    if (!last || page.length < PLEDGE_PAGE_SIZE) break;
+    afterId = last.id;
+  }
+  // Page by immutable primary key so cancellations cannot shift offsets.
+  // Restore the existing newest-first choice per donor after collecting rows.
+  pledges.sort((a, b) => {
+    if (a.created_at !== b.created_at) {
+      if (a.created_at === null) return -1;
+      if (b.created_at === null) return 1;
+      const dateOrder = Date.parse(b.created_at) - Date.parse(a.created_at);
+      if (dateOrder) return dateOrder;
+    }
+    return b.id.localeCompare(a.id);
+  });
 
   return buildMissionaryPortalSnapshot({
     profile,

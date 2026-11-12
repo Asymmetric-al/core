@@ -73,7 +73,6 @@ export function DonorsPageStats() {
     activePledgeCount,
     atRiskCount,
     lapsedCount,
-    monthlyPledgeTotal,
     totalGiven,
   } = view.summary;
   // With more pages to load, the roster numbers describe the loaded
@@ -83,8 +82,10 @@ export function DonorsPageStats() {
   // and anonymous partners' gifts are counted.
   const support = useMissionaryPortalSnapshot().data?.support;
   const monthlyPartners = support?.monthlyPartnerCount ?? activePledgeCount;
-  const committedCents = support?.recurringMonthlyCents ?? monthlyPledgeTotal;
-  const committedNote = support ? "" : loaded;
+  const committedAmount = formatCurrency(
+    support?.recurringMonthlyCents,
+    support?.recurringCurrency,
+  );
   return (
     // Below lg an open partner fills the page: the tiles step aside, like the
     // list does, so the partner starts at the top. "Back" brings both back.
@@ -101,13 +102,17 @@ export function DonorsPageStats() {
       />
       <StatCard
         label="Given, all time"
-        value={formatCurrency(totalGiven)}
-        detail={`Across every gift from these partners${loaded}`}
+        value={formatCurrency(totalGiven, null)}
+        detail="Lifetime giving is unavailable because its currency is unknown."
       />
       <StatCard
         label="Monthly partners"
         value={monthlyPartners}
-        detail={`${formatCurrency(committedCents)} a month committed${committedNote}`}
+        detail={
+          committedAmount === "Unavailable"
+            ? "Committed amount unavailable: currencies are mixed or unknown."
+            : `${committedAmount} a month committed`
+        }
         onClick={() => applyStatFilter("activePledge")}
         isActive={pledgeFilter === "Active"}
       />

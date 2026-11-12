@@ -13,6 +13,8 @@ function snapshot(overrides: Record<string, unknown> = {}) {
   return {
     support: {
       goalCents: 500_000,
+      goalCurrency: "USD",
+      recurringCurrency: "USD",
       raisedCents: 200_000,
       recurringMonthlyCents: 150_000,
       percentFunded: 30,
@@ -78,6 +80,8 @@ describe("buildMissionaryDashboardView", () => {
     const view = buildMissionaryDashboardView(snapshot());
     expect(view.support).toEqual({
       goalCents: 500_000,
+      goalCurrency: "USD",
+      monthlyCommittedCurrency: "USD",
       monthlyCommittedCents: 150_000,
       remainingCents: 350_000,
       percentFunded: 30,
@@ -87,7 +91,7 @@ describe("buildMissionaryDashboardView", () => {
     });
   });
 
-  it("clamps remaining at 0 when raised exceeds goal, and hasGoal=false when goal is 0", () => {
+  it("has no comparison when the goal is zero or unqualified", () => {
     const over = buildMissionaryDashboardView(
       snapshot({
         support: {
@@ -101,7 +105,8 @@ describe("buildMissionaryDashboardView", () => {
         },
       }),
     );
-    expect(over.support?.remainingCents).toBe(0);
+    expect(over.support?.remainingCents).toBeNull();
+    expect(over.support?.percentFunded).toBeNull();
     expect(over.support?.hasGoal).toBe(false);
   });
 

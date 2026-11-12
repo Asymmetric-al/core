@@ -2,7 +2,8 @@
 
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
-import { type ReactNode } from "react";
+
+import type { ReactNode } from "react";
 
 interface AppHeaderProps {
   title?: string;
@@ -11,11 +12,6 @@ interface AppHeaderProps {
   navigation?: ReactNode;
 }
 
-/**
- * The workspace bar: the sidebar toggle, where you are (on phones, where the
- * sidebar is a sheet) and search. Account, help and sign-out live in the
- * sidebar's account menu.
- */
 export function AppHeader({ title, sectionLabel, navigation }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-3 sm:px-4 lg:px-6">

@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, waitFor } from "@testing-library/react";
+import { renderDraftHook as renderHook } from "../../../../fixtures/retained-drafts";
 import * as React from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -137,6 +138,25 @@ describe("useProfilePageView", () => {
     expect(toast.info).toHaveBeenCalledWith("Changes discarded");
   });
 
+  it("stops unload protection when edits return to the saved profile", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    const dirtyUnload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(dirtyUnload);
+    expect(dirtyUnload.defaultPrevented).toBe(true);
+
+    act(() => result.current.updateProfile("location", "London"));
+    const cleanUnload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(cleanUnload);
+    expect(result.current.hasChanges).toBe(false);
+    expect(cleanUnload.defaultPrevented).toBe(false);
+  });
+
   it("commits a successful save as the new baseline", async () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse(200, apiProfile))
@@ -162,6 +182,14 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.location).toBe("Paris");
     expect(result.current.hasChanges).toBe(false);
     expect(toast.success).toHaveBeenCalledWith("Profile saved");
+    expect(result.current.saveSuccess).toBe(true);
+
+    act(() => {
+      result.current.updateProfile("bio", "A newer unsaved edit");
+    });
+
+    expect(result.current.hasChanges).toBe(true);
+    expect(result.current.saveSuccess).toBe(false);
   });
 
   it("surfaces the API error message when saving fails", async () => {
@@ -641,6 +669,8 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.location).toBe("Paris");
     expect(result.current.profile.bio).toBe("typed during save");
     expect(result.current.hasChanges).toBe(true);
+    expect(result.current.saveSuccess).toBe(false);
+    expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
   });
 
   it("exposes a load failure as fetchError and toasts once", async () => {

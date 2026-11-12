@@ -8,6 +8,7 @@ import {
   postAuthorName,
   postImages,
   postInitials,
+  postPlainText,
   postReadTime,
   type DonorFeedPost,
   postTitle,
@@ -272,5 +273,64 @@ describe("fetchDonorFeedPosts", () => {
 describe("DONOR_FEED_POSTS_QUERY_KEY", () => {
   it("is a stable base key", () => {
     expect(DONOR_FEED_POSTS_QUERY_KEY).toBe("donor-feed-posts");
+  });
+});
+
+// The update composer stores TipTap JSON, not HTML.
+describe("TipTap JSON post content", () => {
+  const json = JSON.stringify({
+    type: "doc",
+    content: [
+      { type: "paragraph", content: [{ type: "text", text: "Clean water" }] },
+      { type: "paragraph", content: [{ type: "text", text: "is flowing." }] },
+    ],
+  });
+
+  it("reads the words, not the JSON", () => {
+    expect(postPlainText(json)).toBe("Clean water is flowing.");
+    expect(postTitle(makePost({ content: json }))).toBe(
+      "Clean water is flowing.",
+    );
+  });
+
+  it("still reads HTML content", () => {
+    expect(postPlainText("<p>Clean <b>water</b></p>")).toBe("Clean water");
+  });
+
+  it("separates nested blocks and hard breaks while preserving inline words", () => {
+    const content = JSON.stringify({
+      type: "doc",
+      content: [
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Clean" }],
+                },
+              ],
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    { type: "text", text: "wa" },
+                    { type: "text", text: "ter", marks: [{ type: "bold" }] },
+                    { type: "hardBreak" },
+                    { type: "text", text: "is flowing" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(postPlainText(content)).toBe("Clean water is flowing");
   });
 });

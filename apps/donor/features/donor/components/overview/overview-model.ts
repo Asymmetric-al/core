@@ -6,6 +6,8 @@ import type {
   DonorWallet,
 } from "@asym/database/hooks";
 
+import { makeDisplayDate } from "@/lib/dates";
+
 /** Something the donor should fix, with how to fix it. */
 export type OverviewAlert = {
   id: string;
@@ -46,9 +48,8 @@ function recipientName(gift: {
 }
 
 /**
- * Problems first: a recent gift that didn't go through (unless a later gift to
- * the same person did) and a saved card that has expired or expires this
- * month or next.
+ * Problems first: a recent gift that didn't go through and a saved card
+ * that has expired or expires this month or next.
  */
 export function overviewAlerts({
   snapshot,
@@ -66,20 +67,16 @@ export function overviewAlerts({
     b.date.localeCompare(a.date),
   );
 
-  for (const [index, gift] of donations.entries()) {
+  for (const gift of donations) {
     if (gift.status !== "Failed") continue;
-    if (new Date(gift.date).getTime() < since) break;
+    if (makeDisplayDate(gift.date).getTime() < since) break;
     const name = recipientName(gift);
-    const resolved = donations
-      .slice(0, index)
-      .some(
-        (later) => later.status === "Paid" && recipientName(later) === name,
-      );
-    if (resolved) continue;
+    // A separate paid gift does not establish that this charge recovered.
+    // The alert clears when this gift's own status changes or it ages out.
     alerts.push({
       id: `failed-${gift.id}`,
       title: "A gift didn’t go through",
-      detail: `Your ${formatCurrency(gift.amount)} gift to ${name} on ${SHORT_DAY.format(new Date(gift.date))} didn’t go through. Check your card or choose another way to pay.`,
+      detail: `Your ${formatCurrency(gift.amount)} gift to ${name} on ${SHORT_DAY.format(makeDisplayDate(gift.date))} didn’t go through. Check your card or choose another way to pay.`,
       href: "/donor-dashboard/wallet",
       action: "Update payment method",
     });
@@ -102,7 +99,7 @@ export function overviewAlerts({
         : `Your ${card} expires at the end of ${MONTH.format(new Date(method.expYear, method.expMonth - 1, 1))}.`;
       const uses =
         gifts > 0
-          ? `It pays for ${gifts} recurring ${gifts === 1 ? "gift" : "gifts"}.`
+          ? `Our records link it to ${gifts} recurring ${gifts === 1 ? "gift" : "gifts"}.`
           : "It’s your default payment method.";
       alerts.push({
         id: `expiring-${method.id}`,
@@ -160,7 +157,7 @@ export function givenThisYear(
 ) {
   const year = now.getFullYear();
   const inYear = (snapshot?.donations ?? []).filter(
-    (gift) => new Date(gift.date).getFullYear() === year,
+    (gift) => makeDisplayDate(gift.date).getFullYear() === year,
   );
   const paid = inYear.filter((gift) => gift.status === "Paid");
   return {

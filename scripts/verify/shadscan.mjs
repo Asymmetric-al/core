@@ -47,6 +47,19 @@ export function scannerEnvironment(environment = process.env) {
   return result;
 }
 
+export function scannerArguments(binary, root, platform = process.platform) {
+  return [
+    ...(platform === "win32"
+      ? ["--import", new URL("./shadscan-glob.mjs", import.meta.url).href]
+      : []),
+    binary,
+    root,
+    "--json",
+    "--no-interactive",
+    "--no-roast",
+  ];
+}
+
 export function createStagedSnapshot(repoRoot) {
   const snapshot = mkdtempSync(path.join(os.tmpdir(), "core-shadscan-index-"));
   try {
@@ -140,18 +153,14 @@ async function main() {
       path.dirname(cliManifestPath),
       cliManifest.bin.shadscan,
     );
-    const result = spawnSync(
-      process.execPath,
-      [binary, root, "--json", "--no-interactive", "--no-roast"],
-      {
-        cwd: REPO_ROOT,
-        encoding: "utf8",
-        shell: false,
-        env: scannerEnvironment(),
-        maxBuffer: 32 * 1024 * 1024,
-        timeout: 120_000,
-      },
-    );
+    const result = spawnSync(process.execPath, scannerArguments(binary, root), {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+      shell: false,
+      env: scannerEnvironment(),
+      maxBuffer: 32 * 1024 * 1024,
+      timeout: 300_000,
+    });
     if (result.error || result.status !== 0)
       throw new Error(
         `Shadscan could not complete (exit ${result.status ?? "unknown"}): ${result.error?.message ?? result.stderr.slice(0, 2000)}`,

@@ -138,6 +138,12 @@ describe("Recurring gifts", () => {
     expect(screen.queryByText(spread)).toBeNull();
     view.unmount();
 
+    // A weekly gift isn't spread out, so the note doesn't describe it.
+    state.gifts = [gift({ id: "weekly", frequency: "weekly", amount: 10 })];
+    const weekly = render(<RecurringGiftsPage />);
+    expect(screen.queryByText(spread)).toBeNull();
+    weekly.unmount();
+
     state.gifts = [gift({ id: "yearly", frequency: "annually", amount: 600 })];
     render(<RecurringGiftsPage />);
     expect(screen.getByText(spread)).toBeTruthy();

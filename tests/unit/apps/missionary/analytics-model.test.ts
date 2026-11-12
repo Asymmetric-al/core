@@ -17,6 +17,7 @@ const gift = (
   extra: Partial<AnalyticsGift> = {},
 ): AnalyticsGift => ({
   amountCents,
+  currency: "USD",
   date: new Date(ymd[0], ymd[1] - 1, ymd[2], 9).toISOString(),
   donorId,
   type: "one_time",
@@ -25,6 +26,24 @@ const gift = (
 });
 
 describe("givingYear", () => {
+  it("keeps counts but contains mixed or unknown monetary analytics", () => {
+    for (const gifts of [
+      [
+        gift([2026, 11, 1], 1000, "d1", { currency: "JPY" }),
+        gift([2026, 11, 2], 1000, "d2", { currency: "USD" }),
+      ],
+      [gift([2026, 11, 1], 1000, "d1", { currency: null })],
+    ]) {
+      const summary = givingYear(gifts, NOW);
+      expect(summary.last12Cents).toBeNull();
+      expect(summary.changePct).toBeNull();
+      expect(summary.averageGiftCents).toBeNull();
+      expect(summary.medianGiftCents).toBeNull();
+      expect(summary.giftCount).toBe(gifts.length);
+      expect(monthlyYearOverYear(gifts, NOW)).toEqual([]);
+      expect(givingMix(gifts, NOW).oneTimeCents).toBeNull();
+    }
+  });
   it("compares the last 12 months with the 12 before, completed gifts only", () => {
     const summary = givingYear(
       [
@@ -36,6 +55,7 @@ describe("givingYear", () => {
       NOW,
     );
     expect(summary).toEqual({
+      currency: "USD",
       last12Cents: 30_000,
       prior12Cents: 15_000,
       changePct: 100,
@@ -63,6 +83,7 @@ describe("givingYear", () => {
 
   it("has no change or average without the gifts to compute them", () => {
     expect(givingYear([gift([2026, 3, 1], 5_000)], NOW)).toEqual({
+      currency: "USD",
       last12Cents: 5_000,
       prior12Cents: 0,
       changePct: null,

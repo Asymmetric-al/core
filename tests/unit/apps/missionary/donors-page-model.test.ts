@@ -31,6 +31,7 @@ function createRecurringDonation(
   return {
     id: "recurring-1",
     amount: 0,
+    currency: "USD",
     frequency: "Monthly",
     status: "active",
     start_date: "2026-01-01T00:00:00.000Z",
@@ -48,6 +49,7 @@ function createActivity(overrides: Partial<Activity>): Activity {
     type: "note",
     date: "2026-01-01T00:00:00.000Z",
     title: "Activity",
+    currency: null,
     ...overrides,
   };
 }
@@ -79,7 +81,7 @@ function createDonor(overrides: Partial<Donor>): Donor {
 }
 
 describe("donors page model helpers", () => {
-  it("derives summary counts and monthly pledge totals without changing frequency conversion", () => {
+  it("keeps counts without inventing currency for lifetime or incomplete roster totals", () => {
     const donors = [
       createDonor({
         id: "active-monthly",
@@ -96,7 +98,11 @@ describe("donors page model helpers", () => {
         total_given: 250,
         has_active_pledge: true,
         recurring_donations: [
-          createRecurringDonation({ amount: 120, frequency: "Quarterly" }),
+          createRecurringDonation({
+            amount: 120,
+            currency: "JPY",
+            frequency: "Quarterly",
+          }),
         ],
       }),
       createDonor({
@@ -119,8 +125,8 @@ describe("donors page model helpers", () => {
       activePledgeCount: 3,
       atRiskCount: 1,
       lapsedCount: 1,
-      monthlyPledgeTotal: 230,
-      totalGiven: 1000,
+      monthlyPledgeTotal: null,
+      totalGiven: null,
     });
   });
 

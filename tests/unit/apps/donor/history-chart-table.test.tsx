@@ -4,7 +4,15 @@ import { join } from "node:path";
 
 import { cleanup, render, screen, within } from "@testing-library/react";
 import React from "react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import type { Transaction } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/types";
 
@@ -24,6 +32,7 @@ const gift = (overrides: Partial<Transaction>): Transaction => ({
 });
 
 const fixture = vi.hoisted(() => ({ data: [] as unknown[] }));
+const originalTz = process.env.TZ;
 
 vi.mock("@asym/database/hooks", () => ({
   useDonorHistoryTransactions: () => ({
@@ -57,6 +66,10 @@ vi.mock("next/link", () => ({
 // eslint-disable-next-line no-restricted-imports -- AL-1931: The real donor history page at its app boundary.
 import DonorHistoryPage from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/page-content";
 
+beforeAll(() => {
+  process.env.TZ = "America/Los_Angeles";
+});
+
 beforeEach(() => {
   vi.stubGlobal(
     "matchMedia",
@@ -86,6 +99,14 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+});
+
+afterAll(() => {
+  if (originalTz === undefined) {
+    delete process.env.TZ;
+  } else {
+    process.env.TZ = originalTz;
+  }
 });
 
 const MONTHS = [
@@ -163,6 +184,18 @@ it("offers no table when there is nothing to chart", () => {
   expect(
     screen.queryByRole("table", { name: `Paid gifts by month in ${year}` }),
   ).toBeNull();
+});
+
+it("counts date-only New Year's gifts in the selected year", () => {
+  fixture.data = [gift({ id: "new-year", date: `${year}-01-01`, amount: 10 })];
+  render(<DonorHistoryPage />);
+
+  expect(screen.getAllByText("$10.00").length).toBeGreaterThan(0);
+  const table = screen.getByRole("table", {
+    name: `Paid gifts by month in ${year}`,
+  });
+  const rows = within(table).getAllByRole("row").slice(1);
+  expect(within(rows[0]!).getByRole("cell").textContent).toBe("$10.00");
 });
 
 it("keeps the year summary short on phones so the records start sooner", () => {

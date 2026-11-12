@@ -38,14 +38,14 @@ const donor = (overrides: Partial<Donor>): Donor =>
   }) as Donor;
 
 describe("partnersToCsv", () => {
-  it("writes one row per partner with plain dollar amounts", () => {
+  it("exports unqualified scalar amounts as unavailable, never as USD", () => {
     const csv = partnersToCsv([donor({})]);
     const [header, row] = csv.trim().split("\r\n");
     expect(header).toBe(
-      "Name,Status,Email,Phone,Lifetime giving (USD),Last gift (USD),Last gift date,Giving frequency,Recurring gift,Street,City,State,ZIP,Tags",
+      '"Name","Status","Email","Phone","Lifetime giving (currency unknown)","Last gift (currency unknown)","Last gift date","Giving frequency","Recurring gift","Street","City","State","ZIP","Tags"',
     );
     expect(row).toBe(
-      "Grace Community Church,Active,office@grace.example,+1 555 0100,326.00,50.00,2026-01-30,Monthly,Yes,1 Main St,Portland,OR,97201,monthly-partner",
+      '"Grace Community Church","Active","office@grace.example","\'+1 555 0100","Unavailable","Unavailable","2026-01-30","Monthly","Yes","1 Main St","Portland","OR","97201","monthly-partner"',
     );
   });
 
@@ -54,8 +54,7 @@ describe("partnersToCsv", () => {
       donor({ name: 'Ada "Annie" Lovelace, PhD', tags: ["a", "b"] }),
     ]);
     expect(csv).toContain('"Ada ""Annie"" Lovelace, PhD"');
-    // Tags join with semicolons, so they need no quoting.
-    expect(csv.trim().endsWith(",a; b")).toBe(true);
+    expect(csv.trim().endsWith(',"a; b"')).toBe(true);
   });
 
   it("neutralises values a spreadsheet would run as formulas", () => {
@@ -64,10 +63,17 @@ describe("partnersToCsv", () => {
     ]);
     const row = csv.trim().split("\r\n")[1]!;
     expect(row.startsWith("\"'=HYPERLINK")).toBe(true);
-    expect(row).toContain(",'@me,");
-    // A phone number's leading + is data, not a formula.
-    expect(row).toContain(",+1 555,");
+    expect(row).toContain(',"\'@me",');
+    expect(row).toContain(',"\'+1 555",');
   });
+
+  it.each([" =1+1", "\u00a0=1+1", "+1+1", "-1+1", "+(1+1)", "\n=1+1"])(
+    "neutralises formula-shaped partner data %j",
+    (name) => {
+      const csv = partnersToCsv([donor({ name })]);
+      expect(csv).toContain(`"'${name}"`);
+    },
+  );
 
   it("keeps anonymous partners anonymous", () => {
     const csv = partnersToCsv([
@@ -78,7 +84,7 @@ describe("partnersToCsv", () => {
         is_anonymous: true,
       }),
     ]);
-    expect(csv).toContain("Anonymous partner,Active,,,");
+    expect(csv).toContain('"Anonymous partner","Active","","","Unavailable",');
   });
 
   it("names the file by date", () => {

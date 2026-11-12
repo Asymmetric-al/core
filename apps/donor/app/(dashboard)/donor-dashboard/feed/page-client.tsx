@@ -415,16 +415,24 @@ export default function DonorFeedPage() {
             <Skeleton className="h-96 w-full rounded-xl" />
             <Skeleton className="h-64 w-full rounded-xl" />
           </div>
-        ) : feedQuery.error ? (
+        ) : feedQuery.error &&
+          (feedQuery.accessDenied || posts.length === 0) ? (
           <Empty role="alert">
             <EmptyHeader>
               <EmptyTitle>
                 <h2>Couldn’t load updates</h2>
               </EmptyTitle>
               <EmptyDescription>
-                Something went wrong on our side. Please check back in a moment.
+                {feedQuery.accessDenied
+                  ? "Your access to these updates could not be confirmed. Sign in again or try again."
+                  : "Something went wrong on our side. Please try again."}
               </EmptyDescription>
             </EmptyHeader>
+            <EmptyContent>
+              <Button variant="outline" onClick={feedQuery.retry}>
+                Try again
+              </Button>
+            </EmptyContent>
           </Empty>
         ) : (
           <>
@@ -468,7 +476,26 @@ export default function DonorFeedPage() {
             ) : null}
             {/* Filters apply only to loaded pages, so loading more can turn
                 up matches. */}
-            {feedQuery.hasMore ? (
+            {feedQuery.error ? (
+              // Transient failures preserve loaded updates; retry the failed operation.
+              <div
+                role="alert"
+                className="flex flex-col items-center gap-3 py-6 text-sm text-foreground"
+              >
+                <p>
+                  {feedQuery.isNextPageError
+                    ? "Couldn’t load more updates."
+                    : "Couldn’t refresh updates."}
+                </p>
+                <Button
+                  variant="outline"
+                  disabled={feedQuery.isLoadingMore}
+                  onClick={feedQuery.retry}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : feedQuery.hasMore ? (
               <div className="flex justify-center py-6">
                 <Button
                   variant="outline"

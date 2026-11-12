@@ -18,7 +18,8 @@ export interface Activity {
   date: string;
   title: string;
   description?: string;
-  amount?: number;
+  amount?: number | null;
+  currency: string | null;
   status?: string;
   gift_type?: GiftType;
   note?: string;
@@ -27,6 +28,7 @@ export interface Activity {
 export interface RecurringDonation {
   id: string;
   amount: number;
+  currency: string | null;
   frequency: string;
   status: RecurringStatus;
   start_date: string;
@@ -54,7 +56,7 @@ export interface Donor {
   initials: string;
   type: "Individual" | "Organization" | "Church";
   status: "Active" | "Lapsed" | "New" | "At Risk";
-  total_given: number;
+  total_given: number | null;
   last_gift_date: string | null;
   last_gift_amount: number | null;
   frequency: string;

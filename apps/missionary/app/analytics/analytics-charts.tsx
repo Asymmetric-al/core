@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  formatCurrencyFromCents,
+  MONEY_UNAVAILABLE,
+  moneyCurrency,
+} from "@asym/missionary/components/money-units";
+import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
@@ -29,12 +34,6 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function axisDollars(value: number) {
-  if (value < 1000) return `$${value}`;
-  const thousands = value / 1000;
-  return `$${Number.isInteger(thousands) ? thousands : thousands.toFixed(1)}k`;
-}
-
 /**
  * Each of the last 12 months beside the same month a year earlier. The page
  * reads the same values out as a table, so the plotted area is hidden from
@@ -42,9 +41,12 @@ function axisDollars(value: number) {
  */
 export default function YearOverYearChart({
   data,
+  currency,
 }: {
   data: YearOverYearPoint[];
+  currency: string;
 }) {
+  if (!moneyCurrency(currency)) return <p>{MONEY_UNAVAILABLE}</p>;
   return (
     <ChartContainer config={chartConfig} layout="fill" className="w-full">
       <BarChart
@@ -72,7 +74,9 @@ export default function YearOverYearChart({
           width={48}
           fontSize={12}
           stroke="var(--muted-foreground)"
-          tickFormatter={axisDollars}
+          tickFormatter={(value) =>
+            formatCurrencyFromCents(Math.round(Number(value)), currency)
+          }
         />
         <ChartTooltip
           cursor={{ fill: "var(--muted)", opacity: 0.4 }}
@@ -86,7 +90,7 @@ export default function YearOverYearChart({
                       name}
                   </span>
                   <span className="font-semibold tabular-nums">
-                    {formatMoney(Math.round(Number(value) * 100))}
+                    {formatMoney(Number(value), currency)}
                   </span>
                 </span>
               )}

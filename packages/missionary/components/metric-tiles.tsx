@@ -6,11 +6,17 @@ import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import * as React from "react";
 
-import { formatCurrencyFromCents } from "./money-units";
+import {
+  formatCents,
+  formatCurrencyFromCents,
+  moneyCurrency,
+  MONEY_UNAVAILABLE,
+} from "./money-units";
 
 interface MetricTileProps {
   title: string;
   amount: string;
+  exactAmount: string;
   change?: string;
   trend?: "up" | "down" | "neutral";
   data: ChartDataPoint[];
@@ -43,6 +49,7 @@ function MetricTileSkeleton({ title }: { title: string }) {
 function MetricTile({
   title,
   amount,
+  exactAmount,
   change,
   trend,
   data,
@@ -55,7 +62,7 @@ function MetricTile({
     return <MetricTileSkeleton title={title} />;
   }
 
-  const chartData = data.length > 0 ? data : [{ date: "1", value: 0 }];
+  const chartData = data;
 
   return (
     <Card>
@@ -65,7 +72,11 @@ function MetricTile({
             <p className="text-xs font-medium text-muted-foreground leading-none mb-1 truncate">
               {title}
             </p>
-            <h3 className="wrap-anywhere text-lg md:text-xl font-semibold text-foreground tracking-tighter leading-tight">
+            <h3
+              aria-label={exactAmount}
+              title={exactAmount}
+              className="wrap-anywhere text-lg md:text-xl font-semibold text-foreground tracking-tighter leading-tight"
+            >
               {amount}
             </h3>
           </div>
@@ -90,11 +101,13 @@ function MetricTile({
             <React.Suspense
               fallback={<div aria-hidden className="size-full bg-muted/30" />}
             >
-              <MetricSparkline
-                chartData={chartData}
-                color={color}
-                gradientId={gradientId}
-              />
+              {chartData.length > 0 ? (
+                <MetricSparkline
+                  chartData={chartData}
+                  color={color}
+                  gradientId={gradientId}
+                />
+              ) : null}
             </React.Suspense>
           </div>
         </div>
@@ -113,8 +126,9 @@ interface MetricTilesProps {
 }
 
 export function MetricTiles({ missionaryId }: MetricTilesProps) {
-  const { thisMonth, lastMonth, yearToDate, isLoading, error } =
+  const { thisMonth, lastMonth, yearToDate, isLoading, error, currency } =
     useDonationMetrics(missionaryId, { months: 25 });
+  const qualifiedCurrency = moneyCurrency(currency);
 
   if (error) {
     return (
@@ -126,30 +140,38 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+      {!isLoading && !qualifiedCurrency ? (
+        <p className="col-span-full text-sm text-muted-foreground">
+          {MONEY_UNAVAILABLE}
+        </p>
+      ) : null}
       <MetricTile
         title="This Month"
-        amount={formatCurrencyFromCents(thisMonth.total)}
-        change={formatChange(thisMonth.change)}
+        amount={formatCurrencyFromCents(thisMonth.total, currency)}
+        exactAmount={formatCents(thisMonth.total, currency)}
+        change={qualifiedCurrency ? formatChange(thisMonth.change) : undefined}
         trend={thisMonth.trend}
-        data={thisMonth.data}
+        data={qualifiedCurrency ? thisMonth.data : []}
         color="var(--chart-1)"
         isLoading={isLoading}
       />
       <MetricTile
         title="Last Month"
-        amount={formatCurrencyFromCents(lastMonth.total)}
-        change={formatChange(lastMonth.change)}
+        amount={formatCurrencyFromCents(lastMonth.total, currency)}
+        exactAmount={formatCents(lastMonth.total, currency)}
+        change={qualifiedCurrency ? formatChange(lastMonth.change) : undefined}
         trend={lastMonth.trend}
-        data={lastMonth.data}
+        data={qualifiedCurrency ? lastMonth.data : []}
         color="var(--chart-2)"
         isLoading={isLoading}
       />
       <MetricTile
         title="Year to Date"
-        amount={formatCurrencyFromCents(yearToDate.total)}
-        change={formatChange(yearToDate.change)}
+        amount={formatCurrencyFromCents(yearToDate.total, currency)}
+        exactAmount={formatCents(yearToDate.total, currency)}
+        change={qualifiedCurrency ? formatChange(yearToDate.change) : undefined}
         trend={yearToDate.trend}
-        data={yearToDate.data}
+        data={qualifiedCurrency ? yearToDate.data : []}
         color="var(--chart-3)"
         isLoading={isLoading}
       />

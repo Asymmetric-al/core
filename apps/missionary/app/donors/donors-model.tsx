@@ -1,3 +1,4 @@
+import { formatCents } from "@asym/missionary/components/money-units";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Briefcase,
@@ -20,11 +21,7 @@ import {
 import type { ActivityType, GiftType, RecurringStatus } from "./donor-types";
 import type { ElementType } from "react";
 
-const NUMBER_FORMATTER_CENTS = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-});
+export const formatCurrency = formatCents;
 
 export type {
   Activity,
@@ -110,15 +107,6 @@ export const AVAILABLE_TAGS = [
     color: "bg-muted text-muted-foreground border-border",
   },
 ] as const;
-
-/**
- * Partner money is stored as integer cents; display it in dollars. Exact
- * amounts always show their cents ("$110.00", "$125.50"), as the donor app
- * does, so a figure never reads rounder than what was given.
- */
-export function formatCurrency(cents: number | null | undefined) {
-  return NUMBER_FORMATTER_CENTS.format((cents ?? 0) / 100);
-}
 
 type StatusBadgeVariant = "success" | "info" | "warning" | "secondary";
 
