@@ -11,15 +11,15 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Shadscan proof mounts the real Console at its public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-2650: Shadscan proof mounts the real Console at its public UI boundary.
 import { Console } from "../../../../apps/factory-console/src/components/console";
-// eslint-disable-next-line no-restricted-imports -- The Console's own scope key, so the mounted identity matches the fixture.
+// eslint-disable-next-line no-restricted-imports -- AL-2650: The Console's own scope key, so the mounted identity matches the fixture.
 import { consoleScope } from "../../../../apps/factory-console/src/lib/contracts";
-// eslint-disable-next-line no-restricted-imports -- Requests go through the Console's production BFF dispatcher, not a stub.
+// eslint-disable-next-line no-restricted-imports -- AL-2650: Requests go through the Console's production BFF dispatcher, not a stub.
 import { dispatch } from "../../../../apps/factory-console/src/server/api";
-// eslint-disable-next-line no-restricted-imports -- Run ids of the Console's own synthetic factory fixture.
+// eslint-disable-next-line no-restricted-imports -- AL-2650: Run ids of the Console's own synthetic factory fixture.
 import { RUN } from "../../../../apps/factory-console/tests/fixtures/factory-fixture";
-// eslint-disable-next-line no-restricted-imports -- The Console's own TEST-ONLY factory wiring (state, control and engine seams).
+// eslint-disable-next-line no-restricted-imports -- AL-2650: The Console's own TEST-ONLY factory wiring (state, control and engine seams).
 import { harness } from "../../../../apps/factory-console/tests/fixtures/harness";
 
 /**
