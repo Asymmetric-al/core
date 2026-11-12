@@ -104,6 +104,26 @@ export function planDispositions({
           "Retry the issue to observe and disposition feedback against the current acceptance revision",
       },
     };
+  // A review thread is resolved only together with a posted explanation: the
+  // reply, or failing that the stated reason.
+  const explanation = (item) =>
+    byId.get(item.id).reply?.trim() ||
+    String(byId.get(item.id).reason ?? "").trim();
+  const unexplained = items.filter(
+    (item) =>
+      item.kind === "review-thread" &&
+      DISMISSALS.has(byId.get(item.id).action) &&
+      !explanation(item),
+  );
+  if (unexplained.length)
+    return {
+      blocked: {
+        code: "dispose-incomplete",
+        detail: `No explanation for dismissing ${unexplained.map((item) => item.id).join(", ")}`,
+        recovery:
+          "Retry the issue so Samson explains each dismissal; nothing was resolved or recorded",
+      },
+    };
   const plan = { acceptance: [], implementation: [], actions: [] };
   for (const item of items) {
     const decision = byId.get(item.id);
@@ -163,7 +183,12 @@ export function planDispositions({
         id: item.id,
         type: "reply",
         kind: item.kind,
-        body: decision.reply?.trim() ? replyBody(decision.reply) : null,
+        body:
+          item.kind === "review-thread"
+            ? replyBody(explanation(item))
+            : decision.reply?.trim()
+              ? replyBody(decision.reply)
+              : null,
         resolve: item.kind === "review-thread",
         record,
       };

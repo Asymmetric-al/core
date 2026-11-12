@@ -508,6 +508,79 @@ export function diagnosticsSummary(checks) {
   };
 }
 
+// The engine's signed webhook sources (control/sources.json). The engine runs
+// one run at a time among runs that share a resource and a folder, whatever
+// the resource's capacity, so delivery gets one single-run resource per lane.
+// A resource's capacity cannot change once it has been used, which is why the
+// lanes use names of their own instead of the earlier shared resource.
+export function webhookSources({
+  plugin,
+  hostId,
+  runAsUserId,
+  control,
+  lanes,
+}) {
+  const source = (
+    bindingId,
+    workflowName,
+    resource,
+    capacity,
+    overlap,
+    mapped,
+  ) => ({
+    sourceInstanceId: `core-factory-${bindingId}`,
+    module: plugin,
+    config: {
+      version: 1,
+      signingSecretEnv: "CORE_FACTORY_SIGNING_SECRET",
+      bindings: [
+        {
+          bindingId,
+          hostId,
+          runAsUserId,
+          resource,
+          capacity,
+          overlap,
+          inputMapping: Object.fromEntries(
+            mapped.map((name) => [name, `/${name}`]),
+          ),
+          launch: {
+            cwd: control,
+            workflowName,
+            inputs: {},
+            isolation: { kind: "in-place" },
+          },
+        },
+      ],
+    },
+  });
+  const count = Number.isSafeInteger(lanes) && lanes > 0 ? lanes : 1;
+  return [
+    source("select", "core-select", "core-factory:admission", 1, "skip", []),
+    ...Array.from({ length: count }, (_, index) =>
+      source(
+        `deliver-${index + 1}`,
+        "core-deliver",
+        `core-factory:delivery-${index + 1}`,
+        1,
+        "queue",
+        ["issue", "assignment"],
+      ),
+    ),
+    source("answer", "core-answer", "core-factory:chat", 1, "queue", [
+      "question",
+      "conversation",
+      "request",
+    ]),
+    source("analyze", "core-analyze", "core-factory:analysis", 1, "skip", [
+      "trigger",
+      "scope",
+      "request",
+    ]),
+    source("probe", "core-probe", "core-factory:probe", 1, "queue", ["mode"]),
+  ];
+}
+
 export function systemdUnits({
   archon,
   node,

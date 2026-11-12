@@ -25,7 +25,7 @@ operations: `docs/ops/archon-vm100-factory-runbook.md`.
 | Workflow       | Started by                           | Resource (capacity, overlap)       | Job                                                                                                                                                                                                                                                                                   |
 | -------------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `core-select`  | `core-factory-intake.timer` (10 min) | `core-factory:admission` (1, skip) | Sweep admitted work (start idle rounds, reconcile runs that ended without recording, release stale reservations); compute the eligible frontier of the authorized scope; Samson ranks it together with the newest 10 open `core/attention` items; record one assignment; fire round 1 |
-| `core-deliver` | selector, previous round, sweep      | `core-factory:delivery` (2, queue) | One delivery round for one issue (below)                                                                                                                                                                                                                                              |
+| `core-deliver` | selector, previous round, sweep      | one lane each (1, queue; below)    | One delivery round for one issue (below)                                                                                                                                                                                                                                              |
 | `core-answer`  | Console chat (`control.mjs ask`)     | `core-factory:chat` (1, queue)     | One Samson operator turn; may _propose_ one operation                                                                                                                                                                                                                                 |
 | `core-analyze` | Console / incidents                  | `core-factory:analysis` (1, skip)  | Bounded advisory analysis; never a gate                                                                                                                                                                                                                                               |
 | `core-probe`   | qualification                        | `core-factory:probe` (1, queue)    | Identity and boundary probes                                                                                                                                                                                                                                                          |
@@ -33,6 +33,31 @@ operations: `docs/ops/archon-vm100-factory-runbook.md`.
 Every start is a signed Standard Webhooks delivery to the engine's own sources
 (`.shared/webhook.mjs`, `control/sources.json`). There are no CLI trigger
 bindings, and `core-factory.json` has no `bindings` key.
+
+**Delivery lanes.** The engine starts one run at a time among runs that share
+a resource and a folder, whatever the resource's capacity, and every factory
+run executes in the control folder. Delivery therefore has one single-run
+resource per lane (`core-factory:delivery-<lane>`, source
+`core-factory-deliver-<lane>`), as many lanes as `limits.admittedIssues`. A
+round is sent to the lane of its issue among the live issues, in issue order
+(`deliveryLane` in `.shared/webhook.mjs`), so two admitted issues run side by
+side while one issue's rounds still follow each other. Heavy checks stay
+serialized by `limits.heavyCheckSlots`.
+
+**Admission observation.** For every authorized issue the selector reads the
+issue, its comments, GitHub's blocked-by list and the governing documents it
+cites, and from those its direct prerequisites. A prerequisite whose closing
+pull request is merged on the target branch is settled and its own history is
+not read; an unmerged one blocks the issue. Nothing further back is walked. A
+governing file is fetched once per pass, and a pass stops observing after
+three minutes: whatever was not read is reported unavailable and blocks only
+the issues that need it.
+
+**Interrupted runs.** The engine never declares a running run dead by its age,
+so a run whose engine process died (restart, reboot) would keep its resource
+for good. Before each admission pass `.shared/orphans.mjs reap` abandons factory
+runs whose recorded engine process is provably gone; the sweep then settles
+the work item and starts its next round.
 
 A round start's dispatch key is `${assignment}:r${round+1}:v${revision}`, where
 `revision` is the work item's state revision when the start is fired (admission's

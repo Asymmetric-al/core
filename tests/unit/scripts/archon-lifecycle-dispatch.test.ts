@@ -2,7 +2,11 @@ import { createHmac } from "node:crypto";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { fireRound } from "../../../scripts/archon-factory/pack/.shared/webhook.mjs";
+import { webhookSources } from "../../../scripts/archon-factory/installation/install-logic.mjs";
+import {
+  deliveryLane,
+  fireRound,
+} from "../../../scripts/archon-factory/pack/.shared/webhook.mjs";
 import {
   createAssignment,
   deliveryKey,
@@ -311,6 +315,7 @@ describe("fireRound", () => {
       secret: SECRET,
       now: () => Date.parse(T1),
       verifyIdentity,
+      liveIssues: async () => [12],
     });
     expect(verifyIdentity).toHaveBeenCalledWith({
       config,
@@ -335,10 +340,108 @@ describe("fireRound", () => {
     }).toEqual({
       ok: true,
       deliveryId: "a12-0123456789ab:r4:v10",
-      url: "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver",
+      url: "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-1",
       id: "a12-0123456789ab:r4:v10",
       body: { issue: "12", assignment: "a12-0123456789ab" },
       signature: `v1,${expected}`,
     });
+  });
+});
+
+describe("delivery lanes", () => {
+  const config = {
+    archon: { port: 3190 },
+    webhooks: { secretFile: "/unused" },
+  };
+  const SECRET = `whsec_${Buffer.alloc(32, 9).toString("base64")}`;
+
+  it("gives each live issue its own lane, in issue order", () => {
+    expect(deliveryLane([12, 30], 12, 2)).toBe(1);
+    expect(deliveryLane([12, 30], 30, 2)).toBe(2);
+    expect(deliveryLane([30], 12, 2)).toBe(1);
+    expect(deliveryLane([12, 30, 41], 41, 2)).toBe(1);
+    expect(deliveryLane([12, 30], 30, 1)).toBe(1);
+    expect(deliveryLane([], 12, 0)).toBe(1);
+  });
+
+  it("starts a round on the lane of its issue among the live issues", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
+    const item = waitingAfterRound3();
+    await fireRound({
+      config: { ...config, limits: { admittedIssues: 2 } },
+      value: item.value,
+      revision: item.revision,
+      fetchImpl,
+      secret: SECRET,
+      verifyIdentity: async () => ({}),
+      liveIssues: async () => [7, 12],
+    });
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-2",
+    );
+  });
+
+  it("falls back to the first lane when the live issues cannot be read", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ receiptId: "r-1" }));
+    const item = waitingAfterRound3();
+    await fireRound({
+      config: { ...config, limits: { admittedIssues: 2 } },
+      value: item.value,
+      revision: item.revision,
+      fetchImpl,
+      secret: SECRET,
+      verifyIdentity: async () => ({}),
+      liveIssues: async () => {
+        throw new Error("state store unavailable");
+      },
+    });
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe(
+      "http://127.0.0.1:3190/webhooks/sources/core-factory-deliver-1",
+    );
+  });
+
+  it("installs one single-run delivery resource per lane", () => {
+    const sources = webhookSources({
+      plugin: "/opt/plugins/standard-webhooks.mjs",
+      hostId: "core-dev",
+      runAsUserId: "user-1",
+      control: "/control",
+      lanes: 2,
+    });
+    const deliver = sources.filter((source) =>
+      source.sourceInstanceId.startsWith("core-factory-deliver"),
+    );
+    expect(
+      deliver.map((source) => [
+        source.sourceInstanceId,
+        source.config.bindings[0].resource,
+        source.config.bindings[0].capacity,
+        source.config.bindings[0].overlap,
+        source.config.bindings[0].launch.workflowName,
+      ]),
+    ).toEqual([
+      [
+        "core-factory-deliver-1",
+        "core-factory:delivery-1",
+        1,
+        "queue",
+        "core-deliver",
+      ],
+      [
+        "core-factory-deliver-2",
+        "core-factory:delivery-2",
+        1,
+        "queue",
+        "core-deliver",
+      ],
+    ]);
+    expect(sources.map((source) => source.sourceInstanceId)).toEqual([
+      "core-factory-select",
+      "core-factory-deliver-1",
+      "core-factory-deliver-2",
+      "core-factory-answer",
+      "core-factory-analyze",
+      "core-factory-probe",
+    ]);
   });
 });

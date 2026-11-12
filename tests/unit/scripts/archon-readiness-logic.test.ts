@@ -269,6 +269,49 @@ describe("planDispositions: handled actions", () => {
     );
   });
 
+  it("never resolves a dismissed review thread without posting an explanation", () => {
+    const explained = planDispositions({
+      items: [thread],
+      dispose: dispose([
+        {
+          id: "PRRT_1",
+          action: "decline-nit",
+          reply: "   ",
+          reason: "Style preference; the repository formatter owns this",
+        },
+      ]),
+      head: HEAD,
+    });
+    expect(explained.actions[0]).toMatchObject({
+      type: "reply",
+      resolve: true,
+      body: `Style preference; the repository formatter owns this\n\n${FACTORY_MARKER}`,
+    });
+    const silent = planDispositions({
+      items: [thread],
+      dispose: dispose([
+        { id: "PRRT_1", action: "rebut", reply: "", reason: " " },
+      ]),
+      head: HEAD,
+    });
+    expect(silent.actions).toBeUndefined();
+    expect(silent.blocked).toMatchObject({
+      code: "dispose-incomplete",
+      detail: expect.stringContaining("PRRT_1"),
+    });
+  });
+
+  it("still lets an automated top-level comment be dismissed without a reply", () => {
+    const plan = planDispositions({
+      items: [comment],
+      dispose: dispose([
+        { id: "comment-5", action: "decline-nit", reply: "", reason: "notice" },
+      ]),
+      head: HEAD,
+    });
+    expect(plan.actions[0]).toMatchObject({ body: null, resolve: false });
+  });
+
   it("neutralizes @mentions so a reply never summons a bot or pings a person", () => {
     expect(replyBody("Thanks @coderabbitai and @alice-b, see code")).toBe(
       `Thanks \`@coderabbitai\` and \`@alice-b\`, see code\n\n${FACTORY_MARKER}`,

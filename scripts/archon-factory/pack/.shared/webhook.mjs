@@ -10,12 +10,14 @@ import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { createArchon } from "./archon.mjs";
 import { loadConfig } from "./config.mjs";
 import { verifyNativeIdentity } from "./identity.mjs";
-import { deliveryKey } from "./workitem.mjs";
+import { TERMINAL, deliveryKey } from "./workitem.mjs";
 
 export const SOURCES = {
   select: "core-factory-select",
+  // Delivery has one source per lane: core-factory-deliver-<lane>.
   deliver: "core-factory-deliver",
   answer: "core-factory-answer",
   analyze: "core-factory-analyze",
@@ -38,6 +40,30 @@ export function signDelivery({ secret, deliveryId, timestamp, payload }) {
   return `v1,${createHmac("sha256", key).update(`${deliveryId}.${timestamp}.${payload}`).digest("base64")}`;
 }
 
+// The engine starts one run at a time for runs that share a resource and a
+// folder, whatever the resource's capacity. Each delivery lane is therefore
+// its own single-run resource, and live issues are spread over the lanes in
+// issue order so that different issues' rounds can run side by side. One
+// issue's rounds never overlap: a round starts only after the previous one
+// recorded.
+export function deliveryLane(liveIssues, issue, lanes) {
+  const count = Number.isSafeInteger(lanes) && lanes > 0 ? lanes : 1;
+  const live = [...new Set([...liveIssues, issue])].sort((a, b) => a - b);
+  return (live.indexOf(issue) % count) + 1;
+}
+
+async function listLiveIssues() {
+  const listing = await createArchon().list("core/issues/", { values: true });
+  return (listing.documents ?? [])
+    .filter(
+      (entry) =>
+        /^core\/issues\/\d+$/.test(entry.name) &&
+        entry.value &&
+        !TERMINAL.has(entry.value.status),
+    )
+    .map((entry) => Number(entry.name.split("/")[2]));
+}
+
 export async function fireWebhook({
   config,
   workflow,
@@ -46,9 +72,12 @@ export async function fireWebhook({
   fetchImpl = fetch,
   now = () => Date.now(),
   secret,
+  lane = 1,
 }) {
-  const source = SOURCES[workflow];
-  if (!source) throw new Error(`Unknown factory workflow ${workflow}`);
+  if (!SOURCES[workflow])
+    throw new Error(`Unknown factory workflow ${workflow}`);
+  const source =
+    workflow === "deliver" ? `${SOURCES.deliver}-${lane}` : SOURCES[workflow];
   if (!/^[A-Za-z0-9][A-Za-z0-9._:@-]{2,190}$/.test(deliveryId ?? ""))
     throw new Error("A stable delivery id is required");
   const payload = JSON.stringify(body);
@@ -112,6 +141,7 @@ export async function fireRound({
   value,
   revision,
   verifyIdentity = verifyNativeIdentity,
+  liveIssues = listLiveIssues,
   ...options
 }) {
   await verifyIdentity({
@@ -120,14 +150,21 @@ export async function fireRound({
     expectedDigest: value.assignment.profileDigest,
   });
   const deliveryId = deliveryKey(value, revision);
+  // Not knowing the other live issues only costs parallelism: lane 1 queues.
+  const lane = deliveryLane(
+    await liveIssues().catch(() => []),
+    value.issue,
+    config.limits?.admittedIssues ?? 2,
+  );
   const fired = await fireWebhook({
     config,
     workflow: "deliver",
+    lane,
     deliveryId,
     body: { issue: String(value.issue), assignment: value.assignment.id },
     ...options,
   });
-  return { deliveryId, ...fired };
+  return { deliveryId, lane, ...fired };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

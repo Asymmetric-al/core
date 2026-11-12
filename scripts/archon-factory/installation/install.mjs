@@ -59,6 +59,7 @@ import {
   settingsDigest,
   stageIdentity,
   systemdUnits,
+  webhookSources,
   treeDigest,
 } from "./install-logic.mjs";
 import {
@@ -602,82 +603,23 @@ if (!existsSync(secretFile))
     { mode: 0o600 },
   );
 own(secretFile, ADMIN, ADMIN_GID, 0o600);
-const source = (
-  bindingId,
-  workflowName,
-  resource,
-  capacity,
-  overlap,
-  mapped,
-) => ({
-  sourceInstanceId: `core-factory-${bindingId}`,
-  module: `${OPT}/plugins/standard-webhooks.mjs`,
-  config: {
-    version: 1,
-    signingSecretEnv: "CORE_FACTORY_SIGNING_SECRET",
-    bindings: [
-      {
-        bindingId,
-        hostId: HOST_ID,
-        runAsUserId,
-        resource,
-        capacity,
-        overlap,
-        inputMapping: Object.fromEntries(
-          mapped.map((name) => [name, `/${name}`]),
-        ),
-        launch: {
-          cwd: CONTROL,
-          workflowName,
-          inputs: {},
-          isolation: { kind: "in-place" },
-        },
-      },
-    ],
-  },
-});
 writeControl(
   "sources.json",
   JSON.stringify(
     {
       version: 1,
-      sources: [
-        source(
-          "select",
-          "core-select",
-          "core-factory:admission",
-          1,
-          "skip",
-          [],
-        ),
-        source(
-          "deliver",
-          "core-deliver",
-          "core-factory:delivery",
-          factoryConfig.limits.admittedIssues,
-          "queue",
-          ["issue", "assignment"],
-        ),
-        source("answer", "core-answer", "core-factory:chat", 1, "queue", [
-          "question",
-          "conversation",
-          "request",
-        ]),
-        source("analyze", "core-analyze", "core-factory:analysis", 1, "skip", [
-          "trigger",
-          "scope",
-          "request",
-        ]),
-        source("probe", "core-probe", "core-factory:probe", 1, "queue", [
-          "mode",
-        ]),
-      ],
+      sources: webhookSources({
+        plugin: `${OPT}/plugins/standard-webhooks.mjs`,
+        hostId: HOST_ID,
+        runAsUserId,
+        control: CONTROL,
+        lanes: factoryConfig.limits.admittedIssues,
+      }),
     },
     null,
     2,
   ) + "\n",
 );
-
 // --- Initial state: intake paused until an operator authorizes scope ----------
 const factoryDoc = asAdmin([
   ARCHON,
