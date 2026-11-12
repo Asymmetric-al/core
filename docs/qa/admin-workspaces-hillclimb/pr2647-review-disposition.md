@@ -1,10 +1,10 @@
 # PR 2647 review disposition
 
-Date: November 12, 2026. Combined admin and donor/missionary candidate; no merge or hosted migration authorization is implied.
+Date: November 12, 2026. Combined admin and donor/missionary candidate. The current instruction authorizes protected integration into `develop`, not hosted migration activation or a production release.
 
 ## Inline review comments
 
-All 25 review threads and their replies were read. The latest fetched REST inventory contains 37 reviews, 11 issue comments and 52 inline comments. Resolved status is not inferred from an outdated diff. Postal containment is verified structurally rather than attributed to unrelated test suites.
+All 31 review threads and their replies were read, including six late material findings. The initial 25-thread inventory and its counts below are historical; the late dispositions are appended here. Resolved status is not inferred from an outdated diff. Postal containment is verified structurally rather than attributed to unrelated test suites.
 
 ### 1. History month/year
 
@@ -207,10 +207,10 @@ All 25 review threads and their replies were read. The latest fetched REST inven
 ### 23. Autosave versus publication
 
 - Thread: `PRRT_kwDOQ4BXFs62FBhn`; comment IDs: 4535419777, 4547881121, 4550798678.
-- Disposition: Source fix retained; rollout blocker OPEN.
+- Disposition: Source fix retained; source conversation eligible for resolution after publication. Hosted rollout remains unverified.
 - Source: `apps/missionary/app/feed/post-write-queue.ts:15`.
 - Evidence: tests/unit/apps/missionary/app/feed/use-worker-feed-page-view.test.tsx; tests/unit/packages/api/posts/update-post.test.ts.
-- Rationale: Per-post queue and expected_updated_at; server requires draft/revision atomically. Hosted migration activation remains unverified; do not resolve falsely.
+- Rationale: Per-post queue and expected_updated_at; server requires draft/revision atomically. Isolated transactional SQL verification and ordering/conflict regressions qualify the source repair. The later request explicitly authorizes integration into nondeploying develop; resolving this source finding does not certify hosted activation. The earlier decision to keep the source conversation open solely for rollout confirmation is superseded, not presented as completed deployment.
 - Observed GitHub state before current publication: open.
 
 ### 24. Failed-gift recovery correlation
@@ -231,6 +231,17 @@ All 25 review threads and their replies were read. The latest fetched REST inven
 - Rationale: Only explicit false defaultAnonymousToRecipient displays name visibility as on.
 - Observed GitHub state before current publication: resolved.
 
+### 26–31. Late material findings
+
+- Effective payment state: `PRRT_kwDOQ4BXFs62r88i`, comment 4552364032. Candidate rows are folded through canonical applied corrections before settled amounts, counts and currency membership are decided.
+- Canonical gift date: `PRRT_kwDOQ4BXFs62r88p`, comment 4552364042. Selection and buckets use gift_date with created_at fallback; imported records retain their actual gift month. The dashboard suite passes 48 tests.
+- Recurring currencies: `PRRT_kwDOQ4BXFs62r88v`, comment 4552364054. Rows use canonical minor units and their own currency; mixed or unknown active totals are unavailable.
+- Biweekly normalization: `PRRT_kwDOQ4BXFs62r885`, comment 4552364068. Twenty-six annual periods contribute to one final integer monthly rounding. The recurring page suite passes 17 tests.
+- Support identity: `PRRT_kwDOQ4BXFs62r89B`, comment 4552364079. Canonical user_id wins; only unlinked legacy agents use email. The ownership and adapter suites pass 31 tests.
+- Stale revert: `PRRT_kwDOQ4BXFs62r89G`, comment 4552364091. The unsafe GET/full-document PATCH action is withheld, not patched with an ineffective client-only precondition. Seven regressions prove no request can dispatch and preserve permission/document guards. Atomic CMS revert is not delivered.
+
+All six are confirmed, repaired together in `607d89128`, and await published-commit replies before resolution. The five-suite combined regression selection passes 103 tests. Details and limitations are in [final repairs](./pr2647-final-repairs.md).
+
 ## Review-summary and issue channels
 
 The refreshed review inventory contains 37 reviews and 11 issue comments. Database/security/critical/debt/architecture review summaries map their actionable findings to the inline threads above. Repeated Bugbot summaries do not create separate fixes. Claude/Codex quota failures are not approvals. CodeRabbit results on an older head are historical only. CI and Vercel comments report check/deployment state; they do not establish whole-app acceptance.
@@ -240,6 +251,6 @@ The metrics donor-preference tenant concern was assessed without a new waiver: d
 ## Open safety holds
 
 - Provenance is closed after checking the published import anchor and replying with ancestry/object evidence.
-- Autosave/publication: source queue and atomic draft/revision preconditions are present with regressions. Hosted activation of `20261111164500_post_autosave_preconditions.sql` remains unverified. Keep its P1 rollout thread open; do not claim deployed protection.
+- Autosave/publication: source queue and atomic draft/revision preconditions are present with regressions. Resolve the source conversation only with the explicit source-versus-rollout qualification above. Hosted activation of `20261111164500_post_autosave_preconditions.sql` remains a release prerequisite; no deployed cross-session protection is claimed.
 - React Doctor: strict check is not green. Independent reconciliation confirms the stale first record is not the sole blocker: 66 supporting files are stale and even 63 same-context positional rebinds would leave 490 unmatched identities without that continuity. No blanket waiver or rehash is applied. All unqualified current warnings/errors require exact source/test adjudication.
 - Hosted portal smoke: prior preview returned 500. A new deploy and fresh run/logs are required; older green build checks are insufficient.

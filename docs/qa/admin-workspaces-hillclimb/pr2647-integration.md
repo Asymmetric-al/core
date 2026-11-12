@@ -58,7 +58,7 @@ Date: November 12, 2026. This record describes the standalone WSL candidate, not
 - The next normal hook-on push fails the unit gate even though 1,356 suites / 13,763 assertions pass: an untracked two-second profile-success timeout dispatches after jsdom teardown. This is an actual lifecycle defect, not permission to ignore unhandled errors.
 - A regression first demonstrates that unmount does not cancel the specific timer and an older save clears a newer success too early. The success reset now belongs to an effect that cleans up on unmount or cleared success; the save-drain and retained cross-route completion remain unchanged.
 - Three suites / 43 tests pass, including unmount cancellation, the exact two-second expiry, successive-save timing and existing retained editor navigation. Missionary TypeScript and scoped product-source lint pass. Explicitly linting the test with the root app-boundary config exposes its pre-existing cross-app test-import errors; no rule is disabled or broadened. The repository's configured lint targets remain unchanged.
-- The complete per-comment source/test assessment is in [the review disposition](./pr2647-review-disposition.md). Twenty-four threads are answered and resolved; the atomic autosave hosted-rollout hold remains open.
+- The complete per-comment source/test assessment is in [the review disposition](./pr2647-review-disposition.md). The earlier 24 resolved conversations are historical evidence. Six late material repairs and the source-versus-deployment autosave disposition are recorded in [final repairs](./pr2647-final-repairs.md); final published replies and resolution are verified on GitHub. Hosted activation remains a release prerequisite, not a claimed result of merging into develop.
 
 ## Open limitations
 
