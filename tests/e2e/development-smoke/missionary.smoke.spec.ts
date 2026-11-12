@@ -26,8 +26,8 @@ test.describe("development-missionary smoke", () => {
     // can flick to `/` then bounce back to `/login` on a cold session, so
     // URL-only confirmation isn't enough — wait for the heading to render.
     await ensureAuthenticated(page, {
-      authenticatedMarker: (p) =>
-        p.getByRole("heading", { name: /dashboard/i }),
+      authenticatedMarker: (page) =>
+        page.getByRole("heading", { name: /^welcome back(?:, .+)?$/i }),
     });
 
     // Dashboard is the missionary landing at `/`.
@@ -37,16 +37,13 @@ test.describe("development-missionary smoke", () => {
 
     // Main heading.
     await expect(
-      page.getByRole("heading", { name: /dashboard/i }).first(),
+      page.getByRole("heading", { name: /^welcome back(?:, .+)?$/i }).first(),
     ).toBeVisible();
 
-    // At least one missionary-relevant content area. Match any of the proven
-    // surfaces: support progress, donor/partner info, recent giving, tasks,
-    // ministry updates.
     const missionaryContent = page
-      .getByText(
-        /monthly support goal|giving breakdown|tasks (?:&|and) alerts|latest updates|ministry updates|partners|active donors/i,
-      )
+      .getByRole("heading", {
+        name: /^monthly support$|^giving by month$/i,
+      })
       .first();
     await expect(missionaryContent).toBeVisible();
 
