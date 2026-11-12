@@ -25,6 +25,7 @@ const DIGEST =
 const IMAGE = `public.ecr.aws/docker/library/postgres:17.11-alpine@${DIGEST}`;
 const SERVICE_JOBS = ["migrate", "smoke", "test-e2e-smoke", "test-e2e"];
 const RESULTS = ["success", "failure", "cancelled", "skipped"] as const;
+/** §1.2 own-condition wording; used only by the rootCauses self-check (#2234). */
 const OWN_SKIP =
   "test-e2e-smoke skipped by its own condition (same-repo guard)";
 /** Every scenario a gate runs under, incl. fork PRs and merge_group. */
@@ -55,14 +56,14 @@ const combos = (ids: readonly string[]): Record<string, string>[] =>
 const run = (id: string, results: Record<string, string>, s: Scenario) =>
   W.executeGateJob(jobs[id]!, { results }, s);
 /**
- * Scope ruling: the §1.2 own-condition wording may appear on a separate log
- * line but is not tested (neither required nor forbidden), so it is ignored.
+ * Every log line whose trimmed text starts with "Root cause:", with no
+ * exceptions (#2234). Scope ruling: the §1.2 own-condition wording may still
+ * appear on a separate log line that does not start with "Root cause:" (neither
+ * required nor forbidden), but a "Root cause:" line is always counted, even one
+ * carrying that wording, so the exactly-one checks below admit no second one.
  */
 const rootCauses = (stdout: string) =>
-  stdout
-    .split("\n")
-    .filter((line) => line.trim().startsWith("Root cause:"))
-    .filter((line) => !line.includes(OWN_SKIP));
+  stdout.split("\n").filter((line) => line.trim().startsWith("Root cause:"));
 
 /**
  * Addendum 1 (A1) and §1.2: a gate passes only when every listed need
@@ -75,6 +76,22 @@ const firstCause = (order: string[], r: Record<string, string>) => {
   const id = order.find((n) => r[n] !== "success");
   return id === undefined ? null : `${id} (${r[id]})`;
 };
+
+describe("#2234 oracle self-check: rootCauses counts every Root cause line", () => {
+  it("a second Root cause line carrying the own-skip text is counted", () => {
+    const out = `Root cause: migrate (failure)\nRoot cause: ${OWN_SKIP}`;
+    expect(rootCauses(out)).toHaveLength(2);
+  });
+  it("an indented Root cause line is counted", () => {
+    const out =
+      "  Root cause: smoke (cancelled)\n\tRoot cause: migrate (failure)";
+    expect(rootCauses(out)).toHaveLength(2);
+  });
+  it("own-condition wording on a non-Root-cause line is not counted", () => {
+    const out = `${OWN_SKIP}\nRoot cause: test-e2e-smoke (skipped)`;
+    expect(rootCauses(out)).toEqual(["Root cause: test-e2e-smoke (skipped)"]);
+  });
+});
 
 describe("#2155 criterion 1: every postgres image comes from ECR Public, pinned", () => {
   it("exactly the four service jobs pull the one pinned ECR Public image", () => {
@@ -146,7 +163,7 @@ describe("#2155 criteria 4-5 (addendum 1 A1): e2e-smoke-gate pass/fail and root 
         expect(ex.status === 0, tag).toBe(want === null);
         expect(ex.stdout, tag).not.toContain(W.FORK_FAIL_MESSAGE);
         const lines = rootCauses(ex.stdout).map((l) => l.trim());
-        // A1 governs every row, incl. the own-condition skip (Scope ruling).
+        // A1 governs every row: every Root cause line counts, exactly one.
         expect(lines, tag).toEqual(
           want === null ? [] : [`Root cause: ${want}`],
         );
