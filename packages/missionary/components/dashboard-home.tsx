@@ -144,7 +144,7 @@ function DashboardHomeContent({
 }) {
   const portalQuery = useMissionaryPortalSnapshot();
   const followRequests = usePendingFollowRequestCount();
-  const fetched = useDonationMetrics(missionaryId, { months: 25 });
+  const fetched = useDonationMetrics(missionaryId);
   const metrics = missionaryId ? fetched : { ...fetched, isLoading: true };
   const { formatDate } = useLocaleFormat();
   const snapshot = portalQuery.data;

@@ -83,7 +83,7 @@ function bodyRows(table: HTMLElement) {
 describe("missionary analytics", () => {
   it("asks for two years of gifts for the signed-in missionary", () => {
     render(<AnalyticsPage />);
-    expect(mocks.metrics).toHaveBeenCalledWith("m-1", { months: 25 });
+    expect(mocks.metrics).toHaveBeenCalledWith("m-1");
     expect(
       screen.getByRole("heading", { level: 1, name: "Analytics" }),
     ).toBeTruthy();
@@ -266,7 +266,7 @@ describe("missionary analytics", () => {
     mocks.auth.mockReturnValue({ profile: null, loading: true });
     mocks.metrics.mockReturnValue({ gifts: [], isLoading: true, error: null });
     render(<AnalyticsPage />);
-    expect(mocks.metrics).toHaveBeenCalledWith("", { months: 25 });
+    expect(mocks.metrics).toHaveBeenCalledWith("");
     expect(
       screen.getByRole("status", { name: "Loading analytics" }),
     ).toBeTruthy();

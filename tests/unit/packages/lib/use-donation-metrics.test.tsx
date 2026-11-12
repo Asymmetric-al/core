@@ -45,7 +45,7 @@ function donation(amount: number) {
 }
 
 function metricsUrl(missionaryId: string) {
-  return `/api/missionaries/${missionaryId}/metrics`;
+  return `/api/missionaries/${missionaryId}/metrics?months=25`;
 }
 
 afterEach(() => {
@@ -54,6 +54,22 @@ afterEach(() => {
 });
 
 describe("useDonationMetrics", () => {
+  it("requests comparison history by default while keeping the chart at thirteen months", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ currency: "USD", donations: [donation(3000)] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/missionaries/missionary-a/metrics?months=25",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(result.current.monthlyBreakdown).toHaveLength(13);
+    expect(result.current.thisMonth.total).toBe(3000);
+  });
+
   it("computes loaded metrics without render-time clock reads", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 10, 1, 12));
@@ -512,7 +528,9 @@ describe("donation metrics period windows", () => {
       giftAt("current", new Date(2026, 2, 1, 12), 9000),
     ]);
 
-    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+    const { result } = renderHook(() =>
+      useDonationMetrics(MISSIONARY_A, { months: 13 }),
+    );
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.yearToDate.total).toBe(9000);

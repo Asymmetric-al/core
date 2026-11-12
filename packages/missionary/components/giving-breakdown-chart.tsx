@@ -108,7 +108,7 @@ export function GivingBreakdownChart({
   committedCents,
   committedCurrency,
 }: GivingBreakdownChartProps) {
-  const metrics = useDonationMetrics(missionaryId, { months: 25 });
+  const metrics = useDonationMetrics(missionaryId);
   return (
     <GivingBreakdownChartContent
       metrics={metrics}

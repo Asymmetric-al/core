@@ -323,10 +323,7 @@ export default function AnalyticsPage() {
   // Route VT owns the entrance when active; only animate on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
   const { profile, loading } = useAuth();
-  // Two years of gifts: the last 12 months and the 12 before, for comparisons.
-  const metrics = useDonationMetrics(loading ? "" : (profile?.id ?? ""), {
-    months: 25,
-  });
+  const metrics = useDonationMetrics(loading ? "" : (profile?.id ?? ""));
   const gifts = metrics.gifts ?? [];
 
   return (

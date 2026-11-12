@@ -127,7 +127,7 @@ interface MetricTilesProps {
 
 export function MetricTiles({ missionaryId }: MetricTilesProps) {
   const { thisMonth, lastMonth, yearToDate, isLoading, error, currency } =
-    useDonationMetrics(missionaryId, { months: 25 });
+    useDonationMetrics(missionaryId);
   const qualifiedCurrency = moneyCurrency(currency);
 
   if (error) {

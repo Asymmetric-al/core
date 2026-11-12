@@ -233,9 +233,7 @@ describe("missionary home", () => {
     expect(
       within(card).getByText("$2,500.00").closest("dl")?.className,
     ).toMatch(/sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4/);
-    expect(mocks.metrics).toHaveBeenCalledWith("explicit-fixture", {
-      months: 25,
-    });
+    expect(mocks.metrics).toHaveBeenCalledWith("explicit-fixture");
   });
 
   it("celebrates a reached goal without overfilling the meter", () => {
@@ -349,7 +347,7 @@ describe("missionary home", () => {
     setup();
     show({});
     expect(mocks.auth).toHaveBeenCalledOnce();
-    expect(mocks.metrics).toHaveBeenCalledWith("auth-fixture", { months: 25 });
+    expect(mocks.metrics).toHaveBeenCalledWith("auth-fixture");
   });
 
   it("waits for sign-in instead of asking for anyone else's numbers", () => {

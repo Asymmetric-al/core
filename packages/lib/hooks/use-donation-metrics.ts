@@ -53,6 +53,7 @@ export interface DonationMetrics {
 export type DonationType = "recurring" | "one_time" | "offline";
 
 const HISTORY_MONTHS = 13;
+const COMPARISON_HISTORY_MONTHS = 25;
 
 /**
  * Calendar keys in the viewer's time zone, not UTC: a gift at 11pm on the
@@ -215,8 +216,8 @@ export function useDonationMetrics(
   missionaryId: string,
   options: { months?: number } = {},
 ): DonationMetrics {
-  const months = options.months ?? HISTORY_MONTHS;
-  const query = options.months === undefined ? "" : `?months=${months}`;
+  const months = options.months ?? COMPARISON_HISTORY_MONTHS;
+  const query = `?months=${months}`;
   const [{ donations, currency }, setMoney] = useState<{
     donations: RawDonation[];
     currency: string | null;
