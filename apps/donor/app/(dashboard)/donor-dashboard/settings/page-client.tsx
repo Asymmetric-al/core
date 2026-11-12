@@ -201,7 +201,7 @@ function ProfileAvatarCard({
               Profile Photo
             </h3>
             <p className="text-sm font-medium text-muted-foreground mt-1 ">
-              JPG, GIF or PNG. Large files auto-optimized.
+              JPG, PNG, WebP or GIF. Large files auto-optimized.
             </p>
           </div>
           <div className="flex gap-3 justify-center sm:justify-start">
