@@ -936,7 +936,23 @@ it.
 | 20:01 | #2239 published as PR #2659: both reviews clear, final acceptance passed                                          |
 | 20:12 | #2239: Samson judged a CodeRabbit finding valid; a repair round fixed it with a test and was reviewed again       |
 | 20:42 | #2239 ready (PR #2659), 68 minutes after admission, with no operator request on the issue                         |
-| 20:43 | Intake paused as the final recorded checkpoint                                                                    |
+| 20:43 | Intake paused as a recorded checkpoint; the third review round ran on this state                                  |
+| 21:24 | Release `52dcbf1c` installed from commit `3c79dc7b4` (defects 26 to 30)                                           |
+| 21:25 | Scope approved with #2205 and #2207 added; intake resumed                                                         |
+| 21:27 | Timer pass admitted #2205                                                                                         |
+| 21:33 | #2205 blocked in its first round: Ezra found the requested check cannot pass without editing protected files      |
+| 21:38 | The next pass posted the blocked notice on issue #2205 and admitted #2207                                         |
+| 21:46 | Engine restarted on purpose while #2207's committed candidate was under review (the state that blocked #2228)     |
+| 21:48 | Timer pass cleared the dead run and sent #2207 to review only; both reviews started again, with no operator       |
+| 21:54 | #2207's publish failed the pre-push gate at `format`; the factory ran a repair round and reviewed again           |
+| 22:18 | #2207 published as PR #2660: both reviews clear, final acceptance passed                                          |
+| 22:39 | #2207 ready (PR #2660)                                                                                            |
+| 22:42 | Intake paused as the final recorded checkpoint                                                                    |
+
+PR #2660 (issue #2207) at 22:42: head `b28f1911`, mergeable, clean, all 24
+checks successful on that head, no review thread, no required approval. The
+bots reported no finding; CodeRabbit and Codex reviewed this head. Its
+description states the reviews with the corrected wording (defect 27).
 
 PR #2659 (issue #2239) at 20:44: head `850bbe4d`, mergeable, no conflict,
 required checks `ci-gate`, `e2e-smoke-gate`, `migrate` and `smoke` successful
@@ -1005,8 +1021,7 @@ and checked again on the VM. The numbering continues the list above.
     on its own route. The implementer had nothing left to change and the issue
     blocked `no-change` (#2228 at 18:53). The next round now follows what the
     interrupted one recorded: a committed candidate goes to review only,
-    acceptance it defined goes to the implementer, anything earlier runs
-    again.
+    anything else runs again (see defect 26 for the case in between).
 22. The first denial rule (defect 14) dropped real prerequisites: "not ready
     because blocked by #50" read as a denial. Only a negated dependency word
     or issue reference is a denial now, and a denial takes the issues it names
@@ -1025,8 +1040,35 @@ and checked again on the VM. The numbering continues the list above.
     from the installed copies).
 
 Defects 21 to 25 were found by the 18:41 restart test and the second review
-round, repaired test-first in commit `3387942ac`, and are in release
-`d44390a5`, whose 103 installed pack files hash identically to that commit.
+round, repaired test-first in commit `3387942ac`, and were in release
+`d44390a5`, whose 103 installed pack files hashed identically to that commit.
+
+26. The repair for defect 21 also sent a round that had defined acceptance and
+    committed nothing straight to the implementer, as the existing rule for a
+    failed step already did. Only the run that records acceptance tests may
+    commit them, so that round would have set the tests aside and blocked the
+    issue. This was reproduced in a test, not seen live. Such a round now
+    defines acceptance again, after an interruption, a failed step or a stop.
+27. The pull request said "Micaiah CLEAR" for a review sealed with a finding
+    that Samson assessed as not material (PR #2659). The description now says
+    that findings were raised and not upheld, and a long brief ends at a line
+    end. PR #2659 itself still carries the old sentence.
+28. A bot's request about the pull-request description (CodeRabbit asked for
+    the deploy checklist on PR #2659) was assigned as a code fix that nothing
+    can carry out, and stayed unanswered. Samson is now told to answer such a
+    request in a reply. PR #2659's request is still unanswered.
+29. Dependency text: "#50/#51" and "#50; #51" read only the first issue;
+    "wasn't blocked by" and "not after" were read as prerequisites; a
+    prerequisite named by its pull request blocked for good. All read
+    correctly now, and a pull request named as a prerequisite is settled when
+    it is merged on `develop`.
+30. Runbook: the hash comparison did not work as written, reopening the
+    already merged #2234 was suggested, and the `ask` conversation id format
+    and the reset directory were missing.
+
+Defects 26 to 30 were found by the third review round, repaired test-first in
+commit `3c79dc7b4`, and are in release `52dcbf1c`, whose 103 installed pack
+files hash identically to that commit.
 
 Console (release 7): saving a scope erased the per-issue end states that limit
 what may merge; 38 pack refusal codes were shown as "effect unknown"; the work
@@ -1050,20 +1092,30 @@ for unattended use) and Gemini 4 Carbon "verified within the demonstrated
 scope" (6.5); GPT-6.1 Sol did not run (its provider reported a usage limit),
 so that round had two reviewers, not three. Their confirmed findings are
 defects 22 to 25, the incomplete intervention list below, and the missing
-unassisted run on one release, which the #2239 run above answers. The result
-of the review of this final state is in the description of pull request #2651.
+unassisted run on one release, which the #2239 run above answers.
+
+A third round reviewed commit `c5f60f4e9` and the 20:44 state. Claude Fable
+5.2 answered "verified within the demonstrated scope" (6.5 out of 10 for
+unattended use on a wider scope, 8 for the exercise) and Gemini 4 Carbon
+"changes still required" (7 and 8); GPT-6.1 Sol again did not run (usage
+limit). Both confirmed that #2239 was delivered unattended and that the
+installed release matched its commit. Their findings are defects 26 to 30.
+The result of the review of the final state below is in the description of
+pull request #2651.
 
 ### Operator interventions in this pass
 
-Every operator action from 13:22 to 20:43, by kind:
+Every operator action from 13:22 to 22:42, by kind:
 
-- **Scope:** approved at 13:22 (2206, 2215, 2228 added) and at 19:24 (2239,
-  2208 added).
+- **Scope:** approved at 13:22 (2206, 2215, 2228 added), at 19:24 (2239, 2208
+  added) and at 21:25 (2205, 2207 added).
 - **Intake:** paused and resumed at 13:55 and at 14:11 (with one manual
   intake start at 14:11, the only pass the timer did not start), paused
-  15:15, resumed 17:13, paused 18:02, resumed 19:24, paused 20:43.
-- **Releases:** five installs, each with an engine restart: 13:55, 14:11,
-  17:13 (`620140dd`), 18:25 (`345cc035`) and 19:21 (`d44390a5`).
+  15:15, resumed 17:13, paused 18:02, resumed 19:24, paused 20:43, resumed
+  21:25, paused 22:42.
+- **Releases:** six installs, each with an engine restart: 13:55, 14:11,
+  17:13 (`620140dd`), 18:25 (`345cc035`), 19:21 (`d44390a5`) and 21:24
+  (`52dcbf1c`).
 - **Moving issues to a new release:** `adopt-policy` then `retry` or `reopen`
   for #2206 and #2215 at 17:13, for #2215 and #2228 at 18:26, and
   `adopt-policy` then `retry` for #2228 at 19:21 and 19:22.
@@ -1071,8 +1123,8 @@ Every operator action from 13:22 to 20:43, by kind:
   before the 17:13 and 18:25 installs.
 - **Configuration:** the check-queue wait raised to 30 minutes in the
   operator-owned configuration (previous file kept).
-- **Deliberate tests:** engine restarts at 15:05 and 18:41; a hold on #2215
-  at 17:30, released at 17:56.
+- **Deliberate tests:** engine restarts at 15:05, 18:41 and 21:46; a hold on
+  #2215 at 17:30, released at 17:56.
 
 No abandon by hand, hook bypass, forced merge, account switch, API fallback
 or fabricated check was used, and no pull request was merged in this pass.
@@ -1086,12 +1138,16 @@ How each issue's delivery is classified:
 | #2206 | Ready, PR #2652 | **Assisted**: blocked by defect 15, retried after the repair; its last four rounds ran without an operator     |
 | #2215 | Ready, PR #2653 | **Assisted**: interrupted, held, stopped and reopened on purpose and across two release changes                |
 | #2208 | Not admitted    | Kept out by the selector with a recorded reason; the other issues carried on                                   |
+| #2207 | Ready, PR #2660 | **Unattended**, including recovery from the deliberate 21:46 restart. No operator request on the issue         |
+| #2205 | Blocked         | Stopped by Ezra for a reason in the issue itself and announced on GitHub; it needs a person's scope decision   |
 
 Automatic selection of the next issue, two issues side by side, recovery from
 an engine restart (a waiting round, and a round in review with a leftover
 container) and the blocked notice each ran with no operator. Recovery of a
-round interrupted after its candidate was committed (defect 21) is repaired
-and tested, and was not interrupted again on the running system.
+round interrupted after its candidate was committed (defect 21) was proven on
+the running system at 21:48 with #2207. The rule for a round interrupted
+between acceptance and the first commit (defect 26) is tested and was not
+exercised live.
 
 ### Still open
 
@@ -1130,7 +1186,16 @@ and tested, and was not interrupted again on the running system.
 - **Finished workspaces** (about 3 GB each) are not pruned.
 - **Not exercised live:** identity drift, an interrupted publish or merge, the
   engine's handling of a real usage limit under two lanes, a failed required
-  check on a published head, and the repaired defect 21 path.
+  check on a published head, and an interruption between acceptance and the
+  first commit (defect 26).
+- **One unexplained retry.** #2207's first publish after the restart failed
+  the pre-push gate at `format`; the same commit passed it two rounds later.
+  The factory recovered by itself at the cost of one round. The cause was not
+  established.
+- **PR #2659** still says "Micaiah CLEAR" and has CodeRabbit's deploy-checklist
+  request unanswered (defects 27 and 28 were repaired afterwards).
+- **#2205 needs a decision:** the check it asks for cannot pass unless
+  protected skill documents are edited, which the issue does not authorize.
 - **This pass merged nothing.** The factory's own merge was proven once, on
   #2233 in the commissioning run.
 - **Analysis turn cap** is not enforced by the engine (see above).

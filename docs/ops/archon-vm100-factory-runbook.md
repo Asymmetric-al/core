@@ -7,28 +7,32 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 12 November 2026, 20:45 UTC
+## Current state - 12 November 2026, 22:45 UTC
 
 Intake is **paused** (`final checkpoint`), nothing is running, and nothing new
-is admitted. Release `d44390a55e9f89b5` is installed, built from commit
-`3387942ac`. The scope holds issues 2206, 2208, 2215, 2228, 2233, 2234 and
-2239, all to a ready pull request (2233 was allowed to merge):
+is admitted. Release `52dcbf1caeab6576` is installed, built from commit
+`3c79dc7b4`. The scope holds issues 2205, 2206, 2207, 2208, 2215, 2228, 2233,
+2234 and 2239, all to a ready pull request (2233 was allowed to merge):
 
-| Issue | State                                                              |
-| ----- | ------------------------------------------------------------------ |
-| #2233 | Merged by the factory (PR #2648)                                   |
-| #2234 | Ready (PR #2649), then merged by the owner                         |
-| #2206 | Ready, PR #2652                                                    |
-| #2215 | Ready, PR #2653                                                    |
-| #2228 | Ready, PR #2657                                                    |
-| #2239 | Ready, PR #2659                                                    |
-| #2208 | Not admitted: its prerequisite #2068 has no merged closing request |
+| Issue | State                                                                |
+| ----- | -------------------------------------------------------------------- |
+| #2233 | Merged by the factory (PR #2648)                                     |
+| #2234 | Ready (PR #2649), then merged by the owner. Finished: leave it alone |
+| #2206 | Ready, PR #2652                                                      |
+| #2215 | Ready, PR #2653                                                      |
+| #2228 | Ready, PR #2657                                                      |
+| #2239 | Ready, PR #2659                                                      |
+| #2207 | Ready, PR #2660                                                      |
+| #2205 | Blocked `acceptance-blocked`: needs a scope decision (see the issue) |
+| #2208 | Not admitted: its prerequisite #2068 has no merged closing request   |
 
-The four open pull requests wait for the owner; the factory merges only an
+The five open pull requests wait for the owner; the factory merges only an
 issue whose approved end state is `MERGED`. To admit more work, approve a
-scope and run `factory resume-intake`. #2206, #2215 and #2234 are still bound
-to earlier releases: to work on one again, stop it, `adopt-policy`, then
-`reopen` (Updates, step 7). Before changing a release, read the open checks in
+scope and run `factory resume-intake`. #2206, #2215, #2228 and #2239 are bound
+to earlier releases: to have the factory work on one of their open pull
+requests again, stop it, `adopt-policy`, then `reopen` (Updates, step 7),
+which reviews the candidate again. Do not do that for an issue whose pull
+request is already merged. Before changing a release, read the open checks in
 the [commissioning record](archon-vm100-commissioning.md#still-open). The
 safety gates below supersede older unconditional retry/resume guidance.
 
