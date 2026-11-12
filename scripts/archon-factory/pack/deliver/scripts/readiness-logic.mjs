@@ -12,6 +12,21 @@ import { makeRepair, normalizeRepair } from "./repair-logic.mjs";
 const DISMISSALS = new Set(["rebut", "obsolete", "decline-nit"]);
 const FIXES = new Set(["fix-implementation", "fix-acceptance"]);
 
+// What Samson is told about each choice when he judges pull-request feedback.
+export const DISPOSITION_CHOICES = [
+  "Investigate each item against the requirements and the code in the workspace. A bot is neither automatically right nor ignorable.",
+  "- fix-implementation / fix-acceptance: a real defect; it returns to Bezalel or Ezra. The thread is resolved once the fix is published.",
+  "- rebut: a false positive; reply explains why with evidence (file:line).",
+  "- obsolete: already addressed or no longer applies; verify it first (outdated threads are flagged `outdated`), and the reply says where.",
+  "- decline-nit: a harmless style suggestion; reply states the reason.",
+  "- rerun-flake: a failed check unrelated to this change (cite the log line); rerun once.",
+  "- adjudicate: a genuine dispute you cannot settle from the evidence; the factory stops the issue for an operator and resolves nothing.",
+  "The pull-request description is written by the factory and no repair can change it. Answer a request about the description (a missing template section, the deploy checklist) in a reply with decline-nit or rebut, never as a fix: for the deploy checklist the reply states each item of .github/pull_request_template.md with its answer or N/A and the reason.",
+  "A thread reappears when someone replies after your disposition or unresolves it after the factory resolved it (flagged `reopened`), and a person's comment reappears when it is edited.",
+  "Leave the reply empty for automated status comments (deploy previews, review summaries) that need no answer.",
+  "Security and behavior claims need investigation, not dismissal. Keep replies short and factual; do not @mention review bots.",
+].join("\n");
+
 // Mentions become inline code: a reply never summons a review bot or pings
 // a person on the factory's behalf.
 export function replyBody(text) {

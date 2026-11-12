@@ -985,6 +985,56 @@ describe("fresh admission observation contract", () => {
     ]);
   });
 
+  // A prerequisite is often named by its pull request ("Depends on #1050").
+  it("settles a prerequisite named by its pull request once that pull request is merged", async () => {
+    issues.set(12, issue(12, "Depends on #1050"));
+    issues.set(1050, {
+      ...issue(1050, "", { state: "closed" }),
+      pull_request: { merged_at: "2026-11-11T00:00:00Z" },
+    });
+    pulls.set(1050, mergedPull(50, { body: "Refs #50" }));
+    const fresh = await observe();
+    expect(fresh.input.items["#1050"].status).toBe("found");
+    expect(
+      evaluateEligibility(fresh.input as any)
+        .eligible.map((item) => item.id)
+        .sort(),
+    ).toEqual(["#12", "#14"]);
+  });
+
+  it("keeps a prerequisite named by its pull request blocked until that pull request is merged", async () => {
+    issues.set(12, issue(12, "Depends on #1050"));
+    issues.set(1050, {
+      ...issue(1050),
+      pull_request: { merged_at: null },
+    });
+    pulls.set(
+      1050,
+      mergedPull(50, { state: "open", merged: false, merged_at: null }),
+    );
+    const result = evaluateEligibility((await observe()).input as any);
+    expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
+    expect(result.blocked[0]?.reasons).toEqual([
+      { issueId: "#12", code: "unsatisfied-dependency", dependencyId: "#1050" },
+    ]);
+  });
+
+  it("does not accept a pull request merged into another branch", async () => {
+    issues.set(12, issue(12, "Depends on #1050"));
+    issues.set(1050, {
+      ...issue(1050, "", { state: "closed" }),
+      pull_request: { merged_at: "2026-11-11T00:00:00Z" },
+    });
+    pulls.set(
+      1050,
+      mergedPull(50, {
+        base: { ref: "production", repo: { full_name: "Asymmetric-al/core" } },
+      }),
+    );
+    const result = evaluateEligibility((await observe()).input as any);
+    expect(result.eligible.map((item) => item.id)).toEqual(["#14"]);
+  });
+
   it("keeps a prerequisite blocked while its pull request is green but not merged", async () => {
     issues.set(12, issue(12, "Depends on #50"));
     issues.set(50, issue(50));

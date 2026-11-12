@@ -59,7 +59,12 @@ a denial, so "not ready because blocked by #12" still blocks. A range ("#12
 to #15", "#12–#15") names every issue in it; one wider than 25 issues stops
 for a person. An issue named both as related and as a prerequisite is a
 prerequisite; any other pair of different statements about one issue is a
-conflict a person settles. A prerequisite outside the scope decides one thing: a closing pull request
+conflict a person settles. Issues in a list are read whatever separates them
+(",", "and", "&", "/", ";"). Only the order "directive, then issue" is read
+("depends on #12"; not "#12 must merge first"), so prose is a heuristic and
+GitHub's blocked-by relation is the reliable declaration. A prerequisite named
+by its pull request is settled when that pull request is merged on the target
+branch. A prerequisite outside the scope decides one thing: a closing pull request
 merged on the target branch settles it, anything else blocks the issue that
 needs it. Its own text and history are not read. A governing file is fetched
 once per pass, every GitHub request has a deadline, and a pass stops observing
@@ -72,8 +77,10 @@ for good. Before each admission pass `.shared/orphans.mjs reap` takes each
 factory run whose recorded engine process is provably gone, removes that run's
 check containers, and only then abandons it; the sweep settles the work item
 and starts its next round. That round follows what the interrupted one had
-recorded: a candidate it committed goes to review only, acceptance it defined
-goes to the implementer, anything earlier runs the round again. A run whose
+recorded: a candidate it committed goes to review only; acceptance it defined
+and never committed is defined again (only the run that records acceptance
+tests may commit them); anything else runs the round again. The same rule
+decides the route after a failed node and after a stop. A run whose
 containers cannot be confirmed gone is left for the next pass.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
@@ -177,7 +184,9 @@ added to `brief.repair` for Ezra, the head is still reviewed, and `after-assess`
 returns the candidate to Ezra instead of final acceptance. `publish` refuses
 unless both first-pass reviews are CLEAR and Ezra's final is a DONE PASS, all
 bound to the frozen candidate and the current acceptance revision, with no
-acceptance correction pending. The PR body's hook line is built only from
+acceptance correction pending. The PR body calls a review clear only when
+the reviewer sealed it clear; findings that were assessed as not material or
+rejected are named as findings not upheld. The PR body's hook line is built only from
 freeze's pre-commit receipts and publication's pre-push proof.
 
 **Readiness.** Readiness integrates the base by an ordinary merge only when that

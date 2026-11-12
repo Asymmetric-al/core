@@ -1,8 +1,11 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { StateConflict } from "../../../scripts/archon-factory/pack/.shared/archon.mjs";
 import { FACTORY_MARKER } from "../../../scripts/archon-factory/pack/.shared/readiness.mjs";
 import {
+  DISPOSITION_CHOICES,
   adoptResolution,
   asRepair,
   baseIntegrationFailure,
@@ -63,6 +66,44 @@ function dispose(
     items: items.map((item) => ({ reply: "", reason: "because", ...item })),
   };
 }
+
+// 12 Nov 2026, PR #2659: CodeRabbit asked for the deploy checklist in the
+// description. Samson assigned it as a fix, no repair can change the
+// description, and the request was never answered.
+describe("Samson's disposition choices", () => {
+  it("answers a request about the pull-request description in a reply", () => {
+    expect(DISPOSITION_CHOICES).toMatch(
+      /pull-request description is written by the factory[^.]*no repair can change it/,
+    );
+    expect(DISPOSITION_CHOICES).toMatch(
+      /deploy checklist[^.]*reply[^.]*each item/,
+    );
+    expect(DISPOSITION_CHOICES).toContain("never as a fix");
+  });
+
+  it("keeps every existing choice", () => {
+    for (const action of [
+      "fix-implementation / fix-acceptance",
+      "rebut",
+      "obsolete",
+      "decline-nit",
+      "rerun-flake",
+      "adjudicate",
+    ])
+      expect(DISPOSITION_CHOICES).toContain(`- ${action}:`);
+  });
+
+  it("is what feedback-facts.ts gives Samson", () => {
+    const source = readFileSync(
+      new URL(
+        "../../../scripts/archon-factory/pack/deliver/scripts/feedback-facts.ts",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    expect(source).toContain('["Your decision", DISPOSITION_CHOICES]');
+  });
+});
 
 describe("planDispositions: adjudicate and unhandled actions block (publication-merge#3, wiring-bugs#4)", () => {
   it("blocks an adjudicate disposition, naming the item, and plans no GitHub write or record", () => {

@@ -91,6 +91,36 @@ export function publicationGate({ value, candidate }) {
   return problems;
 }
 
+// The PR body's review line. A review is called clear only when the reviewer
+// sealed it clear. Findings that Samson assessed as not material, or that
+// Agabus rejected, are named as findings that were not upheld: `cleared` marks
+// a review whose own verdict was not clear (clearedReviews in review-logic).
+function reviewText(review) {
+  if (!review?.decision) return "not recorded";
+  const count = Number.isSafeInteger(review.findings) ? review.findings : 0;
+  const findings = `${count} finding${count === 1 ? "" : "s"}`;
+  if (review.decision !== "CLEAR") return review.decision.toLowerCase();
+  if (review.cleared)
+    return `raised ${count ? findings : "findings"}, not upheld after assessment`;
+  return count
+    ? `clear, with ${count} optional note${count === 1 ? "" : "s"}`
+    : "clear";
+}
+
+export function reviewsLine(reviews) {
+  return `- Independent reviews: Micaiah ${reviewText(reviews?.micaiah)}; Luke ${reviewText(reviews?.luke)}.`;
+}
+
+// The coordinator brief as the PR body shows it: whole, or cut at a line end
+// with a note, never in the middle of a sentence.
+export function briefText(summary, limit = 4000) {
+  const text = String(summary ?? "");
+  if (text.length <= limit) return text;
+  const head = text.slice(0, limit);
+  const end = head.lastIndexOf("\n");
+  return `${(end > 0 ? head.slice(0, end) : head).trimEnd()}\n\n_(The coordinator brief is shortened here.)_`;
+}
+
 // The PR body's hook line, built only from receipts: freeze records one
 // pre-commit receipt per hooked commit (or "earlier-round" when a review round
 // re-froze a head committed before), publication records the pre-push proof.

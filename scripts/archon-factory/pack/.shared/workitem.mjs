@@ -514,14 +514,17 @@ export function planFinish(
 // The route after a run that ended without recording its round follows the
 // progress that run checkpointed, as record does after a failed node. A
 // candidate it committed only needs its reviews; restarting the round would
-// give the implementer nothing to change. Acceptance it defined goes straight
-// to the implementer. Anything earlier runs the round again.
+// give the implementer nothing to change. Acceptance it defined and never
+// committed is defined again: only the run that records acceptance tests may
+// commit them (freeze), so a round for the implementer alone would set them
+// aside. Anything else runs the round again.
 function interruptedRoute(value) {
   const { run } = value;
   if (POLLING.has(run.route) || run.route === "review") return run.route;
   if (!Object.hasOwn(run, "head")) return run.route;
   if ((value.head ?? null) !== run.head) return "review";
-  if (value.acceptance?.run === run.id) return "repair";
+  if (value.acceptance?.run === run.id)
+    return run.route === "initial" ? "initial" : "oracle";
   return run.route;
 }
 
@@ -647,7 +650,7 @@ export function planControl(
         !hasNativeFaultHold(value)
       ) {
         next.status = "stopped";
-        next.route = value.run.route;
+        next.route = interruptedRoute(value);
         next.run = null;
         next.history = [
           ...next.history,
@@ -656,7 +659,7 @@ export function planControl(
             run: value.run.id,
             route: value.run.route,
             outcome: "stopped",
-            next: value.run.route,
+            next: next.route,
             at: now,
             summary: `Run ${value.run.id} ended without recording its round; stopped by ${clip(by, 80)}`,
           },

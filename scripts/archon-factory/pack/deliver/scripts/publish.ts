@@ -16,11 +16,13 @@ import {
 } from "../../.shared/round.mjs";
 import { planCheckpoint } from "../../.shared/workitem.mjs";
 import {
+  briefText,
   criterionOwner,
   failRepair,
   finalDecision,
   hooksLine,
   publicationGate,
+  reviewsLine,
 } from "./publish-logic.mjs";
 import { normalizeRepair } from "./repair-logic.mjs";
 
@@ -162,7 +164,7 @@ const criteria = value.acceptance.criteria
   )
   .join("\n");
 const body = [
-  value.brief.summary.slice(0, 4000),
+  briefText(value.brief.summary),
   "",
   `Closes #${round.issue}`,
   "",
@@ -175,7 +177,7 @@ const body = [
   "## Factory evidence",
   "",
   `- Candidate \`${candidate}\` on base \`${value.base}\`, acceptance \`${value.acceptance.revision.slice(0, 16)}\``,
-  `- Independent reviews: Micaiah ${value.reviews?.micaiah?.decision}, Luke ${value.reviews?.luke?.decision}`,
+  reviewsLine(value.reviews),
   hooksLine(freeze.hooks, publication.hooks),
   `- Round ${value.round}, assignment \`${round.assignment}\`.`,
   "",

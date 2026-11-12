@@ -893,6 +893,34 @@ describe("freezeCandidate", () => {
       });
     });
 
+    // Why a round that defined acceptance and froze nothing must run the
+    // acceptance stage again (record-logic failureRoute, workitem
+    // interruptedRoute): a later run may not commit tests it did not record.
+    it("cannot commit acceptance tests an earlier run recorded and never committed", async () => {
+      const { base, repo, freeze } = setup();
+      const NEW = "tests/x/new.test.ts";
+      const NEW_TEXT = "expect(total).toBe(101);\n";
+      writeFileSync(`${repo}/${NEW}`, NEW_TEXT);
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "repair",
+        value: {
+          base,
+          head: base,
+          brief: BRIEF,
+          acceptance: acceptance(EARLIER, [
+            [TEST, blob(TEST_TEXT)],
+            [NEW, blob(NEW_TEXT)],
+          ]),
+        },
+        build: built(),
+      });
+
+      expect(result.stop?.entry?.blocked?.code).toBe("candidate-integrity");
+      expect(existsSync(`${repo}/${NEW}`)).toBe(false);
+    });
+
     it("freezes for review as usual when there are no requests", async () => {
       const { base, repo, freeze } = setup();
       writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");

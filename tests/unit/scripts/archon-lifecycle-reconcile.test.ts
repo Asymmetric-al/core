@@ -209,17 +209,33 @@ describe("planReconcile", () => {
       },
     );
 
-    it.each(["initial", "oracle"])(
-      "goes to the implementer when the %s round defined acceptance and committed nothing",
-      (route) => {
+    // Only the run that recorded acceptance tests may commit them, so a
+    // round that defined acceptance and committed nothing defines it again.
+    it.each([
+      ["initial", "initial"],
+      ["oracle", "oracle"],
+      ["repair", "oracle"],
+    ])(
+      "runs the acceptance stage again when the %s round defined acceptance and committed nothing",
+      (route, expected) => {
         const next = interrupted(
           route,
           { head: route === "initial" ? null : "a".repeat(40) },
           { acceptance: acceptance("run-3") },
         );
-        expect(next.route).toBe("repair");
+        expect(next.route).toBe(expected);
       },
     );
+
+    it("keeps the repair route when the acceptance came from an earlier round", () => {
+      expect(
+        interrupted(
+          "repair",
+          { head: "a".repeat(40), acceptance: acceptance("run-1") },
+          {},
+        ).route,
+      ).toBe("repair");
+    });
 
     it("runs the acceptance stage again when the interrupted round had not defined it", () => {
       expect(interrupted("initial", {}, {}).route).toBe("initial");
@@ -390,6 +406,21 @@ describe("operator controls on an item whose run ended", () => {
       installed: { policyRevision: POLICY },
       ...extra,
     });
+
+  it("stops an interrupted round on the route its recorded progress calls for", () => {
+    const stuck = abandoned("initial");
+    stuck.value.head = "b".repeat(40);
+    const plan = act(stuck, "stop", "req-stop-committed-01");
+    expect({ status: plan.value.status, route: plan.value.route }).toEqual({
+      status: "stopped",
+      route: "review",
+    });
+    expect(plan.value.history.at(-1)).toMatchObject({
+      route: "initial",
+      outcome: "stopped",
+      next: "review",
+    });
+  });
 
   it("reconciles on request, recording the operator's request", () => {
     const plan = act(abandoned(), "reconcile", "req-reconcile-01", {

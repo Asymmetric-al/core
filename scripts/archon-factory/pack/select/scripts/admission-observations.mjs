@@ -39,7 +39,7 @@ function references(text, repo) {
   const found = new Set();
   const foreign = new Set();
   const pattern =
-    /https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(\d+)|\b([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)#(\d+)|(?<![\w/#])#(\d+)\b/g;
+    /https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(\d+)|\b([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)#(\d+)|(?<![\w#])(?<!(?<!\d)\/)#(\d+)\b/g;
   for (const match of text.matchAll(pattern)) {
     const repository = match[1] ?? match[3];
     const target = Number(match[2] ?? match[4] ?? match[5]);
@@ -99,7 +99,7 @@ function dependencyKind(text) {
 // requires #60") denies nothing.
 const REFERENCE = String.raw`(?:https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/(?:issues|pull)\/\d+|(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#\d+)`;
 const REFERENCES = String.raw`(?:\s*(?:,|&|\/|and|or|nor|to|through|thru|[-–—])?\s*${REFERENCE})+`;
-const NEGATED = String.raw`\b(?:not|no|never|neither|nor|without|isn't|aren't|doesn't)\s+(?:(?:longer|currently|yet|actually|really|directly|open|hard|known|other|remaining|outstanding|further|new|any)\s+){0,2}(?:relation|related|dependenc(?:y|ies)|depend(?:s|ent)?(?:\s+on)?|blocked(?:\s+by)?|blockers?|prerequisites?|requires?|required)\b`;
+const NEGATED = String.raw`\b(?:not|no|never|neither|nor|without|isn't|aren't|wasn't|weren't|doesn't|don't|didn't|won't|cannot|can't)\s+(?:(?:longer|currently|yet|actually|really|directly|open|hard|known|other|remaining|outstanding|further|new|any)\s+){0,2}(?:relation|related|dependenc(?:y|ies)|depend(?:s|ent)?(?:\s+on)?|blocked(?:\s+by)?|blockers?|prerequisites?|requires?|required|(?:queued\s+)?after)\b`;
 const DENIAL = new RegExp(
   String.raw`${NEGATED}(?:\s+(?:on|by|to|with))?(?:${REFERENCES})?|\b(?:not|nor)\s+(?:(?:on|by)\s+)?${REFERENCES}`,
   "gi",
@@ -124,7 +124,9 @@ function dependencyText(text, source, repo) {
   const directive =
     /\b(?:(?:implementation|dispatch|qualification|release)\s+(?:prerequisites?|dependencies|gates?)|prerequisites?|dependencies|depends on|blocked by|requires|after|(?:non[- ]|not )?optional|informational|related)\b/i;
   const listItem = /^(?:[-+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/;
-  for (const rawLine of prose(text).split(/\r?\n|;\s*/)) {
+  // A semicolon starts a new statement, except inside a list of issues
+  // ("depends on #50; #51").
+  for (const rawLine of prose(text).split(/\r?\n|;(?!\s*#\d)\s*/)) {
     const lineHeading = /^(#{1,6})\s+(.+)$/.exec(rawLine.trim());
     const lineIsList = listItem.test(rawLine.replace(/[*`]/g, "").trim());
     for (const [index, raw] of sentences(rawLine, lineHeading).entries()) {
@@ -342,25 +344,38 @@ async function integrated({ github, config, issue, existing }) {
       candidates.add(linked.number);
   }
   for (const candidate of candidates) {
-    const pull = await github.pull(candidate);
-    if (
-      !pull ||
-      pull.number !== candidate ||
-      pull.merged !== true ||
-      pull.base?.ref !== targetBranch ||
-      pull.base?.repo?.full_name?.toLowerCase() !== slug.toLowerCase() ||
-      !/^[a-f0-9]{40}$/.test(pull.merge_commit_sha ?? "") ||
-      !closesIssue(pull.body, issue.number, slug)
-    )
-      continue;
-    const compare = await github.compare(pull.merge_commit_sha, targetBranch);
-    if (
-      ["identical", "ahead"].includes(compare?.status) &&
-      compare.merge_base_commit?.sha === pull.merge_commit_sha
-    )
-      return { source: pull.html_url, revision: pull.merge_commit_sha };
+    const proof = await mergedOnTarget({
+      github,
+      config,
+      number: candidate,
+      closes: issue.number,
+    });
+    if (proof) return proof;
   }
   return null;
+}
+
+// Proof that one pull request is merged on the target branch and its merge
+// commit is still part of it; with `closes`, also that it says it closes
+// that issue.
+async function mergedOnTarget({ github, config, number: wanted, closes }) {
+  const { slug, targetBranch } = config.repository;
+  const pull = await github.pull(wanted);
+  if (
+    !pull ||
+    pull.number !== wanted ||
+    pull.merged !== true ||
+    pull.base?.ref !== targetBranch ||
+    pull.base?.repo?.full_name?.toLowerCase() !== slug.toLowerCase() ||
+    !/^[a-f0-9]{40}$/.test(pull.merge_commit_sha ?? "") ||
+    (closes !== undefined && !closesIssue(pull.body, closes, slug))
+  )
+    return null;
+  const compare = await github.compare(pull.merge_commit_sha, targetBranch);
+  return ["identical", "ahead"].includes(compare?.status) &&
+    compare.merge_base_commit?.sha === pull.merge_commit_sha
+    ? { source: pull.html_url, revision: pull.merge_commit_sha }
+    : null;
 }
 
 // `files` caches governing file reads for one observation pass, so a document
@@ -591,19 +606,27 @@ export async function observeAdmission({
     try {
       const issue = await github.issue(target);
       issueRead = true;
-      if (issue?.number !== target || issue.pull_request) {
+      // Work is assigned by issue: a pull request cannot be in the scope.
+      if (
+        issue?.number !== target ||
+        (issue.pull_request && approved.has(target))
+      ) {
         observations[id] = { status: "missing" };
         continue;
       }
       // A prerequisite outside the authorized scope decides one thing only:
       // whether its closing pull request is merged on the target branch. A
       // merged one is settled; an unmerged one blocks the issue that needs
-      // it. Its own text and history decide nothing and are not read.
+      // it. Its own text and history decide nothing and are not read. A
+      // prerequisite named by its pull request is settled when that pull
+      // request is merged there.
       if (!approved.has(target)) {
         const existing = items.get(target)?.value;
-        const proof = settled
-          ? await integrated({ github, config, issue, existing })
-          : null;
+        const proof = !settled
+          ? null
+          : issue.pull_request
+            ? await mergedOnTarget({ github, config, number: target })
+            : await integrated({ github, config, issue, existing });
         proofs.set(target, proof);
         const contextRevision = digest({
           issue: target,

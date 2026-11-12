@@ -104,6 +104,10 @@ describe("dependency statements in issue text", () => {
     "There are no remaining blockers (#50 merged).",
     "It doesn't depend on #50.",
     "Not dependent on #50.",
+    "This wasn't blocked by #50.",
+    "Not after #50.",
+    "No longer queued after #50.",
+    "It won't depend on #50.",
   ])("still reads a plain denial: %s", (text) => {
     const result = parse(`## Dependencies
 
@@ -203,6 +207,36 @@ ${text}`);
     expect(
       kinds.problems.map((problem: { code: string }) => problem.code),
     ).toEqual(["conflicting-dependency"]);
+  });
+
+  // A list of prerequisites is read whatever separates its issues.
+  it.each([
+    "Depends on #50/#51.",
+    "Depends on #50; #51.",
+    "Blocked by #50, #51",
+    "Requires #50 and #51",
+    "Blocked by #50 & #51",
+  ])("reads both issues of a list: %s", (text) => {
+    expect(edges(parse(text))).toEqual([
+      "implementation #50",
+      "implementation #51",
+    ]);
+  });
+
+  it("still starts a new statement after a semicolon", () => {
+    expect(edges(parse("Depends on #50; related to #51."))).toEqual([
+      "implementation #50",
+      "informational #51",
+    ]);
+    expect(edges(parse("Depends on #50; not blocked by #52."))).toEqual([
+      "implementation #50",
+    ]);
+  });
+
+  it("does not read a path or an anchor as an issue", () => {
+    expect(
+      edges(parse("Depends on docs/#12 and the page/#34 anchor.")),
+    ).toEqual([]);
   });
 
   it("classifies a later sentence by its own words", () => {

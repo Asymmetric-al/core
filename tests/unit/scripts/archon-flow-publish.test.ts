@@ -13,8 +13,10 @@ import {
   criterionOwner,
   failRepair,
   finalDecision,
+  briefText,
   hooksLine,
   publicationGate,
+  reviewsLine,
 } from "../../../scripts/archon-factory/pack/deliver/scripts/publish-logic.mjs";
 
 const acceptance = { revision: "rev1", criteria: [{ id: "C1" }, { id: "C2" }] };
@@ -391,6 +393,82 @@ describe("what a read-only role is told about the change and its checks", () => 
   it("still renders without the change facts (an older caller)", () => {
     expect(final()).toMatch(/candidate_sha: c0ffee/);
     expect(final()).not.toContain("Files changed from base");
+  });
+});
+
+// 12 Nov 2026, PR #2659: Micaiah sealed FINDINGS (one P3), Samson assessed it
+// as not material, and the pull request said "Micaiah CLEAR".
+describe("what the PR body says about the independent reviews", () => {
+  const review = (overrides: Record<string, unknown> = {}) => ({
+    decision: "CLEAR",
+    findings: 0,
+    ...overrides,
+  });
+
+  it("says clear only for a review that was sealed clear without findings", () => {
+    expect(reviewsLine({ micaiah: review(), luke: review() })).toBe(
+      "- Independent reviews: Micaiah clear; Luke clear.",
+    );
+  });
+
+  it("names findings that were not upheld instead of calling the review clear", () => {
+    expect(
+      reviewsLine({
+        micaiah: review({ findings: 1, cleared: true }),
+        luke: review({ findings: 2, cleared: true }),
+      }),
+    ).toBe(
+      "- Independent reviews: Micaiah raised 1 finding, not upheld after assessment; Luke raised 2 findings, not upheld after assessment.",
+    );
+  });
+
+  it("mentions the optional notes of a review sealed clear", () => {
+    expect(
+      reviewsLine({ micaiah: review(), luke: review({ findings: 1 }) }),
+    ).toBe(
+      "- Independent reviews: Micaiah clear; Luke clear, with 1 optional note.",
+    );
+  });
+
+  it("claims nothing for a review that is missing or not clear", () => {
+    expect(reviewsLine({ micaiah: review({ decision: "INCONCLUSIVE" }) })).toBe(
+      "- Independent reviews: Micaiah inconclusive; Luke not recorded.",
+    );
+    expect(reviewsLine(null)).toBe(
+      "- Independent reviews: Micaiah not recorded; Luke not recorded.",
+    );
+  });
+
+  it("is what publish.ts prints", () => {
+    const source = readFileSync(
+      new URL(
+        "../../../scripts/archon-factory/pack/deliver/scripts/publish.ts",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    expect(source).toContain("reviewsLine(value.reviews)");
+    expect(source).toContain("briefText(value.brief.summary)");
+    expect(source).not.toContain("value.reviews?.micaiah?.decision");
+  });
+});
+
+describe("the coordinator brief in the PR body", () => {
+  it("keeps a brief that fits", () => {
+    expect(briefText("One line.\nAnother.")).toBe("One line.\nAnother.");
+  });
+
+  it("ends a long brief at a line end and says it was shortened", () => {
+    const lines = Array.from(
+      { length: 200 },
+      (_, n) => `Line ${n} of the brief.`,
+    );
+    const text = briefText(lines.join("\n"), 400);
+    expect(text.length).toBeLessThanOrEqual(400 + 60);
+    const kept = text.split("\n");
+    expect(kept.at(-1)).toBe("_(The coordinator brief is shortened here.)_");
+    expect(kept.at(-2)).toBe("");
+    for (const line of kept.slice(0, -2)) expect(lines).toContain(line);
   });
 });
 

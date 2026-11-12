@@ -82,6 +82,13 @@ Every ten minutes the selector does three things:
    none. An open or green pull request is not merged work. Anything that
    cannot be read or classified keeps that one issue out and is recorded with
    its reason; the other issues carry on.
+
+   Reading prose is a heuristic. To be sure a prerequisite is seen, use
+   GitHub's blocked-by relation or write `Depends on #N` on a line of its
+   own. Two things to know: a sentence such as "After #N, the doc should..."
+   counts as a prerequisite on #N, and a prerequisite written after the issue
+   number ("#N must merge first") is not read.
+
 3. **Ranking (Samson).** With one eligible issue it is admitted directly. With
    several, Samson picks one from that list only, using operator priorities,
    unfinished repairs, what unlocks other scope issues, the roadmap and
@@ -136,7 +143,7 @@ $N $C status
 | Let one issue's scope reach protected paths       | `$N $C allow-protected <n> 'package.json,.github/**' ...` (`all` for every protected path, `none` to revoke)                        |
 | Change ranking                                    | `$N $C prioritize <n> <0-100> ...`                                                                                                  |
 | Cancel one run                                    | `$N $C cancel-run <runId> ...` (holds the issue first; release remains subject to all safety gates)                                 |
-| Ask Samson a question (the Console chat)          | `$N $C ask --conversation <id> --request <id> --question "text"`                                                                    |
+| Ask Samson a question (the Console chat)          | `$N $C ask --conversation <id> --request <id> --question "text"` (conversation id: 8-64 lowercase letters, digits or `-`)           |
 | Start an advisory analysis (never a gate)         | `$N $C analyze --scope factory --request <id>` (or `--scope issue:<n>`)                                                             |
 
 A ready pull request is not watched: once an issue is `PR_READY` the factory
@@ -320,7 +327,8 @@ readiness reasons, feedback dispositions) and in the work item's `blocker`.
 - **GitHub API quota:** the factory's account has 5,000 REST calls an hour. When
   it runs out, observations come back unavailable, nothing is admitted or
   decided on stale evidence, and the next pass after the hourly reset carries
-  on. A selector pass uses about 15 calls per scope issue.
+  on. A selector pass uses about 5 calls per scope issue (26 for a five-issue scope
+  on 12 November).
 - **GitHub sign-in:** the factory's own profile is
   `GH_CONFIG_DIR=/srv/core-factory/credentials/gh` (`gh auth status`). Roles
   never see it.
@@ -337,7 +345,7 @@ workspace) and then abandons the run. A run whose containers cannot be
 confirmed gone is left for the next pass. The sweep in the same pass settles
 the issue back to waiting and starts its next round, which follows what the
 interrupted round had recorded: a candidate it had committed goes to review
-only, acceptance it had defined goes to the implementer, and anything earlier
+only, acceptance it had defined but not committed is defined again, and anything else
 runs the round again. Unfinished code stays in the issue clone. A round that was waiting (the feedback
 cooldown) is not orphaned: the engine resumes it by itself. This takes
 at most one timer interval (ten minutes). `journalctl -u
@@ -463,17 +471,22 @@ manifest.
    copies of the first install are gone; `--archon <file>` and
    `--plugin <file>` name others. Either way the bytes must match the pins.
 
+   The installer needs network access to GitHub releases (the pinned launcher
+   downloads the engine server and web UI and verifies them against its
+   embedded checksums, and adds any missing provider or forge plugin the same
+   way) and the check image `core-archon-checks:node24.22.1-bun1.4.3-jq` with
+   the exact pinned image ID.
+
    Without `SOURCE_COMMIT` the release is recorded with no source. The
    installer records the commit you declare and does not check it against Git.
-   To prove it, compare the installed pack with the commit, file by file:
-   `find /srv/core-factory/control/.archon/workflows/core-factory -type f | sort | xargs sha256sum`
-   against the same listing of `scripts/archon-factory/pack` from
-   `git archive <commit>`. It
-   needs network access to GitHub releases (the pinned launcher downloads the
-   engine server and web UI and verifies them against its embedded checksums,
-   and adds any missing provider or forge plugin the same way) and the check
-   image `core-archon-checks:node24.22.1-bun1.4.3-jq` with the exact pinned
-   image ID.
+   To prove it, run the same command in the installed pack
+   (`/srv/core-factory/control/.archon/workflows/core-factory`) and in
+   `scripts/archon-factory/pack` of the staged commit, and compare the two
+   lines it prints:
+
+   ```sh
+   find . -type f | LC_ALL=C sort | xargs sha256sum | sha256sum
+   ```
 
 3. It verifies everything before changing anything: pinned binary hashes, the
    engine pieces, plugins (added into a temporary home and checked against
@@ -603,6 +616,7 @@ bundle first:
 ```sh
 A=/opt/archon/0.14.0/archon   # with ARCHON_HOME and ARCHON_USER_ID as in Controls
 $N $C factory pause-intake --request <id> --by <me>
+mkdir -p /srv/core-factory/retired/commissioning-resets
 $A state get core/issues/<n> --project _folder/control > /srv/core-factory/retired/commissioning-resets/issue-<n>-<stamp>.json
 $A state delete core/issues/<n> --if-revision <revision> --project _folder/control
 ```
