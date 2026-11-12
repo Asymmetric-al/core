@@ -68,6 +68,49 @@ test.describe("Support Hub smoke", () => {
     page,
   }) => {
     await ensureAdminDemo(page);
+    await page.route(
+      adminPath("/api/admin/support/conversations"),
+      async (route) => {
+        await route.fulfill({
+          json: {
+            conversations: [
+              {
+                id: "conv-e2e-layout",
+                tenantId: "tenant-e2e",
+                inboxId: "inbox-e2e",
+                subject: "Smoke fixture conversation",
+                status: "open",
+                priority: "normal",
+                channel: "email",
+                assignee: null,
+                team: null,
+                externalContactName: "Smoke donor",
+                externalContactEmail: "smoke@example.test",
+                contact: null,
+                labels: [],
+                unreadCount: 0,
+                messageCount: 1,
+                firstMessageAt: "2026-11-11T12:00:00.000Z",
+                lastMessageAt: "2026-11-11T12:00:00.000Z",
+                lastCustomerMessageAt: "2026-11-11T12:00:00.000Z",
+                lastMessageDirection: "inbound",
+                firstRespondedAt: null,
+                firstResponseDueAt: null,
+                nextResponseDueAt: null,
+                resolvedAt: null,
+                snoozedUntil: null,
+                escalatedAt: null,
+                boardOrder: 0,
+                slaPolicyId: null,
+                createdAt: "2026-11-11T12:00:00.000Z",
+                updatedAt: "2026-11-11T12:00:00.000Z",
+              },
+            ],
+          },
+        });
+      },
+    );
+    await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(adminPath("/support?layout=board"));
     await page.waitForLoadState("domcontentloaded");
     const boardRegion = page.getByRole("region", { name: /board view/i });
@@ -85,12 +128,19 @@ test.describe("Support Hub smoke", () => {
       "false",
     );
     await expect(boardRegion).toHaveCount(0);
-    // Without seeded records the table may be empty; either proves the switch.
+    const table = page.getByRole("table");
+    await expect(table).toBeVisible();
+    await expect(table.getByText("Smoke fixture conversation")).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(table).toHaveCount(0);
+    const cards = page.getByRole("list", { name: "Conversations" });
+    await expect(cards).toBeVisible();
     await expect(
-      page
-        .getByRole("table")
-        .or(page.getByText("No conversations match your filters"))
-        .first(),
+      cards.getByRole("button", {
+        name: "Smoke donor Smoke fixture conversation",
+        exact: true,
+      }),
     ).toBeVisible();
   });
 
@@ -111,6 +161,15 @@ test.describe("Support Hub smoke", () => {
     page,
   }) => {
     await ensureAdminDemo(page);
+    await page.route(
+      adminPath("/api/admin/support/conversations/conv-e2e-does-not-exist"),
+      async (route) => {
+        await route.fulfill({
+          status: 404,
+          json: { error: "Conversation not found" },
+        });
+      },
+    );
     await page.goto(adminPath("/support?id=conv-e2e-does-not-exist"));
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
