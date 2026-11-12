@@ -131,14 +131,13 @@ describe("Recurring gifts", () => {
     ).toBeTruthy();
   });
 
-  it("explains spreading only when a gift isn’t monthly", () => {
+  it("explains spreading only for quarterly and annual gifts", () => {
     const spread = /spread across the months/;
     state.gifts = [gift({ id: "monthly-only" })];
     const view = render(<RecurringGiftsPage />);
     expect(screen.queryByText(spread)).toBeNull();
     view.unmount();
 
-    // A weekly gift isn't spread out, so the note doesn't describe it.
     state.gifts = [gift({ id: "weekly", frequency: "weekly", amount: 10 })];
     const weekly = render(<RecurringGiftsPage />);
     expect(screen.queryByText(spread)).toBeNull();
