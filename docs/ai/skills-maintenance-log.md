@@ -1,6 +1,20 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
+
+## UI SDK skill import - 2026-11-14
+
+Imported `ui-sdk` from `vercel-labs/ui` `packages/core/skills/ui-sdk` at
+`8ff6bcf7100d48230a3fab8c72475d99316cc58a` (Apache-2.0), the commit tagged
+`@ui-sdk/core@0.1.0-beta.2`, together with the exact `@ui-sdk/core` and
+`@ui-sdk/react` pins in `packages/ui`. The tree is identical to the copy that
+the installed package bundles, and `skills@1.5.7` wrote the lock hash from the
+package directory form (it does not discover the skill from the repository
+root). Core narrowed the description to Base UI gaps, added a top note and a
+marked overlay, and kept the references byte-identical apart from three marked
+secret-scanner comments with Apache-2.0 change notices. The import ran no
+upstream code. `tests/unit/docs/ui-sdk-skill.test.ts` keeps the skill and the
+SDK pin on the same release.
 
 ## OpenSpec skill refresh to v2.0.0 - 2026-11-13 (AL-2661)
 

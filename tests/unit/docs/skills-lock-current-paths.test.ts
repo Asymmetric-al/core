@@ -21,7 +21,61 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(202);
+    expect(Object.keys(readLock().skills)).toHaveLength(203);
+  });
+
+  it("pins the reviewed vercel-labs/ui ui-sdk skill without its maintainer skills", () => {
+    const { skills } = readLock();
+    const provenance = readRepoFile(
+      "docs/ai/skills/ui-sdk/references/upstream.md",
+    );
+
+    const reviewedLockHash =
+      "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07";
+    const reviewedLicenseHash =
+      "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007";
+
+    expect(skills["ui-sdk"]).toMatchObject({
+      source: "vercel-labs/ui",
+      sourceType: "github",
+      skillPath: "packages/core/skills/ui-sdk/SKILL.md",
+      computedHash: reviewedLockHash,
+    });
+    const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u.exec(
+      provenance,
+    )?.[1];
+    expect(frontmatter).toBeDefined();
+    const metadata = frontmatter?.split(/\r?\n/u) ?? [];
+    for (const [key, value] of [
+      ["reviewed_commit", "8ff6bcf7100d48230a3fab8c72475d99316cc58a"],
+      [
+        "upstream_skill_md_sha256",
+        "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+      ],
+      ["skills_lock_hash", reviewedLockHash],
+      ["upstream_license_sha256", reviewedLicenseHash],
+    ]) {
+      expect(metadata.filter((line) => line.startsWith(`${key}:`))).toEqual([
+        `${key}: ${value}`,
+      ]);
+    }
+    const license = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/ui-sdk/LICENSE"),
+    );
+    expect(createHash("sha256").update(license).digest("hex")).toBe(
+      reviewedLicenseHash,
+    );
+    for (const excluded of [
+      "ui-sdk-expert-review",
+      "ui-sdk-unslop",
+      "ui-sdk-write-code",
+      "ui-sdk-write-docs",
+    ]) {
+      expect(Object.hasOwn(skills, excluded), excluded).toBe(false);
+      expect(existsSync(path.join(repoRoot, "docs/ai/skills", excluded))).toBe(
+        false,
+      );
+    }
   });
 
   it("pins the reviewed tstack council source without the rest of the pack", () => {

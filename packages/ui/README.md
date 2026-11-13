@@ -124,17 +124,18 @@ bun run shadcn:uikit:add button1
 
 - `packages/ui/components.json` is intentionally used for registry configuration in this repo.
 - `style` is pinned to **`base-maia`** (shadcn v4 Base UI Maia variant — see [schema](https://ui.shadcn.com/schema.json)) with **`tailwind.baseColor: zinc`**; Maia surfaces and Zinc tokens are enforced by `packages/ui/styles/globals.css`, not by app-local styling.
-- All primitives under `components/shadcn/*` are **Base UI-backed** (`@base-ui/react`) following this pin. The repo is Base UI only: never add `radix-ui`/`@radix-ui/*` imports or dependencies, and compose with Base UI's `render` prop (not `asChild`).
+- All primitives under `components/shadcn/*` are **Base UI-backed** (`@base-ui/react`) following this pin. Base UI is the only primitive base: never add `radix-ui`/`@radix-ui/*` imports or dependencies, and compose with Base UI's `render` prop (not `asChild`). UI SDK (`@ui-sdk/react`) supplies only behaviors no existing `@asym/ui` component provides, through wrappers in `components/primitives/` (see "UI SDK" in `AGENTS.md`).
 - Preserve existing registry entries when adding/updating components.
 - Do not manually edit `components.json`; use shadcn CLI commands from the repo root with `--cwd packages/ui`.
 
 ## Dependency Version Policy
 
-| Dependency group           | Current range | Target (future) | Trigger to switch                     |
-| -------------------------- | ------------- | --------------- | ------------------------------------- |
-| `@base-ui/react`           | Exact pin     | Exact pin       | Already pinned (`1.5.0`)              |
-| `class-variance-authority` | `^` caret     | Exact pin       | Same                                  |
-| `cn`                       | Exact pin     | Exact pin       | Shared `cn()` helper engine (`0.3.2`) |
+| Dependency group                | Current range | Target (future) | Trigger to switch                                            |
+| ------------------------------- | ------------- | --------------- | ------------------------------------------------------------ |
+| `@base-ui/react`                | Exact pin     | Exact pin       | Already pinned (`1.5.0`)                                     |
+| `class-variance-authority`      | `^` caret     | Exact pin       | Same                                                         |
+| `cn`                            | Exact pin     | Exact pin       | Shared `cn()` helper engine (`0.3.2`)                        |
+| `@ui-sdk/core`, `@ui-sdk/react` | Exact pin     | Exact pin       | Beta; bump both together and refresh `docs/ai/skills/ui-sdk` |
 
 Caret ranges are a Phase 0 pragmatic choice while the team does not yet have visual regression coverage. When updating any dependency in these groups, always run `bun run build` across all apps and do a visual review before merging.
 

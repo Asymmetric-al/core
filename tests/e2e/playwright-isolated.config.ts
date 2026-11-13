@@ -13,6 +13,7 @@ export default defineConfig({
     "react-cleanup-grid.spec.ts",
     "react-cleanup-map.spec.ts",
     "react-cleanup-memory.spec.ts",
+    "ui-sdk-rating.spec.ts",
   ],
   workers: 1,
   timeout: 60000,
