@@ -27,8 +27,9 @@
   - Format: `<ticket?>-<kebab-summary>` (ticket optional, e.g. `al-123-...`)
 - **Local quality gates should run before opening/marking a PR ready.**
   - For this repo, the canonical PR readiness gate is `bun run ci:preflight` (`docs/ai/rules/general.md`; stage order in `docs/ci.md`). Its build stage is conditional, so do not add an unconditional `bun run build`.
-  - The local gate assumes a `develop` base. CI builds every app for any other base, so run `bun run ci:preflight -- --full` when the pull-request base is not `develop`.
-  - If formatting fails, fix with `bun run format`, then re-run `bun run format:check`.
+  - The local gate assumes a `develop` base. CI builds every app for any other base, so run `bun run ci:preflight -- --full` when the pull-request base is not `develop`. The command chosen here is **the selected preflight**.
+  - `ci:preflight` stops at the first failed stage and has no resume option, so a later stage may not have run. After any fix that follows a gate failure (format, lint, typecheck, build or unit), rerun the selected preflight from the start; a single passing gate is not enough.
+  - If formatting fails, fix with `bun run format`, then rerun the selected preflight.
 - **Secrets safety is mandatory.** If secret-like content is detected, stop and require explicit user override.
 - **CODEOWNERS must drive reviewer selection.**
   - Parse CODEOWNERS patterns and choose owners relevant to the files changed.
@@ -131,7 +132,8 @@ gh repo view --json defaultBranchRef,nameWithOwner -q '.defaultBranchRef.name'
 The command must show the user a **short list of candidate PR base branches**:
 
 - If `origin/develop` exists → include `develop` and default to it
-- Else default to the repo’s default branch (from `gh repo view`)
+- Else default to the repo’s default branch (from `gh repo view`), unless it is `production`
+- If no safe base remains, stop and ask the user for one
 - Do not offer `production` (released only through `bun run release:production`) or `main` (it does not exist in this repository)
 
 ---
@@ -142,8 +144,9 @@ Choose base branch using this priority:
 
 1. user-specified base (if valid on origin and not `production`)
 2. `develop` if it exists on origin
-3. repo default branch (from GitHub)
-4. otherwise: current branch (last resort) **with warning**
+3. repo default branch (from GitHub), if it is not `production`
+4. current branch (last resort) **with warning**, if it exists on origin and is not `production`
+5. otherwise: **stop** and ask the user for a base; never fall back to `production`
 
 Update base cleanly (ff-only). Because there are local changes, stash first:
 
@@ -266,13 +269,14 @@ If the staged set is extremely large (e.g., lockfile churn + generated files):
 
 ### 7) Run local quality gates (pre-PR)
 
-Run the repo readiness gate:
+Run the selected preflight:
 
 ```bash
-bun run ci:preflight
+bun run ci:preflight            # PR base is develop
+bun run ci:preflight -- --full  # any other PR base
 ```
 
-`ci:preflight` runs format, integrity, lint, typecheck and unit stages and compiles only when the change requires it. It stops at the first failed stage and has no resume option. Use `bun run ci:preflight -- --full` for an explicit QA or release checkpoint, and whenever the pull-request base is not `develop`.
+`ci:preflight` runs format, integrity, lint, typecheck and unit stages and compiles only when the change requires it. It stops at the first failed stage and has no resume option. Use `bun run ci:preflight -- --full` for an explicit QA or release checkpoint, and whenever the pull-request base is not `develop`. Every rerun in this command means the selected preflight, from the start, in the same mode as the first run.
 
 #### If `format:check` fails
 
@@ -287,16 +291,16 @@ bun run format:check
 
 ```bash
 bun run format
-bun run format:check
+git diff --stat
 ```
 
 3. Classify the result:
 
-- **Case A — fixed and diff is reasonable** (mostly within your staged/expected files):
-  - Rerun `bun run ci:preflight` from the start.
-- **Case B — fixed but touched many pre-existing/unrelated files** (repo-wide drift):
+- **Case A — diff is reasonable** (mostly within your staged/expected files):
+  - Rerun the selected preflight from the start (`bun run ci:preflight`, or `bun run ci:preflight -- --full` when the base is not `develop`). Continue only if it passes.
+- **Case B — touched many pre-existing/unrelated files** (repo-wide drift):
   - The command must stop and ask which path to take (see “Gate stop decision” below).
-- **Case C — still failing**:
+- **Case C — still failing** (the rerun fails at its format stage again):
   - Treat as a gate failure; stop and offer troubleshooting.
 
 #### Gate stop decision (required)
@@ -310,7 +314,7 @@ If any gate fails (including `format:check`), the command must print a concise s
    Create a **Draft PR** with the current changes and watch CI. Expect red checks.
 
 3. **Troubleshoot & fix now (recommended)**  
-   The command enters **Troubleshooting Mode** for the failing category, attempts minimal fixes, re-runs the relevant gate(s), and only continues if they pass.
+   The command enters **Troubleshooting Mode** for the failing category, attempts minimal fixes, reruns the selected preflight from the start, and only continues if it passes. Rerunning only the failed gate is not enough, because the stages after it have not run.
 
 Default should be: **stop and wait for the user to choose 1/2/3**.
 
@@ -330,7 +334,7 @@ Implementation for option 1 (never print secrets; never commit env files):
 test -f ./.env.local || (echo ".env.local not found; choose option 2 or 3" && exit 1)
 set -a && . ./.env.local && set +a
 env | rg '^NEXT_PUBLIC_SUPABASE_(URL|ANON_KEY)=' | sed 's/=.*$/=<redacted>/' || true
-bun run ci:preflight
+bun run ci:preflight  # the selected preflight: add -- --full when the PR base is not develop
 ```
 
 Run it in the same env-loaded shell session so every stage sees the same environment.
@@ -354,7 +358,7 @@ git add -A
 git commit -m "chore: format baseline" -m "ref autoship"
 ```
 
-4. Re-run the full gate chain. If it passes, continue to PR creation.
+4. Rerun the selected preflight from the start. If it passes, continue to PR creation.
 
 #### Strategy 2 — Split formatting into a dedicated PR (best practice)
 
@@ -382,7 +386,7 @@ git stash pop
 
 ```bash
 bun run format
-bun run ci:preflight
+bun run ci:preflight  # the selected preflight: add -- --full when the PR base is not develop
 ```
 
 4. Commit + push:
@@ -411,7 +415,7 @@ git fetch origin --prune
 git rebase origin/<base>
 ```
 
-- Then re-run the gate chain and continue with normal PR creation.
+- Then rerun the selected preflight from the start and continue with normal PR creation.
 
 > If you have permission and prefer automation, optionally enable auto-merge on the baseline PR once checks pass. Otherwise, prompt the user to merge it manually.
 
@@ -589,9 +593,9 @@ When approved, the command should:
    - typecheck → `bun run typecheck`
    - build → `bun run build:<app>` for the failing app (`docs/ci.md` describes the conditional build policy)
    - unit → `bun run test:unit`
-   - format → `bun run format && bun run format:check`
+   - format → `bun run format`
 3. Attempt minimal fixes, then:
-   - re-run the relevant local gate
+   - rerun the selected preflight from the start (`bun run ci:preflight`, or `bun run ci:preflight -- --full` when the base is not `develop`); the failing gate alone is not enough
    - commit with message `AL-123: fix CI <category>` (or `fix CI <category>`)
    - push
    - re-watch checks

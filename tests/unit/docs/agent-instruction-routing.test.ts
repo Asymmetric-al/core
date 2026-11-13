@@ -1,5 +1,15 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
@@ -33,13 +43,34 @@ const NON_INSTRUCTION_DIRECTORIES = new Set([
 ]);
 
 /**
- * Every AGENTS.md that scopes repository rules to a directory. Hidden
- * directories hold client mirrors and build output, and skill packages ship
- * their own AGENTS.md files that are not repository rules.
+ * Hidden directories that hold client skill mirrors, version control, build
+ * output, vendored documentation or gitignored reference clones. Any other
+ * hidden directory, such as `.github`, can hold repository rules.
  */
-function findScopedAgentsFiles(relativeDir = ""): string[] {
+const NON_INSTRUCTION_DOT_DIRECTORIES = new Set([
+  ".agents",
+  ".claude",
+  ".codex",
+  ".cursor",
+  ".git",
+  ".next",
+  ".next-docs",
+  ".reference",
+  ".turbo",
+  ".vercel",
+]);
+
+/**
+ * Every AGENTS.md that scopes repository rules to a directory. Client mirrors
+ * and build output are skipped, and skill packages ship their own AGENTS.md
+ * files that are not repository rules.
+ */
+function findScopedAgentsFiles(
+  root: string = REPO_ROOT,
+  relativeDir = "",
+): string[] {
   const found: string[] = [];
-  for (const entry of readdirSync(join(REPO_ROOT, relativeDir), {
+  for (const entry of readdirSync(join(root, relativeDir), {
     withFileTypes: true,
   })) {
     const relativePath = relativeDir
@@ -47,17 +78,34 @@ function findScopedAgentsFiles(relativeDir = ""): string[] {
       : entry.name;
     if (entry.isDirectory()) {
       if (
-        entry.name.startsWith(".") ||
+        NON_INSTRUCTION_DOT_DIRECTORIES.has(entry.name) ||
         NON_INSTRUCTION_DIRECTORIES.has(entry.name) ||
         relativePath === "docs/ai/skills"
       )
         continue;
-      found.push(...findScopedAgentsFiles(relativePath));
+      found.push(...findScopedAgentsFiles(root, relativePath));
     } else if (entry.name === "AGENTS.md") {
       found.push(relativePath);
     }
   }
   return found;
+}
+
+/** Scoped AGENTS.md files whose sibling CLAUDE.md does not import them. */
+function findAgentsFilesWithoutClaudeImport(
+  root: string,
+  scoped: readonly string[],
+): string[] {
+  return scoped.filter((relativePath) => {
+    const claudePath = join(
+      root,
+      relativePath.replace(/AGENTS\.md$/, "CLAUDE.md"),
+    );
+    return (
+      !existsSync(claudePath) ||
+      readFileSync(claudePath, "utf8").replace(/\r\n/g, "\n") !== "@AGENTS.md\n"
+    );
+  });
 }
 
 function parseApplyTo(source: string): string | undefined {
@@ -225,11 +273,31 @@ describe("agent instruction routing fixtures", () => {
     const scoped = findScopedAgentsFiles().sort();
     // A scoped file missing from the list would skip every nested check here.
     expect(scoped).toEqual(["AGENTS.md", ...NESTED_AGENTS_PATHS].sort());
-    for (const relativePath of scoped) {
-      const claudePath = relativePath.replace(/AGENTS\.md$/, "CLAUDE.md");
-      expect(readRepoFile(claudePath).replace(/\r\n/g, "\n"), claudePath).toBe(
-        "@AGENTS.md\n",
-      );
+    expect(findAgentsFilesWithoutClaudeImport(REPO_ROOT, scoped)).toEqual([]);
+  });
+
+  it("discovers scoped AGENTS.md files in operational dot-directories", () => {
+    // A hidden operational tree such as .github can hold repository rules, so
+    // only client mirrors, version control and build output are skipped.
+    const root = mkdtempSync(join(tmpdir(), "agents-discovery-"));
+    try {
+      const write = (relativePath: string, content: string) => {
+        mkdirSync(dirname(join(root, relativePath)), { recursive: true });
+        writeFileSync(join(root, relativePath), content);
+      };
+      write("AGENTS.md", "# Root\n");
+      write("CLAUDE.md", "@AGENTS.md\n");
+      write(".github/AGENTS.md", "# Workflows\n");
+      write(".claude/skills/example/AGENTS.md", "# Client mirror\n");
+      write("node_modules/example/AGENTS.md", "# Dependency\n");
+
+      const scoped = findScopedAgentsFiles(root).sort();
+      expect(scoped).toEqual([".github/AGENTS.md", "AGENTS.md"]);
+      expect(findAgentsFilesWithoutClaudeImport(root, scoped)).toEqual([
+        ".github/AGENTS.md",
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 
