@@ -170,9 +170,8 @@ if (!live.merged) {
   // The clone's refs are as old as this round's claim, and somebody can
   // push in between. Fetch before the live head is compared with local
   // history, so an update pressed during the round is seen for what it is.
-  // A failed fetch leaves the old refs. Old refs can only make an update
-  // look foreign, never the reverse, so an adoption still stands; a head
-  // that is not adopted then waits for the next round (below).
+  // A failed fetch leaves the old refs. Nothing is adopted or blocked on
+  // those: the stage waits and the next round, which fetches again, decides.
   let refreshed: boolean | null = null;
   if (conflicted || foreign) {
     try {
@@ -204,7 +203,13 @@ if (!live.merged) {
       { git: round.git, repo: round.where.repo },
       { candidate: value.head, head: liveHead, target },
     ));
-  const reconcile = reconcileHead({ value, liveHead, descends, baseUpdate });
+  const reconcile = reconcileHead({
+    value,
+    liveHead,
+    descends,
+    baseUpdate,
+    refreshed,
+  });
   round.ledger.write("readiness-reconcile", {
     ...reconcile,
     recorded: value.head,
@@ -253,7 +258,10 @@ if (!live.merged) {
           });
     await checkpoint(adoption.fields);
     finish(adoption.outcome);
-  } else if (foreign && reconcile.action === "none") {
+  } else if (
+    reconcile.action === "wait" ||
+    (foreign && reconcile.action === "none")
+  ) {
     // Stop here: steps 2 and 3 below reply, resolve and record against the
     // live head, and this one is not the factory's. With a clone that could
     // not be refreshed the stage waits and the next round decides.

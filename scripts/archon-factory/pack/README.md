@@ -125,8 +125,8 @@ target branch, joined by merges whose trees are exactly what merging their
 parents gives (GitHub's "Update branch"; `.shared/git.mjs` `addsOnlyTarget`). It becomes the candidate and goes to the
 review-only route, like an operator's conflict resolution. Readiness fetches
 again before it classifies such a head, because the round's own fetch is
-many minutes old by then; when that fetch fails and the head is not adopted,
-the stage waits and the next round decides. Every other
+many minutes old by then; when that fetch fails, the stage neither adopts
+nor blocks: it waits and the next round decides. Every other
 outside head blocks the issue `outside-head` before the stage replies to,
 resolves or records anything on the pull request, and a round that publishes
 over one blocks `push-unverified`.

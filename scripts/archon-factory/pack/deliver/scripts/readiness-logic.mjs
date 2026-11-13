@@ -312,12 +312,17 @@ export function markResolved(
 //   update   somebody merged the target branch into the pull request on
 //            GitHub ("Update branch"): the live head contains the candidate
 //            and adds nothing but the target branch (`baseUpdate`)
+//   wait     a head the factory did not publish, and the clone could not be
+//            refreshed (`refreshed === false`): an adoption would record a
+//            base from old refs and a block could be wrong, so the next
+//            round, which fetches again, decides
 //   none     a head the factory did not publish; the decision blocks on it
 export function reconcileHead({
   value,
   liveHead,
   descends = false,
   baseUpdate = false,
+  refreshed = null,
 }) {
   const pending = value.pr?.pending ?? null;
   if (pending && liveHead === pending.head && value.head !== liveHead)
@@ -329,6 +334,7 @@ export function reconcileHead({
       ? { action: "ok" }
       : { action: "record" };
   if (value.pr?.head === liveHead) return { action: "review" };
+  if (refreshed === false) return { action: "wait" };
   const conflict = value.pr?.conflict ?? null;
   if (conflict && conflict.head === value.head && descends === true)
     return { action: "resolve", conflict };

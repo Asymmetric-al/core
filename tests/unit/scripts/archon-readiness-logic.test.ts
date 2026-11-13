@@ -1123,6 +1123,33 @@ describe("operator conflict resolution (publication-merge#7)", () => {
     expect(outcome.ledger.fingerprint).toBe(`outside-head:${MERGE_SHA}`);
   });
 
+  // An adoption records a base computed from the target branch as the clone
+  // knows it. With a clone that could not be refreshed that can be an old
+  // base, so nothing is adopted or blocked: the stage waits.
+  it("waits before any adoption or block when the clone could not be refreshed", () => {
+    const wait = { action: "wait" };
+    expect([
+      reconcileHead({
+        value: value({ conflict }),
+        liveHead: MERGE_SHA,
+        descends: true,
+        refreshed: false,
+      }),
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: true,
+        baseUpdate: true,
+        refreshed: false,
+      }),
+      reconcileHead({ value: value(), liveHead: MERGE_SHA, refreshed: false }),
+    ]).toEqual([wait, wait, wait]);
+    // The factory's own heads need no fresh refs.
+    expect(
+      reconcileHead({ value: value(), liveHead: HEAD, refreshed: false }),
+    ).toEqual({ action: "ok" });
+  });
+
   // The stage fetches before it judges an outside head. When that fetch
   // failed, a head it could not adopt may only look foreign because the
   // clone's refs are old: it waits and looks again, and does not block.
