@@ -60,6 +60,12 @@ const CI_BASES = [
     bytes: 40204,
     sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
   },
+  {
+    // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
+    ref: "#2215 e2e-gate merge_group wording",
+    bytes: 40426,
+    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
+  },
 ] as const;
 /** "label :: regex" lines docs/security/tenant-guard.md must match (criteria 7, 11, 12, 14, 15, 17). */
 const DOC_RULES = String.raw`
