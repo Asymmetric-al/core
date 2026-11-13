@@ -157,6 +157,43 @@ describe("native adapter settlement integration seam", () => {
       });
     });
 
+    // A publish or readiness step that failed may have reached GitHub. With
+    // no stored hold that is held for a person; a stored usage-limit hold must
+    // not hide it, or the pass would clear the hold by itself.
+    it.each(["publish", "readiness"])(
+      "records a %s failure of the woken run as a hold for a person",
+      (nodeId) => {
+        const decision = decideRound({
+          ledger: {},
+          item: {
+            run: { id: RUN_ID, route: "review" },
+            nativeFaults: quota("2026-11-16T15:00:00.000Z"),
+          },
+          nodes: [{ node_id: nodeId, state: "failed" }],
+          nativeFaults: faultReport(nodeId, { failure_kind: "exec_failed" }),
+        });
+        expect(decision).toMatchObject({
+          outcome: "reconcile",
+          nativeFaults: {
+            action: "reconcile",
+            reason: "native-publication-effects-unreconciled",
+          },
+        });
+      },
+    );
+
+    // The engine's own pause is not a fault the pass can recover from: taking
+    // it would leave a hold that nothing clears.
+    it("keeps the recoverable hold when the newer report is only the engine's wait", () => {
+      const stored = quota("2026-11-16T15:00:00.000Z");
+      expect(
+        decide(stored, {
+          ...quota("2026-11-23T15:00:00.000Z"),
+          action: "native-wait",
+        }).nativeFaults,
+      ).toEqual(stored);
+    });
+
     it("never replaces a hold that waits for a person, and never takes another run's report", () => {
       const person = {
         ...faultReport("micaiah"),

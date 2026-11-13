@@ -107,9 +107,10 @@ again at ..."). At the reset the engine wakes that same run and it finishes its
 round under its own lease. `record` keeps the hold and records nothing else
 of that round, so the next selector pass settles the item with
 `recover-native`, which ends nothing in that case, and the round runs again
-on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and anything the woken round found is found again. When the woken run meets
+on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and what the woken round found is not kept: the repeated reviews may find something different. When the woken run meets
 another fault that requires a hold, `record` stores that newer report (a later
-reset, or a fault that needs a person) in place of the old one. The
+reset, a fault that needs a person, or a failed publish or readiness step) in
+place of the old one; the engine's own pause is never taken as one. The
 pass leaves a held issue alone until two minutes after the reset, so it never
 ends a run in the seconds in which the engine wakes it. If the engine did not
 wake the run, the pass then ends the paused run and starts the round again. To stop waiting before the reset, run `recover-native` yourself: it ends
@@ -118,8 +119,8 @@ the paused run first.
 **Outside pushes.** The factory records every head it publishes; a head on
 the issue branch that it did not publish is somebody else's push. Readiness
 adopts one kind: a head that contains the candidate and adds nothing but the
-target branch, joined by merges (GitHub's "Update branch";
-`.shared/git.mjs` `addsOnlyTarget`). It becomes the candidate and goes to the
+target branch, joined by merges whose trees are exactly what merging their
+parents gives (GitHub's "Update branch"; `.shared/git.mjs` `addsOnlyTarget`). It becomes the candidate and goes to the
 review-only route, like an operator's conflict resolution. Every other
 outside head blocks the issue `outside-head` before the stage replies to,
 resolves or records anything on the pull request, and a round that publishes

@@ -364,9 +364,12 @@ export async function fetchMirror({ git, paths, pause = sleep }) {
 }
 
 // True when everything `head` adds to `candidate` is the target branch:
-// `head` contains `candidate`, and every other commit it brings is on
-// `origin/<target>` or is a merge that joins the two. That is what GitHub's
-// "Update branch" pushes onto a pull request.
+// `head` contains `candidate`, every other commit it brings is on
+// `origin/<target>` or is a merge that joins the two, and each of those
+// merges has exactly the tree a clean merge of its parents gives. That is what
+// GitHub's "Update branch" pushes onto a pull request. A merge that carries
+// changes of its own, drops the target branch's changes or resolves a
+// conflict by hand is somebody's work and is not recognised.
 export async function addsOnlyTarget(
   { git, repo },
   { candidate, head, target },
@@ -389,7 +392,39 @@ export async function addsOnlyTarget(
     ],
     { cwd: repo },
   );
-  return own.trim() === "";
+  if (own.trim() !== "") return false;
+  const merges = (
+    await git.ok(
+      [
+        "rev-list",
+        "--merges",
+        "--parents",
+        head,
+        `^${candidate}`,
+        `^origin/${target}`,
+      ],
+      { cwd: repo },
+    )
+  )
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.split(" "));
+  if (merges.length === 0) return false;
+  for (const [merge, ...parents] of merges) {
+    if (parents.length !== 2) return false;
+    const clean = await git.git(
+      ["merge-tree", "--write-tree", parents[0], parents[1]],
+      { cwd: repo },
+    );
+    if (clean.code !== 0) return false;
+    const tree = (
+      await git.ok(["rev-parse", "--verify", "--quiet", `${merge}^{tree}`], {
+        cwd: repo,
+      })
+    ).trim();
+    if (clean.stdout.split("\n")[0].trim() !== tree) return false;
+  }
+  return true;
 }
 
 export async function revParse({ git, gitDir, cwd }, ref) {

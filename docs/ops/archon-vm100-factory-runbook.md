@@ -372,7 +372,7 @@ the issue clone and on the work item, and no check container is left.
 At the reset, with no operator: the engine wakes the same run and it finishes
 its round, but `record` keeps the hold and does not record what that round
 did. The next pass clears the hold with `recover-native`, and the round is
-then run again on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and anything the woken round found is found again. If the engine did not
+then run again on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and what the woken round found is not kept: the repeated reviews may find something different. If the engine did not
 wake the run, the pass ends it and starts the round again. If the woken run
 meets another fault (the limit again, an expired sign-in), from the release
 after `34ce64a7` the hold takes the newer fault and its reset time. From the release
@@ -406,7 +406,9 @@ factory was working on.
 What the factory does with such a head, from the release after `34ce64a7`:
 
 - **In the feedback stage, when the head is the published candidate plus
-  nothing but `develop`** (that is what "Update branch" produces): the
+  nothing but `develop`, joined by clean merges** (that is what "Update
+  branch" produces; a merge that carries changes of its own, drops
+  `develop`'s or resolves a conflict by hand does not count): the
   factory adopts it as the candidate and reviews it again (freeze, Micaiah,
   Luke, final acceptance, hooked publish) before anything else. No operator
   step.
@@ -485,9 +487,10 @@ settle the work item (it crashed, timed out or was refused) while another
 step had failed. The engine then reports the run `failed`, a failed run keeps
 its issue's lease, and neither the orphan step nor the sweep touches it. The
 issue stays `active` with nothing running and no blocker. Check that the
-work item has no `nativeFaults`, end the run with
-`archon workflow abandon <runId>` (nothing executes in a failed run), then
-`issue <n> reconcile`.
+work item has no `nativeFaults` and that no check container of that run is
+left (`docker ps -a --filter label=core.archon.run=<runId>`; remove any it
+lists), end the run with `archon workflow abandon <runId>` (nothing executes
+in a failed run), then `issue <n> reconcile`.
 
 That path covers ordinary rounds only. For a run with a native or cleanup
 hold, inspect the engine/run metadata, immutable identity binding, native

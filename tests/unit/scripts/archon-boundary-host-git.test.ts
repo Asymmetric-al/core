@@ -848,4 +848,67 @@ describe("an update from the target branch pushed outside the factory", () => {
       onAnotherCandidate: false,
     });
   });
+
+  // A merge commit is not listed among ordinary commits, so its tree is
+  // compared with a clean merge of its parents: a merge can carry changes of
+  // its own, or name the target branch as a parent while dropping its changes.
+  it("is not recognised when a merge carries changes of its own or drops the target branch's", async () => {
+    const { paths, git, base } = factory();
+    const where = await ensureIssueRepo({ git, paths, issue: 7 });
+    const repo: string = where.repo;
+    await prepareBranch({
+      git,
+      repo,
+      branch: "factory/7-x",
+      head: null,
+      base,
+    });
+    writeFileSync(`${repo}/feature.txt`, "the factory's candidate\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "feat(#7): factory round 1");
+    const candidate = plain(repo, "rev-parse", "HEAD");
+    const at = (name: string) => {
+      plain(repo, "checkout", "--quiet", "-B", name, candidate);
+    };
+
+    at("smuggled");
+    plain(repo, "merge", "--quiet", "--no-commit", "origin/develop");
+    writeFileSync(`${repo}/smuggled.txt`, "added inside the merge\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "Merge branch 'develop'");
+    const smuggled = plain(repo, "rev-parse", "HEAD");
+
+    at("dropped");
+    plain(
+      repo,
+      "merge",
+      "--quiet",
+      "--no-edit",
+      "-s",
+      "ours",
+      "origin/develop",
+    );
+    const dropped = plain(repo, "rev-parse", "HEAD");
+
+    // Two updates in a row, as when the button is pressed twice.
+    at("twice");
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const first = plain(repo, "rev-parse", "HEAD");
+    plain(repo, "checkout", "--quiet", "--detach", "origin/develop");
+    writeFileSync(`${repo}/later.txt`, "develop moved on\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "later work on develop");
+    plain(repo, "update-ref", "refs/remotes/origin/develop", "HEAD");
+    plain(repo, "checkout", "--quiet", "-B", "twice", first);
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const twice = plain(repo, "rev-parse", "HEAD");
+
+    const check = (head: string) =>
+      addsOnlyTarget({ git, repo }, { candidate, head, target: "develop" });
+    expect({
+      smuggled: await check(smuggled),
+      dropped: await check(dropped),
+      twice: await check(twice),
+    }).toEqual({ smuggled: false, dropped: false, twice: true });
+  });
 });

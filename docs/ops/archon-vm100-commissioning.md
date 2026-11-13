@@ -1355,7 +1355,12 @@ the open list of 12 November.
     request #2666 then found that the feedback stage still answered and
     resolved review comments before it blocked on a head it did not adopt;
     it now blocks (`outside-head`) before it writes anything to the pull
-    request.
+    request. The same review found two more gaps, both repaired: a merge
+    commit could carry changes of its own, or drop `develop`'s, and still
+    pass as an update (each merge's tree must now equal a clean merge of its
+    parents); and a woken run's failed publish or readiness step was hidden
+    by the stored usage-limit hold, so the pass would have cleared it by
+    itself (it is now held for a person, as without a stored hold).
 
 Defects 42 to 45 were repaired test-first after the 09:54 install and are not
 installed yet (see Still open).
@@ -1367,7 +1372,7 @@ One property of the design, not a defect: after a usage limit the engine wakes
 the paused run by itself at the reset and that run finishes its round, but the
 hold stays until the next pass clears it with `recover-native`, and what
 the woken round did is not recorded. The round is then run again on the same
-candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and anything the woken round found is found again. A usage limit
+candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and what the woken round found is not kept: the repeated reviews may find something different. A usage limit
 therefore costs one repeated round per held issue.
 
 ### Independent analysis
@@ -1472,7 +1477,9 @@ State on 13 November 2026 at 13:15 UTC.
 
 - **The batch is unfinished and the factory is out of usage until 16
   November, 15:00 UTC.** Intake is open. At the reset the engine wakes the two
-  paused rounds, the next pass settles them, and the factory carries on with
+  paused rounds and a later pass settles them (on the installed release, a
+  pass that lands in the five seconds after the reset ends a paused run and
+  starts its round again instead), and the factory carries on with
   #2370, #2419 and then #2418, #2421 and #2422, using the new weekly
   allowance. `factory pause-intake` before the reset stops new admissions;
   the two paused rounds still finish.
