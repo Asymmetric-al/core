@@ -268,6 +268,9 @@ npx playwright show-report
   `docs/ci.md#branch-protection` records the current drift.
 - `tests/unit/unit-test-harness.test.ts` and `tests/setup/unit-env.ts` keep unit
   tests off live secrets (`SUPABASE_SERVICE_ROLE_KEY` cleared globally).
+  `unit-env.ts` also clears hook-local `GIT_*` variables via
+  `repositoryGitEnvironment()`, so temp-repo tests cannot write into the
+  launching checkout (#2526).
 - TanStack DB browser data changes should add or update focused unit coverage
   for collection wrapper behavior, collection registry completeness, live query
   joins, optimistic mutation rollback, data-boundary enforcement, and
