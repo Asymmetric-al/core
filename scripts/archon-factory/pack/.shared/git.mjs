@@ -471,6 +471,15 @@ export async function ensureIssueRepo({ git, paths, issue }) {
   return where;
 }
 
+// Bring an issue clone up to date with GitHub in the middle of a round: the
+// mirror first, then the clone from the mirror. A round fetches when it
+// starts; a stage that reads GitHub much later (readiness) calls this before
+// it compares a live head with local history.
+export async function refreshIssueRefs({ git, paths, issue }) {
+  await fetchMirror({ git, paths });
+  return ensureIssueRepo({ git, paths, issue });
+}
+
 export async function statusPorcelain({ git }, repo) {
   const out = await git.ok(
     ["status", "--porcelain=v1", "-z", "--untracked-files=all"],

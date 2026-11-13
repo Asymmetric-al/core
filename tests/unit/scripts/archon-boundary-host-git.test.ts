@@ -29,6 +29,7 @@ const {
   fetchMirror,
   hardenedArgs,
   prepareBranch,
+  refreshIssueRefs,
   statusPorcelain,
   trustIssueRepo,
   trustOutbox,
@@ -910,5 +911,47 @@ describe("an update from the target branch pushed outside the factory", () => {
       dropped: await check(dropped),
       twice: await check(twice),
     }).toEqual({ smuggled: false, dropped: false, twice: true });
+  });
+});
+
+// The feedback stage classifies the head GitHub shows near the end of a round
+// that fetched at its start, many minutes earlier. Somebody can press "Update
+// branch" in between.
+describe("refreshing an issue clone in the middle of a round", () => {
+  it("brings in what was pushed after the round's first fetch", async () => {
+    const { root, paths, git } = factory();
+    const upstream = `${root}/upstream`;
+    plain(root, "--git-dir", paths.mirror, "remote", "add", "origin", upstream);
+    plain(
+      root,
+      "--git-dir",
+      paths.mirror,
+      "config",
+      "remote.origin.fetch",
+      "+refs/heads/*:refs/remotes/origin/*",
+    );
+    const where = await ensureIssueRepo({ git, paths, issue: 7 });
+    const repo: string = where.repo;
+    writeFileSync(`${upstream}/later.txt`, "pushed during the round\n");
+    plain(upstream, "add", "-A");
+    plain(upstream, "commit", "--quiet", "-m", "later work on develop");
+    const pushed = plain(upstream, "rev-parse", "HEAD");
+    const known = () => {
+      try {
+        plain(repo, "cat-file", "-e", `${pushed}^{commit}`);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const before = known();
+
+    await refreshIssueRefs({ git, paths, issue: 7 });
+
+    expect({
+      before,
+      after: known(),
+      target: plain(repo, "rev-parse", "refs/remotes/origin/develop"),
+    }).toEqual({ before: false, after: true, target: pushed });
   });
 });

@@ -9,7 +9,11 @@ import path from "node:path";
 
 import { StateConflict } from "../../.shared/archon.mjs";
 import { createGitHub, githubToken } from "../../.shared/github.mjs";
-import { addsOnlyTarget, revParse } from "../../.shared/git.mjs";
+import {
+  addsOnlyTarget,
+  refreshIssueRefs,
+  revParse,
+} from "../../.shared/git.mjs";
 import { publishCandidate } from "../../.shared/publication.mjs";
 import {
   FACTORY_MARKER as MARKER,
@@ -163,6 +167,23 @@ if (!live.merged) {
     liveHead !== value.head &&
     liveHead !== value.pr?.head &&
     liveHead !== value.pr?.pending?.head;
+  // The clone's refs are as old as this round's claim, and somebody can
+  // push in between. Fetch before the live head is compared with local
+  // history, so an update pressed during the round is seen for what it is.
+  // A failed fetch leaves the old refs: the head is then not adopted.
+  let refreshed: boolean | null = null;
+  if (conflicted || foreign) {
+    try {
+      await refreshIssueRefs({
+        git: round.git,
+        paths: round.paths,
+        issue: round.issue,
+      });
+      refreshed = true;
+    } catch {
+      refreshed = false;
+    }
+  }
   const descends =
     (conflicted || foreign) &&
     (
@@ -186,7 +207,7 @@ if (!live.merged) {
     ...reconcile,
     recorded: value.head,
     live: liveHead,
-    ...(conflicted || foreign ? { descends, baseUpdate } : {}),
+    ...(conflicted || foreign ? { descends, baseUpdate, refreshed } : {}),
   });
   if (reconcile.action === "record")
     await checkpoint({ pr: { ...value.pr, head: liveHead, pending: null } });

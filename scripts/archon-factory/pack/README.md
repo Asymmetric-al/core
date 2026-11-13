@@ -121,7 +121,9 @@ the issue branch that it did not publish is somebody else's push. Readiness
 adopts one kind: a head that contains the candidate and adds nothing but the
 target branch, joined by merges whose trees are exactly what merging their
 parents gives (GitHub's "Update branch"; `.shared/git.mjs` `addsOnlyTarget`). It becomes the candidate and goes to the
-review-only route, like an operator's conflict resolution. Every other
+review-only route, like an operator's conflict resolution. Readiness fetches
+again before it classifies such a head, because the round's own fetch is
+many minutes old by then. Every other
 outside head blocks the issue `outside-head` before the stage replies to,
 resolves or records anything on the pull request, and a round that publishes
 over one blocks `push-unverified`.
