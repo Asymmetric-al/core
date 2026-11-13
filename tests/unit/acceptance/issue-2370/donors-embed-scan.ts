@@ -3,14 +3,19 @@
  * #2269 narrowed it to three in-scope files (ruling 6391056825); #2370 widens
  * it back to the whole repository with a file-level allow-list.
  *
- * Scope: every file under the root, tracked or untracked, minus files ignored
- * by .gitignore. Without Git metadata (e.g. a plain copy) that is
- * `git grep --no-index --exclude-standard`, which descends into every
- * non-ignored directory, nested Git work trees included. Inside the root's own
- * Git work tree it is that same scan plus `git grep --untracked`, which adds
- * tracked files (even ones a .gitignore pattern matches); `--untracked` alone
- * would skip untracked nested work trees. Any grep failure or unparseable
- * output throws, so the check never passes by not running.
+ * Scope inside the root's own Git work tree: every tracked file, including
+ * committed files whose path a .gitignore pattern matches, plus every untracked
+ * file that is not ignored, including files in untracked nested Git work trees.
+ * That is two greps, merged by file and line:
+ * - a plain `git grep` (no scope flag): every tracked file's working-tree
+ *   content, regardless of ignore rules. `--untracked` and `--exclude-standard`
+ *   would both skip tracked files that match .gitignore;
+ * - `git grep --no-index --exclude-standard`: every non-ignored file,
+ *   untracked ones and nested work trees included.
+ * Without Git metadata (e.g. a plain copy) only the second grep can run, and
+ * nothing is "tracked", so a file whose path matches .gitignore is never
+ * scanned there, even if the original repository commits it. Any grep failure
+ * or unparseable output throws, so the check never passes by not running.
  *
  * Output is read machine-style: `-z -n --no-color --no-column -a`, so user
  * color/column config can't change the record shape, and binary hits use the
@@ -134,8 +139,9 @@ export function grepRepo(
     needle,
     paths,
   );
-  if (mode === "git")
-    found.push(...runGrep(root, ["--untracked"], needle, paths));
+  // Tracked files, ignore rules not applied: covers committed files under
+  // .gitignore'd paths, which the --no-index/--exclude-standard pass skips.
+  if (mode === "git") found.push(...runGrep(root, [], needle, paths));
   const byKey = new Map<string, Hit>();
   for (const h of found) byKey.set(`${h.file}\0${h.line}`, h);
   return [...byKey.values()].sort((a, b) =>

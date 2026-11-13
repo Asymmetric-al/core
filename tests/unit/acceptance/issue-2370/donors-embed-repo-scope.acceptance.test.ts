@@ -225,7 +225,7 @@ describe.each(["git", "no-index"] as const)(
       });
     });
 
-    it("C7: an embed in a .gitignore'd file is not scanned", () =>
+    it("C7: an embed in an untracked .gitignore'd file is not scanned", () =>
       expect(
         verdict(
           tree(mode, {
@@ -259,6 +259,52 @@ describe("#2370 scan scope and failure handling", () => {
       verdict: { violations: ["vendor/nested/lib.ts:1"], missing: [] },
     });
   });
+
+  it.each([
+    { pattern: "gen/", path: "gen/x.ts" },
+    { pattern: ".env*", path: ".env.example" },
+  ])(
+    "C7: a committed embed at $path, which .gitignore pattern $pattern matches, fails the check (git mode)",
+    ({ pattern, path }) => {
+      const root = tree("git", {
+        ...BASE,
+        ".gitignore": `${pattern}\n`,
+        [path]: EMBED,
+      });
+      git(root, "add", "-f", "--", path);
+      // Neither of the previous scan's greps lists a tracked file whose path is ignored.
+      const previousScanListsIt = [
+        "--untracked",
+        "--no-index --exclude-standard",
+      ].map((scope) => {
+        const r = spawnSync(
+          "git",
+          ["grep", "-l", ...scope.split(" "), "-F", "-e", DONORS_EMBED],
+          { cwd: root, encoding: "utf8" },
+        );
+        // Status 0: the grep ran and found the follower-requests reads.
+        return { status: r.status, lists: r.stdout.split("\n").includes(path) };
+      });
+      expect({
+        trackedAndIgnored: git(
+          root,
+          "ls-files",
+          "-c",
+          "-i",
+          "--exclude-standard",
+        ),
+        previousScanListsIt,
+        verdict: verdict(root),
+      }).toEqual({
+        trackedAndIgnored: `${path}\n`,
+        previousScanListsIt: [
+          { status: 0, lists: false },
+          { status: 0, lists: false },
+        ],
+        verdict: { violations: [`${path}:1`], missing: [] },
+      });
+    },
+  );
 
   it("C8: a scan root that does not exist throws instead of passing", () =>
     expect(() =>
