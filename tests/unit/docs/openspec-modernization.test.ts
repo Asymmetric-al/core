@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
-const PINNED_OPENSPEC_VERSION = "1.14.3";
-const PINNED_OPENSPEC_COMMIT = "c794978f4f8845ce59693373c9dd882ee776588c";
-const PINNED_OPENSPEC_TAG = "v1.14.3";
+const PINNED_OPENSPEC_VERSION = "2.0.0";
+const PINNED_OPENSPEC_COMMIT = "d12c2817776779e06891d68230773b3bb673b106";
+const PINNED_OPENSPEC_TAG = "v2.0.0";
 
 const SELECTED_OPENSPEC_SKILLS = [
   "openspec-explore",

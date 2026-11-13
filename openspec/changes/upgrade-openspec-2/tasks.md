@@ -12,22 +12,22 @@
 
 ## 2. Reviewed cohort
 
-- [ ] 2.1 Pin `@fission-ai/openspec` 2.0.0 in `package.json` and `bun.lock`.
-- [ ] 2.2 Move the refresh tag to `v2.0.0`, refresh the seven imported
+- [x] 2.1 Pin `@fission-ai/openspec` 2.0.0 in `package.json` and `bun.lock`.
+- [x] 2.2 Move the refresh tag to `v2.0.0`, refresh the seven imported
       skills, and regenerate their mirrors and installed-payload hashes.
-- [ ] 2.3 Move the pin constants in
+- [x] 2.3 Move the pin constants in
       `tests/unit/docs/openspec-modernization.test.ts`.
-- [ ] 2.4 Rebind the manifest and lockfile hashes in the Shadscan findings
+- [x] 2.4 Rebind the manifest and lockfile hashes in the Shadscan findings
       and React Doctor exceptions after confirming the lockfile change is
       confined to the OpenSpec record.
-- [ ] 2.5 State how an upgrade moves, and what `openspec update` does here,
+- [x] 2.5 State how an upgrade moves, and what `openspec update` does here,
       in `docs/ai/rules/openspec.md`.
 
 ## 3. Verify
 
-- [ ] 3.1 Strict validation passes on 1.14.3 after the projection commit and
+- [x] 3.1 Strict validation passes on 1.14.3 after the projection commit and
       on 2.0.0 after the cohort commit, with no warnings.
-- [ ] 3.2 The archive audit, delta compatibility, phase checks, skill mirror
+- [x] 3.2 The archive audit, delta compatibility, phase checks, skill mirror
       verification, formatting and the five OpenSpec unit test files pass on
       2.0.0.
 - [ ] 3.3 The pre-push `bun run ci:preflight` and pull-request CI pass.

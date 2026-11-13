@@ -5922,7 +5922,7 @@
       "rawSkillHash": "40fc0655ae650213a130f376eed1475527d6c65cdc32973754449776a3227152",
       "lockHash": "62320e7bb1ea01092211b8052cf693403fbfb93b5d356c0522f18581db31494e",
       "entrypointHash": "62320e7bb1ea01092211b8052cf693403fbfb93b5d356c0522f18581db31494e",
-      "treeHash": "e2024c2180febfc5dd07c81c77fab43f3f44272a5cd245539d930bbed8cb7e28",
+      "treeHash": "d34f3492c395bfe8af5291e8fc93d43dcd67ec42ef76ddbc8ddf150457eeaf5e",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -5964,7 +5964,7 @@
       "rawSkillHash": "b080e65449e9895fb63964c811168943bf99cb131a378b6a9937ed519ae4d37f",
       "lockHash": "87b82c957a502c3b45ac4c88b4f2e09b83e9db96822d3bd0637ece0427da8fbd",
       "entrypointHash": "87b82c957a502c3b45ac4c88b4f2e09b83e9db96822d3bd0637ece0427da8fbd",
-      "treeHash": "07919d789f43ae7f019aec35e92cab793c2f4008f73e6ce420b099e3892fb400",
+      "treeHash": "391d446ae107c87182d5b2792219e6370110887238e64a30321ecb2097bc767a",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6005,8 +6005,8 @@
       "sourcePath": "skills/openspec-explore/SKILL.md",
       "rawSkillHash": "e9fe2acf923d5f9376c5e198df235d7cc531913ba3d760faff867f9c60dbfebb",
       "lockHash": "40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed",
-      "entrypointHash": "40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed",
-      "treeHash": "f842146626d5208455c70a1c08a70decb890b17b5e504bd239d783f89485d139",
+      "entrypointHash": "c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac",
+      "treeHash": "734ee74dd6001c34fe0cd6f8b16c38c2a331827a2947f62935df04ed4d3c89ea",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6047,8 +6047,8 @@
       "sourcePath": "skills/openspec-propose/SKILL.md",
       "rawSkillHash": "e9f4baa05e9fdbc969fcbdb8b13b4795c19640cc920999cf06c30a1a1934bb5c",
       "lockHash": "09cee8a59595eddba679029ffb1cd6f48c0bc14ed0281da2b2957be3afa0c947",
-      "entrypointHash": "09cee8a59595eddba679029ffb1cd6f48c0bc14ed0281da2b2957be3afa0c947",
-      "treeHash": "28bdd9cc8180e6eef4bf403bb193a93a6c6a1f663bc0839006dfed58edcdbcb6",
+      "entrypointHash": "ebca4a6605b7c917297d3d78e82490527c5eb2ef6e9ba700adfff8457d614bdd",
+      "treeHash": "3b7a932b5ebc7fe86d38336b5bc6f20852ff67f3c1a92b26344d2e75554fa0bd",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6090,7 +6090,7 @@
       "rawSkillHash": "474952afb40497c5cb756e5654ddc901619de6b3bd57aaa03fb11d2611a99da3",
       "lockHash": "c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a",
       "entrypointHash": "c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a",
-      "treeHash": "ebe641e444ab8222fbc5eb1393fa1302ebf3ca7b7ed51ca69fee9dbd05f40f26",
+      "treeHash": "b3e202678377871cd64ebf3e768a008c17b8f8622cfc7eb2881f25212bc1b8cd",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6131,8 +6131,8 @@
       "sourcePath": "skills/openspec-update-change/SKILL.md",
       "rawSkillHash": "9ca71b1ec6252e743028e561d73df32678e4486f80d2cb63887aa8648dc3a5cb",
       "lockHash": "ee7b8c94c13422eb126dcc98308bbf25b5bccd87d621f4d6458c3e352afa0ed2",
-      "entrypointHash": "ee7b8c94c13422eb126dcc98308bbf25b5bccd87d621f4d6458c3e352afa0ed2",
-      "treeHash": "27e1665cd99812ec47a5f458faa6a1196cbfc6fd24eaaf5a3069c5fe89440867",
+      "entrypointHash": "159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505",
+      "treeHash": "4820d448d7de2ff194281a29524cdf8c32a60daced654b78197c1a98aecd86ec",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6173,8 +6173,8 @@
       "sourcePath": "skills/openspec-verify-change/SKILL.md",
       "rawSkillHash": "29164b5053d78cbdb1440beda4193fba293f5c65699a40d689de11ced7a61124",
       "lockHash": "7c3484e8e12763400db5da24decdc6fc2819e8222f3cd7ecb2c35614df3a8092",
-      "entrypointHash": "7c3484e8e12763400db5da24decdc6fc2819e8222f3cd7ecb2c35614df3a8092",
-      "treeHash": "65f874e06de1e4f707e4991de9972d1ae1c5c879c19f9e268afd2290c8d8495f",
+      "entrypointHash": "a4ac732435c7ef91066154e74d16e4ba4275cb35f5de0600168799138ac6af24",
+      "treeHash": "f2bff577e7bc49b288c40c352ee3887d3a25325135a337c9637f996cc69912f1",
       "license": {
         "identifier": null,
         "status": "notice-preserved",

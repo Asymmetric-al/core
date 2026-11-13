@@ -58,9 +58,20 @@ This keeps durable project context, intended behavior, and active change scope v
    - `bun run openspec:audit-archive` for archived changes
    - Archive only after implementation has merged and become accepted
      repository reality: `bun run openspec -- archive <change> --yes`
+   - An upgrade moves one reviewed cohort in one change: the exact pin in
+     `package.json` and `bun.lock`, the tag in
+     `scripts/refresh-upstream-skills.mjs`, the seven imported skills through
+     that script's scoped refresh, and the pin constants in
+     `tests/unit/docs/openspec-modernization.test.ts`. Try the new release in
+     a scratch checkout first. Do not relax `--strict` to get there.
 
 4. **Keep repo-owned instruction files hand-maintained.**
    - Do not run `openspec update` against this live customized repository.
+     OpenSpec 2.0 tells users to run it. Tried on 2.0.0 in a scratch copy, it
+     kept Core's seven overlaid skills and added only its marker file,
+     `.agents/skills/.openspec-target`. It also asks to migrate and delete
+     `openspec/project.md`, which Core keeps as its index. Refresh the skills
+     through `scripts/refresh-upstream-skills.mjs` instead.
    - This repository owns `AGENTS.md`, Cursor rule and command files, and
      Copilot instruction files.
    - Canonical OpenSpec skills are imported under `docs/ai/skills/openspec-*`

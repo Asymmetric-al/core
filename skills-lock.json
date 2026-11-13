@@ -604,15 +604,15 @@
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-explore/SKILL.md",
-      "computedHash": "40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed",
-      "treeHash": "ff9b1f7b1ceaf1f3bae2826d14d782236ccd6a3fd805ab2f84e99a7cc9b5d60b"
+      "computedHash": "c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac",
+      "treeHash": "981feddb8e51ff3f5e3a76c079e60641f7154396be59433576e08d8e040bc53d"
     },
     "openspec-propose": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-propose/SKILL.md",
-      "computedHash": "09cee8a59595eddba679029ffb1cd6f48c0bc14ed0281da2b2957be3afa0c947",
-      "treeHash": "ee0b6b6ec860c544a6d9e2a67cd39493132886d46c6958a7b18e1380d2bd3bab"
+      "computedHash": "ebca4a6605b7c917297d3d78e82490527c5eb2ef6e9ba700adfff8457d614bdd",
+      "treeHash": "c01cfb38ca50ff13684dae7e387c66d3db49ea3bc1f5a143b90506a5378cf0bb"
     },
     "openspec-sync-specs": {
       "source": "Fission-AI/OpenSpec",
@@ -625,15 +625,15 @@
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-update-change/SKILL.md",
-      "computedHash": "ee7b8c94c13422eb126dcc98308bbf25b5bccd87d621f4d6458c3e352afa0ed2",
-      "treeHash": "42549146d3437da25484b379b87c1208dd241cf1e8b485ae897f8a81fb341195"
+      "computedHash": "159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505",
+      "treeHash": "2509d499aa42db7b9419441865626bbb377dd04e984875d4269050b3f489155c"
     },
     "openspec-verify-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-verify-change/SKILL.md",
-      "computedHash": "7c3484e8e12763400db5da24decdc6fc2819e8222f3cd7ecb2c35614df3a8092",
-      "treeHash": "cc0d9918c018dda0c7641d8ce1dca4cf47409c025682034e32523e6f5ccfcddf"
+      "computedHash": "a4ac732435c7ef91066154e74d16e4ba4275cb35f5de0600168799138ac6af24",
+      "treeHash": "3e579c69c469047f6ad3f89d6a7831f01b0574ee635fd53520b65f5a6eef7d74"
     },
     "p3-help": {
       "source": "uzairansaruzi/p3-stack",

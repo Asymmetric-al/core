@@ -210,7 +210,7 @@
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
     "@axe-core/playwright": "4.14.0",
-    "@fission-ai/openspec": "1.14.3",
+    "@fission-ai/openspec": "2.0.0",
     "@inngest/test": "1.0.0",
     "@lhci/cli": "^0.15.1",
     "@next/playwright": "16.4.2",
