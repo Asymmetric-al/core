@@ -27,7 +27,8 @@ const environment = {
   FACTORY_ARCHON_HOME: fixtures,
   FACTORY_SERVICE_HOME: os.tmpdir(),
   FACTORY_PATH: path.dirname(node),
-  FACTORY_SCOPE_OWNERS: "conrad",
+  // Scope owners and the admission limit come from this core-factory.json.
+  FACTORY_CONFIG_FILE: path.join(fixtures, "core-factory.json"),
   FACTORY_REPOSITORY: "Asymmetric-al/core",
   // TEST-ONLY: every page of this run is labeled as synthetic fixture data.
   FACTORY_FIXTURE_LABEL: "Playwright loopback fixtures",

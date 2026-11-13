@@ -53,7 +53,11 @@ import {
 } from "../lib/ledger";
 import { performanceView, type PerformanceView } from "../lib/performance";
 
-import type { FactoryConfiguration } from "./factory-config";
+import type {
+  FactoryConfiguration,
+  FactoryPolicy,
+  FactoryPolicyReader,
+} from "./factory-config";
 import type { Configuration } from "./security";
 import type { RoundTrace } from "../lib/timing";
 import type { z } from "zod";
@@ -64,6 +68,8 @@ export type FactoryDependencies = {
   settingsError: string | null;
   reader: StateReader | null;
   control: ControlRunner | null;
+  /** Scope owners and the admission limit, from core-factory.json. */
+  policy: FactoryPolicyReader | null;
   engine: Archon;
   ids: RequestIds;
   now?: () => Date;
@@ -127,6 +133,25 @@ export class Factory {
         503,
       );
     return { settings, reader, control };
+  }
+
+  /** core-factory.json owners and admission limit; null fields are unavailable. */
+  private async policy(): Promise<FactoryPolicy> {
+    const { policy, settingsError } = this.deps;
+    const unavailable = (reason: string): FactoryPolicy => ({
+      owners: null,
+      capacity: null,
+      reason,
+    });
+    if (!policy)
+      return unavailable(
+        settingsError ?? "The factory adapter is not configured",
+      );
+    try {
+      return await policy();
+    } catch {
+      return unavailable("The factory configuration file could not be read");
+    }
   }
 
   private summarize(
@@ -381,6 +406,7 @@ export class Factory {
     // details then cover every round the work items reference.
     const page = this.enginePage(offset);
     page.catch(() => undefined);
+    const policy = this.policy();
     const { state: factory, runs } = await this.readState();
     const linked =
       factory.state === "available"
@@ -403,6 +429,7 @@ export class Factory {
         if (issues) runIssues[id] = issues;
       }
     const { auth, settings } = this.deps;
+    const { owners, capacity, reason } = await policy;
     return {
       runIssues,
       identity: {
@@ -414,8 +441,9 @@ export class Factory {
       engine,
       factory,
       settings: {
-        capacity: settings?.capacity ?? 2,
-        owners: settings?.owners ?? [],
+        capacity,
+        owners,
+        configReason: reason,
         repository: settings?.repository ?? null,
         fixture: settings?.fixtureLabel ?? null,
       },
@@ -780,7 +808,7 @@ export class Factory {
     requestId: string,
     { derived = false, confirmed = false } = {},
   ): Promise<ControlReceipt> {
-    const { control, settings } = this.ready();
+    const { control } = this.ready();
     if (!derived && !this.deps.ids.verify(requestId))
       throw new BackendError(
         "That request id was not issued by this Console",
@@ -791,11 +819,21 @@ export class Factory {
         "This control needs an explicit confirmation",
         400,
       );
-    if (action.kind === "scope" && !settings.owners.includes(action.owner))
-      throw new BackendError(
-        "That scope owner is not configured for this Console",
-        400,
-      );
+    // control.mjs refuses an owner core-factory.json does not list; the
+    // Console reads the same file so it never offers or sends another one.
+    if (action.kind === "scope") {
+      const { owners, reason } = await this.policy();
+      if (!owners)
+        throw new BackendError(
+          `${reason ?? "The factory configuration's owners could not be read"}, so the scope was not changed`,
+          503,
+        );
+      if (!owners.includes(action.owner))
+        throw new BackendError(
+          "That scope owner is not listed in the factory configuration",
+          400,
+        );
+    }
     // A scope write replaces the per-issue end states. They limit what may
     // merge, so the ones the scope already records are carried through, and
     // the write is refused when they cannot be read.
@@ -1012,7 +1050,7 @@ export class Factory {
     overrides: { priority?: number; endState?: "PR_READY" | "MERGED" },
     confirmed: boolean,
   ): Promise<ControlReceipt> {
-    const { reader, settings } = this.ready();
+    const { reader } = this.ready();
     const { doc } = await this.conversation(conversation);
     const turn = doc?.messages.find(
       (entry) =>
@@ -1101,6 +1139,26 @@ export class Factory {
           );
         if (!operation.issues.length)
           throw new BackendError("The proposal names no issues", 409);
+        // A proposal names no owner. It keeps the current scope's owner, which
+        // execute() then checks against core-factory.json, so an owner the
+        // file no longer lists is refused, never replaced. Without a current
+        // scope it takes the file's only owner; it never picks among several.
+        let owner = scope?.owner;
+        if (!owner) {
+          const policy = await this.policy();
+          const { owners } = policy;
+          if (!owners)
+            throw new BackendError(
+              `${policy.reason ?? "The factory configuration's owners could not be read"}, so the scope was not changed`,
+              503,
+            );
+          if (owners.length !== 1)
+            throw new BackendError(
+              "There is no current scope owner to keep: assign this scope from Assign scope, where the owner is chosen",
+              409,
+            );
+          owner = owners[0];
+        }
         if (
           operation.issues.length > 200 ||
           operation.issues.some(
@@ -1116,10 +1174,7 @@ export class Factory {
           kind: "scope",
           issues: operation.issues,
           endState,
-          owner:
-            scope?.owner && settings.owners.includes(scope.owner)
-              ? scope.owner
-              : settings.owners[0],
+          owner,
           note: reason,
         };
         variant = `e${endState === "MERGED" ? "m" : "p"}`;

@@ -128,6 +128,7 @@ export function Health({ loading }: { loading: boolean }) {
           factory={factory}
           engine={engine}
           capacity={snapshot?.settings.capacity ?? null}
+          capacityReason={snapshot?.settings.configReason ?? null}
           loading={loading}
         />
       </div>
@@ -230,11 +231,14 @@ function CapacityPanel({
   factory,
   engine,
   capacity,
+  capacityReason,
   loading,
 }: {
   factory: FactoryValue;
   engine: EngineValue;
   capacity: number | null;
+  /** Set once a snapshot has been read and the limit could not be. */
+  capacityReason: string | null;
   loading: boolean;
 }) {
   return (
@@ -243,7 +247,11 @@ function CapacityPanel({
       description="Capacity is the selector's admission limit for this owner lane: Samson admits a new issue only while fewer admitted issues than the limit are pending, active or waiting under run control. Held and stopped issues do not count."
     >
       {capacity === null ? (
-        loading ? (
+        capacityReason ? (
+          <Unavailable title="Admission limit unavailable">
+            {capacityReason}, so the admission limit is not shown.
+          </Unavailable>
+        ) : loading ? (
           <LoadingRows label="Loading admission capacity…" rows={1} />
         ) : (
           <Unavailable>No capacity setting has been read yet.</Unavailable>

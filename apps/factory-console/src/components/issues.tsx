@@ -98,7 +98,8 @@ export function Issues({ loading }: { loading: boolean }) {
         <AssignPanel
           factory={factory}
           loading={loading}
-          owners={snapshot?.settings.owners ?? []}
+          owners={snapshot?.settings.owners ?? null}
+          ownersReason={snapshot?.settings.configReason ?? null}
         />
       </div>
       <IssuesPanel factory={factory} loading={loading} />
@@ -241,10 +242,13 @@ function AssignPanel({
   factory,
   loading,
   owners,
+  ownersReason,
 }: {
   factory: FactoryValue;
   loading: boolean;
-  owners: string[];
+  /** core-factory.json owner aliases; null when they could not be read. */
+  owners: string[] | null;
+  ownersReason: string | null;
 }) {
   const id = useId();
   return (
@@ -255,16 +259,17 @@ function AssignPanel({
     >
       <Section value={factory} loading={loading} label="factory state">
         {(state) =>
-          owners.length ? (
+          owners?.length ? (
             <AssignScopeForm
               scope={state.scope}
               owners={owners}
               labelledBy={id}
             />
           ) : (
-            <Unavailable title="No owners configured">
-              The factory settings list no owners, so the Console cannot assign
-              a scope.
+            <Unavailable title="Scope owners unavailable">
+              {ownersReason ??
+                "The factory configuration's owners have not been read"}
+              , so the Console cannot assign a scope.
             </Unavailable>
           )
         }

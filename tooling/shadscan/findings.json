@@ -1039,7 +1039,7 @@
       "proof": [
         {
           "path": "apps/factory-console/README.md",
-          "sha256": "dd8662cc0c792fa383f224d1e60078903ce2d6c0cf6efaa0b469cd5350354276"
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
         },
         {
           "path": "apps/factory-console/tests/shell.test.ts",
@@ -1056,7 +1056,7 @@
       "proof": [
         {
           "path": "apps/factory-console/README.md",
-          "sha256": "dd8662cc0c792fa383f224d1e60078903ce2d6c0cf6efaa0b469cd5350354276"
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
         },
         {
           "path": "apps/factory-console/src/components/console.tsx",
@@ -1197,7 +1197,7 @@
       "proof": [
         {
           "path": "apps/factory-console/README.md",
-          "sha256": "dd8662cc0c792fa383f224d1e60078903ce2d6c0cf6efaa0b469cd5350354276"
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
         },
         {
           "path": "apps/factory-console/src/app/layout.tsx",
@@ -1246,7 +1246,7 @@
       "proof": [
         {
           "path": "apps/factory-console/README.md",
-          "sha256": "dd8662cc0c792fa383f224d1e60078903ce2d6c0cf6efaa0b469cd5350354276"
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
         },
         {
           "path": "apps/factory-console/src/components/console.tsx",
@@ -1271,7 +1271,7 @@
         },
         {
           "path": "apps/factory-console/README.md",
-          "sha256": "dd8662cc0c792fa383f224d1e60078903ce2d6c0cf6efaa0b469cd5350354276"
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
         },
         {
           "path": "apps/factory-console/src/components/controls.tsx",
@@ -1292,7 +1292,7 @@
       "proof": [
         {
           "path": "apps/factory-console/README.md",
-          "sha256": "dd8662cc0c792fa383f224d1e60078903ce2d6c0cf6efaa0b469cd5350354276"
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
         },
         {
           "path": "apps/factory-console/src/components/controls.tsx",

@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, describe, expect, it } from "vitest";
 
 import { isRetryable } from "../src/lib/factory";
 import {
@@ -10,6 +14,7 @@ import {
   FACTORY_DEFAULTS,
   factoryConfiguration,
   factoryEnvironment,
+  readFactoryPolicy,
 } from "../src/server/factory-config";
 import {
   argvText,
@@ -52,7 +57,10 @@ describe("factory configuration", () => {
       CLAUDE_CONFIG_DIR: "/home/admin/.claude",
       HOME: "/home/admin",
       PATH: "/usr/bin:/bin",
+      // The same file the Console reads owners and the admission limit from.
+      CORE_FACTORY_CONFIG: "/srv/core-factory/control/core-factory.json",
     });
+    expect(config.configFile).toBe(FACTORY_DEFAULTS.FACTORY_CONFIG_FILE);
   });
 
   it("takes the owner's Claude profile from the service environment", () => {
@@ -81,11 +89,105 @@ describe("factory configuration", () => {
       "FACTORY_ARCHON_CLI",
     );
     expect(() =>
-      factoryConfiguration({ FACTORY_SCOPE_OWNERS: "Conrad Smith" }),
-    ).toThrow("FACTORY_SCOPE_OWNERS");
-    expect(() =>
-      factoryConfiguration({ FACTORY_ADMISSION_CAPACITY: "0" }),
-    ).toThrow("FACTORY_ADMISSION_CAPACITY");
+      factoryConfiguration({ FACTORY_CONFIG_FILE: "core-factory.json" }),
+    ).toThrow("FACTORY_CONFIG_FILE");
+  });
+
+  it("has no environment source for scope owners or the admission limit", () => {
+    // core-factory.json is the only source: control.mjs refuses an owner it
+    // does not list and the selector admits up to its limits.admittedIssues.
+    const config = factoryConfiguration({
+      FACTORY_SCOPE_OWNERS: "mallory",
+      FACTORY_ADMISSION_CAPACITY: "9",
+    });
+    expect(config).not.toHaveProperty("owners");
+    expect(config).not.toHaveProperty("capacity");
+    expect(FACTORY_DEFAULTS).not.toHaveProperty("FACTORY_SCOPE_OWNERS");
+    expect(FACTORY_DEFAULTS).not.toHaveProperty("FACTORY_ADMISSION_CAPACITY");
+  });
+});
+
+describe("factory configuration file (owners and admission limit)", () => {
+  const folders: string[] = [];
+  afterEach(() => {
+    for (const folder of folders.splice(0))
+      rmSync(folder, { recursive: true, force: true });
+  });
+  function configFile(content: unknown) {
+    const folder = mkdtempSync(path.join(os.tmpdir(), "factory-policy-"));
+    folders.push(folder);
+    const file = path.join(folder, "core-factory.json");
+    writeFileSync(
+      file,
+      typeof content === "string" ? content : JSON.stringify(content),
+    );
+    return file;
+  }
+  const owner = (login: string) => ({
+    profile: `/srv/profiles/${login}`,
+    githubLogin: login,
+  });
+
+  it("reads the owner aliases and limits.admittedIssues from the file", async () => {
+    const file = configFile({
+      version: 1,
+      owners: { ops: owner("ops-login"), conrad: owner("conrad-login") },
+      limits: { admittedIssues: 3, maxRounds: 8 },
+    });
+    await expect(readFactoryPolicy(file)).resolves.toEqual({
+      owners: ["ops", "conrad"],
+      capacity: 3,
+      reason: null,
+    });
+  });
+
+  it("reports a missing or unreadable file as unavailable, never a built-in owner or limit", async () => {
+    const policy = await readFactoryPolicy(
+      path.join(os.tmpdir(), "factory-policy-missing", "core-factory.json"),
+    );
+    expect(policy.owners).toBeNull();
+    expect(policy.capacity).toBeNull();
+    expect(policy.reason).toMatch(/could not be read/);
+    // The reason never carries the private path or the system error.
+    expect(policy.reason).not.toContain("factory-policy-missing");
+    expect(policy.reason).not.toContain("ENOENT");
+    const malformed = await readFactoryPolicy(configFile("{ not json"));
+    expect(malformed).toMatchObject({ owners: null, capacity: null });
+    expect(malformed.reason).toMatch(/not valid JSON/);
+  });
+
+  it("reports each missing or invalid field as unavailable on its own", async () => {
+    const noLimit = await readFactoryPolicy(
+      configFile({ owners: { conrad: owner("c") } }),
+    );
+    expect(noLimit.owners).toEqual(["conrad"]);
+    expect(noLimit.capacity).toBeNull();
+    expect(noLimit.reason).toMatch(/limits\.admittedIssues/);
+    for (const admittedIssues of [0, -1, 1.5, "2", null])
+      expect(
+        (
+          await readFactoryPolicy(
+            configFile({
+              owners: { conrad: owner("c") },
+              limits: { admittedIssues },
+            }),
+          )
+        ).capacity,
+      ).toBeNull();
+    for (const owners of [
+      undefined,
+      {},
+      [],
+      { "Conrad Smith": owner("c") },
+      { conrad: "c" },
+    ]) {
+      const policy = await readFactoryPolicy(
+        configFile({ owners, limits: { admittedIssues: 2 } }),
+      );
+      expect(policy.owners).toBeNull();
+      expect(policy.capacity).toBe(2);
+      expect(policy.reason).toMatch(/owners/);
+    }
   });
 });
 

@@ -1,9 +1,12 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 // Server-only configuration for the factory state reader and control runner.
 // Defaults are the VM 100 installation (scripts/archon-factory/pack/README.md);
 // every value can be overridden from the service environment. None of these
-// values is ever serialized to the browser.
+// values is ever serialized to the browser. Scope owners and the admission
+// limit are not environment settings: they come from core-factory.json
+// (readFactoryPolicy below).
 export const FACTORY_DEFAULTS = {
   FACTORY_ARCHON_CLI: "/opt/archon/0.14.0/archon",
   FACTORY_CONTROL_SCRIPT:
@@ -15,9 +18,11 @@ export const FACTORY_DEFAULTS = {
   FACTORY_CLAUDE_PROFILE: "/home/admin/.claude",
   FACTORY_PATH: "/usr/bin:/bin",
   FACTORY_STATE_PROJECT: "_folder/control",
-  FACTORY_SCOPE_OWNERS: "conrad",
+  // The pack's own default (config.mjs DEFAULT_CONFIG_PATH). control.mjs
+  // receives it as CORE_FACTORY_CONFIG, and the Console reads scope owners and
+  // the admission limit from the same file, so neither has a second source.
+  FACTORY_CONFIG_FILE: "/srv/core-factory/control/core-factory.json",
   FACTORY_REPOSITORY: "Asymmetric-al/core",
-  FACTORY_ADMISSION_CAPACITY: "2",
   FACTORY_READ_TIMEOUT_MS: "20000",
   FACTORY_CONTROL_TIMEOUT_MS: "90000",
 } as const;
@@ -79,15 +84,6 @@ function integer(key: string, value: string, minimum: number, maximum: number) {
 export function factoryConfiguration(
   env: Record<string, string | undefined> = process.env,
 ) {
-  const owners = pick(env, "FACTORY_SCOPE_OWNERS")
-    .split(",")
-    .map((owner) => owner.trim())
-    .filter(Boolean);
-  if (
-    !owners.length ||
-    owners.some((owner) => !/^[a-z][a-z0-9-]{0,39}$/.test(owner))
-  )
-    throw new FactoryConfigurationError("FACTORY_SCOPE_OWNERS");
   const repository = pick(env, "FACTORY_REPOSITORY");
   if (!/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/.test(repository))
     throw new FactoryConfigurationError("FACTORY_REPOSITORY");
@@ -99,7 +95,6 @@ export function factoryConfiguration(
     throw new FactoryConfigurationError("FACTORY_STATE_PROJECT");
   const searchPath = pick(env, "FACTORY_PATH");
   if (!safe(searchPath)) throw new FactoryConfigurationError("FACTORY_PATH");
-  const configFile = env.FACTORY_CONFIG_FILE?.trim() || null;
   // TEST-ONLY: set by the Playwright fixture run so every view says the data
   // is synthetic. Production never sets it.
   const fixtureLabel =
@@ -130,18 +125,14 @@ export function factoryConfiguration(
       "FACTORY_CLAUDE_PROFILE",
       pick(env, "FACTORY_CLAUDE_PROFILE"),
     ),
-    configFile: configFile ? absolute("FACTORY_CONFIG_FILE", configFile) : null,
+    configFile: absolute(
+      "FACTORY_CONFIG_FILE",
+      pick(env, "FACTORY_CONFIG_FILE"),
+    ),
     userId,
     project,
     searchPath,
-    owners,
     repository,
-    capacity: integer(
-      "FACTORY_ADMISSION_CAPACITY",
-      pick(env, "FACTORY_ADMISSION_CAPACITY"),
-      1,
-      64,
-    ),
     readTimeoutMs: integer(
       "FACTORY_READ_TIMEOUT_MS",
       pick(env, "FACTORY_READ_TIMEOUT_MS"),
@@ -179,6 +170,90 @@ export function factoryEnvironment(
     CLAUDE_CONFIG_DIR: config.claudeProfile,
     HOME: config.home,
     PATH: config.searchPath,
-    ...(config.configFile ? { CORE_FACTORY_CONFIG: config.configFile } : {}),
+    CORE_FACTORY_CONFIG: config.configFile,
   };
+}
+
+/**
+ * The two factory settings the Console shows and checks, read from the same
+ * core-factory.json control.mjs and the selector use: the owner aliases
+ * control.mjs accepts for a scope (`owners`) and the selector's admission
+ * limit (`limits.admittedIssues`). Each is null when it cannot be read; no
+ * built-in owner or limit stands in for it. Only the aliases and the number
+ * leave this module: owner profiles, logins and the file path stay here.
+ */
+export type FactoryPolicy = {
+  owners: string[] | null;
+  capacity: number | null;
+  /** Why a value is unavailable, without paths or system errors; else null. */
+  reason: string | null;
+};
+
+export type FactoryPolicyReader = () => Promise<FactoryPolicy>;
+
+const OWNER_ALIAS = /^[a-z][a-z0-9-]{0,39}$/;
+
+const record = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+export function factoryPolicy(text: string): FactoryPolicy {
+  let config: unknown;
+  try {
+    config = JSON.parse(text);
+  } catch {
+    return {
+      owners: null,
+      capacity: null,
+      reason: "The factory configuration file is not valid JSON",
+    };
+  }
+  const entries =
+    record(config) && record(config.owners)
+      ? Object.entries(config.owners)
+      : [];
+  const owners =
+    entries.length > 0 &&
+    entries.every(([alias, owner]) => OWNER_ALIAS.test(alias) && record(owner))
+      ? entries.map(([alias]) => alias)
+      : null;
+  const limit =
+    record(config) && record(config.limits)
+      ? config.limits.admittedIssues
+      : undefined;
+  const capacity =
+    typeof limit === "number" && Number.isSafeInteger(limit) && limit >= 1
+      ? limit
+      : null;
+  const problems = [
+    ...(owners ? [] : ["owners"]),
+    ...(capacity === null ? ["limits.admittedIssues"] : []),
+  ];
+  return {
+    owners,
+    capacity,
+    reason: problems.length
+      ? `The factory configuration has no valid ${problems.join(" or ")}`
+      : null,
+  };
+}
+
+/** Reads the file on every call, as control.mjs does on every command. */
+export async function readFactoryPolicy(file: string): Promise<FactoryPolicy> {
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch {
+    return {
+      owners: null,
+      capacity: null,
+      reason: "The factory configuration file could not be read",
+    };
+  }
+  return factoryPolicy(text);
+}
+
+export function factoryPolicyReader(
+  config: FactoryConfiguration,
+): FactoryPolicyReader {
+  return () => readFactoryPolicy(config.configFile);
 }

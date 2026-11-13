@@ -4,6 +4,7 @@ import { Factory } from "./factory";
 import {
   FactoryConfigurationError,
   factoryConfiguration,
+  factoryPolicyReader,
 } from "./factory-config";
 import { cliStateReader } from "./state";
 
@@ -28,6 +29,7 @@ export function createFactory(
       settingsError: null,
       reader: cliStateReader(settings),
       control: processControlRunner(settings),
+      policy: factoryPolicyReader(settings),
       engine,
       ids,
     });
@@ -41,6 +43,7 @@ export function createFactory(
           : "Factory adapter configuration is invalid",
       reader: null,
       control: null,
+      policy: null,
       engine,
       ids,
     });

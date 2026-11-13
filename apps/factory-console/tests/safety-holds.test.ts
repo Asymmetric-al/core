@@ -17,6 +17,7 @@ function controlHarness(result: ControlRun) {
     settings: factoryConfiguration({}),
     settingsError: null,
     reader: fixture.state,
+    policy: fixture.policy,
     control: {
       async run(args) {
         calls.push([...args]);
