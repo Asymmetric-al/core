@@ -1129,8 +1129,8 @@ A fourth round reviewed commit `942b8687d` and the 22:44 state. Claude Fable
 of 10 for unattended use on a wider scope; 8 and 8.5 for the exercise), for
 defect 31; GPT-6.1 Sol did not run (usage limit). Both confirmed that #2207
 recovered from the deliberate restart by itself, that PR #2660 is ready and
-that the installed release matched its commit. The result of the review of
-the final state below is in the description of pull request #2651.
+that the installed release matched its commit. The result of the fifth
+round, on the final state below, is in the description of pull request #2651.
 
 ### Operator interventions in this pass
 
@@ -1230,9 +1230,15 @@ admission to a ready pull request on `2cfd7082` itself. #2239 did so on
   crashed (SIGSEGV) in the check container. The factory treated it as a
   failed gate, ran a repair round that changed nothing and passed the gate on
   the same commit. It does not tell a crashed tool from a failed check.
-- **A narrow window remains:** a round interrupted between its commit and the
-  record of that commit starts again from the recorded state, and the
-  unrecorded commit is left out of the branch.
+- **A narrow window remains.** A round stopped in the seconds between its
+  commit and the record of that commit (an engine stop at that moment, or
+  hooks that leave files behind after a successful commit) is not recovered
+  by itself. The next round puts the branch back on the recorded commit, the
+  acceptance tests of the unrecorded one are then missing from the workspace,
+  and the issue blocks (`acceptance-tampered`, or `dirty-workspace` when files
+  were left). Nothing is lost: the unrecorded commit is still in the clone
+  (`git reflog`). The runbook has the steps. A reviewer reproduced this in
+  round 5; it was not seen live and has no automatic recovery.
 - **Files left outside an issue's paths block it** (`acceptance-strays`), by
   design; the runbook has the steps.
 - **PR #2659:** its description was rewritten by the factory at 23:42 and is

@@ -684,13 +684,35 @@ These blocks mean the issue clone is not in the state the round expects.
 `retry` alone repeats them; look first, in `/srv/core-factory/issues/<n>/repo`
 and the round's evidence under `/srv/core-factory/runs/<run>/strays`.
 
-| Blocker               | What it means                                                                   | What to do                                                                                         |
-| --------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `acceptance-strays`   | Files outside the issue's source and test paths were dirty before or after Ezra | Move the named files out of the clone (keep them if they matter), then `retry`                     |
-| `acceptance-tampered` | A test the acceptance author recorded no longer holds the recorded content      | Compare the file with the recorded hash in the work item; restore it or have acceptance redefined  |
-| `candidate-integrity` | The commit holds a path it may not, or lacks a recorded acceptance test         | Read the blocker detail; a missing test is in the round's `strays` evidence. Restore, then `retry` |
-| `dirty-workspace`     | The clone has uncommitted work on a different commit than the recorded one      | Inspect and preserve the work by hand; the factory never discards it                               |
-| `review-precondition` | The recorded candidate is not what the clone has checked out, or it is dirty    | Make the clone's HEAD the recorded head with a clean tree, then `retry`                            |
+| Blocker               | What it means                                                                                               | What to do                                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `acceptance-strays`   | Files outside the issue's source and test paths were dirty before or after Ezra                             | Move the named files out of the clone (keep them if they matter), then `retry`                     |
+| `acceptance-tampered` | A test the acceptance author recorded is missing from the workspace or no longer holds the recorded content | See below the table                                                                                |
+| `candidate-integrity` | The commit holds a path it may not, or lacks a recorded acceptance test                                     | Read the blocker detail; a missing test is in the round's `strays` evidence. Restore, then `retry` |
+| `dirty-workspace`     | The clone has uncommitted work on a different commit than the recorded one                                  | See below the table                                                                                |
+| `review-precondition` | The recorded candidate is not what the clone has checked out, or it is dirty                                | Make the clone's HEAD the recorded head with a clean tree, then `retry`                            |
+
+`acceptance-tampered` and `dirty-workspace` can follow a round that was
+stopped just after its commit and before that commit was recorded. Check for
+it in the clone: `git reflog -5` shows a `factory round` commit that is not
+the work item's `head`. Its content is that commit, not the `strays`
+evidence. To recover, put its files back as uncommitted work on the recorded
+commit and retry, so the next round commits them again:
+
+```sh
+cd /srv/core-factory/issues/<n>/repo
+git status --porcelain                    # move anything listed out of the clone first
+git checkout <unrecorded commit> -- .     # its files, as uncommitted work
+git status --porcelain                    # only the issue's source and test paths
+```
+
+If the clone is still on the unrecorded commit (`dirty-workspace`), use
+`git reset --soft <recorded commit>` instead: it keeps the same files as
+uncommitted work. Then `issue <n> retry`. These steps follow from the code
+and have not been exercised on the VM. If the test content differs from what the work item
+records for another reason (someone edited a test), there is no control that
+has acceptance defined again for a blocked issue: restore the recorded
+content, or stop the issue and decide by hand.
 
 If a blocker is not understood, stop the issue (`issue <n> stop`) and leave
 the clone as it is: nothing is lost while it is stopped.
