@@ -168,14 +168,41 @@ export function readRepoFile(relativePath: string): string {
   return readFileSync(path.join(REPO_ROOT, relativePath), "utf8");
 }
 
-export function git(args: string[]): { status: number; stdout: string } {
+export function git(args: string[]): {
+  status: number;
+  stdout: string;
+  stderr: string;
+} {
   const result = spawnSync("git", args, {
     cwd: REPO_ROOT,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
   });
   if (result.error) throw result.error;
-  return { status: result.status ?? 1, stdout: result.stdout };
+  return {
+    status: result.status ?? 1,
+    stdout: result.stdout,
+    stderr: result.stderr ?? "",
+  };
+}
+
+/**
+ * Runs `git` and returns its stdout, or throws when git exits non-zero. The
+ * error names the git arguments, the exit status and git's stderr, so a bad
+ * base ref, a shallow clone or an unknown commit is reported as a git failure
+ * instead of surfacing as empty output.
+ */
+export function gitChecked(args: string[]): string {
+  const result = git(args);
+  if (result.status !== 0) {
+    const stderr = result.stderr.trim();
+    throw new Error(
+      `git ${args.join(" ")} exited with status ${result.status}${
+        stderr ? `: ${stderr}` : " (no stderr)"
+      }`,
+    );
+  }
+  return result.stdout;
 }
 
 /** Every quoted 64-character hex literal in a source text, lowercased. */
