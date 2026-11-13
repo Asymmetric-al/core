@@ -25,11 +25,19 @@ const sql = () => {
 /** sha256 of the 85 other exceptions entry lines at develop 0727d810, trimmed, "\n"-joined. */
 const OTHERS_SHA =
   "9b004012247680c8b1bb83b2f3838752251789e71ea5b2cdb4e2c9d682d4e151";
-/** Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix. */
-const CI_BASE = {
-  bytes: 40204,
-  sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-};
+/** Reviewed docs/ci.md prefixes, one entry per reviewed file. */
+const CI_BASES = [
+  // Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix.
+  {
+    bytes: 40204,
+    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
+  },
+  // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
+  {
+    bytes: 40426,
+    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
+  },
+];
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -102,10 +110,11 @@ describe("#2260 static (17-20)", () => {
   );
   it("20: docs/ci.md keeps develop's bytes as a prefix; nothing #2260 after it", () => {
     const bytes = readFileSync("docs/ci.md");
-    expect(sha256(bytes.subarray(0, CI_BASE.bytes)), "docs/ci.md prefix").toBe(
-      CI_BASE.sha256,
+    const base = CI_BASES.find(
+      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
     );
-    expect(bytes.subarray(CI_BASE.bytes).toString("utf8")).not.toMatch(
+    expect(base, "docs/ci.md prefix").toBeDefined();
+    expect(bytes.subarray(base!.bytes).toString("utf8")).not.toMatch(
       /2260|donor_feed_preferences/i,
     );
   });
