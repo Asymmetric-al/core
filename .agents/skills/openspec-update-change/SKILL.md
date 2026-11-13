@@ -132,7 +132,7 @@ After each invocation, show:
 - Which artifacts were revised (and which proposed revisions were rejected)
 - Any file created under a glob artifact that was already partially populated
 - Anything deferred to `/openspec-continue-change` (artifacts with no files yet and status `ready` or `blocked`, never `skipped` artifacts)
-- Where the change stands and the recommended next command
+- Where the change stands and the recommended next skill
 
 **Guardrails**
 

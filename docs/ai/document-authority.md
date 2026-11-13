@@ -107,6 +107,8 @@ Core runtime or provider acceptance.
   requirements and acceptance. Regenerate the main story index, exact trace,
   OpenSpec behavioral projection and full contract companions with the package's
   `tools/render-spec.mjs`; verify through `bun run verify:phase29-spec`.
+  A criterion that states no Given/When takes its owning story, verbatim, as
+  the scenario's `GIVEN` step, so every projected scenario has a trigger.
   Exact source maps and the 624-file preservation manifest retain provenance.
   `/to-spec` and the confirmed testing seams authorize formal publication,
   superseding historical unselected publication-stage options only. Specialist
@@ -139,7 +141,9 @@ Core runtime or provider acceptance.
   criteria are authored in those volumes. `tools/render-spec.mjs --write`
   generates the main story index, `traceability.json` and the active
   missionary-workspace-depth OpenSpec projection; verification runs without
-  `--write`. The main narrative, owner reconciliation and active tasks remain
+  `--write`. A criterion that states no Given/When takes its owning story,
+  verbatim, as the scenario's `GIVEN` step, so every projected scenario has a
+  trigger. The main narrative, owner reconciliation and active tasks remain
   hand-maintained. Historical grill packets, source captures and earlier model
   outputs remain provenance, not a competing specification or runtime proof.
   The explicit `/to-spec` synthesis incorporates D1–D50 and completeness
