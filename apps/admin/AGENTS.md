@@ -12,6 +12,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 **Scope:** Admin / Mission Control UI in `apps/admin`. Do not copy root `AGENTS.md`.
 
+- **Purpose:** Mission Control is the staff operations surface and the conceptual home of operational depth: CRM, contributions, exceptions, reporting, settings and content administration. Donor and missionary surfaces show role-appropriate projections of the same records, so check those consumers when a shared fact changes. It also serves the public CMS read routes (`/api/cms/public/*`) that the donor app's public website consumes. Intent: `openspec/specs/platform-surfaces/spec.md`.
+
 - Default port **3030**. Start: `bun run dev:admin`. Cloud Mission Control: `bun run setup:mission-control:cloud` then `bun run dev:mission-control` (see `docs/guides/development/cursor-cloud.md`).
 - Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow `docs/ai/rules/frontend.md` § Instant Navigation. Stream request-time data; do not set `instant = false` without a comment.
 - Read nearest `node_modules/next/dist/docs/` before Next.js API work. Use Next.js MCP against a running dev server for live errors and routes.
