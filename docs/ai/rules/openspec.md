@@ -48,6 +48,10 @@ This keeps durable project context, intended behavior, and active change scope v
    - Keep proposal, spec delta, design, and tasks aligned with the intended
      change.
    - Do not invent a custom schema or enable Stores.
+   - When a request names an issue or task IDs inside a larger change, apply
+     and verify that slice together with the dependencies it needs, and check
+     the consumers it affects. Leave the remaining tasks unchecked and report
+     them as not applied. A finished slice is never whole-change completion.
 
 3. **Use the locally pinned OpenSpec CLI.**
    - Always: `bun run openspec -- <command>`
@@ -58,6 +62,15 @@ This keeps durable project context, intended behavior, and active change scope v
    - `bun run openspec:audit-archive` for archived changes
    - Archive only after implementation has merged and become accepted
      repository reality: `bun run openspec -- archive <change> --yes`
+   - Version status, checked 2026-11-12: the pin is 1.14.3. Strict validation
+     of this repository passes on 1.14.3 and 1.15.0. From 1.16.0 through 2.0.0
+     it fails on `add-files-documents` and `add-missionary-workspace-depth`,
+     whose generated scenarios have no `WHEN` or `GIVEN` step. An upgrade needs
+     the Phase 28 and Phase 29 owners to regenerate those projections, the pin
+     asserted in `tests/unit/docs/openspec-modernization.test.ts` moved in the
+     same change, and the imported skills refreshed through
+     `scripts/refresh-upstream-skills.mjs`. Do not relax `--strict` to get
+     there.
 
 4. **Keep repo-owned instruction files hand-maintained.**
    - Do not run `openspec update` against this live customized repository.
