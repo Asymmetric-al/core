@@ -262,6 +262,40 @@ describe("CRM giving report totals", () => {
     expect(result.totals.amountCents).toBe(12000);
   });
 
+  it("decides settled gifts by their corrected payment state, not the stored status", async () => {
+    const pendingSettled = donation({ amount: 7000, status: "pending" });
+    const failedSettled = donation({ amount: 2000, status: "failed" });
+    const completedFailed = donation({ amount: 9000, status: "completed" });
+    const paymentCorrection = (
+      donationId: unknown,
+      paymentStatus: string,
+      id: string,
+    ) => ({
+      adjustment_type: "payment_state_correction",
+      created_at: "2026-05-02T00:00:00.000Z",
+      donation_id: donationId,
+      effective_values: { paymentStatus },
+      id,
+      status: "applied",
+      tenant_id: "tenant-1",
+    });
+
+    const result = await report("funds", {
+      contribution_adjustments: [
+        paymentCorrection(pendingSettled.id, "completed", "adjustment-p"),
+        paymentCorrection(failedSettled.id, "completed", "adjustment-f"),
+        paymentCorrection(completedFailed.id, "failed", "adjustment-c"),
+      ],
+      donations: [pendingSettled, failedSettled, completedFailed],
+    });
+
+    expect(result.totals.giftCount).toBe(2);
+    expect(result.totals.amountCents).toBe(9000);
+    expect(
+      result.rows.map((row) => [row.label, row.amountCents, row.giftCount]),
+    ).toEqual([["General Fund", 9000, 2]]);
+  });
+
   it("splits a reallocated gift across its corrected funds", async () => {
     const split = donation({ amount: 10000, fund_id: "fund-1" });
     const result = await report("funds", {

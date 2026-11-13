@@ -1,6 +1,5 @@
 import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 
-import { SETTLED_DONATION_STATUSES } from "../../../reads/settled-donation-statuses";
 import { ApiHttpError } from "../../../shared/http-errors";
 import {
   deriveEffectiveContribution,
@@ -10,7 +9,6 @@ import {
 import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
 import { normalizeSharedPaymentStatus } from "../../contribution-shared/row-contract";
 import { toContributionCents } from "../../contribution-shared/row-inputs";
-import { expandStoredValueSpellings } from "../filter-variants";
 
 import type { AdminCrmReportParams } from "./query";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -127,9 +125,10 @@ async function fetchDonations(
       .select(
         "id, donor_id, missionary_id, fund_id, amount, refund_amount, status, created_at",
       )
-      .eq("tenant_id", tenantId)
-      // `.in()` matches exactly; legacy writers stored `Succeeded`.
-      .in("status", expandStoredValueSpellings(SETTLED_DONATION_STATUSES));
+      // No status filter: an applied payment-state correction can settle a
+      // pending or failed gift, or unsettle a completed one, so every gift in
+      // the period is read and toReportGifts decides on the effective status.
+      .eq("tenant_id", tenantId);
 
     if (params.filters.dateFrom) {
       query = query.gte("created_at", params.filters.dateFrom);
