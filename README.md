@@ -196,7 +196,7 @@ Agent-oriented docs live under `docs/ai/`:
 
 - **Entry point:** `AGENTS.md` — routing rules for all AI agent work
 - **Stack registry:** `docs/ai/stack-registry.md` — canonical tech stack list
-- **Working set:** `docs/ai/working-set.example.md` — template for local `docs/ai/working-set.md` scratch context
+- **Working set:** `docs/ai/working-set.example.md` — template for ignored local scratch at `docs/ai/working-set.local.md`; the tracked `docs/ai/working-set.md` is a historical record, not scratch
 - **Nia MCP:** `docs/ai/nia.md` — repo-scoped Nia search, MCP setup, and local sync rules
 - **Monorepo architecture:** `docs/ai/monorepo-architecture.md` — workspace structure
 - **Rulebooks:** `docs/ai/rules/*` — domain-specific guidelines (frontend, backend, testing, etc.)
@@ -420,10 +420,12 @@ startup, verification profiles and private report triage, see the
 | Next.js               | 16.4.2  | App Router + Turbopack in app configs                         |
 | React                 | 19.3.1  |                                                               |
 | TypeScript            | 7.0.2   | Native workspace compiler; root TS 6 API/editor compatibility |
-| motion                | 12.x    | Animation (successor to framer-motion)                        |
+| motion                | 14.x    | Animation (successor to framer-motion)                        |
 | @tanstack/react-query | 5.x     | Server state                                                  |
-| @supabase/ssr         | 0.8.x   | Supabase server/client helpers                                |
-| @sentry/nextjs        | 10.x    | Error monitoring (via `@asym/lib`, etc.)                      |
+| @supabase/ssr         | 0.12.x  | Supabase server/client helpers                                |
+| @sentry/nextjs        | 11.x    | Error monitoring (via `@asym/lib`, etc.)                      |
+
+This table is orientation only. Workspace `package.json` files and `bun.lock` own exact versions.
 
 ### Verification Steps
 
@@ -455,8 +457,8 @@ bun run verify:supabase-money
 ## Key Conventions
 
 1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
-2. **Next.js 16.4.2 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
-3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
+2. **Next.js App Router conventions:** Route `params` and `searchParams` are promises, and all apps run Cache Components. A top-level `await` in a page or layout blocks the static shell, so treat every server `await` as a deliberate Stream, Cache or Block decision (`docs/ai/rules/frontend.md`, Instant Navigation; patterns in `docs/ai/skills/nextjs-app-architecture/SKILL.md`).
+3. **Exact `base-maia` design system:** Build with shared `@asym/ui` components and semantic CSS-variable tokens such as `bg-background`, `text-muted-foreground` and `border-border`. Zinc is the theme family behind those tokens, not a set of `zinc-*` utilities to hard-code (`packages/ui/AGENTS.md`).
 4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 
 ---
@@ -484,10 +486,10 @@ Details: `docs/auth/sign-in.md`.
 bun run supabase -- <supabase-subcommand>
 ```
 
-- Uses a global `supabase` CLI when available.
-- Otherwise uses a pinned CLI via `npx` (see `scripts/supabase-cli.mjs`).
+- Uses a global `supabase` CLI only when its version equals the repository pin.
+- Otherwise runs the pinned CLI via `npx` (see `scripts/supabase-cli.mjs`).
 
-Optional global install:
+Optional global install (ignored by the wrapper unless the installed version equals the pin):
 
 ```bash
 brew install supabase/tap/supabase
