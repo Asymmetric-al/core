@@ -28,8 +28,8 @@
 
 - [x] 3.1 Add the proof-tier vocabulary and the parallel-checkout settings to
       `docs/ai/rules/testing.md`.
-- [x] 3.2 Bound Apply and Verify to the selected slice and record the OpenSpec
-      version status in `docs/ai/rules/openspec.md`.
+- [x] 3.2 Bound Apply and Verify to the selected slice in
+      `docs/ai/rules/openspec.md`.
 
 ## 4. Verify
 

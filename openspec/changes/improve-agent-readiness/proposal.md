@@ -29,8 +29,7 @@ in what agents read first:
   Supabase wrapper, owning-rule pointers for route parameters and tokens, and
   an ignored path for local scratch.
 - The testing rulebook names what each kind of check proves. The OpenSpec
-  rulebook bounds Apply and Verify to the selected slice and records why the
-  CLI pin stays at 1.14.3.
+  rulebook bounds Apply and Verify to the selected slice.
 
 ## Non-goals
 
