@@ -1,0 +1,57 @@
+# S5.16: Ezra corrected the criteria without changing a test file and left
+# Bezalel nothing to repair. after-define ends the round before the build with
+# a review-only repair, so the next round re-freezes the recorded head and both
+# reviewers check it against the corrected acceptance.
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached: [claim, context, after-scope, define, after-define, record]
+claim:
+  {
+    proceed: "yes",
+    route: oracle,
+    do_scope: "no",
+    do_define: "yes",
+    do_build: "yes",
+    do_feedback: "no",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "Round 3",
+  }
+context:
+  {
+    ok: "yes",
+    fingerprint: "f2",
+    changed: "no",
+    scope_assignment: "scope",
+    reason: "ok",
+  }
+after-scope:
+  {
+    proceed: "yes",
+    define: "yes",
+    build: "yes",
+    ezra_assignment: "ezra",
+    reason: "Ezra oracle_repair",
+  }
+define:
+  {
+    task_status: DONE,
+    criteria: [{ id: C1, statement: "Totals use USD", check: c, evidence: e }],
+    test_paths: [],
+    checks_run: [],
+    gaps: [],
+    questions: [],
+  }
+after-define:
+  {
+    build: "no",
+    freeze: "no",
+    bezalel_assignment: "",
+    reason: "Acceptance corrected without test changes and nothing for Bezalel; the recorded head is reviewed again",
+  }
+record:
+  {
+    outcome: continue,
+    next: review,
+    reason: "after-define: the candidate must be reviewed again",
+  }
