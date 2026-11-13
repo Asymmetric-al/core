@@ -4,6 +4,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getBulkContributionActionPolicy } from "./action-catalog";
+import {
+  contributionBatchIdFromToken,
+  isUniqueViolation,
+  replayContributionBatch,
+} from "./batch-identity";
 import { chooseContributionBatchExecutionMode } from "./preview";
 import {
   markContributionBatchFailed,
@@ -29,9 +34,11 @@ import {
 } from "../contribution-operations/permissions";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks/store";
 
+// GUIDs, like the single-action endpoint: seeded ids such as
+// 80000000-0000-0000-0000-000000000001 carry no RFC 4122 version.
 const batchRecordSchema = z.object({
-  id: z.string().uuid(),
-  stagedGiftId: z.string().uuid().nullable().optional(),
+  id: z.guid(),
+  stagedGiftId: z.guid().nullable().optional(),
   receiptStatus: z.string().nullable().optional(),
   payload: z.record(z.string(), z.unknown()).optional().default({}),
 });
@@ -190,10 +197,41 @@ export const POST = withOperation(
         });
       }
 
+      // A retry of a request whose response was lost carries the same token,
+      // so it gets the batch it already created instead of a second one.
+      const tokenBatchId = contributionBatchIdFromToken(body.confirmationToken);
+      const replayInput = tokenBatchId
+        ? {
+            supabaseAdmin,
+            tenantId: auth.tenantId,
+            batchId: tokenBatchId,
+            actorProfileId: auth.profileId,
+            actionType: body.actionType,
+            recordIds: body.records.map((record) => record.id),
+          }
+        : null;
+      const replayOrConflict = async () => {
+        const replayed = replayInput
+          ? await replayContributionBatch(replayInput)
+          : null;
+        if (!replayed) {
+          throw new ApiHttpError(
+            409,
+            "This confirmation was already used. Close the dialog and start again.",
+          );
+        }
+        return NextResponse.json({ ...replayed, requestId });
+      };
+      if (replayInput) {
+        const replayed = await replayContributionBatch(replayInput);
+        if (replayed) return NextResponse.json({ ...replayed, requestId });
+      }
+
       if (executionMode === "background") {
         const { data, error } = await supabaseAdmin
           .from("contribution_operation_batches")
           .insert({
+            ...(tokenBatchId ? { id: tokenBatchId } : {}),
             tenant_id: auth.tenantId,
             operation: body.actionType,
             risk_level: bulkPolicy.riskLevel,
@@ -214,6 +252,8 @@ export const POST = withOperation(
           })
           .select("id")
           .single();
+        // A concurrent duplicate of this request created the batch first.
+        if (isUniqueViolation(error)) return replayOrConflict();
         if (error) throw new Error(error.message);
         const batchId = (data as { id?: string } | null)?.id ?? null;
 
@@ -269,57 +309,123 @@ export const POST = withOperation(
         });
       }
 
+      // Immediate batches keep a row too when the token names one, so a
+      // retried request returns this outcome instead of sending again.
+      if (tokenBatchId) {
+        const { error } = await supabaseAdmin
+          .from("contribution_operation_batches")
+          .insert({
+            id: tokenBatchId,
+            tenant_id: auth.tenantId,
+            operation: body.actionType,
+            risk_level: bulkPolicy.riskLevel,
+            source_surface: "bulk_action",
+            status: "running",
+            execution_mode: "immediate",
+            total_count: body.records.length,
+            reason: body.reason ?? null,
+            selection_snapshot: {
+              records: body.records,
+            },
+            preview_snapshot: body.previewSnapshot ?? {},
+            confirmation_snapshot: {
+              confirmationToken: body.confirmationToken,
+            },
+            created_by_profile_id: auth.profileId,
+            started_at: new Date().toISOString(),
+          });
+        if (isUniqueViolation(error)) return replayOrConflict();
+        if (error) throw new Error(error.message);
+      }
+
       const contributionActionDependencies =
         createContributionActionDependencies(supabaseAdmin);
-      const batch = await processContributionBatch({
-        tenantId: auth.tenantId,
-        actorProfileId: auth.profileId,
-        actionType: body.actionType,
-        sourceSurface: "bulk_action",
-        reason: body.reason ?? null,
-        confirmationToken: body.confirmationToken,
-        actorPermissions: [...actorPermissions],
-        actorCapabilities,
-        records: body.records.map((record) => ({
-          id: record.id,
-          receiptStatus: record.receiptStatus,
-          stagedGiftId: record.stagedGiftId ?? null,
-          payload: record.payload ?? {},
-        })),
-        executeContributionAction: (actionInput) => {
-          const { actionType, payload, ...rest } = actionInput;
-          return executeContributionAction({
-            ...rest,
-            command: parseContributionCommand(actionType, payload),
-            actorPermissions: actionInput.actorPermissions ?? [],
-            actorCapabilities: actionInput.actorCapabilities,
-            confirmationToken: body.confirmationToken,
-            reason: body.reason ?? actionInput.reason,
-            dependencies: contributionActionDependencies,
-          });
-        },
-        createFollowUpTask: async ({ contributionId, reason }) => {
-          const result = await createMissionControlTaskInSupabase({
+      let batch: Awaited<ReturnType<typeof processContributionBatch>>;
+      try {
+        batch = await processContributionBatch({
+          tenantId: auth.tenantId,
+          actorProfileId: auth.profileId,
+          actionType: body.actionType,
+          sourceSurface: "bulk_action",
+          reason: body.reason ?? null,
+          confirmationToken: body.confirmationToken,
+          actorPermissions: [...actorPermissions],
+          actorCapabilities,
+          records: body.records.map((record) => ({
+            id: record.id,
+            receiptStatus: record.receiptStatus,
+            stagedGiftId: record.stagedGiftId ?? null,
+            payload: record.payload ?? {},
+          })),
+          executeContributionAction: (actionInput) => {
+            const { actionType, payload, ...rest } = actionInput;
+            return executeContributionAction({
+              ...rest,
+              command: parseContributionCommand(actionType, payload),
+              actorPermissions: actionInput.actorPermissions ?? [],
+              actorCapabilities: actionInput.actorCapabilities,
+              confirmationToken: body.confirmationToken,
+              reason: body.reason ?? actionInput.reason,
+              dependencies: contributionActionDependencies,
+            });
+          },
+          createFollowUpTask: async ({ contributionId, reason }) => {
+            const result = await createMissionControlTaskInSupabase({
+              supabaseAdmin,
+              tenantId: auth.tenantId,
+              title: "Resolve bulk contribution action failure",
+              description: reason,
+              issueType:
+                body.actionType === "resend_receipt"
+                  ? "receipt_failed"
+                  : "provider_failed",
+              actorProfileId: auth.profileId,
+              linkedRecords: [
+                {
+                  type: "contribution",
+                  id: contributionId,
+                },
+              ],
+            });
+
+            return result.taskId;
+          },
+        });
+      } catch (processError) {
+        // Never leave the row running: a retry would wait on it forever.
+        if (tokenBatchId) {
+          await markContributionBatchFailed({
             supabaseAdmin,
             tenantId: auth.tenantId,
-            title: "Resolve bulk contribution action failure",
-            description: reason,
-            issueType:
-              body.actionType === "resend_receipt"
-                ? "receipt_failed"
-                : "provider_failed",
-            actorProfileId: auth.profileId,
-            linkedRecords: [
-              {
-                type: "contribution",
-                id: contributionId,
-              },
-            ],
+            batchId: tokenBatchId,
           });
+        }
+        throw processError;
+      }
 
-          return result.taskId;
-        },
-      });
+      if (tokenBatchId) {
+        // The receipts are already sent: a failed record of the outcome is
+        // logged, not returned as a failure the client would retry.
+        const { error } = await supabaseAdmin
+          .from("contribution_operation_batches")
+          .update({
+            status: batch.status,
+            processed_count: batch.summary.processed,
+            succeeded_count: batch.summary.succeeded,
+            skipped_count: batch.summary.skipped,
+            failed_count: batch.summary.failed,
+            follow_up_task_count: batch.summary.followUpTasksCreated,
+            finished_at: new Date().toISOString(),
+          })
+          .eq("tenant_id", auth.tenantId)
+          .eq("id", tokenBatchId);
+        if (error) {
+          console.error(
+            "[contribution-batches] Could not record immediate batch outcome",
+            { batchId: tokenBatchId, error: error.message },
+          );
+        }
+      }
 
       return NextResponse.json({ batch, requestId });
     } catch (error) {

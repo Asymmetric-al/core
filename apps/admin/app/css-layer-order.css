@@ -1,0 +1,11 @@
+/* Cascade layer order for the whole admin app. It must load before
+ * globals.css: the first statement naming a layer fixes its precedence.
+ *
+ * Web Studio loads Payload's stylesheets, which ship their own preflight
+ * (margin/padding/border reset, inherited heading sizes) in
+ * `payload-default`. Declared after Tailwind's layers, that preflight outranks
+ * every Tailwind utility on Web Studio routes. Placing Payload's layers after
+ * Tailwind's base (so Payload's component styles still beat Tailwind's reset)
+ * and before components/utilities keeps Mission Control utilities in charge
+ * of Mission Control markup. Routes without Payload never fill these layers. */
+@layer properties, theme, base, payload-default, payload, components, utilities;

@@ -50,12 +50,7 @@ export {
   taskStaffCollection,
   taskLinkedEntitiesCollection,
   adminTasksCollection,
-  carePersonnelCollection,
-  careActivityCollection,
   eventAttendeesCollection,
-  mobilizeCandidatesCollection,
-  teamsCollection,
-  teamMembersCollection,
 } from "./admin-workspace";
 export { adminLocationsCollection } from "./admin-locations";
 export { donorHistoryTransactionsCollection } from "./donor-history";
@@ -114,12 +109,7 @@ export type {
   AdminTask,
   AdminTaskStaffMember,
   AdminTaskLinkedEntity,
-  AdminCarePersonnel,
-  AdminCareActivity,
   AdminEventAttendee,
-  AdminMobilizeCandidate,
-  AdminTeam,
-  AdminTeamMember,
 } from "./admin-workspace";
 export type {
   AdminLocation,

@@ -15,4 +15,15 @@ describe("lib/utils", () => {
     expect(getInitials("John Doe")).toBe("JD");
     expect(getInitials("Jane")).toBe("J");
   });
+
+  it("keeps initials to the first and last name", () => {
+    expect(getInitials("Mary Ann Elizabeth Smith")).toBe("MS");
+    expect(getInitials("  ada   lovelace  ")).toBe("AL");
+    expect(getInitials("Jean-Luc	Picard")).toBe("JP");
+  });
+
+  it("returns an empty string for a blank name", () => {
+    expect(getInitials("")).toBe("");
+    expect(getInitials("   ")).toBe("");
+  });
 });

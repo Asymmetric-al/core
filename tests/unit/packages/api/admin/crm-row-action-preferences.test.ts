@@ -97,7 +97,8 @@ describe("admin/crm/table-preferences/row-action", () => {
 
     expect(resolved.actionType).toBe("resend_receipt");
     expect(resolved.source).toBe("system");
-    expect(resolved.explanation).toMatch(/tenant default/i);
+    expect(resolved.explanation).toMatch(/organization default/i);
+    expect(resolved.explanation).not.toMatch(/tenant/i);
     expect(resolved.explanation).toMatch(/already fully refunded/i);
   });
 

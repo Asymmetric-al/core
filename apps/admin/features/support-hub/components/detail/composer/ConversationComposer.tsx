@@ -1,5 +1,6 @@
 "use client";
 
+import { useEditorContext } from "@asym/ui/components/shadcn/rich-text-editor";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import { Mail, StickyNote } from "lucide-react";
@@ -19,9 +20,7 @@ import {
 } from "./use-conversation-composer";
 import { useSupportAgents } from "../../../hooks/use-support-agents";
 import { useSupportCannedResponses } from "../../../hooks/use-support-canned-responses";
-import { logSupportActivity } from "../../../lib/activity-log";
 import { buildMergeVariableContext } from "../../../lib/merge-variables";
-import { toSupportParticipant } from "../../../lib/participants";
 import { MacroLauncher } from "../../macros/MacroLauncher";
 
 import type { SupportAssignee, SupportConversation } from "../../../types";
@@ -30,10 +29,9 @@ import type { Extensions } from "@asym/ui/components/shadcn/rich-text-editor";
 interface ConversationComposerProps {
   conversation: SupportConversation;
   agent?: SupportAssignee | null;
-  /**
-   * Phase 5 mounts macro launchers, canned-response palette triggers, slash
-   * menu triggers, etc. into these slots.
-   */
+  /** Reply or internal note when the composer first opens. */
+  initialMode?: ComposerMode;
+  active?: boolean;
   slots?: {
     beforeToolbar?: React.ReactNode;
     afterToolbar?: React.ReactNode;
@@ -41,132 +39,126 @@ interface ConversationComposerProps {
   };
 }
 
-/**
- * Reply / Private note composer. Renders the same Tiptap stack twice with
- * mode-specific tone, so an agent never confuses a public donor reply with
- * an internal collaboration note.
- */
+function createSuggestionContext<Context>(initialContext: Context) {
+  let currentContext = initialContext;
+  return {
+    read: () => currentContext,
+    update: (nextContext: Context) => {
+      currentContext = nextContext;
+    },
+  };
+}
+
 export function ConversationComposer({
   conversation,
   agent = null,
+  initialMode,
+  active = true,
   slots,
 }: ConversationComposerProps) {
   const composer = useConversationComposer({
     conversationId: conversation.id,
     agent,
+    initialMode,
   });
-  const containerRef = useComposerHotkeys({ onPrimaryAction: composer.send });
+  const containerRef = useComposerHotkeys({
+    onPrimaryAction: composer.send,
+    disabled: composer.isPending,
+  });
 
   const { data: cannedResponses } = useSupportCannedResponses();
   const { data: agents } = useSupportAgents();
   const mergeContext = React.useMemo(
-    () => buildMergeVariableContext(conversation, agent),
-    [conversation, agent],
+    () => buildMergeVariableContext(conversation, composer.agent),
+    [conversation, composer.agent],
   );
 
-  const handleMentionInsert = React.useCallback(
-    (mentionedAgent: SupportAssignee) => {
-      const actor = agent ? toSupportParticipant(agent) : null;
-      void logSupportActivity({
-        conversation,
-        actor,
-        verb: "mention",
-        body: `${actor?.name ?? "Someone"} mentioned ${mentionedAgent.name} in a private note.`,
-      });
-    },
-    [agent, conversation],
+  const [suggestionContext] = React.useState(() =>
+    createSuggestionContext({
+      mode: composer.mode,
+      agents,
+      cannedResponses,
+      mergeContext,
+    }),
   );
-
-  const extraExtensions = React.useMemo<Extensions>(() => {
-    if (composer.mode === "reply") {
-      return [
-        CannedResponseSuggestionExtension.configure({
-          cannedResponses,
-          mergeContext,
-        }),
-      ];
-    }
-    return [
-      buildMentionExtension({
-        agents,
-        onMention: handleMentionInsert,
+  React.useLayoutEffect(() => {
+    suggestionContext.update({
+      mode: composer.mode,
+      agents,
+      cannedResponses,
+      mergeContext,
+    });
+  }, [composer.mode, agents, cannedResponses, mergeContext, suggestionContext]);
+  const extraExtensions = React.useMemo<Extensions>(
+    () => [
+      CannedResponseSuggestionExtension.configure({
+        getContext: suggestionContext.read,
+        isEnabled: () => suggestionContext.read().mode === "reply",
       }),
-    ];
-  }, [
-    agents,
-    cannedResponses,
-    composer.mode,
-    handleMentionInsert,
-    mergeContext,
-  ]);
+      buildMentionExtension({
+        getAgents: () => suggestionContext.read().agents,
+        isEnabled: () => suggestionContext.read().mode === "note",
+      }),
+    ],
+    [suggestionContext],
+  );
 
-  const handleComposerSetMode = composer.setMode;
-  const handleComposerSetValue = composer.setValue;
-  const handleComposerAddAttachment = composer.addAttachment;
-  const handleComposerRemoveAttachment = composer.removeAttachment;
-  const handleComposerSetAppendSignature = composer.setAppendSignature;
-  const handleComposerSend = composer.send;
-  const handleComposerSaveDraft = composer.saveDraft;
   return (
     <div
       ref={containerRef}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm",
+        "flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm",
         composer.mode === "note" && "border-warning/30 bg-warning/5",
       )}
       aria-label="Conversation composer"
     >
       <ComposerTabs
         mode={composer.mode}
-        onModeChange={handleComposerSetMode}
+        onModeChange={composer.setMode}
+        disabled={composer.isPending}
         donorName={
           conversation.externalContactName ?? conversation.externalContactEmail
         }
       />
 
       <SupportTipTapEditor
+        key={composer.mode}
+        active={active}
         value={composer.value}
-        onChange={handleComposerSetValue}
+        onChange={composer.setValue}
         disabled={composer.isPending}
         tone={composer.mode}
         extraExtensions={extraExtensions}
         placeholder={
           composer.mode === "reply"
-            ? "Write a reply to the donor... type / for canned responses"
-            : "Leave an internal note for the team... type @ to mention an agent"
+            ? "Write a reply… Type / for a canned response."
+            : "Write an internal note… Type @ to mention a teammate."
         }
         beforeToolbar={slots?.beforeToolbar}
-        afterToolbar={
-          slots?.afterToolbar ?? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">
-                {composer.mode === "reply"
-                  ? "Type / for a canned response."
-                  : "Type @ to mention a teammate."}
-              </p>
-              <MacroLauncher
-                conversation={conversation}
-                onCannedResponseInsert={({ html, text }) => {
-                  composer.setValue(htmlToTiptapJson(html, text));
-                }}
-              />
-            </div>
-          )
-        }
+        afterToolbar={slots?.afterToolbar}
         footer={
           <div className="flex flex-col gap-2 border-t border-border px-3 py-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <AttachmentChips
-                attachments={composer.attachments}
-                onAdd={handleComposerAddAttachment}
-                onRemove={handleComposerRemoveAttachment}
-                disabled={composer.isPending}
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                {composer.mode === "reply" ? (
+                  <AttachmentChips
+                    attachments={composer.attachments}
+                    onAdd={composer.addAttachment}
+                    onRemove={composer.removeAttachment}
+                    disabled={composer.isPending}
+                  />
+                ) : null}
+                <ComposerMacros
+                  conversation={conversation}
+                  disabled={composer.isPending}
+                />
+              </div>
               {composer.mode === "reply" ? (
                 <SignatureChip
                   agent={composer.agent}
                   enabled={composer.appendSignature}
-                  onChange={handleComposerSetAppendSignature}
+                  onChange={composer.setAppendSignature}
+                  disabled={composer.isPending}
                 />
               ) : null}
             </div>
@@ -179,8 +171,8 @@ export function ConversationComposer({
         isPending={composer.isPending}
         pendingAction={composer.pendingAction}
         isDirty={composer.isDirty}
-        onSend={handleComposerSend}
-        onSaveDraft={handleComposerSaveDraft}
+        onSend={composer.send}
+        onSaveDraft={composer.saveDraft}
         beforeSend={
           slots?.beforeSend ? (
             <QuickActionsSlot>{slots.beforeSend}</QuickActionsSlot>
@@ -195,43 +187,56 @@ interface ComposerTabsProps {
   mode: ComposerMode;
   onModeChange: (mode: ComposerMode) => void;
   donorName: string;
+  disabled: boolean;
 }
 
-/**
- * Converts a canned-response HTML body into a Tiptap-shaped document JSON
- * string. We keep the shape minimal — `EditorRoot.parseContent` will hydrate
- * the body when the editor mounts. Falls back to a plain paragraph wrapper
- * when HTML is empty.
- */
-function htmlToTiptapJson(html: string, text: string): string {
-  const safeHtml =
-    html && html.length > 0 ? html : `<p>${escapeHtml(text)}</p>`;
-  // EditorRoot already accepts raw HTML strings via `parseContent`, so we
-  // pass the HTML through unchanged. The `setValue` contract serializes the
-  // editor doc to JSON on next change, so subsequent edits behave normally.
-  return safeHtml;
+function ComposerMacros({
+  conversation,
+  disabled,
+}: {
+  conversation: SupportConversation;
+  disabled: boolean;
+}) {
+  const { editor } = useEditorContext();
+  return (
+    <MacroLauncher
+      compact
+      conversation={conversation}
+      disabled={disabled || !editor}
+      onCannedResponseInsert={({ html, text }) => {
+        if (!editor?.isEditable) return;
+        const content =
+          html ||
+          text.split("\n").map((line) => ({
+            type: "paragraph",
+            content: line ? [{ type: "text", text: line }] : [],
+          }));
+        editor.chain().focus().insertContent(content).run();
+      }}
+    />
+  );
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function ComposerTabs({ mode, onModeChange, donorName }: ComposerTabsProps) {
+function ComposerTabs({
+  mode,
+  onModeChange,
+  donorName,
+  disabled,
+}: ComposerTabsProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
       <Tabs
         value={mode}
-        onValueChange={(next) => onModeChange(next as ComposerMode)}
+        onValueChange={(next) => {
+          if (next === "reply" || next === "note") onModeChange(next);
+        }}
       >
         <TabsList aria-label="Message type">
-          <TabsTrigger value="reply">
+          <TabsTrigger value="reply" disabled={disabled}>
             <Mail aria-hidden="true" />
             Reply
           </TabsTrigger>
-          <TabsTrigger value="note">
+          <TabsTrigger value="note" disabled={disabled}>
             <StickyNote aria-hidden="true" />
             Internal note
           </TabsTrigger>

@@ -16,10 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
-import { Check, UserCheck, UserMinus, UserRound } from "lucide-react";
+import { Check, UserCheck, UserMinus, UserRound, Shuffle } from "lucide-react";
+import { toast } from "sonner";
 
 import { useSupportAgents } from "../../hooks/use-support-agents";
-import { useAssignSupportConversation } from "../../hooks/use-support-mutations";
+import {
+  useApplyRoundRobinAssignment,
+  useAssignSupportConversation,
+} from "../../hooks/use-support-mutations";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
 
 import type { SupportConversation } from "../../types";
@@ -34,6 +38,18 @@ export function ConversationAssigneeMenu({
   const { data: agents } = useSupportAgents();
   const currentAgentId = useCurrentSupportAgentId();
   const assign = useAssignSupportConversation();
+  const roundRobin = useApplyRoundRobinAssignment();
+  const handleRoundRobin = async () => {
+    try {
+      const next = await roundRobin.mutateAsync({
+        conversationId: conversation.id,
+        authorAgentId: currentAgentId ?? undefined,
+      });
+      if (!next) toast.info("No other agent is available.");
+    } catch {
+      toast.error("Couldn’t assign the conversation. Try again.");
+    }
+  };
 
   const assignee = conversation.assignee;
 
@@ -98,6 +114,13 @@ export function ConversationAssigneeMenu({
             Unassign
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={roundRobin.isPending}
+            onClick={() => void handleRoundRobin()}
+          >
+            <Shuffle className="size-3.5 text-muted-foreground" />
+            Round-robin assign
+          </DropdownMenuItem>
           {agents.map((agent) => {
             const isActive = assignee?.id === agent.id;
             return (

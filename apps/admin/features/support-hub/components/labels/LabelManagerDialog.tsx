@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { LabelForm } from "./LabelForm";
 import { useSupportLabels } from "../../hooks/use-support-labels";
 import { useDeleteSupportLabel } from "../../hooks/use-support-mutations";
+import { useConfirm } from "../workspace/confirm-provider";
 
 import type { SupportLabel, SupportLabelTone } from "../../types";
 
@@ -62,22 +63,26 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
     null,
   );
 
+  const confirm = useConfirm();
   const handleDelete = async (label: SupportLabel) => {
-    if (
-      !window.confirm(
-        `Remove the "${label.name}" label? It will be stripped from every conversation that still has it.`,
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteLabel.mutateAsync({ id: label.id });
-      toast.success("Label deleted.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not delete the label.",
-      );
-    }
+    await confirm({
+      title: `Delete the ${label.name} label?`,
+      description: "It is removed from every conversation that still has it.",
+      confirmLabel: "Delete label",
+      action: async () => {
+        try {
+          await deleteLabel.mutateAsync({ id: label.id });
+          toast.success("Label deleted.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Could not delete the label.",
+          );
+          throw error;
+        }
+      },
+    });
   };
 
   const editingLabel = editing && editing !== "new" ? editing : null;
@@ -155,6 +160,7 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
 
         {isFormOpen ? (
           <LabelForm
+            key={editingLabel?.id ?? "new-label"}
             label={editingLabel}
             onSaved={() => setEditing(null)}
             onCancel={() => setEditing(null)}

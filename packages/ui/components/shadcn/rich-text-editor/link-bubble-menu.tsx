@@ -49,7 +49,7 @@ export function LinkBubbleMenu() {
   const handleSave = () => {
     const parsed = getUrlFromString(url);
     if (!parsed) {
-      toast.error("Please enter a valid URL");
+      toast.error("Enter a web address, like https://example.org");
       inputRef.current?.focus();
       return;
     }
@@ -154,7 +154,7 @@ function PreviewView({
         onClick={onEdit}
         className="size-6 text-muted-foreground hover:text-foreground"
       >
-        <Pencil className="size-3" />
+        <Pencil className="size-3.5" />
       </Button>
       <Button
         aria-label="Remove link"
@@ -163,7 +163,7 @@ function PreviewView({
         onClick={onRemove}
         className="size-6 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
       >
-        <Trash2 className="size-3" />
+        <Trash2 className="size-3.5" />
       </Button>
     </>
   );

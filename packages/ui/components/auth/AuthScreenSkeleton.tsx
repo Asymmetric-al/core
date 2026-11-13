@@ -4,16 +4,14 @@ import { Skeleton } from "../shadcn/skeleton";
  * Shared loading shell for the auth screens.
  *
  * One component so `/login` and `/register` cannot drift: they render the same
- * wrapper (`LoginScreen.tsx:169`, `RegisterScreen.tsx:116`), so their fallbacks
- * must too. The outer classes mirror that wrapper exactly — the previous
- * login-only skeleton used `min-h-[50vh] … p-6` against a real `min-h-screen …
- * bg-muted px-4 py-8`, so the page jumped and changed colour when the real
- * screen resolved.
+ * wrapper (`AuthShell` in `auth-primitives.tsx`), so their fallbacks must too.
+ * The outer classes mirror that wrapper exactly, so the page neither jumps
+ * nor changes colour when the real screen resolves.
  */
 export function AuthScreenSkeleton({ label }: { label: string }) {
   return (
     <main
-      className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-muted px-4 py-8"
+      className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8"
       aria-busy="true"
     >
       {/*

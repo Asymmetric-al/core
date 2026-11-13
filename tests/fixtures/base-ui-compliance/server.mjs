@@ -82,6 +82,16 @@ await build({
         const usesAnalytics = workspaceFile?.endsWith(
           "/missionary/app/analytics/page-client.tsx",
         );
+        if (
+          source === "@asym/lib/hooks" &&
+          workspaceFile?.endsWith("/donor/components/donor-portal-header.tsx")
+        )
+          return resolve(fixtureDirectory, "donor-auth-stub.ts");
+        if (
+          source === "@asym/database/hooks" &&
+          workspaceFile?.endsWith("/donor/components/donor-portal-header.tsx")
+        )
+          return resolve(fixtureDirectory, "donor-portal-stub.ts");
         if (source === "@asym/lib/hooks" && usesAnalytics)
           return resolve(fixtureDirectory, "analytics-metrics-stub.ts");
         if (source === "next/dynamic" && usesAnalytics)
@@ -117,18 +127,18 @@ await build({
             { skipSelf: true },
           );
         const usesWorkspaceSession =
-          workspaceFile?.endsWith("/donor/components/DonorSubNav.tsx") ||
-          workspaceFile?.endsWith("/missionary/components/app-header.tsx");
+          workspaceFile?.endsWith(
+            "/donor/components/donor-portal-header.tsx",
+          ) || workspaceFile?.endsWith("/missionary/components/app-header.tsx");
         if (source === "@asym/auth/client-session" && usesWorkspaceSession)
           return resolve(fixtureDirectory, "workspace-session-stub.ts");
         if (
           source === "next/navigation" &&
-          (workspaceFile?.endsWith("/donor/components/DonorSubNav.tsx") ||
+          (workspaceFile?.endsWith(
+            "/donor/components/donor-portal-header.tsx",
+          ) ||
             usesMissionaryLayout ||
             workspaceFile?.endsWith("/missionary/components/app-sidebar.tsx") ||
-            workspaceFile?.endsWith(
-              "/missionary/components/dashboard-footer.tsx",
-            ) ||
             workspaceFile?.endsWith(
               "/missionary/components/navigation-search.tsx",
             ))

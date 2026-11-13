@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   InputGroup,
   InputGroupAddon,
@@ -41,16 +42,19 @@ export function InboxToolbar() {
   }, [searchDraft, setState, state.q]);
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="w-full max-w-md">
-        <InputGroup>
+    // One wrapping row: search grows, filters keep together on the right.
+    // On phones search shares its row with the layout toggle and the three
+    // filters take the next row, so the board starts two rows sooner.
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="min-w-0 flex-1 sm:min-w-64 sm:max-w-md">
+        <InputGroup className="w-full">
           <InputGroupAddon>
             <Search aria-hidden="true" />
           </InputGroupAddon>
           <InputGroupInput
             value={searchDraft}
             onChange={(event) => setSearchDraft(event.target.value)}
-            placeholder="Search by donor, subject, or email..."
+            placeholder="Donor, subject or email…"
             aria-label="Search conversations"
           />
           {searchDraft.length > 0 ? (
@@ -69,24 +73,45 @@ export function InboxToolbar() {
         </InputGroup>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusFilter
-          value={state.status}
-          onValueChange={(next) => setState({ status: next })}
-        />
+      <div className="order-last flex w-full items-center gap-2 sm:order-none sm:w-auto sm:flex-wrap lg:ml-auto">
+        {/* On phones Status and Assignee share what Labels leaves. */}
+        <div className="min-w-0 flex-1 sm:flex-none">
+          <StatusFilter
+            value={state.status}
+            onValueChange={(next) => setState({ status: next })}
+          />
+        </div>
         <LabelFilter
           value={state.labelSlugs}
           onValueChange={(next) => setState({ labelSlugs: next })}
         />
-        <AssigneeFilter
-          value={state.assignee}
-          onValueChange={(next) => setState({ assignee: next })}
-        />
-        <LayoutToggle
-          value={state.layout}
-          onValueChange={(next) => setState({ layout: next })}
-        />
+        <div className="min-w-0 flex-1 sm:flex-none">
+          <AssigneeFilter
+            value={state.assignee}
+            onValueChange={(next) => setState({ assignee: next })}
+          />
+        </div>
       </div>
+      {(searchDraft ||
+        state.status !== "all" ||
+        state.labelSlugs.length > 0 ||
+        state.assignee) && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setSearchDraft("");
+            setState({ q: "", status: "all", labelSlugs: [], assignee: "" });
+          }}
+        >
+          Reset filters
+        </Button>
+      )}
+      <LayoutToggle
+        value={state.layout}
+        onValueChange={(next) => setState({ layout: next })}
+      />
     </div>
   );
 }

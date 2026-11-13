@@ -1,29 +1,55 @@
 "use client";
 
 import { readJsonBody } from "@asym/lib/http/fetch-result";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
-import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Spinner } from "@asym/ui/components/shadcn/spinner";
-import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 import { z } from "zod";
 
+import { slugFromTitle } from "./slug";
+import {
+  StudioFieldError,
+  StudioFlowFieldNote,
+  StudioFlowFrame,
+  StudioRequiredLabel,
+  describedBy,
+  studioFieldErrorId,
+  useStudioFieldErrors,
+} from "./studio-flow-frame";
+import { StudioFlowLoading } from "./studio-flow-loading";
+import {
+  StudioTemplateField,
+  canChooseTemplate,
+  soleTemplateId,
+  useStudioTemplates,
+} from "./studio-templates";
 import { buildTenantsQuery, isSuperAdminUser } from "./tenant-options";
 import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
-import { Link, useRouter, useSearchParams } from "../routing";
-import { StudioFlowLoading } from "./studio-flow-loading";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
-import { StudioLayout } from "../shell/studio-layout";
+import { normalizeWebAddressSegment } from "../../../cms/web-address";
+import { WEB_STUDIO_COLLECTION_CONFIGS } from "../collections/config";
+import { useRouter, useSearchParams } from "../routing";
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required"),
+  title: z.string().min(1, "Enter a title."),
+  slug: z.string().min(1, "Enter a URL slug."),
 });
+
+/** Field ids in screen order: the first invalid one takes focus. */
+const FIELD_IDS = {
+  template: "page-template",
+  tenantId: "page-tenant",
+  title: "title",
+  slug: "slug",
+} as const;
 
 export function StandardPageFromTemplateView() {
   return (
@@ -38,10 +64,18 @@ function StandardPageFromTemplateViewContent() {
   const { get: readSearchParam } = searchParams;
   const get = readSearchParam.bind(searchParams);
   const { push } = useRouter();
-  const templateId = get("template") ?? "";
+  const templateParam = get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [chosenTemplateId, setChosenTemplateId] = useState("");
+  const [slugEdited, setSlugEdited] = useState(false);
+  const fieldErrors = useStudioFieldErrors(FIELD_IDS);
   const { user } = useAuth();
   const isSuperAdmin = isSuperAdminUser(user);
+  const templates = useStudioTemplates();
+  const templateId =
+    templateParam ||
+    chosenTemplateId ||
+    soleTemplateId(templates.data, "standard");
 
   const {
     config: { routes, serverURL },
@@ -75,24 +109,19 @@ function StandardPageFromTemplateViewContent() {
       tenantId: "",
     },
     onSubmit: async ({ value }) => {
+      if (!canChooseTemplate(templateId, templates.data, "standard", templates))
+        return;
       setSubmitError(null);
       const parsed = formSchema.safeParse(value);
-      if (!parsed.success) {
-        const first = parsed.error.flatten().fieldErrors;
-        const msg = Object.values(first).flat()[0];
-        setSubmitError(typeof msg === "string" ? msg : "Validation failed");
-        return;
-      }
-
-      if (!templateId) {
-        setSubmitError(
-          "Missing template. Open this screen from the template gallery.",
-        );
-        return;
-      }
-
-      if (isSuperAdmin && !value.tenantId) {
-        setSubmitError(TENANT_REQUIRED_MESSAGE);
+      const issues = parsed.success ? {} : parsed.error.flatten().fieldErrors;
+      const valid = fieldErrors.report({
+        template: templateId ? undefined : "Choose a template to start from.",
+        tenantId:
+          isSuperAdmin && !value.tenantId ? TENANT_REQUIRED_MESSAGE : undefined,
+        title: issues.title?.[0],
+        slug: issues.slug?.[0],
+      });
+      if (!valid || !parsed.success) {
         return;
       }
 
@@ -122,10 +151,13 @@ function StandardPageFromTemplateViewContent() {
         id?: string;
         collectionSlug?: string;
         error?: string;
+        fieldErrors?: { slug?: string[] };
         existingId?: string;
       }>(res);
 
       if (!ok) {
+        if (body?.fieldErrors?.slug?.[0])
+          fieldErrors.report({ slug: body.fieldErrors.slug[0] });
         setSubmitError(body?.error ?? "Create failed");
         return;
       }
@@ -139,112 +171,138 @@ function StandardPageFromTemplateViewContent() {
       }
     },
   });
+  const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
 
   return (
-    <StudioLayout
-      className="min-h-dvh"
-      sectionLabel="Pages"
-      currentLabel="New from template"
+    <StudioFlowFrame
+      sectionLabel={WEB_STUDIO_COLLECTION_CONFIGS["pages"].sectionLabel}
+      currentLabel="New page"
+      title="New page"
+      description="Start a draft page from a template's layout."
+      cancelHref="/web-studio/collections/pages"
+      error={submitError}
+      isSubmitting={isSubmitting}
+      canSubmit={canChooseTemplate(
+        templateId,
+        templates.data,
+        "standard",
+        templates,
+      )}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (form.state.isSubmitting) {
+          return;
+        }
+        void form.handleSubmit();
+      }}
     >
-      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">
-          Create standard page
-        </h1>
-        <p className="mt-2 text-muted-foreground text-sm">
-          Draft is created with the template&apos;s default layout blocks. You
-          can edit all fields after save opens the document workspace.
-        </p>
-        {!templateId ? (
-          <p className="mt-4 text-destructive text-sm">
-            No template selected. Go to{" "}
-            <Link
-              href="/web-studio/templates"
-              className={cn(buttonVariants({ variant: "link" }), "h-auto p-0")}
+      <StudioTemplateField
+        id={FIELD_IDS.template}
+        pageType="standard"
+        preselectedTemplateId={templateParam}
+        value={templateId}
+        onValueChange={(id) => {
+          setChosenTemplateId(id);
+          fieldErrors.clear("template");
+        }}
+        galleryHref="/web-studio/templates?pageType=standard"
+        error={fieldErrors.errors.template}
+      />
+      {isSuperAdmin ? (
+        <form.Field name="tenantId">
+          {(field) => (
+            <TenantSelectField
+              id={FIELD_IDS.tenantId}
+              label="Organization"
+              field={field}
+              options={tenants ?? []}
+              disabled={tenantsIsPending || tenantsIsError}
+              placeholder="Choose an organization"
+              error={fieldErrors.errors.tenantId}
+              onChange={() => fieldErrors.clear("tenantId")}
             >
-              Templates
-            </Link>
-            .
-          </p>
-        ) : null}
-
-        <form
-          className="mt-8 flex flex-col gap-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (form.state.isSubmitting) {
-              return;
-            }
-            void form.handleSubmit();
-          }}
-        >
-          {isSuperAdmin ? (
-            <form.Field name="tenantId">
-              {(field) => (
-                <TenantSelectField
-                  label="Tenant"
-                  field={field}
-                  options={tenants ?? []}
-                  disabled={tenantsIsPending || tenantsIsError}
-                  placeholder="Select tenant"
-                />
+              {tenantsIsError ? (
+                <StudioFlowFieldNote tone="error">
+                  {(tenantsError as Error).message}
+                </StudioFlowFieldNote>
+              ) : null}
+            </TenantSelectField>
+          )}
+        </form.Field>
+      ) : null}
+      <form.Field name="title">
+        {(field) => (
+          <Field data-invalid={fieldErrors.errors.title ? true : undefined}>
+            <FieldLabel htmlFor={FIELD_IDS.title}>
+              <StudioRequiredLabel>Title</StudioRequiredLabel>
+            </FieldLabel>
+            <Input
+              id={FIELD_IDS.title}
+              required
+              aria-invalid={fieldErrors.errors.title ? true : undefined}
+              aria-describedby={describedBy(
+                fieldErrors.errors.title && studioFieldErrorId(FIELD_IDS.title),
               )}
-            </form.Field>
-          ) : null}
-          <form.Field name="title">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor="title">Title</FieldLabel>
-                <Input
-                  id="title"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  autoComplete="off"
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="slug">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor="slug">URL slug</FieldLabel>
-                <Input
-                  id="slug"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="about-us"
-                  autoComplete="off"
-                />
-              </Field>
-            )}
-          </form.Field>
-
-          {submitError ? (
-            <p className="text-destructive text-sm" role="alert">
-              {submitError}
-            </p>
-          ) : null}
-          {tenantsIsError ? (
-            <p className="text-destructive text-sm">
-              {(tenantsError as Error).message}
-            </p>
-          ) : null}
-
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(isSubmitting) => (
-              <Button
-                type="submit"
-                disabled={!templateId || isSubmitting}
-                aria-busy={isSubmitting || undefined}
-              >
-                {isSubmitting ? <Spinner aria-hidden="true" /> : null}
-                {isSubmitting ? "Creating draft…" : "Create draft"}
-              </Button>
-            )}
-          </form.Subscribe>
-        </form>
-      </div>
-    </StudioLayout>
+              value={field.state.value}
+              onChange={(e) => {
+                field.handleChange(e.target.value);
+                fieldErrors.clear("title");
+                if (!slugEdited) {
+                  const slug = slugFromTitle(e.target.value);
+                  form.setFieldValue("slug", slug);
+                  if (slug) fieldErrors.clear("slug");
+                }
+              }}
+              onBlur={field.handleBlur}
+              placeholder="e.g. About us"
+              autoComplete="off"
+            />
+            <StudioFieldError
+              fieldId={FIELD_IDS.title}
+              message={fieldErrors.errors.title}
+            />
+          </Field>
+        )}
+      </form.Field>
+      <form.Field name="slug">
+        {(field) => (
+          <Field data-invalid={fieldErrors.errors.slug ? true : undefined}>
+            <FieldLabel htmlFor={FIELD_IDS.slug}>
+              <StudioRequiredLabel>URL slug</StudioRequiredLabel>
+            </FieldLabel>
+            <Input
+              id={FIELD_IDS.slug}
+              required
+              aria-invalid={fieldErrors.errors.slug ? true : undefined}
+              value={field.state.value}
+              onChange={(e) => {
+                setSlugEdited(true);
+                field.handleChange(e.target.value);
+                fieldErrors.clear("slug");
+              }}
+              onBlur={field.handleBlur}
+              placeholder="e.g. about-us"
+              autoComplete="off"
+              aria-describedby={describedBy(
+                "slug-description",
+                fieldErrors.errors.slug && studioFieldErrorId(FIELD_IDS.slug),
+              )}
+            />
+            <FieldDescription id="slug-description">
+              The page address, suggested from the title.
+              {normalizeWebAddressSegment(field.state.value) ? (
+                <span className="mt-1 block break-all">
+                  Web address: /{normalizeWebAddressSegment(field.state.value)}
+                </span>
+              ) : null}
+            </FieldDescription>
+            <StudioFieldError
+              fieldId={FIELD_IDS.slug}
+              message={fieldErrors.errors.slug}
+            />
+          </Field>
+        )}
+      </form.Field>
+    </StudioFlowFrame>
   );
 }

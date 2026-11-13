@@ -21,6 +21,10 @@ import type {
   SupportAssignee,
 } from "@asym/database/collections/support-hub.schema";
 
+export type SupportAgent = SupportAssignee & {
+  userId?: string | null;
+};
+
 /**
  * Server-side adapter contract for the Donor Care Support Hub.
  *
@@ -251,6 +255,17 @@ export interface SupportHubAdapter {
     list(): Promise<SupportSavedView[]>;
     save(input: SaveSavedViewInput): Promise<SupportSavedView>;
     delete(id: string): Promise<void>;
+    /**
+     * Updates a personal view only while it still belongs to `ownerAgentId`;
+     * null when it no longer does. The ownership condition is part of the
+     * write, so a transfer after an ownership check can't be overwritten.
+     */
+    updateIfOwned(
+      input: SaveSavedViewInput & { id: string },
+      ownerAgentId: string,
+    ): Promise<SupportSavedView | null>;
+    /** Deletes a personal view only while it belongs to `ownerAgentId`. */
+    deleteIfOwned(id: string, ownerAgentId: string): Promise<boolean>;
   };
   inboxes: {
     list(): Promise<SupportInbox[]>;
@@ -261,7 +276,7 @@ export interface SupportHubAdapter {
     save(input: SaveInboxSettingsInput): Promise<SupportInboxSettings>;
   };
   agents: {
-    list(): Promise<SupportAssignee[]>;
+    list(): Promise<SupportAgent[]>;
   };
   teams: {
     list(): Promise<SupportTeam[]>;

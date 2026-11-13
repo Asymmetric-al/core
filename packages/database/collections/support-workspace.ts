@@ -40,6 +40,7 @@ export interface SupportTicket {
   summary: string;
   tags: string[];
   assignedTo?: string;
+  assignedToName?: string;
 }
 
 export interface SupportMacro {

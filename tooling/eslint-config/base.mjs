@@ -16,6 +16,7 @@ export const baseConfig = [
       "**/dist/**",
       "build/**",
       "**/build/**",
+      "**/app/(payload)/web-studio/importMap.js",
       "*.config.mjs",
       "**/*.config.mjs",
       // MapLibre 6 worker + shared ESM copied from node_modules at Next config load

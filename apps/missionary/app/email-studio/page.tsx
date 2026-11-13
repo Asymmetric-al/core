@@ -1,12 +1,6 @@
-import PageClient from "./page-client";
+import { permanentRedirect } from "next/navigation";
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Email Studio",
-  description: "Compose and send transactional email templates.",
-};
-
+// Email Studio was retired; updates are written on the Updates page.
 export default function Page() {
-  return <PageClient />;
+  permanentRedirect("/feed");
 }

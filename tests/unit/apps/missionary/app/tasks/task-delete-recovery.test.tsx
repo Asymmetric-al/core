@@ -16,6 +16,19 @@ import TasksPage from "../../../../../../apps/missionary/app/tasks/page-client";
 
 import type { Task } from "@asym/lib/hooks/use-tasks";
 
+// jsdom has no matchMedia; the page picks its first view from screen width.
+const media = vi.hoisted(() => ({ phone: false }));
+vi.stubGlobal("matchMedia", (query: string) => ({
+  matches: media.phone && query.includes("max-width"),
+  media: query,
+  onchange: null,
+  addEventListener() {},
+  removeEventListener() {},
+  addListener() {},
+  removeListener() {},
+  dispatchEvent: () => false,
+}));
+
 const tasks = vi.hoisted(() => ({
   data: [] as Task[],
   deleteTask: vi.fn(),
@@ -73,10 +86,10 @@ async function openDeleteConfirmation() {
   trigger.focus();
   fireEvent.click(trigger);
   fireEvent.click(
-    await screen.findByRole("menuitem", { name: "Delete Task", exact: true }),
+    await screen.findByRole("menuitem", { name: "Delete task", exact: true }),
   );
   const dialog = await screen.findByRole("alertdialog", {
-    name: "Delete Task",
+    name: "Delete task",
   });
   expect(dialog.textContent).toContain(task.title);
   expect(tasks.deleteTask).not.toHaveBeenCalled();
@@ -88,12 +101,12 @@ it("keeps the same task confirmation open with an error when deletion returns fa
   render(<TasksPage />);
   const { dialog } = await openDeleteConfirmation();
 
-  fireEvent.click(within(dialog).getByRole("button", { name: "Delete Task" }));
+  fireEvent.click(within(dialog).getByRole("button", { name: "Delete task" }));
 
   expect((await within(dialog).findByRole("alert")).textContent).toContain(
     "Could not delete this task",
   );
-  expect(screen.getByRole("alertdialog", { name: "Delete Task" })).toBe(dialog);
+  expect(screen.getByRole("alertdialog", { name: "Delete task" })).toBe(dialog);
   expect(tasks.deleteTask).toHaveBeenCalledOnce();
   expect(tasks.deleteTask).toHaveBeenCalledWith(task.id);
 });
@@ -112,18 +125,18 @@ it.each(["false", "rejection", "throw"])(
     const { dialog } = await openDeleteConfirmation();
 
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Delete Task" }),
+      within(dialog).getByRole("button", { name: "Delete task" }),
     );
     expect((await within(dialog).findByRole("alert")).textContent).toContain(
       "Could not delete this task",
     );
-    expect(screen.getByRole("alertdialog", { name: "Delete Task" })).toBe(
+    expect(screen.getByRole("alertdialog", { name: "Delete task" })).toBe(
       dialog,
     );
     expect(dialog.textContent).toContain(task.title);
 
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Delete Task" }),
+      within(dialog).getByRole("button", { name: "Delete task" }),
     );
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
     expect(tasks.deleteTask.mock.calls).toEqual([[task.id], [task.id]]);
@@ -143,7 +156,7 @@ it("keeps one pending deletion focused and prevents Cancel or Escape from abando
   );
   render(<TasksPage />);
   const { dialog } = await openDeleteConfirmation();
-  const confirm = within(dialog).getByRole("button", { name: "Delete Task" });
+  const confirm = within(dialog).getByRole("button", { name: "Delete task" });
   await waitFor(() =>
     expect(document.activeElement).toBe(
       within(dialog).getByRole("button", { name: "Cancel" }),
@@ -171,7 +184,7 @@ it("keeps one pending deletion focused and prevents Cancel or Escape from abando
   expect(within(dialog).queryByRole("status")).toBeNull();
   expect(
     within(dialog)
-      .getByRole("button", { name: "Delete Task" })
+      .getByRole("button", { name: "Delete task" })
       .getAttribute("aria-disabled"),
   ).not.toBe("true");
   expect(tasks.deleteTask).toHaveBeenCalledOnce();
@@ -207,7 +220,7 @@ it("closes only after successful deletion and focuses Add Task after the row is 
   );
   const view = render(<TasksPage />);
   const { dialog } = await openDeleteConfirmation();
-  fireEvent.click(within(dialog).getByRole("button", { name: "Delete Task" }));
+  fireEvent.click(within(dialog).getByRole("button", { name: "Delete task" }));
   expect(screen.getByRole("alertdialog")).toBe(dialog);
   expect(screen.getByRole("status").textContent).toContain(
     "Deleting Call partner",
@@ -225,7 +238,7 @@ it("closes only after successful deletion and focuses Add Task after the row is 
   ).toBeNull();
   await waitFor(() =>
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Add Task" }),
+      screen.getByRole("button", { name: "Add task" }),
     ),
   );
   expect(tasks.deleteTask).toHaveBeenCalledOnce();
@@ -245,7 +258,7 @@ it("recovers focus when refreshed task data removes the row from the active filt
   expect(tasks.deleteTask).not.toHaveBeenCalled();
   await waitFor(() =>
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Add Task" }),
+      screen.getByRole("button", { name: "Add task" }),
     ),
   );
 });

@@ -1,6 +1,6 @@
 /**
  * #2224 acceptance: the accepted-types, drag/drop, invalid-type and
- * large-file-copy tests in tests/e2e/upload-crop.spec.ts, run against a
+ * photo-format-copy tests in tests/e2e/upload-crop.spec.ts, run against a
  * modelled donor settings page (spec r1 §4 criteria 5, 6, 7, 9).
  *
  * Owned by Acceptance; implementers must not edit this file, the harness, or
@@ -194,14 +194,24 @@ describe("#2224 criterion 7: invalid type uses an in-memory payload and asserts 
   });
 });
 
-describe("#2224 criterion 9: the retitled large-file test checks the settings copy", () => {
-  it("passes when the copy advertises large-file auto-optimization", async () => {
+describe("#2224 criterion 9: the retitled large-file test checks useful photo format guidance", () => {
+  it("passes when the copy names every accepted photo format", async () => {
     const r = await runFresh(pick.large);
     expect(r.outcome, r.details.join("\n")).toBe("passed");
   });
 
-  it("fails when the copy no longer advertises it", async () => {
-    const r = await runFresh(pick.large, { largeFileCopy: false });
-    expect(r.outcome).toBe("failed");
-  });
+  it.each([
+    null,
+    "JPG, GIF or PNG. Large files auto-optimized.",
+    "A square JPG or PNG works best.",
+  ])(
+    "fails when useful format guidance is replaced with %s",
+    async (photoFormatCopy) => {
+      const r = await runFresh(pick.large, { photoFormatCopy });
+      expect(r.outcome).toBe("failed");
+      expect(r.error).toContain(
+        "JPG, PNG, WebP or GIF. Large files auto-optimized.",
+      );
+    },
+  );
 });

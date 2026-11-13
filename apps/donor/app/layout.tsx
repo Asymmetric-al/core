@@ -6,6 +6,7 @@ import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
+import { SessionRetainedDraftProvider } from "@asym/ui/hooks";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
@@ -142,7 +143,9 @@ export default function RootLayout({
                       tests/unit/apps/donor/static-shell-contract.test.ts. */}
                   <NuqsAdapter>
                     <BoneyardRegistry />
-                    <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                    <SessionRetainedDraftProvider>
+                      <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                    </SessionRetainedDraftProvider>
                   </NuqsAdapter>
                 </MotionProvider>
               </QueryProvider>

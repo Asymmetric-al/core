@@ -40,7 +40,14 @@ vi.mock("@asym/lib/hooks", () => ({
     profile: { id: "giving-fixture-missionary" },
     loading: false,
   }),
+  // Mirror the real hook against the per-test matchMedia stub below.
+  useMediaQuery: (query: string) => window.matchMedia(query).matches,
 }));
+// jsdom has no scrollIntoView; the stacked layout scrolls the opened partner
+// into view in real browsers.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
 vi.mock("@asym/database/query-keys", () => ({
   invalidateSupabaseTableQuery: async () => {},
 }));
@@ -62,7 +69,8 @@ beforeEach(() => {
       initials: "GF",
       type: "Individual",
       status: "Active",
-      total_given: 200.5,
+      // Partner money arrives from the API as integer cents.
+      total_given: 20050,
       last_gift_date: null,
       last_gift_amount: null,
       frequency: "One-time",
@@ -81,7 +89,8 @@ beforeEach(() => {
           title: "Bank gift fixture",
           date: "2026-03-11T12:00:00Z",
           gift_type: "Bank Transfer",
-          amount: 125.5,
+          amount: 12550,
+          currency: "USD",
           status: "Failed",
         },
         {
@@ -89,12 +98,14 @@ beforeEach(() => {
           type: "gift",
           title: "Online gift fixture",
           date: "2026-02-05T12:00:00Z",
-          amount: 75,
+          amount: 7500,
+          currency: "USD",
         },
         {
           id: "giving-fixture-note",
           type: "note",
           title: "Non-gift fixture must stay outside giving",
+          currency: null,
           date: "2026-01-02T12:00:00Z",
         },
       ],
@@ -148,12 +159,13 @@ it.each([1440, 390])(
     expect(await giving.findByText("Bank gift fixture")).toBeTruthy();
     expect(giving.getByText("Mar 11, 2026")).toBeTruthy();
     expect(giving.getByText("Bank Transfer")).toBeTruthy();
-    expect(giving.getByText("$125.5")).toBeTruthy();
+    expect(giving.getByText("$125.50")).toBeTruthy();
     expect(giving.getByText("Failed")).toBeTruthy();
     expect(giving.getByText("Online gift fixture")).toBeTruthy();
     expect(giving.getByText("Feb 5, 2026")).toBeTruthy();
     expect(giving.getByText("Online")).toBeTruthy();
-    expect(giving.getByText("$75")).toBeTruthy();
+    // Exact amounts keep their cents, as the donor app shows them.
+    expect(giving.getByText("$75.00")).toBeTruthy();
     expect(giving.getByText("Succeeded")).toBeTruthy();
     expect(
       giving.queryByText("Non-gift fixture must stay outside giving"),
@@ -177,9 +189,9 @@ it.each([1440, 390])(
     ).toBe("mailto:giving-fixture@example.test");
     fireEvent.click(screen.getByRole("button", { name: "Partner actions" }));
     expect(
-      await screen.findByRole("menuitem", { name: "Edit Profile" }),
+      await screen.findByRole("menuitem", { name: "Edit partner" }),
     ).toBeTruthy();
-    expect(screen.getByRole("menuitem", { name: "Manage Tags" })).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: "Manage tags" })).toBeTruthy();
   },
 );
 
@@ -202,7 +214,13 @@ it("reveals keyboard-focused detail tabs within their horizontal rail without mo
   const recurring = screen.getByRole("tab", { name: "Recurring" });
   const overview = screen.getByRole("tab", { name: "Overview" });
   fireEvent.click(giving);
-  const rail = screen.getByRole("tablist").parentElement!.parentElement!;
+  // The rail is the shared ScrollArea viewport; its edge fade shows that
+  // clipped tabs (Giving at 390px) can be scrolled into view.
+  const rail = screen
+    .getByRole("tablist")
+    .closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!;
+  expect(rail).toBeTruthy();
+  expect(rail.className).toContain("scroll-fade-x");
   // The browser-reproduced narrow rail clips 14px of Giving before focus.
   vi.spyOn(rail, "getBoundingClientRect").mockReturnValue(
     new DOMRect(17, 220, 356, 68),
@@ -231,7 +249,7 @@ it("reveals keyboard-focused detail tabs within their horizontal rail without mo
   expect(rail.scrollLeft).toBeGreaterThan(0);
   const gifts = within(screen.getByRole("tabpanel", { name: "Giving" }));
   expect(await gifts.findByText("Bank gift fixture")).toBeTruthy();
-  expect(gifts.getByText("$125.5")).toBeTruthy();
+  expect(gifts.getByText("$125.50")).toBeTruthy();
   expect(gifts.getByText("Failed")).toBeTruthy();
 
   rail.scrollLeft = 41;

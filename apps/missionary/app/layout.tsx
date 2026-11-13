@@ -8,6 +8,7 @@ import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
+import { SessionRetainedDraftProvider } from "@asym/ui/hooks";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -142,12 +143,14 @@ export default function RootLayout({
                      * the chrome AND each page's real markup prerender into the
                      * static shell.
                      */}
-                    <MissionaryLayoutShell>
-                      <Suspense fallback={null}>
-                        <MissionaryRoleGate />
-                      </Suspense>
-                      {children}
-                    </MissionaryLayoutShell>
+                    <SessionRetainedDraftProvider>
+                      <MissionaryLayoutShell>
+                        <Suspense fallback={null}>
+                          <MissionaryRoleGate />
+                        </Suspense>
+                        {children}
+                      </MissionaryLayoutShell>
+                    </SessionRetainedDraftProvider>
                   </NuqsAdapter>
                 </TooltipProvider>
               </MotionProvider>

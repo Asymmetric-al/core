@@ -1,108 +1,187 @@
 "use client";
 
-import { DEMO_PROFILE_ID } from "@asym/auth/constants";
-import { useMissionaryPortalSnapshot } from "@asym/database/hooks";
-import { useAuth, useLocaleFormat } from "@asym/lib/hooks";
-import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  useMissionaryPortalSnapshot,
+  usePendingFollowRequestCount,
+} from "@asym/database/hooks";
+import { useAuth, useDonationMetrics, useLocaleFormat } from "@asym/lib/hooks";
+import { PageHeader } from "@asym/ui/components/page-header";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
+  CardAction,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { PenLine, UserPlus } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
+
+import { buildMissionaryDashboardView } from "./dashboard-view";
+import { GivingBreakdownChartContent } from "./giving-breakdown-chart";
 import {
-  ArrowUpRight,
-  AlertCircle,
-  Circle,
-  ArrowRight,
-  Activity,
-} from "lucide-react";
-import React from "react";
-
+  LatestUpdatesCard,
+  NeedsYouCard,
+  RecentGiftsCard,
+  SupportCard,
+} from "./home/home-cards";
 import {
-  buildMissionaryDashboardView,
-  type DashboardSupportView,
-  type DashboardUpdateView,
-  type DashboardTaskView,
-  type DashboardAlertView,
-} from "./dashboard-view";
-import { GivingBreakdownChart } from "./giving-breakdown-chart";
-import { MetricTiles } from "./metric-tiles";
+  buildNeedsYou,
+  monthlyPartnerCount,
+  recentGifts,
+} from "./home/home-model";
 
-import type { DateInput } from "@asym/lib/hooks/use-locale-format";
+import type { DonationMetrics } from "@asym/lib/hooks";
 
-/** Same as demo profile id so metrics API finds the seeded missionary row. */
-const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
-
-function formatSupportAmount(cents: number): string {
-  const dollars = cents / 100;
-  if (dollars >= 1000) {
-    return `$${(dollars / 1000).toFixed(dollars % 1000 === 0 ? 0 : 1)}k`;
-  }
-  return `$${dollars.toLocaleString()}`;
-}
+const SHORT_DAY: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+};
 
 interface DashboardHomeProps {
-  setActiveTab?: (tab: string) => void;
   missionaryId?: string;
-  /** Inserted directly under the page header (e.g. tenant stats on Mission Control home). */
+  /** Inserted directly under the page header. */
   belowHeaderSlot?: React.ReactNode;
+}
+
+function firstName(displayName: string | undefined) {
+  return displayName?.trim().split(/\s+/)[0] ?? "";
+}
+
+function HomeActions() {
+  return (
+    <>
+      <Link
+        href="/donors?add=1"
+        className={buttonVariants({ variant: "outline", size: "sm" })}
+      >
+        <UserPlus data-icon="inline-start" aria-hidden />
+        Add partner
+      </Link>
+      <Link href="/feed" className={buttonVariants({ size: "sm" })}>
+        <PenLine data-icon="inline-start" aria-hidden />
+        Write an update
+      </Link>
+    </>
+  );
+}
+
+/** The same frame and header as the other missionary pages. */
+function HomeFrame({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-6 pb-20">
+      <PageHeader title={title} description={description}>
+        <HomeActions />
+      </PageHeader>
+      {children}
+    </div>
+  );
+}
+
+function GivingTrendCard({
+  metrics,
+  committedCents,
+  committedCurrency,
+}: {
+  metrics: DonationMetrics;
+  committedCents: number | null;
+  committedCurrency: string | null;
+}) {
+  const titleId = React.useId();
+  return (
+    <Card role="region" aria-labelledby={titleId}>
+      <CardHeader>
+        <CardTitle>
+          <h2 id={titleId}>Giving by month</h2>
+        </CardTitle>
+        <CardDescription>
+          The last 13 months.{" "}
+          {metrics.currency &&
+          metrics.currency === committedCurrency &&
+          committedCents !== null &&
+          committedCents > 0
+            ? "The dashed line is what partners have committed each month right now."
+            : "A commitment line is shown only when its currency matches these gifts."}
+        </CardDescription>
+        <CardAction className="-mt-1.5">
+          <Link
+            href="/analytics"
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
+          >
+            Analytics
+          </Link>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <GivingBreakdownChartContent
+          metrics={metrics}
+          committedCents={committedCents}
+          committedCurrency={committedCurrency}
+        />
+      </CardContent>
+    </Card>
+  );
 }
 
 function DashboardHomeContent({
   missionaryId,
-  setActiveTab,
   belowHeaderSlot,
 }: {
+  /** Empty until the signed-in missionary is known. */
   missionaryId: string;
-  setActiveTab?: (tab: string) => void;
   belowHeaderSlot?: React.ReactNode;
 }) {
   const portalQuery = useMissionaryPortalSnapshot();
+  const followRequests = usePendingFollowRequestCount();
+  const fetched = useDonationMetrics(missionaryId);
+  const metrics = missionaryId ? fetched : { ...fetched, isLoading: true };
   const { formatDate } = useLocaleFormat();
-  const {
-    support,
-    pendingTasks,
-    updates: latestUpdates,
-    alerts,
-  } = buildMissionaryDashboardView(portalQuery.data);
+  const snapshot = portalQuery.data;
+  const name = firstName(snapshot?.profile?.displayName);
+  const title = name ? `Welcome back, ${name}` : "Welcome back";
+  const description = "Here’s what needs you and how your support is doing.";
 
   if (portalQuery.isLoading) {
     return (
-      <PageShell title="Dashboard" description="Your ministry at a glance">
+      <HomeFrame title={title} description={description}>
         <div className="section-gap">
           {belowHeaderSlot}
           <div
-            className="grid gap-4"
+            className="grid gap-4 lg:grid-cols-12"
             role="group"
             aria-busy="true"
-            aria-label="Loading dashboard"
+            aria-label="Loading your home page"
           >
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-64 w-full rounded-xl" />
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <Skeleton className="h-56 rounded-xl lg:col-span-7" />
-              <Skeleton className="h-56 rounded-xl lg:col-span-5" />
-            </div>
+            <Skeleton className="h-64 rounded-xl lg:col-span-7" />
+            <Skeleton className="h-64 rounded-xl lg:col-span-5" />
+            <Skeleton className="h-80 rounded-xl lg:col-span-7" />
+            <Skeleton className="h-80 rounded-xl lg:col-span-5" />
           </div>
         </div>
-      </PageShell>
+      </HomeFrame>
     );
   }
 
   if (portalQuery.error) {
     return (
-      <PageShell title="Dashboard" description="Your ministry at a glance">
+      <HomeFrame title={title} description={description}>
         <div className="section-gap">
           {belowHeaderSlot}
           <Card>
-            <CardContent className="p-6 flex flex-col gap-3">
+            <CardContent className="flex flex-col items-start gap-3">
               <p role="alert" className="text-sm font-medium text-foreground">
-                We couldn&apos;t load your dashboard.
+                We couldn’t load your home page.
               </p>
               <Button
                 variant="outline"
@@ -114,96 +193,88 @@ function DashboardHomeContent({
             </CardContent>
           </Card>
         </div>
-      </PageShell>
+      </HomeFrame>
     );
   }
 
-  const raisedCents = support?.raisedCents ?? 0;
-  const goalCents = support?.goalCents ?? 0;
-  const remainingCents = support?.remainingCents ?? 0;
-  const percentFunded = support?.percentFunded ?? 0;
+  const { support } = buildMissionaryDashboardView(snapshot);
+  const committedCents = support?.monthlyCommittedCents ?? null;
+  const committedCurrency = support?.monthlyCommittedCurrency ?? null;
+  const formatDay = (value: string) => formatDate(value, SHORT_DAY);
+  const needsYou = buildNeedsYou({
+    snapshot,
+    followRequestCount: followRequests.error
+      ? null
+      : (followRequests.data ?? 0),
+    formatDay,
+  });
+  const urgent = needsYou.some((item) => item.tone === "urgent");
+  const needsYouCard = (
+    <div className="min-w-0 lg:col-span-5 lg:col-start-8 lg:row-start-1">
+      <NeedsYouCard items={needsYou} />
+    </div>
+  );
 
   return (
-    <PageShell title="Dashboard" description="Your ministry at a glance">
+    <HomeFrame title={title} description={description}>
       <div className="section-gap">
         {belowHeaderSlot}
-        <MetricTiles missionaryId={missionaryId} />
-
-        <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-0.5 gap-y-2 sm:gap-y-0 px-3 sm:px-4 pt-2.5">
-            <div>
-              <CardTitle className="text-sm sm:text-base font-semibold leading-none">
-                Giving Breakdown
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-xs mt-0.5">
-                Monthly support trends over the last 13 months.
-              </CardDescription>
-            </div>
-            {setActiveTab && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveTab("analytics")}
-              >
-                Analytics
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="pt-2 pb-1 px-0.5 sm:px-2 md:px-4">
-            <GivingBreakdownChart missionaryId={missionaryId} />
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-6">
-          <div className="lg:col-span-7 flex flex-col gap-3 sm:gap-4">
-            <DashboardTasksSection
-              support={support}
-              raisedCents={raisedCents}
-              goalCents={goalCents}
-              percentFunded={percentFunded}
-              remainingCents={remainingCents}
-            />
-
-            <DashboardUpdatesSection
-              setActiveTab={setActiveTab}
-              latestUpdates={latestUpdates}
-              formatDate={formatDate}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          {/* On phones, urgent work is read before the totals. Wide screens
+              place each card explicitly, so source order only sets reading
+              order. */}
+          {urgent ? needsYouCard : null}
+          <div className="min-w-0 lg:col-span-7 lg:col-start-1 lg:row-start-1">
+            <SupportCard
+              committedCents={committedCents}
+              goalCents={support?.goalCents ?? null}
+              goalCurrency={support?.goalCurrency ?? null}
+              committedCurrency={committedCurrency}
+              metricsCurrency={metrics.currency}
+              thisMonthCents={metrics.thisMonth.total}
+              lastMonthCents={metrics.lastMonth.total}
+              yearCents={metrics.yearToDate.total}
+              monthlyPartners={monthlyPartnerCount(snapshot)}
+              metricsLoading={metrics.isLoading}
+              metricsFailed={Boolean(metrics.error)}
+              onRetryMetrics={metrics.retry}
             />
           </div>
-
-          <div className="lg:col-span-5">
-            <DashboardAlertsSection
-              pendingTasks={pendingTasks}
-              alerts={alerts}
-              formatDate={formatDate}
+          {urgent ? null : needsYouCard}
+          <div className="min-w-0 lg:col-span-5 lg:col-start-8 lg:row-start-2">
+            <RecentGiftsCard
+              gifts={recentGifts(snapshot)}
+              formatDay={formatDay}
+            />
+          </div>
+          <div className="min-w-0 lg:col-span-7 lg:col-start-1 lg:row-start-2">
+            <GivingTrendCard
+              metrics={metrics}
+              committedCents={committedCents}
+              committedCurrency={committedCurrency}
             />
           </div>
         </div>
+        <LatestUpdatesCard
+          updates={snapshot?.ministryUpdates ?? []}
+          formatDay={formatDay}
+        />
       </div>
-    </PageShell>
+    </HomeFrame>
   );
 }
 
-function DashboardHomeWithAuth({
-  setActiveTab,
-  belowHeaderSlot,
-}: DashboardHomeProps) {
+function DashboardHomeWithAuth({ belowHeaderSlot }: DashboardHomeProps) {
   const { profile, loading } = useAuth();
-
-  const resolvedMissionaryId =
-    !loading && profile?.id ? profile.id : DEMO_MISSIONARY_ID;
-
   return (
     <DashboardHomeContent
-      missionaryId={resolvedMissionaryId}
-      setActiveTab={setActiveTab}
+      missionaryId={loading ? "" : (profile?.id ?? "")}
       belowHeaderSlot={belowHeaderSlot}
     />
   );
 }
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
-  setActiveTab,
   missionaryId,
   belowHeaderSlot,
 }) => {
@@ -211,262 +282,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     return (
       <DashboardHomeContent
         missionaryId={missionaryId}
-        setActiveTab={setActiveTab}
         belowHeaderSlot={belowHeaderSlot}
       />
     );
   }
-
-  return (
-    <DashboardHomeWithAuth
-      setActiveTab={setActiveTab}
-      belowHeaderSlot={belowHeaderSlot}
-    />
-  );
+  return <DashboardHomeWithAuth belowHeaderSlot={belowHeaderSlot} />;
 };
-
-function DashboardTasksSection({
-  support,
-  raisedCents,
-  goalCents,
-  percentFunded,
-  remainingCents,
-}: {
-  support: DashboardSupportView | null;
-  raisedCents: number;
-  goalCents: number;
-  percentFunded: number;
-  remainingCents: number;
-}) {
-  return (
-    <Card>
-      <CardContent className="p-3 sm:p-4">
-        {support?.hasGoal ? (
-          <>
-            <div>
-              <h2 className="text-muted-foreground font-semibold text-xs uppercase tracking-widest mb-1 leading-none">
-                Monthly Support Goal
-              </h2>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-foreground leading-none">
-                  {formatSupportAmount(raisedCents)}
-                </span>
-                <span className="text-muted-foreground text-sm sm:text-base font-medium leading-none">
-                  / {formatSupportAmount(goalCents)}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-2.5">
-              <div className="flex justify-between text-xs mb-1 text-muted-foreground font-semibold leading-none">
-                <span>{percentFunded}% Funded</span>
-                <span className="text-muted-foreground">
-                  {formatSupportAmount(remainingCents)} remaining
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                {/* Animate transform: scaleX (GPU, no layout) instead of width */}
-                <div
-                  className="size-full origin-left bg-primary transform-(--funding-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                  style={
-                    {
-                      "--funding-progress-transform": `scaleX(${Math.max(0, Math.min(percentFunded, 100)) / 100})`,
-                    } as React.CSSProperties
-                  }
-                  role="progressbar"
-                  aria-valuenow={Math.max(0, Math.min(percentFunded, 100))}
-                  aria-valuetext={`${percentFunded}% funded`}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Support funded"
-                />
-              </div>
-            </div>
-
-            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-border">
-              <div className="flex flex-col gap-0">
-                <span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold leading-none">
-                  Gifts
-                </span>
-                <span className="text-sm sm:text-base font-semibold text-foreground mt-0.5 leading-none">
-                  {support.giftCount}
-                </span>
-              </div>
-              <div className="flex flex-col gap-0">
-                <span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold leading-none">
-                  Active Donors
-                </span>
-                <span className="text-sm sm:text-base font-semibold text-foreground mt-0.5 leading-none">
-                  {support.activeDonorCount}
-                </span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="py-4 text-center">
-            <h2 className="text-muted-foreground font-semibold text-xs uppercase tracking-widest mb-1 leading-none">
-              Monthly Support Goal
-            </h2>
-            <p className="text-foreground text-sm font-medium mt-1">
-              No support goal set yet
-            </p>
-            <p className="text-muted-foreground text-xs mt-1">
-              Set a monthly goal to start tracking your support.
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function DashboardUpdatesSection({
-  setActiveTab,
-  latestUpdates,
-  formatDate,
-}: {
-  setActiveTab: ((tab: string) => void) | undefined;
-  latestUpdates: DashboardUpdateView[];
-  formatDate: (
-    value: DateInput,
-    options?: Intl.DateTimeFormatOptions,
-  ) => string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-1 flex flex-row items-center justify-between gap-y-0 pt-2.5 px-3 sm:px-4">
-        <div className="flex items-center gap-1.5">
-          <Activity className="size-3 text-muted-foreground" />
-          <CardTitle className="text-xs sm:text-sm font-semibold leading-none">
-            Latest Updates
-          </CardTitle>
-        </div>
-        {setActiveTab && (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="View ministry updates"
-            onClick={() => setActiveTab("feed")}
-          >
-            <ArrowUpRight className="size-3" />
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 sm:px-4 sm:pb-3">
-        {latestUpdates.length === 0 ? (
-          <p className="sm:col-span-2 text-xs text-muted-foreground text-center py-4">
-            No ministry updates yet.
-          </p>
-        ) : (
-          latestUpdates.slice(0, 2).map((post) => (
-            <div
-              key={post.id}
-              className="group flex gap-2 p-2 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors cursor-pointer"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground leading-tight font-medium line-clamp-2">
-                  {post.content}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 font-semibold uppercase tracking-wider">
-                  {post.createdAt ? formatDate(post.createdAt) : "Draft"}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-        {setActiveTab && (
-          <Button
-            variant="outline"
-            className="sm:col-span-2 w-full"
-            onClick={() => setActiveTab("feed")}
-          >
-            Compose New Update
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function DashboardAlertsSection({
-  pendingTasks,
-  alerts,
-  formatDate,
-}: {
-  pendingTasks: DashboardTaskView[];
-  alerts: DashboardAlertView[];
-  formatDate: (
-    value: DateInput,
-    options?: Intl.DateTimeFormatOptions,
-  ) => string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-1.5 pt-2.5 px-3 sm:px-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xs sm:text-sm font-semibold leading-none">
-            Tasks & Alerts
-          </CardTitle>
-          <Badge variant="secondary">{pendingTasks.length} Pending</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="flex flex-col">
-          {alerts.length > 0 && (
-            <div className="p-1.5 bg-muted/10 flex flex-col gap-1 border-b border-border">
-              {alerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="flex gap-1.5 items-start bg-muted p-1.5 rounded-md border border-border shadow-sm"
-                >
-                  <AlertCircle className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-xs font-semibold text-foreground leading-tight">
-                    {alert.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="divide-y divide-border">
-            {pendingTasks.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-6">
-                No tasks need attention — you&apos;re all caught up.
-              </p>
-            ) : (
-              pendingTasks.slice(0, 4).map((task) => (
-                <div
-                  key={task.id}
-                  className="group p-2 px-3 sm:px-3.5 hover:bg-muted/50 transition-colors flex items-start gap-2 cursor-pointer touch-target"
-                >
-                  <Circle className="size-3 text-muted-foreground group-hover:text-muted-foreground mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate tracking-tight leading-none">
-                      {task.title}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
-                      {task.priority === "high" && (
-                        <Badge variant="destructive">Urgent</Badge>
-                      )}
-                      <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                        {task.dueDate
-                          ? `Due ${formatDate(task.dueDate)}`
-                          : "No due date"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-        <div className="p-2 bg-muted/10 border-t border-border">
-          <Button variant="ghost" size="sm">
-            View All Tasks{" "}
-            <ArrowRight className="size-2 transition-transform group-hover:translate-x-0.5" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}

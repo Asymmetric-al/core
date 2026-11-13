@@ -26,8 +26,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
       title="Sign In"
       subtitle="Access the missionary portal"
-      registerHref="/register"
       forgotPasswordHref="/forgot-password"
+      showRegisterLink={false}
+      accountNote="Missionary accounts are set up by invitation from your organization."
     />
   );
 }

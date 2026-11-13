@@ -1,6 +1,10 @@
+import { correctionEffectiveValues } from "./correction-effective-values";
+import {
+  correctionRequestReferenceIds,
+  describeCorrectionRequestChange,
+} from "./correction-request-change";
 import { mergeCrmPostLinksByAuthority } from "./crm-post-state";
 import { buildContributionDetail } from "./detail-read-model";
-import { assertAllowedPaymentStateCorrectionStatus } from "./payment-status-allowlist";
 import {
   buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
@@ -436,6 +440,64 @@ async function loadContributionOperationDetail(input: {
     correctionRequestResult.error,
     "Failed to load correction requests.",
   );
+  const correctionRequestRows = (
+    (correctionRequestResult.data ?? []) as JsonRecord[]
+  ).map((request) => ({
+    row: request,
+    actionType: asString(request.action_type) ?? "unknown",
+    payload: isRecord(request.payload) ? request.payload : {},
+  }));
+  // Names for each request's proposed change and its requester, so an
+  // approver sees the change itself rather than only its reason.
+  const correctionReferences = correctionRequestReferenceIds(
+    correctionRequestRows,
+  );
+  const requesterProfileIds = uniqueReferenceIds(
+    correctionRequestRows.map((request) =>
+      asString(request.row.requested_by_profile_id),
+    ),
+  ).filter(isUuid);
+  const requesterProfilesResult =
+    requesterProfileIds.length > 0
+      ? await input.supabaseAdmin
+          .from("profiles")
+          .select("id, display_name, full_name, first_name, last_name, email")
+          .eq("tenant_id", input.tenantId)
+          .in("id", requesterProfileIds)
+      : { data: [], error: null };
+  assertNoError(
+    requesterProfilesResult.error,
+    "Failed to load correction requesters.",
+  );
+  const relinkDonorIds = correctionReferences.donorIds.filter(isUuid);
+  const relinkDonorsResult =
+    relinkDonorIds.length > 0
+      ? await input.supabaseAdmin
+          .from("donors")
+          .select("id, name")
+          .eq("tenant_id", input.tenantId)
+          .in("id", relinkDonorIds)
+      : { data: [], error: null };
+  assertNoError(
+    relinkDonorsResult.error,
+    "Failed to load correction request donors.",
+  );
+  const relinkDonorNames = new Map(
+    ((relinkDonorsResult.data ?? []) as JsonRecord[]).flatMap((donor) => {
+      const id = asString(donor.id);
+      const name = asString(donor.name);
+      return id && name ? [[id, name] as const] : [];
+    }),
+  );
+  const requesterNames = new Map(
+    ((requesterProfilesResult.data ?? []) as JsonRecord[]).flatMap(
+      (profile) => {
+        const id = asString(profile.id);
+        const label = resolveContributionProfileLabel(profile);
+        return id && label ? [[id, label] as const] : [];
+      },
+    ),
+  );
   assertNoError(crmLinksResult.error, "Failed to load CRM record links.");
   assertNoError(
     pledgeGiftHistoryResult.error,
@@ -463,10 +525,15 @@ async function loadContributionOperationDetail(input: {
       tenantId: input.tenantId,
       stagedGiftId: stagedGift?.id ?? null,
       donationFundId: donation.fundId,
-      extraFundIds: [...effectiveReferences.fundIds, pledgeFundId],
+      extraFundIds: [
+        ...effectiveReferences.fundIds,
+        pledgeFundId,
+        ...correctionReferences.fundIds,
+      ],
       extraMissionaryIds: [
         ...effectiveReferences.missionaryIds,
         pledgeMissionaryId,
+        ...correctionReferences.missionaryIds,
       ],
     }),
     stagedGift?.id
@@ -545,6 +612,42 @@ async function loadContributionOperationDetail(input: {
       ) ?? null)
     : null;
 
+  const correctionNames = {
+    funds: new Map(
+      designationData.funds.flatMap((fund) =>
+        fund.name ? [[fund.id, fund.name] as const] : [],
+      ),
+    ),
+    missionaries: new Map(
+      designationData.missionaries.flatMap((missionary) =>
+        missionary.display_name
+          ? [[missionary.id, missionary.display_name] as const]
+          : [],
+      ),
+    ),
+    donors: relinkDonorNames,
+  };
+  const effectiveFundId = effectivePreview.effective.fundId ?? null;
+  const effectiveMissionaryId = effectivePreview.effective.missionaryId ?? null;
+  const correctionCurrent = {
+    amountCents: effectivePreview.effective.amountCents ?? donation.amount,
+    currencyCode: (donation.currency ?? "usd").toUpperCase(),
+    fundId: effectiveFundId,
+    fundName: effectiveFundId
+      ? (correctionNames.funds.get(effectiveFundId) ?? null)
+      : null,
+    missionaryId: effectiveMissionaryId,
+    missionaryName: effectiveMissionaryId
+      ? (correctionNames.missionaries.get(effectiveMissionaryId) ?? null)
+      : null,
+    paymentStatus: effectivePreview.effective.paymentStatus ?? null,
+    designationLineCount:
+      effectivePreview.effectiveDesignationLines?.length ??
+      designationData.allocations.length,
+    donorId: donation.donorId,
+    donorName: donorRow ? asString(donorRow.name) : null,
+  };
+
   return buildContributionDetail({
     donation,
     donor: donorRow
@@ -589,28 +692,35 @@ async function loadContributionOperationDetail(input: {
         status: asString(correction.status) ?? "pending",
       }),
     ),
-    correctionRequests: (
-      (correctionRequestResult.data ?? []) as JsonRecord[]
-    ).map((request) => {
-      const actionType = asString(request.action_type) ?? "unknown";
-      const payload = isRecord(request.payload) ? request.payload : {};
-
-      return {
-        id: asString(request.id) ?? "",
-        actionType,
-        status: asString(request.status) ?? "pending",
-        reason: asString(request.reason) ?? "",
-        requestedByProfileId: asString(request.requested_by_profile_id),
-        createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
-        receiptDeliveryProposal: parseReceiptDeliverySelection(
-          request.receipt_delivery_proposal,
-        ),
-        receiptAffectedFields: correctionRequestReceiptAffectedFields(
+    correctionRequests: correctionRequestRows.map(
+      ({ row: request, actionType, payload }) => {
+        const requestedByProfileId = asString(request.requested_by_profile_id);
+        return {
+          id: asString(request.id) ?? "",
           actionType,
-          payload,
-        ),
-      };
-    }),
+          status: asString(request.status) ?? "pending",
+          reason: asString(request.reason) ?? "",
+          requestedByProfileId,
+          requestedByName: requestedByProfileId
+            ? (requesterNames.get(requestedByProfileId) ?? null)
+            : null,
+          createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
+          receiptDeliveryProposal: parseReceiptDeliverySelection(
+            request.receipt_delivery_proposal,
+          ),
+          receiptAffectedFields: correctionRequestReceiptAffectedFields(
+            actionType,
+            payload,
+          ),
+          proposedChange: describeCorrectionRequestChange({
+            actionType,
+            payload,
+            current: correctionCurrent,
+            names: correctionNames,
+          }),
+        };
+      },
+    ),
     adjustments,
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
@@ -746,118 +856,6 @@ async function assertCorrectionReferencesExist(input: {
       );
     }
   }
-}
-
-function requireReferenceIdOrNull(
-  value: unknown,
-  field: string,
-): string | null {
-  if (value === null) {
-    return null;
-  }
-  if (typeof value === "string" && value.trim().length > 0) {
-    return value.trim();
-  }
-  throw new ApiHttpError(
-    400,
-    `${field} must be a non-empty id string or null.`,
-  );
-}
-
-function optionalReferenceIdOrNull(
-  value: unknown,
-  field: string,
-): string | null {
-  if (value === undefined) {
-    return null;
-  }
-  return requireReferenceIdOrNull(value, field);
-}
-
-function correctionEffectiveValues(
-  actionType: ContributionActionType,
-  payload: Record<string, unknown>,
-): ContributionAdjustmentEffectiveValues {
-  if (actionType === "amount_correction") {
-    const amount = payload.amount;
-    if (
-      typeof amount !== "number" ||
-      !Number.isSafeInteger(amount) ||
-      amount < 0
-    ) {
-      throw new ApiHttpError(
-        400,
-        "amount must be a non-negative safe integer.",
-      );
-    }
-    return { amountCents: amount };
-  }
-
-  if (
-    actionType === "designation_correction" ||
-    actionType === "fund_correction"
-  ) {
-    return { fundId: requireReferenceIdOrNull(payload.fundId, "fundId") };
-  }
-
-  if (actionType === "allocation_correction") {
-    const designationLines = payload.designationLines;
-    if (Array.isArray(designationLines)) {
-      const lines = designationLines.map((line, index) => {
-        if (!isRecord(line)) {
-          throw new ApiHttpError(400, "designationLines must be objects.");
-        }
-        const amountCents = line.amountCents;
-        if (
-          typeof amountCents !== "number" ||
-          !Number.isSafeInteger(amountCents) ||
-          amountCents < 0
-        ) {
-          throw new ApiHttpError(
-            400,
-            "Each designation line needs a non-negative amountCents safe integer.",
-          );
-        }
-        return {
-          id:
-            typeof line.id === "string" && line.id.trim()
-              ? line.id.trim()
-              : `line-${index + 1}`,
-          amountCents,
-          fundId: optionalReferenceIdOrNull(line.fundId, "fundId"),
-          missionaryId: optionalReferenceIdOrNull(
-            line.missionaryId,
-            "missionaryId",
-          ),
-          memo: typeof line.memo === "string" ? line.memo : null,
-        };
-      });
-      return { designationLines: lines };
-    }
-
-    return {
-      fundId: optionalReferenceIdOrNull(payload.fundId, "fundId"),
-      missionaryId: optionalReferenceIdOrNull(
-        payload.missionaryId,
-        "missionaryId",
-      ),
-    };
-  }
-
-  if (actionType === "payment_state_correction") {
-    const status = payload.status;
-    if (typeof status !== "string" || status.trim().length === 0) {
-      throw new ApiHttpError(400, "status is required.");
-    }
-    const normalizedStatus = status.trim();
-    assertAllowedPaymentStateCorrectionStatus(normalizedStatus);
-    return { paymentStatus: normalizedStatus };
-  }
-
-  throw new ApiHttpError(
-    501,
-    `${actionType} requires a dedicated operation adapter before it can be applied.`,
-  );
 }
 
 function summarizeEffectiveDetail(detail: ContributionDetail) {

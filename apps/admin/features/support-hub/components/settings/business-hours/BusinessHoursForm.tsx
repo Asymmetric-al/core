@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import { FieldError, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Plus, Trash2 } from "lucide-react";
@@ -8,9 +9,8 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { useSaveSupportBusinessHours } from "../../../hooks/use-support-mutations";
-import { SettingsPanel } from "../SettingsPanel";
+import { SettingsEditorForm } from "../SettingsEditorSheet";
 import { SettingsRow } from "../SettingsRow";
-import { SettingsToolbar } from "../SettingsToolbar";
 
 import type { SupportBusinessHours } from "../../../types";
 
@@ -52,6 +52,10 @@ export function BusinessHoursForm({
     createBusinessHoursDraft,
   );
   const { name, timezone, schedule, holidays, isDefault } = draft;
+  const fieldsRef = React.useRef<HTMLDivElement>(null);
+  const holidayNameRefs = React.useRef(new Map<string, HTMLInputElement>());
+  const [submitted, setSubmitted] = React.useState(false);
+  const errors = businessHoursIssues(draft);
 
   const isDirty = React.useMemo(
     () =>
@@ -65,13 +69,25 @@ export function BusinessHoursForm({
   );
 
   const handleSave = async () => {
+    setSubmitted(true);
+    if (Object.keys(errors).length > 0) {
+      requestAnimationFrame(() =>
+        fieldsRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus(),
+      );
+      return;
+    }
     try {
       const id = await saveHours.mutateAsync({
         id: hours?.id,
         name: name.trim(),
         timezone: timezone.trim(),
         weeklySchedule: schedule,
-        holidays,
+        holidays: holidays.map((holiday) => ({
+          ...holiday,
+          label: holiday.label.trim(),
+        })),
         isDefault,
       });
       toast.success(
@@ -88,232 +104,328 @@ export function BusinessHoursForm({
   };
 
   return (
-    <SettingsPanel
-      title={hours ? `Edit "${hours.name}"` : "New business hours"}
-      description="Weekly schedule + holidays used by SLA timers and reports."
+    <SettingsEditorForm
+      draft={draft}
+      canSave={isDirty}
+      isNew={!hours}
+      isSaving={saveHours.isPending}
+      noun="schedule"
+      onSave={() => void handleSave()}
+      onCancel={() => onCancel?.()}
     >
-      <SettingsRow label="Name" htmlFor="biz-name">
-        <Input
-          id="biz-name"
-          value={name}
-          onChange={(event) =>
-            dispatch({ type: "name", value: event.target.value })
-          }
-          maxLength={60}
-        />
-      </SettingsRow>
-      <SettingsRow label="Timezone" htmlFor="biz-tz">
-        <Input
-          id="biz-tz"
-          value={timezone}
-          onChange={(event) =>
-            dispatch({ type: "timezone", value: event.target.value })
-          }
-          placeholder="America/Chicago"
-          maxLength={60}
-        />
-      </SettingsRow>
-      <div className="rounded-xl border border-border">
-        <div className="border-b border-border px-3 py-2 text-sm font-medium text-muted-foreground">
-          Weekly schedule
-        </div>
-        <ul className="flex flex-col divide-y divide-border">
-          {DAYS.map((day) => {
-            const entry =
-              schedule.find((e) => e.day === day) ??
-              ({
+      <div ref={fieldsRef} className="contents">
+        <SettingsRow
+          label="Name"
+          htmlFor="biz-name"
+          error={submitted ? errors["biz-name"] : undefined}
+        >
+          <Input
+            id="biz-name"
+            aria-invalid={submitted && Boolean(errors["biz-name"])}
+            value={name}
+            onChange={(event) =>
+              dispatch({ type: "name", value: event.target.value })
+            }
+            maxLength={60}
+          />
+        </SettingsRow>
+        <SettingsRow
+          label="Timezone"
+          htmlFor="biz-tz"
+          description="Stored with the schedule. The reports filter reads the times as UTC for now."
+          error={submitted ? errors["biz-tz"] : undefined}
+        >
+          <Input
+            id="biz-tz"
+            aria-invalid={submitted && Boolean(errors["biz-tz"])}
+            value={timezone}
+            onChange={(event) =>
+              dispatch({ type: "timezone", value: event.target.value })
+            }
+            placeholder="America/Chicago"
+            maxLength={60}
+          />
+        </SettingsRow>
+        <div className="rounded-xl border border-border">
+          <div className="border-b border-border px-3 py-2 text-sm font-medium text-muted-foreground">
+            Weekly schedule
+          </div>
+          <ul className="flex flex-col divide-y divide-border">
+            {DAYS.map((day) => {
+              const entry = schedule.find((row) => row.day === day) ?? {
                 day,
                 enabled: false,
                 openTime: "09:00",
                 closeTime: "17:00",
-              } as const);
-            return (
-              <li
-                key={day}
-                className="flex flex-wrap items-center gap-3 px-3 py-2"
-              >
-                <span className="w-24 text-xs font-medium capitalize text-foreground">
-                  {day}
-                </span>
-                <Switch
-                  checked={entry.enabled}
-                  onCheckedChange={(value) =>
-                    dispatch({
-                      type: "schedule",
-                      value: (prev) => upsertDay(prev, day, { enabled: value }),
-                    })
-                  }
-                  aria-label={`Toggle ${day}`}
-                />
-                <div className="w-36">
-                  <Input
-                    type="time"
-                    value={entry.openTime}
-                    disabled={!entry.enabled}
-                    onChange={(event) =>
-                      dispatch({
-                        type: "schedule",
-                        value: (prev) =>
-                          upsertDay(prev, day, {
-                            openTime: event.target.value,
-                          }),
-                      })
-                    }
-                  />
-                </div>
-                <span className="text-xs text-muted-foreground">→</span>
-                <div className="w-36">
-                  <Input
-                    type="time"
-                    value={entry.closeTime}
-                    disabled={!entry.enabled}
-                    onChange={(event) =>
-                      dispatch({
-                        type: "schedule",
-                        value: (prev) =>
-                          upsertDay(prev, day, {
-                            closeTime: event.target.value,
-                          }),
-                      })
-                    }
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      <div className="rounded-xl border border-border">
-        <div className="flex items-center justify-between border-b border-border px-3 py-2">
-          <span className="text-sm font-medium text-muted-foreground">
-            Holidays
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={() =>
-              dispatch({
-                type: "holidays",
-                value: (prev) => [
-                  ...prev,
-                  {
-                    id: `holiday-${makeDisplayTimestamp()}`,
-                    date: makeDisplayDate().toISOString(),
-                    label: "New holiday",
-                  },
-                ],
-              })
-            }
-          >
-            <Plus className="size-3" />
-            Add
-          </Button>
-        </div>
-        {holidays.length === 0 ? (
-          <p className="p-3 text-xs text-muted-foreground">
-            No holidays set, business hours apply year-round.
-          </p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-border">
-            {holidays.map((holiday, index) => (
-              <li
-                key={holiday.id}
-                className="flex flex-wrap items-center gap-2 px-3 py-2"
-              >
-                <div className="w-40">
-                  <Input
-                    type="date"
-                    value={holiday.date.slice(0, 10)}
-                    onChange={(event) => {
-                      const iso = makeDisplayDate(
-                        `${event.target.value}T00:00:00.000Z`,
-                      ).toISOString();
-                      dispatch({
-                        type: "holidays",
-                        value: (prev) =>
-                          prev.map((row, i) =>
-                            i === index ? { ...row, date: iso } : row,
-                          ),
-                      });
-                    }}
-                  />
-                </div>
-                <div className="min-w-50 flex-1">
-                  <Input
-                    value={holiday.label}
-                    onChange={(event) =>
-                      dispatch({
-                        type: "holidays",
-                        value: (prev) =>
-                          prev.map((row, i) =>
-                            i === index
-                              ? { ...row, label: event.target.value }
-                              : row,
-                          ),
-                      })
-                    }
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() =>
-                    dispatch({
-                      type: "holidays",
-                      value: (prev) => prev.filter((_, i) => i !== index),
-                    })
-                  }
-                  aria-label="Remove holiday"
+              };
+              const dayLabel = day.charAt(0).toUpperCase() + day.slice(1);
+              return (
+                <li
+                  key={day}
+                  className="flex flex-wrap items-center gap-3 px-3 py-2"
                 >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </li>
-            ))}
+                  <span className="w-24 text-xs font-medium text-foreground">
+                    {dayLabel}
+                  </span>
+                  <Switch
+                    checked={entry.enabled}
+                    onCheckedChange={(enabled) =>
+                      dispatch({
+                        type: "schedule",
+                        value: (previous) =>
+                          upsertDay(previous, day, { enabled }),
+                      })
+                    }
+                    aria-label={`Open on ${dayLabel}`}
+                  />
+                  {(["open", "close"] as const).map((part) => {
+                    const fieldId = `${day}-${part}`;
+                    const error = submitted ? errors[fieldId] : undefined;
+                    return (
+                      <div key={part} className="flex flex-col gap-1">
+                        <FieldLabel htmlFor={fieldId}>
+                          {dayLabel} {part === "open" ? "opening" : "closing"}{" "}
+                          time
+                        </FieldLabel>
+                        <Input
+                          id={fieldId}
+                          type="time"
+                          value={
+                            part === "open" ? entry.openTime : entry.closeTime
+                          }
+                          disabled={!entry.enabled}
+                          aria-invalid={Boolean(error)}
+                          aria-describedby={
+                            error ? `${fieldId}-error` : undefined
+                          }
+                          onChange={(event) =>
+                            dispatch({
+                              type: "schedule",
+                              value: (previous) =>
+                                upsertDay(
+                                  previous,
+                                  day,
+                                  part === "open"
+                                    ? { openTime: event.target.value }
+                                    : { closeTime: event.target.value },
+                                ),
+                            })
+                          }
+                          className="h-8 w-27.5 font-mono"
+                        />
+                        {error ? (
+                          <FieldError id={`${fieldId}-error`}>
+                            {error}
+                          </FieldError>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </li>
+              );
+            })}
           </ul>
-        )}
-      </div>
-
-      <SettingsRow
-        label="Default for workspace"
-        description="Applied to inboxes that don't specify their own business hours."
-      >
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={isDefault}
-            onCheckedChange={(value) => dispatch({ type: "isDefault", value })}
-            aria-label="Default business hours"
-          />
-          <span className="text-xs text-muted-foreground">
-            {isDefault ? "Default" : "Not default"}
-          </span>
         </div>
-      </SettingsRow>
 
-      <div className="flex items-center justify-between gap-2 pt-2">
-        {onCancel ? (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-            <span className="sr-only">Cancel</span>
-            Cancel
-          </Button>
-        ) : (
-          <span />
-        )}
+        <div className="rounded-xl border border-border">
+          <div className="flex items-center justify-between border-b border-border px-3 py-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              Holidays
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const id = `holiday-${makeDisplayTimestamp()}`;
+                const today = makeDisplayDate();
+                const date = [
+                  today.getFullYear(),
+                  String(today.getMonth() + 1).padStart(2, "0"),
+                  String(today.getDate()).padStart(2, "0"),
+                ].join("-");
+                dispatch({
+                  type: "holidays",
+                  value: (previous) => [
+                    ...previous,
+                    { id, date: `${date}T00:00:00.000Z`, label: "" },
+                  ],
+                });
+                requestAnimationFrame(() =>
+                  holidayNameRefs.current.get(id)?.focus(),
+                );
+              }}
+            >
+              <Plus className="size-3" />
+              Add
+            </Button>
+          </div>
+          {holidays.length === 0 ? (
+            <p className="p-3 text-xs text-muted-foreground">
+              No holidays set, business hours apply year-round.
+            </p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-border">
+              {holidays.map((holiday, index) => (
+                <li
+                  key={holiday.id}
+                  className="flex flex-wrap items-center gap-2 px-3 py-2"
+                >
+                  <div className="flex flex-col gap-1">
+                    <FieldLabel htmlFor={`${holiday.id}-date`}>
+                      Holiday {index + 1} date
+                    </FieldLabel>
+                    <Input
+                      id={`${holiday.id}-date`}
+                      type="date"
+                      value={holiday.date.slice(0, 10)}
+                      aria-invalid={
+                        submitted && Boolean(errors[`${holiday.id}-date`])
+                      }
+                      aria-describedby={
+                        submitted && errors[`${holiday.id}-date`]
+                          ? `${holiday.id}-date-error`
+                          : undefined
+                      }
+                      onChange={(event) => {
+                        const date = event.target.value;
+                        dispatch({
+                          type: "holidays",
+                          value: (previous) =>
+                            previous.map((row) =>
+                              row.id === holiday.id
+                                ? {
+                                    ...row,
+                                    date: date ? `${date}T00:00:00.000Z` : "",
+                                  }
+                                : row,
+                            ),
+                        });
+                      }}
+                      className="h-8 w-40 font-mono"
+                    />
+                    {submitted && errors[`${holiday.id}-date`] ? (
+                      <FieldError id={`${holiday.id}-date-error`}>
+                        {errors[`${holiday.id}-date`]}
+                      </FieldError>
+                    ) : null}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <FieldLabel htmlFor={`${holiday.id}-name`}>
+                      Holiday {index + 1} name
+                    </FieldLabel>
+                    <Input
+                      id={`${holiday.id}-name`}
+                      ref={(element) => {
+                        if (element)
+                          holidayNameRefs.current.set(holiday.id, element);
+                        else holidayNameRefs.current.delete(holiday.id);
+                      }}
+                      placeholder="Holiday name"
+                      value={holiday.label}
+                      aria-invalid={
+                        submitted && Boolean(errors[`${holiday.id}-name`])
+                      }
+                      aria-describedby={
+                        submitted && errors[`${holiday.id}-name`]
+                          ? `${holiday.id}-name-error`
+                          : undefined
+                      }
+                      onChange={(event) =>
+                        dispatch({
+                          type: "holidays",
+                          value: (previous) =>
+                            previous.map((row) =>
+                              row.id === holiday.id
+                                ? { ...row, label: event.target.value }
+                                : row,
+                            ),
+                        })
+                      }
+                      className="h-8 min-w-0"
+                    />
+                    {submitted && errors[`${holiday.id}-name`] ? (
+                      <FieldError id={`${holiday.id}-name-error`}>
+                        {errors[`${holiday.id}-name`]}
+                      </FieldError>
+                    ) : null}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      dispatch({
+                        type: "holidays",
+                        value: (prev) => prev.filter((_, i) => i !== index),
+                      })
+                    }
+                    aria-label={`Remove holiday ${index + 1}`}
+                    className="size-7 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <SettingsRow
+          control
+          label="Default for workspace"
+          description="The reports business-hours filter uses the workspace default schedule."
+        >
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={isDefault}
+              onCheckedChange={(value) =>
+                dispatch({ type: "isDefault", value })
+              }
+              aria-label="Default business hours"
+            />
+            <span className="text-xs text-muted-foreground">
+              {isDefault ? "Default" : "Not default"}
+            </span>
+          </div>
+        </SettingsRow>
         <p className="text-xs text-muted-foreground">
           Times use 24-hour format.
         </p>
       </div>
-
-      <SettingsToolbar
-        isDirty={isDirty}
-        isSaving={saveHours.isPending}
-        onSave={handleSave}
-        onCancel={() => dispatch({ type: "reset", hours })}
-      />
-    </SettingsPanel>
+    </SettingsEditorForm>
   );
+}
+
+function businessHoursIssues(
+  draft: BusinessHoursDraft,
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!draft.name.trim()) errors["biz-name"] = "Enter a schedule name.";
+  if (!draft.timezone.trim()) errors["biz-tz"] = "Enter a timezone.";
+  const validTime = (time: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+  for (const day of draft.schedule) {
+    if (!day.enabled) continue;
+    if (!validTime(day.openTime))
+      errors[`${day.day}-open`] = "Choose an opening time.";
+    if (!validTime(day.closeTime))
+      errors[`${day.day}-close`] = "Choose a closing time.";
+    else if (validTime(day.openTime) && day.closeTime <= day.openTime)
+      errors[`${day.day}-close`] = "Closing time must be after opening time.";
+  }
+  for (const holiday of draft.holidays) {
+    const date = holiday.date.slice(0, 10);
+    const parsed = makeDisplayDate(holiday.date);
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      !Number.isFinite(parsed.getTime()) ||
+      parsed.toISOString().slice(0, 10) !== date
+    )
+      errors[`${holiday.id}-date`] = "Choose a valid holiday date.";
+    if (!holiday.label.trim())
+      errors[`${holiday.id}-name`] = "Enter a holiday name.";
+  }
+  return errors;
 }
 
 function defaultSchedule(): SupportBusinessHours["weeklySchedule"] {
@@ -355,14 +467,12 @@ type BusinessHoursDraft = {
   holidays: SupportBusinessHours["holidays"];
   isDefault: boolean;
 };
-type BusinessHoursDraftAction =
-  | { type: "reset"; hours?: SupportBusinessHours | null }
-  | {
-      [Key in keyof BusinessHoursDraft]: {
-        type: Key;
-        value: React.SetStateAction<BusinessHoursDraft[Key]>;
-      };
-    }[keyof BusinessHoursDraft];
+type BusinessHoursDraftAction = {
+  [Key in keyof BusinessHoursDraft]: {
+    type: Key;
+    value: React.SetStateAction<BusinessHoursDraft[Key]>;
+  };
+}[keyof BusinessHoursDraft];
 function createBusinessHoursDraft(
   hours?: SupportBusinessHours | null,
 ): BusinessHoursDraft {
@@ -384,8 +494,6 @@ function reduceBusinessHoursDraft(
   action: BusinessHoursDraftAction,
 ): BusinessHoursDraft {
   switch (action.type) {
-    case "reset":
-      return createBusinessHoursDraft(action.hours);
     case "name":
       return { ...state, name: applyDraftValue(state.name, action.value) };
     case "timezone":

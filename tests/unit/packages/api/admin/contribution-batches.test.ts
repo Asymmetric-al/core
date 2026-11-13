@@ -320,6 +320,26 @@ describe("bulk contribution preview and execution", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("accepts seeded gift ids the single-action endpoint accepts", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    const { batchRequestSchema } =
+      await import("../../../../../packages/api/src/admin/contribution-batches/route");
+
+    const parsed = batchRequestSchema.safeParse({
+      actionType: "resend_receipt",
+      confirmationToken: "0b6f4f2e-6a1d-4c35-9f0e-2a1b3c4d5e6f",
+      records: [
+        {
+          id: "80000000-0000-0000-0000-000000000001",
+          stagedGiftId: "81000000-0000-0000-0000-000000000001",
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+
   it("rejects duplicate contribution ids in a batch request", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
@@ -1114,6 +1134,52 @@ describe("bulk contribution preview and execution", () => {
       failed: 1,
       followUpTasksCreated: 1,
     });
+  });
+
+  it("refuses to process an immediate batch its creating request is still sending", async () => {
+    const supabaseAdmin = {
+      from() {
+        const builder = {
+          select() {
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          update: vi.fn(() => builder),
+          single: async () => ({
+            data: {
+              id: "batch_1",
+              operation: "resend_receipt",
+              source_surface: "bulk_action",
+              status: "running",
+              execution_mode: "immediate",
+              created_by_profile_id: "actor_1",
+              processed_count: 0,
+              succeeded_count: 0,
+              skipped_count: 0,
+              failed_count: 0,
+              follow_up_task_count: 0,
+            },
+            error: null,
+          }),
+        };
+        return builder;
+      },
+    };
+    const executeContributionAction = vi.fn();
+
+    await expect(
+      processPersistedContributionBatch({
+        supabaseAdmin: supabaseAdmin as never,
+        tenantId: "tenant_1",
+        batchId: "batch_1",
+        actorProfileId: "actor_1",
+        actorPermissions: ["finance:manage_contributions"],
+        executeContributionAction,
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(executeContributionAction).not.toHaveBeenCalled();
   });
 
   it("requires the batch creator to process a persisted background batch", async () => {

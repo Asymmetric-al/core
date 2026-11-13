@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { SavedViewsList } from "@/features/support-hub/components/settings/saved-views/SavedViewsList";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Saved views · Support settings",
+};
 
 export default function SupportSettingsSavedViewsPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Saved views"
-      description="Named filter presets team members can deep-link to."
-    >
+    <>
       <SavedViewsList />
-    </SupportWorkspaceShell>
+    </>
   );
 }

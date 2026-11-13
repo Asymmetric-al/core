@@ -31,28 +31,25 @@ test.describe("development-donor smoke", () => {
     // fires reliably. Positive auth marker: the dashboard greeting.
     await ensureAuthenticated(page, {
       targetPath: "/donor-dashboard",
-      authenticatedMarker: (p) =>
-        p.getByText(/^(good (morning|afternoon|evening)),/i),
+      authenticatedMarker: (page) =>
+        page.getByRole("heading", { name: /^welcome back(?:, .+)?$/i }),
     });
 
     await expect(page).toHaveURL(/\/donor-dashboard(\/|$)/);
     await assertNoVisibleLoginPrompt(page);
 
-    // Greeting visible. The dev user has no display name; the app falls back
-    // to the role label "Partner" in the greeting.
     await expect(
-      page.getByText(/^(good (morning|afternoon|evening)),/i).first(),
+      page.getByRole("heading", { name: /^welcome back(?:, .+)?$/i }).first(),
     ).toBeVisible();
 
-    // Giving summary content: at least one of YTD giving, recurring giving,
-    // or giving total should be visible.
     const givingSummary = page
-      .getByText(/total given ytd|active support|recurring|impact/i)
+      .getByRole("heading", { name: /^given in [0-9]{4}$/i })
       .first();
     await expect(givingSummary).toBeVisible();
 
-    // At least one field update / ministry update area.
-    const updates = page.getByText(/field update|ministry updates/i).first();
+    const updates = page
+      .getByRole("heading", { name: "More updates", exact: true })
+      .first();
     await expect(updates).toBeVisible();
 
     await assertNoErrorBanner(page);

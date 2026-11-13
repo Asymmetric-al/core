@@ -20,11 +20,15 @@ describe("parseDisplayDate", () => {
   });
 
   it("parses YYYY-MM-DD as a local calendar date in America/Los_Angeles", () => {
+    const moduleUrl = new URL(
+      "../../../../apps/missionary/app/donors/donors-page-dates.ts",
+      import.meta.url,
+    ).href;
     const result = spawnSync(
       process.execPath,
       [
         "-e",
-        `import { parseDisplayDate } from ${JSON.stringify(`${repoRoot}apps/missionary/app/donors/donors-page-dates.ts`)};
+        `import { parseDisplayDate } from ${JSON.stringify(moduleUrl)};
 const d = parseDisplayDate("2026-07-01");
 process.stdout.write(JSON.stringify({ y: d.getFullYear(), m: d.getMonth() + 1, day: d.getDate() }));`,
       ],

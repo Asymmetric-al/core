@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@asym/database/hooks", () => ({
   useMissionaryPortalSnapshot: mocks.query,
+  usePendingFollowRequestCount: () => ({ data: 0 }),
 }));
 vi.mock("@asym/lib/hooks", async () => {
   const { useLocaleFormat } =
@@ -56,31 +57,43 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const creationUpdates = [
+type Update = {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string | null;
+};
+
+const update = (overrides: Update) => ({
+  excerpt: "",
+  postType: "Update",
+  imageUrl: null,
+  visibility: "public",
+  engagementCount: 0,
+  ...overrides,
+});
+
+const creationUpdates: Update[] = [
   {
     id: "west-boundary",
-    excerpt: "An early UTC creation instant",
+    title: "An early UTC creation instant",
+    status: "published",
     createdAt: "2026-01-06T05:00:00.000Z",
   },
   {
     id: "east-boundary",
-    excerpt: "A late UTC creation instant",
+    title: "A late UTC creation instant",
+    status: "published",
     createdAt: "2026-01-06T20:00:00.000Z",
   },
 ];
 
-function setup(
-  updates: {
-    id: string;
-    excerpt: string;
-    createdAt: string | null;
-  }[] = creationUpdates,
-) {
+function setup(updates: Update[] = creationUpdates) {
   mocks.query.mockReturnValue({
     data: {
       support: null,
       tasks: [],
-      ministryUpdates: updates,
+      ministryUpdates: updates.map(update),
     },
     isLoading: false,
     error: null,
@@ -107,7 +120,7 @@ function dashboard() {
 
 function readUpdateDates(container: HTMLElement) {
   return within(container)
-    .getAllByText(/^\d{1,2}\/\d{1,2}\/\d{4}$/)
+    .getAllByText(/^[A-Z][a-z]{2} \d{1,2}$/)
     .map((node) => node.textContent);
 }
 
@@ -115,13 +128,16 @@ function visitorDates() {
   const { locale, timeZone } = Intl.DateTimeFormat().resolvedOptions();
   // Exact expectations for the independent UTC/LA/Bangkok process checks.
   if (locale === "en-US") {
-    if (timeZone === "UTC") return ["1/6/2026", "1/6/2026"];
-    if (timeZone === "America/Los_Angeles") return ["1/5/2026", "1/6/2026"];
-    if (timeZone === "Asia/Bangkok") return ["1/6/2026", "1/7/2026"];
+    if (timeZone === "UTC") return ["Jan 6", "Jan 6"];
+    if (timeZone === "America/Los_Angeles") return ["Jan 5", "Jan 6"];
+    if (timeZone === "Asia/Bangkok") return ["Jan 6", "Jan 7"];
   }
   // Preserve the same visitor-default contract on other developer hosts.
-  return creationUpdates.map((update) =>
-    new Date(update.createdAt).toLocaleDateString(),
+  return creationUpdates.map((entry) =>
+    new Date(entry.createdAt!).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    }),
   );
 }
 
@@ -132,7 +148,7 @@ describe("dashboard ministry update creation timestamps", () => {
     container.innerHTML = renderToString(dashboard());
 
     expect(
-      within(container).getAllByText("1/6/2026", { exact: true }),
+      within(container).getAllByText("Jan 6", { exact: true }),
     ).toHaveLength(2);
     expect(mocks.auth).not.toHaveBeenCalled();
   });
@@ -154,7 +170,7 @@ describe("dashboard ministry update creation timestamps", () => {
     const recoverableErrors: string[] = [];
     let root: Root | undefined;
     try {
-      expect(readUpdateDates(container)).toEqual(["1/6/2026", "1/6/2026"]);
+      expect(readUpdateDates(container)).toEqual(["Jan 6", "Jan 6"]);
       await act(async () => {
         root = hydrateRoot(container, element, {
           onRecoverableError(error) {
@@ -162,7 +178,7 @@ describe("dashboard ministry update creation timestamps", () => {
           },
         });
       });
-      expect(initialCommitDates).toEqual(["1/6/2026", "1/6/2026"]);
+      expect(initialCommitDates).toEqual(["Jan 6", "Jan 6"]);
       await waitFor(() => {
         const expectedDates = visitorDates();
         for (const date of new Set(expectedDates)) {
@@ -180,10 +196,15 @@ describe("dashboard ministry update creation timestamps", () => {
     }
   });
 
-  it("retains Draft for a missing creation timestamp on the server and after hydration", async () => {
+  it("leaves drafts out on the server and after hydration", async () => {
     setup([
       creationUpdates[0]!,
-      { id: "draft", excerpt: "An undated ministry update", createdAt: null },
+      {
+        id: "draft",
+        title: "An unfinished draft",
+        status: "draft",
+        createdAt: null,
+      },
     ]);
     const element = dashboard();
     const container = document.createElement("div");
@@ -193,11 +214,9 @@ describe("dashboard ministry update creation timestamps", () => {
     const recoverableErrors: string[] = [];
     let root: Root | undefined;
     try {
+      expect(within(container).queryByText("An unfinished draft")).toBeNull();
       expect(
-        within(container).getByText("Draft", { exact: true }),
-      ).toBeTruthy();
-      expect(
-        within(container).getByText("1/6/2026", { exact: true }),
+        within(container).getByText("Jan 6", { exact: true }),
       ).toBeTruthy();
       await act(async () => {
         root = hydrateRoot(container, element, {
@@ -210,10 +229,8 @@ describe("dashboard ministry update creation timestamps", () => {
         expect(
           within(container).getByText(visitorDates()[0]!, { exact: true }),
         ).toBeTruthy();
-        expect(
-          within(container).getByText("Draft", { exact: true }),
-        ).toBeTruthy();
       });
+      expect(within(container).queryByText("An unfinished draft")).toBeNull();
       expect(recoverableErrors).toEqual([]);
     } finally {
       await act(async () => root?.unmount());

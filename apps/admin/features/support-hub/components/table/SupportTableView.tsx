@@ -1,19 +1,37 @@
 "use client";
 
+import {
+  DataGridPanel,
+  DataGridRowPrimary,
+  DataGridSelectionBar,
+  DataGridToolbarSpacer,
+  DataGridViewOptions,
+  dataGridFeatures,
+  useTable,
+  type DataGridRow,
+  type PaginationState,
+  type RowSelectionState,
+  type SortingState,
+  type VisibilityState,
+} from "@asym/ui/components/data-grid-panel";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
-import { cn } from "@asym/ui/lib/utils";
+import { Item, ItemContent } from "@asym/ui/components/shadcn/item";
 import { LifeBuoy } from "lucide-react";
 import * as React from "react";
 
+import { RelativeTime } from "../RelativeTime";
 import { useSupportBulkActions } from "./bulk-actions";
-import { supportConversationColumns } from "./columns";
-import { useSupportNow } from "../../lib/now";
-import { formatRelative } from "../../lib/time";
+import { PRIORITY_LABELS, StatusCell } from "./cells";
+import { createSupportConversationColumns } from "./columns";
 import { SupportEmptySection } from "../workspace/SupportEmptySection";
 
 import type { SupportConversation } from "../../types";
-import type { Row } from "@asym/ui/components/shadcn/data-table/tanstack";
+
+/** Names a conversation for its selection checkbox: subject and donor. */
+export function selectionLabel(row: SupportConversation) {
+  return `${row.subject} from ${row.externalContactName ?? row.externalContactEmail}`;
+}
 
 interface SupportTableViewProps {
   conversations: SupportConversation[];
@@ -23,10 +41,9 @@ interface SupportTableViewProps {
 }
 
 /**
- * Donor-care table built on the repo's Maia/Zinc `DataTableResponsive`
- * surface — sticky header, sortable + hideable columns, row selection,
- * bulk actions, mobile card view, and keyboard navigation are all already
- * inside the shared component, so this file mostly composes them.
+ * Donor-care conversations on Core's shared ReUI grid (the same panel as
+ * CRM and Contributions): search, sortable headers, column visibility,
+ * row selection with bulk actions, pagination and phone cards.
  */
 export function SupportTableView({
   conversations,
@@ -35,58 +52,109 @@ export function SupportTableView({
   onSelectConversation,
 }: SupportTableViewProps) {
   const { actions, overlays } = useSupportBulkActions();
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "lastMessageAt", desc: true },
+  ]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 25,
+  });
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [columnVisibility, setColumnVisibility] =
+    // Waiting time and inbox are one click away in View; labels drive
+    // triage, so they show as they do on the board.
+    React.useState<VisibilityState>({
+      inboxId: false,
+      waitingTime: false,
+      id: false,
+    });
 
-  // Phase 7 perf: enable row virtualization once we cross 200 rows so the
-  // table never tries to render the full set of donor conversations.
-  // Smaller tables keep the existing pagination behavior — virtualization
-  // adds layout cost that doesn't pay off until the row count is high.
-  const enableVirtualization = conversations.length > 200;
+  // The inbox toolbar's search (donor, subject or email) already filters
+  // these rows; the grid adds no second search.
+  const rows = conversations;
+
+  const columns = React.useMemo(
+    () => createSupportConversationColumns(onSelectConversation),
+    [onSelectConversation],
+  );
+  const table = useTable({
+    features: dataGridFeatures,
+    data: rows,
+    columns,
+    getRowId: (row) => row.id,
+    enableRowSelection: true,
+    state: { sorting, pagination, rowSelection, columnVisibility },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    onRowSelectionChange: setRowSelection,
+    onColumnVisibilityChange: setColumnVisibility,
+  });
+
+  const selectedRows = conversations.filter((row) => rowSelection[row.id]);
 
   return (
     <>
-      <DataTableResponsive<SupportConversation, unknown>
-        columns={supportConversationColumns}
-        data={conversations}
-        devtoolsKey="support-hub-conversations"
-        searchColumnId="subject"
-        searchPlaceholder="Search subjects..."
+      <DataGridPanel
+        // Cards when the columns would not fit, not a sideways scroll.
+        view="auto"
+        table={table}
+        recordCount={rows.length}
+        label="Conversations"
         isLoading={isLoading}
-        getRowId={(row) => row.id}
-        onRowClick={(row) => onSelectConversation(row.original.id)}
-        floatingBarActions={actions}
-        enableVirtualization={enableVirtualization}
-        config={{
-          enableRowSelection: true,
-          enableColumnVisibility: true,
-          enablePagination: true,
-          enableSorting: true,
-          enableFilters: false,
-          stickyHeader: true,
-          enableKeyboardNavigation: true,
-          enableViewToggle: true,
-        }}
-        initialState={{
-          columnVisibility: {
-            inboxId: false,
-          },
-        }}
-        mobileCardConfig={{
-          primaryField: "subject",
-          secondaryField: "donor",
-          renderCard: (row) => (
-            <SupportConversationMobileCard
-              row={row}
-              conversation={row.original}
-              isSelected={row.original.id === selectedConversationId}
-              onSelect={onSelectConversation}
-            />
-          ),
-        }}
-        emptyState={
+        onRowClick={(row) => onSelectConversation(row.id)}
+        pagination={rows.length > 0 ? { sizes: [25, 50, 100] } : false}
+        selectionBar={
+          <DataGridSelectionBar
+            count={selectedRows.length}
+            noun="conversation"
+            onClear={() => setRowSelection({})}
+          >
+            {actions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Button
+                  key={action.label}
+                  size="sm"
+                  variant={
+                    action.variant === "destructive" ? "destructive" : "outline"
+                  }
+                  onClick={() => {
+                    action.onClick(selectedRows);
+                    setRowSelection({});
+                  }}
+                >
+                  {Icon ? <Icon aria-hidden="true" /> : null}
+                  {action.label}
+                </Button>
+              );
+            })}
+          </DataGridSelectionBar>
+        }
+        // Search and filters live in the inbox toolbar above; here the
+        // header says how many conversations match beside the column menu.
+        toolbar={
+          <>
+            <p className="text-sm text-muted-foreground tabular-nums">
+              {rows.length === 1
+                ? "1 conversation"
+                : `${rows.length} conversations`}
+            </p>
+            <DataGridToolbarSpacer />
+            <DataGridViewOptions table={table} />
+          </>
+        }
+        renderMobileRow={(row: DataGridRow<SupportConversation>) => (
+          <SupportConversationMobileRow
+            row={row}
+            isOpen={row.original.id === selectedConversationId}
+            onOpen={onSelectConversation}
+          />
+        )}
+        empty={
           <SupportEmptySection
             icon={<LifeBuoy />}
             title="No conversations match your filters"
-            description="Adjust the view, status, or label filters above to widen the search."
+            description="Adjust the view, status or label filters above, or clear the search."
           />
         }
       />
@@ -95,67 +163,56 @@ export function SupportTableView({
   );
 }
 
-interface SupportConversationMobileCardProps {
-  row: Row<SupportConversation>;
-  conversation: SupportConversation;
-  isSelected: boolean;
-  onSelect: (id: string) => void;
-}
-
-function SupportConversationMobileCard({
+function SupportConversationMobileRow({
   row,
-  conversation,
-  isSelected,
-  onSelect,
-}: SupportConversationMobileCardProps) {
-  const nowIso = useSupportNow();
+  isOpen,
+  onOpen,
+}: {
+  row: DataGridRow<SupportConversation>;
+  /** This conversation is the one open in the detail pane. */
+  isOpen: boolean;
+  onOpen: (id: string) => void;
+}) {
+  const conversation = row.original;
+  const donor =
+    conversation.externalContactName ?? conversation.externalContactEmail;
   return (
-    <div className="flex items-start gap-2">
-      <label className="flex min-h-9 shrink-0 items-center px-2">
-        <Checkbox
-          checked={row.getIsSelected()}
-          disabled={!row.getCanSelect()}
-          onCheckedChange={(checked) => row.toggleSelected(checked)}
-          onClick={(event) => event.stopPropagation()}
-        />
-        <span className="sr-only">
-          Select conversation {conversation.id}: {conversation.subject}
+    // The subject control stretches over the card, so the whole card opens it.
+    <div className="relative rounded-md transition-colors hover:bg-accent/40 has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+      <Item variant="outline" size="sm" render={<div />}>
+        {/* Above the stretched subject control, so it stays clickable. */}
+        <span className="relative z-10 flex pt-0.5">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(checked) => row.toggleSelected(Boolean(checked))}
+            aria-label={`Select ${selectionLabel(conversation)}`}
+          />
         </span>
-      </label>
-      <button
-        type="button"
-        aria-pressed={isSelected}
-        onClick={() => onSelect(conversation.id)}
-        className={cn(
-          "min-w-0 flex-1 space-y-2 rounded-xl px-3 py-3 text-left transition-colors",
-          "hover:bg-muted/40 focus-visible:outline-none focus-visible:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring",
-          isSelected && "bg-muted/40 ring-1 ring-border",
-        )}
-      >
-        <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-xs font-medium text-foreground">
-            {conversation.externalContactName ??
-              conversation.externalContactEmail}
-          </span>
-          <span className="font-mono text-xs tabular-nums text-muted-foreground">
-            {formatRelative(conversation.lastMessageAt, nowIso)}
-          </span>
-        </div>
-        <p className="line-clamp-2 text-xs text-foreground">
-          {conversation.subject}
-        </p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="capitalize">{conversation.status}</span>
-          <span aria-hidden>·</span>
-          <span className="capitalize">{conversation.priority}</span>
-          {conversation.escalatedAt ? (
-            <>
-              <span aria-hidden>·</span>
+        <ItemContent className="min-w-0 gap-1">
+          <DataGridRowPrimary
+            className="flex-col items-start gap-0.5 text-left after:absolute after:inset-0"
+            aria-pressed={isOpen}
+            onClick={() => onOpen(conversation.id)}
+          >
+            <span className="truncate text-xs text-muted-foreground">
+              {donor}
+            </span>
+            <span className="line-clamp-2 text-sm font-medium">
+              {conversation.subject}
+            </span>
+          </DataGridRowPrimary>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <StatusCell status={conversation.status} />
+            <span>{PRIORITY_LABELS[conversation.priority]} priority</span>
+            <span className="tabular-nums">
+              <RelativeTime value={conversation.lastMessageAt} compact />
+            </span>
+            {conversation.escalatedAt ? (
               <span className="text-destructive">Escalated</span>
-            </>
-          ) : null}
-        </div>
-      </button>
+            ) : null}
+          </div>
+        </ItemContent>
+      </Item>
     </div>
   );
 }

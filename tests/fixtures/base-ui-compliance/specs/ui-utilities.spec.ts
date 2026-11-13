@@ -30,7 +30,7 @@ test("the real map renders worker-parsed GeoJSON and retains keyboard controls a
     page.getByRole("button", { name: "Sample ministry", exact: true }),
   ).toBeVisible();
   const zoom = JSON.parse((await observation.textContent())!).zoom;
-  const zoomIn = page.getByRole("button", { name: "Zoom In", exact: true });
+  const zoomIn = page.getByRole("button", { name: "Zoom in", exact: true });
   await zoomIn.focus();
   await zoomIn.press("Enter");
   await expect(zoomIn).toBeFocused();

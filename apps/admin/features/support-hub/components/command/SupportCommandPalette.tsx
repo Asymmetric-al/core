@@ -17,10 +17,8 @@ import {
   Folder,
   Inbox,
   LayoutGrid,
-  Mail,
-  StickyNote,
   TableProperties,
-  Tag,
+  Shuffle,
   UserCheck,
   UserX,
   Wand2,
@@ -40,6 +38,7 @@ import {
   useSnoozeSupportConversation,
 } from "../../hooks/use-support-mutations";
 import { useSupportSavedViews } from "../../hooks/use-support-saved-views";
+import { SUPPORT_AGENT_SETUP_MESSAGE } from "../../lib/agent-setup";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
 import { macroNeedsComposerInsert } from "../../lib/macro-runner";
 import { useSupportInboxState } from "../../lib/route-state";
@@ -148,7 +147,7 @@ export function SupportCommandPalette() {
     const target = ensureSelected();
     if (!target) return;
     if (!currentAgentId) {
-      toast.error("No agent matched the current Mission Control user yet.");
+      toast.error(SUPPORT_AGENT_SETUP_MESSAGE);
       return;
     }
     close();
@@ -172,17 +171,22 @@ export function SupportCommandPalette() {
     const target = ensureSelected();
     if (!target) return;
     close();
-    await roundRobin.mutateAsync({
-      conversationId: target.id,
-      authorAgentId: currentAgentId ?? undefined,
-    });
+    try {
+      const next = await roundRobin.mutateAsync({
+        conversationId: target.id,
+        authorAgentId: currentAgentId ?? undefined,
+      });
+      if (!next) toast.info("No other agent is available.");
+    } catch {
+      toast.error("Couldn’t assign the conversation. Try again.");
+    }
   };
 
   const handleRunMacro = async (macro: SupportMacro) => {
     const target = ensureSelected();
     if (!target) return;
     if (!currentAgentId) {
-      toast.error("No agent matched the current Mission Control user yet.");
+      toast.error(SUPPORT_AGENT_SETUP_MESSAGE);
       return;
     }
     if (macroNeedsComposerInsert(macro)) {
@@ -194,19 +198,6 @@ export function SupportCommandPalette() {
       conversationId: target.id,
       macroId: macro.id,
       authorAgentId: currentAgentId,
-    });
-  };
-
-  const handleSwitchMode = (mode: "reply" | "note") => {
-    wrap(() => {
-      // No state to flip from here — the composer reads its mode locally.
-      // This entry is left as a deliberate keyboard hint so the palette can
-      // surface the action; the actual mode switch happens via `r` / `n`.
-      toast.info(
-        mode === "reply"
-          ? 'Use the "r" shortcut while a conversation is open.'
-          : 'Use the "n" shortcut while a conversation is open.',
-      );
     });
   };
 
@@ -284,7 +275,7 @@ export function SupportCommandPalette() {
                 Unassign
               </CommandItem>
               <CommandItem onSelect={() => void handleRoundRobin()}>
-                <Tag className="size-3.5 text-muted-foreground" />
+                <Shuffle className="size-3.5 text-muted-foreground" />
                 Round-robin assign
               </CommandItem>
             </CommandGroup>
@@ -324,18 +315,6 @@ export function SupportCommandPalette() {
             </CommandGroup>
           </>
         ) : null}
-
-        <CommandSeparator />
-        <CommandGroup heading="Quick reply tone">
-          <CommandItem onSelect={() => handleSwitchMode("reply")}>
-            <Mail className="size-3.5 text-muted-foreground" />
-            Switch composer to reply
-          </CommandItem>
-          <CommandItem onSelect={() => handleSwitchMode("note")}>
-            <StickyNote className="size-3.5 text-warning" />
-            Switch composer to internal note
-          </CommandItem>
-        </CommandGroup>
       </CommandList>
       <InboxShortcutHints />
     </CommandDialog>

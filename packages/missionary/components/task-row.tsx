@@ -34,6 +34,7 @@ import {
   Bell,
   Pencil,
   User,
+  UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
@@ -121,8 +122,8 @@ const STATUS_CONFIG: Record<
     variant: "secondary" | "info" | "warning" | "success";
   }
 > = {
-  not_started: { label: "Not Started", variant: "secondary" },
-  in_progress: { label: "In Progress", variant: "info" },
+  not_started: { label: "Not started", variant: "secondary" },
+  in_progress: { label: "In progress", variant: "info" },
   waiting: { label: "Waiting", variant: "warning" },
   completed: { label: "Completed", variant: "success" },
   deferred: { label: "Deferred", variant: "secondary" },
@@ -259,21 +260,22 @@ function TaskRowMeta({
   statusConfig: TaskStatusVisual;
 }) {
   return (
-    <div className="flex items-center gap-2 mt-3 flex-wrap">
+    <div className="flex min-w-0 items-center gap-2 mt-3 flex-wrap">
       {task.donor && (
-        <Link href={`/donors?selected=${task.donor.id}`}>
-          <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted border border-border hover:border-border transition-colors cursor-pointer">
-            <Avatar className="size-4">
-              <AvatarImage src={task.donor.avatar_url || undefined} />
+        <Link
+          href={`/donors?selected=${task.donor.id}`}
+          className="min-w-0 max-w-full"
+        >
+          <div className="flex min-w-0 max-w-full items-center gap-2 px-2 py-1 rounded-full bg-muted border border-border hover:border-border transition-colors cursor-pointer">
+            {/* Decorative: the partner's name follows, so the fallback is an
+                icon rather than initials squeezed into a 16px circle. */}
+            <Avatar className="size-4" aria-hidden="true">
+              <AvatarImage src={task.donor.avatar_url || undefined} alt="" />
               <AvatarFallback>
-                {task.donor.name
-                  .split(" ")
-                  .map((n: string) => n[0])
-                  .join("")
-                  .slice(0, 2)}
+                <UserRound className="size-3" />
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <span className="min-w-0 truncate text-xs font-medium text-muted-foreground">
               {task.donor.name}
             </span>
           </div>
@@ -327,7 +329,7 @@ function TaskRowMenu({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={onEdit}>
           <Pencil className="mr-2 size-3.5 text-muted-foreground" />
-          Edit Task
+          Edit task
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onComplete}>
           <CheckCircle2 className="mr-2 size-3.5 text-muted-foreground" />
@@ -338,13 +340,13 @@ function TaskRowMenu({
             render={<Link href={`/donors?selected=${task.donor.id}`} />}
           >
             <User className="mr-2 size-3.5 text-muted-foreground" />
-            View Partner
+            View partner
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onDelete} variant="destructive">
           <Trash2 className="mr-2 size-3.5" />
-          Delete Task
+          Delete task
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -371,7 +373,10 @@ export function TaskRow({
     PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.none;
   const statusConfig: TaskStatusVisual =
     STATUS_CONFIG[task.status] ?? STATUS_CONFIG.not_started;
-  const dueDateStatus = getDueDateStatus(task.due_date);
+  // Deferred work is left out of the overdue and due-today counts, so it does
+  // not carry those urgency badges either.
+  const dueDateStatus =
+    task.status === "deferred" ? null : getDueDateStatus(task.due_date);
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;
 

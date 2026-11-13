@@ -1,32 +1,39 @@
-import { Shield, ShieldAlert, ShieldHalf } from "lucide-react";
-
 import type { MediaItem } from "@asym/database/types";
-import type { ElementType } from "react";
 
-export type SecurityLevel = "high" | "medium" | "low";
 export type AccessLevel = "view" | "comment";
 export type PostStatus = "published" | "draft";
 
-export type SecurityDialogState = {
-  level: SecurityLevel;
-  publicMirror: boolean;
-  autoApproval: boolean;
+/** The kinds of update a missionary can share (stored values). */
+export const POST_TYPES = [
+  "Update",
+  "Story",
+  "Prayer Request",
+  "Milestone",
+] as const;
+export type PostType = (typeof POST_TYPES)[number];
+
+/** Post types read in sentence case ("Prayer request"). */
+export function postTypeLabel(postType: string) {
+  return postType === "Prayer Request" ? "Prayer request" : postType;
+}
+
+/** Who can see an update. Stored rows say "partners_only". */
+export type Visibility = "public" | "partners";
+
+export const VISIBILITY_LABELS: Record<Visibility, string> = {
+  public: "Public",
+  partners: "Partners only",
 };
 
-type SecurityOption = {
-  level: SecurityLevel;
-  icon: ElementType;
-  title: string;
-  description: string;
-  features: string[];
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  ringColor: string;
-};
+export function normalizeVisibility(value: string): Visibility {
+  return value === "partners_only" || value === "partners"
+    ? "partners"
+    : "public";
+}
 
 export type WorkerFeedUiState = {
   postType: string;
+  postTitle: string;
   postContent: string;
   activeTab: PostStatus;
   isLoading: boolean;
@@ -36,7 +43,6 @@ export type WorkerFeedUiState = {
   postPrivacy: Visibility;
   selectedMedia: MediaItem[];
   isUploading: boolean;
-  securityLevel: SecurityLevel;
   isLoadingRequests: boolean;
 };
 
@@ -52,24 +58,24 @@ export interface FollowerRequest {
   initials: string;
 }
 
-export type Visibility = "public" | "partners" | "private";
-
 export interface Post {
   id: string;
   post_type: string;
+  /** Author-supplied headline (what donors see first); older rows may lack one. */
+  title?: string | null;
   content: string;
   created_at: string;
   likes_count?: number;
+  updated_at?: string | null;
   prayers_count?: number;
-  fires_count?: number;
   comments?: FeedComment[];
   media?: MediaItem[];
   isPinned?: boolean;
-  visibility: Visibility;
+  /** "public" or "partners_only" as stored. */
+  visibility: string;
   status: PostStatus;
   user_liked?: boolean;
   user_prayed?: boolean;
-  user_fired?: boolean;
   author?: {
     id: string;
     first_name: string;
@@ -93,59 +99,13 @@ export interface FeedComment {
   replies?: FeedComment[];
 }
 
-export function buildSecurityDialogState(
-  level: SecurityLevel,
-): SecurityDialogState {
-  return {
-    level,
-    publicMirror: level === "low",
-    autoApproval: level !== "high",
-  };
+/**
+ * One list after a save: the saved post stays in place (or joins at the top)
+ * when it belongs to the list, and leaves it otherwise.
+ */
+export function placeSavedPost(list: Post[], saved: Post, belongs: boolean) {
+  if (!belongs) return list.filter((post) => post.id !== saved.id);
+  return list.some((post) => post.id === saved.id)
+    ? list.map((post) => (post.id === saved.id ? saved : post))
+    : [saved, ...list];
 }
-
-export const SECURITY_OPTIONS: SecurityOption[] = [
-  {
-    level: "high",
-    icon: ShieldAlert,
-    title: "High Security",
-    description:
-      "Manual approval required for all followers. Full control over who sees your updates.",
-    features: [
-      "Manual follower approval",
-      "Granular permissions",
-      "Activity logging",
-    ],
-    color: "text-destructive",
-    bgColor: "bg-destructive/10",
-    borderColor: "border-destructive/20",
-    ringColor: "ring-destructive/20",
-  },
-  {
-    level: "medium",
-    icon: ShieldHalf,
-    title: "Balanced",
-    description:
-      "Auto-approve donors while maintaining control over non-donor followers.",
-    features: [
-      "Auto-approve donors",
-      "Review non-donors",
-      "Partner visibility",
-    ],
-    color: "text-warning",
-    bgColor: "bg-warning/10",
-    borderColor: "border-warning/20",
-    ringColor: "ring-warning/20",
-  },
-  {
-    level: "low",
-    icon: Shield,
-    title: "Open Access",
-    description:
-      "Public feed visible on your giving page. Maximum reach for your updates.",
-    features: ["Public visibility", "Auto-sync to page", "Maximum engagement"],
-    color: "text-success",
-    bgColor: "bg-success/10",
-    borderColor: "border-success/20",
-    ringColor: "ring-success/20",
-  },
-];

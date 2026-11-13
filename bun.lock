@@ -419,6 +419,7 @@
       "name": "@asym/missionary",
       "version": "0.1.0",
       "dependencies": {
+        "@asym/api": "workspace:*",
         "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
         "@asym/lib": "workspace:*",

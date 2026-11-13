@@ -18,6 +18,7 @@ interface MacroLauncherProps {
   onCannedResponseInsert?: (input: { text: string; html: string }) => void;
   /** Compact (composer chrome) renders just the icon. */
   compact?: boolean;
+  disabled?: boolean;
 }
 
 /**
@@ -28,10 +29,11 @@ export function MacroLauncher({
   conversation,
   onCannedResponseInsert,
   compact = false,
+  disabled = false,
 }: MacroLauncherProps) {
   const [open, setOpen] = React.useState(false);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open && !disabled} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
           <Button
@@ -39,6 +41,7 @@ export function MacroLauncher({
             variant="ghost"
             size={compact ? "icon-sm" : "sm"}
             aria-label="Open macros"
+            disabled={disabled}
           >
             <Wand2 aria-hidden="true" />
             {compact ? null : "Macros"}

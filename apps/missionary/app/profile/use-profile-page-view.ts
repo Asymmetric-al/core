@@ -1,14 +1,15 @@
 "use client";
 
 import { fetchResult, readErrorMessage } from "@asym/lib/http/fetch-result";
+import { useRetainedDraft } from "@asym/ui/hooks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useReducer,
   useRef,
-  useState,
 } from "react";
 import { toast } from "sonner";
 
@@ -17,7 +18,6 @@ import {
   asObject,
   asString,
   BIO_MAX_WORDS,
-  BIO_MIN_WORDS,
   countWords,
   initialProfile,
   mapApiProfileToProfileData,
@@ -35,7 +35,6 @@ type ProfilePageUiState = {
   isSaving: boolean;
   previewMode: PreviewMode;
   saveSuccess: boolean;
-  copiedLink: boolean;
   validationErrors: ValidationErrors;
 };
 
@@ -46,7 +45,6 @@ type ProfilePageUiAction =
       payload: PreviewMode | ((prev: PreviewMode) => PreviewMode);
     }
   | { type: "SET_SAVE_SUCCESS"; payload: boolean }
-  | { type: "SET_COPIED_LINK"; payload: boolean }
   | {
       type: "SET_VALIDATION_ERRORS";
       payload:
@@ -69,8 +67,6 @@ function profilePageUiReducer(
     }
     case "SET_SAVE_SUCCESS":
       return { ...state, saveSuccess: action.payload };
-    case "SET_COPIED_LINK":
-      return { ...state, copiedLink: action.payload };
     case "SET_VALIDATION_ERRORS": {
       const next =
         typeof action.payload === "function"
@@ -87,7 +83,6 @@ const initialUiState: ProfilePageUiState = {
   isSaving: false,
   previewMode: "mobile",
   saveSuccess: false,
-  copiedLink: false,
   validationErrors: {},
 };
 
@@ -99,21 +94,20 @@ type ProfilePageViewModel = {
   bioWordCount: number;
   initials: string;
   hasChanges: boolean;
+  canRead: boolean;
+  canWrite: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
-  copiedLink: boolean;
   previewMode: PreviewMode;
   setPreviewMode: (value: React.SetStateAction<PreviewMode>) => void;
   updateProfile: (field: keyof ProfileData, value: string) => void;
   handleSave: () => Promise<void>;
   handleDiscard: () => void;
-  handleCopyLink: () => Promise<void>;
 };
 
 export function useProfilePageView(): ProfilePageViewModel {
   const [uiState, dispatch] = useReducer(profilePageUiReducer, initialUiState);
-  const { isSaving, previewMode, saveSuccess, copiedLink, validationErrors } =
-    uiState;
+  const { isSaving, previewMode, saveSuccess, validationErrors } = uiState;
 
   const setIsSaving = useCallback((value: boolean) => {
     dispatch({ type: "SET_IS_SAVING", payload: value });
@@ -127,9 +121,6 @@ export function useProfilePageView(): ProfilePageViewModel {
   const setSaveSuccess = useCallback((value: boolean) => {
     dispatch({ type: "SET_SAVE_SUCCESS", payload: value });
   }, []);
-  const setCopiedLink = useCallback((value: boolean) => {
-    dispatch({ type: "SET_COPIED_LINK", payload: value });
-  }, []);
   const setValidationErrors = useCallback(
     (value: React.SetStateAction<ValidationErrors>) => {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: value });
@@ -138,8 +129,25 @@ export function useProfilePageView(): ProfilePageViewModel {
   );
 
   const queryClient = useQueryClient();
+  const {
+    value: draft,
+    read: readDraft,
+    update: retainDraft,
+    discard: discardDraft,
+    beginSave,
+    finishSave,
+    canRead,
+    canWrite,
+    isCurrent,
+    isSaving: retainedSaving,
+    revokeRead,
+    revokeWrite,
+  } = useRetainedDraft<Partial<Omit<ProfileData, "email">>>(
+    "missionary-profile",
+  );
   const profileQuery = useQuery<ProfileData | null>({
     queryKey: ["profile"],
+    enabled: canRead,
     queryFn: async () => {
       const res = await fetch("/api/profile");
       let data: unknown = null;
@@ -150,8 +158,10 @@ export function useProfilePageView(): ProfilePageViewModel {
       }
 
       const payload = asObject(data);
+      if (!isCurrent()) return null;
 
       if (!res.ok) {
+        if (res.status === 401 || res.status === 403) revokeRead();
         const message = asString(payload?.error);
         throw new Error(message || "Failed to load profile");
       }
@@ -166,9 +176,12 @@ export function useProfilePageView(): ProfilePageViewModel {
 
   // The query cache is the saved baseline; `draft` holds only the user's
   // unsaved edits, so nothing has to be copied into state when data arrives.
-  const originalProfile = profileQuery.data ?? initialProfile;
-  const [draft, setDraft] = useState<ProfileData | null>(null);
-  const profile = draft ?? originalProfile;
+  const originalProfile =
+    (canRead ? profileQuery.data : null) ?? initialProfile;
+  const profile = useMemo(
+    () => ({ ...originalProfile, ...draft }),
+    [originalProfile, draft],
+  );
 
   const initials =
     (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
@@ -185,12 +198,17 @@ export function useProfilePageView(): ProfilePageViewModel {
     if (fetchError) toast.error(fetchError);
   }, [fetchError]);
 
+  useEffect(() => {
+    if (!saveSuccess) return;
+    const timeout = setTimeout(() => setSaveSuccess(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [saveSuccess, setSaveSuccess]);
+
   const isLoading = profileQuery.isPending;
 
-  // Profile Photos calls `updateProfile(field, url); handleSave()` in one
+  // The photo uploader calls `updateProfile(field, url); handleSave()` in one
   // event. Keep a live snapshot so save reads that pending edit instead of
   // the previous render's `profile` closure.
-  const draftRef = useRef(draft);
   const originalProfileRef = useRef(originalProfile);
   const profileRef = useRef(profile);
   const saveRequestIdRef = useRef(0);
@@ -199,7 +217,6 @@ export function useProfilePageView(): ProfilePageViewModel {
   const saveQueuedRef = useRef(false);
   const saveCancelledRef = useRef(false);
   useLayoutEffect(() => {
-    draftRef.current = draft;
     originalProfileRef.current = originalProfile;
     profileRef.current = profile;
   }, [draft, originalProfile, profile]);
@@ -229,9 +246,7 @@ export function useProfilePageView(): ProfilePageViewModel {
 
       if (data.bio) {
         const wordCount = countWords(data.bio);
-        if (wordCount < BIO_MIN_WORDS) {
-          errors.bio = `Please write at least ${BIO_MIN_WORDS} words (currently ${wordCount})`;
-        } else if (wordCount > BIO_MAX_WORDS) {
+        if (wordCount > BIO_MAX_WORDS) {
           errors.bio = `Please keep under ${BIO_MAX_WORDS} words (currently ${wordCount})`;
         }
       }
@@ -253,22 +268,38 @@ export function useProfilePageView(): ProfilePageViewModel {
 
   const updateProfile = useCallback(
     (field: keyof ProfileData, value: string) => {
-      const next = {
-        ...(draftRef.current ?? originalProfileRef.current),
-        [field]: value,
-      };
-      draftRef.current = next;
-      profileRef.current = next;
-      setDraft(next);
+      if (field === "email" || !canWrite) return;
+      const next = { ...readDraft(), [field]: value };
+      profileRef.current = { ...originalProfileRef.current, ...next };
+      retainDraft(next, {
+        dirty: hasProfileChanges(
+          profileRef.current,
+          originalProfileRef.current,
+        ),
+      });
+      setSaveSuccess(false);
       if (validationErrors[field as keyof ValidationErrors]) {
         setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     },
-    [validationErrors, setValidationErrors],
+    [
+      canWrite,
+      readDraft,
+      retainDraft,
+      setSaveSuccess,
+      validationErrors,
+      setValidationErrors,
+    ],
   );
 
   const handleSave = useCallback(
     async function persistProfile() {
+      if (
+        !canWrite ||
+        !isCurrent() ||
+        (retainedSaving && !saveInFlightRef.current)
+      )
+        return;
       // Photo widgets call handleSave on upload without checking isSaving, so a
       // second save can start while the first PATCH is still in flight. The API
       // applies every truthy avatar/cover URL, so the slower first request can
@@ -288,14 +319,20 @@ export function useProfilePageView(): ProfilePageViewModel {
       saveCancelledRef.current = false;
       setIsSaving(true);
 
-      let savedAny = false;
+      let savedLatestRevision = false;
       let saveFailed = false;
 
       while (true) {
         saveQueuedRef.current = false;
-        const snapshot = profileRef.current;
+        if (!isCurrent()) break;
+        const save = beginSave();
+        if (!save) break;
+        // The provider revision survives route eviction; the old mount's ref
+        // can lag behind edits made by the remounted editor.
+        const snapshot = { ...profileRef.current, ...save.value };
         if (!validateProfile(snapshot)) {
           toast.error("Please fix the errors before saving");
+          finishSave(save, false);
           saveFailed = true;
           break;
         }
@@ -330,11 +367,17 @@ export function useProfilePageView(): ProfilePageViewModel {
 
         // Discard (and any other generation bump) always ends this drain.
         // Continuing here would flush a save the user just cancelled.
-        if (requestId !== saveRequestIdRef.current) {
+        if (requestId !== saveRequestIdRef.current || !save.isCurrent()) {
+          finishSave(save, false);
           break;
         }
 
         if (!result.ok) {
+          finishSave(save, false);
+          if (result.error.kind === "http" && result.error.status === 401)
+            revokeRead();
+          if (result.error.kind === "http" && result.error.status === 403)
+            revokeWrite();
           if (
             result.error.kind === "network" &&
             result.error.cause instanceof Error &&
@@ -359,10 +402,8 @@ export function useProfilePageView(): ProfilePageViewModel {
         }
 
         queryClient.setQueryData<ProfileData | null>(["profile"], snapshot);
-        setDraft((current) =>
-          current && hasProfileChanges(current, snapshot) ? current : null,
-        );
-        savedAny = true;
+        originalProfileRef.current = snapshot;
+        savedLatestRevision = finishSave(save, true);
 
         if (!saveQueuedRef.current) {
           break;
@@ -374,9 +415,8 @@ export function useProfilePageView(): ProfilePageViewModel {
       saveAbortRef.current = null;
       setIsSaving(false);
 
-      if (savedAny && !saveFailed && !saveCancelledRef.current) {
+      if (savedLatestRevision && !saveFailed && !saveCancelledRef.current) {
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
         toast.success("Profile saved");
       }
 
@@ -385,7 +425,19 @@ export function useProfilePageView(): ProfilePageViewModel {
         void persistProfile();
       }
     },
-    [queryClient, setIsSaving, setSaveSuccess, validateProfile],
+    [
+      beginSave,
+      canWrite,
+      finishSave,
+      isCurrent,
+      queryClient,
+      retainedSaving,
+      revokeRead,
+      revokeWrite,
+      setIsSaving,
+      setSaveSuccess,
+      validateProfile,
+    ],
   );
 
   const handleDiscard = useCallback(() => {
@@ -397,20 +449,11 @@ export function useProfilePageView(): ProfilePageViewModel {
     saveAbortRef.current?.abort();
     saveAbortRef.current = null;
     setIsSaving(false);
-    draftRef.current = null;
     profileRef.current = originalProfileRef.current;
-    setDraft(null);
+    discardDraft();
     setValidationErrors({});
     toast.info("Changes discarded");
-  }, [setIsSaving, setValidationErrors]);
-
-  const handleCopyLink = useCallback(async () => {
-    const link = `${window.location.origin}/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-    toast.success("Link copied!");
-  }, [profile.firstName, profile.lastName, setCopiedLink]);
+  }, [discardDraft, setIsSaving, setValidationErrors]);
 
   return {
     isLoading,
@@ -420,14 +463,14 @@ export function useProfilePageView(): ProfilePageViewModel {
     bioWordCount,
     initials,
     hasChanges,
-    isSaving,
+    canRead,
+    canWrite,
+    isSaving: isSaving || retainedSaving,
     saveSuccess,
-    copiedLink,
     previewMode,
     setPreviewMode,
     updateProfile,
     handleSave,
     handleDiscard,
-    handleCopyLink,
   };
 }

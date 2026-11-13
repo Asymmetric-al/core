@@ -1,139 +1,297 @@
 "use client";
 
-import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@asym/ui/components/shadcn/alert";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
-import { ChevronLeft, MoreVertical, Edit } from "lucide-react";
+import { Flag, UserX } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React from "react";
+import { useId, useSyncExternalStore } from "react";
 
-import { PersonnelProfile } from "@/features/mission-control/care/components/PersonnelProfile";
-import { TimezoneScheduler } from "@/features/mission-control/care/components/TimezoneScheduler";
+import type {
+  ActivityLogEntry,
+  CarePersonnel,
+} from "@/features/mission-control/care/types";
+import type {
+  MemberCareGoal,
+  MemberCareRequirement,
+} from "@asym/database/hooks";
+
 import {
-  useCareProfile,
-  useCareActivity,
-  useCarePrivateNotes,
-} from "@/features/mission-control/care/hooks/use-care";
+  CareStatusBadge,
+  ACTIVITY_TYPE_LABELS,
+  formatLastContact,
+} from "@/features/mission-control/care/components/care-display";
+import {
+  PersonnelProfile,
+  PersonnelProfileActions,
+} from "@/features/mission-control/care/components/PersonnelProfile";
+import { useMemberCareDetailQuery } from "@/features/mission-control/care/hooks/use-care";
+import {
+  getLastContactDate,
+  DEFAULT_ROUTINE_INTERVAL_DAYS,
+  toCareRequirements,
+} from "@/features/mission-control/care/member-care.derived";
+import { formatDate } from "@/features/mission-control/care/utils";
+
+const minuteClock = {
+  subscribe(onChange: () => void) {
+    const timer = setInterval(onChange, 60_000);
+    return () => clearInterval(timer);
+  },
+  getSnapshot: () => Math.floor(Date.now() / 60_000),
+  getServerSnapshot: () => null,
+};
+
+function useLocalTime(timeZone: string) {
+  const minute = useSyncExternalStore(
+    minuteClock.subscribe,
+    minuteClock.getSnapshot,
+    minuteClock.getServerSnapshot,
+  );
+  if (minute === null) return null;
+  const now = new Date(minute * 60_000);
+  try {
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(now);
+    const hour = Number(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hour: "numeric",
+        hourCycle: "h23",
+      }).format(now),
+    );
+    return { time, workingHours: hour >= 9 && hour < 17 };
+  } catch {
+    return null;
+  }
+}
+
+function CareFactsCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<[string, React.ReactNode]>;
+}) {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId}>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2 id={headingId}>{title}</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="flex flex-col gap-3 text-sm">
+            {rows.map(([label, value]) => (
+              <div
+                key={label}
+                className="flex items-start justify-between gap-4"
+              >
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="text-right">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
+function CareDetailsCard({
+  personnel,
+  activities,
+  requirements,
+  goals,
+}: {
+  personnel: CarePersonnel;
+  activities: ActivityLogEntry[];
+  requirements: MemberCareRequirement[];
+  goals: MemberCareGoal[];
+}) {
+  const local = useLocalTime(personnel.timezone);
+  return (
+    <CareFactsCard
+      title="Details"
+      rows={[
+        [
+          "Status",
+          <div key="status" className="flex flex-wrap justify-end gap-1">
+            <CareStatusBadge status={personnel.status} />
+            {personnel.manualAttention ? (
+              <Badge variant="outline">
+                <Flag aria-hidden="true" />
+                Flagged
+              </Badge>
+            ) : null}
+          </div>,
+        ],
+        [
+          "Contact schedule",
+          requirements.length
+            ? toCareRequirements(requirements).map((requirement) => (
+                <div key={requirement.id}>
+                  {ACTIVITY_TYPE_LABELS[requirement.activityType]} every{" "}
+                  {requirement.intervalDays} days
+                </div>
+              ))
+            : `Check-in every ${DEFAULT_ROUTINE_INTERVAL_DAYS} days (default)`,
+        ],
+        [
+          "Open goals",
+          goals.filter((goal) => goal.status !== "completed").length,
+        ],
+        [
+          "Last contact",
+          formatLastContact(getLastContactDate(personnel, activities)),
+        ],
+        ["Birthday", formatDate(personnel.birthDate ?? null) || "Not recorded"],
+        [
+          "Local time",
+          local
+            ? `${local.time} · ${local.workingHours ? "working hours" : "outside working hours"}`
+            : "—",
+        ],
+      ]}
+    />
+  );
+}
+
+function CareAssignmentCard({ personnel }: { personnel: CarePersonnel }) {
+  return (
+    <CareFactsCard
+      title="Assignment"
+      rows={[
+        ["Role", personnel.role],
+        ["Location", personnel.location],
+        ["Region", personnel.region],
+      ]}
+    />
+  );
+}
 
 export default function CareProfilePage() {
-  const { id } = useParams();
-  // Route VT owns the entrance when active; only animate on plain mounts.
-  const withinRouteVt = useWithinViewTransitionRouteLayer();
-  const { data: personnel, isLoading: loadingProfile } = useCareProfile(
-    id as string,
-  );
-  const { data: activities, isLoading: loadingActivities } = useCareActivity(
-    id as string,
-  );
-  const { data: privateNotes, isLoading: loadingPrivateNotes } =
-    useCarePrivateNotes(id as string);
+  const { id } = useParams<{ id: string }>();
+  const profile = useMemberCareDetailQuery(id);
+  const personnel = profile.data?.personnel;
+  const activities = profile.data?.activities ?? [];
 
-  if (loadingProfile || loadingActivities || loadingPrivateNotes) {
+  if (profile.isPending) {
     return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-64 w-full rounded-xl" />
-        <div className="grid gap-6 md:grid-cols-3">
-          <Skeleton className="md:col-span-2 h-100 w-full rounded-xl" />
-          <Skeleton className="h-100 w-full rounded-xl" />
+      <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-7" aria-busy="true">
+        <Skeleton className="h-12 w-72" />
+        <div className="grid gap-6 xl:grid-cols-3">
+          <Skeleton className="h-72 rounded-xl xl:col-start-3 xl:row-start-1" />
+          <Skeleton className="h-96 rounded-xl xl:col-span-2 xl:col-start-1 xl:row-start-1" />
         </div>
       </div>
+    );
+  }
+
+  if (profile.isError) {
+    return (
+      <PageShell title="Care profile" density="compact">
+        <Alert variant="destructive">
+          <AlertTitle>Couldn&apos;t load this care profile</AlertTitle>
+          <AlertDescription>
+            {profile.error instanceof Error
+              ? profile.error.message
+              : "The care record is unavailable."}
+            <Button variant="outline" onClick={() => void profile.refetch()}>
+              Try again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </PageShell>
     );
   }
 
   if (!personnel) {
     return (
-      <div className="p-20 text-center text-muted-foreground font-semibold">
-        Personnel not found
-      </div>
+      <PageShell title="Person not found" density="compact">
+        <div className="rounded-xl border">
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <UserX />
+              </EmptyMedia>
+              <EmptyTitle>This care profile does not exist</EmptyTitle>
+              <EmptyDescription>
+                It may have been removed, or the link is out of date.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Link
+                href="/care/directory"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Back to the directory
+              </Link>
+            </EmptyContent>
+          </Empty>
+        </div>
+      </PageShell>
     );
   }
 
   return (
-    <div
-      className={cn(
-        "p-6 space-y-6",
-        !withinRouteVt && "animate-in fade-in duration-300",
-      )}
+    <PageShell
+      title={personnel.nameMissing ? "Member profile" : personnel.name}
+      description={`${personnel.nameMissing ? "Name not set · " : ""}${personnel.role} · ${personnel.location}`}
+      density="compact"
+      actions={<PersonnelProfileActions personnel={personnel} />}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          href="/care/directory"
-          className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
-        >
-          <ChevronLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
-          Back to Directory
-        </Link>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Edit className="mr-2 size-3.5 text-muted-foreground" /> Edit
-            Profile
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            aria-label="More profile actions"
-          >
-            <MoreVertical className="size-4 text-muted-foreground" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-8">
-          <PersonnelProfile
+      <div className="grid items-start gap-6 xl:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-start-3 xl:row-start-1">
+          <CareDetailsCard
             personnel={personnel}
-            activities={activities || []}
-            privateNotes={privateNotes || []}
+            activities={activities}
+            requirements={profile.data?.requirements ?? []}
+            goals={profile.data?.goals ?? []}
           />
-        </div>
-        <div className="lg:col-span-4 space-y-6">
-          <TimezoneScheduler
-            remoteTimezone={personnel.timezone}
-            remoteName={personnel.name.split(" ")[0] ?? "Team Member"}
-          />
-
-          <div className="p-6 rounded-xl border border-border bg-card shadow-sm space-y-4 text-left">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Quick Stats
-            </h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">
-                  Last Contact
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  2 days ago
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">
-                  Frequency
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  Every 14d
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">
-                  Care Lead
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  David Ross
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">
-                  Support %
-                </p>
-                <p className="text-sm font-semibold text-success">92%</p>
-              </div>
-            </div>
+          <div className="hidden xl:block">
+            <CareAssignmentCard personnel={personnel} />
           </div>
         </div>
+        <div className="min-w-0 xl:col-span-2 xl:col-start-1 xl:row-start-1">
+          <PersonnelProfile
+            personnel={personnel}
+            activities={activities}
+            privateNotes={profile.data?.privateNotes ?? []}
+            goals={profile.data?.goals ?? []}
+            requirements={profile.data?.requirements ?? []}
+          />
+        </div>
+        <div className="min-w-0 xl:hidden">
+          <CareAssignmentCard personnel={personnel} />
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

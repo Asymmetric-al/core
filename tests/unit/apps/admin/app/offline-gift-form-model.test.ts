@@ -207,6 +207,30 @@ describe("offlineGiftFormSchema — inline UX validation", () => {
     ).toBe(false);
   });
 
+  it("rejects sub-cent and malformed amounts with a dollars-and-cents hint", () => {
+    for (const amount of ["0.004", "10.005", "1e-3", "abc"]) {
+      const result = offlineGiftFormSchema.safeParse(knownValues({ amount }));
+      expect(result.success).toBe(false);
+      expect(
+        result.error?.issues.find((issue) => issue.path[0] === "amount")
+          ?.message,
+      ).toBe("Enter an amount in dollars and cents, like 25.00.");
+    }
+  });
+
+  it("sends typed amounts exactly, including grouped thousands", () => {
+    expect(
+      toOfflineContributionRequest(knownValues({ amount: "1,500.00" })).amount,
+    ).toBe(1500);
+    expect(
+      toOfflineContributionRequest(knownValues({ amount: "0.29" })).amount,
+    ).toBe(0.29);
+    expect(
+      offlineGiftFormSchema.safeParse(knownValues({ amount: "1,500.00" }))
+        .success,
+    ).toBe(true);
+  });
+
   it("rejects a missing received date", () => {
     expect(
       offlineGiftFormSchema.safeParse(knownValues({ receivedDate: "" }))

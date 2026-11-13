@@ -201,7 +201,7 @@
       "rawSkillHash": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c",
       "lockHash": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c",
       "entrypointHash": "76521f6f42291f418e9d6dca4c01a06144283a23dda34ddaf344317366f71440",
-      "treeHash": "0e08445ad468f11d98a3ff09da5e39b84b3e14629ef5a7a2dca0ea109c3bcef5",
+      "treeHash": "a78295a462654765f46ec5cfeb5deb5696c19e7de41c9672f838384b97b4598d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -252,7 +252,7 @@
       "rawSkillHash": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a",
       "lockHash": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a",
       "entrypointHash": "685ad71bdbf03b723d296cb55b4387a23390aec9331001692ef50310659d08d3",
-      "treeHash": "76a2370698de75d1bf56a21952f3d0e7226e932e6bbebb2e3a25843b91b87fb9",
+      "treeHash": "dae314a7b48ca5d1216fe4d842789df83ee9e4bf82cd5ba12f5ec82c66a30f6a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -990,7 +990,7 @@
       "rawSkillHash": "e74f1c413a4094dc2a73fb0baa0da2241465e01d593b0257ba995500df9b0068",
       "lockHash": "e74f1c413a4094dc2a73fb0baa0da2241465e01d593b0257ba995500df9b0068",
       "entrypointHash": "093e31831467964e03006bdeddaec9dbed15e936d2a970489f8441bdf7f2584d",
-      "treeHash": "bd8721fa34459887d894c556e03dea11040a63453327b6e4e90e13cdb0a53c4c",
+      "treeHash": "19b9a50c7749b6c2e0dadf22ad4c8875e590e266f36165a4c066be4a863abdb3",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1131,7 +1131,7 @@
       "rawSkillHash": "8c5883ccb23c27c39b7c58d101154ff35e032410e0dc4794be9ab7fe070c2297",
       "lockHash": "8c5883ccb23c27c39b7c58d101154ff35e032410e0dc4794be9ab7fe070c2297",
       "entrypointHash": "b33ea8b1c95b5ec7e6d4839f87f7febc25af4a32952210f90b6fc416d7be8c7f",
-      "treeHash": "667446fc1468c873223dde48d4b468e0e325d87a8bcd4e2a661ba8da62d96d66",
+      "treeHash": "e931f3f2dddaa2f15f9c377e2cd891165e1e967266d9d1e8d3253df06cf99447",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1245,7 +1245,7 @@
       "rawSkillHash": "fb9807bb5c59a3ca9d4a27b25f56b36e5596251d280fb30c4b7f2ff8b6f4fe2d",
       "lockHash": "fb9807bb5c59a3ca9d4a27b25f56b36e5596251d280fb30c4b7f2ff8b6f4fe2d",
       "entrypointHash": "9650b6521b2ee75e32656e29e5d099403be162005a97533ba347187b24b8f9e9",
-      "treeHash": "ff3d17a10fa62bbf5e55e58b4d6661a99fc34c9e5de681fee403283a13fa0468",
+      "treeHash": "37190195a3b6d74f547a3b429d08a10810f3d354b8ce8978e7ce7ed1b7ebaf7b",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2398,7 +2398,7 @@
       "rawSkillHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "lockHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "entrypointHash": "8a9dc39069b9b73749c9da5cf1c55edd28292d9f4415d6136f1b84b04d38004b",
-      "treeHash": "016ae875ad1ef31c9262bd901ecae14def20e8916102bd204dd3427118358e1d",
+      "treeHash": "bff163878e8f53f2e8135bbc40c090fedcc1610e87d26c4248f7de469f5ef961",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2559,8 +2559,8 @@
       "sourcePath": "skills/engineering/diagnosing-bugs/",
       "rawSkillHash": "849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d",
       "lockHash": "849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d",
-      "entrypointHash": "d9fffe20202e4700b40020c616730d4b6f57b3d5f7c6489dc6bc5ecfb74af7da",
-      "treeHash": "61179b890005f87e646939d11041f2bdec51d784fb4cb3de9266913d676ee2bf",
+      "entrypointHash": "0f1182040907b95330f87dc94b906495e62c18d876cad86cc81b1d7843ef4923",
+      "treeHash": "71edb5c4edabfdb0047fc9b273cf0b4d83a5bf86e59d9885dcf99fd2d703e483",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2709,7 +2709,7 @@
       "rawSkillHash": null,
       "lockHash": "9a96975e2eaf1ce5c69c14429aea7d2039e2f6f5a73938520b653de84841d9e3",
       "entrypointHash": "e10fba546f45357fe0aaa7494b9e186910d4525818d19f9b2ad6f28cc506aa5e",
-      "treeHash": "360fbd8b389ac5618d0994a1d40c34e21e9cbab557515d814ffbf1a458f81ea0",
+      "treeHash": "bcb1bf9ddd38271f6c63561985af16b44b861443841d4ade0d839cced9d09cd8",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2888,7 +2888,7 @@
       "rawSkillHash": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9",
       "lockHash": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9",
       "entrypointHash": "dde4f8e0f13ec9418cd52594c87841ef3d73fbe6c4f6ce3f2028febc74c789cd",
-      "treeHash": "2d598c6aa0e9b11a9ec14a6fa3a213c71bedb9ae6c8034a50223b64606f66a85",
+      "treeHash": "b2d5d1c1aabb016cff56d667a183a272c239b16f9a00b436944665208f1e91b9",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -3191,7 +3191,7 @@
       "rawSkillHash": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
       "lockHash": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
       "entrypointHash": "6c40018bdc45a4093dfdc6a5a30b73ab809016026003064373674b2544ab569a",
-      "treeHash": "574ce67b780b3cf19df8c68cd4b161075efffa1c462f83dfa2a76be32d3ef4f7",
+      "treeHash": "bd94d29e88d397d4e08bfac7b97029f85f28f0da0aece506b86232b463fafaf4",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -3395,7 +3395,7 @@
       "rawSkillHash": "10b81abff023288216db9dd368efd79824e14b386ad1a2b764831312fb220533",
       "lockHash": "ac22e2512d2821884d96f25ebee00854409cb375197f7f023ee654090ff05b47",
       "entrypointHash": "ac22e2512d2821884d96f25ebee00854409cb375197f7f023ee654090ff05b47",
-      "treeHash": "b2abc1afb8b68a7ef4febbbf8c5c48d6a325ceb31cbfd4570d81411c637896d1",
+      "treeHash": "a0ad99bb0aea9b106f4729680684d245b960ae85edd1276e303637521008a785",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -3940,8 +3940,8 @@
       "sourcePath": "skills/engineering/implement/",
       "rawSkillHash": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d",
       "lockHash": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d",
-      "entrypointHash": "678a423a39efdcbd3e461387bae5ffcca3d04677a7c1d37e7907297fbe13b616",
-      "treeHash": "836110625b89a8b8fe95f75090cb4925eaf2c1eefea6c81c01951be5c88fd275",
+      "entrypointHash": "dd05fb621f37a027636c2badce1f25670abef35db04294ecbd1292dd7bca7f4c",
+      "treeHash": "2141fef1a0b670d655abfd1518cf62099d8c6ade544e4791148e599f5414b31a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -4112,8 +4112,8 @@
       "sourcePath": "skills/engineering/improve-codebase-architecture/",
       "rawSkillHash": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
       "lockHash": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
-      "entrypointHash": "5f98717652b5ae5752d36d0f86c0010ba9d86df373c459e741c746aa29826048",
-      "treeHash": "27133a737e78af57e2365d07d527b496b4ee8571d6dcdd2841aafe65fb69ac02",
+      "entrypointHash": "18b4a3bab0b6e6c526f66bd4e24a7cd84ec5baafe31fa56ed7604297f263bf02",
+      "treeHash": "1523869d9ea09906a3c2a95818b86851e7bbbe25faa3f56e7c2dc5050e926668",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5106,7 +5106,7 @@
       "rawSkillHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55",
       "lockHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55",
       "entrypointHash": "0d5240fa68fbb6b01e5f48e50076126c3ad3fad297b5d7bc6f016c2631e48bfa",
-      "treeHash": "b1008be99f9e35d9e5d1ca36b1f5521958ac839b39741a26cd3f30835094ec1f",
+      "treeHash": "eba9c768fd83a08b669517275f9ab76f6774ff5914ab3b9640d2e8b87833dcb4",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6441,7 +6441,7 @@
       "rawSkillHash": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682",
       "lockHash": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682",
       "entrypointHash": "0023051f7a8346aaf3fa3a11f177035053dee92c63eeea7d6b75a1987f4804e3",
-      "treeHash": "258db899bd95659be433c828bea0c7481d900be792df31ec7d89dc370fe978c7",
+      "treeHash": "d684a60f8e16bea332b27c97e630bcde5545ce1dccf92fac25421eae0e80b9de",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -7005,7 +7005,7 @@
       "rawSkillHash": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
       "lockHash": "25afd9677569d0036609676903131577043ea61eced6c4d1ac2e29f338cfce9a",
       "entrypointHash": "58cde712e47d67302d8ee706c58510792452ea496619abbd97fb0c681cba8cba",
-      "treeHash": "788da07d0a3a209e4d35beb536da2f66429bd340cb8e8d6a86ea78bccebd2777",
+      "treeHash": "1d6ec177ef12938d9a1ef90bbe580e9dd66b638989137c9c6c87142eedf7b3e3",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8420,7 +8420,7 @@
       "rawSkillHash": null,
       "lockHash": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9",
       "entrypointHash": "a04e96510c39040574356e812812b86ce4c9bc94d9dee22de43cb3563a8617e4",
-      "treeHash": "827215293d944f3f2fd7e785482a9a234e4898611b2182d8ee5dee7ed295aee6",
+      "treeHash": "d34ee1dbd561dedce6012d03506c3f1999d24a65a9023ee8eeab5b1ae4d10211",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8961,7 +8961,7 @@
       "rawSkillHash": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af",
       "lockHash": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af",
       "entrypointHash": "fabb992a2c689f69249d3690ba780ae2489ac867b823ec1f5163c8894c56c96a",
-      "treeHash": "e87ec4b5fc0cc93d48e3a72b24a2fec21e74e8cc04fc71b61dea05e527b472b9",
+      "treeHash": "d24bbefc8ddde8a95bc10a5498b6419eacd1be8e0f6457b182a72db5af16ed69",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10043,8 +10043,8 @@
       "sourcePath": "skills/engineering/tdd/",
       "rawSkillHash": "5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0",
       "lockHash": "5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0",
-      "entrypointHash": "51efbe6bfca6fbe56c913953a3f404cd87983e1b40607cb91bb69f3c9b3cb382",
-      "treeHash": "23be5934fb9ad74f55ba5d21836433b6226ff5704959464511dcfd71c47c9e04",
+      "entrypointHash": "eef066e0303072c3429149fa651b7c4fb57992aaaae576f426a4b888bfe3e55b",
+      "treeHash": "b08e94dabfeefe936646a56ed761be5f2398fbe4dbd0d5df3f5ea82ede5a03c8",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10193,7 +10193,7 @@
       "rawSkillHash": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
       "lockHash": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
       "entrypointHash": "cf687c807dee63c4879a5c8e49b370a3e5b5d71b863ae717949aeee7fb6cbd22",
-      "treeHash": "74ffb0e5ade3b78780885f5981da6c1a0f2a6ad4a49189e18cb79f850f96a787",
+      "treeHash": "c3e7dc71f109c77168d0d3b135e2a4981310ea29fa9b9df1f86ecbe2cf710b4c",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10242,7 +10242,7 @@
       "rawSkillHash": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
       "lockHash": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
       "entrypointHash": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
-      "treeHash": "42107558eed326e8835d2e3463d2d72e7e3029a7dfbbe0a0b5bf377579ddb432",
+      "treeHash": "7f299cd428a08a82628921a4d202704445fba1d58e58e608dc7a52689b79577c",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -10683,7 +10683,7 @@
       "rawSkillHash": null,
       "lockHash": "4828c4957014e7d9c1fd62d65e92264d6d46808089953e14d1bbba5a92dfff4d",
       "entrypointHash": "2449e2345b96b9f1e861c697b5eab50d03ae1254481a4306b6f815684e523b3a",
-      "treeHash": "c9b2f4dd021d0e7f2b72920bf8b3b91f66b3902a2c8f8aad7630a7449e502202",
+      "treeHash": "e202eaefed2ce3bdf0ae2a2f813fd72b4d76a7d703721ab82ec33de229bf230b",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -11524,7 +11524,7 @@
       "rawSkillHash": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447",
       "lockHash": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447",
       "entrypointHash": "9b2c7aa330aa22b68e798ede3e13edf8b4979063ad88697aa9c07c527dfe733f",
-      "treeHash": "7d0a52728930c36057022ab245272b5a074219f41b81bc466a1c99a06e29a8dd",
+      "treeHash": "c3ae46c514a6f4806505ac9194461945e03f9805750f04eee43015569cf10316",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -11689,7 +11689,7 @@
       "rawSkillHash": null,
       "lockHash": "8a720e31b29ad7744b369fba7f21cd746a6b60e68ee1774aeca02f542a179a93",
       "entrypointHash": "4d6ccbc3760b1bd4107c495a79872286ea69494003f3b0a719fc95b147457061",
-      "treeHash": "75907ca74847b821a918d2e0b769f9546302807e75319c0d9a8e91e6b8a91efa",
+      "treeHash": "ad2e792f194a987ae2d9a8dd6de792c8f0cc22dea6abc4228f91f347e40bf4f1",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",

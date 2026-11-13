@@ -3,9 +3,11 @@ import {
   createPageLayoutField,
   createPageTypeField,
   createTemplateRelationshipField,
+  webStudioCreateFlowView,
 } from "./page-builders";
 import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativePagesWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   PUBLIC_COLLECTION_CAPABILITIES,
   publishedPublicReadAccess,
@@ -29,12 +31,12 @@ const nativePagesAdmin = isNativePagesWebStudioEnabled()
             Component:
               "/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx#PagesNativeListView",
           },
-          edit: {
-            default: {
-              Component:
-                "/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx#PagesNativeEditView",
-            },
-          },
+          edit: studioDocumentEditViews(
+            "/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx#PagesNativeEditView",
+          ),
+          ...webStudioCreateFlowView(
+            "/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx#StandardPageFromTemplateView",
+          ),
         },
       },
     }
@@ -74,6 +76,7 @@ export const Pages: CollectionConfig = {
   fields: [
     {
       name: "tenant",
+      label: "Organization",
       type: "relationship",
       relationTo: "tenants",
       required: true,
@@ -102,9 +105,11 @@ export const Pages: CollectionConfig = {
       type: "richText",
       required: true,
       jsonSchema: [coreRichTextDocumentSchema],
+      label: "Body text",
       admin: {
         description:
-          "Legacy rich-text fallback during the layout rollout. Public rendering should prefer layout when present.",
+          "Shown on the public page only when it has no layout sections.",
+        disabled: { column: true, filter: true, groupBy: true },
       },
     },
     createLegacyRichTextField(),

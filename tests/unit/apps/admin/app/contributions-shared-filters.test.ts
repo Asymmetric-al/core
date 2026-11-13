@@ -117,6 +117,14 @@ describe("apps/admin/app/(app)/contributions/shared-filters", () => {
     }
   });
 
+  it("labels the CRM post state chip as history, not a live workflow", () => {
+    // External CRM posting is retired; the chip only investigates old records.
+    const chip = hubSharedContributionFilterChips.find(
+      (candidate) => candidate.id === "crm_post_state",
+    );
+    expect(chip?.label).toBe("Historical CRM posting");
+  });
+
   it("derives enum chip options from the shared label records", () => {
     const optionsById = new Map(
       hubSharedContributionFilterChips.map((chip) => [chip.id, chip.options]),
@@ -369,10 +377,17 @@ describe("apps/admin/app/(app)/contributions/shared-filters", () => {
       expect(matchesHubPaymentStatusSelection(completed, ["processing"])).toBe(
         false,
       );
-      // The shared "pending" meaning includes delayed rails (processing).
+      // Processing is the Hub's own split of shared "pending": a processing
+      // gift sits under Processing only, so each gift counts once.
       expect(matchesHubPaymentStatusSelection(processing, ["pending"])).toBe(
-        true,
+        false,
       );
+      expect(
+        matchesHubPaymentStatusSelection(
+          makeContribution({ paymentStatus: "pending" }, { status: "pending" }),
+          ["pending"],
+        ),
+      ).toBe(true);
     });
 
     it("ORs selections within the Status chip and ignores empty selections", () => {
@@ -392,10 +407,9 @@ describe("apps/admin/app/(app)/contributions/shared-filters", () => {
       expect(getHubPaymentStatusFacetValues(refundedButGridCompleted)).toEqual([
         "refunded",
       ]);
-      // A grid-processing gift counts under both Pending (shared meaning) and
-      // Processing (Hub-only extension), matching both selections.
+      // A grid-processing gift counts under Processing only, never also under
+      // Pending, so option counts add up to the number of gifts.
       expect(getHubPaymentStatusFacetValues(processing)).toEqual([
-        "pending",
         "processing",
       ]);
       // A plain completed gift counts under Completed only.
@@ -407,6 +421,36 @@ describe("apps/admin/app/(app)/contributions/shared-filters", () => {
         for (const value of getHubPaymentStatusFacetValues(row)) {
           expect(matchesHubPaymentStatusSelection(row, [value])).toBe(true);
         }
+      }
+    });
+
+    it("matches each gift under exactly one Status option, the one it counts under", () => {
+      const refundedWhileProcessing = makeContribution(
+        {
+          paymentStatus: "refunded",
+          refundState: "refunded",
+          refundedAmountCents: 10000,
+        },
+        { status: "processing" },
+      );
+      const options = [
+        "completed",
+        "pending",
+        "processing",
+        "failed",
+        "refunded",
+      ];
+      for (const row of [
+        refundedButGridCompleted,
+        processing,
+        completed,
+        refundedWhileProcessing,
+      ]) {
+        const matched = options.filter((option) =>
+          matchesHubPaymentStatusSelection(row, [option]),
+        );
+        expect(matched).toHaveLength(1);
+        expect(getHubPaymentStatusFacetValues(row)).toEqual(matched);
       }
     });
   });

@@ -1,277 +1,386 @@
 "use client";
 
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  MetricCard,
+  MetricGrid,
+} from "@asym/ui/components/primitives/metric-card";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { cn } from "@asym/ui/lib/utils";
 import {
-  Heart,
-  Users,
-  AlertTriangle,
-  ArrowUpRight,
-  Clock,
-  ShieldCheck,
-} from "lucide-react";
-import React from "react";
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
+import { format, formatDistanceToNowStrict, parseISO } from "date-fns";
+import { ChevronRight, HeartHandshake, MessageSquareText } from "lucide-react";
+import Link from "next/link";
+import { useId, useMemo } from "react";
 
 import {
-  getAttentionGaps,
-  getCriticalCarePriorities,
-  getDashboardNotifications,
-  getOpenInterventionsCount,
   getRecentCheckInCount,
+  getUpcomingBirthdays,
+  getPeopleNeedingAttention,
+  isLoggedContact,
 } from "../member-care.derived";
-import { PersonnelList } from "./PersonnelList";
+import { CareContactTrend } from "./care-contact-trend";
+import { CareDirectoryLimitNote } from "./care-directory-limit-note";
+import {
+  ACTIVITY_TYPE_LABELS,
+  CarePersonAvatar,
+  careProfileHref,
+  CareStatusBadge,
+  careMemberContext,
+} from "./care-display";
 
-import type { CarePersonnel, ActivityLogEntry } from "../types";
+import type {
+  CareRequirement,
+  MemberCareDerivationInput,
+} from "../member-care.types";
+import type { ActivityLogEntry, CarePersonnel } from "../types";
 
-interface CareDashboardProps {
-  personnel: CarePersonnel[];
-  activities: ActivityLogEntry[];
+type FollowUp = { person: CarePersonnel; reason: string; rank: number };
+
+export function getCareFollowUps(
+  personnel: CarePersonnel[],
+  activities: ActivityLogEntry[] = [],
+  requirements: CareRequirement[] = [],
+  lastContacts?: MemberCareDerivationInput["lastContacts"],
+): FollowUp[] {
+  const people = new Map(personnel.map((person) => [person.id, person]));
+  return getPeopleNeedingAttention({
+    personnel,
+    activities,
+    requirements,
+    lastContacts,
+  }).map((gap, rank) => ({
+    person: people.get(gap.personnelId)!,
+    reason: gap.reasonLabel,
+    rank,
+  }));
 }
 
-export function CareDashboard({ personnel, activities }: CareDashboardProps) {
-  const attentionGaps = React.useMemo(
-    () => getAttentionGaps({ personnel, activities }),
-    [personnel, activities],
+function OverviewSection({
+  title,
+  description,
+  className,
+  children,
+}: {
+  title: string;
+  description: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId} className={className}>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle>
+            <h2 id={headingId}>{title}</h2>
+          </CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent>{children}</CardContent>
+      </Card>
+    </section>
   );
-  const criticalPriorities = React.useMemo(
-    () => getCriticalCarePriorities(attentionGaps),
-    [attentionGaps],
+}
+
+function FollowUpList({ followUps }: { followUps: FollowUp[] }) {
+  if (followUps.length === 0) {
+    return (
+      <Empty className="py-8">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HeartHandshake aria-hidden="true" />
+          </EmptyMedia>
+          <EmptyTitle>Everyone is up to date</EmptyTitle>
+          <EmptyDescription>
+            No one is flagged, in crisis, at risk or due for contact under their
+            contact schedule.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+  return (
+    <ul className="flex flex-col gap-2">
+      {followUps.map(({ person, reason }) => (
+        <li key={person.id}>
+          <Item
+            variant="outline"
+            size="sm"
+            render={<Link href={careProfileHref(person.id)} />}
+          >
+            <ItemMedia>
+              <CarePersonAvatar person={person} size="sm" />
+            </ItemMedia>
+            <ItemContent className="min-w-0">
+              {person.nameMissing ? (
+                <ItemDescription>{person.name}</ItemDescription>
+              ) : (
+                <ItemTitle>{person.name}</ItemTitle>
+              )}
+              <ItemDescription>{reason}</ItemDescription>
+              <ItemDescription>{careMemberContext(person)}</ItemDescription>
+              <span className="sm:hidden">
+                <CareStatusBadge status={person.status} />
+              </span>
+            </ItemContent>
+            <ItemActions>
+              <span className="hidden sm:flex">
+                <CareStatusBadge status={person.status} />
+              </span>
+              <ChevronRight
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+            </ItemActions>
+          </Item>
+        </li>
+      ))}
+    </ul>
   );
-  const notifications = React.useMemo(
-    () => getDashboardNotifications({ personnel, activities }),
-    [personnel, activities],
+}
+
+function nextBirthday(birthDate: string, now = new Date()) {
+  const parsed = parseISO(birthDate);
+  const next = new Date(now.getFullYear(), parsed.getMonth(), parsed.getDate());
+  if (next < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+    next.setFullYear(now.getFullYear() + 1);
+  }
+  return next;
+}
+
+function BirthdayList({ people }: { people: CarePersonnel[] }) {
+  if (people.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No birthdays in the next two weeks.
+      </p>
+    );
+  }
+  return (
+    <ul className="flex flex-col gap-1">
+      {people.map((person) => {
+        const birthDate = person.birthDate;
+        const date = birthDate ? nextBirthday(birthDate) : null;
+        return (
+          <li key={person.id}>
+            <Item size="sm" render={<Link href={careProfileHref(person.id)} />}>
+              <ItemMedia>
+                <CarePersonAvatar person={person} size="sm" />
+              </ItemMedia>
+              <ItemContent className="min-w-0">
+                {person.nameMissing ? (
+                  <ItemDescription>{person.name}</ItemDescription>
+                ) : (
+                  <ItemTitle>{person.name}</ItemTitle>
+                )}
+                {person.nameMissing ? (
+                  <ItemDescription>{careMemberContext(person)}</ItemDescription>
+                ) : null}
+                <ItemDescription>
+                  {date ? format(date, "EEEE, MMMM d") : "Birthday"}
+                </ItemDescription>
+              </ItemContent>
+            </Item>
+          </li>
+        );
+      })}
+    </ul>
   );
-  const upcomingBirthdayNotifications = React.useMemo(
-    () => notifications.filter((note) => note.type === "birthday"),
-    [notifications],
+}
+
+function RecentActivity({
+  activities,
+  people,
+}: {
+  activities: ActivityLogEntry[];
+  people: Map<string, CarePersonnel>;
+}) {
+  if (activities.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Calls, visits and notes appear here as the team logs them.
+      </p>
+    );
+  }
+  return (
+    <ol className="flex flex-col gap-1">
+      {activities.map((activity) => {
+        const person = people.get(activity.personnelId);
+        const when = formatDistanceToNowStrict(parseISO(activity.date), {
+          addSuffix: true,
+        });
+        const content = (
+          <>
+            <ItemMedia variant="icon">
+              <MessageSquareText aria-hidden="true" />
+            </ItemMedia>
+            <ItemContent className="min-w-0">
+              <ItemTitle>
+                {ACTIVITY_TYPE_LABELS[activity.type]}
+                {person
+                  ? ` with ${person.nameMissing ? `this member · ${careMemberContext(person)}` : person.name}`
+                  : ""}
+              </ItemTitle>
+              <ItemDescription>
+                {activity.authorName} · {when}
+              </ItemDescription>
+            </ItemContent>
+          </>
+        );
+        return (
+          <li key={activity.id}>
+            {person ? (
+              <Item
+                size="sm"
+                render={<Link href={careProfileHref(person.id)} />}
+              >
+                {content}
+              </Item>
+            ) : (
+              <Item size="sm" render={<div />}>
+                {content}
+              </Item>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
-  const openInterventionsCount = React.useMemo(
-    () => getOpenInterventionsCount(personnel),
+}
+
+export function CareOverview({
+  personnel,
+  activities,
+  personnelTotal = personnel.length,
+  requirements = [],
+  lastContacts,
+}: {
+  personnel: CarePersonnel[];
+  activities: ActivityLogEntry[];
+  personnelTotal?: number;
+  requirements?: CareRequirement[];
+  lastContacts?: MemberCareDerivationInput["lastContacts"];
+}) {
+  const people = useMemo(
+    () => new Map(personnel.map((person) => [person.id, person])),
     [personnel],
   );
-  const recentCheckIns = React.useMemo(
+  const followUps = useMemo(
+    () => getCareFollowUps(personnel, activities, requirements, lastContacts),
+    [personnel, activities, requirements, lastContacts],
+  );
+  const birthdays = useMemo(() => getUpcomingBirthdays(personnel), [personnel]);
+  const recentCheckIns = useMemo(
     () => getRecentCheckInCount(activities),
     [activities],
   );
-
-  const atRiskCount = personnel.filter(
-    (p) => p.status === "At Risk" || p.status === "Crisis",
+  const recent = useMemo(
+    () =>
+      [...activities]
+        .filter(isLoggedContact)
+        .filter((activity) => Number.isFinite(Date.parse(activity.date)))
+        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+        .slice(0, 6),
+    [activities],
+  );
+  const healthy = personnel.filter(
+    (person) => person.status === "Healthy",
+  ).length;
+  const urgent = personnel.filter(
+    (person) => person.status === "Crisis" || person.status === "At Risk",
   ).length;
 
-  const stats = [
-    {
-      label: "Active Team",
-      value: personnel.length,
-      icon: Users,
-      color: "text-primary",
-      bg: "bg-primary/5",
-      sub: "tracked personnel",
-    },
-    {
-      label: "Open Interventions",
-      value: openInterventionsCount,
-      icon: ShieldCheck,
-      color: "text-info",
-      bg: "bg-info/5",
-      sub: "care plans in progress",
-    },
-    {
-      label: "Check-ins (30d)",
-      value: recentCheckIns,
-      icon: Heart,
-      color: "text-success",
-      bg: "bg-success/5",
-      sub: "wellness updates",
-    },
-    {
-      label: "Risk Alerts",
-      value: criticalPriorities.length || atRiskCount,
-      icon: AlertTriangle,
-      color: atRiskCount > 0 ? "text-destructive" : "text-muted-foreground",
-      bg: atRiskCount > 0 ? "bg-destructive/5" : "bg-muted/30",
-      sub: atRiskCount > 0 ? "immediate attention" : "all systems clear",
-    },
-  ];
-
   return (
-    // Entrance is owned by the page wrapper (care/page-client.tsx motion.div).
-    <div className="space-y-5">
-      {/* Stats Row */}
-      <div className="grid-responsive-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="overflow-hidden">
-            <CardContent className="p-4">
-              <div className="group flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="text-2xl font-black text-primary tracking-tight tabular-nums">
-                    {stat.value}
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {stat.label}
-                  </p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {stat.sub}
-                  </p>
-                </div>
-                <div
-                  className={cn(
-                    "size-9 rounded-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
-                    stat.bg,
-                  )}
+    <div className="flex flex-col gap-6">
+      <CareDirectoryLimitNote shown={personnel.length} total={personnelTotal} />
+      <MetricGrid label="Member Care summary">
+        <MetricCard
+          label="Field staff"
+          compactOnPhone
+          value={personnelTotal}
+          detail={
+            personnelTotal > personnel.length
+              ? `Newest ${personnel.length} listed`
+              : `${healthy} healthy`
+          }
+        />
+        <MetricCard
+          label="Need follow-up"
+          compactOnPhone
+          value={followUps.length}
+          detail="Contact schedules, flags and care status"
+        />
+        <MetricCard
+          label="Check-ins, last 30 days"
+          compactOnPhone
+          value={recentCheckIns}
+          detail={
+            activities.length >= 500
+              ? "From the latest 500 saved entries"
+              : "Calls, visits and notes"
+          }
+        />
+        <MetricCard
+          label="Crisis or at risk"
+          compactOnPhone
+          value={urgent}
+          detail={urgent > 0 ? "Highest priority" : "No one at risk"}
+        />
+      </MetricGrid>
+
+      <div className="grid items-start gap-6 xl:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-2">
+          <OverviewSection
+            title="Follow-up due"
+            description={
+              <>
+                Flagged, in crisis or at risk, or due for contact under their
+                contact schedule.{" "}
+                <Link
+                  href="/care/settings"
+                  className="underline underline-offset-4 hover:text-foreground"
                 >
-                  <stat.icon className={cn("size-4", stat.color)} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid-12">
-        {/* Personnel List (Main) */}
-        <Card className="lg:col-span-8 flex flex-col">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-lg font-bold tracking-tight">
-                  Health Status Feed
-                </CardTitle>
-                <CardDescription className="text-xs font-medium">
-                  Recent activity and wellness updates across the team.
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="sm">
-                View History
-                <ArrowUpRight className="ml-2 size-3.5" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 flex-1">
-            <PersonnelList data={personnel} />
-          </CardContent>
-        </Card>
-
-        {/* Sidebar Tools */}
-        <div className="lg:col-span-4 space-y-5">
-          {/* Urgent Alerts */}
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-base font-bold">
-                <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-destructive animate-pulse" />
-                  Urgent Care Alerts
-                </div>
-              </CardTitle>
-              <CardDescription className="text-xs font-semibold">
-                Personnel requiring immediate follow-up.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {attentionGaps.length > 0 ? (
-                attentionGaps.slice(0, 3).map((alert) => (
-                  <div
-                    key={`${alert.personnelId}-${alert.reason}`}
-                    className="p-3 rounded-xl border border-destructive/15 bg-background shadow-sm flex items-start gap-3 hover:border-destructive/35 transition-colors cursor-pointer group"
-                  >
-                    <div className="size-9 rounded-xl bg-destructive/5 text-destructive flex items-center justify-center border border-destructive/10 shrink-0">
-                      <AlertTriangle className="size-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-primary">
-                          {alert.reasonLabel}
-                        </span>
-                        <Badge variant="destructive">
-                          {alert.daysOverdue}d
-                        </Badge>
-                      </div>
-                      <p className="text-xs font-medium text-muted-foreground mt-0.5">
-                        {alert.personnelName}
-                      </p>
-                      <p className="text-xs text-destructive mt-1">
-                        Follow up today
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-border/50 bg-background p-5 text-xs font-semibold text-muted-foreground">
-                  No urgent care gaps right now.
-                </div>
-              )}
-              <Button variant="destructive" className="mt-2 w-full">
-                Review All Alerts ({attentionGaps.length})
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Birthdays */}
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">
-                Upcoming Birthdays
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {upcomingBirthdayNotifications.slice(0, 3).map((note) => {
-                  const p = personnel.find(
-                    (item) => item.id === note.personnelId,
-                  );
-                  if (!p) return null;
-                  return (
-                    <div
-                      key={note.id}
-                      className="flex items-center justify-between group cursor-pointer hover:bg-muted/30 p-2 -m-2 rounded-xl transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <div className="size-10 rounded-full bg-primary/5 flex items-center justify-center text-xs font-bold text-primary border border-primary/10">
-                            {p.initials}
-                          </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
-                            <Clock className="size-2 text-muted-foreground" />
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-primary leading-tight">
-                            {p.name}
-                          </p>
-                          <p className="text-xs font-medium text-muted-foreground mt-1">
-                            {note.title} • {note.detail}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Open ${p.name} care profile`}
-                      >
-                        <ArrowUpRight className="size-4" />
-                      </Button>
-                    </div>
-                  );
-                })}
-                {upcomingBirthdayNotifications.length === 0 && (
-                  <div className="rounded-2xl border border-border/50 bg-background p-5 text-xs font-semibold text-muted-foreground">
-                    No upcoming birthdays yet. Care task scheduling is coming
-                    soon.
-                  </div>
-                )}
-              </div>
-              <div className="mt-5 text-xs font-medium text-muted-foreground">
-                Care task scheduling coming soon
-              </div>
-            </CardContent>
-          </Card>
+                  Care rules
+                </Link>
+              </>
+            }
+          >
+            <FollowUpList followUps={followUps} />
+          </OverviewSection>
+          <CareContactTrend activities={activities} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-6">
+          <OverviewSection
+            title="Upcoming birthdays"
+            description="The next two weeks."
+          >
+            <BirthdayList people={birthdays} />
+          </OverviewSection>
+          <OverviewSection
+            title="Recent activity"
+            description="The latest care logged by the team."
+          >
+            <RecentActivity activities={recent} people={people} />
+          </OverviewSection>
         </div>
       </div>
     </div>

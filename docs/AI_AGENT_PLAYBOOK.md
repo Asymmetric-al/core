@@ -131,18 +131,18 @@ Use turbo filters when working on one app:
 
 ## Fallback docs generation (`.next-docs`)
 
-When `node_modules` docs are unavailable, generate fallback docs:
+`.next-docs/` mirrors the documentation bundled with the installed `next`
+package, so it describes the pinned release. After a Next.js version change:
 
-- `bunx @next/codemod@canary agents-md --output AGENTS.md`
-- If a local script is added later, `bun run agents:docs` is an equivalent wrapper.
+- `node scripts/sync-next-docs.mjs --write` rewrites the fallback from
+  `node_modules/next/dist/docs`.
+- `node scripts/sync-next-docs.mjs` checks it without writing.
+  `tests/unit/scripts/sync-next-docs.test.ts` runs the same check, so a version
+  change that forgets the fallback fails the unit gate.
 
-After running the command, verify:
-
-- `.next-docs/` exists
-- the small `<!-- BEGIN:nextjs-agent-rules -->` block remains intact
-- any generated `<!-- NEXT-AGENTS-MD-START -->` compressed index is removed
-  from `AGENTS.md`; agents search `.next-docs/` directly
-- If the generated block mentions `npx`, keep using Bun in this repo (`bunx ...`).
+The script reads only the installed package and never edits `AGENTS.md`. Do
+not use the `@next/codemod` `agents-md` command for this: it follows a moving
+release tag and writes a compressed index into `AGENTS.md`.
 
 This repo commits `.next-docs/` on purpose because remote/sandbox agent runs can start before dependencies are installed, while committed fallback docs are always readable.
 

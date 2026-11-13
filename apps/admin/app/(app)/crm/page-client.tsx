@@ -5,49 +5,52 @@ import {
   useAdminCrmRecordDetail,
   useAdminCrmRecordsInfiniteGrid,
 } from "@asym/database/hooks";
-import { motion, AnimatePresence } from "@asym/lib/motion";
-import { formatCurrency } from "@asym/lib/utils";
-import {
-  crmRecordAvatarTransitionName,
-  crmRecordTitleTransitionName,
-} from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
-import {
-  DataTableResponsive,
-  type DataTableFilterField,
-} from "@asym/ui/components/shadcn/data-table";
 import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@asym/ui/components/shadcn/toggle-group";
-import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
-import { useQueryClient } from "@tanstack/react-query";
 import {
-  Plus,
-  List,
-  Columns,
-  User,
-  Network,
-  Receipt,
-  Trash2,
-  StickyNote,
-} from "lucide-react";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@asym/ui/components/shadcn/tooltip";
+import { useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, Columns3, List, Network, StickyNote } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import React, {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { getCrmColumns } from "./columns";
-import { EMPTY_CELL_VALUE } from "./crm-detail-shared";
+import { CrmSkipLink } from "./crm-display";
+import {
+  crmUrlStateKey,
+  readCrmUrlState,
+  writeCrmUrlState,
+  type CrmUrlState,
+  type CrmView,
+} from "./crm-url-state";
 import { DetailDrawer } from "./detail-drawer";
 import { KanbanView } from "./kanban-view";
+import {
+  CrmBoardActions,
+  CrmBoardFilters,
+  CrmRecordsGrid,
+  getCrmSearchValue,
+  withCrmSearch,
+} from "./records-grid";
 import { toCrmRecord, toCrmRecordFromDetail } from "./types";
 import { CRM_PAGE_META } from "../../../components/table-page-meta";
 import { ContributionDetailOverlay } from "../contributions/contribution-detail-overlay";
@@ -65,81 +68,85 @@ type SelectedCrmRecordSnapshot = {
   source: "grid" | "detail" | "selection";
 };
 
-const missionControlCRMHandleBulkArchive = (_selected: CrmGridRow[]) => {
-  toast.info("Bulk archive is not available yet.");
-};
+/** The records list's box: the "Skip to records" link's target. */
+const CRM_RECORDS_LIST_ID = "crm-records-list";
 
-const missionControlCRMHandleBulkExport = (selected: CrmGridRow[]) => {
-  const params = new URLSearchParams({ slice: "donors" });
-  if (selected.length > 0) {
-    toast.info("Export includes the current donor report slice.");
-  }
-  // The authenticated route returns Content-Disposition: attachment, not a Next.js page.
-  window.location.assign(
-    new URL(`/api/admin/crm/reports/export?${params}`, window.location.origin)
-      .href,
-  );
-};
-
-function getCrmTagOptions(rows: CrmGridRow[]) {
-  const s = new Set<string>();
-  for (const r of rows) {
-    for (const t of r.tags ?? []) {
-      s.add(t);
+/**
+ * Support Hub links to `/crm?email=` ("Find in CRM"). The records API's
+ * server search covers email, so the address becomes the record search once
+ * per distinct link value. Profile, missionary and church ids from the Hub
+ * have no records-API filter and are not applied.
+ */
+function useSupportHubEmailSearch(
+  emailParam: string | null,
+  onFiltersChange: ReturnType<
+    typeof useAdminCrmRecordsInfiniteGrid
+  >["onFiltersChange"],
+) {
+  const appliedEmailRef = useRef<string | null>(null);
+  useEffect(() => {
+    const email = emailParam?.trim();
+    if (!email || email === appliedEmailRef.current) {
+      return;
     }
-  }
-  return Array.from(s)
-    .sort()
-    .map((t) => ({ label: t, value: t }));
+    appliedEmailRef.current = email;
+    onFiltersChange((current) => withCrmSearch(current, email));
+  }, [emailParam, onFiltersChange]);
 }
 
-function getCrmFilterFields(
-  tagOptions: Array<{ label: string; value: string }>,
-): DataTableFilterField<CrmGridRow>[] {
-  return [
-    {
-      id: "recordType",
-      label: "Record type",
-      options: [
-        { label: "Individual", value: "individual" },
-        { label: "Organization", value: "Organization" },
-        { label: "Church", value: "Church" },
-      ],
-    },
-    {
-      id: "lifecycleStatus",
-      label: "Status",
-      options: [
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
-      ],
-    },
-    {
-      id: "portalAccessLabel",
-      label: "Portal",
-      options: [
-        { label: "Portal linked", value: "linked" },
-        { label: "No portal", value: "none" },
-      ],
-    },
-    ...(tagOptions.length > 0
-      ? [
-          {
-            id: "tags",
-            label: "Tags",
-            options: tagOptions,
-          } as DataTableFilterField<CrmGridRow>,
-        ]
-      : []),
-  ];
+/**
+ * Keeps the list's search, filters, sort and view in the address (so reload,
+ * a shared link and Back restore them) without feedback loops: whichever side
+ * moved since the last sync wins. Writes use `history.replaceState`, which
+ * Next.js folds into `useSearchParams` without a server round trip.
+ */
+function useCrmUrlStateSync({
+  searchParams,
+  pathname,
+  state,
+  apply,
+}: {
+  searchParams: URLSearchParams;
+  pathname: string;
+  state: CrmUrlState;
+  apply: (state: CrmUrlState) => void;
+}) {
+  const urlState = useMemo(() => readCrmUrlState(searchParams), [searchParams]);
+  const urlKey = crmUrlStateKey(urlState);
+  const stateKey = crmUrlStateKey(state);
+  const syncedKeyRef = useRef(urlKey);
+
+  const sync = useEffectEvent(() => {
+    if (urlKey === stateKey) {
+      syncedKeyRef.current = stateKey;
+      return;
+    }
+    if (stateKey !== syncedKeyRef.current) {
+      syncedKeyRef.current = stateKey;
+      const query = writeCrmUrlState(searchParams, state).toString();
+      window.history.replaceState(
+        null,
+        "",
+        query ? `${pathname}?${query}` : pathname,
+      );
+      return;
+    }
+    syncedKeyRef.current = urlKey;
+    apply(urlState);
+  });
+
+  useEffect(() => {
+    sync();
+  }, [stateKey, urlKey]);
 }
 
 export default function MissionControlCRM() {
-  const [view, setView] = useState<"table" | "kanban">("table");
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [initialUrlState] = useState(() => readCrmUrlState(searchParams));
+  const [view, setView] = useState<CrmView>(initialUrlState.view);
   const donorParam = searchParams.get("donor");
   const giftParam = searchParams.get("gift");
   const selectedGiftParam = isContributionGiftParam(giftParam)
@@ -183,19 +190,30 @@ export default function MissionControlCRM() {
     });
   }, [hasInvalidGiftParam, pathname, router, searchParams]);
 
-  const {
-    columnFilters,
-    hasMore,
-    isFetchingMore,
-    isLoading,
-    loadMore,
-    onFiltersChange,
-    onRefresh,
-    onSortingChange,
-    rows,
-    sorting,
-    tableError,
-  } = useAdminCrmRecordsInfiniteGrid();
+  const gridState = useAdminCrmRecordsInfiniteGrid({
+    initialColumnFilters: initialUrlState.columnFilters,
+    initialSorting: initialUrlState.sorting,
+  });
+  const { rows } = gridState;
+  const { onFiltersChange, onSortingChange } = gridState;
+  useCrmUrlStateSync({
+    searchParams,
+    pathname,
+    state: {
+      columnFilters: gridState.columnFilters ?? [],
+      sorting: gridState.sorting ?? [],
+      view,
+    },
+    apply: (next) => {
+      onFiltersChange(next.columnFilters);
+      onSortingChange(next.sorting);
+      setView(next.view);
+    },
+  });
+  useSupportHubEmailSearch(
+    searchParams.get("email"),
+    gridState.onFiltersChange,
+  );
 
   const routeDonorRow = useMemo(
     () =>
@@ -265,6 +283,19 @@ export default function MissionControlCRM() {
       selectedRecordSnapshot,
     ]);
   const selectedRecord = resolvedRecordSnapshot?.record ?? null;
+  // The drawer keeps showing the record it closed until its slide-out ends.
+  const [closingRecord, setClosingRecord] = useState<CrmRecord | null>(null);
+  const [previousSelected, setPreviousSelected] = useState(selectedRecord);
+  if (previousSelected !== selectedRecord) {
+    setPreviousSelected(selectedRecord);
+    setClosingRecord(selectedRecord ? null : previousSelected);
+  }
+  const drawerRecord = selectedRecord ?? closingRecord;
+  // A linked donor with nothing to show: neither in the list nor readable.
+  const linkedRecordFailure =
+    selectedDonorId && !selectedRecord && routeDonorDetailQuery.isError
+      ? linkedRecordFailureKind(routeDonorDetailQuery.error)
+      : null;
   // Keep the latest resolved values before a row disappears. These records
   // contain only serializable values; comparing those values also prevents
   // the allocating converters from triggering repeated render updates.
@@ -358,19 +389,9 @@ export default function MissionControlCRM() {
     });
   }, [giftParam, pathname, router, searchParams, selectedDonorId]);
 
-  const tagOptions = useMemo(() => getCrmTagOptions(rows), [rows]);
-  const filterFields = useMemo(
-    () => getCrmFilterFields(tagOptions),
-    [tagOptions],
-  );
-
-  const columns = useMemo(
-    () =>
-      getCrmColumns({
-        onViewRecord: (r) => selectRecord(toCrmRecord(r)),
-        tagOptions,
-      }),
-    [selectRecord, tagOptions],
+  const openRow = useCallback(
+    (row: CrmGridRow) => selectRecord(toCrmRecord(row)),
+    [selectRecord],
   );
 
   return (
@@ -381,32 +402,30 @@ export default function MissionControlCRM() {
         density={CRM_PAGE_META.density}
         actions={<CrmViewToolbar setView={setView} view={view} />}
       >
+        {linkedRecordFailure ? (
+          <LinkedRecordAlert
+            failure={linkedRecordFailure}
+            retrying={routeDonorDetailQuery.isFetching}
+            onDismiss={() => selectRecord(null)}
+            onRetry={() => void routeDonorDetailQuery.refetch()}
+          />
+        ) : null}
         <CrmResultsSection
-          hasMore={hasMore}
-          isFetchingMore={isFetchingMore}
-          sorting={sorting}
-          columnFilters={columnFilters}
+          gridState={gridState}
           showFreshness={showFreshness}
           view={view}
-          columns={columns}
-          rows={rows}
-          isLoading={isLoading}
-          filterFields={filterFields}
-          onFiltersChange={onFiltersChange}
-          onSortingChange={onSortingChange}
-          onRefresh={onRefresh}
-          selectRecord={selectRecord}
-          loadMore={loadMore}
-          tableError={tableError}
-          handleBulkExport={missionControlCRMHandleBulkExport}
-          handleBulkArchive={missionControlCRMHandleBulkArchive}
+          onOpenRecord={openRow}
         />
       </PageShell>
 
-      {selectedRecord && (
+      {drawerRecord && (
         <DetailDrawer
-          contact={selectedRecord}
+          // A different record is a fresh drawer (no note draft carried over).
+          key={drawerRecord.id}
+          contact={drawerRecord}
+          open={selectedRecord != null}
           onClose={() => selectRecord(null)}
+          onClosed={() => setClosingRecord(null)}
           onOpenGift={openGift}
           onRowRefresh={markFreshness}
         />
@@ -422,46 +441,115 @@ export default function MissionControlCRM() {
   );
 }
 
+type LinkedRecordFailure = "unavailable" | "forbidden" | "failed";
+
+/** Only the status is known; the copy never claims more than it says. */
+function linkedRecordFailureKind(error: unknown): LinkedRecordFailure {
+  const status =
+    error instanceof Error && "status" in error ? error.status : null;
+  if (status === 400 || status === 404) return "unavailable";
+  if (status === 401 || status === 403) return "forbidden";
+  return "failed";
+}
+
+const LINKED_RECORD_FAILURE_COPY: Record<LinkedRecordFailure, string> = {
+  unavailable:
+    "This link doesn't match a record in your organization's CRM. It may have been removed.",
+  forbidden: "You don't have access to CRM records with this account.",
+  failed: "The record didn't load. Check your connection and try again.",
+};
+
+function LinkedRecordAlert({
+  failure,
+  retrying,
+  onDismiss,
+  onRetry,
+}: {
+  failure: LinkedRecordFailure;
+  retrying: boolean;
+  onDismiss: () => void;
+  onRetry: () => void;
+}) {
+  return (
+    <Alert variant="destructive" className="mb-4">
+      <AlertCircle aria-hidden="true" />
+      <AlertTitle>Couldn&apos;t open that record</AlertTitle>
+      <AlertDescription>
+        <p>{LINKED_RECORD_FAILURE_COPY[failure]}</p>
+        <div className="flex flex-wrap gap-2">
+          {failure === "failed" ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={retrying}
+              onClick={onRetry}
+            >
+              Retry
+            </Button>
+          ) : null}
+          <Button size="sm" variant="ghost" onClick={onDismiss}>
+            Dismiss
+          </Button>
+        </div>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export function CrmViewToolbar({
   setView,
   view,
 }: {
-  setView: React.Dispatch<React.SetStateAction<"table" | "kanban">>;
-  view: "table" | "kanban";
+  setView: React.Dispatch<React.SetStateAction<CrmView>>;
+  view: CrmView;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ToggleGroup
         aria-label="CRM view"
         variant="outline"
+        size="sm"
         value={[view]}
         onValueChange={(value) => {
           const next = value[0];
           if (next === "table" || next === "kanban") setView(next);
         }}
       >
-        <ToggleGroupItem value="table" aria-label="Show CRM table view">
-          <List className="size-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="kanban" aria-label="Show CRM kanban view">
-          <Columns className="size-4" />
-        </ToggleGroupItem>
+        {/* Icon-only toggles: the tooltip shows sighted users what each
+            icon means; the aria-label stays the accessible name. */}
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToggleGroupItem value="table" aria-label="Show CRM table view">
+                <List aria-hidden="true" />
+              </ToggleGroupItem>
+            }
+          />
+          <TooltipContent>Table</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToggleGroupItem value="kanban" aria-label="Show CRM kanban view">
+                <Columns3 aria-hidden="true" />
+              </ToggleGroupItem>
+            }
+          />
+          <TooltipContent>Board by status</TooltipContent>
+        </Tooltip>
       </ToggleGroup>
-      <Button>
-        <Plus data-icon="inline-start" /> New Record
-      </Button>
       <Link
         href="/crm/relationships"
-        className={buttonVariants({ variant: "outline" })}
+        className={buttonVariants({ variant: "outline", size: "sm" })}
       >
-        <Network className="size-4" />
+        <Network aria-hidden="true" />
         Relationships
       </Link>
       <Link
         href="/crm/notes"
-        className={buttonVariants({ variant: "outline" })}
+        className={buttonVariants({ variant: "outline", size: "sm" })}
       >
-        <StickyNote className="size-4" />
+        <StickyNote aria-hidden="true" />
         Notes
       </Link>
     </div>
@@ -469,221 +557,55 @@ export function CrmViewToolbar({
 }
 
 function CrmResultsSection({
-  hasMore,
-  isFetchingMore,
-  sorting,
-  columnFilters,
+  gridState,
   showFreshness,
   view,
-  columns,
-  rows,
-  isLoading,
-  filterFields,
-  onFiltersChange,
-  onSortingChange,
-  onRefresh,
-  selectRecord,
-  loadMore,
-  tableError,
-  handleBulkExport,
-  handleBulkArchive,
+  onOpenRecord,
 }: {
-  hasMore: boolean;
-  isFetchingMore: boolean;
-  sorting: ReturnType<typeof useAdminCrmRecordsInfiniteGrid>["sorting"];
-  columnFilters: ReturnType<
-    typeof useAdminCrmRecordsInfiniteGrid
-  >["columnFilters"];
+  gridState: ReturnType<typeof useAdminCrmRecordsInfiniteGrid>;
   showFreshness: boolean;
-  view: "table" | "kanban";
-  columns: ReturnType<typeof getCrmColumns>;
-  rows: ReturnType<typeof useAdminCrmRecordsInfiniteGrid>["rows"];
-  isLoading: boolean;
-  filterFields: DataTableFilterField<CrmGridRow>[];
-  onFiltersChange: ReturnType<
-    typeof useAdminCrmRecordsInfiniteGrid
-  >["onFiltersChange"];
-  onSortingChange: ReturnType<
-    typeof useAdminCrmRecordsInfiniteGrid
-  >["onSortingChange"];
-  onRefresh: () => Promise<void>;
-  selectRecord: (record: CrmRecord | null) => void;
-  loadMore: () => void;
-  tableError: Error | null;
-  handleBulkExport: (selected: CrmGridRow[]) => void;
-  handleBulkArchive: (_selected: CrmGridRow[]) => void;
+  view: CrmView;
+  onOpenRecord: (row: CrmGridRow) => void;
 }) {
+  const { columnFilters, onFiltersChange } = gridState;
   return (
-    <div className="flex flex-col min-h-100">
+    <div
+      id={CRM_RECORDS_LIST_ID}
+      tabIndex={-1}
+      className="relative flex min-w-0 scroll-mt-4 flex-col outline-none"
+    >
+      {/* The page actions and the toolbar put dozens of Tab stops before
+          the first record. */}
+      <CrmSkipLink targetId={CRM_RECORDS_LIST_ID}>Skip to records</CrmSkipLink>
       <ContributionFreshnessIndicator show={showFreshness} />
-      <AnimatePresence mode="wait">
-        {view === "table" ? (
-          <motion.div
-            key="table"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="h-full"
-          >
-            <DataTableResponsive
-              columns={columns}
-              data={rows}
-              devtoolsKey="admin-crm-records"
-              isLoading={isLoading}
-              filterFields={filterFields}
-              searchColumnId="displayName"
-              searchPlaceholder="Search name, email, or organization..."
-              getRowId={(row) => row.id}
+      {view === "table" ? (
+        <CrmRecordsGrid state={gridState} onOpenRecord={onOpenRecord} />
+      ) : (
+        <KanbanView
+          rows={gridState.rows}
+          onSelectRow={onOpenRecord}
+          search={getCrmSearchValue(columnFilters ?? [])}
+          onSearchChange={(value) =>
+            onFiltersChange((current) => withCrmSearch(current, value))
+          }
+          filters={
+            <CrmBoardFilters
+              rows={gridState.rows}
+              columnFilters={columnFilters ?? []}
               onFiltersChange={onFiltersChange}
-              onSortingChange={onSortingChange}
-              onRefresh={() => void onRefresh()}
-              onRowClick={(row) => selectRecord(toCrmRecord(row.original))}
-              infiniteScroll={{
-                hasMore,
-                isFetchingMore,
-                onLoadMore: loadMore,
-                threshold: 10,
-                loadingContent: "Loading more records...",
-              }}
-              emptyState={
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-                    <User className="size-10 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold">No CRM records</h3>
-                  {tableError ? (
-                    <p className="text-sm text-destructive mt-1 max-w-xl">
-                      {tableError.message}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                      No donors match the current filters for your workspace.
-                    </p>
-                  )}
-                  <div className="mt-6 flex gap-3">
-                    {tableError && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void onRefresh()}
-                      >
-                        Retry
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              }
-              config={{
-                enableRowSelection: true,
-                enableColumnVisibility: true,
-                enablePagination: false,
-                enableFilters: true,
-                enableSorting: true,
-                enableViewToggle: false,
-                mobileBreakpoint: 0,
-                manualFiltering: true,
-                manualSorting: true,
-                stickyHeader: true,
-                virtualization: {
-                  enabled: true,
-                  estimateSize: 72,
-                  overscan: 10,
-                  containerHeight: 720,
-                },
-              }}
-              initialState={{
-                sorting,
-                columnFilters,
-                columnVisibility: {
-                  primaryContactLine: false,
-                  fundsGivenToSummary: false,
-                  nextTaskSummary: false,
-                },
-              }}
-              floatingBarActions={[
-                {
-                  label: "Export",
-                  icon: Receipt,
-                  onClick: handleBulkExport,
-                },
-                {
-                  label: "Archive",
-                  icon: Trash2,
-                  onClick: handleBulkArchive,
-                  variant: "destructive",
-                },
-              ]}
-              mobileCardConfig={{
-                primaryField: "displayName",
-                secondaryField: "primaryOrganization",
-                badgeField: "lifecycleStatus",
-                renderCard: (row) => {
-                  const c = row.original;
-                  const name = c.displayName || "Unnamed";
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => selectRecord(toCrmRecord(c))}
-                      className="w-full p-4 cursor-pointer space-y-3 text-left"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <SharedNamedViewTransition
-                            name={crmRecordAvatarTransitionName(c.id)}
-                          >
-                            <Avatar size="lg">
-                              <AvatarImage src={c.avatarUrl ?? undefined} />
-                              <AvatarFallback>{name[0] ?? "?"}</AvatarFallback>
-                            </Avatar>
-                          </SharedNamedViewTransition>
-                          <div>
-                            <SharedNamedViewTransition
-                              name={crmRecordTitleTransitionName(c.id)}
-                            >
-                              <div className="font-semibold text-sm text-foreground">
-                                {name}
-                              </div>
-                            </SharedNamedViewTransition>
-                            <div className="text-xs text-muted-foreground">
-                              {c.primaryOrganization ?? EMPTY_CELL_VALUE}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge variant="outline">
-                          {c.lifecycleStatus ?? EMPTY_CELL_VALUE}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground line-clamp-1">
-                          {c.recordType ?? EMPTY_CELL_VALUE}
-                        </span>
-                        <span className="font-semibold tabular-nums">
-                          {formatCurrency(c.lifetimeGiving)}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                },
-              }}
             />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="kanban"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="h-full"
-          >
-            <KanbanView
-              rows={rows}
-              onSelectRow={(r) => selectRecord(toCrmRecord(r))}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          }
+          filtersActive={(columnFilters ?? []).length > 0}
+          onClearFilters={() => onFiltersChange([])}
+          hasMore={gridState.hasMore}
+          isFetchingMore={gridState.isFetchingMore}
+          onLoadMore={gridState.loadMore}
+          isLoading={gridState.isLoading}
+          error={gridState.tableError}
+          onRetry={() => void gridState.onRefresh()}
+          actions={<CrmBoardActions state={gridState} />}
+        />
+      )}
     </div>
   );
 }

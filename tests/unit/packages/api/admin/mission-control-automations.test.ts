@@ -46,6 +46,7 @@ class MissionControlAutomationsQueryStub {
   mutation?: QueryCall["mutation"];
   orderBy?: { column: string; ascending?: boolean };
   limitCount?: number;
+  rangeWindow?: { from: number; to: number };
 
   constructor(
     readonly table: string,
@@ -80,6 +81,11 @@ class MissionControlAutomationsQueryStub {
     return this;
   }
 
+  in(column: string, values: unknown): this {
+    this.filters.push(["in", column, values]);
+    return this;
+  }
+
   order(
     column: string,
     options?: {
@@ -92,8 +98,22 @@ class MissionControlAutomationsQueryStub {
 
   limit(count: number): Promise<QueryResult> {
     this.limitCount = count;
+    // Like PostgREST: never more rows than asked for.
+    const rows = Array.isArray(this.result.data)
+      ? this.result.data.slice(0, count)
+      : (this.result.data ?? null);
     return Promise.resolve({
-      data: this.result.data ?? null,
+      data: rows,
+      error: this.result.error ?? null,
+    });
+  }
+
+  /** Pages like PostgREST: the slice of the rows, at most 1,000. */
+  range(from: number, to: number): Promise<QueryResult> {
+    this.rangeWindow = { from, to };
+    const rows = Array.isArray(this.result.data) ? this.result.data : null;
+    return Promise.resolve({
+      data: rows ? rows.slice(from, Math.min(to + 1, from + 1000)) : null,
       error: this.result.error ?? null,
     });
   }
@@ -106,17 +126,24 @@ class MissionControlAutomationsQueryStub {
   }
 }
 
+/**
+ * One result per table, or a list answered in call order (the last one
+ * repeats) for a table the code reads more than once.
+ */
 function createMissionControlAutomationsSupabaseStub(
-  resultsByTable: Record<string, QueryResult>,
+  resultsByTable: Record<string, QueryResult | QueryResult[]>,
 ) {
   const calls: QueryCall[] = [];
+  const callsByTable = new Map<string, number>();
   const supabaseAdmin = {
     from(table: string) {
-      return new MissionControlAutomationsQueryStub(
-        table,
-        resultsByTable[table] ?? { data: [] },
-        calls,
-      );
+      const configured = resultsByTable[table] ?? { data: [] };
+      const index = callsByTable.get(table) ?? 0;
+      callsByTable.set(table, index + 1);
+      const result = Array.isArray(configured)
+        ? (configured[Math.min(index, configured.length - 1)] ?? { data: [] })
+        : configured;
+      return new MissionControlAutomationsQueryStub(table, result, calls);
     },
   } as unknown as AdminSupabaseClient;
 
@@ -724,6 +751,268 @@ describe("mission control automation dashboard summary", () => {
     expect(dashboard.summary.failedRuns24h).toBe(1);
   });
 
+  it("carries each rule's runs, failed runs and last failure from the last 24 hours", async () => {
+    const { calls, supabaseAdmin } =
+      createMissionControlAutomationsSupabaseStub({
+        mission_control_automation_rules: {
+          data: [
+            automationRuleRow({ id: "rule_failing", name: "Failing rule" }),
+            automationRuleRow({ id: "rule_clean", name: "Clean rule" }),
+            automationRuleRow({ id: "rule_idle", name: "Idle rule" }),
+          ],
+        },
+        mission_control_automation_activity_logs: {
+          data: [
+            {
+              rule_id: "rule_failing",
+              failures: [{ message: "Action failed" }],
+              created_at: "2026-11-10T09:30:00.000Z",
+            },
+            {
+              rule_id: "rule_clean",
+              failures: [],
+              created_at: "2026-11-10T09:00:00.000Z",
+            },
+            {
+              rule_id: "rule_failing",
+              failures: [],
+              created_at: "2026-11-10T08:45:00.000Z",
+            },
+            {
+              rule_id: "rule_failing",
+              failures: [{ message: "Provider timeout" }],
+              created_at: "2026-11-10T08:00:00.000Z",
+            },
+            // A run whose rule was deleted, or never had one.
+            {
+              rule_id: null,
+              failures: [{ message: "Orphaned failure" }],
+              created_at: "2026-11-10T07:00:00.000Z",
+            },
+          ],
+        },
+      });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    const activityCall = calls.find(
+      (call) => call.table === "mission_control_automation_activity_logs",
+    );
+    expect(activityCall?.selected).toContain("rule_id");
+
+    const byId = Object.fromEntries(
+      dashboard.automationRules.map((rule) => [rule.id, rule]),
+    );
+    expect(byId.rule_failing).toMatchObject({
+      runs24h: 3,
+      failedRuns24h: 2,
+      lastFailureAt: "2026-11-10T09:30:00.000Z",
+    });
+    expect(byId.rule_clean).toMatchObject({
+      runs24h: 1,
+      failedRuns24h: 0,
+      lastFailureAt: null,
+    });
+    expect(byId.rule_idle).toMatchObject({
+      runs24h: 0,
+      failedRuns24h: 0,
+      lastFailureAt: null,
+    });
+    // The summary still counts every failed run, attributed or not.
+    expect(dashboard.summary.failedRuns24h).toBe(3);
+    expect(dashboard.summary.executions24h).toBe(5);
+  });
+
+  it("lists rules past the first page that ran, so their failures are not blamed on deleted rules", async () => {
+    const pageRows = Array.from({ length: 100 }, (_, index) =>
+      automationRuleRow({ id: `rule_${index}`, name: `Rule ${index}` }),
+    );
+    const { calls, supabaseAdmin } =
+      createMissionControlAutomationsSupabaseStub({
+        mission_control_automation_rules: [
+          { data: pageRows },
+          // The follow-up read of rules the page left out.
+          {
+            data: [
+              automationRuleRow({ id: "rule_150", name: "Older busy rule" }),
+            ],
+          },
+        ],
+        mission_control_automation_activity_logs: {
+          data: [
+            {
+              rule_id: "rule_150",
+              failures: [{ message: "Action failed" }],
+              created_at: "2026-11-10T09:30:00.000Z",
+            },
+            {
+              rule_id: "rule_150",
+              failures: [],
+              created_at: "2026-11-10T09:00:00.000Z",
+            },
+            {
+              rule_id: "rule_3",
+              failures: [],
+              created_at: "2026-11-10T08:00:00.000Z",
+            },
+            // A deleted rule's run: the foreign key cleared its rule_id.
+            {
+              rule_id: null,
+              failures: [{ message: "Orphaned failure" }],
+              created_at: "2026-11-10T07:00:00.000Z",
+            },
+          ],
+        },
+      });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    const ruleCalls = calls.filter(
+      (call) => call.table === "mission_control_automation_rules",
+    );
+    expect(ruleCalls).toHaveLength(2);
+    // Only the rule the page left out is read, and only in this tenant.
+    expect(ruleCalls[1]?.filters).toContainEqual(["in", "id", ["rule_150"]]);
+    expect(ruleCalls[1]?.filters).toContainEqual([
+      "eq",
+      "tenant_id",
+      "tenant_1",
+    ]);
+
+    expect(dashboard.automationRules).toHaveLength(101);
+    expect(
+      dashboard.automationRules.find((rule) => rule.id === "rule_150"),
+    ).toMatchObject({
+      name: "Older busy rule",
+      runs24h: 2,
+      failedRuns24h: 1,
+      lastFailureAt: "2026-11-10T09:30:00.000Z",
+    });
+    expect(dashboard.summary.totalRules).toBe(101);
+    expect(dashboard.summary.failedRuns24h).toBe(2);
+    // Only the run with no rule on record is left unattributed.
+    expect(dashboard.summary.failedRunsWithoutRule24h).toBe(1);
+  });
+
+  it("counts a failed run as without a rule when its rule can't be read", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: [
+        { data: [automationRuleRow({ id: "rule_1" })] },
+        { data: [] },
+      ],
+      mission_control_automation_activity_logs: {
+        data: [
+          {
+            rule_id: "rule_gone",
+            failures: [{ message: "Action failed" }],
+            created_at: "2026-11-10T09:30:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.automationRules.map((rule) => rule.id)).toEqual([
+      "rule_1",
+    ]);
+    expect(dashboard.summary.failedRunsWithoutRule24h).toBe(1);
+  });
+
+  it("reads no extra rules when every rule that ran is already listed", async () => {
+    const { calls, supabaseAdmin } =
+      createMissionControlAutomationsSupabaseStub({
+        mission_control_automation_rules: {
+          data: [automationRuleRow({ id: "rule_1" })],
+        },
+        mission_control_automation_activity_logs: {
+          data: [
+            {
+              rule_id: "rule_1",
+              failures: [{ message: "Action failed" }],
+              created_at: "2026-11-10T09:30:00.000Z",
+            },
+          ],
+        },
+      });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(
+      calls.filter((call) => call.table === "mission_control_automation_rules"),
+    ).toHaveLength(1);
+    expect(dashboard.summary.failedRunsWithoutRule24h).toBe(0);
+  });
+
+  it("does not hide a failed read of the rules that ran past the first page", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: [
+        { data: [] },
+        { error: { message: "rules unavailable" } },
+      ],
+      mission_control_automation_activity_logs: {
+        data: [
+          {
+            rule_id: "rule_9",
+            failures: [],
+            created_at: "2026-11-10T09:30:00.000Z",
+          },
+        ],
+      },
+    });
+
+    await expect(
+      loadMissionControlAutomationDashboard({
+        supabaseAdmin,
+        tenantId: "tenant_1",
+      }),
+    ).rejects.toThrow("rules unavailable");
+  });
+
+  it("keeps the latest failure time whatever order the log rows arrive in", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [automationRuleRow({ id: "rule_1" })],
+      },
+      mission_control_automation_activity_logs: {
+        data: [
+          {
+            rule_id: "rule_1",
+            failures: [{ message: "Older" }],
+            created_at: "2026-11-10T01:00:00.000Z",
+          },
+          {
+            rule_id: "rule_1",
+            failures: [{ message: "Newer" }],
+            created_at: "2026-11-10T05:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.automationRules[0]).toMatchObject({
+      failedRuns24h: 2,
+      lastFailureAt: "2026-11-10T05:00:00.000Z",
+    });
+  });
+
   it("scopes activity queries to the tenant and the last 24 hours", async () => {
     const earliestExpectedCutoff = Date.now() - 24 * 60 * 60 * 1000 - 1000;
     const { calls, supabaseAdmin } =
@@ -793,8 +1082,45 @@ describe("mission control automation dashboard summary", () => {
       invalidRules: 0,
       executions24h: 0,
       failedRuns24h: 0,
+      failedRunsWithoutRule24h: 0,
       activityLogBacked: true,
       integrationHealthBacked: false,
+    });
+  });
+});
+
+describe("automation activity beyond one page", () => {
+  it("counts every run in the 24-hour window, past the first 1,000 rows", async () => {
+    const rows = Array.from({ length: 2500 }, (_, index) => ({
+      rule_id: index < 1200 ? "rule_busy" : "rule_quiet",
+      failures: index === 2400 ? [{ message: "Provider timeout" }] : [],
+      created_at: new Date(
+        Date.UTC(2026, 10, 10, 9, 0, 0) - index * 1000,
+      ).toISOString(),
+    }));
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({ id: "rule_busy", name: "Busy rule" }),
+          automationRuleRow({ id: "rule_quiet", name: "Quiet rule" }),
+        ],
+      },
+      mission_control_automation_activity_logs: { data: rows },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    const byId = Object.fromEntries(
+      dashboard.automationRules.map((rule) => [rule.id, rule]),
+    );
+    expect(byId.rule_quiet).toMatchObject({ runs24h: 1300, failedRuns24h: 1 });
+    expect(byId.rule_busy).toMatchObject({ runs24h: 1200, failedRuns24h: 0 });
+    expect(dashboard.summary).toMatchObject({
+      executions24h: 2500,
+      failedRuns24h: 1,
     });
   });
 });

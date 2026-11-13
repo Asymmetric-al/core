@@ -14,6 +14,23 @@ function cloneValue<T>(value: T): T {
   return structuredClone(value);
 }
 
+/** Seed dates count from today so the sample workspace never goes stale. */
+function seedDay(offsetDays: number): string {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + offsetDays);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function seedTimestamp(offsetDays: number, hour = 9): string {
+  const date = new Date();
+  date.setHours(hour, 0, 0, 0);
+  date.setDate(date.getDate() + offsetDays);
+  return date.toISOString();
+}
+
 const crmActivitySchema = z.object({
   id: z.string().min(1),
   type: z.enum(["note", "call", "email", "meeting", "stage_change", "gift"]),
@@ -98,56 +115,6 @@ const taskStaffSchema = z.object({
   role: z.string().min(1),
 });
 
-const carePersonnelSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  location: z.string().min(1),
-  timezone: z.string().min(1),
-  status: z.enum(["Healthy", "Needs Attention", "At Risk", "Crisis"]),
-  lastCheckIn: z.string().min(1),
-  nextScheduledCheckIn: z.string().optional(),
-  initials: z.string().min(1),
-  avatarUrl: z.string().optional(),
-  role: z.string().min(1),
-  region: z.enum([
-    "Africa",
-    "SE Asia",
-    "Europe",
-    "Latin America",
-    "Middle East",
-    "North America",
-  ]),
-  healthSignals: z.object({
-    emotional: z.number(),
-    spiritual: z.number(),
-    physical: z.number(),
-    financial: z.number(),
-  }),
-  careGaps: z.array(z.string()),
-  manualAttention: z.boolean().optional(),
-});
-
-const careActivitySchema = z.object({
-  id: z.string().min(1),
-  personnelId: z.string().min(1),
-  type: z.enum([
-    "Video Call",
-    "In-Person Visit",
-    "Check-in",
-    "Pastoral Note",
-    "Care Plan Update",
-    "Crisis Intervention",
-    "Birthday",
-    "Prayer Request",
-  ]),
-  content: z.string().min(1),
-  date: z.string().min(1),
-  authorId: z.string().min(1),
-  authorName: z.string().min(1),
-  isPrivate: z.boolean(),
-  threadId: z.string().optional(),
-});
-
 const attendeeSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -171,50 +138,11 @@ const attendeeSchema = z.object({
   isVip: z.boolean().optional(),
 });
 
-const mobilizeCandidateSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  email: z.email(),
-  phone: z.string().min(1),
-  role: z.string().min(1),
-  location: z.string().min(1),
-  stage: z.enum(["Applied", "Vetting", "Training", "Ready", "Deployed"]),
-  readiness: z.number(),
-  appliedDate: z.string().min(1),
-  avatar: z.string().optional(),
-  tags: z.array(z.string()),
-});
-
-const teamSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  description: z.string().min(1),
-  membersCount: z.number(),
-  status: z.string().min(1),
-  avatar: z.string().min(1),
-  color: z.string().min(1),
-  permissions: z.record(z.string(), z.enum(["Admin", "Manage", "View"])),
-});
-
-const teamMemberSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  email: z.email(),
-  role: z.string().min(1),
-  status: z.string().min(1),
-  team: z.string().min(1),
-});
-
 export type AdminCrmContact = z.infer<typeof crmContactSchema>;
 export type AdminTask = z.infer<typeof taskSchema>;
 export type AdminTaskStaffMember = z.infer<typeof taskStaffSchema>;
 export type AdminTaskLinkedEntity = z.infer<typeof taskLinkedEntitySchema>;
-export type AdminCarePersonnel = z.infer<typeof carePersonnelSchema>;
-export type AdminCareActivity = z.infer<typeof careActivitySchema>;
 export type AdminEventAttendee = z.infer<typeof attendeeSchema>;
-export type AdminMobilizeCandidate = z.infer<typeof mobilizeCandidateSchema>;
-export type AdminTeam = z.infer<typeof teamSchema>;
-export type AdminTeamMember = z.infer<typeof teamMemberSchema>;
 
 const CRM_CONTACTS_SEED: AdminCrmContact[] = [
   {
@@ -385,7 +313,7 @@ const TASKS_SEED: AdminTask[] = [
     priority: "urgent",
     status: "todo",
     type: "call",
-    due_date: "2026-04-08",
+    due_date: seedDay(0),
     due_time: "14:00",
     created_by: "staff-1",
     assigned_to: "staff-1",
@@ -397,7 +325,7 @@ const TASKS_SEED: AdminTask[] = [
       {
         id: "rem-1",
         task_id: "task-1",
-        remind_at: "2026-04-08T13:00:00Z",
+        remind_at: seedTimestamp(0, 13),
         type: "notification",
         sent: false,
       },
@@ -410,12 +338,12 @@ const TASKS_SEED: AdminTask[] = [
         user_name: "Michael Chen",
         content:
           "Alice is very interested in our water project. Keep the call focused on long-term partnership.",
-        created_at: "2026-04-07T15:00:00Z",
+        created_at: seedTimestamp(-1, 15),
       },
     ],
     tags: ["major-donor", "stewardship"],
-    created_at: "2026-04-06T10:00:00Z",
-    updated_at: "2026-04-07T15:00:00Z",
+    created_at: seedTimestamp(-2, 10),
+    updated_at: seedTimestamp(-1, 15),
   },
   {
     id: "task-2",
@@ -426,7 +354,7 @@ const TASKS_SEED: AdminTask[] = [
     priority: "high",
     status: "in_progress",
     type: "email",
-    due_date: "2026-04-09",
+    due_date: seedDay(1),
     created_by: "staff-3",
     assigned_to: "staff-3",
     assigned_to_name: "Emily Rodriguez",
@@ -435,8 +363,8 @@ const TASKS_SEED: AdminTask[] = [
     reminders: [],
     comments: [],
     tags: ["annual", "compliance", "tax-receipt"],
-    created_at: "2026-04-05T09:00:00Z",
-    updated_at: "2026-04-08T08:30:00Z",
+    created_at: seedTimestamp(-3),
+    updated_at: seedTimestamp(0, 8),
   },
   {
     id: "task-3",
@@ -447,7 +375,7 @@ const TASKS_SEED: AdminTask[] = [
     priority: "medium",
     status: "todo",
     type: "meeting",
-    due_date: "2026-04-15",
+    due_date: seedDay(7),
     due_time: "10:00",
     created_by: "staff-2",
     assigned_to: "staff-2",
@@ -459,15 +387,15 @@ const TASKS_SEED: AdminTask[] = [
       {
         id: "rem-2",
         task_id: "task-3",
-        remind_at: "2026-04-10T09:00:00Z",
+        remind_at: seedTimestamp(6),
         type: "email",
         sent: false,
       },
     ],
     comments: [],
     tags: ["onboarding", "support-raising"],
-    created_at: "2026-04-07T09:00:00Z",
-    updated_at: "2026-04-07T09:00:00Z",
+    created_at: seedTimestamp(-1),
+    updated_at: seedTimestamp(-1),
   },
   {
     id: "task-4",
@@ -478,7 +406,7 @@ const TASKS_SEED: AdminTask[] = [
     priority: "high",
     status: "todo",
     type: "review",
-    due_date: "2026-04-08",
+    due_date: seedDay(-2),
     created_by: "staff-1",
     assigned_to: "staff-4",
     assigned_to_name: "David Kim",
@@ -494,111 +422,12 @@ const TASKS_SEED: AdminTask[] = [
         user_name: "Sarah Johnson",
         content:
           "This is a significant grant. Please prioritize the financial review section.",
-        created_at: "2026-04-07T11:30:00Z",
+        created_at: seedTimestamp(-1, 11),
       },
     ],
     tags: ["grant", "major-donor"],
-    created_at: "2026-04-06T11:00:00Z",
-    updated_at: "2026-04-07T11:30:00Z",
-  },
-];
-
-const CARE_PERSONNEL_SEED: AdminCarePersonnel[] = [
-  {
-    id: "care-1",
-    name: "Olivia Martin",
-    location: "Lima, Peru",
-    timezone: "America/Lima",
-    status: "At Risk",
-    lastCheckIn: "2026-04-05T15:00:00Z",
-    initials: "OM",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100",
-    role: "Community Development",
-    region: "Latin America",
-    healthSignals: {
-      emotional: 42,
-      spiritual: 67,
-      physical: 58,
-      financial: 35,
-    },
-    careGaps: ["Rest rhythm", "Financial stress"],
-    manualAttention: true,
-  },
-  {
-    id: "care-2",
-    name: "Samuel Adeyemi",
-    location: "Accra, Ghana",
-    timezone: "Africa/Accra",
-    status: "Healthy",
-    lastCheckIn: "2026-04-07T09:00:00Z",
-    initials: "SA",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100",
-    role: "Church Partnerships",
-    region: "Africa",
-    healthSignals: {
-      emotional: 82,
-      spiritual: 88,
-      physical: 79,
-      financial: 73,
-    },
-    careGaps: [],
-  },
-  {
-    id: "care-3",
-    name: "Grace Lee",
-    location: "Chiang Mai, Thailand",
-    timezone: "Asia/Bangkok",
-    status: "Healthy",
-    lastCheckIn: "2026-04-06T12:00:00Z",
-    initials: "GL",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
-    role: "Medical Outreach",
-    region: "SE Asia",
-    healthSignals: {
-      emotional: 76,
-      spiritual: 91,
-      physical: 74,
-      financial: 69,
-    },
-    careGaps: ["Scheduled counseling follow-up"],
-  },
-];
-
-const CARE_ACTIVITY_SEED: AdminCareActivity[] = [
-  {
-    id: "care-activity-1",
-    personnelId: "care-1",
-    type: "Video Call",
-    content:
-      "Discussed financial stress due to inflation and set a follow-up check-in for next week.",
-    date: "2026-04-05T14:00:00Z",
-    authorId: "staff-2",
-    authorName: "David Rodriguez",
-    isPrivate: false,
-  },
-  {
-    id: "care-activity-2",
-    personnelId: "care-1",
-    type: "Pastoral Note",
-    content:
-      "Olivia asked for confidential follow-up around marriage stress during the last call.",
-    date: "2026-04-05T15:00:00Z",
-    authorId: "staff-2",
-    authorName: "David Rodriguez",
-    isPrivate: true,
-  },
-  {
-    id: "care-activity-3",
-    personnelId: "care-2",
-    type: "Check-in",
-    content: "Samuel reported a healthy support rhythm and no urgent needs.",
-    date: "2026-04-07T09:00:00Z",
-    authorId: "staff-1",
-    authorName: "Emily Thompson",
-    isPrivate: false,
+    created_at: seedTimestamp(-2, 11),
+    updated_at: seedTimestamp(-1, 11),
   },
 ];
 
@@ -640,126 +469,6 @@ const EVENT_ATTENDEES_SEED: AdminEventAttendee[] = [
     paymentStatus: "Due",
     registrationDate: "2026-03-28T15:30:00Z",
     assignedSessions: [],
-  },
-];
-
-const MOBILIZE_CANDIDATES_SEED: AdminMobilizeCandidate[] = [
-  {
-    id: "candidate-1",
-    name: "Sarah Jenkins",
-    email: "sarah.j@example.com",
-    phone: "+1 (555) 123-4567",
-    role: "Medical Officer",
-    location: "Denver, CO",
-    stage: "Vetting",
-    readiness: 45,
-    appliedDate: "2026-02-01",
-    tags: ["RN", "Spanish Speaker"],
-  },
-  {
-    id: "candidate-2",
-    name: "Michael Ross",
-    email: "mike.ross@example.com",
-    phone: "+1 (555) 987-6543",
-    role: "Education Specialist",
-    location: "Austin, TX",
-    stage: "Training",
-    readiness: 85,
-    appliedDate: "2026-01-15",
-    tags: ["ESL Certified", "Leadership"],
-  },
-  {
-    id: "candidate-3",
-    name: "David Kim",
-    email: "d.kim@example.com",
-    phone: "+1 (555) 222-3333",
-    role: "Community Development",
-    location: "Chicago, IL",
-    stage: "Ready",
-    readiness: 100,
-    appliedDate: "2025-12-10",
-    tags: ["Agriculture", "French Speaker"],
-  },
-];
-
-const TEAMS_SEED: AdminTeam[] = [
-  {
-    id: "team-1",
-    name: "Executive Leadership",
-    description: "Main administrative and decision-making body.",
-    membersCount: 5,
-    status: "Active",
-    avatar: "EL",
-    color: "bg-indigo-100 text-indigo-700",
-    permissions: {
-      admin: "Admin",
-      crm: "Admin",
-      contributions: "Admin",
-      reports: "Admin",
-    },
-  },
-  {
-    id: "team-2",
-    name: "Field Mobilizers",
-    description: "Global support team for active missionaries.",
-    membersCount: 12,
-    status: "Active",
-    avatar: "FM",
-    color: "bg-blue-100 text-blue-700",
-    permissions: {
-      mobilize: "Admin",
-      crm: "Manage",
-      care: "View",
-    },
-  },
-  {
-    id: "team-3",
-    name: "Member Care",
-    description: "Support and health monitoring for field staff.",
-    membersCount: 15,
-    status: "Active",
-    avatar: "MC",
-    color: "bg-rose-100 text-rose-700",
-    permissions: {
-      care: "Admin",
-      support: "Admin",
-      crm: "View",
-    },
-  },
-];
-
-const TEAM_MEMBERS_SEED: AdminTeamMember[] = [
-  {
-    id: "member-1",
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    role: "Owner",
-    status: "Active",
-    team: "Executive Leadership",
-  },
-  {
-    id: "member-2",
-    name: "Sarah Chen",
-    email: "sarah@example.com",
-    role: "Admin",
-    status: "Active",
-    team: "Executive Leadership",
-  },
-  {
-    id: "member-3",
-    name: "Mike Ross",
-    email: "mike@example.com",
-    role: "Member",
-    status: "Active",
-    team: "Field Mobilizers",
-  },
-  {
-    id: "member-4",
-    name: "Rachel Zane",
-    email: "rachel@example.com",
-    role: "Member",
-    status: "Pending",
-    team: "Member Care",
   },
 ];
 
@@ -838,28 +547,6 @@ export const adminTasksCollection = createCollection(
   }),
 );
 
-export const carePersonnelCollection = createCollection(
-  queryCollectionOptions({
-    id: "admin_care_personnel",
-    queryKey: [...adminSurfaceQueryKeys.carePersonnel],
-    queryClient: getQueryClient(),
-    schema: carePersonnelSchema,
-    getKey: (item) => item.id,
-    queryFn: async () => cloneValue(CARE_PERSONNEL_SEED),
-  }),
-);
-
-export const careActivityCollection = createCollection(
-  queryCollectionOptions({
-    id: "admin_care_activity",
-    queryKey: [...adminSurfaceQueryKeys.careActivity],
-    queryClient: getQueryClient(),
-    schema: careActivitySchema,
-    getKey: (item) => item.id,
-    queryFn: async () => cloneValue(CARE_ACTIVITY_SEED),
-  }),
-);
-
 export const eventAttendeesCollection = createCollection(
   queryCollectionOptions({
     id: "admin_event_attendees",
@@ -868,38 +555,5 @@ export const eventAttendeesCollection = createCollection(
     schema: attendeeSchema,
     getKey: (item) => item.id,
     queryFn: async () => cloneValue(EVENT_ATTENDEES_SEED),
-  }),
-);
-
-export const mobilizeCandidatesCollection = createCollection(
-  queryCollectionOptions({
-    id: "admin_mobilize_candidates",
-    queryKey: [...adminSurfaceQueryKeys.mobilizeCandidates],
-    queryClient: getQueryClient(),
-    schema: mobilizeCandidateSchema,
-    getKey: (item) => item.id,
-    queryFn: async () => cloneValue(MOBILIZE_CANDIDATES_SEED),
-  }),
-);
-
-export const teamsCollection = createCollection(
-  queryCollectionOptions({
-    id: "admin_teams",
-    queryKey: [...adminSurfaceQueryKeys.teams],
-    queryClient: getQueryClient(),
-    schema: teamSchema,
-    getKey: (item) => item.id,
-    queryFn: async () => cloneValue(TEAMS_SEED),
-  }),
-);
-
-export const teamMembersCollection = createCollection(
-  queryCollectionOptions({
-    id: "admin_team_members",
-    queryKey: [...adminSurfaceQueryKeys.teamMembers],
-    queryClient: getQueryClient(),
-    schema: teamMemberSchema,
-    getKey: (item) => item.id,
-    queryFn: async () => cloneValue(TEAM_MEMBERS_SEED),
   }),
 );

@@ -223,7 +223,9 @@ let stale = false;
 for (const [file, raw] of outputs) {
   const config = await resolveConfig(file);
   let text = await format(raw, { ...config, filepath: file });
-  if (file.endsWith("/specs/missionary-workspace-depth/spec.md")) {
+  if (
+    file.endsWith(path.join("specs", "missionary-workspace-depth", "spec.md"))
+  ) {
     text = await renderContractView({
       repoRoot: root,
       capability: "missionary-workspace-depth",

@@ -95,3 +95,6 @@ tests/fixtures/managed-skill-refresh/**/*.raw -text -eol
 tests/fixtures/stripe-skill-refresh/**/*.raw -text -eol
 # The pinned Swift source intentionally ends with one empty line.
 tests/fixtures/managed-skill-refresh/write-swift/SKILL.md.raw whitespace=-blank-at-eof
+# Phase 27's dated grill archive is exact-byte evidence, like Phase 28 below.
+# Preserve captured line endings instead of applying core.autocrlf on checkout.
+docs/features/donor-development/grill/** -text -eol whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab

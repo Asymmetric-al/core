@@ -23,6 +23,7 @@ import {
   type SharedContributionRowFields,
 } from "../contribution-shared/row-contract";
 
+import type { CorrectionChangeLine } from "./correction-request-change";
 import type { ResolvedReceiptDeliverySelection } from "./receipt-delivery";
 import type { ContributionDesignationSet } from "@asym/database/types";
 
@@ -115,6 +116,15 @@ export interface ContributionDetailInput {
     receiptDeliveryProposal?: ResolvedReceiptDeliverySelection | null;
     /** Receipt-visible fields this request's payload would change (#263). */
     receiptAffectedFields?: string[];
+    /** Requester's display name, when their profile can be read. */
+    requestedByName?: string | null;
+    /**
+     * What the request would change, as labelled current → proposed lines
+     * built from its own payload. Null when the payload cannot be read; the
+     * approver must not be offered approval then. Display-only, so excluded
+     * from the revision fingerprint like the receipt fields.
+     */
+    proposedChange?: CorrectionChangeLine[] | null;
   }>;
   /** Applied/reversed adjustment records linked to this donation (ADR-CD-004). */
   adjustments?: ContributionAdjustmentRecord[];

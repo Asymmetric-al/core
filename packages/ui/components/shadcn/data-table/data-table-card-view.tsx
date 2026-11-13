@@ -26,6 +26,8 @@ interface DataTableCardViewProps<TData extends RowData> {
   rowActions?: DataTableInteractiveRowAction<TData>[];
   getRowActionAriaLabel?: (row: Row<TData>) => string;
   renderCard?: (row: Row<TData>) => React.ReactNode;
+  /** Shown instead of the generic message when there are no rows. */
+  emptyState?: React.ReactNode;
   className?: string;
 }
 
@@ -41,13 +43,16 @@ export function DataTableCardView<TData extends RowData>({
   rowActions,
   getRowActionAriaLabel,
   renderCard,
+  emptyState,
   className,
 }: DataTableCardViewProps<TData>) {
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-sm text-muted-foreground">No results found</p>
-      </div>
+      emptyState ?? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-sm text-muted-foreground">No results found</p>
+        </div>
+      )
     );
   }
 

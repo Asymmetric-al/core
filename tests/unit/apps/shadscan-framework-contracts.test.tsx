@@ -8,6 +8,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@asym/ui/fonts", () => ({ fontVariables: "test-font-variables" }));
+
 import AdminError from "../../../apps/admin/app/global-error";
 import AdminNotFound from "../../../apps/admin/app/global-not-found";
 import DonorError from "../../../apps/donor/app/global-error";

@@ -3,7 +3,8 @@ const SETTLED_DONATION_STATUSES = new Set([
   "succeeded",
   "success",
 ]);
-const FAILED_DONATION_STATUSES = new Set(["failed", "refunded"]);
+const FAILED_DONATION_STATUSES = new Set(["failed"]);
+const REFUNDED_DONATION_STATUSES = new Set(["refunded"]);
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -46,11 +47,14 @@ export type DonorPortalDonorRow = {
   do_not_email: boolean | null;
   has_active_pledge: boolean | null;
   stripe_customer_id: string | null;
+  address?: unknown;
 };
 
 export type DonorPortalDonationRow = {
   id: string;
   amount: number;
+  /** Cents returned by refunds; a partly refunded gift stays settled. */
+  refund_amount?: number | null;
   currency: string | null;
   status: string | null;
   donation_type: string | null;
@@ -138,6 +142,7 @@ export type DonorPortalSnapshot = {
     doNotEmail: boolean;
     givingPreferences: JsonRecord;
     stripeCustomerConfigured: boolean;
+    address: DonorPortalAddress | null;
   };
   summary: {
     yearToDateCents: number;
@@ -150,7 +155,17 @@ export type DonorPortalSnapshot = {
     latestImpactLabel: string | null;
   };
   donations: DonorPortalDonation[];
+  /**
+   * False when only the newest gifts were loaded, so totals over `donations`
+   * can miss older gifts. Absent means the list is complete.
+   */
+  donationsComplete?: boolean;
   recurringGifts: DonorPortalRecurringGift[];
+  /**
+   * False when only the newest recurring gifts were loaded, so a total over
+   * them can miss an older active gift. Absent means the list is complete.
+   */
+  recurringGiftsComplete?: boolean;
   paymentMethods: DonorPortalPaymentMethod[];
   feedPreferences: {
     showOrgPosts: boolean;
@@ -168,8 +183,12 @@ export type DonorPortalDonation = {
   date: string;
   amountCents: number;
   amount: number;
+  /** Refunded so far, in cents and dollars; 0 when nothing was returned. */
+  refundedAmountCents: number;
+  refundedAmount: number;
   currency: string;
-  status: "Succeeded" | "Processing" | "Failed";
+  /** Glossary status words: Paid, Processing, Failed, Refunded. */
+  status: "Paid" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
   receiptUrl: string;
@@ -180,6 +199,21 @@ export type DonorPortalDonation = {
     type: "missionary" | "fund" | "general";
     avatarUrl: string | null;
   };
+  /** The missionary the gift supports, when it supports one. */
+  missionary: DonorPortalGiftMissionary | null;
+  /** The fund it was designated to, when it has one. */
+  fund: DonorPortalGiftFund | null;
+};
+
+export type DonorPortalGiftMissionary = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+};
+
+export type DonorPortalGiftFund = {
+  id: string;
+  name: string;
 };
 
 export type DonorPortalRecurringGift = {
@@ -199,6 +233,8 @@ export type DonorPortalRecurringGift = {
   paymentsCompleted: number;
   paymentsRemaining: number | null;
   designation: DonorPortalDonation["designation"];
+  missionary: DonorPortalGiftMissionary | null;
+  fund: DonorPortalGiftFund | null;
 };
 
 export type DonorPortalPaymentMethod = {
@@ -266,6 +302,29 @@ function designationFromDonation(
   };
 }
 
+type GiftTargetRow = {
+  fund: DonorPortalDonationRow["fund"];
+  missionary: DonorPortalDonationRow["missionary"];
+};
+
+function giftMissionary(row: GiftTargetRow): DonorPortalGiftMissionary | null {
+  if (!row.missionary) return null;
+  const name = row.missionary.profile
+    ? displayNameFromParts(row.missionary.profile)
+    : "";
+  return {
+    id: row.missionary.id,
+    // Without a public name, the fund says more than a generic label.
+    name: name || row.fund?.name || "Missionary support",
+    avatarUrl: row.missionary.profile?.avatar_url ?? null,
+  };
+}
+
+function giftFund(row: GiftTargetRow): DonorPortalGiftFund | null {
+  if (!row.fund) return null;
+  return { id: row.fund.id, name: row.fund.name || "Designated fund" };
+}
+
 function designationFromPledge(
   pledge: DonorPortalPledgeRow,
 ): DonorPortalRecurringGift["designation"] {
@@ -301,8 +360,9 @@ function designationFromPledge(
 
 function donationStatus(status: string | null): DonorPortalDonation["status"] {
   const normalized = status?.toLowerCase() ?? "";
-  if (SETTLED_DONATION_STATUSES.has(normalized)) return "Succeeded";
+  if (SETTLED_DONATION_STATUSES.has(normalized)) return "Paid";
   if (FAILED_DONATION_STATUSES.has(normalized)) return "Failed";
+  if (REFUNDED_DONATION_STATUSES.has(normalized)) return "Refunded";
   return "Processing";
 }
 
@@ -330,9 +390,20 @@ function donationDate(donation: DonorPortalDonationRow): string {
   );
 }
 
+const PAYMENT_LABELS: Record<string, string> = {
+  card: "Card",
+  ach: "Bank account (ACH)",
+  us_bank_account: "Bank account (ACH)",
+  bank_transfer: "Bank transfer",
+  check: "Check",
+  cash: "Cash",
+};
+
+/** Plain words for how a gift was paid; never a processor's name. */
 function paymentLabel(value: string | null | undefined): string {
-  if (!value?.trim()) return "Stripe managed";
-  return value.trim();
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return "Saved payment method";
+  return PAYMENT_LABELS[trimmed.toLowerCase()] ?? trimmed;
 }
 
 export function buildDonorPortalSnapshot(input: {
@@ -353,6 +424,8 @@ export function buildDonorPortalSnapshot(input: {
       date,
       amountCents,
       amount: centsToDollars(amountCents),
+      refundedAmountCents: Math.max(0, donation.refund_amount ?? 0),
+      refundedAmount: centsToDollars(Math.max(0, donation.refund_amount ?? 0)),
       currency: normalizeCurrency(donation.currency),
       status: donationStatus(donation.status),
       type: donationType(donation),
@@ -360,6 +433,8 @@ export function buildDonorPortalSnapshot(input: {
       receiptUrl: `/api/donor/receipts/${donation.id}`,
       statementYear: new Date(date).getUTCFullYear(),
       designation: designationFromDonation(donation),
+      missionary: giftMissionary(donation),
+      fund: giftFund(donation),
     } satisfies DonorPortalDonation;
   });
 
@@ -382,11 +457,13 @@ export function buildDonorPortalSnapshot(input: {
       paymentsCompleted: pledge.payments_completed ?? 0,
       paymentsRemaining: pledge.payments_remaining,
       designation: designationFromPledge(pledge),
+      missionary: giftMissionary(pledge),
+      fund: giftFund(pledge),
     } satisfies DonorPortalRecurringGift;
   });
 
   const settledDonations = donationModels.filter(
-    (donation) => donation.status === "Succeeded",
+    (donation) => donation.status === "Paid",
   );
   const yearToDateCents = settledDonations
     .filter((donation) => donation.statementYear === currentYear)
@@ -467,6 +544,7 @@ export function buildDonorPortalSnapshot(input: {
       doNotEmail: Boolean(input.donor.do_not_email),
       givingPreferences: input.donor.giving_preferences ?? {},
       stripeCustomerConfigured: Boolean(input.donor.stripe_customer_id),
+      address: donorAddressFromRow(input.donor.address),
     },
     summary: {
       yearToDateCents,
@@ -501,6 +579,37 @@ export function buildDonorPortalSnapshot(input: {
         input.feedPreferences?.push_missionary_posts ?? false,
     },
   };
+}
+
+export type DonorPortalAddress = {
+  street: string;
+  street2: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+};
+
+const ADDRESS_KEYS = [
+  "street",
+  "street2",
+  "city",
+  "state",
+  "zip",
+  "country",
+] as const;
+
+/** A stored address (some older rows hold only city/state) for the form. */
+export function donorAddressFromRow(value: unknown): DonorPortalAddress | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  const address = Object.fromEntries(
+    ADDRESS_KEYS.map((key) => [
+      key,
+      typeof row[key] === "string" ? (row[key] as string) : "",
+    ]),
+  ) as DonorPortalAddress;
+  return ADDRESS_KEYS.some((key) => address[key]) ? address : null;
 }
 
 export function isSettledDonationStatus(status: string | null | undefined) {

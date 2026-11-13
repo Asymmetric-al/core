@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { MCShell } from "../mc-shell";
 
-import { DashboardSkeleton } from "@/features/mission-control/components/patterns/skeletons";
+import { ShellSkeleton } from "@/features/mission-control/components/patterns/skeletons";
 import { getProtectedShellState } from "@/lib/admin-access";
 
 /**
@@ -19,7 +19,7 @@ import { getProtectedShellState } from "@/lib/admin-access";
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
+    <Suspense fallback={<ShellSkeleton />}>
       <ProtectedShell>{children}</ProtectedShell>
     </Suspense>
   );

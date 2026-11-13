@@ -19,6 +19,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { useSaveSupportSavedView } from "../../hooks/use-support-mutations";
+import { useSupportSavedViews } from "../../hooks/use-support-saved-views";
 
 import type { SupportSavedView, SupportInboxRouteState } from "../../types";
 
@@ -65,6 +66,7 @@ function SaveViewForm({
   routeState,
   editingView,
 }: Omit<SaveViewDialogProps, "open">) {
+  const { access } = useSupportSavedViews();
   const saveSavedView = useSaveSupportSavedView();
   const [name, setName] = React.useState(editingView?.name ?? "");
   const [scope, setScope] = React.useState<"personal" | "workspace">(
@@ -78,12 +80,18 @@ function SaveViewForm({
       toast.info("Give the view a name first.");
       return;
     }
+    if (scope === "workspace" && !access.canManageAll) return;
     try {
       await saveSavedView.mutateAsync({
         id: editingView?.id,
         name: trimmed,
-        slug: editingView?.slug ?? slugify(trimmed),
-        ownerAgentId: editingView?.ownerAgentId ?? null,
+        slug:
+          editingView?.slug ??
+          (slugify(trimmed) || `view-${crypto.randomUUID().slice(0, 8)}`),
+        ownerAgentId:
+          scope === "personal"
+            ? (editingView?.ownerAgentId ?? access.agentId)
+            : null,
         scope,
         filter: {
           view: routeState.view,
@@ -138,10 +146,25 @@ function SaveViewForm({
               <Label htmlFor="scope-personal">Just me</Label>
             </div>
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="workspace" id="scope-workspace" />
+              <RadioGroupItem
+                value="workspace"
+                id="scope-workspace"
+                disabled={!access.canManageAll}
+                aria-describedby={
+                  !access.canManageAll ? "workspace-scope-reason" : undefined
+                }
+              />
               <Label htmlFor="scope-workspace">Whole workspace</Label>
             </div>
           </RadioGroup>
+          {!access.canManageAll && (
+            <p
+              id="workspace-scope-reason"
+              className="text-xs text-muted-foreground"
+            >
+              Only support admins can share a view with the whole workspace.
+            </p>
+          )}
         </div>
       </div>
       <DialogFooter>

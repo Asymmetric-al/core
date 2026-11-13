@@ -13,6 +13,8 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Activity } from "lucide-react";
 
+import { EveSectionEmpty, formatStatusLabel } from "./section-states";
+
 import type { EveEngineeringMonitorAdminView } from "@asym/api/eve/engineering-monitors";
 
 interface MonitorResponse extends EveEngineeringMonitorAdminView {
@@ -54,7 +56,7 @@ export function EveEngineeringMonitorsPanel() {
   return (
     <Card id="eve-engineering-monitors">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={2}>
           <span className="flex items-center gap-2">
             <Activity aria-hidden="true" className="size-5" />
             Engineering health monitors
@@ -139,14 +141,21 @@ export function EveEngineeringMonitorsPanel() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="outline">{finding.severity}</Badge>
-                  <Badge variant="secondary">{finding.status}</Badge>
+                  <Badge variant="outline">
+                    {formatStatusLabel(finding.severity)}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {formatStatusLabel(finding.status)}
+                  </Badge>
                 </div>
               </li>
             ))}
-            {!query.isLoading && (query.data?.findings.length ?? 0) === 0 ? (
+            {query.isSuccess && query.data.findings.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">
-                No engineering-health findings.
+                <EveSectionEmpty
+                  title="No engineering-health findings."
+                  description="New findings will appear here after a monitor run."
+                />
               </li>
             ) : null}
           </ul>
