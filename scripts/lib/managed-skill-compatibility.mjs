@@ -185,19 +185,41 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
   }
 }
 
+const IMPLICIT_INVOCATION_KEY = /^(["']?)allow_implicit_invocation\1\s*:/u;
+
 /**
- * Return `metadata` with `policy.allow_implicit_invocation: false`. Only the
- * top-level `policy:` mapping and its direct children are read, so the same
- * text inside a comment, a block scalar or a nested mapping is never mistaken
- * for the policy.
+ * Find the top-level `policy:` mapping in `metadata` and its direct
+ * `allow_implicit_invocation` child. Only that mapping and its direct children
+ * are read, so the same text inside a comment, a block scalar or a nested
+ * mapping is never mistaken for the policy.
  *
- * This is a text edit, not a YAML parser, so it refuses every shape it cannot
- * edit with certainty instead of guessing: a quoted `policy` key, more than
- * one `policy` mapping, and an inline mapping. Appending a second `policy:`
- * block in those cases would leave it to the loader which value wins.
+ * This is a text reader, not a YAML parser, so it refuses every shape it cannot
+ * read with certainty instead of guessing: a document marker other than an
+ * opening `---`, a quoted `policy` key, more than one `policy` mapping, an
+ * inline mapping, a sequence under `policy:`, a repeated child, and any child
+ * value other than a single-line `true` or `false` (a value on a continuation
+ * line, a tag, an anchor or a block scalar). Editing only the key line in those
+ * cases would leave text behind that the loader joins to the new value.
+ *
+ * Returns `{ lines, start: -1 }` when there is no policy mapping. Otherwise
+ * `children` holds the mapping's lines, `child` indexes the direct child in
+ * `children` (or is -1), and `value` is that child's Boolean value.
  */
-function withNativeExplicitPolicy(metadata) {
+function readNativePolicy(metadata) {
   const lines = metadata.split("\n");
+  const firstContent = lines.findIndex((line) => !/^\s*(?:#.*)?$/u.test(line));
+  // Text after `...`, or after a second `---`, is outside the one document a
+  // loader reads.
+  if (
+    lines.some(
+      (line, index) =>
+        /^(?:---|\.\.\.)(?:\s|$)/u.test(line) &&
+        !(index === firstContent && line.startsWith("---")),
+    )
+  )
+    throw new Error(
+      "YAML document marker in agents/openai.yaml; review it by hand",
+    );
   if (lines.some((line) => /^(['"])policy\1\s*:/u.test(line)))
     throw new Error(
       "Quoted top-level policy key in agents/openai.yaml; review it by hand",
@@ -209,11 +231,7 @@ function withNativeExplicitPolicy(metadata) {
     throw new Error(
       "More than one top-level policy mapping in agents/openai.yaml; review it by hand",
     );
-  if (starts.length === 0)
-    return (
-      (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
-      "policy:\n  allow_implicit_invocation: false\n"
-    );
+  if (starts.length === 0) return { lines, start: -1 };
   const [start] = starts;
   if (!/^policy\s*:\s*(?:#.*)?$/u.test(lines[start]))
     throw new Error(
@@ -225,13 +243,20 @@ function withNativeExplicitPolicy(metadata) {
   while (end < lines.length && !/^[^\s#]/u.test(lines[end])) end += 1;
   const children = lines.slice(start + 1, end);
   const firstChild = children.find((line) => /^[ \t]+[^\s#]/u.test(line));
+  // YAML allows a sequence under a key at the key's own indentation.
+  if (
+    /^-(?:\s|$)/u.test(lines[end] ?? "") ||
+    /^[ \t]+-(?:\s|$)/u.test(firstChild ?? "")
+  )
+    throw new Error(
+      "Unsupported sequence under the policy key in agents/openai.yaml; review it by hand",
+    );
   const indent = firstChild ? /^[ \t]+/u.exec(firstChild)[0] : "  ";
-  const policyLine = indent + "allow_implicit_invocation: false";
   // A quoted child is the same key, so it is rewritten rather than joined by
   // a second one.
   const existing = children.flatMap((line, index) =>
     line.startsWith(indent) &&
-    /^(["']?)allow_implicit_invocation\1\s*:/u.test(line.slice(indent.length))
+    IMPLICIT_INVOCATION_KEY.test(line.slice(indent.length))
       ? [index]
       : [],
   );
@@ -239,7 +264,52 @@ function withNativeExplicitPolicy(metadata) {
     throw new Error(
       "More than one allow_implicit_invocation key in agents/openai.yaml; review it by hand",
     );
-  if (existing.length === 1) children[existing[0]] = policyLine;
+  if (existing.length === 0)
+    return { lines, start, end, children, indent, child: -1 };
+  const [child] = existing;
+  const value = children[child]
+    .slice(indent.length)
+    .replace(IMPLICIT_INVOCATION_KEY, "")
+    .replace(/\s+#.*$/u, "")
+    .trim();
+  // A plain scalar continues on any deeper line that follows it.
+  const next = children
+    .slice(child + 1)
+    .find((line) => !/^\s*(?:#.*)?$/u.test(line));
+  if (
+    !/^(?:true|false|True|False|TRUE|FALSE)$/u.test(value) ||
+    (next !== undefined && /^[ \t]*/u.exec(next)[0].length > indent.length)
+  )
+    throw new Error(
+      "Unsupported allow_implicit_invocation value in agents/openai.yaml; review it by hand: " +
+        children[child].trim(),
+    );
+  return {
+    lines,
+    start,
+    end,
+    children,
+    indent,
+    child,
+    value: value.toLowerCase() === "true",
+  };
+}
+
+/**
+ * Return `metadata` with `policy.allow_implicit_invocation: false`, refusing
+ * every shape `readNativePolicy` refuses. Appending a second `policy:` block in
+ * those cases would leave it to the loader which value wins.
+ */
+function withNativeExplicitPolicy(metadata) {
+  const policy = readNativePolicy(metadata);
+  if (policy.start < 0)
+    return (
+      (metadata.trim() ? metadata.trimEnd() + "\n\n" : "") +
+      "policy:\n  allow_implicit_invocation: false\n"
+    );
+  const { lines, start, end, children, indent, child } = policy;
+  const policyLine = indent + "allow_implicit_invocation: false";
+  if (child >= 0) children[child] = policyLine;
   else children.unshift(policyLine);
   return [...lines.slice(0, start + 1), ...children, ...lines.slice(end)].join(
     "\n",
@@ -249,12 +319,25 @@ function withNativeExplicitPolicy(metadata) {
 /**
  * Set `policy.allow_implicit_invocation: false` in agents/openai.yaml, keeping
  * any other metadata upstream ships and creating the file when there is none.
+ */
+async function writeNativeExplicitPolicy(targetRoot) {
+  const agentsDirectory = path.join(targetRoot, "agents");
+  const metadataPath = path.join(agentsDirectory, "openai.yaml");
+  const updated = withNativeExplicitPolicy(
+    (await readNativeMetadata(targetRoot)) ?? "",
+  );
+  await mkdir(agentsDirectory, { recursive: true });
+  await writeFile(metadataPath, updated, "utf8");
+}
+
+/**
+ * Read agents/openai.yaml, or return null when there is none.
  *
  * A refreshed tree is upstream content, and the GitHub refresh path copies
  * links as links. Never read or write through one: the metadata path must be a
  * regular file inside a real `agents` directory.
  */
-async function writeNativeExplicitPolicy(targetRoot) {
+async function readNativeMetadata(targetRoot) {
   const agentsDirectory = path.join(targetRoot, "agents");
   const metadataPath = path.join(agentsDirectory, "openai.yaml");
   let metadataExists = false;
@@ -278,12 +361,28 @@ async function writeNativeExplicitPolicy(targetRoot) {
       );
     if (!isDirectory) metadataExists = true;
   }
-  const metadata = metadataExists
+  return metadataExists
     ? (await readFile(metadataPath, "utf8")).replaceAll("\r\n", "\n")
-    : "";
-  const updated = withNativeExplicitPolicy(metadata);
-  await mkdir(agentsDirectory, { recursive: true });
-  await writeFile(metadataPath, updated, "utf8");
+    : null;
+}
+
+/**
+ * `cp` copies a linked SKILL.md as a link. Check a freshly staged tree before
+ * any formatting, overlay or replacement step reads or writes its entrypoint,
+ * so none of them can follow a link out of the tree.
+ */
+export async function assertRegularSkillEntrypoint(targetRoot) {
+  const entrypointPath = path.join(targetRoot, "SKILL.md");
+  let stat;
+  try {
+    stat = await lstat(entrypointPath);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (!stat?.isFile())
+    throw new Error(
+      "Skill entrypoint must be a regular file: " + entrypointPath,
+    );
 }
 
 /**
@@ -291,6 +390,10 @@ async function writeNativeExplicitPolicy(targetRoot) {
  * unless agents/openai.yaml says otherwise. Call this once a refresh has
  * settled the final SKILL.md, so the native policy follows Core's explicit-only
  * decision on every refresh path. Returns whether the skill is explicit-only.
+ *
+ * A model-invocable skill keeps its metadata as upstream ships it, unless that
+ * metadata sets the policy to false: Codex would then stay explicit-only while
+ * the other clients invoke the skill, so the refresh stops for review instead.
  *
  * The root itself must be a real directory. Checking only the files inside it
  * would follow a linked root to wherever it points.
@@ -312,7 +415,19 @@ export async function ensureExplicitOnlyNativePolicy(targetRoot) {
   }
   const frontmatter =
     /^---\r?\n([\s\S]*?)\r?\n---/u.exec(entrypoint)?.[1] ?? "";
-  if (!isExplicitOnlyFrontmatter(frontmatter)) return false;
+  if (!isExplicitOnlyFrontmatter(frontmatter)) {
+    const metadata = await readNativeMetadata(targetRoot);
+    // Metadata that never names the key cannot set it; only read the rest.
+    if (
+      metadata?.includes("allow_implicit_invocation") &&
+      readNativePolicy(metadata).value === false
+    )
+      throw new Error(
+        "agents/openai.yaml keeps Codex explicit-only, but SKILL.md is model-invocable; review it by hand: " +
+          targetRoot,
+      );
+    return false;
+  }
   await writeNativeExplicitPolicy(targetRoot);
   return true;
 }

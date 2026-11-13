@@ -25,10 +25,31 @@ function isExplicitOnly(source: string): boolean {
   );
 }
 
-// The refresh step keeps a trailing comment on the `policy:` line.
+const IS_BLANK_OR_COMMENT = /^[ \t]*(?:#.*)?$/;
+
+/**
+ * Whether `policy.allow_implicit_invocation` is `false` as a direct child of
+ * the top-level `policy:` mapping. The refresh step keeps a trailing comment on
+ * the `policy:` line. A key nested deeper does not set the policy, and a deeper
+ * line after the value continues it into a string.
+ */
 function hasNativeFalsePolicy(metadata: string): boolean {
-  return /^policy:[ \t]*(?:#.*)?\r?\n(?:[ \t]+.*\r?\n)*?[ \t]+allow_implicit_invocation:\s*false\s*$/m.test(
-    metadata,
+  const lines = metadata.split(/\r?\n/);
+  const start = lines.findIndex((line) => /^policy:[ \t]*(?:#.*)?$/.test(line));
+  if (start < 0) return false;
+  const children: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^[^\s#]/.test(line)) break;
+    if (!IS_BLANK_OR_COMMENT.test(line)) children.push(line);
+  }
+  const indentOf = (line: string) => /^[ \t]*/.exec(line)![0].length;
+  const indent = children.length > 0 ? indentOf(children[0]) : 0;
+  return children.some(
+    (line, index) =>
+      indentOf(line) === indent &&
+      /^[ \t]+allow_implicit_invocation:[ \t]*false[ \t]*$/.test(line) &&
+      (index + 1 === children.length ||
+        indentOf(children[index + 1]) <= indent),
   );
 }
 
@@ -97,9 +118,21 @@ describe("explicit-only skill policy", () => {
     ).toBe(true);
   });
 
+  it("accepts the native policy after another direct child", () => {
+    expect(
+      hasNativeFalsePolicy(
+        "policy:\n  other_setting: true\n\n  allow_implicit_invocation: false\n",
+      ),
+    ).toBe(true);
+  });
+
   it.each([
     "policy:\n  allow_implicit_invocation: true\n",
     "interface:\n  display_name: Fixture\n",
+    // Nested one level deeper, the key does not set the policy itself.
+    "policy:\n  nested:\n    allow_implicit_invocation: false\n",
+    // A continuation line turns the value into the string "false true".
+    "policy:\n  allow_implicit_invocation: false\n    true\n",
   ])("rejects metadata without the false policy", (metadata) => {
     expect(hasNativeFalsePolicy(metadata)).toBe(false);
   });

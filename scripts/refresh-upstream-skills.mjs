@@ -13,6 +13,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   applyManagedSkillCompatibility,
+  assertRegularSkillEntrypoint,
   ensureExplicitOnlyNativePolicy,
   formatManagedSkillOutput,
 } from "./lib/managed-skill-compatibility.mjs";
@@ -2666,6 +2667,8 @@ async function prepareGithubSkillRefresh({
 
   try {
     await cp(upstreamSkillDir, staging, { recursive: true });
+    // `cp` keeps a linked SKILL.md as a link; reject it before any transform.
+    await assertRegularSkillEntrypoint(staging);
     await copySkillExtraFiles({
       cloneDir,
       targetRoot: staging,

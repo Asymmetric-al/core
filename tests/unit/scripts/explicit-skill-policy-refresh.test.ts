@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   applyManagedSkillCompatibility,
+  assertRegularSkillEntrypoint,
   ensureExplicitOnlyNativePolicy,
 } from "../../../scripts/lib/managed-skill-compatibility.mjs";
 
@@ -290,6 +291,93 @@ describe("native policy derived from the final frontmatter", () => {
     expect(await metadata(root)).toBe(upstream);
   });
 
+  // Only a single-line Boolean scalar is rewritten in place. Any other value
+  // shape leaves text behind that a YAML loader would join to the new value.
+  it.each([
+    [
+      "a value on a continuation line",
+      "policy:\n  allow_implicit_invocation:\n    true\n",
+    ],
+    [
+      "a plain scalar that continues on the next line",
+      "policy:\n  allow_implicit_invocation: true\n    still\n",
+    ],
+    ["a tagged value", "policy:\n  allow_implicit_invocation: !!bool true\n"],
+    ["an anchored value", "policy:\n  allow_implicit_invocation: &open true\n"],
+    [
+      "a block scalar value",
+      "policy:\n  allow_implicit_invocation: |\n    true\n",
+    ],
+    [
+      "a compact sequence under the policy key",
+      "policy:\n- allow_implicit_invocation: true\n",
+    ],
+    [
+      "an indented sequence under the policy key",
+      "policy:\n  - allow_implicit_invocation: true\n",
+    ],
+    // Appending after a document end marker writes outside the document.
+    ["a document end marker", "interface:\n  display_name: Fixture\n...\n"],
+    [
+      "a second document",
+      "interface:\n  display_name: Fixture\n---\nother: 1\n",
+    ],
+  ])("refuses a policy edit on metadata with %s", async (_label, upstream) => {
+    const root = await skillTree(explicitOnly, upstream);
+
+    await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+      /review it by hand/i,
+    );
+    expect(await metadata(root)).toBe(upstream);
+  });
+
+  it("appends the policy to metadata that opens with a document start marker", async () => {
+    const root = await skillTree(
+      explicitOnly,
+      "---\ninterface:\n  display_name: Fixture\n",
+    );
+
+    await ensureExplicitOnlyNativePolicy(root);
+
+    expect(await metadata(root)).toBe(
+      "---\ninterface:\n  display_name: Fixture\n\n" + NATIVE_EXPLICIT_POLICY,
+    );
+  });
+
+  // The final frontmatter decides. Upstream metadata that keeps Codex
+  // explicit-only for a model-invocable skill would split the clients.
+  it.each([
+    ["no flag", "name: fixture\ndescription: Fixture."],
+    [
+      "a false flag",
+      "name: fixture\ndescription: Fixture.\ndisable-model-invocation: false",
+    ],
+  ])(
+    "refuses a stale false policy on a model-invocable skill with %s",
+    async (_label, frontmatter) => {
+      const upstream =
+        "interface:\n  display_name: Fixture\npolicy:\n  allow_implicit_invocation: false\n";
+      const root = await skillTree(frontmatter, upstream);
+
+      await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+        /review it by hand/i,
+      );
+      expect(await metadata(root)).toBe(upstream);
+    },
+  );
+
+  it("leaves other policy metadata on a model-invocable skill untouched", async () => {
+    const upstream =
+      "interface:\n  display_name: Fixture\npolicy:\n  allow_implicit_invocation: true\n";
+    const root = await skillTree(
+      "name: fixture\ndescription: Fixture.",
+      upstream,
+    );
+
+    expect(await ensureExplicitOnlyNativePolicy(root)).toBe(false);
+    expect(await metadata(root)).toBe(upstream);
+  });
+
   it("rewrites a quoted policy child instead of adding a second key", async () => {
     const root = await skillTree(
       explicitOnly,
@@ -370,5 +458,74 @@ describe("native policy derived from the final frontmatter", () => {
 
     await rm(path.join(root, "SKILL.md"));
     expect(await ensureExplicitOnlyNativePolicy(root)).toBe(false);
+  });
+});
+
+// `cp` keeps a linked SKILL.md as a link. Formatting, the Core overlay and the
+// reviewed replacements all read and write SKILL.md, so the GitHub refresh
+// path has to reject a linked entrypoint before any of them run.
+describe("staged skill entrypoint", () => {
+  it("accepts a regular SKILL.md", async () => {
+    const root = await skillTree("name: fixture\ndescription: Fixture.");
+
+    await expect(assertRegularSkillEntrypoint(root)).resolves.toBeUndefined();
+  });
+
+  it("rejects a missing SKILL.md", async () => {
+    const root = await skillTree("name: fixture\ndescription: Fixture.");
+    await rm(path.join(root, "SKILL.md"));
+
+    await expect(assertRegularSkillEntrypoint(root)).rejects.toThrow(
+      /must be a regular file/i,
+    );
+  });
+
+  it("rejects a linked SKILL.md without touching its target", async () => {
+    const root = await skillTree("name: fixture\ndescription: Fixture.");
+    const outside = await mkdtemp(
+      path.join(repo, ".tmp/explicit-policy-outside-"),
+    );
+    roots.push(outside);
+    const outsideFile = path.join(outside, "SKILL.md");
+    await writeFile(outsideFile, "owner: someone-else\n");
+    await rm(path.join(root, "SKILL.md"));
+    try {
+      await symlink(outsideFile, path.join(root, "SKILL.md"), "file");
+    } catch (error) {
+      // Windows without Developer Mode cannot create links; Linux CI can.
+      if ((error as NodeJS.ErrnoException).code === "EPERM") return;
+      throw error;
+    }
+
+    await expect(assertRegularSkillEntrypoint(root)).rejects.toThrow(
+      /must be a regular file/i,
+    );
+    expect(await readFile(outsideFile, "utf8")).toBe("owner: someone-else\n");
+  });
+
+  it("checks the GitHub staging copy before any transform touches it", async () => {
+    const source = await readFile(
+      path.join(repo, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+    const start = source.indexOf("async function prepareGithubSkillRefresh(");
+    expect(start).toBeGreaterThanOrEqual(0);
+    const body = source.slice(start, source.indexOf("\n}\n", start));
+    const at = (needle: string) => {
+      const index = body.indexOf(needle);
+      expect(index, needle).toBeGreaterThanOrEqual(0);
+      return index;
+    };
+
+    const copy = at("await cp(upstreamSkillDir, staging");
+    const check = at("await assertRegularSkillEntrypoint(staging)");
+    expect(check).toBeGreaterThan(copy);
+    for (const transform of [
+      "await copySkillExtraFiles(",
+      "await formatSkillTarget(staging)",
+      "await restoreCoreOverlay(staging",
+      "await applyPostRefreshReplacements(skillName, staging)",
+    ])
+      expect(check, transform).toBeLessThan(at(transform));
   });
 });
