@@ -51,4 +51,30 @@ describe("metrics money qualification", () => {
       "JPY",
     );
   });
+  it("counts settled gifts net of refunds, and a fully refunded gift not at all", () => {
+    const refunded = (
+      amount: number,
+      refund: number | null,
+      status = "completed",
+    ) => ({
+      ...gift("USD", amount, status),
+      refund_amount: refund,
+    });
+    const projected = projectMetricsMoney([
+      refunded(10000, 2500),
+      refunded(5000, 5000, "succeeded"),
+      refunded(4000, 9000),
+      refunded(3000, null),
+      refunded(2000, -100),
+      refunded(1500, 500, "pending"),
+    ]);
+    expect(projected.donations.map((row) => [row.status, row.amount])).toEqual([
+      ["completed", 7500],
+      ["refunded", 0],
+      ["refunded", 0],
+      ["completed", 3000],
+      ["completed", 2000],
+      ["pending", 1500],
+    ]);
+  });
 });

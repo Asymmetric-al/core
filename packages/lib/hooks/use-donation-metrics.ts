@@ -95,6 +95,52 @@ function giftTime(d: RawDonation): Date {
 }
 
 /**
+ * The one currency of the completed gifts the dashboard shows, judged by the
+ * date each is counted on. Gifts fetched only for the comparison window but
+ * outside every shown period don't count, so an old gift in another currency
+ * can't blank the charts. `shown` is false when no completed gift is shown.
+ */
+function qualifyShownMoney(
+  donations: RawDonation[],
+  now: Date,
+  months: number,
+): { shown: boolean; currency: string | null } {
+  const breakdownStart = new Date(
+    now.getFullYear(),
+    now.getMonth() - (HISTORY_MONTHS - 1),
+    1,
+  );
+  const historyStart = new Date(now);
+  historyStart.setMonth(historyStart.getMonth() - months);
+  // Last year's year-to-date comparison reaches back to 1 January when the
+  // history covers it.
+  const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
+  const shownStart =
+    lastYearStart >= historyStart && lastYearStart < breakdownStart
+      ? lastYearStart
+      : breakdownStart;
+  let currency: string | null = null;
+  let shown = false;
+  let total = 0;
+  for (const d of donations) {
+    if (d.status !== "completed" || giftTime(d) < shownStart) continue;
+    shown = true;
+    total += d.amount;
+    if (
+      !d.currency ||
+      (currency !== null && d.currency !== currency) ||
+      !Number.isSafeInteger(d.amount) ||
+      d.amount < 0 ||
+      !Number.isSafeInteger(total)
+    ) {
+      return { shown, currency: null };
+    }
+    currency = d.currency;
+  }
+  return { shown, currency };
+}
+
+/**
  * Aggregates donations by day within a date range
  */
 function aggregateByDay(
@@ -218,10 +264,12 @@ export function useDonationMetrics(
 ): DonationMetrics {
   const months = options.months ?? COMPARISON_HISTORY_MONTHS;
   const query = `?months=${months}`;
-  const [{ donations, currency }, setMoney] = useState<{
+  const [{ donations, currency, moneyQualified }, setMoney] = useState<{
     donations: RawDonation[];
     currency: string | null;
-  }>({ donations: [], currency: null });
+    /** False when the response carried no money qualification at all. */
+    moneyQualified: boolean;
+  }>({ donations: [], currency: null, moneyQualified: false });
   const [calendarAnchor, setCalendarAnchor] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -270,6 +318,8 @@ export function useDonationMetrics(
           donations: result.donations || [],
           currency:
             typeof result.currency === "string" ? result.currency : null,
+          moneyQualified:
+            typeof result.currency === "string" || result.currency === null,
         });
       } catch (e) {
         if (!isMounted) return;
@@ -303,22 +353,14 @@ export function useDonationMetrics(
       type: donation.donation_type,
       status: donation.status,
     }));
-    const completed = donations.filter(
-      (donation) => donation.status === "completed",
-    );
-    let checkedTotal = 0;
-    const available =
-      currency !== null &&
-      completed.every((donation) => {
-        checkedTotal += donation.amount;
-        return (
-          donation.currency === currency &&
-          Number.isSafeInteger(donation.amount) &&
-          donation.amount >= 0 &&
-          Number.isSafeInteger(checkedTotal)
-        );
-      });
-    if (calendarAnchor === null || !available) {
+    const qualified =
+      calendarAnchor === null || !moneyQualified
+        ? { shown: false, currency: null }
+        : qualifyShownMoney(donations, calendarAnchor, months);
+    // With no completed gift in any shown period the totals are zero; the
+    // fetch's own currency still lets them read as "$0".
+    const shownCurrency = qualified.shown ? qualified.currency : currency;
+    if (calendarAnchor === null || shownCurrency === null) {
       const unavailable: MetricData = {
         total: null,
         change: null,
@@ -387,7 +429,7 @@ export function useDonationMetrics(
         : calculateChange(ytdTotal, lastYtdTotal);
 
     return {
-      currency,
+      currency: shownCurrency,
       thisMonth: {
         total: thisMonthTotal,
         ...thisMonthChange,
@@ -406,7 +448,7 @@ export function useDonationMetrics(
       monthlyBreakdown: aggregateByMonth(donations, HISTORY_MONTHS, now),
       gifts,
     };
-  }, [donations, currency, months, calendarAnchor]);
+  }, [donations, currency, moneyQualified, months, calendarAnchor]);
 
   return {
     ...metrics,

@@ -578,3 +578,80 @@ describe("donation metrics gift dates", () => {
     expect(result.current.thisMonth.total).toBe(0);
   });
 });
+
+describe("donation metrics currency", () => {
+  function giftOn(id: string, date: Date, currency: string, amount: number) {
+    return {
+      id,
+      amount,
+      currency,
+      donation_type: "one_time" as const,
+      created_at: date.toISOString(),
+      status: "completed",
+    };
+  }
+
+  function serve(donations: unknown[], currency: string | null) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ currency, donations }),
+      }),
+    );
+  }
+
+  it("qualifies money over the periods it shows, not every fetched gift", async () => {
+    const now = new Date();
+    // Fetched for the 25-month comparison window but older than any period
+    // the dashboard shows; the API reports no single currency for the fetch.
+    serve(
+      [
+        giftOn(
+          "old",
+          new Date(now.getFullYear(), now.getMonth() - 24, 15),
+          "EUR",
+          900,
+        ),
+        giftOn(
+          "now",
+          new Date(now.getFullYear(), now.getMonth(), 1, 12),
+          "USD",
+          5000,
+        ),
+      ],
+      null,
+    );
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.currency).toBe("USD");
+    expect(result.current.thisMonth.total).toBe(5000);
+  });
+
+  it("still withholds totals when the shown periods mix currencies", async () => {
+    const now = new Date();
+    serve(
+      [
+        giftOn(
+          "eur",
+          new Date(now.getFullYear(), now.getMonth() - 2, 15),
+          "EUR",
+          900,
+        ),
+        giftOn(
+          "usd",
+          new Date(now.getFullYear(), now.getMonth(), 1, 12),
+          "USD",
+          5000,
+        ),
+      ],
+      null,
+    );
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.currency).toBeNull();
+    expect(result.current.thisMonth.total).toBeNull();
+  });
+});

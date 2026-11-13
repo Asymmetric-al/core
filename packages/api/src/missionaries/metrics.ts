@@ -14,21 +14,30 @@ import { SETTLED_DONATION_STATUS_SET } from "../reads/settled-donation-statuses"
 export function projectMetricsMoney<
   T extends {
     amount: number;
+    refund_amount?: number | null;
     currency?: string | null;
     status?: string | null;
   },
 >(gifts: T[]) {
   // Charts count only "completed"; legacy writers also stored the other
-  // settled spellings (`succeeded`, `success`, any case), so report them as one.
-  const donations = gifts.map((gift) => ({
-    ...gift,
-    status: SETTLED_DONATION_STATUS_SET.has(
+  // settled spellings (`succeeded`, `success`, any case), so report them as
+  // one. A refund leaves a gift settled, so settled giving counts net of it,
+  // as the CRM report does: a fully refunded gift reports as refunded and
+  // drops out of totals, counts, averages and the giving mix.
+  const donations = gifts.map((gift) => {
+    const currency = knownCurrency(gift.currency);
+    const settled = SETTLED_DONATION_STATUS_SET.has(
       (gift.status ?? "").trim().toLowerCase(),
-    )
-      ? "completed"
-      : gift.status,
-    currency: knownCurrency(gift.currency),
-  }));
+    );
+    if (!settled) return { ...gift, currency };
+    const net = Math.max(0, gift.amount - Math.max(0, gift.refund_amount ?? 0));
+    return {
+      ...gift,
+      amount: net,
+      status: net > 0 ? "completed" : "refunded",
+      currency,
+    };
+  });
   return {
     donations,
     currency: commonMoneyCurrency(
@@ -235,7 +244,7 @@ export async function readMissionaryGiftHistory(
     const { data, error } = await reader
       .from("donations")
       .select(
-        "id, amount, currency, donation_type, created_at, gift_date, status, donor_id",
+        "id, amount, refund_amount, currency, donation_type, created_at, gift_date, status, donor_id",
       )
       .eq("missionary_id", missionaryId)
       .gte("created_at", windowStartIso)

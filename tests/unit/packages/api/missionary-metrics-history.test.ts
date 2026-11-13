@@ -10,13 +10,17 @@ const SERVER_MAX_ROWS = 1000;
 /** A donations query that filters, orders and pages like PostgREST. */
 function donationsTable(rows: Row[], failAtFrom?: number) {
   const calls: Array<{ from: number; to: number }> = [];
+  const selected: string[] = [];
   const reader = {
     from() {
       const filters: Array<(row: Row) => boolean> = [];
       const orders: string[] = [];
       let window: { from: number; to: number } | null = null;
       const query = {
-        select: () => query,
+        select(columns: string) {
+          selected.push(columns);
+          return query;
+        },
         eq(column: string, value: unknown) {
           filters.push((row) => row[column] === value);
           return query;
@@ -61,7 +65,7 @@ function donationsTable(rows: Row[], failAtFrom?: number) {
       return query;
     },
   };
-  return { reader: reader as never, calls };
+  return { reader: reader as never, calls, selected };
 }
 
 function gifts(count: number, missionaryId = "m-1"): Row[] {
@@ -101,5 +105,14 @@ describe("missionary metrics gift history", () => {
 
     expect(data).toBeNull();
     expect(error).toEqual({ message: "page failed" });
+  });
+  it("reads each gift's refund, so settled giving can be counted net", async () => {
+    const { reader, selected } = donationsTable(gifts(1));
+
+    await readMissionaryGiftHistory(reader, "m-1", "2025-01-01T00:00:00.000Z");
+
+    expect(selected[0]?.split(",").map((column) => column.trim())).toContain(
+      "refund_amount",
+    );
   });
 });
