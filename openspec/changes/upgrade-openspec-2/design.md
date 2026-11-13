@@ -74,6 +74,12 @@ when the pin and the refresh tag disagree. The scoped refresh keeps Core's
 overlays, wrapper permission and provenance, then `bun run skills:sync`
 regenerates the mirrors.
 
+The seven records in `docs/ai/skill-source-audit.json` belong to the same
+cohort. The hash script updates only the installed-payload hashes, so the
+commit examined, the raw upstream entrypoint hash, the lock hash and the
+review note are recorded from the refresh at the new tag. The pin test fails
+when a record cites another commit or lock hash.
+
 ### `openspec update` stays out
 
 OpenSpec 2.0 keeps one copy of each skill in `.agents/skills/`, links it into
@@ -123,5 +129,6 @@ changes did.
 
 ## Rollback
 
-Revert the cohort commit to return to 1.14.3. The regenerated projections
-validate on both versions and can stay.
+Revert the cohort commit together with the source-review commit that follows
+it to return to 1.14.3. The regenerated projections validate on both versions
+and can stay.

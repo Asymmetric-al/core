@@ -190,6 +190,39 @@ describe("OpenSpec skill provenance", () => {
     }
   });
 
+  it("records the pinned source review for the seven skills in the source audit", () => {
+    const audit = JSON.parse(
+      readRepoFile("docs/ai/skill-source-audit.json"),
+    ) as {
+      skills: Array<{
+        name: string;
+        examinedRef: string;
+        lockHash: string;
+        adaptations: string[];
+        reviewEvidence: Array<{ examinedRef: string }>;
+      }>;
+    };
+    const lock = JSON.parse(readRepoFile("skills-lock.json")) as {
+      skills: Record<string, { computedHash: string } | undefined>;
+    };
+
+    for (const skillName of SELECTED_OPENSPEC_SKILLS) {
+      const record = audit.skills.find((skill) => skill.name === skillName);
+      expect(record, skillName).toBeDefined();
+      expect(record?.examinedRef, skillName).toBe(PINNED_OPENSPEC_COMMIT);
+      expect(
+        record?.reviewEvidence.map((evidence) => evidence.examinedRef),
+        skillName,
+      ).toEqual([PINNED_OPENSPEC_COMMIT]);
+      expect(record?.adaptations.join("\n"), skillName).toContain(
+        `OpenSpec ${PINNED_OPENSPEC_TAG} source`,
+      );
+      expect(record?.lockHash, skillName).toBe(
+        lock.skills[skillName]?.computedHash,
+      );
+    }
+  });
+
   it("does not import the rejected OpenSpec workflows", () => {
     for (const skillName of FORBIDDEN_OPENSPEC_SKILLS) {
       expect(existsSync(join(REPO_ROOT, `docs/ai/skills/${skillName}`))).toBe(

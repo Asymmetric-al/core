@@ -21,8 +21,8 @@ that passed with a warning and were dropped at archive.
   its owning story, verbatim, as the scenario's `GIVEN` step. The two
   projections are regenerated. Nothing else in them changes.
 - One reviewed cohort moves to 2.0.0: the exact pin and lockfile, the refresh
-  tag, the seven imported skills with their mirrors and audit hashes, and the
-  pin test.
+  tag, the seven imported skills with their mirrors and source-audit records,
+  and the pin test.
 - `docs/ai/rules/openspec.md` states how an upgrade moves and what
   `openspec update` does here. `docs/ai/document-authority.md` states the
   trigger rule next to each renderer.
@@ -46,7 +46,8 @@ that passed with a warning and were dropped at archive.
 Affected capability: `agent-instruction-system`, with no requirement change.
 The change touches two source-owned renderers and their two generated specs,
 the root manifest and lockfile, the refresh script, seven canonical skills
-and their mirrors, two hash-bound ledgers that record the manifest and
-lockfile, one unit test and two instruction documents. There is no product
-runtime change. Rollback reverts the cohort commit; the regenerated
-projections also validate on 1.14.3 and can stay.
+and their mirrors, the skill source audit and maintenance log, two hash-bound
+ledgers that record the manifest and lockfile, one unit test and two
+instruction documents. There is no product runtime change. Rollback reverts
+the cohort commit together with the source-review commit that follows it;
+the regenerated projections also validate on 1.14.3 and can stay.

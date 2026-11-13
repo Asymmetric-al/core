@@ -61,7 +61,8 @@ This keeps durable project context, intended behavior, and active change scope v
    - An upgrade moves one reviewed cohort in one change: the exact pin in
      `package.json` and `bun.lock`, the tag in
      `scripts/refresh-upstream-skills.mjs`, the seven imported skills through
-     that script's scoped refresh, and the pin constants in
+     that script's scoped refresh, their source-review records in
+     `docs/ai/skill-source-audit.json`, and the pin constants in
      `tests/unit/docs/openspec-modernization.test.ts`. Try the new release in
      a scratch checkout first. Do not relax `--strict` to get there.
 

@@ -22,6 +22,9 @@
       confined to the OpenSpec record.
 - [x] 2.5 State how an upgrade moves, and what `openspec update` does here,
       in `docs/ai/rules/openspec.md`.
+- [x] 2.6 Record the v2.0.0 source review for the seven skills in
+      `docs/ai/skill-source-audit.json` and the skills maintenance log, and
+      make the pin test check it.
 
 ## 3. Verify
 
@@ -30,4 +33,4 @@
 - [x] 3.2 The archive audit, delta compatibility, phase checks, skill mirror
       verification, formatting and the five OpenSpec unit test files pass on
       2.0.0.
-- [ ] 3.3 The pre-push `bun run ci:preflight` and pull-request CI pass.
+- [x] 3.3 The pre-push `bun run ci:preflight` and pull-request CI pass.
