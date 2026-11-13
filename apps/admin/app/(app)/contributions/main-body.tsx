@@ -868,6 +868,10 @@ export function ContributionsMainBody({
   // are fixed for any retry.
   const [isBulkReceiptBatchSaved, setIsBulkReceiptBatchSaved] = useState(false);
   const isBulkReceiptSubmittingRef = useRef(false);
+  // One token per selection, kept across retries: the server uses it as the
+  // batch's id, so a retry after a lost response gets the batch it already
+  // made instead of sending the receipts again.
+  const bulkReceiptBatchTokenRef = useRef<string | null>(null);
   const bulkReceiptContinuationRef = useRef<ContributionBatchResponse | null>(
     null,
   );
@@ -937,6 +941,7 @@ export function ContributionsMainBody({
     (open: boolean) => {
       if (!open && !isBulkReceiptSubmitting) {
         bulkReceiptContinuationRef.current = null;
+        bulkReceiptBatchTokenRef.current = null;
         setBulkReceiptProcessedCount(null);
         setIncludeBulkReceiptResends(false);
         setIsBulkReceiptBatchSaved(false);
@@ -968,10 +973,11 @@ export function ContributionsMainBody({
     try {
       let batchResponse = bulkReceiptContinuationRef.current;
       if (!batchResponse) {
+        bulkReceiptBatchTokenRef.current ??= crypto.randomUUID();
         const response = await fetch("/api/admin/contribution-batches", {
           body: JSON.stringify({
             actionType: "resend_receipt",
-            confirmationToken: crypto.randomUUID(),
+            confirmationToken: bulkReceiptBatchTokenRef.current,
             reason: "Bulk receipt resend requested from Contribution Hub.",
             records: rows.map((row) => ({
               id: row.id,
@@ -1017,6 +1023,7 @@ export function ContributionsMainBody({
       });
       const batchStatus = body.batch.status;
       bulkReceiptContinuationRef.current = null;
+      bulkReceiptBatchTokenRef.current = null;
 
       const outcome = describeBulkReceiptOutcome(
         batchStatus,

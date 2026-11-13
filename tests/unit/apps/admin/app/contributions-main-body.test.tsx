@@ -752,6 +752,47 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
   });
 
+  it("retries a lost batch request with the same confirmation token, so the server returns the batch it already made", async () => {
+    const randomUUID = vi.mocked(globalThis.crypto.randomUUID);
+    randomUUID
+      .mockReturnValueOnce("11111111-1111-4111-8111-111111111111")
+      .mockReturnValueOnce("22222222-2222-4222-8222-222222222222");
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Connection lost."))
+      .mockResolvedValueOnce(okBatchResponse({ processed: 1, succeeded: 1 }));
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith("Connection lost.");
+    });
+    fireEvent.click(view.getByRole("button", { name: "Send receipts" }));
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith("Sent 1 receipt.");
+    });
+
+    const tokens = fetchMock.mock.calls
+      .filter(([url]) => url === "/api/admin/contribution-batches")
+      .map(
+        ([, init]) =>
+          (
+            JSON.parse(String((init as RequestInit).body)) as {
+              confirmationToken: string;
+            }
+          ).confirmationToken,
+      );
+    expect(tokens).toEqual([
+      "11111111-1111-4111-8111-111111111111",
+      "11111111-1111-4111-8111-111111111111",
+    ]);
+  });
+
   it("locks the resend choice once the batch is saved, so a retry sends what the dialog shows", async () => {
     const fetchMock = vi
       .fn()
