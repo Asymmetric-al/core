@@ -3,6 +3,9 @@
 Welcome to the Asymmetric.al codebase! This guide will help you get started quickly.
 The "Give Hope" tenant you may see in the UI is a demo/test frontend and not the organization.
 
+Where an example in this guide disagrees with `AGENTS.md`, a nested `AGENTS.md` or a
+`docs/ai/rules/*` rulebook, those sources govern.
+
 Use the Node.js 24 LTS version in `.node-version` and the Bun version in
 `.bun-version`. Setup and `ci:preflight` check the approved Node major and
 minimum patch before running other checks. CI pins the exact checkpoint.
@@ -44,7 +47,7 @@ If you use Nia for repo search, follow the canonical policy in [`docs/ai/nia.md`
 
 - Contributors use their own Nia API key and subscribe to the public `Asymmetric-al/core` indexed source (never share keys).
 - Configure Nia MCP in user/global MCP settings, not committed project config, because MCP headers contain credentials.
-- Keep local `docs/ai/working-set.md` updated when edits are allowed and use `docs/ai/stack-registry.md` to select accurate stack tags.
+- Keep optional local scratch in the ignored `docs/ai/working-set.local.md` (`docs/ai/nia.md`) and use `docs/ai/stack-registry.md` to select accurate stack tags. The tracked `docs/ai/working-set.md` is a historical record; do not overwrite it.
 - Nia search calls must include the required preamble at the top of the `query` string when the tool accepts one.
 - Always scope Nia tool calls to `Asymmetric-al/core`; if you must search outside, justify it and then run a scoped pass back inside this repo.
 - Do not commit `.nia-sync/` or local Nia config; current local sync uses the `nia` CLI from `npx nia-wizard@latest`, not the deprecated `nia-sync` package.
@@ -168,13 +171,13 @@ export function SubmitButton({ label, onClick, disabled }: ButtonProps) {
 ### Styling (Tailwind CSS)
 
 - **Mobile-first** - Start with mobile styles, add responsive modifiers
-- **Use design tokens** - Prefer `zinc-*` colors, `rounded-xl`, etc.
+- **Use design tokens** - Use semantic tokens such as `bg-card`, `text-muted-foreground` and `border-border`; do not hard-code `zinc-*` utilities (`packages/ui/AGENTS.md`)
 - **Consistent spacing** - Use responsive padding: `p-3 sm:p-4 lg:p-6`
 - **Utility classes** - Use globals.css utilities: `container-responsive`, `section-gap`
 
 ```typescript
 // Good - responsive, uses design system
-<Card className="p-4 sm:p-6 rounded-xl border-zinc-200">
+<Card className="p-4 sm:p-6 rounded-xl border-border">
 
 // Avoid - hard-coded values, not responsive
 <Card className="p-[17px] rounded-[9px] border-gray-300">
@@ -199,15 +202,14 @@ import Link from "next/link";
 import { format } from "date-fns";
 
 // 3. Internal absolute
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks";
-import { cn } from "@/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/ui/lib/utils";
 
 // 4. Relative
 import { MetricCard } from "./metric-card";
 
 // 5. Types
-import type { User } from "@/types";
+import type { MetricCardProps } from "./metric-card";
 ```
 
 ---
@@ -401,18 +403,14 @@ Before submitting code, verify:
 
 ## Common Gotchas
 
-### Next.js 16.1
+### Next.js route params
 
-```typescript
-// Dynamic params must be awaited
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params; // Must await!
-}
-```
+Route `params` and `searchParams` are promises, and all three apps run Cache
+Components. A top-level `await params` in a page or layout blocks the static
+shell. Resolve route props inside a `<Suspense>` boundary and treat every
+server `await` as a deliberate Stream, Cache or Block decision. The rules are
+in `docs/ai/rules/frontend.md` (Instant Navigation) and the patterns in
+`docs/ai/skills/nextjs-app-architecture/SKILL.md`.
 
 ### React 19
 
@@ -457,11 +455,9 @@ const supabase = createClient(); // Sync
 | Production E2E gate | `bun run test:e2e:production-gate` |
 | Broad local E2E     | `bun run test:e2e`                 |
 
-| Import        | From                          |
-| ------------- | ----------------------------- |
-| UI components | `@/components/ui/[component]` |
-| Hooks         | `@/hooks`                     |
-| Utilities     | `@/lib/utils`                 |
-| Types         | `@/types`                     |
-| Features      | `@/features/[feature]`        |
-| Mock data     | `@/lib/mock-data`             |
+| Import        | From                                     |
+| ------------- | ---------------------------------------- |
+| UI components | `@asym/ui/components/shadcn/[component]` |
+| Class merging | `@asym/ui/lib/utils` (`cn`)              |
+| Features      | `@/features/[feature]`                   |
+| Mock data     | `@/lib/mock-data`                        |
