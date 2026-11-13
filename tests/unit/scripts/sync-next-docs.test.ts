@@ -5,6 +5,7 @@ import {
   readdir,
   readFile,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -80,6 +81,33 @@ describe("Next.js fallback docs sync", () => {
     expect(result.message).toContain("0.0.0-test");
     expect(await snapshot(fallbackRoot)).toEqual(before);
   });
+
+  // A linked page would be read as missing and then written through, so the
+  // repair command could overwrite a file outside the mirror.
+  it.skipIf(process.platform === "win32")(
+    "refuses a linked page instead of writing through it",
+    async () => {
+      const installedRoot = await tree({ "index.md": "# Index\n" });
+      const outside = await tree({ "target.txt": "keep me\n" });
+      const fallbackRoot = await tree({});
+      await symlink(
+        path.join(outside, "target.txt"),
+        path.join(fallbackRoot, "index.mdx"),
+      );
+
+      await expect(
+        runNextDocsSync({
+          installedRoot,
+          fallbackRoot,
+          version: "0.0.0-test",
+          write: true,
+        }),
+      ).rejects.toThrow(/not a regular file/);
+      expect(await readFile(path.join(outside, "target.txt"), "utf8")).toBe(
+        "keep me\n",
+      );
+    },
+  );
 
   it("writes an exact mirror that keeps the .mdx extension", async () => {
     const installedRoot = await tree({

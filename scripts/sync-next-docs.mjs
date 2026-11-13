@@ -30,14 +30,24 @@ const normalize = (text) => text.replaceAll("\r\n", "\n");
 /** The package ships `.md`; the committed fallback keeps its `.mdx` names. */
 const fallbackName = (installedName) => installedName.replace(/\.md$/u, ".mdx");
 
-async function filesUnder(root, prefix = "") {
+/**
+ * Regular files under `root`. With `strict`, any other entry (a link, for
+ * example) is refused: write mode would otherwise read it as missing and
+ * write through it to a file outside the tree.
+ */
+async function filesUnder(root, prefix = "", strict = false) {
   const files = [];
   for (const entry of await readdir(path.join(root, prefix), {
     withFileTypes: true,
   })) {
     const relative = path.posix.join(prefix, entry.name);
-    if (entry.isDirectory()) files.push(...(await filesUnder(root, relative)));
+    if (entry.isDirectory())
+      files.push(...(await filesUnder(root, relative, strict)));
     else if (entry.isFile()) files.push(relative);
+    else if (strict)
+      throw new Error(
+        `${path.posix.join(FALLBACK_DIRECTORY, relative)} is not a regular file; remove it and run the sync again.`,
+      );
   }
   return files.sort();
 }
@@ -87,7 +97,7 @@ export async function runNextDocsSync({
     normalize(await readFile(path.join(root, file), "utf8"));
   const compare = async () => {
     const existing = new Set(
-      existsSync(fallbackRoot) ? await filesUnder(fallbackRoot) : [],
+      existsSync(fallbackRoot) ? await filesUnder(fallbackRoot, "", true) : [],
     );
     const changed = [];
     const missing = [];
