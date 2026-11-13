@@ -7,12 +7,12 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 13 November 2026, 12:05 UTC
+## Current state - 13 November 2026, 19:05 UTC
 
 Intake is **open**, but nothing can run. The factory's Claude account reached
 its weekly usage limit at 07:24 UTC on 13 November, and the limit resets on
-**16 November at 15:00 UTC (22:00 in Bangkok)**. Release `34ce64a7946e8d62`
-is installed, built from commit `208058f44`. The scope holds fifteen issues,
+**16 November at 15:00 UTC (22:00 in Bangkok)**. Release `d4ef33293af1a02d`
+is installed, built from commit `4939d83aa`. The scope holds fifteen issues,
 all to a ready pull request (2233 was allowed to merge):
 
 | Issue                                    | State                                                                         |
@@ -374,11 +374,12 @@ its round, but `record` keeps the hold and does not record what that round
 did. The next pass clears the hold with `recover-native`, and the round is
 then run again on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and what the woken round found is not kept: the repeated reviews may find something different. If the engine did not
 wake the run, the pass ends it and starts the round again. If the woken run
-meets another fault (the limit again, an expired sign-in), from the release
-after `34ce64a7` the hold takes the newer fault and its reset time. From the release
-after `34ce64a7` the pass leaves a held issue alone until two minutes after
-the reset, so that it cannot end a run in the seconds in which the engine
-wakes it. A usage limit
+meets another fault (the limit again, an expired sign-in), the hold takes the
+newer fault and its reset time. The pass leaves a held issue alone until two
+minutes after the reset, so that it cannot end a run in the seconds in which
+the engine wakes it, and it never ends a paused run while the engine still
+has a wake-up pending for it. These three rules are in release `d4ef3329`
+and later. A usage limit
 therefore costs one repeated round per held issue. On 13 November this
 was observed twice up to the hold; the part after the reset has not been seen
 yet.
@@ -403,7 +404,7 @@ The usual cause is GitHub's "Update branch" button, which merges `develop`
 into the pull request. On 13 November it was pressed on two pull requests the
 factory was working on.
 
-What the factory does with such a head, from the release after `34ce64a7`:
+What the factory does with such a head, from release `d4ef3329`:
 
 - **In the feedback stage, when the head is the published candidate plus
   nothing but `develop`, joined by clean merges** (that is what "Update

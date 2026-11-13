@@ -1209,41 +1209,47 @@ three of the six issues were never admitted.
 
 ### What was run
 
-| Time  | Event                                                                                                                       |
-| ----- | --------------------------------------------------------------------------------------------------------------------------- |
-| 04:52 | Release `9b217961` installed from commit `89c5d0a80` (defects 34 to 38)                                                     |
-| 04:58 | First pass on it recorded six pull requests the owner had merged by hand and pruned seven finished workspaces (17 GB)       |
-| 05:02 | Scope approved with 2370, 2418, 2419, 2421, 2422 and 2526 added, all to a ready pull request; intake resumed                |
-| 05:09 | Six issues eligible; Samson ranked them; the admit step rejected his answer and admitted nothing (defect 39)                |
-| 05:15 | Intake paused                                                                                                               |
-| 05:20 | Release `97fabab0` installed from commit `8facb0881`; intake resumed at 05:21. No operator step on an issue until 09:24     |
-| 05:31 | Timer pass admitted #2526 out of six; Samson's reason: the only bug, and fixing it makes pushes safer for the other five    |
-| 05:33 | Fault injection armed: kill the engine the moment #2526's first commit lands                                                |
-| 05:41 | Timer pass admitted #2370; both lanes running                                                                               |
-| 05:48 | #2526's first commit landed and the engine was killed (SIGKILL) before the commit was recorded; restarted in 3 seconds      |
-| 05:50 | Timer pass cleared both dead runs and started both issues again, with no operator                                           |
-| 06:12 | #2526 published as PR #2663: its unrecorded commit was taken back and committed again through the hooks                     |
-| 06:21 | #2370 published as PR #2664 (its first round had died with the engine and ran again from the start)                         |
-| 06:23 | #2526 ready: the four required checks passed on the published head, 52 minutes after admission                              |
-| 06:33 | Timer pass admitted #2419 into the lane #2526 had freed; #2370: Samson judged four Codex findings valid                     |
-| 06:54 | #2370: acceptance corrected and reviewed; the review asked for two more acceptance corrections                              |
-| 07:00 | #2419 published as PR #2665                                                                                                 |
-| 07:12 | #2419: Samson judged one CodeRabbit finding valid and answered CodeRabbit's deploy-checklist request in a reply             |
-| 07:16 | #2370 published again on PR #2664 and waited for the bots                                                                   |
-| 07:24 | Weekly usage limit reached: #2419's two reviewers failed on it, and at 07:26 #2370's feedback step                          |
-| 07:26 | Both rounds had recorded a provider-fault hold with the reset time; the engine paused both runs until the reset             |
-| 07:33 | First of eleven passes (to 09:18) that admitted nothing: both lanes were held. #2418, #2421 and #2422 stayed eligible       |
-| 07:49 | The owner merged PR #2663 by hand; the 07:54 pass recorded #2526 as merged                                                  |
-| 09:23 | Intake paused                                                                                                               |
-| 09:24 | `recover-native` on #2419 and #2370 from the staged commit `208058f44` (its first live use); both issues stopped            |
-| 09:54 | Release `34ce64a7` installed from commit `208058f44` (defects 40 and 41)                                                    |
-| 09:55 | Both issues moved to it and reopened; intake resumed                                                                        |
-| 09:59 | Timer pass started both review rounds one second apart; #2370's lost a fetch race and ended in 9 seconds (defect 42)        |
-| 09:59 | #2370's next round started by itself 6 seconds later                                                                        |
-| 10:00 | Both rounds froze their candidate; Micaiah and Luke failed on the usage limit; both issues held and paused as at 07:24      |
-| 10:09 | First of the passes (still running at 12:05) that report both issues `reset-pending` and admit nothing                      |
-| 12:29 | Outside the factory: "Update branch" was pressed on PR #2664 and PR #2665, merging `develop` into both branches (defect 45) |
-| 13:08 | The coordinator put both branches back to the heads the factory recorded                                                    |
+| Time  | Event                                                                                                                                                  |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 04:52 | Release `9b217961` installed from commit `89c5d0a80` (defects 34 to 38)                                                                                |
+| 04:58 | First pass on it recorded six pull requests the owner had merged by hand and pruned seven finished workspaces (17 GB)                                  |
+| 05:02 | Scope approved with 2370, 2418, 2419, 2421, 2422 and 2526 added, all to a ready pull request; intake resumed                                           |
+| 05:09 | Six issues eligible; Samson ranked them; the admit step rejected his answer and admitted nothing (defect 39)                                           |
+| 05:15 | Intake paused                                                                                                                                          |
+| 05:20 | Release `97fabab0` installed from commit `8facb0881`; intake resumed at 05:21. No operator step on an issue until 09:24                                |
+| 05:31 | Timer pass admitted #2526 out of six; Samson's reason: the only bug, and fixing it makes pushes safer for the other five                               |
+| 05:33 | Fault injection armed: kill the engine the moment #2526's first commit lands                                                                           |
+| 05:41 | Timer pass admitted #2370; both lanes running                                                                                                          |
+| 05:48 | #2526's first commit landed and the engine was killed (SIGKILL) before the commit was recorded; restarted in 3 seconds                                 |
+| 05:50 | Timer pass cleared both dead runs and started both issues again, with no operator                                                                      |
+| 06:12 | #2526 published as PR #2663: its unrecorded commit was taken back and committed again through the hooks                                                |
+| 06:21 | #2370 published as PR #2664 (its first round had died with the engine and ran again from the start)                                                    |
+| 06:23 | #2526 ready: the four required checks passed on the published head, 52 minutes after admission                                                         |
+| 06:33 | Timer pass admitted #2419 into the lane #2526 had freed; #2370: Samson judged four Codex findings valid                                                |
+| 06:54 | #2370: acceptance corrected and reviewed; the review asked for two more acceptance corrections                                                         |
+| 07:00 | #2419 published as PR #2665                                                                                                                            |
+| 07:12 | #2419: Samson judged one CodeRabbit finding valid and answered CodeRabbit's deploy-checklist request in a reply                                        |
+| 07:16 | #2370 published again on PR #2664 and waited for the bots                                                                                              |
+| 07:24 | Weekly usage limit reached: #2419's two reviewers failed on it, and at 07:26 #2370's feedback step                                                     |
+| 07:26 | Both rounds had recorded a provider-fault hold with the reset time; the engine paused both runs until the reset                                        |
+| 07:33 | First of eleven passes (to 09:18) that admitted nothing: both lanes were held. #2418, #2421 and #2422 stayed eligible                                  |
+| 07:49 | The owner merged PR #2663 by hand; the 07:54 pass recorded #2526 as merged                                                                             |
+| 09:23 | Intake paused                                                                                                                                          |
+| 09:24 | `recover-native` on #2419 and #2370 from the staged commit `208058f44` (its first live use); both issues stopped                                       |
+| 09:54 | Release `34ce64a7` installed from commit `208058f44` (defects 40 and 41)                                                                               |
+| 09:55 | Both issues moved to it and reopened; intake resumed                                                                                                   |
+| 09:59 | Timer pass started both review rounds one second apart; #2370's lost a fetch race and ended in 9 seconds (defect 42)                                   |
+| 09:59 | #2370's next round started by itself 6 seconds later                                                                                                   |
+| 10:00 | Both rounds froze their candidate; Micaiah and Luke failed on the usage limit; both issues held and paused as at 07:24                                 |
+| 10:09 | First of the passes (still running at 12:05) that report both issues `reset-pending` and admit nothing                                                 |
+| 12:29 | Outside the factory: "Update branch" was pressed on PR #2664 and PR #2665, merging `develop` into both branches (defect 45)                            |
+| 13:08 | The coordinator put both branches back to the heads the factory recorded                                                                               |
+| 15:28 | Pull request #2666 opened with the repairs for defects 42 to 45; its reviews found more gaps, repaired there                                           |
+| 18:57 | Intake paused; `stop`, then `recover-native` from the installed release, on #2370 and #2419                                                            |
+| 18:57 | Release `d4ef3329` installed from commit `4939d83aa` (defects 42 to 45 and the review repairs)                                                         |
+| 18:58 | Both issues moved to it and reopened; intake resumed                                                                                                   |
+| 19:03 | Timer pass started both review rounds 0.6 seconds apart; #2370's mirror fetch lost the race again and its second attempt succeeded, with no round lost |
+| 19:04 | Both rounds froze their candidate; Micaiah and Luke failed on the usage limit; both issues held and paused until the reset, for the third time         |
 
 The six pull requests recorded at 04:58 belong to issues 2206, 2207, 2215,
 2228, 2234 and 2239. PR #2657 (#2228) and PR #2659 (#2239) were merged by the
@@ -1367,8 +1373,13 @@ the open list of 12 November.
     end a run the engine had paused again for a later reset (it now asks the
     engine and leaves a run with a pending wake-up alone).
 
-Defects 42 to 45 were repaired test-first after the 09:54 install and are not
-installed yet (see Still open).
+Defects 42 to 45, and the gaps the reviews of pull request #2666 found, were
+repaired test-first and are in release `d4ef3329`, installed at 18:57 from
+commit `4939d83aa`. Its 103 installed pack files hash identically to that
+commit, and the installer's diagnostics passed. The fetch retry was seen on
+the running system at the first pass after the install: the claim ledger of
+#2370's round records two fetch attempts, and the round went on. The other
+repairs of this group have not been exercised live.
 
 The pack of release `34ce64a7` (103 files) hashes identically to commit
 `208058f44`, and the installer's diagnostics passed.
@@ -1439,13 +1450,14 @@ Not shown:
 
 ### Operator interventions in this pass
 
-Every operator action from 04:52 to 13:08:
+Every operator action from 04:52 to 18:58:
 
-- **Releases:** three installs, each with an engine restart: 04:52
-  (`9b217961`), 05:20 (`97fabab0`) and 09:54 (`34ce64a7`).
+- **Releases:** four installs, each with an engine restart: 04:52
+  (`9b217961`), 05:20 (`97fabab0`), 09:54 (`34ce64a7`) and 18:57
+  (`d4ef3329`).
 - **Scope:** approved at 05:02 (six issues added).
 - **Intake:** resumed 05:02, paused 05:15, resumed 05:21, paused 09:23,
-  resumed 09:55.
+  resumed 09:55, paused 18:57, resumed 18:58.
 - **Deliberate test:** the fault injection armed at 05:33, which killed and
   restarted the engine at 05:48. The script is a test fixture, not part of
   the factory.
@@ -1454,9 +1466,12 @@ Every operator action from 04:52 to 13:08:
   release had no such command, and the installer refuses to change releases
   while an issue is held. For each issue the command read back the branch on
   GitHub, proved the release and the account, ended the paused run through the
-  engine and settled the item with its committed work kept.
+  engine and settled the item with its committed work kept. At 18:57 the
+  same was done for the second release change, this time from the installed
+  release and with `stop` first, so that each issue settled as stopped and no
+  pass could start a round in between.
 - **Moving issues to the new release:** `stop` for #2370 and #2419 at 09:24:55;
-  `adopt-policy` then `reopen` for both at 09:55.
+  `adopt-policy` then `reopen` for both at 09:55, and again at 18:58.
 - **Factory branches:** at 13:08 both issue branches were moved back, through
   the GitHub API, to the heads the work items record (PR #2664 to
   `ce30c37f7610`, PR #2665 to `89958f49a290`), after checking that each
@@ -1478,13 +1493,11 @@ fallback or fabricated check was used, and the factory merged nothing.
 
 ## Still open
 
-State on 13 November 2026 at 13:15 UTC.
+State on 13 November 2026 at 19:05 UTC.
 
 - **The batch is unfinished and the factory is out of usage until 16
   November, 15:00 UTC.** Intake is open. At the reset the engine wakes the two
-  paused rounds and a later pass settles them (on the installed release, a
-  pass that lands in the five seconds after the reset ends a paused run and
-  starts its round again instead), and the factory carries on with
+  paused rounds and a later pass settles them, and the factory carries on with
   #2370, #2419 and then #2418, #2421 and #2422, using the new weekly
   allowance. `factory pause-intake` before the reset stops new admissions;
   the two paused rounds still finish.
@@ -1493,14 +1506,10 @@ State on 13 November 2026 at 13:15 UTC.
   budget, configuration, unclear effects) wait for a person, who now has
   `recover-native`.
 - **Usage is not measured or rationed** (above).
-- **The repairs for defects 42 to 45 are not installed.** Until they are, two
-  rounds that start in the same second can cost one of them a round of a few
-  seconds (the next round starts by itself); a pass that lands in the five
-  seconds after a reset ends the paused run and starts its round again where
-  the engine would have continued it; and nothing pushed from outside is
-  adopted: "Update branch" on a factory pull request that is not ready
-  blocks its issue, or leaves a held issue held, until the branch is put
-  back (runbook, "Somebody pushed to a factory branch").
+- **Installed and not yet exercised live:** the wait after a reset (defect
+  43), the adoption of an outside update and the block on any other outside
+  head (defect 45), and a woken run's newer fault. They rest on tests. The
+  fetch retry (defect 42) was seen at 19:03.
 - **An update pushed while the factory holds a newer candidate it has not
   published** still blocks the issue after the repair: the two histories
   have diverged, and the branch has to be put back by hand.
@@ -1520,7 +1529,7 @@ State on 13 November 2026 at 13:15 UTC.
 - **The Console on VM 100 is the earlier build.** Until it is rebuilt it has
   no control for a provider-fault hold (the command line has it) and reads
   owners and admission capacity from its own settings.
-- **A release change with a held issue is manual:** `recover-native`, `stop`,
+- **A release change with a held issue is manual:** `stop`, `recover-native`,
   install, `adopt-policy`, `reopen`, for each issue (runbook, Updates).
 - **Off-host backup copy** and the **USB disk bridge**: both need a person.
 - **Disputed bot feedback** stops for a person; Agabus is not consulted in the
@@ -1557,7 +1566,7 @@ State on 13 November 2026 at 13:15 UTC.
   failed required check on a published head, a round that ends between
   acceptance and its first commit (defects 26 and 31), the second run of a
   crashed gate tool (defect 36), the removal of a committed acceptance test
-  (defect 35), and a whole delivery on the installed release `34ce64a7`.
+  (defect 35), and a whole delivery on the installed release `d4ef3329`.
 - **Files left outside an issue's paths block it** (`acceptance-strays`), by
   design; the runbook has the steps.
 - **#2205 needs a decision:** the check it asks for cannot pass unless
