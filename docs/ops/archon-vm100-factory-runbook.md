@@ -162,6 +162,12 @@ leaves a `PR_READY` issue alone, so the pull request falls behind when
 `develop` moves and a later comment or failed check is not seen. GitHub's
 "Update branch" brings it up to date, or `issue <n> reopen` runs its
 feedback stage again (the factory merges `develop` in, re-checks and answers).
+
+Use "Update branch" only on a `PR_READY` issue. On an issue the factory is
+still working on it pushes a head the factory did not publish (see
+[Somebody pushed to a factory branch](#somebody-pushed-to-a-factory-branch)).
+On release `34ce64a7` and earlier, do not `reopen` an issue after "Update
+branch": its feedback stage blocks on the updated head.
 After a release change `reopen` is refused until the issue is moved to the new
 release: `issue <n> stop`, `issue <n> adopt-policy`, then `issue <n> reopen`
 (Updates, step 7), which also re-runs the reviews.
@@ -198,7 +204,7 @@ delivery run unless the run's owner is verifiably gone; it can delete files.
   is ok only when the run is completed or cancelled and no container remains;
   otherwise `containers.remaining` names what is left. Run the same command with
   the same request id to list and remove them again (the engine then answers
-  the repeated cancel with HTTP 400 because the run has already ended; read
+  the repeated cancel with HTTP 409 because the run has already ended; read
   `containers`). The engine cancels only a running run: a paused or failed run
   is refused, and the issue stays held.
   If the issue hold cannot be saved, cancellation and container removal do not
@@ -247,12 +253,19 @@ assignment's, reads the issue's branch on GitHub (absent, or at a commit the
 work item recorded, with no merge the factory requested still pending),
 confirms the held run's check containers are gone, ends the held run through
 the engine when it is failed or paused, and requires the engine to report
-that run cancelled or completed. It never ends a run that still executes, and
-it changes nothing when it refuses. The refusal names what is missing:
-`effects-unreconciled`, `containers-unconfirmed`, `run-not-ended`,
-`run-not-terminal`, `lease-live` (another run holds the issue),
-`identity-drift` or `policy-transition-required`. The issue then waits on the
-route its recorded progress calls for, with its committed work kept.
+that run cancelled or completed. It does not end a run the engine reports as
+running, and a refusal leaves the work item as it was. The refusal names what
+is missing: `effects-unreconciled` (a merge the factory requested is still
+pending, the branch could not be read, or it holds a commit the factory did
+not publish and there is no pull request to read), `containers-unconfirmed`,
+`run-not-ended`, `run-not-terminal`, `lease-live` (another run holds the
+issue), `identity-drift` or `policy-transition-required`. Before the last two
+container and run checks refuse, the held run's leftover check containers
+have already been removed. The issue then waits on the route its recorded
+progress calls for, with its committed work kept. When the branch on GitHub
+holds a commit the factory did not publish and the issue has a pull request,
+the hold is cleared onto the feedback route, which reads the pull request
+first (see [Somebody pushed to a factory branch](#somebody-pushed-to-a-factory-branch)).
 
 The intake pass runs the same command by itself for a hold the engine
 classified `native-recovery` (a transient error, a rate limit, an overload, or
@@ -357,11 +370,16 @@ lanes held nothing new is admitted. Nothing is lost: committed work stays in
 the issue clone and on the work item, and no check container is left.
 
 At the reset, with no operator: the engine wakes the same run and it finishes
-its round; the next pass clears the hold with `recover-native`, and a
-candidate that round committed is reviewed once more. The pass leaves a held
-issue alone until two minutes after the reset. If the engine did not wake the
-run by then, the pass ends it and starts the round again. A usage limit
-therefore costs one extra review round per held issue. On 13 November this
+its round, but `record` keeps the hold and does not record what that round
+did. The next pass clears the hold with `recover-native`, and the round is
+then run again on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and anything the woken round found is found again. If the engine did not
+wake the run, the pass ends it and starts the round again. If the woken run
+meets another fault (the limit again, an expired sign-in), from the release
+after `34ce64a7` the hold takes the newer fault and its reset time. From the release
+after `34ce64a7` the pass leaves a held issue alone until two minutes after
+the reset, so that it cannot end a run in the seconds in which the engine
+wakes it. A usage limit
+therefore costs one repeated round per held issue. On 13 November this
 was observed twice up to the hold; the part after the reset has not been seen
 yet.
 
@@ -369,12 +387,53 @@ What an operator can do in the meantime:
 
 - Nothing. That is the designed path.
 - Keep new issues out after the reset: `factory pause-intake`.
-- Keep a held issue from continuing at the reset: `issue <n> recover-native`
-  (it ends the paused run and keeps the work), then `issue <n> stop`. Later,
-  `issue <n> reopen`.
+- Keep a held issue from continuing at the reset: `issue <n> stop`, then
+  `issue <n> recover-native` (it ends the paused run and keeps the work; the
+  issue settles as stopped). In that order no pass can start a round in
+  between. Later, `issue <n> reopen`.
 - Do not try to get past the limit with another account, an API key or
   `archon workflow resume`. A round started before the reset fails on the
   limit again and is held again.
+
+## Somebody pushed to a factory branch
+
+The factory records every head it publishes on an issue's branch
+(`factory/<n>-<slug>`). A head it did not publish is somebody else's push.
+The usual cause is GitHub's "Update branch" button, which merges `develop`
+into the pull request. On 13 November it was pressed on two pull requests the
+factory was working on.
+
+What the factory does with such a head, from the release after `34ce64a7`:
+
+- **In the feedback stage, when the head is the published candidate plus
+  nothing but `develop`** (that is what "Update branch" produces): the
+  factory adopts it as the candidate and reviews it again (freeze, Micaiah,
+  Luke, final acceptance, hooked publish) before anything else. No operator
+  step.
+- **Any other outside head** (somebody's own commit, a rewritten branch, or an
+  update pushed while the factory holds a newer candidate it has not
+  published yet): the issue blocks, with the head named in the blocker, and
+  the next pass posts the notice on the GitHub issue. A round that tries to
+  publish over such a head blocks `push-unverified`.
+- **A held issue** (provider fault): the hold is cleared onto the feedback
+  route, and one of the two cases above follows.
+
+On release `34ce64a7` and earlier nothing is adopted: the feedback stage
+blocks on any outside head, and a held issue stays held (`recover-native`
+refuses `effects-unreconciled`).
+
+To release a blocked issue when the outside commits are only an update from
+`develop`, put the branch back to the head the factory published and retry.
+The factory merges `develop` itself when the pull request needs it:
+
+```sh
+# <published> is the work item's pr.head; <outside> is the head GitHub shows now.
+git push --force-with-lease=factory/<n>-<slug>:<outside> origin <published>:refs/heads/factory/<n>-<slug>
+$N $C issue <n> retry --request <id> --by <me>
+```
+
+If the outside commits are somebody's own work, decide by hand whether they
+belong in the issue; the factory never takes them over unreviewed.
 
 ## Waits and sign-in
 
@@ -418,6 +477,15 @@ commit is covered too: the next round that commits work takes the unrecorded
 commit back into the working tree and commits it again through the hooks
 (the claim ledger records it as `restoredCommit`). This was proven on 13
 November by killing the engine at that moment.
+
+One case is not healed by itself: a round whose `record` step did not
+settle the work item (it crashed, timed out or was refused) while another
+step had failed. The engine then reports the run `failed`, a failed run keeps
+its issue's lease, and neither the orphan step nor the sweep touches it. The
+issue stays `active` with nothing running and no blocker. Check that the
+work item has no `nativeFaults`, end the run with
+`archon workflow abandon <runId>` (nothing executes in a failed run), then
+`issue <n> reconcile`.
 
 That path covers ordinary rounds only. For a run with a native or cleanup
 hold, inspect the engine/run metadata, immutable identity binding, native
@@ -523,7 +591,7 @@ manifest.
    before an eligible update.
 
    An issue held on a provider fault has to be cleared first:
-   `issue <n> recover-native`, then `issue <n> stop`. During a usage limit do
+   `issue <n> stop`, then `issue <n> recover-native`. During a usage limit do
    this only when the new release cannot wait for the reset. After
    `adopt-policy` and `reopen` (step 7) the issue's next round meets the limit
    again and the issue is held again, which is what happened on 13 November.

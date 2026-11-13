@@ -104,13 +104,25 @@ A usage limit is the common case, and the engine handles its side by itself.
 The AI node fails, `record` writes the hold, and the engine then pauses the run
 until the reset the provider reported (`archon workflow status` shows "tries
 again at ..."). At the reset the engine wakes that same run and it finishes its
-round under its own lease. `record` keeps the hold, so the next selector pass
-settles the item with `recover-native`, which ends nothing in that case; a
-candidate the round committed is kept and goes through review once more. The
+round under its own lease. `record` keeps the hold and records nothing else
+of that round, so the next selector pass settles the item with
+`recover-native`, which ends nothing in that case, and the round runs again
+on the same candidate: its reviews, final acceptance, pre-push gate and publication run a second time, and anything the woken round found is found again. When the woken run meets
+another fault that requires a hold, `record` stores that newer report (a later
+reset, or a fault that needs a person) in place of the old one. The
 pass leaves a held issue alone until two minutes after the reset, so it never
 ends a run in the seconds in which the engine wakes it. If the engine did not
 wake the run, the pass then ends the paused run and starts the round again. To stop waiting before the reset, run `recover-native` yourself: it ends
 the paused run first.
+
+**Outside pushes.** The factory records every head it publishes; a head on
+the issue branch that it did not publish is somebody else's push. Readiness
+adopts one kind: a head that contains the candidate and adds nothing but the
+target branch, joined by merges (GitHub's "Update branch";
+`.shared/git.mjs` `addsOnlyTarget`). It becomes the candidate and goes to the
+review-only route, like an operator's conflict resolution. Every other
+outside head blocks the issue, and a round that publishes over one blocks
+`push-unverified`.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
 comment on the GitHub issue with the reason and the next step, so the owner is
@@ -378,18 +390,22 @@ issue stays stopped until an operator reopens it.
   the item's revision and so re-arms its dispatch key. The intake sweep
   reconciles ended runs by itself as well.
 - `recover-native` is the way out of a native-fault hold (below). It refuses
-  unless every one of these holds, and changes nothing when it refuses: the
-  installed release and the native identity are the assignment's; the issue
-  branch on GitHub is absent or at a commit the work item recorded, and no
-  merge the factory requested is pending (`effects-unreconciled`); the held
-  run's check containers are confirmed gone (`containers-unconfirmed`); the
-  engine ends the held run when it is failed or paused (`run-not-ended`) and
-  then reports it cancelled or completed (`run-not-terminal`; a run that still
-  executes is never ended by this control). The held run's own lease does not
-  refuse it: the engine keeps that lease live until the run is cancelled or
-  completed. A live lease of any other run does (`lease-live`). The issue then
-  waits on the route its recorded progress calls for and the next pass starts
-  that round.
+  unless every one of these holds, and a refusal leaves the work item as it
+  was: the installed release and the native identity are the assignment's; no
+  merge the factory requested is pending and the issue branch on GitHub could
+  be read (`effects-unreconciled`); the held run's check containers are
+  confirmed gone (`containers-unconfirmed`; leftover containers of a failed or
+  paused run are removed first); the engine ends the held run when it is
+  failed or paused (`run-not-ended`) and then reports it cancelled or
+  completed (`run-not-terminal`; a run the engine reports as running is not
+  ended by this control). The held run's own lease does not refuse it: the
+  engine keeps that lease live until the run is cancelled or completed. A
+  live lease of any other run does (`lease-live`). The issue then waits on the
+  route its recorded progress calls for and the next pass starts that round.
+  When the branch on GitHub is at a commit the work item never recorded,
+  somebody pushed to it: with a pull request to read, the issue waits on the
+  `feedback` route instead (Outside pushes, below); without one the control
+  refuses `effects-unreconciled`.
 - `allow-protected` writes `core/scope.allowProtected[<n>]`: `all` stores `true`,
   `none` removes the grant, and a comma list must name exact protected globs
   from the Scope paragraph above (anything else refuses the request). Only
