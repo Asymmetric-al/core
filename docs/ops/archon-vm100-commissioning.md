@@ -1501,8 +1501,9 @@ State on 13 November 2026 at 13:15 UTC.
   has not been seen. The runbook has the manual steps (Reboot and recovery).
 - **A woken round's result is not kept** (above): after a usage limit the
   round is repeated, at the cost of its reviews and gates.
-- **The Console on VM 100 is the earlier build.** It has no control for a
-  provider-fault hold until it is rebuilt; the command line has it.
+- **The Console on VM 100 is the earlier build.** Until it is rebuilt it has
+  no control for a provider-fault hold (the command line has it) and reads
+  owners and admission capacity from its own settings.
 - **A release change with a held issue is manual:** `recover-native`, `stop`,
   install, `adopt-policy`, `reopen`, for each issue (runbook, Updates).
 - **Off-host backup copy** and the **USB disk bridge**: both need a person.
@@ -1529,8 +1530,9 @@ State on 13 November 2026 at 13:15 UTC.
   review of the new head; that was not reproduced.
 - **`"coverage":"once"` for Cursor** lets a head repaired after Cursor's only
   review be merged without Cursor seeing it. It is an operator choice.
-- **Console** reads owners and admission capacity from its own settings, not
-  the factory configuration; chat and bounded assessments were not exercised.
+- **Console:** chat and bounded assessments were not exercised. It now
+  reads owners and admission capacity from the factory configuration (merged
+  with pull request #2651), which the build on VM 100 does not have yet.
 - **Analysis runs** are started only by an operator, and an open attention
   item is never closed.
 - **Only merged issues are pruned.** The workspace of a ready, blocked or
