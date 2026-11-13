@@ -626,8 +626,18 @@ const RECOVERY_CONTROLS = new Set(["retry", "reopen", "release"]);
 // recorded candidate is reviewed again before it is published or merged.
 const TRANSITION = "adopt-policy";
 const TRANSITIONS = 16;
+// The one way out of a native-fault hold. The operator states that the cause
+// (a provider outage, an expired sign-in, a quota) is dealt with; the control
+// requires the rest as evidence: the held run has ended in the engine, so it
+// can execute nothing more, and the caller read back what the run may have
+// done on GitHub. The issue then waits on the route the interrupted round's
+// progress calls for, like any round that ended without recording. It needs
+// the same installed policy and profile as the other recovery controls.
+const NATIVE_RECOVERY = "recover-native";
 const GUARDED = (action) =>
-  RECOVERY_CONTROLS.has(action) || action === TRANSITION;
+  RECOVERY_CONTROLS.has(action) ||
+  action === TRANSITION ||
+  action === NATIVE_RECOVERY;
 
 // Operator controls. They never touch the lease: a held issue's live round
 // finishes its current permitted step and the next claim refuses. retry,
@@ -646,18 +656,25 @@ export function planControl(
     // adopt-policy only: the profile digest verified for the installed release
     // after the retained one was proven against the previous release's record.
     identity,
+    // recover-native only: { ok, detail } from the caller's readback of the
+    // issue's remote branch and pull request.
+    effects,
   },
 ) {
   const value = current(document);
   if (GUARDED(action) && hasUnconfirmedCleanup(value))
     throw new Refusal("cleanup-unconfirmed");
-  if ((GUARDED(action) || action === "reconcile") && hasNativeFaultHold(value))
+  if (
+    action !== NATIVE_RECOVERY &&
+    (GUARDED(action) || action === "reconcile") &&
+    hasNativeFaultHold(value)
+  )
     throw new Refusal("native-fault-held");
   if (!ident.test(requestId ?? "")) throw new Refusal("request-id-required");
   if (value.requests.some((request) => request.id === requestId))
     return { noop: true, value };
   if (
-    RECOVERY_CONTROLS.has(action) &&
+    (RECOVERY_CONTROLS.has(action) || action === NATIVE_RECOVERY) &&
     digest.test(installed?.profileDigest ?? "") &&
     installed.profileDigest !== value.assignment.profileDigest
   )
@@ -748,6 +765,48 @@ export function planControl(
       throw new Refusal("not-active", value.status);
     // An idle item's recorded request alone moves its revision, which re-arms
     // its dispatch key.
+  } else if (action === NATIVE_RECOVERY) {
+    if (!Object.hasOwn(value, "nativeFaults"))
+      throw new Refusal("no-native-hold");
+    if (document.lease?.live)
+      throw new Refusal("lease-live", document.lease.runId);
+    if (effects?.ok !== true)
+      throw new Refusal(
+        "effects-unreconciled",
+        clip(effects?.detail, 300) ?? "The remote effects were not read back",
+      );
+    const fault = value.nativeFaults;
+    const what = `${clip(fault?.action, 40) ?? "unclassified"}: ${clip(fault?.reason, 120) ?? "no reason recorded"}`;
+    delete next.nativeFaults;
+    if (value.status === "active" && value.run) {
+      // The same evidence a reconcile needs: the engine's own terminal status
+      // for this exact run. A failed run can still be resumed, so it is not
+      // terminal; the caller ends it first.
+      if (runStatus?.id !== value.run.id || !ENDED_RUNS.has(runStatus.status))
+        throw new Refusal("run-not-terminal", runStatus?.status ?? "unknown");
+      settle(value, next, {
+        runId: value.run.id,
+        now,
+        outcome: "reconciled",
+        route: interruptedRoute(value),
+        fingerprint: "native-fault",
+        limits,
+        summary: `Native fault hold (${what}) cleared by ${clip(by, 80)}: run ${value.run.id} ended (${runStatus.status}) and its remote effects were read back`,
+      });
+    } else {
+      next.history = [
+        ...next.history,
+        {
+          round: value.round,
+          run: clip(fault?.runId, 200) ?? "unknown",
+          route: null,
+          outcome: "native-recovered",
+          next: value.route,
+          at: now,
+          summary: `Native fault hold (${what}) cleared by ${clip(by, 80)}; no run owned the issue`,
+        },
+      ].slice(-HISTORY);
+    }
   } else if (action === TRANSITION) {
     if (document.lease?.live)
       throw new Refusal("lease-held", document.lease.runId);

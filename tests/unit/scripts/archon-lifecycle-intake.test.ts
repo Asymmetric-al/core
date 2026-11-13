@@ -11,6 +11,7 @@ import {
   announceBlocked,
   observeMerges,
   pruneFinished,
+  recoverNativeFaults,
   releaseStaleReservations,
   scopeDigest,
   sweepItems,
@@ -663,6 +664,96 @@ describe("observeMerges", () => {
       results: [],
       asked: [[712]],
     });
+  });
+});
+
+describe("recoverNativeFaults", () => {
+  const NOW_MS = Date.parse(T1);
+  const held = (issue: number, fault: Record<string, unknown> = {}) => ({
+    ...assign(issue),
+    status: "active",
+    run: { id: `run-${issue}`, route: "repair" },
+    nativeFaults: {
+      schema: "core-native-faults/v1",
+      runId: `run-${issue}`,
+      action: "native-recovery",
+      reason: "native-transient",
+      faults: [],
+      ...fault,
+    },
+  });
+  const pass = async (
+    items: [number, Record<string, unknown>][],
+    answer: (issue: number) => unknown = () => ({ ok: true }),
+  ) => {
+    const recover = vi.fn(async (issue: number, _runId: string) =>
+      answer(issue),
+    );
+    const results = await recoverNativeFaults({
+      items: new Map(items),
+      recover,
+      nowMs: NOW_MS,
+    });
+    return { results, asked: recover.mock.calls };
+  };
+
+  it("recovers a round the engine classified as recoverable, with the command an operator would use", async () => {
+    expect(await pass([[12, held(12)]])).toEqual({
+      results: [{ issue: 12, action: "recover-native", ok: true }],
+      asked: [[12, "run-12"]],
+    });
+  });
+
+  it("leaves every other native hold for a person", async () => {
+    const { results, asked } = await pass([
+      [12, held(12, { action: "owner-action", reason: "provider-auth" })],
+      [13, held(13, { action: "reconcile" })],
+      [14, held(14, { action: "configuration-action" })],
+      [15, held(15, { runId: "another-run" })],
+      [16, { ...assign(16), status: "waiting" }],
+    ]);
+    expect({ results, asked }).toEqual({ results: [], asked: [] });
+  });
+
+  it("waits for a quota reset the provider reported", async () => {
+    const later = new Date(NOW_MS + 60_000).toISOString();
+    const earlier = new Date(NOW_MS - 60_000).toISOString();
+    const { results, asked } = await pass([
+      [12, held(12, { faults: [{ resetAt: later }] })],
+      [14, held(14, { faults: [{ resetAt: earlier }, { resetAt: null }] })],
+    ]);
+    expect({ results, asked }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        { issue: 14, action: "recover-native", ok: true },
+      ],
+      asked: [[14, "run-14"]],
+    });
+  });
+
+  it("reports a refusal or a failure and carries on", async () => {
+    const { results } = await pass(
+      [
+        [12, held(12)],
+        [14, held(14)],
+        [15, held(15)],
+      ],
+      (issue) => {
+        if (issue === 12) return { ok: false, code: "run-not-ended" };
+        if (issue === 14) throw new Error("engine offline");
+        return { ok: true };
+      },
+    );
+    expect(results).toEqual([
+      { issue: 12, action: "recover-native", ok: false, code: "run-not-ended" },
+      { issue: 14, action: "recover-native", ok: false, code: "error" },
+      { issue: 15, action: "recover-native", ok: true },
+    ]);
   });
 });
 

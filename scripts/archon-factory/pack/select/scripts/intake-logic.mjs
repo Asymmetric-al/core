@@ -253,6 +253,57 @@ export async function observeMerges({
   return results;
 }
 
+// A round that failed on a provider fault the engine classified as
+// recoverable (a transient error, a rate limit, an overload, a quota whose
+// reset the provider reported) is recovered by the pass itself: `recover` is
+// the command an operator would run, with every one of its checks. The pass
+// interval is the backoff, a reported reset is waited for, and a fault that
+// keeps coming back blocks the issue under the no-progress rule. Any other
+// native hold (sign-in, budget, configuration, unclear effects) stays for a
+// person.
+export async function recoverNativeFaults({ items, recover, nowMs }) {
+  const results = [];
+  for (const [issue, value] of items) {
+    const fault = value?.nativeFaults;
+    const runId = value?.run?.id;
+    if (
+      fault?.action !== "native-recovery" ||
+      typeof runId !== "string" ||
+      fault.runId !== runId
+    )
+      continue;
+    const resets = (Array.isArray(fault.faults) ? fault.faults : [])
+      .map((entry) => Date.parse(entry?.resetAt ?? ""))
+      .filter(Number.isFinite);
+    if (resets.some((at) => at > nowMs)) {
+      results.push({
+        issue,
+        action: "recover-native",
+        ok: false,
+        code: "reset-pending",
+      });
+      continue;
+    }
+    try {
+      const result = await recover(issue, runId);
+      results.push({
+        issue,
+        action: "recover-native",
+        ok: result?.ok === true,
+        ...(result?.ok === true ? {} : { code: result?.code ?? "refused" }),
+      });
+    } catch {
+      results.push({
+        issue,
+        action: "recover-native",
+        ok: false,
+        code: "error",
+      });
+    }
+  }
+  return results;
+}
+
 // The dependency trees are three quarters of an issue's workspace and can be
 // installed again from the lockfile. They go once the issue is MERGED; the
 // clone, its history and anything a round set aside stay. The install marker

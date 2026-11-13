@@ -6,7 +6,7 @@
 //
 //   control.mjs status
 //   control.mjs factory <pause-intake|resume-intake|drain|stop|resume|hold-merge|release-merge> --request <id> --by <who> [--reason <text>]
-//   control.mjs issue <n> <hold|release|stop|retry|reopen|reconcile|adopt-policy> --request <id> --by <who> [--reason <text>]
+//   control.mjs issue <n> <hold|release|stop|retry|reopen|reconcile|adopt-policy|recover-native> --request <id> --by <who> [--reason <text>]
 //   control.mjs scope --issues 12,13 --end-state PR_READY|MERGED --owner conrad --request <id> --by <who> [--note <text>]
 //   control.mjs prioritize <n> <0-100> --request <id> --by <who>
 //   control.mjs allow-protected <n> <all|none|glob[,glob...]> --request <id> --by <who>
@@ -20,6 +20,13 @@
 // allow-protected authorizes (or with none revokes) an in-scope issue's scope
 // to reach protected repository paths: core/scope.allowProtected[<n>] is true
 // or a list of protected globs, which after-scope's check reads.
+// recover-native is the way out of a native-fault hold (a round that failed on
+// a provider error keeps its issue until a person says the cause is dealt
+// with). It reads back the issue's remote branch, proves the policy and the
+// native identity, ends the failed run through the engine (its containers
+// first, then the engine's abandon, as the orphan pass does) and only then
+// clears the hold; the issue waits on the route the interrupted round calls
+// for and the next pass starts it.
 // cancel-run first holds the issue whose round the run is (a cancelled round
 // is never requeued automatically), then removes the run's labelled executor
 // containers; it is ok only once the run is terminal and none remain.
@@ -31,6 +38,7 @@ import { isDeepStrictEqual } from "node:util";
 import { StateConflict, createArchon } from "./archon.mjs";
 import { factoryPaths, limits, loadConfig } from "./config.mjs";
 import { removeLabeledContainers } from "./executor.mjs";
+import { createGit, remoteHead } from "./git.mjs";
 import { NativeIdentityRefusal, verifyNativeIdentity } from "./identity.mjs";
 import { fireWebhook } from "./webhook.mjs";
 import {
@@ -163,6 +171,46 @@ async function removeRunContainers(removeContainers, config, runId) {
 
 const ENDED_RUNS = new Set(["completed", "cancelled"]);
 
+// What a held run may have left on GitHub, read from GitHub and not from the
+// run's own evidence. The issue branch's remote head must be a commit the work
+// item recorded (its candidate or its published head) or absent, and a merge
+// the factory requested must not be pending. Anything else needs a person.
+export async function nativeEffects({ config, value, readRemoteHead }) {
+  if (value?.pr?.mergeRequest?.status === "requested")
+    return {
+      ok: false,
+      detail:
+        "A merge the factory requested is unconfirmed; read the pull request and settle it first",
+    };
+  if (!value?.branch) return { ok: true, remoteHead: null };
+  let head;
+  try {
+    head = await (
+      readRemoteHead ??
+      ((branch) =>
+        remoteHead(
+          {
+            git: createGit({ executable: config.git.executable }),
+            remote: config.repository.remote,
+          },
+          branch,
+        ))
+    )(value.branch);
+  } catch (error) {
+    return {
+      ok: false,
+      detail: `The remote branch could not be read: ${String(error?.message ?? error).slice(0, 200)}`,
+    };
+  }
+  if (head === null) return { ok: true, remoteHead: null };
+  if (![value.head, value.pr?.head].filter(Boolean).includes(head))
+    return {
+      ok: false,
+      detail: `The remote branch ${value.branch} is at ${head.slice(0, 12)}, a commit the work item never recorded`,
+    };
+  return { ok: true, remoteHead: head };
+}
+
 // I11: true for every protected area, null to revoke, or the named protected
 // globs in PROTECTED_GLOBS order. A name that is not exactly a protected area
 // would never match after-scope's check, so it refuses the whole request.
@@ -197,6 +245,7 @@ export async function runControl(
     fetchImpl = fetch,
     removeContainers = removeLabeledContainers,
     verifyIdentity = verifyNativeIdentity,
+    readEffects = nativeEffects,
     now = () => new Date().toISOString(),
   },
 ) {
@@ -264,26 +313,41 @@ export async function runControl(
       // proves that identity against the record of the release the assignment
       // was bound under, because the profile digest binds the release.
       const transition = action === "adopt-policy";
+      const nativeRecovery = action === "recover-native";
       const recovery =
-        transition || ["retry", "reopen", "release"].includes(action);
+        transition ||
+        nativeRecovery ||
+        ["retry", "reopen", "release"].includes(action);
+      // Set once the held run has been ended and read again.
+      let ended = null;
       return conditional(archon, issueDocument(issue), async (document) => {
         const installed = recovery ? installedRelease(paths) : undefined;
-        const plan = (identity) =>
+        const heldRun = nativeRecovery ? document.value?.run?.id : null;
+        // The remote readback comes before anything is changed.
+        const effects =
+          nativeRecovery && document.value
+            ? await readEffects({ config, value: document.value })
+            : undefined;
+        const plan = (identity, status = runStatus) =>
           planControl(document, {
             action,
             reason,
             by,
             now: now(),
             requestId: request,
-            runStatus,
+            runStatus: status,
             limits: limits(config),
             installed,
             identity,
+            effects,
           });
         // Every refusal that needs no identity proof comes first (for the
-        // transition, against a placeholder digest that is never written).
+        // transition, against a placeholder digest that is never written; for
+        // a native recovery, as if the held run had already ended, so nothing
+        // is ended for a request that would be refused anyway).
         const planned = plan(
           transition ? { profileDigest: "0".repeat(64) } : undefined,
+          heldRun ? { id: heldRun, status: "cancelled" } : runStatus,
         );
         if (planned.noop || !recovery) return planned;
         const assignment = document.value.assignment;
@@ -321,9 +385,49 @@ export async function runControl(
             "policy-transition-required",
             "Installed release changed during identity verification; retained assignment unchanged",
           );
-        return transition
-          ? plan({ profileDigest: identity.profileDigest })
-          : planned;
+        if (transition) return plan({ profileDigest: identity.profileDigest });
+        if (!nativeRecovery) return planned;
+        if (!heldRun) return plan(undefined, null);
+        // A failed run can be resumed, so the engine still counts it as the
+        // issue's owner. End it the way the orphan pass does: its containers
+        // first, then the engine's own abandon. A run that still executes is
+        // never touched here (cancel-run is the control for that).
+        if (!ended || ended.id !== heldRun) {
+          let status = await engineRun(fetchImpl, config, heldRun);
+          if (status?.status === "failed") {
+            const containers = await removeRunContainers(
+              removeContainers,
+              config,
+              heldRun,
+            );
+            if (
+              containers.ok !== true ||
+              !Array.isArray(containers.remaining) ||
+              containers.remaining.length
+            )
+              throw new Refusal(
+                "containers-unconfirmed",
+                "The held run's check containers are not confirmed gone; nothing was changed",
+              );
+            let answered = null;
+            try {
+              answered = (
+                await fetchImpl(
+                  `http://127.0.0.1:${config.archon.port}/api/workflows/runs/${heldRun}/abandon`,
+                  { method: "POST" },
+                )
+              ).status;
+            } catch {}
+            if (answered !== 200)
+              throw new Refusal(
+                "run-not-ended",
+                `The engine did not end run ${heldRun} (answered ${answered ?? "nothing"}); the hold stays`,
+              );
+            status = await engineRun(fetchImpl, config, heldRun);
+          }
+          ended = status;
+        }
+        return plan(undefined, ended);
       });
     }
     case "scope": {

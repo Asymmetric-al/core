@@ -14,6 +14,7 @@ import {
   ensureInitialRunIdentity,
   serviceNativeIdentity,
 } from "../../.shared/identity.mjs";
+import { runControl } from "../../.shared/control.mjs";
 import { fireRound } from "../../.shared/webhook.mjs";
 import { writeRunContext } from "../../.shared/runctx.mjs";
 import { RESERVATIONS, factoryPermitsIntake } from "../../.shared/workitem.mjs";
@@ -23,6 +24,7 @@ import {
   announceBlocked,
   observeMerges,
   pruneFinished,
+  recoverNativeFaults,
   releaseStaleReservations,
   scopeDigest,
   sweepItems,
@@ -65,6 +67,31 @@ const releasedAreas = await releaseStaleReservations({
 });
 const reservations = (await archon.get(RESERVATIONS)).value?.areas ?? {};
 
+// Recover rounds that failed on a recoverable provider fault, before the
+// sweep, so a recovered issue's next round starts in this same pass.
+let recovered: any[] = [];
+try {
+  recovered = await recoverNativeFaults({
+    items: new Map([...items].map(([issue, entry]) => [issue, entry.value])),
+    recover: (issue: number, heldRun: string) =>
+      runControl(
+        [
+          "issue",
+          String(issue),
+          "recover-native",
+          "--request",
+          `auto-native-${heldRun}`,
+          "--by",
+          "factory",
+          "--reason",
+          "Automatic recovery of a recoverable provider fault",
+        ],
+        { archon, config },
+      ),
+    nowMs: now,
+  });
+} catch {}
+
 // Sweep: start idle rounds under their revision key, reconcile active items
 // whose run ended without recording, keep parked items parked while another
 // issue holds their areas.
@@ -78,7 +105,10 @@ const sweep = await sweepItems({
   fire: ({ value, revision }: { value: any; revision: number }) =>
     fireRound({ config, value, revision }),
 });
-const swept: any[] = sweep.filter((entry) => entry.action !== "skip");
+const swept: any[] = [
+  ...recovered,
+  ...sweep.filter((entry) => entry.action !== "skip"),
+];
 
 // GitHub is asked for the pass's own notices only; nothing here can fail the
 // pass, and all of it runs whether or not intake is open.

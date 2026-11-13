@@ -22,13 +22,13 @@ operations: `docs/ops/archon-vm100-factory-runbook.md`.
 
 ## Workflows
 
-| Workflow       | Started by                           | Resource (capacity, overlap)       | Job                                                                                                                                                                                                                                                                                                                                                                           |
-| -------------- | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core-select`  | `core-factory-intake.timer` (10 min) | `core-factory:admission` (1, skip) | Sweep admitted work (start idle rounds, reconcile runs that ended without recording, release stale reservations, record ready pull requests somebody merged, drop the dependency trees of merged issues); compute the eligible frontier of the authorized scope; Samson ranks it together with the newest 10 open `core/attention` items; record one assignment; fire round 1 |
-| `core-deliver` | selector, previous round, sweep      | one lane each (1, queue; below)    | One delivery round for one issue (below)                                                                                                                                                                                                                                                                                                                                      |
-| `core-answer`  | Console chat (`control.mjs ask`)     | `core-factory:chat` (1, queue)     | One Samson operator turn; may _propose_ one operation                                                                                                                                                                                                                                                                                                                         |
-| `core-analyze` | Console / incidents                  | `core-factory:analysis` (1, skip)  | Bounded advisory analysis; never a gate                                                                                                                                                                                                                                                                                                                                       |
-| `core-probe`   | qualification                        | `core-factory:probe` (1, queue)    | Identity and boundary probes                                                                                                                                                                                                                                                                                                                                                  |
+| Workflow       | Started by                           | Resource (capacity, overlap)       | Job                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `core-select`  | `core-factory-intake.timer` (10 min) | `core-factory:admission` (1, skip) | Sweep admitted work (recover recoverable provider faults, start idle rounds, reconcile runs that ended without recording, release stale reservations, record ready pull requests somebody merged, drop the dependency trees of merged issues); compute the eligible frontier of the authorized scope; Samson ranks it together with the newest 10 open `core/attention` items; record one assignment; fire round 1 |
+| `core-deliver` | selector, previous round, sweep      | one lane each (1, queue; below)    | One delivery round for one issue (below)                                                                                                                                                                                                                                                                                                                                                                           |
+| `core-answer`  | Console chat (`control.mjs ask`)     | `core-factory:chat` (1, queue)     | One Samson operator turn; may _propose_ one operation                                                                                                                                                                                                                                                                                                                                                              |
+| `core-analyze` | Console / incidents                  | `core-factory:analysis` (1, skip)  | Bounded advisory analysis; never a gate                                                                                                                                                                                                                                                                                                                                                                            |
+| `core-probe`   | qualification                        | `core-factory:probe` (1, queue)    | Identity and boundary probes                                                                                                                                                                                                                                                                                                                                                                                       |
 
 Every start is a signed Standard Webhooks delivery to the engine's own sources
 (`.shared/webhook.mjs`, `control/sources.json`). There are no CLI trigger
@@ -86,6 +86,19 @@ whichever run recorded them, and only with exactly the recorded content, so a
 round that ended before its first commit (an interruption, a failed step,
 rejected hooks) loses nothing. A run whose
 containers cannot be confirmed gone is left for the next pass.
+
+**Provider faults.** A round that fails on a provider error (not on its own
+code) is not settled by `record`: the work item keeps the run, the lease and a
+`core-native-faults/v1` report, and every claim, sweep and ordinary control
+refuses it (`native-fault-held`). When the engine classified the fault as
+recoverable (`native-recovery`: a transient error, a rate limit, an overload,
+or a quota whose reset the provider reported) the next selector pass recovers
+it by itself with `issue <n> recover-native`, after any reported reset has
+passed; the pass interval is the backoff. The recovered issue waits on the
+route its progress calls for, and three such faults in a row without a new
+commit block it (`no-progress`). Every other native hold (sign-in, budget,
+configuration, unclear effects) waits for an operator to deal with the cause
+and run the same command.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
 comment on the GitHub issue with the reason and the next step, so the owner is
@@ -325,7 +338,7 @@ confirmed, 1 an error.
 ```
 node control.mjs status
 node control.mjs factory pause-intake|resume-intake|drain|stop|resume|hold-merge|release-merge --request <id> --by <who> [--reason <text>]
-node control.mjs issue <n> hold|release|stop|retry|reopen|reconcile|adopt-policy --request <id> --by <who> [--reason <text>]
+node control.mjs issue <n> hold|release|stop|retry|reopen|reconcile|adopt-policy|recover-native --request <id> --by <who> [--reason <text>]
 node control.mjs scope --issues 12,13 --end-state PR_READY [--end-states 12=MERGED] --owner conrad --request <id> --by <who> [--note <text>]
 node control.mjs prioritize <n> <0-100> --request <id> --by <who>
 node control.mjs allow-protected <n> <all|none|glob[,glob...]> --request <id> --by <who>
@@ -351,6 +364,16 @@ issue stays stopped until an operator reopens it.
   live. On a pending or waiting item it only records the request, which moves
   the item's revision and so re-arms its dispatch key. The intake sweep
   reconciles ended runs by itself as well.
+- `recover-native` is the way out of a native-fault hold (below). It refuses
+  unless every one of these holds, and changes nothing when it refuses: the
+  installed release and the native identity are the assignment's; the issue
+  branch on GitHub is absent or at a commit the work item recorded, and no
+  merge the factory requested is pending (`effects-unreconciled`); the held
+  run's check containers are confirmed gone (`containers-unconfirmed`); the
+  engine ends the failed run (`run-not-ended`) and then reports it cancelled or
+  completed (`run-not-terminal`; a run that still executes is never ended by
+  this control). The issue then waits on the route its recorded progress calls
+  for and the next pass starts that round.
 - `allow-protected` writes `core/scope.allowProtected[<n>]`: `all` stores `true`,
   `none` removes the grant, and a comma list must name exact protected globs
   from the Scope paragraph above (anything else refuses the request). Only

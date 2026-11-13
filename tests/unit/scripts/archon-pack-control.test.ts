@@ -20,6 +20,7 @@ import { StateConflict } from "../../../scripts/archon-factory/pack/.shared/arch
 import { validateConfig } from "../../../scripts/archon-factory/pack/.shared/config.mjs";
 import {
   parseArgs,
+  nativeEffects,
   runControl,
 } from "../../../scripts/archon-factory/pack/.shared/control.mjs";
 import {
@@ -232,6 +233,12 @@ function harness(seed: Record<string, unknown> = {}, options = {}) {
       profileDigest: expectedDigest,
     }),
   );
+  // recover-native's readback of the issue's remote branch: by default the
+  // branch is not on the remote.
+  const readEffects = vi.fn(async (_input: { value: Dict }): Promise<Dict> => ({
+    ok: true,
+    remoteHead: null,
+  }));
   const run = (argv: string[]) =>
     runControl(argv, {
       archon: state.archon,
@@ -239,6 +246,7 @@ function harness(seed: Record<string, unknown> = {}, options = {}) {
       fetchImpl,
       removeContainers,
       verifyIdentity,
+      readEffects,
       now: () => NOW,
     });
   return {
@@ -248,6 +256,7 @@ function harness(seed: Record<string, unknown> = {}, options = {}) {
     fetchImpl,
     removeContainers,
     verifyIdentity,
+    readEffects,
     releaseFile,
     run,
   };
@@ -1781,6 +1790,230 @@ describe("allow-protected (I11)", () => {
       revision: state.revision("core/scope"),
       allowProtected: state.value("core/scope")?.allowProtected,
     }).toEqual({ noop: true, revision: 2, allowProtected: { 12: true } });
+  });
+});
+
+describe("recover-native", () => {
+  const held = (overrides: Dict = {}) =>
+    workItem({
+      status: "active",
+      route: "repair",
+      run: { id: RUN_ID, startedAt: EARLIER, route: "repair", head: null },
+      nativeFaults: {
+        schema: "core-native-faults/v1",
+        runId: RUN_ID,
+        runStatus: "failed",
+        action: "native-recovery",
+        reason: "native-transient",
+        faults: [],
+        wait: null,
+        automaticRetry: false,
+        preserveOwnership: true,
+      },
+      blocker: {
+        code: "native-recovery",
+        detail: "native-transient",
+        recovery: null,
+        route: "repair",
+        at: EARLIER,
+      },
+      ...overrides,
+    });
+  // The engine reports `statuses` in turn (the last one repeats) and answers
+  // an abandon with `abandon`.
+  function engine(
+    fixture: ReturnType<typeof harness>,
+    statuses: string[],
+    abandon = 200,
+  ) {
+    const calls: string[] = [];
+    fixture.fetchImpl.mockImplementation(async (url, init) => {
+      if (String(url).endsWith(`/runs/${RUN_ID}/abandon`)) {
+        calls.push(`${init?.method} abandon`);
+        return new Response("{}", { status: abandon });
+      }
+      const status = statuses.length > 1 ? statuses.shift() : statuses[0];
+      calls.push(`status ${status}`);
+      return Response.json({ run: { id: RUN_ID, status } });
+    });
+    return calls;
+  }
+  const recover = (fixture: ReturnType<typeof harness>) =>
+    fixture.run([
+      "issue",
+      "12",
+      "recover-native",
+      "--request",
+      REQUEST,
+      "--by",
+      "ops",
+      "--reason",
+      "provider outage is over",
+    ]);
+
+  it("ends the failed run through the engine, then clears the hold and leaves the issue waiting", async () => {
+    const fixture = harness({ "core/issues/12": held() });
+    const calls = engine(fixture, ["failed", "cancelled"]);
+
+    const result = await recover(fixture);
+
+    const value = fixture.state.value("core/issues/12") as Dict;
+    expect({
+      ok: result.ok,
+      calls,
+      containers: fixture.removeContainers.mock.calls.map(
+        ([input]) => input.labels,
+      ),
+      held: Object.hasOwn(value, "nativeFaults"),
+      status: value.status,
+      route: value.route,
+      run: value.run,
+      request: (value.requests as Dict[]).at(-1),
+    }).toEqual({
+      ok: true,
+      calls: ["status failed", "POST abandon", "status cancelled"],
+      containers: [{ "core.archon.run": RUN_ID }],
+      held: false,
+      status: "waiting",
+      route: "repair",
+      run: null,
+      request: { id: REQUEST, action: "recover-native", by: "ops", at: NOW },
+    });
+  });
+
+  it("changes nothing, not even the run, when the remote readback does not match the record", async () => {
+    const fixture = harness({ "core/issues/12": held() });
+    const calls = engine(fixture, ["failed"]);
+    fixture.readEffects.mockResolvedValue({
+      ok: false,
+      detail: "The remote branch factory/12 is at 0123456789ab",
+    });
+
+    const result = await recover(fixture);
+
+    expect({
+      ok: result.ok,
+      code: result.code,
+      calls,
+      containers: fixture.removeContainers.mock.calls.length,
+      held: Object.hasOwn(
+        fixture.state.value("core/issues/12") as Dict,
+        "nativeFaults",
+      ),
+    }).toEqual({
+      ok: false,
+      code: "effects-unreconciled",
+      calls: [],
+      containers: 0,
+      held: true,
+    });
+  });
+
+  it("keeps the hold when the engine does not end the run", async () => {
+    const fixture = harness({ "core/issues/12": held() });
+    const calls = engine(fixture, ["failed"], 409);
+
+    const result = await recover(fixture);
+
+    expect({
+      code: result.code,
+      calls,
+      held: Object.hasOwn(
+        fixture.state.value("core/issues/12") as Dict,
+        "nativeFaults",
+      ),
+    }).toEqual({
+      code: "run-not-ended",
+      calls: ["status failed", "POST abandon"],
+      held: true,
+    });
+  });
+
+  it("never ends a run that still executes, or one whose containers are not confirmed gone", async () => {
+    const running = harness({ "core/issues/12": held() });
+    const runningCalls = engine(running, ["running"]);
+    const stuck = harness({ "core/issues/12": held() });
+    const stuckCalls = engine(stuck, ["failed"]);
+    stuck.removeContainers.mockResolvedValue({
+      ok: false,
+      found: ["c1"],
+      remaining: ["c1"],
+    });
+
+    expect([
+      (await recover(running)).code,
+      runningCalls,
+      (await recover(stuck)).code,
+      stuckCalls,
+    ]).toEqual([
+      "run-not-terminal",
+      ["status running"],
+      "containers-unconfirmed",
+      ["status failed"],
+    ]);
+  });
+
+  it("refuses an issue that has no native hold", async () => {
+    const fixture = harness({ "core/issues/12": workItem() });
+    engine(fixture, ["cancelled"]);
+    expect((await recover(fixture)).code).toBe("no-native-hold");
+  });
+});
+
+describe("nativeEffects", () => {
+  const HEAD = "a".repeat(40);
+  const OTHER = "b".repeat(40);
+  const read = (value: Dict, remote: string | null | Error) =>
+    nativeEffects({
+      config: {},
+      value,
+      readRemoteHead: async () => {
+        if (remote instanceof Error) throw remote;
+        return remote;
+      },
+    });
+
+  it("accepts a remote branch that is absent or at a commit the work item recorded", async () => {
+    expect([
+      await read({ branch: "factory/12", head: HEAD }, null),
+      await read({ branch: "factory/12", head: HEAD }, HEAD),
+      await read(
+        { branch: "factory/12", head: OTHER, pr: { number: 7, head: HEAD } },
+        HEAD,
+      ),
+      await read({ branch: null }, OTHER),
+    ]).toEqual([
+      { ok: true, remoteHead: null },
+      { ok: true, remoteHead: HEAD },
+      { ok: true, remoteHead: HEAD },
+      { ok: true, remoteHead: null },
+    ]);
+  });
+
+  it("refuses a remote commit the work item never recorded, an unread remote and a pending merge request", async () => {
+    const results = [
+      await read({ branch: "factory/12", head: HEAD }, OTHER),
+      await read({ branch: "factory/12", head: HEAD }, new Error("offline")),
+      await read(
+        {
+          branch: "factory/12",
+          head: HEAD,
+          pr: { number: 7, head: HEAD, mergeRequest: { status: "requested" } },
+        },
+        HEAD,
+      ),
+    ];
+    expect(results.map((result) => [result.ok, result.detail])).toEqual([
+      [
+        false,
+        "The remote branch factory/12 is at bbbbbbbbbbbb, a commit the work item never recorded",
+      ],
+      [false, "The remote branch could not be read: offline"],
+      [
+        false,
+        "A merge the factory requested is unconfirmed; read the pull request and settle it first",
+      ],
+    ]);
   });
 });
 

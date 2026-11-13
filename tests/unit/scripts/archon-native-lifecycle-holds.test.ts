@@ -336,6 +336,192 @@ function reservationStore(holder: ReturnType<typeof observed>) {
   return { archon, reservations };
 }
 
+// The one way out of a native-fault hold. The operator states that the cause
+// is dealt with; the control proves the rest: the held run can no longer
+// execute, and what it may have done on GitHub was read back.
+describe("recover-native", () => {
+  const TRANSIENT = {
+    ...HELD_REPORT,
+    action: "native-recovery",
+    reason: "native-transient",
+  };
+  const held = (extra: Record<string, unknown> = {}) =>
+    observed({
+      ...item(),
+      nativeFaults: TRANSIENT,
+      blocker: {
+        code: "native-recovery",
+        detail: "native-transient",
+        recovery: "Validate the run",
+        route: "repair",
+        at: NOW,
+      },
+      ...extra,
+    } as ReturnType<typeof item>);
+  const recover = (
+    document: ReturnType<typeof observed>,
+    extra: Record<string, unknown> = {},
+  ) =>
+    planControl(document, {
+      action: "recover-native",
+      by: "fixture-operator",
+      reason: "provider outage is over",
+      now: NOW,
+      requestId: "request-native-recover",
+      installed: { policyRevision: POLICY, profileDigest: "a".repeat(64) },
+      runStatus: { id: RUN, status: "cancelled" },
+      effects: { ok: true },
+      ...extra,
+    });
+  const refusal = (operation: () => unknown) => {
+    try {
+      operation();
+    } catch (error) {
+      return (error as { code?: string }).code;
+    }
+    return "accepted";
+  };
+
+  it("clears the hold and waits on the interrupted route once the run has ended and its effects were read back", () => {
+    const plan = recover(held()) as { value: Record<string, any> };
+    expect({
+      held: Object.hasOwn(plan.value, "nativeFaults"),
+      status: plan.value.status,
+      route: plan.value.route,
+      run: plan.value.run,
+      blocker: plan.value.blocker,
+      history: plan.value.history.at(-1),
+      request: plan.value.requests.at(-1),
+    }).toEqual({
+      held: false,
+      status: "waiting",
+      route: "repair",
+      run: null,
+      blocker: null,
+      history: expect.objectContaining({
+        run: RUN,
+        outcome: "reconciled",
+        next: "repair",
+        summary:
+          "Native fault hold (native-recovery: native-transient) cleared by fixture-operator: run run-native-original ended (cancelled) and its remote effects were read back",
+      }),
+      request: expect.objectContaining({
+        id: "request-native-recover",
+        action: "recover-native",
+      }),
+    });
+  });
+
+  it.each([
+    ["failed", "run-not-terminal"],
+    ["running", "run-not-terminal"],
+    ["paused", "run-not-terminal"],
+  ])("refuses while the engine reports the run %s", (status, code) => {
+    expect(
+      refusal(() => recover(held(), { runStatus: { id: RUN, status } })),
+    ).toBe(code);
+  });
+
+  it("refuses when the engine cannot report the run, reports another run, or the lease is live", () => {
+    const live = { ...held(), lease: { runId: RUN, live: true } };
+    expect([
+      refusal(() => recover(held(), { runStatus: null })),
+      refusal(() =>
+        recover(held(), { runStatus: { id: "other", status: "cancelled" } }),
+      ),
+      refusal(() => recover(live)),
+    ]).toEqual(["run-not-terminal", "run-not-terminal", "lease-live"]);
+  });
+
+  it("refuses without a clean readback of the run's remote effects", () => {
+    expect([
+      refusal(() => recover(held(), { effects: undefined })),
+      refusal(() =>
+        recover(held(), {
+          effects: {
+            ok: false,
+            detail: "remote branch is at an unknown commit",
+          },
+        }),
+      ),
+    ]).toEqual(["effects-unreconciled", "effects-unreconciled"]);
+  });
+
+  it("refuses an issue without a native hold, under another policy, another profile or an unconfirmed cleanup", () => {
+    const clean = observed(item());
+    const cleanup = held({
+      cleanup: { step: "hooks-commit", runId: RUN, receipt: null },
+    });
+    expect([
+      refusal(() => recover(clean)),
+      refusal(() =>
+        recover(held(), {
+          installed: {
+            policyRevision: "d".repeat(64),
+            profileDigest: "a".repeat(64),
+          },
+        }),
+      ),
+      refusal(() =>
+        recover(held(), {
+          installed: { policyRevision: POLICY, profileDigest: "f".repeat(64) },
+        }),
+      ),
+      refusal(() => recover(cleanup)),
+    ]).toEqual([
+      "no-native-hold",
+      "policy-transition-required",
+      "identity-drift",
+      "cleanup-unconfirmed",
+    ]);
+  });
+
+  it("does nothing when the same request is sent again", () => {
+    const first = recover(held()) as { value: Record<string, unknown> };
+    const again = recover({
+      ...held(),
+      revision: 8,
+      value: first.value,
+    } as never);
+    expect((again as { noop?: boolean }).noop).toBe(true);
+  });
+
+  it("blocks an issue whose rounds keep ending in a native fault", () => {
+    const plan = recover(held({ repeats: { "native-fault": 2 } })) as {
+      value: Record<string, any>;
+    };
+    expect({
+      status: plan.value.status,
+      code: plan.value.blocker?.code,
+    }).toEqual({ status: "BLOCKED", code: "no-progress" });
+  });
+
+  it("clears a hold left on an issue no run owns, leaving its state as it was", () => {
+    const settled = held({ status: "BLOCKED", run: null, route: null });
+    const plan = recover({ ...settled, lease: null }, { runStatus: null }) as {
+      value: Record<string, any>;
+    };
+    expect({
+      held: Object.hasOwn(plan.value, "nativeFaults"),
+      status: plan.value.status,
+      blocker: plan.value.blocker?.code,
+      history: plan.value.history.at(-1)?.outcome,
+    }).toEqual({
+      held: false,
+      status: "BLOCKED",
+      blocker: "native-recovery",
+      history: "native-recovered",
+    });
+  });
+
+  it("stays the only control a native hold accepts", () => {
+    for (const action of ["retry", "reopen", "release", "reconcile"])
+      expect(refusal(() => control(held(), action, POLICY))).toBe(
+        "native-fault-held",
+      );
+  });
+});
+
 describe("native-held conflict reservations", () => {
   it.each(HELD_REPORTS)(
     "retains %s holder ownership while releasing unrelated terminal work",
