@@ -7,7 +7,7 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 12 November 2026, 23:55 UTC
+## Current state - 13 November 2026, 00:35 UTC
 
 Intake is **paused** (`final checkpoint`), nothing is running, and nothing new
 is admitted. Release `2cfd7082f6ec0443` is installed, built from commit
@@ -17,24 +17,29 @@ is admitted. Release `2cfd7082f6ec0443` is installed, built from commit
 | Issue | State                                                                |
 | ----- | -------------------------------------------------------------------- |
 | #2233 | Merged by the factory (PR #2648)                                     |
-| #2234 | Ready (PR #2649), then merged by the owner. Finished: leave it alone |
-| #2206 | Ready, PR #2652                                                      |
-| #2215 | Ready, PR #2653                                                      |
-| #2228 | Ready, PR #2657                                                      |
-| #2239 | Ready, PR #2659                                                      |
-| #2207 | Ready, PR #2660                                                      |
+| #2234 | Ready (PR #2649), then merged by the owner                           |
+| #2206 | Ready (PR #2652), then merged by the owner                           |
+| #2215 | Ready (PR #2653), then merged by the owner                           |
+| #2228 | Ready, PR #2657, open                                                |
+| #2239 | Ready, PR #2659, open                                                |
+| #2207 | Ready, PR #2660, open                                                |
 | #2205 | Blocked `acceptance-blocked`: needs a scope decision (see the issue) |
 | #2208 | Not admitted: its prerequisite #2068 has no merged closing request   |
 
-The five open pull requests wait for the owner; the factory merges only an
-issue whose approved end state is `MERGED`. To admit more work, approve a
-scope and run `factory resume-intake`. #2206, #2207, #2215 and #2228 are bound
-to earlier releases (#2239 is on the installed one): to have the factory work on one of their open pull
-requests again, stop it, `adopt-policy`, then `reopen` (Updates, step 7),
-which reviews the candidate again. Do not do that for an issue whose pull
-request is already merged. Before changing a release, read the open checks in
-the [commissioning record](archon-vm100-commissioning.md#still-open). The
-safety gates below supersede older unconditional retry/resume guidance.
+The factory still lists the three owner-merged issues as ready: it does not
+watch a pull request after reporting it ready. They are finished; leave them
+alone. The three open pull requests wait for the owner and fall behind
+`develop` as it moves: GitHub's "Update branch" brings one up to date, or
+`issue <n> reopen` has the factory merge `develop` in and check again. The
+factory merges only an issue whose approved end state is `MERGED`.
+
+To admit more work, approve a scope and run `factory resume-intake`. #2207
+and #2228 are bound to earlier releases (#2239 is on the installed one): to
+have the factory work on one of them again, stop it, `adopt-policy`, then
+`reopen` (Updates, step 7), which reviews the candidate again. Before changing
+a release, read the open checks in the
+[commissioning record](archon-vm100-commissioning.md#still-open). The safety
+gates below supersede older unconditional retry/resume guidance.
 
 ## Access
 
@@ -405,8 +410,9 @@ integrity-checked), `control-and-runs.tgz` (control folder and run evidence),
 `engine-runs.tgz` (the engine's round ledgers, frozen workflow sources and
 state, which a restored engine needs to continue paused rounds) and, per issue,
 a Git bundle of unpushed commits, a binary patch of uncommitted changes and a
-tarball of untracked files (each only when there is something to hold, so a
-pushed, clean issue has none). Files a round set aside under
+tarball of untracked files. The bundle and the tarball are written only when
+there is something to hold; the patch is always written and is empty for a
+clean clone. Files a round set aside under
 `runs/<run>/strays/untracked` are not in the backup. Each part is captured on
 its own, so one failure
 does not stop the rest. `manifest.json` lists every file with its hash and
@@ -684,18 +690,19 @@ These blocks mean the issue clone is not in the state the round expects.
 `retry` alone repeats them; look first, in `/srv/core-factory/issues/<n>/repo`
 and the round's evidence under `/srv/core-factory/runs/<run>/strays`.
 
-| Blocker               | What it means                                                                                               | What to do                                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `acceptance-strays`   | Files outside the issue's source and test paths were dirty before or after Ezra                             | Move the named files out of the clone (keep them if they matter), then `retry`                     |
-| `acceptance-tampered` | A test the acceptance author recorded is missing from the workspace or no longer holds the recorded content | See below the table                                                                                |
-| `candidate-integrity` | The commit holds a path it may not, or lacks a recorded acceptance test                                     | Read the blocker detail; a missing test is in the round's `strays` evidence. Restore, then `retry` |
-| `dirty-workspace`     | The clone has uncommitted work on a different commit than the recorded one                                  | See below the table                                                                                |
-| `review-precondition` | The recorded candidate is not what the clone has checked out, or it is dirty                                | Make the clone's HEAD the recorded head with a clean tree, then `retry`                            |
+| Blocker                                                                      | What it means                                                                                               | What to do                                                                                                                                                      |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `acceptance-strays`                                                          | Files outside the issue's source and test paths were dirty before or after Ezra                             | Save the named files if they matter. Move untracked ones out of the clone; put tracked ones back with `git restore --staged --worktree -- <file>`. Then `retry` |
+| `acceptance-tampered`                                                        | A test the acceptance author recorded is missing from the workspace or no longer holds the recorded content | See below the table                                                                                                                                             |
+| `candidate-integrity`                                                        | The commit holds a path it may not, or lacks a recorded acceptance test                                     | Read the blocker detail; a missing test is in the round's `strays` evidence. Restore, then `retry`                                                              |
+| `no-progress` with "uncommitted work on a different revision" in the history | The clone has uncommitted work on a different commit than the recorded one; three starts stopped on it      | See below the table                                                                                                                                             |
+| `review-precondition`                                                        | The recorded candidate is not what the clone has checked out, or it is dirty                                | Make the clone's HEAD the recorded head with a clean tree, then `retry`                                                                                         |
 
-`acceptance-tampered` and `dirty-workspace` can follow a round that was
-stopped just after its commit and before that commit was recorded. Check for
-it in the clone: `git reflog -5` shows a `factory round` commit that is not
-the work item's `head`. Its content is that commit, not the `strays`
+`acceptance-tampered` and the dirty-workspace block can follow a round that
+was stopped just after its commit and before that commit was recorded. Check
+for it in the clone: `git reflog -5` shows a `factory round` commit that is
+not the recorded commit (the work item's `head`, or its `base` while `head`
+is still empty in a first round). Its content is that commit, not the `strays`
 evidence. To recover, put its files back as uncommitted work on the recorded
 commit and retry, so the next round commits them again:
 
@@ -706,7 +713,7 @@ git checkout <unrecorded commit> -- .     # its files, as uncommitted work
 git status --porcelain                    # only the issue's source and test paths
 ```
 
-If the clone is still on the unrecorded commit (`dirty-workspace`), use
+If the clone is still on the unrecorded commit (the dirty-workspace block), use
 `git reset --soft <recorded commit>` instead: it keeps the same files as
 uncommitted work. Then `issue <n> retry`. These steps follow from the code
 and have not been exercised on the VM. If the test content differs from what the work item

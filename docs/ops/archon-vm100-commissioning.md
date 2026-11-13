@@ -1057,7 +1057,7 @@ round, repaired test-first in commit `3387942ac`, and were in release
 27. The pull request said "Micaiah CLEAR" for a review sealed with a finding
     that Samson assessed as not material (PR #2659). The description now says
     that findings were raised and not upheld, and a long brief ends at a line
-    end. PR #2659 itself still carries the old sentence.
+    end. PR #2659 was rewritten by the factory at 23:42 (below).
 28. A bot's request about the pull-request description (CodeRabbit asked for
     the deploy checklist on PR #2659) was assigned as a code fix that nothing
     can carry out, and stayed unanswered. Samson is now told to answer such a
@@ -1130,7 +1130,12 @@ of 10 for unattended use on a wider scope; 8 and 8.5 for the exercise), for
 defect 31; GPT-6.1 Sol did not run (usage limit). Both confirmed that #2207
 recovered from the deliberate restart by itself, that PR #2660 is ready and
 that the installed release matched its commit. The result of the fifth
-round, on the final state below, is in the description of pull request #2651.
+round, on the final state below, is in the description of pull request #2651:
+both reviewers that ran answered "verified within the demonstrated scope".
+
+After the final snapshot the owner merged PR #2652 (00:06 on 13 November) and
+PR #2653 (00:20) by hand and updated the branch of PR #2660. The factory did
+not take part: it does not watch a ready pull request.
 
 ### Operator interventions in this pass
 
@@ -1235,8 +1240,9 @@ admission to a ready pull request on `2cfd7082` itself. #2239 did so on
   hooks that leave files behind after a successful commit) is not recovered
   by itself. The next round puts the branch back on the recorded commit, the
   acceptance tests of the unrecorded one are then missing from the workspace,
-  and the issue blocks (`acceptance-tampered`, or `dirty-workspace` when files
-  were left). Nothing is lost: the unrecorded commit is still in the clone
+  and the issue blocks: `acceptance-tampered`, or, when files were left,
+  `no-progress` after three starts that each stop on a dirty workspace.
+  Nothing is lost: the unrecorded commit is still in the clone
   (`git reflog`). The runbook has the steps. A reviewer reproduced this in
   round 5; it was not seen live and has no automatic recovery.
 - **Files left outside an issue's paths block it** (`acceptance-strays`), by
