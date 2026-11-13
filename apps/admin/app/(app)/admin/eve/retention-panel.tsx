@@ -14,6 +14,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArchiveRestore, Clock3, DatabaseZap, ShieldCheck } from "lucide-react";
 
+import { EveSectionEmpty, formatStatusLabel } from "./section-states";
+
 import type { EveRetentionAdminView } from "@asym/api/eve/retention/types";
 
 interface RetentionResponse extends EveRetentionAdminView {
@@ -71,15 +73,16 @@ export function EveRetentionPanel() {
   return (
     <Card id="eve-retention">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={2}>
           <span className="flex items-center gap-2">
             <ArchiveRestore aria-hidden="true" className="size-5" />
             Retention and replay artifacts
           </span>
         </CardTitle>
         <CardDescription>
-          Queryable redacted metadata in Postgres; private artifact bodies stay
-          in Storage. Holds affect lifecycle only and grant no autonomy.
+          Search saved, redacted details while private files stay in private
+          storage. Holds delay deletion only; they grant no permissions or
+          autonomy.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -98,7 +101,9 @@ export function EveRetentionPanel() {
           {(query.data?.categories ?? []).map((category) => (
             <div key={category.category} className="rounded-lg border p-4">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium">{category.category}</p>
+                <p className="text-sm font-medium">
+                  {formatStatusLabel(category.category)}
+                </p>
                 <Badge
                   variant={category.metadataOnly ? "secondary" : "outline"}
                 >
@@ -158,13 +163,17 @@ export function EveRetentionPanel() {
                 className="flex flex-wrap justify-between gap-3 py-3"
               >
                 <div>
-                  <p className="text-sm font-medium">{artifact.artifactKind}</p>
+                  <p className="text-sm font-medium">
+                    {formatStatusLabel(artifact.artifactKind)}
+                  </p>
                   <p className="max-w-2xl text-xs text-muted-foreground">
                     {artifact.redactedSummary}
                   </p>
                 </div>
                 <div className="text-right">
-                  <Badge variant="outline">{artifact.status}</Badge>
+                  <Badge variant="outline">
+                    {formatStatusLabel(artifact.status)}
+                  </Badge>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Expires{" "}
                     {formatDateTime(artifact.expiresAt, TIMESTAMP_FORMAT)}
@@ -172,9 +181,12 @@ export function EveRetentionPanel() {
                 </div>
               </li>
             ))}
-            {!query.isLoading && (query.data?.artifacts.length ?? 0) === 0 ? (
+            {query.isSuccess && query.data.artifacts.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">
-                No replay artifacts.
+                <EveSectionEmpty
+                  title="No replay artifacts."
+                  description="Saved replay details will appear here."
+                />
               </li>
             ) : null}
           </ul>
@@ -192,7 +204,8 @@ export function EveRetentionPanel() {
               >
                 <div>
                   <p className="text-sm font-medium">
-                    {hold.holdType} · {hold.scopeType}
+                    {formatStatusLabel(hold.holdType)} ·{" "}
+                    {formatStatusLabel(hold.scopeType)}
                   </p>
                   <p className="text-xs text-muted-foreground">{hold.reason}</p>
                 </div>
@@ -200,7 +213,7 @@ export function EveRetentionPanel() {
                   <Badge
                     variant={hold.status === "active" ? "secondary" : "outline"}
                   >
-                    {hold.status}
+                    {formatStatusLabel(hold.status)}
                   </Badge>
                   {hold.status === "active" ? (
                     <Button
@@ -226,9 +239,12 @@ export function EveRetentionPanel() {
                 </div>
               </li>
             ))}
-            {!query.isLoading && (query.data?.holds.length ?? 0) === 0 ? (
+            {query.isSuccess && query.data.holds.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">
-                No retention holds.
+                <EveSectionEmpty
+                  title="No retention holds."
+                  description="Active incident and legal holds will appear here."
+                />
               </li>
             ) : null}
           </ul>
@@ -236,8 +252,7 @@ export function EveRetentionPanel() {
 
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock3 aria-hidden="true" className="size-4" />
-          Expiry is two-phase: claim, remove from Storage, then finalize
-          metadata.
+          Expiry first removes private files, then updates their saved details.
         </p>
       </CardContent>
     </Card>

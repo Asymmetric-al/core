@@ -3,6 +3,10 @@ import { createClient } from "@asym/database/supabase/server";
 import { RegisterScreen } from "@asym/ui/components/auth/RegisterScreen";
 import { redirect } from "next/navigation";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Registration unavailable" };
+
 export default async function RegisterPage() {
   const supabase = await createClient();
   const {

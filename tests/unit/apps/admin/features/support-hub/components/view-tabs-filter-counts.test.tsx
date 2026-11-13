@@ -84,23 +84,27 @@ it("counts the current search and status facets independently of the selected vi
     />,
   );
   expect(
-    screen.getByRole("tab", { name: "All", exact: true }).textContent,
-  ).toBe("All1");
+    screen.getByRole("tab", { name: /^All, \d+ conversations?$/ }).textContent,
+  ).toBe("All1, 1 conversation");
   expect(
-    screen.getByRole("tab", { name: "Unassigned", exact: true }).textContent,
-  ).toBe("Unassigned1");
+    screen.getByRole("tab", { name: /^Unassigned, \d+ conversations?$/ })
+      .textContent,
+  ).toBe("Unassigned1, 1 conversation");
   expect(
-    screen.getByRole("tab", { name: "Mine", exact: true }).textContent,
-  ).toBe("Mine0");
-  fireEvent.click(screen.getByRole("tab", { name: "Unassigned", exact: true }));
+    screen.getByRole("tab", { name: /^Mine, \d+ conversations?$/ }).textContent,
+  ).toBe("Mine0, 0 conversations");
+  fireEvent.click(
+    screen.getByRole("tab", { name: /^Unassigned, \d+ conversations?$/ }),
+  );
   expect(onValueChange).toHaveBeenCalledExactlyOnceWith("unassigned");
   view.rerender(
     <ViewTabs value="all" onValueChange={onValueChange} baseFilter={null} />,
   );
   expect(
-    screen.getByRole("tab", { name: "All", exact: true }).textContent,
-  ).toBe("All3");
+    screen.getByRole("tab", { name: /^All, \d+ conversations?$/ }).textContent,
+  ).toBe("All3, 3 conversations");
   expect(
-    screen.getByRole("tab", { name: "Unassigned", exact: true }).textContent,
-  ).toBe("Unassigned2");
+    screen.getByRole("tab", { name: /^Unassigned, \d+ conversations?$/ })
+      .textContent,
+  ).toBe("Unassigned2, 2 conversations");
 });

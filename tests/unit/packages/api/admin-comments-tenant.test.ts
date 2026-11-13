@@ -39,6 +39,109 @@ describe("admin comments tenant isolation", () => {
     getAuthContextMock.mockResolvedValue(authContext(TENANT_A));
   });
 
+  it.each([
+    { full_name: "Ada Byron Lovelace", expected: "Ada Byron Lovelace" },
+    { full_name: null, expected: "Ada Lovelace" },
+  ])(
+    "GET prefers stored full_name with a first/last fallback: $expected",
+    async ({ full_name, expected }) => {
+      const comments = {
+        select: vi.fn(),
+        eq: vi.fn(),
+        order: vi.fn(),
+        range: vi.fn().mockResolvedValue({
+          data: [{ id: "comment", user_id: "author" }],
+          error: null,
+          count: 1,
+        }),
+      };
+      comments.select.mockReturnValue(comments);
+      comments.eq.mockReturnValue(comments);
+      comments.order.mockReturnValue(comments);
+      const profiles = {
+        select: vi.fn(),
+        eq: vi.fn(),
+        in: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: "author",
+              first_name: "Ada",
+              last_name: "Lovelace",
+              full_name,
+              avatar_url: null,
+            },
+          ],
+          error: null,
+        }),
+      };
+      profiles.select.mockReturnValue(profiles);
+      profiles.eq.mockReturnValue(profiles);
+      getAdminClientMock.mockReturnValue({
+        client: {
+          from: vi.fn((table: string) =>
+            table === "post_comments" ? comments : profiles,
+          ),
+        },
+        error: null,
+      });
+      const response = await GET(
+        new Request("https://core.example/api/admin/comments") as NextRequest,
+      );
+      expect(response.status).toBe(200);
+      expect(comments.eq).toHaveBeenCalledWith("post.tenant_id", TENANT_A);
+      expect(profiles.select).toHaveBeenCalledWith(
+        "id, first_name, last_name, full_name, avatar_url",
+      );
+      expect(profiles.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+      expect(profiles.in).toHaveBeenCalledWith("id", ["author"]);
+      const body = await response.json();
+      expect(body.comments[0].author.full_name).toBe(expected);
+    },
+  );
+
+  it("GET reports profile lookup errors instead of returning anonymous authors", async () => {
+    const comments = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      order: vi.fn(),
+      range: vi.fn().mockResolvedValue({
+        data: [{ id: "comment", user_id: "author" }],
+        error: null,
+        count: 1,
+      }),
+    };
+    comments.select.mockReturnValue(comments);
+    comments.eq.mockReturnValue(comments);
+    comments.order.mockReturnValue(comments);
+    const profiles = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      in: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: "Could not load authors" },
+      }),
+    };
+    profiles.select.mockReturnValue(profiles);
+    profiles.eq.mockReturnValue(profiles);
+    getAdminClientMock.mockReturnValue({
+      client: {
+        from: vi.fn((table: string) =>
+          table === "post_comments" ? comments : profiles,
+        ),
+      },
+      error: null,
+    });
+
+    const response = await GET(
+      new Request("https://core.example/api/admin/comments") as NextRequest,
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: "Could not load authors" });
+    expect(comments.eq).toHaveBeenCalledWith("post.tenant_id", TENANT_A);
+    expect(profiles.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+  });
+
   it("PATCH returns 404 when comment belongs to another tenant", async () => {
     const single = vi.fn().mockResolvedValueOnce({
       data: {
@@ -112,7 +215,7 @@ describe("admin comments tenant isolation", () => {
 
     const response = await GET(request);
     expect(response.status).toBe(200);
-    expect(query.eq).toHaveBeenCalledWith("posts.tenant_id", TENANT_A);
+    expect(query.eq).toHaveBeenCalledWith("post.tenant_id", TENANT_A);
     expect(String(query.select.mock.calls[0]?.[0])).toContain("!inner");
     const body = (await response.json()) as { comments: { id: string }[] };
     expect(body.comments).toHaveLength(2);

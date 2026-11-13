@@ -88,7 +88,7 @@ export function TaskPartnerSelect({
   return (
     <div className="grid gap-2">
       <span id={labelId} className="text-sm font-medium text-foreground">
-        Associated Partner
+        Partner
       </span>
       <Combobox
         items={items}

@@ -17,13 +17,15 @@ const donorHistoryTransactionSchema = z.object({
   id: z.string().min(1),
   date: z.string().min(1),
   amount: z.number(),
+  /** The missionary the gift supports, or the fund when it has none. */
   recipient: z.string().min(1),
   recipientAvatar: z.string().optional(),
-  category: z.string().min(1),
+  /** The fund the gift was designated to, when it supports a missionary. */
+  fund: z.string().nullable(),
   type: z.enum(["Recurring", "One-Time"]),
+  /** How it was paid, in plain words ("Card", "Bank account (ACH)"). */
   method: z.string().min(1),
-  last4: z.string().min(1),
-  status: z.enum(["Succeeded", "Processing", "Failed"]),
+  status: z.enum(["Paid", "Processing", "Failed", "Refunded"]),
   receiptUrl: z.string().min(1),
 });
 
@@ -37,13 +39,10 @@ const DONOR_HISTORY_TRANSACTIONS_SEED: DonorHistoryTransaction[] = [
     date: "2024-10-24T10:30:00",
     amount: 100,
     recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
+    fund: null,
     type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Succeeded",
+    method: "Card",
+    status: "Paid",
     receiptUrl: "#",
   },
   {
@@ -51,40 +50,20 @@ const DONOR_HISTORY_TRANSACTIONS_SEED: DonorHistoryTransaction[] = [
     date: "2024-09-12T14:15:00",
     amount: 500,
     recipient: "Clean Water Initiative",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1538300342682-cf57afb97285?fit=crop&w=256&h=256&q=80",
-    category: "Project",
+    fund: null,
     type: "One-Time",
-    method: "Mastercard",
-    last4: "8821",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-10290",
-    date: "2024-08-24T10:30:00",
-    amount: 100,
-    recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
-    type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Succeeded",
+    method: "Card",
+    status: "Paid",
     receiptUrl: "#",
   },
   {
     id: "TX-10150",
     date: "2024-06-15T09:00:00",
     amount: 250,
-    recipient: "Refugee Crisis Fund",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?fit=crop&w=256&h=256&q=80",
-    category: "Emergency",
+    recipient: "The Miller Family",
+    fund: "Refugee Winter Relief",
     type: "One-Time",
-    method: "Bank",
-    last4: "9921",
+    method: "Bank account (ACH)",
     status: "Processing",
     receiptUrl: "#",
   },
@@ -93,35 +72,58 @@ const DONOR_HISTORY_TRANSACTIONS_SEED: DonorHistoryTransaction[] = [
     date: "2024-05-24T10:30:00",
     amount: 100,
     recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
+    fund: null,
     type: "Recurring",
-    method: "Visa",
-    last4: "4242",
+    method: "Card",
     status: "Failed",
     receiptUrl: "#",
   },
 ];
 
-type DonorPortalResponse = {
-  portal: {
-    donations: Array<{
-      id: string;
-      date: string;
-      amount: number;
-      designation: {
-        name: string;
-        type: "missionary" | "fund" | "general";
-        avatarUrl: string | null;
-      };
-      type: "Recurring" | "One-Time";
-      method: string;
-      status: "Succeeded" | "Processing" | "Failed";
-      receiptUrl: string;
-    }>;
+export type DonorPortalHistoryGift = {
+  id: string;
+  date: string;
+  amount: number;
+  designation: {
+    name: string;
+    type: "missionary" | "fund" | "general";
+    avatarUrl: string | null;
   };
+  missionary: { id: string; name: string; avatarUrl: string | null } | null;
+  fund: { id: string; name: string } | null;
+  type: "Recurring" | "One-Time";
+  method: string;
+  status: DonorHistoryTransaction["status"];
+  receiptUrl: string;
 };
+
+type DonorPortalResponse = {
+  portal: { donations: DonorPortalHistoryGift[] };
+};
+
+/**
+ * One history row: who the gift supports (the missionary, else the fund or
+ * general fund) and, separately, the fund a missionary gift went to.
+ */
+export function toDonorHistoryTransaction(
+  donation: DonorPortalHistoryGift,
+): DonorHistoryTransaction {
+  const missionary = donation.missionary;
+  return {
+    id: donation.id,
+    date: donation.date,
+    amount: donation.amount,
+    recipient: missionary?.name ?? donation.designation.name,
+    recipientAvatar:
+      (missionary ? missionary.avatarUrl : donation.designation.avatarUrl) ??
+      undefined,
+    fund: missionary ? (donation.fund?.name ?? null) : null,
+    type: donation.type,
+    method: donation.method,
+    status: donation.status,
+    receiptUrl: donation.receiptUrl,
+  };
+}
 
 async function fetchDonorHistoryTransactions(): Promise<
   DonorHistoryTransaction[]
@@ -140,24 +142,7 @@ async function fetchDonorHistoryTransactions(): Promise<
 
   const payload = (await response.json()) as DonorPortalResponse;
 
-  return payload.portal.donations.map((donation) => ({
-    id: donation.id,
-    date: donation.date,
-    amount: donation.amount,
-    recipient: donation.designation.name,
-    recipientAvatar: donation.designation.avatarUrl ?? undefined,
-    category:
-      donation.designation.type === "fund"
-        ? "Project"
-        : donation.designation.type === "missionary"
-          ? "Missionary"
-          : "General",
-    type: donation.type,
-    method: donation.method,
-    last4: "Stripe",
-    status: donation.status,
-    receiptUrl: donation.receiptUrl,
-  }));
+  return payload.portal.donations.map(toDonorHistoryTransaction);
 }
 
 export const donorHistoryTransactionsCollection = createCollection(

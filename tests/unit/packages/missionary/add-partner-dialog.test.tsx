@@ -46,17 +46,17 @@ async function openDialog() {
   fireEvent.click(
     screen.getByRole("button", { name: "Open partner", exact: true }),
   );
-  return screen.findByRole("dialog", { name: "Add New Partner" });
+  return screen.findByRole("dialog", { name: "Add partner" });
 }
 
 function fillValidFields() {
-  fireEvent.change(screen.getByLabelText("Full Name / Org Name"), {
+  fireEvent.change(screen.getByLabelText("Name"), {
     target: { value: "Fixture partner" },
   });
-  fireEvent.change(screen.getByLabelText("Email Address"), {
+  fireEvent.change(screen.getByLabelText("Email"), {
     target: { value: "fixture@example.invalid" },
   });
-  fireEvent.change(screen.getByLabelText("Location (City, State)"), {
+  fireEvent.change(screen.getByLabelText("Location"), {
     target: { value: "Fixture location" },
   });
 }
@@ -93,7 +93,7 @@ describe("AddPartnerDialog public form behavior", () => {
         />,
       );
       const dialog = await openDialog();
-      fireEvent.change(screen.getByLabelText("Full Name / Org Name"), {
+      fireEvent.change(screen.getByLabelText("Name"), {
         target: { value: "Unsaved partner" },
       });
       if (action === "escape") fireEvent.keyDown(dialog, { key: "Escape" });
@@ -106,10 +106,9 @@ describe("AddPartnerDialog public form behavior", () => {
         );
       await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
       await openDialog();
-      expect(
-        (screen.getByLabelText("Full Name / Org Name") as HTMLInputElement)
-          .value,
-      ).toBe("");
+      expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
+        "",
+      );
       expect(boundary.insert).not.toHaveBeenCalled();
     },
   );
@@ -132,8 +131,8 @@ describe("AddPartnerDialog public form behavior", () => {
       />,
     );
     await openDialog();
-    const name = screen.getByLabelText("Full Name / Org Name");
-    const email = screen.getByLabelText("Email Address");
+    const name = screen.getByLabelText("Name");
+    const email = screen.getByLabelText("Email");
     fireEvent.change(name, { target: { value: "X" } });
     fireEvent.blur(name);
     fireEvent.change(email, { target: { value: "invalid" } });
@@ -190,9 +189,9 @@ describe("AddPartnerDialog public form behavior", () => {
     await waitFor(() =>
       expect(boundary.error).toHaveBeenCalledWith("Fixture rejected insert"),
     );
-    expect(
-      (screen.getByLabelText("Full Name / Org Name") as HTMLInputElement).value,
-    ).toBe("Fixture partner");
+    expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
+      "Fixture partner",
+    );
     expect(onSuccess).not.toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalledTimes(1);
   });
@@ -245,8 +244,6 @@ describe("AddPartnerDialog public form behavior", () => {
     expect(onSuccess).toHaveBeenCalledTimes(1);
     expect(boundary.success).toHaveBeenCalledWith("Partner added successfully");
     await openDialog();
-    expect(
-      (screen.getByLabelText("Full Name / Org Name") as HTMLInputElement).value,
-    ).toBe("");
+    expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("");
   });
 });

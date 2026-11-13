@@ -1,106 +1,135 @@
 "use client";
 
+import { DataGridRowPrimary } from "@asym/ui/components/data-grid-panel";
+import { DataGridColumnHeader } from "@asym/ui/components/reui/data-grid/data-grid-column-header";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
-import { Clock3, FileText } from "lucide-react";
+import Link from "next/link";
+
+import { CrmEmptyValue, formatCrmDate } from "../crm-display";
 
 import type { CrmNoteRow } from "@asym/database/hooks";
+import type { DataGridColumnDef } from "@asym/ui/components/data-grid-panel";
 
-const DATE_TIME_FORMATTER_1 = new Intl.DateTimeFormat("en-US", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
+/** Below the widest tier, the author column starts hidden (View restores it). */
+export const CRM_NOTE_COLUMN_TIERS: Array<Record<string, boolean>> = [
+  {},
+  { authorName: false },
+];
 
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
+/** The note column takes the width the other visible columns leave. */
+export const CRM_NOTE_FILL_COLUMN_ID = "title";
 
-  return DATE_TIME_FORMATTER_1.format(date);
+/** Linked record types that are CRM records (donor profiles and organizations). */
+const CRM_RECORD_LINK_TYPES = new Set(["donor_profile", "organization"]);
+
+/** `/crm?donor=` for notes linked to a CRM record; null otherwise. */
+export function crmNoteLinkedRecordHref(note: CrmNoteRow): string | null {
+  return note.linkedRecordId &&
+    note.linkedRecordType &&
+    CRM_RECORD_LINK_TYPES.has(note.linkedRecordType)
+    ? `/crm?donor=${encodeURIComponent(note.linkedRecordId)}`
+    : null;
 }
 
-export function getCrmNoteColumns(): ColumnDef<CrmNoteRow>[] {
+export function CrmNoteLinkedRecord({ note }: { note: CrmNoteRow }) {
+  if (!note.linkedRecordLabel) return <CrmEmptyValue />;
+  const href = crmNoteLinkedRecordHref(note);
+  return href ? (
+    <Link
+      href={href}
+      title={note.linkedRecordLabel}
+      // Two lines before clamping: long names stay readable in the list.
+      className="line-clamp-2 text-sm font-medium wrap-break-word text-foreground underline decoration-muted-foreground/50 underline-offset-4 transition-colors hover:decoration-foreground"
+    >
+      {note.linkedRecordLabel}
+    </Link>
+  ) : (
+    <span
+      title={note.linkedRecordLabel}
+      className="line-clamp-2 text-sm wrap-break-word text-muted-foreground"
+    >
+      {note.linkedRecordLabel}
+    </span>
+  );
+}
+
+/** Restricted notes are admin-only; standard notes carry no badge. */
+export function CrmNoteRestrictedBadge({ note }: { note: CrmNoteRow }) {
+  return note.visibility === "restricted" ? (
+    <Badge variant="warning">Restricted</Badge>
+  ) : null;
+}
+
+export function CrmNoteVisibility({ note }: { note: CrmNoteRow }) {
+  return note.visibility === "restricted" ? (
+    <Badge variant="warning">Restricted</Badge>
+  ) : (
+    <span className="text-sm text-muted-foreground">Standard</span>
+  );
+}
+
+export function getCrmNoteColumns({
+  onOpenNote,
+}: {
+  onOpenNote: (note: CrmNoteRow) => void;
+}): DataGridColumnDef<CrmNoteRow>[] {
   return [
     {
       accessorKey: "title",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Note" />
-      ),
+      header: ({ column }) => <DataGridColumnHeader column={column} />,
       cell: ({ row }) => {
         const note = row.original;
         return (
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="mt-0.5 rounded-md bg-muted p-1.5 text-muted-foreground">
-              <FileText className="size-3.5" />
+          <div className="flex min-w-0 flex-col gap-0.5 py-0.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <DataGridRowPrimary onClick={() => onOpenNote(note)}>
+                <span className="truncate text-sm font-medium text-foreground underline-offset-4 hover:underline">
+                  {note.title}
+                </span>
+              </DataGridRowPrimary>
+              <CrmNoteRestrictedBadge note={note} />
             </div>
-            <div className="min-w-0 space-y-1">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {note.title}
-              </p>
-              <p className="line-clamp-2 max-w-xl text-xs leading-relaxed text-muted-foreground">
-                {note.bodyPreview}
-              </p>
-            </div>
+            <p className="line-clamp-2 text-xs text-muted-foreground">
+              {note.bodyPreview}
+            </p>
           </div>
         );
       },
-      meta: { label: "Note" },
-      size: 520,
+      size: 300,
+      minSize: 240,
+      enableHiding: false,
+      meta: { headerTitle: "Note" },
     },
     {
       accessorKey: "authorName",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Author" />
-      ),
+      header: ({ column }) => <DataGridColumnHeader column={column} />,
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.authorName ?? "Mission Control"}
+        <span className="block truncate text-sm text-muted-foreground">
+          {row.original.authorName || "Mission Control"}
         </span>
       ),
       enableSorting: false,
-      meta: { label: "Author" },
-      size: 180,
+      size: 140,
+      meta: { headerTitle: "Author" },
     },
     {
       accessorKey: "linkedRecordLabel",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Linked record" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.linkedRecordLabel ?? "—"}
-        </span>
-      ),
+      header: ({ column }) => <DataGridColumnHeader column={column} />,
+      cell: ({ row }) => <CrmNoteLinkedRecord note={row.original} />,
       enableSorting: false,
-      meta: { label: "Linked record" },
-      size: 180,
-    },
-    {
-      accessorKey: "source",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="State" />
-      ),
-      cell: () => <Badge variant="outline">Saved</Badge>,
-      enableSorting: false,
-      meta: { label: "State" },
-      size: 110,
+      size: 190,
+      meta: { headerTitle: "Linked record" },
     },
     {
       accessorKey: "updatedAt",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Updated" />
-      ),
+      header: ({ column }) => <DataGridColumnHeader column={column} />,
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock3 className="size-3.5" />
-          {formatDate(row.original.updatedAt)}
-        </div>
+        <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
+          {formatCrmDate(row.original.updatedAt) ?? "—"}
+        </span>
       ),
-      meta: { label: "Updated" },
-      size: 140,
+      size: 112,
+      meta: { headerTitle: "Updated" },
     },
   ];
 }

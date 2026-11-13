@@ -6,6 +6,7 @@ import {
   SUPPORT_PRIORITIES,
 } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
@@ -24,24 +25,40 @@ import {
 } from "../../../hooks/use-support-agents";
 import { useSupportLabels } from "../../../hooks/use-support-labels";
 import { useSupportMacros } from "../../../hooks/use-support-macros";
+import {
+  CONVERSATION_PRIORITY_LABELS,
+  CONVERSATION_STATUS_LABELS,
+  AUTOMATION_ACTION_LABELS,
+} from "../../../lib/status-labels";
 
 import type { SupportAutomationAction } from "../../../types";
 
 interface AutomationActionRowProps {
   action: SupportAutomationAction;
+  /** Zero-based position; controls are named by row so each name is unique. */
+  index: number;
+  /** What the row still needs, shown once staff try to save. */
+  error?: string | null;
   onChange: (next: SupportAutomationAction) => void;
   onRemove: () => void;
 }
 
 export function AutomationActionRow({
   action,
+  index,
+  error,
   onChange,
   onRemove,
 }: AutomationActionRowProps) {
   const { data: agents } = useSupportAgents();
   const { data: labels } = useSupportLabels();
   const { data: macros } = useSupportMacros();
-  const teams = useSupportTeams();
+  const { data: teams } = useSupportTeams();
+  const errorId = React.useId();
+  const row = `Action ${index + 1}`;
+  const invalid = error
+    ? { "aria-invalid": true, "aria-describedby": errorId }
+    : {};
 
   const handleKindChange = (kind: SupportAutomationAction["kind"]) => {
     onChange(defaultForKind(kind));
@@ -50,19 +67,21 @@ export function AutomationActionRow({
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/60 p-2">
       <Select
-        items={[
-          ...SUPPORT_AUTOMATION_ACTION_KINDS.map((kind) => ({
-            value: kind,
-            label: labelForKind(kind),
-          })),
-        ]}
+        items={SUPPORT_AUTOMATION_ACTION_KINDS.map((kind) => ({
+          value: kind,
+          label: labelForKind(kind),
+        }))}
         value={action.kind}
         onValueChange={(value) => {
           if (value !== null) handleKindChange(value);
         }}
       >
-        <div className="min-w-45">
-          <SelectTrigger aria-label="Action type" className="w-full">
+        <div className="min-w-45 flex-1">
+          <SelectTrigger
+            aria-label={`${row} type`}
+            size="sm"
+            className="w-full"
+          >
             <SelectValue />
           </SelectTrigger>
         </div>
@@ -78,20 +97,18 @@ export function AutomationActionRow({
       {action.kind === "assign_agent" ? (
         <div className="min-w-50 flex-1">
           <SearchableSelect
-            items={[
-              ...agents.map((agent) => ({
-                value: agent.id,
-                label: agent.name,
-              })),
-            ]}
+            items={agents.map((agent) => ({
+              value: agent.id,
+              label: agent.name,
+            }))}
             value={action.agentId}
             onValueChange={(value) => {
-              if (value === null) {
-                return;
-              }
+              if (value === null) return;
               onChange({ kind: "assign_agent", agentId: value });
             }}
-            aria-label="Assigned agent"
+            aria-label={`${row} agent`}
+            {...invalid}
+            className="w-full"
             placeholder="Pick an agent"
           />
         </div>
@@ -100,20 +117,15 @@ export function AutomationActionRow({
       {action.kind === "assign_team" ? (
         <div className="min-w-50 flex-1">
           <SearchableSelect
-            items={[
-              ...(teams.data ?? []).map((team) => ({
-                value: team.id,
-                label: team.name,
-              })),
-            ]}
+            items={teams.map((team) => ({ value: team.id, label: team.name }))}
             value={action.teamId}
             onValueChange={(value) => {
-              if (value === null) {
-                return;
-              }
+              if (value === null) return;
               onChange({ kind: "assign_team", teamId: value });
             }}
-            aria-label="Assigned team"
+            aria-label={`${row} team`}
+            {...invalid}
+            className="w-full"
             placeholder="Pick a team"
           />
         </div>
@@ -122,20 +134,18 @@ export function AutomationActionRow({
       {action.kind === "add_label" ? (
         <div className="min-w-50 flex-1">
           <SearchableSelect
-            items={[
-              ...labels.map((label) => ({
-                value: label.id,
-                label: label.name,
-              })),
-            ]}
+            items={labels.map((label) => ({
+              value: label.id,
+              label: label.name,
+            }))}
             value={action.labelId}
             onValueChange={(value) => {
-              if (value === null) {
-                return;
-              }
+              if (value === null) return;
               onChange({ kind: "add_label", labelId: value });
             }}
-            aria-label="Label to add"
+            aria-label={`${row} label`}
+            {...invalid}
+            className="w-full"
             placeholder="Pick a label"
           />
         </div>
@@ -143,12 +153,10 @@ export function AutomationActionRow({
 
       {action.kind === "set_priority" ? (
         <Select
-          items={[
-            ...SUPPORT_PRIORITIES.map((priority) => ({
-              value: priority,
-              label: priority,
-            })),
-          ]}
+          items={SUPPORT_PRIORITIES.map((priority) => ({
+            value: priority,
+            label: CONVERSATION_PRIORITY_LABELS[priority],
+          }))}
           value={action.priority}
           onValueChange={(value) => {
             if (value === null) return;
@@ -158,15 +166,19 @@ export function AutomationActionRow({
             });
           }}
         >
-          <div className="min-w-35">
-            <SelectTrigger aria-label="Priority" className="w-full">
+          <div className="min-w-35 flex-1">
+            <SelectTrigger
+              aria-label={`${row} priority`}
+              size="sm"
+              className="w-full"
+            >
               <SelectValue />
             </SelectTrigger>
           </div>
           <SelectContent>
             {SUPPORT_PRIORITIES.map((priority) => (
               <SelectItem key={priority} value={priority}>
-                {priority}
+                {CONVERSATION_PRIORITY_LABELS[priority]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -175,12 +187,10 @@ export function AutomationActionRow({
 
       {action.kind === "set_status" ? (
         <Select
-          items={[
-            ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
-              value: status,
-              label: status,
-            })),
-          ]}
+          items={SUPPORT_CONVERSATION_STATUSES.map((status) => ({
+            value: status,
+            label: CONVERSATION_STATUS_LABELS[status],
+          }))}
           value={action.status}
           onValueChange={(value) => {
             if (value === null) return;
@@ -190,15 +200,19 @@ export function AutomationActionRow({
             });
           }}
         >
-          <div className="min-w-35">
-            <SelectTrigger aria-label="Status" className="w-full">
+          <div className="min-w-35 flex-1">
+            <SelectTrigger
+              aria-label={`${row} status`}
+              size="sm"
+              className="w-full"
+            >
               <SelectValue />
             </SelectTrigger>
           </div>
           <SelectContent>
             {SUPPORT_CONVERSATION_STATUSES.map((status) => (
               <SelectItem key={status} value={status}>
-                {status}
+                {CONVERSATION_STATUS_LABELS[status]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -206,38 +220,43 @@ export function AutomationActionRow({
       ) : null}
 
       {action.kind === "snooze" ? (
-        <div className="w-30">
-          <Input
-            type="number"
-            min={1}
-            value={action.hours}
-            onChange={(event) =>
-              onChange({
-                kind: "snooze",
-                hours: Number(event.target.value) || 1,
-              })
-            }
-          />
-        </div>
+        <span className="inline-flex items-center gap-2">
+          <div className="w-30 flex-1">
+            <Input
+              type="number"
+              min={1}
+              step={1}
+              value={action.hours}
+              onChange={(event) =>
+                onChange({
+                  kind: "snooze",
+                  hours: Number(event.target.value) || 1,
+                })
+              }
+              aria-label={`${row} hours to snooze`}
+              {...invalid}
+              className="w-full"
+            />
+          </div>
+          <span className="text-xs text-muted-foreground">hours</span>
+        </span>
       ) : null}
 
       {action.kind === "run_macro" ? (
         <div className="min-w-55 flex-1">
           <SearchableSelect
-            items={[
-              ...macros.map((macro) => ({
-                value: macro.id,
-                label: macro.name,
-              })),
-            ]}
+            items={macros.map((macro) => ({
+              value: macro.id,
+              label: macro.name,
+            }))}
             value={action.macroId}
             onValueChange={(value) => {
-              if (value === null) {
-                return;
-              }
+              if (value === null) return;
               onChange({ kind: "run_macro", macroId: value });
             }}
-            aria-label="Macro to run"
+            aria-label={`${row} macro`}
+            {...invalid}
+            className="w-full"
             placeholder="Pick a macro"
           />
         </div>
@@ -245,13 +264,18 @@ export function AutomationActionRow({
 
       <Button
         type="button"
-        variant="ghost"
+        variant="destructive"
         size="icon-sm"
         onClick={onRemove}
-        aria-label="Remove action"
+        aria-label={`Remove action ${index + 1}: ${labelForKind(action.kind)}`}
       >
-        <Trash2 className="size-3.5 text-destructive" />
+        <Trash2 aria-hidden="true" className="size-3.5" />
       </Button>
+      {error ? (
+        <FieldError id={errorId} className="basis-full">
+          {error}
+        </FieldError>
+      ) : null}
     </li>
   );
 }
@@ -284,25 +308,7 @@ function defaultForKind(
   }
 }
 
-function labelForKind(kind: SupportAutomationAction["kind"]): string {
-  switch (kind) {
-    case "assign_agent":
-      return "Assign agent";
-    case "assign_team":
-      return "Assign team";
-    case "add_label":
-      return "Add label";
-    case "set_priority":
-      return "Set priority";
-    case "set_status":
-      return "Set status";
-    case "snooze":
-      return "Snooze";
-    case "mark_escalated":
-      return "Mark escalated";
-    case "run_macro":
-      return "Run macro";
-    default:
-      return kind;
-  }
+/** An action kind as staff read it, in sentence case. */
+export function labelForKind(kind: SupportAutomationAction["kind"]): string {
+  return AUTOMATION_ACTION_LABELS[kind];
 }

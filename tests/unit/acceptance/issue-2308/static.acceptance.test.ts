@@ -71,13 +71,16 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  // Re-frozen after develop d99a1fc4 shrank the table-preferences entry, and
-  // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites).
-  it("C12: frozen service-role allowlist is byte-unchanged from #2406 Builder 9563beea", () => {
+  // Re-frozen after develop d99a1fc4 shrank the table-preferences entry,
+  // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites),
+  // and in the admin hill-climb round 12, which shrank dashboard-stats.ts from
+  // 2 sites to 1 (the CRM tags read reuses crm/index.ts's one site; no new
+  // sites).
+  it("C12: frozen service-role allowlist is byte-unchanged since the round 12 dashboard-stats shrink", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("41b0324c81960fc9349c92b5048293ff7b856ce8d51d5c14ce2c22b4fb575d0c");
+    ).toBe("6fd5324cfd3ae22c97e7039b53bbcbcaa02545f14aee7a4b1e8c0c83f2926086");
   });
 });

@@ -362,10 +362,10 @@ export function buildContributionGridRow({
     annualStatementEligible: true,
     entryMethod: normalizeEntryMethod(donation.source),
     reconciliationStatus: normalizeReconciliationStatus(shared.crmPostStatus),
+    // Only a processor reference is a transaction ID; manual and imported
+    // gifts have none, and their internal id must not pose as one.
     transactionId:
-      donation.stripe_payment_intent_id ??
-      donation.stripe_charge_id ??
-      donation.id,
+      donation.stripe_payment_intent_id ?? donation.stripe_charge_id ?? null,
     externalTransactionId: donation.stripe_charge_id,
     processorTransactionId: donation.stripe_payment_intent_id,
     notes: donation.notes,

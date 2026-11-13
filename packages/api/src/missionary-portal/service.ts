@@ -4,6 +4,7 @@ import {
   type MissionaryPortalDonationRow,
   type MissionaryPortalDonorRow,
   type MissionaryPortalMissionaryRow,
+  type MissionaryPortalPledgeRow,
   type MissionaryPortalPostRow,
   type MissionaryPortalProfileRow,
   type MissionaryPortalSnapshot,
@@ -43,6 +44,14 @@ const MISSIONARY_SELECT = `
   cover_url,
   social_links
 `;
+
+/** Rows per page when reading every active pledge. */
+const PLEDGE_PAGE_SIZE = 1000;
+
+type PledgePageRow = MissionaryPortalPledgeRow & {
+  id: string;
+  created_at: string | null;
+};
 
 const DONATION_SELECT = `
   id,
@@ -88,7 +97,6 @@ const TASK_SELECT = `
   sort_key,
   due_date,
   completed_at,
-  is_auto_generated,
   created_at,
   updated_at,
   donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url, giving_preferences)
@@ -104,7 +112,9 @@ const POST_SELECT = `
   created_at,
   like_count,
   prayer_count,
-  comment_count
+  comment_count,
+  image_url,
+  media
 `;
 
 function assertResult<T>(
@@ -231,6 +241,47 @@ export async function getMissionaryPortalSnapshot(input: {
       >,
     ]);
 
+  const donors = assertArrayResult(
+    donorsResult,
+    "Unable to load missionary donor relationships",
+  );
+  // Pledges name the missionaries row (not the profile), like donations.
+  // Scoping by donor alone would count a partner's recurring gifts to other
+  // missionaries as this missionary's support. Read every page: the totals
+  // are money, so they can't stop at a row limit. Page by immutable primary
+  // key so cancellations cannot shift offsets.
+  const pledges: PledgePageRow[] = [];
+  let afterId: string | undefined;
+  for (;;) {
+    let query = input.supabaseAdmin
+      .from("donor_pledges")
+      .select("id, created_at, donor_id, amount, currency, frequency, status")
+      .eq("tenant_id", input.tenantId)
+      .eq("missionary_id", missionary.id)
+      .eq("status", "active")
+      .order("id", { ascending: true })
+      .limit(PLEDGE_PAGE_SIZE);
+    if (afterId) query = query.gt("id", afterId);
+    const page = assertArrayResult(
+      (await query) as unknown as SupabaseResult<PledgePageRow[]>,
+      "Unable to load missionary pledges",
+    );
+    pledges.push(...page);
+    const last = page.at(-1);
+    if (!last || page.length < PLEDGE_PAGE_SIZE) break;
+    afterId = last.id;
+  }
+  // Newest first, so each partner's current commitment is the one counted.
+  pledges.sort((a, b) => {
+    if (a.created_at !== b.created_at) {
+      if (a.created_at === null) return -1;
+      if (b.created_at === null) return 1;
+      const dateOrder = Date.parse(b.created_at) - Date.parse(a.created_at);
+      if (dateOrder) return dateOrder;
+    }
+    return b.id.localeCompare(a.id);
+  });
+
   return buildMissionaryPortalSnapshot({
     profile,
     missionary,
@@ -238,10 +289,8 @@ export async function getMissionaryPortalSnapshot(input: {
       donationsResult,
       "Unable to load missionary gifts",
     ),
-    donors: assertArrayResult(
-      donorsResult,
-      "Unable to load missionary donor relationships",
-    ),
+    donors,
+    pledges,
     tasks: normalizeTaskRows(
       assertArrayResult(tasksResult, "Unable to load missionary tasks"),
     ),

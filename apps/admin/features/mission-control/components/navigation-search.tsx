@@ -1,6 +1,11 @@
 "use client";
 
-import { getNavItemsByRole, type Role } from "@asym/config/navigation";
+import {
+  getNavItemsByRole,
+  type NavItem,
+  type NavSubItem,
+  type Role,
+} from "@asym/config/navigation";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CommandDialog,
@@ -10,8 +15,17 @@ import {
   CommandItem,
   CommandList,
 } from "@asym/ui/components/shadcn/command";
+import { Kbd } from "@asym/ui/components/shadcn/kbd";
 import { Search } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+
+const subscribePlatform = () => () => {};
 
 export function MissionControlNavigationSearch({
   role,
@@ -24,7 +38,13 @@ export function MissionControlNavigationSearch({
   const [query, setQuery] = useState("");
   const returnFocus = useRef<HTMLElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const items = getNavItemsByRole(role);
+  const items: (NavItem & { keywords?: readonly string[] })[] =
+    getNavItemsByRole(role);
+  const shortcut = useSyncExternalStore(
+    subscribePlatform,
+    () => (/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K"),
+    () => "Ctrl K",
+  );
 
   const openSearch = useCallback((origin: HTMLElement | null) => {
     returnFocus.current = origin;
@@ -78,23 +98,20 @@ export function MissionControlNavigationSearch({
 
   return (
     <>
-      <div className="hidden w-56 sm:block">
+      <div className="hidden w-60 sm:block">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           className="w-full"
           aria-label="Open Mission Control search"
           aria-keyshortcuts="Control+k Meta+k"
           onClick={(event) => openSearch(event.currentTarget)}
         >
-          <Search aria-hidden />
-          <span className="text-sm text-muted-foreground">Search…</span>
-          <kbd
-            className="pointer-events-none ml-auto select-none rounded border bg-muted px-1.5 font-mono text-xs font-medium"
-            aria-hidden
-          >
-            Ctrl/⌘ K
-          </kbd>
+          <span className="flex flex-1 items-center gap-2 text-muted-foreground">
+            <Search aria-hidden className="size-4" />
+            Search pages…
+          </span>
+          <Kbd aria-hidden>{shortcut}</Kbd>
         </Button>
       </div>
       <div className="sm:hidden">
@@ -129,10 +146,11 @@ export function MissionControlNavigationSearch({
         <CommandList>
           <CommandEmpty>No matching pages. Try another page name.</CommandEmpty>
           <CommandGroup heading="Pages">
-            {items.map((item) => (
+            {items.flatMap((item) => [
               <CommandItem
                 key={item.id}
                 value={`${item.title} ${item.href}`}
+                keywords={[...(item.keywords ?? [])]}
                 onSelect={() => {
                   setOpen(false);
                   onNavigate(item.href);
@@ -140,8 +158,25 @@ export function MissionControlNavigationSearch({
               >
                 <item.icon aria-hidden />
                 {item.title}
-              </CommandItem>
-            ))}
+              </CommandItem>,
+              // A module's sub-pages, except the one that is the module home.
+              ...(item.items ?? [])
+                .filter((sub) => sub.href !== item.href)
+                .map((sub: NavSubItem & { keywords?: readonly string[] }) => (
+                  <CommandItem
+                    key={sub.id}
+                    value={`${item.title} ${sub.title} ${sub.href}`}
+                    keywords={[...(sub.keywords ?? [])]}
+                    onSelect={() => {
+                      setOpen(false);
+                      onNavigate(sub.href);
+                    }}
+                  >
+                    <item.icon aria-hidden />
+                    <span>{`${item.title} › ${sub.title}`}</span>
+                  </CommandItem>
+                )),
+            ])}
           </CommandGroup>
         </CommandList>
       </CommandDialog>

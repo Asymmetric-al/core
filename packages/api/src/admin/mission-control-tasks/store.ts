@@ -1,6 +1,8 @@
 import {
   buildNeedsAttentionGroups,
   mapNeedsAttentionRow,
+  RETIRED_NEEDS_ATTENTION_ISSUE_TYPES,
+  withoutRetiredNeedsAttention,
   type NeedsAttentionRow,
 } from "./read-model";
 import { createMissionControlTask } from "./service";
@@ -138,6 +140,13 @@ export async function listContributionNeedsAttention(input: {
     )
     .eq("tenant_id", input.tenantId)
     .eq("status", "open")
+    // Retired kinds are excluded in the query so they never use up the row
+    // limit; the rows stay in place as history.
+    .not(
+      "issue_type",
+      "in",
+      `(${RETIRED_NEEDS_ATTENTION_ISSUE_TYPES.join(",")})`,
+    )
     .order("last_seen_at", { ascending: false })
     .limit(100);
 
@@ -145,7 +154,9 @@ export async function listContributionNeedsAttention(input: {
     throw new Error(error.message);
   }
 
-  const items = ((data ?? []) as NeedsAttentionRow[]).map(mapNeedsAttentionRow);
+  const items = withoutRetiredNeedsAttention(
+    ((data ?? []) as NeedsAttentionRow[]).map(mapNeedsAttentionRow),
+  );
 
   return {
     groups: buildNeedsAttentionGroups(items),

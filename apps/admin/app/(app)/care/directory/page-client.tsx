@@ -1,70 +1,42 @@
 "use client";
 
-import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
-import { Plus, Download, Filter } from "lucide-react";
-import React from "react";
 
-import { PersonnelList } from "@/features/mission-control/care/components/PersonnelList";
+import { CareDirectoryLimitNote } from "@/features/mission-control/care/components/care-directory-limit-note";
+import { CarePersonnelGrid } from "@/features/mission-control/care/components/care-personnel-grid";
 import { useCarePersonnel } from "@/features/mission-control/care/hooks/use-care";
 
-const careDirectoryActions = (
-  <>
-    <Button variant="outline" size="sm">
-      <Download className="mr-2 size-4 text-muted-foreground" /> Export
-    </Button>
-    <Button>
-      <Plus className="mr-2 size-4" /> Add Personnel
-    </Button>
-  </>
-);
-
 export default function CareDirectoryPage() {
-  const { data: personnel, isLoading } = useCarePersonnel();
+  const personnel = useCarePersonnel();
 
   return (
     <PageShell
-      title="Personnel Directory"
-      description="Manage and monitor all global team members."
+      title="Care directory"
+      description="Members in care, with their status and last contact."
       density="compact"
-      actions={careDirectoryActions}
     >
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-            <div>
-              <CardTitle className="text-base font-semibold">
-                All Personnel
-              </CardTitle>
-              <p className="mt-1 text-sm font-medium text-muted-foreground">
-                Global workforce matrix and care visibility.
-              </p>
-            </div>
-
-            <div className="w-full md:w-auto">
-              <FilterBar
-                actions={
-                  <Button variant="outline" size="sm">
-                    <Filter className="mr-2 size-4" /> Advanced Filters
-                  </Button>
-                }
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="p-4">
-            <PersonnelList data={personnel || []} isLoading={isLoading} />
-          </div>
-        </CardContent>
-      </Card>
+      {!personnel.isError && !personnel.isLoading ? (
+        <CareDirectoryLimitNote
+          shown={personnel.data.length}
+          total={personnel.personnelTotal}
+        />
+      ) : null}
+      <CarePersonnelGrid
+        personnel={personnel.data}
+        activities={personnel.activities}
+        requirements={personnel.requirements}
+        lastContacts={personnel.lastContacts}
+        isLoading={personnel.isLoading}
+        error={
+          personnel.isError
+            ? {
+                title: "The directory could not load",
+                message: "Check your connection and try again.",
+                onRetry: () => void personnel.refetch(),
+              }
+            : null
+        }
+      />
     </PageShell>
   );
 }

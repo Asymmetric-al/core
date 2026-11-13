@@ -4,7 +4,7 @@ import { Field } from "@base-ui/react/field";
 import * as React from "react";
 
 import { cn } from "../../lib/utils";
-import { FieldLabel, FieldError } from "../shadcn/field";
+import { FieldError, FieldLabel } from "../shadcn/field";
 
 /** Accessible relationships for one controlled input without another form state owner. */
 export function LabeledField({
@@ -48,7 +48,17 @@ export function LabeledField({
             {error}
           </Field.Error>
         ) : description ? (
-          <Field.Description id={descriptionId} render={<div />}>
+          // A block, not a paragraph: descriptions may hold their own
+          // paragraphs or a counter row.
+          <Field.Description
+            id={descriptionId}
+            render={
+              <div
+                data-slot="field-description"
+                className="text-sm leading-normal text-muted-foreground"
+              />
+            }
+          >
             {description}
           </Field.Description>
         ) : null}

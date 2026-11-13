@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./components/money-units": "./components/money-units.ts",
     "./styles.css": "./styles.css",
+    "./components/dashboard-view": "./components/dashboard-view.ts",
     "./components/*": "./components/*.tsx",
     "./hooks/*": "./hooks/*.ts",
     "./types": "./types/index.ts"
@@ -15,6 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@asym/api": "workspace:*",
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/lib": "workspace:*",

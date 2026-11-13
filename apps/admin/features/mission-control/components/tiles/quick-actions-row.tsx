@@ -14,21 +14,21 @@ const ROLE_QUICK_ACTIONS: Record<
 > = {
   finance: [
     { tileId: "contributions", actionIndex: 0 },
-    { tileId: "contributions", actionIndex: 1 },
+    { tileId: "admin", actionIndex: 0 },
     { tileId: "reports", actionIndex: 0 },
-    { tileId: "pdf", actionIndex: 1 },
+    { tileId: "pdf", actionIndex: 0 },
   ],
   fundraising: [
     { tileId: "crm", actionIndex: 0 },
     { tileId: "email", actionIndex: 0 },
-    { tileId: "crm", actionIndex: 3 },
+    { tileId: "crm", actionIndex: 2 },
     { tileId: "reports", actionIndex: 0 },
   ],
   mobilizers: [
     { tileId: "mobilize", actionIndex: 0 },
-    { tileId: "mobilize", actionIndex: 1 },
     { tileId: "crm", actionIndex: 0 },
-    { tileId: "sign", actionIndex: 0 },
+    { tileId: "automations", actionIndex: 0 },
+    { tileId: "tasks", actionIndex: 0 },
   ],
   member_care: [
     { tileId: "care", actionIndex: 0 },
@@ -36,23 +36,24 @@ const ROLE_QUICK_ACTIONS: Record<
     { tileId: "support", actionIndex: 0 },
     { tileId: "crm", actionIndex: 0 },
   ],
+  // Events itself is not connected yet, so its staff start in giving.
   events: [
-    { tileId: "events", actionIndex: 0 },
-    { tileId: "events", actionIndex: 1 },
     { tileId: "contributions", actionIndex: 0 },
-    { tileId: "sign", actionIndex: 0 },
+    { tileId: "reports", actionIndex: 0 },
+    { tileId: "crm", actionIndex: 0 },
+    { tileId: "tasks", actionIndex: 0 },
   ],
   staff: [
     { tileId: "crm", actionIndex: 0 },
+    { tileId: "crm", actionIndex: 1 },
     { tileId: "crm", actionIndex: 2 },
     { tileId: "web-studio", actionIndex: 0 },
-    { tileId: "web-studio", actionIndex: 1 },
   ],
   admin: [
     { tileId: "crm", actionIndex: 0 },
     { tileId: "contributions", actionIndex: 0 },
     { tileId: "reports", actionIndex: 0 },
-    { tileId: "admin", actionIndex: 2 },
+    { tileId: "admin", actionIndex: 0 },
   ],
 };
 
@@ -63,9 +64,10 @@ export function QuickActionsRow() {
   const actions = actionRefs
     .flatMap(({ tileId, actionIndex }) => {
       const tile = TILES.find((t) => t.id === tileId);
-      if (!tile) return [];
+      if (!tile || tile.unavailableReason || !tile.roles.includes(role))
+        return [];
       const action = tile.quickActions[actionIndex];
-      if (!action) return [];
+      if (!action || (action.roles && !action.roles.includes(role))) return [];
       return [{ ...action, tile }];
     })
     .slice(0, 4);
@@ -73,7 +75,6 @@ export function QuickActionsRow() {
   return (
     <div className="flex flex-wrap gap-4">
       {actions.map((action) => {
-        if (!action) return null;
         const Icon = action.icon ? getIcon(action.icon) : null;
         return (
           <Link
@@ -81,7 +82,7 @@ export function QuickActionsRow() {
             href={resolveMissionControlHref(action.href)}
             className={buttonVariants({ variant: "outline" })}
           >
-            {Icon && <Icon data-icon="inline-start" />}
+            {Icon && <Icon aria-hidden="true" data-icon="inline-start" />}
             {action.label}
           </Link>
         );

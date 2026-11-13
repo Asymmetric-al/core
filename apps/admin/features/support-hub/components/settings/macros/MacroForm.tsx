@@ -1,17 +1,17 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { useSaveSupportMacro } from "../../../hooks/use-support-mutations";
+import { macroActionIssue } from "../../../lib/macro-action-validation";
 import { MacroPreviewLine } from "../../macros/MacroPreviewLine";
 import { createDraftRows } from "../draft-rows";
-import { SettingsPanel } from "../SettingsPanel";
+import { SettingsEditorForm } from "../SettingsEditorSheet";
 import { SettingsRow } from "../SettingsRow";
-import { SettingsToolbar } from "../SettingsToolbar";
 import { MacroActionEditor } from "./MacroActionEditor";
 
 import type { SupportMacro } from "../../../types";
@@ -24,6 +24,8 @@ interface MacroFormProps {
 
 export function MacroForm({ macro, onSaved, onCancel }: MacroFormProps) {
   const save = useSaveSupportMacro();
+  const formRef = React.useRef<HTMLDivElement>(null);
+  const [submitted, setSubmitted] = React.useState(false);
 
   const [name, setName] = React.useState(macro?.name ?? "");
   const [description, setDescription] = React.useState(
@@ -46,13 +48,15 @@ export function MacroForm({ macro, onSaved, onCancel }: MacroFormProps) {
     [actions, description, macro, name],
   );
 
+  const errors = actions.map(macroActionIssue);
   const handleSave = async () => {
-    if (!name.trim()) {
-      toast.info("Give the macro a name first.");
-      return;
-    }
-    if (actions.length === 0) {
-      toast.info("Add at least one action.");
+    setSubmitted(true);
+    if (!name.trim() || actions.length === 0 || errors.some(Boolean)) {
+      requestAnimationFrame(() =>
+        formRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus(),
+      );
       return;
     }
     try {
@@ -73,44 +77,54 @@ export function MacroForm({ macro, onSaved, onCancel }: MacroFormProps) {
   };
 
   return (
-    <SettingsPanel
-      title={macro ? `Edit "${macro.name}"` : "New macro"}
-      description="Sequence of actions agents can run against a conversation with one click."
+    <SettingsEditorForm
+      draft={{ name, description, actions }}
+      canSave={isDirty}
+      isNew={!macro}
+      isSaving={save.isPending}
+      noun="macro"
+      onSave={() => void handleSave()}
+      onCancel={onCancel}
     >
-      <SettingsRow label="Name" htmlFor="macro-name">
-        <Input
-          id="macro-name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          maxLength={80}
+      <div ref={formRef} className="contents">
+        <SettingsRow label="Name" htmlFor="macro-name">
+          <Input
+            id="macro-name"
+            aria-invalid={submitted && !name.trim()}
+            aria-describedby={
+              submitted && !name.trim() ? "macro-name-error" : undefined
+            }
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            maxLength={80}
+          />
+          {submitted && !name.trim() ? (
+            <FieldError id="macro-name-error">Enter a name.</FieldError>
+          ) : null}
+        </SettingsRow>
+        <SettingsRow label="Description" htmlFor="macro-desc">
+          <Textarea
+            id="macro-desc"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={3}
+            maxLength={240}
+          />
+        </SettingsRow>
+        <SettingsRow control label="Preview">
+          <MacroPreviewLine actions={actions} />
+        </SettingsRow>
+        <MacroActionEditor
+          rows={actionRows}
+          onChange={setActionRows}
+          errors={submitted ? errors : undefined}
+          emptyError={
+            submitted && actions.length === 0
+              ? "Add at least one action."
+              : undefined
+          }
         />
-      </SettingsRow>
-      <SettingsRow label="Description" htmlFor="macro-desc">
-        <Textarea
-          id="macro-desc"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          rows={3}
-          maxLength={240}
-        />
-      </SettingsRow>
-      <SettingsRow label="Preview">
-        <MacroPreviewLine actions={actions} />
-      </SettingsRow>
-      <MacroActionEditor rows={actionRows} onChange={setActionRows} />
-
-      <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
       </div>
-
-      <SettingsToolbar
-        isDirty={isDirty}
-        isSaving={save.isPending}
-        onSave={handleSave}
-        onCancel={onCancel}
-      />
-    </SettingsPanel>
+    </SettingsEditorForm>
   );
 }

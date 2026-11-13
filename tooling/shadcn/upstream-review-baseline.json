@@ -871,9 +871,9 @@
       "path": "components/shadcn/chart.tsx",
       "diffComponent": "chart",
       "owners": ["chart"],
-      "localSha256": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
-      "diffSha256": "e8231b1096af70216ce6cf6b91a59ce4157a10568aa5983b9359baf61d45fad7",
-      "reason": "Preserve Core ChartConfig and tooltip public types/formatting with current Recharts; upstream rewrites tooltip/config types and presentation, requiring typed consumer review. The fill layout API owns aspect/height classes for existing charts with definite-height parents; ordinary aspect layout remains the default.",
+      "localSha256": "bd7acd2dac6c523846a2effb6f8dd1ba3904b6fad08e1703f08583a21488a9e5",
+      "diffSha256": "2f5ce362b04b1980f3a6b03499f9f50aafad19622907fb5dcd0ef2acd111d253",
+      "reason": "Preserve Core ChartConfig and tooltip public types/formatting with current Recharts; upstream rewrites tooltip/config types and presentation, requiring typed consumer review. The fill layout API owns aspect/height classes for existing charts with definite-height parents; ordinary aspect layout remains the default. Semantic chartColor maps series indices to existing theme tokens without altering tooltip types or chart layout ownership.",
       "proofs": [
         "packages/ui/components/shadcn/chart.tsx",
         "docs/ai/rules/frontend.md",
@@ -886,9 +886,9 @@
       "path": "components/shadcn/checkbox.tsx",
       "diffComponent": "checkbox",
       "owners": ["checkbox"],
-      "localSha256": "52d9a0745ea5fd6ac55e048b5775aa691e7784d72677f7f68be3e2876dd91494",
-      "diffSha256": "aa1998c9912a939459da1f7e0bd29836d2cbaaf23afdc3b5c2858ab6694ca31f",
-      "reason": "Preserve controlled Base UI checkbox state and Core indicator presentation; upstream changes sizes, border and icon styling. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "ad974bc5490c3d9dea24716dcaa5c8c2a00d5cc3c055ae82ceb2cbe7ba4d4163",
+      "diffSha256": "00fdacb641aae2bb4386209463d857deb054af56a77084a73380f3b4c1739029",
+      "reason": "Preserve controlled Base UI checkbox state and Core indicator presentation; upstream changes sizes, border and icon styling. Core preserves functional className state callbacks through mergeBaseUIClassName. The mixed state now renders MinusIcon through the Base UI Indicator callback, retaining controlled/indeterminate semantics and functional className forwarding.",
       "proofs": [
         "packages/ui/components/shadcn/checkbox.tsx",
         "docs/ai/rules/frontend.md"
@@ -928,9 +928,9 @@
       "path": "components/shadcn/command.tsx",
       "diffComponent": "command",
       "owners": ["command"],
-      "localSha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41",
-      "diffSha256": "6a87fe6687389c409595a72897adf6903e5b3eb0bdf3abba0c4dbf10cb793fd6",
-      "reason": "Preserve automatic inner Command, commandLabel naming, existing CommandInput props and instant modal motion; upstream changes the composition API and defaults.",
+      "localSha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639",
+      "diffSha256": "f2987636d6e41d5c78f866c1dfb8c7d90d85a2c9acb60a4168709eec1c85fd67",
+      "reason": "Preserve automatic inner Command, commandLabel naming, existing CommandInput props and instant modal motion; upstream changes the composition API and defaults. The existing focus boundary also cancels ring offset inside clipped popovers; the search glyph is the shared Lucide icon.",
       "proofs": [
         "packages/ui/components/shadcn/command.tsx",
         "docs/ai/rules/frontend.md",
@@ -1221,9 +1221,9 @@
       "path": "components/shadcn/scroll-area.tsx",
       "diffComponent": "scroll-area",
       "owners": ["scroll-area"],
-      "localSha256": "1c6592bf42e9250c0dd6314f9e5d220ea123876c1408a72da25bfc6a927ed440",
-      "diffSha256": "396d222a5221b51220f4e23bf5d5cf47200e84660ae0e208b8b274ca58860904",
-      "reason": "Preserve state callbacks and current orientation scrollbar ownership; upstream changes orientation attributes, imports and visuals. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "15370077e7c2278337275c649625d76249d6c6b6c4a67c8a109003acc52d64ce",
+      "diffSha256": "3920f2f266d23fda173c7497fe917c72f55d73e1a262aca27c1ca294ed299633",
+      "reason": "Preserve state callbacks and current orientation scrollbar ownership; upstream changes orientation attributes, imports and visuals. Core preserves functional className state callbacks through mergeBaseUIClassName and adds an opt-in edgeFade=\"x\" viewport mask (scroll-fade-x utility in globals.css, removed on focus-visible) for horizontally scrolling rows.",
       "proofs": [
         "packages/ui/components/shadcn/scroll-area.tsx",
         "docs/ai/rules/frontend.md"
@@ -1261,9 +1261,9 @@
       "path": "components/shadcn/sheet.tsx",
       "diffComponent": "sheet",
       "owners": ["sheet", "sidebar"],
-      "localSha256": "be2515f5a6cfd26288d598cdd82422cc879f33af3292a17e17ff3b27f789fac0",
-      "diffSha256": "24b7f43db6a0b6c7fa1ff95a4a2fca828dd51a08d0db7f5efafc6001c5e646ad",
-      "reason": "Preserve native modal Sheet ownership, callback classes and duration-drawer motion; upstream changes side geometry, backdrop and close composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "dae8e7d7478977256524b418192a4633ee5020f41cbd1970b7b030c3ca1b1d2d",
+      "diffSha256": "8b5078642233ac9f8e4876340ce45210ba2fe2e36600d7c2e147de0a86429f4e",
+      "reason": "Preserve native modal Sheet ownership, callback classes and duration-drawer motion; upstream changes side geometry, backdrop and close composition. Core preserves functional className state callbacks through mergeBaseUIClassName. Optional nestedDialogScrim follows the Base UI nested-dialog state and is decorative; the primitive retains focus and modal ownership.",
       "proofs": [
         "packages/ui/components/shadcn/sheet.tsx",
         "docs/ai/rules/frontend.md",
@@ -1275,9 +1275,9 @@
       "path": "components/shadcn/sidebar.tsx",
       "diffComponent": "sidebar",
       "owners": ["sidebar"],
-      "localSha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c",
-      "diffSha256": "856291eada62575d7f22818fad13222c68300245e051b75a934a2c43b1ed3d19",
-      "reason": "Preserve shared responsive hook/rail/button/link semantics and Core drawer ownership; upstream changes helper ownership and Sidebar presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "75906b5ff3668ef6e02261914c1f94f0afb84b70c6d956c110ed70a0e4469910",
+      "diffSha256": "936f771ddb560aa9a88faa5ef5b6723d432d7d42c8be947a895fc5cf6dd3eb56",
+      "reason": "Preserve shared responsive hook/rail/button/link semantics and Core drawer ownership; upstream changes helper ownership and Sidebar presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName. Mobile navigation exposes a visible close button; collapsed-only tooltips are disabled on mobile so Escape reaches the owning sheet.",
       "proofs": [
         "packages/ui/components/shadcn/sidebar.tsx",
         "docs/ai/rules/frontend.md",
@@ -1710,7 +1710,7 @@
     },
     {
       "path": "components/shadcn/searchable-select.tsx",
-      "localSha256": "8998cde4bd8ab7e90d66e79a9f0dea848eb399a5117372fa40c02361b7f03cc1",
+      "localSha256": "ae6bc315734281cb7d79ac96c64ccd2a1903ea70f89212f99ce62bd4a180bd54",
       "reason": "Core SearchableSelect options API and Base UI Combobox accessible composition; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
       "proofs": [
         "packages/ui/components/shadcn/searchable-select.tsx",
@@ -1855,7 +1855,7 @@
     },
     {
       "path": "packages/ui/components/primitives/chart-wrappers.tsx",
-      "localSha256": "13094c8025000a666595a20701082f5464c86ae8d58b53d35c3c72d641d34f46",
+      "localSha256": "e3c0b1e5f8bcfd1becb7e79af2c762015361e737ad9cf43b745b10d041930295",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/chart-wrappers.tsx",
@@ -1864,7 +1864,7 @@
     },
     {
       "path": "packages/ui/components/primitives/filter-bar.tsx",
-      "localSha256": "5e7ea04a72cdfc8b9c326a2c276307948e3c31cbdd76fd096e5461055ab95639",
+      "localSha256": "36ed1a957fb411c3dd24f64700b7d6494ee4b9d573e28c7803713333a08ea040",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/filter-bar.tsx",
@@ -1909,7 +1909,7 @@
     },
     {
       "path": "packages/ui/components/primitives/map.tsx",
-      "localSha256": "87e8c7ca2a8b104437bc02a93719d25af65fb9acafe6299f7842a21860ecf59f",
+      "localSha256": "47820a8122425dd777bbd0ba244c79133ea59d77603831e0970cc542302f261f",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/map.tsx",
@@ -1927,7 +1927,7 @@
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
-      "localSha256": "49f4946f8373e936981d52dc620596f9216527dcee270cc24eeb8919d4363a9c",
+      "localSha256": "a4601b857d06c8ec5b72f590b86e8735d55ad0152bd2af5b5e12057722d30f2e",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/page-shell.tsx",
@@ -1954,7 +1954,7 @@
     },
     {
       "path": "packages/ui/components/primitives/tanstack-form.tsx",
-      "localSha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad",
+      "localSha256": "5619abc2bc35e586ce604e31e027532580f3db3d635bc615aac148bc871691fc",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/tanstack-form.tsx",
@@ -2142,7 +2142,7 @@
     },
     {
       "path": "packages/ui/lib/input-styles.ts",
-      "localSha256": "7a9f0df79960e91871beab93dfb68fa55569fc1b66f7b1214377e09fb401a86c",
+      "localSha256": "f189f32e398e19ddbe763f2730cebb64a0e847f81e98a705f32d5a99e796bc83",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": ["packages/ui/lib/input-styles.ts", "docs/ai/rules/frontend.md"]
     },
@@ -2154,7 +2154,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "localSha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
+      "localSha256": "624f0b80841f9bbef2e97b47e4b987b008fbcb5a370f0c0062bafcac9c59b63a",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": ["packages/ui/styles/globals.css", "docs/ai/rules/frontend.md"]
     }
@@ -2178,11 +2178,11 @@
     },
     {
       "path": "packages/ui/components/primitives/chart-wrappers.tsx",
-      "sha256": "13094c8025000a666595a20701082f5464c86ae8d58b53d35c3c72d641d34f46"
+      "sha256": "e3c0b1e5f8bcfd1becb7e79af2c762015361e737ad9cf43b745b10d041930295"
     },
     {
       "path": "packages/ui/components/primitives/filter-bar.tsx",
-      "sha256": "5e7ea04a72cdfc8b9c326a2c276307948e3c31cbdd76fd096e5461055ab95639"
+      "sha256": "36ed1a957fb411c3dd24f64700b7d6494ee4b9d573e28c7803713333a08ea040"
     },
     {
       "path": "packages/ui/components/primitives/image-cropper-helpers.ts",
@@ -2202,7 +2202,7 @@
     },
     {
       "path": "packages/ui/components/primitives/map.tsx",
-      "sha256": "87e8c7ca2a8b104437bc02a93719d25af65fb9acafe6299f7842a21860ecf59f"
+      "sha256": "47820a8122425dd777bbd0ba244c79133ea59d77603831e0970cc542302f261f"
     },
     {
       "path": "packages/ui/components/primitives/motion-preset.tsx",
@@ -2210,7 +2210,7 @@
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
-      "sha256": "49f4946f8373e936981d52dc620596f9216527dcee270cc24eeb8919d4363a9c"
+      "sha256": "a4601b857d06c8ec5b72f590b86e8735d55ad0152bd2af5b5e12057722d30f2e"
     },
     {
       "path": "packages/ui/components/primitives/responsive-container.tsx",
@@ -2222,7 +2222,7 @@
     },
     {
       "path": "packages/ui/components/primitives/tanstack-form.tsx",
-      "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+      "sha256": "5619abc2bc35e586ce604e31e027532580f3db3d635bc615aac148bc871691fc"
     },
     {
       "path": "packages/ui/components/primitives/theme-toggle.tsx",
@@ -2286,11 +2286,11 @@
     },
     {
       "path": "packages/ui/components/shadcn/chart.tsx",
-      "sha256": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632"
+      "sha256": "bd7acd2dac6c523846a2effb6f8dd1ba3904b6fad08e1703f08583a21488a9e5"
     },
     {
       "path": "packages/ui/components/shadcn/checkbox.tsx",
-      "sha256": "52d9a0745ea5fd6ac55e048b5775aa691e7784d72677f7f68be3e2876dd91494"
+      "sha256": "ad974bc5490c3d9dea24716dcaa5c8c2a00d5cc3c055ae82ceb2cbe7ba4d4163"
     },
     {
       "path": "packages/ui/components/shadcn/collapsible.tsx",
@@ -2302,7 +2302,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/command.tsx",
-      "sha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41"
+      "sha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639"
     },
     {
       "path": "packages/ui/components/shadcn/context-menu.tsx",
@@ -2314,7 +2314,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/data-table/index.ts",
-      "sha256": "7a7941fcf00f1ef305fb61a56765593d3afaa6a582a4127075df23cc3c16b393"
+      "sha256": "11faf9f7075ce54223ee9e338f99a014dee511f2a6af4c10a8a3aaa1ada94d6e"
     },
     {
       "path": "packages/ui/components/shadcn/dialog.tsx",
@@ -2446,7 +2446,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/rich-text-editor/index.ts",
-      "sha256": "5143b220ec677ef0a51977080c457631f5f4e416b038e9b14e7e39fb95015042"
+      "sha256": "14a2062afa1e4cc54918c11a26e0f78eb63e32097748e4237395d0a2bac43f4b"
     },
     {
       "path": "packages/ui/components/shadcn/ripple-button.tsx",
@@ -2454,11 +2454,11 @@
     },
     {
       "path": "packages/ui/components/shadcn/scroll-area.tsx",
-      "sha256": "1c6592bf42e9250c0dd6314f9e5d220ea123876c1408a72da25bfc6a927ed440"
+      "sha256": "15370077e7c2278337275c649625d76249d6c6b6c4a67c8a109003acc52d64ce"
     },
     {
       "path": "packages/ui/components/shadcn/searchable-select.tsx",
-      "sha256": "8998cde4bd8ab7e90d66e79a9f0dea848eb399a5117372fa40c02361b7f03cc1"
+      "sha256": "ae6bc315734281cb7d79ac96c64ccd2a1903ea70f89212f99ce62bd4a180bd54"
     },
     {
       "path": "packages/ui/components/shadcn/select.tsx",
@@ -2470,11 +2470,11 @@
     },
     {
       "path": "packages/ui/components/shadcn/sheet.tsx",
-      "sha256": "be2515f5a6cfd26288d598cdd82422cc879f33af3292a17e17ff3b27f789fac0"
+      "sha256": "dae8e7d7478977256524b418192a4633ee5020f41cbd1970b7b030c3ca1b1d2d"
     },
     {
       "path": "packages/ui/components/shadcn/sidebar.tsx",
-      "sha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c"
+      "sha256": "75906b5ff3668ef6e02261914c1f94f0afb84b70c6d956c110ed70a0e4469910"
     },
     {
       "path": "packages/ui/components/shadcn/skeleton.tsx",
@@ -2554,7 +2554,7 @@
     },
     {
       "path": "packages/ui/lib/input-styles.ts",
-      "sha256": "7a9f0df79960e91871beab93dfb68fa55569fc1b66f7b1214377e09fb401a86c"
+      "sha256": "f189f32e398e19ddbe763f2730cebb64a0e847f81e98a705f32d5a99e796bc83"
     },
     {
       "path": "packages/ui/lib/utils.ts",
@@ -2562,11 +2562,11 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "sha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c"
+      "sha256": "624f0b80841f9bbef2e97b47e4b987b008fbcb5a370f0c0062bafcac9c59b63a"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
-      "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
+      "sha256": "52a61ba0d1cb17f296badd039dda656c0476a69ea037c5a6d08beed41fb0f21c"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/menu-filtering.spec.ts",
@@ -2582,11 +2582,11 @@
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
-      "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
+      "sha256": "92d5f572de169b607952958b75b391864143d9f1fc2279e787df59027ca7d0fa"
     },
     {
       "path": "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
-      "sha256": "bb17a358ba4ab703cd1afe929c735616a3eb6358745cfebf03d30ad582cba7eb"
+      "sha256": "d15c3cfef42dd00c1bd0878eeb4e50cadef087367b174c9323bd7fef2c00b8c2"
     },
     {
       "path": "tests/unit/packages/ui/base-ui-class-name.test.tsx",
@@ -2618,7 +2618,7 @@
     },
     {
       "path": "tests/unit/packages/ui/base-ui-select-nullability.test.tsx",
-      "sha256": "64c087a7b007e33810d81aadf1892afa1697816116373d0fdba0f59225cb8922"
+      "sha256": "c176806930de59a70e889a99dc64b2e22789841fd1bbd462d3c25c7f6e77202a"
     },
     {
       "path": "tests/unit/packages/ui/components/shadcn/data-table-behavior.test.tsx",
@@ -2630,7 +2630,7 @@
     },
     {
       "path": "tests/unit/packages/ui/components/shadcn/rich-text-editor/rich-text-editor.test.tsx",
-      "sha256": "f696946049c0597a948c91fefc3d5de4966183ae35225cc8375be1f72fc09868"
+      "sha256": "2fdf8de6e2f77af9106f8d86978017ec10a98ae5a4cd2aa4840a3115e8c781fd"
     },
     {
       "path": "tests/unit/packages/ui/data-grid-search-filtering.test.tsx",
@@ -2662,15 +2662,15 @@
     },
     {
       "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-      "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+      "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
     },
     {
       "path": "tests/unit/scripts/design-system-health.test.ts",
-      "sha256": "166b9cbf42675c9d4588fa1c5b23fb96ec7fc4473288c35c8a06219f7f0f7744"
+      "sha256": "20e28f13663dc47a5b0ec90df9c6f5a1e6efb7c256dfba0e2bacb550cf65f828"
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",
-      "sha256": "8a1250c2181465358d6ea3403672a068f2e5767e57eab2854d2f6d24e5105de2"
+      "sha256": "c73d2ab996e37564b75e9b76cbabf48254a5da195f326300d3ab609ffa1f066f"
     }
   ],
   "sourceMappings": [

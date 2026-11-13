@@ -131,47 +131,56 @@ for (const workspace of ["donor", "missionary"] as const) {
   });
 }
 
-test("donor navigation controls keep names when mobile labels are hidden", async ({
+test("donor portal sections are labelled links at desktop and phone widths", async ({
   page,
 }) => {
-  await page.goto("/workspace.html?workspace=donor");
-  for (const name of [
-    "Overview",
-    "Donation History",
-    "Ministry Updates",
-    "Recurring Giving",
-    "Wallet",
-    "Settings",
-  ]) {
-    const link = page.getByRole("link", { name, exact: true });
-    await expect(link).toBeVisible();
-    const size = await link.boundingBox();
-    expect(size?.width).toBeGreaterThanOrEqual(44);
-    expect(size?.height).toBeGreaterThanOrEqual(44);
+  const sections = {
+    desktop: [
+      "Overview",
+      "Updates",
+      "Giving history",
+      "Recurring gifts",
+      "Payment methods",
+    ],
+    phone: ["Overview", "Updates", "Giving", "Recurring", "Payments"],
+  };
+  for (const [width, names] of [
+    [1280, sections.desktop],
+    [390, sections.phone],
+  ] as const) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/workspace.html?workspace=donor");
+    const nav = page.getByRole("navigation", { name: "Donor workspace" });
+    for (const name of names) {
+      const link = nav.getByRole("link", { name, exact: true });
+      await expect(link).toBeVisible();
+      const size = await link.boundingBox();
+      expect(size?.width).toBeGreaterThanOrEqual(44);
+      expect(size?.height).toBeGreaterThanOrEqual(44);
+    }
+    await expect(
+      page.getByRole("button", { name: "Account menu for Avery Lopez" }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+    ).toBe(false);
   }
-  await expect(
-    page.getByRole("button", { name: "Sign out", exact: true }),
-  ).toBeVisible();
 });
 
-test("donor sign-out remains pending until its session operation completes", async ({
+test("donor sign-out lives in the account menu and stays pending until it completes", async ({
   page,
 }) => {
   await page.goto("/workspace.html?workspace=donor");
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  const pending = page.getByRole("button", {
-    name: "Signing out…",
-    exact: true,
-  });
-  await expect(pending).toBeDisabled();
-  await expect(pending).toHaveAttribute("aria-busy", "true");
-  await pending.dispatchEvent("click");
+  await page
+    .getByRole("button", { name: "Account menu for Avery Lopez" })
+    .click();
+  await page.getByRole("menuitem", { name: "Sign out", exact: true }).click();
+  await expect(page.getByText("Signing out…").first()).toBeAttached();
   await page
     .getByRole("button", { name: "Complete sign out", exact: true })
     .click();
-  await expect(
-    page.getByRole("button", { name: "Sign out", exact: true }),
-  ).toBeEnabled();
   await expect(
     page.getByRole("status", { name: "Sign out requests" }),
   ).toHaveText("1");

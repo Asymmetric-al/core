@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { useSaveSupportTeam } from "../../../hooks/use-support-mutations";
+import { SettingsEditorForm } from "../SettingsEditorSheet";
 
 import type { SupportTeam } from "../../../types";
 
@@ -22,6 +22,11 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
   const [slug] = React.useState(team?.slug ?? "");
   const [initials, setInitials] = React.useState(team?.initials ?? "");
   const [description, setDescription] = React.useState(team?.description ?? "");
+  const isDirty =
+    !team ||
+    name !== team.name ||
+    initials !== team.initials ||
+    description !== (team.description ?? "");
 
   const handleSave = async () => {
     const trimmedName = name.trim();
@@ -33,10 +38,15 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
       await saveTeam.mutateAsync({
         id: team?.id,
         name: trimmedName,
-        slug: slug.trim() || slugify(trimmedName),
-        initials: (
-          initials.trim() || trimmedName.slice(0, 2).toUpperCase()
-        ).slice(0, 4),
+        // The schema needs a non-empty slug, and names in non-Latin scripts
+        // slugify to nothing.
+        slug:
+          slug.trim() ||
+          slugify(trimmedName) ||
+          `team-${crypto.randomUUID().slice(0, 8)}`,
+        initials: (initials.trim() || trimmedName.slice(0, 2))
+          .toUpperCase()
+          .slice(0, 4),
         description: description.trim() ? description.trim() : null,
       });
       toast.success(team ? "Team updated." : "Team created.");
@@ -49,7 +59,15 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
+    <SettingsEditorForm
+      draft={{ name, initials, description }}
+      canSave={isDirty && name.trim().length > 0}
+      isNew={!team}
+      isSaving={saveTeam.isPending}
+      noun="team"
+      onSave={() => void handleSave()}
+      onCancel={onCancel}
+    >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="team-name">Name</Label>
@@ -58,7 +76,6 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
             value={name}
             onChange={(event) => setName(event.target.value)}
             maxLength={60}
-            autoFocus
           />
         </div>
         <div className="space-y-1.5">
@@ -81,21 +98,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
           placeholder="What kind of donor questions belong here?"
         />
       </div>
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          focusableWhenDisabled={saveTeam.isPending}
-          type="button"
-          size="sm"
-          disabled={saveTeam.isPending || name.trim().length === 0}
-          onClick={handleSave}
-        >
-          {team ? "Save changes" : "Create team"}
-        </Button>
-      </div>
-    </div>
+    </SettingsEditorForm>
   );
 }
 

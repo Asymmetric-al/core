@@ -81,7 +81,7 @@ describe("Eve operations workspace", () => {
       ).toBeTruthy();
     }
 
-    expect(view.getByText(/Governance and control come first/i)).toBeTruthy();
+    expect(view.getByText(/without using chat/i)).toBeTruthy();
   });
 
   it("labels only unimplemented connections unavailable", () => {

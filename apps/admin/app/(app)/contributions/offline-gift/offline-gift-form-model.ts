@@ -1,3 +1,4 @@
+import { parseAmountToCents } from "@asym/api/admin/contribution-operations/catalog";
 import {
   resolveOfflineReceiptStatus,
   type ReceiptStatus,
@@ -163,8 +164,13 @@ export function previewOfflineReceiptStatus(
 export function toOfflineContributionRequest(
   values: OfflineGiftFormValues,
 ): OfflineContributionRequest {
+  const cents = parseAmountToCents(values.amount);
+  if (cents === null) {
+    // The form schema validates the amount first; never send a guess.
+    throw new Error("The amount is not a valid money amount.");
+  }
   const shared = {
-    amount: Number(values.amount),
+    amount: cents / 100,
     currency: "usd" as const,
     receivedDate: values.receivedDate.trim(),
     designation: buildDesignation(values),
@@ -242,12 +248,14 @@ export const offlineGiftFormSchema = z
     internalNote: z.string(),
   })
   .superRefine((values, ctx) => {
-    const amount = Number(values.amount);
-    if (!Number.isFinite(amount) || amount <= 0) {
+    // Same strict digit parser as refunds and corrections: "0.004" or
+    // "10.005" is refused, never rounded into another amount.
+    const cents = parseAmountToCents(values.amount);
+    if (cents === null || cents <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["amount"],
-        message: "Amount must be greater than 0",
+        message: "Enter an amount in dollars and cents, like 25.00.",
       });
     }
 

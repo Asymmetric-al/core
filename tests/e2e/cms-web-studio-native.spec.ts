@@ -138,8 +138,16 @@ test.describe("@cms Web Studio native shell", () => {
         documentState.getByText("Autosaved draft", { exact: true }),
       ).toBeVisible();
       await expect(saveDraft).toBeDisabled();
+      // Publication state: an unpublished draft stays with editors and is
+      // not readable on the organization's site.
       await expect(
-        documentState.getByText("Private draft", { exact: true }),
+        documentState.getByText("Editors only", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        documentState.getByText(
+          "The site can't show this until it is published.",
+          { exact: true },
+        ),
       ).toBeVisible();
       await expect
         .poll(

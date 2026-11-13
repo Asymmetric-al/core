@@ -75,7 +75,7 @@ test("admin profile menu exposes distinct real destinations", async ({
   const administration = menu.getByRole("menuitem", {
     name: "Administration",
   });
-  const manageTeam = menu.getByRole("menuitem", { name: "Manage team" });
+  const manageTeam = menu.getByRole("menuitem", { name: "Staff directory" });
   const about = menu.getByRole("menuitem", { name: "About" });
 
   await expect(administration).toHaveAttribute("href", "/admin");

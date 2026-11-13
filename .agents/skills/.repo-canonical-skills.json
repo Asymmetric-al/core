@@ -200,12 +200,14 @@
     "animate": [
       "RECIPES.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
     "animate-expo": [
       "RECIPES.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -448,6 +450,7 @@
     "design-taste-frontend": [
       "README.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "assets/app.css",
       "assets/base.css",
       "assets/base.js",
@@ -513,6 +516,7 @@
     ],
     "edit-article": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
@@ -536,6 +540,7 @@
     "emil-prototype": [
       "PICKER.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -569,6 +574,7 @@
     "frontend-design": [
       "LICENSE.txt",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -581,6 +587,7 @@
       "LICENSE",
       "README.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/domain-modeling-add-on.md",
       "references/upstream-lineage.md",
       "references/upstream.md",
@@ -825,6 +832,7 @@
     ],
     "mobile-native": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -1011,6 +1019,7 @@
     ],
     "pick-ui-library": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -1083,6 +1092,7 @@
     ],
     "pr-review-canvas": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md",
       "renderer.js",
       "styles.css",
@@ -1266,6 +1276,7 @@
     ],
     "redesign-existing-projects": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -1350,6 +1361,7 @@
     "review-animations": [
       "SKILL.md",
       "STANDARDS.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
@@ -1498,12 +1510,14 @@
     ],
     "test-driven-development": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md",
       "writing-good-tests.md"
     ],
     "thermo-nuclear-code-quality-review": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "tiptap": [
@@ -1544,6 +1558,7 @@
     ],
     "ubiquitous-language": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
@@ -1689,12 +1704,14 @@
     ],
     "write-swift": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
     "writing-great-skills": [
       "GLOSSARY.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ]

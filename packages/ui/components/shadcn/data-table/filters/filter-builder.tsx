@@ -5,13 +5,14 @@ import {
   type LocaleFormatters,
 } from "@asym/lib/hooks/use-locale-format";
 import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
-import { type ComponentProps, useCallback } from "react";
+import { type ComponentProps, Fragment, useCallback } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
 import { FilterRow } from "./filter-row";
 import {
   type AdvancedFilterState,
+  type FilterConditionGroup,
   type FilterFieldDefinition,
   type FilterCondition,
   type FilterOperator,
@@ -19,6 +20,8 @@ import {
   createFilterCondition,
   createEmptyFilterState,
   countActiveFilters,
+  filterGroupsOf,
+  filterStateOfGroups,
   getDefaultOperator,
   getDefaultValue,
 } from "./types";
@@ -43,6 +46,12 @@ interface FilterBuilderProps {
   className?: string;
   variant?: "popover" | "sheet" | "inline";
   align?: "start" | "center" | "end";
+  /**
+   * Edit an OR of AND groups ("(A and B) or C") instead of one flat AND/OR
+   * list. Only for consumers whose query can express groups; the state then
+   * carries `groups` (see `filterStateOfGroups`).
+   */
+  allowGroups?: boolean;
 }
 
 export function FilterBuilder({
@@ -52,10 +61,13 @@ export function FilterBuilder({
   className,
   variant = "popover",
   align = "start",
+  allowGroups = false,
 }: FilterBuilderProps) {
   const activeCount = countActiveFilters(value);
 
-  const content = (
+  const content = allowGroups ? (
+    <FilterGroupsContent fields={fields} value={value} onChange={onChange} />
+  ) : (
     <FilterBuilderContent fields={fields} value={value} onChange={onChange} />
   );
 
@@ -232,16 +244,7 @@ function FilterBuilderContent({
   }, [value, onChange]);
 
   if (value.conditions.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-6 text-center">
-        <FilterIcon className="size-8 text-muted-foreground/50 mb-2" />
-        <p className="text-sm text-muted-foreground mb-3">No filters applied</p>
-        <Button variant="outline" size="sm" onClick={addCondition}>
-          <PlusIcon className="size-4 mr-1" />
-          Add filter
-        </Button>
-      </div>
-    );
+    return <NoFiltersState onAdd={addCondition} />;
   }
 
   return (
@@ -278,6 +281,202 @@ function FilterBuilderContent({
         Add filter
       </Button>
     </div>
+  );
+}
+
+function NoFiltersState({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-6 text-center">
+      <FilterIcon className="size-8 text-muted-foreground/50 mb-2" />
+      <p className="text-sm text-muted-foreground mb-3">No filters applied</p>
+      <Button variant="outline" size="sm" onClick={onAdd}>
+        <PlusIcon className="size-4 mr-1" />
+        Add filter
+      </Button>
+    </div>
+  );
+}
+
+/** The word joining the rows or groups on either side of it. */
+function LogicDivider({ label }: { label: "AND" | "OR" }) {
+  return (
+    <div className="flex items-center gap-2 py-1">
+      <Separator className="flex-1" />
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <Separator className="flex-1" />
+    </div>
+  );
+}
+
+/**
+ * The grouped builder: conditions in a group are joined by AND, groups by
+ * OR, so a row shows when it matches every condition of any one group.
+ * "And" adds a condition to its group; "Or" starts a new group. Removing a
+ * group's last condition removes the group.
+ */
+function FilterGroupsContent({
+  fields,
+  value,
+  onChange,
+}: FilterBuilderContentProps) {
+  const groups = filterGroupsOf(value);
+  const commit = (next: FilterConditionGroup[]) =>
+    onChange(filterStateOfGroups(next));
+  const newCondition = () => {
+    const firstField = fields[0];
+    return firstField ? createFilterCondition(firstField) : null;
+  };
+  const addToGroup = (groupId: string) => {
+    const condition = newCondition();
+    if (!condition) return;
+    commit(
+      groups.map((group) =>
+        group.id === groupId
+          ? { ...group, conditions: [...group.conditions, condition] }
+          : group,
+      ),
+    );
+  };
+  const addGroup = () => {
+    const condition = newCondition();
+    if (!condition) return;
+    commit([
+      ...groups,
+      { id: `group-${condition.id}`, conditions: [condition] },
+    ]);
+  };
+  const updateCondition = (
+    conditionId: string,
+    updates: Partial<FilterCondition>,
+  ) =>
+    commit(
+      groups.map((group) => ({
+        ...group,
+        conditions: group.conditions.map((condition) =>
+          condition.id === conditionId
+            ? { ...condition, ...updates }
+            : condition,
+        ),
+      })),
+    );
+  const removeCondition = (conditionId: string) =>
+    commit(
+      groups.map((group) => ({
+        ...group,
+        conditions: group.conditions.filter(
+          (condition) => condition.id !== conditionId,
+        ),
+      })),
+    );
+  const changeField = (conditionId: string, fieldId: string) => {
+    const field = fields.find((candidate) => candidate.id === fieldId);
+    if (!field) return;
+    const operator = field.defaultOperator ?? getDefaultOperator(field.type);
+    updateCondition(conditionId, {
+      field: fieldId,
+      operator,
+      value: getDefaultValue(field.type, operator),
+    });
+  };
+
+  if (groups.length === 0) {
+    return <NoFiltersState onAdd={addGroup} />;
+  }
+
+  // One group reads as a plain list; frames and the rule only appear once
+  // there is an OR between groups to explain.
+  const framed = groups.length > 1;
+  return (
+    <div className="space-y-2">
+      {framed ? (
+        <p className="text-xs text-muted-foreground">
+          Shows rows that match every condition in at least one group.
+        </p>
+      ) : null}
+      {groups.map((group, groupIndex) => (
+        <Fragment key={group.id}>
+          {groupIndex > 0 ? <LogicDivider label="OR" /> : null}
+          <div
+            role={framed ? "group" : undefined}
+            aria-label={
+              framed
+                ? `Condition group ${groupIndex + 1} of ${groups.length}`
+                : undefined
+            }
+            className={cn(
+              "space-y-2",
+              framed && "rounded-lg border bg-muted/30 p-3",
+            )}
+          >
+            {group.conditions.map((condition, index) => (
+              <div key={condition.id}>
+                {index > 0 ? <LogicDivider label="AND" /> : null}
+                <FilterRow
+                  condition={condition}
+                  fields={fields}
+                  onFieldChange={(fieldId) =>
+                    changeField(condition.id, fieldId)
+                  }
+                  onOperatorChange={(operator) =>
+                    updateCondition(condition.id, { operator })
+                  }
+                  onValueChange={(next) =>
+                    updateCondition(condition.id, { value: next })
+                  }
+                  onRemove={() => removeCondition(condition.id)}
+                  showRemove
+                />
+              </div>
+            ))}
+            {framed ? (
+              <AddConditionButton
+                groupNumber={groupIndex + 1}
+                onClick={() => addToGroup(group.id)}
+              />
+            ) : null}
+          </div>
+        </Fragment>
+      ))}
+      {/* One group: both adds share a row. Several: each group adds its
+          own condition, and the OR group button follows them. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {framed ? null : (
+          <AddConditionButton onClick={() => addToGroup(groups[0]!.id)} />
+        )}
+        <Button variant="outline" size="sm" onClick={addGroup}>
+          <PlusIcon aria-hidden="true" />
+          Add OR group
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Adds an AND condition to a group. In a framed group the name says which
+ * group, since every group has one.
+ */
+function AddConditionButton({
+  groupNumber,
+  onClick,
+}: {
+  groupNumber?: number;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      aria-label={
+        groupNumber === undefined
+          ? undefined
+          : `Add condition to group ${groupNumber}`
+      }
+      onClick={onClick}
+    >
+      <PlusIcon aria-hidden="true" />
+      Add condition
+    </Button>
   );
 }
 

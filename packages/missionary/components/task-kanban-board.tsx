@@ -23,7 +23,6 @@ import {
   useDroppable,
 } from "@dnd-kit/react";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
-import { format } from "date-fns";
 import {
   GripVertical,
   Plus,
@@ -66,10 +65,30 @@ const boardPlugins = (defaults: Plugins): Plugins =>
 const controlledSortablePlugins = (defaults: Plugins): Plugins =>
   defaults.filter((plugin) => plugin !== OptimisticSortingPlugin);
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
+const SHORT_DAY = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+});
+
+/**
+ * How a task's due date reads on the board. Dates are calendar days, so they
+ * compare as YYYY-MM-DD strings in local time. Finished tasks are never late.
+ */
+export function taskDueState(
+  dueDate: string,
+  status: string,
+  today: Date = new Date(),
+): { label: string; overdue: boolean } {
+  const day = dueDate.slice(0, 10);
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const [year, month, date] = day.split("-").map(Number);
+  const pretty = SHORT_DAY.format(new Date(year!, (month ?? 1) - 1, date ?? 1));
+  const open = status !== "completed" && status !== "deferred";
+  if (open && day < todayKey) {
+    return { label: `Overdue · ${pretty}`, overdue: true };
+  }
+  if (open && day === todayKey) return { label: "Due today", overdue: false };
+  return { label: `Due ${pretty}`, overdue: false };
 }
 
 const COLUMNS: {
@@ -80,13 +99,13 @@ const COLUMNS: {
 }[] = [
   {
     id: "not_started",
-    label: "To Do",
+    label: "To do",
     icon: Clock,
     color: "text-muted-foreground bg-muted",
   },
   {
     id: "in_progress",
-    label: "In Progress",
+    label: "In progress",
     icon: AlertCircle,
     color: "text-info bg-info/10",
   },
@@ -156,7 +175,9 @@ export function TaskKanbanBoard({
     };
 
     for (const task of tasks) {
-      grouped[task.status].push(task);
+      // An unexpected status has no column; skip it rather than crash the
+      // page (the API normalises known legacy values on read).
+      grouped[task.status]?.push(task);
     }
 
     for (const status of Object.keys(grouped) as TaskStatus[]) {
@@ -294,7 +315,7 @@ export function TaskKanbanBoard({
             <div
               inert
               aria-hidden="true"
-              className={cn("w-80", transition && "rotate-2 scale-105")}
+              className={cn("w-full", transition && "rotate-2 scale-105")}
             >
               <KanbanCard
                 task={task}
@@ -346,7 +367,9 @@ function KanbanColumn({
   return (
     <section
       aria-label={title}
-      className="flex h-full w-80 max-w-full shrink-0 flex-col"
+      // From xl the four columns share the width so Done is not clipped at
+      // laptop widths; narrower screens keep fixed columns and scroll.
+      className="flex h-full w-80 max-w-full shrink-0 flex-col xl:w-auto xl:min-w-52 xl:flex-1"
     >
       <div className="flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-2">
@@ -456,6 +479,16 @@ function SortableKanbanCard({
   );
 }
 
+function DueBadge({ task }: { task: Task }) {
+  const due = taskDueState(task.due_date!, task.status);
+  return (
+    <Badge variant={due.overdue ? "destructive-subtle" : "outline"}>
+      <Calendar data-icon="inline-start" aria-hidden />
+      {due.label}
+    </Badge>
+  );
+}
+
 function KanbanCard({
   task,
   isOverlay,
@@ -481,7 +514,7 @@ function KanbanCard({
             <div className="min-w-0 flex-1">
               <h4
                 className={cn(
-                  "text-sm font-semibold leading-tight line-clamp-2",
+                  "text-sm font-semibold leading-snug text-pretty",
                   task.status === "completed" &&
                     "text-muted-foreground line-through",
                 )}
@@ -512,38 +545,44 @@ function KanbanCard({
               <Badge
                 variant={task.priority === "high" ? "destructive" : "secondary"}
               >
-                {task.priority}
+                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
               </Badge>
             )}
-            {task.due_date && (
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-lg border border-border">
-                <Calendar className="size-3" />
-                {format(makeDisplayDate(task.due_date), "MMM d")}
-              </div>
-            )}
+            {task.due_date ? <DueBadge task={task} /> : null}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border">
+            {/* Long partner names take up to two lines rather than cutting
+                off after one, and the action keeps its full label beside them. */}
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               {task.donor && (
-                <div className="flex items-center gap-2 max-w-35">
+                <>
                   <Avatar className="size-5">
                     <AvatarImage src={task.donor.avatar_url ?? undefined} />
                     <AvatarFallback>{task.donor.name[0]}</AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-medium text-muted-foreground truncate">
+                  <span
+                    title={task.donor.name}
+                    className="line-clamp-2 min-w-0 text-xs font-medium text-pretty wrap-break-word text-muted-foreground"
+                  >
                     {task.donor.name}
                   </span>
-                </div>
+                </>
               )}
             </div>
 
+            {/* Completing a finished task reopens it, so it says so. */}
             <Button
-              variant={task.status === "completed" ? "secondary" : "ghost"}
+              variant="ghost"
               size="xs"
               onClick={() => onComplete(task)}
+              aria-label={
+                task.status === "completed"
+                  ? `Reopen ${task.title}`
+                  : `Mark ${task.title} done`
+              }
             >
-              {task.status === "completed" ? "Done" : "Mark Done"}
+              {task.status === "completed" ? "Reopen" : "Mark done"}
             </Button>
           </div>
         </CardContent>

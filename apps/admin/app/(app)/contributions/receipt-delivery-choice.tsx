@@ -1,9 +1,10 @@
 import {
   Field,
+  FieldContent,
+  FieldDescription,
   FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
-import { Label } from "@asym/ui/components/shadcn/label";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -12,6 +13,7 @@ import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useId } from "react";
 
 import {
+  formatReceiptFieldList,
   RECEIPT_DELIVERY_CHOICE_LABELS,
   receiptDeliveryChoiceLabel,
 } from "./receipt-delivery-model";
@@ -52,17 +54,6 @@ export interface ReceiptDeliveryValue {
   deferReason: string;
 }
 
-function optionDisplayLabel(
-  choice: ReceiptDeliveryChoice,
-  donorEmail: string | null,
-): string {
-  const baseLabel = RECEIPT_DELIVERY_CHOICE_LABELS[choice];
-  if (choice === "email" && donorEmail) {
-    return `${baseLabel} (${donorEmail})`;
-  }
-  return baseLabel;
-}
-
 export function ReceiptDeliveryChoiceField({
   affectedFields,
   receiptDelivery,
@@ -70,26 +61,36 @@ export function ReceiptDeliveryChoiceField({
   onChange,
   proposal = null,
   error = null,
+  disabled = false,
 }: {
   affectedFields: string[];
   receiptDelivery: ContributionReceiptDeliveryContext;
   value: ReceiptDeliveryValue;
   onChange: (value: ReceiptDeliveryValue) => void;
   proposal?: ReceiptDeliveryProposal | null;
+  /**
+   * Disables the choice while its form submits. Passed explicitly because a
+   * native `fieldset[disabled]` does not reach the Base UI radios.
+   */
+  disabled?: boolean;
   error?: string | null;
 }) {
   const groupId = useId();
+  const titleId = useId();
   const deferReasonId = useId();
   const deferReasonErrorId = `${deferReasonId}-error`;
 
   return (
     <div
-      className="space-y-3 rounded-lg border border-border bg-muted/20 p-3"
+      role="group"
+      aria-labelledby={titleId}
+      className="flex flex-col gap-3 rounded-lg bg-muted/40 p-3"
       data-testid="receipt-delivery-choice"
     >
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">
-          This correction changes receipt fields: {affectedFields.join(", ")}
+      <div className="flex flex-col gap-1">
+        <p id={titleId} className="text-sm font-medium text-foreground">
+          This correction changes receipt fields:{" "}
+          {formatReceiptFieldList(affectedFields)}
         </p>
         <p className="text-xs text-muted-foreground">
           Choose how the donor receives the updated receipt. It is never sent
@@ -107,6 +108,7 @@ export function ReceiptDeliveryChoiceField({
 
       <RadioGroup
         aria-label="Updated receipt delivery"
+        disabled={disabled}
         value={value.choice}
         onValueChange={(next) => {
           if (next === "email" || next === "pdf" || next === "defer") {
@@ -118,30 +120,34 @@ export function ReceiptDeliveryChoiceField({
           const itemId = `${groupId}-${option.choice}`;
 
           return (
-            <div key={option.choice} className="space-y-1">
-              <div
-                className="group flex items-start gap-2"
-                data-disabled={option.available ? undefined : "true"}
-              >
-                <RadioGroupItem
-                  id={itemId}
-                  value={option.choice}
-                  disabled={!option.available}
-                  className="mt-0.5"
-                />
-                <Label htmlFor={itemId}>
-                  {optionDisplayLabel(
-                    option.choice,
-                    receiptDelivery.donor.email,
-                  )}
-                </Label>
-              </div>
-              {option.blockedReason && (
-                <p className="pl-6 text-xs text-muted-foreground">
-                  {option.blockedReason}
-                </p>
-              )}
-            </div>
+            <Field
+              key={option.choice}
+              orientation="horizontal"
+              data-disabled={!option.available}
+            >
+              <RadioGroupItem
+                id={itemId}
+                value={option.choice}
+                disabled={!option.available}
+              />
+              <FieldContent>
+                <FieldLabel htmlFor={itemId}>
+                  {RECEIPT_DELIVERY_CHOICE_LABELS[option.choice]}
+                </FieldLabel>
+                {/* The address on its own line, so a phone never wraps it
+                    mid-address inside the label. */}
+                {option.choice === "email" && receiptDelivery.donor.email ? (
+                  <FieldDescription>
+                    <span className="break-all">
+                      {receiptDelivery.donor.email}
+                    </span>
+                  </FieldDescription>
+                ) : null}
+                {option.blockedReason && (
+                  <FieldDescription>{option.blockedReason}</FieldDescription>
+                )}
+              </FieldContent>
+            </Field>
           );
         })}
       </RadioGroup>

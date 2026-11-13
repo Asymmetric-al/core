@@ -100,7 +100,7 @@ export function EditDonorDialog({
       <DialogContent className="sm:max-w-175" scrollable>
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold tracking-tight">
-            Edit Partner
+            Edit partner
           </DialogTitle>
           <DialogDescription>
             Update {donor?.name}&apos;s information.
@@ -119,7 +119,7 @@ export function EditDonorDialog({
 
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-foreground">
-              Contact Information
+              Contact information
             </h4>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <form.AppField name="email">
@@ -127,7 +127,7 @@ export function EditDonorDialog({
               </form.AppField>
 
               <form.AppField name="phone">
-                {(field) => <field.TextField label="Primary Phone" />}
+                {(field) => <field.TextField label="Primary phone" />}
               </form.AppField>
 
               <form.AppField name="mobile">
@@ -135,13 +135,13 @@ export function EditDonorDialog({
               </form.AppField>
 
               <form.AppField name="work_phone">
-                {(field) => <field.TextField label="Work Phone" />}
+                {(field) => <field.TextField label="Work phone" />}
               </form.AppField>
 
               <form.AppField name="preferred_contact">
                 {(field) => (
                   <field.SelectField
-                    label="Preferred Contact"
+                    label="Preferred contact"
                     options={PREFERRED_CONTACT_OPTIONS}
                   />
                 )}
@@ -158,7 +158,7 @@ export function EditDonorDialog({
           <EditDonorPersonalFields form={form} />
 
           <form.AppField name="notes">
-            {(field) => <field.TextareaField label="Internal Notes" />}
+            {(field) => <field.TextareaField label="Internal notes" />}
           </form.AppField>
 
           <DialogFooter className="gap-2 pt-4 sm:gap-0">
@@ -205,12 +205,12 @@ function EditDonorIdentityFields({
   return (
     <div className="space-y-4">
       <h4 className="text-sm font-semibold text-foreground">
-        Basic Information
+        Basic information
       </h4>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <form.AppField name="name">
           {(field) => (
-            <field.TextField className="sm:col-span-2" label="Full Name" />
+            <field.TextField className="sm:col-span-2" label="Full name" />
           )}
         </form.AppField>
 
@@ -241,7 +241,7 @@ function EditDonorAddressFields({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <form.AppField name="street">
           {(field) => (
-            <field.TextField className="sm:col-span-2" label="Street Address" />
+            <field.TextField className="sm:col-span-2" label="Street address" />
           )}
         </form.AppField>
 
@@ -290,7 +290,7 @@ function EditDonorPersonalFields({
   return (
     <div className="space-y-4">
       <h4 className="text-sm font-semibold text-foreground">
-        Personal Details
+        Personal details
       </h4>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <form.AppField name="organization">

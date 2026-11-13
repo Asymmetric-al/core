@@ -86,3 +86,53 @@ __pycache__/
 # MapLibre 6 worker + shared ESM files copied from node_modules at Next config load
 /apps/donor/public/maplibre/
 /apps/admin/public/maplibre/
+
+# Generated QA payloads stay local; keep source, reports and provenance.
+/docs/qa/admin-workspaces-hillclimb/snapshots/*.diff
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/**/*.png
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/**/*.jpg
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/**/*.a11y.yaml
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/**/raw*/apps-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/**/raw*/packages-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/**/raw*/scans.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/**/incremental-[0-9]*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-grid-qualification/git-status-*.nul
+
+# Reproducible QA fixture exports and duplicate inventories.
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/core-evidence/verified-bundle.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/money-browser/regenerated-fixture-inspection.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/money-browser/cards-batch-v[12]/input-rows-[0-9]*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/money-browser/*/crm-fixture-record.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-studio-live/[0-9][0-9]-*/*/inputs-before.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-studio-live/[0-9][0-9]-*/*/inputs-after.json
+!/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-studio-live/02-preview/before/inputs-before.json
+
+# Historical QA payloads preserved in a verified external evidence archive.
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/audit-20261111T174004238Z/apps-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/audit-20261111T174004238Z/packages-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/audit-20261111T174004238Z/scans.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-20261111T205100Z-fresh/strict/apps-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-20261111T205100Z-fresh/strict/packages-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-20261111T205100Z-fresh/strict/scans.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-20261111T205100Z-fresh/fresh-diagnostics.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-20261111T205100Z-fresh/*-fresh-diagnostics.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/core-evidence/source-p*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/core-evidence/source-after-preflight.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/core-evidence/source-*-capture-crm.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/studio-evidence/immutable-pre.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/studio-evidence/immutable-post.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-20261111T205100Z-fresh/*source-inspections.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-grid-repro/attempt[1-46]-*-freeze.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-grid-repro/final-*-freeze.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-grid-repro/handoff-preservation.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-grid-qualification/snapshot-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/react-doctor/round13r2-grid-repro/lifecycle-preservation.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-core/invocations/focused-correction-*-focused/artifacts/results.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-core/invocations/focused-note-*-focused/artifacts/results.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-core/invocations/focused-receipt-*-focused/artifacts/results.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/money-browser/cards-batch-v[12]/results.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/money-browser/money-v5/results.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/money-browser/reports-v[56]/results.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-studio-live/[0-9][0-9]-*/probe-result.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-studio-live/[0-9][0-9]-*-tab/[0-9][0-9]-*.json
+/docs/qa/admin-workspaces-hillclimb/review/round13/runtime/round13r2-studio-live/[0-9][0-9]-*-escape*/[0-9][0-9]-*.json

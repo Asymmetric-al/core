@@ -58,6 +58,8 @@ import {
 import { Brain, History, Search, ShieldBan } from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
 
+import { EveSectionEmpty } from "./section-states";
+
 import type {
   EveAdminMemoryAdminView,
   EveAdminMemoryCategory,
@@ -346,7 +348,7 @@ function MemoryProfileSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle id="eve-memory-title">
+        <CardTitle role="heading" aria-level={2} id="eve-memory-title">
           <span className="flex items-center gap-2">
             <Brain aria-hidden="true" className="size-5" />
             Private admin memory
@@ -450,7 +452,9 @@ function MemoryCategorySettings({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Automatic save controls</CardTitle>
+        <CardTitle role="heading" aria-level={3}>
+          Automatic save controls
+        </CardTitle>
         <CardDescription>
           Category controls are ready, but every automatic save also remains
           fail-closed behind Eve’s disabled release gate. Disabling a category
@@ -539,7 +543,9 @@ function MemoryEntriesSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Current memory</CardTitle>
+        <CardTitle role="heading" aria-level={3}>
+          Current memory
+        </CardTitle>
         <CardDescription>
           Search, inspect, edit, or delete your private entries. Deleted rows
           remain visible during their separate retention window.
@@ -583,13 +589,11 @@ function MemoryEntriesSection({
             <AlertDescription>{query.error.message}</AlertDescription>
           </Alert>
         ) : null}
-        {!query.isLoading && entries.length === 0 ? (
-          <p
-            role="status"
-            className="py-8 text-center text-sm text-muted-foreground"
-          >
-            No matching private memory.
-          </p>
+        {query.isSuccess && entries.length === 0 ? (
+          <EveSectionEmpty
+            title="No matching private memory."
+            description="Try a different filter or add a private memory."
+          />
         ) : null}
         <ul className="divide-y">
           {entries.map((entry) => (
@@ -740,7 +744,7 @@ function MemoryControlsSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={3}>
           <span className="flex items-center gap-2">
             <History aria-hidden="true" className="size-5" />
             Immutable history
@@ -752,10 +756,11 @@ function MemoryControlsSection({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {(query.data?.history.length ?? 0) === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No memory history yet.
-          </p>
+        {query.isSuccess && query.data.history.length === 0 ? (
+          <EveSectionEmpty
+            title="No memory history yet."
+            description="Saved changes will appear here."
+          />
         ) : (
           <ul className="divide-y">
             {query.data?.history.map((record) => (

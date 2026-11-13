@@ -3,7 +3,10 @@ import type {
   ReceiptDeliveryProposal,
   ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
-import type { ReceiptDeliveryChoice } from "@asym/api/admin/contribution-operations";
+import type {
+  ReceiptDeliveryChoice,
+  ReceiptDeliveryOutcome,
+} from "@asym/api/admin/contribution-operations";
 
 export const RECEIPT_DELIVERY_CHOICE_LABELS: Record<
   ReceiptDeliveryChoice,
@@ -18,6 +21,57 @@ export function receiptDeliveryChoiceLabel(
   choice: ReceiptDeliveryChoice,
 ): string {
   return RECEIPT_DELIVERY_CHOICE_LABELS[choice];
+}
+
+function sentenceCaseWords(value: string): string {
+  const words = value.replace(/[_-]+/g, " ").trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/**
+ * Receipt outcomes reported after an operation or approval decision. Keyed
+ * by the server union so a new outcome status fails the type-check here.
+ */
+const RECEIPT_OUTCOME_STATUS_LABELS: Record<
+  ReceiptDeliveryOutcome["status"],
+  string
+> = {
+  emailed: "Emailed to the donor",
+  pdf_generated: "PDF generated",
+  deferred: "Deferred",
+  blocked: "Blocked",
+  not_required: "Not required",
+  failed: "Failed",
+};
+
+function isKnownReceiptOutcomeStatus(
+  status: string,
+): status is ReceiptDeliveryOutcome["status"] {
+  return Object.hasOwn(RECEIPT_OUTCOME_STATUS_LABELS, status);
+}
+
+/**
+ * Takes a plain string because outcomes arrive as JSON; an unexpected value
+ * still reads as words rather than snake_case.
+ */
+export function receiptOutcomeStatusLabel(status: string): string {
+  return isKnownReceiptOutcomeStatus(status)
+    ? RECEIPT_OUTCOME_STATUS_LABELS[status]
+    : sentenceCaseWords(status);
+}
+
+/**
+ * Receipt fields a correction changes, from `computeReceiptAffectedFields`,
+ * as a phrase: "amount", "amount and designation", "a, b and c".
+ * "designation" stays broad because missionary-only and designation-line
+ * changes report it too.
+ */
+export function formatReceiptFieldList(fields: readonly string[]): string {
+  const labels = fields.map((field) => field.replace(/[_-]+/g, " ").trim());
+  if (labels.length <= 1) {
+    return labels.join("");
+  }
+  return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1) ?? ""}`;
 }
 
 /** Download URL for a generated updated-receipt PDF snapshot. */

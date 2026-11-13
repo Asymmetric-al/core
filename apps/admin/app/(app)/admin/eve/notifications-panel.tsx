@@ -15,6 +15,8 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BellRing } from "lucide-react";
 
+import { EveSectionEmpty, formatStatusLabel } from "./section-states";
+
 import type {
   EveNotificationAdminView,
   EveNotificationChannel,
@@ -99,7 +101,7 @@ export function EveNotificationsPanel() {
   return (
     <Card id="eve-notifications">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={2}>
           <span className="flex items-center gap-2">
             <BellRing aria-hidden="true" className="size-5" />
             Operator notifications
@@ -245,9 +247,12 @@ export function EveNotificationsPanel() {
                 </Button>
               </li>
             ))}
-            {!query.isLoading && (query.data?.recipients.length ?? 0) === 0 ? (
+            {query.isSuccess && query.data.recipients.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">
-                No eligible platform-owner profile has an email address.
+                <EveSectionEmpty
+                  title="No eligible platform-owner profile has an email address."
+                  description="Eligible recipients appear here when an email address is available."
+                />
               </li>
             ) : null}
           </ul>
@@ -265,13 +270,17 @@ export function EveNotificationsPanel() {
                 <span>
                   {record.envelope.eventType} · {record.channel}
                 </span>
-                <Badge variant="outline">{record.status}</Badge>
+                <Badge variant="outline">
+                  {formatStatusLabel(record.status)}
+                </Badge>
               </li>
             ))}
-            {!query.isLoading &&
-            (query.data?.recentNotifications.length ?? 0) === 0 ? (
+            {query.isSuccess && query.data.recentNotifications.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">
-                No notification delivery has been attempted.
+                <EveSectionEmpty
+                  title="No notification delivery has been attempted."
+                  description="Delivery attempts will appear here."
+                />
               </li>
             ) : null}
           </ul>

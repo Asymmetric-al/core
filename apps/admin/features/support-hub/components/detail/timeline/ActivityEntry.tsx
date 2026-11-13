@@ -3,8 +3,7 @@
 import { cn } from "@asym/ui/lib/utils";
 import { Activity } from "lucide-react";
 
-import { useSupportNow } from "../../../lib/now";
-import { formatRelative } from "../../../lib/time";
+import { RelativeTime } from "../../RelativeTime";
 
 import type { SupportMessage } from "../../../types";
 
@@ -18,7 +17,6 @@ interface ActivityEntryProps {
  * directly into this renderer.
  */
 export function ActivityEntry({ message }: ActivityEntryProps) {
-  const nowIso = useSupportNow();
   return (
     <li
       className={cn(
@@ -36,7 +34,7 @@ export function ActivityEntry({ message }: ActivityEntryProps) {
         {message.body.text || "updated this conversation."}
       </span>
       <span className="font-mono text-xs tabular-nums text-muted-foreground">
-        {formatRelative(message.postedAt, nowIso)}
+        <RelativeTime value={message.postedAt} />
       </span>
     </li>
   );

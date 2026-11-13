@@ -1,13 +1,19 @@
 "use client";
 
+import { useIsMobile, useIsTablet } from "@asym/lib/hooks/use-mobile";
+import { ChartCard } from "@asym/ui/components/primitives/chart-wrappers";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@asym/ui/components/shadcn/chart";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import dynamic from "next/dynamic";
+import { useState, type ReactNode } from "react";
 
 export interface GivingByFundPoint {
   label: string;
@@ -20,223 +26,267 @@ export interface DonorsByFundPoint {
 }
 
 interface ReportsChartsProps {
+  group?: { singular: string; plural: string; title: string };
   giving: GivingByFundPoint[];
   donors: DonorsByFundPoint[];
+  coverage: string;
+  period: string;
   isEmpty: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
+  isIncomplete?: boolean;
+  onRetry?: () => void;
 }
+
+const EXACT_CURRENCY = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+const COMPACT_CURRENCY = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+const givingConfig = {
+  amount: { label: "Giving", color: "var(--chart-1)" },
+} satisfies ChartConfig;
+
+const donorsConfig = {
+  donors: { label: "Donors", color: "var(--chart-2)" },
+} satisfies ChartConfig;
 
 function ChartSkeleton({ height }: { height: number }) {
   return (
     <div
-      className="w-full animate-pulse rounded-xl border border-border bg-muted/40"
+      role="status"
+      aria-label="Loading chart"
+      className="w-full animate-pulse rounded-xl bg-muted/40"
       style={{ height }}
     />
   );
 }
 
-function ChartEmptyState({ message }: { message: string }) {
-  return (
-    <div className="flex h-75 w-full items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 text-center text-sm font-medium text-muted-foreground">
-      {message}
-    </div>
-  );
-}
-
 const GivingChart = dynamic<{ data: GivingByFundPoint[] }>(
   async () => {
-    const {
-      Area,
-      AreaChart,
-      CartesianGrid,
-      ResponsiveContainer,
-      Tooltip,
-      XAxis,
-      YAxis,
-    } = await import("recharts");
+    const { Bar, BarChart, CartesianGrid, XAxis, YAxis } =
+      await import("recharts");
 
     function GivingChartInner({ data }: { data: GivingByFundPoint[] }) {
       return (
-        <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+        <div className="h-72 w-full">
+          <ChartContainer config={givingConfig} layout="fill">
+            <BarChart
+              accessibilityLayer
               data={data}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              layout="vertical"
+              margin={{ left: 8, right: 16 }}
             >
-              <defs>
-                <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--chart-1)"
-                    stopOpacity={0.1}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--chart-1)"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
+              <CartesianGrid horizontal={false} />
               <XAxis
-                dataKey="label"
-                fontSize={10}
+                type="number"
+                dataKey="amount"
                 tickLine={false}
                 axisLine={false}
-                interval={0}
-                stroke="var(--muted-foreground)"
+                tickFormatter={(value: number) =>
+                  COMPACT_CURRENCY.format(value)
+                }
               />
               <YAxis
-                fontSize={10}
+                type="category"
+                dataKey="label"
                 tickLine={false}
                 axisLine={false}
-                stroke="var(--muted-foreground)"
-                tickFormatter={(value: number) =>
-                  `$${Math.round(value / 1000)}k`
+                width={150}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) =>
+                      typeof value === "number"
+                        ? EXACT_CURRENCY.format(value)
+                        : String(value)
+                    }
+                  />
                 }
               />
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="var(--border)"
-              />
-              <Tooltip
-                formatter={(value) =>
-                  typeof value === "number"
-                    ? [`$${value.toLocaleString("en-US")}`, "Giving"]
-                    : null
-                }
-                contentStyle={{
-                  borderRadius: "12px",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="amount"
-                stroke="var(--chart-1)"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorAmt)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+              <Bar dataKey="amount" fill="var(--color-amount)" radius={4} />
+            </BarChart>
+          </ChartContainer>
         </div>
       );
     }
 
     return GivingChartInner;
   },
-  {
-    ssr: false,
-    loading: () => <ChartSkeleton height={320} />,
-  },
+  { ssr: false, loading: () => <ChartSkeleton height={288} /> },
 );
 
 const DonorsChart = dynamic<{ data: DonorsByFundPoint[] }>(
   async () => {
-    const {
-      Bar,
-      BarChart,
-      CartesianGrid,
-      ResponsiveContainer,
-      Tooltip,
-      XAxis,
-      YAxis,
-    } = await import("recharts");
+    const { Bar, BarChart, CartesianGrid, XAxis, YAxis } =
+      await import("recharts");
 
     function DonorsChartInner({ data }: { data: DonorsByFundPoint[] }) {
       return (
-        <div className="h-75 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 w-full">
+          <ChartContainer config={donorsConfig} layout="fill">
             <BarChart
+              accessibilityLayer
               data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              barSize={24}
+              layout="vertical"
+              margin={{ left: 8, right: 16 }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="var(--border)"
-              />
+              <CartesianGrid horizontal={false} />
               <XAxis
-                dataKey="label"
-                fontSize={10}
-                tickLine={false}
-                axisLine={false}
-                interval={0}
-                stroke="var(--muted-foreground)"
-              />
-              <YAxis
-                fontSize={10}
+                type="number"
+                dataKey="donors"
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
-                stroke="var(--muted-foreground)"
               />
-              <Tooltip
-                cursor={{ fill: "var(--muted)" }}
-                formatter={(value) =>
-                  typeof value === "number" ? [value, "Donors"] : null
-                }
+              <YAxis
+                type="category"
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                width={150}
               />
-              <Bar
-                dataKey="donors"
-                name="Donors"
-                fill="var(--chart-1)"
-                radius={[4, 4, 0, 0]}
-              />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <Bar dataKey="donors" fill="var(--color-donors)" radius={4} />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       );
     }
 
     return DonorsChartInner;
   },
-  {
-    ssr: false,
-    loading: () => <ChartSkeleton height={300} />,
-  },
+  { ssr: false, loading: () => <ChartSkeleton height={288} /> },
 );
 
-export function ReportsCharts({ donors, giving, isEmpty }: ReportsChartsProps) {
-  return (
-    <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-7">
-      <Card className="col-span-4">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">
-            Giving by Fund
-          </CardTitle>
-          <CardDescription className="text-xs font-medium">
-            Completed giving by fund (top funds).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pl-0">
-          {isEmpty ? (
-            <ChartEmptyState message="No completed giving in range." />
-          ) : (
-            <GivingChart data={giving} />
-          )}
-        </CardContent>
-      </Card>
+type ChartKind = "giving" | "donors";
 
-      <Card className="col-span-3">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">
-            Donors by Fund
-          </CardTitle>
-          <CardDescription className="text-xs font-medium">
-            Unique donors giving to each fund.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pl-0">
-          {isEmpty ? (
-            <ChartEmptyState message="No donors in range." />
-          ) : (
-            <DonorsChart data={donors} />
-          )}
-        </CardContent>
-      </Card>
+export function ReportsCharts({
+  donors,
+  giving,
+  coverage,
+  period,
+  isEmpty,
+  isLoading = false,
+  isError = false,
+  isIncomplete = false,
+  onRetry,
+  group = { singular: "fund", plural: "funds", title: "Funds" },
+}: ReportsChartsProps) {
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const [shown, setShown] = useState<ChartKind>("giving");
+  const compareDonors = group.singular !== "donor";
+  const state = {
+    isEmpty,
+    isLoading,
+    isError: isError || isIncomplete,
+    onRetry,
+    headingLevel: 2,
+    errorTitle: isIncomplete
+      ? "Charts need a complete report"
+      : "The chart could not load",
+    errorMessage: isIncomplete
+      ? "Choose a shorter period to compare all settled gifts. The partial records remain listed below."
+      : "Load the report again to see this comparison.",
+  } as const;
+
+  const charts = {
+    giving: {
+      title: `Giving by ${group.singular}`,
+      description: `Net giving, largest first. Period: ${period}.`,
+      summary: `Net giving after refunds and corrections. Period: ${period}. ${giving.map((point) => `${point.label}: ${EXACT_CURRENCY.format(point.amount)}`).join("; ")}.`,
+      emptyMessage: "No settled giving yet.",
+      body: <GivingChart data={giving} />,
+    },
+    donors: {
+      title: `Donors by ${group.singular}`,
+      description: `Different donors giving to each ${group.singular}, in the same order. Period: ${period}.`,
+      summary: `Distinct donors per ${group.singular}, not an additive total. Period: ${period}. ${donors.map((point) => `${point.label}: ${point.donors.toLocaleString("en-US")} ${point.donors === 1 ? "donor" : "donors"}`).join("; ")}.`,
+      emptyMessage: "No donors yet.",
+      body: <DonorsChart data={donors} />,
+    },
+  } satisfies Record<
+    ChartKind,
+    {
+      title: string;
+      description: string;
+      summary: string;
+      emptyMessage: string;
+      body: ReactNode;
+    }
+  >;
+
+  if ((isMobile || isTablet) && compareDonors) {
+    const chart = charts[shown];
+    return (
+      <ChartCard
+        {...state}
+        role="region"
+        aria-label={`By ${group.singular}`}
+        title={`By ${group.singular}`}
+        description={chart.description}
+        summary={chart.summary}
+        note={coverage}
+        emptyMessage={chart.emptyMessage}
+        actions={
+          <ToggleGroup
+            aria-label="Chart"
+            variant="outline"
+            size="sm"
+            value={[shown]}
+            onValueChange={(next) => {
+              const [value] = next;
+              if (value === "giving" || value === "donors") setShown(value);
+            }}
+          >
+            <ToggleGroupItem value="giving">Giving</ToggleGroupItem>
+            <ToggleGroupItem value="donors">Donors</ToggleGroupItem>
+          </ToggleGroup>
+        }
+      >
+        {chart.body}
+      </ChartCard>
+    );
+  }
+
+  return (
+    <div className={compareDonors ? "grid gap-6 lg:grid-cols-2" : "grid gap-6"}>
+      <ChartCard
+        {...state}
+        role="region"
+        aria-label={charts.giving.title}
+        title={charts.giving.title}
+        description={charts.giving.description}
+        summary={charts.giving.summary}
+        note={coverage}
+        emptyMessage={charts.giving.emptyMessage}
+      >
+        {charts.giving.body}
+      </ChartCard>
+      {compareDonors ? (
+        <ChartCard
+          {...state}
+          role="region"
+          aria-label={charts.donors.title}
+          title={charts.donors.title}
+          description={charts.donors.description}
+          summary={charts.donors.summary}
+          note={coverage}
+          emptyMessage={charts.donors.emptyMessage}
+        >
+          {charts.donors.body}
+        </ChartCard>
+      ) : null}
     </div>
   );
 }

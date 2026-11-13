@@ -20,30 +20,29 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildContributionGridRow } from "../../../../../packages/api/src/admin/contributions/model";
 
 import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
-import type { DataTableResponsiveProps } from "@asym/ui/components/shadcn/data-table/data-table-responsive";
 
-// Invoke the public mobile renderer with actual TanStack rows; the desktop
-// column is exercised separately without responsive shell/viewport concerns.
-vi.mock("@asym/ui/components/shadcn/data-table", () => ({
-  DataTableResponsive: ({
-    data,
-    columns,
-    mobileCardConfig,
-  }: DataTableResponsiveProps<Contribution, unknown>) => {
-    const table = useTable({
-      features: dataTableFeatures,
-      data,
-      columns,
-    });
-    return (
-      <>
-        {table.getRowModel().rows.map((row) => (
-          <div key={row.id}>{mobileCardConfig?.renderCard?.(row)}</div>
-        ))}
-      </>
-    );
-  },
-}));
+// The mobile card is the ReUI grid's real mobile list (DataGridPanel
+// renderMobileRow below the md breakpoint); the desktop column is exercised
+// separately without responsive shell/viewport concerns.
+function stubViewport(width: number) {
+  vi.stubGlobal("innerWidth", width);
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    media: query,
+    matches: width < 768 && query.includes("max-width"),
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+  }));
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+}
 
 const { getContributionColumns } =
   await import("../../../../../apps/admin/app/(app)/contributions/columns");
@@ -114,6 +113,7 @@ function show(surface: Surface, row: Contribution) {
     );
   }
   if (surface === "mobile card") {
+    stubViewport(390);
     return render(
       <ContributionsMainBody
         data={[row]}
@@ -125,7 +125,10 @@ function show(surface: Surface, row: Contribution) {
   return render(<DateColumn row={row} />);
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe.each(surfaces)("contribution calendar date in the %s", (surface) => {
   it("displays the actual API gift_date without shifting the calendar day", async () => {
@@ -162,6 +165,7 @@ describe.each(["mobile card", "desktop column"] as const)(
   (surface) => {
     it("hydrates a stable UTC snapshot before applying the visitor's instant date", async () => {
       const row = contribution("");
+      stubViewport(surface === "desktop column" ? 1024 : 390);
       const element =
         surface === "desktop column" ? (
           <DateColumn row={row} />

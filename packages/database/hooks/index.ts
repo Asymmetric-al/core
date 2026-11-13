@@ -3,6 +3,10 @@
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export {
+  ADMIN_CRM_TAG_OPTIONS_QUERY_KEY,
+  useAdminCrmTagOptions,
+} from "./admin-crm-tags";
+export {
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
   ADMIN_CRM_RECORDS_QUERY_KEY,
   useAdminCrmRecordDetail,
@@ -27,7 +31,14 @@ export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
   useAdminCrmRelationshipsGrid,
 } from "./admin-crm-relationships";
-export { useAdminCrmReport } from "./admin-crm-report";
+export {
+  crmReportExportHref,
+  crmReportPeriodRange,
+  useAdminCrmReport,
+  type CrmReportGroup,
+  type CrmReportPeriod,
+  type CrmReportPeriodKey,
+} from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
   usePublicLocations,
@@ -42,9 +53,14 @@ export {
   mapToRecentUpdate,
   postAuthorName,
   postImages,
+  postCategory,
   postInitials,
+  postPlainText,
+  postReadTime,
   postTitle,
+  useDonorFeedPostPages,
   useDonorFeedPosts,
+  type DonorFeedPost,
   type DonorFeedPostsOptions,
 } from "./donor-feed-posts";
 export {
@@ -70,9 +86,6 @@ export {
   useTaskStaff,
   useTaskLinkedEntities,
   useEventAttendees,
-  useMobilizeCandidates,
-  useTeams,
-  useTeamMembers,
 } from "./admin-workspace";
 export {
   MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
@@ -96,11 +109,19 @@ export {
 } from "./admin-locations";
 export { useMissionaryDonorRows } from "./missionary-donors";
 export {
+  knownDonorRecipient,
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
+  useDonorWallet,
   useUpdateDonorPortal,
 } from "./donor-portal";
-export { useMissionaryPortalSnapshot } from "./missionary-portal";
+export type { DonorWallet, DonorWalletPaymentMethod } from "./donor-portal";
+export {
+  PENDING_FOLLOW_REQUESTS_QUERY_KEY,
+  refreshPendingFollowRequestCount,
+  useMissionaryPortalSnapshot,
+  usePendingFollowRequestCount,
+} from "./missionary-portal";
 
 export {
   EMPTY_SUPPORT_CONTACT_REF,
@@ -203,6 +224,8 @@ export type { DemoAvailability, DemoRole } from "./demo-account";
 export type { DonorHistoryTransaction } from "./donor-history";
 export type {
   DonorPortalDonation,
+  DonorPortalGiftFund,
+  DonorPortalGiftMissionary,
   DonorPortalPatch,
   DonorPortalRecurringGift,
   DonorPortalSnapshot,
@@ -217,9 +240,6 @@ export type {
   AdminTaskStaffMember,
   AdminTaskLinkedEntity,
   AdminEventAttendee,
-  AdminMobilizeCandidate,
-  AdminTeam,
-  AdminTeamMember,
 } from "./admin-workspace";
 export type {
   MemberCarePriority,

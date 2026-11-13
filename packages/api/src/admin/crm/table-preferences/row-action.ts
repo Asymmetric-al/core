@@ -91,7 +91,7 @@ function humanizeActionId(actionId: string): string {
  * Returns the action when usable; otherwise records why it was skipped.
  */
 function validatePreference(
-  label: "Your pinned action" | "The tenant default action",
+  label: "Your pinned action" | "The organization default action",
   preference: CrmRowActionPreferenceInput | null,
   entries: CrmGiftInlineActionEntry[],
   notes: string[],
@@ -145,7 +145,7 @@ export function resolveCrmRowAction(input: {
   }
 
   const tenantAction = validatePreference(
-    "The tenant default action",
+    "The organization default action",
     input.tenantDefault,
     input.entries,
     notes,

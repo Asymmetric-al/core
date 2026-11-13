@@ -156,6 +156,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/table-preferences/tenant-default`              | Node.js (no `runtime` segment export) | Audited CRM tenant default preferences             |
 | admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                           |
 | admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation                   |
+| admin      | `/api/admin/crm/tags`                                          | Node.js (no `runtime` segment export) | Staff-only tenant CRM tag options                  |
 | admin      | `/api/admin/eve/admin-memory`                                  | Node.js (no `runtime` segment export) | Owner-bound private Eve memory and history         |
 | admin      | `/api/admin/eve/approval-budget`                               | Node.js (no `runtime` segment export) | Audited trust-zone and hard-budget tracer          |
 | admin      | `/api/admin/eve/engineering-monitors`                          | Node.js (no `runtime` segment export) | Safe engineering monitor status and findings       |
@@ -267,6 +268,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client                |
 | donor      | `/api/donor/feed-preferences`                                  | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| donor      | `/api/donor/payment-methods`                                   | Node.js (no `runtime` segment export) | Saved Stripe cards, admin client                   |
 | donor      | `/api/donor/portal`                                            | Node.js (no `runtime` segment export) | Donor self-service BFF, admin client               |
 | donor      | `/api/donor/receipts/[donationId]`                             | Node.js (no `runtime` segment export) | Owned donor receipt download, admin client         |
 | donor      | `/api/donor/statements/[year]`                                 | Node.js (no `runtime` segment export) | Owned donor statement download                     |

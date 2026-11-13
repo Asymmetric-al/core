@@ -50,7 +50,7 @@ export function DonorsPageActivityDialogs() {
           <DialogHeader>
             <DialogTitle>
               {noteComposer.activityType === "note"
-                ? "Add Note"
+                ? "Add note"
                 : noteComposer.activityType === "call"
                   ? "Log Call"
                   : noteComposer.activityType === "meeting"
@@ -110,7 +110,7 @@ export function DonorsPageActivityDialogs() {
       >
         <DialogContent className="sm:max-w-125" scrollable>
           <DialogHeader>
-            <DialogTitle>Manage Tags</DialogTitle>
+            <DialogTitle>Manage tags</DialogTitle>
             <DialogDescription>
               Select tags for {selectedDonor?.name}. Tags help you organize and
               filter your partners.

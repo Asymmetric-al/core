@@ -2,6 +2,109 @@ import { describe, expect, it } from "vitest";
 
 import { buildDonorPortalSnapshot } from "../../../../../packages/api/src/donor-portal/model";
 
+type SnapshotInput = Parameters<typeof buildDonorPortalSnapshot>[0];
+
+function donationRow(id: string, status: string, amount: number) {
+  return {
+    id,
+    amount,
+    currency: "usd",
+    status,
+    donation_type: "one_time",
+    payment_method: "card",
+    is_recurring: false,
+    recurring_interval: null,
+    gift_date: "2026-05-01T00:00:00.000Z",
+    created_at: "2026-05-01T00:00:00.000Z",
+    completed_at: null,
+    processed_at: null,
+    stripe_payment_intent_id: null,
+    stripe_charge_id: null,
+    fund: null,
+    missionary: null,
+  } satisfies SnapshotInput["donations"][number];
+}
+
+describe("donor portal gift status", () => {
+  it("names each gift Paid, Processing, Failed or Refunded, and counts only paid gifts this year", () => {
+    const snapshot = buildDonorPortalSnapshot({
+      now: new Date("2026-05-15T00:00:00.000Z"),
+      profile: {
+        id: "profile-1",
+        email: null,
+        first_name: "Ada",
+        last_name: null,
+        full_name: null,
+        display_name: null,
+        phone: null,
+        avatar_url: null,
+      },
+      donor: {
+        id: "donor-1",
+        tenant_id: "tenant-1",
+        profile_id: "profile-1",
+        status: "active",
+        giving_preferences: {},
+      },
+      donations: [
+        donationRow("paid", "completed", 5_000),
+        donationRow("processing", "pending", 2_000),
+        donationRow("failed", "failed", 3_000),
+        donationRow("refunded", "refunded", 4_000),
+      ],
+      pledges: [],
+      feedPreferences: null,
+    } as unknown as SnapshotInput);
+
+    expect(snapshot.donations.map((gift) => [gift.id, gift.status])).toEqual([
+      ["paid", "Paid"],
+      ["processing", "Processing"],
+      ["failed", "Failed"],
+      ["refunded", "Refunded"],
+    ]);
+    expect(snapshot.summary.yearToDateCents).toBe(5_000);
+  });
+});
+
+describe("donor portal gift recipient", () => {
+  it("names an unnamed missionary by the fund the gift went to", () => {
+    const snapshot = buildDonorPortalSnapshot({
+      now: new Date("2026-05-15T00:00:00.000Z"),
+      profile: {
+        id: "p",
+        email: null,
+        first_name: "Ada",
+        last_name: null,
+        full_name: null,
+        display_name: null,
+        phone: null,
+        avatar_url: null,
+      },
+      donor: {
+        id: "donor-1",
+        tenant_id: "tenant-1",
+        profile_id: "p",
+        status: "active",
+        giving_preferences: {},
+      },
+      donations: [
+        {
+          ...donationRow("g", "completed", 3_000),
+          fund: { id: "f", name: "Nairobi Water Wells" },
+          missionary: { id: "m", profile: null },
+        },
+      ],
+      pledges: [],
+      feedPreferences: null,
+    } as unknown as SnapshotInput);
+    expect(snapshot.donations[0]?.missionary).toEqual({
+      id: "m",
+      name: "Nairobi Water Wells",
+      avatarUrl: null,
+    });
+  });
+});
+
 describe("donor portal model", () => {
   it("builds a self-service snapshot from owned donor data only", () => {
     const snapshot = buildDonorPortalSnapshot({
@@ -126,7 +229,7 @@ describe("donor portal model", () => {
       id: "donation-1",
       amount: 100,
       receiptUrl: "/api/donor/receipts/donation-1",
-      status: "Succeeded",
+      status: "Paid",
       type: "Recurring",
       designation: {
         name: "The Millers",
@@ -134,9 +237,30 @@ describe("donor portal model", () => {
       },
     });
     expect(snapshot.donations[1]?.status).toBe("Processing");
+    expect(snapshot.donations.map((gift) => gift.method)).toEqual([
+      "Saved payment method",
+      "Bank account (ACH)",
+    ]);
+    // Who the gift supports and which fund it went to are separate facts.
+    expect(snapshot.donations[0]).toMatchObject({
+      missionary: {
+        id: "missionary-1",
+        name: "The Millers",
+        avatarUrl: "https://example.com/avatar.png",
+      },
+      fund: null,
+    });
+    expect(snapshot.donations[1]).toMatchObject({
+      missionary: null,
+      fund: { id: "fund-1", name: "Clean Water" },
+    });
+    expect(snapshot.recurringGifts[0]).toMatchObject({
+      missionary: null,
+      fund: null,
+    });
     expect(snapshot.recurringGifts[0]).toMatchObject({
       id: "pledge-1",
-      paymentMethodLabel: "Stripe managed",
+      paymentMethodLabel: "Saved payment method",
       stripeSubscriptionId: "sub_123",
     });
     expect(snapshot.paymentMethods[0]).toMatchObject({

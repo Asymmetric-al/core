@@ -25,11 +25,30 @@ const { editorState } = vi.hoisted(() => ({
     insertContentMock: vi.fn(),
     runMock: vi.fn(),
     deferReady: false,
+    extensions: undefined as unknown[] | undefined,
     fireReady: undefined as (() => void) | undefined,
     onUploadImage: undefined as
       ((file: File) => Promise<{ url: string }>) | undefined,
   },
 }));
+
+const { placeCaretAtStartMock, revealEmptyPlaceholdersMock } = vi.hoisted(
+  () => ({
+    placeCaretAtStartMock: vi.fn(),
+    revealEmptyPlaceholdersMock: vi.fn(),
+  }),
+);
+
+vi.mock(
+  "../../../../../packages/ui/components/studio/react-email-placeholder",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("../../../../../packages/ui/components/studio/react-email-placeholder")
+    >()),
+    placeCaretAtStart: placeCaretAtStartMock,
+    revealEmptyPlaceholders: revealEmptyPlaceholdersMock,
+  }),
+);
 
 vi.hoisted(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
@@ -58,13 +77,16 @@ vi.mock("next/dynamic", async () => {
   const MockEmailEditor = React.forwardRef(function MockEmailEditor(
     props: {
       content: unknown;
+      className?: string;
       extensions?: unknown[];
       onReady?: () => void;
       onUpdate?: (editor: { getJSON: () => unknown }) => void;
       onUploadImage?: (file: File) => Promise<{ url: string }>;
+      editable?: boolean;
     },
     ref,
   ) {
+    editorState.extensions = props.extensions;
     const editorApi = {
       getJSON: editorState.getJSONMock,
       extensionManager: { extensions: [] },
@@ -115,6 +137,8 @@ vi.mock("next/dynamic", async () => {
     return React.createElement("div", {
       "data-testid": "mock-react-email-editor",
       "data-content": JSON.stringify(props.content),
+      "data-editable": String(props.editable ?? true),
+      className: props.className,
     });
   });
 
@@ -344,6 +368,83 @@ describe("@asym/ui ReactEmailEditor", () => {
     );
   });
 
+  it("passes read-only through to React Email so the email cannot change", async () => {
+    const { rerender } = render(<EmailStudioEditor />);
+    const editor = await screen.findByTestId("mock-react-email-editor");
+    expect(editor.getAttribute("data-editable")).toBe("true");
+
+    rerender(<EmailStudioEditor readOnly />);
+    await waitFor(() =>
+      expect(
+        screen
+          .getByTestId("mock-react-email-editor")
+          .getAttribute("data-editable"),
+      ).toBe("false"),
+    );
+  });
+
+  it("centres the canvas and the email body in the workspace", async () => {
+    render(<EmailStudioEditor />);
+    const editor = await screen.findByTestId("mock-react-email-editor");
+    // React Email's theme injects an unlayered "margin: 0" on the canvas and
+    // the email body. The shared stylesheet centres the canvas (see
+    // react-email-theme.test.ts); the important modifier centres the body.
+    expect(editor.className).not.toContain("[&_.tiptap]:mx-auto!");
+    expect(editor.className).toContain("[&_.node-container]:mx-auto!");
+  });
+
+  it("keeps the formatting bubble hidden until someone works in the editor", async () => {
+    render(<EmailStudioEditor />);
+    const editor = await screen.findByTestId("mock-react-email-editor");
+    // React Email paints its bubble menu visible before any selection, so a
+    // "Multiple" toolbar floated over a blank email on first load.
+    expect(editor.className).toContain("[&_[data-re-bubble-menu]]:invisible!");
+    fireEvent.focusIn(editor);
+    await waitFor(() =>
+      expect(editor.className).not.toContain(
+        "[&_[data-re-bubble-menu]]:invisible!",
+      ),
+    );
+  });
+
+  it("shows the starting prompt on a blank email without a click", async () => {
+    render(<EmailStudioEditor />);
+    const editor = await screen.findByTestId("mock-react-email-editor");
+    // The prompt is revealed once the editor is ready, before any focus.
+    await waitFor(() => expect(revealEmptyPlaceholdersMock).toHaveBeenCalled());
+    // The placeholder names real slash-menu blocks.
+    const placeholder = (
+      editorState.extensions as Array<{
+        name: string;
+        options: {
+          placeholder: (props: unknown) => string;
+          emptyNodeClass: (props: unknown) => string;
+        };
+      }>
+    ).find((extension) => extension.name === "placeholder");
+    expect(
+      placeholder?.options.placeholder({
+        node: { type: { name: "paragraph" }, attrs: {} },
+      }),
+    ).toBe("Start writing, or press '/' to add a heading, button or columns");
+    // React Email paints `p.is-empty` at 30% opacity, too faint to read.
+    // The empty paragraph takes its own class instead, drawn in the muted
+    // text token at full strength, with no `!` override.
+    expect(
+      placeholder?.options.emptyNodeClass({
+        node: { type: { name: "paragraph" }, attrs: {} },
+      }),
+    ).toBe("is-email-prompt");
+    expect(editor.className).toContain(
+      "[&_p.is-email-prompt]:before:text-muted-foreground",
+    );
+    expect(editor.className).toContain(
+      "[&_p.is-email-prompt]:before:content-[attr(data-placeholder)]",
+    );
+    expect(editor.className).not.toMatch(/opacity/);
+    expect(editor.className).not.toMatch(/is-email-prompt\S*!/);
+  });
+
   it("applies loadDesign queued before the nested editor is ready", async () => {
     editorState.deferReady = true;
 
@@ -362,6 +463,9 @@ describe("@asym/ui ReactEmailEditor", () => {
         { emitUpdate: false },
       );
     });
+    // Loaded content starts with a caret at the top, not a selection that
+    // would open the formatting bubble.
+    expect(placeCaretAtStartMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not notify onDesignUpdate when loadDesign applies stored template content", async () => {
@@ -385,5 +489,9 @@ describe("@asym/ui ReactEmailEditor", () => {
       { emitUpdate: false },
     );
     expect(onDesignUpdate).not.toHaveBeenCalled();
+    expect(placeCaretAtStartMock).toHaveBeenCalledTimes(1);
+    expect(placeCaretAtStartMock.mock.invocationCallOrder[0]).toBeGreaterThan(
+      editorState.setContentMock.mock.invocationCallOrder[0]!,
+    );
   });
 });

@@ -134,8 +134,9 @@ function ClientOnly({ children, fallback }) {
 
 ### Files Modified
 
-- `apps/admin/features/mission-control/components/client-only.tsx`
 - `apps/donor/features/donor/components/DashboardUI.tsx`
+
+The admin copy (`apps/admin/features/mission-control/components/client-only.tsx`) was removed in November 2026 because nothing used it.
 
 ### Date
 

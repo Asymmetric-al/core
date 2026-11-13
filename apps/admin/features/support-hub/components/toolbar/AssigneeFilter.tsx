@@ -37,7 +37,7 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
   };
 
   return (
-    <div className="w-45">
+    <div className="w-full sm:w-45">
       <SearchableSelect
         renderOption={(option) => {
           const agent = agents.find((entry) => entry.id === option.value);
@@ -62,6 +62,7 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
         value={selectValue}
         onValueChange={handleChange}
         aria-label="Assignee filter"
+        className="w-full"
         placeholder="Any assignee"
       />
     </div>

@@ -10,6 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
+import * as React from "react";
 import { toast } from "sonner";
 
 import { useDeleteSupportSavedView } from "../../hooks/use-support-mutations";
@@ -30,18 +32,24 @@ export function DeleteSavedViewConfirm({
   onClose,
 }: DeleteSavedViewConfirmProps) {
   const deleteSavedView = useDeleteSupportSavedView();
+  const busyRef = React.useRef(false);
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const handleDelete = async () => {
-    if (!view) return;
+    if (!view || busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    setError("");
     try {
       await deleteSavedView.mutateAsync({ id: view.id });
       toast.success("View deleted.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not delete the view.",
-      );
-    } finally {
       onClose();
+    } catch {
+      setError("Could not delete the view. Try again.");
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
     }
   };
 
@@ -49,7 +57,7 @@ export function DeleteSavedViewConfirm({
     <AlertDialog
       open={view !== null}
       onOpenChange={(open) => {
-        if (!open) onClose();
+        if (!open && !busyRef.current) onClose();
       }}
     >
       <AlertDialogContent>
@@ -60,14 +68,22 @@ export function DeleteSavedViewConfirm({
             views? Anyone using it will lose the link.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
+            disabled={busy}
             onClick={(event) => {
               event.preventDefault();
               void handleDelete();
             }}
           >
+            {busy ? <Spinner aria-hidden="true" /> : null}
             Delete view
           </AlertDialogAction>
         </AlertDialogFooter>

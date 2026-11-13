@@ -65,7 +65,7 @@ The vendored Matt Pocock body below is kept for provenance. These lines are
 
 TDD is the red → green loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle: consult them before and during the loop, not after.
 
-When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
+When exploring the codebase, use the project's domain language for test names and interface vocabulary, and respect ADRs in the area you're touching. Follow `docs/agents/domain.md`: start at `CONTEXT-MAP.md` and open only the context that matches the task. The root `CONTEXT.md` is very large, so search it for the terms you need instead of reading it whole.
 
 ## What a good test is
 
