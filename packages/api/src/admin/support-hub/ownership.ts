@@ -206,6 +206,14 @@ export function createSupportOwnershipService(adapter: OwnershipAdapter) {
         if (!existing || !ownsView(actor, existing)) {
           throw new SupportHubForbiddenError(OTHERS_VIEWS);
         }
+        // The write repeats the ownership condition, so a transfer that lands
+        // between this check and the write is refused, not overwritten.
+        const updated = await adapter.savedViews.updateIfOwned(
+          { ...parsed, id: parsed.id, ownerAgentId: actor.agentId },
+          actor.agentId,
+        );
+        if (!updated) throw new SupportHubForbiddenError(OTHERS_VIEWS);
+        return updated;
       }
       return adapter.savedViews.save({
         ...parsed,
@@ -221,6 +229,10 @@ export function createSupportOwnershipService(adapter: OwnershipAdapter) {
         if (!existing || !ownsView(actor, existing)) {
           throw new SupportHubForbiddenError(OTHERS_VIEWS);
         }
+        if (!(await adapter.savedViews.deleteIfOwned(id, actor.agentId))) {
+          throw new SupportHubForbiddenError(OTHERS_VIEWS);
+        }
+        return;
       }
       await adapter.savedViews.delete(id);
     },

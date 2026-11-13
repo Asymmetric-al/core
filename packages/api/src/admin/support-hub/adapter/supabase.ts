@@ -1072,6 +1072,38 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
     async delete(id) {
       await deleteById("support_saved_views", id);
     },
+    async updateIfOwned(input, ownerAgentId) {
+      const { data, error } = await client()
+        .from("support_saved_views")
+        .update({
+          owner_agent_id: ownerAgentId,
+          name: input.name,
+          slug: input.slug,
+          scope: input.scope,
+          filter: input.filter,
+          updated_at: nowIso(),
+        })
+        .eq("tenant_id", tenantId())
+        .eq("id", input.id)
+        .eq("owner_agent_id", ownerAgentId)
+        .eq("scope", "personal")
+        .select();
+      assertDb(error, "support_saved_views.update");
+      const row = ((data ?? []) as unknown as SupabaseRow[])[0];
+      return row ? toSavedView(row) : null;
+    },
+    async deleteIfOwned(id, ownerAgentId) {
+      const { data, error } = await client()
+        .from("support_saved_views")
+        .delete()
+        .eq("tenant_id", tenantId())
+        .eq("id", id)
+        .eq("owner_agent_id", ownerAgentId)
+        .eq("scope", "personal")
+        .select("id");
+      assertDb(error, "support_saved_views.delete");
+      return ((data ?? []) as unknown[]).length > 0;
+    },
   },
   inboxes: {
     async list() {

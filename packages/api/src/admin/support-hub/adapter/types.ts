@@ -255,6 +255,17 @@ export interface SupportHubAdapter {
     list(): Promise<SupportSavedView[]>;
     save(input: SaveSavedViewInput): Promise<SupportSavedView>;
     delete(id: string): Promise<void>;
+    /**
+     * Updates a personal view only while it still belongs to `ownerAgentId`;
+     * null when it no longer does. The ownership condition is part of the
+     * write, so a transfer after an ownership check can't be overwritten.
+     */
+    updateIfOwned(
+      input: SaveSavedViewInput & { id: string },
+      ownerAgentId: string,
+    ): Promise<SupportSavedView | null>;
+    /** Deletes a personal view only while it belongs to `ownerAgentId`. */
+    deleteIfOwned(id: string, ownerAgentId: string): Promise<boolean>;
   };
   inboxes: {
     list(): Promise<SupportInbox[]>;
