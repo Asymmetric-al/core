@@ -188,6 +188,11 @@ function DocumentsError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+/** The last page that has documents; 1 when there are none. */
+function lastPage(totalDocs: number) {
+  return Math.max(1, Math.ceil(totalDocs / PAGE_SIZE));
+}
+
 function DocumentsPager({
   page,
   totalDocs,
@@ -199,7 +204,8 @@ function DocumentsPager({
   disabled: boolean;
   onPageChange: (page: number) => void;
 }) {
-  const totalPages = Math.max(1, Math.ceil(totalDocs / PAGE_SIZE));
+  // A page past the end still shows the pager, so Previous stays reachable.
+  const totalPages = Math.max(lastPage(totalDocs), page);
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-end gap-1">
@@ -330,6 +336,23 @@ function TabBody({
   }
   if (!query.data) return <DocumentsSkeleton />;
   const { items, page, totalDocs } = query.data;
+  // A page past the end while earlier pages still have documents (another
+  // session unpinned them): keep the pager so they stay reachable.
+  if (items.length === 0 && totalDocs > 0) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted-foreground">
+          No documents on this page.
+        </p>
+        <DocumentsPager
+          page={page}
+          totalDocs={totalDocs}
+          disabled={query.isFetching || saving}
+          onPageChange={onPageChange}
+        />
+      </div>
+    );
+  }
   // One short line: an empty personal list should not push Collections down.
   if (items.length === 0) {
     const Icon = tab === "pinned" ? Pin : History;
@@ -401,6 +424,16 @@ export function YourDocuments() {
     setSaveError(null);
     try {
       await updatePinnedDocument({ document, shouldPin: false, url: pinsURL });
+      // Unpinning the only document on a later page empties that page; show
+      // the page before it, which still has pins.
+      const shown = query.data;
+      if (shown?.items.length === 1 && pages.pinned > 1) {
+        const remaining = shown.totalDocs - 1;
+        setPages((currentPages) => ({
+          ...currentPages,
+          pinned: Math.min(currentPages.pinned - 1, lastPage(remaining)),
+        }));
+      }
       await queryClient.invalidateQueries({
         queryKey: [...QUERY_KEY, "pinned"],
       });

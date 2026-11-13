@@ -594,6 +594,10 @@ export function buildReportResponse(
 }
 
 export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
+  // Every row says whether the report read every gift in the period, so a
+  // file cut at the read limit can't pass for complete once downloaded.
+  const reportComplete = report.completeness.complete === true;
+  const reportGiftLimit = report.completeness.donationLimit ?? "";
   const headers = [
     "id",
     "label",
@@ -603,6 +607,8 @@ export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
     "last_gift_at",
     "status",
     "metadata",
+    "report_complete",
+    "report_gift_limit",
   ];
   const rows = report.rows.map((row) =>
     [
@@ -614,6 +620,8 @@ export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
       row.lastGiftAt,
       row.status,
       row.metadata,
+      reportComplete,
+      reportGiftLimit,
     ]
       .map(csvSafeCell)
       .join(","),

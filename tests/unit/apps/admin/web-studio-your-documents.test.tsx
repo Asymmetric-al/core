@@ -231,3 +231,116 @@ it("shows an inline error with Retry when the lists cannot load", async () => {
     expect(fixture.serverFunction.mock.calls.length).toBeGreaterThan(before),
   );
 });
+
+it("moves back to the last page when unpinning empties the current one", async () => {
+  let pinned: DashboardDocument[] = Array.from({ length: 6 }, (_, index) => ({
+    ...PINNED[0]!,
+    id: index + 1,
+    title: `Doc ${index + 1}`,
+    href: `/web-studio/collections/pages/${index + 1}`,
+  }));
+  let stored = pinned.map((doc) => ({ id: doc.id, collectionSlug: "pages" }));
+  fixture.serverFunction.mockImplementation(
+    async ({
+      args,
+    }: {
+      args: { tab: string; page: number; limit: number };
+    }) => {
+      if (args.tab !== "pinned") {
+        return { items: VIEWED, page: 1, totalDocs: VIEWED.length };
+      }
+      const start = (args.page - 1) * args.limit;
+      return {
+        items: pinned.slice(start, start + args.limit),
+        page: args.page,
+        totalDocs: pinned.length,
+      };
+    },
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        stored = (
+          JSON.parse(String(init.body)) as { value: { items: typeof stored } }
+        ).value.items;
+        pinned = pinned.filter((doc) =>
+          stored.some((pin) => pin.id === doc.id),
+        );
+        return Response.json({});
+      }
+      return Response.json({ value: { items: stored } });
+    }),
+  );
+  render(
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
+      <YourDocuments />
+    </QueryClientProvider>,
+  );
+
+  await screen.findByText("Page 1 of 2");
+  fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Unpin Doc 6" }));
+
+  await waitFor(() =>
+    expect(
+      within(
+        screen.getByRole("list", { name: "Pinned documents" }),
+      ).getAllByRole("listitem"),
+    ).toHaveLength(5),
+  );
+  expect(screen.getByRole("link", { name: "Doc 1" })).toBeTruthy();
+  expect(screen.queryByText("No pinned documents")).toBeNull();
+  expect(fixture.serverFunction).toHaveBeenLastCalledWith({
+    name: "get-dashboard-documents",
+    args: { limit: 5, page: 1, tab: "pinned" },
+  });
+});
+
+it("keeps Previous on a page another session emptied", async () => {
+  // Page 2 had pins when it was opened; they were unpinned elsewhere.
+  let total = 6;
+  fixture.serverFunction.mockImplementation(
+    async ({ args }: { args: { tab: string; page: number } }) => {
+      if (args.tab !== "pinned") return { items: [], page: 1, totalDocs: 0 };
+      const docs = Array.from({ length: total }, (_, index) => ({
+        ...PINNED[0]!,
+        id: index + 1,
+        title: `Doc ${index + 1}`,
+      }));
+      const start = (args.page - 1) * 5;
+      return {
+        items: docs.slice(start, start + 5),
+        page: args.page,
+        totalDocs: total,
+      };
+    },
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => Response.json({ value: { items: [] } })),
+  );
+  render(
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
+      <YourDocuments />
+    </QueryClientProvider>,
+  );
+  await screen.findByText("Page 1 of 2");
+  total = 5;
+  fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+
+  await screen.findByText("No documents on this page.");
+  expect(screen.queryByText("No pinned documents")).toBeNull();
+  const previous = screen.getByRole("button", { name: "Previous page" });
+  expect(previous.hasAttribute("disabled")).toBe(false);
+  fireEvent.click(previous);
+  await screen.findByRole("link", { name: "Doc 5" });
+});
