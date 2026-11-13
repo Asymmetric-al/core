@@ -33,4 +33,22 @@ describe("metrics money qualification", () => {
       projectMetricsMoney([gift("JPY"), gift("USD", 1000, "failed")]).currency,
     ).toBe("JPY");
   });
+  it("reports every settled status spelling as completed, so charts count those gifts", () => {
+    const projected = projectMetricsMoney([
+      gift("USD", 1000, "succeeded"),
+      gift("USD", 500, " Success "),
+      gift("USD", 250, "Completed"),
+      gift("USD", 100, "pending"),
+    ]);
+    expect(projected.donations.map((row) => row.status)).toEqual([
+      "completed",
+      "completed",
+      "completed",
+      "pending",
+    ]);
+    expect(projected.currency).toBe("USD");
+    expect(projectMetricsMoney([gift("JPY", 1000, "succeeded")]).currency).toBe(
+      "JPY",
+    );
+  });
 });

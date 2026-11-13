@@ -9,6 +9,7 @@ import {
   knownCurrency,
 } from "../missionary-portal/currency";
 import { isAnonymousToRecipient } from "../missionary-portal/redaction";
+import { SETTLED_DONATION_STATUS_SET } from "../reads/settled-donation-statuses";
 
 export function projectMetricsMoney<
   T extends {
@@ -17,8 +18,15 @@ export function projectMetricsMoney<
     status?: string | null;
   },
 >(gifts: T[]) {
+  // Charts count only "completed"; legacy writers also stored the other
+  // settled spellings (`succeeded`, `success`, any case), so report them as one.
   const donations = gifts.map((gift) => ({
     ...gift,
+    status: SETTLED_DONATION_STATUS_SET.has(
+      (gift.status ?? "").trim().toLowerCase(),
+    )
+      ? "completed"
+      : gift.status,
     currency: knownCurrency(gift.currency),
   }));
   return {
@@ -201,6 +209,47 @@ function jsonWithCookies(
   return response;
 }
 
+type MetricsReader =
+  | NonNullable<ReturnType<typeof getAdminClient>["client"]>
+  | NonNullable<ReturnType<typeof createAuthClient>["supabase"]>;
+
+/**
+ * PostgREST answers at most `max_rows` (1,000, supabase/config.toml) rows per
+ * request, and the analytics window can hold more gifts than that.
+ */
+const GIFT_HISTORY_PAGE_SIZE = 1000;
+
+/**
+ * Every gift to the missionary created since `windowStartIso`, read page by
+ * page in a stable order. Only an empty page ends the read, so a server cap
+ * below the page size can't pass for the end, and any failed page fails the
+ * whole read rather than returning a partial history as complete.
+ */
+export async function readMissionaryGiftHistory(
+  reader: MetricsReader,
+  missionaryId: string,
+  windowStartIso: string,
+) {
+  const gifts = [];
+  for (let from = 0; ;) {
+    const { data, error } = await reader
+      .from("donations")
+      .select(
+        "id, amount, currency, donation_type, created_at, gift_date, status, donor_id",
+      )
+      .eq("missionary_id", missionaryId)
+      .gte("created_at", windowStartIso)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, from + GIFT_HISTORY_PAGE_SIZE - 1);
+    if (error) return { data: null, error };
+    const page = data ?? [];
+    if (page.length === 0) return { data: gifts, error: null };
+    gifts.push(...page);
+    from += page.length;
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -307,14 +356,11 @@ export async function GET(
     const windowStart = new Date();
     windowStart.setMonth(windowStart.getMonth() - months);
 
-    const { data, error } = await dataReader
-      .from("donations")
-      .select(
-        "id, amount, currency, donation_type, created_at, gift_date, status, donor_id",
-      )
-      .eq("missionary_id", missionary.id)
-      .gte("created_at", windowStart.toISOString())
-      .order("created_at", { ascending: true });
+    const { data, error } = await readMissionaryGiftHistory(
+      dataReader,
+      missionary.id,
+      windowStart.toISOString(),
+    );
 
     if (error) {
       if (isPermissionError(error)) {
