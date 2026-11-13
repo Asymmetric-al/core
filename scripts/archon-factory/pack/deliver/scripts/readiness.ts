@@ -37,7 +37,7 @@ import { planCheckpoint } from "../../.shared/workitem.mjs";
 import {
   adoptBaseUpdate,
   adoptResolution,
-  outsideHeadBlock,
+  outsideHeadDecision,
   asRepair,
   baseIntegrationFailure,
   carryForward,
@@ -170,7 +170,9 @@ if (!live.merged) {
   // The clone's refs are as old as this round's claim, and somebody can
   // push in between. Fetch before the live head is compared with local
   // history, so an update pressed during the round is seen for what it is.
-  // A failed fetch leaves the old refs: the head is then not adopted.
+  // A failed fetch leaves the old refs. Old refs can only make an update
+  // look foreign, never the reverse, so an adoption still stands; a head
+  // that is not adopted then waits for the next round (below).
   let refreshed: boolean | null = null;
   if (conflicted || foreign) {
     try {
@@ -253,14 +255,16 @@ if (!live.merged) {
     finish(adoption.outcome);
   } else if (foreign && reconcile.action === "none") {
     // Stop here: steps 2 and 3 below reply, resolve and record against the
-    // live head, and this one is not the factory's.
-    const block = outsideHeadBlock({
+    // live head, and this one is not the factory's. With a clone that could
+    // not be refreshed the stage waits and the next round decides.
+    const decision = outsideHeadDecision({
       branch: value.branch,
       liveHead,
       head: value.head,
       published: value.pr?.head,
+      refreshed,
     });
-    respond("BLOCKED", block.reason, block.ledger);
+    respond(decision.verdict, decision.reason, decision.ledger);
   }
 }
 

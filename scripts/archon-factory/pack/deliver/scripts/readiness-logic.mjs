@@ -355,6 +355,20 @@ export function outsideHeadBlock({ branch, liveHead, head, published }) {
   };
 }
 
+// What the stage answers for an outside head it did not adopt. With a clone
+// that could not be refreshed the head may only look foreign because the local
+// refs are old, so the stage waits and the next round, which fetches again,
+// decides. With fresh refs it blocks.
+export function outsideHeadDecision({ refreshed, ...head }) {
+  if (refreshed === false)
+    return {
+      verdict: "WAIT",
+      reason: `The branch on GitHub is at ${head.liveHead.slice(0, 12)}, which the factory did not publish, and the clone could not be refreshed to judge it; nothing on the pull request was answered and the next round looks again`,
+      ledger: {},
+    };
+  return { verdict: "BLOCKED", ...outsideHeadBlock(head) };
+}
+
 // An update from the target branch that somebody applied on GitHub becomes
 // the candidate, the same way an operator's conflict resolution does: nothing
 // about the merged result was reviewed, so it goes to the review-only route.

@@ -1355,12 +1355,17 @@ the open list of 12 November.
     request #2666 then found that the feedback stage still answered and
     resolved review comments before it blocked on a head it did not adopt;
     it now blocks (`outside-head`) before it writes anything to the pull
-    request. The same review found two more gaps, both repaired: a merge
-    commit could carry changes of its own, or drop `develop`'s, and still
-    pass as an update (each merge's tree must now equal a clean merge of its
-    parents); and a woken run's failed publish or readiness step was hidden
-    by the stored usage-limit hold, so the pass would have cleared it by
-    itself (it is now held for a person, as without a stored hold).
+    request. The reviews of that pull request found four more gaps, all
+    repaired: a merge commit could carry changes of its own, or drop
+    `develop`'s, and still pass as an update (each merge's tree must now
+    equal a clean merge of its parents); a woken run's failed publish or
+    readiness step was hidden by the stored usage-limit hold, so the pass
+    would have cleared it by itself (it is now held for a person, as without
+    a stored hold); the feedback stage judged an outside head against refs
+    fetched when the round started, so an update pressed during the round
+    would have blocked the issue (it now fetches first); and the pass could
+    end a run the engine had paused again for a later reset (it now asks the
+    engine and leaves a run with a pending wake-up alone).
 
 Defects 42 to 45 were repaired test-first after the 09:54 install and are not
 installed yet (see Still open).

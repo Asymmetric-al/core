@@ -9,6 +9,7 @@ import {
   adoptBaseUpdate,
   adoptResolution,
   outsideHeadBlock,
+  outsideHeadDecision,
   asRepair,
   baseIntegrationFailure,
   carryForward,
@@ -1120,6 +1121,29 @@ describe("operator conflict resolution (publication-merge#7)", () => {
     );
     expect(outcome.ledger.blocked.recovery).toMatch(/retry/);
     expect(outcome.ledger.fingerprint).toBe(`outside-head:${MERGE_SHA}`);
+  });
+
+  // The stage fetches before it judges an outside head. When that fetch
+  // failed, a head it could not adopt may only look foreign because the
+  // clone's refs are old: it waits and looks again, and does not block.
+  it("waits when the clone could not be refreshed, and blocks when it could", () => {
+    const args = {
+      branch: "factory/12-x",
+      liveHead: MERGE_SHA,
+      head: HEAD,
+      published: HEAD,
+    };
+    const stale = outsideHeadDecision({ ...args, refreshed: false });
+    const fresh = outsideHeadDecision({ ...args, refreshed: true });
+    expect({
+      stale: [stale.verdict, Object.keys(stale.ledger)],
+      staleReason: stale.reason,
+      fresh: [fresh.verdict, fresh.ledger.blocked.code],
+    }).toEqual({
+      stale: ["WAIT", []],
+      staleReason: expect.stringMatching(/could not be refreshed.*next round/s),
+      fresh: ["BLOCKED", "outside-head"],
+    });
   });
 
   it("records the update as the candidate and sends it to the review-only route", () => {
