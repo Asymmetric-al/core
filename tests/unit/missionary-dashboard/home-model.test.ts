@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   buildNeedsYou,
@@ -330,5 +330,61 @@ describe("recentGifts", () => {
 describe("monthlyPartnerCount", () => {
   it("counts partners with an active recurring gift", () => {
     expect(monthlyPartnerCount(snapshot())).toBe(3);
+  });
+});
+
+describe("date-only gift dates west of UTC", () => {
+  const originalTz = process.env.TZ;
+  beforeAll(() => {
+    process.env.TZ = "America/Los_Angeles";
+  });
+  afterAll(() => {
+    if (originalTz === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTz;
+  });
+
+  it("reads a date-only last gift as that calendar day for the late check", () => {
+    const now = new Date(2026, 10, 10, 20);
+    const items = buildNeedsYou({
+      snapshot: snapshot({
+        donorRelationships: [
+          partner({
+            id: "lee",
+            displayName: "Lee Park",
+            status: "at_risk",
+            hasActivePledge: true,
+            lastGiftAt: "2026-10-07",
+          }),
+        ],
+        recentGifts: [],
+      }),
+      followRequestCount: 0,
+      now,
+    });
+    expect(items.filter((item) => item.kind === "behind")).toEqual([]);
+  });
+
+  it("thanks a date-only gift on the first day of the window", () => {
+    const now = new Date(2026, 10, 10, 20);
+    const items = buildNeedsYou({
+      snapshot: snapshot({
+        donorRelationships: [
+          partner({ id: "taylor", displayName: "Taylor Nguyen" }),
+        ],
+        recentGifts: [
+          {
+            id: "g",
+            donorId: "taylor",
+            amountCents: 1000,
+            currency: "USD",
+            type: "One-Time",
+            date: "2026-10-28",
+          },
+        ],
+      }),
+      followRequestCount: 0,
+      now,
+    });
+    expect(items.some((item) => item.kind === "thank")).toBe(true);
   });
 });

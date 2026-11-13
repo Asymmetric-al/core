@@ -25,7 +25,25 @@ const DAY = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 });
-const defaultFormatDay = (value: string) => DAY.format(new Date(value));
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * When a gift happened: a SQL date ("2026-10-10") is that calendar day where
+ * the viewer is, not UTC midnight, which west of UTC is the day before.
+ */
+function giftTime(value: string): number {
+  const match = DATE_ONLY.exec(value);
+  return match
+    ? new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+      ).getTime()
+    : new Date(value).getTime();
+}
+
+const defaultFormatDay = (value: string) =>
+  DAY.format(new Date(giftTime(value)));
 
 /** A settled gift with the partner's name, for the home page. */
 export type RecentGift = {
@@ -88,10 +106,7 @@ export function buildNeedsYou({
     }
     // A gift inside the last cycle means it did arrive, whatever the
     // stored status says.
-    if (
-      partner.lastGiftAt &&
-      new Date(partner.lastGiftAt).getTime() >= lateBefore
-    ) {
+    if (partner.lastGiftAt && giftTime(partner.lastGiftAt) >= lateBefore) {
       continue;
     }
     items.push({
@@ -114,7 +129,7 @@ export function buildNeedsYou({
   const gifts = recentGifts(snapshot, Number.POSITIVE_INFINITY);
   const thanked = new Set<string>();
   for (const [index, gift] of gifts.entries()) {
-    if (new Date(gift.date).getTime() < since) break;
+    if (giftTime(gift.date) < since) break;
     if (!gift.partnerId || thanked.has(gift.partnerId)) continue;
     const firstMonthly =
       gift.recurring &&

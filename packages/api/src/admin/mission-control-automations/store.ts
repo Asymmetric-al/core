@@ -21,7 +21,8 @@ type SupabaseAdmin = AdminSupabaseClient;
 type JsonRecord = Record<string, unknown>;
 
 const ACTIVITY_LOG_LOOKBACK_MS = 24 * 60 * 60 * 1000;
-const ACTIVITY_LOG_SUMMARY_LIMIT = 1000;
+/** PostgREST max_rows (supabase/config.toml): the activity read pages. */
+const ACTIVITY_LOG_PAGE_SIZE = 1000;
 const AUTOMATION_ACTIVATION_STATUSES = new Set<AutomationActivationStatus>([
   "draft",
   "ready",
@@ -279,19 +280,28 @@ async function loadMissionControlAutomationActivitySummary(input: {
   failedRunsWithoutRule: number;
 }> {
   const cutoff = new Date(Date.now() - ACTIVITY_LOG_LOOKBACK_MS).toISOString();
-  const { data, error } = await input.supabaseAdmin
-    .from("mission_control_automation_activity_logs")
-    .select("rule_id, failures, created_at")
-    .eq("tenant_id", input.tenantId)
-    .gte("created_at", cutoff)
-    .order("created_at", { ascending: false })
-    .limit(ACTIVITY_LOG_SUMMARY_LIMIT);
+  // Every run in the window, page by page: a rule past one page must not
+  // read as "No runs", and the totals must count every run.
+  const rows: JsonRecord[] = [];
+  for (let from = 0; ;) {
+    const { data, error } = await input.supabaseAdmin
+      .from("mission_control_automation_activity_logs")
+      .select("rule_id, failures, created_at")
+      .eq("tenant_id", input.tenantId)
+      .gte("created_at", cutoff)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(from, from + ACTIVITY_LOG_PAGE_SIZE - 1);
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const page = (data ?? []) as JsonRecord[];
+    if (page.length === 0) break;
+    rows.push(...page);
+    from += page.length;
   }
-
-  const rows = (data ?? []) as JsonRecord[];
 
   return {
     summary: {

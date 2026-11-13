@@ -46,6 +46,7 @@ class MissionControlAutomationsQueryStub {
   mutation?: QueryCall["mutation"];
   orderBy?: { column: string; ascending?: boolean };
   limitCount?: number;
+  rangeWindow?: { from: number; to: number };
 
   constructor(
     readonly table: string,
@@ -97,8 +98,22 @@ class MissionControlAutomationsQueryStub {
 
   limit(count: number): Promise<QueryResult> {
     this.limitCount = count;
+    // Like PostgREST: never more rows than asked for.
+    const rows = Array.isArray(this.result.data)
+      ? this.result.data.slice(0, count)
+      : (this.result.data ?? null);
     return Promise.resolve({
-      data: this.result.data ?? null,
+      data: rows,
+      error: this.result.error ?? null,
+    });
+  }
+
+  /** Pages like PostgREST: the slice of the rows, at most 1,000. */
+  range(from: number, to: number): Promise<QueryResult> {
+    this.rangeWindow = { from, to };
+    const rows = Array.isArray(this.result.data) ? this.result.data : null;
+    return Promise.resolve({
+      data: rows ? rows.slice(from, Math.min(to + 1, from + 1000)) : null,
       error: this.result.error ?? null,
     });
   }
@@ -1070,6 +1085,42 @@ describe("mission control automation dashboard summary", () => {
       failedRunsWithoutRule24h: 0,
       activityLogBacked: true,
       integrationHealthBacked: false,
+    });
+  });
+});
+
+describe("automation activity beyond one page", () => {
+  it("counts every run in the 24-hour window, past the first 1,000 rows", async () => {
+    const rows = Array.from({ length: 2500 }, (_, index) => ({
+      rule_id: index < 1200 ? "rule_busy" : "rule_quiet",
+      failures: index === 2400 ? [{ message: "Provider timeout" }] : [],
+      created_at: new Date(
+        Date.UTC(2026, 10, 10, 9, 0, 0) - index * 1000,
+      ).toISOString(),
+    }));
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({ id: "rule_busy", name: "Busy rule" }),
+          automationRuleRow({ id: "rule_quiet", name: "Quiet rule" }),
+        ],
+      },
+      mission_control_automation_activity_logs: { data: rows },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    const byId = Object.fromEntries(
+      dashboard.automationRules.map((rule) => [rule.id, rule]),
+    );
+    expect(byId.rule_quiet).toMatchObject({ runs24h: 1300, failedRuns24h: 1 });
+    expect(byId.rule_busy).toMatchObject({ runs24h: 1200, failedRuns24h: 0 });
+    expect(dashboard.summary).toMatchObject({
+      executions24h: 2500,
+      failedRuns24h: 1,
     });
   });
 });
