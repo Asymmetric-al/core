@@ -320,7 +320,17 @@ export async function recoverNativeFaults({
     if (engineWait)
       try {
         wake = await engineWait(runId);
-      } catch {}
+      } catch {
+        // Without the engine's answer the pass cannot tell whether a wake-up
+        // is pending. It ends nothing on a guess; the next pass asks again.
+        results.push({
+          issue,
+          action: "recover-native",
+          ok: false,
+          code: "engine-unread",
+        });
+        continue;
+      }
     if (Number.isFinite(wake) && wake + ENGINE_WAKE_GRACE_MS > nowMs) {
       results.push({
         issue,

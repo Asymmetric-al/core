@@ -813,9 +813,16 @@ describe("recoverNativeFaults", () => {
         },
         { issue: 14, action: "recover-native", ok: true },
         { issue: 15, action: "recover-native", ok: true },
-        { issue: 16, action: "recover-native", ok: true },
+        // The engine could not be asked: nothing is ended on a guess, and
+        // the next pass asks again.
+        {
+          issue: 16,
+          action: "recover-native",
+          ok: false,
+          code: "engine-unread",
+        },
       ],
-      asked: [14, 15, 16],
+      asked: [14, 15],
     });
   });
 
