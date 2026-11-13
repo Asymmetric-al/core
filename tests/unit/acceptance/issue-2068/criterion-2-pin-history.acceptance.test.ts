@@ -12,7 +12,9 @@
  * are skipped unless enabled:
  * - `ACCEPTANCE_2068_HISTORY=1` walks `git rev-list --first-parent
  *   <base>..HEAD`, where the base is `ACCEPTANCE_2068_BASE` if set, else
- *   `git merge-base HEAD origin/develop`, else cc568c92.
+ *   `git merge-base HEAD origin/develop`, else cc568c92. If a git call on
+ *   that walk fails (bad base ref, shallow clone, unknown commit), the tests
+ *   fail with the git arguments, exit status and stderr.
  * - `ACCEPTANCE_2068_PR_BODY_FILE=<path>` reads the PR body from a file (for
  *   example `gh pr view <n> --json body --jq .body > body.md`).
  *
@@ -40,6 +42,7 @@ import {
   CATALOG_DIR,
   DIGEST_TEST_FILE,
   git,
+  gitChecked,
   hexDigestLiterals,
   PRE_CHANGE_DIGEST,
   SPEC_BASE_SHA,
@@ -52,7 +55,10 @@ const PR_BODY_FILE = process.env.ACCEPTANCE_2068_PR_BODY_FILE?.trim() ?? "";
 
 function historyBase(): string {
   const override = process.env.ACCEPTANCE_2068_BASE?.trim();
-  if (override) return override;
+  if (override) {
+    gitChecked(["rev-parse", "--verify", `${override}^{commit}`]);
+    return override;
+  }
   const mergeBase = git(["merge-base", "HEAD", "origin/develop"]);
   if (mergeBase.status === 0 && mergeBase.stdout.trim()) {
     return mergeBase.stdout.trim();
@@ -61,7 +67,7 @@ function historyBase(): string {
 }
 
 function treeOf(commit: string, dir: string): string {
-  return git(["rev-parse", `${commit}:${dir}`]).stdout.trim();
+  return gitChecked(["rev-parse", `${commit}:${dir}`]).trim();
 }
 
 function pinsAt(commit: string): string[] {
@@ -70,7 +76,7 @@ function pinsAt(commit: string): string[] {
 }
 
 function changedIn(commit: string): string[] {
-  const diff = git([
+  return gitChecked([
     "diff-tree",
     "--no-commit-id",
     "--name-only",
@@ -79,8 +85,34 @@ function changedIn(commit: string): string[] {
     "-m",
     "--first-parent",
     commit,
-  ]);
-  return diff.stdout.split("\n").filter(Boolean);
+  ])
+    .split("\n")
+    .filter(Boolean);
+}
+
+interface History {
+  base: string;
+  commits: string[];
+  pinCommitIndex: number;
+}
+
+function readHistory(): History {
+  const base = historyBase();
+  const commits = gitChecked([
+    "rev-list",
+    "--reverse",
+    "--first-parent",
+    `${base}..HEAD`,
+  ])
+    .split("\n")
+    .filter(Boolean);
+  const baseCatalogTree = treeOf(SPEC_BASE_SHA, CATALOG_DIR);
+  const pinCommitIndex = commits.findIndex(
+    (commit) =>
+      pinsAt(commit).includes(PRE_CHANGE_DIGEST) &&
+      treeOf(commit, CATALOG_DIR) === baseCatalogTree,
+  );
+  return { base, commits, pinCommitIndex };
 }
 
 if (!HISTORY_ENABLED) {
@@ -92,33 +124,34 @@ if (!HISTORY_ENABLED) {
 describe.skipIf(!HISTORY_ENABLED)(
   "issue #2068 done criterion 2: PR history",
   () => {
-    const commits = HISTORY_ENABLED
-      ? git([
-          "rev-list",
-          "--reverse",
-          "--first-parent",
-          `${historyBase()}..HEAD`,
-        ])
-          .stdout.split("\n")
-          .filter(Boolean)
-      : [];
-    const baseCatalogTree = HISTORY_ENABLED
-      ? treeOf(SPEC_BASE_SHA, CATALOG_DIR)
-      : "";
-    const pinCommitIndex = commits.findIndex(
-      (commit) =>
-        pinsAt(commit).includes(PRE_CHANGE_DIGEST) &&
-        treeOf(commit, CATALOG_DIR) === baseCatalogTree,
-    );
+    // A git failure while walking the history is reported by each test below
+    // (git arguments, exit status, stderr) instead of reading as empty output.
+    let history: History | undefined;
+    let historyError: Error | undefined;
+    if (HISTORY_ENABLED) {
+      try {
+        history = readHistory();
+      } catch (error) {
+        historyError =
+          error instanceof Error ? error : new Error(String(error));
+      }
+    }
+    function walkedHistory(): History {
+      if (historyError) throw historyError;
+      if (!history) throw new Error("criterion 2 history was not read");
+      return history;
+    }
 
     it('criterion 2: "one commit pins the **pre-change** digest from `cc568c92` with the tests passing"', () => {
+      const { base, pinCommitIndex } = walkedHistory();
       expect(
         pinCommitIndex,
-        `no commit in ${historyBase()}..HEAD pins ${PRE_CHANGE_DIGEST} in ${DIGEST_TEST_FILE} while ${CATALOG_DIR} is still identical to ${SPEC_BASE_SHA}`,
+        `no commit in ${base}..HEAD pins ${PRE_CHANGE_DIGEST} in ${DIGEST_TEST_FILE} while ${CATALOG_DIR} is still identical to ${SPEC_BASE_SHA}`,
       ).toBeGreaterThanOrEqual(0);
     });
 
     it('criterion 2: "A later commit changes the catalog and updates the pin."', () => {
+      const { commits, pinCommitIndex } = walkedHistory();
       expect(pinCommitIndex).toBeGreaterThanOrEqual(0);
       const later = commits.slice(pinCommitIndex + 1).filter((commit) => {
         const changed = changedIn(commit);
