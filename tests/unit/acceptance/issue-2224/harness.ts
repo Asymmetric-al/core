@@ -199,7 +199,7 @@ export const DEFAULT_WORLD: WorldConfig = {
   invalidToast: true,
   invalidMessage: UNSUPPORTED_MESSAGE,
   invalidOpensDialog: false,
-  photoFormatCopy: "A square JPG or PNG works best.",
+  photoFormatCopy: "JPG, PNG, WebP or GIF. Large files auto-optimized.",
   removeButton: true,
   uploadPhotoEnabled: true,
   demo: { status: 200, body: { roles: { donor: true } } },

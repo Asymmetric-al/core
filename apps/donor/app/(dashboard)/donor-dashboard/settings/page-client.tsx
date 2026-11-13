@@ -110,7 +110,7 @@ function PhotoCard({
         </Avatar>
         <div className="flex min-w-0 flex-col gap-2">
           <p className="text-sm text-muted-foreground">
-            A square JPG or PNG works best.
+            JPG, PNG, WebP or GIF. Large files auto-optimized.
           </p>
           <div className="flex flex-wrap gap-2">
             <ImageUpload

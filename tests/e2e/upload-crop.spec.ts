@@ -288,7 +288,7 @@ test.describe("Large File Upload", () => {
     await gotoDonorSettings(page);
 
     await expect(
-      page.getByText("A square JPG or PNG works best."),
+      page.getByText("JPG, PNG, WebP or GIF. Large files auto-optimized."),
     ).toBeVisible();
   });
 });
