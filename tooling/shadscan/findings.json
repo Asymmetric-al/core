@@ -909,7 +909,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
-          "sha256": "7b7b2073c5a41c673a545cc14f00bd47e0cc42a2a50850f1e14352650474d746"
+          "sha256": "ed788a1ab94248393ce928b6185f77c5ea66610a17aac107b88ee47cc82d31da"
         },
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
