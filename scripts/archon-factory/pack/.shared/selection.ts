@@ -97,6 +97,11 @@ function isSelection(value: unknown): value is SamsonSelection {
   );
 }
 
+// Samson copies the chosen issue's id twice. The same number without its
+// leading "#" or with stray spaces names the same issue; anything else does
+// not. The id that is recorded is always the trusted frontier's own.
+const issueKey = (value: string) => value.trim().replace(/^#/, "");
+
 export function validateSamsonSelection(
   input: EligibilityInput,
   proposal: unknown,
@@ -116,7 +121,7 @@ export function validateSamsonSelection(
   if (proposal.scopeRevision !== frontier.scopeRevision)
     return { ok: false, code: "stale-scope" };
   const work = frontier.eligible.find(
-    (candidate) => candidate.id === proposal.issueIds[0],
+    (candidate) => issueKey(candidate.id) === issueKey(proposal.issueIds[0]),
   );
   if (!work) return { ok: false, code: "ineligible-issue" };
   if (proposal.contextRevision !== work.contextRevision)
@@ -128,14 +133,14 @@ export function validateSamsonSelection(
   );
   if (waitedMs < 0 || proposal.ranking.agingBonus !== bonus)
     return { ok: false, code: "invalid-aging" };
-  if (proposal.ranking.tieBreakKey !== work.id)
+  if (issueKey(proposal.ranking.tieBreakKey) !== issueKey(work.id))
     return { ok: false, code: "invalid-tie-break" };
   return {
     ok: true,
     issueId: work.id,
     scopeRevision: frontier.scopeRevision,
     contextRevision: work.contextRevision,
-    ranking: { ...proposal.ranking },
+    ranking: { ...proposal.ranking, tieBreakKey: work.id },
     reason: {
       ...proposal.reason,
       sources: [...proposal.reason.sources],

@@ -478,6 +478,36 @@ describe("Samson selection validation", () => {
     });
   });
 
+  it("accepts the chosen issue named without its leading number sign, and records the trusted id", () => {
+    const frontier = {
+      scope: { revision: "scope-1", approvedIssueIds: ["#2526", "#2422"] },
+      items: {
+        "#2526": { status: "found", value: { ...item("core#1"), id: "#2526" } },
+        "#2422": { status: "found", value: { ...item("core#2"), id: "#2422" } },
+      },
+    } as EligibilityInput;
+    const proposal = selection();
+    proposal.issueIds = [" 2526 "];
+    proposal.ranking.tieBreakKey = "2526";
+
+    expect(validateSamsonSelection(frontier, proposal, policy)).toMatchObject({
+      ok: true,
+      issueId: "#2526",
+      aging: { tieBreakKey: "#2526" },
+    });
+
+    proposal.ranking.tieBreakKey = "2422";
+    expect(validateSamsonSelection(frontier, proposal, policy)).toEqual({
+      ok: false,
+      code: "invalid-tie-break",
+    });
+    proposal.issueIds = ["25260"];
+    expect(validateSamsonSelection(frontier, proposal, policy)).toEqual({
+      ok: false,
+      code: "ineligible-issue",
+    });
+  });
+
   it("requires stable identity tie metadata and bounded, sourced reasoning", () => {
     const proposal = selection();
     proposal.ranking.tieBreakKey = "model-choice";

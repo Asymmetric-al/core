@@ -75,7 +75,8 @@ if (ledger.frontier.length === 1) {
   const verdict = validateSamsonSelection(ledger.input, rank, policy);
   if (!verdict.ok)
     done("", `Samson's selection was rejected: ${verdict.code}`, { rank });
-  chosen = rank.issueIds[0];
+  // The trusted frontier's own id, not Samson's spelling of it.
+  chosen = verdict.ok ? verdict.issueId : "";
   reason = rank.reason;
 }
 const issue = Number(chosen.slice(1));

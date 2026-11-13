@@ -78,6 +78,24 @@ describe("openAttention", () => {
 });
 
 describe("rankAssignment", () => {
+  it("tells Samson to copy the chosen issue's id as the tie-break key", () => {
+    expect(
+      rankAssignment({
+        scopeRevision: "r",
+        scope: { approvedBy: "ops", approvedAt: "t", note: null },
+        nowMs: 1,
+        agingIntervalMs: 1,
+        maxAgingBonus: 1,
+        frontier: [],
+        active: [],
+        materials: "/m",
+        attention: null,
+      }),
+    ).toContain(
+      'Copy the chosen issue\'s id exactly as the frontier writes it (with its "#") into issueIds and into ranking.tieBreakKey.',
+    );
+  });
+
   it("includes persisted operator priorities without expanding the trusted frontier", () => {
     const priorities = { 12: 17, 14: 91 };
     const text = rankAssignment({

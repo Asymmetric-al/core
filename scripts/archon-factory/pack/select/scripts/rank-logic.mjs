@@ -65,5 +65,6 @@ export function rankAssignment({
     "## Result",
     "",
     "Use the operator priorities within the trusted frontier. Prefer finishing active repairs/PRs, then work that unlocks other scope items or settles an open attention item, then roadmap priority; apply the aging bonus; break ties by issue id.",
+    'Copy the chosen issue\'s id exactly as the frontier writes it (with its "#") into issueIds and into ranking.tieBreakKey.',
   ].join("\n");
 }
