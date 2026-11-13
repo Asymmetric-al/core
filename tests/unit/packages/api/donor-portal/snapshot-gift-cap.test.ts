@@ -5,7 +5,7 @@ import { getDonorPortalSnapshot } from "../../../../../packages/api/src/donor-po
 type Row = Record<string, unknown>;
 
 /** Answers each table's query, honoring `.limit()` like PostgREST. */
-function fakeAdmin(donations: Row[]) {
+function fakeAdmin(donations: Row[], pledges: Row[] = []) {
   const limits: number[] = [];
   const client = {
     from(table: string) {
@@ -23,7 +23,12 @@ function fakeAdmin(donations: Row[]) {
             error: null,
           };
         }
-        if (table === "donor_pledges") return { data: [], error: null };
+        if (table === "donor_pledges") {
+          return {
+            data: limit === null ? pledges : pledges.slice(0, limit),
+            error: null,
+          };
+        }
         return { data: null, error: null };
       };
       const query: Row = {
@@ -82,5 +87,56 @@ describe("donor portal snapshot gift list", () => {
 
     expect(snapshot.donations).toHaveLength(250);
     expect(snapshot.donationsComplete).toBe(true);
+  });
+});
+
+describe("donor portal snapshot recurring gifts", () => {
+  it("says when recurring gifts past the newest 100 were left out", async () => {
+    const pledges = Array.from({ length: 120 }, (_, index) => ({
+      id: `p-${index}`,
+      amount: 1000,
+      currency: "usd",
+      frequency: "monthly",
+      status: index === 119 ? "active" : "cancelled",
+      created_at: "2026-03-01T00:00:00.000Z",
+    }));
+    const { client } = fakeAdmin([], pledges);
+
+    const snapshot = await getDonorPortalSnapshot({
+      supabaseAdmin: client,
+      profileId: "p-1",
+      tenantId: "t-1",
+    });
+
+    expect(snapshot.recurringGifts).toHaveLength(100);
+    expect(snapshot.recurringGiftsComplete).toBe(false);
+  });
+
+  it("says the recurring gifts are complete when they all fit", async () => {
+    const { client } = fakeAdmin([], []);
+    const snapshot = await getDonorPortalSnapshot({
+      supabaseAdmin: client,
+      profileId: "p-1",
+      tenantId: "t-1",
+    });
+    expect(snapshot.recurringGiftsComplete).toBe(true);
+  });
+});
+
+describe("donor portal snapshot refunds", () => {
+  it("carries each gift's refunded amount", async () => {
+    const { client } = fakeAdmin([
+      { ...gifts(1)[0], id: "g-r", amount: 10000, refund_amount: 4000 },
+    ]);
+    const snapshot = await getDonorPortalSnapshot({
+      supabaseAdmin: client,
+      profileId: "p-1",
+      tenantId: "t-1",
+    });
+    expect(snapshot.donations[0]).toMatchObject({
+      amountCents: 10000,
+      refundedAmountCents: 4000,
+      refundedAmount: 40,
+    });
   });
 });

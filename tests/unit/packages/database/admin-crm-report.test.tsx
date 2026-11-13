@@ -63,20 +63,15 @@ describe("crmReportPeriodRange", () => {
   });
 
   it("starts each period at local midnight and leaves the end open", () => {
+    // Calendar dates, so the server compares them with each gift's date.
     expect(crmReportPeriodRange("year", now)).toEqual({
-      dateFrom: new Date(2026, 0, 1).toISOString(),
+      dateFrom: "2026-01-01",
       dateTo: null,
     });
-    expect(crmReportPeriodRange("12m", now).dateFrom).toBe(
-      new Date(2025, 10, 11).toISOString(),
-    );
+    expect(crmReportPeriodRange("12m", now).dateFrom).toBe("2025-11-11");
     // Today counts as one of the 90 and 30 days.
-    expect(crmReportPeriodRange("90d", now).dateFrom).toBe(
-      new Date(2026, 7, 14).toISOString(),
-    );
-    expect(crmReportPeriodRange("30d", now).dateFrom).toBe(
-      new Date(2026, 9, 13).toISOString(),
-    );
+    expect(crmReportPeriodRange("90d", now).dateFrom).toBe("2026-08-14");
+    expect(crmReportPeriodRange("30d", now).dateFrom).toBe("2026-10-13");
   });
 });
 

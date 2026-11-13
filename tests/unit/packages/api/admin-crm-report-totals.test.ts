@@ -9,6 +9,42 @@ type Row = Record<string, unknown>;
 /** PostgREST answers at most `max_rows` rows per request (supabase/config.toml). */
 const SERVER_MAX_ROWS = 1000;
 
+function splitTopLevel(expression: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const char of expression) {
+    if (char === "(") depth += 1;
+    if (char === ")") depth -= 1;
+    if (char === "," && depth === 0) {
+      parts.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  if (current) parts.push(current);
+  return parts;
+}
+
+function matchesTerm(row: Row, term: string): boolean {
+  if (term.startsWith("and(") && term.endsWith(")")) {
+    return splitTopLevel(term.slice(4, -1)).every((part) =>
+      matchesTerm(row, part),
+    );
+  }
+  const [column, op, ...rest] = term.split(".");
+  const value = rest.join(".");
+  const cell = row[column!];
+  if (op === "is") return value === "null" ? cell == null : false;
+  if (cell == null) return false;
+  const text = String(cell);
+  if (op === "gte") return text >= value;
+  if (op === "lte") return text <= value;
+  if (op === "lt") return text < value;
+  throw new Error("Unsupported filter term: " + term);
+}
+
 class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
   private filters: Array<(row: Row) => boolean> = [];
   private orders: Array<{ column: string; ascending: boolean }> = [];
@@ -33,6 +69,16 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
   gte(column: string, value: string) {
     this.filters.push((row) => String(row[column] ?? "") >= value);
+    return this;
+  }
+
+  /**
+   * The PostgREST or filter in the shape the report builds: comma-separated
+   * terms, each col.op.value or and(term,term).
+   */
+  or(expression: string) {
+    const terms = splitTopLevel(expression);
+    this.filters.push((row) => terms.some((term) => matchesTerm(row, term)));
     return this;
   }
 
@@ -389,5 +435,68 @@ describe("CRM giving report totals", () => {
     const result = await report("funds", { donations });
 
     expect(result.totals.amountCents).toBe(10000);
+  });
+});
+
+describe("CRM report period", () => {
+  it("keeps a calendar-date bound as that date", async () => {
+    const { parseAdminCrmReportParams } =
+      await import("../../../../packages/api/src/admin/crm/reports/query");
+    const params = parseAdminCrmReportParams(
+      new URLSearchParams({ dateFrom: "2026-01-01", slice: "funds" }),
+    );
+    expect(params.filters.dateFrom).toBe("2026-01-01");
+  });
+
+  it("puts a gift in the period of its gift date, not when it was entered", async () => {
+    const thisYear = donation({
+      amount: 1000,
+      gift_date: "2026-03-02",
+      created_at: "2026-03-02T10:00:00.000Z",
+    });
+    const importedOld = donation({
+      amount: 2000,
+      gift_date: "2025-12-15",
+      created_at: "2026-05-01T10:00:00.000Z",
+    });
+    const backdatedIn = donation({
+      amount: 4000,
+      gift_date: "2026-01-05",
+      created_at: "2025-12-20T10:00:00.000Z",
+    });
+    const legacyNoDate = donation({
+      amount: 8000,
+      gift_date: null,
+      created_at: "2026-02-01T10:00:00.000Z",
+    });
+    const legacyOld = donation({
+      amount: 16000,
+      gift_date: null,
+      created_at: "2025-06-01T10:00:00.000Z",
+    });
+
+    const result = await buildAdminCrmReport({
+      params: {
+        filters: { dateFrom: "2026-01-01", dateTo: null, search: null },
+        slice: "funds",
+      },
+      supabaseAdmin: createSupabaseFixture({
+        funds,
+        missionaries,
+        donations: [
+          thisYear,
+          importedOld,
+          backdatedIn,
+          legacyNoDate,
+          legacyOld,
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+    });
+
+    // This year's dated gift, the backdated one and the undated legacy gift
+    // entered this year; not the prior-year import or the old legacy gift.
+    expect(result.totals.amountCents).toBe(1000 + 4000 + 8000);
+    expect(result.totals.giftCount).toBe(3);
   });
 });

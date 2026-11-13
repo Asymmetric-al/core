@@ -10,6 +10,9 @@ export type DonorPortalDonation = {
   date: string;
   amountCents: number;
   amount: number;
+  /** Refunded so far; a partly refunded gift is still Paid. */
+  refundedAmountCents?: number;
+  refundedAmount?: number;
   currency: string;
   /** Paid, Processing, Failed or Refunded (glossary status words). */
   status: "Paid" | "Processing" | "Failed" | "Refunded";
@@ -100,6 +103,11 @@ export type DonorPortalSnapshot = {
    */
   donationsComplete?: boolean;
   recurringGifts: DonorPortalRecurringGift[];
+  /**
+   * False when only the newest recurring gifts were loaded, so a total over
+   * them can miss an older active gift. Absent means the list is complete.
+   */
+  recurringGiftsComplete?: boolean;
   paymentMethods: Array<{
     id: string;
     label: string;

@@ -313,3 +313,28 @@ describe("givenThisYear completeness", () => {
     expect(year).toMatchObject({ paid: 50, paidCount: 1, complete: true });
   });
 });
+
+describe("givenThisYear refunds", () => {
+  it("counts a partly refunded gift at what the donor still gave", () => {
+    const year = givenThisYear(
+      {
+        donations: [
+          donation({
+            id: "a",
+            amount: 100,
+            amountCents: 10_000,
+            refundedAmount: 40,
+          }),
+          donation({
+            id: "b",
+            amount: 30,
+            amountCents: 3_000,
+            refundedAmount: 30,
+          }),
+        ],
+      } as never,
+      NOW,
+    );
+    expect(year).toMatchObject({ paid: 60, paidCount: 1 });
+  });
+});

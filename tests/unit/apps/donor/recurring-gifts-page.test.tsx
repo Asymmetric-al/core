@@ -5,6 +5,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   gifts: [] as unknown[],
+  giftsComplete: undefined as boolean | undefined,
 }));
 
 vi.mock("next/link", () => ({
@@ -20,7 +21,10 @@ vi.mock("next/link", () => ({
 }));
 vi.mock("../../../../packages/database/hooks/index", () => ({
   useDonorPortalSnapshot: () => ({
-    data: { recurringGifts: state.gifts },
+    data: {
+      recurringGifts: state.gifts,
+      recurringGiftsComplete: state.giftsComplete,
+    },
     isLoading: false,
     error: null,
   }),
@@ -320,6 +324,24 @@ describe("Recurring gifts", () => {
     expect(screen.queryByText("$100.00 a month")).toBeNull();
     const team = screen.getByRole("listitem", { name: "Field Team 1" });
     expect(within(team).getByText("€50.00 a month")).toBeTruthy();
+  });
+
+  it("withholds the monthly total when only the newest recurring gifts loaded", () => {
+    state.gifts = [gift({ id: "gift-jordan" })];
+    state.giftsComplete = false;
+    try {
+      render(<RecurringGiftsPage />);
+      expect(screen.getByText("Monthly total unavailable")).toBeTruthy();
+      expect(
+        screen.queryByText("$50.00 a month", { exact: true }),
+      ).toBeTruthy();
+      expect(screen.getByText(/From at least 1 active gifts/)).toBeTruthy();
+      expect(
+        screen.getByText(/Only your newest recurring gifts are listed here/),
+      ).toBeTruthy();
+    } finally {
+      state.giftsComplete = undefined;
+    }
   });
 
   it("points a donor with no recurring gifts to someone to support", () => {

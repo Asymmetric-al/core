@@ -53,6 +53,8 @@ export type DonorPortalDonorRow = {
 export type DonorPortalDonationRow = {
   id: string;
   amount: number;
+  /** Cents returned by refunds; a partly refunded gift stays settled. */
+  refund_amount?: number | null;
   currency: string | null;
   status: string | null;
   donation_type: string | null;
@@ -159,6 +161,11 @@ export type DonorPortalSnapshot = {
    */
   donationsComplete?: boolean;
   recurringGifts: DonorPortalRecurringGift[];
+  /**
+   * False when only the newest recurring gifts were loaded, so a total over
+   * them can miss an older active gift. Absent means the list is complete.
+   */
+  recurringGiftsComplete?: boolean;
   paymentMethods: DonorPortalPaymentMethod[];
   feedPreferences: {
     showOrgPosts: boolean;
@@ -176,6 +183,9 @@ export type DonorPortalDonation = {
   date: string;
   amountCents: number;
   amount: number;
+  /** Refunded so far, in cents and dollars; 0 when nothing was returned. */
+  refundedAmountCents: number;
+  refundedAmount: number;
   currency: string;
   /** Glossary status words: Paid, Processing, Failed, Refunded. */
   status: "Paid" | "Processing" | "Failed" | "Refunded";
@@ -414,6 +424,8 @@ export function buildDonorPortalSnapshot(input: {
       date,
       amountCents,
       amount: centsToDollars(amountCents),
+      refundedAmountCents: Math.max(0, donation.refund_amount ?? 0),
+      refundedAmount: centsToDollars(Math.max(0, donation.refund_amount ?? 0)),
       currency: normalizeCurrency(donation.currency),
       status: donationStatus(donation.status),
       type: donationType(donation),

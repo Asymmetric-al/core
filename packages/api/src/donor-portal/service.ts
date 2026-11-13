@@ -56,6 +56,7 @@ const DONOR_SELECT = `
 const DONATION_SELECT = `
   id,
   amount,
+  refund_amount,
   currency,
   status,
   donation_type,
@@ -197,6 +198,8 @@ export async function resolveDonorPortalContext(
  * can be told apart from a donor whose whole history fits.
  */
 const RECENT_GIFT_LIMIT = 250;
+/** Newest recurring gifts the snapshot carries, read the same way. */
+const RECENT_PLEDGE_LIMIT = 100;
 
 export async function getDonorPortalSnapshot(input: {
   supabaseAdmin: AdminSupabaseClient;
@@ -226,7 +229,7 @@ export async function getDonorPortalSnapshot(input: {
         .eq("tenant_id", input.tenantId)
         .eq("donor_id", donor.id)
         .order("created_at", { ascending: false })
-        .limit(100) as unknown as Promise<
+        .limit(RECENT_PLEDGE_LIMIT + 1) as unknown as Promise<
         SupabaseResult<DonorPortalPledgeRow[]>
       >,
       input.supabaseAdmin
@@ -248,9 +251,12 @@ export async function getDonorPortalSnapshot(input: {
   const donations = normalizeDonationRows(
     donationRows.slice(0, RECENT_GIFT_LIMIT),
   );
-  const pledges = normalizePledgeRows(
-    assertArrayResult(pledgesResult, "Unable to load donor recurring gifts"),
+  const pledgeRows = assertArrayResult(
+    pledgesResult,
+    "Unable to load donor recurring gifts",
   );
+  const recurringGiftsComplete = pledgeRows.length <= RECENT_PLEDGE_LIMIT;
+  const pledges = normalizePledgeRows(pledgeRows.slice(0, RECENT_PLEDGE_LIMIT));
 
   if (preferencesResult.error && preferencesResult.error.code !== "PGRST116") {
     throw new ApiHttpError(
@@ -268,6 +274,7 @@ export async function getDonorPortalSnapshot(input: {
       feedPreferences: preferencesResult.data,
     }),
     donationsComplete,
+    recurringGiftsComplete,
   };
 }
 

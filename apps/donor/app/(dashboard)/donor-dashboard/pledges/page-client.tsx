@@ -239,7 +239,10 @@ export default function DonorPledgesPage() {
     (gift) => standing(gift.status) === "Active",
   );
   const activeCount = activeGifts.length;
-  const monthlyTotal = monthlyEquivalent(gifts);
+  // Only the newest recurring gifts load; an older active gift may be
+  // missing, so a total over them would be understated.
+  const giftsComplete = snapshot.data?.recurringGiftsComplete !== false;
+  const monthlyTotal = giftsComplete ? monthlyEquivalent(gifts) : null;
   const spreadsGifts = activeGifts.some((gift) => {
     const periodsPerYear = schedule(gift.frequency).periodsPerYear;
     return periodsPerYear > 0 && periodsPerYear < 12;
@@ -326,17 +329,20 @@ export default function DonorPledgesPage() {
                   : "Monthly total unavailable"}
               </p>
               <p className="text-sm text-muted-foreground">
-                {activeCount === 1
-                  ? "From 1 active gift."
-                  : `From ${activeCount} active gifts.`}
+                {!giftsComplete
+                  ? `From at least ${activeCount} active gifts.`
+                  : activeCount === 1
+                    ? "From 1 active gift."
+                    : `From ${activeCount} active gifts.`}
                 {spreadsGifts
                   ? " Gifts every 3 months or once a year are spread across the months."
                   : null}
               </p>
               {!monthlyTotal ? (
                 <p className="text-sm text-muted-foreground">
-                  Gift amounts, currencies or schedules cannot be combined into
-                  one monthly total.
+                  {giftsComplete
+                    ? "Gift amounts, currencies or schedules cannot be combined into one monthly total."
+                    : "Only your newest recurring gifts are listed here, so they can’t be added up into a monthly total."}
                 </p>
               ) : null}
             </CardContent>

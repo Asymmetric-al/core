@@ -30,6 +30,12 @@ const ALL_TIME: CrmReportPeriod = { dateFrom: null, dateTo: null };
  * A period as API bounds: it starts at local midnight, so "Last 30 days"
  * means today and the 29 days before it, and the end stays open.
  */
+function localCalendarDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export function crmReportPeriodRange(
   key: CrmReportPeriodKey,
   now: Date = new Date(),
@@ -45,7 +51,8 @@ export function crmReportPeriodRange(
     "30d": new Date(year, month, day - 29),
   }[key];
 
-  return { dateFrom: from ? from.toISOString() : null, dateTo: null };
+  // A calendar date: the server compares it with each gift's own date.
+  return { dateFrom: from ? localCalendarDate(from) : null, dateTo: null };
 }
 
 /**

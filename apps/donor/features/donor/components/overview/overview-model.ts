@@ -169,9 +169,14 @@ export function givenThisYear(
   const complete =
     snapshot?.donationsComplete !== false ||
     donations.some((gift) => makeDisplayDate(gift.date).getFullYear() < year);
-  const paid = inYear.filter((gift) => gift.status === "Paid");
+  // A partly refunded gift stays Paid; count what the donor still gave, and
+  // leave out a gift refunded in full.
+  const paid = inYear
+    .filter((gift) => gift.status === "Paid")
+    .map((gift) => Math.max(0, gift.amount - (gift.refundedAmount ?? 0)))
+    .filter((amount) => amount > 0);
   return {
-    paid: paid.reduce((sum, gift) => sum + gift.amount, 0),
+    paid: paid.reduce((sum, amount) => sum + amount, 0),
     paidCount: paid.length,
     processing: inYear
       .filter((gift) => gift.status === "Processing")

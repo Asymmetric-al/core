@@ -43,6 +43,7 @@ interface DonationRow {
   amount: number | string | null;
   refund_amount: number | string | null;
   status: string | null;
+  gift_date?: string | null;
   created_at: string | null;
 }
 
@@ -107,6 +108,44 @@ function profileName(row: LabelRow): string {
   );
 }
 
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The day after a calendar date, for an exclusive upper bound. */
+function nextDay(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! + 1))
+    .toISOString()
+    .slice(0, 10);
+}
+
+/**
+ * The period as a PostgREST or filter on the canonical gift date
+ * (gift_date), with the row's creation time only for a gift that has no
+ * gift date. A calendar-date bound compares with gift_date directly; an
+ * instant compares by its UTC date.
+ */
+export function giftDatePeriodFilter(
+  dateFrom: string | null,
+  dateTo: string | null,
+): string | null {
+  if (!dateFrom && !dateTo) return null;
+  const giftTerms: string[] = [];
+  const createdTerms: string[] = [];
+  if (dateFrom) {
+    giftTerms.push(`gift_date.gte.${dateFrom.slice(0, 10)}`);
+    createdTerms.push(`created_at.gte.${dateFrom}`);
+  }
+  if (dateTo) {
+    giftTerms.push(`gift_date.lte.${dateTo.slice(0, 10)}`);
+    createdTerms.push(
+      DATE_ONLY.test(dateTo)
+        ? `created_at.lt.${nextDay(dateTo)}`
+        : `created_at.lte.${dateTo}`,
+    );
+  }
+  return `and(${giftTerms.join(",")}),and(gift_date.is.null,${createdTerms.join(",")})`;
+}
+
 async function fetchDonations(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
@@ -123,19 +162,19 @@ async function fetchDonations(
     let query = supabaseAdmin
       .from("donations")
       .select(
-        "id, donor_id, missionary_id, fund_id, amount, refund_amount, status, created_at",
+        "id, donor_id, missionary_id, fund_id, amount, refund_amount, status, gift_date, created_at",
       )
       // No status filter: an applied payment-state correction can settle a
       // pending or failed gift, or unsettle a completed one, so every gift in
       // the period is read and toReportGifts decides on the effective status.
       .eq("tenant_id", tenantId);
 
-    if (params.filters.dateFrom) {
-      query = query.gte("created_at", params.filters.dateFrom);
-    }
-
-    if (params.filters.dateTo) {
-      query = query.lte("created_at", params.filters.dateTo);
+    const period = giftDatePeriodFilter(
+      params.filters.dateFrom,
+      params.filters.dateTo,
+    );
+    if (period) {
+      query = query.or(period);
     }
 
     const { data, error } = await query
