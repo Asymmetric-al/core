@@ -5,6 +5,7 @@ import {
   readdir,
   readFile,
   rm,
+  rmdir,
   symlink,
   writeFile,
 } from "node:fs/promises";
@@ -179,25 +180,33 @@ describe("Next.js fallback docs sync", () => {
   // This file system behaves that way on any host and records each operation.
   function caseInsensitiveFileSystem(fallbackRoot: string) {
     const operations: string[] = [];
+    // Resolve every component below the root to the spelling already on disk.
     const physical = async (file: string) => {
-      const directory = path.dirname(file);
-      const name = path.basename(file).toLowerCase();
-      const match = existsSync(directory)
-        ? (await readdir(directory)).find(
-            (entry) => entry.toLowerCase() === name,
-          )
-        : undefined;
-      return path.join(directory, match ?? path.basename(file));
+      let current = fallbackRoot;
+      for (const part of path.relative(fallbackRoot, file).split(path.sep)) {
+        const match = existsSync(current)
+          ? (await readdir(current)).find(
+              (entry) => entry.toLowerCase() === part.toLowerCase(),
+            )
+          : undefined;
+        current = path.join(current, match ?? part);
+      }
+      return current;
     };
     const label = (file: string) =>
       path.relative(fallbackRoot, file).split(path.sep).join("/");
     return {
       operations,
       fileSystem: {
-        mkdir,
+        mkdir: async (directory: string, options: { recursive: true }) =>
+          mkdir(await physical(directory), options),
         rm: async (file: string) => {
           operations.push("rm " + label(file));
           await rm(await physical(file));
+        },
+        rmdir: async (directory: string) => {
+          operations.push("rmdir " + label(directory));
+          await rmdir(await physical(directory));
         },
         writeFile: async (file: string, data: string, encoding: "utf8") => {
           operations.push("write " + label(file));
@@ -228,6 +237,7 @@ describe("Next.js fallback docs sync", () => {
 
     expect(operations).toEqual([
       "rm 01-app/Guide.mdx",
+      "rmdir 01-app",
       "write 01-app/guide.mdx",
     ]);
     expect(result.ok).toBe(true);
@@ -235,6 +245,52 @@ describe("Next.js fallback docs sync", () => {
       "01-app/guide.mdx\nguide\n",
       "index.mdx\n# Index\n",
     ]);
+  });
+
+  // A directory keeps the spelling it was created with, so a case-only
+  // directory rename converges only if the emptied old directory goes first.
+  it("recreates a directory renamed only by case", async () => {
+    const installedRoot = await tree({
+      "index.md": "# Index\n",
+      "01-app/guide.md": "guide\n",
+    });
+    const fallbackRoot = await tree({
+      "index.mdx": "# Index\n",
+      "01-App/guide.mdx": "guide\n",
+    });
+    const { fileSystem } = caseInsensitiveFileSystem(fallbackRoot);
+
+    const result = await runNextDocsSync({
+      installedRoot,
+      fallbackRoot,
+      version: "0.0.0-test",
+      write: true,
+      fileSystem,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(await snapshot(fallbackRoot)).toEqual([
+      "01-app/guide.mdx\nguide\n",
+      "index.mdx\n# Index\n",
+    ]);
+  });
+
+  it("keeps a stale page's directory while other pages still use it", async () => {
+    const installedRoot = await tree({ "01-app/kept.md": "kept\n" });
+    const fallbackRoot = await tree({
+      "01-app/kept.mdx": "kept\n",
+      "01-app/removed.mdx": "gone\n",
+    });
+
+    const result = await runNextDocsSync({
+      installedRoot,
+      fallbackRoot,
+      version: "0.0.0-test",
+      write: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(await snapshot(fallbackRoot)).toEqual(["01-app/kept.mdx\nkept\n"]);
   });
 
   it("fails write mode when the rewritten fallback still does not match", async () => {
@@ -250,7 +306,7 @@ describe("Next.js fallback docs sync", () => {
       version: "0.0.0-test",
       write: true,
       // A write that never lands, as when another spelling swallows it.
-      fileSystem: { mkdir, rm, writeFile: async () => {} },
+      fileSystem: { mkdir, rm, rmdir, writeFile: async () => {} },
     });
 
     expect(result.ok).toBe(false);

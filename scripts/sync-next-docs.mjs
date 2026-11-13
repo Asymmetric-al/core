@@ -12,7 +12,14 @@
  * script never downloads anything and never edits `AGENTS.md`.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  rmdir,
+  writeFile,
+} from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -82,7 +89,7 @@ export async function runNextDocsSync({
   fallbackRoot,
   version,
   write,
-  fileSystem = { mkdir, rm, writeFile },
+  fileSystem = { mkdir, rm, rmdir, writeFile },
 }) {
   const installed = existsSync(installedRoot)
     ? (await filesUnder(installedRoot)).filter((file) => file.endsWith(".md"))
@@ -139,6 +146,24 @@ export async function runNextDocsSync({
   // deleted with the old one, then confirm the result.
   for (const file of before.stale)
     await fileSystem.rm(path.join(fallbackRoot, file));
+  // A directory keeps its original spelling too, so remove the ones the stale
+  // pages emptied (deepest first) before recreating their paths. A directory
+  // that still holds pages stays.
+  const directories = new Set();
+  for (const file of before.stale) {
+    let dir = path.posix.dirname(file);
+    while (dir !== ".") {
+      directories.add(dir);
+      dir = path.posix.dirname(dir);
+    }
+  }
+  for (const dir of [...directories].sort((a, b) => b.length - a.length)) {
+    try {
+      await fileSystem.rmdir(path.join(fallbackRoot, dir));
+    } catch (error) {
+      if (!["ENOTEMPTY", "EEXIST", "ENOENT"].includes(error.code)) throw error;
+    }
+  }
   for (const target of [...before.missing, ...before.changed]) {
     const destination = path.join(fallbackRoot, target);
     await fileSystem.mkdir(path.dirname(destination), { recursive: true });
