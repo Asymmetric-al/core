@@ -7,39 +7,36 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 13 November 2026, 00:40 UTC
+## Current state - 13 November 2026, 12:05 UTC
 
-Intake is **paused** (`final checkpoint`), nothing is running, and nothing new
-is admitted. Release `2cfd7082f6ec0443` is installed, built from commit
-`629fffb17`. The scope holds issues 2205, 2206, 2207, 2208, 2215, 2228, 2233,
-2234 and 2239, all to a ready pull request (2233 was allowed to merge):
+Intake is **open**, but nothing can run. The factory's Claude account reached
+its weekly usage limit at 07:24 UTC on 13 November, and the limit resets on
+**16 November at 15:00 UTC (22:00 in Bangkok)**. Release `34ce64a7946e8d62`
+is installed, built from commit `208058f44`. The scope holds fifteen issues,
+all to a ready pull request (2233 was allowed to merge):
 
-| Issue | State                                                                |
-| ----- | -------------------------------------------------------------------- |
-| #2233 | Merged by the factory (PR #2648)                                     |
-| #2234 | Ready (PR #2649), then merged by the owner                           |
-| #2206 | Ready (PR #2652), then merged by the owner                           |
-| #2215 | Ready (PR #2653), then merged by the owner                           |
-| #2228 | Ready, PR #2657, open                                                |
-| #2239 | Ready, PR #2659, open                                                |
-| #2207 | Ready (PR #2660), then merged by the owner                           |
-| #2205 | Blocked `acceptance-blocked`: needs a scope decision (see the issue) |
-| #2208 | Not admitted: its prerequisite #2068 has no merged closing request   |
+| Issue                                    | State                                                                         |
+| ---------------------------------------- | ----------------------------------------------------------------------------- |
+| #2233                                    | Merged by the factory (PR #2648)                                              |
+| #2206, #2207, #2215, #2228, #2234, #2239 | Ready, then merged by the owner                                               |
+| #2526                                    | Ready (PR #2663) on 13 November, then merged by the owner                     |
+| #2370                                    | Published (PR #2664), in review; held on the usage limit                      |
+| #2419                                    | Published (PR #2665); a newer candidate is in review; held on the usage limit |
+| #2418, #2421, #2422                      | In scope, not admitted: both lanes are held                                   |
+| #2205                                    | Blocked `acceptance-blocked`: needs a scope decision (see the issue)          |
+| #2208                                    | Not admitted: its prerequisite #2068 has no merged closing request            |
 
-The factory still lists the four owner-merged issues as ready: it does not
-watch a pull request after reporting it ready. They are finished; leave them
-alone. The two open pull requests wait for the owner and fall behind
-`develop` as it moves: GitHub's "Update branch" brings one up to date, or
-`issue <n> reopen` has the factory merge `develop` in and check again. The
-factory merges only an issue whose approved end state is `MERGED`.
+At the reset the factory carries on by itself ([Usage limit](#usage-limit)):
+the engine wakes the two paused rounds, the next pass settles them, and as
+lanes come free it admits #2418, #2421 and #2422. That spends the new weekly
+allowance. `factory pause-intake` before the reset keeps the three new issues
+out. The part after the reset has not been seen on the running system yet.
 
-To admit more work, approve a scope and run `factory resume-intake`. #2228
-is bound to an earlier release (#2239 is on the installed one): to have the
-factory work on it again, stop it, `adopt-policy`, then
-`reopen` (Updates, step 7), which reviews the candidate again. Before changing
-a release, read the open checks in the
-[commissioning record](archon-vm100-commissioning.md#still-open). The safety
-gates below supersede older unconditional retry/resume guidance.
+Do not change the release before the reset (Updates, step 1). Before any
+release change, read the open checks in the
+[commissioning record](archon-vm100-commissioning.md#still-open). The factory
+merges only an issue whose approved end state is `MERGED`. The safety gates
+below supersede older unconditional retry/resume guidance.
 
 ## Access
 
@@ -78,8 +75,11 @@ list by itself, and the roadmap cannot add an issue to it.
 
 Every ten minutes the selector does three things:
 
-1. **Sweep.** It restarts admitted issues whose next round did not start and
-   settles rounds that ended without recording.
+1. **Sweep.** It restarts admitted issues whose next round did not start,
+   settles rounds that ended without recording, clears provider-fault holds
+   that are recoverable ([Usage limit](#usage-limit)), records a ready pull
+   request that somebody merged, and removes the dependency trees of merged
+   issues (the clone stays).
 2. **Eligibility (code, not a model).** An issue in scope is eligible when the
    GitHub issue is open, it has no work item and no open pull request that
    closes it, its dependencies could be read without ambiguity, every hard
@@ -148,6 +148,7 @@ $N $C status
 | Retry an ordinary BLOCKED issue                   | `$N $C issue <n> retry ...`                                                                                                         |
 | Re-run feedback for a PR_READY issue              | `$N $C issue <n> reopen ...`                                                                                                        |
 | Settle an ordinary ended run left active          | `$N $C issue <n> reconcile ...`                                                                                                     |
+| Clear a provider-fault hold                       | `$N $C issue <n> recover-native ...` (see Native identity and fault evidence)                                                       |
 | Move a blocked or stopped issue to a new release  | `$N $C issue <n> adopt-policy ...` (then `retry` or `reopen`; see Updates)                                                          |
 | Let one issue's scope reach protected paths       | `$N $C allow-protected <n> 'package.json,.github/**' ...` (`all` for every protected path, `none` to revoke)                        |
 | Change ranking                                    | `$N $C prioritize <n> <0-100> ...`                                                                                                  |
@@ -155,9 +156,11 @@ $N $C status
 | Ask Samson a question (the Console chat)          | `$N $C ask --conversation <id> --request <id> --question "text"` (conversation id: 8-64 lowercase letters, digits or `-`)           |
 | Start an advisory analysis (never a gate)         | `$N $C analyze --scope factory --request <id>` (or `--scope issue:<n>`)                                                             |
 
-A ready pull request is not watched: once an issue is `PR_READY` the factory
-leaves it alone, so the pull request falls behind when `develop` moves and a
-later comment or failed check is not seen. `issue <n> reopen` runs its
+A ready pull request is watched for one thing: the intake pass records that
+somebody merged it, and the issue becomes `MERGED`. Otherwise the factory
+leaves a `PR_READY` issue alone, so the pull request falls behind when
+`develop` moves and a later comment or failed check is not seen. GitHub's
+"Update branch" brings it up to date, or `issue <n> reopen` runs its
 feedback stage again (the factory merges `develop` in, re-checks and answers).
 After a release change `reopen` is refused until the issue is moved to the new
 release: `issue <n> stop`, `issue <n> adopt-policy`, then `issue <n> reopen`
@@ -207,7 +210,8 @@ delivery run unless the run's owner is verifiably gone; it can delete files.
   `feedback-limit` after more than 12 feedback rounds, and `no-progress` when
   the same problem comes back a third time in a row without a new head
   (`limits` in `core-factory.json`). Rounds parked behind another issue's shared
-  area do not count.
+  area do not count. Provider faults count the same way: the third in a row
+  without a new head blocks the issue `no-progress`.
 
 The Console offers the same `reconcile` (disabled while the issue's lease is
 live) and shows `core/scope.allowProtected` read-only; grant it with the command
@@ -237,16 +241,32 @@ A stored hold cannot be cleared by a later clean report; even a nominally normal
 report for another run is not clearance. Legacy absence of a report remains
 compatible, but does not prove current native execution safe.
 
-Finite recovery requires explicit same-run identity/effects reconciliation,
-including independent remote branch/GitHub readback for uncertain publication
-or merge effects. **A trusted recovery operation for those native holds is
-currently unavailable.** `native-recovery` is a classification, not a supported
-resume command. `retry`, `reopen`, `release`, ordinary `reconcile`, lease expiry,
-sign-in or a quota reset cannot substitute for that evidence. Preserve the
-binding, native reports, views, work item, leases and reservations; do not edit
-state or transplant sessions to bypass `native-fault-held` or `identity-drift`.
-Sources: [record decisions](../../scripts/archon-factory/pack/deliver/scripts/record-logic.mjs)
-and [work-item controls](../../scripts/archon-factory/pack/.shared/workitem.mjs).
+A hold is cleared by `issue <n> recover-native`, and only on evidence. The
+command checks that the installed release and the signed-in account are the
+assignment's, reads the issue's branch on GitHub (absent, or at a commit the
+work item recorded, with no merge the factory requested still pending),
+confirms the held run's check containers are gone, ends the held run through
+the engine when it is failed or paused, and requires the engine to report
+that run cancelled or completed. It never ends a run that still executes, and
+it changes nothing when it refuses. The refusal names what is missing:
+`effects-unreconciled`, `containers-unconfirmed`, `run-not-ended`,
+`run-not-terminal`, `lease-live` (another run holds the issue),
+`identity-drift` or `policy-transition-required`. The issue then waits on the
+route its recorded progress calls for, with its committed work kept.
+
+The intake pass runs the same command by itself for a hold the engine
+classified `native-recovery` (a transient error, a rate limit, an overload, or
+a quota whose reset the provider reported), once any reported reset has
+passed. Every other hold (sign-in, budget, configuration, unclear effects)
+waits for a person to deal with the cause and then run the command.
+
+`retry`, `reopen`, `release`, ordinary `reconcile`, lease expiry, sign-in or a
+quota reset cannot substitute for it. Preserve the binding, native reports,
+views, work item, leases and reservations; do not edit state or transplant
+sessions to bypass `native-fault-held` or `identity-drift`. Sources:
+[record decisions](../../scripts/archon-factory/pack/deliver/scripts/record-logic.mjs),
+[work-item controls](../../scripts/archon-factory/pack/.shared/workitem.mjs)
+and the [control command](../../scripts/archon-factory/pack/.shared/control.mjs).
 
 ## Cleanup evidence and shared capacity
 
@@ -314,6 +334,9 @@ or bypass hooks to fit it. Exhaustion is not cleanup or slot-release proof.
   published branches and PRs on GitHub (PR body says "Closes #n").
 - Per-round evidence: `/srv/core-factory/runs/<runId>/` (guard decisions in
   `guard.jsonl`, every check in `checks/`, sealed reviews, role materials).
+- Per-step ledgers of a round (what `claim`, `freeze`, `publish` and the
+  others decided):
+  `/srv/core-factory/archon/workspaces/_folder/control/artifacts/runs/<runId>/round/<step>.json`.
 - Engine records: `archon workflow get <runId>`, `archon workflow logs <runId>`
   (env `ARCHON_HOME=/srv/core-factory/archon ARCHON_USER_ID=core-factory`).
 - Work items: `archon state get core/issues/<n> --project _folder/control`.
@@ -321,13 +344,42 @@ or bypass hooks to fit it. Exhaustion is not cleanup or slot-release proof.
 A failed check or unresolved review shows on the issue's detail page (PR,
 readiness reasons, feedback dispositions) and in the work item's `blocker`.
 
+## Usage limit
+
+When the factory's Claude account has used up its allowance, the AI step that
+meets the limit fails. `record` then holds the issue: `$N $C status` shows
+`BLOCK:native-recovery`, and the work item's `nativeFaults` carries the reset
+time the provider reported. The engine pauses that run until the reset
+(`archon workflow status` shows "tries again at ..."). Until then every pass
+lists the issue under `swept` in its `eligibility.json` as `recover-native`
+with code `reset-pending`, and a held issue keeps its lane, so with both
+lanes held nothing new is admitted. Nothing is lost: committed work stays in
+the issue clone and on the work item, and no check container is left.
+
+At the reset, with no operator: the engine wakes the same run and it finishes
+its round; the next pass clears the hold with `recover-native`, and a
+candidate that round committed is reviewed once more. The pass leaves a held
+issue alone until two minutes after the reset. If the engine did not wake the
+run by then, the pass ends it and starts the round again. A usage limit
+therefore costs one extra review round per held issue. On 13 November this
+was observed twice up to the hold; the part after the reset has not been seen
+yet.
+
+What an operator can do in the meantime:
+
+- Nothing. That is the designed path.
+- Keep new issues out after the reset: `factory pause-intake`.
+- Keep a held issue from continuing at the reset: `issue <n> recover-native`
+  (it ends the paused run and keeps the work), then `issue <n> stop`. Later,
+  `issue <n> reopen`.
+- Do not try to get past the limit with another account, an API key or
+  `archon workflow resume`. A round started before the reset fails on the
+  limit again and is held again.
+
 ## Waits and sign-in
 
-- **Quota wait:** distinguish a qualified same-run native wait from a typed
-  quota fault requiring `owner-action` or `native-recovery`. A reported reset
-  does not itself authorize continuation or clear a stored hold. Retain the
-  same owner/profile; no other account, paid API fallback or automatic retry.
-  Other authorized work can continue only within independently proven capacity.
+- **Usage limit:** see [Usage limit](#usage-limit). Retain the same
+  owner/profile; no other account and no paid API fallback.
 - **Owner sign-in expired:** admission refuses new work for that owner. Sign in
   again as `admin` on the VM:
   `CLAUDE_CONFIG_DIR=/home/admin/.claude /home/admin/.local/share/claude/versions/2.1.317`
@@ -361,12 +413,18 @@ waiting (the feedback cooldown) is not orphaned: the engine resumes it by
 itself. This takes at most one timer interval (ten minutes). `journalctl -u
 core-factory-intake.service` shows what was cleared.
 
+A round stopped in the seconds between its commit and the record of that
+commit is covered too: the next round that commits work takes the unrecorded
+commit back into the working tree and commits it again through the hooks
+(the claim ledger records it as `restoredCommit`). This was proven on 13
+November by killing the engine at that moment.
+
 That path covers ordinary rounds only. For a run with a native or cleanup
 hold, inspect the engine/run metadata, immutable identity binding, native
 reports, cleanup evidence, work-item lease and reservations before acting. Do
-not blindly call the engine resume endpoint: same-run identity and effects
-must be reconciled first, and the native-hold recovery operation is
-unavailable. Preserve unresolved work.
+not call the engine resume endpoint yourself: use `issue <n> recover-native`,
+which reconciles same-run identity and effects first (Native identity and
+fault evidence). Preserve unresolved work.
 
 Only an ordinary ended run without unresolved native/cleanup evidence can be
 settled by `issue <n> reconcile` or the intake sweep. The sweep can re-fire a
@@ -449,8 +507,8 @@ manifest.
 4. Make it the single active engine only after the original is stopped. Never
    run two engines on the same scope. Before starting it, verify that durable
    intake pause/holds survive restoration. Reconcile same-run identity/effects,
-   cleanup and reservations; unresolved native holds remain blocked because
-   trusted recovery is unavailable. Do not re-enable intake merely because
+   cleanup and reservations; an unresolved native hold stays held until
+   `recover-native` accepts its evidence. Do not re-enable intake merely because
    restore integrity checks pass; all commissioning prerequisites still apply.
 
 ### Updates
@@ -463,6 +521,13 @@ manifest.
    native/cleanup holds, live or ambiguous leases, and unreconciled runs/routes
    also prevent a switch. Preserve their work and original bindings; back up
    before an eligible update.
+
+   An issue held on a provider fault has to be cleared first:
+   `issue <n> recover-native`, then `issue <n> stop`. During a usage limit do
+   this only when the new release cannot wait for the reset. After
+   `adopt-policy` and `reopen` (step 7) the issue's next round meets the limit
+   again and the issue is held again, which is what happened on 13 November.
+
 2. Stage exactly one reviewed, pushed commit and run the installer from that
    stage, so the release record names the commit:
 
@@ -698,9 +763,10 @@ and the round's evidence under `/srv/core-factory/runs/<run>/strays`.
 | `no-progress` with "uncommitted work on a different revision" in the history | The clone has uncommitted work on a different commit than the recorded one; three starts stopped on it      | See below the table                                                                                                                                             |
 | `review-precondition`                                                        | The recorded candidate is not what the clone has checked out, or it is dirty                                | Make the clone's HEAD the recorded head with a clean tree, then `retry`                                                                                         |
 
-`acceptance-tampered` and the dirty-workspace block can follow a round that
-was stopped just after its commit and before that commit was recorded. Check
-for it in the clone: `git reflog -5` shows a `factory round` commit that is
+A round stopped just after its commit and before that commit was recorded
+used to end in `acceptance-tampered` or the dirty-workspace block. The next
+round now recovers it by itself (Reboot and recovery). The manual steps below
+remain for an issue that still blocks this way. Check for it in the clone: `git reflog -5` shows a `factory round` commit that is
 not the recorded commit (the work item's `head`, or its `base` while `head`
 is still empty in a first round). Its content is that commit, not the `strays`
 evidence. To recover, put its files back as uncommitted work on the recorded
@@ -728,4 +794,8 @@ the clone as it is: nothing is lost while it is stopped.
 
 Physical hardware repair; native Claude or GitHub sign-in; authorizing a scope
 and its end state (`PR_READY` or `MERGED`); any required human review GitHub
-enforces; decisions the factory raises as BLOCKED with a recovery step.
+enforces; decisions the factory raises as BLOCKED with a recovery step; a
+provider-fault hold the engine did not classify as recoverable (sign-in,
+budget, configuration, unclear effects); and any decision about the Claude
+plan when the usage limit stops the factory, which can otherwise only wait
+for the reset.
