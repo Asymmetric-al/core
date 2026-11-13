@@ -12,6 +12,7 @@ import {
   afterDefineEntry,
   afterDefinePlan,
   briefAfterDefine,
+  removedTestFiles,
   sourceOverlap,
 } from "./define-logic.mjs";
 import { bezalelRepairs } from "./repair-logic.mjs";
@@ -159,10 +160,19 @@ if (define && !scopeStopped) {
       },
     });
   const tests = files.map((file) => [file, blobOf(file)]);
+  // A removal is part of the record only when there is one, so an acceptance
+  // without removals keeps the revision it always had.
+  const removed = removedTestFiles({
+    status,
+    testGlobs: brief.test_paths,
+    exists: present,
+  });
+  const removal = removed.length ? { removed } : {};
   const acceptance = {
-    revision: sha256({ criteria: define.criteria, tests }),
+    revision: sha256({ criteria: define.criteria, tests, ...removal }),
     criteria: define.criteria,
     tests,
+    ...removal,
     gaps: define.gaps.slice(0, 20),
     checks: define.checks_run.slice(0, 30),
     at: round.now(),
@@ -218,7 +228,10 @@ const assignment = renderAssignment({
     [
       "Acceptance (independently authored; do not weaken it)",
       JSON.stringify(value.acceptance.criteria, null, 2) +
-        `\n\nAcceptance test files: ${value.acceptance.tests.map((test: string[]) => test[0]).join(", ") || "none"}`,
+        `\n\nAcceptance test files: ${value.acceptance.tests.map((test: string[]) => test[0]).join(", ") || "none"}` +
+        (value.acceptance.removed?.length
+          ? `\nRemoved by the acceptance author (leave them removed): ${value.acceptance.removed.join(", ")}`
+          : ""),
     ],
     ["Paths", bezalelPaths(value.brief)],
     ...(repairs.length

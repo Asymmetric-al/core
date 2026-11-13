@@ -36,6 +36,7 @@ const {
   candidateDiff,
   freezeCandidate,
   freshTestDrift,
+  pendingRemovals,
   repairOf,
   reviewRouteProblem,
   setAsideStrays,
@@ -268,6 +269,45 @@ describe("verifyCandidate", () => {
     ]);
   });
 
+  it("refuses a candidate that still holds a test Ezra removed", async () => {
+    const { repo, base, commit, git } = repository();
+    const candidate = commit({ "packages/api/src/total.ts": "x\n" });
+
+    const verified = await verifyCandidate({
+      git,
+      repo,
+      previousHead: base,
+      candidate,
+      brief: BRIEF,
+      acceptance: { ...acceptance(EARLIER, []), removed: [TEST] },
+      runId: RUN,
+    });
+
+    expect(verified.violations).toEqual([
+      `removed acceptance test ${TEST} is still in the candidate`,
+    ]);
+  });
+
+  it("accepts a candidate that removes the test Ezra removed", async () => {
+    const { repo, base, commit, git } = repository();
+    const candidate = commit({
+      "packages/api/src/total.ts": "x\n",
+      [TEST]: null,
+    });
+
+    const verified = await verifyCandidate({
+      git,
+      repo,
+      previousHead: base,
+      candidate,
+      brief: BRIEF,
+      acceptance: { ...acceptance(EARLIER, []), removed: [TEST] },
+      runId: RUN,
+    });
+
+    expect(verified.violations).toEqual([]);
+  });
+
   it("requires acceptance-owner approval even for formatting hook rewrites", async () => {
     const { repo, base, commit, git } = repository();
     const recorded = "expect(total).toBe( 100 )\n";
@@ -358,6 +398,35 @@ describe("freshTestDrift", () => {
       }),
     ).toEqual([`${TEST} changed after Ezra recorded it`]);
   });
+
+  it("reports a test Ezra removed that exists again", () => {
+    const { repo } = repository();
+    expect(
+      freshTestDrift({
+        repo,
+        acceptance: acceptance(EARLIER, []),
+        runId: RUN,
+        removals: new Set([TEST, "tests/x/gone.test.ts"]),
+      }),
+    ).toEqual([`${TEST} was removed by Ezra and exists again`]);
+  });
+});
+
+describe("pendingRemovals", () => {
+  it("names the removed tests the candidate's base still holds", async () => {
+    const { repo, base, git } = repository();
+    expect([
+      ...(await pendingRemovals({
+        git,
+        repo,
+        previousHead: base,
+        acceptance: {
+          ...acceptance(RUN, []),
+          removed: [TEST, "tests/x/never.test.ts"],
+        },
+      })),
+    ]).toEqual([TEST]);
+  });
 });
 
 describe("stagingScope", () => {
@@ -386,6 +455,19 @@ describe("stagingScope", () => {
       unrecorded: [false, false],
       outside: [false, false],
     });
+  });
+
+  it("stages the removal of a test Ezra removed, and of no other test", () => {
+    const scope = stagingScope({
+      brief: BRIEF,
+      acceptance: acceptance(EARLIER, []),
+      runId: RUN,
+      removals: new Set([TEST]),
+    });
+    expect([scope(TEST), scope("tests/x/other.test.ts")]).toEqual([
+      true,
+      false,
+    ]);
   });
 
   it("also stages a recorded test no commit holds yet, whichever run recorded it", () => {
@@ -951,6 +1033,102 @@ describe("freezeCandidate", () => {
       expect(
         run("diff", "--name-only", base, result.candidate).split("\n").sort(),
       ).toEqual(["packages/api/src/total.ts", NEW]);
+    });
+
+    it("commits Ezra's removal of an acceptance test with its replacement", async () => {
+      const { base, repo, run, freeze } = setup();
+      const NEW = "tests/x/renamed.test.ts";
+      const NEW_TEXT = "expect(total).toBe(101);\n";
+      rmSync(`${repo}/${TEST}`);
+      writeFileSync(`${repo}/${NEW}`, NEW_TEXT);
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "oracle",
+        value: {
+          base,
+          head: base,
+          brief: BRIEF,
+          acceptance: {
+            ...acceptance(RUN, [[NEW, blob(NEW_TEXT)]]),
+            removed: [TEST],
+          },
+        },
+        build: built(),
+      });
+
+      expect(result.stop).toBeUndefined();
+      expect(
+        run("diff", "--no-renames", "--name-status", base, result.candidate)
+          .split("\n")
+          .sort(),
+      ).toEqual([`A\t${NEW}`, `D\t${TEST}`, "M\tpackages/api/src/total.ts"]);
+    });
+
+    it("commits a removal an earlier run recorded and never committed", async () => {
+      const { base, repo, run, freeze } = setup();
+      rmSync(`${repo}/${TEST}`);
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "repair",
+        value: {
+          base,
+          head: base,
+          brief: BRIEF,
+          acceptance: { ...acceptance(EARLIER, []), removed: [TEST] },
+        },
+        build: built(),
+      });
+
+      expect(result.stop).toBeUndefined();
+      expect(
+        run("ls-tree", "--name-only", "-r", result.candidate).split("\n"),
+      ).not.toContain(TEST);
+    });
+
+    it("stops when a test Ezra removed is back before the commit", async () => {
+      const { base, repo, freeze, count } = setup();
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "repair",
+        value: {
+          base,
+          head: base,
+          brief: BRIEF,
+          acceptance: { ...acceptance(EARLIER, []), removed: [TEST] },
+        },
+        build: built(),
+      });
+
+      expect(result.stop?.entry?.blocked).toMatchObject({
+        code: "acceptance-tampered",
+        detail: `${TEST} was removed by Ezra and exists again`,
+      });
+      expect(count()).toBe("1");
+    });
+
+    it("puts back a test a writer deleted when Ezra did not remove it", async () => {
+      const { base, repo, run, freeze } = setup();
+      rmSync(`${repo}/${TEST}`);
+      writeFileSync(`${repo}/packages/api/src/total.ts`, "x\n");
+
+      const result = await freeze({
+        route: "repair",
+        value: {
+          base,
+          head: base,
+          brief: BRIEF,
+          acceptance: acceptance(EARLIER),
+        },
+        build: built(),
+      });
+
+      expect(result.stop).toBeUndefined();
+      expect(run("rev-parse", `${result.candidate}:${TEST}`)).toBe(
+        blob(TEST_TEXT),
+      );
     });
 
     it("refuses an uncommitted recorded test that no longer holds what Ezra recorded", async () => {

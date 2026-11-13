@@ -114,6 +114,20 @@ export async function pendingTests({ git, repo, acceptance, previousHead }) {
   return pending;
 }
 
+// Tests Ezra removed that the candidate's base still holds: the next commit
+// carries the removal, whichever run recorded it.
+export async function pendingRemovals({ git, repo, acceptance, previousHead }) {
+  const pending = new Set();
+  for (const file of acceptance?.removed ?? []) {
+    const found = await git.git(
+      ["rev-parse", "--verify", "--quiet", `${previousHead}:${file}`],
+      { cwd: repo },
+    );
+    if (found.code === 0) pending.add(file);
+  }
+  return pending;
+}
+
 function matchers(globs) {
   const compiled = (globs ?? []).map((glob) => globToRegExp(glob));
   return (file) => compiled.some((matcher) => matcher.test(file));
@@ -121,26 +135,43 @@ function matchers(globs) {
 
 // What the factory may commit: assigned source paths, plus test paths only
 // for the files Ezra recorded this round or recorded earlier and not yet
-// committed.
-export function stagingScope({ brief, acceptance, runId, pending }) {
+// committed, and for the removal of the files Ezra removed.
+export function stagingScope({
+  brief,
+  acceptance,
+  runId,
+  pending,
+  removals = new Set(),
+}) {
   const source = matchers(brief?.source_paths);
   const test = matchers(brief?.test_paths);
   const fresh = freshTests(acceptance, runId, pending);
-  return (file) => source(file) || (test(file) && fresh.has(file));
+  return (file) =>
+    source(file) || (test(file) && (fresh.has(file) || removals.has(file)));
 }
 
 // Before the commit: the tests this freeze may commit must still hold exactly
-// what Ezra recorded; nothing a writer did since may change them.
+// what Ezra recorded, and a test Ezra removed must still be gone; nothing a
+// writer did since may change that.
 export function freshTestDrift({
   repo,
   acceptance,
   runId,
   pending,
+  removals = new Set(),
   lstat = lstatSync,
   readFile = readFileSync,
 }) {
   const fresh = freshTests(acceptance, runId, pending);
   const drift = [];
+  for (const file of removals) {
+    try {
+      lstat(posix.join(repo, file));
+    } catch {
+      continue;
+    }
+    drift.push(`${file} was removed by Ezra and exists again`);
+  }
   for (const [file, blob] of acceptance?.tests ?? []) {
     if (!fresh.has(file)) continue;
     const full = posix.join(repo, file);
@@ -175,6 +206,12 @@ export async function verifyCandidate({
     runId,
     await pendingTests({ git, repo, acceptance, previousHead }),
   );
+  const removals = await pendingRemovals({
+    git,
+    repo,
+    acceptance,
+    previousHead,
+  });
   const source = matchers(brief?.source_paths);
   const test = matchers(brief?.test_paths);
   const violations = [];
@@ -196,7 +233,8 @@ export async function verifyCandidate({
     .split("\0")
     .filter(Boolean);
   for (const file of changed) {
-    if (source(file) || (test(file) && fresh.has(file))) continue;
+    if (source(file) || (test(file) && (fresh.has(file) || removals.has(file))))
+      continue;
     violations.push(
       test(file)
         ? `${file} is a test path Ezra did not record this round`
@@ -222,6 +260,16 @@ export async function verifyCandidate({
       );
     }
     tests.push([file, blob]);
+  }
+  for (const file of acceptance?.removed ?? []) {
+    const found = await git.git(
+      ["rev-parse", "--verify", "--quiet", `${candidate}:${file}`],
+      { cwd: repo },
+    );
+    if (found.code === 0)
+      violations.push(
+        `removed acceptance test ${file} is still in the candidate`,
+      );
   }
   return { violations, changed, tests, rewritten };
 }
@@ -414,11 +462,18 @@ export async function freezeCandidate({
     acceptance: value.acceptance,
     previousHead,
   });
+  const removals = await pendingRemovals({
+    git,
+    repo,
+    acceptance: value.acceptance,
+    previousHead,
+  });
   const drift = freshTestDrift({
     repo,
     acceptance: value.acceptance,
     runId,
     pending,
+    removals,
   });
   if (drift.length)
     return blocked(
@@ -432,6 +487,7 @@ export async function freezeCandidate({
     acceptance: value.acceptance,
     runId,
     pending,
+    removals,
   });
   await setAsideStrays({ git, repo, inScope, evidenceDir, ledger });
   if (!finished) {

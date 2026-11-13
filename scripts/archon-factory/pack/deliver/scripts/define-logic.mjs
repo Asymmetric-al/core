@@ -134,6 +134,25 @@ export function acceptanceTestFiles({
     .sort();
 }
 
+// Test files Ezra removed: tracked files in the test paths that the working
+// tree no longer holds. They are recorded with the acceptance, and the freeze
+// commits the removal as it commits a recorded test.
+export function removedTestFiles({ status, testGlobs, exists = () => false }) {
+  const isTest = matcher(testGlobs);
+  return [
+    ...new Set(
+      status
+        .filter(
+          (entry) =>
+            entry.code.includes("D") &&
+            isTest(entry.path) &&
+            !exists(entry.path),
+        )
+        .map((entry) => entry.path),
+    ),
+  ].sort();
+}
+
 export function sourceOverlap({ files, sourceGlobs }) {
   const isSource = matcher(sourceGlobs);
   return files.filter(isSource);

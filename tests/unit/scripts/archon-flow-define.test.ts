@@ -5,6 +5,7 @@ import {
   afterDefineEntry,
   afterDefinePlan,
   briefAfterDefine,
+  removedTestFiles,
   sourceOverlap,
 } from "../../../scripts/archon-factory/pack/deliver/scripts/define-logic.mjs";
 import { decideRound } from "../../../scripts/archon-factory/pack/deliver/scripts/record-logic.mjs";
@@ -45,6 +46,26 @@ describe("acceptance test files (independence#7)", () => {
       acceptanceTestFiles({
         candidates: [B, "apps/x/src/a.ts", A, B, "tests/x/gone.test.ts"],
         previous: [],
+        testGlobs: ["tests/x/**"],
+        exists,
+      }),
+    ).toEqual([A, B]);
+  });
+});
+
+describe("test files Ezra removed", () => {
+  it("names tracked test files the working tree no longer holds", () => {
+    const exists = (file: string) => file === "tests/x/back.test.ts";
+    expect(
+      removedTestFiles({
+        status: [
+          { code: " D", path: B },
+          { code: "D ", path: A },
+          { code: " D", path: "apps/x/src/gone.ts" },
+          { code: " D", path: "tests/x/back.test.ts" },
+          { code: " M", path: "tests/x/changed.test.ts" },
+          { code: "??", path: "tests/x/new.test.ts" },
+        ],
         testGlobs: ["tests/x/**"],
         exists,
       }),

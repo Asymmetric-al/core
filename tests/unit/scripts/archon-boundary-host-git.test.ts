@@ -465,3 +465,192 @@ describe("hardened host Git arguments", () => {
     ).resolves.toContain("+candidate");
   });
 });
+
+// A build round commits and then records the commit. A round stopped between
+// the two (or one whose hooks left files behind) leaves the clone ahead of the
+// record. The next build round takes that commit back into the working tree,
+// so its content goes through the hooks and the checks again.
+describe("a build round's unrecorded commit", () => {
+  const BRANCH = "factory/7-x";
+  const started = async () => {
+    const made = factory();
+    const where = await ensureIssueRepo({
+      git: made.git,
+      paths: made.paths,
+      issue: 7,
+    });
+    await prepareBranch({
+      git: made.git,
+      repo: where.repo,
+      branch: BRANCH,
+      head: null,
+      base: made.base,
+    });
+    return { ...made, repo: where.repo as string };
+  };
+  const roundCommit = (repo: string) => {
+    writeFileSync(`${repo}/README.md`, "implemented\n");
+    writeFileSync(`${repo}/new.test.ts`, "acceptance\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "feat(#7): factory round 1");
+    return plain(repo, "rev-parse", "HEAD");
+  };
+  const state = async (git: unknown, repo: string) => ({
+    head: plain(repo, "rev-parse", "HEAD"),
+    branch: plain(repo, "symbolic-ref", "--short", "HEAD"),
+    status: await statusPorcelain({ git }, repo),
+    readme: readFileSync(`${repo}/README.md`, "utf8"),
+    test: existsSync(`${repo}/new.test.ts`),
+  });
+
+  it("returns to the working tree when the next build round starts", async () => {
+    const { git, repo, base } = await started();
+    const unrecorded = roundCommit(repo);
+
+    const prepared = await prepareBranch({
+      git,
+      repo,
+      branch: BRANCH,
+      head: null,
+      base,
+      keepUnrecorded: true,
+    });
+
+    expect({ prepared, ...(await state(git, repo)) }).toEqual({
+      prepared: {
+        reused: true,
+        restored: unrecorded,
+        dirty: [
+          { code: " M", path: "README.md" },
+          { code: "??", path: "new.test.ts" },
+        ],
+      },
+      head: base,
+      branch: BRANCH,
+      status: [
+        { code: " M", path: "README.md" },
+        { code: "??", path: "new.test.ts" },
+      ],
+      readme: "implemented\n",
+      test: true,
+    });
+  });
+
+  it("keeps the files hooks left behind after that commit", async () => {
+    const { git, repo, base } = await started();
+    const unrecorded = roundCommit(repo);
+    writeFileSync(`${repo}/README.md`, "implemented, then rewritten\n");
+    writeFileSync(`${repo}/leftover.txt`, "left by a hook\n");
+    plain(repo, "add", "leftover.txt");
+
+    const prepared = await prepareBranch({
+      git,
+      repo,
+      branch: BRANCH,
+      head: null,
+      base,
+      keepUnrecorded: true,
+    });
+
+    expect({
+      restored: prepared.restored,
+      ...(await state(git, repo)),
+    }).toEqual({
+      restored: unrecorded,
+      head: base,
+      branch: BRANCH,
+      status: [
+        { code: " M", path: "README.md" },
+        { code: "??", path: "leftover.txt" },
+        { code: "??", path: "new.test.ts" },
+      ],
+      readme: "implemented, then rewritten\n",
+      test: true,
+    });
+  });
+
+  it("returns to the working tree from the recorded head of an earlier round", async () => {
+    const { git, repo, base } = await started();
+    const recorded = roundCommit(repo);
+    writeFileSync(`${repo}/README.md`, "repaired\n");
+    plain(repo, "commit", "--quiet", "-am", "fix(#7): factory round 2");
+
+    await prepareBranch({
+      git,
+      repo,
+      branch: BRANCH,
+      head: recorded,
+      base,
+      keepUnrecorded: true,
+    });
+
+    expect(await state(git, repo)).toEqual({
+      head: recorded,
+      branch: BRANCH,
+      status: [{ code: " M", path: "README.md" }],
+      readme: "repaired\n",
+      test: true,
+    });
+  });
+
+  it("is put back on the recorded commit by a round that commits nothing", async () => {
+    const { git, repo, base } = await started();
+    roundCommit(repo);
+
+    const prepared = await prepareBranch({
+      git,
+      repo,
+      branch: BRANCH,
+      head: null,
+      base,
+    });
+
+    expect({ prepared, ...(await state(git, repo)) }).toEqual({
+      prepared: { reused: false, dirty: [] },
+      head: base,
+      branch: BRANCH,
+      status: [],
+      readme: "base\n",
+      test: false,
+    });
+  });
+
+  it("is not unwound when it is a merge", async () => {
+    const { git, repo, base, candidate } = await started();
+    writeFileSync(`${repo}/other.txt`, "branch work\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "branch work");
+    plain(repo, "merge", "--quiet", "--no-ff", "--no-edit", candidate);
+    writeFileSync(`${repo}/other.txt`, "uncommitted\n");
+
+    await expect(
+      prepareBranch({
+        git,
+        repo,
+        branch: BRANCH,
+        head: null,
+        base,
+        keepUnrecorded: true,
+      }),
+    ).rejects.toMatchObject({ code: "dirty-workspace" });
+    expect(readFileSync(`${repo}/other.txt`, "utf8")).toBe("uncommitted\n");
+  });
+
+  it("is not unwound when the clone left the recorded history", async () => {
+    const { git, repo, base, candidate } = await started();
+    roundCommit(repo);
+    writeFileSync(`${repo}/README.md`, "uncommitted\n");
+
+    await expect(
+      prepareBranch({
+        git,
+        repo,
+        branch: BRANCH,
+        head: candidate,
+        base,
+        keepUnrecorded: true,
+      }),
+    ).rejects.toMatchObject({ code: "dirty-workspace" });
+    expect(readFileSync(`${repo}/README.md`, "utf8")).toBe("uncommitted\n");
+  });
+});

@@ -103,6 +103,20 @@ function storageRefused(round, storage) {
   };
 }
 
+// A tool the operating system killed is a crash, not a failed check: the
+// candidate is not at fault and a repair round would have nothing to change.
+// The signal is read from the runner's own message.
+const CRASH = /terminated by signal (SIG(?:SEGV|BUS|ILL|ABRT|KILL))\b/;
+export function crashedTool(output) {
+  const text = String(output ?? "");
+  const signal = CRASH.exec(text)?.[1];
+  if (signal) return signal;
+  return /Segmentation fault \(core dumped\)/.test(text) ? "SIGSEGV" : null;
+}
+
+const preflightStages = (output) =>
+  [...output.matchAll(/==> CI preflight: ([\w-]+)/g)].map((match) => match[1]);
+
 export async function publishCandidate(
   round,
   { branch, candidate },
@@ -141,25 +155,47 @@ export async function publishCandidate(
       blocked: { code: error.code ?? "hooks-unpinned", detail: error.message },
     };
   }
-  const prePush = await runInIssueRepo(
-    round,
-    {
-      command: hookedGit(round.where.repo, [
-        "push",
-        "--porcelain",
-        "--force",
-        "/outbox",
-        `HEAD:refs/heads/${branch}`,
-      ]),
-      network: "bridge",
-      cache: true,
-      outbox: true,
-      timeoutMs: 85 * 60_000,
-      memoryMb: 32768,
-      cpus: 16,
-    },
-    { execute },
-  );
+  const runPrePush = () =>
+    runInIssueRepo(
+      round,
+      {
+        command: hookedGit(round.where.repo, [
+          "push",
+          "--porcelain",
+          "--force",
+          "/outbox",
+          `HEAD:refs/heads/${branch}`,
+        ]),
+        network: "bridge",
+        cache: true,
+        outbox: true,
+        timeoutMs: 85 * 60_000,
+        memoryMb: 32768,
+        cpus: 16,
+      },
+      { execute },
+    );
+  let prePush = await runPrePush();
+  // One more run of the same hook on the same commit when a tool crashed and
+  // the first run's container is confirmed gone. A second failure, crash or
+  // not, is the gate's answer.
+  let crashed = null;
+  if (
+    prePush.status !== "passed" &&
+    prePush.cleanupConfirmed === true &&
+    prePush.reusable === true
+  ) {
+    const output = (prePush.stdout ?? "") + (prePush.stderr ?? "");
+    const signal = crashedTool(output);
+    if (signal) {
+      crashed = {
+        signal,
+        stage: preflightStages(output).at(-1) ?? null,
+        exitCode: prePush.exitCode,
+      };
+      prePush = await runPrePush();
+    }
+  }
   const tail = ((prePush.stdout ?? "") + (prePush.stderr ?? "")).slice(-6000);
   const hooks = hookEvidence("pre-push", prePush);
   round.ledger.write("pre-push", {
@@ -170,11 +206,10 @@ export async function publishCandidate(
     candidate,
     hooks,
     tail,
+    ...(crashed ? { crashed } : {}),
   });
   if (prePush.status !== "passed") {
-    const stages = [...tail.matchAll(/==> CI preflight: ([\w-]+)/g)].map(
-      (match) => match[1],
-    );
+    const stages = preflightStages(tail);
     return {
       ok: false,
       reason: `Pre-push guard or preflight failed${stages.length ? ` at ${stages.at(-1)}` : ""}`,

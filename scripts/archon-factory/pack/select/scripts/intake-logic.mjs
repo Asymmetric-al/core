@@ -2,8 +2,12 @@
 // GitHub and Archon: admission gates, admit's final checks and the sweep that
 // restarts or reconciles admitted work items.
 import { createHash } from "node:crypto";
+import { existsSync, rmSync } from "node:fs";
+import path from "node:path";
 
 import { conditionalWrite } from "../../.shared/archon.mjs";
+import { hasUnconfirmedCleanup } from "../../.shared/cleanup-state.mjs";
+import { issuePaths } from "../../.shared/git.mjs";
 import { FACTORY_MARKER } from "../../.shared/readiness.mjs";
 import { releaseInactiveReservations } from "../../.shared/reservations.mjs";
 import {
@@ -11,7 +15,9 @@ import {
   TERMINAL,
   factoryPermitsIntake,
   factoryPermitsRound,
+  hasNativeFaultHold,
   heldElsewhere,
+  planObservedMerge,
   planReconcile,
   planSweep,
 } from "../../.shared/workitem.mjs";
@@ -190,6 +196,95 @@ export async function announceBlocked({
       results.push({ issue, announced: true });
     } catch {
       results.push({ issue, announced: false, reason: "github" });
+    }
+  }
+  return results;
+}
+
+// The one thing the factory follows on a pull request it reported ready:
+// whether somebody merged it. One request per ready issue and pass, for a
+// month after the issue became ready; a GitHub failure never fails the pass.
+export async function observeMerges({
+  archon,
+  github,
+  items,
+  targetBranch,
+  by,
+  now,
+  nowMs,
+  windowMs = 30 * DAY_MS,
+}) {
+  const results = [];
+  for (const [issue, value] of items) {
+    const number = value?.pr?.number;
+    const since = Date.parse(value?.updatedAt ?? "");
+    if (
+      value?.status !== "PR_READY" ||
+      !Number.isSafeInteger(number) ||
+      !Number.isFinite(since) ||
+      nowMs - since > windowMs
+    )
+      continue;
+    let pr;
+    try {
+      pr = await github.pull(number);
+    } catch {
+      continue;
+    }
+    if (pr?.merged !== true) continue;
+    try {
+      const written = await conditionalWrite(
+        archon,
+        `core/issues/${issue}`,
+        (document) =>
+          planObservedMerge(document, { pr, targetBranch, by, now }),
+      );
+      if (!written.written) {
+        results.push({ issue, action: "merged", code: "conflict" });
+        continue;
+      }
+      await releaseReservations(archon, issue);
+      results.push({ issue, action: "merged", pr: number });
+    } catch (error) {
+      if (!(error instanceof Refusal)) throw error;
+      results.push({ issue, action: "merged", code: error.code });
+    }
+  }
+  return results;
+}
+
+// The dependency trees are three quarters of an issue's workspace and can be
+// installed again from the lockfile. They go once the issue is MERGED; the
+// clone, its history and anything a round set aside stay. The install marker
+// goes first, so a half-removed tree is never taken for an installed one.
+export function pruneFinished({
+  items,
+  paths,
+  exists = existsSync,
+  removeFile = (file) => rmSync(file, { force: true }),
+  removeTrees,
+}) {
+  const results = [];
+  for (const [issue, value] of items) {
+    if (
+      value?.status !== "MERGED" ||
+      value.run ||
+      hasUnconfirmedCleanup(value) ||
+      hasNativeFaultHold(value)
+    )
+      continue;
+    const where = issuePaths(paths, issue);
+    if (!exists(path.posix.join(where.repo, "node_modules"))) continue;
+    try {
+      removeFile(path.posix.join(where.root, "install.json"));
+      const removed = removeTrees(where.repo);
+      results.push({ issue, action: "prune", removed: removed.length });
+    } catch (error) {
+      results.push({
+        issue,
+        action: "prune",
+        error: String(error?.message ?? error).slice(0, 200),
+      });
     }
   }
   return results;

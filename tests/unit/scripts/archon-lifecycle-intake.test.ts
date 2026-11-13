@@ -9,6 +9,8 @@ import {
   admissionCheck,
   admissionGates,
   announceBlocked,
+  observeMerges,
+  pruneFinished,
   releaseStaleReservations,
   scopeDigest,
   sweepItems,
@@ -502,6 +504,233 @@ describe("releaseStaleReservations", () => {
       items: new Map([[12, { ...assign(12), status: "active" }]]),
     });
     expect(state.archon.put).not.toHaveBeenCalled();
+  });
+});
+
+describe("observeMerges", () => {
+  const MERGE = "d".repeat(40);
+  const ready = (issue = 12) => ({
+    ...assign(issue),
+    status: "PR_READY",
+    route: null,
+    round: 4,
+    head: "e".repeat(40),
+    pr: {
+      number: 700 + issue,
+      url: `https://example.invalid/pull/${700 + issue}`,
+    },
+    updatedAt: T0,
+  });
+  const merged = (number: number, extra: Record<string, unknown> = {}) => ({
+    number,
+    merged: true,
+    merged_at: "2026-11-11T09:30:00Z",
+    merge_commit_sha: MERGE,
+    merged_by: { login: "an-owner" },
+    base: { ref: "develop" },
+    ...extra,
+  });
+  const observe = async (
+    seed: Record<string, Doc>,
+    pulls: Record<number, unknown>,
+    nowMs = Date.parse(T1),
+  ) => {
+    const state = store(seed);
+    const github = {
+      pull: vi.fn(async (number: number) => {
+        if (!(number in pulls)) throw new Error("github");
+        return pulls[number];
+      }),
+    };
+    const results = await observeMerges({
+      archon: state.archon,
+      github,
+      items: new Map(
+        Object.entries(seed).map(([name, doc]) => [
+          Number(name.split("/").pop()),
+          doc.value,
+        ]),
+      ),
+      targetBranch: "develop",
+      by: "select-run-1",
+      now: T1,
+      nowMs,
+    });
+    return { results, state, github };
+  };
+
+  it("records a ready pull request that someone else merged", async () => {
+    const { results, state } = await observe(
+      { "core/issues/12": { revision: 9, value: ready(), lease: null } },
+      { 712: merged(712) },
+    );
+    const value = state.doc("core/issues/12")?.value;
+    expect({
+      results,
+      status: value.status,
+      route: value.route,
+      pr: value.pr,
+      last: value.history.at(-1),
+    }).toEqual({
+      results: [{ issue: 12, action: "merged", pr: 712 }],
+      status: "MERGED",
+      route: null,
+      pr: {
+        number: 712,
+        url: "https://example.invalid/pull/712",
+        mergedAt: "2026-11-11T09:30:00Z",
+        mergeCommit: MERGE,
+        mergedBy: "external",
+      },
+      last: {
+        round: 4,
+        run: "select-run-1",
+        route: null,
+        outcome: "MERGED",
+        next: null,
+        at: T1,
+        external: true,
+        summary:
+          "Merged outside the factory by an-owner at 2026-11-11T09:30:00Z; seen by the intake pass.",
+      },
+    });
+  });
+
+  it("leaves an open or closed-unmerged pull request ready, and asks only about ready issues", async () => {
+    const { results, state, github } = await observe(
+      {
+        "core/issues/12": { revision: 9, value: ready(), lease: null },
+        "core/issues/14": {
+          revision: 3,
+          value: { ...ready(14), status: "BLOCKED" },
+          lease: null,
+        },
+      },
+      { 712: { number: 712, merged: false, state: "closed" } },
+    );
+    expect({
+      results,
+      status: state.doc("core/issues/12")?.value.status,
+      asked: github.pull.mock.calls,
+    }).toEqual({ results: [], status: "PR_READY", asked: [[712]] });
+  });
+
+  it("does not record a merge into another branch, or a held issue's", async () => {
+    const { results, state } = await observe(
+      {
+        "core/issues/12": { revision: 9, value: ready(), lease: null },
+        "core/issues/14": {
+          revision: 3,
+          value: {
+            ...ready(14),
+            nativeFaults: { schema: "core-native-faults/v1" },
+          },
+          lease: null,
+        },
+      },
+      {
+        712: merged(712, { base: { ref: "release" } }),
+        714: merged(714),
+      },
+    );
+    expect({
+      results,
+      statuses: [12, 14].map(
+        (issue) => state.doc(`core/issues/${issue}`)?.value.status,
+      ),
+    }).toEqual({
+      results: [
+        { issue: 12, action: "merged", code: "not-merged" },
+        { issue: 14, action: "merged", code: "native-fault-held" },
+      ],
+      statuses: ["PR_READY", "PR_READY"],
+    });
+  });
+
+  it("stops asking about a pull request that has been ready for a month, and survives GitHub failing", async () => {
+    const { results, github } = await observe(
+      {
+        "core/issues/12": { revision: 9, value: ready(), lease: null },
+        "core/issues/14": {
+          revision: 3,
+          value: { ...ready(14), updatedAt: "2026-09-01T00:00:00.000Z" },
+          lease: null,
+        },
+      },
+      {},
+    );
+    expect({ results, asked: github.pull.mock.calls }).toEqual({
+      results: [],
+      asked: [[712]],
+    });
+  });
+});
+
+describe("pruneFinished", () => {
+  const paths = { issues: "/srv/f/issues" };
+  const prune = (items: [number, Record<string, unknown>][], has = true) => {
+    const calls: string[] = [];
+    const results = pruneFinished({
+      items: new Map(items),
+      paths,
+      exists: (file: string) => {
+        calls.push(`exists ${file}`);
+        return has;
+      },
+      removeFile: (file: string) => calls.push(`rm ${file}`),
+      removeTrees: (repo: string) => {
+        calls.push(`trees ${repo}`);
+        return ["node_modules", "apps/admin/node_modules"];
+      },
+    });
+    return { results, calls };
+  };
+
+  it("removes the dependency trees of a merged issue, install marker first", () => {
+    expect(prune([[12, { ...assign(), status: "MERGED" }]])).toEqual({
+      results: [{ issue: 12, action: "prune", removed: 2 }],
+      calls: [
+        "exists /srv/f/issues/12/repo/node_modules",
+        "rm /srv/f/issues/12/install.json",
+        "trees /srv/f/issues/12/repo",
+      ],
+    });
+  });
+
+  it("touches nothing for an issue that is not merged, is held, or is already pruned", () => {
+    const held = {
+      ...assign(14),
+      status: "MERGED",
+      nativeFaults: { schema: "core-native-faults/v1" },
+    };
+    expect([
+      prune([
+        [12, { ...assign(), status: "PR_READY" }],
+        [13, { ...assign(13), status: "BLOCKED" }],
+        [14, held],
+      ]).calls,
+      prune([[12, { ...assign(), status: "MERGED" }]], false).results,
+    ]).toEqual([[], []]);
+  });
+
+  it("reports a removal that failed and carries on", () => {
+    const results = pruneFinished({
+      items: new Map([
+        [12, { ...assign(), status: "MERGED" }],
+        [14, { ...assign(14), status: "MERGED" }],
+      ]),
+      paths,
+      exists: () => true,
+      removeFile: () => {},
+      removeTrees: (repo: string) => {
+        if (repo.includes("/12/")) throw new Error("EBUSY");
+        return ["node_modules"];
+      },
+    });
+    expect(results).toEqual([
+      { issue: 12, action: "prune", error: "EBUSY" },
+      { issue: 14, action: "prune", removed: 1 },
+    ]);
   });
 });
 

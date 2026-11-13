@@ -404,10 +404,39 @@ export async function statusPorcelain({ git }, repo) {
   return entries;
 }
 
+// Commits the clone holds after the recorded one that the work item never
+// recorded: a round was stopped between its commit and its checkpoint, or its
+// hooks left files behind after the commit. Only a plain line of commits on
+// top of the recorded one counts; a merge or a different history does not.
+async function unrecordedCommits({ git }, repo, target, currentHead) {
+  if (!currentHead || currentHead === target) return false;
+  const descends = await git.git(
+    ["merge-base", "--is-ancestor", target, currentHead],
+    { cwd: repo },
+  );
+  if (descends.code !== 0) return false;
+  const merges = await git.ok(
+    ["rev-list", "--count", "--merges", `${target}..${currentHead}`],
+    { cwd: repo },
+  );
+  return merges.trim() === "0";
+}
+
 // Check out the branch for this round at the recorded commit, or start it
 // from the integration base. An uncommitted working tree is never discarded:
 // a dirty tree with no recorded head is refused for reconciliation.
-export async function prepareBranch({ git, repo, branch, head, base }) {
+// `keepUnrecorded` is set by a round that commits work: unrecorded commits on
+// top of the recorded one are taken back into the working tree (the branch
+// returns to the recorded commit, every file keeps its content), so the round
+// commits them again through the hooks and the freeze checks.
+export async function prepareBranch({
+  git,
+  repo,
+  branch,
+  head,
+  base,
+  keepUnrecorded = false,
+}) {
   const dirty = await statusPorcelain({ git }, repo);
   const current = (
     await git.git(["symbolic-ref", "--quiet", "--short", "HEAD"], { cwd: repo })
@@ -421,6 +450,18 @@ export async function prepareBranch({ git, repo, branch, head, base }) {
     throw new Error("Branch target must be a full SHA");
   if (current === branch && currentHead === target)
     return { reused: true, dirty };
+  if (
+    keepUnrecorded &&
+    current === branch &&
+    (await unrecordedCommits({ git }, repo, target, currentHead))
+  ) {
+    await git.ok(["reset", "--quiet", "--mixed", target], { cwd: repo });
+    return {
+      reused: true,
+      restored: currentHead,
+      dirty: await statusPorcelain({ git }, repo),
+    };
+  }
   if (dirty.length)
     throw Object.assign(
       new Error("Issue workspace has uncommitted work on a different revision"),

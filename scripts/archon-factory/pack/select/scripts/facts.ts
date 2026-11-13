@@ -18,8 +18,11 @@ import { fireRound } from "../../.shared/webhook.mjs";
 import { writeRunContext } from "../../.shared/runctx.mjs";
 import { RESERVATIONS, factoryPermitsIntake } from "../../.shared/workitem.mjs";
 import { observeAdmission } from "./admission-observations.mjs";
+import { removeNodeModules } from "../../.shared/round.mjs";
 import {
   announceBlocked,
+  observeMerges,
+  pruneFinished,
   releaseStaleReservations,
   scopeDigest,
   sweepItems,
@@ -77,8 +80,19 @@ const sweep = await sweepItems({
 });
 const swept: any[] = sweep.filter((entry) => entry.action !== "skip");
 
-// Tell the owner on GitHub about issues the factory stopped on. This runs
-// whether or not intake is open, and nothing here can fail the pass.
+// GitHub is asked for the pass's own notices only; nothing here can fail the
+// pass, and all of it runs whether or not intake is open.
+let sweepGitHub: ReturnType<typeof createGitHub> | null = null;
+const noticeGitHub = async () =>
+  (sweepGitHub ??= createGitHub({
+    token: await githubToken({
+      gh: config.github.executable,
+      configDir: config.github.configDir,
+    }),
+    repo: config.repository.slug,
+  }));
+
+// Tell the owner on GitHub about issues the factory stopped on.
 const stopped = new Map(
   [...items]
     .filter(([, entry]) => entry.value?.status === "BLOCKED")
@@ -87,13 +101,7 @@ const stopped = new Map(
 if (stopped.size)
   try {
     const notices = await announceBlocked({
-      github: createGitHub({
-        token: await githubToken({
-          gh: config.github.executable,
-          configDir: config.github.configDir,
-        }),
-        repo: config.repository.slug,
-      }),
+      github: await noticeGitHub(),
       items: stopped,
       nowMs: now,
     });
@@ -101,6 +109,38 @@ if (stopped.size)
       ...notices.map((notice: any) => ({ ...notice, action: "announce" })),
     );
   } catch {}
+
+// Record ready pull requests that somebody merged, then drop the dependency
+// trees of every merged issue.
+const values = () =>
+  new Map([...items].map(([issue, entry]) => [issue, entry.value]));
+if ([...items.values()].some((entry) => entry.value?.status === "PR_READY"))
+  try {
+    const merges = await observeMerges({
+      archon,
+      github: await noticeGitHub(),
+      items: values(),
+      targetBranch: config.repository.targetBranch,
+      by: runId,
+      now: new Date(now).toISOString(),
+      nowMs: now,
+    });
+    for (const merge of merges)
+      if (merge.pr)
+        items.set(merge.issue, {
+          ...(await archon.get(`core/issues/${merge.issue}`)),
+        });
+    swept.push(...merges);
+  } catch {}
+try {
+  swept.push(
+    ...pruneFinished({
+      items: values(),
+      paths,
+      removeTrees: removeNodeModules,
+    }),
+  );
+} catch {}
 
 const intake = factoryPermitsIntake(factory);
 if (!intake.ok)

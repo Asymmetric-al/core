@@ -24,6 +24,11 @@ export function roundStages(route) {
   };
 }
 
+// Routes whose freeze commits work. Only these take an unrecorded commit back
+// into the working tree; a review or feedback round works on the recorded one.
+export const commitsWork = (route) =>
+  ["initial", "repair", "oracle"].includes(route);
+
 // A feedback round observes the PR no sooner than checkWaitMs after the last
 // recorded round; waits shorter than fifteen seconds are not worth a node.
 export function feedbackWait({ lastAt, nowMs, checkWaitMs }) {

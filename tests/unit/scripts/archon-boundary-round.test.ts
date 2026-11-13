@@ -34,8 +34,13 @@ vi.mock(
 const { createGit, ensureIssueRepo } = gitModule as Record<string, any>;
 const { ensureInstall, nodeModulesMounts, runInIssueRepo, sha256 } =
   roundModule as Record<string, any>;
-const { hookEvidence, hookedGit, publishCandidate, restoreHookShims } =
-  publicationModule as Record<string, any>;
+const {
+  crashedTool,
+  hookEvidence,
+  hookedGit,
+  publishCandidate,
+  restoreHookShims,
+} = publicationModule as Record<string, any>;
 
 const gitExecutable =
   process.platform === "win32"
@@ -782,6 +787,95 @@ describe("Core hooks are pinned and must be seen to run", () => {
       implementation: [expect.stringContaining("ci:preflight")],
       source: "pre-push",
     });
+  });
+
+  const CRASHED =
+    '==> CI preflight: format\nChecking formatting...\nerror: script "format:check" was terminated by signal SIGSEGV (Address boundary error)\n==> FAIL format (exit unknown)\n';
+
+  it("runs the pre-push hook once more when a tool in it crashed", async () => {
+    const { round, ledger } = await issueRound();
+    const execute = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: "failed",
+        exitCode: 1,
+        stdout: CRASHED,
+        stderr: "",
+        cleanupConfirmed: true,
+        reusable: true,
+      })
+      .mockResolvedValue({
+        status: "passed",
+        exitCode: 0,
+        stdout: "Everything up-to-date\n",
+        stderr: "",
+        cleanupConfirmed: true,
+        reusable: true,
+      });
+    const result = await publishCandidate(
+      round,
+      { branch: "factory/7-x", candidate: "a".repeat(40) },
+      { execute },
+    );
+    expect({
+      runs: execute.mock.calls.length,
+      // The second run passed without hook evidence: the usual refusal, so
+      // the outcome is the second run's and not a repair for the crash.
+      code: result.blocked?.code,
+      repair: result.repair,
+      crashed: (ledger["pre-push"] as { crashed?: unknown }).crashed,
+    }).toEqual({
+      runs: 2,
+      code: "hooks-unverified",
+      repair: undefined,
+      crashed: { signal: "SIGSEGV", stage: "format", exitCode: 1 },
+    });
+  });
+
+  it("returns a repair when the tool crashes again on the second run", async () => {
+    const { round } = await issueRound();
+    const execute = passed(CRASHED, { status: "failed", exitCode: 1 });
+    const result = await publishCandidate(
+      round,
+      { branch: "factory/7-x", candidate: "a".repeat(40) },
+      { execute },
+    );
+    expect({
+      runs: execute.mock.calls.length,
+      source: result.repair?.source,
+      fingerprint: result.fingerprint,
+    }).toEqual({ runs: 2, source: "pre-push", fingerprint: "prepush:format" });
+  });
+
+  it("does not run a failed pre-push again when no tool crashed", async () => {
+    const { round } = await issueRound();
+    const execute = passed("==> CI preflight: lint\n", {
+      status: "failed",
+      exitCode: 1,
+    });
+    await publishCandidate(
+      round,
+      { branch: "factory/7-x", candidate: "a".repeat(40) },
+      { execute },
+    );
+    expect(execute.mock.calls.length).toBe(1);
+  });
+
+  it.each([
+    [
+      'error: script "format:check" was terminated by signal SIGSEGV',
+      "SIGSEGV",
+    ],
+    [
+      "Bun was terminated by signal SIGBUS (Misaligned address error)",
+      "SIGBUS",
+    ],
+    ["terminated by signal SIGKILL (Forced quit)", "SIGKILL"],
+    ["Segmentation fault (core dumped)", "SIGSEGV"],
+    ["expected 'terminated by signal' to appear in the log", null],
+    ["1 test failed", null],
+  ])("reads a crashed tool from %j", (output, signal) => {
+    expect(crashedTool(output)).toBe(signal);
   });
 
   it("records an uncertain host push as push-unknown instead of crashing", async () => {

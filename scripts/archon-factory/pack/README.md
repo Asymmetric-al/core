@@ -22,13 +22,13 @@ operations: `docs/ops/archon-vm100-factory-runbook.md`.
 
 ## Workflows
 
-| Workflow       | Started by                           | Resource (capacity, overlap)       | Job                                                                                                                                                                                                                                                                                   |
-| -------------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core-select`  | `core-factory-intake.timer` (10 min) | `core-factory:admission` (1, skip) | Sweep admitted work (start idle rounds, reconcile runs that ended without recording, release stale reservations); compute the eligible frontier of the authorized scope; Samson ranks it together with the newest 10 open `core/attention` items; record one assignment; fire round 1 |
-| `core-deliver` | selector, previous round, sweep      | one lane each (1, queue; below)    | One delivery round for one issue (below)                                                                                                                                                                                                                                              |
-| `core-answer`  | Console chat (`control.mjs ask`)     | `core-factory:chat` (1, queue)     | One Samson operator turn; may _propose_ one operation                                                                                                                                                                                                                                 |
-| `core-analyze` | Console / incidents                  | `core-factory:analysis` (1, skip)  | Bounded advisory analysis; never a gate                                                                                                                                                                                                                                               |
-| `core-probe`   | qualification                        | `core-factory:probe` (1, queue)    | Identity and boundary probes                                                                                                                                                                                                                                                          |
+| Workflow       | Started by                           | Resource (capacity, overlap)       | Job                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------- | ------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core-select`  | `core-factory-intake.timer` (10 min) | `core-factory:admission` (1, skip) | Sweep admitted work (start idle rounds, reconcile runs that ended without recording, release stale reservations, record ready pull requests somebody merged, drop the dependency trees of merged issues); compute the eligible frontier of the authorized scope; Samson ranks it together with the newest 10 open `core/attention` items; record one assignment; fire round 1 |
+| `core-deliver` | selector, previous round, sweep      | one lane each (1, queue; below)    | One delivery round for one issue (below)                                                                                                                                                                                                                                                                                                                                      |
+| `core-answer`  | Console chat (`control.mjs ask`)     | `core-factory:chat` (1, queue)     | One Samson operator turn; may _propose_ one operation                                                                                                                                                                                                                                                                                                                         |
+| `core-analyze` | Console / incidents                  | `core-factory:analysis` (1, skip)  | Bounded advisory analysis; never a gate                                                                                                                                                                                                                                                                                                                                       |
+| `core-probe`   | qualification                        | `core-factory:probe` (1, queue)    | Identity and boundary probes                                                                                                                                                                                                                                                                                                                                                  |
 
 Every start is a signed Standard Webhooks delivery to the engine's own sources
 (`.shared/webhook.mjs`, `control/sources.json`). There are no CLI trigger
@@ -114,6 +114,17 @@ readiness decision (`PR_READY`, protected expected-head `MERGED`, `WAIT`,
 `REPAIR`, `BLOCKED`). `record` always runs: one finish write releases the lease
 and fires the successor round.
 
+**Unrecorded commits.** `freeze` commits and then records the commit. A round
+stopped between the two, or one whose hooks left files behind after the
+commit, leaves the clone ahead of the record. `claim` of the next round that
+commits work (`initial`, `repair`, `oracle`) takes those commits back into the
+working tree: the branch returns to the recorded commit and every file keeps
+its content (`restoredCommit` in the claim ledger), so the round commits them
+again through the hooks and the freeze checks. Only a plain line of commits
+on top of the recorded one is taken back; a merge or a different history is
+left as it is and stops the round (`dirty-workspace`) when the tree is dirty.
+A `review` or `feedback` round works on the recorded commit as before.
+
 **Routes.** The route `record` writes picks the next round's stages:
 
 | Route      | Stages                                                                                                             |
@@ -163,7 +174,11 @@ an issue goes to Ezra, whoever it was addressed to.
 **Acceptance.** `after-define` records `acceptance.tests` as every file matching
 the brief's test globs that changed on the branch or in the working tree, plus
 the tests an earlier acceptance revision recorded (each with its blob id); a
-test file inside the implementation paths blocks the round. When Ezra corrects
+test file inside the implementation paths blocks the round. A tracked test file
+Ezra removed (a rename is a removal and a new file) is recorded in
+`acceptance.removed`; freeze commits the removal, refuses the round
+(`acceptance-tampered`) if the file is back before the commit, and puts back
+any test file somebody else deleted. When Ezra corrects
 acceptance in a later round without changing any test file and Bezalel has
 nothing to repair, the round ends before the build with a review-only repair,
 and the next round re-freezes and reviews the recorded head.
@@ -192,7 +207,10 @@ bound to the frozen candidate and the current acceptance revision, with no
 acceptance correction pending. The PR body calls a review clear only when
 the reviewer sealed it clear; findings that were assessed as not material or
 rejected are named as findings not upheld. The PR body's hook line is built only from
-freeze's pre-commit receipts and publication's pre-push proof.
+freeze's pre-commit receipts and publication's pre-push proof. When a tool in
+the pre-push hook is killed by a signal (the runner's own "terminated by signal
+SIG..." line), the same hook runs once more on the same commit before its
+failure counts; the ledger entry `pre-push.crashed` keeps the signal and stage.
 
 **Readiness.** Readiness integrates the base by an ordinary merge only when that
 is the sole repair (strict protection is behind, or the PR conflicts) and no
@@ -208,6 +226,16 @@ goes back to Samson, flagged `reopened`. A `MERGED` verdict carries `merged_by`:
 factory requested the merge of that exact head (`pr.mergeRequest`), otherwise
 `external`; `record` keeps an external merge as a fact even under a `PR_READY`
 assignment.
+
+**After `PR_READY`.** The factory follows one thing on a pull request it
+reported ready: whether somebody merged it. The intake pass asks GitHub once
+per ready issue (for 30 days after it became ready) and records a merge into
+the target branch as `MERGED`, `external`, with who merged and when. It starts
+no run, needs no policy match and is refused for a held issue. Later comments,
+checks and a moving base are not followed: `issue <n> reopen` runs the
+feedback stage again. Once an issue is `MERGED` (by the factory or not) the
+pass removes every `node_modules` tree of its clone and its install marker;
+the clone, its history and files a round set aside stay.
 
 **Budgets.** A round that continues to `feedback` counts toward
 `limits.maxFeedbackRounds` (12; beyond it the issue is BLOCKED

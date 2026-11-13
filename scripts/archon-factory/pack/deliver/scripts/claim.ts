@@ -23,7 +23,12 @@ import {
   planCheckpoint,
   planClaim,
 } from "../../.shared/workitem.mjs";
-import { feedbackWait, roleNodes, roundStages } from "./claim-logic.mjs";
+import {
+  commitsWork,
+  feedbackWait,
+  roleNodes,
+  roundStages,
+} from "./claim-logic.mjs";
 
 const round = openRound();
 const no = (reason: string, extra: Record<string, unknown> = {}) => {
@@ -153,6 +158,7 @@ try {
     branch,
     head: value.head,
     base,
+    keepUnrecorded: commitsWork(route),
   });
   const install = await ensureInstall(round);
   document = await round.archon.get(`core/issues/${round.issue}`);
@@ -197,6 +203,7 @@ try {
     base,
     head: value.head,
     reusedWorkspace: prepared.reused,
+    ...(prepared.restored ? { restoredCommit: prepared.restored } : {}),
     install,
     policy: release,
   });

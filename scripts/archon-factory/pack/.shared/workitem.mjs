@@ -562,6 +562,61 @@ export function planReconcile(document, { now, runStatus, limits }) {
   };
 }
 
+// A pull request the factory reported ready and somebody else merged. The
+// factory does not follow a ready pull request for anything else; this one
+// fact ends the item, so its status is true and its workspace can be pruned.
+// It is an observation, not an action: it needs no run and no policy match,
+// and it is refused for anything but a settled PR_READY item without holds.
+export function planObservedMerge(document, { pr, targetBranch, by, now }) {
+  const value = current(document);
+  if (hasUnconfirmedCleanup(value)) throw new Refusal("cleanup-unconfirmed");
+  if (hasNativeFaultHold(value)) throw new Refusal("native-fault-held");
+  if (value.status !== "PR_READY" || value.run)
+    throw new Refusal("not-ready", value.status);
+  if (!Number.isSafeInteger(value.pr?.number) || pr?.number !== value.pr.number)
+    throw new Refusal("pr-changed");
+  if (
+    pr.merged !== true ||
+    !/^[0-9a-f]{40}$/.test(pr.merge_commit_sha ?? "") ||
+    pr.base?.ref !== targetBranch
+  )
+    throw new Refusal("not-merged");
+  const next = structuredClone(value);
+  next.status = "MERGED";
+  next.route = null;
+  next.blocker = null;
+  next.pr = {
+    ...value.pr,
+    mergedAt: clip(pr.merged_at, 64),
+    mergeCommit: pr.merge_commit_sha,
+    mergedBy: "external",
+  };
+  next.history = [
+    ...next.history,
+    {
+      round: value.round,
+      run: clip(by, 200),
+      route: null,
+      outcome: "MERGED",
+      next: null,
+      at: now,
+      external: true,
+      summary: clip(
+        `Merged outside the factory by ${pr.merged_by?.login ?? "an unnamed account"} at ${pr.merged_at}; seen by the intake pass.`,
+        500,
+      ),
+    },
+  ].slice(-HISTORY);
+  next.updatedAt = now;
+  return {
+    name: issueDocument(value.issue),
+    ifRevision: document.revision,
+    value: next,
+    lease: undefined,
+    outcome: "MERGED",
+  };
+}
+
 const RECOVERY_CONTROLS = new Set(["retry", "reopen", "release"]);
 // The explicit policy transition: the one control that moves a retained
 // assignment to the installed release. It is refused under the same holds and
