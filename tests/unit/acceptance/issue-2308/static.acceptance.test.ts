@@ -74,9 +74,13 @@ describe("#2308 static contracts (A)", () => {
   // Re-frozen after develop d99a1fc4 shrank the table-preferences entry, and
   // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites;
   // whole-file SHA-256 41b0324c…). #2419 (base 2a4f70a8) shrinks the
-  // scripts/verify-money-units.ts entry, so its `count` and `lines` values are
-  // masked; every other byte of the file, including that entry's other fields,
-  // stays frozen. The masked entry may only shrink (1..3, lines per count).
+  // scripts/verify-money-units.ts entry from count 3, lines [201,211,217] to
+  // count 1, lines [26] (candidate 89958f49). The freeze is split in two:
+  // (a) the masked hash freezes every other byte of the file, including that
+  // entry's other fields, against base; (b) the entry's `count` and `lines` are
+  // re-frozen at their exact #2419 values. Together they are as strict as the
+  // former whole-file pin. Any later change to the entry, including raising the
+  // count back toward the gate's ceiling of 3, must re-pin (b) on purpose.
   const ALLOWLIST = "docs/security/service-role-client-allowlist.json";
   const MONEY_UNITS = '"file":"scripts/verify-money-units.ts"';
   const COUNT_LINES = /"count":(\d+),\s*"lines":\[([\d,\s]*)\]/;
@@ -100,13 +104,9 @@ describe("#2308 static contracts (A)", () => {
       "cde3461ff33b409f02a85da0794264d6a5adb2a43f83315d0588718ee9b4c2ee",
     );
   });
-  it("C12: the masked verify-money-units entry only shrinks: count 1..3 with one line per site", () => {
+  it("C12: the verify-money-units entry is re-frozen at its #2419 value: count 1, lines [26]", () => {
     const text = read(ALLOWLIST);
-    const [, count, lines] = text
-      .split("\n")
-      [moneyUnitsLine(text)]!.match(COUNT_LINES)!;
-    const n = Number(count);
-    const listed = lines!.split(",").filter((l) => l.trim() !== "");
-    expect([n >= 1 && n <= 3, listed.length]).toEqual([true, n]);
+    const row = text.split("\n")[moneyUnitsLine(text)]!;
+    expect(row.match(COUNT_LINES)?.[0]).toBe('"count":1,"lines":[26]');
   });
 });

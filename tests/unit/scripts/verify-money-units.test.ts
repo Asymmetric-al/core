@@ -11,9 +11,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { AddressInfo } from "node:net";
-
 import { afterAll, describe, expect, it } from "vitest";
+
+import type { AddressInfo } from "node:net";
 
 const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const SCRIPT = path.join(ROOT, "scripts/verify-money-units.ts");
