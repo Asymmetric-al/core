@@ -7,7 +7,7 @@ evidence and open checks: [commissioning record](archon-vm100-commissioning.md).
 The paths and commands below are operating guidance, not a fresh readback of
 the installed release or services.
 
-## Current state - 13 November 2026, 00:35 UTC
+## Current state - 13 November 2026, 00:40 UTC
 
 Intake is **paused** (`final checkpoint`), nothing is running, and nothing new
 is admitted. Release `2cfd7082f6ec0443` is installed, built from commit
@@ -22,20 +22,20 @@ is admitted. Release `2cfd7082f6ec0443` is installed, built from commit
 | #2215 | Ready (PR #2653), then merged by the owner                           |
 | #2228 | Ready, PR #2657, open                                                |
 | #2239 | Ready, PR #2659, open                                                |
-| #2207 | Ready, PR #2660, open                                                |
+| #2207 | Ready (PR #2660), then merged by the owner                           |
 | #2205 | Blocked `acceptance-blocked`: needs a scope decision (see the issue) |
 | #2208 | Not admitted: its prerequisite #2068 has no merged closing request   |
 
-The factory still lists the three owner-merged issues as ready: it does not
+The factory still lists the four owner-merged issues as ready: it does not
 watch a pull request after reporting it ready. They are finished; leave them
-alone. The three open pull requests wait for the owner and fall behind
+alone. The two open pull requests wait for the owner and fall behind
 `develop` as it moves: GitHub's "Update branch" brings one up to date, or
 `issue <n> reopen` has the factory merge `develop` in and check again. The
 factory merges only an issue whose approved end state is `MERGED`.
 
-To admit more work, approve a scope and run `factory resume-intake`. #2207
-and #2228 are bound to earlier releases (#2239 is on the installed one): to
-have the factory work on one of them again, stop it, `adopt-policy`, then
+To admit more work, approve a scope and run `factory resume-intake`. #2228
+is bound to an earlier release (#2239 is on the installed one): to have the
+factory work on it again, stop it, `adopt-policy`, then
 `reopen` (Updates, step 7), which reviews the candidate again. Before changing
 a release, read the open checks in the
 [commissioning record](archon-vm100-commissioning.md#still-open). The safety

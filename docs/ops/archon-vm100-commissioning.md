@@ -1133,9 +1133,9 @@ that the installed release matched its commit. The result of the fifth
 round, on the final state below, is in the description of pull request #2651:
 both reviewers that ran answered "verified within the demonstrated scope".
 
-After the final snapshot the owner merged PR #2652 (00:06 on 13 November) and
-PR #2653 (00:20) by hand and updated the branch of PR #2660. The factory did
-not take part: it does not watch a ready pull request.
+After the final snapshot the owner merged PR #2652 (00:06 on 13 November),
+PR #2653 (00:20) and PR #2660 (00:33) by hand. The factory did not take
+part: it does not watch a ready pull request.
 
 ### Operator interventions in this pass
 
