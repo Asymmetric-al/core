@@ -768,7 +768,18 @@ export function planControl(
   } else if (action === NATIVE_RECOVERY) {
     if (!Object.hasOwn(value, "nativeFaults"))
       throw new Refusal("no-native-hold");
-    if (document.lease?.live)
+    // The engine keeps a lease live until its holder is completed or
+    // cancelled, so the held run's own lease is still live while that run is
+    // failed or paused. It stands in nobody's way once the engine reports that
+    // exact run ended, which is required below. Any other live lease refuses.
+    if (
+      document.lease?.live &&
+      !(
+        value.status === "active" &&
+        value.run &&
+        document.lease.runId === value.run.id
+      )
+    )
       throw new Refusal("lease-live", document.lease.runId);
     if (effects?.ok !== true)
       throw new Refusal(

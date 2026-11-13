@@ -1953,6 +1953,136 @@ describe("recover-native", () => {
     ]);
   });
 
+  // The engine keeps a lease live until its holder is completed or cancelled
+  // (upstream isStateLeaseHolderLive), so a held run that is failed or paused
+  // still holds the work item's lease. Seen live on 13 November 2026: two
+  // rounds hit the weekly usage limit, `record` wrote the hold and the engine
+  // then paused each run until the reported reset.
+  const ownLease = {
+    leases: {
+      "core/issues/12": {
+        runId: RUN_ID,
+        nodePath: "claim",
+        takenAt: EARLIER,
+        live: true,
+      },
+    },
+  };
+
+  it.each([
+    ["failed", "a run that failed"],
+    ["paused", "a run the engine paused until the provider's reset"],
+  ])("ends %s run that still holds the issue's lease (%s)", async (status) => {
+    const fixture = harness({ "core/issues/12": held() }, ownLease);
+    const calls = engine(fixture, [status, "cancelled"]);
+
+    const result = await recover(fixture);
+
+    const value = fixture.state.value("core/issues/12") as Dict;
+    expect({
+      ok: result.ok,
+      code: result.code,
+      calls,
+      containers: fixture.removeContainers.mock.calls.map(
+        ([input]) => input.labels,
+      ),
+      held: Object.hasOwn(value, "nativeFaults"),
+      status: value.status,
+      run: value.run,
+    }).toEqual({
+      ok: true,
+      code: undefined,
+      calls: [`status ${status}`, "POST abandon", "status cancelled"],
+      containers: [{ "core.archon.run": RUN_ID }],
+      held: false,
+      status: "waiting",
+      run: null,
+    });
+  });
+
+  // What the engine does at a reported reset: it wakes the paused run itself
+  // and the run finishes its round. `record` keeps the hold, so this command
+  // (run by the next pass) is what settles the item, and it ends nothing.
+  it("settles a held run the engine resumed and completed by itself, without ending anything", async () => {
+    const fixture = harness(
+      { "core/issues/12": held() },
+      {
+        leases: {
+          "core/issues/12": {
+            runId: RUN_ID,
+            nodePath: "claim",
+            takenAt: EARLIER,
+            live: false,
+          },
+        },
+      },
+    );
+    const calls = engine(fixture, ["completed"]);
+
+    const result = await recover(fixture);
+
+    const value = fixture.state.value("core/issues/12") as Dict;
+    expect({
+      ok: result.ok,
+      calls,
+      containers: fixture.removeContainers.mock.calls.length,
+      held: Object.hasOwn(value, "nativeFaults"),
+      status: value.status,
+      route: value.route,
+    }).toEqual({
+      ok: true,
+      calls: ["status completed"],
+      containers: 0,
+      held: false,
+      status: "waiting",
+      route: "repair",
+    });
+  });
+
+  it("never ends a run that still executes and holds the lease", async () => {
+    const fixture = harness({ "core/issues/12": held() }, ownLease);
+    const calls = engine(fixture, ["running"]);
+
+    const result = await recover(fixture);
+
+    expect({
+      code: result.code,
+      calls,
+      held: Object.hasOwn(
+        fixture.state.value("core/issues/12") as Dict,
+        "nativeFaults",
+      ),
+    }).toEqual({
+      code: "run-not-terminal",
+      calls: ["status running"],
+      held: true,
+    });
+  });
+
+  it("refuses, and ends nothing, while another run holds the issue's lease", async () => {
+    const fixture = harness(
+      { "core/issues/12": held() },
+      {
+        leases: {
+          "core/issues/12": {
+            runId: "9b2d5b1e-0000-4000-8000-000000000001",
+            nodePath: "claim",
+            takenAt: EARLIER,
+            live: true,
+          },
+        },
+      },
+    );
+    const calls = engine(fixture, ["failed", "cancelled"]);
+
+    const result = await recover(fixture);
+
+    expect({ code: result.code, calls }).toEqual({
+      code: "lease-live",
+      calls: [],
+    });
+  });
+
   it("refuses an issue that has no native hold", async () => {
     const fixture = harness({ "core/issues/12": workItem() });
     engine(fixture, ["cancelled"]);

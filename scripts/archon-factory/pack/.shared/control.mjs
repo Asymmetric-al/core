@@ -170,6 +170,8 @@ async function removeRunContainers(removeContainers, config, runId) {
 }
 
 const ENDED_RUNS = new Set(["completed", "cancelled"]);
+// Not executing, yet still the owner in the engine's eyes.
+const RESUMABLE_RUNS = new Set(["failed", "paused"]);
 
 // What a held run may have left on GitHub, read from GitHub and not from the
 // run's own evidence. The issue branch's remote head must be a commit the work
@@ -388,13 +390,16 @@ export async function runControl(
         if (transition) return plan({ profileDigest: identity.profileDigest });
         if (!nativeRecovery) return planned;
         if (!heldRun) return plan(undefined, null);
-        // A failed run can be resumed, so the engine still counts it as the
-        // issue's owner. End it the way the orphan pass does: its containers
-        // first, then the engine's own abandon. A run that still executes is
-        // never touched here (cancel-run is the control for that).
+        // A failed run can be resumed, and a run the engine paused for a
+        // provider wait (a usage limit with a reported reset) resumes by
+        // itself, so the engine still counts either as the issue's owner and
+        // keeps its lease live. Neither executes. End it the way the orphan
+        // pass does: its containers first, then the engine's own abandon. A
+        // run that still executes is never touched here (cancel-run is the
+        // control for that).
         if (!ended || ended.id !== heldRun) {
           let status = await engineRun(fetchImpl, config, heldRun);
-          if (status?.status === "failed") {
+          if (RESUMABLE_RUNS.has(status?.status)) {
             const containers = await removeRunContainers(
               removeContainers,
               config,

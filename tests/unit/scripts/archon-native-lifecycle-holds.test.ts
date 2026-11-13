@@ -422,15 +422,27 @@ describe("recover-native", () => {
     ).toBe(code);
   });
 
-  it("refuses when the engine cannot report the run, reports another run, or the lease is live", () => {
-    const live = { ...held(), lease: { runId: RUN, live: true } };
+  it("refuses when the engine cannot report the run, reports another run, or another run holds the lease", () => {
+    const other = { ...held(), lease: { runId: "other", live: true } };
     expect([
       refusal(() => recover(held(), { runStatus: null })),
       refusal(() =>
         recover(held(), { runStatus: { id: "other", status: "cancelled" } }),
       ),
-      refusal(() => recover(live)),
+      refusal(() => recover(other)),
     ]).toEqual(["run-not-terminal", "run-not-terminal", "lease-live"]);
+  });
+
+  // The engine keeps a lease live until its holder is completed or cancelled,
+  // so the lease view read before the held run was ended still says live. The
+  // engine's later terminal status for that exact run is the fresher fact.
+  it("accepts the held run's own lease once the engine reports that run ended, and only then", () => {
+    const own = { ...held(), lease: { runId: RUN, live: true } };
+    expect([
+      refusal(() => recover(own)),
+      refusal(() => recover(own, { runStatus: { id: RUN, status: "paused" } })),
+      refusal(() => recover(own, { runStatus: { id: RUN, status: "failed" } })),
+    ]).toEqual(["accepted", "run-not-terminal", "run-not-terminal"]);
   });
 
   it("refuses without a clean readback of the run's remote effects", () => {

@@ -100,6 +100,17 @@ commit block it (`no-progress`). Every other native hold (sign-in, budget,
 configuration, unclear effects) waits for an operator to deal with the cause
 and run the same command.
 
+A usage limit is the common case, and the engine handles its side by itself.
+The AI node fails, `record` writes the hold, and the engine then pauses the run
+until the reset the provider reported (`archon workflow status` shows "tries
+again at ..."). At the reset the engine wakes that same run and it finishes its
+round under its own lease. `record` keeps the hold, so the next selector pass
+settles the item with `recover-native`, which ends nothing in that case; a
+candidate the round committed is kept and goes through review once more. If the
+engine did not wake the run, the pass ends the paused run and starts the round
+again. To stop waiting before the reset, run `recover-native` yourself: it ends
+the paused run first.
+
 **Blocked issues.** When an issue blocks, the next selector pass posts one
 comment on the GitHub issue with the reason and the next step, so the owner is
 notified where the work is. A blocker is announced until it is a week old.
@@ -370,10 +381,13 @@ issue stays stopped until an operator reopens it.
   branch on GitHub is absent or at a commit the work item recorded, and no
   merge the factory requested is pending (`effects-unreconciled`); the held
   run's check containers are confirmed gone (`containers-unconfirmed`); the
-  engine ends the failed run (`run-not-ended`) and then reports it cancelled or
-  completed (`run-not-terminal`; a run that still executes is never ended by
-  this control). The issue then waits on the route its recorded progress calls
-  for and the next pass starts that round.
+  engine ends the held run when it is failed or paused (`run-not-ended`) and
+  then reports it cancelled or completed (`run-not-terminal`; a run that still
+  executes is never ended by this control). The held run's own lease does not
+  refuse it: the engine keeps that lease live until the run is cancelled or
+  completed. A live lease of any other run does (`lease-live`). The issue then
+  waits on the route its recorded progress calls for and the next pass starts
+  that round.
 - `allow-protected` writes `core/scope.allowProtected[<n>]`: `all` stores `true`,
   `none` removes the grant, and a comma list must name exact protected globs
   from the Scope paragraph above (anything else refuses the request). Only
