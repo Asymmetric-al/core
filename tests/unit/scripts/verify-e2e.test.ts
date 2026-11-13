@@ -146,7 +146,165 @@ describe("summarizeRun", () => {
       ["playwright-runner", "second"],
       [CASE, "boom"],
       [PR, "No tests executed"],
-      [PR, "Incomplete run: stats.unexpected=2 but 1 test(s) listed"],
+      [
+        PR,
+        "Incomplete run: stats.unexpected=2 but 1 unexpected test(s) listed",
+      ],
+    ]);
+  });
+
+  // #2239: a self-contradicting report must never produce ok:true.
+  const withStats = (text: string, stats: Record<string, unknown>) => {
+    const parsed = JSON.parse(text);
+    return JSON.stringify({ ...parsed, stats: { ...parsed.stats, ...stats } });
+  };
+  const mutate = (text: string, fn: (r: any) => void) => {
+    const parsed = JSON.parse(text);
+    fn(parsed);
+    return JSON.stringify(parsed);
+  };
+  const reportMessages = (exitCode: number, text: string) => {
+    const { summary, exit } = run(exitCode, text);
+    expect([summary.ok, exit], JSON.stringify(summary)).toEqual([false, 1]);
+    return summary.failed.filter((f) => f.test === PR).map((f) => f.message);
+  };
+
+  it.each([
+    [
+      "suites: [] with stats.expected=1",
+      0,
+      withStats(report([]), { expected: 1 }),
+      "expected",
+    ],
+    [
+      "stats.expected above listed",
+      0,
+      withStats(PASS, { expected: 2 }),
+      "expected",
+    ],
+    ["stats.flaky above listed", 0, withStats(PASS, { flaky: 1 }), "flaky"],
+    [
+      "stats.skipped above listed",
+      0,
+      withStats(PASS, { skipped: 1 }),
+      "skipped",
+    ],
+    [
+      "stats.flaky below listed",
+      0,
+      withStats(FLAKY, { flaky: 0, expected: 1 }),
+      "flaky",
+    ],
+    [
+      "stats.unexpected below listed",
+      1,
+      withStats(FAILED, { unexpected: 0, expected: 1 }),
+      "unexpected",
+    ],
+  ] as const)(
+    "#2239 item 1: %s → Incomplete run",
+    (_l, exitCode, text, counter) => {
+      // Each row must fail on its named counter, not only on stats.expected.
+      const messages = reportMessages(exitCode, text);
+      expect(
+        messages.some((m) => m.startsWith(`Incomplete run: stats.${counter}=`)),
+        messages.join("\n"),
+      ).toBe(true);
+    },
+  );
+
+  it.each(["expected", "unexpected", "flaky", "skipped"])(
+    "#2239 item 2: negative stats.%s is rejected",
+    (key) => {
+      const text = withStats(report([PASSED, PASSED]), { [key]: -1 });
+      expect(reportMessages(0, text)).toEqual([
+        `Invalid Playwright JSON report: stats.${key}`,
+      ]);
+    },
+  );
+
+  it("#2239 item 2: a non-integer stats counter is rejected", () => {
+    expect(reportMessages(0, withStats(PASS, { expected: 1.5 }))).toEqual([
+      "Invalid Playwright JSON report: stats.expected",
+    ]);
+  });
+
+  it.each(["interrupted", "passed", "failed", "timedOut", undefined])(
+    "#2239 item 2: aggregate test status %s is rejected",
+    (status) => {
+      const text = mutate(PASS, (r) => {
+        r.suites[0].specs[0].tests[0].status = status;
+      });
+      expect(reportMessages(0, text)).toEqual([
+        "Invalid Playwright JSON report: suites[0].specs[0].tests[0].status",
+      ]);
+    },
+  );
+
+  it.each([
+    ["specs: {}", (r: any) => (r.suites[0].specs = {}), "suites[0].specs"],
+    [
+      "nested suites: {}",
+      (r: any) => (r.suites[0].suites = {}),
+      "suites[0].suites",
+    ],
+    [
+      "nested specs: {}",
+      (r: any) => (r.suites[0].suites = [{ title: "d", specs: {} }]),
+      "suites[0].suites[0].specs",
+    ],
+    [
+      "tests: {}",
+      (r: any) => (r.suites[0].specs[0].tests = {}),
+      "suites[0].specs[0].tests",
+    ],
+    [
+      "results: {}",
+      (r: any) => (r.suites[0].specs[0].tests[0].results = {}),
+      "suites[0].specs[0].tests[0].results",
+    ],
+  ] as const)("#2239 item 3: %s fails cleanly", (_l, fn, field) => {
+    expect(reportMessages(0, mutate(PASS, fn))).toEqual([
+      `Invalid Playwright JSON report: ${field}`,
+    ]);
+  });
+
+  // PR #2659 review: a non-object result entry must not crash collectFailures.
+  it.each([null, "x", 1, []])(
+    "#2239 item 3: unexpected test result entry %j fails cleanly",
+    (entry) => {
+      const text = mutate(FAILED, (r) => {
+        r.suites[0].specs[0].tests[0].results = [entry];
+      });
+      expect(reportMessages(1, text)).toEqual([
+        "Invalid Playwright JSON report: suites[0].specs[0].tests[0].results[0]",
+      ]);
+    },
+  );
+
+  it("#2239 item 3: a non-object attachment entry does not crash", () => {
+    const text = mutate(FAILED, (r) => {
+      r.suites[0].specs[0].tests[0].results[1].attachments = [null];
+    });
+    const { summary, exit } = run(1, text);
+    expect([summary.ok, exit]).toEqual([false, 1]);
+    const hits = summary.failed.filter((f) => f.test === CASE);
+    expect(hits.map((f) => [f.message, f.tracePath])).toEqual([
+      ["last", undefined],
+    ]);
+  });
+
+  it("#2239 item 3: a non-string attachment name or path does not crash", () => {
+    const text = mutate(FAILED, (r) => {
+      r.suites[0].specs[0].tests[0].results[1].attachments = [
+        { name: 1, path: 2 },
+      ];
+    });
+    const { summary, exit } = run(1, text);
+    expect([summary.ok, exit]).toEqual([false, 1]);
+    const hits = summary.failed.filter((f) => f.test === CASE);
+    expect(hits.map((f) => [f.message, f.tracePath])).toEqual([
+      ["last", undefined],
     ]);
   });
 
