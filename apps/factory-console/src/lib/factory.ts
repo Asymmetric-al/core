@@ -849,8 +849,12 @@ export type Snapshot = {
   /** Issues whose recorded rounds ran as each engine run on this page. */
   runIssues: Record<string, number[]>;
   settings: {
-    capacity: number;
-    owners: string[];
+    /** The selector's admission limit (core-factory.json limits.admittedIssues); null when it cannot be read. */
+    capacity: number | null;
+    /** Owner aliases core-factory.json lists for a scope; null when they cannot be read. */
+    owners: string[] | null;
+    /** Why owners or the admission limit are unavailable; null when both were read. */
+    configReason: string | null;
     repository: string | null;
     /** Set only for TEST-ONLY synthetic fixtures; the UI labels every view. */
     fixture: string | null;

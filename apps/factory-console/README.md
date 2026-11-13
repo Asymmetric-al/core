@@ -17,7 +17,7 @@ browser-held record or second backend.
 
 Spawning always uses an argv array (never a shell), an explicit minimal
 environment (`ARCHON_HOME`, `ARCHON_USER_ID`, `CLAUDE_CONFIG_DIR`, `HOME`,
-`PATH`, optional `CORE_FACTORY_CONFIG`; no Console variable is inherited), a
+`PATH`, `CORE_FACTORY_CONFIG`; no Console variable is inherited), a
 bounded timeout and bounded output. `CLAUDE_CONFIG_DIR` is the owner's Claude
 profile (`FACTORY_CLAUDE_PROFILE`): `control.mjs` verifies the retained
 identity for retry, reopen, release and adopt-policy only in that environment. Failures report _unavailable_ with a fixed message; stderr
@@ -43,7 +43,7 @@ update time, which only let readiness notice a newer reply.
 | 5   | **Agents & runs**: running nodes with role, run id, model when reported, node start from server event timestamps, waiting (paused / cooldown) vs running; paged run list; run detail with node table, lifecycle events and artifact inventory                                                                                                                                                                                                                                     | engine runs + run detail                                                                                            | cancel a run                                                                           |
 | 6   | **Controls** (on the surfaces above)                                                                                                                                                                                                                                                                                                                                                                                                                                              | —                                                                                                                   | `control.mjs factory                                                                   | issue | scope | prioritize | cancel-run | analyze` |
 | 7   | **Samson chat**: conversations from `core/chat/*`; send through `control.mjs ask`; pending until the `core-answer` run records the turn; proposed operations with an explicit **Apply**                                                                                                                                                                                                                                                                                           | `core/chat/*`, `core/chat/<id>`, unfinished `core-answer` runs                                                      | `ask`; Apply → the matching control                                                    |
-| 8   | **Health & capacity**: engine health/slots, admitted vs capacity (selector rule, default 2), attention items, analysis reports with findings and coverage limits, **Analyze now**, usage shown as unavailable                                                                                                                                                                                                                                                                     | `GET /api/health`, `core/attention`, `core/analysis`, `core/analysis/reports/<run>`                                 | `control.mjs analyze`                                                                  |
+| 8   | **Health & capacity**: engine health/slots, admitted vs capacity (the selector's `limits.admittedIssues` from `core-factory.json`; unavailable when it cannot be read), attention items, analysis reports with findings and coverage limits, **Analyze now**, usage shown as unavailable                                                                                                                                                                                          | `GET /api/health`, `core/attention`, `core/analysis`, `core/analysis/reports/<run>`                                 | `control.mjs analyze`                                                                  |
 
 Further surfaces (all read-only, built on the server and paged there):
 
@@ -140,6 +140,16 @@ its VM 100 value. `FACTORY_*` defaults are built in and match VM 100, so the
 VM needs only the first block (`CONSOLE_*`, `ARCHON_URL`, `ARCHON_STORE_ID`,
 `ARCHON_CODEBASE_ID`) plus `FACTORY_NODE` if the control script should run with
 a node other than the Console's own.
+
+Scope owners and the admission limit have no Console setting. The server reads
+`owners` and `limits.admittedIssues` from `FACTORY_CONFIG_FILE` (default
+`/srv/core-factory/control/core-factory.json`), the same file it passes to
+`control.mjs` as `CORE_FACTORY_CONFIG`, on every read. Only the owner aliases
+and the number reach the browser. When the file or a field cannot be read, the
+Console shows that value as unavailable (and refuses scope writes while the owners are unavailable); it never
+substitutes a built-in owner or limit. `control.mjs` stays the writer and
+refuses an owner the file does not list. A Samson scope proposal keeps the
+current scope's owner, or the file's only owner when there is no scope yet.
 
 ## Commands
 

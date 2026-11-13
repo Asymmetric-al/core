@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, describe, expect, it } from "vitest";
 
 import { RUN } from "./fixtures/factory-fixture";
 import { harness } from "./fixtures/harness";
@@ -55,8 +59,10 @@ describe("factory snapshot", () => {
     });
     expect(snapshot.factory.data.selection.at(-1)?.issue).toBe(102);
     expect(snapshot.settings).toEqual({
+      // Both read from the fixture core-factory.json (FACTORY_CONFIG_FILE).
       capacity: 2,
       owners: ["conrad"],
+      configReason: null,
       repository: "Asymmetric-al/core",
       // No synthetic-fixture label unless the test-only flag is set.
       fixture: null,
@@ -613,6 +619,7 @@ describe("edge cases", () => {
         "Factory adapter configuration is invalid (FACTORY_ARCHON_CLI)",
       reader: null,
       control: null,
+      policy: null,
       engine: archon,
       ids,
     });
@@ -620,6 +627,13 @@ describe("edge cases", () => {
     expect(snapshot.factory).toMatchObject({
       state: "unavailable",
       reason: "Factory adapter configuration is invalid (FACTORY_ARCHON_CLI)",
+    });
+    // No built-in owner or admission limit stands in for the unread file.
+    expect(snapshot.settings).toMatchObject({
+      capacity: null,
+      owners: null,
+      configReason:
+        "Factory adapter configuration is invalid (FACTORY_ARCHON_CLI)",
     });
     expect(snapshot.engine.state).toBe("available");
     await expect(
@@ -796,5 +810,165 @@ describe("proposal history window", () => {
         "2026-11-10T00:00:00Z",
       ).recorded,
     ).toBe(false);
+  });
+});
+
+describe("owners and admission limit come from core-factory.json", () => {
+  const folders: string[] = [];
+  afterEach(() => {
+    for (const folder of folders.splice(0))
+      rmSync(folder, { recursive: true, force: true });
+  });
+  function configured(content: unknown) {
+    const folder = mkdtempSync(path.join(os.tmpdir(), "factory-console-"));
+    folders.push(folder);
+    const file = path.join(folder, "core-factory.json");
+    if (content !== undefined) writeFileSync(file, JSON.stringify(content));
+    return { file, ...harness({ env: { FACTORY_CONFIG_FILE: file } }) };
+  }
+  const owner = (login: string) => ({
+    profile: `/srv/profiles/private-${login}`,
+    githubLogin: `${login}-private-login`,
+  });
+  const turn = "cr-fixturescp-0000000000000000-0000000000000000";
+  function proposeScope(
+    state: ReturnType<typeof harness>["state"],
+    endState: "unchanged" | "MERGED",
+  ) {
+    state.set("core/chat/op-fixture-scope", {
+      v: 1,
+      messages: [
+        {
+          role: "samson",
+          request: turn,
+          at: new Date().toISOString(),
+          text: "Add #110",
+          operation: {
+            kind: "assign-scope",
+            issue: 0,
+            issues: [101, 110],
+            endState,
+            reason: "Next phase",
+            status: "proposed",
+          },
+        },
+      ],
+    });
+  }
+
+  it("shows the file's owners and limits.admittedIssues, read fresh and never its private fields", async () => {
+    const { file, factory } = configured({
+      owners: { ops: owner("ops"), conrad: owner("conrad") },
+      limits: { admittedIssues: 3 },
+    });
+    const snapshot = await factory.snapshot();
+    expect(snapshot.settings).toMatchObject({
+      owners: ["ops", "conrad"],
+      capacity: 3,
+      configReason: null,
+    });
+    const text = JSON.stringify(snapshot);
+    expect(text).not.toContain("private-ops");
+    expect(text).not.toContain("private-login");
+    expect(text).not.toContain(file);
+    writeFileSync(
+      file,
+      JSON.stringify({
+        owners: { conrad: owner("conrad") },
+        limits: { admittedIssues: 1 },
+      }),
+    );
+    expect((await factory.snapshot()).settings).toMatchObject({
+      owners: ["conrad"],
+      capacity: 1,
+    });
+  });
+
+  it("assigns scope to an owner the file lists and refuses one it does not", async () => {
+    const { factory, control, ids } = configured({
+      owners: { ops: owner("ops") },
+      limits: { admittedIssues: 2 },
+    });
+    await factory.execute(
+      { kind: "scope", issues: [12], endState: "PR_READY", owner: "ops" },
+      ids.mint(),
+    );
+    expect(control.calls.at(-1)?.slice(5, 7)).toEqual(["--owner", "ops"]);
+    const calls = control.calls.length;
+    await expect(
+      factory.execute(
+        { kind: "scope", issues: [12], endState: "PR_READY", owner: "conrad" },
+        ids.mint(),
+      ),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(control.calls).toHaveLength(calls);
+  });
+
+  it("reports owners and the limit as unavailable when the file cannot be read, and refuses scope", async () => {
+    const { factory, control, ids } = configured(undefined);
+    const snapshot = await factory.snapshot();
+    expect(snapshot.settings.owners).toBeNull();
+    expect(snapshot.settings.capacity).toBeNull();
+    expect(snapshot.settings.configReason).toMatch(/could not be read/);
+    expect(snapshot.factory.state).toBe("available");
+    await expect(
+      factory.execute(
+        { kind: "scope", issues: [12], endState: "PR_READY", owner: "conrad" },
+        ids.mint(),
+      ),
+    ).rejects.toMatchObject({ status: 503 });
+    expect(control.calls).toEqual([]);
+    // Controls that name no owner still run.
+    const held = await factory.execute(
+      { kind: "factory", action: "hold-merge" },
+      ids.mint(),
+    );
+    expect(held.outcome).not.toBe("refused");
+  });
+
+  it("chat apply keeps the current scope owner and never substitutes another for an unlisted one", async () => {
+    const { factory, control, state } = configured({
+      owners: { conrad: owner("conrad") },
+      limits: { admittedIssues: 2 },
+    });
+    proposeScope(state, "unchanged");
+    state.set("core/scope", {
+      ...(state.value("core/scope") ?? {}),
+      owner: "mallory",
+    });
+    await expect(
+      factory.apply("op-fixture-scope", turn, {}, false),
+    ).rejects.toThrow(/mallory|owner/);
+    expect(control.calls).toEqual([]);
+  });
+
+  it("chat apply with no current scope uses the only listed owner and refuses to pick among several", async () => {
+    const single = configured({
+      owners: { ops: owner("ops") },
+      limits: { admittedIssues: 2 },
+    });
+    proposeScope(single.state, "MERGED");
+    single.state.docs.delete("core/scope");
+    await single.factory.apply("op-fixture-scope", turn, {}, false);
+    expect(single.control.calls.at(-1)?.slice(5, 7)).toEqual([
+      "--owner",
+      "ops",
+    ]);
+    const several = configured({
+      owners: { ops: owner("ops"), conrad: owner("conrad") },
+      limits: { admittedIssues: 2 },
+    });
+    proposeScope(several.state, "MERGED");
+    several.state.docs.delete("core/scope");
+    await expect(
+      several.factory.apply("op-fixture-scope", turn, {}, false),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(several.control.calls).toEqual([]);
+    const missing = configured(undefined);
+    proposeScope(missing.state, "unchanged");
+    await expect(
+      missing.factory.apply("op-fixture-scope", turn, {}, false),
+    ).rejects.toMatchObject({ status: 503 });
+    expect(missing.control.calls).toEqual([]);
   });
 });

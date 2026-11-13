@@ -1,5 +1,7 @@
 // TEST-ONLY wiring: the production Factory with fixtures injected at the
 // StateReader, ControlRunner and Archon transport seams.
+import path from "node:path";
+
 import { createEngine } from "./engine-fixture";
 import {
   FixtureControl,
@@ -9,8 +11,17 @@ import {
 import { Archon } from "../../src/server/archon";
 import { requestIds } from "../../src/server/control";
 import { Factory } from "../../src/server/factory";
-import { factoryConfiguration } from "../../src/server/factory-config";
+import {
+  factoryConfiguration,
+  factoryPolicyReader,
+} from "../../src/server/factory-config";
 import { configuration } from "../../src/server/security";
+
+/** TEST-ONLY core-factory.json: owner `conrad`, limits.admittedIssues 2. */
+export const FIXTURE_CONFIG_FILE = path.join(
+  import.meta.dirname,
+  "core-factory.json",
+);
 
 export const ENVIRONMENT = {
   CONSOLE_ORIGIN: "http://127.0.0.1:3092",
@@ -41,14 +52,20 @@ export function harness({
     engine.handle(init?.method ?? "GET", String(input)),
   );
   const ids = requestIds(auth.password);
+  const settings = factoryConfiguration({
+    FACTORY_CONFIG_FILE: FIXTURE_CONFIG_FILE,
+    ...env,
+  });
+  const policy = factoryPolicyReader(settings);
   const factory = new Factory({
     auth,
-    settings: factoryConfiguration(env),
+    settings,
     settingsError: null,
     reader: state,
     control,
+    policy,
     engine: archon,
     ids,
   });
-  return { auth, engine, state, control, archon, ids, factory };
+  return { auth, engine, state, control, archon, ids, policy, factory };
 }

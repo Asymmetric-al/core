@@ -23,15 +23,19 @@ This is the always-on Codex entrypoint for `Asymmetric-al/core`. Keep it a compa
 
 ## Repository map
 
-Core is a Bun + Turborepo monorepo with three Next.js App Router applications:
+Core is Asymmetric.al: one connected platform for Christian missions sending organizations. Organizations are tenants; staff, missionaries and donors are users within them. Accepted intent lives in `openspec/specs/platform-product-intent/spec.md` and `openspec/specs/platform-surfaces/spec.md`.
 
-- `apps/admin` (`@asym/admin`) — Mission Control
-- `apps/donor` (`@asym/donor`) — donor experience
-- `apps/missionary` (`@asym/missionary-app`) — missionary experience
+It is a Bun + Turborepo monorepo with three Next.js App Router applications carrying four product surfaces:
+
+- `apps/admin` (`@asym/admin`) — Mission Control: staff operations and the home of operational depth
+- `apps/donor` (`@asym/donor`) — the donor portal (authenticated self-service, `apps/donor/app/(dashboard)`) and the public ministry website (discovery, stories and public giving, `apps/donor/app/(public)`)
+- `apps/missionary` (`@asym/missionary-app`) — the missionary workspace for support raising and communication
 
 A fourth app, `apps/factory-console`, is the private operator Console of the Core software factory (`scripts/archon-factory`). It runs only on the factory VM and is not a product app.
 
-Apps own surface-specific routes and UI. Shared behavior belongs in workspace packages such as `packages/api`, `packages/auth`, `packages/database`, `packages/env`, and `packages/ui`. Use `package.json`, `turbo.json`, and `docs/ai/monorepo-architecture.md` for the current workspace and command details; do not duplicate volatile package versions here.
+Apps own surface-specific routes and UI. Shared behavior belongs in workspace packages such as `packages/api`, `packages/auth`, `packages/database`, `packages/env`, and `packages/ui`. Each fact has one owner; surfaces show role-appropriate projections of it, so trace a shared record's consumers across apps before changing it.
+
+`docs/guides/architecture/overview.md` maps current routes and data flow. Use `package.json`, `turbo.json`, and `docs/ai/monorepo-architecture.md` for the current workspace and command details; do not duplicate volatile package versions here.
 
 ## Authority and evidence
 
