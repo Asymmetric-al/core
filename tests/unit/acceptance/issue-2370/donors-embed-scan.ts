@@ -4,10 +4,17 @@
  * it back to the whole repository with a file-level allow-list.
  *
  * Scope: every file under the root, tracked or untracked, minus files ignored
- * by .gitignore. Inside the root's own Git work tree this is
- * `git grep --untracked`; without Git metadata (e.g. a plain copy) it is
- * `git grep --no-index --exclude-standard`, which has the same scope. Any grep
- * failure throws, so the check never passes by not running.
+ * by .gitignore. Without Git metadata (e.g. a plain copy) that is
+ * `git grep --no-index --exclude-standard`, which descends into every
+ * non-ignored directory, nested Git work trees included. Inside the root's own
+ * Git work tree it is that same scan plus `git grep --untracked`, which adds
+ * tracked files (even ones a .gitignore pattern matches); `--untracked` alone
+ * would skip untracked nested work trees. Any grep failure or unparseable
+ * output throws, so the check never passes by not running.
+ *
+ * Output is read machine-style: `-z -n --no-color --no-column -a`, so user
+ * color/column config can't change the record shape, and binary hits use the
+ * same `file NUL line NUL text LF` records as text hits.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
@@ -16,6 +23,9 @@ import { existsSync, realpathSync } from "node:fs";
 
 /** The embed hint, built from parts so this file is not a hit itself. */
 export const DONORS_EMBED = ["donors", "donor_id"].join("!");
+
+/** The shape of the intentional reads: a select line opening `donor:<hint>(`. */
+export const DONORS_EMBED_READ = `donor:${DONORS_EMBED}(`;
 
 /** Files allowed to contain the hint: repo-relative path -> one-line reason. */
 export const DONORS_EMBED_ALLOW_LIST: Readonly<Record<string, string>> = {
@@ -49,27 +59,56 @@ export function scanMode(root: string): ScanMode {
     : "no-index";
 }
 
-/** Fixed-string grep of `root` (optionally limited to `paths`). */
-export function grepRepo(
+/**
+ * Parses `git grep -z -n` output: each record is the file name up to NUL, the
+ * line number up to NUL, then the line text up to LF. File names may contain
+ * LF (never NUL), so records are not split on LF first.
+ */
+export function parseGrepRecords(out: string): Hit[] {
+  const hits: Hit[] = [];
+  let at = 0;
+  while (at < out.length) {
+    const fileEnd = out.indexOf("\0", at);
+    const lineEnd = fileEnd < 0 ? -1 : out.indexOf("\0", fileEnd + 1);
+    const textEnd = lineEnd < 0 ? -1 : out.indexOf("\n", lineEnd + 1);
+    const file = out.slice(at, fileEnd);
+    const line = out.slice(fileEnd + 1, lineEnd);
+    if (textEnd < 0 || file === "" || !/^[1-9]\d*$/.test(line)) {
+      throw new Error(
+        `unparseable git grep output at offset ${at}: ${JSON.stringify(out.slice(at, at + 200))}`,
+      );
+    }
+    hits.push({
+      file,
+      line: Number(line),
+      text: out.slice(lineEnd + 1, textEnd),
+    });
+    at = textEnd + 1;
+  }
+  return hits;
+}
+
+function runGrep(
   root: string,
+  scope: string[],
   needle: string,
-  opts: { mode?: ScanMode; paths?: string[] } = {},
+  paths: string[],
 ): Hit[] {
-  const mode = opts.mode ?? scanMode(root);
-  const scope =
-    mode === "git" ? ["--untracked"] : ["--no-index", "--exclude-standard"];
   const r = spawnSync(
     "git",
     [
       "grep",
       "-n",
       "-z",
+      "-a",
+      "--no-color",
+      "--no-column",
       ...scope,
       "-F",
       "-e",
       needle,
       "--",
-      ...(opts.paths ?? []),
+      ...paths,
     ],
     { cwd: root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 },
   );
@@ -78,17 +117,30 @@ export function grepRepo(
   if (r.status !== 0) {
     throw new Error(`git grep failed (status ${r.status}): ${r.stderr}`);
   }
-  return r.stdout
-    .split("\n")
-    .filter((l) => l !== "")
-    .map((l) => {
-      const [file = "", line = "", ...text] = l.split("\0");
-      const binary = /^Binary file (.+) matches$/.exec(l);
-      if (binary && text.length === 0) {
-        return { file: binary[1]!, line: 0, text: "" };
-      }
-      return { file, line: Number(line), text: text.join("\0") };
-    });
+  return parseGrepRecords(r.stdout);
+}
+
+/** Fixed-string grep of `root` (optionally limited to `paths`), sorted by file then line. */
+export function grepRepo(
+  root: string,
+  needle: string,
+  opts: { mode?: ScanMode; paths?: string[] } = {},
+): Hit[] {
+  const mode = opts.mode ?? scanMode(root);
+  const paths = opts.paths ?? [];
+  const found = runGrep(
+    root,
+    ["--no-index", "--exclude-standard"],
+    needle,
+    paths,
+  );
+  if (mode === "git")
+    found.push(...runGrep(root, ["--untracked"], needle, paths));
+  const byKey = new Map<string, Hit>();
+  for (const h of found) byKey.set(`${h.file}\0${h.line}`, h);
+  return [...byKey.values()].sort((a, b) =>
+    a.file === b.file ? a.line - b.line : a.file < b.file ? -1 : 1,
+  );
 }
 
 /** The #2370 check: repo-wide hits, those outside the allow-list, and stale allow-list sites. */
@@ -103,7 +155,11 @@ export function checkDonorsEmbed(
       (h) => !Object.hasOwn(DONORS_EMBED_ALLOW_LIST, h.file),
     ),
     missing: DONORS_EMBED_REQUIRED_SITES.filter(
-      (f) => !hits.some((h) => h.file === f),
+      (f) =>
+        !hits.some(
+          (h) =>
+            h.file === f && h.text.trimStart().startsWith(DONORS_EMBED_READ),
+        ),
     ),
   };
 }

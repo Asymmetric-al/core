@@ -13,7 +13,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 
 import {
   DONORS_EMBED,
@@ -35,12 +35,31 @@ const NARROWED = [
   "packages/api/src/donations/select.ts",
 ];
 const EMBED = `const q = db.from("x").select("id, donor:${DONORS_EMBED}(id, name)");\n`;
+/** Shaped like the real follower-requests reads: the embed opens its own select line. */
+const READ = [
+  'const { data } = await db.from("follower_requests").select(',
+  "  `",
+  "  id,",
+  `  donor:${DONORS_EMBED}(`,
+  "    id,",
+  "    name",
+  "  )",
+  "`,",
+  ");",
+  "",
+].join("\n");
 /** A tree shaped like base: only the two follower-requests reads embed it. */
 const BASE: Record<string, string> = {
-  [FR_INDEX]: EMBED,
-  [FR_REQUEST]: EMBED,
+  [FR_INDEX]: READ,
+  [FR_REQUEST]: READ,
   "README.md": "fixture\n",
 };
+/** Runs `git` in `cwd`; throws on failure. */
+function git(cwd: string, ...args: string[]) {
+  const r = spawnSync("git", args, { cwd, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(`git ${args[0]}: ${r.stderr}`);
+  return r.stdout;
+}
 
 const roots: string[] = [];
 afterAll(() => {
@@ -63,13 +82,8 @@ function tree(
   roots.push(root);
   write(root, files);
   if (mode === "git") {
-    for (const args of [
-      ["init", "-q"],
-      ["add", "-A"],
-    ]) {
-      const r = spawnSync("git", args, { cwd: root, encoding: "utf8" });
-      if (r.status !== 0) throw new Error(`git ${args[0]}: ${r.stderr}`);
-    }
+    git(root, "init", "-q");
+    git(root, "add", "-A");
   }
   write(root, untracked);
   return root;
@@ -155,6 +169,62 @@ describe.each(["git", "no-index"] as const)(
       });
     });
 
+    it("C6: a follower-requests read replaced by a comment naming the hint reports it as stale", () =>
+      expect(
+        verdict(
+          tree(mode, {
+            ...BASE,
+            [FR_REQUEST]: `// The read-back no longer selects donor:${DONORS_EMBED}(id, name).\n`,
+          }),
+        ),
+      ).toEqual({ violations: [], missing: [FR_REQUEST] }));
+
+    it("C8: user color and column config does not change the verdict", () => {
+      const root = tree(mode, { ...BASE, "docs/notes.md": `\n${EMBED}` });
+      const config = {
+        "color.ui": "always",
+        "color.grep": "always",
+        "grep.column": "true",
+      };
+      vi.stubEnv("GIT_CONFIG_COUNT", String(Object.keys(config).length));
+      Object.entries(config).forEach(([k, v], i) => {
+        vi.stubEnv(`GIT_CONFIG_KEY_${i}`, k);
+        vi.stubEnv(`GIT_CONFIG_VALUE_${i}`, v);
+      });
+      try {
+        const plain = spawnSync(
+          "git",
+          [
+            "grep",
+            "-n",
+            "-z",
+            ...(mode === "git" ? ["--untracked"] : ["--no-index"]),
+            "-F",
+            "-e",
+            DONORS_EMBED,
+          ],
+          { cwd: root, encoding: "utf8" },
+        ).stdout;
+        expect({
+          configColorsPlainGrep: plain.includes("\u001b["),
+          verdict: verdict(root),
+        }).toEqual({
+          configColorsPlainGrep: true,
+          verdict: { violations: ["docs/notes.md:2"], missing: [] },
+        });
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
+    it("C8: a file name containing a newline is one hit, not a forged allow-listed one", () => {
+      const path = `${T2269}\n${FR_INDEX}`;
+      expect(verdict(tree(mode, { ...BASE, [path]: EMBED }))).toEqual({
+        violations: [`${path}:1`],
+        missing: [],
+      });
+    });
+
     it("C7: an embed in a .gitignore'd file is not scanned", () =>
       expect(
         verdict(
@@ -173,6 +243,22 @@ describe("#2370 scan scope and failure handling", () => {
     expect(
       verdict(tree("git", BASE, { "packages/api/src/scratch.ts": EMBED })),
     ).toEqual({ violations: ["packages/api/src/scratch.ts:1"], missing: [] }));
+
+  it("C7: an embed in an untracked nested Git work tree fails the check (git mode)", () => {
+    const root = tree("git", BASE, { "vendor/nested/lib.ts": EMBED });
+    git(join(root, "vendor/nested"), "init", "-q");
+    expect({
+      untrackedOnlyGrep: spawnSync(
+        "git",
+        ["grep", "-l", "--untracked", "-F", "-e", DONORS_EMBED, "--", "vendor"],
+        { cwd: root, encoding: "utf8" },
+      ).stdout,
+      verdict: verdict(root),
+    }).toEqual({
+      untrackedOnlyGrep: "",
+      verdict: { violations: ["vendor/nested/lib.ts:1"], missing: [] },
+    });
+  });
 
   it("C8: a scan root that does not exist throws instead of passing", () =>
     expect(() =>
