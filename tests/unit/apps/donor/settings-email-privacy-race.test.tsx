@@ -123,3 +123,40 @@ it("serializes repeated email preference flips so the last click wins", async ()
   await waitFor(() => expect(news.getAttribute("aria-checked")).toBe("true"));
   expect(store.state.donor.doNotEmail).toBe(false);
 });
+
+// Each save answers with the whole donor snapshot, so two preference saves in
+// flight at once could land out of order and restore the other's old value.
+it("saves different preferences one at a time, in click order", async () => {
+  render(<DonorSettingsPage />);
+  fireEvent.click(screen.getByRole("tab", { name: "Email & privacy" }));
+  const news = await screen.findByRole("switch", {
+    name: "News and appeals",
+  });
+  const showName = screen.getByRole("switch", {
+    name: "Show my name to the missionaries I support",
+  });
+
+  fireEvent.click(news);
+  fireEvent.click(showName);
+
+  await waitFor(() => expect(store.state.calls).toHaveLength(1));
+  expect(store.state.calls[0]!.patch).toEqual({ doNotEmail: true });
+  // The name save waits for the email save instead of racing it.
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  expect(store.state.calls).toHaveLength(1);
+
+  await act(async () => {
+    store.state.calls[0]!.resolve();
+  });
+  await waitFor(() => expect(store.state.calls).toHaveLength(2));
+  expect(store.state.calls[1]!.patch).toMatchObject({
+    givingPreferences: { defaultAnonymousToRecipient: true },
+  });
+  await act(async () => {
+    store.state.calls[1]!.resolve();
+  });
+  expect(store.state.donor).toMatchObject({
+    doNotEmail: true,
+    givingPreferences: { defaultAnonymousToRecipient: true },
+  });
+});

@@ -192,6 +192,12 @@ export async function resolveDonorPortalContext(
   return { profile, donor };
 }
 
+/**
+ * Newest gifts the portal snapshot carries. One more is read so a capped list
+ * can be told apart from a donor whose whole history fits.
+ */
+const RECENT_GIFT_LIMIT = 250;
+
 export async function getDonorPortalSnapshot(input: {
   supabaseAdmin: AdminSupabaseClient;
   profileId: string;
@@ -211,7 +217,7 @@ export async function getDonorPortalSnapshot(input: {
         .eq("tenant_id", input.tenantId)
         .eq("donor_id", donor.id)
         .order("gift_date", { ascending: false })
-        .limit(250) as unknown as Promise<
+        .limit(RECENT_GIFT_LIMIT + 1) as unknown as Promise<
         SupabaseResult<DonorPortalDonationRow[]>
       >,
       input.supabaseAdmin
@@ -234,8 +240,13 @@ export async function getDonorPortalSnapshot(input: {
     ],
   );
 
+  const donationRows = assertArrayResult(
+    donationsResult,
+    "Unable to load donor giving history",
+  );
+  const donationsComplete = donationRows.length <= RECENT_GIFT_LIMIT;
   const donations = normalizeDonationRows(
-    assertArrayResult(donationsResult, "Unable to load donor giving history"),
+    donationRows.slice(0, RECENT_GIFT_LIMIT),
   );
   const pledges = normalizePledgeRows(
     assertArrayResult(pledgesResult, "Unable to load donor recurring gifts"),
@@ -248,13 +259,16 @@ export async function getDonorPortalSnapshot(input: {
     );
   }
 
-  return buildDonorPortalSnapshot({
-    profile,
-    donor,
-    donations,
-    pledges,
-    feedPreferences: preferencesResult.data,
-  });
+  return {
+    ...buildDonorPortalSnapshot({
+      profile,
+      donor,
+      donations,
+      pledges,
+      feedPreferences: preferencesResult.data,
+    }),
+    donationsComplete,
+  };
 }
 
 export async function getOwnedDonation(input: {

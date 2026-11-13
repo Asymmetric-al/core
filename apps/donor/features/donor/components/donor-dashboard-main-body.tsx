@@ -43,6 +43,7 @@ import {
   noNextGiftNote,
   overviewAlerts,
   statementPromptYear,
+  supportedMissionaries,
 } from "./overview/overview-model";
 import { UpdateRailThumbnail } from "./update-rail-thumbnail";
 
@@ -77,30 +78,6 @@ function initials(name: string) {
       .join("")
       .toUpperCase() || "?"
   );
-}
-
-/** The missionaries a donor gives to now (recurring) or gave to this year. */
-function supportedMissionaries(snapshot: DonorPortalSnapshot | undefined) {
-  const seen = new Map<
-    string,
-    { id: string; name: string; avatarUrl: string | null }
-  >();
-  for (const gift of snapshot?.recurringGifts ?? []) {
-    if (gift.missionary && gift.status.toLowerCase() === "active") {
-      seen.set(gift.missionary.id, gift.missionary);
-    }
-  }
-  const year = new Date().getFullYear();
-  for (const gift of snapshot?.donations ?? []) {
-    if (
-      gift.missionary &&
-      gift.status === "Paid" &&
-      new Date(gift.date).getFullYear() === year
-    ) {
-      seen.set(gift.missionary.id, gift.missionary);
-    }
-  }
-  return [...seen.values()];
 }
 
 function StatCard({
@@ -366,10 +343,18 @@ export function DonorDashboardMainBody() {
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           <StatCard
             title={`Given in ${new Date().getFullYear()}`}
-            value={formatCurrency(year.paid)}
+            value={
+              year.complete
+                ? formatCurrency(year.paid)
+                : `At least ${formatCurrency(year.paid)}`
+            }
             detail={
               <>
-                {year.paidCount === 1 ? "1 gift" : `${year.paidCount} gifts`}
+                {year.complete
+                  ? year.paidCount === 1
+                    ? "1 gift"
+                    : `${year.paidCount} gifts`
+                  : `Your latest ${year.paidCount} gifts; see Giving history`}
                 {year.processing > 0
                   ? ` · ${formatCurrency(year.processing)} still processing`
                   : ""}

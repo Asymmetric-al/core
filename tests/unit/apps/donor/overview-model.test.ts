@@ -261,6 +261,7 @@ describe("donor overview", () => {
       paid: 50,
       paidCount: 1,
       processing: 20,
+      complete: true,
     });
   });
 
@@ -280,5 +281,35 @@ describe("giveHref", () => {
   it("opens checkout for that missionary", () => {
     expect(giveHref("m-jordan")).toBe("/checkout?missionary_id=m-jordan");
     expect(giveHref("a b")).toBe("/checkout?missionary_id=a%20b");
+  });
+});
+
+describe("givenThisYear completeness", () => {
+  const thisYear = (id: string) =>
+    donation({ id, date: "2026-02-01T15:00:00.000Z" });
+
+  it("is complete when the portal loaded every gift", () => {
+    expect(
+      givenThisYear({ donations: [thisYear("a")] } as never, NOW).complete,
+    ).toBe(true);
+  });
+
+  it("is incomplete when the gift list was capped inside this year", () => {
+    const year = givenThisYear(
+      { donationsComplete: false, donations: [thisYear("a")] } as never,
+      NOW,
+    );
+    expect(year).toMatchObject({ paid: 50, paidCount: 1, complete: false });
+  });
+
+  it("is complete when a capped list already reaches last year", () => {
+    const year = givenThisYear(
+      {
+        donationsComplete: false,
+        donations: [thisYear("a"), donation({ id: "b", date: "2025-12-31" })],
+      } as never,
+      NOW,
+    );
+    expect(year).toMatchObject({ paid: 50, paidCount: 1, complete: true });
   });
 });

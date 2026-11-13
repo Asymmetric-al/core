@@ -150,15 +150,25 @@ export function noNextGiftNote(snapshot: DonorPortalSnapshot | undefined) {
   return "Set up a monthly gift on any missionary’s page.";
 }
 
-/** Paid this calendar year, plus what is still processing (not counted). */
+/**
+ * Paid this calendar year, plus what is still processing (not counted).
+ * `complete` is false when the portal loaded only the newest gifts and they
+ * don't reach back past 1 January, so earlier gifts this year may be missing.
+ */
 export function givenThisYear(
   snapshot: DonorPortalSnapshot | undefined,
   now = new Date(),
 ) {
   const year = now.getFullYear();
-  const inYear = (snapshot?.donations ?? []).filter(
+  const donations = snapshot?.donations ?? [];
+  const inYear = donations.filter(
     (gift) => makeDisplayDate(gift.date).getFullYear() === year,
   );
+  // The list is newest first by gift date: a gift from an earlier year
+  // proves every gift from this year is already in it.
+  const complete =
+    snapshot?.donationsComplete !== false ||
+    donations.some((gift) => makeDisplayDate(gift.date).getFullYear() < year);
   const paid = inYear.filter((gift) => gift.status === "Paid");
   return {
     paid: paid.reduce((sum, gift) => sum + gift.amount, 0),
@@ -166,6 +176,7 @@ export function givenThisYear(
     processing: inYear
       .filter((gift) => gift.status === "Processing")
       .reduce((sum, gift) => sum + gift.amount, 0),
+    complete,
   };
 }
 
@@ -192,4 +203,31 @@ export function lastSupported(
     .filter((gift) => gift.status === "Paid" && gift.missionary)
     .sort((a, b) => b.date.localeCompare(a.date))[0];
   return latest?.missionary ?? null;
+}
+
+/** The missionaries a donor gives to now (recurring) or gave to this year. */
+export function supportedMissionaries(
+  snapshot: DonorPortalSnapshot | undefined,
+  now = new Date(),
+) {
+  const seen = new Map<
+    string,
+    { id: string; name: string; avatarUrl: string | null }
+  >();
+  for (const gift of snapshot?.recurringGifts ?? []) {
+    if (gift.missionary && gift.status.toLowerCase() === "active") {
+      seen.set(gift.missionary.id, gift.missionary);
+    }
+  }
+  const year = now.getFullYear();
+  for (const gift of snapshot?.donations ?? []) {
+    if (
+      gift.missionary &&
+      gift.status === "Paid" &&
+      makeDisplayDate(gift.date).getFullYear() === year
+    ) {
+      seen.set(gift.missionary.id, gift.missionary);
+    }
+  }
+  return [...seen.values()];
 }

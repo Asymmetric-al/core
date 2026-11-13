@@ -94,6 +94,11 @@ export type DonorPortalSnapshot = {
     latestImpactLabel: string | null;
   };
   donations: DonorPortalDonation[];
+  /**
+   * False when only the newest gifts were loaded, so totals over `donations`
+   * can miss older gifts. Absent means the list is complete.
+   */
+  donationsComplete?: boolean;
   recurringGifts: DonorPortalRecurringGift[];
   paymentMethods: Array<{
     id: string;

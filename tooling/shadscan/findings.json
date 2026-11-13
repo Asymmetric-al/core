@@ -793,7 +793,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
-          "sha256": "40e53371ddd07e0b871b233910393f46db27b3a6ed41b456bb2a46307478cdd7"
+          "sha256": "4d98261d6d5ddbbce48be2c436323339cab7988970f3a21f9e7c581c051078e3"
         },
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",

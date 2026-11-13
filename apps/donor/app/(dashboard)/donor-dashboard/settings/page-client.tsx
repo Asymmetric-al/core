@@ -387,11 +387,10 @@ function EmailPrivacyTab() {
     news?: boolean;
     showName?: boolean;
   }>({});
-  // Each switch saves in click order: a later click waits for the earlier
-  // save, so a slow request can't land last with a value already reversed.
-  const queues = useRef<Partial<Record<"news" | "showName", Promise<void>>>>(
-    {},
-  );
+  // Every preference save waits for the one before it, across both switches.
+  // Each save answers with the whole donor snapshot, so two in flight at once
+  // could land out of order and restore a value the donor already changed.
+  const queue = useRef<Promise<void>>(Promise.resolve());
   const latest = useRef<Partial<Record<"news" | "showName", number>>>({});
 
   if (snapshot.isLoading) return <TabLoading label="Loading email settings" />;
@@ -416,7 +415,7 @@ function EmailPrivacyTab() {
     setStatus("idle");
     const turn = (latest.current[key] ?? 0) + 1;
     latest.current[key] = turn;
-    const run = (queues.current[key] ?? Promise.resolve()).then(async () => {
+    const run = queue.current.then(async () => {
       try {
         await update.mutateAsync(patch);
         if (latest.current[key] === turn) setStatus("saved");
@@ -428,7 +427,7 @@ function EmailPrivacyTab() {
         }
       }
     });
-    queues.current[key] = run;
+    queue.current = run;
     await run;
   };
 
