@@ -85,11 +85,14 @@ for (const r of records) {
   projection += `\n### Requirement: ${r.requirement} — ${r.title}\n\nThe system SHALL satisfy this complete contract and REQ29-P01–P18 common safeguards.\n\n${projectedContract}\n\nStory: ${r.story}. Source: ${r.source}. Decision basis: ${r.basis}\n`;
   for (const a of r.acceptance) {
     const gwt = a.text.match(/^Given (.*?), when (.*?), then (.*)$/i);
+    // A criterion that states no trigger takes its owning story, verbatim, as
+    // the scenario's context. The criterion stays the unchanged outcome, and
+    // the story never narrows the requirement's unconditional contract.
     projection +=
       `\n#### Scenario: ${a.id}\n\n` +
       (gwt
         ? `- **GIVEN** ${gwt[1]}\n- **WHEN** ${gwt[2]}\n- **THEN** ${gwt[3]}`
-        : `- **THEN** ${a.text}`) +
+        : `- **GIVEN** story ${r.story}: ${r.text}\n- **THEN** ${a.text}`) +
       "\n";
   }
 }
