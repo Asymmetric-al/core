@@ -52,21 +52,29 @@ const getErrorMessage = (result) => {
   return error.message || error.value || error.stack || "Unknown error";
 };
 
+const lowerString = (value) =>
+  typeof value === "string" ? value.toLowerCase() : "";
+const stringOrUndefined = (value) =>
+  typeof value === "string" ? value : undefined;
+
 const collectAttachments = (result) => {
   const attachments = Array.isArray(result?.attachments)
-    ? result.attachments
+    ? result.attachments.filter(isObject)
     : [];
   const trace = attachments.find(
     (attachment) =>
-      attachment.name?.toLowerCase().includes("trace") ||
-      attachment.path?.toLowerCase().endsWith(".zip"),
+      lowerString(attachment.name).includes("trace") ||
+      lowerString(attachment.path).endsWith(".zip"),
   );
   const video = attachments.find(
     (attachment) =>
-      attachment.name?.toLowerCase().includes("video") ||
-      attachment.path?.toLowerCase().endsWith(".webm"),
+      lowerString(attachment.name).includes("video") ||
+      lowerString(attachment.path).endsWith(".webm"),
   );
-  return { tracePath: trace?.path, videoPath: video?.path };
+  return {
+    tracePath: stringOrUndefined(trace?.path),
+    videoPath: stringOrUndefined(video?.path),
+  };
 };
 
 const collectFailures = (suite, parents = [], notRun = []) => {
@@ -112,14 +120,65 @@ const collectFailures = (suite, parents = [], notRun = []) => {
 
 const STATS = ["expected", "unexpected", "flaky", "skipped"];
 
+const isObject = (value) =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+// An optional nested list: absent is fine, anything else must be an array.
+const badList = (owner, key) =>
+  owner[key] !== undefined && !Array.isArray(owner[key]);
+
+/** First malformed nested path under `suites`, or null. */
+const findInvalidNested = (suites, at = "suites") => {
+  for (const [i, suite] of suites.entries()) {
+    const s = `${at}[${i}]`;
+    if (!isObject(suite)) return s;
+    if (badList(suite, "suites")) return `${s}.suites`;
+    if (badList(suite, "specs")) return `${s}.specs`;
+    for (const [j, spec] of (suite.specs || []).entries()) {
+      const p = `${s}.specs[${j}]`;
+      if (!isObject(spec)) return p;
+      if (badList(spec, "tests")) return `${p}.tests`;
+      for (const [k, test] of (spec.tests || []).entries()) {
+        const t = `${p}.tests[${k}]`;
+        if (!isObject(test)) return t;
+        if (badList(test, "results")) return `${t}.results`;
+        // Each attempt must be an object before collectFailures reads it.
+        const r = (test.results || []).findIndex((entry) => !isObject(entry));
+        if (r !== -1) return `${t}.results[${r}]`;
+        // Aggregate status: "interrupted" etc. are per-attempt statuses only.
+        if (!STATS.includes(test.status)) return `${t}.status`;
+      }
+    }
+    const nested = findInvalidNested(suite.suites || [], `${s}.suites`);
+    if (nested) return nested;
+  }
+  return null;
+};
+
 const findInvalidField = (report) => {
-  if (!report || typeof report !== "object" || Array.isArray(report))
-    return "(root)";
+  if (!isObject(report)) return "(root)";
   if (!Array.isArray(report.suites)) return "suites";
   if (!Array.isArray(report.errors)) return "errors";
   if (!report.stats || typeof report.stats !== "object") return "stats";
-  const key = STATS.find((k) => typeof report.stats[k] !== "number");
-  return key ? `stats.${key}` : null;
+  const key = STATS.find(
+    (k) => !Number.isInteger(report.stats[k]) || report.stats[k] < 0,
+  );
+  if (key) return `stats.${key}`;
+  return findInvalidNested(report.suites);
+};
+
+/** Listed test cases per aggregate status, walking nested suites. */
+const countListed = (
+  suites,
+  counts = { expected: 0, unexpected: 0, flaky: 0, skipped: 0 },
+) => {
+  for (const suite of suites) {
+    for (const spec of suite.specs || []) {
+      for (const test of spec.tests || []) counts[test.status] += 1;
+    }
+    countListed(suite.suites || [], counts);
+  }
+  return counts;
 };
 
 const collectFailuresFromReport = (report, reportPath) => {
@@ -147,7 +206,7 @@ const collectFailuresFromReport = (report, reportPath) => {
   const notRun = [];
   const tests = report.suites.flatMap((s) => collectFailures(s, [], notRun));
   failures.push(...tests);
-  const { expected, unexpected, flaky, skipped } = report.stats;
+  const { expected, flaky, skipped } = report.stats;
   if (expected + flaky === 0) {
     fail(
       `No tests executed (expected=${expected}, flaky=${flaky}, skipped=${skipped})`,
@@ -158,10 +217,14 @@ const collectFailuresFromReport = (report, reportPath) => {
       `Incomplete run: ${notRun.length} test(s) without results: ${notRun[0]}`,
     );
   }
-  if (unexpected > tests.length) {
-    fail(
-      `Incomplete run: stats.unexpected=${unexpected} but ${tests.length} test(s) listed`,
-    );
+  // Every stats counter must match the listed cases with that aggregate status.
+  const listed = countListed(report.suites);
+  for (const key of STATS) {
+    if (report.stats[key] !== listed[key]) {
+      fail(
+        `Incomplete run: stats.${key}=${report.stats[key]} but ${listed[key]} ${key} test(s) listed`,
+      );
+    }
   }
   return failures;
 };

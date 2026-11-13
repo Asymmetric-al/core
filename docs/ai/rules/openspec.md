@@ -48,6 +48,10 @@ This keeps durable project context, intended behavior, and active change scope v
    - Keep proposal, spec delta, design, and tasks aligned with the intended
      change.
    - Do not invent a custom schema or enable Stores.
+   - When a request names an issue or task IDs inside a larger change, apply
+     and verify that slice together with the dependencies it needs, and check
+     the consumers it affects. Leave the remaining tasks unchecked and report
+     them as not applied. A finished slice is never whole-change completion.
 
 3. **Use the locally pinned OpenSpec CLI.**
    - Always: `bun run openspec -- <command>`
