@@ -177,9 +177,13 @@ const disallowedRouteSegmentConfigKeys = [
   "preferredRegion",
   "maxDuration",
 ];
+// App Router roots: `app/` (product apps) or `src/app/` (apps/factory-console).
+const appRouterRoots = "apps/*/{app,src/app}";
 const appSegmentConfigFilePaths = [
   ...new Set(
-    globSync("apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}"),
+    globSync(
+      `${appRouterRoots}/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`,
+    ),
   ),
 ];
 const runtimeMapPath = "docs/guides/architecture/runtime-map.md";
@@ -200,17 +204,15 @@ function getRuntimeMapRouteEntries(runtimeMap) {
 }
 
 function getCurrentApiRouteEntries() {
-  return [
-    ...new Set(globSync("apps/*/app/api/**/route.ts")),
-    ...new Set(globSync("apps/*/app/api/**/route.tsx")),
-  ]
+  return [...new Set(globSync(`${appRouterRoots}/api/**/route.{ts,tsx}`))]
+    .map((filePath) => filePath.replace(/\\/g, "/"))
     .sort()
-    .map((filePath) => {
-      const normalized = filePath.replace(/\\/g, "/");
-      const segments = normalized.split("/");
-      const app = segments[1];
-      const route = `/${segments.slice(3, -1).join("/")}`;
-      return `${app}: ${route}`;
+    .map((normalized) => {
+      const [, app, route] =
+        /^apps\/([^/]+)\/(?:src\/)?app\/(api\/.*)\/route\.tsx?$/.exec(
+          normalized,
+        );
+      return `${app}: /${route}`;
     });
 }
 
@@ -243,7 +245,9 @@ try {
 }
 
 const disallowedPrivateCaptureRoutePaths = [
-  ...new Set(globSync("apps/*/app/**/__*__/**/page.{ts,tsx,js,jsx,mts,mjs}")),
+  ...new Set(
+    globSync(`${appRouterRoots}/**/__*__/**/page.{ts,tsx,js,jsx,mts,mjs}`),
+  ),
 ];
 
 for (const filePath of disallowedPrivateCaptureRoutePaths) {

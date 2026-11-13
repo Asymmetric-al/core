@@ -85,6 +85,12 @@ describe("ci-build command planning", () => {
     expect(packageJson.scripts["build:missionary:strict"]).toBe(
       "node scripts/verify/ci-build.mjs --app missionary --strict",
     );
+    expect(packageJson.scripts["build:factory-console"]).toBe(
+      "node scripts/verify/ci-build.mjs --app factory-console",
+    );
+    expect(packageJson.scripts["build:factory-console:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --app factory-console --strict",
+    );
   });
 
   it("uses the first available Windows Turbo binary candidate", () => {
@@ -238,6 +244,48 @@ describe("ci-build command planning", () => {
 
     expect(getRequestedApps(["--app", "admin"], apps)).toEqual([apps[0]]);
     expect(getRequestedApps([], apps)).toEqual(apps);
+  });
+
+  it("builds the operator Console only on request, never in the product build", () => {
+    const productApps = getRequestedApps([]);
+    expect(productApps.map((app: { id: string }) => app.id)).toEqual([
+      "admin",
+      "donor",
+      "missionary",
+    ]);
+    const [console] = getRequestedApps(["--app", "factory-console"]);
+    expect(console).toEqual({
+      id: "factory-console",
+      filter: "@asym/factory-console",
+      cwd: "apps/factory-console",
+      nextDir: "apps/factory-console/.next",
+      defaultBuild: false,
+    });
+    expect(
+      getSharedPackageBuildSteps({
+        platform: "linux",
+        strict: true,
+        turboBin: "node_modules/.bin/turbo",
+        apps: [console],
+      })[0]!.args,
+    ).toEqual([
+      "run",
+      "build",
+      "--filter=@asym/factory-console^...",
+      "--concurrency=1",
+    ]);
+    expect(
+      getAppBuildStep(console, {
+        platform: "linux",
+        strict: true,
+        turboBin: "node_modules/.bin/turbo",
+      }).args,
+    ).toEqual([
+      "run",
+      "build",
+      "--filter=@asym/factory-console",
+      "--concurrency=1",
+    ]);
   });
 
   it("rejects unknown app ids", () => {

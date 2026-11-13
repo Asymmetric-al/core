@@ -21,7 +21,12 @@ vi.mock("@shadscan/cli", () => ({
 }));
 
 function roundedReportFixture() {
-  const applications = ["apps/admin", "apps/donor", "apps/missionary"];
+  const applications = [
+    "apps/admin",
+    "apps/donor",
+    "apps/factory-console",
+    "apps/missionary",
+  ];
   const categories = [
     "foundation",
     "interaction",
@@ -45,7 +50,7 @@ function roundedReportFixture() {
         weight,
         maxScore: weight,
         percentage: 100,
-        score: id === "foundation" ? (3002 / 3003) * 20 : weight,
+        score: id === "foundation" ? (4003 / 4004) * 20 : weight,
       };
     }),
     findings: applications.flatMap((packageDir) =>
@@ -65,7 +70,7 @@ function roundedReportFixture() {
       }),
     ),
     workspace: {
-      applicationCount: 3,
+      applicationCount: applications.length,
       truncated: 0,
       skipped: [],
       projects: applications.map((packageDir) => ({

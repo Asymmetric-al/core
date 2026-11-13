@@ -31,6 +31,8 @@ It is a Bun + Turborepo monorepo with three Next.js App Router applications carr
 - `apps/donor` (`@asym/donor`) — the donor portal (authenticated self-service, `apps/donor/app/(dashboard)`) and the public ministry website (discovery, stories and public giving, `apps/donor/app/(public)`)
 - `apps/missionary` (`@asym/missionary-app`) — the missionary workspace for support raising and communication
 
+A fourth app, `apps/factory-console`, is the private operator Console of the Core software factory (`scripts/archon-factory`). It runs only on the factory VM and is not a product app.
+
 Apps own surface-specific routes and UI. Shared behavior belongs in workspace packages such as `packages/api`, `packages/auth`, `packages/database`, `packages/env`, and `packages/ui`. Each fact has one owner; surfaces show role-appropriate projections of it, so trace a shared record's consumers across apps before changing it.
 
 `docs/guides/architecture/overview.md` maps current routes and data flow. Use `package.json`, `turbo.json`, and `docs/ai/monorepo-architecture.md` for the current workspace and command details; do not duplicate volatile package versions here.
@@ -59,6 +61,7 @@ Open the closest file for the path being changed:
 | Admin app                           | `apps/admin/AGENTS.md`           |
 | Donor app                           | `apps/donor/AGENTS.md`           |
 | Missionary app                      | `apps/missionary/AGENTS.md`      |
+| Factory operator Console            | `apps/factory-console/AGENTS.md` |
 | Server APIs and mutations           | `packages/api/AGENTS.md`         |
 | Auth and sessions                   | `packages/auth/AGENTS.md`        |
 | Database types and browser data     | `packages/database/AGENTS.md`    |
