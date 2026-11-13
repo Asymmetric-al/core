@@ -493,7 +493,21 @@ function nativeDecision(nativeFaults, item) {
     (nativeFaultRequiresHold(stored) ||
       stored?.runId !== item?.run?.id ||
       publicationFault(stored));
-  let fault = storedHold ? stored : nativeFaults;
+  // The engine wakes a run it paused for a usage limit, and that run can meet
+  // another fault before it ends: the limit again, with a later reset, or a
+  // sign-in that expired meanwhile. A newer report of the same run that still
+  // requires a hold replaces a stored hold the intake pass would clear by
+  // itself, so the pass waits for the right reset or leaves it to a person. A
+  // clean report never clears a hold, and a hold that waits for a person is
+  // never replaced.
+  const newer =
+    storedHold &&
+    stored?.action === "native-recovery" &&
+    typeof item?.run?.id === "string" &&
+    stored.runId === item.run.id &&
+    nativeFaults?.runId === item.run.id &&
+    nativeFaultRequiresHold(nativeFaults);
+  let fault = storedHold && !newer ? stored : nativeFaults;
   if (!storedHold && fault === undefined) return null;
   const sameRun =
     typeof item?.run?.id === "string" && fault?.runId === item.run.id;

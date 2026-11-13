@@ -922,9 +922,9 @@ export const REFUSAL_MESSAGES: Record<string, string> = {
   "not-active":
     "Only an active, pending or waiting issue can be reconciled; this one has already settled.",
   "lease-live":
-    "The round's lease is live, so its run still owns the issue. Reconcile only settles a run that ended without recording its round; hold or stop the issue, or cancel the run.",
+    "A live run still owns the issue's lease, so nothing was settled. Reconcile settles only a run that ended without recording its round, and a provider-fault hold cannot be cleared while another run owns the issue. Hold or stop the issue, or cancel the run.",
   "run-not-terminal":
-    "The engine reports the run as pending, running, paused or failed (a failed run can resume), so the issue was not settled. Cancel the run first if it should not continue.",
+    "The engine does not report the run as ended, so the issue was not settled. Reconcile needs a completed or cancelled run (a failed or paused run can still resume; cancel it first if it should not continue). Clearing a provider-fault hold ends a failed or paused run itself and is refused only while the run is still working.",
   "run-changed":
     "The engine reports a different run than the one on the work item. Refresh and check the issue before acting.",
   "run-unconfirmed":
@@ -935,11 +935,11 @@ export const REFUSAL_MESSAGES: Record<string, string> = {
     "The issue is held because a round failed on a provider fault, so the action was refused. Its identity, work, lease, reservations and evidence are kept. Retry, reopen, release and ordinary reconcile cannot clear this hold. Deal with the cause, then use Clear the provider-fault hold; a usage limit or an outage is cleared by the intake pass itself after any reset the provider reported.",
   "no-native-hold": "This issue has no provider-fault hold to clear.",
   "effects-unreconciled":
-    "What the held run did on GitHub could not be confirmed: the issue's branch is not at a commit the work item recorded, or a merge the factory requested is still pending. The hold stays and nothing was changed.",
+    "What is on GitHub for this issue could not be confirmed: a merge the factory requested is still pending, the branch could not be read, or it holds a commit the factory did not publish and there is no pull request to read. The hold stays.",
   "containers-unconfirmed":
-    "The held run's check containers are not confirmed gone, so the hold stays and nothing was changed. Repeat the action.",
+    "The held run's check containers are not confirmed gone, so the hold stays. Repeat the action.",
   "run-not-ended":
-    "The engine did not end the held run, so the hold stays and nothing was changed.",
+    "The engine did not end the held run, so the hold stays. Its leftover check containers were removed.",
   "policy-unavailable":
     "The installed policy could not be verified, so the action was refused. Preserve the retained assignment and identity binding; restore trusted policy evidence before acting.",
   "policy-transition-required":

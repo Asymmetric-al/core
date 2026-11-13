@@ -101,6 +101,67 @@ describe("native adapter settlement integration seam", () => {
     );
   });
 
+  // The engine wakes a run it paused for a usage limit. That run can meet
+  // another fault before it ends: the limit again, with a later reset, or a
+  // sign-in that expired meanwhile.
+  describe("a held run that met another fault after the engine woke it", () => {
+    const quota = (resetAt: string) => ({
+      ...faultReport("micaiah"),
+      action: "native-recovery",
+      reason: "quota-reset-reported",
+      faults: [
+        { nodeId: "micaiah", providerClass: "quota_exhausted", resetAt },
+      ],
+    });
+    const decide = (stored: unknown, fresh: unknown) =>
+      decideRound({
+        ledger: {},
+        item: { run: { id: RUN_ID, route: "review" }, nativeFaults: stored },
+        nodes: [{ node_id: "micaiah", state: "failed" }],
+        nativeFaults: fresh,
+      });
+
+    it("records the newer reset time, so the pass waits for it", () => {
+      const decision = decide(
+        quota("2026-11-16T15:00:00.000Z"),
+        quota("2026-11-23T15:00:00.000Z"),
+      );
+      expect(decision.nativeFaults.faults[0].resetAt).toBe(
+        "2026-11-23T15:00:00.000Z",
+      );
+    });
+
+    it("records a fault that needs a person, so the pass no longer clears the hold by itself", () => {
+      const decision = decide(quota("2026-11-16T15:00:00.000Z"), {
+        ...faultReport("micaiah"),
+        action: "owner-action",
+        reason: "provider-auth",
+      });
+      expect(decision).toMatchObject({
+        outcome: "owner-action",
+        nativeFaults: { action: "owner-action", reason: "provider-auth" },
+      });
+    });
+
+    it("never replaces a hold that waits for a person, and never takes another run's report", () => {
+      const person = {
+        ...faultReport("micaiah"),
+        action: "owner-action",
+        reason: "provider-auth",
+      };
+      expect(
+        decide(person, quota("2026-11-23T15:00:00.000Z")).nativeFaults,
+      ).toEqual(person);
+      const stored = quota("2026-11-16T15:00:00.000Z");
+      expect(
+        decide(stored, {
+          ...quota("2026-11-23T15:00:00.000Z"),
+          runId: "another-run",
+        }).nativeFaults,
+      ).toEqual(stored);
+    });
+  });
+
   it.each(["publish", "readiness"])(
     "holds a typed %s failure until its external effects are reconciled",
     (nodeId) => {

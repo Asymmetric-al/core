@@ -363,6 +363,35 @@ export async function fetchMirror({ git, paths, pause = sleep }) {
   }
 }
 
+// True when everything `head` adds to `candidate` is the target branch:
+// `head` contains `candidate`, and every other commit it brings is on
+// `origin/<target>` or is a merge that joins the two. That is what GitHub's
+// "Update branch" pushes onto a pull request.
+export async function addsOnlyTarget(
+  { git, repo },
+  { candidate, head, target },
+) {
+  if (!sha.test(candidate ?? "") || !sha.test(head ?? "") || head === candidate)
+    return false;
+  const contains = await git.git(
+    ["merge-base", "--is-ancestor", candidate, head],
+    { cwd: repo },
+  );
+  if (contains.code !== 0) return false;
+  const own = await git.ok(
+    [
+      "rev-list",
+      "--no-merges",
+      "--max-count=1",
+      head,
+      `^${candidate}`,
+      `^origin/${target}`,
+    ],
+    { cwd: repo },
+  );
+  return own.trim() === "";
+}
+
 export async function revParse({ git, gitDir, cwd }, ref) {
   const out = (
     await git.ok(["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], {

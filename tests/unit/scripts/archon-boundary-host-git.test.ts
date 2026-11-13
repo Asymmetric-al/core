@@ -23,6 +23,7 @@ import * as hostGit from "../../../scripts/archon-factory/pack/.shared/git.mjs";
 
 const {
   HARDENED,
+  addsOnlyTarget,
   createGit,
   ensureIssueRepo,
   fetchMirror,
@@ -791,4 +792,60 @@ describe("the shared mirror fetch", () => {
       heads: [moved],
     });
   }, 60_000);
+});
+
+// GitHub's "Update branch" merges the target branch into a pull request. On
+// 13 November 2026 that was pressed on two pull requests the factory was
+// working on. Such a head is adopted (and reviewed again); any other outside
+// head is not.
+describe("an update from the target branch pushed outside the factory", () => {
+  it("is recognised only when the pushed head adds nothing but the target branch", async () => {
+    const { paths, git, base } = factory();
+    const where = await ensureIssueRepo({ git, paths, issue: 7 });
+    const repo: string = where.repo;
+    await prepareBranch({
+      git,
+      repo,
+      branch: "factory/7-x",
+      head: null,
+      base,
+    });
+    writeFileSync(`${repo}/feature.txt`, "the factory's candidate\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "feat(#7): factory round 1");
+    const candidate = plain(repo, "rev-parse", "HEAD");
+    // What "Update branch" pushes: develop merged into the candidate.
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const updated = plain(repo, "rev-parse", "HEAD");
+    // Somebody's own commit on top of the candidate, and an update that
+    // carries such a commit along.
+    plain(repo, "checkout", "--quiet", "-b", "outside", candidate);
+    writeFileSync(`${repo}/outside.txt`, "not the factory's\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "an outside commit");
+    const foreign = plain(repo, "rev-parse", "HEAD");
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const foreignUpdated = plain(repo, "rev-parse", "HEAD");
+    const check = (head: string, from = candidate) =>
+      addsOnlyTarget(
+        { git, repo },
+        { candidate: from, head, target: "develop" },
+      );
+
+    expect({
+      updated: await check(updated),
+      foreign: await check(foreign),
+      foreignUpdated: await check(foreignUpdated),
+      same: await check(candidate),
+      withoutTheCandidate: await check(base),
+      onAnotherCandidate: await check(updated, foreign),
+    }).toEqual({
+      updated: true,
+      foreign: false,
+      foreignUpdated: false,
+      same: false,
+      withoutTheCandidate: false,
+      onAnotherCandidate: false,
+    });
+  });
 });

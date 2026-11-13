@@ -445,6 +445,41 @@ describe("recover-native", () => {
     ]).toEqual(["accepted", "run-not-terminal", "run-not-terminal"]);
   });
 
+  // Somebody pressed "Update branch" on a held issue's pull request (13
+  // November 2026). The hold must not outlive that for good.
+  it("sends a held issue whose branch holds a commit the factory did not publish to the feedback route", () => {
+    const outside = "b".repeat(40);
+    const plan = recover(
+      held({ pr: { number: 7, head: "a".repeat(40) } } as never),
+      { effects: { ok: false, unrecorded: outside, detail: "moved" } },
+    ) as { value: Record<string, any> };
+    expect({
+      held: Object.hasOwn(plan.value, "nativeFaults"),
+      status: plan.value.status,
+      route: plan.value.route,
+      next: plan.value.history.at(-1).next,
+      summary: plan.value.history.at(-1).summary,
+    }).toEqual({
+      held: false,
+      status: "waiting",
+      route: "feedback",
+      next: "feedback",
+      summary: expect.stringMatching(
+        /bbbbbbbbbbbb, which the factory did not publish.*pull request is read first/s,
+      ),
+    });
+  });
+
+  it("still refuses an unrecorded remote commit when there is no pull request to read", () => {
+    expect(
+      refusal(() =>
+        recover(held({ pr: null } as never), {
+          effects: { ok: false, unrecorded: "b".repeat(40), detail: "moved" },
+        }),
+      ),
+    ).toBe("effects-unreconciled");
+  });
+
   it("refuses without a clean readback of the run's remote effects", () => {
     expect([
       refusal(() => recover(held(), { effects: undefined })),

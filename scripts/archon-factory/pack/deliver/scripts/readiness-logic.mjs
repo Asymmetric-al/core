@@ -309,8 +309,16 @@ export function markResolved(
 //   review   the recorded head was never published: review it, then publish
 //   resolve  an operator pushed a resolution of this candidate's recorded
 //            base conflict (`descends`: the live head contains the candidate)
+//   update   somebody merged the target branch into the pull request on
+//            GitHub ("Update branch"): the live head contains the candidate
+//            and adds nothing but the target branch (`baseUpdate`)
 //   none     a head the factory did not publish; the decision blocks on it
-export function reconcileHead({ value, liveHead, descends = false }) {
+export function reconcileHead({
+  value,
+  liveHead,
+  descends = false,
+  baseUpdate = false,
+}) {
   const pending = value.pr?.pending ?? null;
   if (pending && liveHead === pending.head && value.head !== liveHead)
     return value.head === pending.from && pending.carried
@@ -324,7 +332,26 @@ export function reconcileHead({ value, liveHead, descends = false }) {
   const conflict = value.pr?.conflict ?? null;
   if (conflict && conflict.head === value.head && descends === true)
     return { action: "resolve", conflict };
+  if (descends === true && baseUpdate === true) return { action: "update" };
   return { action: "none" };
+}
+
+// An update from the target branch that somebody applied on GitHub becomes
+// the candidate, the same way an operator's conflict resolution does: nothing
+// about the merged result was reviewed, so it goes to the review-only route.
+export function adoptBaseUpdate({ value, liveHead, base, now, target }) {
+  const adoption = adoptResolution({ value, liveHead, base, now });
+  return {
+    fields: adoption.fields,
+    outcome: {
+      ...adoption.outcome,
+      reason: `Adopted ${liveHead.slice(0, 12)}: ${target} was merged into the branch outside the factory, on top of ${String(value.head).slice(0, 12)}; it is reviewed again before anything else`,
+      ledger: {
+        ...adoption.outcome.ledger,
+        fingerprint: `outside-base-update:${liveHead}`,
+      },
+    },
+  };
 }
 
 // The operator's resolution becomes the candidate. Nothing about it was

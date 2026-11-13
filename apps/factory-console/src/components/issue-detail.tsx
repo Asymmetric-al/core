@@ -562,7 +562,7 @@ function IssueActions({
             after you dealt with another cause, or to stop waiting: it checks
             the release, the account and the issue&apos;s branch on GitHub, ends
             the held run if the engine reports it paused or failed, and keeps
-            the committed work. It refuses, and changes nothing, while that run
+            the committed work. It refuses, and the hold stays, while that run
             is still working.
           </p>
           {item.nativeFaults ? (
@@ -582,7 +582,7 @@ function IssueActions({
             label={`Clear the provider-fault hold on issue #${issue}`}
             disabled={!faultHeld}
             disabledReason={`#${issue} has no provider-fault hold.`}
-            confirmBody={`The run that holds #${issue} is ended if the engine reports it paused or failed, and the issue then waits for its next round with its committed work kept. A round started before a usage limit resets fails on the limit again. Nothing is changed if the release, the account or the branch on GitHub cannot be confirmed.`}
+            confirmBody={`The run that holds #${issue} is ended if the engine reports it paused or failed. The issue then waits for its next round, or settles as stopped if it was stopped, with its committed work kept. A round started before a usage limit resets fails on the limit again, and a third provider fault in a row without a new commit blocks the issue. The hold stays if the release or the account cannot be confirmed.`}
           />
         </div>
         <div className="flex min-w-0 flex-col gap-2">

@@ -9,7 +9,7 @@ import path from "node:path";
 
 import { StateConflict } from "../../.shared/archon.mjs";
 import { createGitHub, githubToken } from "../../.shared/github.mjs";
-import { revParse } from "../../.shared/git.mjs";
+import { addsOnlyTarget, revParse } from "../../.shared/git.mjs";
 import { publishCandidate } from "../../.shared/publication.mjs";
 import {
   FACTORY_MARKER as MARKER,
@@ -31,6 +31,7 @@ import {
 import { checkFactoryStorage } from "../../.shared/storage-policy.mjs";
 import { planCheckpoint } from "../../.shared/workitem.mjs";
 import {
+  adoptBaseUpdate,
   adoptResolution,
   asRepair,
   baseIntegrationFailure,
@@ -155,20 +156,36 @@ if (!live.merged) {
     value.pr?.conflict?.head === value.head &&
     liveHead !== value.head &&
     SHA.test(liveHead);
+  // A head the factory neither recorded nor has pending: somebody pushed.
+  const foreign =
+    SHA.test(liveHead) &&
+    liveHead !== value.head &&
+    liveHead !== value.pr?.head &&
+    liveHead !== value.pr?.pending?.head;
   const descends =
-    conflicted &&
+    (conflicted || foreign) &&
     (
       await round.git.git(
         ["merge-base", "--is-ancestor", value.head, liveHead],
         { cwd: round.where.repo },
       )
     ).code === 0;
-  const reconcile = reconcileHead({ value, liveHead, descends });
+  // GitHub's "Update branch": every commit the live head adds to the
+  // candidate is either on the target branch or a merge that joins the two.
+  const baseUpdate =
+    foreign &&
+    descends &&
+    !conflicted &&
+    (await addsOnlyTarget(
+      { git: round.git, repo: round.where.repo },
+      { candidate: value.head, head: liveHead, target },
+    ));
+  const reconcile = reconcileHead({ value, liveHead, descends, baseUpdate });
   round.ledger.write("readiness-reconcile", {
     ...reconcile,
     recorded: value.head,
     live: liveHead,
-    ...(conflicted ? { descends } : {}),
+    ...(conflicted || foreign ? { descends, baseUpdate } : {}),
   });
   if (reconcile.action === "record")
     await checkpoint({ pr: { ...value.pr, head: liveHead, pending: null } });
@@ -194,18 +211,22 @@ if (!live.merged) {
         fingerprint: `unpublished:${value.head}`,
       },
     );
-  else if (reconcile.action === "resolve") {
+  else if (reconcile.action === "resolve" || reconcile.action === "update") {
     const base = (
       await round.git.ok(["merge-base", liveHead, `origin/${target}`], {
         cwd: round.where.repo,
       })
     ).trim();
-    const adoption = adoptResolution({
-      value,
-      liveHead,
-      base,
-      now: round.now(),
-    });
+    const adoption =
+      reconcile.action === "resolve"
+        ? adoptResolution({ value, liveHead, base, now: round.now() })
+        : adoptBaseUpdate({
+            value,
+            liveHead,
+            base,
+            now: round.now(),
+            target,
+          });
     await checkpoint(adoption.fields);
     finish(adoption.outcome);
   }

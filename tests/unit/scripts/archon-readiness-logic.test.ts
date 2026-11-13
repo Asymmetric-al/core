@@ -6,6 +6,7 @@ import { StateConflict } from "../../../scripts/archon-factory/pack/.shared/arch
 import { FACTORY_MARKER } from "../../../scripts/archon-factory/pack/.shared/readiness.mjs";
 import {
   DISPOSITION_CHOICES,
+  adoptBaseUpdate,
   adoptResolution,
   asRepair,
   baseIntegrationFailure,
@@ -1065,6 +1066,69 @@ describe("operator conflict resolution (publication-merge#7)", () => {
         descends: true,
       }),
     ).toEqual({ action: "none" });
+  });
+
+  // GitHub's "Update branch" merges the target branch into the pull request.
+  // On 13 November 2026 that was pressed on two factory pull requests.
+  it("adopts an update from the target branch pushed on top of the candidate", () => {
+    expect(
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: true,
+        baseUpdate: true,
+      }),
+    ).toEqual({ action: "update" });
+  });
+
+  it("never adopts outside commits of their own, or an update that does not contain the candidate", () => {
+    expect(
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: true,
+        baseUpdate: false,
+      }),
+    ).toEqual({ action: "none" });
+    expect(
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: false,
+        baseUpdate: true,
+      }),
+    ).toEqual({ action: "none" });
+  });
+
+  it("records the update as the candidate and sends it to the review-only route", () => {
+    expect(
+      adoptBaseUpdate({
+        value: value({ pending: null }),
+        liveHead: MERGE_SHA,
+        base: BASE,
+        now: "t1",
+        target: "develop",
+      }),
+    ).toMatchObject({
+      fields: {
+        head: MERGE_SHA,
+        base: BASE,
+        reviews: null,
+        final: null,
+        pr: { number: 7, head: MERGE_SHA, pending: null, conflict: null },
+      },
+      outcome: {
+        verdict: "REPAIR",
+        reason: expect.stringMatching(
+          /develop.*outside the factory.*reviewed again/s,
+        ),
+        ledger: {
+          repair: { reviewOnly: true, source: "readiness" },
+          fingerprint: `outside-base-update:${MERGE_SHA}`,
+          adopted: { from: HEAD, head: MERGE_SHA, base: BASE },
+        },
+      },
+    });
   });
 
   it("records the resolution as the candidate and sends it to the review-only route", () => {

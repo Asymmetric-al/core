@@ -2144,6 +2144,13 @@ describe("nativeEffects", () => {
         "A merge the factory requested is unconfirmed; read the pull request and settle it first",
       ],
     ]);
+    // Only a head that was read and is not recorded is named: the control may
+    // then send the issue to the feedback route instead of refusing for good.
+    expect(results.map((result) => result.unrecorded)).toEqual([
+      OTHER,
+      undefined,
+      undefined,
+    ]);
   });
 });
 
