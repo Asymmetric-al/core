@@ -11,6 +11,7 @@ import {
   announceBlocked,
   observeMerges,
   pruneFinished,
+  pendingEngineWait,
   recoverNativeFaults,
   releaseStaleReservations,
   scopeDigest,
@@ -765,6 +766,87 @@ describe("recoverNativeFaults", () => {
       ],
       asked: [[14, "run-14"]],
     });
+  });
+
+  // A woken run can meet the limit again and be paused by the engine for a
+  // later reset. Whatever reset the work item still carries, the pass must not
+  // end a run the engine itself is going to wake.
+  it("never ends a paused run while the engine still has a wake-up pending for it", async () => {
+    const long = new Date(NOW_MS - 60 * 60_000).toISOString();
+    const recover = vi.fn(async () => ({ ok: true }));
+    const waits: Record<string, number | null> = {
+      "run-12": NOW_MS + 7 * 24 * 60 * 60_000,
+      "run-13": NOW_MS - 60_000,
+      "run-14": NOW_MS - 10 * 60_000,
+      "run-15": null,
+    };
+    const results = await recoverNativeFaults({
+      items: new Map(
+        [12, 13, 14, 15, 16].map((issue) => [
+          issue,
+          held(issue, { faults: [{ resetAt: long }] }),
+        ]),
+      ),
+      recover,
+      nowMs: NOW_MS,
+      engineWait: async (runId: string) => {
+        if (runId === "run-16") throw new Error("engine offline");
+        return waits[runId];
+      },
+    });
+    expect({
+      results,
+      asked: recover.mock.calls.map(([issue]) => issue),
+    }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        {
+          issue: 13,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        { issue: 14, action: "recover-native", ok: true },
+        { issue: 15, action: "recover-native", ok: true },
+        { issue: 16, action: "recover-native", ok: true },
+      ],
+      asked: [14, 15, 16],
+    });
+  });
+
+  it("reads the engine's pending wake-up from a paused run's own events", () => {
+    const started = (resume_at: string) => ({
+      event_type: "wait_started",
+      data: { kind: "quota", resume_at },
+    });
+    const completed = { event_type: "wait_completed", data: {} };
+    const at = "2026-11-23T15:00:00.000Z";
+    const detail = (status: string, events: unknown[]) => ({
+      run: { status },
+      events,
+    });
+    expect([
+      pendingEngineWait(
+        detail("paused", [
+          started("2026-11-16T15:00:00.000Z"),
+          completed,
+          started(at),
+        ]),
+      ),
+      pendingEngineWait(detail("paused", [started(at), completed])),
+      pendingEngineWait(detail("running", [started(at)])),
+      pendingEngineWait(
+        detail("paused", [
+          { event_type: "wait_started", data: { kind: "approval" } },
+        ]),
+      ),
+      pendingEngineWait(null),
+    ]).toEqual([Date.parse(at), null, null, null, null]);
   });
 
   it("reports a refusal or a failure and carries on", async () => {

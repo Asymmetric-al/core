@@ -266,9 +266,34 @@ export async function observeMerges({
 // seconds of the reported reset. The command ends a run it finds paused, so
 // the pass stays away until the engine has had two minutes to wake it: after
 // that a run still paused was not woken, and ending it is the fallback.
+//
+// A woken run can meet the limit again, and the engine then pauses it for a
+// later reset. The work item may still carry the earlier one. So the pass also
+// asks the engine (`engineWait`): a run it is still going to wake is left
+// alone, whatever the stored reset says.
 const ENGINE_WAKE_GRACE_MS = 2 * 60_000;
 
-export async function recoverNativeFaults({ items, recover, nowMs }) {
+// When the engine itself will wake a paused run: the `resume_at` of its last
+// wait that has not completed, in milliseconds, or null when the run is not
+// paused or has no such wait.
+export function pendingEngineWait(detail) {
+  if (detail?.run?.status !== "paused" || !Array.isArray(detail.events))
+    return null;
+  const waits = detail.events.filter((event) =>
+    ["wait_started", "wait_completed"].includes(event?.event_type),
+  );
+  const last = waits.at(-1);
+  if (last?.event_type !== "wait_started") return null;
+  const at = Date.parse(last.data?.resume_at ?? "");
+  return Number.isFinite(at) ? at : null;
+}
+
+export async function recoverNativeFaults({
+  items,
+  recover,
+  nowMs,
+  engineWait,
+}) {
   const results = [];
   for (const [issue, value] of items) {
     const fault = value?.nativeFaults;
@@ -283,6 +308,20 @@ export async function recoverNativeFaults({ items, recover, nowMs }) {
       .map((entry) => Date.parse(entry?.resetAt ?? ""))
       .filter(Number.isFinite);
     if (resets.some((at) => at + ENGINE_WAKE_GRACE_MS > nowMs)) {
+      results.push({
+        issue,
+        action: "recover-native",
+        ok: false,
+        code: "reset-pending",
+      });
+      continue;
+    }
+    let wake = null;
+    if (engineWait)
+      try {
+        wake = await engineWait(runId);
+      } catch {}
+    if (Number.isFinite(wake) && wake + ENGINE_WAKE_GRACE_MS > nowMs) {
       results.push({
         issue,
         action: "recover-native",

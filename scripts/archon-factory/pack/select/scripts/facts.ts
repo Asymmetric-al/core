@@ -23,6 +23,7 @@ import { removeNodeModules } from "../../.shared/round.mjs";
 import {
   announceBlocked,
   observeMerges,
+  pendingEngineWait,
   pruneFinished,
   recoverNativeFaults,
   releaseStaleReservations,
@@ -89,6 +90,14 @@ try {
         { archon, config },
       ),
     nowMs: now,
+    engineWait: async (runId: string) =>
+      pendingEngineWait(
+        await (
+          await fetch(
+            `http://127.0.0.1:${config.archon.port}/api/workflows/runs/${runId}`,
+          )
+        ).json(),
+      ),
   });
 } catch {}
 
