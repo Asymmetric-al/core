@@ -25,7 +25,7 @@ Use this doc when editing or running:
 ## Seed Script Added (2026-02-16)
 
 - `scripts/seed-demo.sh`
-  - `local`: runs `supabase db reset --local` (migrations + seed).
+  - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
   - `hosted`: requires `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, and `NEXT_PUBLIC_SUPABASE_URL`; applies migrations then executes `supabase/seed.sql`.
   - `verify`: runs table row-count and single-profile checks via SQL.
 
