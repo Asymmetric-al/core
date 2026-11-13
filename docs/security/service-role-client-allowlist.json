@@ -118,7 +118,7 @@
     {"file":"scripts/cms/lib/local-data.mjs","kind":"service_role_key","count":1,"lines":[79],"path_ref":"K ops script","reason":"Operator script reads the key from its environment; not part of an app runtime. Frozen by Q4; follow-up #2265.","follow_up":"#2265"},
     {"file":"scripts/document-cutover/assess-document-cutover.ts","kind":"service_role_key","count":2,"lines":[71,164],"path_ref":"K ops script","reason":"Operator script reads the key from its environment; one occurrence is its JSDoc. Frozen by Q4; follow-up #2265.","follow_up":"#2265"},
     {"file":"scripts/supabase-env-smoke.mjs","kind":"service_role_key","count":2,"lines":[21,63],"path_ref":"K ops script","reason":"Operator script reads the key from its environment; not part of an app runtime. Frozen by Q4; follow-up #2265.","follow_up":"#2265"},
-    {"file":"scripts/verify-money-units.ts","kind":"service_role_key","count":3,"lines":[201,211,217],"path_ref":"K ops script","reason":"Operator script reads the key from its environment; not part of an app runtime. Frozen by Q4; follow-up #2265.","follow_up":"#2265"},
+    {"file":"scripts/verify-money-units.ts","kind":"service_role_key","count":1,"lines":[26],"path_ref":"K ops script","reason":"Operator script reads the key from its environment; not part of an app runtime. Frozen by Q4; follow-up #2265.","follow_up":"#2265"},
     {"file":"scripts/verify/vercel-production-readiness.mjs","kind":"service_role_key","count":1,"lines":[35],"path_ref":"K ops script","reason":"Operator script reads the key from its environment; not part of an app runtime. Frozen by Q4; follow-up #2265.","follow_up":"#2265"}
   ]
 }

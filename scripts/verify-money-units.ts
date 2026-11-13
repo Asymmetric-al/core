@@ -22,6 +22,9 @@ type Analysis = {
 type TableFetchResult =
   { ok: true; rows: Record<string, unknown>[] } | { ok: false; error: string };
 
+/** The only key this script authenticates with; there is no fallback. */
+const AUTH_KEY_VAR = "SUPABASE_SERVICE_ROLE_KEY";
+
 const SAMPLE_SIZE = Number.parseInt(
   process.env.MONEY_UNIT_SAMPLE_SIZE ?? "200",
   10,
@@ -198,24 +201,20 @@ async function main() {
   loadEnvFile(".env");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const authKey = serviceRoleKey ?? anonKey;
+  const authKey = process.env[AUTH_KEY_VAR];
 
   if (!supabaseUrl) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL.");
   }
 
-  if (!authKey) {
+  if (!authKey?.trim()) {
     throw new Error(
-      "Missing auth key. Set SUPABASE_SERVICE_ROLE_KEY (preferred) or NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      `Missing ${AUTH_KEY_VAR}. It is required: this script reads tables that only the service role can access.`,
     );
   }
 
   console.log(`Checking money unit storage with sample size ${SAMPLE_SIZE}...`);
-  console.log(
-    `Auth key in use: ${serviceRoleKey ? "SUPABASE_SERVICE_ROLE_KEY" : "NEXT_PUBLIC_SUPABASE_ANON_KEY"}`,
-  );
+  console.log(`Auth key in use: ${AUTH_KEY_VAR}`);
   console.log("");
 
   const rowsByTable = new Map<string, TableFetchResult>();
