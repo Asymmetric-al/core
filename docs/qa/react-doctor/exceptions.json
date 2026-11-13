@@ -1278,14 +1278,15 @@
         "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/components/icons.tsx:48; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/components/icons.tsx:48. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/icons.tsx": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
-        "bun.lock": "e51bfa0292f162e4e58ddd4c86d9529404febddb9a9745f38fcb47b3e54ea949"
+        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
       }
     },
     {
@@ -3468,7 +3469,8 @@
         "SOURCE privacy-policy.tsx, cookie-policy.tsx and terms-of-service.tsx pass that map into OpenPolicy renderers.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/donor/components/openpolicy/policy-components.tsx:123; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/donor/components/openpolicy/policy-components.tsx:123. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
       ],
       "reconsiderWhen": "Reconsider if PolicyText stops being a registered React renderer, registry semantics change, or mixed non-component exports are introduced.",
       "sourceContextHash": "164905a7d106c424068a8044566a0f9256f8cf282781559fa668ad665cb228e8",
@@ -3478,7 +3480,7 @@
         "apps/donor/components/openpolicy/privacy-policy.tsx": "f20bf99cae680cd87f4bc97d7bcb9ee00c249075b5c59be4395fdde155a77d2c",
         "apps/donor/components/openpolicy/cookie-policy.tsx": "2ab88f03fce2ff3fa6552595d2aad7777b026697a463075fe7a9705adea131e1",
         "apps/donor/components/openpolicy/terms-of-service.tsx": "cba04917f74a338eae7005fd056ba4a112b41ddf0cb3e2ab8866e9a8c8a97ac2",
-        "bun.lock": "e51bfa0292f162e4e58ddd4c86d9529404febddb9a9745f38fcb47b3e54ea949"
+        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
       }
     },
     {
@@ -5343,7 +5345,8 @@
         "SOURCE packages/lib/motion-presets.ts:104-125 defines both the reduced and animated variants. SOURCE packages/lib/motion-provider.tsx supplies MotionConfig reducedMotion=user for JavaScript transform/layout behavior; global CSS is not claimed to govern JavaScript animation.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/public/about-sections.tsx:89; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/public/about-sections.tsx:89. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
       ],
       "reconsiderWhen": "Reconsider if this exact caller stops passing its reduced-motion or transition ownership policy, or the factory shape/policy changes.",
       "sourceContextHash": "bfe1b3c79d542e5fb0707f904ecbd6c296dd36e3e96d86fa0b10eaa328763e7d",
@@ -5352,7 +5355,7 @@
         "packages/ui/components/public/about-sections.tsx": "2eb3c43ba03cfe257f5811d83f6637bfc2900edeca1511260f9e117889d68411",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "e51bfa0292f162e4e58ddd4c86d9529404febddb9a9745f38fcb47b3e54ea949"
+        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
       }
     },
     {
@@ -8466,14 +8469,15 @@
         "INDEPENDENT COMPLETE-OWNER SOURCE REVIEW: the same owner contains the typed native/framework declarations or out-of-line disposal/sequencing cited above. Its complete-file evidence hash locks those supporting lines, not just the diagnostic span; this is source proof, not a claim of test execution.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx:227; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx:227. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale."
+        "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
       ],
       "reconsiderWhen": "Reconsider if the Unlayer SDK removal API changes, listener ownership changes, or callback/editor rebinding stops cleaning up.",
       "sourceContextHash": "f3e20d96e2f6b9b187747f96e7349654bde02fb6e1898b0ad9a61e1db660576b",
       "sourceFileHash": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
       "evidenceFileHashes": {
         "packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
-        "bun.lock": "e51bfa0292f162e4e58ddd4c86d9529404febddb9a9745f38fcb47b3e54ea949"
+        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
       }
     },
     {

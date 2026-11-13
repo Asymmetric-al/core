@@ -36,6 +36,7 @@ Nia keywords:
 - Tailwind CSS v4
 - Base UI
 - shadcn/ui (Base UI primitives, `base-maia` style)
+- UI SDK (`@ui-sdk/react`, complementary behaviors no existing `@asym/ui` component provides, wrapped in `packages/ui`)
 - Lucide icons
 - MAIA theme, Zinc palette
 - Fonts: Inter, Syne, Geist Mono
@@ -47,6 +48,7 @@ Nia keywords:
 - tailwind, className, cn, tw
 - Base UI, @base-ui/react, drawer, dialog, select, tooltip
 - shadcn, components/shadcn, base-maia
+- ui-sdk, @ui-sdk/react, data-slot
 - lucide-react
 - MAIA, Zinc, theme, next-themes
 - Inter, Syne, Geist Mono, fonts

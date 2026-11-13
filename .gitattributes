@@ -98,3 +98,6 @@ tests/fixtures/managed-skill-refresh/write-swift/SKILL.md.raw whitespace=-blank-
 # Phase 27's dated grill archive is exact-byte evidence, like Phase 28 below.
 # Preserve captured line endings instead of applying core.autocrlf on checkout.
 docs/features/donor-development/grill/** -text -eol whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+# Vendored UI SDK license: its sha256 is pinned in provenance, the source
+# audit and skills-lock tests, so keep it LF on every checkout.
+docs/ai/skills/ui-sdk/LICENSE text eol=lf

@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 187,
-    "runtimePerClient": 243,
-    "lockEntries": 202,
+    "canonical": 188,
+    "runtimePerClient": 244,
+    "lockEntries": 203,
     "outcomes": {
       "current": 89,
       "excluded": 1,
       "retained-snapshot": 12,
       "unresolved": 8,
-      "updated": 133
+      "updated": 134
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -1818,8 +1818,8 @@
       "sourcePath": "skills/components-build/SKILL.md",
       "rawSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
       "lockHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c",
-      "entrypointHash": "0ac96ea2ec9ac2aa8a64d695737c22451ae12092997611bfdb3c038555de36d7",
-      "treeHash": "192e3257eb7d7a9496d7f4bcb8e4f1ec1cffac6819f3fe2b954afffcd19c2c41",
+      "entrypointHash": "cd87c94efebbd163471f207ff395ea52568aac234572a134026ccfd24b227342",
+      "treeHash": "32ca3f3e438fb9997fb4d16a89ccf23e47c7f94bcf8e61ae19a2ea36c4a72f9c",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",
@@ -5068,8 +5068,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "dd08387a8c18ad3a15520db8f8579549e215b33502fdeea27d673c959ed68593",
-      "treeHash": "4a330643374908b254be09d58a7edcbeae448a5ffc7c8b7b32c8d77b44bb3789",
+      "entrypointHash": "a7bdf1d122159303da58ed8dd4566af8ed6203430ae93176963c770beb1a741c",
+      "treeHash": "9a3a425501623a5855e98a808392df39eabb851bb126674d2ef0dd3f8b9e4190",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -10713,6 +10713,43 @@
           "upstreamPath": "LICENSE",
           "target": "docs/ai/skills/ubiquitous-language/references/UPSTREAM-LICENSE",
           "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+        }
+      ]
+    },
+    {
+      "name": "ui-sdk",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel-labs/ui",
+      "importedRef": "8ff6bcf7100d48230a3fab8c72475d99316cc58a",
+      "examinedRef": "8ff6bcf7100d48230a3fab8c72475d99316cc58a",
+      "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
+      "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+      "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
+      "entrypointHash": "2cc606a16b8a17bed1865212efe3b30832534546ce36a05acda8ca4e9aac823a",
+      "treeHash": "02903fcd6289f13566a560c35f6b781531bd2b115e9eca913fcb79169ff24a8b",
+      "license": {
+        "identifier": "Apache-2.0",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned the @ui-sdk/core 0.1.0-beta.2 skill with a Base UI-first description, a Core overlay for installed-docs paths, packages/ui wrappers, Maia styling, opt-in agent bridges and Core tests, and marked scanner comments with Apache-2.0 change notices."
+      ],
+      "evidence": "docs/ai/skills/ui-sdk/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/vercel-labs/ui/tree/8ff6bcf7100d48230a3fab8c72475d99316cc58a/packages/core/skills/ui-sdk",
+          "rawSkillSha256": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+          "licenseSha256": "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007",
+          "claim": "Complete reviewed skill tree, identical to the copy bundled in the installed @ui-sdk/core package, with the root Apache-2.0 LICENSE and a marked Core overlay; imported code was not executed."
         }
       ]
     },

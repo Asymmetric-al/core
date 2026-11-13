@@ -1,5 +1,11 @@
 /* Updated: 2025-12-30 - Maia Theme (Soft & Rounded) */
 /* Responsive Design System - See docs/RESPONSIVE.md for standards */
+/* UI SDK injects its few runtime rules (such as hiding closed popups) into the
+ * `ui-sdk` layer after mount. Naming it first keeps it below every Tailwind
+ * layer, so Core's tokens and utilities win. Keep this the first statement and
+ * never import the SDK's optional default stylesheet; admin repeats the name in
+ * apps/admin/app/css-layer-order.css. */
+@layer ui-sdk;
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";

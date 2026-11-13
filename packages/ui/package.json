@@ -93,6 +93,8 @@
     "@tiptap/starter-kit": "3.32.0",
     "@tiptap/static-renderer": "3.32.0",
     "@tiptap/suggestion": "3.32.0",
+    "@ui-sdk/core": "0.1.0-beta.2",
+    "@ui-sdk/react": "0.1.0-beta.2",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
     "cn": "0.5.0",
@@ -124,8 +126,8 @@
   },
   "peerDependencies": {
     "boneyard-js": "1.10.0",
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tailwindcss": "^4"
   },
   "peerDependenciesMeta": {

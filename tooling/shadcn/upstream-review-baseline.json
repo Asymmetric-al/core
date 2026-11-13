@@ -2154,7 +2154,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "localSha256": "624f0b80841f9bbef2e97b47e4b987b008fbcb5a370f0c0062bafcac9c59b63a",
+      "localSha256": "697d76da026613468c8ea37e2a3da230b0779cbda3322ec3fbfca353365c1762",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": ["packages/ui/styles/globals.css", "docs/ai/rules/frontend.md"]
     }
@@ -2162,7 +2162,7 @@
   "proofSources": [
     {
       "path": "docs/ai/rules/frontend.md",
-      "sha256": "b720d1661985406e1cc6ede182607b6dbd3046a545e511d2b5f71a3f24da5476"
+      "sha256": "eca87fcee775ff175fdea86c1221695b034ac6641ae7c57563bb5613d6c58a50"
     },
     {
       "path": "packages/lib/hooks/use-mobile.ts",
@@ -2170,7 +2170,7 @@
     },
     {
       "path": "packages/ui/AGENTS.md",
-      "sha256": "3bdec192cb56f7750dc464cdf840f80aeb571b0172e7f9e5cce165688d1a6438"
+      "sha256": "2535f15336edff7319a2ef002aff5606cd84a13d8c1f78703c3f08c70cf5c0be"
     },
     {
       "path": "packages/ui/components/primitives/RichTextEditor.tsx",
@@ -2562,7 +2562,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "sha256": "624f0b80841f9bbef2e97b47e4b987b008fbcb5a370f0c0062bafcac9c59b63a"
+      "sha256": "697d76da026613468c8ea37e2a3da230b0779cbda3322ec3fbfca353365c1762"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
