@@ -1,4 +1,5 @@
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   PUBLIC_COLLECTION_CAPABILITIES,
   publicMediaReadAccess,
@@ -24,12 +25,9 @@ export const Media: CollectionConfig = {
       ? {
           components: {
             views: {
-              edit: {
-                default: {
-                  Component:
-                    "/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx#MediaNativeEditView",
-                },
-              },
+              edit: studioDocumentEditViews(
+                "/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx#MediaNativeEditView",
+              ),
               list: {
                 Component:
                   "/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx#MediaNativeListView",
@@ -67,6 +65,7 @@ export const Media: CollectionConfig = {
   fields: [
     {
       name: "tenant",
+      label: "Organization",
       type: "relationship",
       relationTo: "tenants",
       required: true,

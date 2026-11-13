@@ -10,6 +10,7 @@ interface SignatureChipProps {
   agent: SupportAssignee | null;
   enabled: boolean;
   onChange: (enabled: boolean) => void;
+  disabled?: boolean;
 }
 
 /**
@@ -21,6 +22,7 @@ export function SignatureChip({
   agent,
   enabled,
   onChange,
+  disabled,
 }: SignatureChipProps) {
   if (!agent) return null;
   const id = `support-signature-${agent.id}`;
@@ -32,12 +34,16 @@ export function SignatureChip({
         enabled && "border-success/30 bg-success/10 text-success",
       )}
     >
-      <Signature className="size-3.5 text-muted-foreground" />
+      <Signature
+        aria-hidden="true"
+        className="size-3.5 text-muted-foreground"
+      />
       <span>Append signature</span>
       <Switch
         id={id}
         checked={enabled}
         onCheckedChange={onChange}
+        disabled={disabled}
         size="sm"
         className="ml-1"
       />

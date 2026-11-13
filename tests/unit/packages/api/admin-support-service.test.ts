@@ -47,6 +47,64 @@ function createQuery(result: unknown) {
 }
 
 describe("admin support service tenant isolation", () => {
+  it("rejects malformed and foreign saved contacts without inserting a ticket", async () => {
+    const query = createQuery({ data: null, error: null });
+    const from = vi.fn(() => query);
+    const input = {
+      contactName: "Spoofed",
+      contactEmail: "spoof@example.test",
+      priority: "normal",
+      queueId: "donor_care",
+      subject: "Help",
+      summary: "Help",
+    } as const;
+    await expect(
+      createSupportTicket({ from } as never, TENANT_A, "user-1", {
+        ...input,
+        contactId: "demo-contact",
+      }),
+    ).rejects.toMatchObject({ status: 422 });
+    await expect(
+      createSupportTicket({ from } as never, TENANT_A, "user-1", {
+        ...input,
+        contactId: "11111111-1111-4111-8111-111111111111",
+      }),
+    ).rejects.toMatchObject({ status: 422 });
+    expect(query.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+    expect(query.insert).not.toHaveBeenCalled();
+  });
+  it("keeps database wording out of ticket creation errors and logs safe context only", async () => {
+    const query = createQuery({
+      data: null,
+      error: {
+        code: "23503",
+        message: "private contact value",
+        details: "private row",
+      },
+    });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(
+      createSupportTicket({ from: () => query } as never, TENANT_A, "user-1", {
+        contactName: "Name",
+        priority: "normal",
+        queueId: "donor_care",
+        subject: "Help",
+        summary: "Help",
+      }),
+    ).rejects.toMatchObject({
+      message: "The ticket couldn’t be saved. Try again.",
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain("private");
+  });
+  it("does not return a sample macro or knowledge library", async () => {
+    const query = createQuery({ data: [], error: null });
+    const model = await getSupportSummary(
+      { from: () => query } as never,
+      TENANT_A,
+    );
+    expect(model.macros).toEqual([]);
+    expect(model.knowledge).toEqual([]);
+  });
   it.each([
     [
       "PostgREST schema cache misses",
@@ -104,6 +162,27 @@ describe("admin support service tenant isolation", () => {
     );
   });
 
+  it("resolves an assignee name only through a tenant-scoped profile lookup", async () => {
+    const ticketQuery = createQuery({
+      data: {
+        public_id: "SUP-1",
+        assigned_to_profile_id: "profile-1",
+        tags: [],
+      },
+      error: null,
+    });
+    const profileQuery = createQuery({
+      data: { first_name: "Mina", last_name: "Chen" },
+      error: null,
+    });
+    const from = vi.fn((table: string) =>
+      table === "profiles" ? profileQuery : ticketQuery,
+    );
+    const ticket = await getSupportTicket({ from } as never, TENANT_A, "SUP-1");
+    expect(ticket?.assignedToName).toBe("Mina Chen");
+    expect(profileQuery.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+    expect(profileQuery.eq).toHaveBeenCalledWith("id", "profile-1");
+  });
   it("returns null when a ticket id belongs to another tenant", async () => {
     const query = createQuery({ data: null, error: null });
     const from = vi.fn(() => query);
@@ -131,7 +210,7 @@ describe("admin support service tenant isolation", () => {
         status: "open",
         priority: "normal",
         channel: "form",
-        contact_id: "contact-maria",
+        contact_id: "11111111-1111-4111-8111-111111111111",
         contact_name_snapshot: "Maria Chen",
         contact_email_snapshot: "maria@example.org",
         tags: [],
@@ -143,16 +222,26 @@ describe("admin support service tenant isolation", () => {
       },
       error: null,
     });
-    const from = vi.fn(() => query);
+    const contactQuery = createQuery({
+      data: {
+        id: "11111111-1111-4111-8111-111111111111",
+        name: "Maria Chen",
+        email: "maria@example.org",
+      },
+      error: null,
+    });
+    const from = vi.fn((table: string) =>
+      table === "support_contacts" ? contactQuery : query,
+    );
 
     const ticket = await createSupportTicket(
       { from } as never,
       TENANT_A,
       "user-1",
       {
-        contactId: "contact-maria",
-        contactEmail: "maria@example.org",
-        contactName: "Maria Chen",
+        contactId: "11111111-1111-4111-8111-111111111111",
+        contactEmail: "spoof@example.org",
+        contactName: "Spoofed",
         priority: "normal",
         queueId: "donor_care",
         subject: "Need receipt",
@@ -163,14 +252,16 @@ describe("admin support service tenant isolation", () => {
     expect(from).toHaveBeenCalledWith("support_tickets");
     expect(query.insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        contact_id: "contact-maria",
+        contact_id: "11111111-1111-4111-8111-111111111111",
+        contact_name_snapshot: "Maria Chen",
+        contact_email_snapshot: "maria@example.org",
         created_by: "user-1",
         tenant_id: TENANT_A,
         public_id: expect.stringMatching(/^SUP-/),
       }),
     );
     expect(ticket.id).toBe("SUP-2000");
-    expect(ticket.contactId).toBe("contact-maria");
+    expect(ticket.contactId).toBe("11111111-1111-4111-8111-111111111111");
     expect(ticket.contactEmailSnapshot).toBe("maria@example.org");
     expect(ticket.contactNameSnapshot).toBe("Maria Chen");
   });

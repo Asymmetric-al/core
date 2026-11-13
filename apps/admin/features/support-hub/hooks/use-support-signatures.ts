@@ -17,6 +17,8 @@ interface UseSupportSignaturesReturn {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  /** Loads the data again, e.g. after a failed load. */
+  refetch: () => Promise<unknown>;
 }
 
 export function useSupportSignatures(
@@ -41,5 +43,6 @@ export function useSupportSignatures(
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }

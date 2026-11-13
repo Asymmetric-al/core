@@ -55,18 +55,20 @@ test.describe("development-admin profile dropdown", () => {
     const administration = page.getByRole("menuitem", {
       name: /^administration$/i,
     });
-    const manageTeam = page.getByRole("menuitem", { name: /^manage team$/i });
+    const staffDirectory = page.getByRole("menuitem", {
+      name: /^staff directory$/i,
+    });
     const about = page.getByRole("menuitem", { name: /^about$/i });
-    const logout = page.getByRole("menuitem", { name: /^logout$/i });
+    const logout = page.getByRole("menuitem", { name: /^sign out$/i });
 
     await expect(administration).toBeVisible();
-    await expect(manageTeam).toBeVisible();
+    await expect(staffDirectory).toBeVisible();
     await expect(about).toBeVisible();
     await expect(logout).toBeVisible();
 
     // 5. Destination hrefs.
     await expect(administration).toHaveAttribute("href", /\/admin$/);
-    await expect(manageTeam).toHaveAttribute("href", /\/admin\/teams$/);
+    await expect(staffDirectory).toHaveAttribute("href", /\/admin\/teams$/);
 
     // 6. Click Administration and confirm /admin lands.
     await administration.click();
@@ -75,7 +77,7 @@ test.describe("development-admin profile dropdown", () => {
     await expect(
       page.getByRole("heading", { name: /^administration$/i }),
     ).toBeVisible();
-    await expect(page.getByText(/service operational status/i)).toBeVisible();
+    await expect(page.getByText(/people and access/i)).toBeVisible();
 
     await assertNoErrorBanner(page);
   });

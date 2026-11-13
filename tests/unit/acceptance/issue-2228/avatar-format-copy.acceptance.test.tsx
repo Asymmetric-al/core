@@ -10,12 +10,15 @@
  *
  * The page is rendered for real with only its data and environment hooks
  * mocked. `ImageUpload` is deliberately NOT mocked, so the `accept` attribute
- * read here is the one the shared control actually renders.
+ * read here is the one the shared control actually renders. The page keeps
+ * unsaved profile edits in the root retained-draft store, so renders use the
+ * shared test provider the app layout supplies in production.
  */
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import DonorSettingsPage from "../../../../apps/donor/app/(dashboard)/donor-dashboard/settings/page-client";
+import { DraftTestProvider } from "../../fixtures/retained-drafts";
 
 vi.mock("@asym/database/hooks", () => ({
   useDonorPortalSnapshot: () => ({
@@ -89,25 +92,25 @@ function formatMismatch(copy: string, accept: string) {
 }
 
 function renderedAccept(): string {
-  render(<DonorSettingsPage />);
+  render(<DonorSettingsPage />, { wrapper: DraftTestProvider });
   const input = document.querySelector<HTMLInputElement>('input[type="file"]');
   if (!input) throw new Error("no input[type=file] rendered by the page");
   return input.getAttribute("accept") ?? "";
 }
 
 function renderedCopy(): string {
-  render(<DonorSettingsPage />);
+  render(<DonorSettingsPage />, { wrapper: DraftTestProvider });
   return screen.getByText(/Large files auto-optimized/).textContent ?? "";
 }
 
 describe("#2228 criterion 1: the avatar help text lists every accepted format", () => {
   it(`the settings page shows exactly "${NEW_COPY}"`, () => {
-    render(<DonorSettingsPage />);
+    render(<DonorSettingsPage />, { wrapper: DraftTestProvider });
     expect(screen.getByText(NEW_COPY)).toBeTruthy();
   });
 
   it("the settings page shows no text matching /JPG, GIF or PNG/", () => {
-    render(<DonorSettingsPage />);
+    render(<DonorSettingsPage />, { wrapper: DraftTestProvider });
     expect(screen.queryByText(/JPG, GIF or PNG/)).toBeNull();
   });
 });

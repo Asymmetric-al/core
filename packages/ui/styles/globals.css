@@ -348,6 +348,33 @@
   --sidebar-ring: oklch(0.94 0.002 265);
 }
 
+/*
+ * Edge fade for horizontally scrolling ScrollArea viewports (ScrollArea
+ * edgeFade="x"). Base UI publishes how far content overflows each edge, so a
+ * side only fades while content is hidden past it. The gradient is an alpha
+ * mask (black = visible), not a theme color.
+ */
+@utility scroll-fade-x {
+  --scroll-fade-size: calc(var(--spacing) * 6);
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black min(var(--scroll-fade-size), var(--scroll-area-overflow-x-start, 0px)),
+    black
+      calc(
+        100% -
+          min(var(--scroll-fade-size), var(--scroll-area-overflow-x-end, 0px))
+      ),
+    transparent 100%
+  );
+
+  /* A mask also clips the viewport's own focus ring and outline (painted
+     outside its box), so drop it while the viewport has keyboard focus. */
+  &:focus-visible {
+    mask-image: none;
+  }
+}
+
 /* Preserve the task board's viewport allocation without arbitrary utilities. */
 @utility task-board-height {
   height: calc(100vh - --spacing(80));
@@ -981,7 +1008,8 @@
   height: 100%;
   width: 100%;
   overflow: auto;
-  background: var(--background);
+  /* The desk the email page sits on. */
+  background: var(--muted);
 }
 
 .react-email-builder-wrapper.absolute {
@@ -992,11 +1020,28 @@
   inset: 0;
 }
 
+/* The email page. Its background, text colour and padding are left to the
+   email theme, which paints the same body styles on the sent email, so the
+   canvas only frames the page. */
 .react-email-builder-wrapper .tiptap {
   margin: 0 auto;
   min-height: 100%;
   width: min(100%, 760px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   outline: none;
+}
+
+.react-email-builder-wrapper .tiptap:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+}
+
+/* React Email scopes its theme to `.tiptap.ProseMirror[data-editor-theme-scope]`
+   with an unlayered `margin: 0`; this outranks it so the page stays centred
+   on the desk. Margin is layout only, not part of the sent email. */
+.react-email-builder-wrapper .tiptap.ProseMirror[data-editor-theme-scope] {
+  margin-inline: auto;
 }
 
 .react-email-merge-tag {
@@ -1011,6 +1056,54 @@
   line-height: 1;
   padding: 0.18rem 0.38rem;
   white-space: nowrap;
+}
+
+/* React Email editor menus (formatting bubble, link form, slash commands).
+   Its default theme follows the OS colour scheme with its own greys and
+   system font; these map its variables onto the Maia tokens so the menus
+   match the app's popovers in both themes. */
+:root,
+.dark {
+  --re-bg: var(--popover);
+  --re-bg-active: var(--accent);
+  --re-border: var(--border);
+  --re-text: var(--popover-foreground);
+  --re-text-muted: var(--muted-foreground);
+  --re-hover: var(--accent);
+  --re-active: var(--accent);
+  --re-pressed: var(--accent);
+  --re-separator: var(--border);
+  --re-radius: var(--radius-md);
+  --re-radius-sm: var(--radius-sm);
+  --re-danger: var(--destructive);
+  --re-danger-hover: color-mix(in oklab, var(--destructive) 10%, transparent);
+  --re-tooltip-bg: var(--foreground);
+  --re-tooltip-text: var(--background);
+}
+
+[data-re-bubble-menu],
+[data-re-slash-command] {
+  font-family: inherit;
+}
+
+:is(
+  [data-re-bubble-menu-item],
+  [data-re-link-bm-item],
+  [data-re-btn-bm-item],
+  [data-re-img-bm-item],
+  [data-re-node-selector-trigger],
+  [data-re-node-selector-item],
+  [data-re-link-selector-trigger],
+  [data-re-link-selector-apply],
+  [data-re-link-selector-unlink],
+  [data-re-link-bm-apply],
+  [data-re-link-bm-unlink],
+  [data-re-btn-bm-apply],
+  [data-re-btn-bm-unlink],
+  [data-re-slash-command-item]
+):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
 }
 
 /* Legacy Unlayer editor - kept for existing templates and PDF Studio. */

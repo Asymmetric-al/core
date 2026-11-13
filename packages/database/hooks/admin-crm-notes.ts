@@ -1,6 +1,10 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import * as React from "react";
 
 import type {
@@ -48,9 +52,11 @@ function mapSortField(sorting: SortingState): {
 }
 
 function buildNotesSearchParams({
+  after,
   search,
   sorting,
 }: {
+  after: string | null;
   search: string;
   sorting: SortingState;
 }) {
@@ -58,6 +64,9 @@ function buildNotesSearchParams({
   const sort = mapSortField(sorting);
 
   searchParams.set("limit", "50");
+  if (after) {
+    searchParams.set("after", after);
+  }
   searchParams.set("sort", sort.sort);
   searchParams.set("dir", sort.dir);
 
@@ -77,15 +86,17 @@ async function parseJsonError(response: Response, fallback: string) {
 }
 
 async function fetchCrmNotes({
+  after,
   search,
   signal,
   sorting,
 }: {
+  after: string | null;
   search: string;
   signal: AbortSignal;
   sorting: SortingState;
 }) {
-  const searchParams = buildNotesSearchParams({ search, sorting });
+  const searchParams = buildNotesSearchParams({ after, search, sorting });
   const response = await fetch(`/api/admin/crm/notes?${searchParams}`, {
     credentials: "same-origin",
     headers: {
@@ -140,14 +151,20 @@ export function useAdminCrmNotesGrid() {
   ]);
   const debouncedSearch = useDebouncedValue(search, 250);
 
-  const notesQuery = useQuery({
+  // Pages follow the API's cursor so the grid can continue past the first
+  // 50 notes ("Load more").
+  const notesQuery = useInfiniteQuery({
     queryKey: [...CRM_NOTES_QUERY_KEY, { search: debouncedSearch, sorting }],
-    queryFn: ({ signal }) =>
+    queryFn: ({ signal, pageParam }) =>
       fetchCrmNotes({
+        after: pageParam,
         search: debouncedSearch,
         signal,
         sorting,
       }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
     gcTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
     refetchOnWindowFocus: false,
@@ -163,20 +180,38 @@ export function useAdminCrmNotesGrid() {
     },
   });
 
+  const firstPage = notesQuery.data?.pages[0];
+  const notes = React.useMemo(
+    () =>
+      (notesQuery.data?.pages ?? []).flatMap(
+        (page) => page.rows,
+      ) as CrmNoteRow[],
+    [notesQuery.data],
+  );
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = notesQuery;
+  const loadMore = React.useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   return {
-    configured: notesQuery.data?.configured ?? true,
+    configured: firstPage?.configured ?? true,
     createNote: createMutation.mutateAsync,
     createNoteError:
       createMutation.error instanceof Error ? createMutation.error : null,
     isCreatingNote: createMutation.isPending,
+    hasMore: hasNextPage,
+    isFetchingMore: isFetchingNextPage,
     isLoading: notesQuery.isPending,
-    missing: notesQuery.data?.missing ?? [],
-    mode: notesQuery.data?.mode ?? "local",
-    notes: (notesQuery.data?.rows ?? []) as CrmNoteRow[],
+    loadMore,
+    missing: firstPage?.missing ?? [],
+    mode: firstPage?.mode ?? "local",
+    notes,
     onRefresh: notesQuery.refetch,
     onSearchChange: setSearch,
     onSortingChange: setSorting,
-    rollback: notesQuery.data?.rollback,
+    rollback: firstPage?.rollback,
     search,
     sorting,
     tableError: notesQuery.error instanceof Error ? notesQuery.error : null,

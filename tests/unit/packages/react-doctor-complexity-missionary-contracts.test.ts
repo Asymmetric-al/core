@@ -57,7 +57,7 @@ describe("missionary package high-complexity extraction contracts", () => {
     expect(taskRow).toContain("<TaskRowMeta");
     expect(taskRow).toContain("<TaskRowMenu");
     expect(taskRow).toContain("<Checkbox");
-    expect(taskRow).not.toContain("View Partner");
+    expect(taskRow).not.toContain("View partner");
     expect(taskRow).not.toContain("Reopen Task");
     expect(taskRow).not.toContain("Mark Complete");
     expect(taskRow).not.toContain('Sparkles className="size-2.5"');

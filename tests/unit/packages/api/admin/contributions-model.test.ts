@@ -192,6 +192,10 @@ describe("api/admin/contributions/model", () => {
     expect(row.source).toBe("Import");
     expect(row.fundName).toBe("General Fund");
     expect(row.receiptStatus).toBe("pending");
+    // Only a processor reference counts as a transaction ID; the internal
+    // donation id must never stand in for one.
+    expect(row.transactionId).toBeNull();
+    expect(row.processorTransactionId).toBeNull();
   });
 
   it("embeds the shared contribution row contract and mirrors overlapping fields", () => {

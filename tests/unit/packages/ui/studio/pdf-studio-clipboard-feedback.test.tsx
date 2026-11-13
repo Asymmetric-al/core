@@ -49,8 +49,10 @@ afterEach(() => {
 
 async function openSetup() {
   render(<PDFStudioSetupStatus />);
-  fireEvent.click(screen.getByRole("button", { name: "Free Mode" }));
-  await screen.findByRole("dialog", { name: "PDF Studio Configuration" });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Free mode: open PDF Studio setup" }),
+  );
+  await screen.findByRole("dialog", { name: "PDF Studio setup" });
 }
 
 describe("PDF Studio clipboard feedback", () => {
@@ -90,5 +92,26 @@ describe("PDF Studio clipboard feedback", () => {
       ),
     );
     expect(screen.queryByText("Setting copied to clipboard.")).toBeNull();
+  });
+});
+
+describe("PDF Studio setup status badge", () => {
+  it("says what it opens, so the free-mode note needs no toast on every load", async () => {
+    render(<PDFStudioSetupStatus />);
+    const badge = screen.getByRole("button", {
+      name: "Free mode: open PDF Studio setup",
+    });
+    expect(badge.textContent?.trim()).toBe("Free mode");
+  });
+});
+
+describe("PDF Studio page", () => {
+  it("does not repeat the free-mode badge as a toast each time the editor loads", async () => {
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync(
+      "apps/admin/app/(app)/pdf/page-client.tsx",
+      "utf8",
+    );
+    expect(source).not.toContain("PDF Studio is using the free editor");
   });
 });

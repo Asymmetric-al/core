@@ -49,6 +49,7 @@ export {
   deriveSharedDonorName,
   deriveSharedRefundState,
   formatSharedContributionAmount,
+  isSharedReceiptSuppressed,
   normalizeSharedCrmPostStatus,
   normalizeSharedCurrencyCode,
   normalizeSharedPaymentStatus,
@@ -70,6 +71,7 @@ export {
   type SharedContributionProfileInput,
   type SharedContributionReceiptStatus,
   type SharedContributionRefundState,
+  type SharedContributionRowContract,
   type SharedContributionRowFields,
   type SharedContributionStagedGiftInput,
 } from "./row-contract";

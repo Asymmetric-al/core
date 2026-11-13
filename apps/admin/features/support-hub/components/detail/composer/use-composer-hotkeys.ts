@@ -5,15 +5,13 @@ import * as React from "react";
 interface HotkeyMap {
   /** Cmd/Ctrl + Enter — primary action of the active mode (send / add note). */
   onPrimaryAction: () => void;
+  disabled?: boolean;
 }
 
-/**
- * Tiny keyboard surface for the composer. Registers the documented
- * `Cmd/Ctrl + Enter` shortcut on the container ref. Phase 5 extends this
- * surface (`Cmd+K` palette, `Cmd+/` macro picker, etc.) without rewriting
- * the composer.
- */
-export function useComposerHotkeys({ onPrimaryAction }: HotkeyMap) {
+export function useComposerHotkeys({
+  onPrimaryAction,
+  disabled = false,
+}: HotkeyMap) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
@@ -23,8 +21,10 @@ export function useComposerHotkeys({ onPrimaryAction }: HotkeyMap) {
     const handler = (event: KeyboardEvent) => {
       const isPrimaryShortcut =
         (event.metaKey || event.ctrlKey) && event.key === "Enter";
-      if (!isPrimaryShortcut) return;
+      if (!isPrimaryShortcut || event.defaultPrevented || event.isComposing)
+        return;
       event.preventDefault();
+      if (disabled || event.repeat) return;
       onPrimaryAction();
     };
 
@@ -32,7 +32,7 @@ export function useComposerHotkeys({ onPrimaryAction }: HotkeyMap) {
     return () => {
       node.removeEventListener("keydown", handler);
     };
-  }, [onPrimaryAction]);
+  }, [onPrimaryAction, disabled]);
 
   return containerRef;
 }

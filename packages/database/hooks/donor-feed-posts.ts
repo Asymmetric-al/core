@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import type { PostWithAuthor } from "../types/database";
 
@@ -16,6 +16,8 @@ interface DonorRecentUpdate {
   time: string;
   image?: string;
   avatar: string;
+  /** The author's photo, for when the update has none. */
+  authorAvatar?: string;
 }
 
 /**
@@ -40,6 +42,8 @@ export interface DonorFeedPostsOptions {
   missionaryId?: string | null;
   /** Page size (defaults to the endpoint's own default of 10). */
   limit?: number;
+  /** Updates to skip, for paging (defaults to 0). */
+  offset?: number;
   /** Post status filter (defaults to "published"). */
   status?: string;
   /** React Query `enabled` toggle. */
@@ -53,6 +57,9 @@ async function fetchDonorFeedPostsResponse(
   params.set("status", options.status ?? "published");
   if (typeof options.limit === "number") {
     params.set("limit", String(options.limit));
+  }
+  if (options.offset) {
+    params.set("offset", String(options.offset));
   }
   if (options.missionaryId) {
     params.set("missionaryId", options.missionaryId);
@@ -70,7 +77,7 @@ async function fetchDonorFeedPostsResponse(
     } catch {
       // keep the status-based message
     }
-    throw new Error(message);
+    throw Object.assign(new Error(message), { status: response.status });
   }
 
   const body = (await response.json()) as { posts?: PostWithAuthor[] };
@@ -103,9 +110,76 @@ export function useDonorFeedPosts(options: DonorFeedPostsOptions = {}) {
   });
 
   return {
-    data: (query.data ?? []) as PostWithAuthor[],
+    data: accessDenied(query.error) ? [] : (query.data ?? []),
     isLoading: query.isLoading,
-    error: (query.error as Error | null) ?? null,
+    error: query.error,
+  };
+}
+
+/** Updates per page on the donor Updates feed. */
+export const DONOR_FEED_PAGE_SIZE = 20;
+
+function accessDenied(error: Error | null): boolean {
+  return (
+    error !== null &&
+    "status" in error &&
+    (error.status === 401 || error.status === 403)
+  );
+}
+
+/**
+ * The donor Updates feed, a page at a time. The endpoint returns a bare list,
+ * so a full page means there may be more; a short page is the end of the feed.
+ */
+export function useDonorFeedPostPages(
+  options: Omit<DonorFeedPostsOptions, "limit"> = {},
+) {
+  const { enabled = true, ...fetchOptions } = options;
+
+  const query = useInfiniteQuery({
+    queryKey: [
+      DONOR_FEED_POSTS_QUERY_KEY,
+      "pages",
+      fetchOptions.missionaryId ?? null,
+      fetchOptions.status ?? "published",
+      DONOR_FEED_PAGE_SIZE,
+    ],
+    queryFn: ({ pageParam }) =>
+      fetchDonorFeedPostsResponse({
+        ...fetchOptions,
+        limit: DONOR_FEED_PAGE_SIZE,
+        offset: pageParam,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < DONOR_FEED_PAGE_SIZE
+        ? undefined
+        : allPages.length * DONOR_FEED_PAGE_SIZE,
+    enabled,
+    staleTime: 30_000,
+  });
+  const denied = accessDenied(query.error);
+
+  return {
+    data: denied ? [] : (query.data?.pages.flat() ?? []),
+    isLoading: query.isLoading,
+    error: query.error,
+    hasMore: query.hasNextPage,
+    isLoadingMore: query.isFetchingNextPage,
+    accessDenied: denied,
+    isNextPageError: query.isFetchNextPageError,
+    retry: () => {
+      if (query.isFetchNextPageError) {
+        void query.fetchNextPage();
+      } else {
+        void query.refetch();
+      }
+    },
+    loadMore: () => {
+      if (query.hasNextPage && !query.isFetchingNextPage) {
+        void query.fetchNextPage();
+      }
+    },
   };
 }
 
@@ -145,17 +219,86 @@ export function postInitials(post: PostWithAuthor): string {
 }
 
 /**
- * A short, plain-text title derived from the post's (HTML) content: tags are
- * stripped, whitespace collapsed, and the result truncated with an ellipsis.
+ * A feed row as `GET /api/posts` returns it (`select *`): it also carries the
+ * author's headline and category, which the shared `Post` type omits.
  */
-export function postTitle(post: PostWithAuthor, maxLength = 80): string {
-  const text = post.content
+export type DonorFeedPost = PostWithAuthor & {
+  title?: string | null;
+  post_type?: string | null;
+};
+
+/** The author's category label (e.g. "Prayer Request"), if any. */
+export function postCategory(post: DonorFeedPost): string | undefined {
+  return post.post_type?.trim() || undefined;
+}
+
+type RichTextNode = { type?: string; text?: string; content?: RichTextNode[] };
+
+function nodeText(node: RichTextNode): string {
+  if (node.type === "text") return node.text ?? "";
+  if (node.type === "hardBreak") return " ";
+  const text = (node.content ?? []).map(nodeText).join("");
+  return node.type && RICH_TEXT_BLOCKS.has(node.type) ? `${text} ` : text;
+}
+
+const RICH_TEXT_BLOCKS = new Set([
+  "doc",
+  "paragraph",
+  "heading",
+  "blockquote",
+  "codeBlock",
+  "listItem",
+  "bulletList",
+  "orderedList",
+  "taskList",
+  "taskItem",
+  "table",
+  "tableRow",
+  "tableCell",
+  "tableHeader",
+]);
+
+/**
+ * A post's words as plain text. The update composer stores TipTap JSON;
+ * older posts hold HTML. Blocks are separated by a space.
+ */
+export function postPlainText(content: string): string {
+  if (content.trimStart().startsWith("{")) {
+    try {
+      const doc = JSON.parse(content) as RichTextNode;
+      if (doc?.type === "doc") {
+        return nodeText(doc).replace(/\s+/g, " ").trim();
+      }
+    } catch {
+      // Not JSON: read it as HTML below.
+    }
+  }
+  return content
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * The post's own headline when the author supplied one; otherwise a short,
+ * plain-text title from its content, truncated with an ellipsis.
+ */
+export function postTitle(post: DonorFeedPost, maxLength = 80): string {
+  const ownTitle = post.title?.trim();
+  if (ownTitle) return ownTitle;
+  const text = postPlainText(post.content);
   if (text.length === 0) return "Ministry Update";
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}…`;
+}
+
+/**
+ * Reading-time estimate from the post's body at about 200 words a minute,
+ * never less than one minute.
+ */
+export function postReadTime(post: PostWithAuthor): string {
+  const words = postPlainText(post.content).split(" ").filter(Boolean).length;
+  return `${Math.max(1, Math.round(words / 200))} min read`;
 }
 
 /** Image URLs from the post's media (videos excluded). */
@@ -181,5 +324,8 @@ export function mapToRecentUpdate(
     time: formatPostRelativeTime(post.created_at, now),
     ...(image ? { image } : {}),
     avatar: postInitials(post),
+    ...(post.author?.avatar_url
+      ? { authorAvatar: post.author.avatar_url }
+      : {}),
   };
 }

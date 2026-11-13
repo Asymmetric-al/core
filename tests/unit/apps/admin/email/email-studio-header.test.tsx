@@ -16,6 +16,8 @@ function headerProps(): ComponentProps<typeof EmailStudioHeader> {
     metadata: { id: null, name: "Newsletter", subject: "News", preheader: "" },
     onMetadataChange: vi.fn(),
     isEditorReady: true,
+    canUndo: true,
+    canRedo: true,
     canPreview: true,
     isSaving: false,
     isSendingTest: false,
@@ -44,6 +46,51 @@ function Header(props: ComponentProps<typeof EmailStudioHeader>) {
 }
 
 describe("Email Studio header pending focus", () => {
+  it("offers open, preview and test send without opening a menu", () => {
+    const props = headerProps();
+    render(<Header {...props} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open template", exact: true }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Preview", exact: true }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Send test email", exact: true }),
+    );
+    expect(props.onLoadTemplate).toHaveBeenCalledOnce();
+    expect(props.onPreview).toHaveBeenCalledWith("desktop");
+    expect(props.onTestSend).toHaveBeenCalledOnce();
+  });
+
+  it("does not change template metadata in read-only mode", () => {
+    const props = headerProps();
+    render(<Header {...props} isEditorReady={false} />);
+    expect(
+      screen
+        .getByRole("textbox", { name: "Template name" })
+        .hasAttribute("disabled"),
+    ).toBe(true);
+    expect(
+      screen
+        .getByRole("button", { name: "Preview", exact: true })
+        .hasAttribute("disabled"),
+    ).toBe(false);
+    expect(
+      screen
+        .getByRole("button", { name: "Send test email", exact: true })
+        .hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("disables unavailable history independently of editor readiness", () => {
+    const props = headerProps();
+    render(<Header {...props} canUndo={false} canRedo={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "Undo", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Redo", exact: true }));
+    expect(props.onUndo).not.toHaveBeenCalled();
+    expect(props.onRedo).not.toHaveBeenCalled();
+  });
   it("names the document template metadata without treating it as personal email", () => {
     render(<Header {...headerProps()} />);
     const title = screen.getByRole("textbox", { name: "Template name" });

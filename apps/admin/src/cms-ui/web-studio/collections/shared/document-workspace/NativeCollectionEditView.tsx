@@ -1,15 +1,27 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@asym/ui/components/shadcn/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@asym/ui/components/shadcn/tooltip";
 import { cn } from "@asym/ui/lib/utils";
 import {
   DefaultEditView,
-  PreviewButton,
-  PublishButton,
-  SaveButton,
-  SaveDraftButton,
-  UnpublishButton,
   useDocumentInfo,
   useDocumentTitle,
   useForm,
@@ -21,33 +33,32 @@ import {
   useLivePreviewContext,
   usePreferences,
 } from "@payloadcms/ui";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock3,
-  ExternalLink,
-  Eye,
-  FileWarning,
-  ImageIcon,
-  Link2,
-  Loader2,
-  LockKeyhole,
-  Settings2,
-  ShieldCheck,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Settings2 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { buildNativeDocumentStateItems } from "./editor-state";
-import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
+import { DocumentPinToggle } from "./document-pin-toggle";
 import {
-  buildWebStudioAuthenticatedPreviewPath,
-  resolveDonorOrigin,
-} from "../../../adapters/preview-url";
+  DocumentPreviewLinks,
+  DocumentPreviewMenu,
+} from "./document-preview-links";
+import { NativeDocumentSubtitle } from "./document-subtitle";
+import {
+  buildNativeDocumentStateItems,
+  describeUnpublishedVersions,
+  documentHeading,
+  glanceNativeDocumentStateItems,
+} from "./editor-state";
+import { NativeRevertToPublished } from "./native-revert-status";
+import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
+import { usePopupTriggerRoles } from "./popup-trigger-roles";
+import { usePublishedPageURL } from "./use-published-page-url";
+import { buildWebStudioAuthenticatedPreviewPath } from "../../../adapters/preview-url";
 import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
+import { DocumentReference } from "../list-workspace/document-reference";
 
 import type { NativeDocumentStateTone } from "./editor-state";
 import type {
@@ -55,13 +66,7 @@ import type {
   WebStudioCollectionSlug,
 } from "../../config";
 import type { DocumentViewClientProps } from "payload";
-
-const nativeDocumentStateStripIconMap = {
-  autosave: Clock3,
-  editing: Loader2,
-  preview: Eye,
-  publication: ShieldCheck,
-} as const;
+import type { ReactNode } from "react";
 
 function warnPreferenceDev(context: string, error: unknown) {
   if (process.env.NODE_ENV === "development") {
@@ -98,6 +103,8 @@ export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
 };
 
+type InspectorItem = { label: string; value: string };
+
 function resolveAuthenticatedPreviewCollection(
   studioCollection: WebStudioCollectionSlug,
 ): "ministry-updates" | "missionary-giving-pages" | "project-pages" | "pages" {
@@ -121,6 +128,23 @@ function documentIdFromData(
     : null;
 }
 
+/** The tenant's name when the document carries it, else its ID. */
+function tenantItem(tenant: unknown): InspectorItem | null {
+  if (typeof tenant === "string" || typeof tenant === "number") {
+    return { label: "Organization ID", value: String(tenant) };
+  }
+  if (tenant && typeof tenant === "object") {
+    const record = tenant as { id?: unknown; name?: unknown };
+    if (typeof record.name === "string" && record.name) {
+      return { label: "Organization", value: record.name };
+    }
+    if (record.id !== undefined) {
+      return { label: "Organization ID", value: String(record.id) };
+    }
+  }
+  return null;
+}
+
 function buildNativeInspectorItems({
   data,
   studioCollection,
@@ -133,43 +157,21 @@ function buildNativeInspectorItems({
   studioConfig: WebStudioCollectionConfig;
   unpublishedVersionCount: number | undefined;
   versionCount: number | undefined;
-}): Array<{ icon: ReactNode; label: string; value: string }> {
-  const inspectorItems: Array<{
-    icon: ReactNode;
-    label: string;
-    value: string;
-  }> = [
+}): InspectorItem[] {
+  const inspectorItems: InspectorItem[] = [
     {
-      icon: <Link2 className="size-3.5" />,
       label: "Document ID",
-      value:
-        typeof data?.id === "string" || typeof data?.id === "number"
-          ? String(data.id)
-          : "Unsaved",
+      value: documentIdFromData(data) ?? "Unsaved",
     },
   ];
 
-  if (typeof data?.tenant === "string") {
-    inspectorItems.push({
-      icon: <Link2 className="size-3.5" />,
-      label: "Tenant",
-      value: data.tenant,
-    });
-  } else if (
-    data?.tenant &&
-    typeof data.tenant === "object" &&
-    "id" in data.tenant
-  ) {
-    inspectorItems.push({
-      icon: <Link2 className="size-3.5" />,
-      label: "Tenant",
-      value: String((data.tenant as { id: unknown }).id),
-    });
+  const tenant = tenantItem(data?.tenant);
+  if (tenant) {
+    inspectorItems.push(tenant);
   }
 
   if (studioCollection === "navigation" && Array.isArray(data?.items)) {
     inspectorItems.push({
-      icon: <Link2 className="size-3.5" />,
       label: "Nav items",
       value: String(data.items.length),
     });
@@ -177,7 +179,6 @@ function buildNativeInspectorItems({
 
   if (studioCollection === "missionary-profiles") {
     inspectorItems.push({
-      icon: <ImageIcon className="size-3.5" />,
       label: "Portrait",
       value: data?.portrait ? "Linked" : "Missing",
     });
@@ -185,7 +186,6 @@ function buildNativeInspectorItems({
 
   if (studioCollection === "ministry-updates") {
     inspectorItems.push({
-      icon: <Link2 className="size-3.5" />,
       label: "Missionary",
       value: data?.missionary ? "Linked" : "Missing",
     });
@@ -193,8 +193,7 @@ function buildNativeInspectorItems({
 
   if (studioCollection === "media") {
     inspectorItems.push({
-      icon: <ImageIcon className="size-3.5" />,
-      label: "Asset",
+      label: "File",
       value:
         typeof data?.filename === "string" ? data.filename : "Upload pending",
     });
@@ -202,14 +201,12 @@ function buildNativeInspectorItems({
 
   if (studioConfig.hasVersions) {
     inspectorItems.push({
-      icon: <Link2 className="size-3.5" />,
       label: "Versions",
-      value: String(versionCount),
+      value: String(versionCount ?? 0),
     });
     inspectorItems.push({
-      icon: <Link2 className="size-3.5" />,
-      label: "Unpublished",
-      value: String(unpublishedVersionCount),
+      label: "Unpublished changes",
+      value: describeUnpublishedVersions(unpublishedVersionCount),
     });
   }
 
@@ -223,6 +220,7 @@ function resolveNativeCollectionEditModel({
   hasSavePermission,
   isLivePreviewEnabled,
   previewSupported,
+  publicPreviewURL,
   studioCollection,
   studioConfig,
   title,
@@ -235,6 +233,7 @@ function resolveNativeCollectionEditModel({
   hasSavePermission: boolean | undefined;
   isLivePreviewEnabled: boolean | undefined;
   previewSupported: boolean;
+  publicPreviewURL: string | null;
   studioCollection: WebStudioCollectionSlug;
   studioConfig: WebStudioCollectionConfig;
   title: string | undefined;
@@ -249,50 +248,31 @@ function resolveNativeCollectionEditModel({
           id: documentId,
         })
       : null;
-  const publicPreviewPath = studioConfig.previewPathForData?.(
-    data ?? undefined,
-  );
-  const publicPreviewURL = publicPreviewPath
-    ? `${resolveDonorOrigin()}${publicPreviewPath}`
-    : null;
+  // The page address under the title; documents without one show none (the
+  // Document state card lists the ID).
   const slugOrIdentifier =
     typeof data?.slug === "string" && data.slug.length > 0
       ? data.slug === "home"
         ? "/"
         : `/${data.slug}`
-      : documentId;
-  const status =
-    data?._status === "published"
-      ? "Published"
-      : data?._status === "draft"
-        ? "Draft"
-        : "Saved";
-  const readOnly = !hasSavePermission;
-  const heading =
-    title || `Untitled ${studioConfig.titleSingular.toLowerCase()}`;
-  const actionMode = studioConfig.hasDrafts
-    ? {
-        showPublish: true,
-        showSaveDraft: true,
-        showUnpublish: true,
-      }
-    : {
-        showPublish: false,
-        showSaveDraft: false,
-        showUnpublish: false,
-      };
-  const apiHref =
-    collectionSlug && documentId
-      ? `${studioConfig.listPath}/${documentId}/api`
       : null;
+  const readOnly = !hasSavePermission;
+  const heading = documentHeading({
+    title,
+    documentId,
+    singular: studioConfig.titleSingular,
+  });
+  const documentPath =
+    collectionSlug && documentId
+      ? `${studioConfig.listPath}/${encodeURIComponent(documentId)}`
+      : null;
+  const apiHref = documentPath ? `${documentPath}/api` : null;
   const versionsHref =
-    studioConfig.hasVersions && collectionSlug && documentId
-      ? `${studioConfig.listPath}/${documentId}/versions`
+    studioConfig.hasVersions && documentPath
+      ? `${documentPath}/versions`
       : null;
   const livePreviewHref =
-    isLivePreviewEnabled && collectionSlug && documentId
-      ? `${studioConfig.listPath}/${documentId}/preview`
-      : null;
+    isLivePreviewEnabled && documentPath ? `${documentPath}/preview` : null;
   const inspectorItems = buildNativeInspectorItems({
     data,
     studioCollection,
@@ -306,9 +286,9 @@ function resolveNativeCollectionEditModel({
       : null;
 
   return {
-    actionMode,
     apiHref,
     authenticatedPreviewURL,
+    documentPath,
     heading,
     inspectorItems,
     livePreviewHref,
@@ -316,10 +296,13 @@ function resolveNativeCollectionEditModel({
     publicPreviewURL,
     readOnly,
     slugOrIdentifier,
-    statusLabel: status,
     versionsHref,
   };
 }
+
+type NativeCollectionEditModel = ReturnType<
+  typeof resolveNativeCollectionEditModel
+>;
 
 function useNativeCollectionWorkspace({
   dataId,
@@ -463,132 +446,266 @@ function useNativeCollectionWorkspace({
   };
 }
 
+const STATE_BADGE_VARIANT: Record<
+  NativeDocumentStateTone,
+  "destructive-subtle" | "info" | "outline" | "success" | "warning"
+> = {
+  danger: "destructive-subtle",
+  info: "info",
+  muted: "outline",
+  success: "success",
+  warning: "warning",
+};
+
+const STATE_DOT_CLASS: Record<NativeDocumentStateTone, string> = {
+  danger: "bg-destructive",
+  info: "bg-info",
+  muted: "bg-muted-foreground",
+  success: "bg-success",
+  warning: "bg-warning",
+};
+
+const STATE_LABELS = {
+  autosave: "Autosave",
+  editing: "Status",
+  preview: "Preview",
+  publication: "Visibility",
+} as const;
+
 function NativeCollectionEditHeader({
+  actions,
   heading,
-  primaryState,
   readOnly,
+  reference,
+  setStatusTarget,
   showSlugChip,
   slugOrIdentifier,
-  statusLabel,
   studioConfig,
 }: {
+  actions: ReactNode;
   heading: string;
-  primaryState: { label?: string; tone?: string } | undefined;
   readOnly: boolean;
+  /** The record the document is for ("for Grace Okafor"), if any. */
+  reference: ReactNode;
+  setStatusTarget: (node: HTMLSpanElement | null) => void;
   showSlugChip: boolean;
   slugOrIdentifier: string | null;
-  statusLabel: string;
   studioConfig: WebStudioCollectionConfig;
 }) {
   return (
-    <div className="min-w-0 space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="truncate font-semibold text-foreground text-xl tracking-tight sm:text-2xl">
-          {heading}
-        </h1>
-        {showSlugChip && slugOrIdentifier ? (
-          <Badge variant="secondary">{slugOrIdentifier}</Badge>
-        ) : null}
-        <Badge variant="outline">{statusLabel}</Badge>
-        <Badge
-          variant={
-            primaryState?.tone === "danger" ? "destructive" : "secondary"
-          }
-        >
-          {primaryState?.label}
-        </Badge>
+    <header className="flex flex-col gap-3 md:gap-4 xl:flex-row xl:items-end xl:justify-between">
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="min-w-0 text-2xl font-semibold tracking-tight text-balance wrap-break-word">
+            {heading}
+          </h1>
+          <span ref={setStatusTarget} className="flex items-center" />
+          {readOnly ? <Badge variant="outline">View only</Badge> : null}
+        </div>
+        <NativeDocumentSubtitle
+          readOnly={readOnly}
+          reference={reference}
+          slug={showSlugChip ? slugOrIdentifier : null}
+          titleSingular={studioConfig.titleSingular}
+        />
       </div>
-      <p className="text-muted-foreground text-xs">
-        {readOnly
-          ? `You can view this ${studioConfig.titleSingular.toLowerCase()} but do not have save access.`
-          : studioConfig.editDescription}
-      </p>
-    </div>
+      {actions}
+    </header>
   );
 }
 
 function NativeCollectionEditActions({
-  actionMode,
   apiHref,
-  collectionSlug,
-  hasPublishPermission,
-  hasSavePermission,
+  documentPath,
   livePreviewHref,
   onOpenSettings,
-  previewSupported,
+  pinToggle,
+  previewLinks,
+  previewMenu,
+  versionCount,
   versionsHref,
 }: {
-  actionMode: {
-    showPublish: boolean;
-    showSaveDraft: boolean;
-    showUnpublish: boolean;
-  };
   apiHref: string | null;
-  collectionSlug: string | undefined;
-  hasPublishPermission: boolean | undefined;
-  hasSavePermission: boolean | undefined;
+  documentPath: string | null;
   livePreviewHref: string | null;
   onOpenSettings: () => void;
-  previewSupported: boolean;
+  pinToggle?: ReactNode;
+  previewLinks?: ReactNode;
+  /** Phones: the preview links as one menu, after the views. */
+  previewMenu?: ReactNode;
+  versionCount: number | undefined;
   versionsHref: string | null;
 }) {
+  const views = [
+    documentPath ? { href: documentPath, label: "Edit", current: true } : null,
+    versionsHref
+      ? {
+          href: versionsHref,
+          label: "Versions",
+          count: versionCount,
+          current: false,
+        }
+      : null,
+    apiHref ? { href: apiHref, label: "API", current: false } : null,
+    livePreviewHref
+      ? { href: livePreviewHref, label: "Live preview", current: false }
+      : null,
+  ].filter((view) => view !== null);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {previewSupported ? <PreviewButton /> : null}
-      {hasSavePermission ? (
-        actionMode.showSaveDraft ? (
-          <SaveDraftButton />
-        ) : (
-          <SaveButton />
-        )
+      {previewLinks}
+      {views.length > 1 ? (
+        <nav aria-label="Document views">
+          <ul className="flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1">
+            {views.map((view) => (
+              <li key={view.href}>
+                <Link
+                  href={view.href}
+                  aria-current={view.current ? "page" : undefined}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    view.current
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {view.label}
+                  {"count" in view && view.count ? (
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {view.count}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       ) : null}
-      {hasPublishPermission && actionMode.showPublish ? (
-        <PublishButton />
-      ) : null}
-      {hasPublishPermission && actionMode.showUnpublish ? (
-        <UnpublishButton />
-      ) : null}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onOpenSettings}
-      >
-        <Settings2 className="mr-2 size-4" />
-        Workspace
-      </Button>
-      {collectionSlug ? (
-        <ButtonLink
-          variant="ghost"
-          size="sm"
-          render={<Link href={`/web-studio/collections/${collectionSlug}`} />}
+      {previewMenu}
+      {pinToggle}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              aria-label="Workspace settings"
+              onClick={onOpenSettings}
+            >
+              <Settings2 aria-hidden="true" />
+            </Button>
+          }
+        />
+        <TooltipContent>Workspace settings</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+/** Where "Open preview" and "Open published page" point, when they apply. */
+function resolvePreviewLinks({
+  previewSupported,
+  previewURL,
+  publicPreviewURL,
+}: {
+  previewSupported: boolean;
+  previewURL: string | undefined;
+  publicPreviewURL: string | null;
+}) {
+  return {
+    previewHref: previewSupported && previewURL ? previewURL : null,
+    publishedHref: publicPreviewURL,
+  };
+}
+
+/** The document facts list: ids, counts and the viewer's access. */
+function NativeCollectionDetailsList({
+  docPermissions,
+  hasPublishPermission,
+  inspectorItems,
+}: {
+  docPermissions: { read?: boolean; update?: boolean } | null | undefined;
+  hasPublishPermission: boolean | undefined;
+  inspectorItems: InspectorItem[];
+}) {
+  const access = docPermissions
+    ? [
+        docPermissions.read ? "read" : null,
+        docPermissions.update ? "edit" : null,
+        hasPublishPermission ? "publish" : null,
+      ].filter(Boolean)
+    : [];
+  return (
+    <dl className="flex flex-col gap-2 text-sm">
+      {inspectorItems.map((item) => (
+        <div
+          key={`${item.label}-${item.value}`}
+          className="flex items-center justify-between gap-4"
         >
-          Back to list
-        </ButtonLink>
+          <dt className="text-muted-foreground">{item.label}</dt>
+          <dd className="min-w-0 truncate text-right font-medium tabular-nums">
+            {item.value}
+          </dd>
+        </div>
+      ))}
+      {docPermissions ? (
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-muted-foreground">Your access</dt>
+          <dd className="text-right font-medium capitalize">
+            {access.length > 0 ? access.join(", ") : "None"}
+          </dd>
+        </div>
       ) : null}
-      {versionsHref ? (
-        <ButtonLink
-          variant="ghost"
-          size="sm"
-          render={<Link href={versionsHref} />}
-        >
-          Versions
-        </ButtonLink>
-      ) : null}
-      {apiHref ? (
-        <ButtonLink variant="ghost" size="sm" render={<Link href={apiHref} />}>
-          API
-        </ButtonLink>
-      ) : null}
-      {livePreviewHref ? (
-        <ButtonLink
-          variant="ghost"
-          size="sm"
-          render={<Link href={livePreviewHref} />}
-        >
-          Live preview
-        </ButtonLink>
-      ) : null}
+    </dl>
+  );
+}
+
+function NativeCollectionStateStrip({
+  details,
+  setCompactTarget,
+  setStateTarget,
+}: {
+  details: ReactNode;
+  setCompactTarget: (node: HTMLDivElement | null) => void;
+  setStateTarget: (node: HTMLDivElement | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      data-web-studio-state-strip=""
+      className="rounded-xl border bg-card px-4 py-3 shadow-sm md:p-4 xl:hidden"
+    >
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <div className="flex items-center justify-between gap-3">
+          <div
+            ref={setCompactTarget}
+            className={cn("min-w-0 flex-1", open && "hidden")}
+          />
+          {open ? (
+            <p className="min-w-0 flex-1 text-sm font-medium">Document state</p>
+          ) : null}
+          <CollapsibleTrigger
+            render={
+              <Button type="button" variant="outline" size="sm">
+                Details
+                {open ? (
+                  <ChevronUp aria-hidden="true" />
+                ) : (
+                  <ChevronDown aria-hidden="true" />
+                )}
+              </Button>
+            }
+          />
+        </div>
+        <CollapsibleContent>
+          <div className="mt-4 flex flex-col gap-6 border-t pt-4 md:flex-row">
+            <div ref={setStateTarget} className="min-w-0 flex-1" />
+            <div className="md:w-64 md:shrink-0">{details}</div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
@@ -603,83 +720,103 @@ function NativeCollectionInspector({
   previewSupported,
   previewURL,
   publicPreviewURL,
+  setStateTarget,
 }: {
   data: Record<string, unknown> | null | undefined;
   docPermissions: { read?: boolean; update?: boolean } | null | undefined;
   hasPublishPermission: boolean | undefined;
   heading: string;
-  inspectorItems: Array<{ icon: ReactNode; label: string; value: string }>;
+  inspectorItems: InspectorItem[];
   mediaPreviewUrl: string | null;
   previewSupported: boolean;
   previewURL: string | undefined;
   publicPreviewURL: string | null;
+  setStateTarget: (node: HTMLDivElement | null) => void;
 }) {
+  const detailsHeadingId = useId();
+  const { previewHref, publishedHref } = resolvePreviewLinks({
+    previewSupported,
+    previewURL,
+    publicPreviewURL,
+  });
+  const showPreview = Boolean(previewHref);
+  const showPublished = Boolean(publishedHref);
+
   return (
-    <aside className="mt-6 hidden rounded-lg border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block lg:w-1/3 lg:max-w-80 lg:shrink-0">
-      <p className="mb-2 font-semibold text-foreground">Inspector</p>
-      <p>
-        Document fields remain on Payload&apos;s document form engine while Web
-        Studio owns the surrounding workspace and action framing.
-      </p>
-      {mediaPreviewUrl ? (
-        <div className="mt-4 overflow-hidden rounded-lg border border-border bg-background">
-          <Image
-            alt={typeof data?.alt === "string" ? data.alt : heading}
-            className="h-40 w-full object-cover"
-            height={160}
-            src={mediaPreviewUrl}
-            unoptimized
-            width={640}
-          />
-        </div>
-      ) : null}
-      <ul className="mt-4 space-y-2">
-        {inspectorItems.map((item) => (
-          <li
-            key={`${item.label}-${item.value}`}
-            className="flex items-center justify-between gap-3 rounded-md bg-background/80 px-3 py-2"
-          >
-            <span className="flex items-center gap-2 text-foreground">
-              {item.icon}
-              {item.label}
-            </span>
-            <span className="max-w-44 truncate text-right">{item.value}</span>
-          </li>
-        ))}
-      </ul>
-      {docPermissions ? (
-        <ul className="mt-3 list-disc space-y-1 pl-4">
-          <li>Read: {docPermissions.read ? "yes" : "no"}</li>
-          <li>Update: {docPermissions.update ? "yes" : "no"}</li>
-          <li>Publish: {hasPublishPermission ? "yes" : "no"}</li>
-        </ul>
-      ) : null}
-      {previewSupported && previewURL ? (
-        <ButtonLink
-          href={previewURL}
-          target="_blank"
-          rel="noreferrer"
-          variant="outline"
-          size="sm"
-          className="mt-4 w-full"
-        >
-          <ExternalLink className="mr-2 size-4" />
-          Open preview
-        </ButtonLink>
-      ) : null}
-      {publicPreviewURL && data?._status === "published" ? (
-        <ButtonLink
-          href={publicPreviewURL}
-          target="_blank"
-          rel="noreferrer"
-          variant="ghost"
-          size="sm"
-          className="mt-2 w-full"
-        >
-          <ExternalLink className="mr-2 size-4" />
-          Open published page
-        </ButtonLink>
-      ) : null}
+    <aside
+      aria-label="Inspector"
+      className="hidden w-80 shrink-0 flex-col gap-6 xl:sticky xl:top-20 xl:flex"
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Document state</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div ref={setStateTarget} />
+        </CardContent>
+      </Card>
+      <section aria-labelledby={detailsHeadingId}>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2 id={detailsHeadingId}>Details</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {mediaPreviewUrl ? (
+              <div className="overflow-hidden rounded-lg border bg-muted">
+                <Image
+                  alt={typeof data?.alt === "string" ? data.alt : heading}
+                  className="h-40 w-full object-cover"
+                  height={160}
+                  src={mediaPreviewUrl}
+                  unoptimized
+                  width={640}
+                />
+              </div>
+            ) : null}
+            <NativeCollectionDetailsList
+              docPermissions={docPermissions}
+              hasPublishPermission={hasPublishPermission}
+              inspectorItems={inspectorItems}
+            />
+          </CardContent>
+          {showPreview || showPublished ? (
+            <CardFooter className="flex-col gap-2">
+              {showPreview && previewHref ? (
+                <a
+                  href={previewHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "w-full",
+                  )}
+                >
+                  <ExternalLink aria-hidden="true" />
+                  Open preview
+                </a>
+              ) : null}
+              {showPublished && publishedHref ? (
+                <a
+                  href={publishedHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "w-full",
+                  )}
+                >
+                  <ExternalLink aria-hidden="true" />
+                  View live page
+                </a>
+              ) : null}
+            </CardFooter>
+          ) : null}
+        </Card>
+      </section>
     </aside>
   );
 }
@@ -702,12 +839,21 @@ export function NativeCollectionEditView({
   const { isLivePreviewEnabled, previewURL, setPreviewURL } =
     useLivePreviewContext();
   const { getPreference, setPreference } = usePreferences();
-  const [controlsTarget, setControlsTarget] = useState<HTMLDivElement | null>(
+  const [statusTarget, setStatusTarget] = useState<HTMLSpanElement | null>(
     null,
   );
   const [stateTarget, setStateTarget] = useState<HTMLDivElement | null>(null);
+  const [stripCompactTarget, setStripCompactTarget] =
+    useState<HTMLDivElement | null>(null);
+  const [stripStateTarget, setStripStateTarget] =
+    useState<HTMLDivElement | null>(null);
+  const [payloadEditRoot, setPayloadEditRoot] = useState<HTMLDivElement | null>(
+    null,
+  );
+  usePopupTriggerRoles(payloadEditRoot);
   const documentId = documentIdFromData(data);
   const previewSupported = studioConfig.previewMode !== "none";
+  const publicPreviewURL = usePublishedPageURL(studioConfig);
   const model = resolveNativeCollectionEditModel({
     collectionSlug,
     data: data as Record<string, unknown> | null | undefined,
@@ -715,6 +861,7 @@ export function NativeCollectionEditView({
     hasSavePermission,
     isLivePreviewEnabled,
     previewSupported,
+    publicPreviewURL,
     studioCollection,
     studioConfig,
     title,
@@ -730,6 +877,12 @@ export function NativeCollectionEditView({
       studioConfig,
       title,
     });
+
+  const headerPreviewLinks = resolvePreviewLinks({
+    previewSupported,
+    previewURL,
+    publicPreviewURL: model.publicPreviewURL,
+  });
 
   useEffect(() => {
     if (!model.authenticatedPreviewURL) {
@@ -750,90 +903,159 @@ export function NativeCollectionEditView({
         sectionLabel={studioConfig.sectionLabel}
         currentLabel={model.heading}
       >
-        <div
-          className="border-border border-b bg-card/40 px-4 py-4 sm:px-6"
-          ref={setControlsTarget}
-        />
+        <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 md:gap-6 md:py-6 lg:px-8">
+          <NativeCollectionEditHeader
+            actions={
+              <NativeCollectionEditActions
+                apiHref={model.apiHref}
+                documentPath={model.documentPath}
+                livePreviewHref={model.livePreviewHref}
+                onOpenSettings={() => setSettingsOpen(true)}
+                pinToggle={
+                  collectionSlug &&
+                  (typeof data?.id === "string" ||
+                    typeof data?.id === "number") ? (
+                    <DocumentPinToggle
+                      collectionSlug={collectionSlug}
+                      documentId={data.id}
+                    />
+                  ) : null
+                }
+                previewLinks={
+                  <DocumentPreviewLinks
+                    className={
+                      workspace.inspectorOpen ? "xl:hidden" : undefined
+                    }
+                    previewURL={headerPreviewLinks.previewHref}
+                    publishedURL={headerPreviewLinks.publishedHref}
+                  />
+                }
+                previewMenu={
+                  <DocumentPreviewMenu
+                    previewURL={headerPreviewLinks.previewHref}
+                    publishedURL={headerPreviewLinks.publishedHref}
+                  />
+                }
+                versionCount={versionCount}
+                versionsHref={model.versionsHref}
+              />
+            }
+            heading={model.heading}
+            readOnly={model.readOnly}
+            reference={
+              <DocumentReference
+                data={data as Record<string, unknown> | null | undefined}
+              />
+            }
+            setStatusTarget={setStatusTarget}
+            showSlugChip={workspace.showSlugChip}
+            slugOrIdentifier={model.slugOrIdentifier}
+            studioConfig={studioConfig}
+          />
 
-        <NativeDocumentWorkspaceSettingsDialog
-          open={settingsOpen}
-          onOpenChange={handleSettingsOpenChange}
-          preferenceKey={studioConfig.preferences.workspace}
-          sectionLabel={studioConfig.sectionLabel}
-        />
+          <NativeDocumentWorkspaceSettingsDialog
+            open={settingsOpen}
+            onOpenChange={handleSettingsOpenChange}
+            preferenceKey={studioConfig.preferences.workspace}
+            sectionLabel={studioConfig.sectionLabel}
+          />
 
-        <div
-          className={cn(
-            "px-2 py-6 sm:px-4 lg:px-6",
-            workspace.inspectorOpen && "lg:flex lg:gap-6",
-          )}
-        >
-          <div className="payload-native-edit min-w-0 rounded-lg border border-border bg-card shadow-sm lg:flex-1">
-            <div ref={setStateTarget} />
-            <DefaultEditView
-              {...props}
-              BeforeDocumentControls={
-                <NativeDocumentFormControls
-                  controlsTarget={controlsTarget}
-                  model={model}
-                  onOpenSettings={() => setSettingsOpen(true)}
-                  previewSupported={previewSupported}
-                  showSlugChip={workspace.showSlugChip}
-                  stateTarget={stateTarget}
-                  studioConfig={studioConfig}
+          {workspace.inspectorOpen ? (
+            <NativeCollectionStateStrip
+              details={
+                <NativeCollectionDetailsList
+                  docPermissions={docPermissions}
+                  hasPublishPermission={hasPublishPermission}
+                  inspectorItems={model.inspectorItems}
                 />
               }
-              PreviewButton={null}
-              PublishButton={null}
-              SaveButton={null}
-              SaveDraftButton={null}
-              Status={null}
-              UnpublishButton={null}
-            />
-          </div>
-          {workspace.inspectorOpen ? (
-            <NativeCollectionInspector
-              data={data as Record<string, unknown> | null | undefined}
-              docPermissions={docPermissions}
-              hasPublishPermission={hasPublishPermission}
-              heading={model.heading}
-              inspectorItems={model.inspectorItems}
-              mediaPreviewUrl={model.mediaPreviewUrl}
-              previewSupported={previewSupported}
-              previewURL={previewURL}
-              publicPreviewURL={model.publicPreviewURL}
+              setCompactTarget={setStripCompactTarget}
+              setStateTarget={setStripStateTarget}
             />
           ) : null}
+
+          <div
+            className={cn(
+              "flex flex-col gap-6",
+              workspace.inspectorOpen && "xl:flex-row xl:items-start",
+            )}
+          >
+            <div
+              ref={setPayloadEditRoot}
+              className="payload-native-edit min-w-0 flex-1 overflow-clip rounded-xl border bg-card shadow-sm"
+            >
+              <DefaultEditView
+                {...props}
+                BeforeDocumentControls={
+                  <NativeDocumentFormBridge
+                    model={model}
+                    previewSupported={previewSupported}
+                    stateTarget={stateTarget}
+                    statusTarget={statusTarget}
+                    stripCompactTarget={stripCompactTarget}
+                    stripStateTarget={stripStateTarget}
+                    studioConfig={studioConfig}
+                  />
+                }
+                Status={<NativeRevertToPublished />}
+                // Preview is offered by the workspace (Details "Open preview"
+                // and the phone Preview menu). Payload's unnamed icon-only
+                // link button would duplicate it, so its slot stays empty
+                // (a null slot falls back to Payload's default button).
+                PreviewButton={<NoPayloadPreviewButton />}
+              />
+            </div>
+            {workspace.inspectorOpen ? (
+              <NativeCollectionInspector
+                data={data as Record<string, unknown> | null | undefined}
+                docPermissions={docPermissions}
+                hasPublishPermission={hasPublishPermission}
+                heading={model.heading}
+                inspectorItems={model.inspectorItems}
+                mediaPreviewUrl={model.mediaPreviewUrl}
+                previewSupported={previewSupported}
+                previewURL={previewURL}
+                publicPreviewURL={model.publicPreviewURL}
+                setStateTarget={setStateTarget}
+              />
+            ) : null}
+          </div>
+          {workspace.inspectorOpen ? null : (
+            <div ref={setStateTarget} className="sr-only" />
+          )}
         </div>
       </StudioLayout>
     </div>
   );
 }
 
-function NativeDocumentFormControls({
-  controlsTarget,
+/**
+ * Lives inside Payload's form (as `BeforeDocumentControls`) so it can read
+ * form state, and portals the live status into the header and the document
+ * state into the inspector (xl) and the state strip (below xl). It renders
+ * nothing in Payload's bar.
+ */
+function NativeDocumentFormBridge({
   model,
-  onOpenSettings,
   previewSupported,
-  showSlugChip,
   stateTarget,
+  statusTarget,
+  stripCompactTarget,
+  stripStateTarget,
   studioConfig,
 }: {
-  controlsTarget: HTMLDivElement | null;
-  model: ReturnType<typeof resolveNativeCollectionEditModel>;
-  onOpenSettings: () => void;
+  model: NativeCollectionEditModel;
   previewSupported: boolean;
-  showSlugChip: boolean;
   stateTarget: HTMLDivElement | null;
+  statusTarget: HTMLSpanElement | null;
+  stripCompactTarget: HTMLDivElement | null;
+  stripStateTarget: HTMLDivElement | null;
   studioConfig: WebStudioCollectionConfig;
 }) {
   const {
-    collectionSlug,
     data,
     documentIsLocked,
     hasPublishedDoc,
-    hasPublishPermission,
-    hasSavePermission,
     isInitializing: documentIsInitializing,
     isTrashed,
     mostRecentVersionIsAutosaved,
@@ -864,95 +1086,136 @@ function NativeDocumentFormControls({
     unpublishedVersionCount,
     uploadStatus,
   });
+  const primary = stateItems[0];
 
-  // Portals preserve the native layout while controls consume Payload's form context.
   return (
     <>
-      {controlsTarget
+      {statusTarget && primary
         ? createPortal(
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <NativeCollectionEditHeader
-                heading={model.heading}
-                primaryState={stateItems[0]}
-                readOnly={model.readOnly}
-                showSlugChip={showSlugChip}
-                slugOrIdentifier={model.slugOrIdentifier}
-                statusLabel={model.statusLabel}
-                studioConfig={studioConfig}
-              />
-              <NativeCollectionEditActions
-                actionMode={model.actionMode}
-                apiHref={model.apiHref}
-                collectionSlug={collectionSlug}
-                hasPublishPermission={hasPublishPermission}
-                hasSavePermission={hasSavePermission}
-                livePreviewHref={model.livePreviewHref}
-                onOpenSettings={onOpenSettings}
-                previewSupported={previewSupported}
-                versionsHref={model.versionsHref}
-              />
-            </div>,
-            controlsTarget,
+            <Badge variant={STATE_BADGE_VARIANT[primary.tone]}>
+              {primary.label}
+            </Badge>,
+            statusTarget,
           )
         : null}
       {stateTarget
         ? createPortal(
-            <NativeDocumentStateStrip items={stateItems} />,
+            <NativeDocumentStateSummary items={stateItems} />,
             stateTarget,
+          )
+        : null}
+      {stripCompactTarget
+        ? createPortal(
+            <NativeDocumentStateCompact items={stateItems} />,
+            stripCompactTarget,
+          )
+        : null}
+      {stripStateTarget
+        ? createPortal(
+            <NativeDocumentStateSummary items={stateItems} />,
+            stripStateTarget,
           )
         : null}
     </>
   );
 }
 
-const stateToneClass: Record<NativeDocumentStateTone, string> = {
-  danger: "border-destructive/30 bg-destructive/10 text-destructive",
-  info: "border-primary/25 bg-primary/10 text-primary",
-  muted: "border-border bg-muted/40 text-muted-foreground",
-  success: "border-chart-2/25 bg-chart-2/10 text-chart-2",
-  warning: "border-chart-4/25 bg-chart-4/10 text-chart-4",
-};
+function NativeDocumentStateCompact({
+  items,
+}: {
+  items: ReturnType<typeof buildNativeDocumentStateItems>;
+}) {
+  const glance = glanceNativeDocumentStateItems(items);
+  return (
+    <>
+      {glance.length > 0 ? (
+        <dl className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 lg:hidden">
+          {glance.map((item) => (
+            <div key={item.id} className="flex min-w-0 items-center">
+              <dt className="sr-only">{STATE_LABELS[item.id]}</dt>
+              <dd className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    STATE_DOT_CLASS[item.tone],
+                  )}
+                />
+                <span className="truncate">{item.label}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="text-sm font-medium lg:hidden">Document state</p>
+      )}
+      <NativeDocumentStateGrid items={items} />
+    </>
+  );
+}
 
-function NativeDocumentStateStrip({
+function NativeDocumentStateGrid({
   items,
 }: {
   items: ReturnType<typeof buildNativeDocumentStateItems>;
 }) {
   return (
-    <section
-      aria-label="Document state"
-      className="grid gap-2 border-border border-b bg-muted/20 p-3 sm:grid-cols-2 xl:grid-cols-4"
-    >
-      {items.map((item) => {
-        const Icon =
-          item.id === "editing" && item.tone === "danger"
-            ? AlertTriangle
-            : item.id === "editing" && item.tone === "warning"
-              ? FileWarning
-              : item.id === "editing" && item.label === "Locked"
-                ? LockKeyhole
-                : item.tone === "success"
-                  ? CheckCircle2
-                  : nativeDocumentStateStripIconMap[item.id];
+    <dl className="hidden grid-cols-4 gap-x-4 gap-y-3 lg:grid">
+      {items.map((item) => (
+        <div key={item.id} className="flex min-w-0 flex-col gap-1">
+          <dt className="text-xs text-muted-foreground">
+            {STATE_LABELS[item.id]}
+          </dt>
+          <dd className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                STATE_DOT_CLASS[item.tone],
+              )}
+            />
+            <span className="truncate">{item.label}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
-        return (
-          <div
-            key={item.id}
-            className={cn(
-              "min-w-0 rounded-lg border px-3 py-2",
-              stateToneClass[item.tone],
-            )}
-          >
-            <p className="flex items-center gap-2 font-semibold text-xs uppercase tracking-wide">
-              <Icon className="size-3.5 shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </p>
-            <p className="mt-1 line-clamp-2 text-xs leading-snug">
+function NativeDocumentStateSummary({
+  items,
+}: {
+  items: ReturnType<typeof buildNativeDocumentStateItems>;
+}) {
+  return (
+    <section aria-label="Document state">
+      <dl className="flex flex-col gap-4">
+        {items.map((item) => (
+          <div key={item.id} className="flex flex-col gap-1">
+            <dt className="text-xs text-muted-foreground">
+              {STATE_LABELS[item.id]}
+            </dt>
+            <dd className="flex items-center gap-2 text-sm font-medium">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "size-2 shrink-0 rounded-full",
+                  STATE_DOT_CLASS[item.tone],
+                )}
+              />
+              <span>{item.label}</span>
+            </dd>
+            <dd className="text-xs text-muted-foreground">
               {item.description}
-            </p>
+            </dd>
           </div>
-        );
-      })}
+        ))}
+      </dl>
     </section>
   );
+}
+
+/** Fills Payload's preview-button slot with nothing; see the edit view. */
+function NoPayloadPreviewButton() {
+  return null;
 }

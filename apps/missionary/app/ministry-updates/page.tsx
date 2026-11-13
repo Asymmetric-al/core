@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 
-export { default } from "../feed/worker-feed-page-client";
-
-export const metadata: Metadata = {
-  title: "Ministry updates",
-  description: "Publish ministry updates to supporters from the feed.",
-};
+// Updates live at /feed; this older path is kept working for saved links.
+export default function MinistryUpdatesPage() {
+  permanentRedirect("/feed");
+}

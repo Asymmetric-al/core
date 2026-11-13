@@ -1,3 +1,4 @@
+import { formatCents } from "@asym/missionary/components/money-units";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Briefcase,
@@ -20,11 +21,7 @@ import {
 import type { ActivityType, GiftType, RecurringStatus } from "./donor-types";
 import type { ElementType } from "react";
 
-const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 0,
-});
+export const formatCurrency = formatCents;
 
 export type {
   Activity,
@@ -110,27 +107,6 @@ export const AVAILABLE_TAGS = [
     color: "bg-muted text-muted-foreground border-border",
   },
 ] as const;
-
-export function formatCurrency(value: number | null | undefined) {
-  if (value === null || value === undefined) return "$0";
-
-  return NUMBER_FORMATTER_1.format(value);
-}
-
-export function getStatusColor(status: string) {
-  switch (status) {
-    case "Active":
-      return "bg-success";
-    case "Lapsed":
-      return "bg-muted-foreground";
-    case "New":
-      return "bg-info";
-    case "At Risk":
-      return "bg-warning";
-    default:
-      return "bg-muted-foreground";
-  }
-}
 
 type StatusBadgeVariant = "success" | "info" | "warning" | "secondary";
 

@@ -1,0 +1,30 @@
+/* Payload's bulk actions inside Core's selection bar. Their base look (ghost
+   Buttons at size="sm") comes from `[data-web-studio-bulk-actions] .btn` in
+   src/styles/payloadStyles.css, an unlayered rule; these selectors carry one
+   more class, so they win by specificity, with no important flags. */
+
+/* Phones: tighter buttons keep Edit, Publish, Unpublish, Delete and the
+   bar's Clear on one row under the count. */
+@media (width < 40rem) {
+  .actions[data-web-studio-bulk-actions] :global(.btn) {
+    padding-inline: calc(var(--spacing) * 1.5);
+  }
+}
+
+/* Delete reads as the shared Button's destructive variant. Only Payload's
+   toggle is restyled; its confirmation dialog keeps its own buttons. */
+.actions .delete :global(.delete-documents__toggle) {
+  color: var(--destructive-foreground);
+  background-color: var(--destructive);
+}
+
+.actions
+  .delete
+  :global(.delete-documents__toggle):hover:not(:global(.btn--disabled)) {
+  color: var(--destructive-foreground);
+  background-color: color-mix(in oklab, var(--destructive) 90%, transparent);
+}
+
+:global(.dark) .actions .delete :global(.delete-documents__toggle) {
+  background-color: color-mix(in oklab, var(--destructive) 60%, transparent);
+}

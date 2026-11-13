@@ -1,4 +1,5 @@
 export {
+  useMemberCareDetailQuery,
   useCareDashboard,
   useCarePersonnel,
   useCareActivity,

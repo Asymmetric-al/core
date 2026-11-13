@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { navigation } from "@asym/config/navigation";
 
 import {
   buildEvePageContext,
@@ -6,6 +7,28 @@ import {
 } from "../../../apps/admin/app/eve/page-context";
 
 describe("buildEvePageContext", () => {
+  it.each([
+    ["/help", "Help"],
+    ["/settings", "Settings"],
+    ["/workflows", "Workflow runs"],
+  ])("allowlists %s", (pathname, pageIdentity) => {
+    expect(
+      buildEvePageContext({ panelOpen: false, pathname, tenant: null }),
+    ).toMatchObject({ route: pathname, pageIdentity });
+  });
+  it.each(navigation)(
+    "uses the navigation identity for $href without exposing record IDs",
+    ({ href, title }) => {
+      const context = buildEvePageContext({
+        panelOpen: true,
+        pathname: href === "/" ? "/" : `${href}/private-record-id`,
+        tenant: null,
+      });
+      expect(context.route).toBe(href);
+      expect(context.pageIdentity).toBe(title);
+      expect(JSON.stringify(context)).not.toContain("private-record-id");
+    },
+  );
   it("includes only the approved route, page, organization, and safe UI fields", () => {
     const tenantWithSensitiveExtras = {
       id: "tenant-1",
@@ -47,7 +70,7 @@ describe("buildEvePageContext", () => {
       }),
     ).toEqual({
       organization: null,
-      pageIdentity: "Mission Control dashboard",
+      pageIdentity: "Home",
       route: "/",
       ui: {
         panel: "closed",

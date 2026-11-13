@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
@@ -8,6 +14,7 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import {
+  resolveRootCompilerCommand,
   validateCompilerToolchain,
   verifyCompilerToolchain,
 } from "../../../scripts/verify/typescript-toolchain.mjs";
@@ -114,4 +121,61 @@ describe("product compiler and JavaScript API boundary", () => {
       rmSync(temporary, { recursive: true, force: true });
     }
   });
+});
+
+describe("Bun Windows compiler shim ownership", () => {
+  it.each([
+    "valid",
+    "shadowed",
+    "missing metadata",
+    "truncated",
+    "wrong version",
+    "wrong launcher",
+  ])(
+    "checks %s shim metadata without accepting an arbitrary executable",
+    (variant) => {
+      const temporary = mkdtempSync(
+        path.join(os.tmpdir(), "core-compiler-shim-"),
+      );
+      const modules = path.join(temporary, "node_modules");
+      const bin = path.join(modules, ".bin", "tsc");
+      const owned = path.join(modules, "native", "tsc");
+      try {
+        mkdirSync(path.dirname(bin), { recursive: true });
+        mkdirSync(path.dirname(owned), { recursive: true });
+        writeFileSync(owned, "owned compiler");
+        writeFileSync(bin + ".exe", "wrapper");
+        const target = Buffer.from(
+          variant === "shadowed" ? "other\\tsc" : "native\\tsc",
+          "utf16le",
+        );
+        const launcher = Buffer.from(
+          variant === "wrong launcher" ? "bun  " : "node ",
+          "utf16le",
+        );
+        const trailer = Buffer.alloc(10);
+        trailer.writeUInt32LE(target.length, 0);
+        trailer.writeUInt32LE(launcher.length, 4);
+        trailer.writeUInt16LE((2739 << 4) | 7, 8);
+        if (variant === "wrong version") trailer.writeUInt16LE(7, 8);
+        let shim = Buffer.concat([
+          target,
+          Buffer.from('"\0', "utf16le"),
+          launcher,
+          trailer,
+        ]);
+        if (variant === "truncated") shim = shim.subarray(0, 8);
+        if (variant === "shadowed") {
+          mkdirSync(path.join(modules, "other"));
+          writeFileSync(path.join(modules, "other", "tsc"), "other compiler");
+        }
+        if (variant !== "missing metadata") writeFileSync(bin + ".bunx", shim);
+        const resolved = resolveRootCompilerCommand(temporary, "win32");
+        if (variant === "valid") expect(resolved).toBe(realpathSync(owned));
+        else expect(resolved).not.toBe(realpathSync(owned));
+      } finally {
+        rmSync(temporary, { recursive: true, force: true });
+      }
+    },
+  );
 });

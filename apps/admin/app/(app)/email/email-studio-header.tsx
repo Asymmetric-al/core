@@ -8,10 +8,12 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { Kbd } from "@asym/ui/components/shadcn/kbd";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import {
   ToggleGroup,
@@ -23,7 +25,6 @@ import {
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
 import { EmailStudioMergeTagMenu } from "@asym/ui/components/studio/EmailStudioMergeTagMenu";
-import { EmailStudioProviderStatus } from "@asym/ui/components/studio/EmailStudioProviderStatus";
 import {
   Monitor,
   Smartphone,
@@ -39,12 +40,16 @@ import {
   Plus,
 } from "lucide-react";
 
+import { usePlatformModifierLabel } from "../../../features/studios/use-platform-modifier";
+
 import type { EmailMetadata, PreviewDevice } from "./email-studio-types";
 
 type EmailStudioHeaderProps = {
   metadata: EmailMetadata;
   onMetadataChange: (next: EmailMetadata) => void;
   isEditorReady: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   canPreview: boolean;
   isSaving: boolean;
   isSendingTest: boolean;
@@ -67,6 +72,8 @@ export function EmailStudioHeader({
   metadata,
   onMetadataChange,
   isEditorReady,
+  canUndo,
+  canRedo,
   canPreview,
   isSaving,
   isSendingTest,
@@ -84,10 +91,15 @@ export function EmailStudioHeader({
   onLoadTemplate,
   onToggleFullscreen,
 }: EmailStudioHeaderProps) {
+  const modifier = usePlatformModifierLabel();
   return (
     <header className="flex flex-wrap items-center gap-3 border-b bg-card px-4 py-2">
-      <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto sm:flex-1">
-        <FileText className="size-5 shrink-0 text-muted-foreground" />
+      <h1 className="sr-only">Email Studio</h1>
+      <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto sm:min-w-80 sm:flex-1">
+        <FileText
+          aria-hidden="true"
+          className="size-5 shrink-0 text-muted-foreground"
+        />
         <div className="min-w-0 w-full max-w-xs">
           <Field>
             <FieldLabel
@@ -99,10 +111,11 @@ export function EmailStudioHeader({
             <Input
               id="email-studio-template-name"
               value={metadata.name}
+              disabled={!isEditorReady || isSaving || isSendingTest}
               onChange={(event) =>
                 onMetadataChange({ ...metadata, name: event.target.value })
               }
-              placeholder="Untitled Email"
+              placeholder="Untitled email"
             />
           </Field>
         </div>
@@ -117,14 +130,16 @@ export function EmailStudioHeader({
                 variant="ghost"
                 size="icon-sm"
                 onClick={onUndo}
-                disabled={!isEditorReady}
+                disabled={!isEditorReady || !canUndo}
                 aria-label="Undo"
               >
-                <Undo2 />
+                <Undo2 aria-hidden="true" />
               </Button>
             }
           />
-          <TooltipContent>Undo (⌘Z)</TooltipContent>
+          <TooltipContent>
+            Undo <Kbd>{modifier}+Z</Kbd>
+          </TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
@@ -133,16 +148,38 @@ export function EmailStudioHeader({
                 variant="ghost"
                 size="icon-sm"
                 onClick={onRedo}
-                disabled={!isEditorReady}
+                disabled={!isEditorReady || !canRedo}
                 aria-label="Redo"
               >
-                <Redo2 />
+                <Redo2 aria-hidden="true" />
               </Button>
             }
           />
-          <TooltipContent>Redo (⌘⇧Z)</TooltipContent>
+          <TooltipContent>
+            Redo <Kbd>{modifier}+Shift+Z</Kbd>
+          </TooltipContent>
         </Tooltip>
       </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onLoadTemplate}
+        disabled={isSaving || isSendingTest}
+      >
+        <FileText aria-hidden="true" />
+        Open template
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPreview(previewDevice)}
+        disabled={!canPreview}
+      >
+        <Monitor aria-hidden="true" />
+        Preview
+      </Button>
 
       <ToggleGroup
         value={[previewDevice]}
@@ -161,7 +198,7 @@ export function EmailStudioHeader({
           <TooltipTrigger
             render={
               <ToggleGroupItem value="desktop" aria-label="Desktop preview">
-                <Monitor />
+                <Monitor aria-hidden="true" />
               </ToggleGroupItem>
             }
           />
@@ -171,7 +208,7 @@ export function EmailStudioHeader({
           <TooltipTrigger
             render={
               <ToggleGroupItem value="mobile" aria-label="Mobile preview">
-                <Smartphone />
+                <Smartphone aria-hidden="true" />
               </ToggleGroupItem>
             }
           />
@@ -183,11 +220,9 @@ export function EmailStudioHeader({
         disabled={!isEditorReady}
         onInsert={onInsertMergeTag}
       />
-      <EmailStudioProviderStatus />
 
       <Button
         focusableWhenDisabled={isSaving}
-        variant="outline"
         size="sm"
         onClick={onSaveClick}
         disabled={!isEditorReady || isSaving || isSendingTest}
@@ -195,9 +230,19 @@ export function EmailStudioHeader({
         {isSaving ? (
           <Spinner data-icon="inline-start" />
         ) : (
-          <Save data-icon="inline-start" />
+          <Save aria-hidden="true" data-icon="inline-start" />
         )}
         Save
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onTestSend}
+        disabled={!isEditorReady || isSaving || isSendingTest}
+      >
+        <Send aria-hidden="true" />
+        Send test email
       </Button>
 
       <DropdownMenu>
@@ -208,7 +253,7 @@ export function EmailStudioHeader({
               size="icon-sm"
               aria-label="More email template actions"
             >
-              <MoreVertical />
+              <MoreVertical aria-hidden="true" />
             </Button>
           }
         />
@@ -218,29 +263,16 @@ export function EmailStudioHeader({
               onClick={onNewTemplate}
               disabled={isSaving || isSendingTest}
             >
-              <Plus />
-              New Template
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onLoadTemplate}
-              disabled={isSaving || isSendingTest}
-            >
-              <FileText />
-              Load Template
+              <Plus aria-hidden="true" />
+              New template
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={onExportHtml} disabled={!isEditorReady}>
-              <Download />
+              <Download aria-hidden="true" />
               Export as HTML
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onTestSend}
-              disabled={!isEditorReady || isSaving || isSendingTest}
-            >
-              <Send />
-              Send Test Email
+              <DropdownMenuShortcut>{modifier}+E</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
@@ -255,7 +287,11 @@ export function EmailStudioHeader({
               onClick={onToggleFullscreen}
               aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             >
-              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+              {isFullscreen ? (
+                <Minimize2 aria-hidden="true" />
+              ) : (
+                <Maximize2 aria-hidden="true" />
+              )}
             </Button>
           }
         />

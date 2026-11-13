@@ -15,74 +15,20 @@ import {
   fireEvent,
   render,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
 import type {
   ContributionBatchApiResponse,
   ContributionBatchStatus,
 } from "@asym/api/admin/contribution-batches";
+import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
 
-const selectedRowsRef = { current: [] as unknown[] };
 const toastErrorMock = vi.fn();
 const toastSuccessMock = vi.fn();
 const toastWarningMock = vi.fn();
 const onBulkReceiptSuccessMock = vi.fn();
-
-vi.mock("@asym/lib/motion", async () => {
-  const React = await import("react");
-
-  return {
-    motion: {
-      div: ({
-        animate: _animate,
-        children,
-        initial: _initial,
-        transition: _transition,
-        whileHover: _whileHover,
-        whileTap: _whileTap,
-        ...props
-      }: React.HTMLAttributes<HTMLDivElement> & {
-        animate?: unknown;
-        initial?: unknown;
-        transition?: unknown;
-        whileHover?: unknown;
-        whileTap?: unknown;
-      }) => React.createElement("div", props, children),
-    },
-  };
-});
-
-vi.mock("@asym/ui/components/shadcn/data-table", async () => {
-  const React = await import("react");
-
-  return {
-    DataTableResponsive: ({
-      floatingBarActions = [],
-    }: {
-      floatingBarActions?: Array<{
-        label: string;
-        onClick: (rows: unknown[]) => void;
-      }>;
-    }) =>
-      React.createElement(
-        "div",
-        { "data-testid": "contributions-table" },
-        floatingBarActions.map((action) =>
-          React.createElement(
-            "button",
-            {
-              key: action.label,
-              onClick: () => action.onClick(selectedRowsRef.current),
-              type: "button",
-            },
-            action.label,
-          ),
-        ),
-      ),
-  };
-});
 
 vi.mock("sonner", () => ({
   toast: {
@@ -94,10 +40,14 @@ vi.mock("sonner", () => ({
 }));
 
 const root = new NodeURL("../../../../../", import.meta.url);
-type ContributionsMainBodyComponent =
-  typeof import("../../../../../apps/admin/app/(app)/contributions/main-body").ContributionsMainBody;
+// Loaded after the mocks above are registered; tests may not import
+// apps/admin statically, so the loader's return type supplies the types.
+const loadMainBodyModule = () =>
+  import("../../../../../apps/admin/app/(app)/contributions/main-body");
+type MainBodyModule = Awaited<ReturnType<typeof loadMainBodyModule>>;
+type ContributionsMainBodyComponent = MainBodyModule["ContributionsMainBody"];
 type ContributionsPageActionsComponent =
-  typeof import("../../../../../apps/admin/app/(app)/contributions/main-body").ContributionsPageActions;
+  MainBodyModule["ContributionsPageActions"];
 let ContributionsMainBody: ContributionsMainBodyComponent;
 let ContributionsPageActions: ContributionsPageActionsComponent;
 let confirmDescriptor: PropertyDescriptor | undefined;
@@ -188,8 +138,7 @@ function makeContribution(overrides: Partial<Contribution> = {}): Contribution {
 }
 
 function renderMainBody(rows: Contribution[]) {
-  selectedRowsRef.current = rows;
-  return render(
+  const view = render(
     <ContributionsMainBody
       data={rows}
       isLoading={false}
@@ -197,7 +146,19 @@ function renderMainBody(rows: Contribution[]) {
       onBulkReceiptSuccess={onBulkReceiptSuccessMock}
     />,
   );
+  // Ctrl/Cmd+A on a row selects every gift across pages (shared grid
+  // keyboard contract), so bulk actions act on all rendered fixtures.
+  const firstPrimary = view.container.querySelector<HTMLElement>(
+    "[data-grid-row-primary]",
+  );
+  if (firstPrimary) {
+    firstPrimary.focus();
+    fireEvent.keyDown(firstPrimary, { key: "a", ctrlKey: true });
+  }
+  return view;
 }
+
+const BULK_RECEIPTS_ACTION = "Send receipts…";
 
 function renderPageActions(canManageContributions?: boolean) {
   return render(
@@ -323,11 +284,9 @@ beforeEach(async () => {
       randomUUID: vi.fn(() => "confirmation-token"),
     },
   });
-  const mainBodyModule =
-    await import("../../../../../apps/admin/app/(app)/contributions/main-body");
+  const mainBodyModule = await loadMainBodyModule();
   ContributionsMainBody = mainBodyModule.ContributionsMainBody;
   ContributionsPageActions = mainBodyModule.ContributionsPageActions;
-  selectedRowsRef.current = [];
 });
 
 afterEach(() => {
@@ -375,7 +334,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
       }),
     ]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
 
     expect(globalThis.confirm).not.toHaveBeenCalled();
     expect(window.confirm).not.toHaveBeenCalled();
@@ -383,20 +342,21 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     expect(view.getByText("Send receipts?")).toBeTruthy();
     expect(
       view.getByText(
-        "This will start a receipt resend batch for 2 selected contributions.",
+        "Sends a receipt for each ready gift among 2 selected contributions.",
       ),
     ).toBeTruthy();
     expect(view.getByText("Selected contributions")).toBeTruthy();
     expect(view.getByText("Ready to send")).toBeTruthy();
-    expect(view.getByText("Missing staged gift id")).toBeTruthy();
-    expect(view.getByText("1 missing")).toBeTruthy();
+    // Plain words for gifts the batch cannot receipt, not an internal id.
+    expect(view.getByText("Will be skipped")).toBeTruthy();
+    expect(view.queryByText(/staged gift id/i)).toBeNull();
   });
 
   it("cancels without posting the batch", async () => {
     const fetchMock = stubBatchFetch();
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Cancel" }));
 
     await waitFor(() => {
@@ -417,7 +377,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     ];
     const view = renderMainBody(rows);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
@@ -428,7 +388,9 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
             actionType: "resend_receipt",
             confirmationToken: "confirmation-token",
             reason: "Bulk receipt resend requested from Contribution Hub.",
-            records: rows.map((row) => ({
+            // Only gifts the server would receipt are sent; the dialog
+            // already listed the rest as skipped.
+            records: [rows[0]].map((row) => ({
               id: row.id,
               receiptStatus: row.receiptStatus,
               stagedGiftId: row.stagedGiftId,
@@ -441,8 +403,175 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
         },
       );
     });
-    expect(toastSuccessMock).toHaveBeenCalledWith(
-      "Bulk receipt batch complete: 2 succeeded, 0 failed.",
+    expect(toastSuccessMock).toHaveBeenCalledWith("Sent 2 receipts.");
+  });
+
+  it("counts a gift whose payment has not completed as skipped, with the server's reason", async () => {
+    const fetchMock = stubBatchFetch();
+    const rows = [
+      makeContribution(),
+      makeContribution({
+        id: "00000000-0000-4000-8000-000000000002",
+        status: "pending",
+        stagedGiftId: "00000000-0000-4000-8000-000000000102",
+      }),
+    ];
+    const view = renderMainBody(rows);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    const dialog = await view.findByRole("alertdialog");
+
+    const readyValue = view.getByText("Ready to send").nextElementSibling;
+    const skippedValue = view.getByText("Will be skipped").nextElementSibling;
+    expect(readyValue?.textContent).toBe("1");
+    expect(skippedValue?.textContent).toBe("1");
+    expect(dialog.textContent).toContain("The payment is not completed yet.");
+    // Each reason reads as a skip, with a counted noun, not a bare number.
+    const reasons = within(dialog).getByRole("list", {
+      name: "Skipped, and why",
+    });
+    expect(within(dialog).getByText("Skipped, and why")).toBeTruthy();
+    expect(within(reasons).getByRole("listitem").textContent).toBe(
+      "The payment is not completed yet.1 gift",
+    );
+
+    fireEvent.click(view.getByRole("button", { name: "Send receipts" }));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1]
+        .body,
+    ) as { records: Array<{ id: string }> };
+    expect(body.records.map((record) => record.id)).toEqual([rows[0].id]);
+  });
+
+  it("does not resend a receipt that was already sent unless the admin opts in", async () => {
+    const fetchMock = stubBatchFetch();
+    const rows = [
+      makeContribution(),
+      makeContribution({
+        id: "00000000-0000-4000-8000-000000000002",
+        receiptStatus: "sent",
+        receiptSent: true,
+        stagedGiftId: "00000000-0000-4000-8000-000000000102",
+      }),
+    ];
+    const view = renderMainBody(rows);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    const dialog = await view.findByRole("alertdialog");
+
+    expect(
+      view.getByText("Ready to send").nextElementSibling?.textContent,
+    ).toBe("1");
+    expect(view.getByText("Already sent").nextElementSibling?.textContent).toBe(
+      "1",
+    );
+    expect(
+      view.getByText("Will be skipped").nextElementSibling?.textContent,
+    ).toBe("0");
+    const resend = view.getByRole("checkbox", {
+      name: /send another copy for 1 gift that already has a receipt/i,
+    });
+    expect(resend.getAttribute("aria-checked")).toBe("false");
+    // One gift, one donor.
+    expect(dialog.textContent).toContain(
+      "If ticked, this donor will get a second copy.",
+    );
+    expect(dialog.textContent).not.toContain("these donors");
+
+    fireEvent.click(view.getByRole("button", { name: "Send receipts" }));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1]
+        .body,
+    ) as { records: Array<{ id: string }> };
+    expect(body.records.map((record) => record.id)).toEqual([rows[0].id]);
+  });
+
+  it("includes already-sent receipts once the admin chooses to resend them", async () => {
+    const fetchMock = stubBatchFetch();
+    const rows = [
+      makeContribution({
+        receiptStatus: "sent",
+        receiptSent: true,
+      }),
+    ];
+    const view = renderMainBody(rows);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    // Nothing new to send until the admin opts in to the resend.
+    const blocked = await view.findByRole("button", {
+      name: "No new receipts to send",
+    });
+    expect((blocked as HTMLButtonElement).disabled).toBe(true);
+    // With nothing ready, the only possible send is another copy, so the
+    // dialog asks about a resend and does not promise a first receipt.
+    const dialog = view.getByRole("alertdialog");
+    expect(
+      within(dialog).getByRole("heading", { name: "Resend receipts?" }),
+    ).toBeTruthy();
+    expect(dialog.textContent).not.toContain("Send receipts?");
+    expect(dialog.textContent).not.toContain("ready gift");
+    expect(dialog.textContent).toContain(
+      "1 of 1 selected contribution already has a receipt, and none need a first one. Tick the box below to send another copy.",
+    );
+
+    fireEvent.click(
+      view.getByRole("checkbox", {
+        name: /send another copy for 1 gift that already has a receipt/i,
+      }),
+    );
+    expect(dialog.textContent).toContain(
+      "Sends another copy of the receipt for the 1 gift that already has one.",
+    );
+    fireEvent.click(view.getByRole("button", { name: "Resend receipts" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1]
+        .body,
+    ) as { records: Array<{ id: string }> };
+    expect(body.records.map((record) => record.id)).toEqual([rows[0].id]);
+  });
+
+  it("does not claim skipped gifts need no first receipt when only resends are possible", async () => {
+    stubBatchFetch();
+    const rows = [
+      makeContribution({
+        receiptStatus: "sent",
+        receiptSent: true,
+      }),
+      makeContribution({
+        id: "00000000-0000-4000-8000-000000000002",
+        stagedGiftId: null,
+      }),
+      makeContribution({
+        id: "00000000-0000-4000-8000-000000000003",
+        stagedGiftId: null,
+      }),
+    ];
+    const view = renderMainBody(rows);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    const dialog = await view.findByRole("alertdialog");
+
+    expect(
+      within(dialog).getByRole("heading", { name: "Resend receipts?" }),
+    ).toBeTruthy();
+    expect(
+      view.getByText("Will be skipped").nextElementSibling?.textContent,
+    ).toBe("2");
+    // The skipped gifts have no receipt, so the dialog must not say none
+    // of the selection needs a first one.
+    expect(dialog.textContent).not.toContain("none need a first one");
+    expect(dialog.textContent).toContain(
+      "1 of 3 selected contributions already has a receipt, and none of the others can be sent a first receipt. Tick the box below to send another copy.",
     );
   });
 
@@ -460,7 +589,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     const sendButton = await view.findByRole("button", {
       name: "Send receipts",
     });
@@ -487,7 +616,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
       }),
     ]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
 
     const disabledAction = await view.findByRole("button", {
       name: "No eligible receipts",
@@ -511,7 +640,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     stubBatchFetch();
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
@@ -533,7 +662,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
@@ -565,7 +694,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
@@ -579,7 +708,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
       method: "POST",
     });
     expect(toastSuccessMock).toHaveBeenCalledWith(
-      "Bulk receipt batch complete: 29 succeeded, 1 failed.",
+      "Sent 29 receipts; 1 failed.",
     );
     expect(onBulkReceiptSuccessMock).toHaveBeenCalledTimes(1);
   });
@@ -598,7 +727,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
@@ -607,9 +736,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     fireEvent.click(view.getByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
-      expect(toastSuccessMock).toHaveBeenCalledWith(
-        "Bulk receipt batch complete: 1 succeeded, 0 failed.",
-      );
+      expect(toastSuccessMock).toHaveBeenCalledWith("Sent 1 receipt.");
     });
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -620,6 +747,94 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(2, persistedBatchProcessHref, {
       method: "POST",
     });
+    expect(fetchMock).toHaveBeenNthCalledWith(3, persistedBatchProcessHref, {
+      method: "POST",
+    });
+  });
+
+  it("retries a lost batch request with the same confirmation token, so the server returns the batch it already made", async () => {
+    const randomUUID = vi.mocked(globalThis.crypto.randomUUID);
+    randomUUID
+      .mockReturnValueOnce("11111111-1111-4111-8111-111111111111")
+      .mockReturnValueOnce("22222222-2222-4222-8222-222222222222");
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Connection lost."))
+      .mockResolvedValueOnce(okBatchResponse({ processed: 1, succeeded: 1 }));
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith("Connection lost.");
+    });
+    fireEvent.click(view.getByRole("button", { name: "Send receipts" }));
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith("Sent 1 receipt.");
+    });
+
+    const tokens = fetchMock.mock.calls
+      .filter(([url]) => url === "/api/admin/contribution-batches")
+      .map(
+        ([, init]) =>
+          (
+            JSON.parse(String((init as RequestInit).body)) as {
+              confirmationToken: string;
+            }
+          ).confirmationToken,
+      );
+    expect(tokens).toEqual([
+      "11111111-1111-4111-8111-111111111111",
+      "11111111-1111-4111-8111-111111111111",
+    ]);
+  });
+
+  it("locks the resend choice once the batch is saved, so a retry sends what the dialog shows", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockRejectedValueOnce(new Error("Connection lost."))
+      .mockResolvedValueOnce(okBatchResponse({ processed: 1, succeeded: 1 }));
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([
+      makeContribution({ receiptStatus: "sent", receiptSent: true }),
+    ]);
+
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
+    const resendName =
+      /send another copy for 1 gift that already has a receipt/i;
+    fireEvent.click(await view.findByRole("checkbox", { name: resendName }));
+    fireEvent.click(view.getByRole("button", { name: "Resend receipts" }));
+
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith("Connection lost.");
+    });
+
+    // The saved batch already holds the resend, so the choice can no
+    // longer change and the dialog says why.
+    const resend = view.getByRole("checkbox", { name: resendName });
+    expect(resend.getAttribute("aria-checked")).toBe("true");
+    expect(resend.getAttribute("aria-disabled")).toBe("true");
+    expect(view.getByRole("alertdialog").textContent).toContain(
+      "This batch is saved with this choice",
+    );
+    fireEvent.click(resend);
+    expect(resend.getAttribute("aria-checked")).toBe("true");
+
+    fireEvent.click(view.getByRole("button", { name: "Resend receipts" }));
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith("Sent 1 receipt.");
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock).toHaveBeenNthCalledWith(3, persistedBatchProcessHref, {
       method: "POST",
     });
@@ -652,7 +867,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     );
     const view = renderMainBody(rows);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     expect(
@@ -686,12 +901,12 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
       expect(toastErrorMock).toHaveBeenCalledWith(
-        "Bulk receipt batch failed: 0 succeeded, 1 failed.",
+        "The receipt batch failed: 0 sent, 1 failed.",
       );
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -719,16 +934,128 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     });
     const view = renderMainBody([makeContribution()]);
 
-    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(view.getByRole("button", { name: BULK_RECEIPTS_ACTION }));
     fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
 
     await waitFor(() => {
       expect(toastWarningMock).toHaveBeenCalledWith(
-        "Bulk receipt batch complete with issues: 1 succeeded, 1 failed, 1 skipped.",
+        "Sent 1 receipt; 1 failed and 1 skipped.",
       );
     });
     expect(toastSuccessMock).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("ContributionsMainBody skip to gifts", () => {
+  it("offers a skip link first, ahead of Needs attention and the summary", () => {
+    const view = render(
+      <ContributionsMainBody
+        data={[makeContribution()]}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />,
+    );
+
+    const link = view.getByRole("link", { name: "Skip to gifts" });
+    const firstFocusable = view.container.querySelector<HTMLElement>(
+      "a[href], button, input, [tabindex]:not([tabindex='-1'])",
+    );
+    expect(firstFocusable).toBe(link);
+    // Invisible until focused, so it costs sighted mouse users nothing; it
+    // keeps its padding when shown (sr-only would reset it on focus).
+    const classes = link.className.split(" ");
+    expect(classes).toEqual(
+      expect.arrayContaining([
+        "opacity-0",
+        "focus:opacity-100",
+        "pointer-events-none",
+        "focus:pointer-events-auto",
+        "focus:ring-2",
+        "focus:ring-ring",
+        "px-3",
+        "py-2",
+      ]),
+    );
+    expect(classes).not.toContain("focus:not-sr-only");
+  });
+
+  it("moves focus to the first gift in the grid", () => {
+    const view = render(
+      <ContributionsMainBody
+        data={[makeContribution()]}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(view.getByRole("link", { name: "Skip to gifts" }));
+
+    const firstGift = view.container.querySelector<HTMLElement>(
+      "[data-grid-row-primary]",
+    );
+    expect(firstGift).toBeTruthy();
+    expect(document.activeElement).toBe(firstGift);
+  });
+
+  it("lands on the gifts search when no gift is listed", () => {
+    const view = render(
+      <ContributionsMainBody
+        data={[]}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(view.getByRole("link", { name: "Skip to gifts" }));
+
+    // With no gifts the grid is an empty state; focus lands inside it
+    // rather than staying on the link.
+    const gifts = view.container.querySelector("#contribution-gifts");
+    expect(gifts?.contains(document.activeElement)).toBe(true);
+  });
+});
+
+describe("ContributionsMainBody jump to gifts on phones", () => {
+  it("shows touch users a visible Jump to gifts link that reaches the first gift", () => {
+    const view = render(
+      <ContributionsMainBody
+        data={[makeContribution()]}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />,
+    );
+
+    // Needs attention and the summary push the first gift below the fold on
+    // phones and small tablets (640 included), where gifts show as cards;
+    // the keyboard-only skip link does not help a touch user.
+    const link = view.getByRole("link", { name: "Jump to gifts" });
+    expect(link.getAttribute("href")).toBe("#contribution-gifts");
+    const classes = link.className.split(" ");
+    expect(classes).toContain("md:hidden");
+    expect(classes).not.toContain("sm:hidden");
+    expect(classes).not.toContain("opacity-0");
+    // Where it shows it replaces the invisible skip link, so a keyboard user
+    // there does not meet two links to the same place.
+    const skip = view.getByRole("link", { name: "Skip to gifts" });
+    expect(skip.className.split(" ")).toContain("max-md:hidden");
+
+    fireEvent.click(link);
+    expect(document.activeElement).toBe(
+      view.container.querySelector("[data-grid-row-primary]"),
+    );
+  });
+
+  it("is left out when there are no gifts to jump to", () => {
+    const view = render(
+      <ContributionsMainBody
+        data={[]}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />,
+    );
+
+    expect(view.queryByRole("link", { name: "Jump to gifts" })).toBeNull();
   });
 });
 
@@ -761,7 +1088,7 @@ describe("offline gift entry readiness gate", () => {
     const view = renderPageActions();
 
     expect(
-      view.queryByRole("button", { name: /Enter Offline Gift/i }),
+      view.queryByRole("button", { name: /Enter offline gift/i }),
     ).toBeNull();
   });
 
@@ -769,8 +1096,10 @@ describe("offline gift entry readiness gate", () => {
     const view = renderPageActions(true);
 
     expect(
-      view.queryByRole("button", { name: /Enter Offline Gift/i }),
+      view.queryByRole("button", { name: /Enter offline gift/i }),
     ).toBeNull();
-    expect(view.getByRole("button", { name: "Export" })).toBeTruthy();
+    // Export only toasted "coming soon"; a dead header control is removed
+    // rather than shown.
+    expect(view.queryByRole("button", { name: "Export" })).toBeNull();
   });
 });

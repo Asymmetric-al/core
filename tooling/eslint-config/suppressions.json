@@ -1,30 +1,60 @@
 {
-  "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx": {
+  "apps/admin/app/(app)/support/tickets/[id]/page.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 27
+      "count": 4
     }
   },
-  "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx": {
+  "apps/admin/app/(app)/support/tickets/page.tsx": {
+    "shadcn/no-arbitrary-values": {
+      "count": 1
+    }
+  },
+  "apps/admin/features/support-hub/components/detail/ConversationDetail.tsx": {
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 5
     }
   },
-  "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx": {
-    "shadcn/no-restyle": {
-      "count": 28
-    }
-  },
-  "apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx": {
+  "apps/admin/features/support-hub/components/detail/composer/SupportTipTapEditor.tsx": {
     "shadcn/no-restyle": {
       "count": 9
     }
   },
-  "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx": {
+  "apps/admin/features/support-hub/components/reports/ReportFilters.tsx": {
     "shadcn/no-restyle": {
-      "count": 39
+      "count": 18
+    }
+  },
+  "apps/admin/features/support-hub/components/reports/ReportScopeSelect.tsx": {
+    "shadcn/no-restyle": {
+      "count": 2
+    }
+  },
+  "apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursForm.tsx": {
+    "shadcn/no-restyle": {
+      "count": 11
+    }
+  },
+  "apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseForm.tsx": {
+    "shadcn/no-restyle": {
+      "count": 1
+    }
+  },
+  "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx": {
+    "shadcn/no-restyle": {
+      "count": 2
+    }
+  },
+  "apps/admin/features/support-hub/components/settings/sla/SlaPolicyForm.tsx": {
+    "shadcn/no-restyle": {
+      "count": 2
+    }
+  },
+  "apps/admin/features/support-hub/components/toolbar/LabelFilter.tsx": {
+    "shadcn/no-restyle": {
+      "count": 4
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/wallet/loading.tsx": {
@@ -47,11 +77,8 @@
     }
   },
   "apps/donor/app/(public)/(hero)/financials/financials-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 4
+      "count": 2
     }
   },
   "apps/donor/app/(public)/(hero)/latest-ministry-updates.tsx": {
@@ -61,7 +88,7 @@
   },
   "apps/donor/app/(public)/(hero)/ways-to-give/ways-to-give-client.tsx": {
     "shadcn/no-restyle": {
-      "count": 16
+      "count": 1
     }
   },
   "apps/donor/app/(public)/(hero)/workers/workers-client.tsx": {
@@ -73,14 +100,8 @@
     }
   },
   "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
       "count": 37
-    },
-    "shadcn/no-unknown-classes": {
-      "count": 2
     }
   },
   "apps/donor/app/(public)/(solid)/checkout/loading.tsx": {
@@ -121,7 +142,7 @@
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 5
+      "count": 4
     }
   },
   "apps/donor/app/(public)/(solid)/workers/[id]/profile-hero-view-transitions.tsx": {
@@ -182,25 +203,14 @@
       "count": 5
     }
   },
-  "apps/donor/features/donor/components/donor-dashboard-main-body.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
   "apps/donor/features/giving/components/QuickGive.tsx": {
     "shadcn/no-raw-colors": {
       "count": 2
     }
   },
   "apps/missionary/app/donors/donors-page-columns.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 21
+      "count": 18
     }
   },
   "apps/missionary/app/donors/donors-page-detail-contact.tsx": {
@@ -227,37 +237,9 @@
       "count": 1
     }
   },
-  "apps/missionary/app/donors/donors-page-header.tsx": {
-    "shadcn/no-restyle": {
-      "count": 9
-    }
-  },
   "apps/missionary/app/donors/donors-page-states.tsx": {
     "shadcn/no-restyle": {
       "count": 11
-    }
-  },
-  "apps/missionary/app/donors/donors-page-stats.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 1
-    }
-  },
-  "apps/missionary/app/email-studio/page-client.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
-    }
-  },
-  "apps/missionary/app/help/about/page.tsx": {
-    "shadcn/no-restyle": {
-      "count": 2
-    }
-  },
-  "apps/missionary/components/dashboard-footer.tsx": {
-    "shadcn/no-restyle": {
-      "count": 5
     }
   },
   "apps/missionary/features/feed/components/comments-dialog.tsx": {
@@ -377,22 +359,6 @@
       "count": 1
     }
   },
-  "packages/ui/components/auth/RegisterScreen.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 3
-    }
-  },
-  "packages/ui/components/auth/auth-primitives.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 20
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
-    }
-  },
   "packages/ui/components/brand-logo.tsx": {
     "shadcn/no-raw-colors": {
       "count": 4
@@ -413,7 +379,7 @@
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 12
+      "count": 11
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -493,11 +459,8 @@
     }
   },
   "packages/ui/components/shadcn-studio/blocks/dropdown-profile.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 13
+      "count": 7
     }
   },
   "packages/ui/components/shadcn-studio/blocks/hero-section-09/header.tsx": {
@@ -623,7 +586,7 @@
   },
   "packages/ui/components/shadcn/data-table/data-table-responsive-chrome.tsx": {
     "shadcn/no-restyle": {
-      "count": 54
+      "count": 52
     },
     "shadcn/require-static-classes": {
       "count": 4
@@ -692,17 +655,12 @@
   },
   "packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx": {
     "shadcn/no-restyle": {
-      "count": 6
+      "count": 4
     }
   },
   "packages/ui/components/shadcn/rich-text-editor/link-bubble-menu.tsx": {
     "shadcn/no-restyle": {
       "count": 20
-    }
-  },
-  "packages/ui/components/shadcn/rich-text-editor/toolbar.tsx": {
-    "shadcn/no-restyle": {
-      "count": 60
     }
   },
   "packages/ui/components/shadcn/searchable-select.tsx": {

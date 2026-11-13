@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const queryRows = vi.hoisted((): Record<string, unknown>[] => []);
 const { getAdminClientMock, fromMock, eqMock, upsertMock } = vi.hoisted(() => {
   const eq = vi.fn();
   const order = vi.fn();
@@ -9,7 +10,7 @@ const { getAdminClientMock, fromMock, eqMock, upsertMock } = vi.hoisted(() => {
     eq,
     order,
     then(resolve: (value: { data: unknown[]; error: null }) => void) {
-      resolve({ data: [], error: null });
+      resolve({ data: queryRows, error: null });
     },
   };
   eq.mockReturnValue(query);
@@ -53,6 +54,7 @@ import { runWithSupportHubTenant } from "../../../../../../packages/api/src/admi
 describe("supabaseSupportHubAdapter tenant isolation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    queryRows.length = 0;
     getAdminClientMock.mockReturnValue({
       client: { from: fromMock },
       error: null,
@@ -73,6 +75,38 @@ describe("supabaseSupportHubAdapter tenant isolation", () => {
     expect(fromMock).toHaveBeenCalledWith("support_labels");
     expect(eqMock).toHaveBeenCalledWith("tenant_id", "tenant-a");
   });
+
+  it.each(["auth-user-linked", null])(
+    "preserves the canonical agent user_id link %s",
+    async (userId) => {
+      queryRows.push({
+        tenant_id: "tenant-a",
+        id: "agent-david",
+        user_id: userId,
+        name: "David",
+        email: "care@givehope.org",
+        avatar_url: null,
+        title: null,
+      });
+
+      const agents = await runWithSupportHubTenant("tenant-a", () =>
+        supabaseSupportHubAdapter.agents.list(),
+      );
+
+      expect(agents).toEqual([
+        {
+          id: "agent-david",
+          userId,
+          name: "David",
+          email: "care@givehope.org",
+          avatarUrl: null,
+          title: null,
+        },
+      ]);
+      expect(fromMock).toHaveBeenCalledWith("support_agents");
+      expect(eqMock).toHaveBeenCalledWith("tenant_id", "tenant-a");
+    },
+  );
 
   it("stamps saved rows with the server-bound tenant id", async () => {
     const label = await runWithSupportHubTenant("tenant-b", () =>

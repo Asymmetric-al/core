@@ -1,6 +1,7 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { z } from "zod";
 
+import { MEMBER_CARE_THREAD_POST_TITLE } from "../../reads/member-care";
 import { revalidateMemberCareCache } from "../../shared/cache-tags";
 
 export const threadPostSchema = z.object({
@@ -196,7 +197,7 @@ export async function createCareThreadPost(
       tenant_id: tenantId,
       missionary_id: payload.personnelId,
       type: "pastoral_note",
-      title: "Care thread update",
+      title: MEMBER_CARE_THREAD_POST_TITLE,
       description: payload.content,
       author_user_id: actorId,
       author_name_snapshot: actorNameSnapshot,

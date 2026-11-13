@@ -139,9 +139,6 @@ describe("donor FAQ accessibility", () => {
         name: "How much of my donation actually goes to the field?",
       }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole("link", { name: "Email Support" }).getAttribute("href"),
-    ).toBe("/contact");
   });
 
   it("communicates which category is selected after filtering", () => {
@@ -161,15 +158,21 @@ describe("donor FAQ accessibility", () => {
     expect(account.getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("offers working email support without an unavailable chat control", () => {
+  // There is no contact page or support inbox, so the closing call to action
+  // goes to the donor portal, where gifts and receipts actually live.
+  it("ends with a working next step, not an unavailable contact or chat", () => {
     showFAQ();
     expect(
       screen.queryByRole("button", { name: "Chat with Us", exact: true }),
     ).toBeNull();
     expect(
+      screen.queryByRole("link", { name: "Email Support", exact: true }),
+    ).toBeNull();
+    expect(document.querySelector('a[href="/contact"]')).toBeNull();
+    expect(
       screen
-        .getByRole("link", { name: "Email Support", exact: true })
+        .getByRole("link", { name: "Open the donor portal", exact: true })
         .getAttribute("href"),
-    ).toBe("/contact");
+    ).toBe("/donor-dashboard");
   });
 });

@@ -37,6 +37,11 @@ const defaults = {
   summary: "",
 };
 beforeEach(() => {
+  vi.stubGlobal("matchMedia", () => ({
+    matches: false,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
   loadTicketList.mockResolvedValue({
     ...supportHubReadModel,
     tickets: [],
@@ -67,6 +72,26 @@ function intake() {
     render(<NewTicketForm contacts={contacts} queues={queues} />).container,
   );
 }
+it("links each missing intake field to its own error", () => {
+  const form = intake();
+  fireEvent.submit(form);
+  for (const [name, message] of [
+    ["Contact", "Choose a contact."],
+    ["Subject", "Enter a subject."],
+    ["Support track", "Choose a support track."],
+    ["Summary", "Enter a summary."],
+  ]) {
+    const control =
+      name === "Contact" || name === "Support track"
+        ? screen.getByRole("combobox", { name, exact: true })
+        : screen.getByLabelText(name);
+    expect(control.getAttribute("aria-invalid")).toBe("true");
+    expect(
+      document.getElementById(control.getAttribute("aria-describedby")!)
+        ?.textContent,
+    ).toBe(message);
+  }
+});
 async function choose(name: string, value: string, label: string) {
   const control = screen.getByRole("combobox", { name, exact: true });
   // Support the native before-migration baseline for payload/reset tests.
@@ -85,7 +110,7 @@ async function choose(name: string, value: string, label: string) {
 async function fillIntake() {
   await choose("Contact", "contact-1", "Ada Lovelace");
   await choose("Support track", "donor_care", "Donor Care");
-  await choose("Priority", "urgent", "urgent");
+  await choose("Priority", "urgent", "Urgent");
   fireEvent.change(screen.getByLabelText("Subject"), {
     target: { value: "  Receipt help  " },
   });
@@ -94,6 +119,79 @@ async function fillIntake() {
   });
 }
 describe("support ticket intake", () => {
+  it("offers Someone new alongside saved contacts and never posts its sentinel as a contact id", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(Response.json({ id: "ticket-new" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const form = intake();
+    await choose("Contact", "new-contact", "Someone new");
+    fireEvent.submit(form);
+    const email = screen.getByLabelText("Contact email");
+    expect(email.getAttribute("aria-invalid")).toBe("true");
+    expect(
+      document.getElementById(email.getAttribute("aria-describedby")!)
+        ?.textContent,
+    ).toBe("Enter a valid contact email.");
+    fireEvent.change(screen.getByLabelText("Contact name"), {
+      target: { value: "Grace Hopper" },
+    });
+    fireEvent.change(email, { target: { value: "grace@example.test" } });
+    expect(email.getAttribute("aria-invalid")).toBe("false");
+    await choose("Support track", "donor_care", "Donor Care");
+    fireEvent.change(screen.getByLabelText("Subject"), {
+      target: { value: "Receipt help" },
+    });
+    fireEvent.change(screen.getByLabelText("Summary"), {
+      target: { value: "Please resend it." },
+    });
+    fireEvent.submit(form);
+    await screen.findByRole("link", { name: "View ticket" });
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1].body)).not.toHaveProperty(
+      "contactId",
+    );
+    expect(screen.queryByLabelText("Contact name")).toBeNull();
+    expect(new FormData(form).get("contact")).toBe("");
+  });
+
+  it("asks for name and email when there are no saved contacts and creates a snapshot-only ticket", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(Response.json({ id: "ticket-new" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const form = getForm(
+      render(<NewTicketForm contacts={[]} queues={queues} />).container,
+    );
+    expect(
+      screen.queryByRole("combobox", { name: "Contact", exact: true }),
+    ).toBeNull();
+    fireEvent.change(screen.getByLabelText("Contact name"), {
+      target: { value: "  Grace Hopper  " },
+    });
+    fireEvent.change(screen.getByLabelText("Contact email"), {
+      target: { value: "grace@example.test" },
+    });
+    await choose("Support track", "donor_care", "Donor Care");
+    fireEvent.change(screen.getByLabelText("Subject"), {
+      target: { value: "Receipt help" },
+    });
+    fireEvent.change(screen.getByLabelText("Summary"), {
+      target: { value: "Please resend it." },
+    });
+    fireEvent.submit(form);
+    expect(
+      await screen.findByRole("link", { name: "View ticket" }),
+    ).toHaveProperty("pathname", "/support/tickets/ticket-new");
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1].body)).toEqual({
+      contactName: "Grace Hopper",
+      contactEmail: "grace@example.test",
+      queueId: "donor_care",
+      priority: "normal",
+      subject: "Receipt help",
+      summary: "Please resend it.",
+    });
+  });
+
   it("names shared selectors and serializes required placeholders/default priority", () => {
     const form = intake();
     for (const name of ["Contact", "Support track", "Priority"])
@@ -142,7 +240,7 @@ describe("support ticket intake", () => {
     ).toContain("Select contact");
     expect(
       screen.getByRole("combobox", { name: "Priority" }).textContent,
-    ).toContain("normal");
+    ).toContain("Normal");
   });
   it("retains selections on failure and permits retry", async () => {
     const fetchMock = vi

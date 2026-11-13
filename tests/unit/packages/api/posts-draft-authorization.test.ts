@@ -33,6 +33,19 @@ describe("postsQuerySchema", () => {
     ).toThrow();
   });
 
+  it("treats an absent missionaryId search param (null) as no filter", () => {
+    // The handler reads `searchParams.get("missionaryId")`, which is `null`
+    // when the param is absent -- the normal donor and missionary feed request.
+    const parsed = postsQuerySchema.parse({
+      limit: "5",
+      offset: "0",
+      status: "published",
+      missionaryId: null,
+    });
+
+    expect(parsed.missionaryId).toBeUndefined();
+  });
+
   it("bounds offset so the cache key cannot be sprayed", () => {
     expect(() =>
       postsQuerySchema.parse({ limit: "10", offset: "10001" }),

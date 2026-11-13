@@ -104,11 +104,6 @@ describe("#2407a criterion 15 [A] editor component", () => {
       "care-note",
     ],
     [
-      "apps/admin/app/(app)/feed/org-updates/page-client.tsx",
-      "Organization post content",
-      "feed",
-    ],
-    [
       "apps/missionary/app/feed/worker-feed-page-client.tsx",
       "Ministry post content",
       "feed",
@@ -125,4 +120,16 @@ describe("#2407a criterion 15 [A] editor component", () => {
       expect(element).toContain(`imagePurpose="${purpose}"`);
     },
   );
+  it("keeps organization publishing unavailable until it has a real publishing path", () => {
+    const source = readFileSync(
+      "apps/admin/app/(app)/feed/org-updates/page-client.tsx",
+      "utf8",
+    );
+    expect(source).not.toContain("<RichTextEditor");
+    expect(source).not.toContain("onSubmit");
+    expect(source).toContain(
+      "Organization updates cannot be published or saved here yet",
+    );
+    expect(source).toContain("Publishing is not connected yet");
+  });
 });

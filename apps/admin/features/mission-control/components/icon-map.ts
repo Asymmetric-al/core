@@ -29,6 +29,10 @@ import {
   Search,
   User,
   ArrowRight,
+  CheckSquare,
+  Compass,
+  Megaphone,
+  Send,
 } from "lucide-react";
 
 import type React from "react";
@@ -69,6 +73,10 @@ const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   Search,
   User,
   ArrowRight,
+  CheckSquare,
+  Compass,
+  Megaphone,
+  Send,
 };
 
 export function getIcon(

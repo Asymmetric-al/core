@@ -177,7 +177,7 @@ for (const [file, content] of outputs) {
     ...formatOptions,
     filepath: file,
   });
-  if (file.endsWith("/specs/donor-development/spec.md")) {
+  if (file.endsWith(path.join("specs", "donor-development", "spec.md"))) {
     formatted = await renderContractView({
       repoRoot: repo,
       capability: "donor-development",

@@ -20,11 +20,19 @@ export function contributionDetailQueryKey(donationId: string) {
   return [...ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY, donationId] as const;
 }
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+/**
+ * Any 8-4-4-4-12 hex id, the same shape the operation action schema accepts
+ * (`z.guid()`). Seeded and imported gifts carry ids outside the RFC version
+ * and variant ranges, and a stricter check here silently dropped their links.
+ */
+const GUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const INVALID_CONTRIBUTION_LINK_MESSAGE =
+  "That contribution link isn’t valid.";
 
 export function isContributionGiftParam(value: string | null): value is string {
-  return Boolean(value && UUID_PATTERN.test(value));
+  return Boolean(value && GUID_PATTERN.test(value));
 }
 
 /**

@@ -5,7 +5,6 @@ import {
   HomeStats,
   HomeFeatured,
   HomeCTA,
-  LiveTicker,
 } from "@asym/ui/components/public/home-sections";
 import { Suspense } from "react";
 
@@ -20,7 +19,6 @@ export default function HomePage() {
     <div className="flex flex-col min-h-dvh bg-background selection:bg-invert/10 selection:text-foreground">
       <DonateActionJsonLd />
       <HomeHero />
-      <LiveTicker />
       <HomeMission />
       <HomeStats />
       <HomeFeatured />

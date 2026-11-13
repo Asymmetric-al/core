@@ -148,7 +148,9 @@ describe("rich-text-editor/link-bubble-menu", () => {
     fireEvent.click(screen.getByLabelText("Save link"));
 
     await waitFor(() => {
-      expect(toastError).toHaveBeenCalledWith("Please enter a valid URL");
+      expect(toastError).toHaveBeenCalledWith(
+        "Enter a web address, like https://example.org",
+      );
     });
     expect(document.activeElement).toBe(input);
 
