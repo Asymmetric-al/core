@@ -261,6 +261,13 @@ export async function observeMerges({
 // keeps coming back blocks the issue under the no-progress rule. Any other
 // native hold (sign-in, budget, configuration, unclear effects) stays for a
 // person.
+//
+// The engine pauses a run that met a usage limit and wakes it itself within
+// seconds of the reported reset. The command ends a run it finds paused, so
+// the pass stays away until the engine has had two minutes to wake it: after
+// that a run still paused was not woken, and ending it is the fallback.
+const ENGINE_WAKE_GRACE_MS = 2 * 60_000;
+
 export async function recoverNativeFaults({ items, recover, nowMs }) {
   const results = [];
   for (const [issue, value] of items) {
@@ -275,7 +282,7 @@ export async function recoverNativeFaults({ items, recover, nowMs }) {
     const resets = (Array.isArray(fault.faults) ? fault.faults : [])
       .map((entry) => Date.parse(entry?.resetAt ?? ""))
       .filter(Number.isFinite);
-    if (resets.some((at) => at > nowMs)) {
+    if (resets.some((at) => at + ENGINE_WAKE_GRACE_MS > nowMs)) {
       results.push({
         issue,
         action: "recover-native",

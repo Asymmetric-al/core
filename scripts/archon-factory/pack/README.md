@@ -106,9 +106,10 @@ until the reset the provider reported (`archon workflow status` shows "tries
 again at ..."). At the reset the engine wakes that same run and it finishes its
 round under its own lease. `record` keeps the hold, so the next selector pass
 settles the item with `recover-native`, which ends nothing in that case; a
-candidate the round committed is kept and goes through review once more. If the
-engine did not wake the run, the pass ends the paused run and starts the round
-again. To stop waiting before the reset, run `recover-native` yourself: it ends
+candidate the round committed is kept and goes through review once more. The
+pass leaves a held issue alone until two minutes after the reset, so it never
+ends a run in the seconds in which the engine wakes it. If the engine did not
+wake the run, the pass then ends the paused run and starts the round again. To stop waiting before the reset, run `recover-native` yourself: it ends
 the paused run first.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
@@ -124,8 +125,9 @@ unchanged item's start stays a no-op.
 
 ### A delivery round
 
-`claim` takes the issue lease and checks the issue clone out at the recorded
-head; `context` assembles the source-linked packet; Samson `scope`s the first
+`claim` takes the issue lease, fetches the shared mirror (again, up to four
+times, when another round's fetch moved the same refs first) and checks the
+issue clone out at the recorded head; `context` assembles the source-linked packet; Samson `scope`s the first
 round; Ezra `define`s acceptance; Bezalel `build`s; `freeze` commits through
 Core's normal hooks in the credential-free executor and records the post-hook
 candidate; Micaiah and Luke review separate exact views; `seal` releases both

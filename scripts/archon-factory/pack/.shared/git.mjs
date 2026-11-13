@@ -336,11 +336,31 @@ export async function ensureMirror({ git, paths, remote }) {
   }
 }
 
-export async function fetchMirror({ git, paths }) {
-  await git.ok(["fetch", "--prune", "--no-tags", "origin"], {
-    gitDir: paths.mirror,
-    timeoutMs: 15 * 60_000,
-  });
+// What Git prints when another process moved or locked a ref first: 2.50 and
+// later, earlier releases, and a held lock file.
+const REF_RACE =
+  /incorrect old value provided|reference already exists|cannot lock ref|Unable to create '[^'\n]*\.lock'/;
+const MIRROR_FETCHES = 4;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Every round fetches into the one mirror, and two rounds can start in the
+// same second. Git moves each remote-tracking ref with compare-and-swap, so
+// the fetch that arrives second fails on every ref the first one already
+// moved, although the mirror is current by then. Fetching is idempotent, so a
+// fetch that lost that race runs again. Any other failure is reported at once.
+export async function fetchMirror({ git, paths, pause = sleep }) {
+  for (let attempts = 1; ; attempts += 1) {
+    const result = await git.git(["fetch", "--prune", "--no-tags", "origin"], {
+      gitDir: paths.mirror,
+      timeoutMs: 15 * 60_000,
+    });
+    if (result.code === 0) return { attempts };
+    if (attempts >= MIRROR_FETCHES || !REF_RACE.test(result.stderr))
+      throw new Error(
+        `git fetch --prune failed (${result.code}): ${result.stderr.trim().slice(-800)}`,
+      );
+    await pause(attempts * 1000 + Math.floor(Math.random() * 500));
+  }
 }
 
 export async function revParse({ git, gitDir, cwd }, ref) {

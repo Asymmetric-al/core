@@ -623,6 +623,7 @@ export const ISSUE_ACTIONS = [
   "reopen",
   "reconcile",
   "adopt-policy",
+  "recover-native",
 ] as const;
 
 const issueNumber = z.number().int().positive().max(10_000_000);
@@ -681,6 +682,8 @@ export const DESTRUCTIVE: ReadonlySet<string> = new Set([
   "factory:stop",
   "factory:drain",
   "issue:stop",
+  // It ends the held run when the engine reports it paused or failed.
+  "issue:recover-native",
   "cancel-run",
 ]);
 
@@ -705,6 +708,8 @@ export function describeAction(action: ControlAction): string {
     case "issue":
       if (action.action === "adopt-policy")
         return `Move issue #${action.issue} to the installed release`;
+      if (action.action === "recover-native")
+        return `Clear the provider-fault hold on issue #${action.issue}`;
       return `${
         {
           hold: "Hold",
@@ -927,7 +932,14 @@ export const REFUSAL_MESSAGES: Record<string, string> = {
   "cleanup-unconfirmed":
     "Cleanup is unconfirmed, so the action was refused. Preserve the run, lease, reservations and evidence until cleanup is independently confirmed; that confirmation does not clear native or identity holds.",
   "native-fault-held":
-    "The owning run has an unresolved native safety hold. Preserve its identity, work, lease, reservations and evidence. A trusted native recovery operation is unavailable; retry, reopen, release and ordinary reconcile cannot clear this hold.",
+    "The issue is held because a round failed on a provider fault, so the action was refused. Its identity, work, lease, reservations and evidence are kept. Retry, reopen, release and ordinary reconcile cannot clear this hold. Deal with the cause, then use Clear the provider-fault hold; a usage limit or an outage is cleared by the intake pass itself after any reset the provider reported.",
+  "no-native-hold": "This issue has no provider-fault hold to clear.",
+  "effects-unreconciled":
+    "What the held run did on GitHub could not be confirmed: the issue's branch is not at a commit the work item recorded, or a merge the factory requested is still pending. The hold stays and nothing was changed.",
+  "containers-unconfirmed":
+    "The held run's check containers are not confirmed gone, so the hold stays and nothing was changed. Repeat the action.",
+  "run-not-ended":
+    "The engine did not end the held run, so the hold stays and nothing was changed.",
   "policy-unavailable":
     "The installed policy could not be verified, so the action was refused. Preserve the retained assignment and identity binding; restore trusted policy evidence before acting.",
   "policy-transition-required":

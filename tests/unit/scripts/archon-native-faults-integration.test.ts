@@ -77,6 +77,30 @@ describe("native adapter settlement integration seam", () => {
     ).toMatchObject({ nativePending: true });
   });
 
+  // The blocker's recovery line is what an operator reads in the status and
+  // on the Console's issue page.
+  it.each([
+    [
+      "native-recovery",
+      /intake pass clears this hold by itself.*issue <n> recover-native/s,
+    ],
+    ["owner-action", /Deal with the cause.*issue <n> recover-native/s],
+    ["configuration-action", /Deal with the cause.*issue <n> recover-native/s],
+  ])("tells the operator how a %s hold is cleared", (action, advice) => {
+    const decision = decideRound({
+      ledger: {},
+      item: { run: { id: RUN_ID, route: "review" } },
+      nodes: [{ node_id: "micaiah", state: "failed" }],
+      nativeFaults: { ...faultReport("micaiah"), action },
+    });
+
+    expect(decision.blocker).toMatchObject({ code: action });
+    expect(decision.blocker.recovery).toMatch(advice);
+    expect(decision.blocker.recovery).toMatch(
+      /retry, reopen and release cannot clear it/,
+    );
+  });
+
   it.each(["publish", "readiness"])(
     "holds a typed %s failure until its external effects are reconciled",
     (nodeId) => {

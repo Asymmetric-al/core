@@ -1104,7 +1104,7 @@
       "proof": [
         {
           "path": "apps/factory-console/src/components/issue-detail.tsx",
-          "sha256": "51c38be24d04b2c9f60f7587a8698e505f59633d580bbb6a8160c9c0144d9ed5"
+          "sha256": "ca591dd875fbc5beb719f878a77f992e53f047a15e13b853225682632124a472"
         },
         {
           "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",

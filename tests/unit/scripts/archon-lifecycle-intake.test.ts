@@ -717,7 +717,7 @@ describe("recoverNativeFaults", () => {
 
   it("waits for a quota reset the provider reported", async () => {
     const later = new Date(NOW_MS + 60_000).toISOString();
-    const earlier = new Date(NOW_MS - 60_000).toISOString();
+    const earlier = new Date(NOW_MS - 10 * 60_000).toISOString();
     const { results, asked } = await pass([
       [12, held(12, { faults: [{ resetAt: later }] })],
       [14, held(14, { faults: [{ resetAt: earlier }, { resetAt: null }] })],
@@ -726,6 +726,37 @@ describe("recoverNativeFaults", () => {
       results: [
         {
           issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        { issue: 14, action: "recover-native", ok: true },
+      ],
+      asked: [[14, "run-14"]],
+    });
+  });
+
+  // The engine wakes a run it paused for a usage limit within seconds of the
+  // reset. The command would end a run that is still paused, so a pass that
+  // lands in those seconds must not get there first.
+  it("gives the engine two minutes after the reset to wake the paused run itself", async () => {
+    const at = (secondsAgo: number) =>
+      new Date(NOW_MS - secondsAgo * 1000).toISOString();
+    const { results, asked } = await pass([
+      [12, held(12, { faults: [{ resetAt: at(1) }] })],
+      [13, held(13, { faults: [{ resetAt: at(119) }] })],
+      [14, held(14, { faults: [{ resetAt: at(120) }] })],
+    ]);
+    expect({ results, asked }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        {
+          issue: 13,
           action: "recover-native",
           ok: false,
           code: "reset-pending",

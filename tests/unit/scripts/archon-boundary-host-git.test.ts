@@ -25,6 +25,7 @@ const {
   HARDENED,
   createGit,
   ensureIssueRepo,
+  fetchMirror,
   hardenedArgs,
   prepareBranch,
   statusPorcelain,
@@ -653,4 +654,141 @@ describe("a build round's unrecorded commit", () => {
     ).rejects.toMatchObject({ code: "dirty-workspace" });
     expect(readFileSync(`${repo}/README.md`, "utf8")).toBe("uncommitted\n");
   });
+});
+
+// Two rounds that start in the same pass both fetch into the one mirror. Git
+// moves every remote-tracking ref with compare-and-swap, so the fetch that
+// arrives second fails on each ref the first one already moved, although the
+// mirror is current by then. On 13 November 2026 that cost issue 2370 a round.
+describe("the shared mirror fetch", () => {
+  const FETCH = ["fetch", "--prune", "--no-tags", "origin"];
+  // What Git 2.50 printed on the factory when the race was lost.
+  const LOST_RACE = [
+    "From github.com:Asymmetric-al/core",
+    "   8facb0881..208058f44  t3/archon-factory-vm100-commissioning -> origin/t3/archon-factory-vm100-commissioning",
+    "error: fetching ref refs/remotes/origin/develop failed: incorrect old value provided",
+  ].join("\n");
+  const paths = { mirror: "/srv/core-factory/mirror.git" };
+  const scripted = (...results: { code: number; stderr: string }[]) => {
+    const calls: { args: string[]; gitDir?: string }[] = [];
+    const pauses: number[] = [];
+    return {
+      calls,
+      pauses,
+      pause: async (ms: number) => void pauses.push(ms),
+      git: {
+        git: async (args: string[], options: { gitDir?: string } = {}) => {
+          calls.push({ args, gitDir: options.gitDir });
+          return {
+            stdout: "",
+            ...results[Math.min(calls.length, results.length) - 1],
+          };
+        },
+      },
+    };
+  };
+  const done = { code: 0, stderr: "" };
+
+  it("runs again when another round's fetch moved the same refs first", async () => {
+    const { git, calls, pauses, pause } = scripted(
+      { code: 1, stderr: LOST_RACE },
+      done,
+    );
+
+    await expect(fetchMirror({ git, paths, pause })).resolves.toEqual({
+      attempts: 2,
+    });
+    expect({ calls, pauses: pauses.length }).toEqual({
+      calls: [
+        { args: FETCH, gitDir: paths.mirror },
+        { args: FETCH, gitDir: paths.mirror },
+      ],
+      pauses: 1,
+    });
+  });
+
+  it.each([
+    "error: cannot lock ref 'refs/remotes/origin/develop': is at 208058f44b917513a61a29d54402d8aa80435605 but expected 8facb0881d0b1a4f5f0f1f6f3b5a1f6a55a1c2d3",
+    "error: cannot lock ref 'refs/remotes/origin/new': reference already exists",
+    "fatal: Unable to create '/srv/core-factory/mirror.git/packed-refs.lock': File exists.",
+  ])(
+    "runs again after the same race as older Git reports it: %s",
+    async (stderr) => {
+      const { git, calls, pause } = scripted({ code: 1, stderr }, done);
+
+      await expect(fetchMirror({ git, paths, pause })).resolves.toEqual({
+        attempts: 2,
+      });
+      expect(calls).toHaveLength(2);
+    },
+  );
+
+  it("reports any other failure at once", async () => {
+    const { git, calls, pauses, pause } = scripted({
+      code: 128,
+      stderr:
+        "fatal: unable to access 'https://github.com/Asymmetric-al/core/': Could not resolve host: github.com",
+    });
+
+    await expect(fetchMirror({ git, paths, pause })).rejects.toThrow(
+      /git fetch --prune failed \(128\): .*Could not resolve host/,
+    );
+    expect({ calls: calls.length, pauses }).toEqual({ calls: 1, pauses: [] });
+  });
+
+  it("gives up after four attempts when the race keeps being lost", async () => {
+    const { git, calls, pauses, pause } = scripted({
+      code: 1,
+      stderr: LOST_RACE,
+    });
+
+    await expect(fetchMirror({ git, paths, pause })).rejects.toThrow(
+      /git fetch --prune failed \(1\): .*incorrect old value provided/s,
+    );
+    expect({ calls: calls.length, pauses: pauses.length }).toEqual({
+      calls: 4,
+      pauses: 3,
+    });
+  });
+
+  it("leaves the mirror current when two rounds fetch at the same moment (real Git)", async () => {
+    const { root, paths: real, git } = factory();
+    const upstream = `${root}/upstream`;
+    plain(root, "--git-dir", real.mirror, "remote", "add", "origin", upstream);
+    plain(
+      root,
+      "--git-dir",
+      real.mirror,
+      "config",
+      "remote.origin.fetch",
+      "+refs/heads/*:refs/remotes/origin/*",
+    );
+    const branches = Array.from({ length: 40 }, (_, index) => `lane-${index}`);
+    const first = plain(upstream, "rev-parse", "HEAD~1");
+    for (const branch of branches)
+      plain(upstream, "update-ref", `refs/heads/${branch}`, first);
+    await fetchMirror({ git, paths: real });
+    const moved = plain(upstream, "rev-parse", "HEAD");
+    for (const branch of branches)
+      plain(upstream, "update-ref", `refs/heads/${branch}`, moved);
+    const pause = () => new Promise((resolve) => setTimeout(resolve, 25));
+
+    await Promise.all([
+      fetchMirror({ git, paths: real, pause }),
+      fetchMirror({ git, paths: real, pause }),
+    ]);
+
+    const refs = plain(
+      root,
+      "--git-dir",
+      real.mirror,
+      "for-each-ref",
+      "--format=%(objectname)",
+      "refs/remotes/origin/lane-*",
+    ).split("\n");
+    expect({ count: refs.length, heads: [...new Set(refs)] }).toEqual({
+      count: branches.length,
+      heads: [moved],
+    });
+  }, 60_000);
 });

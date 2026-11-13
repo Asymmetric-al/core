@@ -456,6 +456,13 @@ function IssueActions({
   const idle = item.status === "pending" || item.status === "waiting";
   const unsettled = idle || item.status === "active";
   const canReconcile = idle || (item.status === "active" && !lease?.live);
+  // A stored report is a hold even when it cannot be read (null).
+  const faultHeld = item.nativeFaults !== undefined;
+  const faultReset = (item.nativeFaults?.faults ?? [])
+    .map((fault) => fault.resetAt)
+    .filter((at): at is string => Boolean(at))
+    .sort()
+    .at(-1);
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <SubHeading>Issue controls</SubHeading>
@@ -544,6 +551,38 @@ function IssueActions({
             disabled={!canAdopt}
             disabledReason={`Only a BLOCKED or stopped issue that no run owns can be moved; #${issue} is ${item.status}.`}
             confirmBody={`#${issue} is bound to the installed release instead of the one it was assigned under. Its reviews and final acceptance are dropped and must be earned again; its branch, pull request, acceptance and history are kept. The control is refused if the issue is already on the installed release.`}
+          />
+        </div>
+        <div className="flex min-w-0 flex-col gap-2">
+          <p className="text-sm text-muted-foreground">
+            A round that failed on a provider fault (a usage limit, an outage,
+            an expired sign-in) leaves the issue held, and no other control
+            releases it. The intake pass clears a usage limit or an outage by
+            itself, after any reset the provider reported. Use this control
+            after you dealt with another cause, or to stop waiting: it checks
+            the release, the account and the issue&apos;s branch on GitHub, ends
+            the held run if the engine reports it paused or failed, and keeps
+            the committed work. It refuses, and changes nothing, while that run
+            is still working.
+          </p>
+          {item.nativeFaults ? (
+            <p className="text-sm break-words">
+              Held now: <Mono>{item.nativeFaults.action}</Mono> (
+              {item.nativeFaults.reason})
+              {faultReset ? (
+                <>
+                  ; the provider reported a reset at <When value={faultReset} />
+                </>
+              ) : null}
+              .
+            </p>
+          ) : null}
+          <ControlButton
+            action={make("recover-native")}
+            label={`Clear the provider-fault hold on issue #${issue}`}
+            disabled={!faultHeld}
+            disabledReason={`#${issue} has no provider-fault hold.`}
+            confirmBody={`The run that holds #${issue} is ended if the engine reports it paused or failed, and the issue then waits for its next round with its committed work kept. A round started before a usage limit resets fails on the limit again. Nothing is changed if the release, the account or the branch on GitHub cannot be confirmed.`}
           />
         </div>
         <div className="flex min-w-0 flex-col gap-2">
