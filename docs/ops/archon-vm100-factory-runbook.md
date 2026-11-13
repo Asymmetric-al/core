@@ -377,9 +377,12 @@ wake the run, the pass ends it and starts the round again. If the woken run
 meets another fault (the limit again, an expired sign-in), the hold takes the
 newer fault and its reset time. The pass leaves a held issue alone until two
 minutes after the reset, so that it cannot end a run in the seconds in which
-the engine wakes it, and it never ends a paused run while the engine still
-has a wake-up pending for it. These three rules are in release `d4ef3329`
-and later. A usage limit
+the engine wakes it. It also asks the engine when it will wake a paused run,
+and leaves that run alone until two minutes after that time, whatever reset
+the work item carries. A run that is still paused after that was not woken:
+the pass ends it and starts the round again. When the engine cannot be
+asked, the pass ends nothing and asks again next time. These rules are in
+release `d4ef3329` and later. A usage limit
 therefore costs one repeated round per held issue. On 13 November this
 was observed twice up to the hold; the part after the reset has not been seen
 yet.

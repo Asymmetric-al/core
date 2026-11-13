@@ -770,9 +770,10 @@ describe("recoverNativeFaults", () => {
   });
 
   // A woken run can meet the limit again and be paused by the engine for a
-  // later reset. Whatever reset the work item still carries, the pass must not
-  // end a run the engine itself is going to wake.
-  it("never ends a paused run while the engine still has a wake-up pending for it", async () => {
+  // later reset. Whatever reset the work item still carries, the pass leaves
+  // that run alone until two minutes after the engine's own wake time. A run
+  // still paused after that was not woken, and is recovered (run-14 below).
+  it("leaves a paused run alone until two minutes after the time the engine set to wake it", async () => {
     const long = new Date(NOW_MS - 60 * 60_000).toISOString();
     const recover = vi.fn(async () => ({ ok: true }));
     const waits: Record<string, number | null> = {

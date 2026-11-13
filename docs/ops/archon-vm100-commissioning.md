@@ -1371,7 +1371,9 @@ the open list of 12 November.
     fetched when the round started, so an update pressed during the round
     would have blocked the issue (it now fetches first); and the pass could
     end a run the engine had paused again for a later reset (it now asks the
-    engine and leaves a run with a pending wake-up alone).
+    engine, and leaves a paused run alone until two minutes after the time
+    the engine set to wake it; a run still paused after that counts as not
+    woken and is ended).
 
 Defects 42 to 45, and the gaps the reviews of pull request #2666 found, were
 repaired test-first and are in release `d4ef3329`, installed at 18:57 from

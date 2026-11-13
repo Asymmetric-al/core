@@ -112,10 +112,12 @@ another fault that requires a hold, `record` stores that newer report (a later
 reset, a fault that needs a person, or a failed publish or readiness step) in
 place of the old one; the engine's own pause is never taken as one. The
 pass leaves a held issue alone until two minutes after the reset, so it never
-ends a run in the seconds in which the engine wakes it, and it never ends a
-paused run while the engine still has a wake-up pending for it (a woken run
-that met the limit again). If the engine did not
-wake the run, the pass then ends the paused run and starts the round again. To stop waiting before the reset, run `recover-native` yourself: it ends
+ends a run in the seconds in which the engine wakes it. It also asks the
+engine when it will wake a paused run (a woken run that met the limit again
+is paused for a later reset) and leaves that run alone until two minutes
+after that time; when the engine cannot be asked it ends nothing. A run that
+is still paused two minutes after the engine's own wake time was not woken:
+the pass then ends it and starts the round again. To stop waiting before the reset, run `recover-native` yourself: it ends
 the paused run first.
 
 **Outside pushes.** The factory records every head it publishes; a head on

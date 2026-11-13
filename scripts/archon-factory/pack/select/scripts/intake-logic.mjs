@@ -269,8 +269,9 @@ export async function observeMerges({
 //
 // A woken run can meet the limit again, and the engine then pauses it for a
 // later reset. The work item may still carry the earlier one. So the pass also
-// asks the engine (`engineWait`): a run it is still going to wake is left
-// alone, whatever the stored reset says.
+// asks the engine (`engineWait`) and leaves a paused run alone until two
+// minutes after the time the engine set to wake it, whatever the stored reset
+// says. A run still paused after that was not woken either, and is ended.
 const ENGINE_WAKE_GRACE_MS = 2 * 60_000;
 
 // When the engine itself will wake a paused run: the `resume_at` of its last
