@@ -322,6 +322,12 @@ describe("native policy derived from the final frontmatter", () => {
       "a second document",
       "interface:\n  display_name: Fixture\n---\nother: 1\n",
     ],
+    // A column-zero policy written next to an indented root is invalid YAML.
+    ["an indented root mapping", " interface:\n   display_name: Fixture\n"],
+    [
+      "an indented root policy",
+      " interface:\n   display_name: Fixture\n policy:\n   allow_implicit_invocation: true\n",
+    ],
   ])("refuses a policy edit on metadata with %s", async (_label, upstream) => {
     const root = await skillTree(explicitOnly, upstream);
 
@@ -365,6 +371,19 @@ describe("native policy derived from the final frontmatter", () => {
       expect(await metadata(root)).toBe(upstream);
     },
   );
+
+  // A loader reads an indented flag in an indented root as the root key, so
+  // treating the skill as model-invocable would leave Codex open.
+  it("refuses frontmatter with an indented root mapping", async () => {
+    const root = await skillTree(
+      " name: fixture\n description: Fixture.\n disable-model-invocation: true",
+    );
+
+    await expect(ensureExplicitOnlyNativePolicy(root)).rejects.toThrow(
+      /review it by hand/i,
+    );
+    await expect(metadata(root)).rejects.toMatchObject({ code: "ENOENT" });
+  });
 
   it("leaves other policy metadata on a model-invocable skill untouched", async () => {
     const upstream =

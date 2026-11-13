@@ -188,6 +188,17 @@ export async function applyManagedSkillCompatibility(skillName, targetRoot) {
 const IMPLICIT_INVOCATION_KEY = /^(["']?)allow_implicit_invocation\1\s*:/u;
 
 /**
+ * YAML allows a root mapping indented by any uniform amount. The readers here
+ * only match root keys at column zero, so an indented root is refused rather
+ * than read as having no keys.
+ */
+function hasIndentedRoot(lines) {
+  return /^[ \t]/u.test(
+    lines.find((line) => !/^\s*(?:#.*)?$/u.test(line)) ?? "",
+  );
+}
+
+/**
  * Find the top-level `policy:` mapping in `metadata` and its direct
  * `allow_implicit_invocation` child. Only that mapping and its direct children
  * are read, so the same text inside a comment, a block scalar or a nested
@@ -219,6 +230,10 @@ function readNativePolicy(metadata) {
   )
     throw new Error(
       "YAML document marker in agents/openai.yaml; review it by hand",
+    );
+  if (hasIndentedRoot(lines.filter((line) => !/^---(?:\s|$)/u.test(line))))
+    throw new Error(
+      "Indented root mapping in agents/openai.yaml; review it by hand",
     );
   if (lines.some((line) => /^(['"])policy\1\s*:/u.test(line)))
     throw new Error(
@@ -439,8 +454,13 @@ export async function ensureExplicitOnlyNativePolicy(targetRoot) {
  * stops the refresh for review instead of leaving Codex open.
  */
 function isExplicitOnlyFrontmatter(frontmatter) {
+  const lines = frontmatter.split(/\r?\n/u);
+  if (hasIndentedRoot(lines))
+    throw new Error(
+      "Indented root mapping in SKILL.md frontmatter; review it by hand",
+    );
   const key = /^(["']?)disable-model-invocation\1\s*:/u;
-  const flags = frontmatter.split(/\r?\n/u).filter((line) => key.test(line));
+  const flags = lines.filter((line) => key.test(line));
   if (flags.length === 0) return false;
   if (flags.length > 1)
     throw new Error(
