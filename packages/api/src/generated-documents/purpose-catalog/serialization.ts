@@ -14,6 +14,15 @@ import type { DocumentPurposeCatalogManifest } from "./types";
 
 export const DOCUMENT_PURPOSE_SERIALIZER_VERSION = "1";
 
+/**
+ * Code-point (UTF-16 code-unit) order. Deliberately not `localeCompare`, whose
+ * result follows the host's ICU default locale (LANG/LC_ALL) and would make
+ * the catalog digest differ between hosts.
+ */
+function compareCodePoints(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(canonicalize);
@@ -24,7 +33,7 @@ function canonicalize(value: unknown): unknown {
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>)
       .filter(([, child]) => child !== undefined)
-      .sort(([left], [right]) => left.localeCompare(right))
+      .sort(([left], [right]) => compareCodePoints(left, right))
       .map(([key, child]) => [key, canonicalize(child)]),
   );
 }
@@ -41,7 +50,7 @@ export function digestDocumentPurposeValue(value: unknown): string {
 
 function sortedCatalogEntries() {
   return Object.keys(DOCUMENT_PURPOSE_CATALOG)
-    .sort((left, right) => left.localeCompare(right))
+    .sort(compareCodePoints)
     .map(
       (purposeId) =>
         DOCUMENT_PURPOSE_CATALOG[
