@@ -277,8 +277,11 @@ const ENGINE_WAKE_GRACE_MS = 2 * 60_000;
 // wait that has not completed, in milliseconds, or null when the run is not
 // paused or has no such wait.
 export function pendingEngineWait(detail) {
-  if (detail?.run?.status !== "paused" || !Array.isArray(detail.events))
-    return null;
+  // An answer that does not describe the run (an error body, a missing event
+  // list) is not "no wake-up pending": the caller must not act on it.
+  if (typeof detail?.run?.status !== "string" || !Array.isArray(detail.events))
+    throw new Error("The engine's answer does not describe the run");
+  if (detail.run.status !== "paused") return null;
   const waits = detail.events.filter((event) =>
     ["wait_started", "wait_completed"].includes(event?.event_type),
   );
@@ -286,6 +289,16 @@ export function pendingEngineWait(detail) {
   if (last?.event_type !== "wait_started") return null;
   const at = Date.parse(last.data?.resume_at ?? "");
   return Number.isFinite(at) ? at : null;
+}
+
+// Ask the engine when it will wake a run. Any answer that is not a good
+// description of that run is an error, never "nothing pending".
+export async function readEngineWait({ port, runId, fetchImpl = fetch }) {
+  const response = await fetchImpl(
+    `http://127.0.0.1:${port}/api/workflows/runs/${runId}`,
+  );
+  if (!response.ok) throw new Error(`engine answered ${response.status}`);
+  return pendingEngineWait(await response.json());
 }
 
 export async function recoverNativeFaults({
