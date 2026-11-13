@@ -52,21 +52,29 @@ const getErrorMessage = (result) => {
   return error.message || error.value || error.stack || "Unknown error";
 };
 
+const lowerString = (value) =>
+  typeof value === "string" ? value.toLowerCase() : "";
+const stringOrUndefined = (value) =>
+  typeof value === "string" ? value : undefined;
+
 const collectAttachments = (result) => {
   const attachments = Array.isArray(result?.attachments)
     ? result.attachments.filter(isObject)
     : [];
   const trace = attachments.find(
     (attachment) =>
-      attachment.name?.toLowerCase().includes("trace") ||
-      attachment.path?.toLowerCase().endsWith(".zip"),
+      lowerString(attachment.name).includes("trace") ||
+      lowerString(attachment.path).endsWith(".zip"),
   );
   const video = attachments.find(
     (attachment) =>
-      attachment.name?.toLowerCase().includes("video") ||
-      attachment.path?.toLowerCase().endsWith(".webm"),
+      lowerString(attachment.name).includes("video") ||
+      lowerString(attachment.path).endsWith(".webm"),
   );
-  return { tracePath: trace?.path, videoPath: video?.path };
+  return {
+    tracePath: stringOrUndefined(trace?.path),
+    videoPath: stringOrUndefined(video?.path),
+  };
 };
 
 const collectFailures = (suite, parents = [], notRun = []) => {

@@ -174,24 +174,44 @@ describe("summarizeRun", () => {
       "suites: [] with stats.expected=1",
       0,
       withStats(report([]), { expected: 1 }),
+      "expected",
     ],
-    ["stats.expected above listed", 0, withStats(PASS, { expected: 2 })],
-    ["stats.flaky above listed", 0, withStats(PASS, { flaky: 1 })],
-    ["stats.skipped above listed", 0, withStats(PASS, { skipped: 1 })],
+    [
+      "stats.expected above listed",
+      0,
+      withStats(PASS, { expected: 2 }),
+      "expected",
+    ],
+    ["stats.flaky above listed", 0, withStats(PASS, { flaky: 1 }), "flaky"],
+    [
+      "stats.skipped above listed",
+      0,
+      withStats(PASS, { skipped: 1 }),
+      "skipped",
+    ],
     [
       "stats.flaky below listed",
       0,
       withStats(FLAKY, { flaky: 0, expected: 1 }),
+      "flaky",
     ],
     [
       "stats.unexpected below listed",
       1,
       withStats(FAILED, { unexpected: 0, expected: 1 }),
+      "unexpected",
     ],
-  ] as const)("#2239 item 1: %s → Incomplete run", (_l, exitCode, text) => {
-    const messages = reportMessages(exitCode, text);
-    expect(messages.some((m) => m.startsWith("Incomplete run: "))).toBe(true);
-  });
+  ] as const)(
+    "#2239 item 1: %s → Incomplete run",
+    (_l, exitCode, text, counter) => {
+      // Each row must fail on its named counter, not only on stats.expected.
+      const messages = reportMessages(exitCode, text);
+      expect(
+        messages.some((m) => m.startsWith(`Incomplete run: stats.${counter}=`)),
+        messages.join("\n"),
+      ).toBe(true);
+    },
+  );
 
   it.each(["expected", "unexpected", "flaky", "skipped"])(
     "#2239 item 2: negative stats.%s is rejected",
@@ -265,6 +285,20 @@ describe("summarizeRun", () => {
   it("#2239 item 3: a non-object attachment entry does not crash", () => {
     const text = mutate(FAILED, (r) => {
       r.suites[0].specs[0].tests[0].results[1].attachments = [null];
+    });
+    const { summary, exit } = run(1, text);
+    expect([summary.ok, exit]).toEqual([false, 1]);
+    const hits = summary.failed.filter((f) => f.test === CASE);
+    expect(hits.map((f) => [f.message, f.tracePath])).toEqual([
+      ["last", undefined],
+    ]);
+  });
+
+  it("#2239 item 3: a non-string attachment name or path does not crash", () => {
+    const text = mutate(FAILED, (r) => {
+      r.suites[0].specs[0].tests[0].results[1].attachments = [
+        { name: 1, path: 2 },
+      ];
     });
     const { summary, exit } = run(1, text);
     expect([summary.ok, exit]).toEqual([false, 1]);
