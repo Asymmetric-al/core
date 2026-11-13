@@ -121,8 +121,9 @@ adopts one kind: a head that contains the candidate and adds nothing but the
 target branch, joined by merges (GitHub's "Update branch";
 `.shared/git.mjs` `addsOnlyTarget`). It becomes the candidate and goes to the
 review-only route, like an operator's conflict resolution. Every other
-outside head blocks the issue, and a round that publishes over one blocks
-`push-unverified`.
+outside head blocks the issue `outside-head` before the stage replies to,
+resolves or records anything on the pull request, and a round that publishes
+over one blocks `push-unverified`.
 
 **Blocked issues.** When an issue blocks, the next selector pass posts one
 comment on the GitHub issue with the reason and the next step, so the owner is

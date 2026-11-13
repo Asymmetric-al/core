@@ -1351,7 +1351,11 @@ the open list of 12 November.
     already was; any other outside head blocks the issue, which is announced;
     and a held issue whose branch moved is cleared onto the feedback route
     instead of being refused. The check that tells an update from other
-    outside commits is tested against real merges.
+    outside commits is tested against real merges. A bot review of pull
+    request #2666 then found that the feedback stage still answered and
+    resolved review comments before it blocked on a head it did not adopt;
+    it now blocks (`outside-head`) before it writes anything to the pull
+    request.
 
 Defects 42 to 45 were repaired test-first after the 09:54 install and are not
 installed yet (see Still open).

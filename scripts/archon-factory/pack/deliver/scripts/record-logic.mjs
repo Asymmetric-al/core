@@ -480,7 +480,7 @@ function nativeRecoveryAdvice(fault) {
   const command =
     "issue <n> recover-native; retry, reopen and release cannot clear it";
   if (fault.reason === "native-publication-effects-unreconciled")
-    return `The run may have published or merged before it failed. The control does the external readback of the issue's branch and pull request on GitHub and refuses while they hold something the work item did not record. Run ${command}`;
+    return `The run may have published or merged before it failed. The control does the external readback of the issue's branch and pull request on GitHub: it refuses while a merge the factory requested is unsettled, and a branch head the factory did not publish sends the issue to the feedback stage, which reads the pull request first. Run ${command}`;
   if (fault.action === "native-recovery")
     return `The intake pass clears this hold by itself, after any reset the provider reported. To stop waiting, run ${command}`;
   return `Deal with the cause (sign-in, budget, configuration or an unclear result), then run ${command}`;

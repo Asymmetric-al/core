@@ -8,6 +8,7 @@ import {
   DISPOSITION_CHOICES,
   adoptBaseUpdate,
   adoptResolution,
+  outsideHeadBlock,
   asRepair,
   baseIntegrationFailure,
   carryForward,
@@ -1098,6 +1099,27 @@ describe("operator conflict resolution (publication-merge#7)", () => {
         baseUpdate: true,
       }),
     ).toEqual({ action: "none" });
+  });
+
+  // An outside head that is not adopted stops the stage before it answers
+  // or resolves anything on the pull request.
+  it("blocks on an outside head it does not adopt and says how to put the branch back", () => {
+    const outcome = outsideHeadBlock({
+      branch: "factory/12-x",
+      liveHead: MERGE_SHA,
+      head: HEAD,
+      published: OLD,
+    });
+    expect(outcome.reason).toContain(MERGE_SHA.slice(0, 12));
+    expect(outcome.ledger.blocked).toMatchObject({
+      code: "outside-head",
+      detail: expect.stringContaining(MERGE_SHA),
+    });
+    expect(outcome.ledger.blocked.recovery).toContain(
+      `--force-with-lease=factory/12-x:${MERGE_SHA} origin ${OLD}:refs/heads/factory/12-x`,
+    );
+    expect(outcome.ledger.blocked.recovery).toMatch(/retry/);
+    expect(outcome.ledger.fingerprint).toBe(`outside-head:${MERGE_SHA}`);
   });
 
   it("records the update as the candidate and sends it to the review-only route", () => {

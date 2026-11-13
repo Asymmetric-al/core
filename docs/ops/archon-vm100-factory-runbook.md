@@ -412,9 +412,11 @@ What the factory does with such a head, from the release after `34ce64a7`:
   step.
 - **Any other outside head** (somebody's own commit, a rewritten branch, or an
   update pushed while the factory holds a newer candidate it has not
-  published yet): the issue blocks, with the head named in the blocker, and
-  the next pass posts the notice on the GitHub issue. A round that tries to
-  publish over such a head blocks `push-unverified`.
+  published yet): the feedback stage blocks the issue `outside-head` before
+  it answers or resolves anything on the pull request, with the head and the
+  command to put the branch back in the blocker, and the next pass posts the
+  notice on the GitHub issue. A round that tries to publish over such a head
+  blocks `push-unverified`.
 - **A held issue** (provider fault): the hold is cleared onto the feedback
   route, and one of the two cases above follows.
 

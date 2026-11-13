@@ -101,6 +101,20 @@ describe("native adapter settlement integration seam", () => {
     );
   });
 
+  it("describes what the control does with a branch somebody pushed to", () => {
+    const decision = decideRound({
+      ledger: {},
+      item: { run: { id: RUN_ID, route: "initial" } },
+      nodes: [{ node_id: "publish", state: "failed" }],
+      nativeFaults: faultReport("publish", { failure_kind: "exec_failed" }),
+    });
+    expect(decision.blocker.recovery).toMatch(/external readback/);
+    expect(decision.blocker.recovery).toMatch(
+      /did not publish.*feedback stage/s,
+    );
+    expect(decision.blocker.recovery).not.toMatch(/refuses while they hold/);
+  });
+
   // The engine wakes a run it paused for a usage limit. That run can meet
   // another fault before it ends: the limit again, with a later reset, or a
   // sign-in that expired meanwhile.

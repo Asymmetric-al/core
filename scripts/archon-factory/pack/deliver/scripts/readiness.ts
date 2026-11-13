@@ -33,6 +33,7 @@ import { planCheckpoint } from "../../.shared/workitem.mjs";
 import {
   adoptBaseUpdate,
   adoptResolution,
+  outsideHeadBlock,
   asRepair,
   baseIntegrationFailure,
   carryForward,
@@ -229,6 +230,16 @@ if (!live.merged) {
           });
     await checkpoint(adoption.fields);
     finish(adoption.outcome);
+  } else if (foreign && reconcile.action === "none") {
+    // Stop here: steps 2 and 3 below reply, resolve and record against the
+    // live head, and this one is not the factory's.
+    const block = outsideHeadBlock({
+      branch: value.branch,
+      liveHead,
+      head: value.head,
+      published: value.pr?.head,
+    });
+    respond("BLOCKED", block.reason, block.ledger);
   }
 }
 
