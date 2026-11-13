@@ -1,11 +1,18 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
 import {
+  BUILD_APPS,
+  COMPILATION_APPS,
+  OPERATOR_BUILD_APPS,
+  parseBuildSelection,
+  readWorkspaceDependencyDirs,
   resolveCompilation,
   validateCiGate,
 } from "../../../scripts/verify/ci-build-policy.mjs";
+import { NEXT_APPS } from "../../../scripts/verify/ci-build.mjs";
 import {
   EVENT_SCENARIOS,
   buildNeedResultsForGateJob,
@@ -50,11 +57,20 @@ describe("development compilation policy", () => {
   it("compiles all apps for workspace dependency changes", () => {
     expect(
       resolveCompilation({ ...development, changedFiles: ["bun.lock"] }),
-    ).toEqual(["admin", "donor", "missionary"]);
+    ).toEqual(["admin", "donor", "missionary", "factory-console"]);
   });
 
-  it.each(["ci.yml", "ci-integration.yml"])(
-    "requests all three apps when runner workflow %s changes",
+  it("requests every app, including the operator Console, when the compiling workflow ci.yml changes", () => {
+    expect(
+      resolveCompilation({
+        ...development,
+        changedFiles: [".github/workflows/ci.yml"],
+      }),
+    ).toEqual(["admin", "donor", "missionary", "factory-console"]);
+  });
+
+  it.each(["ci-integration.yml", "qa-smoke-preview-deploy.yml"])(
+    "requests the three product apps when product workflow %s changes",
     (workflow) => {
       expect(
         resolveCompilation({
@@ -74,12 +90,24 @@ describe("development compilation policy", () => {
     ).toEqual(["admin", "donor", "missionary"]);
   });
 
-  it("compiles all apps when workspace installation links change", () => {
+  it.each([
+    "scripts/repair-workspace-links.mjs",
+    "scripts/verify/ci-build.mjs",
+    "scripts/verify/ci-build-policy.mjs",
+  ])("compiles all apps when the compilation dispatch %s changes", (file) => {
     expect(
-      resolveCompilation({
-        ...development,
-        changedFiles: ["scripts/repair-workspace-links.mjs"],
-      }),
+      resolveCompilation({ ...development, changedFiles: [file] }),
+    ).toEqual(["admin", "donor", "missionary", "factory-console"]);
+  });
+
+  it.each([
+    ".vercelignore",
+    "scripts/vercel/should-ignore-build.mjs",
+    // Imported only by the product apps' next.config.ts.
+    "scripts/resolve-monorepo-root.mjs",
+  ])("keeps the operator Console out of product-only input %s", (file) => {
+    expect(
+      resolveCompilation({ ...development, changedFiles: [file] }),
     ).toEqual(["admin", "donor", "missionary"]);
   });
 
@@ -100,7 +128,7 @@ describe("development compilation policy", () => {
           ...development,
           changedFiles: [`tooling/typescript-config/${file}`],
         }),
-      ).toEqual(["admin", "donor", "missionary"]);
+      ).toEqual(["admin", "donor", "missionary", "factory-console"]);
     },
   );
 
@@ -109,7 +137,7 @@ describe("development compilation policy", () => {
       resolveCompilation({
         event: "push",
         branch: "develop",
-        changedFiles: ["bun.lock"],
+        changedFiles: ["bun.lock", "apps/factory-console/src/app/page.tsx"],
       }),
     ).toEqual([]);
   });
@@ -118,16 +146,165 @@ describe("development compilation policy", () => {
     { event: "pull_request", baseBranch: "production" },
     { event: "push", branch: "production" },
     { event: "workflow_dispatch" },
+    { event: "merge_group" },
     { ...development, full: true },
-    { ...development, changedFiles: null },
   ])(
-    "requires full compilation for release, explicit QA, or missing diff: %j",
+    "requires full product compilation for release, merge queue or explicit QA: %j",
     (context) => {
       expect(
         resolveCompilation({ changedFiles: ["docs/ci.md"], ...context }),
       ).toEqual(["admin", "donor", "missionary"]);
     },
   );
+
+  it("compiles every app, including the operator Console, when a development diff is missing", () => {
+    expect(resolveCompilation({ ...development, changedFiles: null })).toEqual([
+      "admin",
+      "donor",
+      "missionary",
+      "factory-console",
+    ]);
+  });
+});
+
+describe("operator Console compilation policy", () => {
+  const development = { event: "pull_request", baseBranch: "develop" };
+
+  it("is a compilation target outside the product release set", () => {
+    expect(BUILD_APPS).toEqual(["admin", "donor", "missionary"]);
+    expect(OPERATOR_BUILD_APPS).toEqual(["factory-console"]);
+    expect(COMPILATION_APPS).toEqual([...BUILD_APPS, ...OPERATOR_BUILD_APPS]);
+  });
+
+  it.each([
+    "apps/factory-console/src/app/page.tsx",
+    "apps/factory-console/src/server/control.ts",
+    "apps/factory-console/next.config.ts",
+    "apps/factory-console/package.json",
+  ])(
+    "compiles the Console, unlike a product app, for an ordinary change to its own file %s",
+    (file) => {
+      expect(
+        resolveCompilation({ ...development, changedFiles: [file] }),
+      ).toEqual(["factory-console"]);
+    },
+  );
+
+  it.each([
+    "packages/ui/components/shadcn/button-component.tsx",
+    "packages/lib/src/index.ts",
+    "packages/env/src/index.ts",
+    "packages/database/src/index.ts",
+    "packages/auth/src/index.ts",
+  ])(
+    "compiles only the Console when %s, in its workspace dependency graph, changes",
+    (file) => {
+      expect(
+        resolveCompilation({ ...development, changedFiles: [file] }),
+      ).toEqual(["factory-console"]);
+    },
+  );
+
+  it("adds the Console to product compilation for a shared package's build configuration", () => {
+    expect(
+      resolveCompilation({
+        ...development,
+        changedFiles: ["packages/ui/package.json"],
+      }),
+    ).toEqual(["admin", "donor", "missionary", "factory-console"]);
+  });
+
+  it.each([
+    // `next build` no longer runs ESLint (Next.js 16), so lint rules cannot
+    // change the Console's compiled output.
+    "tooling/eslint-config/design-system.mjs",
+    "packages/api/src/index.ts",
+    "packages/missionary/src/index.ts",
+    "packages/eve-runtime/src/index.ts",
+    "apps/admin/app/page.tsx",
+    "apps/missionary/next.config.ts",
+    "docs/guides/architecture/runtime-map.md",
+    "scripts/load-workspace-env.mjs",
+    "vendor/react-pdf-packages/asym-pdf-editor-0.1.0.tgz",
+  ])("does not compile the Console for unrelated input %s", (file) => {
+    expect(
+      resolveCompilation({ ...development, changedFiles: [file] }),
+    ).not.toContain("factory-console");
+  });
+
+  it("keeps product selection unchanged alongside a Console change", () => {
+    expect(
+      resolveCompilation({
+        ...development,
+        changedFiles: [
+          "apps/donor/next.config.ts",
+          "apps/factory-console/src/app/page.tsx",
+        ],
+      }),
+    ).toEqual(["donor", "factory-console"]);
+  });
+
+  it("adds a changed Console to an explicit full local preflight", () => {
+    expect(
+      resolveCompilation({
+        ...development,
+        full: true,
+        changedFiles: ["apps/factory-console/src/app/page.tsx"],
+      }),
+    ).toEqual(["admin", "donor", "missionary", "factory-console"]);
+  });
+
+  it.each([
+    { event: "pull_request", baseBranch: "production" },
+    { event: "push", branch: "production" },
+    { event: "workflow_dispatch" },
+    { event: "merge_group" },
+  ])(
+    "keeps the Console out of product release and merge-queue compilation: %j",
+    (context) => {
+      expect(
+        resolveCompilation({
+          changedFiles: ["apps/factory-console/src/app/page.tsx"],
+          ...context,
+        }),
+      ).toEqual(["admin", "donor", "missionary"]);
+    },
+  );
+
+  it("derives the Console's inputs from the workspace packages it depends on", () => {
+    expect(readWorkspaceDependencyDirs("apps/factory-console")).toEqual([
+      "packages/auth",
+      "packages/database",
+      "packages/env",
+      "packages/lib",
+      "packages/ui",
+    ]);
+  });
+
+  it("accepts only known compilation targets for the CI build step", () => {
+    expect(parseBuildSelection('["factory-console"]')).toEqual([
+      "factory-console",
+    ]);
+    expect(parseBuildSelection('["admin","factory-console"]')).toEqual([
+      "admin",
+      "factory-console",
+    ]);
+    for (const invalid of ["[]", '["unknown"]', '"admin"', "{}", "not json"])
+      expect(() => parseBuildSelection(invalid)).toThrow(
+        "Invalid compilation app selection",
+      );
+  });
+
+  it("gives every compilation target a root build script and a ci-build entry", () => {
+    const scripts = JSON.parse(readFileSync("package.json", "utf8")).scripts;
+    expect(NEXT_APPS.map((app: { id: string }) => app.id)).toEqual(
+      COMPILATION_APPS,
+    );
+    for (const app of COMPILATION_APPS)
+      expect(scripts[`build:${app}`]).toBe(
+        `node scripts/verify/ci-build.mjs --app ${app}`,
+      );
+  });
 });
 
 describe("required CI gate", () => {

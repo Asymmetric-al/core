@@ -24,13 +24,14 @@ const require = createRequire(import.meta.url);
 describe("product compiler and JavaScript API boundary", () => {
   it("resolves every product compiler, root command, parser API and editor SDK to its owned context", () => {
     const snapshot = verifyCompilerToolchain();
-    expect(snapshot.workspaces).toHaveLength(15);
-    expect(
-      snapshot.workspaces.some(
-        (workspace: { path: string }) =>
-          workspace.path === "apps/admin/package.json",
-      ),
-    ).toBe(true);
+    expect(snapshot.workspaces).toHaveLength(16);
+    for (const app of ["admin", "factory-console"])
+      expect(
+        snapshot.workspaces.some(
+          (workspace: { path: string }) =>
+            workspace.path === `apps/${app}/package.json`,
+        ),
+      ).toBe(true);
   });
 
   it.each([

@@ -98,6 +98,23 @@ describe("Core design-system lint", () => {
     },
   );
 
+  it("enforces the shared design system on the operator Console from the root and lint-staged config", async () => {
+    expect(uiWorkspaces).toContain("apps/factory-console");
+    const eslint = new ESLint({ cwd: root });
+    const config = await eslint.calculateConfigForFile(
+      path.join(root, "apps/factory-console/src/components/console.tsx"),
+    );
+    for (const name of [
+      "no-restyle",
+      "no-raw-colors",
+      "no-arbitrary-values",
+      "no-inline-styles",
+      "no-unknown-classes",
+      "require-static-classes",
+    ])
+      expect(config.rules[`shadcn/${name}`]?.[0]).toBe(2);
+  });
+
   it("does not grant new shared feature files primitive authoring privileges", async () => {
     const eslint = new ESLint({ cwd: root });
     for (const file of [

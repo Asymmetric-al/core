@@ -163,6 +163,7 @@ describe("design-system health", () => {
       "apps/admin",
       "apps/donor",
       "apps/missionary",
+      "apps/factory-console",
       "packages/ui",
       "packages/missionary",
     ]);
@@ -172,6 +173,7 @@ describe("design-system health", () => {
     "apps/admin",
     "apps/donor",
     "apps/missionary",
+    "apps/factory-console",
     "packages/ui",
     "packages/missionary",
   ])(

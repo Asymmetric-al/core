@@ -2666,7 +2666,7 @@
     },
     {
       "path": "tests/unit/scripts/design-system-health.test.ts",
-      "sha256": "b92e6c78cfbb0248f24599754f3afdf2e17f24828063e80a7e2a3d92d3155cad"
+      "sha256": "20e28f13663dc47a5b0ec90df9c6f5a1e6efb7c256dfba0e2bacb550cf65f828"
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",

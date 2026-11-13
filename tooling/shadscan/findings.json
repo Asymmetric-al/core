@@ -10,11 +10,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -27,11 +27,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -44,11 +44,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -61,11 +61,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -78,11 +78,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -95,11 +95,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -112,11 +112,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -129,11 +129,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "package.json",
-          "sha256": "80c6aa6b675be61e040d6967b2469059bd19b739565274d66140226dc691593c"
+          "sha256": "47d6b3695cfeed6db3b46579eb6588c9d55be328a001e9d5f3a971e148437c5a"
         }
       ]
     },
@@ -457,7 +457,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/components.json",
@@ -465,11 +465,11 @@
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
-          "sha256": "5eb07fa2bdc834e686f33b47d0ae59dbbffc3ead681cc996ce6405c00ad20787"
+          "sha256": "9fe09b3568e3e9e557a2cc3592a240c4539f7e498a4b62ae6199bed38cf5da32"
         },
         {
           "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
-          "sha256": "5ff8b7e6b22c65dcaee68427e1b1f326d02918b6943518d2042ddd995d5b4c39"
+          "sha256": "6d31ba511395ad0f76f724e4390f522a03f71eedc570853f91bbb1624807c9d0"
         }
       ]
     },
@@ -486,7 +486,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         }
       ]
     },
@@ -523,7 +523,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         }
       ]
     },
@@ -612,7 +612,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
@@ -649,7 +649,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
@@ -765,7 +765,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/components.json",
@@ -773,11 +773,11 @@
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
-          "sha256": "5eb07fa2bdc834e686f33b47d0ae59dbbffc3ead681cc996ce6405c00ad20787"
+          "sha256": "9fe09b3568e3e9e557a2cc3592a240c4539f7e498a4b62ae6199bed38cf5da32"
         },
         {
           "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
-          "sha256": "5ff8b7e6b22c65dcaee68427e1b1f326d02918b6943518d2042ddd995d5b4c39"
+          "sha256": "6d31ba511395ad0f76f724e4390f522a03f71eedc570853f91bbb1624807c9d0"
         }
       ]
     },
@@ -834,7 +834,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         }
       ]
     },
@@ -895,6 +895,300 @@
       ]
     },
     {
+      "project": "apps/factory-console",
+      "rule": "async-action-pending-state",
+      "evidenceFingerprint": "661d43b5f450203d117248f500a150ed65c4fdcaf3857c57e9122db9875d5f74",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged onSubmit is the Samson composer. Its Send trigger is disabled whenever a turn is sending, unconfirmed or awaiting its recorded reply, shows the shared Spinner while the request is in flight, locks the draft, and the turn's receipt is announced in a polite live region; a repeated submit is dropped before any request is made. The scanner looks for a pending-named flag in a disabled expression inside Chat and cannot follow the reason it passes to the same-file Composer. The form handlers it would reach next (scope form, ledger search) only prevent native submission: the scope write is a ControlButton with its own disabled and Spinner state, and search is an idempotent read. Reconsider if Send stops depending on the turn state or the composer changes owner.",
+      "verificationTests": [
+        "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/factory-console/src/components/chat.tsx",
+          "sha256": "fab61c0e2f315ca369235b317263f26d2d99743b9015def42917bf2f86ede94f"
+        },
+        {
+          "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
+          "sha256": "d1d59f33fb51a6500990703ed7ca12f86078ee6d5ac8714b141f11e6fa439abc"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "product-decision",
+      "rationale": "No command menu exists to open (see command-menu-present), and the Console registers no window or document key listener at all: a Cmd/Ctrl+K handler would be the only global shortcut on a control surface that otherwise acts only on visible, labeled controls (README, Deliberate omissions). apps/factory-console/tests/shell.test.ts fails if a global key listener, a hotkey library or a command menu appears. Reconsider together with command-menu-present.",
+      "proof": [
+        {
+          "path": "apps/factory-console/README.md",
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
+        },
+        {
+          "path": "apps/factory-console/tests/shell.test.ts",
+          "sha256": "9f25f596fba5df5c390b21f92975dc2f5bb5c66c476250fdc2f71202b60f740c"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "product-decision",
+      "rationale": "The private operator Console is a single page: its nine sections are one always-rendered tab list and every action is a visible, labeled control. A command palette would add a second, hidden route to controls that change what the factory does, so none is mounted (README, Deliberate omissions). apps/factory-console/tests/shell.test.ts fails if a command menu or cmdk appears. Reconsider if the sections outgrow one tab list.",
+      "proof": [
+        {
+          "path": "apps/factory-console/README.md",
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
+        },
+        {
+          "path": "apps/factory-console/src/components/console.tsx",
+          "sha256": "a3fc47682984c40416e24be7f3540394435393f1cd3f9e09cace3967ba69ece4"
+        },
+        {
+          "path": "apps/factory-console/tests/shell.test.ts",
+          "sha256": "9f25f596fba5df5c390b21f92975dc2f5bb5c66c476250fdc2f71202b60f740c"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "custom-controls-have-labels",
+      "evidenceFingerprint": "f864762585d89d959d9ab50c14f7d3072230d14c8a3861014ec1514f3049831f",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged end-state Select is named by SelectControlLabel, the shared wrapper of Base UI Select.Label, which labels its trigger: the rendered combobox is named End state and described by its hint. Every other Console Select is named the same way or by a Label wired through aria-labelledby. The scanner recognizes only Label/FieldLabel htmlFor, aria attributes or text inside the trigger. Reconsider if a Select loses its control label.",
+      "verificationTests": [
+        "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/factory-console/src/components/chat.tsx",
+          "sha256": "fab61c0e2f315ca369235b317263f26d2d99743b9015def42917bf2f86ede94f"
+        },
+        {
+          "path": "packages/ui/components/shadcn/select.tsx",
+          "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+        },
+        {
+          "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
+          "sha256": "d1d59f33fb51a6500990703ed7ca12f86078ee6d5ac8714b141f11e6fa439abc"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "dialogs-have-accessible-names",
+      "evidenceFingerprint": "c81f707cf227a0ada8d923257027dd28f90e150bd0e08d9c2635946d87025b2d",
+      "classification": "scanner-limitation",
+      "rationale": "IssueSheet's SheetContent renders IssueBody, whose SheetHeader always contains the SheetTitle Issue #n from the first frame, before the issue is read, so the open sheet is a dialog named by that title. The scanner looks for a title inside the same JSX element and does not follow the child component. The run, analysis report and confirmation dialogs hold their titles directly. Reconsider if the title moves behind a condition.",
+      "verificationTests": [
+        "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/factory-console/src/components/issue-detail.tsx",
+          "sha256": "51c38be24d04b2c9f60f7587a8698e505f59633d580bbb6a8160c9c0144d9ed5"
+        },
+        {
+          "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
+          "sha256": "d1d59f33fb51a6500990703ed7ca12f86078ee6d5ac8714b141f11e6fa439abc"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "empty-state-present",
+      "evidenceFingerprint": "f6eac888bcecadecefa44146f1b9483fad99e1ea6977b5cd4c0f963c8d6c123d",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged useQuery reads the single factory snapshot, not a collection. When no observation exists the Console says so: the connection panel reads Last observation: none yet, a failed first read raises an alert, and every snapshot-backed section renders the shared Unavailable note No ... has been read yet instead of an empty table; while the first read is pending those sections announce loading. Collections keep their own empty messages in the owning views (for example No conversations yet). The scanner requires one of its literal phrases in the same file as the query. Reconsider if a view renders a bare empty collection.",
+      "verificationTests": [
+        "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/factory-console/src/components/console.tsx",
+          "sha256": "a3fc47682984c40416e24be7f3540394435393f1cd3f9e09cace3967ba69ece4"
+        },
+        {
+          "path": "apps/factory-console/src/components/shared.tsx",
+          "sha256": "b7d32a32db9723e4531eb26e5b5ccf00786c7d931939399d10c2d101a11a0908"
+        },
+        {
+          "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
+          "sha256": "d1d59f33fb51a6500990703ed7ca12f86078ee6d5ac8714b141f11e6fa439abc"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "mobile-nav-present",
+      "evidenceFingerprint": "5ea191b38caa23e6f31debfe25a83bbb3f7ae998d4852de2a0fdc29bbb7cde06",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged nav is the ledger pager: two buttons and a range that wrap and stay rendered at every width, not site navigation that needs a mobile panel. The Console's sections are one always-rendered tab list in a horizontally scrolling strip, with no menu trigger, sheet or drawer to hide them behind. The scanner accepts always-visible navigation only when it contains links; paging is state, so the pager uses buttons. Verification limit: the unit test asserts what is rendered and that no width-hiding class is present in jsdom, which has no layout; the Console's own Playwright suite runs every section at a phone viewport but lies outside this ledger's test paths.",
+      "verificationTests": [
+        "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/factory-console/src/components/ledger.tsx",
+          "sha256": "aa2fe5c2643f51da734db4c86d819d74d713d41947bafc30062c527c43cef56b"
+        },
+        {
+          "path": "apps/factory-console/src/components/console.tsx",
+          "sha256": "a3fc47682984c40416e24be7f3540394435393f1cd3f9e09cace3967ba69ece4"
+        },
+        {
+          "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
+          "sha256": "d1d59f33fb51a6500990703ed7ca12f86078ee6d5ac8714b141f11e6fa439abc"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "scanner-limitation",
+      "rationale": "Core explicitly requires one shared base-maia components.json in packages/ui and rejects app-local copies. The scanner checks only the application-local file and misses that enforced monorepo ownership.",
+      "verificationTests": [
+        "tests/unit/scripts/shadcn-config-guardrails.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
+        },
+        {
+          "path": "packages/ui/components.json",
+          "sha256": "17bb8b3db270eb8767e91068ef1ec8829811771826ce78f1f97ea7e447aebea2"
+        },
+        {
+          "path": "scripts/verify/shadcn-config-guardrails.mjs",
+          "sha256": "9fe09b3568e3e9e557a2cc3592a240c4539f7e498a4b62ae6199bed38cf5da32"
+        },
+        {
+          "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
+          "sha256": "6d31ba511395ad0f76f724e4390f522a03f71eedc570853f91bbb1624807c9d0"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "social-preview-present",
+      "evidenceFingerprint": "9e5ef4ee0856567eabcbc17271b5112419108b820506dba1aa5778d9b5e5745a",
+      "classification": "product-decision",
+      "rationale": "The Console is never published or shared: its metadata is noindex and nofollow, every page and API request requires owner authentication and it is reached only through the owner's SSH tunnel on loopback. No crawler or link preview can load the page, so an Open Graph or Twitter image would have no reader and is intentionally absent (README, Deliberate omissions). apps/factory-console/tests/shell.test.ts fails if the noindex policy is dropped or a social image is added without review.",
+      "proof": [
+        {
+          "path": "apps/factory-console/README.md",
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
+        },
+        {
+          "path": "apps/factory-console/src/app/layout.tsx",
+          "sha256": "288040494ca7b9210b20ce92507ae5a753303709555a75fa37b7420934ffce07"
+        },
+        {
+          "path": "apps/factory-console/tests/shell.test.ts",
+          "sha256": "9f25f596fba5df5c390b21f92975dc2f5bb5c66c476250fdc2f71202b60f740c"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "status-messages-announced",
+      "evidenceFingerprint": "59b3558418d4db20fe31ac42970f3f5bb9504e00568b828b0dd84cce7c64ac60",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged pending text is the reason shown beside the disabled Send button. The same states are announced by live regions the scanner cannot see from inside Chat: the pending read by the shared LoadingRows (role status, polite), a failed read by ErrorNote (role alert), an in-flight or unconfirmed turn by ReceiptView's polite receipt, and the awaited reply by a status paragraph. Repeating the reason in one more live region would announce every change twice. The issue sheet and analysis report dialog announce their pending reads through the same LoadingRows. Reconsider if one of these states loses its region.",
+      "verificationTests": [
+        "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/factory-console/src/components/chat.tsx",
+          "sha256": "fab61c0e2f315ca369235b317263f26d2d99743b9015def42917bf2f86ede94f"
+        },
+        {
+          "path": "apps/factory-console/src/components/shared.tsx",
+          "sha256": "b7d32a32db9723e4531eb26e5b5ccf00786c7d931939399d10c2d101a11a0908"
+        },
+        {
+          "path": "apps/factory-console/src/components/controls.tsx",
+          "sha256": "4000ca37d3222e1c2679ddde0d35f9fb81aaa4adf8f993fa07313ef5d50a4581"
+        },
+        {
+          "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
+          "sha256": "d1d59f33fb51a6500990703ed7ca12f86078ee6d5ac8714b141f11e6fa439abc"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "product-decision",
+      "rationale": "The Console acts only on visible, labeled controls and registers no window or document key listener (README, Deliberate omissions): its controls change what the factory does, so it has no global shortcut of any kind, a dark-mode key included. Unlike the product applications it does not force the light theme; the operator switches theme with the shared ThemeToggle in the header. apps/factory-console/tests/shell.test.ts fails if a global key listener appears. Reconsider if the Console ever gains global shortcuts.",
+      "proof": [
+        {
+          "path": "apps/factory-console/README.md",
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
+        },
+        {
+          "path": "apps/factory-console/src/components/console.tsx",
+          "sha256": "a3fc47682984c40416e24be7f3540394435393f1cd3f9e09cace3967ba69ece4"
+        },
+        {
+          "path": "apps/factory-console/tests/shell.test.ts",
+          "sha256": "9f25f596fba5df5c390b21f92975dc2f5bb5c66c476250fdc2f71202b60f740c"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "toast-provider-mounted",
+      "evidenceFingerprint": "fdcec5b539b7b47284ab46b973765fb9271c8075d54c352a30ee10416b438f77",
+      "classification": "product-decision",
+      "rationale": "Nothing toast-like is mounted in the root layout; the raw message is the scanner's wording when no toast runtime is installed. That absence is deliberate: a control's outcome is the receipt rendered beside the control that requested it, in a polite live region (see toast-provider-present; README, Deliberate omissions), so the layout mounts only the shared ThemeProvider.",
+      "proof": [
+        {
+          "path": "apps/factory-console/src/app/layout.tsx",
+          "sha256": "288040494ca7b9210b20ce92507ae5a753303709555a75fa37b7420934ffce07"
+        },
+        {
+          "path": "apps/factory-console/README.md",
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
+        },
+        {
+          "path": "apps/factory-console/src/components/controls.tsx",
+          "sha256": "4000ca37d3222e1c2679ddde0d35f9fb81aaa4adf8f993fa07313ef5d50a4581"
+        },
+        {
+          "path": "apps/factory-console/tests/shell.test.ts",
+          "sha256": "9f25f596fba5df5c390b21f92975dc2f5bb5c66c476250fdc2f71202b60f740c"
+        }
+      ]
+    },
+    {
+      "project": "apps/factory-console",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "688e0b88b9af65c7a2ea9df8b0f7602112a00a9dc709475d43de49b196278bb9",
+      "classification": "product-decision",
+      "rationale": "The Console deliberately has no toast channel. A control's outcome is the receipt rendered beside the control that requested it (requested, then observed): a polite live region that stays on screen with its request id and a same-id Retry. A toast leaves on a timer and is detached from the control and request it reports, so no toast runtime is installed (README, Deliberate omissions). apps/factory-console/tests/shell.test.ts fails if one is installed or mounted. Reconsider if the Console gains outcomes that have no owning control.",
+      "proof": [
+        {
+          "path": "apps/factory-console/README.md",
+          "sha256": "e8195ddfbfef76b1faf84695857914bc7038b43743136e3306fbbe675835d8f6"
+        },
+        {
+          "path": "apps/factory-console/src/components/controls.tsx",
+          "sha256": "4000ca37d3222e1c2679ddde0d35f9fb81aaa4adf8f993fa07313ef5d50a4581"
+        },
+        {
+          "path": "apps/factory-console/tests/shell.test.ts",
+          "sha256": "9f25f596fba5df5c390b21f92975dc2f5bb5c66c476250fdc2f71202b60f740c"
+        }
+      ]
+    },
+    {
       "project": "apps/missionary",
       "rule": "command-menu-hotkey-present",
       "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
@@ -907,7 +1201,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
@@ -969,7 +1263,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
@@ -1222,7 +1516,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/components.json",
@@ -1230,11 +1524,11 @@
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
-          "sha256": "5eb07fa2bdc834e686f33b47d0ae59dbbffc3ead681cc996ce6405c00ad20787"
+          "sha256": "9fe09b3568e3e9e557a2cc3592a240c4539f7e498a4b62ae6199bed38cf5da32"
         },
         {
           "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
-          "sha256": "5ff8b7e6b22c65dcaee68427e1b1f326d02918b6943518d2042ddd995d5b4c39"
+          "sha256": "6d31ba511395ad0f76f724e4390f522a03f71eedc570853f91bbb1624807c9d0"
         }
       ]
     },
@@ -1251,7 +1545,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         }
       ]
     },
@@ -1282,7 +1576,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         }
       ]
     },
@@ -1351,7 +1645,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1368,7 +1662,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1385,7 +1679,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1402,7 +1696,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1419,7 +1713,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1436,7 +1730,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1453,7 +1747,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1470,7 +1764,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1487,7 +1781,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/auth/package.json",
@@ -1528,7 +1822,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1545,7 +1839,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1562,7 +1856,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1579,7 +1873,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1596,7 +1890,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1613,7 +1907,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1630,7 +1924,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1647,7 +1941,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1664,7 +1958,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/database/package.json",
@@ -1681,7 +1975,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1698,7 +1992,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1715,7 +2009,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1732,7 +2026,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1749,7 +2043,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1766,7 +2060,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1783,7 +2077,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1800,7 +2094,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1817,7 +2111,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/lib/package.json",
@@ -1834,7 +2128,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -1851,7 +2145,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -1912,7 +2206,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -1929,7 +2223,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -2016,7 +2310,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -2053,7 +2347,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -2070,7 +2364,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -2087,7 +2381,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -2104,7 +2398,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/missionary/package.json",
@@ -2150,7 +2444,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",
@@ -2167,7 +2461,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",
@@ -2228,7 +2522,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",
@@ -2245,7 +2539,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",
@@ -2344,7 +2638,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",
@@ -2389,7 +2683,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",
@@ -2406,7 +2700,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+          "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
         },
         {
           "path": "packages/ui/package.json",

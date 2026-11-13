@@ -320,6 +320,30 @@ full inventory around long dynamic path names.
 | admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |
 | admin | `/api/admin/contribution-operations/receipt-snapshots/[snapshotId]/pdf`       | Node.js (no `runtime` segment export) | Updated receipt snapshot PDF download     |
 
+## Private operator service: factory Console (VM 100)
+
+`apps/factory-console` (`@asym/factory-console`) is the owner-only operator
+Console for the Core software factory. It is not a product app and is never
+deployed to Vercel: it has no Vercel project, `vercel.json`, Sentry release,
+health contract or production promotion. It runs only on VM 100 `core-dev` as
+the standalone Next.js `server.js` of `core-factory-console.service`, bound to
+guest loopback `127.0.0.1:39342` and reached through the owner's SSH tunnel;
+`bun run dev` / `start` in the app bind `127.0.0.1:3092` for local work. All
+configuration is server-only (`CONSOLE_*`, `ARCHON_*`, `FACTORY_*`; no
+`NEXT_PUBLIC_*`, Supabase or CRM secret), and its backends are the Archon
+engine on `127.0.0.1:39190`, the Archon CLI and the installed pack's
+`control.mjs` (see `apps/factory-console/README.md`). Its App Router lives in
+`src/app`; the same no-segment-export rule applies.
+
+CI compiles it as an operator target on develop pull requests that touch the
+app or a workspace package it depends on, never in product release or
+merge-queue compilation (`OPERATOR_BUILD_APPS` in
+`scripts/verify/ci-build-policy.mjs`).
+
+| App             | Route family             | Runtime policy                        | Reason                                                     |
+| --------------- | ------------------------ | ------------------------------------- | ---------------------------------------------------------- |
+| factory-console | `/api/console/[...path]` | Node.js (no `runtime` segment export) | Basic-auth loopback BFF; spawns Archon CLI / `control.mjs` |
+
 ## Phase 22 D17 public-subject runtime split
 
 The CRM operational layer owns Ministry Project identity/lifecycle; Phase 13
