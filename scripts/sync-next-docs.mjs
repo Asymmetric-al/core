@@ -64,13 +64,15 @@ export function resolveInstalledNextDocs(root = repoRoot) {
 
 /**
  * Compare the installed docs with the fallback and, when `write` is set, make
- * the fallback an exact mirror. Check mode never writes.
+ * the fallback an exact mirror and confirm it. Check mode never writes.
+ * `fileSystem` replaces the write operations in tests.
  */
 export async function runNextDocsSync({
   installedRoot,
   fallbackRoot,
   version,
   write,
+  fileSystem = { mkdir, rm, writeFile },
 }) {
   const installed = existsSync(installedRoot)
     ? (await filesUnder(installedRoot)).filter((file) => file.endsWith(".md"))
@@ -81,52 +83,75 @@ export async function runNextDocsSync({
     );
 
   const expected = new Map(installed.map((file) => [fallbackName(file), file]));
-  const existing = new Set(
-    existsSync(fallbackRoot) ? await filesUnder(fallbackRoot) : [],
-  );
   const read = async (root, file) =>
     normalize(await readFile(path.join(root, file), "utf8"));
-
-  const changed = [];
-  const missing = [];
-  for (const [target, source] of expected) {
-    if (!existing.has(target)) missing.push(target);
-    else if (
-      (await read(installedRoot, source)) !== (await read(fallbackRoot, target))
-    )
-      changed.push(target);
-  }
-  const stale = [...existing].filter((file) => !expected.has(file)).sort();
-  const drift = changed.length + missing.length + stale.length;
-
-  if (write && drift > 0) {
-    for (const target of [...missing, ...changed]) {
-      const destination = path.join(fallbackRoot, target);
-      await mkdir(path.dirname(destination), { recursive: true });
-      await writeFile(
-        destination,
-        await read(installedRoot, expected.get(target)),
-        "utf8",
-      );
+  const compare = async () => {
+    const existing = new Set(
+      existsSync(fallbackRoot) ? await filesUnder(fallbackRoot) : [],
+    );
+    const changed = [];
+    const missing = [];
+    for (const [target, source] of expected) {
+      if (!existing.has(target)) missing.push(target);
+      else if (
+        (await read(installedRoot, source)) !==
+        (await read(fallbackRoot, target))
+      )
+        changed.push(target);
     }
-    for (const file of stale) await rm(path.join(fallbackRoot, file));
+    const stale = [...existing].filter((file) => !expected.has(file)).sort();
+    return { changed, missing, stale };
+  };
+  const countsOf = ({ changed, missing, stale }) =>
+    `${changed.length} changed, ${missing.length} missing, ${stale.length} stale`;
+  const driftOf = ({ changed, missing, stale }) =>
+    changed.length + missing.length + stale.length;
+
+  const before = await compare();
+  if (driftOf(before) === 0)
+    return {
+      ok: true,
+      ...before,
+      pages: expected.size,
+      message: `${FALLBACK_DIRECTORY} matches next@${version} (${expected.size} pages).`,
+    };
+  if (!write)
+    return {
+      ok: false,
+      ...before,
+      pages: expected.size,
+      message: `${FALLBACK_DIRECTORY} does not match next@${version}: ${countsOf(before)}. Run \`${FIX_COMMAND}\` and commit the result.`,
+    };
+
+  // A case-only rename on a case-insensitive file system names one physical
+  // file twice: the new spelling is missing and the old one is stale. Remove
+  // stale files first, so the write creates the new spelling instead of being
+  // deleted with the old one, then confirm the result.
+  for (const file of before.stale)
+    await fileSystem.rm(path.join(fallbackRoot, file));
+  for (const target of [...before.missing, ...before.changed]) {
+    const destination = path.join(fallbackRoot, target);
+    await fileSystem.mkdir(path.dirname(destination), { recursive: true });
+    await fileSystem.writeFile(
+      destination,
+      await read(installedRoot, expected.get(target)),
+      "utf8",
+    );
   }
 
-  const counts = `${changed.length} changed, ${missing.length} missing, ${stale.length} stale`;
-  const message =
-    drift === 0
-      ? `${FALLBACK_DIRECTORY} matches next@${version} (${expected.size} pages).`
-      : write
-        ? `${FALLBACK_DIRECTORY} rewritten to match next@${version} (${expected.size} pages; ${counts}).`
-        : `${FALLBACK_DIRECTORY} does not match next@${version}: ${counts}. Run \`${FIX_COMMAND}\` and commit the result.`;
-
+  const after = await compare();
+  if (driftOf(after) > 0)
+    return {
+      ok: false,
+      ...after,
+      pages: expected.size,
+      message: `${FALLBACK_DIRECTORY} still does not match next@${version} after writing: ${countsOf(after)}. Check for paths that differ only in case.`,
+    };
   return {
-    ok: drift === 0 || write,
-    changed,
-    missing,
-    stale,
+    ok: true,
+    ...before,
     pages: expected.size,
-    message,
+    message: `${FALLBACK_DIRECTORY} rewritten to match next@${version} (${expected.size} pages; ${countsOf(before)}).`,
   };
 }
 

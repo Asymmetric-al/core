@@ -146,6 +146,90 @@ describe("Next.js fallback docs sync", () => {
     );
   });
 
+  // Windows and default macOS checkouts resolve both spellings of a case-only
+  // rename to one physical file, which keeps the spelling it was created with.
+  // This file system behaves that way on any host and records each operation.
+  function caseInsensitiveFileSystem(fallbackRoot: string) {
+    const operations: string[] = [];
+    const physical = async (file: string) => {
+      const directory = path.dirname(file);
+      const name = path.basename(file).toLowerCase();
+      const match = existsSync(directory)
+        ? (await readdir(directory)).find(
+            (entry) => entry.toLowerCase() === name,
+          )
+        : undefined;
+      return path.join(directory, match ?? path.basename(file));
+    };
+    const label = (file: string) =>
+      path.relative(fallbackRoot, file).split(path.sep).join("/");
+    return {
+      operations,
+      fileSystem: {
+        mkdir,
+        rm: async (file: string) => {
+          operations.push("rm " + label(file));
+          await rm(await physical(file));
+        },
+        writeFile: async (file: string, data: string, encoding: "utf8") => {
+          operations.push("write " + label(file));
+          await writeFile(await physical(file), data, encoding);
+        },
+      },
+    };
+  }
+
+  it("removes the stale spelling before writing a case-only rename", async () => {
+    const installedRoot = await tree({
+      "index.md": "# Index\n",
+      "01-app/guide.md": "guide\n",
+    });
+    const fallbackRoot = await tree({
+      "index.mdx": "# Index\n",
+      "01-app/Guide.mdx": "old guide\n",
+    });
+    const { operations, fileSystem } = caseInsensitiveFileSystem(fallbackRoot);
+
+    const result = await runNextDocsSync({
+      installedRoot,
+      fallbackRoot,
+      version: "0.0.0-test",
+      write: true,
+      fileSystem,
+    });
+
+    expect(operations).toEqual([
+      "rm 01-app/Guide.mdx",
+      "write 01-app/guide.mdx",
+    ]);
+    expect(result.ok).toBe(true);
+    expect(await snapshot(fallbackRoot)).toEqual([
+      "01-app/guide.mdx\nguide\n",
+      "index.mdx\n# Index\n",
+    ]);
+  });
+
+  it("fails write mode when the rewritten fallback still does not match", async () => {
+    const installedRoot = await tree({
+      "index.md": "# Index\n",
+      "01-app/new-page.md": "new\n",
+    });
+    const fallbackRoot = await tree({ "index.mdx": "# Index\n" });
+
+    const result = await runNextDocsSync({
+      installedRoot,
+      fallbackRoot,
+      version: "0.0.0-test",
+      write: true,
+      // A write that never lands, as when another spelling swallows it.
+      fileSystem: { mkdir, rm, writeFile: async () => {} },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.missing).toEqual(["01-app/new-page.mdx"]);
+    expect(result.message).toMatch(/still does not match/);
+  });
+
   it("fails instead of mirroring an empty or missing install", async () => {
     const fallbackRoot = await tree({ "index.mdx": "# Index\n" });
     const before = await snapshot(fallbackRoot);
