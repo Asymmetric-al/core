@@ -30,7 +30,7 @@
       "devDependencies": {
         "@asym/eslint-config": "workspace:*",
         "@axe-core/playwright": "4.14.0",
-        "@fission-ai/openspec": "1.14.3",
+        "@fission-ai/openspec": "2.0.0",
         "@inngest/test": "1.0.0",
         "@lhci/cli": "^0.15.1",
         "@next/playwright": "16.4.2",
@@ -486,6 +486,8 @@
         "@tiptap/starter-kit": "3.32.0",
         "@tiptap/static-renderer": "3.32.0",
         "@tiptap/suggestion": "3.32.0",
+        "@ui-sdk/core": "0.1.0-beta.2",
+        "@ui-sdk/react": "0.1.0-beta.2",
         "class-variance-authority": "^0.7.1",
         "cmdk": "^1.1.1",
         "cn": "0.5.0",
@@ -517,8 +519,8 @@
       },
       "peerDependencies": {
         "boneyard-js": "1.10.0",
-        "react": "^18.0.0 || ^19.0.0",
-        "react-dom": "^18.0.0 || ^19.0.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
         "tailwindcss": "^4",
       },
       "optionalPeers": [
@@ -873,7 +875,7 @@
 
     "@fastify/busboy": ["@fastify/busboy@3.2.0", "", {}, "sha512-m9FVDXU3GT2ITSe0UaMA5rU3QkfC/UXtCU8y0gSN/GugTqtVldOBWIB5V6V3sbmenVZUIpU6f+mPEO2+m5iTaA=="],
 
-    "@fission-ai/openspec": ["@fission-ai/openspec@1.14.3", "", { "dependencies": { "@inquirer/core": "^12.0.0", "@inquirer/prompts": "^8.5.2", "brace-expansion": "^5.0.12", "chalk": "^5.6.2", "commander": "^14.0.0", "cross-spawn": "7.0.6", "diff": "^9.0.0", "ora": "^9.4.1", "picomatch": "^4.0.4", "tinyglobby": "^0.2.17", "yaml": "^2.8.3", "zod": "^4.4.3" }, "bin": { "openspec": "bin/openspec.js" } }, "sha512-ALFW1d5bSm6t27Kmcle93SDFuqUc8fLwy5ZdBfIiNffo0Yk9AEOJxw6xDqBv38eMM7l7TeOZBB/7C08luxYGfg=="],
+    "@fission-ai/openspec": ["@fission-ai/openspec@2.0.0", "", { "dependencies": { "@inquirer/core": "^12.0.0", "@inquirer/prompts": "^8.5.2", "brace-expansion": "^5.0.12", "chalk": "^5.6.2", "commander": "^14.0.0", "cross-spawn": "7.0.6", "diff": "^9.0.0", "ora": "^9.4.1", "picomatch": "^4.0.4", "tinyglobby": "^0.2.17", "yaml": "^2.8.3", "zod": "^4.4.3" }, "bin": { "openspec": "bin/openspec.js" } }, "sha512-TsGwEAWogMOhuI8npa3o8Y3popwqBIHLdbn80KGUv6rSExvlmY1kYNALMfSZG+qbliH9gffc+CWC4JPlkoFshw=="],
 
     "@floating-ui/core": ["@floating-ui/core@1.8.0", "", { "dependencies": { "@floating-ui/utils": "^0.2.12" } }, "sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ=="],
 
@@ -2024,6 +2026,10 @@
     "@typescript/typescript-win32-arm64": ["@typescript/typescript-win32-arm64@7.0.2", "", { "os": "win32", "cpu": "arm64" }, "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ=="],
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
+
+    "@ui-sdk/core": ["@ui-sdk/core@0.1.0-beta.2", "", {}, "sha512-y89M4OKL2Oy1IvFS8FEozn/44BJD9FoRjfecWA4XwFhkSuQADcEcI+eoLdfRK1hkrJZhKkHvhJf4Jtfp1y7aJw=="],
+
+    "@ui-sdk/react": ["@ui-sdk/react@0.1.0-beta.2", "", { "peerDependencies": { "@types/react": ">=19.2.10", "@ui-sdk/core": "^0.1.0-beta.2", "react": ">=19", "react-dom": ">=19" }, "optionalPeers": ["@types/react"] }, "sha512-OVOECM3PYGEF69/iOSZ1U0zxv6O6aTWmZuCt88R6c2Ql2ZQxAy+DjFK8o8hyVkRNlYE5nEm357UMOI6bchn70w=="],
 
     "@unlayer/types": ["@unlayer/types@1.516.0", "", {}, "sha512-wvZP9emj/fr27b2ehU1PQS8GfbYUIqUVB+5GwhNOT/t3XgOW0hdWaJh8uPZAp0LmDfg0aHdageY6yJpRTIO4LA=="],
 

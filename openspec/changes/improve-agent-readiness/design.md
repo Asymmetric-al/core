@@ -29,8 +29,8 @@ instead of restating it.
 - Cursor's agent cannot open an ignored file, so the "complete guide" pointer
   in five `SKILL.md` files is not followable there. Each of those skills
   still ships its individual rule and reference files.
-- OpenSpec stays at 1.14.3. Strict validation fails from 1.16.0 onward on two
-  generated projections whose canonical owners are outside this change.
+- OpenSpec is not upgraded here. The upgrade to 2.0.0 is its own change,
+  `upgrade-openspec-2` (#2661).
 - `.cursorignore` does not stop Cursor listing the vendored
   `vendor/payload-upstream/**/.cursor/rules` files as on-request rules. Two
   patterns were tried. Those rules are never always-applied, so they stay.

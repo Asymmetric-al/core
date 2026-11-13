@@ -18,6 +18,7 @@ describe("Web Studio single chrome", () => {
     const statement = order.match(/@layer\s+([^;]+);/)?.[1] ?? "";
     expect(statement.split(",").map((name) => name.trim())).toEqual([
       "properties",
+      "ui-sdk",
       "theme",
       "base",
       "payload-default",

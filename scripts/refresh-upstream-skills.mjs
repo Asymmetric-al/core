@@ -319,7 +319,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/Fission-AI/OpenSpec.git",
     source: "Fission-AI/OpenSpec",
     sourceUrl: "https://github.com/Fission-AI/OpenSpec",
-    ref: "v1.14.3",
+    ref: "v2.0.0",
     sourceRoot: "skills",
     skillNames: openspecSkillNames,
     lockSkillPath(skillName) {
@@ -329,7 +329,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/${skillName}`;
+      return `https://github.com/Fission-AI/OpenSpec/tree/v2.0.0/skills/${skillName}`;
     },
     skillExtraCopies: Object.fromEntries(
       openspecSkillNames.map((skillName) => [

@@ -176,6 +176,7 @@
     "triage",
     "typescript-best-practices",
     "ubiquitous-language",
+    "ui-sdk",
     "unslop",
     "vercel-react-best-practices",
     "vercel-react-view-transitions",
@@ -1561,6 +1562,18 @@
       "agents/openai.yaml",
       "references/UPSTREAM-LICENSE",
       "references/upstream.md"
+    ],
+    "ui-sdk": [
+      "LICENSE",
+      "SKILL.md",
+      "references/agent-ready.md",
+      "references/build-interface.md",
+      "references/create-component.md",
+      "references/patterns.md",
+      "references/styles.md",
+      "references/testing.md",
+      "references/upstream.md",
+      "references/web-components.md"
     ],
     "unslop": [
       "LICENSE",

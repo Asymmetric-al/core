@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
-const PINNED_OPENSPEC_VERSION = "1.14.3";
-const PINNED_OPENSPEC_COMMIT = "c794978f4f8845ce59693373c9dd882ee776588c";
-const PINNED_OPENSPEC_TAG = "v1.14.3";
+const PINNED_OPENSPEC_VERSION = "2.0.0";
+const PINNED_OPENSPEC_COMMIT = "d12c2817776779e06891d68230773b3bb673b106";
+const PINNED_OPENSPEC_TAG = "v2.0.0";
 
 const SELECTED_OPENSPEC_SKILLS = [
   "openspec-explore",
@@ -187,6 +187,39 @@ describe("OpenSpec skill provenance", () => {
           readRepoFile(`${generatedRoot}/${skillName}/references/upstream.md`),
         ).toBe(provenance);
       }
+    }
+  });
+
+  it("records the pinned source review for the seven skills in the source audit", () => {
+    const audit = JSON.parse(
+      readRepoFile("docs/ai/skill-source-audit.json"),
+    ) as {
+      skills: Array<{
+        name: string;
+        examinedRef: string;
+        lockHash: string;
+        adaptations: string[];
+        reviewEvidence: Array<{ examinedRef: string }>;
+      }>;
+    };
+    const lock = JSON.parse(readRepoFile("skills-lock.json")) as {
+      skills: Record<string, { computedHash: string } | undefined>;
+    };
+
+    for (const skillName of SELECTED_OPENSPEC_SKILLS) {
+      const record = audit.skills.find((skill) => skill.name === skillName);
+      expect(record, skillName).toBeDefined();
+      expect(record?.examinedRef, skillName).toBe(PINNED_OPENSPEC_COMMIT);
+      expect(
+        record?.reviewEvidence.map((evidence) => evidence.examinedRef),
+        skillName,
+      ).toEqual([PINNED_OPENSPEC_COMMIT]);
+      expect(record?.adaptations.join("\n"), skillName).toContain(
+        `OpenSpec ${PINNED_OPENSPEC_TAG} source`,
+      );
+      expect(record?.lockHash, skillName).toBe(
+        lock.skills[skillName]?.computedHash,
+      );
     }
   });
 

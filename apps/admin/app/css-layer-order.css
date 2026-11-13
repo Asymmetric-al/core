@@ -7,5 +7,9 @@
  * every Tailwind utility on Web Studio routes. Placing Payload's layers after
  * Tailwind's base (so Payload's component styles still beat Tailwind's reset)
  * and before components/utilities keeps Mission Control utilities in charge
- * of Mission Control markup. Routes without Payload never fill these layers. */
-@layer properties, theme, base, payload-default, payload, components, utilities;
+ * of Mission Control markup. Routes without Payload never fill these layers.
+ *
+ * `ui-sdk` holds the rules UI SDK injects at runtime. It ranks below every
+ * Tailwind layer here, matching the order the shared globals.css declares for
+ * the other apps (see packages/ui/AGENTS.md). */
+@layer properties, ui-sdk, theme, base, payload-default, payload, components, utilities;
