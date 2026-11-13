@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "owners": {
+    "conrad": {
+      "profile": "/home/admin/.claude-fixture-private",
+      "githubLogin": "fixture-owner-login"
+    }
+  },
+  "limits": { "admittedIssues": 2 }
+}

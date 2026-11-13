@@ -24,6 +24,8 @@ const REQUIRED_APP_GLOBALS = [
   "apps/admin/app/globals.css",
   "apps/donor/app/globals.css",
   "apps/missionary/app/globals.css",
+  // Private VM 100 operator Console (App Router under src/app).
+  "apps/factory-console/src/app/globals.css",
 ];
 const FORBIDDEN_APP_CONFIG_NAMES = [
   "components.json",

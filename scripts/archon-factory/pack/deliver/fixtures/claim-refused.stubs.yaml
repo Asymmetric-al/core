@@ -1,0 +1,16 @@
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached: [claim, record]
+claim:
+  {
+    proceed: "no",
+    route: "",
+    do_scope: "no",
+    do_define: "no",
+    do_build: "no",
+    do_feedback: "no",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "held",
+  }
+record: { outcome: not-claimed, next: "", reason: "held" }

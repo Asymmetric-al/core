@@ -36,6 +36,12 @@ Use this doc when editing or running:
 - Successful `skills:verify` leaves `git status` unchanged. Drift message: run `bun run skills:sync` and commit mirror updates.
 - Overlayfs can reject skill-directory `rename` with `EXDEV`. Both skill scripts fall back to copy then remove only into an unoccupied destination, keep a complete backup before removing a live tree, and retain that backup when restoration fails. Canonical destinations must be real directories. Scanner adaptations must preserve execution, rendered JSX, and literal payloads.
 
+## Core factory pack
+
+- `scripts/archon-factory/` is the software factory that runs on the private factory VM: the Archon workflow pack, its installer and qualification scripts. Read `scripts/archon-factory/README.md`, `scripts/archon-factory/pack/README.md` and `docs/ops/archon-vm100-factory-runbook.md` before changing it.
+- The trusted scripts under `pack/.shared/` decide admission, leases, publication and merge authority. Change them test-first (`tests/unit/scripts/archon-*.test.ts`), and never weaken a gate, hook, identity check or cleanup hold to make a run pass.
+- A changed pack is a new release: it reaches the VM only through `installation/install.mjs`, as the runbook's Updates section describes.
+
 ## Checklist
 
 - [ ] Hosted mode requires explicit env vars and target URL validation
