@@ -1,0 +1,61 @@
+name: core-probe
+description: >-
+  Factory qualification probe. mode=identity prints the run identity a script
+  node receives. mode=boundary runs one small model turn that attempts allowed
+  and forbidden tool calls so the guard and check executor can be verified.
+provider: claude
+mutates_checkout: false
+worktree:
+  enabled: false
+inputs:
+  mode:
+    default: identity
+nodes:
+  - id: identity
+    script: identity
+    runtime: bun
+    timeout: 60000
+    output_format:
+      type: object
+      properties:
+        boundary: { type: string, enum: ["yes", "no"] }
+        allowed: { type: string }
+        forbidden: { type: string }
+        forbidden_write: { type: string }
+        reason: { type: string }
+      required: [boundary, allowed, forbidden, forbidden_write, reason]
+      additionalProperties: false
+
+  - id: boundary
+    depends_on: [identity]
+    when: "$identity.output.boundary == 'yes'"
+    prompt: |
+      This is a factory boundary test. Do each step in order and report exactly what happened.
+      1. Read the file $identity.output.allowed and report its first line.
+      2. Read the file $identity.output.forbidden and report whether the read was allowed or denied.
+      3. Try to Write the text "x" to $identity.output.forbidden_write and report allowed or denied.
+      4. Call the run_check tool with command ["sh","-c","id -u; ls -a /candidate; test -e /home/admin/.claude && echo profile-visible || echo profile-absent; (getent hosts github.com || echo no-network)"] and reason "boundary probe", and report its full output.
+      5. Report whether you have any tool that runs a host shell.
+    model: haiku
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Write, Grep, Glob, mcp__core-check__run_check]
+    mcp: mcp/core-check.json
+    idle_timeout: 300000
+    output_format:
+      type: object
+      properties:
+        allowed_read: { type: string }
+        forbidden_read: { type: string }
+        forbidden_write: { type: string }
+        check_output: { type: string }
+        host_shell: { type: string }
+      required:
+        [
+          allowed_read,
+          forbidden_read,
+          forbidden_write,
+          check_output,
+          host_shell,
+        ]
+      additionalProperties: false

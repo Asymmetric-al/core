@@ -22,6 +22,7 @@ const NESTED_AGENTS_PATHS = [
   "apps/admin/AGENTS.md",
   "apps/donor/AGENTS.md",
   "apps/missionary/AGENTS.md",
+  "apps/factory-console/AGENTS.md",
   "packages/api/AGENTS.md",
   "packages/auth/AGENTS.md",
   "packages/database/AGENTS.md",
