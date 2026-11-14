@@ -781,7 +781,20 @@ export function planControl(
       )
     )
       throw new Refusal("lease-live", document.lease.runId);
-    if (effects?.ok !== true)
+    // A remote head that was read and that the work item never recorded is
+    // not the held run's doing: a round records its candidate before it
+    // pushes. Somebody pushed to the branch (GitHub's "Update branch", for
+    // one). With a pull request to read, the hold is cleared onto the
+    // feedback route, where readiness adopts an update from the target
+    // branch and blocks on anything else. Refusing here would keep the issue,
+    // its run and its lane for good, with nobody told.
+    const outside =
+      effects?.ok !== true &&
+      typeof effects?.unrecorded === "string" &&
+      Number.isSafeInteger(value.pr?.number) &&
+      value.status === "active" &&
+      Boolean(value.run);
+    if (effects?.ok !== true && !outside)
       throw new Refusal(
         "effects-unreconciled",
         clip(effects?.detail, 300) ?? "The remote effects were not read back",
@@ -799,10 +812,12 @@ export function planControl(
         runId: value.run.id,
         now,
         outcome: "reconciled",
-        route: interruptedRoute(value),
+        route: outside ? "feedback" : interruptedRoute(value),
         fingerprint: "native-fault",
         limits,
-        summary: `Native fault hold (${what}) cleared by ${clip(by, 80)}: run ${value.run.id} ended (${runStatus.status}) and its remote effects were read back`,
+        summary: outside
+          ? `Native fault hold (${what}) cleared by ${clip(by, 80)}: run ${value.run.id} ended (${runStatus.status}). The branch on GitHub is at ${effects.unrecorded.slice(0, 12)}, which the factory did not publish, so the pull request is read first`
+          : `Native fault hold (${what}) cleared by ${clip(by, 80)}: run ${value.run.id} ended (${runStatus.status}) and its remote effects were read back`,
       });
     } else {
       next.history = [

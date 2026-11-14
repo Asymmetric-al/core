@@ -636,6 +636,52 @@ describe("reconcile control", () => {
     ]);
   });
 
+  // The pack's way out of a provider-fault hold (`issue <n> recover-native`).
+  it("accepts recover-native as a confirmed issue action with the exact control.mjs argv", () => {
+    const action = controlActionSchema.parse({
+      kind: "issue",
+      issue: 104,
+      action: "recover-native",
+      reason: "sign-in renewed",
+    });
+    expect(describeAction(action)).toBe(
+      "Clear the provider-fault hold on issue #104",
+    );
+    // It ends a paused or failed run, so the operator confirms it first.
+    expect(DESTRUCTIVE.has(actionKey(action))).toBe(true);
+    expect(
+      controlArgs(
+        action,
+        "cr-fixture00-0000000000000000-0000000000000000",
+        "conrad",
+      ),
+    ).toEqual([
+      "issue",
+      "104",
+      "recover-native",
+      "--request",
+      "cr-fixture00-0000000000000000-0000000000000000",
+      "--by",
+      "conrad",
+      "--reason",
+      "sign-in renewed",
+    ]);
+  });
+
+  it("explains what stopped a provider-fault recovery and names the control that clears the hold", () => {
+    for (const code of [
+      "no-native-hold",
+      "effects-unreconciled",
+      "containers-unconfirmed",
+      "run-not-ended",
+    ])
+      expect(REFUSAL_MESSAGES[code], code).toBeTruthy();
+    expect(REFUSAL_MESSAGES["native-fault-held"]).toMatch(
+      /Clear the provider-fault hold/,
+    );
+    expect(REFUSAL_MESSAGES["native-fault-held"]).not.toMatch(/unavailable/);
+  });
+
   it("explains the policy refusals without promising what a control cannot do", () => {
     for (const code of ["policy-current", "not-adoptable"])
       expect(REFUSAL_MESSAGES[code], code).toBeTruthy();
