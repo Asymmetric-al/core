@@ -17,8 +17,9 @@
   - `openspec/changes/<change-id>/specs/**`
 - Apply through TDD (`docs/ai/skills/tdd/SKILL.md`) and
   `docs/ai/skills/openspec-apply-change/SKILL.md`.
-- Canonical local quality gates for this repo remain:
-  - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- The canonical PR readiness gate is `bun run ci:preflight` (`docs/ai/rules/general.md`). Its build stage is
+  conditional, so run focused checks and `bun run check` while iterating and do not add an unconditional
+  `bun run build`.
 - Use `bun run test:e2e` when user flows are materially affected.
 - Do not automatically archive on a feature branch merely because local tests pass.
 
@@ -45,8 +46,8 @@
    - If formatting fails on in-scope files, run `bunx prettier --write <touched-files>` instead of formatting the whole repo.
    - `bun run lint`
    - `bun run typecheck`
-   - `bun run build`
    - `bun run test:unit`
+   - `bun run ci:preflight` before the pull request is ready
    - `bun run test:e2e` when flow changes justify it
 
 4. **Verify and review**

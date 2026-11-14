@@ -12,7 +12,14 @@ const CATEGORIES = [
   "forms",
   "production-polish",
 ];
-const APPLICATIONS = ["apps/admin", "apps/donor", "apps/missionary"];
+// Sorted. Shadscan discovers every Next.js workspace as an application, so the
+// private VM 100 operator Console is protected like the three product apps.
+const APPLICATIONS = [
+  "apps/admin",
+  "apps/donor",
+  "apps/factory-console",
+  "apps/missionary",
+];
 const CLASSIFICATIONS = new Set([
   "scanner-limitation",
   "product-decision",
@@ -204,7 +211,7 @@ export function validatePolicy(policy) {
   const actual = Object.keys(policy.applicationFloors ?? {}).sort();
   requireCondition(
     JSON.stringify(actual) === JSON.stringify(APPLICATIONS),
-    "Policy must protect all three applications independently",
+    "Policy must protect every application independently",
   );
   for (const [project, floor] of Object.entries(policy.applicationFloors)) {
     requireCondition(isScore(floor), `${project} has an invalid score floor`);
@@ -213,7 +220,7 @@ export function validatePolicy(policy) {
     JSON.stringify(
       Object.keys(policy.applicationCategoryFloors ?? {}).sort(),
     ) === JSON.stringify(APPLICATIONS),
-    "Policy category floors must protect all three applications",
+    "Policy category floors must protect every application",
   );
   for (const project of APPLICATIONS) {
     const floors = policy.applicationCategoryFloors[project];
@@ -288,7 +295,7 @@ export function validateReport(report, policy) {
       JSON.stringify(
         applications.map((project) => project.packageDir).sort(),
       ) === JSON.stringify(APPLICATIONS),
-    "Incomplete application coverage: expected all three Core apps",
+    "Incomplete application coverage: expected every Core application",
   );
   const libraries = projects.filter((project) => project.kind === "library");
   requireCondition(

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
 import {
@@ -40,7 +41,7 @@ import {
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
-import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import {
   Mail,
   Phone,
@@ -48,8 +49,9 @@ import {
   Pencil,
   User,
   ArrowLeft,
-  ArrowUpRight,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   MoreHorizontal,
   MapPin,
   Church,
@@ -66,7 +68,7 @@ import {
   getTagVariant,
 } from "./donors-model";
 import { createGivingHistoryColumns } from "./donors-page-columns";
-import { currentDisplayDate, parseDisplayDate } from "./donors-page-dates";
+import { parseDisplayDate } from "./donors-page-dates";
 import { DonorsPageDetailContact } from "./donors-page-detail-contact";
 import { DonorsPageDetailOverview } from "./donors-page-detail-overview";
 import { DonorsPageDetailRecurring } from "./donors-page-detail-recurring";
@@ -86,6 +88,34 @@ import {
 import { useDonorsPageViewFields } from "./use-donors-page-view";
 
 import type { Activity } from "./donor-types";
+
+/** Matches the shared `scroll-fade-x` fade width (calc(var(--spacing) * 6)). */
+const TAB_REVEAL_INSET = 24;
+
+const DETAIL_TABS = [
+  { value: "overview", label: "Overview" },
+  { value: "tasks", label: "Tasks" },
+  { value: "contact", label: "Contact" },
+  { value: "recurring", label: "Recurring" },
+  { value: "giving", label: "Giving" },
+] as const;
+
+/**
+ * Scroll the horizontal tab rail (only) so `tab` sits clear of the edge fade.
+ * Page and vertical scroll stay where they are.
+ */
+function revealTabInRail(rail: HTMLElement, tab: HTMLElement) {
+  const railBounds = rail.getBoundingClientRect();
+  const tabBounds = tab.getBoundingClientRect();
+  if (tabBounds.right > railBounds.right) {
+    rail.scrollLeft += tabBounds.right - railBounds.right + TAB_REVEAL_INSET;
+  } else if (tabBounds.left < railBounds.left) {
+    rail.scrollLeft = Math.max(
+      0,
+      rail.scrollLeft - (railBounds.left - tabBounds.left) - TAB_REVEAL_INSET,
+    );
+  }
+}
 
 const GIVING_HISTORY_LABELS: Record<string, string> = {
   date: "Date",
@@ -134,6 +164,30 @@ export function DonorsPageDetail() {
     [selectedDonor],
   );
   const callHref = selectedDonor ? getDonorCallHref(selectedDonor) : null;
+  const isStacked = useMediaQuery("(max-width: 1023px)");
+  const detailRef = React.useRef<HTMLDivElement | null>(null);
+  const selectedDonorId = selectedDonor?.id ?? null;
+  // Below lg the roster steps aside for the open partner, hiding the row that
+  // had focus. Bring the detail's top into view and move focus to its "Back to
+  // partner list" control so keyboard and screen-reader users follow along.
+  // AnimatePresence (mode="wait") can mount the partner after this effect, so
+  // focus is applied by whichever comes last: the effect or the button's ref.
+  const backButtonNodeRef = React.useRef<HTMLButtonElement | null>(null);
+  const pendingBackFocusRef = React.useRef(false);
+  const backButtonRef = React.useCallback((node: HTMLButtonElement | null) => {
+    backButtonNodeRef.current = node;
+    if (node && pendingBackFocusRef.current) {
+      pendingBackFocusRef.current = false;
+      node.focus({ preventScroll: true });
+    }
+  }, []);
+  React.useEffect(() => {
+    if (!isStacked || !selectedDonorId) return;
+    detailRef.current?.scrollIntoView({ block: "start" });
+    const backButton = backButtonNodeRef.current;
+    if (backButton) backButton.focus({ preventScroll: true });
+    else pendingBackFocusRef.current = true;
+  }, [isStacked, selectedDonorId]);
   const emailHref = selectedDonor
     ? getDonorEmailHref(selectedDonor.email, selectedDonor.is_anonymous)
     : null;
@@ -143,7 +197,13 @@ export function DonorsPageDetail() {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ ...smoothTransition, delay: 0.3 }}
-      className="lg:col-span-8 xl:col-span-9 min-h-0"
+      ref={detailRef}
+      // On phones the "select a partner" placeholder would trail the whole
+      // list, so it only shows beside the roster.
+      className={cn(
+        "lg:col-span-7 xl:col-span-8 min-h-0 scroll-mt-16",
+        !selectedDonor && "max-lg:hidden",
+      )}
     >
       <AnimatePresence mode="wait">
         {selectedDonor ? (
@@ -156,9 +216,10 @@ export function DonorsPageDetail() {
             className="h-full"
           >
             <Card className="overflow-hidden h-full flex flex-col">
-              <div className="p-6 border-b border-border bg-card shrink-0">
+              <div className="p-4 sm:p-6 border-b border-border bg-card shrink-0">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <DonorDetailIdentity
+                    backButtonRef={backButtonRef}
                     clearSelection={clearSelection}
                     selectedDonor={selectedDonor}
                   />
@@ -185,55 +246,10 @@ export function DonorsPageDetail() {
                 onValueChange={setActiveTab}
                 className="flex-1 flex flex-col min-h-0"
               >
-                <div
-                  className="px-6 py-4 border-b border-border shrink-0 overflow-x-auto"
-                  onFocusCapture={(event) => {
-                    const tab = event.target;
-                    if (
-                      !(tab instanceof HTMLElement) ||
-                      tab.getAttribute("role") !== "tab"
-                    ) {
-                      return;
-                    }
-                    const rail = event.currentTarget;
-                    const railBounds = rail.getBoundingClientRect();
-                    const tabBounds = tab.getBoundingClientRect();
-                    // Base UI preserves page scroll during keyboard focus.
-                    // Reveal overflowed tabs within this horizontal rail only.
-                    if (tabBounds.right > railBounds.right) {
-                      rail.scrollLeft += tabBounds.right - railBounds.right;
-                    } else if (tabBounds.left < railBounds.left) {
-                      rail.scrollLeft -= railBounds.left - tabBounds.left;
-                    }
-                  }}
-                >
-                  <div className="min-w-full w-max">
-                    <TabsList className="w-full">
-                      {[
-                        "overview",
-                        "tasks",
-                        "contact",
-                        "recurring",
-                        "giving",
-                      ].map((tab) => (
-                        <TabsTrigger key={tab} value={tab}>
-                          {tab === "overview"
-                            ? "Overview"
-                            : tab === "tasks"
-                              ? "Tasks"
-                              : tab === "contact"
-                                ? "Contact"
-                                : tab === "recurring"
-                                  ? "Recurring"
-                                  : "Giving"}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </div>
-                </div>
+                <DonorDetailTabRail activeTab={activeTab} />
 
                 <ScrollArea className="flex-1 min-h-0">
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <TabsContent
                       value="overview"
                       className="mt-0 flex flex-col gap-6"
@@ -307,10 +323,91 @@ export function DonorsPageDetail() {
   );
 }
 
+/**
+ * The five tabs fit on wider screens. On a phone they run past the card, so
+ * the rail scrolls sideways: the edge fade plus a chevron mark each side that
+ * still has tabs, the chosen tab is scrolled into view when a partner opens,
+ * and a keyboard-focused tab is revealed as Base UI moves focus.
+ */
+function DonorDetailTabRail({ activeTab }: { activeTab: string }) {
+  const frameRef = React.useRef<HTMLDivElement | null>(null);
+  React.useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const rail = frame?.querySelector<HTMLElement>(
+      '[data-slot="scroll-area-viewport"]',
+    );
+    const tab = frame?.querySelector<HTMLElement>(
+      '[role="tab"][aria-selected="true"]',
+    );
+    if (rail && tab) revealTabInRail(rail, tab);
+  }, [activeTab]);
+
+  return (
+    <div
+      ref={frameRef}
+      className="group/tab-rail relative shrink-0 border-b border-border px-4 py-3 sm:px-6 sm:py-4"
+    >
+      <ScrollArea
+        edgeFade="x"
+        onFocusCapture={(event) => {
+          const tab = event.target;
+          const rail = event.currentTarget.querySelector<HTMLElement>(
+            '[data-slot="scroll-area-viewport"]',
+          );
+          // Base UI preserves page scroll during keyboard focus; reveal the
+          // focused tab within this horizontal rail only.
+          if (
+            rail &&
+            tab instanceof HTMLElement &&
+            tab.getAttribute("role") === "tab"
+          ) {
+            revealTabInRail(rail, tab);
+          }
+        }}
+      >
+        {/* Clip the triggers' hidden line-variant indicator (::after, below
+            the list) so the rail has no 1px vertical overflow and no
+            vertical scrollbar. */}
+        <div className="min-w-full w-max overflow-y-clip">
+          <TabsList className="w-full">
+            {DETAIL_TABS.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+      </ScrollArea>
+      {/* Base UI marks the rail while tabs sit past an edge. The chevrons
+          sit over the faded edge on a disc in the card colour (the fade is a
+          transparency mask, so bare chevrons would land on half-faded tab
+          text); taps pass through to the tab beneath. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-4 hidden w-6 items-center justify-start text-muted-foreground group-has-data-[overflow-x-start]/tab-rail:flex sm:left-6"
+      >
+        <span className="flex size-6 items-center justify-center rounded-full bg-card">
+          <ChevronLeft className="size-4" />
+        </span>
+      </span>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-4 hidden w-6 items-center justify-end text-muted-foreground group-has-data-[overflow-x-end]/tab-rail:flex sm:right-6"
+      >
+        <span className="flex size-6 items-center justify-center rounded-full bg-card">
+          <ChevronRight className="size-4" />
+        </span>
+      </span>
+    </div>
+  );
+}
+
 function DonorDetailIdentity({
+  backButtonRef,
   clearSelection,
   selectedDonor,
 }: {
+  backButtonRef: React.Ref<HTMLButtonElement>;
   clearSelection: ReturnType<
     typeof useDonorsPageViewFields
   >["donors"]["clearSelection"];
@@ -321,6 +418,7 @@ function DonorDetailIdentity({
   return (
     <div className="flex w-full min-w-0 items-start gap-4 sm:flex-1">
       <Button
+        ref={backButtonRef}
         variant="ghost"
         size="icon"
         className="lg:hidden -ml-2 mt-1"
@@ -329,7 +427,7 @@ function DonorDetailIdentity({
       >
         <ArrowLeft data-icon="inline-start" />
       </Button>
-      <Avatar className="size-16">
+      <Avatar className="size-12 sm:size-16">
         <AvatarImage src={selectedDonor.avatar_url} />
         <AvatarFallback>{selectedDonor.initials}</AvatarFallback>
       </Avatar>
@@ -410,11 +508,8 @@ function DonorDetailActions({
           <a
             href={callHref}
             className={cn(
-              buttonVariants({
-                variant: "outline",
-                size: "sm",
-              }),
-              "w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted",
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "w-full",
             )}
           >
             <Phone data-icon="inline-start" /> Call
@@ -433,10 +528,7 @@ function DonorDetailActions({
         {emailHref ? (
           <a
             href={emailHref}
-            className={cn(
-              buttonVariants({ size: "sm" }),
-              "w-full h-9 px-4 text-xs font-medium rounded-xl",
-            )}
+            className={cn(buttonVariants({ size: "sm" }), "w-full")}
           >
             <Mail data-icon="inline-start" /> Email
           </a>
@@ -462,25 +554,25 @@ function DonorDetailActions({
               onClick={handleEditDialogOpen}
               disabled={selectedDonor.is_anonymous}
             >
-              <Pencil data-icon="inline-start" /> Edit Profile
+              <Pencil data-icon="inline-start" /> Edit partner
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleTagEditorOpen}
               disabled={selectedDonor.is_anonymous}
             >
-              <Tag data-icon="inline-start" /> Manage Tags
+              <Tag data-icon="inline-start" /> Manage tags
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={() => noteComposer.open("call")}>
-              <Phone data-icon="inline-start" /> Log Call
+              <Phone data-icon="inline-start" /> Log a call
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => noteComposer.open("meeting")}>
-              <Briefcase data-icon="inline-start" /> Log Meeting
+              <Briefcase data-icon="inline-start" /> Log a meeting
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => noteComposer.open("email")}>
-              <Mail data-icon="inline-start" /> Log Email
+              <Mail data-icon="inline-start" /> Log an email
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
@@ -501,39 +593,35 @@ function DonorDetailStats({
       variants={staggerContainer}
       initial="initial"
       animate="animate"
-      className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
+      className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 sm:mt-6"
     >
       {[
         {
           label: "Lifetime",
-          value: formatCurrency(selectedDonor.total_given),
+          value: formatCurrency(selectedDonor.total_given, null),
+          extra: "Currency is not established for this total.",
         },
         {
-          label: "Last Gift",
-          value: formatCurrency(selectedDonor.last_gift_amount),
+          label: "Last gift",
+          value: selectedDonor.last_gift_date
+            ? formatCurrency(selectedDonor.last_gift_amount, null)
+            : "—",
           extra: selectedDonor.last_gift_date
             ? formatDistanceToNow(
                 parseDisplayDate(selectedDonor.last_gift_date),
                 { addSuffix: true },
               )
             : null,
-          showPulse:
-            selectedDonor.last_gift_date &&
-            differenceInMonths(
-              currentDisplayDate(),
-              parseDisplayDate(selectedDonor.last_gift_date),
-            ) < 1,
         },
         {
-          label: "Frequency",
-          value: selectedDonor.frequency || "N/A",
-          icon: ArrowUpRight,
+          label: "Gives",
+          value: selectedDonor.frequency || "—",
         },
         {
-          label: "Partner Since",
+          label: "Partner since",
           value: selectedDonor.joined_date
             ? format(parseDisplayDate(selectedDonor.joined_date), "MMM yyyy")
-            : "N/A",
+            : "—",
         },
       ].map((stat, i) => (
         <motion.div
@@ -543,37 +631,14 @@ function DonorDetailStats({
             ...smoothTransition,
             delay: 0.2 + i * 0.05,
           }}
-          whileHover={{ y: -2 }}
-          className="bg-muted p-4 rounded-2xl border border-border"
+          className="flex flex-col gap-1 rounded-2xl border border-border bg-muted p-3 sm:p-4"
         >
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-            {stat.label}
+          <p className="text-sm text-muted-foreground">{stat.label}</p>
+          <p className="text-lg font-semibold tabular-nums text-foreground">
+            {stat.value}
           </p>
-          <div className="flex items-center gap-2">
-            {stat.icon ? <stat.icon className="size-3.5 text-primary" /> : null}
-            <p
-              className={cn(
-                stat.label === "Lifetime" || stat.label === "Last Gift"
-                  ? "text-lg"
-                  : "text-sm",
-                "font-semibold text-foreground",
-              )}
-            >
-              {stat.value}
-            </p>
-            {stat.showPulse ? (
-              <motion.div
-                animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [1, 0.7, 1],
-                }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="size-2 bg-primary/100 rounded-full"
-              />
-            ) : null}
-          </div>
           {stat.extra ? (
-            <p className="text-xs text-muted-foreground mt-0.5">{stat.extra}</p>
+            <p className="text-xs text-muted-foreground">{stat.extra}</p>
           ) : null}
         </motion.div>
       ))}
@@ -622,7 +687,7 @@ function DonorDetailTags({
           onClick={handleTagEditorOpen}
           disabled={selectedDonor.is_anonymous}
         >
-          <Plus data-icon="inline-start" /> Add Tag
+          <Plus data-icon="inline-start" /> Add tag
         </Button>
       </motion.div>
     </motion.div>
@@ -653,10 +718,10 @@ function DonorDetailEmpty({
               <EmptyMedia variant="icon">
                 <User />
               </EmptyMedia>
-              <EmptyTitle>Select a Partner</EmptyTitle>
+              <EmptyTitle>Choose a partner</EmptyTitle>
               <EmptyDescription>
-                Choose a donor from the list to view their profile, recurring
-                donations, and giving history.
+                Pick someone from the list to see their contact details,
+                recurring gifts and giving history.
               </EmptyDescription>
             </EmptyHeader>
             {profile?.id ? (
@@ -666,7 +731,7 @@ function DonorDetailEmpty({
                   onSuccess={refreshDonors}
                   trigger={
                     <Button>
-                      <Plus data-icon="inline-start" /> Add Partner
+                      <Plus data-icon="inline-start" /> Add partner
                     </Button>
                   }
                 />

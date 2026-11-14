@@ -49,7 +49,7 @@ export function buildCrmGridRow(
     displayName: donor.name,
     title: donor.title,
     primaryOrganization: donor.organization,
-    primaryContactLine: donor.title,
+    primaryContactLine: donor.email?.trim() || donor.phone?.trim() || null,
     location: donor.location,
     lifecycleStatus: donor.status,
     lastGiftAt: donor.last_gift_date,

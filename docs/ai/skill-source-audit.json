@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 187,
-    "runtimePerClient": 243,
-    "lockEntries": 202,
+    "canonical": 188,
+    "runtimePerClient": 244,
+    "lockEntries": 203,
     "outcomes": {
       "current": 89,
       "excluded": 1,
       "retained-snapshot": 12,
       "unresolved": 8,
-      "updated": 133
+      "updated": 134
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -201,7 +201,7 @@
       "rawSkillHash": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c",
       "lockHash": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c",
       "entrypointHash": "76521f6f42291f418e9d6dca4c01a06144283a23dda34ddaf344317366f71440",
-      "treeHash": "0e08445ad468f11d98a3ff09da5e39b84b3e14629ef5a7a2dca0ea109c3bcef5",
+      "treeHash": "a78295a462654765f46ec5cfeb5deb5696c19e7de41c9672f838384b97b4598d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -252,7 +252,7 @@
       "rawSkillHash": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a",
       "lockHash": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a",
       "entrypointHash": "685ad71bdbf03b723d296cb55b4387a23390aec9331001692ef50310659d08d3",
-      "treeHash": "76a2370698de75d1bf56a21952f3d0e7226e932e6bbebb2e3a25843b91b87fb9",
+      "treeHash": "dae314a7b48ca5d1216fe4d842789df83ee9e4bf82cd5ba12f5ec82c66a30f6a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -990,7 +990,7 @@
       "rawSkillHash": "e74f1c413a4094dc2a73fb0baa0da2241465e01d593b0257ba995500df9b0068",
       "lockHash": "e74f1c413a4094dc2a73fb0baa0da2241465e01d593b0257ba995500df9b0068",
       "entrypointHash": "093e31831467964e03006bdeddaec9dbed15e936d2a970489f8441bdf7f2584d",
-      "treeHash": "bd8721fa34459887d894c556e03dea11040a63453327b6e4e90e13cdb0a53c4c",
+      "treeHash": "19b9a50c7749b6c2e0dadf22ad4c8875e590e266f36165a4c066be4a863abdb3",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1131,7 +1131,7 @@
       "rawSkillHash": "8c5883ccb23c27c39b7c58d101154ff35e032410e0dc4794be9ab7fe070c2297",
       "lockHash": "8c5883ccb23c27c39b7c58d101154ff35e032410e0dc4794be9ab7fe070c2297",
       "entrypointHash": "b33ea8b1c95b5ec7e6d4839f87f7febc25af4a32952210f90b6fc416d7be8c7f",
-      "treeHash": "667446fc1468c873223dde48d4b468e0e325d87a8bcd4e2a661ba8da62d96d66",
+      "treeHash": "e931f3f2dddaa2f15f9c377e2cd891165e1e967266d9d1e8d3253df06cf99447",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1245,7 +1245,7 @@
       "rawSkillHash": "fb9807bb5c59a3ca9d4a27b25f56b36e5596251d280fb30c4b7f2ff8b6f4fe2d",
       "lockHash": "fb9807bb5c59a3ca9d4a27b25f56b36e5596251d280fb30c4b7f2ff8b6f4fe2d",
       "entrypointHash": "9650b6521b2ee75e32656e29e5d099403be162005a97533ba347187b24b8f9e9",
-      "treeHash": "ff3d17a10fa62bbf5e55e58b4d6661a99fc34c9e5de681fee403283a13fa0468",
+      "treeHash": "37190195a3b6d74f547a3b429d08a10810f3d354b8ce8978e7ce7ed1b7ebaf7b",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -1818,8 +1818,8 @@
       "sourcePath": "skills/components-build/SKILL.md",
       "rawSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
       "lockHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c",
-      "entrypointHash": "0ac96ea2ec9ac2aa8a64d695737c22451ae12092997611bfdb3c038555de36d7",
-      "treeHash": "192e3257eb7d7a9496d7f4bcb8e4f1ec1cffac6819f3fe2b954afffcd19c2c41",
+      "entrypointHash": "cd87c94efebbd163471f207ff395ea52568aac234572a134026ccfd24b227342",
+      "treeHash": "32ca3f3e438fb9997fb4d16a89ccf23e47c7f94bcf8e61ae19a2ea36c4a72f9c",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",
@@ -2398,7 +2398,7 @@
       "rawSkillHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "lockHash": "d955dae4ba8ab2d994f4bb06b4bf412a1d9875433a8597939c391f4bae91dd7a",
       "entrypointHash": "8a9dc39069b9b73749c9da5cf1c55edd28292d9f4415d6136f1b84b04d38004b",
-      "treeHash": "016ae875ad1ef31c9262bd901ecae14def20e8916102bd204dd3427118358e1d",
+      "treeHash": "bff163878e8f53f2e8135bbc40c090fedcc1610e87d26c4248f7de469f5ef961",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2559,8 +2559,8 @@
       "sourcePath": "skills/engineering/diagnosing-bugs/",
       "rawSkillHash": "849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d",
       "lockHash": "849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d",
-      "entrypointHash": "d9fffe20202e4700b40020c616730d4b6f57b3d5f7c6489dc6bc5ecfb74af7da",
-      "treeHash": "61179b890005f87e646939d11041f2bdec51d784fb4cb3de9266913d676ee2bf",
+      "entrypointHash": "0f1182040907b95330f87dc94b906495e62c18d876cad86cc81b1d7843ef4923",
+      "treeHash": "71edb5c4edabfdb0047fc9b273cf0b4d83a5bf86e59d9885dcf99fd2d703e483",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2709,7 +2709,7 @@
       "rawSkillHash": null,
       "lockHash": "9a96975e2eaf1ce5c69c14429aea7d2039e2f6f5a73938520b653de84841d9e3",
       "entrypointHash": "e10fba546f45357fe0aaa7494b9e186910d4525818d19f9b2ad6f28cc506aa5e",
-      "treeHash": "360fbd8b389ac5618d0994a1d40c34e21e9cbab557515d814ffbf1a458f81ea0",
+      "treeHash": "bcb1bf9ddd38271f6c63561985af16b44b861443841d4ade0d839cced9d09cd8",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2888,7 +2888,7 @@
       "rawSkillHash": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9",
       "lockHash": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9",
       "entrypointHash": "dde4f8e0f13ec9418cd52594c87841ef3d73fbe6c4f6ce3f2028febc74c789cd",
-      "treeHash": "2d598c6aa0e9b11a9ec14a6fa3a213c71bedb9ae6c8034a50223b64606f66a85",
+      "treeHash": "b2d5d1c1aabb016cff56d667a183a272c239b16f9a00b436944665208f1e91b9",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -3191,7 +3191,7 @@
       "rawSkillHash": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
       "lockHash": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
       "entrypointHash": "6c40018bdc45a4093dfdc6a5a30b73ab809016026003064373674b2544ab569a",
-      "treeHash": "574ce67b780b3cf19df8c68cd4b161075efffa1c462f83dfa2a76be32d3ef4f7",
+      "treeHash": "bd94d29e88d397d4e08bfac7b97029f85f28f0da0aece506b86232b463fafaf4",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -3395,7 +3395,7 @@
       "rawSkillHash": "10b81abff023288216db9dd368efd79824e14b386ad1a2b764831312fb220533",
       "lockHash": "ac22e2512d2821884d96f25ebee00854409cb375197f7f023ee654090ff05b47",
       "entrypointHash": "ac22e2512d2821884d96f25ebee00854409cb375197f7f023ee654090ff05b47",
-      "treeHash": "b2abc1afb8b68a7ef4febbbf8c5c48d6a325ceb31cbfd4570d81411c637896d1",
+      "treeHash": "a0ad99bb0aea9b106f4729680684d245b960ae85edd1276e303637521008a785",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -3940,8 +3940,8 @@
       "sourcePath": "skills/engineering/implement/",
       "rawSkillHash": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d",
       "lockHash": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d",
-      "entrypointHash": "678a423a39efdcbd3e461387bae5ffcca3d04677a7c1d37e7907297fbe13b616",
-      "treeHash": "836110625b89a8b8fe95f75090cb4925eaf2c1eefea6c81c01951be5c88fd275",
+      "entrypointHash": "dd05fb621f37a027636c2badce1f25670abef35db04294ecbd1292dd7bca7f4c",
+      "treeHash": "2141fef1a0b670d655abfd1518cf62099d8c6ade544e4791148e599f5414b31a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -4112,8 +4112,8 @@
       "sourcePath": "skills/engineering/improve-codebase-architecture/",
       "rawSkillHash": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
       "lockHash": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
-      "entrypointHash": "5f98717652b5ae5752d36d0f86c0010ba9d86df373c459e741c746aa29826048",
-      "treeHash": "27133a737e78af57e2365d07d527b496b4ee8571d6dcdd2841aafe65fb69ac02",
+      "entrypointHash": "18b4a3bab0b6e6c526f66bd4e24a7cd84ec5baafe31fa56ed7604297f263bf02",
+      "treeHash": "1523869d9ea09906a3c2a95818b86851e7bbbe25faa3f56e7c2dc5050e926668",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5068,8 +5068,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "dd08387a8c18ad3a15520db8f8579549e215b33502fdeea27d673c959ed68593",
-      "treeHash": "4a330643374908b254be09d58a7edcbeae448a5ffc7c8b7b32c8d77b44bb3789",
+      "entrypointHash": "a7bdf1d122159303da58ed8dd4566af8ed6203430ae93176963c770beb1a741c",
+      "treeHash": "9a3a425501623a5855e98a808392df39eabb851bb126674d2ef0dd3f8b9e4190",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -5106,7 +5106,7 @@
       "rawSkillHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55",
       "lockHash": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55",
       "entrypointHash": "0d5240fa68fbb6b01e5f48e50076126c3ad3fad297b5d7bc6f016c2631e48bfa",
-      "treeHash": "b1008be99f9e35d9e5d1ca36b1f5521958ac839b39741a26cd3f30835094ec1f",
+      "treeHash": "eba9c768fd83a08b669517275f9ab76f6774ff5914ab3b9640d2e8b87833dcb4",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5917,12 +5917,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-apply-change/SKILL.md",
-      "rawSkillHash": "40fc0655ae650213a130f376eed1475527d6c65cdc32973754449776a3227152",
+      "rawSkillHash": "85608c58de3dd2476f08a165f9c8643e6b6c1dd7e8338d5c581f8293c82a195d",
       "lockHash": "62320e7bb1ea01092211b8052cf693403fbfb93b5d356c0522f18581db31494e",
       "entrypointHash": "62320e7bb1ea01092211b8052cf693403fbfb93b5d356c0522f18581db31494e",
-      "treeHash": "e2024c2180febfc5dd07c81c77fab43f3f44272a5cd245539d930bbed8cb7e28",
+      "treeHash": "d34f3492c395bfe8af5291e8fc93d43dcd67ec42ef76ddbc8ddf150457eeaf5e",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -5934,19 +5934,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-apply-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-apply-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -5959,12 +5959,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-archive-change/SKILL.md",
-      "rawSkillHash": "b080e65449e9895fb63964c811168943bf99cb131a378b6a9937ed519ae4d37f",
+      "rawSkillHash": "1d311ae90fefeda5cb5de229c0cd1c320f3480d25acb69a9f550ff279410d488",
       "lockHash": "87b82c957a502c3b45ac4c88b4f2e09b83e9db96822d3bd0637ece0427da8fbd",
       "entrypointHash": "87b82c957a502c3b45ac4c88b4f2e09b83e9db96822d3bd0637ece0427da8fbd",
-      "treeHash": "07919d789f43ae7f019aec35e92cab793c2f4008f73e6ce420b099e3892fb400",
+      "treeHash": "391d446ae107c87182d5b2792219e6370110887238e64a30321ecb2097bc767a",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -5976,19 +5976,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-archive-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-archive-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6001,12 +6001,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-explore/SKILL.md",
-      "rawSkillHash": "e9fe2acf923d5f9376c5e198df235d7cc531913ba3d760faff867f9c60dbfebb",
-      "lockHash": "40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed",
-      "entrypointHash": "40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed",
-      "treeHash": "f842146626d5208455c70a1c08a70decb890b17b5e504bd239d783f89485d139",
+      "rawSkillHash": "20f5a62d1cf0652d55454f9a22dd9ecc2e27178dc4fd913942ff5a2912517b32",
+      "lockHash": "c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac",
+      "entrypointHash": "c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac",
+      "treeHash": "734ee74dd6001c34fe0cd6f8b16c38c2a331827a2947f62935df04ed4d3c89ea",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6018,19 +6018,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-explore/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-explore/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6043,12 +6043,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-propose/SKILL.md",
-      "rawSkillHash": "e9f4baa05e9fdbc969fcbdb8b13b4795c19640cc920999cf06c30a1a1934bb5c",
-      "lockHash": "09cee8a59595eddba679029ffb1cd6f48c0bc14ed0281da2b2957be3afa0c947",
-      "entrypointHash": "09cee8a59595eddba679029ffb1cd6f48c0bc14ed0281da2b2957be3afa0c947",
-      "treeHash": "28bdd9cc8180e6eef4bf403bb193a93a6c6a1f663bc0839006dfed58edcdbcb6",
+      "rawSkillHash": "c68839d6cad752a634abdb67e8274dc9f8d695ad29790de0a44214ca6fc4085d",
+      "lockHash": "ebca4a6605b7c917297d3d78e82490527c5eb2ef6e9ba700adfff8457d614bdd",
+      "entrypointHash": "ebca4a6605b7c917297d3d78e82490527c5eb2ef6e9ba700adfff8457d614bdd",
+      "treeHash": "3b7a932b5ebc7fe86d38336b5bc6f20852ff67f3c1a92b26344d2e75554fa0bd",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6060,19 +6060,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-propose/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-propose/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6085,12 +6085,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-sync-specs/SKILL.md",
-      "rawSkillHash": "474952afb40497c5cb756e5654ddc901619de6b3bd57aaa03fb11d2611a99da3",
+      "rawSkillHash": "cf874bc594fd307f99af09c771f44da3338065342c739a03b425cc8025e227f7",
       "lockHash": "c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a",
       "entrypointHash": "c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a",
-      "treeHash": "ebe641e444ab8222fbc5eb1393fa1302ebf3ca7b7ed51ca69fee9dbd05f40f26",
+      "treeHash": "b3e202678377871cd64ebf3e768a008c17b8f8622cfc7eb2881f25212bc1b8cd",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6102,19 +6102,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-sync-specs/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-sync-specs/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6127,12 +6127,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-update-change/SKILL.md",
-      "rawSkillHash": "9ca71b1ec6252e743028e561d73df32678e4486f80d2cb63887aa8648dc3a5cb",
-      "lockHash": "ee7b8c94c13422eb126dcc98308bbf25b5bccd87d621f4d6458c3e352afa0ed2",
-      "entrypointHash": "ee7b8c94c13422eb126dcc98308bbf25b5bccd87d621f4d6458c3e352afa0ed2",
-      "treeHash": "27e1665cd99812ec47a5f458faa6a1196cbfc6fd24eaaf5a3069c5fe89440867",
+      "rawSkillHash": "189993e19dae40dcf6c5c3e3c816fd721668a0ee80e10faea6f66efe366df037",
+      "lockHash": "159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505",
+      "entrypointHash": "159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505",
+      "treeHash": "4820d448d7de2ff194281a29524cdf8c32a60daced654b78197c1a98aecd86ec",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6144,19 +6144,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-update-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-update-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6169,12 +6169,12 @@
       "authorship": "upstream with Core adaptations",
       "source": "Fission-AI/OpenSpec",
       "importedRef": null,
-      "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+      "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
       "sourcePath": "skills/openspec-verify-change/SKILL.md",
-      "rawSkillHash": "29164b5053d78cbdb1440beda4193fba293f5c65699a40d689de11ced7a61124",
-      "lockHash": "7c3484e8e12763400db5da24decdc6fc2819e8222f3cd7ecb2c35614df3a8092",
-      "entrypointHash": "7c3484e8e12763400db5da24decdc6fc2819e8222f3cd7ecb2c35614df3a8092",
-      "treeHash": "65f874e06de1e4f707e4991de9972d1ae1c5c879c19f9e268afd2290c8d8495f",
+      "rawSkillHash": "836155c7161b061cd3824e7e39413c3fc1d87f517620e0ff859b499f4b185e78",
+      "lockHash": "a4ac732435c7ef91066154e74d16e4ba4275cb35f5de0600168799138ac6af24",
+      "entrypointHash": "a4ac732435c7ef91066154e74d16e4ba4275cb35f5de0600168799138ac6af24",
+      "treeHash": "f2bff577e7bc49b288c40c352ee3887d3a25325135a337c9637f996cc69912f1",
       "license": {
         "identifier": null,
         "status": "notice-preserved",
@@ -6186,19 +6186,19 @@
         ]
       },
       "adaptations": [
-        "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+        "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
       ],
       "evidence": "docs/ai/skills/openspec-verify-change/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",
-          "examinedRef": "c794978f4f8845ce59693373c9dd882ee776588c",
+          "examinedRef": "d12c2817776779e06891d68230773b3bb673b106",
           "sourcePath": "skills/openspec-verify-change/SKILL.md",
           "upstreamFileCount": 1,
           "normalizedDifferences": ["SKILL.md"],
           "omittedOptionalFiles": [],
           "proof": [
-            "Reviewed against installed OpenSpec v1.14.3 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
+            "Reviewed against installed OpenSpec v2.0.0 source, preserving committed Core overlay and CLI adapters; this is not a latest-HEAD claim."
           ],
           "method": "Trusted repository formatter and explicit Core compatibility review; no imported scripts executed."
         }
@@ -6441,7 +6441,7 @@
       "rawSkillHash": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682",
       "lockHash": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682",
       "entrypointHash": "0023051f7a8346aaf3fa3a11f177035053dee92c63eeea7d6b75a1987f4804e3",
-      "treeHash": "258db899bd95659be433c828bea0c7481d900be792df31ec7d89dc370fe978c7",
+      "treeHash": "d684a60f8e16bea332b27c97e630bcde5545ce1dccf92fac25421eae0e80b9de",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -7005,7 +7005,7 @@
       "rawSkillHash": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
       "lockHash": "25afd9677569d0036609676903131577043ea61eced6c4d1ac2e29f338cfce9a",
       "entrypointHash": "58cde712e47d67302d8ee706c58510792452ea496619abbd97fb0c681cba8cba",
-      "treeHash": "788da07d0a3a209e4d35beb536da2f66429bd340cb8e8d6a86ea78bccebd2777",
+      "treeHash": "1d6ec177ef12938d9a1ef90bbe580e9dd66b638989137c9c6c87142eedf7b3e3",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8420,7 +8420,7 @@
       "rawSkillHash": null,
       "lockHash": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9",
       "entrypointHash": "a04e96510c39040574356e812812b86ce4c9bc94d9dee22de43cb3563a8617e4",
-      "treeHash": "827215293d944f3f2fd7e785482a9a234e4898611b2182d8ee5dee7ed295aee6",
+      "treeHash": "d34ee1dbd561dedce6012d03506c3f1999d24a65a9023ee8eeab5b1ae4d10211",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8961,7 +8961,7 @@
       "rawSkillHash": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af",
       "lockHash": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af",
       "entrypointHash": "fabb992a2c689f69249d3690ba780ae2489ac867b823ec1f5163c8894c56c96a",
-      "treeHash": "e87ec4b5fc0cc93d48e3a72b24a2fec21e74e8cc04fc71b61dea05e527b472b9",
+      "treeHash": "d24bbefc8ddde8a95bc10a5498b6419eacd1be8e0f6457b182a72db5af16ed69",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10043,8 +10043,8 @@
       "sourcePath": "skills/engineering/tdd/",
       "rawSkillHash": "5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0",
       "lockHash": "5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0",
-      "entrypointHash": "51efbe6bfca6fbe56c913953a3f404cd87983e1b40607cb91bb69f3c9b3cb382",
-      "treeHash": "23be5934fb9ad74f55ba5d21836433b6226ff5704959464511dcfd71c47c9e04",
+      "entrypointHash": "eef066e0303072c3429149fa651b7c4fb57992aaaae576f426a4b888bfe3e55b",
+      "treeHash": "b08e94dabfeefe936646a56ed761be5f2398fbe4dbd0d5df3f5ea82ede5a03c8",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10193,7 +10193,7 @@
       "rawSkillHash": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
       "lockHash": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
       "entrypointHash": "cf687c807dee63c4879a5c8e49b370a3e5b5d71b863ae717949aeee7fb6cbd22",
-      "treeHash": "74ffb0e5ade3b78780885f5981da6c1a0f2a6ad4a49189e18cb79f850f96a787",
+      "treeHash": "c3e7dc71f109c77168d0d3b135e2a4981310ea29fa9b9df1f86ecbe2cf710b4c",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10242,7 +10242,7 @@
       "rawSkillHash": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
       "lockHash": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
       "entrypointHash": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
-      "treeHash": "42107558eed326e8835d2e3463d2d72e7e3029a7dfbbe0a0b5bf377579ddb432",
+      "treeHash": "7f299cd428a08a82628921a4d202704445fba1d58e58e608dc7a52689b79577c",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -10683,7 +10683,7 @@
       "rawSkillHash": null,
       "lockHash": "4828c4957014e7d9c1fd62d65e92264d6d46808089953e14d1bbba5a92dfff4d",
       "entrypointHash": "2449e2345b96b9f1e861c697b5eab50d03ae1254481a4306b6f815684e523b3a",
-      "treeHash": "c9b2f4dd021d0e7f2b72920bf8b3b91f66b3902a2c8f8aad7630a7449e502202",
+      "treeHash": "e202eaefed2ce3bdf0ae2a2f813fd72b4d76a7d703721ab82ec33de229bf230b",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -10713,6 +10713,43 @@
           "upstreamPath": "LICENSE",
           "target": "docs/ai/skills/ubiquitous-language/references/UPSTREAM-LICENSE",
           "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+        }
+      ]
+    },
+    {
+      "name": "ui-sdk",
+      "status": "updated",
+      "ownership": "canonical",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel-labs/ui",
+      "importedRef": "8ff6bcf7100d48230a3fab8c72475d99316cc58a",
+      "examinedRef": "8ff6bcf7100d48230a3fab8c72475d99316cc58a",
+      "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
+      "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+      "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
+      "entrypointHash": "2cc606a16b8a17bed1865212efe3b30832534546ce36a05acda8ca4e9aac823a",
+      "treeHash": "02903fcd6289f13566a560c35f6b781531bd2b115e9eca913fcb79169ff24a8b",
+      "license": {
+        "identifier": "Apache-2.0",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "LICENSE",
+            "sha256": "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007"
+          }
+        ]
+      },
+      "adaptations": [
+        "Pinned the @ui-sdk/core 0.1.0-beta.2 skill with a Base UI-first description, a Core overlay for installed-docs paths, packages/ui wrappers, Maia styling, opt-in agent bridges and Core tests, and marked scanner comments with Apache-2.0 change notices."
+      ],
+      "evidence": "docs/ai/skills/ui-sdk/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "complete-pinned-import",
+          "url": "https://github.com/vercel-labs/ui/tree/8ff6bcf7100d48230a3fab8c72475d99316cc58a/packages/core/skills/ui-sdk",
+          "rawSkillSha256": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
+          "licenseSha256": "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007",
+          "claim": "Complete reviewed skill tree, identical to the copy bundled in the installed @ui-sdk/core package, with the root Apache-2.0 LICENSE and a marked Core overlay; imported code was not executed."
         }
       ]
     },
@@ -11524,7 +11561,7 @@
       "rawSkillHash": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447",
       "lockHash": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447",
       "entrypointHash": "9b2c7aa330aa22b68e798ede3e13edf8b4979063ad88697aa9c07c527dfe733f",
-      "treeHash": "7d0a52728930c36057022ab245272b5a074219f41b81bc466a1c99a06e29a8dd",
+      "treeHash": "c3ae46c514a6f4806505ac9194461945e03f9805750f04eee43015569cf10316",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -11689,7 +11726,7 @@
       "rawSkillHash": null,
       "lockHash": "8a720e31b29ad7744b369fba7f21cd746a6b60e68ee1774aeca02f542a179a93",
       "entrypointHash": "4d6ccbc3760b1bd4107c495a79872286ea69494003f3b0a719fc95b147457061",
-      "treeHash": "75907ca74847b821a918d2e0b769f9546302807e75319c0d9a8e91e6b8a91efa",
+      "treeHash": "ad2e792f194a987ae2d9a8dd6de792c8f0cc22dea6abc4228f91f347e40bf4f1",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",

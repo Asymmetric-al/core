@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 vi.hoisted(() => {
@@ -8,6 +9,14 @@ vi.hoisted(() => {
 import { loadDashboardStats } from "../../../../../apps/admin/app/(app)/dashboard-stats-loader";
 
 describe("apps/admin/app/(app)/dashboard-stats-loader", () => {
+  it("loads only dashboard figures, without an unused missionary lookup", () => {
+    const page = readFileSync(
+      new URL("../../../../../apps/admin/app/(app)/page.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(page).not.toContain("loadDashboardMissionaryId");
+    expect(page).not.toContain("dashboardMissionaryId");
+  });
   it("returns null when dashboard stats loading fails", async () => {
     const loadStats = vi.fn().mockRejectedValue(new Error("db unavailable"));
 
@@ -16,10 +25,10 @@ describe("apps/admin/app/(app)/dashboard-stats-loader", () => {
 
   it("returns stats when dashboard stats loading succeeds", async () => {
     const stats = {
-      totalDonors: 3,
+      crmRecordCount: 3,
       totalMissionaries: 2,
       totalDonationsThisMonth: 5,
-      revenueThisMonth: 200,
+      revenueThisMonthCents: 200,
       activeFundsCount: 4,
     };
     const loadStats = vi.fn().mockResolvedValue(stats);

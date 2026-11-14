@@ -76,3 +76,26 @@ describe("buildOfflineContributionRow", () => {
     expect(row.fund_id).toBe("fund-1");
   });
 });
+
+describe("buildOfflineContributionRow amount cents", () => {
+  function rowFor(amount: number) {
+    return buildOfflineContributionRow({
+      donorMode: "unknown_offline",
+      amount,
+      currency: "usd",
+      receivedDate: "2026-07-01",
+      method: "cash",
+      designation: { missionaryId: "m-1" },
+    });
+  }
+
+  it("derives cents from the digits, so 0.29 is 29 and 1500 is 150000", () => {
+    expect(rowFor(0.29).amount_cents).toBe(29);
+    expect(rowFor(1500).amount_cents).toBe(150_000);
+  });
+
+  it("refuses a sub-cent amount instead of rounding it to another gift", () => {
+    expect(() => rowFor(0.004)).toThrow();
+    expect(() => rowFor(10.005)).toThrow();
+  });
+});

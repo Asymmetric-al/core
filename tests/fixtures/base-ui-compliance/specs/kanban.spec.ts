@@ -51,7 +51,7 @@ test("a pointer move to an empty Waiting column submits exactly one move", async
 test("keyboard sorting keeps order, the final index and focus", async ({
   page,
 }) => {
-  const column = page.getByRole("region", { name: "To Do", exact: true });
+  const column = page.getByRole("region", { name: "To do", exact: true });
   const handle = page.getByRole("button", {
     name: "Move Call Anna",
     exact: true,
@@ -91,7 +91,7 @@ test("Escape restores a cross-column keyboard preview without a mutation", async
   await page.keyboard.press("ArrowRight");
   await expect(
     page
-      .getByRole("region", { name: "In Progress", exact: true })
+      .getByRole("region", { name: "In progress", exact: true })
       .getByRole("heading", { level: 4 }),
   ).toContainText(["Call Anna"]);
   await page.keyboard.press("ArrowRight");
@@ -100,7 +100,7 @@ test("Escape restores a cross-column keyboard preview without a mutation", async
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("heading", { name: "To Do 2", exact: true }),
+    page.getByRole("heading", { name: "To do 2", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Waiting 0", exact: true }),
@@ -115,7 +115,7 @@ test("a thrown save restores order and focus, reports failure and allows retry",
   page,
 }) => {
   await page.goto("/kanban.html?moveResult=throw");
-  const column = page.getByRole("region", { name: "To Do", exact: true });
+  const column = page.getByRole("region", { name: "To do", exact: true });
   const handle = page.getByRole("button", {
     name: "Move Call Anna",
     exact: true,
@@ -173,7 +173,7 @@ test("a declined save restores the controlled list and announces failure", async
   page,
 }) => {
   await page.goto("/kanban.html?moveResult=false");
-  const column = page.getByRole("region", { name: "To Do", exact: true });
+  const column = page.getByRole("region", { name: "To do", exact: true });
   const handle = page.getByRole("button", {
     name: "Move Call Anna",
     exact: true,
@@ -286,7 +286,7 @@ test("a pending save admits no second move and preserves later user focus", asyn
   page,
 }) => {
   await page.goto("/kanban.html?moveResult=pending");
-  const column = page.getByRole("region", { name: "To Do", exact: true });
+  const column = page.getByRole("region", { name: "To do", exact: true });
   const handle = page.getByRole("button", {
     name: "Move Call Anna",
     exact: true,
@@ -350,7 +350,7 @@ test("lifting and dropping in place submits no mutation", async ({ page }) => {
   ).toHaveText("[]");
   await expect(
     page
-      .getByRole("region", { name: "To Do", exact: true })
+      .getByRole("region", { name: "To do", exact: true })
       .getByRole("heading", { level: 4 }),
   ).toHaveText(["Call Anna", "Send newsletter"]);
   await expect(handle).toBeFocused();
@@ -366,7 +366,7 @@ test("task-board controls have no automated accessibility violations", async ({
 test("touch dragging the grip sorts without handing the gesture to page scrolling", async ({
   page,
 }) => {
-  const column = page.getByRole("region", { name: "To Do", exact: true });
+  const column = page.getByRole("region", { name: "To do", exact: true });
   const handle = page.getByRole("button", {
     name: "Move Call Anna",
     exact: true,
@@ -435,7 +435,7 @@ test("short grip movements and dropping outside the board submit no mutation", a
   ).toHaveText("[]");
   await expect(
     page
-      .getByRole("region", { name: "To Do", exact: true })
+      .getByRole("region", { name: "To do", exact: true })
       .getByRole("heading", { level: 4 }),
   ).toHaveText(["Call Anna", "Send newsletter"]);
 });

@@ -40,8 +40,31 @@ export function FilterBar({
   actions,
   className,
 }: FilterBarProps) {
+  const rootRef = React.useRef<HTMLDivElement | null>(null);
+  const searchRef = React.useRef<HTMLInputElement | null>(null);
+  const chipsRef = React.useRef<HTMLDivElement | null>(null);
+  // Removing a chip (or Clear all) unmounts the focused button. Once the
+  // filters update, move focus to the next chip's remove control, else the
+  // search field, else the bar itself, so keyboard users keep their place.
+  const pendingFocusIndex = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    const index = pendingFocusIndex.current;
+    if (index === null) return;
+    pendingFocusIndex.current = null;
+    const removeButtons =
+      chipsRef.current?.querySelectorAll<HTMLButtonElement>(
+        "button[data-filter-remove]",
+      ) ?? [];
+    const next = removeButtons[Math.min(index, removeButtons.length - 1)];
+    (next ?? searchRef.current ?? rootRef.current)?.focus();
+  }, [activeFilters, search?.value]);
+
   return (
-    <div className={cn("flex flex-col gap-4 w-full", className)}>
+    <div
+      ref={rootRef}
+      tabIndex={-1}
+      className={cn("flex flex-col gap-4 w-full outline-none", className)}
+    >
       <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
         <div className="flex flex-1 flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto">
           {search && (
@@ -51,6 +74,7 @@ export function FilterBar({
                   <Search aria-hidden="true" />
                 </InputGroupAddon>
                 <InputGroupInput
+                  ref={searchRef}
                   aria-label={search.label ?? "Search"}
                   placeholder={search.placeholder || "Search..."}
                   value={search.value}
@@ -73,9 +97,12 @@ export function FilterBar({
       </div>
 
       {(activeFilters.length > 0 || onReset) && (
-        <div className="flex flex-wrap items-center gap-2">
-          {activeFilters.map((filter) => {
-            const handleFilterOnRemove = filter.onRemove;
+        <div ref={chipsRef} className="flex flex-wrap items-center gap-2">
+          {activeFilters.map((filter, index) => {
+            const handleFilterOnRemove = () => {
+              pendingFocusIndex.current = index;
+              filter.onRemove();
+            };
             return (
               <Badge key={filter.label} variant="secondary">
                 {filter.label}
@@ -85,6 +112,7 @@ export function FilterBar({
                   size="icon-xs"
                   onClick={handleFilterOnRemove}
                   aria-label={`Remove ${filter.label} filter`}
+                  data-filter-remove=""
                   className="ml-1"
                 >
                   <X className="size-3" />
@@ -94,7 +122,14 @@ export function FilterBar({
           })}
 
           {onReset && (activeFilters.length > 0 || search?.value) && (
-            <Button variant="ghost" size="sm" onClick={onReset}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                pendingFocusIndex.current = Number.MAX_SAFE_INTEGER;
+                onReset();
+              }}
+            >
               Clear all
             </Button>
           )}

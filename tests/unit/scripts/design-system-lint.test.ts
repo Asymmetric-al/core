@@ -11,6 +11,24 @@ import {
 const root = process.cwd();
 
 describe("Core design-system lint", () => {
+  it("excludes the generated Payload import map without exempting authored CMS modules", async () => {
+    const generated = path.join(
+      root,
+      "apps/admin/app/(payload)/web-studio/importMap.js",
+    );
+    const authored = path.join(
+      root,
+      "apps/admin/src/cms-ui/web-studio/generated-boundary-probe.tsx",
+    );
+    for (const cwd of [root, path.join(root, "apps/admin")]) {
+      const eslint = new ESLint({ cwd });
+      expect(await eslint.isPathIgnored(generated)).toBe(true);
+      const config = await eslint.calculateConfigForFile(authored);
+      expect(config.rules["import-x/no-duplicates"][0]).toBe(2);
+      expect(config.rules["no-restricted-imports"][0]).toBe(2);
+    }
+  });
+
   it("accepts existing motion token references and the pinned-table border seam only in its implementation", async () => {
     const eslint = new ESLint({
       cwd: root,
@@ -79,6 +97,23 @@ describe("Core design-system lint", () => {
       expect(decisions[0].length).toBeGreaterThan(0);
     },
   );
+
+  it("enforces the shared design system on the operator Console from the root and lint-staged config", async () => {
+    expect(uiWorkspaces).toContain("apps/factory-console");
+    const eslint = new ESLint({ cwd: root });
+    const config = await eslint.calculateConfigForFile(
+      path.join(root, "apps/factory-console/src/components/console.tsx"),
+    );
+    for (const name of [
+      "no-restyle",
+      "no-raw-colors",
+      "no-arbitrary-values",
+      "no-inline-styles",
+      "no-unknown-classes",
+      "require-static-classes",
+    ])
+      expect(config.rules[`shadcn/${name}`]?.[0]).toBe(2);
+  });
 
   it("does not grant new shared feature files primitive authoring privileges", async () => {
     const eslint = new ESLint({ cwd: root });

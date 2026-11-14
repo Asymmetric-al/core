@@ -37,7 +37,7 @@ export const SUPPORT_INBOX_KEYMAP: SupportShortcutEntry[] = [
   {
     action: "openCommandPalette",
     label: "Open command palette",
-    chord: "Cmd K",
+    chord: "Ctrl/Command K",
     key: "k",
     meta: true,
   },

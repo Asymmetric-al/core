@@ -80,7 +80,7 @@ export function buildReportSeries(
     case "customer-waiting":
       return buildCustomerWaitingSeries(
         request,
-        inRangeConversations,
+        scopedConversations,
         inRangeMessages,
         businessHours,
         now,
@@ -120,6 +120,8 @@ export function buildReportSeries(
       );
     case "agent-mix":
       return buildAgentMixSeries(request, inRangeConversations, now);
+    case "team-mix":
+      return buildOwnerMixSeries(request, inRangeConversations, now, "team");
     default: {
       const _exhaustive: never = slice;
       void _exhaustive;
@@ -161,22 +163,45 @@ export function isIsoWithinRange(
   return value >= from && value < to;
 }
 
+/** The viewer's calendar day of `date`, as "YYYY-MM-DD". */
+export function localDateKey(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** Local midnight at the start of a "YYYY-MM-DD" day, or null if invalid. */
+function startOfLocalDay(key: string, addDays = 0): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!match) return null;
+  const date = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]) + addDays,
+  );
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Report periods are the viewer's calendar days, weeks (from Monday) and
+ * months, the same days the date inputs show, not UTC ones.
+ */
 function groupKey(iso: string, groupBy: SupportReportGroupBy): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "unknown";
   switch (groupBy) {
-    case "day":
-      return date.toISOString().slice(0, 10);
     case "week": {
       const monday = new Date(date);
-      const dayIndex = (monday.getUTCDay() + 6) % 7;
-      monday.setUTCDate(monday.getUTCDate() - dayIndex);
-      return monday.toISOString().slice(0, 10);
+      const dayIndex = (monday.getDay() + 6) % 7;
+      monday.setDate(monday.getDate() - dayIndex);
+      return localDateKey(monday);
     }
     case "month":
-      return date.toISOString().slice(0, 7);
+      return localDateKey(date).slice(0, 7);
+    case "day":
     default:
-      return date.toISOString().slice(0, 10);
+      return localDateKey(date);
   }
 }
 
@@ -206,8 +231,76 @@ function makeBuckets(
   }));
 }
 
-function sortedKeysFromMap(map: Map<string, number>): string[] {
-  return [...map.keys()].sort();
+/** Most periods one axis fills, so an odd range cannot build a huge axis. */
+const MAX_PERIODS = 400;
+
+/** The next period's key after `key` ("2026-04-14", week start, "2026-04"). */
+function nextPeriodKey(key: string, groupBy: SupportReportGroupBy): string {
+  const cursor = new Date(
+    groupBy === "month" ? `${key}-01T00:00:00.000Z` : `${key}T00:00:00.000Z`,
+  );
+  if (groupBy === "month") {
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+    return cursor.toISOString().slice(0, 7);
+  }
+  cursor.setUTCDate(cursor.getUTCDate() + (groupBy === "week" ? 7 : 1));
+  return cursor.toISOString().slice(0, 10);
+}
+
+/** Every period key from `first` to `last`, or null past MAX_PERIODS. */
+function periodSpan(
+  first: string,
+  last: string,
+  groupBy: SupportReportGroupBy,
+): string[] | null {
+  const keys: string[] = [];
+  for (let key = first; key <= last; key = nextPeriodKey(key, groupBy)) {
+    if (keys.length === MAX_PERIODS) return null;
+    keys.push(key);
+  }
+  return keys;
+}
+
+/**
+ * The periods a time series lists: every period of the selected range, quiet
+ * ones at zero, so a chart never draws a line across days, weeks or months
+ * that had nothing. When the range holds more periods than MAX_PERIODS,
+ * every period with data is still listed (never a truncated axis): the
+ * buckets always add up to the series total.
+ */
+function periodKeys(
+  map: Map<string, number>,
+  groupBy: SupportReportGroupBy,
+  range: SupportReportRange,
+): string[] {
+  const populated = [...map.keys()].filter((key) => key !== "unknown").sort();
+  const unknown = map.has("unknown") ? ["unknown"] : [];
+  // The server renders before the viewer's calendar is known, with an
+  // empty range: there is no axis to fill then, only populated periods.
+  const rangeEndTime = new Date(range.to).getTime() - 1;
+  const rangeEnd = Number.isFinite(rangeEndTime)
+    ? new Date(rangeEndTime).toISOString()
+    : null;
+  const first = groupKey(range.from, groupBy);
+  const last = rangeEnd ? groupKey(rangeEnd, groupBy) : "unknown";
+  const fromRange =
+    first !== "unknown" && last !== "unknown"
+      ? periodSpan(first, last, groupBy)
+      : null;
+  if (fromRange) {
+    // Data outside the range never reaches here (filtered on the way in),
+    // but keep it rather than drop it if it ever does.
+    const listed = new Set(fromRange);
+    return [
+      ...[...fromRange, ...populated.filter((key) => !listed.has(key))].sort(),
+      ...unknown,
+    ];
+  }
+  const between =
+    populated.length >= 2
+      ? periodSpan(populated[0]!, populated[populated.length - 1]!, groupBy)
+      : null;
+  return [...(between ?? populated), ...unknown];
 }
 
 function buildVolumeSeries(
@@ -221,7 +314,7 @@ function buildVolumeSeries(
     const key = groupKey(conversation.createdAt, groupBy);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
-  const keys = sortedKeysFromMap(counts);
+  const keys = periodKeys(counts, groupBy, request.range);
   return {
     slice: "volume",
     generatedAt: toDate(now).toISOString(),
@@ -247,7 +340,7 @@ function buildMessageDirectionSeries(
     const key = groupKey(message.postedAt, groupBy);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
-  const keys = sortedKeysFromMap(counts);
+  const keys = periodKeys(counts, groupBy, request.range);
   return {
     slice: direction === "inbound" ? "messages-received" : "messages-sent",
     generatedAt: toDate(now).toISOString(),
@@ -331,7 +424,7 @@ function buildResolutionCountSeries(
     const key = groupKey(conversation.resolvedAt, groupBy);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
-  const keys = sortedKeysFromMap(counts);
+  const keys = periodKeys(counts, groupBy, request.range);
   return {
     slice: "resolution-count",
     generatedAt: toDate(now).toISOString(),
@@ -442,6 +535,12 @@ function buildFirstResponseSeries(
     total: avg,
     buckets: [
       {
+        key: "responded",
+        label: "Responded count",
+        value: minutes.length,
+        secondaryValue: null,
+      },
+      {
         key: "average",
         label: "Average minutes",
         value: avg,
@@ -533,11 +632,21 @@ function buildAgentMixSeries(
   conversations: SupportConversation[],
   now: Date | string,
 ): SupportReportSeries {
+  return buildOwnerMixSeries(request, conversations, now, "assignee");
+}
+
+function buildOwnerMixSeries(
+  request: SupportReportRequest,
+  conversations: SupportConversation[],
+  now: Date | string,
+  owner: "assignee" | "team",
+): SupportReportSeries {
   const counts = new Map<string, { name: string; count: number }>();
   for (const conversation of conversations) {
-    const assignee = conversation.assignee;
-    const key = assignee?.id ?? "unassigned";
-    const name = assignee?.name ?? "Unassigned";
+    const assignee = conversation[owner];
+    const key = assignee?.id ?? (owner === "team" ? "none" : "unassigned");
+    const name =
+      assignee?.name ?? (owner === "team" ? "No team" : "Unassigned");
     const existing = counts.get(key);
     if (existing) {
       existing.count += 1;
@@ -554,7 +663,7 @@ function buildAgentMixSeries(
       secondaryValue: null,
     }));
   return {
-    slice: "agent-mix",
+    slice: request.slice,
     generatedAt: toDate(now).toISOString(),
     unit: "count",
     total: conversations.length,
@@ -587,10 +696,49 @@ function median(values: number[]): number {
     : Math.round(sorted[mid]!);
 }
 
-export function defaultReportRange(days = 30): SupportReportRange {
-  const to = new Date();
-  const from = new Date(to.getTime() - days * DAY_MS);
-  return { from: from.toISOString(), to: to.toISOString() };
+/**
+ * The default report window: today and the `days` days before it, in the
+ * viewer's calendar. `from` is the local midnight that starts the first day
+ * and `to` the one that ends today (exclusive), so the "To" input reads
+ * today whatever the viewer's offset from UTC.
+ */
+export function defaultReportRange(
+  days = 30,
+  now: Date = new Date(),
+): SupportReportRange {
+  const today = localDateKey(now);
+  return {
+    from: reportRangeBoundary("from", today, -days) ?? now.toISOString(),
+    to: reportRangeBoundary("to", today) ?? now.toISOString(),
+  };
+}
+
+/**
+ * The instant a picked date stands for: the start of a "From" day, or the
+ * end of a "To" day (the next local midnight), so the To day is included.
+ * Null for an empty or malformed value.
+ */
+export function reportRangeBoundary(
+  field: "from" | "to",
+  value: string,
+  offsetDays = 0,
+): string | null {
+  const start = startOfLocalDay(value, offsetDays + (field === "to" ? 1 : 0));
+  return start ? start.toISOString() : null;
+}
+
+/** The local days a range covers, for the "From" and "To" date inputs. */
+export function reportRangeInputValues(range: SupportReportRange): {
+  from: string;
+  to: string;
+} {
+  const from = new Date(range.from);
+  // `to` is exclusive: its input shows the last day the range includes.
+  const lastInstant = new Date(new Date(range.to).getTime() - 1);
+  return {
+    from: Number.isNaN(from.getTime()) ? "" : localDateKey(from),
+    to: Number.isNaN(lastInstant.getTime()) ? "" : localDateKey(lastInstant),
+  };
 }
 
 void DAY_MS;

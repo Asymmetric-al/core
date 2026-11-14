@@ -12,8 +12,8 @@ export type DonorsPageSummary = {
   activePledgeCount: number;
   atRiskCount: number;
   lapsedCount: number;
-  monthlyPledgeTotal: number;
-  totalGiven: number;
+  monthlyPledgeTotal: number | null;
+  totalGiven: number | null;
 };
 
 export type DonorsStatFilterType =
@@ -39,6 +39,29 @@ export function hasDonorsActiveFilters(filters: DonorsPageFilterState) {
     filters.pledgeFilter !== "All" ||
     filters.searchTerm.trim().length > 0
   );
+}
+
+export type PartnerLinkStep = "wait" | "open" | "load-more" | "missing";
+
+/**
+ * What to do with a link that names one partner (`/donors?partner=<id>`).
+ * Partners load a page at a time, so a partner who isn't loaded yet may be
+ * on a later page; only once every page is in can they be called missing.
+ */
+export function nextPartnerLinkStep(
+  partnerId: string,
+  loadedIds: readonly string[],
+  list: {
+    isLoading: boolean;
+    hasError: boolean;
+    hasMore: boolean;
+    isLoadingMore: boolean;
+  },
+): PartnerLinkStep {
+  if (list.isLoading || list.hasError) return "wait";
+  if (loadedIds.includes(partnerId)) return "open";
+  if (list.isLoadingMore) return "wait";
+  return list.hasMore ? "load-more" : "missing";
 }
 
 export function applyDonorsStatFilter(
@@ -100,7 +123,7 @@ export function createTagEditorDraft(committedTags?: string[]): string[] {
   return [...(committedTags ?? [])];
 }
 
-export const ANONYMOUS_DONOR_LABEL = "Anonymous donor";
+export const ANONYMOUS_DONOR_LABEL = "Anonymous partner";
 
 function anonymousDonorInitials(label: string) {
   return (
@@ -194,9 +217,6 @@ export function createDonorsPageSummary(donors: Donor[]): DonorsPageSummary {
         summary.activePledgeCount += 1;
       }
 
-      summary.totalGiven += donor.total_given || 0;
-      summary.monthlyPledgeTotal += getMonthlyPledgeAmount(donor);
-
       return summary;
     },
     {
@@ -204,30 +224,10 @@ export function createDonorsPageSummary(donors: Donor[]): DonorsPageSummary {
       activePledgeCount: 0,
       atRiskCount: 0,
       lapsedCount: 0,
-      monthlyPledgeTotal: 0,
-      totalGiven: 0,
+      monthlyPledgeTotal: null,
+      totalGiven: null,
     },
   );
-}
-
-function getMonthlyPledgeAmount(donor: Donor): number {
-  const activeRecurring = donor.recurring_donations.find(
-    (pledge) => pledge.status === "active",
-  );
-
-  if (!activeRecurring) {
-    return 0;
-  }
-
-  if (activeRecurring.frequency === "Monthly") {
-    return activeRecurring.amount;
-  }
-
-  if (activeRecurring.frequency === "Quarterly") {
-    return activeRecurring.amount / 3;
-  }
-
-  return activeRecurring.amount / 12;
 }
 
 export function formatDonorAddress(address: Address): string[] {

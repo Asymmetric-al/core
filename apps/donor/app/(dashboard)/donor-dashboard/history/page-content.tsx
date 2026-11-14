@@ -1,10 +1,9 @@
 "use client";
 
-import { buildGivingTrends } from "@asym/api/donor-portal/trends";
 import { useDonorHistoryTransactions } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
@@ -13,13 +12,13 @@ import {
   type Row,
 } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
-  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   InputGroup,
@@ -33,49 +32,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
-import {
-  Calendar,
-  FileText,
-  CheckCircle2,
-  DollarSign,
-  TrendingUp,
-  DownloadCloud,
-  SlidersHorizontal,
-  Search,
-} from "lucide-react";
-import React, { useEffect, useMemo, useReducer, useState } from "react";
+import { ChevronDown, Download, Search } from "lucide-react";
+import dynamic from "next/dynamic";
+import React, { useMemo, useReducer } from "react";
 
-import { columns } from "./columns";
+import { columns, ReceiptLink } from "./columns";
 import { getHistoryYearOptions } from "./history-year-options";
+import { MonthlyGivingTable } from "./monthly-giving-table";
+import { GIFT_TYPE_LABELS, type Transaction } from "./types";
 
-// --- Types ---
-interface Transaction {
-  id: string;
-  date: string; // ISO string
-  amount: number;
-  recipient: string;
-  recipientAvatar?: string;
-  category: string;
-  type: "Recurring" | "One-Time";
-  method: string;
-  last4: string;
-  status: "Succeeded" | "Processing" | "Failed";
-  receiptUrl: string;
-}
+import type { MonthlyGivingPoint } from "./monthly-giving-chart";
 
-async function importRechartsModule() {
-  return import("recharts");
-}
+import { makeDisplayDate } from "@/lib/dates";
 
-type RechartsImport = Awaited<ReturnType<typeof importRechartsModule>>;
-type RechartsModule = {
-  Bar: RechartsImport["Bar"];
-  BarChart: RechartsImport["BarChart"];
-  Cell: RechartsImport["Cell"];
-  ResponsiveContainer: RechartsImport["ResponsiveContainer"];
-  Tooltip: RechartsImport["Tooltip"];
-};
+// Recharts loads only when the summary chart is on screen.
+const MonthlyGivingChart = dynamic(() => import("./monthly-giving-chart"), {
+  ssr: false,
+  loading: () => <Skeleton className="size-full" />,
+});
+
 type HistoryFiltersState = {
   searchTerm: string;
   yearFilter: string;
@@ -88,8 +65,6 @@ type HistoryFiltersAction =
   | { type: "set_type_filter"; value: string }
   | { type: "set_status_filter"; value: string };
 
-type MonthlyGivingPoint = { month: string; amount: number };
-
 function createDefaultHistoryFilters(): HistoryFiltersState {
   return {
     searchTerm: "",
@@ -99,7 +74,6 @@ function createDefaultHistoryFilters(): HistoryFiltersState {
   };
 }
 
-// --- Helpers ---
 function historyFiltersReducer(
   state: HistoryFiltersState,
   action: HistoryFiltersAction,
@@ -118,348 +92,252 @@ function historyFiltersReducer(
   }
 }
 
-function HistoryChartFallback() {
-  return (
-    <div
-      className="h-24 w-full rounded-md bg-muted animate-pulse"
-      aria-hidden="true"
-    />
-  );
+const TYPE_OPTIONS = [
+  { value: "All", label: "All types" },
+  { value: "Recurring", label: GIFT_TYPE_LABELS.Recurring },
+  { value: "One-Time", label: GIFT_TYPE_LABELS["One-Time"] },
+];
+
+const STATUS_OPTIONS = [
+  { value: "All", label: "All statuses" },
+  { value: "Paid", label: "Paid" },
+  { value: "Processing", label: "Processing" },
+  { value: "Failed", label: "Failed" },
+  { value: "Refunded", label: "Refunded" },
+];
+
+/**
+ * "1 processing · 1 failed" for gifts that are in the year but not in the
+ * paid total or receipts; null when every gift was paid.
+ */
+export function unsettledNote(
+  transactions: { status: string }[],
+): string | null {
+  const count = (status: string) =>
+    transactions.filter((t) => t.status === status).length;
+  const parts = [
+    ["processing", count("Processing")],
+    ["failed", count("Failed")],
+    ["refunded", count("Refunded")],
+  ]
+    .filter(([, n]) => Number(n) > 0)
+    .map(([label, n]) => `${n} ${label}`);
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-function MonthlyGivingChart({
-  data,
-  rechartsFailed,
-  rechartsModule,
-}: {
-  data: MonthlyGivingPoint[];
-  rechartsFailed: boolean;
-  rechartsModule: RechartsModule | null;
-}) {
-  if (rechartsFailed) {
-    return (
-      <p role="status" className="text-sm text-muted-foreground">
-        The chart couldn&apos;t load. Refresh the page to try again.
-      </p>
+/**
+ * Paid giving for every month of `year`, zero-filled so one or two gifts read
+ * as months rather than a block. Months use the same local calendar as the
+ * year filter, so an evening gift on 31 December stays in December instead of
+ * landing in the next year's January.
+ */
+export function monthlyGivingSeries(
+  transactions: { date: string; amount: number; status: string }[],
+  year: string,
+): MonthlyGivingPoint[] {
+  const totalsCents = Array.from({ length: 12 }, () => 0);
+  for (const transaction of transactions) {
+    if (transaction.status !== "Paid") continue;
+    const date = makeDisplayDate(transaction.date);
+    if (Number.isNaN(date.getTime())) continue;
+    if (date.getFullYear().toString() !== year) continue;
+    const month = date.getMonth();
+    totalsCents[month] =
+      (totalsCents[month] ?? 0) + Math.round(transaction.amount * 100);
+  }
+  return totalsCents.map((cents, monthIndex) => ({
+    month: new Date(Number(year), monthIndex, 1).toLocaleString("en-US", {
+      month: "short",
+    }),
+    amount: cents / 100,
+  }));
+}
+
+/** "to Jordan Hale", "to Jordan Hale and Field Team 1", "… and 2 others". */
+function recipientsPhrase(names: string[]) {
+  if (names.length === 0) return "";
+  if (names.length === 1) return ` to ${names[0]}`;
+  if (names.length === 2) return ` to ${names[0]} and ${names[1]}`;
+  return ` to ${names[0]} and ${names.length - 1} others`;
+}
+
+/** The year in one sentence: how many gifts, and to whom. */
+export function yearSummary(
+  transactions: Transaction[],
+  year: string,
+  currentYear: string,
+): string {
+  const paid = transactions.filter((t) => t.status === "Paid");
+  const isCurrent = year === currentYear;
+  if (paid.length === 0) {
+    return isCurrent
+      ? `You haven’t made a gift in ${year} yet.`
+      : `You didn’t make any gifts in ${year}.`;
+  }
+  const gifts = `${paid.length} ${paid.length === 1 ? "gift" : "gifts"}`;
+  // Most-supported first, so the sentence names who matters most.
+  const byRecipient = new Map<string, number>();
+  for (const t of paid) {
+    byRecipient.set(
+      t.recipient,
+      (byRecipient.get(t.recipient) ?? 0) + t.amount,
     );
   }
+  const names = [...byRecipient.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name]) => name);
+  // The total is shown just above, so this says how many and to whom.
+  return isCurrent
+    ? `${gifts}${recipientsPhrase(names)} so far this year.`
+    : `${gifts}${recipientsPhrase(names)} in ${year}.`;
+}
 
-  if (!rechartsModule) {
-    return <HistoryChartFallback />;
-  }
-
-  if (data.length === 0) {
-    return (
-      <p
-        role="status"
-        className="flex h-full items-center text-sm text-muted-foreground"
-      >
-        No giving to chart yet.
-      </p>
-    );
-  }
-
-  const {
-    Bar,
-    BarChart,
-    Cell,
-    ResponsiveContainer,
-    Tooltip: RechartsTooltip,
-  } = rechartsModule;
-
+function FilterMenu({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  const selected = options.find((option) => option.value === value);
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}>
-        <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-          {data.map((entry) => (
-            <Cell
-              key={entry.month}
-              fill={entry.amount > 300 ? "var(--chart-2)" : "var(--chart-1)"}
-              className="transition-opacity duration-200 hover:opacity-80"
-            />
-          ))}
-        </Bar>
-        <RechartsTooltip
-          cursor={{ fill: "var(--muted)" }}
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            color: "var(--popover-foreground)",
-            fontSize: "12px",
-          }}
-          itemStyle={{ color: "var(--popover-foreground)" }}
-          formatter={(value) =>
-            typeof value === "number" ? [formatCurrency(value), "Given"] : null
-          }
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline">
+            {value === "All" ? label : selected?.label}
+            <ChevronDown data-icon="inline-end" aria-hidden />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>{label}</DropdownMenuLabel>
+          <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+            {options.map((option) => (
+              <DropdownMenuRadioItem key={option.value} value={option.value}>
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
-function HistoryPageHeader({
-  yearFilter,
-  onYearFilterChange,
+function YearSelect({
+  value,
+  onChange,
 }: {
-  yearFilter: string;
-  onYearFilterChange: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
 }) {
-  const historyYearOptions = getHistoryYearOptions();
+  const years = getHistoryYearOptions();
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left">
-      <div>
-        <h1 className="text-3xl font-semibold text-foreground tracking-tight ">
-          Giving History
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Your complete record of impact and tax-deductible contributions.
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        <div className="relative w-35">
-          <Select
-            items={[
-              ...historyYearOptions.map((year) => ({
-                value: year,
-                label: year,
-              })),
-            ]}
-            value={yearFilter}
-            onValueChange={(value) => {
-              if (value === null) {
-                return;
-              }
-              onYearFilterChange(value);
-            }}
-          >
-            <SelectTrigger aria-label="Giving history year">
-              <Calendar aria-hidden="true" />
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {historyYearOptions.map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <a
-          href={`/api/donor/statements/${yearFilter}`}
-          className={buttonVariants()}
-        >
-          <DownloadCloud className="mr-2 size-4" /> Download Statement
-        </a>
-      </div>
-    </div>
+    <Select
+      items={years.map((year) => ({ value: year, label: year }))}
+      value={value}
+      onValueChange={(next) => {
+        if (next !== null) onChange(next);
+      }}
+    >
+      <SelectTrigger aria-label="Year">
+        <SelectValue placeholder="Year" />
+      </SelectTrigger>
+      <SelectContent>
+        {years.map((year) => (
+          <SelectItem key={year} value={year}>
+            {year}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
-function HistoryStatsColumn({
-  filteredTransactionCount,
-  monthlyGiving,
-  receiptCount,
-  rechartsFailed,
-  rechartsModule,
-  totalGiven,
-  yearFilter,
+function YearSummaryCard({
+  year,
+  currentYear,
+  transactions,
 }: {
-  filteredTransactionCount: number;
-  monthlyGiving: MonthlyGivingPoint[];
-  receiptCount: number;
-  rechartsFailed: boolean;
-  rechartsModule: RechartsModule | null;
-  totalGiven: number;
-  yearFilter: string;
+  year: string;
+  currentYear: string;
+  transactions: Transaction[];
 }) {
-  return (
-    <div className="lg:col-span-1 space-y-6">
-      <Card className="overflow-hidden relative group">
-        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-          <TrendingUp className="size-40 text-success" />
-        </div>
+  const paidTotal = transactions
+    .filter((t) => t.status === "Paid")
+    .reduce((sum, t) => sum + t.amount, 0);
+  const note = unsettledNote(transactions);
+  const hasPaid = paidTotal > 0;
+  const statementLabel =
+    year === currentYear
+      ? `Download ${year} summary so far`
+      : `Download ${year} statement`;
+  const series = monthlyGivingSeries(transactions, year);
+  const chartName = `Paid gifts by month in ${year}`;
 
-        <CardContent className="p-8 relative z-10 text-left">
-          <div className="flex items-center justify-between mb-6">
-            <span className="text-sm font-medium text-muted-foreground">
-              Total Giving {yearFilter}
-            </span>
-            <DollarSign className="size-5 text-success" />
-          </div>
-          <div className="text-5xl font-semibold tracking-tighter mb-2">
-            {formatCurrency(totalGiven)}
-          </div>
-          <p className="text-sm font-medium text-muted-foreground mb-8">
-            100% Tax Deductible
+  return (
+    <Card>
+      {/* Tighter on phones, so the gift list starts within the first screen. */}
+      <CardContent className="grid gap-4 sm:gap-6 lg:grid-cols-5 lg:items-center">
+        <div className="flex flex-col gap-2 sm:gap-3 lg:col-span-2">
+          <p className="text-sm text-muted-foreground">Paid in {year}</p>
+          <p className="text-3xl font-semibold tracking-tight tabular-nums text-foreground sm:text-4xl">
+            {formatCurrency(paidTotal)}
           </p>
-
-          <div className="h-24 w-full">
-            <MonthlyGivingChart
-              data={monthlyGiving}
-              rechartsFailed={rechartsFailed}
-              rechartsModule={rechartsModule}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="transition-shadow">
-          <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
-            <div className="size-10 rounded-full bg-background text-foreground flex items-center justify-center mb-3 border border-border shadow-sm">
-              <FileText className="size-5" />
-            </div>
-            <div className="text-2xl font-semibold text-foreground">
-              {receiptCount}
-            </div>
-            <p className="text-sm font-medium text-muted-foreground mt-1">
-              Receipts
+          <p className="text-sm text-foreground">
+            {yearSummary(transactions, year, currentYear)}
+          </p>
+          {note ? (
+            <p className="text-sm text-muted-foreground">
+              Not counted: {note}.
             </p>
-          </CardContent>
-        </Card>
-        <Card className="transition-shadow">
-          <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
-            <div className="size-10 rounded-full bg-background text-foreground flex items-center justify-center mb-3 border border-border shadow-sm">
-              <CheckCircle2 className="size-5" />
+          ) : null}
+          {hasPaid ? (
+            <a
+              href={`/api/donor/statements/${year}`}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "self-start",
+              )}
+            >
+              <Download data-icon="inline-start" aria-hidden />
+              {statementLabel}
+            </a>
+          ) : null}
+        </div>
+        <div className="h-28 sm:h-40 lg:col-span-3">
+          {hasPaid ? (
+            <>
+              {/* The picture is for sighted readers; the table below gives
+                  screen readers the same months and exact amounts. */}
+              <div aria-hidden="true" className="size-full">
+                <MonthlyGivingChart
+                  data={series}
+                  currentMonth={
+                    year === currentYear ? new Date().getMonth() : 11
+                  }
+                />
+              </div>
+              <MonthlyGivingTable
+                caption={chartName}
+                year={year}
+                data={series}
+              />
+            </>
+          ) : (
+            <div className="flex size-full items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
+              Nothing to chart for {year}.
             </div>
-            <div className="text-2xl font-semibold text-foreground">
-              {filteredTransactionCount}
-            </div>
-            <p className="text-sm font-medium text-muted-foreground mt-1">
-              Total Gifts
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function HistoryFiltersToolbar({
-  searchTerm,
-  statusFilter,
-  typeFilter,
-  onSearchTermChange,
-  onStatusFilterChange,
-  onTypeFilterChange,
-}: {
-  searchTerm: string;
-  statusFilter: string;
-  typeFilter: string;
-  onSearchTermChange: (value: string) => void;
-  onStatusFilterChange: (value: string) => void;
-  onTypeFilterChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex flex-col sm:flex-row gap-4">
-      <InputGroup className="flex-1">
-        <InputGroupAddon>
-          <Search aria-hidden="true" />
-        </InputGroupAddon>
-        <InputGroupInput
-          placeholder="Search recipient or transaction ID..."
-          aria-label="Search giving history"
-          value={searchTerm}
-          onChange={(e) => onSearchTermChange(e.target.value)}
-        />
-      </InputGroup>
-      <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="outline">
-                <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
-                {typeFilter !== "All" && (
-                  <Badge variant="secondary" className="ml-2">
-                    {typeFilter}
-                  </Badge>
-                )}
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === "All"}
-                onCheckedChange={() => onTypeFilterChange("All")}
-                className="text-sm font-medium "
-              >
-                All Types
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === "Recurring"}
-                onCheckedChange={() => onTypeFilterChange("Recurring")}
-                className="text-sm font-medium "
-              >
-                Recurring
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === "One-Time"}
-                onCheckedChange={() => onTypeFilterChange("One-Time")}
-                className="text-sm font-medium "
-              >
-                One-Time
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="outline">
-                Status{" "}
-                {statusFilter !== "All" && (
-                  <Badge variant="secondary" className="ml-2">
-                    {statusFilter}
-                  </Badge>
-                )}
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem
-                checked={statusFilter === "All"}
-                onCheckedChange={() => onStatusFilterChange("All")}
-                className="text-sm font-medium "
-              >
-                All Statuses
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={statusFilter === "Succeeded"}
-                onCheckedChange={() => onStatusFilterChange("Succeeded")}
-                className="text-sm font-medium text-success"
-              >
-                Succeeded
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={statusFilter === "Processing"}
-                onCheckedChange={() => onStatusFilterChange("Processing")}
-                className="text-sm font-medium text-info"
-              >
-                Processing
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={statusFilter === "Failed"}
-                onCheckedChange={() => onStatusFilterChange("Failed")}
-                className="text-sm font-medium text-destructive"
-              >
-                Failed
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -472,33 +350,32 @@ function renderHistoryTransactionCard(row: Row<Transaction>) {
   };
 
   return (
-    <Card
-      role="article"
-      aria-label={`Contribution to ${row.original.recipient}`}
-    >
-      <CardContent className="space-y-4">
+    <Card role="article" aria-label={`Gift to ${row.original.recipient}`}>
+      <CardContent className="flex flex-col gap-4">
         {renderCell("recipient")}
         <dl className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <dt className="text-xs text-muted-foreground">Date</dt>
+          <div className="flex flex-col gap-1">
+            <dt className="text-sm text-muted-foreground">Date</dt>
             <dd>{renderCell("date")}</dd>
           </div>
-          <div className="space-y-1 text-right">
-            <dt className="text-xs text-muted-foreground">Amount</dt>
+          <div className="flex flex-col gap-1 text-right">
+            <dt className="text-sm text-muted-foreground">Amount</dt>
             <dd>{renderCell("amount")}</dd>
           </div>
-          <div className="space-y-1">
-            <dt className="text-xs text-muted-foreground">Category</dt>
-            <dd>{renderCell("category")}</dd>
+          <div className="flex flex-col gap-1">
+            <dt className="text-sm text-muted-foreground">Fund</dt>
+            <dd>{renderCell("fund")}</dd>
           </div>
-          <div className="space-y-1 text-right">
-            <dt className="text-xs text-muted-foreground">Status</dt>
+          <div className="flex flex-col gap-1 text-right">
+            <dt className="text-sm text-muted-foreground">Status</dt>
             <dd>{renderCell("status")}</dd>
           </div>
         </dl>
-        <div className="border-t border-border pt-4">
-          {renderCell("actions")}
-        </div>
+        {row.original.status === "Paid" ? (
+          <div className="border-t border-border pt-3">
+            <ReceiptLink tx={row.original} />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -507,50 +384,66 @@ function renderHistoryTransactionCard(row: Row<Transaction>) {
 export function HistoryTransactionsCard({
   filteredTransactions,
   isLoading,
+  filtersActive = true,
+  year,
 }: {
   filteredTransactions: Transaction[];
   isLoading?: boolean;
+  /** Search, type or status narrows the list (the year alone doesn't). */
+  filtersActive?: boolean;
+  year?: string;
 }) {
   return (
-    <Card className="overflow-hidden flex-1 flex flex-col text-left">
-      <DataTableResponsive
-        columns={columns}
-        data={filteredTransactions}
-        isLoading={isLoading}
-        mobileCardConfig={{ renderCard: renderHistoryTransactionCard }}
-        config={{
-          enableRowSelection: false,
-          enableColumnVisibility: true,
-          enablePagination: true,
-          enableFilters: false,
-          enableSorting: true,
-          virtualization: {
-            enabled: true,
-            estimateSize: 84,
-            overscan: 8,
-            containerHeight: 640,
-          },
-        }}
-        emptyState={
-          <div
-            role="status"
-            aria-atomic="true"
-            className="flex flex-col items-center justify-center py-12 text-center"
-          >
-            <p className="font-semibold text-foreground tracking-tighter">
-              No transactions found
-            </p>
-            <p className="text-sm font-medium text-muted-foreground mt-1">
-              Try adjusting the current filters.
-            </p>
-          </div>
-        }
-      />
-    </Card>
+    <DataTableResponsive
+      columns={columns}
+      data={filteredTransactions}
+      isLoading={isLoading}
+      mobileCardConfig={{ renderCard: renderHistoryTransactionCard }}
+      // "Monthly gift" / "One-time gift" already sits under each name, so
+      // the Type column starts hidden; the Type filter still works.
+      initialState={{ columnVisibility: { type: false } }}
+      config={{
+        enableRowSelection: false,
+        enableColumnVisibility: true,
+        enablePagination: true,
+        enableFilters: false,
+        enableSorting: true,
+        virtualization: {
+          enabled: true,
+          estimateSize: 72,
+          overscan: 8,
+          containerHeight: 640,
+        },
+      }}
+      emptyState={
+        <div
+          role="status"
+          aria-atomic="true"
+          className="flex flex-col items-center justify-center py-12 text-center"
+        >
+          {filtersActive ? (
+            <>
+              <p className="font-medium text-foreground">No gifts match</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Try another search, or clear the filters.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-medium text-foreground">
+                {year ? `No gifts in ${year} yet` : "No gifts yet"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Gifts you make will appear here with their receipts.
+              </p>
+            </>
+          )}
+        </div>
+      }
+    />
   );
 }
 
-// --- Main Component ---
 export default function DonorHistoryPage() {
   // Route VT owns the entrance when active; only animate on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
@@ -559,86 +452,43 @@ export default function DonorHistoryPage() {
     undefined,
     createDefaultHistoryFilters,
   );
-  const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
-    null,
-  );
-  const [rechartsFailed, setRechartsFailed] = useState(false);
   const transactionsQuery = useDonorHistoryTransactions();
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
+  const currentYear = getHistoryYearOptions()[0]!;
   const transactions = useMemo(
     () => transactionsQuery.data ?? [],
     [transactionsQuery.data],
   );
 
-  useEffect(() => {
-    let isMounted = true;
-
-    importRechartsModule()
-      .then((module) => {
-        if (isMounted) {
-          setRechartsModule({
-            Bar: module.Bar,
-            BarChart: module.BarChart,
-            Cell: module.Cell,
-            ResponsiveContainer: module.ResponsiveContainer,
-            Tooltip: module.Tooltip,
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to load Recharts for donor history:", error);
-        if (isMounted) setRechartsFailed(true);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // The summary describes the selected year, so it ignores the table's
+  // search, type and status filters.
+  const yearTransactions = useMemo(
+    () =>
+      transactions.filter(
+        (t) => makeDisplayDate(t.date).getFullYear().toString() === yearFilter,
+      ),
+    [transactions, yearFilter],
+  );
 
   const filteredTransactions = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    return transactions
+    return yearTransactions
       .filter((t) => {
         const matchesSearch =
           normalizedSearch.length === 0 ||
           t.recipient.toLowerCase().includes(normalizedSearch) ||
+          (t.fund?.toLowerCase().includes(normalizedSearch) ?? false) ||
           t.id.toLowerCase().includes(normalizedSearch);
-        const matchesYear =
-          new Date(t.date).getFullYear().toString() === yearFilter;
         const matchesType = typeFilter === "All" || t.type === typeFilter;
         const matchesStatus =
           statusFilter === "All" || t.status === statusFilter;
-        return matchesSearch && matchesYear && matchesType && matchesStatus;
+        return matchesSearch && matchesType && matchesStatus;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [searchTerm, transactions, yearFilter, typeFilter, statusFilter]);
-
-  const monthlyGiving = useMemo<MonthlyGivingPoint[]>(
-    () =>
-      buildGivingTrends(
-        filteredTransactions.map((transaction) => ({
-          date: transaction.date,
-          amountCents: Math.round(transaction.amount * 100),
-          status: transaction.status,
-        })),
-      ).map((point) => ({
-        month: point.label.split(" ")[0] ?? point.label,
-        amount: point.total,
-      })),
-    [filteredTransactions],
-  );
-
-  const totalGiven = useMemo(
-    () =>
-      filteredTransactions.reduce(
-        (sum, t) => (t.status === "Succeeded" ? sum + t.amount : sum),
-        0,
-      ),
-    [filteredTransactions],
-  );
-  const receiptCount = filteredTransactions.filter(
-    (t) => t.status === "Succeeded",
-  ).length;
+      .sort(
+        (a, b) =>
+          makeDisplayDate(b.date).getTime() - makeDisplayDate(a.date).getTime(),
+      );
+  }, [searchTerm, yearTransactions, typeFilter, statusFilter]);
 
   return (
     <div
@@ -648,49 +498,94 @@ export default function DonorHistoryPage() {
           : "giving-history-live"
       }
       className={cn(
-        "max-w-7xl mx-auto space-y-8 pb-20",
+        "mx-auto flex w-full max-w-6xl flex-col gap-4 pb-20 sm:gap-6",
         !withinRouteVt && "animate-in fade-in duration-300",
       )}
     >
-      <HistoryPageHeader
-        yearFilter={yearFilter}
-        onYearFilterChange={(value) =>
-          dispatchFilters({ type: "set_year_filter", value })
-        }
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <HistoryStatsColumn
-          filteredTransactionCount={filteredTransactions.length}
-          monthlyGiving={monthlyGiving}
-          receiptCount={receiptCount}
-          rechartsFailed={rechartsFailed}
-          rechartsModule={rechartsModule}
-          totalGiven={totalGiven}
-          yearFilter={yearFilter}
+      <PageHeader
+        title="Giving history"
+        description="Every gift you’ve made, with receipts and yearly statements."
+      >
+        <YearSelect
+          value={yearFilter}
+          onChange={(value) =>
+            dispatchFilters({ type: "set_year_filter", value })
+          }
         />
+      </PageHeader>
 
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <HistoryFiltersToolbar
-            searchTerm={searchTerm}
-            statusFilter={statusFilter}
-            typeFilter={typeFilter}
-            onSearchTermChange={(value) =>
-              dispatchFilters({ type: "set_search_term", value })
-            }
-            onStatusFilterChange={(value) =>
-              dispatchFilters({ type: "set_status_filter", value })
-            }
-            onTypeFilterChange={(value) =>
-              dispatchFilters({ type: "set_type_filter", value })
-            }
-          />
+      {transactionsQuery.isError ? (
+        <Card>
+          <CardContent>
+            <p role="alert" className="text-sm text-foreground">
+              We couldn’t load your giving history. Refresh the page to try
+              again.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {transactionsQuery.isLoading ? (
+            <Skeleton className="h-56 w-full rounded-xl" />
+          ) : (
+            <YearSummaryCard
+              year={yearFilter}
+              currentYear={currentYear}
+              transactions={yearTransactions}
+            />
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex-1">
+              <InputGroup>
+                <InputGroupAddon>
+                  <Search aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput
+                  placeholder="Search by name, fund or gift ID"
+                  aria-label="Search giving history"
+                  value={searchTerm}
+                  onChange={(event) =>
+                    dispatchFilters({
+                      type: "set_search_term",
+                      value: event.target.value,
+                    })
+                  }
+                />
+              </InputGroup>
+            </div>
+            <div className="flex gap-2">
+              <FilterMenu
+                label="Type"
+                value={typeFilter}
+                options={TYPE_OPTIONS}
+                onChange={(value) =>
+                  dispatchFilters({ type: "set_type_filter", value })
+                }
+              />
+              <FilterMenu
+                label="Status"
+                value={statusFilter}
+                options={STATUS_OPTIONS}
+                onChange={(value) =>
+                  dispatchFilters({ type: "set_status_filter", value })
+                }
+              />
+            </div>
+          </div>
+
           <HistoryTransactionsCard
             filteredTransactions={filteredTransactions}
             isLoading={transactionsQuery.isLoading}
+            filtersActive={
+              searchTerm.trim() !== "" ||
+              typeFilter !== "All" ||
+              statusFilter !== "All"
+            }
+            year={yearFilter}
           />
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

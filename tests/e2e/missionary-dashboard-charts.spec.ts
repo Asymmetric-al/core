@@ -32,7 +32,7 @@ test.beforeAll(async () => {
       plugins: [{ name: "loading-metrics", setup(build) {
         build.onResolve({ filter: /^@asym\\/lib\\/hooks$/ }, () => ({ path: "loading-state", namespace: "loading-metrics" }));
         build.onLoad({ filter: /.*/, namespace: "loading-metrics" }, () => ({
-          contents: "const metric={total:90071992547409.9,change:12.5,trend:'up',data:[{date:'1',value:10},{date:'2',value:30}]}; export function useDonationMetrics() { return { thisMonth:metric,lastMonth:{...metric,total:-1234567890},yearToDate:metric,isLoading: false, error: null, monthlyBreakdown: Array.from({length:13},(_,i)=>({month:String(i+1),recurring:100,oneTime:50,offline:25,total:175})) }; }",
+          contents: "const metric={total:90071992547410,change:12.5,trend:'up',data:[{date:'1',value:10},{date:'2',value:30}]}; export function useDonationMetrics() { return { currency:'USD',thisMonth:metric,lastMonth:{...metric,total:-1234567890},yearToDate:metric,isLoading: false, error: null, monthlyBreakdown: Array.from({length:13},(_,i)=>({month:String(i+1),recurring:100,oneTime:50,offline:25,total:175})) }; }",
           loader: "ts",
         }));
       }}],
@@ -107,9 +107,8 @@ for (const width of [320, 768, 1280]) {
           expect(Math.abs(size.width - size.svgWidth)).toBeLessThan(1.1);
           expect(Math.abs(size.height - size.svgHeight)).toBeLessThan(1.1);
         }
-        expect(sizes[3]!.height).toBe(
-          width < 640 ? 200 : width < 768 ? 250 : 300,
-        );
+        // h-64, then sm:h-72.
+        expect(sizes[3]!.height).toBe(width < 640 ? 256 : 288);
         const amountBoundaries = await page.locator("h3").evaluateAll((nodes) =>
           nodes.map((n) => {
             const text = document.createRange();
@@ -125,9 +124,10 @@ for (const width of [320, 768, 1280]) {
           }),
         );
         expect(amountBoundaries.map(({ amount }) => amount)).toEqual([
-          "$90071992547.4k",
-          "$-1,234,567,890",
-          "$90071992547.4k",
+          // Amounts are stored in cents and shown in dollars.
+          "$900719925.5k",
+          "-$12,345,678.90",
+          "$900719925.5k",
         ]);
         for (const amount of amountBoundaries)
           expect(amount.right).toBeLessThanOrEqual(amount.chartLeft + 1);
@@ -164,7 +164,7 @@ for (const width of [320, 768, 1280]) {
           .locator(".recharts-legend-wrapper > div > div");
         await expect(legendItems).toHaveText([
           "Recurring",
-          "One-Time",
+          "One-time",
           "Offline",
         ]);
         const bar = page
@@ -174,22 +174,29 @@ for (const width of [320, 768, 1280]) {
         await bar.hover();
         const tooltip = page.locator(".recharts-tooltip-wrapper");
         await expect(tooltip).toBeVisible();
+        // The fixture's 100, 50 and 25 are cents.
         await expect(tooltip).toContainText("Recurring");
-        await expect(tooltip).toContainText("$100");
-        await expect(tooltip).toContainText("One-Time");
-        await expect(tooltip).toContainText("$50");
+        await expect(tooltip).toContainText("$1.00");
+        await expect(tooltip).toContainText("One-time");
+        await expect(tooltip).toContainText("$0.50");
         await expect(tooltip).toContainText("Offline");
-        await expect(tooltip).toContainText("$25");
+        await expect(tooltip).toContainText("$0.25");
         await page.mouse.move(0, 0);
-        const accessibleChart = page
+        // Screen readers get the values from a hidden table, so the plotted
+        // area is hidden from them and holds no focus stop of its own.
+        const plot = page
           .getByTestId("breakdown")
-          .getByRole("application");
-        await expect(accessibleChart).toHaveAttribute("tabindex", "0");
-        await accessibleChart.focus();
-        await page.keyboard.press("ArrowRight");
-        await expect(tooltip).toBeVisible();
-        await expect(tooltip).toContainText("Recurring");
-        await expect(tooltip).toContainText("$100");
+          .locator("svg.recharts-surface");
+        await expect(plot).toHaveAttribute("aria-hidden", "true");
+        await expect(plot).not.toHaveAttribute("tabindex");
+        await expect(
+          page.getByTestId("breakdown").getByRole("application"),
+        ).toHaveCount(0);
+        const table = page
+          .getByTestId("breakdown")
+          .getByRole("table", { name: /^Giving by month/ });
+        await expect(table).toHaveCount(1);
+        await expect(table.getByRole("row")).toHaveCount(14);
         expect(
           await page.evaluate(() => document.documentElement.scrollWidth),
         ).toBeLessThanOrEqual(width);

@@ -5,6 +5,8 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const testState = vi.hoisted(() => ({
+  send: vi.fn().mockResolvedValue(undefined),
+  status: "ready" as string,
   role: "admin" as string,
   user: {
     id: "user-1",
@@ -19,6 +21,16 @@ const testState = vi.hoisted(() => ({
     role: "admin";
     tenantId: string;
   } | null,
+}));
+
+vi.mock("../../../apps/admin/node_modules/eve/dist/src/react/index.js", () => ({
+  useEveAgent: () => ({
+    status: testState.status,
+    data: { messages: [] },
+    send: testState.send,
+    reset: vi.fn(),
+    stop: vi.fn(),
+  }),
 }));
 
 vi.mock("@asym/lib/mission-control/context", () => ({
@@ -77,6 +89,7 @@ import { EveGlobalPanel } from "../../../apps/admin/app/eve/global-panel";
 
 describe("EveGlobalPanel", () => {
   beforeEach(() => {
+    testState.status = "ready";
     testState.role = "admin";
     testState.user = {
       id: "user-1",
@@ -109,12 +122,10 @@ describe("EveGlobalPanel", () => {
     expect(screen.queryByRole("button", { name: /open eve/i })).toBeNull();
   });
 
-  it("uses the shared 44px touch target for the global trigger", () => {
-    render(<EveGlobalPanel />);
-
+  it("sits in the app header instead of floating over page actions", () => {
+    render(<EveGlobalPanel placement="header" />);
     const trigger = screen.getByRole("button", { name: /open eve/i });
-    expect(trigger.getAttribute("data-size")).toBe("icon-touch");
-    expect(trigger.classList.contains("size-11")).toBe(true);
+    expect(trigger.className).not.toMatch(/\bfixed\b/);
   });
 
   it("opens globally with a bounded text-only composer and a clear data boundary", () => {
@@ -127,5 +138,59 @@ describe("EveGlobalPanel", () => {
     const composer = screen.getByLabelText("Message Eve");
     expect(composer.getAttribute("maxlength")).toBe("2000");
     expect(screen.queryByLabelText(/attach/i)).toBeNull();
+  });
+
+  it("describes the character count and keyboard shortcut and retains the text-only boundary", () => {
+    render(<EveGlobalPanel />);
+    fireEvent.click(screen.getByRole("button", { name: /open eve/i }));
+    const composer = screen.getByLabelText("Message Eve");
+    const description = composer
+      .getAttribute("aria-describedby")
+      ?.split(" ")
+      .map((id) => document.getElementById(id)?.textContent)
+      .join(" ");
+    expect(description).toContain("0 / 2,000 characters");
+    expect(description).toContain("Ctrl or Command + Enter");
+    expect(screen.getByText("Ask about this page")).toBeTruthy();
+    expect(
+      screen.getByText(/cannot execute tools from this panel/i),
+    ).toBeTruthy();
+  });
+
+  it.each(["ctrlKey", "metaKey"])(
+    "sends with %s + Enter but not bare Enter or composition",
+    (modifier) => {
+      render(<EveGlobalPanel />);
+      fireEvent.click(screen.getByRole("button", { name: /open eve/i }));
+      const composer = screen.getByLabelText("Message Eve");
+      fireEvent.change(composer, { target: { value: "Explain this page" } });
+      fireEvent.keyDown(composer, { key: "Enter" });
+      fireEvent.keyDown(composer, {
+        key: "Enter",
+        [modifier]: true,
+        isComposing: true,
+      });
+      expect(testState.send).not.toHaveBeenCalled();
+      fireEvent.keyDown(composer, { key: "Enter", [modifier]: true });
+      expect(testState.send).toHaveBeenCalledWith({
+        message: "Explain this page",
+      });
+    },
+  );
+
+  it("never submits empty or busy keyboard requests", () => {
+    render(<EveGlobalPanel />);
+    fireEvent.click(screen.getByRole("button", { name: /open eve/i }));
+    const composer = screen.getByLabelText("Message Eve");
+    fireEvent.keyDown(composer, { key: "Enter", ctrlKey: true });
+    cleanup();
+    testState.status = "streaming";
+    render(<EveGlobalPanel />);
+    fireEvent.click(screen.getByRole("button", { name: /open eve/i }));
+    const busyComposer = screen.getByLabelText("Message Eve");
+    fireEvent.change(busyComposer, { target: { value: "Explain this page" } });
+    fireEvent.keyDown(busyComposer, { key: "Enter", ctrlKey: true });
+    expect(testState.send).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Detach" })).toBeTruthy();
   });
 });

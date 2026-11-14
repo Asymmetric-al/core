@@ -49,10 +49,10 @@ function fillCredentials() {
 
 function renderRegistration() {
   const view = render(<RegisterScreen appId="donor" enabled />);
-  fireEvent.change(screen.getByLabelText("First Name"), {
+  fireEvent.change(screen.getByLabelText("First name"), {
     target: { value: "Fixture" },
   });
-  fireEvent.change(screen.getByLabelText("Last Name"), {
+  fireEvent.change(screen.getByLabelText("Last name"), {
     target: { value: "User" },
   });
   fillCredentials();
@@ -89,7 +89,7 @@ describe("auth form pending submissions", () => {
       </QueryClientProvider>,
     );
     fillCredentials();
-    const button = screen.getByRole("button", { name: "Sign In" });
+    const button = screen.getByRole("button", { name: "Sign in" });
     const form = view.container.querySelector("form")!;
     button.focus();
     act(() => {
@@ -127,7 +127,7 @@ describe("auth form pending submissions", () => {
     const pending = deferred<{ data: { session: null }; error: null }>();
     auth.signUp.mockReturnValueOnce(pending.promise);
     const view = renderRegistration();
-    const button = screen.getByRole("button", { name: "Create Account" });
+    const button = screen.getByRole("button", { name: "Create account" });
     button.focus();
     await act(async () => {
       view.container.querySelector("form")!.requestSubmit();

@@ -3,9 +3,13 @@ import { useDonationMetrics } from "@asym/lib/hooks";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import * as React from "react";
 
+import { MONEY_UNAVAILABLE, moneyCurrency } from "./money-units";
+
+import type { DonationMetrics } from "@asym/lib/hooks";
+
 function GivingBreakdownSkeleton() {
   return (
-    <div className="h-50 sm:h-62.5 md:h-75 w-full flex flex-col">
+    <div className="h-64 sm:h-72 w-full flex flex-col">
       <div className="flex-1 flex items-end justify-around gap-1 px-4 pb-6">
         {SKELETON_BARS.map(({ id, height }) => (
           <div
@@ -34,20 +38,27 @@ function GivingBreakdownSkeleton() {
 
 interface GivingBreakdownChartProps {
   missionaryId: string;
+  committedCents?: number | null;
+  committedCurrency?: string | null;
 }
 
 /**
- * GivingBreakdownChart displays a stacked bar chart showing donation trends
- * over 13 months, broken down by donation type:
- * - Recurring: Monthly automated donations
- * - One-Time: Single online donations
- * - Offline: Checks, cash, and other offline gifts
+ * Giving over the last 13 months as stacked bars by gift type (recurring,
+ * one-time, offline), from metrics the caller already holds.
  */
-export function GivingBreakdownChart({
-  missionaryId,
-}: GivingBreakdownChartProps) {
-  const { monthlyBreakdown, isLoading, error } =
-    useDonationMetrics(missionaryId);
+export function GivingBreakdownChartContent({
+  metrics,
+  committedCents,
+  committedCurrency,
+}: {
+  metrics: Pick<
+    DonationMetrics,
+    "monthlyBreakdown" | "isLoading" | "error" | "currency"
+  >;
+  committedCents?: number | null;
+  committedCurrency?: string | null;
+}) {
+  const { monthlyBreakdown, isLoading, error } = metrics;
 
   if (isLoading) {
     return <GivingBreakdownSkeleton />;
@@ -55,9 +66,18 @@ export function GivingBreakdownChart({
 
   if (error) {
     return (
-      <div className="h-50 sm:h-62.5 md:h-75 w-full flex items-center justify-center text-sm text-muted-foreground">
-        Unable to load chart data
+      <div className="h-64 sm:h-72 w-full flex items-center justify-center text-sm text-muted-foreground">
+        We couldn’t load your giving chart.
       </div>
+    );
+  }
+
+  const currency = moneyCurrency(metrics.currency);
+  if (!currency) {
+    return (
+      <p className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        {MONEY_UNAVAILABLE}
+      </p>
     );
   }
 
@@ -65,16 +85,37 @@ export function GivingBreakdownChart({
 
   if (!hasData) {
     return (
-      <div className="h-50 sm:h-62.5 md:h-75 w-full flex items-center justify-center text-sm text-muted-foreground">
-        No donation data available
+      <div className="h-64 sm:h-72 w-full flex items-center justify-center text-sm text-muted-foreground">
+        No gifts in the last 13 months yet.
       </div>
     );
   }
 
   return (
     <React.Suspense fallback={<GivingBreakdownSkeleton />}>
-      <GivingBreakdownView monthlyBreakdown={monthlyBreakdown} />
+      <GivingBreakdownView
+        monthlyBreakdown={monthlyBreakdown}
+        currency={currency}
+        committedCents={committedCents}
+        committedCurrency={committedCurrency}
+      />
     </React.Suspense>
+  );
+}
+
+/** The giving chart for a missionary, fetching its own metrics. */
+export function GivingBreakdownChart({
+  missionaryId,
+  committedCents,
+  committedCurrency,
+}: GivingBreakdownChartProps) {
+  const metrics = useDonationMetrics(missionaryId);
+  return (
+    <GivingBreakdownChartContent
+      metrics={metrics}
+      committedCents={committedCents}
+      committedCurrency={committedCurrency}
+    />
   );
 }
 

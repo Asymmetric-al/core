@@ -15,7 +15,7 @@ import { withOperation } from "../../shared/with-operation";
 const SUPPORT_ADMIN_ROLES = ["staff", "admin", "super_admin"] as const;
 
 const createSupportTicketSchema = z.object({
-  contactId: z.string().trim().min(1).optional(),
+  contactId: z.string().uuid().optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactName: z.string().trim().min(1, "Contact is required."),
   priority: z.enum(["low", "normal", "high", "urgent"]),

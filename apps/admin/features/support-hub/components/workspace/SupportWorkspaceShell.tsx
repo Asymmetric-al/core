@@ -1,9 +1,16 @@
 "use client";
 
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { usePathname } from "next/navigation";
 import * as React from "react";
 
-import { SupportSubNav, type SupportSection } from "./SupportSubNav";
+import { ConfirmProvider } from "./confirm-provider";
+import {
+  supportPageLabel,
+  SupportSettingsSideNav,
+  SupportSubNav,
+  type SupportSection,
+} from "./SupportSubNav";
 import { SupportNowProvider } from "../../lib/now";
 
 interface SupportWorkspaceShellProps {
@@ -30,13 +37,37 @@ export function SupportWorkspaceShell({
   actions,
   children,
 }: SupportWorkspaceShellProps) {
+  const pathname = usePathname();
+  const leafLabel = supportPageLabel(pathname) ?? title;
   return (
-    <PageShell title={title} description={description} actions={actions}>
+    <PageShell
+      title={section === "settings" ? leafLabel : title}
+      description={description}
+      actions={actions}
+      density="compact"
+    >
       <SupportNowProvider>
-        <div className="flex flex-col gap-6">
-          <SupportSubNav section={section} />
-          {children}
-        </div>
+        <ConfirmProvider>
+          {/* Tighter on phones, where every row pushes the first record
+              further down. */}
+          <div className="flex flex-col gap-4 sm:gap-6">
+            <SupportSubNav section={section} />
+            {section === "settings" ? (
+              <div className="flex flex-col gap-6 md:flex-row">
+                {/* Phones choose the page from the select above, so the
+                    side nav's column takes no space (and adds no gap). */}
+                <div className="hidden md:block md:w-44 md:shrink-0">
+                  <SupportSettingsSideNav />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col gap-4">
+                  {children}
+                </div>
+              </div>
+            ) : (
+              children
+            )}
+          </div>
+        </ConfirmProvider>
       </SupportNowProvider>
     </PageShell>
   );

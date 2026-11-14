@@ -4,224 +4,391 @@ import {
   mapToRecentUpdate,
   useDonorFeedPosts,
   useDonorPortalSnapshot,
+  useDonorWallet,
+  type DonorPortalSnapshot,
 } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { PageHeader } from "@asym/ui/components/page-header";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
-import {
-  Activity,
-  ArrowRight,
-  ChevronRight,
-  FileText,
-  Heart,
-  Map,
-  Rss,
-} from "lucide-react";
-import Image from "next/image";
+import { CircleAlert, Download } from "lucide-react";
 import Link from "next/link";
+import * as React from "react";
 
-import { Greeting } from "./dashboard-greeting";
-import { ImpactTile } from "./ImpactTile";
+import { FeaturedUpdateHero } from "./featured-update-hero";
+import {
+  giveHref,
+  givenThisYear,
+  lastSupported,
+  nextScheduledGift,
+  noNextGiftNote,
+  overviewAlerts,
+  statementPromptYear,
+  supportedMissionaries,
+} from "./overview/overview-model";
+import { UpdateRailThumbnail } from "./update-rail-thumbnail";
+
+const LONG_DAY = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  day: "numeric",
+});
+
+function dateOnly(value: string) {
+  const [year, month, day] = value.slice(0, 10).split("-").map(Number);
+  return new Date(year!, (month ?? 1) - 1, day ?? 1);
+}
+
+/** "today", "tomorrow" or "on November 20". */
+function whenFrom(date: string) {
+  const day = dateOnly(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.round((day.getTime() - today.getTime()) / 86_400_000);
+  if (diff === 0) return "today";
+  if (diff === 1) return "tomorrow";
+  return `on ${LONG_DAY.format(day)}`;
+}
+
+function initials(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  detail,
+  href,
+  linkLabel,
+}: {
+  title: string;
+  value: React.ReactNode;
+  detail: React.ReactNode;
+  href: string;
+  linkLabel: string;
+}) {
+  const titleId = React.useId();
+  return (
+    <Card role="region" aria-labelledby={titleId} className="h-full gap-3">
+      <CardHeader>
+        <CardTitle>
+          <h2
+            id={titleId}
+            className="text-sm font-normal text-muted-foreground"
+          >
+            {title}
+          </h2>
+        </CardTitle>
+        {/* Half-width on phones leaves no room beside the title, and the
+            phone tab bar already offers Giving and Recurring one tap away. */}
+        <CardAction className="-mt-1.5 hidden sm:flex">
+          <Link
+            href={href}
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
+          >
+            {linkLabel}
+          </Link>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-1">
+        <p className="text-xl font-semibold tracking-tight tabular-nums wrap-anywhere text-foreground sm:text-2xl">
+          {value}
+        </p>
+        <p className="text-sm text-muted-foreground">{detail}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SupportedCard({ snapshot }: { snapshot: DonorPortalSnapshot }) {
+  const titleId = React.useId();
+  const people = supportedMissionaries(snapshot);
+  return (
+    <Card
+      role="region"
+      aria-labelledby={titleId}
+      className="col-span-2 h-full gap-3 md:col-span-1"
+    >
+      <CardHeader>
+        <CardTitle>
+          <h2
+            id={titleId}
+            className="text-sm font-normal text-muted-foreground"
+          >
+            Who you support
+          </h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {people.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Missionaries you give to will appear here.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {people.slice(0, 3).map((person) => (
+              <li key={person.id} className="flex items-center gap-3">
+                <Avatar size="sm">
+                  {person.avatarUrl ? (
+                    <AvatarImage src={person.avatarUrl} alt="" />
+                  ) : null}
+                  <AvatarFallback>{initials(person.name)}</AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                  {person.name}
+                </span>
+                <Link
+                  href={giveHref(person.id)}
+                  aria-label={`Give to ${person.name}`}
+                  className={buttonVariants({ variant: "ghost", size: "sm" })}
+                >
+                  Give
+                </Link>
+              </li>
+            ))}
+            {people.length > 3 ? (
+              <li className="text-sm text-muted-foreground">
+                and {people.length - 3} more
+              </li>
+            ) : null}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RecentUpdatesCard({
+  feedQuery,
+}: {
+  feedQuery: ReturnType<typeof useDonorFeedPosts>;
+}) {
+  const titleId = React.useId();
+  // The newest update is the featured one; the list shows the next few.
+  const updates = feedQuery.data
+    .slice(1, 5)
+    .map((post) => mapToRecentUpdate(post));
+  return (
+    <Card role="region" aria-labelledby={titleId}>
+      <CardHeader>
+        <CardTitle>
+          <h2 id={titleId}>More updates</h2>
+        </CardTitle>
+        <CardAction className="-mt-1.5">
+          <Link
+            href="/donor-dashboard/feed"
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
+          >
+            All updates
+          </Link>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {feedQuery.isLoading ? (
+          <div className="flex flex-col gap-4" aria-busy="true">
+            {[0, 1, 2].map((row) => (
+              <Skeleton key={row} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : feedQuery.error ? (
+          <p className="text-sm text-muted-foreground">
+            Updates couldn’t load right now.
+          </p>
+        ) : updates.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            New updates from the missionaries you support will show up here.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {updates.map((update) => (
+              <li key={update.id}>
+                <Link
+                  href={`/donor-dashboard/feed#update-${update.id}`}
+                  className="-mx-2 flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+                >
+                  <UpdateRailThumbnail
+                    image={update.image}
+                    authorAvatar={update.authorAvatar}
+                    initials={update.avatar}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-2 text-sm font-medium text-foreground">
+                      {update.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {update.author} · {update.time}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function DonorDashboardMainBody() {
   const portalQuery = useDonorPortalSnapshot();
+  const walletQuery = useDonorWallet();
   const feedQuery = useDonorFeedPosts({ limit: 5 });
-  const recentUpdates = feedQuery.data.map((post) => mapToRecentUpdate(post));
   const withinRouteVt = useWithinViewTransitionRouteLayer();
   const portal = portalQuery.data;
-  const displayName = portal?.profile.displayName.split(" ")[0] ?? "Partner";
-  const yearToDate = portal ? portal.summary.yearToDateCents / 100 : 0;
-  const activeSupportLabel = portal
-    ? `${portal.summary.activeRecurringGiftCount} Recurring`
-    : "0 Recurring";
-  const latestImpact = portal?.summary.latestImpactLabel ?? "General Fund";
+  const firstName = portal?.profile.displayName.split(" ")[0];
+  const alerts = overviewAlerts({ snapshot: portal, wallet: walletQuery.data });
+  const year = givenThisYear(portal);
+  const next = nextScheduledGift(portal);
+  const statementYear = statementPromptYear(portal);
+  const giveAgain = lastSupported(portal);
 
   return (
     <div
       className={cn(
-        "flex flex-col gap-8 pb-20",
+        // Tighter on phones, so the latest update starts within the first
+        // screen.
+        "mx-auto flex w-full max-w-6xl flex-col gap-4 pb-20 sm:gap-6",
         !withinRouteVt && "animate-in fade-in duration-700",
       )}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6 pb-6 border-b border-border">
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-normal flex items-center gap-2 sm:gap-3 flex-wrap">
-            <Greeting />, {displayName}.
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1.5">
-            Thank you for your partnership.
-          </p>
-        </div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <Link
-            href="/donor-dashboard/history"
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "flex-1 sm:flex-none",
-            )}
+      <PageHeader
+        title={firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+        description="Your giving, what’s coming up, and news from the field."
+      >
+        {statementYear ? (
+          <a
+            href={`/api/donor/statements/${statementYear}`}
+            className={buttonVariants({ variant: "outline" })}
           >
-            <FileText
-              data-icon="inline-start"
-              className="text-muted-foreground"
-            />{" "}
-            Tax Receipt
-          </Link>
-        </div>
-      </div>
+            <Download data-icon="inline-start" aria-hidden />
+            {`${statementYear} giving statement`}
+          </a>
+        ) : null}
+        <Link
+          href={giveAgain ? giveHref(giveAgain.id) : "/workers"}
+          className={buttonVariants()}
+        >
+          {giveAgain ? `Give to ${giveAgain.name} again` : "Find a missionary"}
+        </Link>
+      </PageHeader>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-        <ImpactTile
-          title="Total Given YTD"
-          value={formatCurrency(yearToDate)}
-          icon={Heart}
-          colorClass="text-foreground"
-          bgClass="bg-muted"
-        />
-        <ImpactTile
-          title="Active Support"
-          value={activeSupportLabel}
-          icon={Map}
-          colorClass="text-foreground"
-          bgClass="bg-muted"
-        />
-        <ImpactTile
-          title="Latest Impact"
-          value={latestImpact}
-          icon={Activity}
-          colorClass="text-muted-foreground"
-          bgClass="bg-background"
-          className="sm:col-span-2 md:col-span-1"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8">
-          <div className="relative overflow-hidden rounded-xl bg-invert text-media-foreground shadow-sm h-87.5 lg:h-100 flex flex-col justify-end group cursor-pointer border border-background/5">
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]" />
-            <div className="absolute inset-0 bg-linear-to-t from-media-scrim via-media-scrim/40 to-transparent opacity-90" />
-
-            <div className="relative z-10 p-6 md:p-10 space-y-4 text-left">
-              <div className="flex items-center gap-3 mb-1 flex-wrap">
-                <Badge>FIELD UPDATE</Badge>
-                <span className="text-sm font-medium text-media-foreground/80 ">
-                  Chiang Mai, Thailand
-                </span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-normal text-balance leading-tight">
-                The school year begins in Chiang Mai.
-              </h2>
-              <p className="text-media-foreground/80 max-w-xl text-sm font-medium leading-relaxed tracking-tight line-clamp-2">
-                Thanks to monthly partners, 50 children received uniforms and
-                books this week.
-              </p>
-              <div className="pt-2">
-                <Link
-                  href="/donor-dashboard/feed"
-                  className={buttonVariants({ variant: "inverse" })}
-                >
-                  Read Full Update <ArrowRight className="ml-2 size-3.5" />
-                </Link>
-              </div>
+      {alerts.map((alert) => (
+        <Alert key={alert.id} variant="warning">
+          <CircleAlert aria-hidden />
+          <AlertTitle>{alert.title}</AlertTitle>
+          <AlertDescription>
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>{alert.detail}</span>
+              <Link
+                href={alert.href}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                {alert.action}
+              </Link>
             </div>
-          </div>
-        </div>
+          </AlertDescription>
+        </Alert>
+      ))}
 
-        <div className="lg:col-span-4 h-fit">
-          <Card className="flex flex-col overflow-hidden text-left">
-            <CardHeader className="p-5 pb-4 border-b border-border bg-background/20">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Rss className="size-3.5" /> Ministry Updates
-                </CardTitle>
-                <Link
-                  href="/donor-dashboard/feed"
-                  className="text-sm font-medium text-foreground hover:underline"
-                >
-                  View All
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {feedQuery.isLoading ? (
-                <div className="divide-y divide-border">
-                  {[0, 1, 2].map((row) => (
-                    <div key={row} className="flex gap-4 p-5">
-                      <div className="size-10 rounded-lg bg-muted animate-pulse shrink-0" />
-                      <div className="flex-1 space-y-2 pt-1">
-                        <div className="h-2.5 w-1/3 rounded bg-muted animate-pulse" />
-                        <div className="h-2 w-4/5 rounded bg-muted animate-pulse" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : feedQuery.error ? (
-                <p className="p-8 text-center text-sm font-medium text-destructive ">
-                  Updates couldn&apos;t load right now.
-                </p>
-              ) : recentUpdates.length === 0 ? (
-                <p className="p-8 text-center text-sm font-medium text-muted-foreground ">
-                  No ministry updates yet.
-                </p>
-              ) : (
-                <div className="divide-y divide-border dark:divide-border">
-                  {recentUpdates.map((update) => (
-                    <Link
-                      href="/donor-dashboard/feed"
-                      key={update.id}
-                      className="flex gap-4 p-5 hover:bg-background/50 dark:hover:bg-muted/50 transition-colors group touch-target"
-                    >
-                      <div className="shrink-0 pt-0.5">
-                        {update.image ? (
-                          <Image
-                            src={update.image}
-                            alt=""
-                            width={40}
-                            height={40}
-                            className="size-10 rounded-lg object-cover border border-border dark:border-border shadow-sm grayscale group-hover:grayscale-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
-                          />
-                        ) : (
-                          <div className="size-10 rounded-lg bg-muted dark:bg-muted flex items-center justify-center font-semibold text-muted-foreground dark:text-muted-foreground text-xs ">
-                            {update.avatar}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-baseline mb-0.5 gap-2">
-                          <span className="text-sm font-medium text-foreground dark:text-foreground truncate tracking-tight ">
-                            {update.author}
-                          </span>
-                          <span className="text-sm font-medium text-muted-foreground dark:text-muted-foreground whitespace-nowrap shrink-0">
-                            {update.time}
-                          </span>
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground dark:text-muted-foreground line-clamp-2 leading-snug tracking-tight">
-                          {update.title}
-                        </p>
-                      </div>
-                      <ChevronRight className="size-3.5 text-muted-foreground dark:text-muted-foreground self-center opacity-0 group-hover:opacity-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] -ml-1.5 shrink-0 hidden sm:block" />
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-            <Link
-              href="/donor-dashboard/feed"
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "w-full h-10 text-sm font-medium text-muted-foreground bg-background/30 hover:bg-muted hover:text-foreground rounded-none border-t border-border touch-target",
-              )}
-            >
-              View All Ministry Updates
-            </Link>
-          </Card>
+      {portalQuery.isLoading ? (
+        <div
+          className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
+          aria-busy="true"
+        >
+          {[0, 1, 2].map((key) => (
+            <Skeleton
+              key={key}
+              className="h-36 rounded-xl last:col-span-2 md:last:col-span-1"
+            />
+          ))}
+        </div>
+      ) : portalQuery.error || !portal ? (
+        <Card>
+          <CardContent>
+            <p role="alert" className="text-sm text-foreground">
+              We couldn’t load your giving summary. Refresh the page to try
+              again.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        // Phones set the two money summaries side by side and give the
+        // names a full row, so the latest update isn't pushed off screen.
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+          <StatCard
+            title={`Given in ${new Date().getFullYear()}`}
+            value={
+              year.complete
+                ? formatCurrency(year.paid)
+                : `At least ${formatCurrency(year.paid)}`
+            }
+            detail={
+              <>
+                {year.complete
+                  ? year.paidCount === 1
+                    ? "1 gift"
+                    : `${year.paidCount} gifts`
+                  : `Your latest ${year.paidCount} gifts; see Giving history`}
+                {year.processing > 0
+                  ? ` · ${formatCurrency(year.processing)} still processing`
+                  : ""}
+              </>
+            }
+            href="/donor-dashboard/history"
+            linkLabel="Giving history"
+          />
+          <StatCard
+            title="Next gift"
+            value={next ? formatCurrency(next.amount) : "None scheduled"}
+            detail={
+              next
+                ? `To ${next.name} ${whenFrom(next.date)}`
+                : noNextGiftNote(portal)
+            }
+            href="/donor-dashboard/pledges"
+            linkLabel="Recurring gifts"
+          />
+          <SupportedCard snapshot={portal} />
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
+        <section aria-label="Latest update" className="min-w-0 lg:col-span-8">
+          <FeaturedUpdateHero
+            key={feedQuery.data[0]?.id ?? "none"}
+            post={feedQuery.data[0] ?? null}
+            isLoading={feedQuery.isLoading}
+            error={feedQuery.error}
+          />
+        </section>
+        <div className="min-w-0 lg:col-span-4">
+          <RecentUpdatesCard feedQuery={feedQuery} />
         </div>
       </div>
     </div>

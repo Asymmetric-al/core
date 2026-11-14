@@ -9,6 +9,10 @@
  * augmentation in `./types.ts` must keep targeting the real package name, and
  * table-creating files import `@tanstack/react-table-devtools` directly (it is
  * a devtools adapter, not the engine, so it stays out of this boundary).
+ * Grids built on the vendored ReUI data-grid use the sibling boundary
+ * `components/data-grid-panel/data-grid-engine.ts`; the vendored registry
+ * files under `components/reui/data-grid` keep their upstream engine imports
+ * so they can be re-synced from the registry.
  *
  * v9 registers features, row-model factories, and function registries together.
  * This module pins ONE shared feature set (`dataTableFeatures`) covering the

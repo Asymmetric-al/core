@@ -13,6 +13,7 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  |- admin
 |  |- donor
 |  |- missionary
+|  |- factory-console (private VM 100 operator service, not deployed)
 |  `- contract-test (support folder, not a workspace package)
 |- packages/
 |  |- api
@@ -21,6 +22,7 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  |- database
 |  |- email
 |  |- env
+|  |- eve-runtime
 |  |- graphql
 |  |- lib
 |  |- missionary
@@ -93,6 +95,14 @@ Quick rules:
 - `apps/admin` -> `@asym/admin`
 - `apps/donor` -> `@asym/donor`
 - `apps/missionary` -> `@asym/missionary-app`
+- `apps/factory-console` -> `@asym/factory-console`: the private owner-only
+  operator Console for the Core software factory. It is not a product app:
+  it runs only as a loopback service on VM 100 and is never deployed to
+  Vercel. Root lint, typecheck, unit tests and the shared design-system rules
+  cover it; CI compiles it only for develop pull requests that touch it or a
+  workspace package it depends on (`OPERATOR_BUILD_APPS` in
+  `scripts/verify/ci-build-policy.mjs`), and `bun run build` builds only the
+  three product apps. See `docs/guides/architecture/runtime-map.md`.
 
 ### Packages
 
@@ -102,6 +112,7 @@ Quick rules:
 - `packages/database` -> `@asym/database`
 - `packages/email` -> `@asym/email`
 - `packages/env` -> `@asym/env`
+- `packages/eve-runtime` -> `@asym/eve-runtime` (product Eve runtime; separate from the coding-agent skill library, see `packages/eve-runtime/AGENTS.md`)
 - `packages/graphql` -> `@asym/graphql`
 - `packages/lib` -> `@asym/lib`
 - `packages/missionary` -> `@asym/missionary`

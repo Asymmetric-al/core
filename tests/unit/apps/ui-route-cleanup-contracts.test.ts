@@ -13,6 +13,9 @@ const routeSplits = [
     name: "admin events",
     wrapperPath: "apps/admin/app/(app)/events/page.tsx",
     clientPath: "apps/admin/app/(app)/events/page-client.tsx",
+    // Events is a static "not connected yet" page with no client state, so
+    // its body renders on the server instead of shipping a client island.
+    serverRendered: true,
   },
   {
     name: "admin reports",
@@ -72,9 +75,16 @@ describe("UI route cleanup contracts", () => {
         'import PageClient from "./page-client";',
       );
       // Admin table routes render the client island behind a Suspense
-      // boundary; other wrappers return it directly. Both stay tiny.
-      expect(wrapperSource, route.name).toMatch(/<PageClient \/>/);
-      expect(clientSource, route.name).toMatch(/^"use client";/);
+      // boundary; other wrappers return it directly, at most handing it
+      // server-streamed slots by name. All stay tiny.
+      expect(wrapperSource, route.name).toMatch(
+        /<PageClient(?: \w+=\{\w+\})* \/>/,
+      );
+      if ("serverRendered" in route) {
+        expect(clientSource, route.name).not.toMatch(/^["']use client["'];/m);
+      } else {
+        expect(clientSource, route.name).toMatch(/^"use client";/);
+      }
     }
   });
 
@@ -116,16 +126,17 @@ describe("UI route cleanup contracts", () => {
       "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
     );
 
-    expect(source).toContain(
-      'aria-label={post.saved ? "Remove from bookmarks" : "Save this post"}',
-    );
-    // The rendered save/remove names and Saved filtering are exercised in
-    // donor/feed-heading-structure.test.tsx; the icon toggle also exposes state.
-    expect(source).toContain("aria-pressed={Boolean(post.saved)}");
+    // Bookmarks were local-only (lost on reload), so they were removed; the
+    // type filter chips expose their state instead.
+    expect(source).not.toContain("Save this post");
+    expect(source).toContain("aria-pressed={category === value}");
     expect(source).toContain("<ReactionBar");
     expect(source).not.toMatch(/aria-label="Open post actions"/);
     expect(source).not.toMatch(/aria-label="Share post"/);
-    expect(source).toMatch(/transition-\[filter\]/);
+    // Feed photos show in colour without hover (grayscale-until-hover never
+    // resolved on touch screens); any motion that remains stays targeted.
+    expect(source).not.toMatch(/grayscale/);
+    expect(source).not.toMatch(/transition-all/);
   });
 
   it("keeps donor history page and chart cells on targeted motion", () => {
@@ -133,20 +144,24 @@ describe("UI route cleanup contracts", () => {
       "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
     );
 
-    expect(source).toMatch(/transition-opacity/);
+    // The decorative hover fade on chart cells was removed with the
+    // single-series month strip; the page entrance stays and nothing uses
+    // transition-all.
     expect(source).toMatch(/animate-in fade-in duration-300/);
+    expect(source).not.toMatch(/transition-all/);
   });
 
   it("keeps missionary analytics chart colors on Maia CSS variables (no one-off hex)", () => {
     const source = readRepoFile(
-      "apps/missionary/app/analytics/page-client.tsx",
+      "apps/missionary/app/analytics/analytics-charts.tsx",
     );
 
     // Chart colors must resolve from Maia/shadcn design tokens, never a
-    // one-off hex literal. Series use distinct central chart tokens; axis
-    // labels and the tooltip cursor retain their neutral semantic colors.
+    // one-off hex literal. This year uses the central chart token; the year
+    // before is the neutral muted token (chart-2 means "one-time" elsewhere);
+    // axis labels and the tooltip cursor keep their neutral semantic colors.
     expect(source).toMatch(/var\(--chart-1\)/);
-    expect(source).toMatch(/var\(--chart-2\)/);
+    expect(source).not.toMatch(/var\(--chart-2\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
     // The mock "At Risk" donut segment (the former one-off #eab308 amber) was
@@ -155,10 +170,18 @@ describe("UI route cleanup contracts", () => {
     expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/i);
   });
 
-  it("keeps admin reports summary dismissible by accessible name", () => {
+  it("shows admin report detail as a titled section, not a dismissible popup", () => {
     const source = readRepoFile("apps/admin/app/(app)/reports/page-client.tsx");
+    const funds = readRepoFile("apps/admin/app/(app)/reports/funds-grid.tsx");
 
-    expect(source).toMatch(/aria-label="Dismiss report summary"/);
+    // The per-fund detail is a headed grid on the page (the old Highlights
+    // card only repeated the summary cards).
+    expect(source).toContain("<FundsGrid");
+    // The heading names the chosen grouping ("Funds" by default).
+    expect(funds).toMatch(
+      /<h2\s+id=\{headingId\}[^>]*>\s*\{group\.title\}\s*<\/h2>/,
+    );
+    expect(source).not.toMatch(/SafeHtml/);
   });
 });
 

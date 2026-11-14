@@ -1,56 +1,58 @@
 "use client";
-
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
-  DropdownMenuGroup,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { Clock, Sunrise } from "lucide-react";
+import { Clock } from "lucide-react";
+import * as React from "react";
+import { toast } from "sonner";
 
 import {
   useSnoozeSupportConversation,
   useUnsnoozeSupportConversation,
 } from "../../hooks/use-support-mutations";
+import { useSupportNow } from "../../lib/now";
+import {
+  SUPPORT_SNOOZE_OPTIONS,
+  formatSnoozeTime,
+  resolveSnoozeUntil,
+  snoozeUntilFromNow,
+} from "../../lib/snooze";
+import { useSupportSnoozeMenuRequest } from "../../lib/snooze-menu-request";
 
 import type { SupportConversation } from "../../types";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
-
-function makeDisplayTimestamp(): number {
-  return globalThis.Date.now();
-}
-
-interface ConversationSnoozeMenuProps {
-  conversation: SupportConversation;
-}
-
-const HOUR_MS = 60 * 60 * 1000;
-
-const QUICK_SNOOZE_OPTIONS: Array<{ label: string; hours: number }> = [
-  { label: "1 hour", hours: 1 },
-  { label: "4 hours", hours: 4 },
-  { label: "Tomorrow morning", hours: 16 },
-  { label: "7 days", hours: 24 * 7 },
-];
-
 export function ConversationSnoozeMenu({
   conversation,
-}: ConversationSnoozeMenuProps) {
-  const snooze = useSnoozeSupportConversation();
-  const unsnooze = useUnsnoozeSupportConversation();
+}: {
+  conversation: SupportConversation;
+}) {
+  const nowIso = useSupportNow(),
+    snooze = useSnoozeSupportConversation(),
+    unsnooze = useUnsnoozeSupportConversation();
+  const [open, setOpen] = React.useState(false);
+  const request = useSupportSnoozeMenuRequest();
+  const isRequested = request?.requestedId === conversation.id;
   const isSnoozed = conversation.status === "snoozed";
-
+  const failure = (error: unknown) =>
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Couldn’t change the snooze time. Try again.",
+    );
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={open || isRequested}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) request?.clear();
+      }}
+    >
       <DropdownMenuTrigger
         render={
           <Button
@@ -59,47 +61,59 @@ export function ConversationSnoozeMenu({
             size="sm"
             aria-label="Snooze conversation"
           >
-            {isSnoozed ? (
-              <Sunrise aria-hidden="true" className="text-chart-3" />
-            ) : (
-              <Clock aria-hidden="true" />
-            )}
-            {isSnoozed ? "Snoozed" : "Snooze"}
+            <Clock aria-hidden="true" />
+            {isSnoozed && conversation.snoozedUntil
+              ? "Snoozed until " +
+                formatSnoozeTime(conversation.snoozedUntil, new Date(nowIso))
+              : "Snooze"}
           </Button>
         }
       />
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Snooze until</DropdownMenuLabel>
-
-          <DropdownMenuSeparator />
-          {QUICK_SNOOZE_OPTIONS.map((option) => (
-            <DropdownMenuItem
-              key={option.label}
-              onClick={() =>
-                snooze.mutate({
-                  conversationId: conversation.id,
-                  snoozedUntil: makeDisplayDate(
-                    makeDisplayTimestamp() + option.hours * HOUR_MS,
-                  ).toISOString(),
-                })
-              }
-            >
-              {option.label}
-            </DropdownMenuItem>
-          ))}
+          <DropdownMenuLabel>
+            {isSnoozed ? "Snooze again until" : "Snooze until"}
+          </DropdownMenuLabel>
           {isSnoozed ? (
             <>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() =>
-                  unsnooze.mutate({ conversationId: conversation.id })
-                }
+                disabled={unsnooze.isPending}
+                onClick={() => {
+                  void unsnooze
+                    .mutateAsync({ conversationId: conversation.id })
+                    .catch(failure);
+                }}
               >
                 Wake up now
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
             </>
           ) : null}
+          {SUPPORT_SNOOZE_OPTIONS.map((option) => (
+            <DropdownMenuItem
+              key={option.key}
+              disabled={snooze.isPending}
+              onClick={() => {
+                void snooze
+                  .mutateAsync({
+                    conversationId: conversation.id,
+                    snoozedUntil: snoozeUntilFromNow(
+                      option.key,
+                      new Date(nowIso),
+                    ),
+                  })
+                  .catch(failure);
+              }}
+            >
+              <span>{option.label}</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                {formatSnoozeTime(
+                  resolveSnoozeUntil(option.key, new Date(nowIso)),
+                  new Date(nowIso),
+                )}
+              </span>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

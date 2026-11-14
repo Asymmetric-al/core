@@ -1,49 +1,66 @@
 "use client";
 
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { cn } from "@asym/ui/lib/utils";
-import * as React from "react";
+import {
+  MetricCard,
+  MetricGrid,
+  type MetricTone,
+} from "@asym/ui/components/primitives/metric-card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 interface SummaryCard {
   label: string;
   value: string | number;
   helper?: string;
+  tone?: MetricTone;
 }
 
 interface ReportSummaryCardsProps {
   cards: SummaryCard[];
-  className?: string;
+  heading?: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  /** Names the group for assistive technology. */
+  label?: string;
 }
 
+/** Report totals on Mission Control's shared metric cards. */
 export function ReportSummaryCards({
   cards,
-  className,
+  heading,
+  isLoading = false,
+  isError = false,
+  label = "Report summary",
 }: ReportSummaryCardsProps) {
   if (cards.length === 0) return null;
   return (
-    <div
-      className={cn(
-        "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4",
-        className,
-      )}
-    >
-      {cards.map((card) => (
-        <Card key={card.label}>
-          <CardContent className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-muted-foreground">
-              {card.label}
-            </p>
-            <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">
-              {typeof card.value === "number"
-                ? card.value.toLocaleString()
-                : card.value}
-            </p>
-            {card.helper ? (
-              <p className="text-xs text-muted-foreground">{card.helper}</p>
-            ) : null}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <section className="space-y-3">
+      {heading && <h2 className="text-sm font-semibold">{heading}</h2>}
+      <MetricGrid label={label} busy={isLoading}>
+        {cards.map((card) => (
+          <MetricCard
+            key={card.label}
+            label={card.label}
+            value={
+              isLoading ? (
+                <>
+                  <Skeleton className="h-7 w-16" />
+                  <span className="sr-only">Loading…</span>
+                </>
+              ) : isError ? (
+                "—"
+              ) : typeof card.value === "number" ? (
+                card.value.toLocaleString("en-US")
+              ) : (
+                card.value
+              )
+            }
+            detail={
+              isLoading ? "Loading…" : isError ? "Couldn’t load" : card.helper
+            }
+            tone={isLoading || isError ? "default" : card.tone}
+          />
+        ))}
+      </MetricGrid>
+    </section>
   );
 }

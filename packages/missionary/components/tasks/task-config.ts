@@ -88,11 +88,11 @@ export const STATUS_CONFIG: Record<
   { label: string; color: string }
 > = {
   not_started: {
-    label: "Not Started",
+    label: "Not started",
     color: "bg-zinc-100 text-zinc-600 border-zinc-200",
   },
   in_progress: {
-    label: "In Progress",
+    label: "In progress",
     color: "bg-sky-50 text-sky-700 border-sky-200",
   },
   waiting: {

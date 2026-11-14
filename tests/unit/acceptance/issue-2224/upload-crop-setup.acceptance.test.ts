@@ -150,13 +150,13 @@ describe("#2224 criterion 12: the API 401 tests and the controls test are kept",
     expect(noBody.outcome).toBe("failed");
   });
 
-  it("the controls test passes on the real page and fails without Remove or with Upload New disabled", async () => {
+  it("the controls test passes on the real page and fails without Remove or with Change photo disabled", async () => {
     expect((await runFresh(pick.controls)).outcome).toBe("passed");
     expect(
       (await runFresh(pick.controls, { removeButton: false })).outcome,
     ).toBe("failed");
     expect(
-      (await runFresh(pick.controls, { uploadNewEnabled: false })).outcome,
+      (await runFresh(pick.controls, { uploadPhotoEnabled: false })).outcome,
     ).toBe("failed");
   });
 });

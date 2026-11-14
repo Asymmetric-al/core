@@ -28,6 +28,7 @@ type AuthContextShape = {
 };
 
 let Page: PageComponent;
+let pageMetadata: { title?: unknown } | undefined;
 
 function unauthenticatedContext(): AuthContextShape {
   return {
@@ -96,9 +97,19 @@ describe("apps/admin/app/(app)/contributions/page auth gate", () => {
       }),
     );
 
-    Page = (
-      await import("../../../../../apps/admin/app/(app)/contributions/page")
-    ).default as PageComponent;
+    const pageModule =
+      (await import("../../../../../apps/admin/app/(app)/contributions/page")) as {
+        default: unknown;
+        metadata?: { title?: unknown };
+      };
+    Page = pageModule.default as PageComponent;
+    pageMetadata = pageModule.metadata;
+  });
+
+  it("names the browser tab from the same title as the page heading", () => {
+    // The root layout's template renders this as "Contributions | Mission
+    // Control".
+    expect(pageMetadata?.title).toBe("Contributions");
   });
 
   it("does not expose contribution management actions to unauthenticated visitors", async () => {

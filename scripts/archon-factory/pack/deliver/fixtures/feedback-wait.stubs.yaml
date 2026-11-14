@@ -1,0 +1,16 @@
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  expect: paused
+  reached: [claim]
+claim:
+  {
+    proceed: "yes",
+    route: feedback,
+    do_scope: "no",
+    do_define: "no",
+    do_build: "no",
+    do_feedback: "yes",
+    needs_wait: "yes",
+    wait_until: "2026-11-11T00:00:00Z",
+    reason: "Round 3",
+  }

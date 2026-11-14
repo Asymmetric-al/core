@@ -61,7 +61,7 @@ describe("admin/crm/table-preferences/view-settings", () => {
     });
   });
 
-  it("previews a scoped columns reset falling back to the tenant default", () => {
+  it("previews a scoped columns reset falling back to the organization default", () => {
     const preview = previewCrmViewSettingsReset({
       scope: "columns",
       user: {
@@ -82,7 +82,8 @@ describe("admin/crm/table-preferences/view-settings", () => {
     expect(preview.after.pinnedActionId).toBe("amount_correction");
     expect(preview.sources.columns).toBe("tenant_default");
     expect(preview.description).toMatch(/columns/i);
-    expect(preview.description).toMatch(/tenant default/i);
+    expect(preview.description).toMatch(/organization default/i);
+    expect(preview.description).not.toMatch(/tenant/i);
   });
 
   it("previews a pinned action reset falling back to system next-best", () => {

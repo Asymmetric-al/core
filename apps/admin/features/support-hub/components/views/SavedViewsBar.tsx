@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
-import { BookmarkPlus, Folder } from "lucide-react";
+import { ArrowLeftRight, BookmarkPlus, Folder } from "lucide-react";
 import * as React from "react";
 
 import { DeleteSavedViewConfirm } from "./DeleteSavedViewConfirm";
@@ -9,6 +9,7 @@ import { SavedViewItem } from "./SavedViewItem";
 import { SaveViewDialog } from "./SaveViewDialog";
 import { useSupportSavedViews } from "../../hooks/use-support-saved-views";
 import { useSupportInboxState } from "../../lib/route-state";
+import { canManageSavedView } from "../../lib/settings-access";
 
 import type { SupportSavedView } from "../../types";
 
@@ -19,7 +20,7 @@ import type { SupportSavedView } from "../../types";
  */
 export function SavedViewsBar() {
   const { state, setState } = useSupportInboxState();
-  const { data: savedViews } = useSupportSavedViews();
+  const { data: savedViews, access } = useSupportSavedViews();
   const [editing, setEditing] = React.useState<SupportSavedView | null>(null);
   const [deleting, setDeleting] = React.useState<SupportSavedView | null>(null);
   const [isCreating, setIsCreating] = React.useState(false);
@@ -41,40 +42,62 @@ export function SavedViewsBar() {
   };
 
   return (
+    // On phones this is one row beside the view select: the chips scroll
+    // sideways and the words "Saved views" and "Save filter" are read out
+    // but shown as icons. From sm it shrinks to its row and wraps the chips,
+    // so many saved views never push past the inbox column.
     <section
       aria-label="Saved views"
-      className="flex flex-wrap items-center gap-2"
+      className="flex min-w-0 flex-1 items-center gap-2 sm:flex-initial sm:flex-wrap"
     >
-      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-        <Folder className="size-3" />
-        Saved views
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-muted-foreground">
+        <Folder aria-hidden="true" className="size-3" />
+        <span className="sr-only sm:not-sr-only">Saved views</span>
       </span>
 
       {savedViews.length === 0 ? (
-        <span className="text-xs text-muted-foreground">
+        // A third line on a phone, where Save filter says enough.
+        <span className="hidden text-xs text-muted-foreground sm:inline">
           No saved views yet, save a filter to find it again.
         </span>
       ) : (
-        savedViews.map((view) => (
-          <SavedViewItem
-            key={view.id}
-            view={view}
-            isActive={activeView?.id === view.id}
-            onSelect={() => apply(view)}
-            onRename={() => setEditing(view)}
-            onDelete={() => setDeleting(view)}
-          />
-        ))
+        // The vertical padding keeps focus rings clear of the scroll edge.
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1 *:shrink-0 sm:contents">
+          {savedViews.map((view) => (
+            <SavedViewItem
+              key={view.id}
+              view={view}
+              isActive={activeView?.id === view.id}
+              onSelect={() => apply(view)}
+              onRename={
+                canManageSavedView(access, view)
+                  ? () => setEditing(view)
+                  : undefined
+              }
+              onDelete={
+                canManageSavedView(access, view)
+                  ? () => setDeleting(view)
+                  : undefined
+              }
+            />
+          ))}
+        </div>
       )}
 
+      {savedViews.length > 1 && (
+        <ArrowLeftRight
+          className="size-3 shrink-0 text-muted-foreground sm:hidden"
+          aria-hidden="true"
+        />
+      )}
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => setIsCreating(true)}
       >
-        <BookmarkPlus className="size-3.5" />
-        Save filter
+        <BookmarkPlus aria-hidden="true" className="size-3.5" />
+        <span className="sr-only sm:not-sr-only">Save filter</span>
       </Button>
 
       <SaveViewDialog

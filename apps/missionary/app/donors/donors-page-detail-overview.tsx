@@ -160,7 +160,7 @@ export function DonorsPageDetailOverview() {
                         <span className="text-sm font-semibold text-foreground">
                           {activity.title}
                         </span>
-                        {activity.amount ? (
+                        {activity.amount !== undefined ? (
                           <Badge
                             className={cn(
                               "font-semibold px-2 h-5 rounded-lg uppercase tracking-widest border-0",
@@ -169,7 +169,7 @@ export function DonorsPageDetailOverview() {
                                 : "bg-primary/10 text-primary",
                             )}
                           >
-                            {formatCurrency(activity.amount)}
+                            {formatCurrency(activity.amount, activity.currency)}
                           </Badge>
                         ) : null}
                         {activity.gift_type ? (

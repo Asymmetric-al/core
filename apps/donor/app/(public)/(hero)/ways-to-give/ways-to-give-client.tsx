@@ -1,19 +1,29 @@
 "use client";
 
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  CreditCard,
-  TrendingUp,
-  Landmark,
-  Smartphone,
-  Gift,
-  Briefcase,
   ArrowRight,
+  Briefcase,
+  CreditCard,
+  Gift,
+  Landmark,
+  Repeat,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+
+// Giving methods this site doesn't take yet, listed so donors aren't left
+// looking for them.
+const NOT_YET_ONLINE = [
+  { Icon: Repeat, label: "Monthly giving" },
+  { Icon: Landmark, label: "Bank transfers" },
+  { Icon: TrendingUp, label: "Gifts of stock" },
+  { Icon: Gift, label: "Gifts in honor or memory" },
+  { Icon: Briefcase, label: "Employer matching" },
+] as const;
 
 export function WaysToGiveClient() {
   return (
@@ -30,123 +40,57 @@ export function WaysToGiveClient() {
             Invest in Hope
           </h1>
           <p className="text-xl md:text-2xl text-invert-foreground/75 max-w-2xl mx-auto leading-relaxed font-light">
-            Your generosity fuels the mission. Choose the method that best fits
-            your financial strategy.
+            Your generosity fuels the mission. Here’s how you can give today.
           </p>
         </div>
       </section>
 
       <section className="py-24 container mx-auto px-6 -mt-24 relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Card className="transition-transform duration-300 overflow-hidden relative group">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <Card className="overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-info" />
             <CardContent className="p-10 space-y-6">
-              <div className="size-14 bg-info/10 rounded-2xl flex items-center justify-center text-info mb-2 transition-colors duration-300">
-                <CreditCard className="size-7" />
+              <div className="size-14 bg-info/10 rounded-2xl flex items-center justify-center text-info mb-2">
+                <CreditCard className="size-7" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="text-2xl font-semibold text-foreground mb-2">
-                  Credit / Debit
-                </h3>
+                <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  Give online
+                </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  The fastest way to deploy aid. Give a one-time gift or set up
-                  a recurring monthly partnership.
+                  Give a one-time gift by card to the missionary you choose.
                 </p>
               </div>
               <Link href="/workers" className={cn(buttonVariants(), "w-full")}>
-                Give Online <ArrowRight className="ml-2 size-4" />
+                Find a missionary{" "}
+                <ArrowRight className="ml-2 size-4" aria-hidden="true" />
               </Link>
             </CardContent>
           </Card>
 
-          <Card className="transition-transform duration-300 overflow-hidden group">
+          <Card>
             <CardContent className="p-10 space-y-6">
-              <div className="size-14 bg-success/10 rounded-2xl flex items-center justify-center text-success mb-2 transition-colors duration-300">
-                <TrendingUp className="size-7" />
-              </div>
               <div>
-                <h3 className="text-2xl font-semibold text-foreground mb-2">
-                  Stocks & Assets
-                </h3>
+                <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  Not available online yet
+                </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Donate appreciated stock or mutual funds to avoid capital
-                  gains tax and receive a full deduction.
+                  This organization hasn’t set these up on this site.
                 </p>
               </div>
-              <Button variant="outline" className="w-full">
-                Get Transfer Instructions
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="transition-transform duration-300 overflow-hidden group">
-            <CardContent className="p-10 space-y-6">
-              <div className="size-14 bg-chart-3/10 rounded-2xl flex items-center justify-center text-chart-3 mb-2 transition-colors duration-300">
-                <Landmark className="size-7" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-semibold text-foreground mb-2">
-                  Legacy Giving
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Include GiveHope in your will or estate plan to leave a
-                  lasting legacy of compassion.
-                </p>
-              </div>
-              <Button variant="outline" className="w-full">
-                Contact Legacy Team
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border transition-colors">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="size-12 bg-muted rounded-xl flex items-center justify-center text-muted-foreground">
-                  <Smartphone className="size-6" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground">
-                  Cryptocurrency
-                </h3>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                We accept Bitcoin, Ethereum, and USDC via our secure crypto
-                portal for seamless digital giving.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border transition-colors">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="size-12 bg-muted rounded-xl flex items-center justify-center text-muted-foreground">
-                  <Briefcase className="size-6" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground">
-                  Employer Matching
-                </h3>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Double your impact instantly. Check if your company matches
-                charitable donations with our tool.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border transition-colors">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="size-12 bg-muted rounded-xl flex items-center justify-center text-muted-foreground">
-                  <Gift className="size-6" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground">
-                  Honor & Memorial
-                </h3>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Give a gift in honor of a loved one. We&apos;ll send a beautiful
-                physical card notifying them of your support.
-              </p>
+              <ul className="space-y-3">
+                {NOT_YET_ONLINE.map(({ Icon, label }) => (
+                  <li
+                    key={label}
+                    className="flex items-center gap-3 text-foreground"
+                  >
+                    <span className="size-9 shrink-0 bg-muted rounded-xl flex items-center justify-center text-muted-foreground">
+                      <Icon className="size-4" aria-hidden="true" />
+                    </span>
+                    {label}
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         </div>
@@ -155,16 +99,15 @@ export function WaysToGiveClient() {
       <section className="py-20 bg-card border-t border-border">
         <div className="container mx-auto px-6 text-center max-w-2xl">
           <h2 className="text-3xl font-semibold text-foreground mb-4 tracking-tight">
-            Need assistance?
+            Have a question about giving?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 font-light">
-            Our Donor Relations team is here to assist with complex gifts, wire
-            transfers, or any questions you may have.
+            Receipts, tax deductions and how gifts reach the field are covered
+            in the FAQ.
           </p>
-          <div className="flex justify-center gap-4">
-            <Button variant="outline">Email Us</Button>
-            <Button variant="outline">Call (555) 123-4567</Button>
-          </div>
+          <Link href="/faq" className={buttonVariants({ variant: "outline" })}>
+            Read the FAQ
+          </Link>
         </div>
       </section>
     </div>

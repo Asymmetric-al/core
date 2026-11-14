@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { InboxSettingsForm } from "@/features/support-hub/components/settings/inbox/InboxSettingsForm";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Inbox identity · Support settings",
+};
 
 export default function SupportSettingsInboxPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Inbox identity"
-      description="Defaults applied to every donor conversation routed through this inbox."
-    >
+    <>
       <InboxSettingsForm />
-    </SupportWorkspaceShell>
+    </>
   );
 }

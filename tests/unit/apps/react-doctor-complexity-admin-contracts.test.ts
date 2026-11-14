@@ -32,7 +32,10 @@ describe("admin high-complexity extraction contracts", () => {
       "apps/admin/app/(app)/admin/eve/model-policy-panel.tsx",
     );
 
-    expect(source).toContain("function EveModelPolicyLoading(");
+    // Loading renders the shared Eve section placeholders (one per section)
+    // instead of a panel-local loading component.
+    expect(source).toContain("<EveUnavailableSections");
+    expect(source).toContain('loadingLabel="Loading model policy"');
     expect(source).toContain("function EveModelPolicyLoadError(");
     expect(source).toContain("function EveModelPolicyActiveAlert(");
     expect(source).toContain("function EveModelPolicyVersionList(");
@@ -48,14 +51,14 @@ describe("admin high-complexity extraction contracts", () => {
       "apps/admin/app/(app)/admin/eve/page-client.tsx",
     );
 
-    expect(source).toContain("function EveGovernanceLoading(");
+    expect(source).toContain("<EveUnavailableSections");
+    expect(source).toContain('loadingLabel="Loading Eve governance state"');
     expect(source).toContain("function EveGovernanceLoadError(");
     expect(source).toContain("function EveGovernanceStatusAlert(");
     expect(source).toContain("function EveRecentRunsCard(");
     expect(source).toContain("function EveGovernedFailuresCard(");
     expect(source).toContain("function EveAuditHistoryCard(");
     expect(source).toContain("export function EveGovernanceView(");
-    expect(source).toContain("<EveGovernanceLoading");
     expect(source).toContain("<EveAuditHistoryCard");
   });
 
@@ -103,7 +106,7 @@ describe("admin high-complexity extraction contracts", () => {
     expect(source).toContain("function DetailDrawerTitleLine(");
     expect(source).toContain("function DetailDrawerHeader(");
     expect(source).toContain("function DetailDrawerIdentity(");
-    expect(source).toContain("function DetailDrawerSummary(");
+    expect(source).toContain("function DetailDrawerHighlights(");
     expect(source).toContain("function DetailDrawerNoteComposer(");
     expect(source).toContain("function DetailDrawerTimeline(");
     expect(source).toContain("function DetailDrawerProperties(");
@@ -138,7 +141,9 @@ describe("admin high-complexity extraction contracts", () => {
     expect(source).toContain("function SupportTicketNotFoundPage(");
     expect(source).toContain("function SupportTicketMetrics(");
     expect(source).toContain("function SupportTicketContactCard(");
-    expect(source).toContain("function SupportTicketMacroCard(");
+    // The "Suggested macro" card read browser sample macros and was removed
+    // with the sample data (round 12); no macro data source exists.
+    expect(source).not.toContain("SupportTicketMacroCard");
     expect(source).toContain(
       "export default async function SupportTicketDetailPage(",
     );

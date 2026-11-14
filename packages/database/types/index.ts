@@ -52,6 +52,7 @@ export type {
 } from "./crm-table-preferences";
 export type {
   AdminCrmRelationshipsListResponse,
+  CrmRelationshipActiveCommitments,
   CrmRelationshipAuthorityScope,
   CrmRelationshipDomain,
   CrmRelationshipRecordKind,
@@ -61,6 +62,7 @@ export type {
   CrmRelationshipSortField,
 } from "./crm-relationships";
 export type {
+  AdminCrmReportCompleteness,
   AdminCrmReportResponse,
   CrmReportFilters,
   CrmReportRow,

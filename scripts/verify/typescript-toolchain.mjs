@@ -49,6 +49,41 @@ export function validateCompilerToolchain(snapshot) {
   return snapshot;
 }
 
+// Bun's pinned Windows shim stores its target and Node launcher in UTF-16LE.
+// Verify that target instead of treating the .exe wrapper as a Unix symlink.
+export function resolveRootCompilerCommand(root, platform = process.platform) {
+  const bin = path.join(root, "node_modules", ".bin", "tsc");
+  if (platform !== "win32") return realpathSync(bin);
+  if (!existsSync(bin + ".exe") || !existsSync(bin + ".bunx")) return null;
+  const shim = readFileSync(bin + ".bunx");
+  if (shim.length < 16 || shim.length % 2) return null;
+  const flags = shim.readUInt16LE(shim.length - 2);
+  // Version 5, Node launcher, shebang present; bit 3 permits absolute targets.
+  if ((flags & ~8) !== ((2739 << 4) | 7)) return null;
+  const targetBytes = shim.readUInt32LE(shim.length - 10);
+  const launcherBytes = shim.readUInt32LE(shim.length - 6);
+  if (
+    !targetBytes ||
+    targetBytes % 2 ||
+    launcherBytes !== 10 ||
+    targetBytes + 4 + launcherBytes + 10 !== shim.length
+  )
+    return null;
+  if (
+    shim.toString("utf16le", targetBytes, targetBytes + 4) !== '\"\0' ||
+    shim.toString("utf16le", targetBytes + 4, targetBytes + 14) !== "node "
+  )
+    return null;
+  const target = shim.toString("utf16le", 0, targetBytes);
+  if (target.includes("\0")) return null;
+  const resolved = path.resolve(
+    root,
+    "node_modules",
+    target.replaceAll("\\", path.sep),
+  );
+  return existsSync(resolved) ? realpathSync(resolved) : null;
+}
+
 export function verifyCompilerToolchain(root = repoRoot) {
   const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
   const rootPackage = readJson(path.join(root, "package.json"));
@@ -112,7 +147,7 @@ export function verifyCompilerToolchain(root = repoRoot) {
       ),
       installed: nativePackage.version,
       rootCommandMatches:
-        realpathSync(path.join(root, "node_modules/.bin/tsc")) ===
+        resolveRootCompilerCommand(root) ===
         realpathSync(path.join(nativeDirectory, nativePackage.bin.tsc)),
     },
     parser: {

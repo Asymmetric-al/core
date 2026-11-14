@@ -7,15 +7,14 @@ export type { SupportInbox, SupportInboxSettings } from "@asym/database/hooks";
 export interface SupportInboxStatusBucket {
   status: SupportConversationStatus;
   count: number;
-  /** Mocked WoW delta for visual deltas in stat cards. */
-  deltaPercent: number;
+  deltaPercent: number | null;
 }
 
 export interface SupportInboxStats {
   inboxId: string | null;
   generatedAt: string;
   total: number;
-  totalDelta: number;
+  totalDelta: number | null;
   buckets: SupportInboxStatusBucket[];
   pastDueCount: number;
   escalatedCount: number;

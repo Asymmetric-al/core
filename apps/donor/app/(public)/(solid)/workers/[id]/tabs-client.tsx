@@ -47,9 +47,6 @@ export function TabsClient({ storyContent, updatesContent }: TabsClientProps) {
           )}
         >
           Field Journal
-          <span className="inline-flex h-5 items-center justify-center rounded-full bg-accent px-2 text-xs font-bold text-accent-foreground">
-            New
-          </span>
         </TabsTrigger>
       </TabsList>
 

@@ -1,6 +1,7 @@
 import {
   mkdtemp,
   mkdir,
+  realpath,
   rm,
   symlink,
   writeFile,
@@ -99,10 +100,18 @@ async function createFixture({
     path.join(fixtureRoot, "packages/ui/node_modules"),
     "junction",
   );
-  for (const name of ["tailwindcss", "@tailwindcss", "tw-animate-css"]) {
+  // Link individual packages by real path so Bun's relative store links stay valid.
+  for (const [name, nodeModules] of [
+    ["tailwindcss", "node_modules"],
+    ["@tailwindcss/typography", "node_modules"],
+    ["tw-animate-css", "node_modules"],
+    ["@react-email/editor", "packages/ui/node_modules"],
+  ] as const) {
+    const destination = path.join(fixtureRoot, "node_modules", name);
+    await mkdir(path.dirname(destination), { recursive: true });
     await symlink(
-      path.join(rootDir, "node_modules", name),
-      path.join(fixtureRoot, "node_modules", name),
+      await realpath(path.join(rootDir, nodeModules, name)),
+      destination,
       "junction",
     );
   }
@@ -154,6 +163,7 @@ describe("design-system health", () => {
       "apps/admin",
       "apps/donor",
       "apps/missionary",
+      "apps/factory-console",
       "packages/ui",
       "packages/missionary",
     ]);
@@ -163,6 +173,7 @@ describe("design-system health", () => {
     "apps/admin",
     "apps/donor",
     "apps/missionary",
+    "apps/factory-console",
     "packages/ui",
     "packages/missionary",
   ])(

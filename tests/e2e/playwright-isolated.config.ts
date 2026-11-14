@@ -5,7 +5,6 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: ".",
   testMatch: [
-    "teams-surface.spec.ts",
     "missionary-dashboard-charts.spec.ts",
     "donor-wallet-layout.spec.ts",
     "data-table-accessibility.spec.ts",
@@ -14,6 +13,7 @@ export default defineConfig({
     "react-cleanup-grid.spec.ts",
     "react-cleanup-map.spec.ts",
     "react-cleanup-memory.spec.ts",
+    "ui-sdk-rating.spec.ts",
   ],
   workers: 1,
   timeout: 60000,

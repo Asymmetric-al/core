@@ -49,8 +49,8 @@ function normalizeTenant(
 
   return {
     id: tenantId,
-    name: "Give Hope",
-    slug: "give-hope",
+    name: "",
+    slug: "",
   };
 }
 
@@ -87,7 +87,7 @@ export async function getProtectedShellState(
   const { data: profile } = await profileReader
     .from("profiles")
     .select(
-      "email, first_name, last_name, avatar_url, role, tenant_id, tenants(id, name, slug)",
+      "email, first_name, last_name, avatar_url, role, tenant_id, tenants!profiles_tenant_id_fkey(id, name, slug)",
     )
     .eq("user_id", userId)
     .maybeSingle<AdminShellProfile>();

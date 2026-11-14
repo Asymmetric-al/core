@@ -14,14 +14,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-05c00
 
 #### Scenario: AC28-Q01-01
 
+- **GIVEN** story US28-Q01: As a missionary, I want to reach useful native work after my organization admits me, so that I can begin without configuring optional features.
 - **THEN** With all optional modules Off and baseline prerequisites qualified, a newly admitted missionary reaches a permitted relationship, creates ordinary work and can return to it without configuring any optional module.
 
 #### Scenario: AC28-Q01-02
 
+- **GIVEN** story US28-Q01: As a missionary, I want to reach useful native work after my organization admits me, so that I can begin without configuring optional features.
 - **THEN** Not configured, intentionally Off, source unavailable and actor not permitted produce distinguishable truthful states; none is reported as a successful setup or an empty dataset.
 
 #### Scenario: AC28-Q01-03
 
+- **GIVEN** story US28-Q01: As a missionary, I want to reach useful native work after my organization admits me, so that I can begin without configuring optional features.
 - **THEN** Each offered setup or repair action reaches its actual authorized owner; an unauthorized user cannot obtain setup details or change configuration through a direct request.
 
 ### Requirement: REQ28-Q02 — Exact organization and ministry context
@@ -32,14 +35,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-41a7a
 
 #### Scenario: AC28-Q02-01
 
+- **GIVEN** story US28-Q02: As a missionary serving more than one ministry, I want to enter the right authorized context, so that I understand whose work I am viewing and changing.
 - **THEN** Zero, one, multiple and failed-load fixtures produce the specified entry behavior without repeated selection for one context.
 
 #### Scenario: AC28-Q02-02
 
+- **GIVEN** story US28-Q02: As a missionary serving more than one ministry, I want to enter the right authorized context, so that I understand whose work I am viewing and changing.
 - **THEN** An actor with two ministries in two organizations sees the correct subject on search, detail and consequential actions, and each accepted write belongs only to its chosen authorized context.
 
 #### Scenario: AC28-Q02-03
 
+- **GIVEN** story US28-Q02: As a missionary serving more than one ministry, I want to enter the right authorized context, so that I understand whose work I am viewing and changing.
 - **THEN** A stale saved selection, forged deep link or now-revoked assignment reveals no forbidden record, title, count or action.
 
 ### Requirement: REQ28-Q03 — Safe context changes with unfinished work
@@ -50,14 +56,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-ed372
 
 #### Scenario: AC28-Q03-01
 
+- **GIVEN** story US28-Q03: As a missionary switching contexts, I want my unfinished and accepted work to retain its original meaning, so that nothing is lost, exposed or applied to another ministry.
 - **THEN** Switching ministry while a read is delayed never shows the old ministry's data in the new context, even when the old response arrives last.
 
 #### Scenario: AC28-Q03-02
 
+- **GIVEN** story US28-Q03: As a missionary switching contexts, I want my unfinished and accepted work to retain its original meaning, so that nothing is lost, exposed or applied to another ministry.
 - **THEN** Switching with unsaved work preserves the chosen save/discard/cancel outcome; no draft or recipient is reassigned implicitly.
 
 #### Scenario: AC28-Q03-03
 
+- **GIVEN** story US28-Q03: As a missionary switching contexts, I want my unfinished and accepted work to retain its original meaning, so that nothing is lost, exposed or applied to another ministry.
 - **THEN** A save accepted before switching is recovered once in its original context on a permitted return; it creates no second effect and reveals nothing after access is revoked.
 
 ### Requirement: REQ28-Q04 — One coherent daily work journey
@@ -68,14 +77,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-1a266
 
 #### Scenario: AC28-Q04-01
 
+- **GIVEN** story US28-Q04: As a missionary, I want to move from a useful next action to an accurately recorded outcome, so that I can finish everyday work without duplicate entry or invented facts.
 - **THEN** A missionary can record an actual unsuccessful call once, or finish independent work without recording an interaction; neither path invents a conversation, Request response, commitment or gift.
 
 #### Scenario: AC28-Q04-02
 
+- **GIVEN** story US28-Q04: As a missionary, I want to move from a useful next action to an accurately recorded outcome, so that I can finish everyday work without duplicate entry or invented facts.
 - **THEN** An actual meeting can lead through its supported outcome to an explicitly authorized Request response and next task or owned exception, reusing only currently permitted context.
 
 #### Scenario: AC28-Q04-03
 
+- **GIVEN** story US28-Q04: As a missionary, I want to move from a useful next action to an accurately recorded outcome, so that I can finish everyday work without duplicate entry or invented facts.
 - **THEN** A confirmed missed gift remains informational until a deliberate ordinary follow-up is added; no generic urgency label or missing log creates a new missionary obligation.
 
 ### Requirement: REQ28-Q05 — Completion follows the work's immutable contract
@@ -86,14 +98,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-6e867
 
 #### Scenario: AC28-Q05-01
 
+- **GIVEN** story US28-Q05: As a missionary handling follow-up, I want completion to mean exactly what the work requires, so that a checkbox cannot falsely resolve another source's obligation.
 - **THEN** The same source-controlled item rejects generic completion, reopening and deletion from list, detail, board, bulk action, direct command and privileged consumer paths.
 
 #### Scenario: AC28-Q05-02
 
+- **GIVEN** story US28-Q05: As a missionary handling follow-up, I want completion to mean exactly what the work requires, so that a checkbox cannot falsely resolve another source's obligation.
 - **THEN** Finishing independent human follow-up does not mark a gift, commitment, intake, appeal response or source-controlled obligation complete.
 
 #### Scenario: AC28-Q05-03
 
+- **GIVEN** story US28-Q05: As a missionary handling follow-up, I want completion to mean exactly what the work requires, so that a checkbox cannot falsely resolve another source's obligation.
 - **THEN** Completing one permitted purpose in a grouped follow-up leaves other unfinished purposes accurately visible and preserves all completed evidence after regrouping or a tenant setting change.
 
 ### Requirement: REQ28-Q06 — Controls explain their exact consequences
@@ -104,14 +119,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-27b5c
 
 #### Scenario: AC28-Q06-01
 
+- **GIVEN** story US28-Q06: As authorized tenant staff, I want each control to explain what it changes, so that I can configure the workspace without accidentally cancelling work or restoring access.
 - **THEN** Turning missionary gift reporting Off blocks new reports while Finance continues the same accepted intake and the reporter retains only currently permitted recovery.
 
 #### Scenario: AC28-Q06-02
 
+- **GIVEN** story US28-Q06: As authorized tenant staff, I want each control to explain what it changes, so that I can configure the workspace without accidentally cancelling work or restoring access.
 - **THEN** Turning a coaching module/share Off removes that exact access without deleting unrelated duties or reviving an ended share when reenabled; Page signup hide retains its separately adopted pending-request behavior.
 
 #### Scenario: AC28-Q06-03
 
+- **GIVEN** story US28-Q06: As authorized tenant staff, I want each control to explain what it changes, so that I can configure the workspace without accidentally cancelling work or restoring access.
 - **THEN** Reload and a second permitted session show the actual accepted configuration; permission loss, stale revision and an uncertain save cannot produce a false Saved or effective-On state.
 
 ### Requirement: REQ28-Q07 — Current acting authority without role union
@@ -122,14 +140,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-17127
 
 #### Scenario: AC28-Q07-01
 
+- **GIVEN** story US28-Q07: As a person with several roles, I want each action to use only my current authorized role and subject, so that private work and privileges do not bleed across surfaces.
 - **THEN** A mixed-role actor cannot use a staff permission while acting as missionary or coach unless the explicit current owner contract grants that operation.
 
 #### Scenario: AC28-Q07-02
 
+- **GIVEN** story US28-Q07: As a person with several roles, I want each action to use only my current authorized role and subject, so that private work and privileges do not bleed across surfaces.
 - **THEN** A caller's forged tenant, actor, owner, approval or audit fields are rejected or resolved to trusted permitted context; no accepted history attributes the effect to the forged actor.
 
 #### Scenario: AC28-Q07-03
 
+- **GIVEN** story US28-Q07: As a person with several roles, I want each action to use only my current authorized role and subject, so that private work and privileges do not bleed across surfaces.
 - **THEN** The qualified public-reader Join/confirmation path works without a staff profile, while revoked, stale or unqualified identity proof fails safely without granting other product access.
 
 ### Requirement: REQ28-Q08 — Authorization precedes every disclosure
@@ -140,14 +161,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-36407
 
 #### Scenario: AC28-Q08-01
 
+- **GIVEN** story US28-Q08: As a person whose information is held by the organization, I want every view and derivative to preserve the same current audience, so that hiding a field does not merely move its disclosure elsewhere.
 - **THEN** Two differently authorized viewers using the same saved filter receive only their own permitted records, counts, facets and export fields, including after cache reuse.
 
 #### Scenario: AC28-Q08-02
 
+- **GIVEN** story US28-Q08: As a person whose information is held by the organization, I want every view and derivative to preserve the same current audience, so that hiding a field does not merely move its disclosure elsewhere.
 - **THEN** An anonymous gift whose donor is missing from the returned roster remains anonymous in UI, API, task title, coach view, export and ordinary diagnostics.
 
 #### Scenario: AC28-Q08-03
 
+- **GIVEN** story US28-Q08: As a person whose information is held by the organization, I want every view and derivative to preserve the same current audience, so that hiding a field does not merely move its disclosure elsewhere.
 - **THEN** Wrong-tenant identifiers, cursors and cache entries expose neither private values nor record existence, and a source failure produces an honest unavailable outcome rather than stale private content.
 
 ### Requirement: REQ28-Q09 — Complete and intelligible support information
@@ -158,14 +182,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-e5241
 
 #### Scenario: AC28-Q09-01
 
+- **GIVEN** story US28-Q09: As a missionary, I want support information to state what it covers, so that I can plan without mistaking a partial list, forecast or unknown value for confirmed money.
 - **THEN** Loading only part of a roster or gift history does not change a complete qualified total or cause an unsupported “none,” first gift or excess determination.
 
 #### Scenario: AC28-Q09-02
 
+- **GIVEN** story US28-Q09: As a missionary, I want support information to state what it covers, so that I can plan without mistaking a partial list, forecast or unknown value for confirmed money.
 - **THEN** A failed or incomplete source displays its true limitation instead of zero support, no partners or a fabricated financial conclusion.
 
 #### Scenario: AC28-Q09-03
 
+- **GIVEN** story US28-Q09: As a missionary, I want support information to state what it covers, so that I can plan without mistaking a partial list, forecast or unknown value for confirmed money.
 - **THEN** Corrections, refunds and delayed observations update authorized source-derived figures without duplicate recognition or received money, while independently authorized continuing relationships remain usable.
 
 ### Requirement: REQ28-Q10 — One authoritative source for each fact and command
@@ -176,14 +203,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-0036f
 
 #### Scenario: AC28-Q10-01
 
+- **GIVEN** story US28-Q10: As a missionary or staff member, I want the same action to have the same meaning on every surface, so that boards, lists and shortcuts cannot create contradictory records.
 - **THEN** Equivalent list, board, detail and shortcut submissions reach the same source validation and yield one consistent authoritative result/history.
 
 #### Scenario: AC28-Q10-02
 
+- **GIVEN** story US28-Q10: As a missionary or staff member, I want the same action to have the same meaning on every surface, so that boards, lists and shortcuts cannot create contradictory records.
 - **THEN** A consumer cannot write a source-owned financial, consent, publication or identity fact through a projection, raw table, provider event or direct adapter bypass.
 
 #### Scenario: AC28-Q10-03
 
+- **GIVEN** story US28-Q10: As a missionary or staff member, I want the same action to have the same meaning on every surface, so that boards, lists and shortcuts cannot create contradictory records.
 - **THEN** An unavailable dependency blocks only its affected effect and produces no substitute fact; unrelated qualified native work remains usable.
 
 ### Requirement: REQ28-Q11 — Database constraints and effective privileges
@@ -194,14 +224,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-715b3
 
 #### Scenario: AC28-Q11-01
 
+- **GIVEN** story US28-Q11: As an organization administrator, I want persisted data and every access path to enforce the same boundaries, so that a valid edit cannot become a forbidden record.
 - **THEN** Using actual database roles, an otherwise permitted edit cannot change tenant, owner, author, scope, source reference or authority state outside its contract, including via upsert, RPC, view or privileged path.
 
 #### Scenario: AC28-Q11-02
 
+- **GIVEN** story US28-Q11: As an organization administrator, I want persisted data and every access path to enforce the same boundaries, so that a valid edit cannot become a forbidden record.
 - **THEN** Missing/forbidden references, duplicate source effects and invalid state combinations fail atomically; deletion cannot silently cascade away protected evidence or valid dependent work.
 
 #### Scenario: AC28-Q11-03
 
+- **GIVEN** story US28-Q11: As an organization administrator, I want persisted data and every access path to enforce the same boundaries, so that a valid edit cannot become a forbidden record.
 - **THEN** The deployed grant/policy matrix demonstrates both intended successful access and denied cross-context access; SQL text assertions and default exposure assumptions are not accepted as this proof.
 
 ### Requirement: REQ28-Q12 — Durable effects and atomic required handoff
@@ -212,14 +245,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-cd45e
 
 #### Scenario: AC28-Q12-01
 
+- **GIVEN** story US28-Q12: As a user retrying interrupted work, I want my accepted intent to happen once, so that a lost response cannot duplicate follow-up, enrollment or communication.
 - **THEN** A committed command with a lost response is retried through different transport attempts and results in one source effect, one required history acceptance and one intended downstream effect.
 
 #### Scenario: AC28-Q12-02
 
+- **GIVEN** story US28-Q12: As a user retrying interrupted work, I want my accepted intent to happen once, so that a lost response cannot duplicate follow-up, enrollment or communication.
 - **THEN** Fault injection between proposed writes leaves either no accepted source work or durable recoverable required handoff; repeated recovery cannot duplicate the effect.
 
 #### Scenario: AC28-Q12-03
 
+- **GIVEN** story US28-Q12: As a user retrying interrupted work, I want my accepted intent to happen once, so that a lost response cannot duplicate follow-up, enrollment or communication.
 - **THEN** Reusing an effect identity with changed purpose, recipient or payload conflicts without changing the earlier accepted result; genuinely distinct admitted occurrences remain possible.
 
 ### Requirement: REQ28-Q13 — Concurrency and correction preserve intent
@@ -230,14 +266,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-c0d53
 
 #### Scenario: AC28-Q13-01
 
+- **GIVEN** story US28-Q13: As a user editing shared work, I want conflicts and corrections to be handled explicitly, so that an old form cannot overwrite newer facts or bypass a current restriction.
 - **THEN** Two real database sessions editing the same protected revision produce the permitted serialized outcome and a recoverable conflict, rather than a silent lost update.
 
 #### Scenario: AC28-Q13-02
 
+- **GIVEN** story US28-Q13: As a user editing shared work, I want conflicts and corrections to be handled explicitly, so that an old form cannot overwrite newer facts or bypass a current restriction.
 - **THEN** A stale contact form can update its still-permitted deliberate changes only under the qualified conflict rule; it cannot restore removed access, overwrite newer unrelated fields or default a foreign address to another country.
 
 #### Scenario: AC28-Q13-03
 
+- **GIVEN** story US28-Q13: As a user editing shared work, I want conflicts and corrections to be handled explicitly, so that an old form cannot overwrite newer facts or bypass a current restriction.
 - **THEN** Races between action and controlling withdrawal, expiry, disable or permission loss preserve the source's documented order and leave no forbidden later effect.
 
 ### Requirement: REQ28-Q14 — Truthful outcomes and recoverable partial success
@@ -248,14 +287,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-a26ee
 
 #### Scenario: AC28-Q14-01
 
+- **GIVEN** story US28-Q14: As a user with an unreliable connection, I want to know what actually succeeded, so that I can recover only missing work without repeating an accepted action.
 - **THEN** When an interaction is saved but the next task is not, the UI preserves that exact result and recovery creates only the missing task.
 
 #### Scenario: AC28-Q14-02
 
+- **GIVEN** story US28-Q14: As a user with an unreliable connection, I want to know what actually succeeded, so that I can recover only missing work without repeating an accepted action.
 - **THEN** A timeout after source commit presents uncertainty with same-operation recovery, never optimistic completion or a blind fresh submission.
 
 #### Scenario: AC28-Q14-03
 
+- **GIVEN** story US28-Q14: As a user with an unreliable connection, I want to know what actually succeeded, so that I can recover only missing work without repeating an accepted action.
 - **THEN** A later revoked viewer cannot retrieve private result details, and an earlier successful subscription receipt does not claim current subscription after withdrawal.
 
 ### Requirement: REQ28-Q15 — Exact money, dates and deadlines
@@ -266,14 +308,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-b7a30
 
 #### Scenario: AC28-Q15-01
 
+- **GIVEN** story US28-Q15: As a missionary working across currencies and timezones, I want amounts and deadlines to retain their source meaning, so that display choices cannot change financial facts or access windows.
 - **THEN** Literal worked examples for supported zero-, two- and three-decimal currencies render and aggregate exactly; compatible scope/period is proved before comparison.
 
 #### Scenario: AC28-Q15-02
 
+- **GIVEN** story US28-Q15: As a missionary working across currencies and timezones, I want amounts and deadlines to retain their source meaning, so that display choices cannot change financial facts or access windows.
 - **THEN** Last-day nonmidnight gifts, leap days, DST and timezone changes retain the owning financial/referral/confirmation boundary without omission or extra validity.
 
 #### Scenario: AC28-Q15-03
 
+- **GIVEN** story US28-Q15: As a missionary working across currencies and timezones, I want amounts and deadlines to retain their source meaning, so that display choices cannot change financial facts or access windows.
 - **THEN** An action waiting across its deadline is denied at the authoritative transition; a later display timezone, resend or retry cannot extend the original period.
 
 ### Requirement: REQ28-Q16 — Participation, retention and privacy across return
@@ -284,14 +329,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-6141d
 
 #### Scenario: AC28-Q16-01
 
+- **GIVEN** story US28-Q16: As a missionary leaving or returning, I want each kind of work to follow its own access and retention rule, so that private preparation stays private while lawful obligations are not lost.
 - **THEN** Departure with private preparation, shared duty, coaching access and pending newsletter work produces each owner's documented result without exposing private preparation to staff.
 
 #### Scenario: AC28-Q16-02
 
+- **GIVEN** story US28-Q16: As a missionary leaving or returning, I want each kind of work to follow its own access and retention rule, so that private preparation stays private while lawful obligations are not lost.
 - **THEN** Return before or after the applicable deadline, temporary suspension and a same-email replacement are distinguished; only the intended eligible actor can resume selected preparation.
 
 #### Scenario: AC28-Q16-03
 
+- **GIVEN** story US28-Q16: As a missionary leaving or returning, I want each kind of work to follow its own access and retention rule, so that private preparation stays private while lawful obligations are not lost.
 - **THEN** Cleanup, export and restore cannot revive expired private access or delete still-required lawful duty/completion evidence as an unintended cascade.
 
 ### Requirement: REQ28-Q17 — Accessible, coherent Core interaction
@@ -302,14 +350,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-91027
 
 #### Scenario: AC28-Q17-01
 
+- **GIVEN** story US28-Q17: As a user on a phone or using assistive technology, I want the complete workflow to remain clear and operable, so that I can finish work without a desktop-only or pointer-only path.
 - **THEN** A representative complete job can be completed by keyboard and on a narrow touch viewport with no inaccessible drag-only, map-only or hover-only step.
 
 #### Scenario: AC28-Q17-02
 
+- **GIVEN** story US28-Q17: As a user on a phone or using assistive technology, I want the complete workflow to remain clear and operable, so that I can finish work without a desktop-only or pointer-only path.
 - **THEN** Validation exposes labeled field errors; dialogs restore focus; asynchronous failure and recovery are perceivable with a screen reader and do not erase authorized input or list position.
 
 #### Scenario: AC28-Q17-03
 
+- **GIVEN** story US28-Q17: As a user on a phone or using assistive technology, I want the complete workflow to remain clear and operable, so that I can finish work without a desktop-only or pointer-only path.
 - **THEN** Composed screens pass the applicable automated accessibility checks and manual keyboard, reading-order, zoom, contrast and touch-target review; a component or screenshot pass alone is insufficient.
 
 ### Requirement: REQ28-Q18 — Localized and low-bandwidth work
@@ -320,14 +371,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-926be
 
 #### Scenario: AC28-Q18-01
 
+- **GIVEN** story US28-Q18: As a missionary or reader in varied field conditions, I want understandable localized information and honest interrupted-work recovery, so that connectivity or unfamiliar formatting does not cause mistakes.
 - **THEN** Long translated text, international names/addresses and supported currencies remain readable and editable without clipping, forced domestic values or loss of meaning.
 
 #### Scenario: AC28-Q18-02
 
+- **GIVEN** story US28-Q18: As a missionary or reader in varied field conditions, I want understandable localized information and honest interrupted-work recovery, so that connectivity or unfamiliar formatting does not cause mistakes.
 - **THEN** Offline or delayed submission never shows false completion; reconnect offers the permitted original-effect recovery instead of silently replaying consent, sends, publication or money actions.
 
 #### Scenario: AC28-Q18-03
 
+- **GIVEN** story US28-Q18: As a missionary or reader in varied field conditions, I want understandable localized information and honest interrupted-work recovery, so that connectivity or unfamiliar formatting does not cause mistakes.
 - **THEN** Public intake works under its no-JavaScript contract; missing protected-confirmation script support produces safe useful explanation without consuming proof or inventing an alternate token protocol.
 
 ### Requirement: REQ28-Q19 — Real capability readiness and bounded dependencies
@@ -338,14 +392,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-bb1d2
 
 #### Scenario: AC28-Q19-01
 
+- **GIVEN** story US28-Q19: As a tenant administrator, I want unavailable capabilities to identify the actual repair path, so that a setting or roadmap label cannot promise work the system cannot perform.
 - **THEN** Disabling or withholding one exact unqualified source effect leaves independently qualified relationship/task work usable and presents a real permitted repair route.
 
 #### Scenario: AC28-Q19-02
 
+- **GIVEN** story US28-Q19: As a tenant administrator, I want unavailable capabilities to identify the actual repair path, so that a setting or roadmap label cannot promise work the system cannot perform.
 - **THEN** An enabled setting with an unqualified producer cannot accept the affected consequential action or display it as ready.
 
 #### Scenario: AC28-Q19-03
 
+- **GIVEN** story US28-Q19: As a tenant administrator, I want unavailable capabilities to identify the actual repair path, so that a setting or roadmap label cannot promise work the system cannot perform.
 - **THEN** Under the settled D48–D50 policy, an unqualified correction command or attribution/coverage adapter leaves its affected effect or measure unavailable without inferred attribution, posted correction or substitute authority, and its remaining implementation/qualification dependency is explicitly traceable.
 
 ### Requirement: REQ28-Q20 — Retained-data census and safe migration
@@ -356,14 +413,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-d0c42
 
 #### Scenario: AC28-Q20-01
 
+- **GIVEN** story US28-Q20: As staff responsible for existing records, I want migration to preserve lawful history and unfinished work, so that the new workspace does not fabricate facts or lose obligations.
 - **THEN** A production-shaped retained-data fixture preserves lawful IDs, restrictions, completed effects and unfinished obligations with an explainable disposition for every reached record class.
 
 #### Scenario: AC28-Q20-02
 
+- **GIVEN** story US28-Q20: As staff responsible for existing records, I want migration to preserve lawful history and unfinished work, so that the new workspace does not fabricate facts or lose obligations.
 - **THEN** Ambiguous legacy emails, imported contacts and old pending requests do not become verified identities, subscriptions or freshly valid authority through backfill.
 
 #### Scenario: AC28-Q20-03
 
+- **GIVEN** story US28-Q20: As staff responsible for existing records, I want migration to preserve lawful history and unfinished work, so that the new workspace does not fabricate facts or lose obligations.
 - **THEN** Old/new schema and reader/writer combinations are tested; incompatible old writes are fenced before the new capability is exposed.
 
 ### Requirement: REQ28-Q21 — Qualified rollout and safe containment
@@ -374,14 +434,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-324c5
 
 #### Scenario: AC28-Q21-01
 
+- **GIVEN** story US28-Q21: As an operations owner, I want to enable and contain affected capabilities safely, so that a release problem cannot corrupt accepted work or stop unrelated ministry work.
 - **THEN** A controlled cohort activation reaches the intended configuration only after its required proof passes, while unqualified cohorts remain unavailable without false readiness.
 
 #### Scenario: AC28-Q21-02
 
+- **GIVEN** story US28-Q21: As an operations owner, I want to enable and contain affected capabilities safely, so that a release problem cannot corrupt accepted work or stop unrelated ministry work.
 - **THEN** Containment after accepted work prevents further unsafe effects, preserves original recovery identities and leaves unrelated qualified capabilities usable.
 
 #### Scenario: AC28-Q21-03
 
+- **GIVEN** story US28-Q21: As an operations owner, I want to enable and contain affected capabilities safely, so that a release problem cannot corrupt accepted work or stop unrelated ministry work.
 - **THEN** A rollback/forward-repair exercise with newly written data cannot resurrect revoked rights, duplicate sends or restore an incompatible writer.
 
 ### Requirement: REQ28-Q22 — Restore does not restore forbidden authority
@@ -392,14 +455,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-a42c8
 
 #### Scenario: AC28-Q22-01
 
+- **GIVEN** story US28-Q22: As an organization administrator, I want backup recovery to respect later restrictions and completed effects, so that recovery cannot re-expose data or repeat work.
 - **THEN** Restoring a backup predating withdrawal or access revocation does not allow that old subscription, share or protected proof to act or disclose before reconciliation.
 
 #### Scenario: AC28-Q22-02
 
+- **GIVEN** story US28-Q22: As an organization administrator, I want backup recovery to respect later restrictions and completed effects, so that recovery cannot re-expose data or repeat work.
 - **THEN** A restored pending job whose durable business effect already happened cannot create a second task, enrollment, intake or outward send.
 
 #### Scenario: AC28-Q22-03
 
+- **GIVEN** story US28-Q22: As an organization administrator, I want backup recovery to respect later restrictions and completed effects, so that recovery cannot re-expose data or repeat work.
 - **THEN** Missing reconciliation evidence keeps only the affected restored path safely unavailable with an actionable owner diagnosis; it never defaults to the recovered permissive state.
 
 ### Requirement: REQ28-Q23 — Durable history and actionable operations
@@ -410,14 +476,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-67b35
 
 #### Scenario: AC28-Q23-01
 
+- **GIVEN** story US28-Q23: As an operator resolving a user problem, I want trustworthy source history and useful diagnostics, so that I can recover the accepted outcome without private-data exposure or database repair.
 - **THEN** A lost-response incident can be traced from user-visible recovery to the original accepted source effect and required downstream work without exposing raw tokens or private narrative in ordinary logs.
 
 #### Scenario: AC28-Q23-02
 
+- **GIVEN** story US28-Q23: As an operator resolving a user problem, I want trustworthy source history and useful diagnostics, so that I can recover the accepted outcome without private-data exposure or database repair.
 - **THEN** Fault injection triggers each applicable adopted signal, routes to its bound owner and demonstrates the specified response through existing operational tooling.
 
 #### Scenario: AC28-Q23-03
 
+- **GIVEN** story US28-Q23: As an operator resolving a user problem, I want trustworthy source history and useful diagnostics, so that I can recover the accepted outcome without private-data exposure or database repair.
 - **THEN** Recovery resolves the original work through a qualified command and preserves separate business, security and delivery evidence; no direct row edit or duplicate effect is required.
 
 ### Requirement: REQ28-Q24 — Confirmed testing boundary and useful prior art
@@ -428,14 +497,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-229bb
 
 #### Scenario: AC28-Q24-01
 
+- **GIVEN** story US28-Q24: As a maintainer, I want tests at stable observable boundaries, so that they prove the user's whole job without freezing internal implementation details.
 - **THEN** Each implemented journey maps to a real user-level acceptance case plus only the necessary supporting source/DB/provider proof, with named observable success and failure outcomes.
 
 #### Scenario: AC28-Q24-02
 
+- **GIVEN** story US28-Q24: As a maintainer, I want tests at stable observable boundaries, so that they prove the user's whole job without freezing internal implementation details.
 - **THEN** A refactor preserving public behavior does not require rewriting tests merely because private helpers, query ordering or component structure changed.
 
 #### Scenario: AC28-Q24-03
 
+- **GIVEN** story US28-Q24: As a maintainer, I want tests at stable observable boundaries, so that they prove the user's whole job without freezing internal implementation details.
 - **THEN** Required suite manifests distinguish executed, failed, skipped and blocked cases; absent mandatory fixtures cannot produce a qualified release or a skipped-green claim.
 
 ### Requirement: REQ28-Q25 — Real-source security and failure qualification
@@ -446,18 +518,22 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-ba6b8
 
 #### Scenario: AC28-Q25-01
 
+- **GIVEN** story US28-Q25: As a security and source owner, I want proof against the actual authorization and durable-effect paths, so that realistic races and provider failures cannot hide behind mocks.
 - **THEN** Real allowed/denied roles, current permission changes and attempted permitted-row-to-forbidden-state mutations produce the correct outcome through every reached table, RPC, view, storage and privileged path.
 
 #### Scenario: AC28-Q25-02
 
+- **GIVEN** story US28-Q25: As a security and source owner, I want proof against the actual authorization and durable-effect paths, so that realistic races and provider failures cannot hide behind mocks.
 - **THEN** Concurrent acceptance/disable, completion/revocation, expiry/resume and confirm/withdraw tests prove one valid serialized business outcome, including a lock wait crossing expiry and response loss after commit.
 
 #### Scenario: AC28-Q25-03
 
+- **GIVEN** story US28-Q25: As a security and source owner, I want proof against the actual authorization and durable-effect paths, so that realistic races and provider failures cannot hide behind mocks.
 - **THEN** The genuine qualified verified-address path succeeds while demo/admin/autoconfirm/unknown evidence cannot masquerade as mailbox proof; guest confirmation grants no Auth or workforce privilege.
 
 #### Scenario: AC28-Q25-04
 
+- **GIVEN** story US28-Q25: As a security and source owner, I want proof against the actual authorization and durable-effect paths, so that realistic races and provider failures cannot hide behind mocks.
 - **THEN** Scanner/GET/HEAD and abandoned protected landings create no subscription; delayed or repeated provider outcomes cannot create consent, renew proof or replay a terminal effect.
 
 ### Requirement: REQ28-Q26 — Measured capacity and complete bounded reads
@@ -468,14 +544,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-5f314
 
 #### Scenario: AC28-Q26-01
 
+- **GIVEN** story US28-Q26: As staff in a growing organization, I want the workspace to remain accurate and responsive as records and concurrency increase, so that a display limit cannot become silent data loss.
 - **THEN** Workloads representing the intended cohort and a larger individual tenant meet the declared owner budgets, with reproducible data, concurrency and plan evidence.
 
 #### Scenario: AC28-Q26-02
 
+- **GIVEN** story US28-Q26: As staff in a growing organization, I want the workspace to remain accurate and responsive as records and concurrency increase, so that a display limit cannot become silent data loss.
 - **THEN** Boundary fixtures around actual gift/donor/task and API page limits preserve complete totals, correct coverage and authorized traversal without missing or duplicated records.
 
 #### Scenario: AC28-Q26-03
 
+- **GIVEN** story US28-Q26: As staff in a growing organization, I want the workspace to remain accurate and responsive as records and concurrency increase, so that a display limit cannot become silent data loss.
 - **THEN** Background expiry/disposition and ordinary recovery remain bounded and do not require scanning unrelated tenant histories or serializing unrelated tenants behind a global lock.
 
 ### Requirement: REQ28-Q27 — Representative whole-journey and traceable release proof
@@ -486,14 +565,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-682ff
 
 #### Scenario: AC28-Q27-01
 
+- **GIVEN** story US28-Q27: As the product owner, I want complete journeys demonstrated with representative users and traced to their decisions, so that completion means usable, qualified behavior rather than a collection of screens.
 - **THEN** Representative users complete setup/context selection, ordinary work and applicable communication/coaching/recovery jobs; observed confusion and blocking failures are recorded and resolved before affected activation.
 
 #### Scenario: AC28-Q27-02
 
+- **GIVEN** story US28-Q27: As the product owner, I want complete journeys demonstrated with representative users and traced to their decisions, so that completion means usable, qualified behavior rather than a collection of screens.
 - **THEN** Every requirement and acceptance criterion resolves to its current decision/owner and executed proof or explicit incomplete gate, with no historical research result relabeled as new runtime evidence.
 
 #### Scenario: AC28-Q27-03
 
+- **GIVEN** story US28-Q27: As the product owner, I want complete journeys demonstrated with representative users and traced to their decisions, so that completion means usable, qualified behavior rather than a collection of screens.
 - **THEN** Release completion is withheld until the affected source, migration, security, accessibility, capacity and representative-user obligations pass; documentation publication alone cannot satisfy that claim.
 
 ### Requirement: REQ28-R01 — Choose the correct working context
@@ -1734,14 +1816,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-11901
 
 #### Scenario: AC28-F01-01
 
+- **GIVEN** story US28-F01: As a missionary, I want to understand my permitted support information without confusing money, commitments or relationships, so that I can decide what to do confidently.
 - **THEN** Given a received gift awaiting commitment matching, the permitted view shows the received fact and unresolved match separately; it does not mark the gift missing or the commitment fulfilled.
 
 #### Scenario: AC28-F01-02
 
+- **GIVEN** story US28-F01: As a missionary, I want to understand my permitted support information without confusing money, commitments or relationships, so that I can decide what to do confidently.
 - **THEN** Given different currencies or overlapping legal/recognition lenses, the view presents qualified separate measures and never adds them into an unlabeled total or silently converts currency.
 
 #### Scenario: AC28-F01-03
 
+- **GIVEN** story US28-F01: As a missionary, I want to understand my permitted support information without confusing money, commitments or relationships, so that I can decide what to do confidently.
 - **THEN** Given no approved Plan or no goal, the view states that absence without a zero target, a funding percentage or an inferred finance requirement.
 
 ### Requirement: REQ28-F02 — Preserve continuing relationships independently of giving recency
@@ -1752,14 +1837,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-d806f
 
 #### Scenario: AC28-F02-01
 
+- **GIVEN** story US28-F02: As a missionary, I want continuing financial and nonfinancial relationships to stay available while independently authorized, so that an older gift does not make a person disappear from my work.
 - **THEN** A continuing nonfinancial relationship with no recent gift remains in the authorized workspace while a financial-recency view accurately reports its lack of recent recognized giving.
 
 #### Scenario: AC28-F02-02
 
+- **GIVEN** story US28-F02: As a missionary, I want continuing financial and nonfinancial relationships to stay available while independently authorized, so that an older gift does not make a person disappear from my work.
 - **THEN** A supporter with a qualifying current typed commitment remains included through that commitment path after the historical-only 730-day limit.
 
 #### Scenario: AC28-F02-03
 
+- **GIVEN** story US28-F02: As a missionary, I want continuing financial and nonfinancial relationships to stay available while independently authorized, so that an older gift does not make a person disappear from my work.
 - **THEN** Removing financial-history inclusion changes no independent relationship, contact authority, commitment, task or retention policy.
 
 ### Requirement: REQ28-F03 — Qualify the exact financial source and audience
@@ -1770,14 +1858,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-eebb8
 
 #### Scenario: AC28-F03-01
 
+- **GIVEN** story US28-F03: As a missionary, I want financial information to reflect my actual authorized scope, so that a shared donor or designation never exposes another ministry's information.
 - **THEN** One split contribution supporting two ministries yields only the viewer's qualified portion and permitted reason; neither other amounts nor omitted-row counts are inferable from totals.
 
 #### Scenario: AC28-F03-02
 
+- **GIVEN** story US28-F03: As a missionary, I want financial information to reflect my actual authorized scope, so that a shared donor or designation never exposes another ministry's information.
 - **THEN** Multiple lawful recognition paths for one Party and business gift produce one applicable gift-purpose member, without multiplying money.
 
 #### Scenario: AC28-F03-03
 
+- **GIVEN** story US28-F03: As a missionary, I want financial information to reflect my actual authorized scope, so that a shared donor or designation never exposes another ministry's information.
 - **THEN** A missionary's relationship permission does not expose staff financial ratings, private remittance provenance or P14-prohibited contact fields; an independently authorized contact surface retains its own boundary.
 
 ### Requirement: REQ28-F04 — Keep incomplete sources honest and independently recoverable
@@ -1788,14 +1879,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-f0927
 
 #### Scenario: AC28-F04-01
 
+- **GIVEN** story US28-F04: As a missionary, I want unavailable financial conclusions to be explained without blocking unrelated work, so that I can continue safely.
 - **THEN** A first-support conclusion remains held for incomplete history even when the current visible gift list contains one gift; another fully qualified subject continues independently.
 
 #### Scenario: AC28-F04-02
 
+- **GIVEN** story US28-F04: As a missionary, I want unavailable financial conclusions to be explained without blocking unrelated work, so that I can continue safely.
 - **THEN** An unqualified received-toward-appeal association displays Unavailable while permitted received money and nonfinancial Request work remain usable; the app does not invent an association from amount, date or source code.
 
 #### Scenario: AC28-F04-03
 
+- **GIVEN** story US28-F04: As a missionary, I want unavailable financial conclusions to be explained without blocking unrelated work, so that I can continue safely.
 - **THEN** Repairing a read model restores qualified facts without reposting money, generating historical follow-up or duplicating an admitted business effect.
 
 ### Requirement: REQ28-F05 — Offer simple, scoped goal-management controls
@@ -1806,14 +1900,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-9be34
 
 #### Scenario: AC28-F05-01
 
+- **GIVEN** story US28-F05: As authorized staff, I want to choose who manages a support goal, so that the organization can delegate editing without changing finance or publication permissions.
 - **THEN** A new organization with no explicit override permits only currently authorized staff goal writers; a missionary sees the permitted goal and Staff-managed explanation without a misleading edit control.
 
 #### Scenario: AC28-F05-02
 
+- **GIVEN** story US28-F05: As authorized staff, I want to choose who manages a support goal, so that the organization can delegate editing without changing finance or publication permissions.
 - **THEN** Setting an exact subject to Missionary-managed permits an independently authorized missionary writer there and changes no sibling subject or shared project's identity.
 
 #### Scenario: AC28-F05-03
 
+- **GIVEN** story US28-F05: As authorized staff, I want to choose who manages a support goal, so that the organization can delegate editing without changing finance or publication permissions.
 - **THEN** A policy administrator without goal-read permission can change the permitted policy without receiving a protected goal amount in the result.
 
 ### Requirement: REQ28-F06 — Keep one goal authority with truthful units and history
@@ -1824,14 +1921,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-f8ff1
 
 #### Scenario: AC28-F06-01
 
+- **GIVEN** story US28-F06: As an authorized goal editor, I want a clear goal and its history, so that changes are meaningful and do not create competing targets.
 - **THEN** Editing a shared project's goal through two permitted surfaces resolves the same logical identity and history rather than two current heads.
 
 #### Scenario: AC28-F06-02
 
+- **GIVEN** story US28-F06: As an authorized goal editor, I want a clear goal and its history, so that changes are meaningful and do not create competing targets.
 - **THEN** An unsupported fractional minor unit, overflow, negative or zero new goal is rejected without coercion, rounding or a default USD currency.
 
 #### Scenario: AC28-F06-03
 
+- **GIVEN** story US28-F06: As an authorized goal editor, I want a clear goal and its history, so that changes are meaningful and do not create competing targets.
 - **THEN** Changing a goal creates a prospective version; prior dated results retain their applicable goal version and the old version stays attributable and readable only within current permissions.
 
 ### Requirement: REQ28-F07 — Save goals once and handle conflicts honestly
@@ -1842,14 +1942,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-0d6ba
 
 #### Scenario: AC28-F07-01
 
+- **GIVEN** story US28-F07: As an authorized goal editor, I want a single reliable Save and understandable recovery, so that a slow connection cannot overwrite someone else's change or create duplicate history.
 - **THEN** Two editors saving from the same base cannot silently replace one another: one accepted change is retained and the stale conflicting editor receives a truthful refresh path with permitted unsaved input preserved.
 
 #### Scenario: AC28-F07-02
 
+- **GIVEN** story US28-F07: As an authorized goal editor, I want a single reliable Save and understandable recovery, so that a slow connection cannot overwrite someone else's change or create duplicate history.
 - **THEN** A lost success response followed by retry creates one version and returns the accepted result; a newer version is not overwritten.
 
 #### Scenario: AC28-F07-03
 
+- **GIVEN** story US28-F07: As an authorized goal editor, I want a single reliable Save and understandable recovery, so that a slow connection cannot overwrite someone else's change or create duplicate history.
 - **THEN** When policy revocation wins acceptance order, a stale missionary save fails without changing the goal; when Save wins, later revocation preserves the accepted version and current reads still enforce present authority.
 
 ### Requirement: REQ28-F08 — Show qualified progress without inventing finance
@@ -1860,14 +1963,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-b25a7
 
 #### Scenario: AC28-F08-01
 
+- **GIVEN** story US28-F08: As a missionary, I want support progress with clear meaning, so that I can distinguish what is planned, committed and received.
 - **THEN** A 120-unit qualified received amount against a compatible 100-unit goal displays 120% with the actual amounts; an incompatible currency produces no combined percentage.
 
 #### Scenario: AC28-F08-02
 
+- **GIVEN** story US28-F08: As a missionary, I want support progress with clear meaning, so that I can distinguish what is planned, committed and received.
 - **THEN** A recurring monthly-equivalent figure does not sum this month's received gifts or claim those commitments are cash available to spend.
 
 #### Scenario: AC28-F08-03
 
+- **GIVEN** story US28-F08: As a missionary, I want support progress with clear meaning, so that I can distinguish what is planned, committed and received.
 - **THEN** A source refund changes the current qualified numerator, while an issued historical report retains its stated historical basis and links to permitted correction context rather than silently changing bytes.
 
 ### Requirement: REQ28-F09 — Reuse an approved Plan only by deliberate copy
@@ -1878,10 +1984,12 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-83cc3
 
 #### Scenario: AC28-F09-01
 
+- **GIVEN** story US28-F09: As an authorized goal editor, I want to copy a compatible approved Support Plan amount when helpful, so that I do not retype it or create a second planning process.
 - **THEN** Copying a compatible approved version saves the reviewed goal and provenance without modifying the Plan; a later Plan version leaves that goal unchanged.
 
 #### Scenario: AC28-F09-02
 
+- **GIVEN** story US28-F09: As an authorized goal editor, I want to copy a compatible approved Support Plan amount when helpful, so that I do not retype it or create a second planning process.
 - **THEN** A denied, unapproved, unavailable or differently scoped Plan supplies no amount, default or inferred goal, while ordinary permitted manual goal entry remains usable.
 
 ### Requirement: REQ28-F10 — Separate goal editing, disclosure and public publication
@@ -1892,14 +2000,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-33ba9
 
 #### Scenario: AC28-F10-01
 
+- **GIVEN** story US28-F10: As a missionary, I want to know where my goal appears, so that an internal edit does not unexpectedly publish private planning information.
 - **THEN** Saving an internal goal leaves the released public Page and its adopted version unchanged until a separate authorized publication action.
 
 #### Scenario: AC28-F10-02
 
+- **GIVEN** story US28-F10: As a missionary, I want to know where my goal appears, so that an internal edit does not unexpectedly publish private planning information.
 - **THEN** A user unable to read the internal amount cannot retrieve it through public progress, search, export, cache or an edit-policy response.
 
 #### Scenario: AC28-F10-03
 
+- **GIVEN** story US28-F10: As a missionary, I want to know where my goal appears, so that an internal edit does not unexpectedly publish private planning information.
 - **THEN** The edit flow clearly identifies the goal's scope and explains that Save changes the workspace goal; pilot users can distinguish that effect from approved finance and public publication without another confirmation step.
 
 ### Requirement: REQ28-F11 — Admit first-support work from complete subject history
@@ -1910,14 +2021,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-3d574
 
 #### Scenario: AC28-F11-01
 
+- **GIVEN** story US28-F11: As a missionary, I want a first-support follow-up when someone first gives qualifying recorded support to my ministry, so that I can respond without treating their support elsewhere as disqualifying.
 - **THEN** A donor's first qualified gift to this subject may create work even after gifts to another subject; a second designation mapped to the same subject does not create another first-support purpose.
 
 #### Scenario: AC28-F11-02
 
+- **GIVEN** story US28-F11: As a missionary, I want a first-support follow-up when someone first gives qualifying recorded support to my ministry, so that I can respond without treating their support elsewhere as disqualifying.
 - **THEN** Simultaneous first gifts produce one purpose using qualified source history, without treating ingestion order as gift chronology.
 
 #### Scenario: AC28-F11-03
 
+- **GIVEN** story US28-F11: As a missionary, I want a first-support follow-up when someone first gives qualifying recorded support to my ministry, so that I can respond without treating their support elsewhere as disqualifying.
 - **THEN** A promise, failed charge, incomplete import or empty capped history produces no verified first-support conclusion or automatic task.
 
 ### Requirement: REQ28-F12 — Preserve first-support purpose identity through repair
@@ -1928,14 +2042,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-9f8d3
 
 #### Scenario: AC28-F12-01
 
+- **GIVEN** story US28-F12: As a missionary, I want first-support work to survive retries and truthful corrections without repeating completed work, so that my queue is reliable.
 - **THEN** Repeated provider deliveries, responsibility changes and optional workflow consumption produce at most one active first-support purpose.
 
 #### Scenario: AC28-F12-02
 
+- **GIVEN** story US28-F12: As a missionary, I want first-support work to survive retries and truthful corrections without repeating completed work, so that my queue is reliable.
 - **THEN** A corrected mistaken-person allocation preserves its audit history and permits only owner-proved eligible repair; a historical import or replay alone does not create new personal work.
 
 #### Scenario: AC28-F12-03
 
+- **GIVEN** story US28-F12: As a missionary, I want first-support work to survive retries and truthful corrections without repeating completed work, so that my queue is reliable.
 - **THEN** Canonical identity merge reconciles active purpose coverage while retaining both real prior interactions; it never creates a third welcome task or silently relabels protected history.
 
 ### Requirement: REQ28-F13 — Make personal first-support completion truthful
@@ -1946,14 +2063,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-ae216
 
 #### Scenario: AC28-F13-01
 
+- **GIVEN** story US28-F13: As a missionary, I want to finish or decline personal follow-up without filing a report, so that simple stewardship remains simple.
 - **THEN** Marking Done closes the reviewed personal purpose without sending a message, inventing an interaction or changing money or consent.
 
 #### Scenario: AC28-F13-02
 
+- **GIVEN** story US28-F13: As a missionary, I want to finish or decline personal follow-up without filing a report, so that simple stewardship remains simple.
 - **THEN** Conditional Undo appends a correction only when the latest disposition, source state and authority remain compatible; it cannot erase an actual conversation or recall a message.
 
 #### Scenario: AC28-F13-03
 
+- **GIVEN** story US28-F13: As a missionary, I want to finish or decline personal follow-up without filing a report, so that simple stewardship remains simple.
 - **THEN** An anonymous or contact-ineligible recognition path creates no actionable named-contact task or disabled-button substitute; independently permitted financial awareness remains available.
 
 ### Requirement: REQ28-F14 — Use explicit special-gift reasons
@@ -1964,10 +2084,12 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-7b2a7
 
 #### Scenario: AC28-F14-01
 
+- **GIVEN** story US28-F14: As a missionary, I want each special-gift follow-up to explain why it exists, so that I can act without guessing what an algorithm inferred.
 - **THEN** Holding the qualifying current source facts fixed while changing prior-giving comparison context leaves automatic purpose admission, unsolicited highlighting and default priority unchanged.
 
 #### Scenario: AC28-F14-02
 
+- **GIVEN** story US28-F14: As a missionary, I want each special-gift follow-up to explain why it exists, so that I can act without guessing what an algorithm inferred.
 - **THEN** Every visible reason identifies the actual permitted fact, such as donor-stated additional support, a specific one-time need, a configured amount or support above a recorded commitment; it does not imply donor intent from amount alone.
 
 ### Requirement: REQ28-F15 — Group compatible special gifts in one current task
@@ -1978,14 +2100,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-bb83d
 
 #### Scenario: AC28-F15-01
 
+- **GIVEN** story US28-F15: As a missionary, I want compatible special gifts from one supporter together, so that I can handle them once without losing their evidence.
 - **THEN** Concurrent eligible gifts for one compatible scope join one current task with distinct gift members and clear factual reasons.
 
 #### Scenario: AC28-F15-02
 
+- **GIVEN** story US28-F15: As a missionary, I want compatible special gifts from one supporter together, so that I can handle them once without losing their evidence.
 - **THEN** A new eligible gift after the prior special-gift group finished creates or joins the next current group without reopening handled members.
 
 #### Scenario: AC28-F15-03
 
+- **GIVEN** story US28-F15: As a missionary, I want compatible special gifts from one supporter together, so that I can handle them once without losing their evidence.
 - **THEN** Different subjects, Legal Entities, Parties or incompatible responsibility/authority scopes remain separate even when names or amounts match.
 
 ### Requirement: REQ28-F16 — Complete exactly the reviewed gift members
@@ -1996,14 +2121,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-ba60a
 
 #### Scenario: AC28-F16-01
 
+- **GIVEN** story US28-F16: As a missionary, I want Done to cover exactly the gifts I reviewed, so that a new arrival or hidden item is never silently handled.
 - **THEN** When gift C arrives while Maya reviews A and B, completing A and B succeeds if their relevant facts remain valid; C stays actionable in the current group and is never included in that completion receipt.
 
 #### Scenario: AC28-F16-02
 
+- **GIVEN** story US28-F16: As a missionary, I want Done to cover exactly the gifts I reviewed, so that a new arrival or hidden item is never silently handled.
 - **THEN** A relevant correction to B before acceptance rejects the entire A/B disposition with no newly completed subset and offers a fresh permitted review.
 
 #### Scenario: AC28-F16-03
 
+- **GIVEN** story US28-F16: As a missionary, I want Done to cover exactly the gifts I reviewed, so that a new arrival or hidden item is never silently handled.
 - **THEN** After a lost completion response, retry returns exactly its accepted coverage; changing the selected set under the same operation identity conflicts.
 
 ### Requirement: REQ28-F17 — Correct grouped work without erasing independent obligations
@@ -2014,14 +2142,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-b968e
 
 #### Scenario: AC28-F17-01
 
+- **GIVEN** story US28-F17: As a missionary, I want corrected financial reasons and mistaken task dispositions handled clearly, so that valid remaining work is not lost or duplicated.
 - **THEN** Withdrawing one invalid reason leaves another qualified reason and any separately promised call intact; no automatic human Done is recorded.
 
 #### Scenario: AC28-F17-02
 
+- **GIVEN** story US28-F17: As a missionary, I want corrected financial reasons and mistaken task dispositions handled clearly, so that valid remaining work is not lost or duplicated.
 - **THEN** Undo of eligible handled members restores them into the existing current compatible group when one exists and retains the original task's historical receipt.
 
 #### Scenario: AC28-F17-03
 
+- **GIVEN** story US28-F17: As a missionary, I want corrected financial reasons and mistaken task dispositions handled clearly, so that valid remaining work is not lost or duplicated.
 - **THEN** Conflicting intervening handling returns a truthful conflict and the existing authorized correction path, without changing money or sends.
 
 ### Requirement: REQ28-F18 — Confirm donor-stated additional-support purpose
@@ -2032,14 +2163,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-c9ff4
 
 #### Scenario: AC28-F18-01
 
+- **GIVEN** story US28-F18: As an authorized missionary or staff member, I want to record an explicit additional-support instruction in one action, so that an eligible received gift produces understandable follow-up.
 - **THEN** A permitted actor recording a donor's explicit instruction against a qualified live gift yields the factual reason **Donor-stated additional support** and no money, commitment or receipt change.
 
 #### Scenario: AC28-F18-02
 
+- **GIVEN** story US28-F18: As an authorized missionary or staff member, I want to record an explicit additional-support instruction in one action, so that an eligible received gift produces understandable follow-up.
 - **THEN** A larger gift, nonrecurring payment, generic memo or actor lacking the confirmation capability cannot establish this purpose.
 
 #### Scenario: AC28-F18-03
 
+- **GIVEN** story US28-F18: As an authorized missionary or staff member, I want to record an explicit additional-support instruction in one action, so that an eligible received gift produces understandable follow-up.
 - **THEN** The first valid later confirmation may qualify still-unhandled originally live money; old handled work or history-only acquisition does not become a fresh automatic gift-purpose.
 
 ### Requirement: REQ28-F19 — Keep purpose portions exact and corrections source-owned
@@ -2050,10 +2184,12 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-29fb9
 
 #### Scenario: AC28-F19-01
 
+- **GIVEN** story US28-F19: As an authorized purpose recorder, I want partial-gift instructions represented honestly, so that a purpose does not accidentally apply to the whole gift.
 - **THEN** An explicit 25-unit additional portion of a 100-unit qualified gift records that portion without claiming the entire gift or applying 25 units to a commitment.
 
 #### Scenario: AC28-F19-02
 
+- **GIVEN** story US28-F19: As an authorized purpose recorder, I want partial-gift instructions represented honestly, so that a purpose does not accidentally apply to the whole gift.
 - **THEN** A partial return lacking evidence about the purpose portion produces an unresolved affected reason, not a fabricated surviving amount; another independently valid reason remains usable.
 
 ### Requirement: REQ28-F20 — Offer tenant-controlled one-time-need follow-up
@@ -2064,14 +2200,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-ddbc0
 
 #### Scenario: AC28-F20-01
 
+- **GIVEN** story US28-F20: As authorized staff, I want to offer follow-up for gifts to a specific one-time need, so that the organization can support that workflow only when useful.
 - **THEN** A qualified vehicle-repair gift admitted under an enabled policy shows **Gift for vehicle repairs**, without requiring additional-support wording, mathematical excess or an amount threshold.
 
 #### Scenario: AC28-F20-02
 
+- **GIVEN** story US28-F20: As authorized staff, I want to offer follow-up for gifts to a specific one-time need, so that the organization can support that workflow only when useful.
 - **THEN** When the detailed need is private, the permitted reason is **Gift for a one-time need**; private title or context is not exposed.
 
 #### Scenario: AC28-F20-03
 
+- **GIVEN** story US28-F20: As authorized staff, I want to offer follow-up for gifts to a specific one-time need, so that the organization can support that workflow only when useful.
 - **THEN** Changing a need title, closing a funded need or tagging a normal gift does not manufacture or invalidate its accepted donor meaning.
 
 ### Requirement: REQ28-F21 — Apply one-time-need policy changes prospectively
@@ -2082,14 +2221,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-f8c5f
 
 #### Scenario: AC28-F21-01
 
+- **GIVEN** story US28-F21: As authorized staff, I want turning one-time-need follow-up Off to have a predictable effect, so that settings do not erase accepted work or replay old gifts.
 - **THEN** If purpose admission wins the race with Off, the accepted task still materializes once; if Off wins, the stale candidate is not admitted.
 
 #### Scenario: AC28-F21-02
 
+- **GIVEN** story US28-F21: As authorized staff, I want turning one-time-need follow-up Off to have a predictable effect, so that settings do not erase accepted work or replay old gifts.
 - **THEN** Re-enable does not revive an unadmitted gift from the previous interval, while a genuinely new qualifying live gift uses the new interval.
 
 #### Scenario: AC28-F21-03
 
+- **GIVEN** story US28-F21: As authorized staff, I want turning one-time-need follow-up Off to have a predictable effect, so that settings do not erase accepted work or replay old gifts.
 - **THEN** Turning this policy Off does not disable confirmed-excess, first-support or independently enabled amount-based reasons.
 
 ### Requirement: REQ28-F22 — Configure an optional inclusive amount rule
@@ -2100,14 +2242,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-fa5db
 
 #### Scenario: AC28-F22-01
 
+- **GIVEN** story US28-F22: As authorized staff, I want a simple optional amount rule, so that gifts meeting the organization's threshold can receive follow-up without guessing from previous giving.
 - **THEN** A configured threshold of 100 admits a qualified basis of 100 and rejects 99.99 in a currency supporting cents; unrelated allocation and charitable fee-cover do not push the gift across that threshold.
 
 #### Scenario: AC28-F22-02
 
+- **GIVEN** story US28-F22: As authorized staff, I want a simple optional amount rule, so that gifts meeting the organization's threshold can receive follow-up without guessing from previous giving.
 - **THEN** An unconfigured currency, noncash valuation, expected matching gift, payout balance or aggregate of earlier gifts produces no amount reason.
 
 #### Scenario: AC28-F22-03
 
+- **GIVEN** story US28-F22: As authorized staff, I want a simple optional amount rule, so that gifts meeting the organization's threshold can receive follow-up without guessing from previous giving.
 - **THEN** Configuring or removing a threshold changes no other qualifying purpose and offers no missionary-facing amount settings.
 
 ### Requirement: REQ28-F23 — Freeze the amount rule at its proper live boundary
@@ -2118,14 +2263,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-be816
 
 #### Scenario: AC28-F23-01
 
+- **GIVEN** story US28-F23: As a missionary, I want amount-based work to retain the rule that actually admitted it, so that later settings changes do not rewrite my queue or create historical work.
 - **THEN** A gift whose qualified live boundary preceded a threshold change retains the captured rule despite delayed recognition or task dispatch.
 
 #### Scenario: AC28-F23-02
 
+- **GIVEN** story US28-F23: As a missionary, I want amount-based work to retain the rule that actually admitted it, so that later settings changes do not rewrite my queue or create historical work.
 - **THEN** Removing EUR leaves an accepted EUR intent and its materialization recoverable, ends unadmitted EUR candidates and preserves a continuous USD rule.
 
 #### Scenario: AC28-F23-03
 
+- **GIVEN** story US28-F23: As a missionary, I want amount-based work to retain the rule that actually admitted it, so that later settings changes do not rewrite my queue or create historical work.
 - **THEN** A correction re-evaluates the captured rule and causal source facts without applying today's lower threshold or admitting historical money.
 
 ### Requirement: REQ28-F24 — Recognize any source-confirmed positive excess
@@ -2136,14 +2284,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-9def0
 
 #### Scenario: AC28-F24-01
 
+- **GIVEN** story US28-F24: As a missionary, I want confirmed support above a commitment to have a factual reason, so that even a small real excess is handled consistently.
 - **THEN** One positive supported minor unit with a valid certificate supplies **Support above the recorded commitment**, regardless of D22 or D30 settings; zero and negative excess do not.
 
 #### Scenario: AC28-F24-02
 
+- **GIVEN** story US28-F24: As a missionary, I want confirmed support above a commitment to have a factual reason, so that even a small real excess is handled consistently.
 - **THEN** A fixed pledge with remaining valid future capacity does not produce excess merely because its current installment is filled.
 
 #### Scenario: AC28-F24-03
 
+- **GIVEN** story US28-F24: As a missionary, I want confirmed support above a commitment to have a factual reason, so that even a small real excess is handled consistently.
 - **THEN** An unmatched or ambiguous gift remains unresolved for this reason and never becomes “all excess” because no comparison is available.
 
 ### Requirement: REQ28-F25 — Conserve excess across gifts, terms and corrections
@@ -2154,14 +2305,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-69372
 
 #### Scenario: AC28-F25-01
 
+- **GIVEN** story US28-F25: As a finance source owner, I want excess certificates to conserve real support across ordered gifts and corrections, so that personal follow-up never rests on a duplicated or retroactively invented amount.
 - **THEN** Two 60-unit gifts against a 100-unit target certify zero and 20 respectively, never 20 each; a later 0.01-unit qualifying gift can certify 0.01 where that currency supports it.
 
 #### Scenario: AC28-F25-02
 
+- **GIVEN** story US28-F25: As a finance source owner, I want excess certificates to conserve real support across ordered gifts and corrections, so that personal follow-up never rests on a duplicated or retroactively invented amount.
 - **THEN** Reversing the earlier 60-unit gift invalidates dependent excess in the second gift even when the second gift's own record did not change; stale completion cannot rely on that older certificate.
 
 #### Scenario: AC28-F25-03
 
+- **GIVEN** story US28-F25: As a finance source owner, I want excess certificates to conserve real support across ordered gifts and corrections, so that personal follow-up never rests on a duplicated or retroactively invented amount.
 - **THEN** Lowering the commitment target without new money does not create a new gift-purpose. An ambiguous partial return holds affected proof rather than silently reallocating later gifts or prorating excess.
 
 ### Requirement: REQ28-F26 — Qualify whole fixed-commitment fulfillment separately
@@ -2172,14 +2326,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-07f69
 
 #### Scenario: AC28-F26-01
 
+- **GIVEN** story US28-F26: As a missionary, I want a fulfilled-commitment purpose to represent the actual completion of the promise, so that I do not congratulate a supporter for a partial installment or administrative release.
 - **THEN** The positive final application completing all required pledge scope yields one source-certified fulfillment purpose; paying one installment while future capacity remains does not.
 
 #### Scenario: AC28-F26-02
 
+- **GIVEN** story US28-F26: As a missionary, I want a fulfilled-commitment purpose to represent the actual completion of the promise, so that I do not congratulate a supporter for a partial installment or administrative release.
 - **THEN** Releasing an unpaid balance or reducing the pledged amount to received coverage produces no automatic “commitment fulfilled” purpose.
 
 #### Scenario: AC28-F26-03
 
+- **GIVEN** story US28-F26: As a missionary, I want a fulfilled-commitment purpose to represent the actual completion of the promise, so that I do not congratulate a supporter for a partial installment or administrative release.
 - **THEN** A duplicate source event or refund/reapply cycle cannot repeat a human-handled milestone; an unhandled corrected purpose preserves its lineage.
 
 ### Requirement: REQ28-F27 — Let tenants combine compatible gift and fulfillment work
@@ -2190,14 +2347,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-60312
 
 #### Scenario: AC28-F27-01
 
+- **GIVEN** story US28-F27: As authorized staff, I want one organization setting for combining compatible follow-ups, so that missionaries can handle related purposes together without losing either obligation.
 - **THEN** The same eligible completing gift and compatible fulfilled commitment appear in one follow-up with two explicit purposes and separate evidence when Combine is effective.
 
 #### Scenario: AC28-F27-02
 
+- **GIVEN** story US28-F27: As authorized staff, I want one organization setting for combining compatible follow-ups, so that missionaries can handle related purposes together without losing either obligation.
 - **THEN** Keep separate presents both required purposes independently without suppressing them or altering money; a malformed policy cannot imply combined completion authority.
 
 #### Scenario: AC28-F27-03
 
+- **GIVEN** story US28-F27: As authorized staff, I want one organization setting for combining compatible follow-ups, so that missionaries can handle related purposes together without losing either obligation.
 - **THEN** A late milestone cannot reopen a handled gift merely to attach it to an unrelated current group; a new joint placement requires currently unhandled causally qualifying gift membership.
 
 ### Requirement: REQ28-F28 — Reconcile placement and complete purposes independently
@@ -2208,14 +2368,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-f01b2
 
 #### Scenario: AC28-F28-01
 
+- **GIVEN** story US28-F28: As a missionary, I want one combined action to have precise results even when policies or gifts change, so that I can trust what remains.
 - **THEN** Switching to Separate during a combined review rejects a new stale joint completion but permits a newly reviewed valid single-purpose action.
 
 #### Scenario: AC28-F28-02
 
+- **GIVEN** story US28-F28: As a missionary, I want one combined action to have precise results even when policies or gifts change, so that I can trust what remains.
 - **THEN** Handling the gift purpose while fulfillment remains leaves truthful fulfillment work and allows a later unrelated gift its next current special-gift group.
 
 #### Scenario: AC28-F28-03
 
+- **GIVEN** story US28-F28: As a missionary, I want one combined action to have precise results even when policies or gifts change, so that I can trust what remains.
 - **THEN** A lost successful joint-response retry recovers the original two-purpose result; a later mode change does not re-execute or rewrite it.
 
 ### Requirement: REQ28-F29 — Make missionary offline reporting optional and Off by default
@@ -2226,14 +2389,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-91619
 
 #### Scenario: AC28-F29-01
 
+- **GIVEN** story US28-F29: As authorized staff, I want to enable missionary reports of actual offline gifts only when appropriate, so that ordinary finance intake stays simple for organizations that do not need this doorway.
 - **THEN** An Off organization with no retained permitted reports sees no unused missionary reporting control, while ordinary giving and staff intake remain available.
 
 #### Scenario: AC28-F29-02
 
+- **GIVEN** story US28-F29: As authorized staff, I want to enable missionary reports of actual offline gifts only when appropriate, so that ordinary finance intake stays simple for organizations that do not need this doorway.
 - **THEN** On plus exact current reporting authority reveals one optional action; role name, possession or feature On alone cannot authorize acceptance.
 
 #### Scenario: AC28-F29-03
 
+- **GIVEN** story US28-F29: As authorized staff, I want to enable missionary reports of actual offline gifts only when appropriate, so that ordinary finance intake stays simple for organizations that do not need this doorway.
 - **THEN** Missing or invalid policy never enables creation, and migration does not infer opt-in from old gifts, roles or legacy settings.
 
 ### Requirement: REQ28-F30 — Record actual receipt with honest incomplete facts
@@ -2244,14 +2410,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-b3a09
 
 #### Scenario: AC28-F30-01
 
+- **GIVEN** story US28-F30: As an authorized missionary, I want a short form for a gift I actually received, so that I can hand known facts to finance without guessing.
 - **THEN** Maya can submit an eligible actual receipt with an honestly unknown donor or amount, receiving an attributable operational report rather than a fabricated financial record.
 
 #### Scenario: AC28-F30-02
 
+- **GIVEN** story US28-F30: As an authorized missionary, I want a short form for a gift I actually received, so that I can hand known facts to finance without guessing.
 - **THEN** Selecting another reported holder records a validated assertion without granting that person access or proving chain of custody.
 
 #### Scenario: AC28-F30-03
 
+- **GIVEN** story US28-F30: As an authorized missionary, I want a short form for a gift I actually received, so that I can hand known facts to finance without guessing.
 - **THEN** A date-only or approximate reported receipt retains its precision; the server does not manufacture an exact historical timestamp.
 
 ### Requirement: REQ28-F31 — Continue the same intake and keep handling separate
@@ -2262,14 +2431,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-e05c7
 
 #### Scenario: AC28-F31-01
 
+- **GIVEN** story US28-F31: As finance staff, I want to continue the same reported item, so that Maya does not re-enter it and recording money does not hide unfinished physical handling.
 - **THEN** Recording the gift resolves exactly covered recording work while **Handling still needed** remains if applicable; completing transfer first does not post money.
 
 #### Scenario: AC28-F31-02
 
+- **GIVEN** story US28-F31: As finance staff, I want to continue the same reported item, so that Maya does not re-enter it and recording money does not hide unfinished physical handling.
 - **THEN** Exactly reconciling an already-posted check links the result and preserves both report origins without creating another contribution, commitment application or receipt.
 
 #### Scenario: AC28-F31-03
 
+- **GIVEN** story US28-F31: As finance staff, I want to continue the same reported item, so that Maya does not re-enter it and recording money does not hide unfinished physical handling.
 - **THEN** Return, loss, dispute, rejection, duplicate or mistake retains attributable history and precise remaining work; reversal or NSF does not resurrect physical possession.
 
 ### Requirement: REQ28-F32 — Preserve accepted reports across Off, retries and correction
@@ -2280,14 +2452,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-dee13
 
 #### Scenario: AC28-F32-01
 
+- **GIVEN** story US28-F32: As a missionary, I want clear report status and safe recovery, so that a disabled setting or interrupted connection does not lose an accepted handoff or create it twice.
 - **THEN** If acceptance wins the Off race, **Awaiting finance** remains recoverable; if Off wins, no report is created and later On does not replay it.
 
 #### Scenario: AC28-F32-02
 
+- **GIVEN** story US28-F32: As a missionary, I want clear report status and safe recovery, so that a disabled setting or interrupted connection does not lose an accepted handoff or create it twice.
 - **THEN** A timeout displays an unknown outcome with same-operation Check status/Retry; it does not claim failure or invite duplicate submission.
 
 #### Scenario: AC28-F32-03
 
+- **GIVEN** story US28-F32: As a missionary, I want clear report status and safe recovery, so that a disabled setting or interrupted connection does not lose an accepted handoff or create it twice.
 - **THEN** **Recorded by finance** and remaining handling are shown as separately permitted facts; reporting alone changes no received total, deposit, fulfillment, receipt, acknowledgment or donor message.
 
 ### Requirement: REQ28-F33 — Keep missed recurring gifts informational
@@ -2298,14 +2473,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-4da30
 
 #### Scenario: AC28-F33-01
 
+- **GIVEN** story US28-F33: As a missionary, I want to see a confirmed missed gift and the next scheduled gift, so that I can understand the situation and choose whether personal follow-up would help.
 - **THEN** A qualified missed occurrence with a next regular scheduled occurrence appears informationally and leaves the missionary task count unchanged until a deliberate permitted manual task is added.
 
 #### Scenario: AC28-F33-02
 
+- **GIVEN** story US28-F33: As a missionary, I want to see a confirmed missed gift and the next scheduled gift, so that I can understand the situation and choose whether personal follow-up would help.
 - **THEN** Pending recovery, stale/unknown source state, a manual expected gift or canceled future giving is not presented as the same confirmed-miss-plus- next-scheduled condition.
 
 #### Scenario: AC28-F33-03
 
+- **GIVEN** story US28-F33: As a missionary, I want to see a confirmed missed gift and the next scheduled gift, so that I can understand the situation and choose whether personal follow-up would help.
 - **THEN** Late evidence proving pre-closure success corrects the source occurrence and permitted display; it does not record a fictional human action or create a fresh task from replay.
 
 ### Requirement: REQ28-F34 — Control new missed-gift notices without hiding truth
@@ -2316,14 +2494,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-48993
 
 #### Scenario: AC28-F34-01
 
+- **GIVEN** story US28-F34: As authorized staff, I want to control new informational missed-gift notices, so that attention fits the organization without suppressing financial facts.
 - **THEN** Off accepted before publication suppresses the queued notice but leaves authorized recurring-support facts and existing tasks unchanged.
 
 #### Scenario: AC28-F34-02
 
+- **GIVEN** story US28-F34: As authorized staff, I want to control new informational missed-gift notices, so that attention fits the organization without suppressing financial facts.
 - **THEN** Re-enable admits only qualified new candidates, without replaying the suppressed occurrence or changing donor notification policy.
 
 #### Scenario: AC28-F34-03
 
+- **GIVEN** story US28-F34: As authorized staff, I want to control new informational missed-gift notices, so that attention fits the organization without suppressing financial facts.
 - **THEN** A notice contains only currently permitted facts and opens the existing authorized source view; expired access removes forbidden content.
 
 ### Requirement: REQ28-F35 — Use organization-selected correction approval policy
@@ -2334,14 +2515,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-e4f71
 
 #### Scenario: AC28-F35-01
 
+- **GIVEN** story US28-F35: As authorized finance staff, I want posted-gift corrections to use the organization's approval policy, so that a small team can work simply while stronger required controls remain intact.
 - **THEN** A permitted ordinary correction under the light policy offers **Apply correction** after its before/after review and reason; a correction requiring approval offers **Request approval** and truthful Awaiting approval.
 
 #### Scenario: AC28-F35-02
 
+- **GIVEN** story US28-F35: As authorized finance staff, I want posted-gift corrections to use the organization's approval policy, so that a small team can work simply while stronger required controls remain intact.
 - **THEN** Mandatory stronger controls remain effective despite relaxed tenant policy, and an alternate profile for the same human cannot satisfy a required independent approval.
 
 #### Scenario: AC28-F35-03
 
+- **GIVEN** story US28-F35: As authorized finance staff, I want posted-gift corrections to use the organization's approval policy, so that a small team can work simply while stronger required controls remain intact.
 - **THEN** A missionary's report, goal or task authority grants no posted correction, refund, receipt or approval capability.
 
 ### Requirement: REQ28-F36 — Revalidate corrections at application without rewriting history
@@ -2352,14 +2536,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-1cb2f
 
 #### Scenario: AC28-F36-01
 
+- **GIVEN** story US28-F36: As finance staff, I want a reviewed correction to respect current policy and exact source facts when applied, so that waiting or retrying cannot bypass a changed rule or alter the wrong gift.
 - **THEN** Tightening approval policy while a correction is waiting prevents its unapproved application; relaxing policy leaves it waiting until a currently authorized human deliberately continues.
 
 #### Scenario: AC28-F36-02
 
+- **GIVEN** story US28-F36: As finance staff, I want a reviewed correction to respect current policy and exact source facts when applied, so that waiting or retrying cannot bypass a changed rule or alter the wrong gift.
 - **THEN** Lost-response recovery returns one applied correction rather than another reversal or refund; a changed reviewed payload conflicts.
 
 #### Scenario: AC28-F36-03
 
+- **GIVEN** story US28-F36: As finance staff, I want a reviewed correction to respect current policy and exact source facts when applied, so that waiting or retrying cannot bypass a changed rule or alter the wrong gift.
 - **THEN** A correction to intake assertions cannot mutate posted money; completed financial correction history remains unchanged by later policy edits.
 
 ### Requirement: REQ28-F37 — Preserve accepted gift campaign attribution
@@ -2370,14 +2557,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-d0a6d
 
 #### Scenario: AC28-F37-01
 
+- **GIVEN** story US28-F37: As finance staff, I want source-code campaign changes to affect future attribution without rewriting earlier gifts, so that campaign reporting remains explainable.
 - **THEN** After changing code X from campaign A to B, a prior accepted A gift remains A, a prior known-no-campaign gift remains none, and a newly accepted applicable gift receives B under its producer's qualified boundary.
 
 #### Scenario: AC28-F37-02
 
+- **GIVEN** story US28-F37: As finance staff, I want source-code campaign changes to affect future attribution without rewriting earlier gifts, so that campaign reporting remains explainable.
 - **THEN** Replaying the earlier gift's delivery after remapping does not reclassify it; unresolved legacy attribution is shown incomplete/unavailable rather than silently assigned B or classified as known none.
 
 #### Scenario: AC28-F37-03
 
+- **GIVEN** story US28-F37: As finance staff, I want source-code campaign changes to affect future attribution without rewriting earlier gifts, so that campaign reporting remains explainable.
 - **THEN** The staff mapping editor explains **Earlier gifts keep their recorded campaign** and changes no posted money, designation or donor credit.
 
 ### Requirement: REQ28-F38 — Correct campaign attribution deliberately and independently
@@ -2388,14 +2578,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-f8c22
 
 #### Scenario: AC28-F38-01
 
+- **GIVEN** story US28-F38: As authorized finance staff, I want to correct a gift's campaign without falsifying its source code, so that a real attribution mistake can be repaired permanently.
 - **THEN** Correcting one accepted gift from A to B changes its effective campaign reporting and records the original A plus reason while its monetary totals, designation, credit and commitment coverage remain unchanged.
 
 #### Scenario: AC28-F38-02
 
+- **GIVEN** story US28-F38: As authorized finance staff, I want to correct a gift's campaign without falsifying its source code, so that a real attribution mistake can be repaired permanently.
 - **THEN** A rejected, stale or unauthorized correction has no effect; successful retry recovers one accepted correction under current disclosure.
 
 #### Scenario: AC28-F38-03
 
+- **GIVEN** story US28-F38: As authorized finance staff, I want to correct a gift's campaign without falsifying its source code, so that a real attribution mistake can be repaired permanently.
 - **THEN** Previously issued report artifacts retain their stated source basis; a current adjusted view can explain the later correction without silently altering the earlier artifact.
 
 ### Requirement: REQ28-F39 — Retain recurring origin and independent gift attribution
@@ -2406,14 +2599,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-2c99a
 
 #### Scenario: AC28-F39-01
 
+- **GIVEN** story US28-F39: As finance staff, I want recurring installments to retain their accepted origin and independently recorded gifts to retain theirs, so that matching fulfillment never rewrites why a gift was given.
 - **THEN** Code X moves A to B while a recurring line accepted under A continues; its generated installments remain A until a deliberate qualified prospective line amendment affects an eligible future occurrence.
 
 #### Scenario: AC28-F39-02
 
+- **GIVEN** story US28-F39: As finance staff, I want recurring installments to retain their accepted origin and independently recorded gifts to retain theirs, so that matching fulfillment never rewrites why a gift was given.
 - **THEN** A separately accepted B gift matched to that A commitment stays B and supplies exactly qualified fulfillment once; it is not relabeled A or counted twice.
 
 #### Scenario: AC28-F39-03
 
+- **GIVEN** story US28-F39: As finance staff, I want recurring installments to retain their accepted origin and independently recorded gifts to retain theirs, so that matching fulfillment never rewrites why a gift was given.
 - **THEN** Retry, delayed callback or provider replacement preserves an accepted occurrence's attribution. Retiring a code or archiving a campaign does not itself cancel, redirect or reclassify continuing support.
 
 ### Requirement: REQ28-F40 — Explain current hierarchy and historical report bases
@@ -2424,14 +2620,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-6a62b
 
 #### Scenario: AC28-F40-01
 
+- **GIVEN** story US28-F40: As finance staff, I want campaign and subtree totals with a clear time basis, so that structural changes are useful without rewriting closed history or double-counting gifts.
 - **THEN** Moving an open node changes applicable current ancestor totals while the gift's campaign node remains unchanged and each source line counts once in the selected subtree.
 
 #### Scenario: AC28-F40-02
 
+- **GIVEN** story US28-F40: As finance staff, I want campaign and subtree totals with a clear time basis, so that structural changes are useful without rewriting closed history or double-counting gifts.
 - **THEN** An ancestor move cannot bypass closed/archived protection; an earlier issued hierarchy report retains its historical figures and basis.
 
 #### Scenario: AC28-F40-03
 
+- **GIVEN** story US28-F40: As finance staff, I want campaign and subtree totals with a clear time basis, so that structural changes are useful without rewriting closed history or double-counting gifts.
 - **THEN** Qualified campaign buckets plus qualified known-none equal the same scoped complete financial source total per currency; unknown attribution is not silently included in the none bucket to force equality.
 
 ### Requirement: REQ28-F41 — Enforce source contracts and tenant-safe resulting states
@@ -2442,14 +2641,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-46907
 
 #### Scenario: AC28-F41-01
 
+- **GIVEN** story US28-F41: As a tenant administrator, I want every source and alternate entry path to enforce the same scope and authority, so that a permitted update cannot turn a safe record into an unauthorized one.
 - **THEN** Hostile requests cannot substitute another tenant, Legal Entity, Party, owner, source revision or approver through any exposed or privileged path, including updates to previously permitted rows.
 
 #### Scenario: AC28-F41-02
 
+- **GIVEN** story US28-F41: As a tenant administrator, I want every source and alternate entry path to enforce the same scope and authority, so that a permitted update cannot turn a safe record into an unauthorized one.
 - **THEN** Database/command tests prove forbidden cross-tenant references, duplicate current goal heads, duplicate purpose coverage and destructive attribution changes are rejected, not merely hidden by the UI.
 
 #### Scenario: AC28-F41-03
 
+- **GIVEN** story US28-F41: As a tenant administrator, I want every source and alternate entry path to enforce the same scope and authority, so that a permitted update cannot turn a safe record into an unauthorized one.
 - **THEN** Current hosted grants/RLS and service-path evidence qualify the intended boundary independently of migration text or a passing mock test.
 
 ### Requirement: REQ28-F42 — Commit durable effects and recover without duplicate business work
@@ -2460,14 +2662,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-35d36
 
 #### Scenario: AC28-F42-01
 
+- **GIVEN** story US28-F42: As a missionary or staff operator, I want accepted actions to remain recoverable after a failure, so that fixing the display never repeats money or personal work.
 - **THEN** A failure after source commit but before task projection is repaired from the original durable intent into one task member without reposting money or generating another purpose.
 
 #### Scenario: AC28-F42-02
 
+- **GIVEN** story US28-F42: As a missionary or staff operator, I want accepted actions to remain recoverable after a failure, so that fixing the display never repeats money or personal work.
 - **THEN** Revocation or material source correction winning the acceptance order rejects a stale action even if its initial check passed; harmless unrelated changes do not unnecessarily invalidate the reviewed scope.
 
 #### Scenario: AC28-F42-03
 
+- **GIVEN** story US28-F42: As a missionary or staff operator, I want accepted actions to remain recoverable after a failure, so that fixing the display never repeats money or personal work.
 - **THEN** Duplicate/out-of-order delivery and restore preserve consumed purpose identities, current Off policies and completed human history; replay cannot recreate effects from deleted personal data.
 
 ### Requirement: REQ28-F43 — Deliver clear, accessible and safe everyday flows
@@ -2478,14 +2683,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-0b836
 
 #### Scenario: AC28-F43-01
 
+- **GIVEN** story US28-F43: As a missionary using a phone or assistive technology, I want compact understandable support actions and statuses, so that I can work reliably with limited attention or connectivity.
 - **THEN** Actual phone and assistive journeys can find a reason, inspect exact reviewed members, complete permitted work and recover an unknown result without a hidden hover-only control, color-only state or duplicate action.
 
 #### Scenario: AC28-F43-02
 
+- **GIVEN** story US28-F43: As a missionary using a phone or assistive technology, I want compact understandable support actions and statuses, so that I can work reliably with limited attention or connectivity.
 - **THEN** Users can correctly distinguish goal Save from publication, gift report from financial posting, Done from sending, and notices Off from erasing financial facts in observed task-based usability checks.
 
 #### Scenario: AC28-F43-03
 
+- **GIVEN** story US28-F43: As a missionary using a phone or assistive technology, I want compact understandable support actions and statuses, so that I can work reliably with limited attention or connectivity.
 - **THEN** Switching tenant/account during an outstanding response neither displays the old private result nor submits its action in the new context.
 
 ### Requirement: REQ28-F44 — Qualify source lanes, migration and measurable operation
@@ -2496,14 +2704,17 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-fdef3
 
 #### Scenario: AC28-F44-01
 
+- **GIVEN** story US28-F44: As an operations owner, I want explicit activation evidence and bounded recovery, so that incomplete legacy behavior cannot masquerade as a reliable financial workspace.
 - **THEN** Activation evidence includes positive/negative source proofs, actual database and alternate-path authorization tests, exact-unit boundaries, controlled acceptance races, idempotent recovery, restore, accessibility and source-shaped performance results for the specific enabled lane.
 
 #### Scenario: AC28-F44-02
 
+- **GIVEN** story US28-F44: As an operations owner, I want explicit activation evidence and bounded recovery, so that incomplete legacy behavior cannot masquerade as a reliable financial workspace.
 - **THEN** Unproved historical rows are quarantined for owner resolution without guessed money units, campaign origin or new follow-up; independently qualified rows and ordinary authorized work remain usable.
 
 #### Scenario: AC28-F44-03
 
+- **GIVEN** story US28-F44: As an operations owner, I want explicit activation evidence and bounded recovery, so that incomplete legacy behavior cannot masquerade as a reliable financial workspace.
 - **THEN** Failure exercises trigger the stated owner response below and preserve financial facts, source history and purpose identities during recovery.
 
 ### Requirement: REQ28-M01 — Control the exact public signup entry
@@ -3546,22 +3757,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-967b8
 
 #### Scenario: AC28-C01-01
 
+- **GIVEN** story US28-C01: As an invited coach, I want to use my own account in the correct organization, so that I can prepare without sharing a missionary's credentials or receiving unrelated privileges.
 - **THEN** A coach with one currently authorized organization can enter that context directly; a coach with several can explicitly switch between currently authorized organizations. A failed context load is distinguishable from having no contexts.
 
 #### Scenario: AC28-C01-02
 
+- **GIVEN** story US28-C01: As an invited coach, I want to use my own account in the correct organization, so that I can prepare without sharing a missionary's credentials or receiving unrelated privileges.
 - **THEN** The active organization and coaching role remain evident in portfolio, detail and self-service actions. An email match, remembered selection, another role or another organization's invitation does not grant access.
 
 #### Scenario: AC28-C01-03
 
+- **GIVEN** story US28-C01: As an invited coach, I want to use my own account in the correct organization, so that I can prepare without sharing a missionary's credentials or receiving unrelated privileges.
 - **THEN** A direct link validates current organization, membership, role and exact subject authority before releasing a person/project name, count, snippet or amount.
 
 #### Scenario: AC28-C01-04
 
+- **GIVEN** story US28-C01: As an invited coach, I want to use my own account in the correct organization, so that I can prepare without sharing a missionary's credentials or receiving unrelated privileges.
 - **THEN** A context change cannot reparent a pending action or apply its delayed result to the new context. Sign-out or current context loss clears protected content and pending browser work under the shared session rules.
 
 #### Scenario: AC28-C01-05
 
+- **GIVEN** story US28-C01: As an invited coach, I want to use my own account in the correct organization, so that I can prepare without sharing a missionary's credentials or receiving unrelated privileges.
 - **THEN** Missing or unrecognized coach role configuration produces an honest unavailable/access state; it does not fall back to donor, missionary or staff navigation and permissions.
 
 ### Requirement: REQ28-C02 — Deliberately invite an eligible coach
@@ -3572,26 +3788,32 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-23000
 
 #### Scenario: AC28-C02-01
 
+- **GIVEN** story US28-C02: As a missionary authorized to share, I want to invite a specific eligible coach, so that coaching starts with a clear recipient and scope.
 - **THEN** The invitation review shows the intended recipient, organization, canonical subject and proposed disclosure in plain language before the missionary submits it.
 
 #### Scenario: AC28-C02-02
 
+- **GIVEN** story US28-C02: As a missionary authorized to share, I want to invite a specific eligible coach, so that coaching starts with a clear recipient and scope.
 - **THEN** A missionary cannot invite outside the organization's current internal/external eligibility policy or beyond their own sharing authority. Unknown or unavailable eligibility grants nothing.
 
 #### Scenario: AC28-C02-03
 
+- **GIVEN** story US28-C02: As a missionary authorized to share, I want to invite a specific eligible coach, so that coaching starts with a clear recipient and scope.
 - **THEN** The source records a stable invitation occurrence, finite validity, exact scope/policy version and revocation state. Repeated submission of the same logical invitation recovers one business effect rather than creating duplicate active relationships or uncontrolled additional sends.
 
 #### Scenario: AC28-C02-04
 
+- **GIVEN** story US28-C02: As a missionary authorized to share, I want to invite a specific eligible coach, so that coaching starts with a clear recipient and scope.
 - **THEN** Reissue invalidates superseded proof under the protected-action owner's contract. A stale invitation or reissue request cannot defeat a later Stop, organization restriction or recipient change.
 
 #### Scenario: AC28-C02-05
 
+- **GIVEN** story US28-C02: As a missionary authorized to share, I want to invite a specific eligible coach, so that coaching starts with a clear recipient and scope.
 - **THEN** Only the qualified native invitation/access-notice purpose may deliver the invitation. An unbound or incompatible purpose produces a truthful unavailable result; it does not fall back to generic email or require creation of an artificial donor record.
 
 #### Scenario: AC28-C02-06
 
+- **GIVEN** story US28-C02: As a missionary authorized to share, I want to invite a specific eligible coach, so that coaching starts with a clear recipient and scope.
 - **THEN** Invitation/access notices use the exact meaning-specific contract, source occurrence/fence and admitted recipient-authority branch in a proof-activated communication profile. Preparation and dispatch recheck current authority/relevance; notices contain only approved minimal context and links, not progress reports or sensitive narratives by default.
 
 ### Requirement: REQ28-C03 — Accept an invitation without confusing delivery, identity and access
@@ -3604,22 +3826,27 @@ Story: US28-C03. Source: coaching-resources.md. Decision basis: D8 invitation li
 
 #### Scenario: AC28-C03-01
 
+- **GIVEN** story US28-C03: As an intended coach, I want a clear acceptance and recovery journey, so that I can tell whether my invitation and access are actually ready.
 - **THEN** Link preview, GET, HEAD, prefetch and mail-scanner requests do not accept an invitation, consume its acceptance effect or grant coaching access. Acceptance uses the existing qualified deliberate protected-action flow.
 
 #### Scenario: AC28-C03-02
 
+- **GIVEN** story US28-C03: As an intended coach, I want a clear acceptance and recovery journey, so that I can tell whether my invitation and access are actually ready.
 - **THEN** Sign-in and account recovery retain only an allowed continuation. Wrong-account recovery offers a usable next step without disclosing protected invitation context to that account.
 
 #### Scenario: AC28-C03-03
 
+- **GIVEN** story US28-C03: As an intended coach, I want a clear acceptance and recovery journey, so that I can tell whether my invitation and access are actually ready.
 - **THEN** Acceptance rechecks the intended identity, grantor authority, current membership, organization ceiling, invitation validity and exact scope. It does not trust permissions captured only when the invitation was sent.
 
 #### Scenario: AC28-C03-04
 
+- **GIVEN** story US28-C03: As an intended coach, I want a clear acceptance and recovery journey, so that I can tell whether my invitation and access are actually ready.
 - **THEN** If identity is accepted but source access cannot activate, the outcome explains that access is unavailable without falsely showing an active coaching relationship or exposing the withheld reason.
 
 #### Scenario: AC28-C03-05
 
+- **GIVEN** story US28-C03: As an intended coach, I want a clear acceptance and recovery journey, so that I can tell whether my invitation and access are actually ready.
 - **THEN** Lost responses recover the accepted source effect before retry. Expired, revoked and superseded invitations offer only the real authorized recovery path; they do not silently create a replacement invitation or broader grant.
 
 ### Requirement: REQ28-C04 — Apply organization coaching controls precisely
@@ -3630,22 +3857,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-94ddb
 
 #### Scenario: AC28-C04-01
 
+- **GIVEN** story US28-C04: As authorized organization staff, I want coaching controls to state their exact effect, so that I can permit or stop a capability without accidentally changing unrelated access.
 - **THEN** Settings distinguish saved Off, missing source setup, temporary failure and an actor's lack of permission; they do not represent all four as the same disabled control.
 
 #### Scenario: AC28-C04-02
 
+- **GIVEN** story US28-C04: As authorized organization staff, I want coaching controls to state their exact effect, so that I can permit or stop a capability without accidentally changing unrelated access.
 - **THEN** Turning external coaching Off fences affected external current and pending access. It does not silently revoke independently valid internal grants or change canonical source records.
 
 #### Scenario: AC28-C04-03
 
+- **GIVEN** story US28-C04: As authorized organization staff, I want coaching controls to state their exact effect, so that I can permit or stop a capability without accidentally changing unrelated access.
 - **THEN** Turning a numeric, narrative or next-step sharing module Off fences that module's affected current and pending disclosures without stopping unrelated qualified modules or personal source work.
 
 #### Scenario: AC28-C04-04
 
+- **GIVEN** story US28-C04: As authorized organization staff, I want coaching controls to state their exact effect, so that I can permit or stop a capability without accidentally changing unrelated access.
 - **THEN** Re-enabling availability does not revive ended grants or previous module inclusions. A still-valid coach need not be invited again merely to make a fresh deliberate module inclusion.
 
 #### Scenario: AC28-C04-05
 
+- **GIVEN** story US28-C04: As authorized organization staff, I want coaching controls to state their exact effect, so that I can permit or stop a capability without accidentally changing unrelated access.
 - **THEN** Save reports an authoritative saved, failed or outcome-unknown result. A stale On command cannot undo a later Off; a local switch position is not proof of durable availability.
 
 ### Requirement: REQ28-C05 — Prepare from a bounded portfolio of authorized subjects
@@ -3656,26 +3888,32 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-c27be
 
 #### Scenario: AC28-C05-01
 
+- **GIVEN** story US28-C05: As a coach, I want a useful portfolio of the people and Ministry Projects shared with me, so that I can prepare for each conversation without searching unrelated records.
 - **THEN** Search, counts, filters and pagination apply current authorization before enumeration. There is no cross-tenant union or cross-person feed of check-in bodies, private task text or donor details.
 
 #### Scenario: AC28-C05-02
 
+- **GIVEN** story US28-C05: As a coach, I want a useful portfolio of the people and Ministry Projects shared with me, so that I can prepare for each conversation without searching unrelated records.
 - **THEN** A Ministry Project uses its canonical subject identity. Project/team participation does not automatically disclose all members, child subjects or their financial information.
 
 #### Scenario: AC28-C05-03
 
+- **GIVEN** story US28-C05: As a coach, I want a useful portfolio of the people and Ministry Projects shared with me, so that I can prepare for each conversation without searching unrelated records.
 - **THEN** Portfolio cards provide bounded useful metadata and clear access/currentness states. Detailed charts and histories load only for the selected authorized subject rather than for every portfolio card.
 
 #### Scenario: AC28-C05-04
 
+- **GIVEN** story US28-C05: As a coach, I want a useful portfolio of the people and Ministry Projects shared with me, so that I can prepare for each conversation without searching unrelated records.
 - **THEN** Detail can present shared focus/goals, independently qualified support or activity summaries, shared check-ins and selected next steps. Failure of one source leaves independent safe modules usable.
 
 #### Scenario: AC28-C05-05
 
+- **GIVEN** story US28-C05: As a coach, I want a useful portfolio of the people and Ministry Projects shared with me, so that I can prepare for each conversation without searching unrelated records.
 - **THEN** Admitted shared evidence is described neutrally. Empty or unavailable information does not mean that a missionary did no work, failed to report or lacks support.
 
 #### Scenario: AC28-C05-06
 
+- **GIVEN** story US28-C05: As a coach, I want a useful portfolio of the people and Ministry Projects shared with me, so that I can prepare for each conversation without searching unrelated records.
 - **THEN** The portfolio contains no financial sum across people, ranking, effort score, donor list, gift-row drilldown or restricted precise location. Chart and text alternatives expose the same admitted values.
 
 ### Requirement: REQ28-C06 — Preview the actual proposed disclosure
@@ -3688,22 +3926,27 @@ Story: US28-C06. Source: coaching-resources.md. Decision basis: D8–D10 sharing
 
 #### Scenario: AC28-C06-01
 
+- **GIVEN** story US28-C06: As a missionary, I want an accurate sharing preview, so that I understand what the named coach will receive before saving.
 - **THEN** The review identifies exact subject, recipient, included modules, relevant periods and effective access duration. Draft choices confer no access.
 
 #### Scenario: AC28-C06-02
 
+- **GIVEN** story US28-C06: As a missionary, I want an accurate sharing preview, so that I understand what the named coach will receive before saving.
 - **THEN** The preview excludes fields the recipient would not receive and fields the missionary cannot currently read. Hiding parts of an otherwise overbroad payload is insufficient.
 
 #### Scenario: AC28-C06-03
 
+- **GIVEN** story US28-C06: As a missionary, I want an accurate sharing preview, so that I understand what the named coach will receive before saving.
 - **THEN** One source-owned Save accepts the exact reviewed scope. A material authority or scope change before application requires refreshed review rather than silently narrowing the selection and claiming it was saved unchanged.
 
 #### Scenario: AC28-C06-04
 
+- **GIVEN** story US28-C06: As a missionary, I want an accurate sharing preview, so that I understand what the named coach will receive before saving.
 - **THEN** Saving, accepted, definite failure and an unknown response remain persistently distinguishable. Recovery checks the durable source outcome before repeating the intent.
 
 #### Scenario: AC28-C06-05
 
+- **GIVEN** story US28-C06: As a missionary, I want an accurate sharing preview, so that I understand what the named coach will receive before saving.
 - **THEN** Selecting one module does not select another, export rights, private history, notifications or future recipients. Routine sharing inside approved policy requires no invented supervisor queue.
 
 ### Requirement: REQ28-C07 — Keep coaching read-only
@@ -3716,22 +3959,27 @@ Story: US28-C07. Source: coaching-resources.md. Decision basis: D8 read-only coa
 
 #### Scenario: AC28-C07-01
 
+- **GIVEN** story US28-C07: As a missionary receiving coaching, I want my coach to see the agreed information without controlling my records, so that accountability does not become unintended delegation.
 - **THEN** Coaching exposes no edit, comment, assign, remind, complete, reopen, delegate or impersonate command on missionary goals, activity, contacts, check-ins, tasks or finances.
 
 #### Scenario: AC28-C07-02
 
+- **GIVEN** story US28-C07: As a missionary receiving coaching, I want my coach to see the agreed information without controlling my records, so that accountability does not become unintended delegation.
 - **THEN** Direct requests to underlying commands are denied even when the user can read the coaching summary. Interface hiding alone does not satisfy the boundary.
 
 #### Scenario: AC28-C07-03
 
+- **GIVEN** story US28-C07: As a missionary receiving coaching, I want my coach to see the agreed information without controlling my records, so that accountability does not become unintended delegation.
 - **THEN** No raw donor, gift, commitment, interaction or task access is granted merely to calculate or display a permitted aggregate/summary.
 
 #### Scenario: AC28-C07-04
 
+- **GIVEN** story US28-C07: As a missionary receiving coaching, I want my coach to see the agreed information without controlling my records, so that accountability does not become unintended delegation.
 - **THEN** Export, print and calendar/email publication require their own owner-admitted capability; the coaching role does not introduce them.
 
 #### Scenario: AC28-C07-05
 
+- **GIVEN** story US28-C07: As a missionary receiving coaching, I want my coach to see the agreed information without controlling my records, so that accountability does not become unintended delegation.
 - **THEN** A person who separately holds a valid staff or other role must deliberately enter that authorized context for its actions. Coaching does not silently adopt the broader role.
 
 ### Requirement: REQ28-C08 — Stop or leave an exact coaching share
@@ -3744,26 +3992,32 @@ Story: US28-C08. Source: coaching-resources.md. Decision basis: D8 ending/revoca
 
 #### Scenario: AC28-C08-01
 
+- **GIVEN** story US28-C08: As a missionary or coach ending a sharing relationship, I want a clear scoped Stop or Leave action, so that access ends without damaging source records or unrelated work.
 - **THEN** Stop remains usable when unsaved sharing edits are invalid. The confirmation describes the exact share being ended and does not claim the person has no other permissions.
 
 #### Scenario: AC28-C08-02
 
+- **GIVEN** story US28-C08: As a missionary or coach ending a sharing relationship, I want a clear scoped Stop or Leave action, so that access ends without damaging source records or unrelated work.
 - **THEN** After the ending effect wins, stale Save, acceptance, date extension, replay, backup restoration or organization re-enable cannot reactivate the ended episode.
 
 #### Scenario: AC28-C08-03
 
+- **GIVEN** story US28-C08: As a missionary or coach ending a sharing relationship, I want a clear scoped Stop or Leave action, so that access ends without damaging source records or unrelated work.
 - **THEN** A later sharing relationship requires fresh deliberate activation under current rules. An Undo affordance cannot recreate authority without that action.
 
 #### Scenario: AC28-C08-04
 
+- **GIVEN** story US28-C08: As a missionary or coach ending a sharing relationship, I want a clear scoped Stop or Leave action, so that access ends without damaging source records or unrelated work.
 - **THEN** Concurrent accept/extend/Stop requests have one defined source order and recoverable outcomes. Duplicate ending requests do not duplicate history or secondary effects.
 
 #### Scenario: AC28-C08-05
 
+- **GIVEN** story US28-C08: As a missionary or coach ending a sharing relationship, I want a clear scoped Stop or Leave action, so that access ends without damaging source records or unrelated work.
 - **THEN** Previously seen information and already delivered copies cannot be recalled. Subsequent protected releases still deny ended access, including retained cache responses and delayed work.
 
 #### Scenario: AC28-C08-06
 
+- **GIVEN** story US28-C08: As a missionary or coach ending a sharing relationship, I want a clear scoped Stop or Leave action, so that access ends without damaging source records or unrelated work.
 - **THEN** Temporary source unavailability or a current permission-review hold is not automatically labeled a terminal ended relationship when the owning episode remains valid.
 
 ### Requirement: REQ28-C09 — Include support summaries separately and deliberately
@@ -3776,22 +4030,27 @@ Story: US28-C09. Source: coaching-resources.md. Decision basis: Ratified D9; D8 
 
 #### Scenario: AC28-C09-01
 
+- **GIVEN** story US28-C09: As a missionary, I want to choose whether my coach sees support summaries, so that sharing a goal or inviting a coach does not automatically disclose financial information.
 - **THEN** A new invitation, shared financial goal or organization enablement does not itself include support summaries.
 
 #### Scenario: AC28-C09-02
 
+- **GIVEN** story US28-C09: As a missionary, I want to choose whether my coach sees support summaries, so that sharing a goal or inviting a coach does not automatically disclose financial information.
 - **THEN** Inclusion review identifies the canonical subject, legal entity, currency, period, basis, source coverage/currentness and applicable goal version that the coach can receive.
 
 #### Scenario: AC28-C09-03
 
+- **GIVEN** story US28-C09: As a missionary, I want to choose whether my coach sees support summaries, so that sharing a goal or inviting a coach does not automatically disclose financial information.
 - **THEN** Expected/planned and received appear as separate labeled measures. Neither is presented as money currently available to spend or take home.
 
 #### Scenario: AC28-C09-04
 
+- **GIVEN** story US28-C09: As a missionary, I want to choose whether my coach sees support summaries, so that sharing a goal or inviting a coach does not automatically disclose financial information.
 - **THEN** A blocked financial dependency withholds only the affected measure/action. Qualified nonfinancial coaching and independent safe measures remain usable.
 
 #### Scenario: AC28-C09-05
 
+- **GIVEN** story US28-C09: As a missionary, I want to choose whether my coach sees support summaries, so that sharing a goal or inviting a coach does not automatically disclose financial information.
 - **THEN** Removing financial inclusion leaves the underlying money, commitments, goal and other shared modules unchanged and fences later financial summary releases.
 
 ### Requirement: REQ28-C10 — Derive expected support from authoritative dated expectations
@@ -3804,22 +4063,27 @@ Story: US28-C10. Source: coaching-resources.md. Decision basis: D9 expected-supp
 
 #### Scenario: AC28-C10-01
 
+- **GIVEN** story US28-C10: As a coach reading shared support progress, I want expected support to have a clear dated basis, so that I do not mistake a promise or planning estimate for received money.
 - **THEN** A dated-period total includes only qualified non-overlapping expectation components in that exact subject, currency and period. The same obligation cannot contribute through both an aggregate and its component occurrences.
 
 #### Scenario: AC28-C10-02
 
+- **GIVEN** story US28-C10: As a coach reading shared support progress, I want expected support to have a clear dated basis, so that I do not mistake a promise or planning estimate for received money.
 - **THEN** Undated pledge face value, recurring receipt patterns and the current commitment balance do not invent dated expectations. Dividing an arbitrary pledge into months is not an accepted substitute.
 
 #### Scenario: AC28-C10-03
 
+- **GIVEN** story US28-C10: As a coach reading shared support progress, I want expected support to have a clear dated basis, so that I do not mistake a promise or planning estimate for received money.
 - **THEN** If a monthly-equivalent measure is admitted, its source transform remains exact until display and its label distinguishes it from a scheduled installment or current-month expected receipt.
 
 #### Scenario: AC28-C10-04
 
+- **GIVEN** story US28-C10: As a coach reading shared support progress, I want expected support to have a clear dated basis, so that I do not mistake a promise or planning estimate for received money.
 - **THEN** Missing historical terms or unproved occurrence coverage produces an explicit permitted unavailable state rather than a guessed zero, schedule or backcast.
 
 #### Scenario: AC28-C10-05
 
+- **GIVEN** story US28-C10: As a coach reading shared support progress, I want expected support to have a clear dated basis, so that I do not mistake a promise or planning estimate for received money.
 - **THEN** Expected support never implies that the donor has paid, that money has been received or that a legally collectible debt exists.
 
 ### Requirement: REQ28-C11 — Derive received support from effective contribution lines
@@ -3832,22 +4096,27 @@ Story: US28-C11. Source: coaching-resources.md. Decision basis: Ratified D9 and 
 
 #### Scenario: AC28-C11-01
 
+- **GIVEN** story US28-C11: As a missionary sharing received support, I want the figure to reflect actual authoritative contributions, so that the coach sees accurate progress without donor-level access.
 - **THEN** Each eligible canonical designation line contributes once; sibling allocations, duplicated joins and repeated provider events do not multiply the amount.
 
 #### Scenario: AC28-C11-02
 
+- **GIVEN** story US28-C11: As a missionary sharing received support, I want the figure to reflect actual authoritative contributions, so that the coach sees accurate progress without donor-level access.
 - **THEN** Promises, processing payments, recognition/soft credit, noncash valuation, payouts and out-of-scope fee cover do not contribute to this received measure.
 
 #### Scenario: AC28-C11-03
 
+- **GIVEN** story US28-C11: As a missionary sharing received support, I want the figure to reflect actual authoritative contributions, so that the coach sees accurate progress without donor-level access.
 - **THEN** Current authoritative corrections affect the fold and applicable gift-date period. Created, imported, posted-display or payout dates do not replace the gift-date owner's contract.
 
 #### Scenario: AC28-C11-04
 
+- **GIVEN** story US28-C11: As a missionary sharing received support, I want the figure to reflect actual authoritative contributions, so that the coach sees accurate progress without donor-level access.
 - **THEN** Uncertain commitment matching does not erase a separately valid receipt. Conversely, an expectation or commitment application does not create received money.
 
 #### Scenario: AC28-C11-05
 
+- **GIVEN** story US28-C11: As a missionary sharing received support, I want the figure to reflect actual authoritative contributions, so that the coach sees accurate progress without donor-level access.
 - **THEN** A ministry balance, net compensation or payout figure is not substituted when received-source coverage is unavailable. The unavailable measure remains truthful while independent modules continue.
 
 ### Requirement: REQ28-C12 — Preserve exact money and meaningful comparisons
@@ -3860,22 +4129,27 @@ Story: US28-C12. Source: coaching-resources.md. Decision basis: D9/D10 money, co
 
 #### Scenario: AC28-C12-01
 
+- **GIVEN** story US28-C12: As a coach, I want financial figures and comparisons to retain their units and meaning, so that a polished chart cannot mislead me about support progress.
 - **THEN** Arithmetic and transport preserve exact values without binary floating-point money, unsafe integer coercion, a universal two-decimal assumption or a forced USD conversion.
 
 #### Scenario: AC28-C12-02
 
+- **GIVEN** story US28-C12: As a coach, I want financial figures and comparisons to retain their units and meaning, so that a polished chart cannot mislead me about support progress.
 - **THEN** Different currencies are not summed or compared as one amount without an independently authorized conversion contract; this feature creates no such contract.
 
 #### Scenario: AC28-C12-03
 
+- **GIVEN** story US28-C12: As a coach, I want financial figures and comparisons to retain their units and meaning, so that a polished chart cannot mislead me about support progress.
 - **THEN** Expected and received are not added together or subtracted into a debt/arrears conclusion. Any approved comparison labels the exact compared measures.
 
 #### Scenario: AC28-C12-04
 
+- **GIVEN** story US28-C12: As a coach, I want financial figures and comparisons to retain their units and meaning, so that a polished chart cannot mislead me about support progress.
 - **THEN** Unknown, zero or incompatible denominators do not produce a percentage. A valid over-goal result is not capped at 100 percent or otherwise hidden.
 
 #### Scenario: AC28-C12-05
 
+- **GIVEN** story US28-C12: As a coach, I want financial figures and comparisons to retain their units and meaning, so that a polished chart cannot mislead me about support progress.
 - **THEN** Independent measures may show their own coherent as-of/currentness evidence. The interface does not claim a globally atomic financial snapshot merely because measures are displayed together.
 
 ### Requirement: REQ28-C13 — Withhold unsafe or unproved financial aggregates
@@ -3888,22 +4162,27 @@ Story: US28-C13. Source: coaching-resources.md. Decision basis: D9/D10 aggregate
 
 #### Scenario: AC28-C13-01
 
+- **GIVEN** story US28-C13: As a missionary, I want a support summary to protect the people behind it, so that summary-only coaching does not expose donor details through arithmetic or missing-data shortcuts.
 - **THEN** A summary-only coach can receive an admitted aggregate without receiving raw source-row selection privileges.
 
 #### Scenario: AC28-C13-02
 
+- **GIVEN** story US28-C13: As a missionary, I want a support summary to protect the people behind it, so that summary-only coaching does not expose donor details through arithmetic or missing-data shortcuts.
 - **THEN** Qualification tests small cells, overlapping periods/subjects, complements, deltas and repeated releases together. Suppressing one cell while exposing an equivalent reconstructing total or ratio does not pass.
 
 #### Scenario: AC28-C13-03
 
+- **GIVEN** story US28-C13: As a missionary, I want a support summary to protect the people behind it, so that summary-only coaching does not expose donor details through arithmetic or missing-data shortcuts.
 - **THEN** Withheld, partial, stale, unknown and complete zero have distinct safe meanings. Missing source coverage is not displayed as zero or as a complete comparison.
 
 #### Scenario: AC28-C13-04
 
+- **GIVEN** story US28-C13: As a missionary, I want a support summary to protect the people behind it, so that summary-only coaching does not expose donor details through arithmetic or missing-data shortcuts.
 - **THEN** Charts, accessible text, tooltips, counts and exports cannot expose values omitted from the primary admitted display.
 
 #### Scenario: AC28-C13-05
 
+- **GIVEN** story US28-C13: As a missionary, I want a support summary to protect the people behind it, so that summary-only coaching does not expose donor details through arithmetic or missing-data shortcuts.
 - **THEN** Current disclosure/source checks apply when output is released, including cached or asynchronous output. A stale authorization snapshot cannot continue a stopped financial share.
 
 ### Requirement: REQ28-C14 — Select a fixed earlier financial range
@@ -3916,26 +4195,32 @@ Story: US28-C14. Source: coaching-resources.md. Decision basis: Ratified D10 fix
 
 #### Scenario: AC28-C14-01
 
+- **GIVEN** story US28-C14: As a missionary, I want to add specific earlier financial periods, so that my coach receives exactly the history I reviewed.
 - **THEN** Any relative range choice resolves to exact dates before Save, and reloading the accepted choice shows those same dates.
 
 #### Scenario: AC28-C14-02
 
+- **GIVEN** story US28-C14: As a missionary, I want to add specific earlier financial periods, so that my coach receives exactly the history I reviewed.
 - **THEN** Month rollover, importing an old gift, cache rebuild, invitation acceptance, re-invitation or later policy expansion does not enlarge the selected earlier range.
 
 #### Scenario: AC28-C14-03
 
+- **GIVEN** story US28-C14: As a missionary, I want to add specific earlier financial periods, so that my coach receives exactly the history I reviewed.
 - **THEN** The available range choices come from policy and supported coverage rather than leaking the date of the first or last hidden gift.
 
 #### Scenario: AC28-C14-04
 
+- **GIVEN** story US28-C14: As a missionary, I want to add specific earlier financial periods, so that my coach receives exactly the history I reviewed.
 - **THEN** Empty, reversed, unsupported or future-as-history selections are rejected with useful field guidance. None is interpreted as all time.
 
 #### Scenario: AC28-C14-05
 
+- **GIVEN** story US28-C14: As a missionary, I want to add specific earlier financial periods, so that my coach receives exactly the history I reviewed.
 - **THEN** Changing or removing the range uses the same brief review and one Save, preserving other modules and source facts. Stale responses cannot restore removed periods.
 
 #### Scenario: AC28-C14-06
 
+- **GIVEN** story US28-C14: As a missionary, I want to add specific earlier financial periods, so that my coach receives exactly the history I reviewed.
 - **THEN** This choice grants no private notes, activity history, historical goals, ministry balances or export capability.
 
 ### Requirement: REQ28-C15 — Explain corrected values within fixed history
@@ -3948,22 +4233,27 @@ Story: US28-C15. Source: coaching-resources.md. Decision basis: D10 corrected-pr
 
 #### Scenario: AC28-C15-01
 
+- **GIVEN** story US28-C15: As a coach reviewing earlier support, I want corrections and unavailable periods to remain clear, so that a fixed date range is not mistaken for a frozen official statement.
 - **THEN** A qualified current correction can alter a value within an admitted period; importing an old record cannot move its authoritative event into scope using its import date.
 
 #### Scenario: AC28-C15-02
 
+- **GIVEN** story US28-C15: As a coach reviewing earlier support, I want corrections and unavailable periods to remain clear, so that a fixed date range is not mistaken for a frozen official statement.
 - **THEN** Historical expected amounts use the applicable immutable terms/occurrence versions. Today's commitment is not projected backwards over history.
 
 #### Scenario: AC28-C15-03
 
+- **GIVEN** story US28-C15: As a coach reviewing earlier support, I want corrections and unavailable periods to remain clear, so that a fixed date range is not mistaken for a frozen official statement.
 - **THEN** Later ordinary fulfillment or cancellation does not erase a past expected amount unless the expectation owner authorizes a historical correction.
 
 #### Scenario: AC28-C15-04
 
+- **GIVEN** story US28-C15: As a coach reviewing earlier support, I want corrections and unavailable periods to remain clear, so that a fixed date range is not mistaken for a frozen official statement.
 - **THEN** Missing, partial or withheld periods appear as permitted gaps. Charts do not bridge them as known values, and totals/ratios do not silently treat them as zero.
 
 #### Scenario: AC28-C15-05
 
+- **GIVEN** story US28-C15: As a coach reviewing earlier support, I want corrections and unavailable periods to remain clear, so that a fixed date range is not mistaken for a frozen official statement.
 - **THEN** The currentness explanation makes clear when source corrections are reflected and avoids describing the display as a financial statement or period close.
 
 ### Requirement: REQ28-C16 — Choose ongoing sharing or an optional end date
@@ -3976,22 +4266,27 @@ Story: US28-C16. Source: coaching-resources.md. Decision basis: Selected D11; D4
 
 #### Scenario: AC28-C16-01
 
+- **GIVEN** story US28-C16: As a missionary, I want ongoing sharing where permitted or a simple optional end date, so that I can control access without managing needless timers.
 - **THEN** The date input appears when an end is selected or required. An already saved choice is retained rather than silently reset by later editing.
 
 #### Scenario: AC28-C16-02
 
+- **GIVEN** story US28-C16: As a missionary, I want ongoing sharing where permitted or a simple optional end date, so that I can control access without managing needless timers.
 - **THEN** Missing or legacy null duration data is not interpreted as permission for ongoing access. Current organization-required limits and eligibility still apply.
 
 #### Scenario: AC28-C16-03
 
+- **GIVEN** story US28-C16: As a missionary, I want ongoing sharing where permitted or a simple optional end date, so that I can control access without managing needless timers.
 - **THEN** An organizational permission-review date is distinguished from a scheduled share-end date and is not displayed as a promise that access lasts until it.
 
 #### Scenario: AC28-C16-04
 
+- **GIVEN** story US28-C16: As a missionary, I want ongoing sharing where permitted or a simple optional end date, so that I can control access without managing needless timers.
 - **THEN** The flow adds no universal duration, recurring-renewal requirement, time picker or independent clock for every shared module.
 
 #### Scenario: AC28-C16-05
 
+- **GIVEN** story US28-C16: As a missionary, I want ongoing sharing where permitted or a simple optional end date, so that I can control access without managing needless timers.
 - **THEN** The missionary and coach can understand whether the exact share is ongoing, scheduled to end, currently withheld or ended without exposing restricted policy details.
 
 ### Requirement: REQ28-C17 — Honor the complete selected Share through day
@@ -4004,22 +4299,27 @@ Story: US28-C17. Source: coaching-resources.md. Decision basis: D47 explicitly s
 
 #### Scenario: AC28-C17-01
 
+- **GIVEN** story US28-C17: As a missionary selecting a sharing end date, I want Share through to include that whole day, so that the deadline matches the language I see.
 - **THEN** The interface displays the applicable source-approved zone with the date. Acceptance retains the resolved cutoff; later travel, device-zone, locale or organization-zone changes do not move it.
 
 #### Scenario: AC28-C17-02
 
+- **GIVEN** story US28-C17: As a missionary selecting a sharing end date, I want Share through to include that whole day, so that the deadline matches the language I see.
 - **THEN** Daylight-saving transitions use civil-day boundaries rather than a fixed 86,400-second addition. A shorter or longer local day still ends at its proper next-day boundary.
 
 #### Scenario: AC28-C17-03
 
+- **GIVEN** story US28-C17: As a missionary selecting a sharing end date, I want Share through to include that whole day, so that the deadline matches the language I see.
 - **THEN** A date whose resolved cutoff has already passed is rejected. Today is selectable only while its cutoff remains in the future under trusted source time.
 
 #### Scenario: AC28-C17-04
 
+- **GIVEN** story US28-C17: As a missionary selecting a sharing end date, I want Share through to include that whole day, so that the deadline matches the language I see.
 - **THEN** An earlier source or organization limit wins. If it falls partway through the selected day, the actual earlier time and safe zone explanation are shown rather than rounded later.
 
 #### Scenario: AC28-C17-05
 
+- **GIVEN** story US28-C17: As a missionary selecting a sharing end date, I want Share through to include that whole day, so that the deadline matches the language I see.
 - **THEN** At the exclusive cutoff, protected release is denied. Scheduler delay, stale active state, token lifetime, device clock and a transaction that began earlier do not extend access.
 
 ### Requirement: REQ28-C18 — Change duration without reviving an ended episode
@@ -4032,22 +4332,27 @@ Story: US28-C18. Source: coaching-resources.md. Decision basis: D11 duration saf
 
 #### Scenario: AC28-C18-01
 
+- **GIVEN** story US28-C18: As a missionary, I want to change a valid share's end deliberately, so that the saved access window stays predictable through retries and concurrent changes.
 - **THEN** Save rechecks current authority and actual time after relevant waits before applying the change. An extension that loses a race with Stop or expiry does not resurrect the ended episode.
 
 #### Scenario: AC28-C18-02
 
+- **GIVEN** story US28-C18: As a missionary, I want to change a valid share's end deliberately, so that the saved access window stays predictable through retries and concurrent changes.
 - **THEN** Removing an end is treated as widening within the existing sharing authority. It is not confused with an ordinary shortening or automatically classified as a separate projection-policy change.
 
 #### Scenario: AC28-C18-03
 
+- **GIVEN** story US28-C18: As a missionary, I want to change a valid share's end deliberately, so that the saved access window stays predictable through retries and concurrent changes.
 - **THEN** A lost response can recover the original accepted outcome without reapplying its old intent over a newer end or Stop.
 
 #### Scenario: AC28-C18-04
 
+- **GIVEN** story US28-C18: As a missionary, I want to change a valid share's end deliberately, so that the saved access window stays predictable through retries and concurrent changes.
 - **THEN** An ended episode uses the ordinary fresh activation journey. Editing its old date, restoring an old record or replaying an old command is not an activation path.
 
 #### Scenario: AC28-C18-05
 
+- **GIVEN** story US28-C18: As a missionary, I want to change a valid share's end deliberately, so that the saved access window stays predictable through retries and concurrent changes.
 - **THEN** Ending duration controls access, not retention or deletion of source records, previously received information or independent lawful rights.
 
 ### Requirement: REQ28-C19 — Create optional personal activity targets
@@ -4060,22 +4365,27 @@ Story: US28-C19. Source: coaching-resources.md. Decision basis: Ratified D23 opt
 
 #### Scenario: AC28-C19-01
 
+- **GIVEN** story US28-C19: As a missionary, I want to set my own useful activity targets, so that I can plan without compulsory reporting or a financial plan.
 - **THEN** Creation supports a qualified measure, positive whole target quantity, personal label, schedule, start/end and overview placement, with pause/resume available for the applicable lifecycle.
 
 #### Scenario: AC28-C19-02
 
+- **GIVEN** story US28-C19: As a missionary, I want to set my own useful activity targets, so that I can plan without compulsory reporting or a financial plan.
 - **THEN** A private label retains the canonical measure name and a plain What counts explanation; a renamed target cannot redefine the underlying activity.
 
 #### Scenario: AC28-C19-03
 
+- **GIVEN** story US28-C19: As a missionary, I want to set my own useful activity targets, so that I can plan without compulsory reporting or a financial plan.
 - **THEN** Suggested presets are adopted deliberately and editable by the missionary. Later staff preset changes do not enroll the person or overwrite accepted targets.
 
 #### Scenario: AC28-C19-04
 
+- **GIVEN** story US28-C19: As a missionary, I want to set my own useful activity targets, so that I can plan without compulsory reporting or a financial plan.
 - **THEN** No target is a valid state. There is no mandatory quota, penalty, ranking, activity score, custom formula/weight or required narrative attached to having a target.
 
 #### Scenario: AC28-C19-05
 
+- **GIVEN** story US28-C19: As a missionary, I want to set my own useful activity targets, so that I can plan without compulsory reporting or a financial plan.
 - **THEN** Target definitions and versions remain distinct from authoritative actual activity. No manually editable progress counter becomes the source of truth.
 
 ### Requirement: REQ28-C20 — Count four clearly defined kinds of real activity
@@ -4088,26 +4398,32 @@ Story: US28-C20. Source: coaching-resources.md. Decision basis: D23 four support
 
 #### Scenario: AC28-C20-01
 
+- **GIVEN** story US28-C20: As a missionary, I want each activity measure to explain what counts, so that the displayed progress matches work I actually did.
 - **THEN** Calls made counts an actual outgoing attempt, including an unanswered call, busy result or voicemail. Opening a dialer without a real attempt does not count.
 
 #### Scenario: AC28-C20-02
 
+- **GIVEN** story US28-C20: As a missionary, I want each activity measure to explain what counts, so that the displayed progress matches work I actually did.
 - **THEN** Personal messages counts one attributable manually sent or provider-accepted authored personal outreach occurrence. A provider-accepted message is explained as delivery not confirmed when that is the known outcome; a queued, draft or unknown send is not counted as sent.
 
 #### Scenario: AC28-C20-03
 
+- **GIVEN** story US28-C20: As a missionary, I want each activity measure to explain what counts, so that the displayed progress matches work I actually did.
 - **THEN** A bounce does not erase an actual submitted personal message merely because delivery failed. A source correction establishing that submission never happened removes the false occurrence.
 
 #### Scenario: AC28-C20-04
 
+- **GIVEN** story US28-C20: As a missionary, I want each activity measure to explain what counts, so that the displayed progress matches work I actually did.
 - **THEN** Conversations counts a canonical actual human exchange, including a brief decline. No sentiment, minimum word count or invented timing/thread heuristic determines whether the exchange happened.
 
 #### Scenario: AC28-C20-05
 
+- **GIVEN** story US28-C20: As a missionary, I want each activity measure to explain what counts, so that the displayed progress matches work I actually did.
 - **THEN** Meetings held counts actual qualified participation, not a booking, no-show or generic completed checkbox. Automated replies, newsletters, receipt copies, opens and clicks do not fabricate personal outreach or a conversation.
 
 #### Scenario: AC28-C20-06
 
+- **GIVEN** story US28-C20: As a missionary, I want each activity measure to explain what counts, so that the displayed progress matches work I actually did.
 - **THEN** If a source cannot establish the required outcome, the affected count/capability is unavailable rather than supplemented by a guess or manual counter.
 
 ### Requirement: REQ28-C21 — Attribute and deduplicate activity correctly
@@ -4120,22 +4436,27 @@ Story: US28-C21. Source: coaching-resources.md. Decision basis: D23 occurrence i
 
 #### Scenario: AC28-C21-01
 
+- **GIVEN** story US28-C21: As a missionary, I want progress attributed to the actual participant once, so that shared work and duplicate records do not distort my targets.
 - **THEN** The actual qualified participant receives the occurrence, not automatically the logger, current task assignee, project owner or every team member.
 
 #### Scenario: AC28-C21-02
 
+- **GIVEN** story US28-C21: As a missionary, I want progress attributed to the actual participant once, so that shared work and duplicate records do not distort my targets.
 - **THEN** Provider and manual representations of the same event, recipient copies and repeated relationship joins do not create additional occurrences.
 
 #### Scenario: AC28-C21-03
 
+- **GIVEN** story US28-C21: As a missionary, I want progress attributed to the actual participant once, so that shared work and duplicate records do not distort my targets.
 - **THEN** Five calls that include two conversations display five calls and two conversations. The interface does not report seven total activities from those two measures.
 
 #### Scenario: AC28-C21-04
 
+- **GIVEN** story US28-C21: As a missionary, I want progress attributed to the actual participant once, so that shared work and duplicate records do not distort my targets.
 - **THEN** If identity/correlation is uncertain, the projection retains an honest unavailable/uncertain result rather than merging or multiplying events through a speculative time heuristic.
 
 #### Scenario: AC28-C21-05
 
+- **GIVEN** story US28-C21: As a missionary, I want progress attributed to the actual participant once, so that shared work and duplicate records do not distort my targets.
 - **THEN** Source correction or deduplication rederives the affected qualified count; it does not require editing a shadow counter in the target.
 
 ### Requirement: REQ28-C22 — Use understandable activity calendars and occurrence dates
@@ -4148,22 +4469,27 @@ Story: US28-C22. Source: coaching-resources.md. Decision basis: D23 calendar, oc
 
 #### Scenario: AC28-C22-01
 
+- **GIVEN** story US28-C22: As a missionary, I want clear target dates and calendar rules, so that travel, late entry and partial periods do not change what my progress means.
 - **THEN** The displayed period identifies exact dates and the qualified calendar. Internal exclusive boundaries preserve the shown inclusive-day meaning; a week is not assumed to equal exactly 168 elapsed hours.
 
 #### Scenario: AC28-C22-02
 
+- **GIVEN** story US28-C22: As a missionary, I want clear target dates and calendar rules, so that travel, late entry and partial periods do not change what my progress means.
 - **THEN** A qualified organization work-calendar suggestion or an explicit personal zone/week-start selection supplies the calendar. Travel and later profile changes do not rebucket accepted history silently.
 
 #### Scenario: AC28-C22-03
 
+- **GIVEN** story US28-C22: As a missionary, I want clear target dates and calendar rules, so that travel, late entry and partial periods do not change what my progress means.
 - **THEN** Actual occurrence date determines period membership rather than creation, import or task due date. Date-only facts retain that precision; uncertain or incompatible-calendar facts do not receive an invented midnight.
 
 #### Scenario: AC28-C22-04
 
+- **GIVEN** story US28-C22: As a missionary, I want clear target dates and calendar rules, so that travel, late entry and partial periods do not change what my progress means.
 - **THEN** Creating or resuming a target within its current period includes earlier eligible recorded activity in that same displayed period. It creates no earlier targets, backlog or missed-work obligation.
 
 #### Scenario: AC28-C22-05
 
+- **GIVEN** story US28-C22: As a missionary, I want clear target dates and calendar rules, so that travel, late entry and partial periods do not change what my progress means.
 - **THEN** The interface distinguishes no target, complete zero recorded, paused, ended, unplaced date and unavailable source. Zero recorded does not assert that no real-world work happened.
 
 ### Requirement: REQ28-C23 — Revise targets without rewriting past meaning
@@ -4176,22 +4502,27 @@ Story: US28-C23. Source: coaching-resources.md. Decision basis: D23 target revis
 
 #### Scenario: AC28-C23-01
 
+- **GIVEN** story US28-C23: As a missionary, I want to change a target with a clear effective period, so that earlier comparisons remain understandable.
 - **THEN** A quantity edit offers current period only, future periods only or current and future periods with clear effective dates.
 
 #### Scenario: AC28-C23-02
 
+- **GIVEN** story US28-C23: As a missionary, I want to change a target with a clear effective period, so that earlier comparisons remain understandable.
 - **THEN** Closed periods retain the accepted quantity version. Corrections to actual source activity may still rederive the numerator without rewriting the historical target.
 
 #### Scenario: AC28-C23-03
 
+- **GIVEN** story US28-C23: As a missionary, I want to change a target with a clear effective period, so that earlier comparisons remain understandable.
 - **THEN** Measure, scope or calendar changes are prospective. The new schedule begins at the next complete period in the new calendar no earlier than the prior current period's end.
 
 #### Scenario: AC28-C23-04
 
+- **GIVEN** story US28-C23: As a missionary, I want to change a target with a clear effective period, so that earlier comparisons remain understandable.
 - **THEN** Any resulting untargeted gap is shown honestly. There is no overlapping target period, prorated bridge or silent backdated change.
 
 #### Scenario: AC28-C23-05
 
+- **GIVEN** story US28-C23: As a missionary, I want to change a target with a clear effective period, so that earlier comparisons remain understandable.
 - **THEN** Valid above-target counts remain visible. Progress is not capped to hide the actual qualified result.
 
 ### Requirement: REQ28-C24 — Pause and resume personal targets independently of recording
@@ -4204,22 +4535,27 @@ Story: US28-C24. Source: coaching-resources.md. Decision basis: D23 pause/resume
 
 #### Scenario: AC28-C24-01
 
+- **GIVEN** story US28-C24: As a missionary, I want to pause a target without losing my work, so that planning can adapt to my circumstances.
 - **THEN** Pause removes the active comparison and stops future target periods while actual recording and qualified history remain available under their own rules.
 
 #### Scenario: AC28-C24-02
 
+- **GIVEN** story US28-C24: As a missionary, I want to pause a target without losing my work, so that planning can adapt to my circumstances.
 - **THEN** Resume presents the applicable current/next period and its meaning before acceptance; it does not create overdue targets for the pause interval.
 
 #### Scenario: AC28-C24-03
 
+- **GIVEN** story US28-C24: As a missionary, I want to pause a target without losing my work, so that planning can adapt to my circumstances.
 - **THEN** A one-off target resumes only within its original still-valid range. An ended one-off offers Add another target rather than silently extending or reopening its old dates.
 
 #### Scenario: AC28-C24-04
 
+- **GIVEN** story US28-C24: As a missionary, I want to pause a target without losing my work, so that planning can adapt to my circumstances.
 - **THEN** The paused state explains its effect without implying that coaching access ended. Stopping a coaching inclusion remains a distinct action.
 
 #### Scenario: AC28-C24-05
 
+- **GIVEN** story US28-C24: As a missionary, I want to pause a target without losing my work, so that planning can adapt to my circumstances.
 - **THEN** Duplicate or conflicting pause/resume requests recover one source-ordered outcome and preserve the accepted period/version history.
 
 ### Requirement: REQ28-C25 — Deliberately include selected numeric activity summaries
@@ -4232,22 +4568,27 @@ Story: US28-C25. Source: coaching-resources.md. Decision basis: Ratified D24 exp
 
 #### Scenario: AC28-C25-01
 
+- **GIVEN** story US28-C25: As a missionary, I want to choose which numeric target summaries a coach can see, so that creating a personal target never shares it automatically.
 - **THEN** Review identifies the actual participant, canonical target lineage/measure, subject, first admitted period/calendar, named recipient and existing access duration.
 
 #### Scenario: AC28-C25-02
 
+- **GIVEN** story US28-C25: As a missionary, I want to choose which numeric target summaries a coach can see, so that creating a personal target never shares it automatically.
 - **THEN** The missionary's personal target label is marked Not shared in their selector and is omitted from the coach's projection. The shared measure retains its canonical understandable label.
 
 #### Scenario: AC28-C25-03
 
+- **GIVEN** story US28-C25: As a missionary, I want to choose which numeric target summaries a coach can see, so that creating a personal target never shares it automatically.
 - **THEN** Selecting numeric sharing grants no check-in text, task content, supporter information or underlying activity-row access.
 
 #### Scenario: AC28-C25-04
 
+- **GIVEN** story US28-C25: As a missionary, I want to choose which numeric target summaries a coach can see, so that creating a personal target never shares it automatically.
 - **THEN** One reviewed Save accepts the exact target inclusion. Missing permission, source qualification or current episode prevents inclusion without changing the personal target.
 
 #### Scenario: AC28-C25-05
 
+- **GIVEN** story US28-C25: As a missionary, I want to choose which numeric target summaries a coach can see, so that creating a personal target never shares it automatically.
 - **THEN** A newly created target, new coach or newly enabled module is not automatically included, and historic targets are not enrolled during migration.
 
 ### Requirement: REQ28-C26 — Continue only the selected activity target's admitted periods
@@ -4258,22 +4599,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-8b58c
 
 #### Scenario: AC28-C26-01
 
+- **GIVEN** story US28-C26: As a missionary sharing a recurring target, I want later periods to continue predictably, so that I do not repeatedly share the same target or accidentally expose earlier and different work.
 - **THEN** The review states the first admitted period and future-continuation behavior. Invitation acceptance after rollover does not reset that first-period boundary.
 
 #### Scenario: AC28-C26-02
 
+- **GIVEN** story US28-C26: As a missionary sharing a recurring target, I want later periods to continue predictably, so that I do not repeatedly share the same target or accidentally expose earlier and different work.
 - **THEN** Earlier periods, newly created targets and materially different target scope do not join the inclusion automatically. A one-off target admits its exact one-off period only.
 
 #### Scenario: AC28-C26-03
 
+- **GIVEN** story US28-C26: As a missionary sharing a recurring target, I want later periods to continue predictably, so that I do not repeatedly share the same target or accidentally expose earlier and different work.
 - **THEN** Routine quantity revisions and qualified actual-source corrections update the applicable admitted periods without another sharing approval.
 
 #### Scenario: AC28-C26-04
 
+- **GIVEN** story US28-C26: As a missionary sharing a recurring target, I want later periods to continue predictably, so that I do not repeatedly share the same target or accidentally expose earlier and different work.
 - **THEN** A new measure, participant, subject scope or calendar outside the approved profile requires new deliberate inclusion; it does not retarget the old permission.
 
 #### Scenario: AC28-C26-05
 
+- **GIVEN** story US28-C26: As a missionary sharing a recurring target, I want later periods to continue predictably, so that I do not repeatedly share the same target or accidentally expose earlier and different work.
 - **THEN** Target pause/end and sharing Stop remain distinct. The coach may still see admitted history while current sharing permits it, and the interface explains that distinction without promising indefinite retention.
 
 ### Requirement: REQ28-C27 — Show complete qualified activity comparisons without surveillance
@@ -4286,26 +4632,32 @@ Story: US28-C27. Source: coaching-resources.md. Decision basis: D24 comparison, 
 
 #### Scenario: AC28-C27-01
 
+- **GIVEN** story US28-C27: As a coach, I want a truthful numeric comparison, so that I can discuss progress without interpreting incomplete records as effort or gaining private activity details.
 - **THEN** Count and target agree on participant, subject, canonical measure, period, calendar and applicable version. Incompatible or incomplete inputs withhold the comparison.
 
 #### Scenario: AC28-C27-02
 
+- **GIVEN** story US28-C27: As a coach, I want a truthful numeric comparison, so that I can discuss progress without interpreting incomplete records as effort or gaining private activity details.
 - **THEN** The numeric projection excludes supporter identities, activity bodies, individual record links, private target edit history and unsafe geographic calendar labels.
 
 #### Scenario: AC28-C27-03
 
+- **GIVEN** story US28-C27: As a coach, I want a truthful numeric comparison, so that I can discuss progress without interpreting incomplete records as effort or gaining private activity details.
 - **THEN** Existing aggregate and inference rules apply jointly to retained periods, overlaps and repeated output. Suppressed values are not reconstructed through another displayed ratio or total.
 
 #### Scenario: AC28-C27-04
 
+- **GIVEN** story US28-C27: As a coach, I want a truthful numeric comparison, so that I can discuss progress without interpreting incomplete records as effort or gaining private activity details.
 - **THEN** Complete zero recorded is distinct from no target, paused, partial and unavailable. No label implies laziness, relationship quality or mandatory reporting.
 
 #### Scenario: AC28-C27-05
 
+- **GIVEN** story US28-C27: As a coach, I want a truthful numeric comparison, so that I can discuss progress without interpreting incomplete records as effort or gaining private activity details.
 - **THEN** The coach cannot edit targets or counters, drill into activities, export, assign work, rank missionaries or sum several people's progress into a score.
 
 #### Scenario: AC28-C27-06
 
+- **GIVEN** story US28-C27: As a coach, I want a truthful numeric comparison, so that I can discuss progress without interpreting incomplete records as effort or gaining private activity details.
 - **THEN** Stop removes this disclosure even when another draft is invalid. Module Off fences current/pending inclusion; re-enable requires fresh inclusion but not a redundant invitation to a still-valid coach.
 
 ### Requirement: REQ28-C28 — Offer a small optional question set
@@ -4318,22 +4670,27 @@ Story: US28-C28. Source: coaching-resources.md. Decision basis: Ratified D25 org
 
 #### Scenario: AC28-C28-01
 
+- **GIVEN** story US28-C28: As authorized staff, I want to offer a few optional questions, so that missionaries have useful prompts without a compulsory reporting form.
 - **THEN** Staff with the exact management capability can add, edit, retire and reorder questions, including keyboard-accessible Move up and Move down, and publish an attributed set through Save questions.
 
 #### Scenario: AC28-C28-02
 
+- **GIVEN** story US28-C28: As authorized staff, I want to offer a few optional questions, so that missionaries have useful prompts without a compulsory reporting form.
 - **THEN** Every question and answer remains optional. There is no required flag, rating, signature, attachment, branching rule, per-project exception or completion report.
 
 #### Scenario: AC28-C28-03
 
+- **GIVEN** story US28-C28: As authorized staff, I want to offer a few optional questions, so that missionaries have useful prompts without a compulsory reporting form.
 - **THEN** A set of zero questions leaves plain check-in writing available and does not withdraw already shared writing.
 
 #### Scenario: AC28-C28-04
 
+- **GIVEN** story US28-C28: As authorized staff, I want to offer a few optional questions, so that missionaries have useful prompts without a compulsory reporting form.
 - **THEN** Question administration grants no access to missionary responses. Management preview uses examples rather than private or shared check-in content without independent read authority.
 
 #### Scenario: AC28-C28-05
 
+- **GIVEN** story US28-C28: As authorized staff, I want to offer a few optional questions, so that missionaries have useful prompts without a compulsory reporting form.
 - **THEN** The interface supports at most five questions and 500 Unicode scalar values per question, shows actionable validation, and never truncates accepted input silently.
 
 ### Requirement: REQ28-C29 — Keep answers attached to the question actually presented
@@ -4346,22 +4703,27 @@ Story: US28-C29. Source: coaching-resources.md. Decision basis: D25 stable quest
 
 #### Scenario: AC28-C29-01
 
+- **GIVEN** story US28-C29: As a missionary, I want my answers to retain their original questions, so that staff edits cannot later change what my words appear to answer.
 - **THEN** Reordering or editing the organization's set while a missionary writes does not rebind existing answers by position or replace their captured wording.
 
 #### Scenario: AC28-C29-02
 
+- **GIVEN** story US28-C29: As a missionary, I want my answers to retain their original questions, so that staff edits cannot later change what my words appear to answer.
 - **THEN** A materially different question uses a new identity; existing answers are not silently recast as responses to the new meaning.
 
 #### Scenario: AC28-C29-03
 
+- **GIVEN** story US28-C29: As a missionary, I want my answers to retain their original questions, so that staff edits cannot later change what my words appear to answer.
 - **THEN** Retiring a question leaves the captured question with the applicable draft/shared answer, subject to independent safety and retention rules.
 
 #### Scenario: AC28-C29-04
 
+- **GIVEN** story US28-C29: As a missionary, I want my answers to retain their original questions, so that staff edits cannot later change what my words appear to answer.
 - **THEN** Write without questions can hide unused prompts while preserving any nonempty answers. It does not discard hidden text or publish it without review.
 
 #### Scenario: AC28-C29-05
 
+- **GIVEN** story US28-C29: As a missionary, I want my answers to retain their original questions, so that staff edits cannot later change what my words appear to answer.
 - **THEN** The share review and coach detail show the admitted captured wording associated with each answer rather than the latest organization prompt.
 
 ### Requirement: REQ28-C30 — Write and save a private working check-in
@@ -4372,22 +4734,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-709c0
 
 #### Scenario: AC28-C30-01
 
+- **GIVEN** story US28-C30: As a missionary, I want to prepare a check-in privately, so that I can think before deciding whether to share it.
 - **THEN** A missionary can write with no configured questions and no current coach. The interface does not convert the draft into a donor interaction, task or activity count.
 
 #### Scenario: AC28-C30-02
 
+- **GIVEN** story US28-C30: As a missionary, I want to prepare a check-in privately, so that I can think before deciding whether to share it.
 - **THEN** Autosave distinguishes Saving, Draft saved and Not saved according to acknowledged persistence. It never describes an unacknowledged browser copy as saved.
 
 #### Scenario: AC28-C30-03
 
+- **GIVEN** story US28-C30: As a missionary, I want to prepare a check-in privately, so that I can think before deciding whether to share it.
 - **THEN** Out-of-order requests and multi-device edits do not silently overwrite newer accepted text. A conflict preserves safe input and offers the actual recovery choice.
 
 #### Scenario: AC28-C30-04
 
+- **GIVEN** story US28-C30: As a missionary, I want to prepare a check-in privately, so that I can think before deciding whether to share it.
 - **THEN** Weak-network recovery can preserve permitted in-memory input but does not promise private offline storage. Sign-out or a change of user/tenant clears protected display and pending browser work under the common rules.
 
 #### Scenario: AC28-C30-05
 
+- **GIVEN** story US28-C30: As a missionary, I want to prepare a check-in privately, so that I can think before deciding whether to share it.
 - **THEN** Guidance clearly distinguishes unshared preparation from absolute secrecy and discourages restricted care, donor and location content; it does not claim perfect automatic detection of sensitive prose.
 
 ### Requirement: REQ28-C31 — Review and share one exact check-in version
@@ -4400,22 +4767,27 @@ Story: US28-C31. Source: coaching-resources.md. Decision basis: D25 publication 
 
 #### Scenario: AC28-C31-01
 
+- **GIVEN** story US28-C31: As a missionary, I want to review the exact writing and audience before sharing, so that autosave and Share cannot be confused.
 - **THEN** The review shows the exact nonempty answers/freeform text, their captured questions, named eligible coaches, context and applicable access duration.
 
 #### Scenario: AC28-C31-02
 
+- **GIVEN** story US28-C31: As a missionary, I want to review the exact writing and audience before sharing, so that autosave and Share cannot be confused.
 - **THEN** Draft autosave never publishes. The deliberate Share action is visibly distinct from private saving and reports its own durable outcome.
 
 #### Scenario: AC28-C31-03
 
+- **GIVEN** story US28-C31: As a missionary, I want to review the exact writing and audience before sharing, so that autosave and Share cannot be confused.
 - **THEN** If content, audience eligibility or material authority changes before acceptance, the user receives refreshed review rather than a silently changed or partially published recipient set.
 
 #### Scenario: AC28-C31-04
 
+- **GIVEN** story US28-C31: As a missionary, I want to review the exact writing and audience before sharing, so that autosave and Share cannot be confused.
 - **THEN** Share creates one current shared version with an explicit audience. It creates no email, notification send, task, activity count, donor interaction or implied coach assent.
 
 #### Scenario: AC28-C31-05
 
+- **GIVEN** story US28-C31: As a missionary, I want to review the exact writing and audience before sharing, so that autosave and Share cannot be confused.
 - **THEN** An interrupted response recovers the same accepted publication. Global body-hash deduplication does not collapse separate legitimate check-ins with identical wording.
 
 ### Requirement: REQ28-C32 — Revise or withdraw check-ins without hidden disclosure
@@ -4428,26 +4800,32 @@ Story: US28-C32. Source: coaching-resources.md. Decision basis: D25 one-current-
 
 #### Scenario: AC28-C32-01
 
+- **GIVEN** story US28-C32: As a missionary, I want edits to remain private until I update the shared version, so that a working revision cannot surprise my coach.
 - **THEN** The author can identify private draft changes and the currently shared version. The coach receives no draft diff or private revision archive.
 
 #### Scenario: AC28-C32-02
 
+- **GIVEN** story US28-C32: As a missionary, I want edits to remain private until I update the shared version, so that a working revision cannot surprise my coach.
 - **THEN** Updating deliberately replaces the current shared revision for its exact reviewed audience; different wording for different audiences uses separate check-ins rather than per-answer permissions or content branches.
 
 #### Scenario: AC28-C32-03
 
+- **GIVEN** story US28-C32: As a missionary, I want edits to remain private until I update the shared version, so that a working revision cannot surprise my coach.
 - **THEN** Removing recipients or Stop works even when a private draft is invalid. Removing the final recipient uses the same Stop meaning and ends this publication's future access.
 
 #### Scenario: AC28-C32-04
 
+- **GIVEN** story US28-C32: As a missionary, I want edits to remain private until I update the shared version, so that a working revision cannot surprise my coach.
 - **THEN** New coaches, new invitations and re-enabled narrative sharing do not inherit previous writing. Fresh deliberate sharing is required under current permissions.
 
 #### Scenario: AC28-C32-05
 
+- **GIVEN** story US28-C32: As a missionary, I want edits to remain private until I update the shared version, so that a working revision cannot surprise my coach.
 - **THEN** Narrative-sharing Off fences its affected current and pending releases. Emptying the question set alone does not disable writing or withdraw publications.
 
 #### Scenario: AC28-C32-06
 
+- **GIVEN** story US28-C32: As a missionary, I want edits to remain private until I update the shared version, so that a working revision cannot surprise my coach.
 - **THEN** A lost Stop/Update response is recoverable without republishing old text, restoring removed recipients or exposing text that is no longer authorized.
 
 ### Requirement: REQ28-C33 — Read bounded plain-text check-ins accessibly
@@ -4460,26 +4838,32 @@ Story: US28-C33. Source: coaching-resources.md. Decision basis: D25 narrative pr
 
 #### Scenario: AC28-C33-01
 
+- **GIVEN** story US28-C33: As a coach, I want readable shared check-ins with clear limits and states, so that I can prepare without seeing private writing or struggling on a weak connection.
 - **THEN** The list presents admitted date, author and an Updated indicator where applicable; detail presents the admitted shared/updated time and captured question headings. It includes no private draft, skipped-answer count, body snippet across the portfolio, historical version archive or raw source link. No check-ins shared is neutral and distinguishable safely from unavailable information.
 
 #### Scenario: AC28-C33-02
 
+- **GIVEN** story US28-C33: As a coach, I want readable shared check-ins with clear limits and states, so that I can prepare without seeing private writing or struggling on a weak connection.
 - **THEN** Each answer and freeform response accepts at most 4,000 Unicode scalar values; the encoded request cap is 256 KiB. Metadata pagination defaults to 25 and caps each page at 100, without treating that page cap as the total accessible history.
 
 #### Scenario: AC28-C33-03
 
+- **GIVEN** story US28-C33: As a coach, I want readable shared check-ins with clear limits and states, so that I can prepare without seeing private writing or struggling on a weak connection.
 - **THEN** Client and server count the same units, including emoji, combining input and input-method composition. Near-limit guidance is useful and does not interrupt every keystroke; content is never silently truncated.
 
 #### Scenario: AC28-C33-04
 
+- **GIVEN** story US28-C33: As a coach, I want readable shared check-ins with clear limits and states, so that I can prepare without seeing private writing or struggling on a weak connection.
 - **THEN** Shared text is escaped plain text with meaningful line breaks. HTML, embedded media, attachments and remote URL previews are not introduced by check-in writing.
 
 #### Scenario: AC28-C33-05
 
+- **GIVEN** story US28-C33: As a coach, I want readable shared check-ins with clear limits and states, so that I can prepare without seeing private writing or struggling on a weak connection.
 - **THEN** Later narrower input limits do not make previously accepted text unreadable. Finite source-owned schedules for abandoned drafts, accepted revisions and evidence must be qualified before activation; no new universal retention number is implied.
 
 #### Scenario: AC28-C33-06
 
+- **GIVEN** story US28-C33: As a coach, I want readable shared check-ins with clear limits and states, so that I can prepare without seeing private writing or struggling on a weak connection.
 - **THEN** Loading, empty, failure, ended access and retry states work with keyboard, screen reader, reflow and low bandwidth without relying on color or a transient toast.
 
 ### Requirement: REQ28-C34 — Select one existing next step for coaching
@@ -4492,22 +4876,27 @@ Story: US28-C34. Source: coaching-resources.md. Decision basis: Ratified D26 sel
 
 #### Scenario: AC28-C34-01
 
+- **GIVEN** story US28-C34: As a missionary, I want to share a selected next step from my existing tasks, so that my coach sees what I intend to do without creating a duplicate task.
 - **THEN** The picker searches only eligible tasks in the current admitted subject/context before counts and results. It does not expose a global task finder or hidden titles.
 
 #### Scenario: AC28-C34-02
 
+- **GIVEN** story US28-C34: As a missionary, I want to share a selected next step from my existing tasks, so that my coach sees what I intend to do without creating a duplicate task.
 - **THEN** Independent follow-up and source-controlled kinds are available only when their exact minimal projection is qualified. Unknown kinds remain withheld while ordinary task work continues independently.
 
 #### Scenario: AC28-C34-03
 
+- **GIVEN** story US28-C34: As a missionary, I want to share a selected next step from my existing tasks, so that my coach sees what I intend to do without creating a duplicate task.
 - **THEN** One review identifies one exact task occurrence, explicit eligible recipients, safe context and the existing access duration. It does not preselect all or future coaches.
 
 #### Scenario: AC28-C34-04
 
+- **GIVEN** story US28-C34: As a missionary, I want to share a selected next step from my existing tasks, so that my coach sees what I intend to do without creating a duplicate task.
 - **THEN** The accepted action adds the entire reviewed eligible recipient set atomically. It introduces no second task, duplicate source deadline, extra expiry picker or invented approval queue.
 
 #### Scenario: AC28-C34-05
 
+- **GIVEN** story US28-C34: As a missionary, I want to share a selected next step from my existing tasks, so that my coach sees what I intend to do without creating a duplicate task.
 - **THEN** Creating a task, adding a coach or enabling the module does not automatically share existing or future tasks.
 
 ### Requirement: REQ28-C35 — Share a minimal approved task description with live facts
@@ -4518,26 +4907,32 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-a30bb
 
 #### Scenario: AC28-C35-01
 
+- **GIVEN** story US28-C35: As a missionary, I want to approve a short safe description while the real due date and status stay current, so that the coach receives useful context without private task details.
 - **THEN** Raw private title/body, supporter information, source record IDs/URLs, attachments, other assignees, private notes, money and task history are excluded.
 
 #### Scenario: AC28-C35-02
 
+- **GIVEN** story US28-C35: As a missionary, I want to approve a short safe description while the real due date and status stay current, so that the coach receives useful context without private task details.
 - **THEN** A safe title can prefill the description only when the source qualifies that disclosure. Manually paraphrasing protected material does not bypass its restrictions.
 
 #### Scenario: AC28-C35-03
 
+- **GIVEN** story US28-C35: As a missionary, I want to approve a short safe description while the real due date and status stay current, so that the coach receives useful context without private task details.
 - **THEN** The approved description accepts at most 240 Unicode code points, with consistent accessible input validation and no silent truncation.
 
 #### Scenario: AC28-C35-04
 
+- **GIVEN** story US28-C35: As a missionary, I want to approve a short safe description while the real due date and status stay current, so that the coach receives useful context without private task details.
 - **THEN** Summary and picker pages default to 25 and cap each page at 100; every currently eligible item remains traversable without a total-workspace truncation claim.
 
 #### Scenario: AC28-C35-05
 
+- **GIVEN** story US28-C35: As a missionary, I want to approve a short safe description while the real due date and status stay current, so that the coach receives useful context without private task details.
 - **THEN** Changes to authoritative due value or status update the admitted summary without a separately writable coaching copy or a new disclosure review when nothing meaning-bearing or eligibility-related changed.
 
 #### Scenario: AC28-C35-06
 
+- **GIVEN** story US28-C35: As a missionary, I want to approve a short safe description while the real due date and status stay current, so that the coach receives useful context without private task details.
 - **THEN** Entry, focus and explicit refresh obtain a freshly authorized source result through the existing query pattern. The feature does not promise instant push delivery or add a new real-time subscription; previously viewed bytes cannot be recalled from an open tab.
 
 ### Requirement: REQ28-C36 — Re-review task meaning when it changes
@@ -4550,22 +4945,27 @@ Story: US28-C36. Source: coaching-resources.md. Decision basis: D26 meaning-revi
 
 #### Scenario: AC28-C36-01
 
+- **GIVEN** story US28-C36: As a missionary, I want changed task meaning to require a new safe description, so that an earlier review cannot expose newly sensitive work.
 - **THEN** After a meaning revision, the previously approved summary is withheld until a new qualified review; restoring the former text does not restore the old approval.
 
 #### Scenario: AC28-C36-02
 
+- **GIVEN** story US28-C36: As a missionary, I want changed task meaning to require a new safe description, so that an earlier review cannot expose newly sensitive work.
 - **THEN** A subject, responsibility or classification change requalifies eligibility and cannot retarget an old share to a different task/context.
 
 #### Scenario: AC28-C36-03
 
+- **GIVEN** story US28-C36: As a missionary, I want changed task meaning to require a new safe description, so that an earlier review cannot expose newly sensitive work.
 - **THEN** A due/status-only change does not prompt needless re-sharing while the task and projection remain eligible. A private note edit does not invalidate solely because it is an edit, unless it changes eligibility under the owner contract.
 
 #### Scenario: AC28-C36-04
 
+- **GIVEN** story US28-C36: As a missionary, I want changed task meaning to require a new safe description, so that an earlier review cannot expose newly sensitive work.
 - **THEN** The missionary receives a clear actionable review state without leaking new private meaning to the coach. The coach sees a safe unavailable state rather than the stale approved description.
 
 #### Scenario: AC28-C36-05
 
+- **GIVEN** story US28-C36: As a missionary, I want changed task meaning to require a new safe description, so that an earlier review cannot expose newly sensitive work.
 - **THEN** Concurrent edit/review/Stop requests cannot release a descriptor approved for an earlier meaning after that approval is invalidated.
 
 ### Requirement: REQ28-C37 — Preserve task lifecycle without granting coaching control
@@ -4578,22 +4978,27 @@ Story: US28-C37. Source: coaching-resources.md. Decision basis: D26 task occurre
 
 #### Scenario: AC28-C37-01
 
+- **GIVEN** story US28-C37: As a coach, I want next-step status to retain its real meaning, so that I do not mistake task completion for an interaction, payment or message being completed.
 - **THEN** Completed and cancelled are distinct. Neither is automatically proof of a sent message, real interaction, financial receipt or satisfied commitment.
 
 #### Scenario: AC28-C37-02
 
+- **GIVEN** story US28-C37: As a coach, I want next-step status to retain its real meaning, so that I do not mistake task completion for an interaction, payment or message being completed.
 - **THEN** An Independent task may reopen the same occurrence only under its source contract. A source-controlled predecessor is not reopened; its replacement, recurrence or successor requires fresh selection.
 
 #### Scenario: AC28-C37-03
 
+- **GIVEN** story US28-C37: As a coach, I want next-step status to retain its real meaning, so that I do not mistake task completion for an interaction, payment or message being completed.
 - **THEN** The coach has no mutation, commenting, assigning, reminding, completing, reopening, exporting, raw drilldown or calendar/email publication action through the summary.
 
 #### Scenario: AC28-C37-04
 
+- **GIVEN** story US28-C37: As a coach, I want next-step status to retain its real meaning, so that I do not mistake task completion for an interaction, payment or message being completed.
 - **THEN** Stop sharing leaves the real task intact. Expiry and module Off fence the summary's current/pending disclosures; re-enable requires fresh sharing without a redundant invitation to a valid coach.
 
 #### Scenario: AC28-C37-05
 
+- **GIVEN** story US28-C37: As a coach, I want next-step status to retain its real meaning, so that I do not mistake task completion for an interaction, payment or message being completed.
 - **THEN** A denied source fetch is never represented as empty, completed or cancelled. Retry recovers the actual admitted source outcome without duplicating inclusion.
 
 ### Requirement: REQ28-C38 — Find useful organization resources
@@ -4604,42 +5009,52 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-952c4
 
 #### Scenario: AC28-C38-01
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Search, filters, counts, thumbnails and pagination include only current authorized publications before enumeration, including when a saved search or old link is reopened.
 
 #### Scenario: AC28-C38-02
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Open and Download accurately identify their effects and their resource. No forced preview dialog, autoplay or whole-file prefetch is required to browse the library.
 
 #### Scenario: AC28-C38-03
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Returning from a resource preserves search/filter/list position where safe, while rechecking current access.
 
 #### Scenario: AC28-C38-04
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** No available resources, no matching results, a load failure with Retry and an unavailable old link have distinct safe states. Hidden resource names are not disclosed, and the flow does not invent a request-access queue.
 
 #### Scenario: AC28-C38-05
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** External resources use the qualified resource destination contract and identify the destination honestly. Library removal does not claim to erase an external site or recall a public URL.
 
 #### Scenario: AC28-C38-06
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Reading or opening a resource creates no completion record, course credit, coaching disclosure, subscription or automatic task. Ordinary missionaries are readers rather than content submitters.
 
 #### Scenario: AC28-C38-07
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Staff Resources uses the current qualified staff-resource purpose in the existing staff experience; missionary readership remains independent. No curator, missionary profile, fabricated Party, Support ticket or Support-read privilege is required solely for qualified staff resource reading. Dual-context people receive only current-context results. Support D27-C authored Staff guides retain their distinct owner and ticket-free Support-read consultation.
 
 #### Scenario: AC28-C38-08
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Eligible resources remain available after an advisory review target passes, with truthful Review due/current-plan/applicable-actual-review/unknown states. Actual rights, safety and withdrawal still govern. Record review, Change review date and factual correction follow REQ29-C80–C86; no generic Publish/Save invents review or recurring cadence.
 
 #### Scenario: AC28-C38-09
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Report a problem and Your reports follow REQ29-C95–C102 and the explicit staff report-purpose adoption in REQ29-C107. Body failure need not block a source-qualified metadata-based report. Own report-purpose return is distinct from resource access; Open/Handled/Withdrawn, editor/restoration and curator correction/handling require their actual current powers, without chat, new notice or other-reader disclosure.
 
 #### Scenario: AC28-C38-10
 
+- **GIVEN** story US28-C38: As a qualified missionary or staff reader, I want a simple resource library, so that I can quickly find material my organization has approved for my current context.
 - **THEN** Optional Save for later/Remove from saved follows REQ29-C110–C115. A private reference resolves only the same publication's current authorized head; it is not a byte copy, hold, subscription or completion fact. Known unavailable resource, unknown evaluation and denied own-purpose are distinct; permitted own Remove remains independent of resource reading, and removed preferences do not revive through restore.
 
 ### Requirement: REQ28-C39 — Curate and publish resources intentionally
@@ -4650,34 +5065,42 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-7b2e0
 
 #### Scenario: AC28-C39-01
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** Prepare, unpublished, published and withdrawn publication states remain distinct from file processing or quarantine. Uploading, scanning or placing a file in a folder does not publish it.
 
 #### Scenario: AC28-C39-02
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** Publish/correct/replace validates current authority, exact organization/audience, approved immutable content version, content safety and applicable rights before accepting the reviewed publication.
 
 #### Scenario: AC28-C39-03
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** A newer file at a familiar path does not replace published content automatically. Publication binds the exact admitted version.
 
 #### Scenario: AC28-C39-04
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** A failed replacement leaves the earlier publication available only if it independently remains safe and authorized. Failure does not silently publish an unreviewed alternate version.
 
 #### Scenario: AC28-C39-05
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** Ordinary qualified curation adds no routine extra moderator. Existing actual safety, policy and rights approvals retain their owning requirements.
 
 #### Scenario: AC28-C39-06
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** Accessible source content is part of acceptance: unusable reading order, missing required captions or absent necessary alternatives are not cured merely by accessible library chrome.
 
 #### Scenario: AC28-C39-07
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** Audience changes require review of the complete affected scope and one deliberate current command; no implicit Both, hidden-family omission, membership enumeration or broad role grant. Draft may have no audience; published empty declared set is not allowed. Zero currently eligible people in a declared family does not automatically withdraw the publication.
 
 #### Scenario: AC28-C39-08
 
+- **GIVEN** story US28-C39: As an authorized resource curator, I want to prepare, review and publish material, so that the library contains intentional and current guidance.
 - **THEN** Separate preparation may reuse only actual permitted fields/exact content, never reviews/reports/approval/grants/history. New publication and old narrowing are separate deliberate recoverable acts, without atomic Split, synchronization or delay of urgent restriction. Shared replacement applies to the one shared edition; review applicability is reevaluated against content/audience/purpose, without false inherited Last reviewed or forced new review target.
 
 ### Requirement: REQ28-C40 — Withdraw resources through current custody and audience controls
@@ -4688,34 +5111,42 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-81f23
 
 #### Scenario: AC28-C40-01
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** Withdrawal wins over stale replacement/retry. A later publication is a deliberate currently authorized action rather than resurrection through an old command or restore.
 
 #### Scenario: AC28-C40-02
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** Metadata, curatorial drafts and content retrieval have their own admitted audiences. Possession of a storage key or previously visible title does not authorize a new retrieval.
 
 #### Scenario: AC28-C40-03
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** The private retrieval path enforces the actual current requester/source boundary through its delivery infrastructure. Signed URL naming, token rotation or client hiding alone is not accepted as proof of cutoff.
 
 #### Scenario: AC28-C40-04
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** Unknown legacy ownership, classification or publication state remains unadmitted until qualified. A content import cannot manufacture publication authority.
 
 #### Scenario: AC28-C40-05
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** Search results, thumbnails, accessible labels, caches, byte delivery and deferred work cannot disclose withdrawn content through a broader path.
 
 #### Scenario: AC28-C40-06
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** The solution reuses resource publication and custody owners without introducing another storage system, CMS, content-policy engine or speculative full-body/AI search service.
 
 #### Scenario: AC28-C40-07
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** Removing the final declared family offers explicit whole-publication Withdraw and leaves current publication unchanged until that act commits. Withdraw validates its own current authority/basis independently of unrelated invalid or unsaved draft fields, preserving draft safely. Removing one family, whole withdrawal, temporary reader denial and byte deletion remain distinct.
 
 #### Scenario: AC28-C40-08
 
+- **GIVEN** story US28-C40: As a curator, I want withdrawal to stop new library access reliably, so that outdated or unsafe material cannot remain available through stale navigation or download paths.
 - **THEN** Re-add/reoffer is fresh current admission, never stale retry/backup revival. Independent report-purpose maintenance and permitted personal-reference cleanup remain separately governed. Real scoped protection/stewardship recovery remains available without a full-scope editing bypass, automatic old-audience restoration or compulsory re-upload of lawful retained content.
 
 ### Requirement: REQ28-C41 — Discover, skip and return to an optional starting guide
@@ -4728,22 +5159,27 @@ Story: US28-C41. Source: coaching-resources.md. Decision basis: Ratified D37 opt
 
 #### Scenario: AC28-C41-01
 
+- **GIVEN** story US28-C41: As a missionary, I want an optional starting guide I can use in any order, skip and revisit, so that guidance supports my work without becoming a gate.
 - **THEN** The guide states that its suggestions are optional and can be used in any order. It adds no completion/acknowledgment gate, required method, reporting cadence, badge, score, due date or timed course.
 
 #### Scenario: AC28-C41-02
 
+- **GIVEN** story US28-C41: As a missionary, I want an optional starting guide I can use in any order, skip and revisit, so that guidance supports my work without becoming a gate.
 - **THEN** A quiet Home invitation can be hidden and restored. Dismissal is an exact user-by-organization presentation preference that survives routine revisions and re-offering.
 
 #### Scenario: AC28-C41-03
 
+- **GIVEN** story US28-C41: As a missionary, I want an optional starting guide I can use in any order, skip and revisit, so that guidance supports my work without becoming a gate.
 - **THEN** Hiding the invitation does not hide the stable Resources destination. The preference does not become staff or coach progress evidence.
 
 #### Scenario: AC28-C41-04
 
+- **GIVEN** story US28-C41: As a missionary, I want an optional starting guide I can use in any order, skip and revisit, so that guidance supports my work without becoming a gate.
 - **THEN** A disabled or unavailable guide does not trap the missionary in onboarding or block independently qualified tasks, resources, coaching or ordinary workspace work.
 
 #### Scenario: AC28-C41-05
 
+- **GIVEN** story US28-C41: As a missionary, I want an optional starting guide I can use in any order, skip and revisit, so that guidance supports my work without becoming a gate.
 - **THEN** Opening the guide or reading a suggestion does not record an interaction, task completion, gift, subscription, coaching assignment or communication send.
 
 ### Requirement: REQ28-C42 — Author one practical organization guide
@@ -4756,22 +5192,27 @@ Story: US28-C42. Source: coaching-resources.md. Decision basis: D37 authored pro
 
 #### Scenario: AC28-C42-01
 
+- **GIVEN** story US28-C42: As authorized staff, I want to edit the organization's suggestions easily, so that guidance stays relevant without maintaining a course platform.
 - **THEN** A suggestion may be useful advice alone, with at most one approved resource reference and at most one registered existing workspace entry.
 
 #### Scenario: AC28-C42-02
 
+- **GIVEN** story US28-C42: As authorized staff, I want to edit the organization's suggestions easily, so that guidance stays relevant without maintaining a course platform.
 - **THEN** The editor does not accept arbitrary internal routes, record IDs, commands, executable markup or a second guide-owned external-link catalog. Commercial or restricted curriculum requires applicable rights rather than copied content by default.
 
 #### Scenario: AC28-C42-03
 
+- **GIVEN** story US28-C42: As authorized staff, I want to edit the organization's suggestions easily, so that guidance stays relevant without maintaining a course platform.
 - **THEN** Reordering works with keyboard and touch Move up/Move down controls; drag may supplement them but is not the sole method.
 
 #### Scenario: AC28-C42-04
 
+- **GIVEN** story US28-C42: As authorized staff, I want to edit the organization's suggestions easily, so that guidance stays relevant without maintaining a course platform.
 - **THEN** Save draft preserves working changes without changing the offered guide. Preview is clearly labeled and uses the real renderer without impersonating a missionary or treating curator read access as audience permission.
 
 #### Scenario: AC28-C42-05
 
+- **GIVEN** story US28-C42: As authorized staff, I want to edit the organization's suggestions easily, so that guidance stays relevant without maintaining a course platform.
 - **THEN** Publication requires at least one nonempty audience-safe suggestion. It requires no minimum number of links and adds no mandatory mode, multiple curricula, per-person exceptions or progress analytics.
 
 ### Requirement: REQ28-C43 — Publish a coherent guide revision
@@ -4784,22 +5225,27 @@ Story: US28-C43. Source: coaching-resources.md. Decision basis: D37 publication,
 
 #### Scenario: AC28-C43-01
 
+- **GIVEN** story US28-C43: As a guide curator, I want Publish to offer exactly the version I reviewed, so that missionaries never receive mixed or accidental draft content.
 - **THEN** Not offered, Available and Disabled are distinguishable from the presence of unpublished draft changes. A successful draft save is never reported as publication.
 
 #### Scenario: AC28-C43-02
 
+- **GIVEN** story US28-C43: As a guide curator, I want Publish to offer exactly the version I reviewed, so that missionaries never receive mixed or accidental draft content.
 - **THEN** A reader receives one complete admitted revision, not mixed old/draft/new title, advice or references.
 
 #### Scenario: AC28-C43-03
 
+- **GIVEN** story US28-C43: As a guide curator, I want Publish to offer exactly the version I reviewed, so that missionaries never receive mixed or accidental draft content.
 - **THEN** A version conflict preserves safe editor input and requires the appropriate refreshed review. A failed replacement preserves the old release only if it remains independently valid.
 
 #### Scenario: AC28-C43-04
 
+- **GIVEN** story US28-C43: As a guide curator, I want Publish to offer exactly the version I reviewed, so that missionaries never receive mixed or accidental draft content.
 - **THEN** Required publication evidence and the authoritative effect succeed together. If the required audit cannot be retained, publication does not report success.
 
 #### Scenario: AC28-C43-05
 
+- **GIVEN** story US28-C43: As a guide curator, I want Publish to offer exactly the version I reviewed, so that missionaries never receive mixed or accidental draft content.
 - **THEN** A lost response recovers one accepted publication without duplicating or applying an old revision over a newer Disable or publication.
 
 ### Requirement: REQ28-C44 — Resolve guide links through their existing owners
@@ -4812,26 +5258,32 @@ Story: US28-C44. Source: coaching-resources.md. Decision basis: D37 bounded reso
 
 #### Scenario: AC28-C44-01
 
+- **GIVEN** story US28-C44: As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
 - **THEN** Current reader permission is applied before link labels, URLs, counts and numbering. An inaccessible destination does not leak its title or existence through a numbered gap.
 
 #### Scenario: AC28-C44-02
 
+- **GIVEN** story US28-C44: As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
 - **THEN** Independently safe advice may remain when its link is withdrawn. If safe separation cannot be proved, the affected suggestion is withheld rather than leaving unsafe dependent wording.
 
 #### Scenario: AC28-C44-03
 
+- **GIVEN** story US28-C44: As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
 - **THEN** Following a workspace entry opens its ordinary authorized journey. Rendering, prefetching or opening the guide does not execute the destination's mutation or communication.
 
 #### Scenario: AC28-C44-04
 
+- **GIVEN** story US28-C44: As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
 - **THEN** Withdrawn/invalid references produce one actionable maintenance notice for an authorized curator in existing management. They do not generate missionary nags, fabricated replacement links or a new support queue.
 
 #### Scenario: AC28-C44-05
 
+- **GIVEN** story US28-C44: As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
 - **THEN** The guide and its dependencies are checked on new protected release; a cached rendered revision cannot continue exposing a destination after its current source permission is lost.
 
 #### Scenario: AC28-C44-06
 
+- **GIVEN** story US28-C44: As a missionary, I want each guide suggestion to lead to a real permitted resource or workspace action, so that guidance stays useful and never exposes hidden material.
 - **THEN** Advisory Review due alone neither invalidates a guide reference nor produces a maintenance notice. Actual source-invalid references retain the existing maintenance contract. A separate publication/successor hint never silently moves a personal save or grants new resource/report access.
 
 ### Requirement: REQ28-C45 — Disable and re-offer guidance without losing independent work
@@ -4844,22 +5296,27 @@ Story: US28-C45. Source: coaching-resources.md. Decision basis: D37 Disable/Offe
 
 #### Scenario: AC28-C45-01
 
+- **GIVEN** story US28-C45: As a guide curator, I want to stop offering guidance and later re-offer a reviewed version, so that I can maintain it safely without disrupting missionary work.
 - **THEN** Disable remains available despite an invalid draft and fences new guide releases, including stale cache responses and delayed publication work.
 
 #### Scenario: AC28-C45-02
 
+- **GIVEN** story US28-C45: As a guide curator, I want to stop offering guidance and later re-offer a reviewed version, so that I can maintain it safely without disrupting missionary work.
 - **THEN** Disabling does not delete independent resources, tasks, check-ins, user work or required source history.
 
 #### Scenario: AC28-C45-03
 
+- **GIVEN** story US28-C45: As a guide curator, I want to stop offering guidance and later re-offer a reviewed version, so that I can maintain it safely without disrupting missionary work.
 - **THEN** Offer revalidates the exact reviewed version and its references. An invalid draft does not silently cause a different retained version to be offered instead.
 
 #### Scenario: AC28-C45-04
 
+- **GIVEN** story US28-C45: As a guide curator, I want to stop offering guidance and later re-offer a reviewed version, so that I can maintain it safely without disrupting missionary work.
 - **THEN** Old commands, restored data or retry cannot defeat a later Disable or erasure. A new Offer is distinguishable from recovery of an earlier accepted command.
 
 #### Scenario: AC28-C45-05
 
+- **GIVEN** story US28-C45: As a guide curator, I want to stop offering guidance and later re-offer a reviewed version, so that I can maintain it safely without disrupting missionary work.
 - **THEN** Re-offering preserves the missionary's Home dismissal preference; it does not force an onboarding experience or imply required completion.
 
 ### Requirement: REQ28-C46 — Enable regional discovery deliberately with one control
@@ -4870,22 +5327,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-74f59
 
 #### Scenario: AC28-C46-01
 
+- **GIVEN** story US28-C46: As authorized organization staff, I want one clear regional-discovery control, so that we can offer the list and map deliberately without changing public publication.
 - **THEN** One setting controls both Phase 28 regional list and map views. It does not alter public Page visibility, the public directory, resources, other tenants or other map consumers.
 
 #### Scenario: AC28-C46-02
 
+- **GIVEN** story US28-C46: As authorized organization staff, I want one clear regional-discovery control, so that we can offer the list and map deliberately without changing public publication.
 - **THEN** On consumes only the current qualified source corpus and grants no new publication, location or access right. Saved On with unavailable source qualification still denies unsafe release and explains the actual safe setup state.
 
 #### Scenario: AC28-C46-03
 
+- **GIVEN** story US28-C46: As authorized organization staff, I want one clear regional-discovery control, so that we can offer the list and map deliberately without changing public publication.
 - **THEN** Off removes discovery entry points and blocks server release for this consumer, including stale caches and delayed responses. Re-enable recomputes current eligibility rather than reviving an old corpus.
 
 #### Scenario: AC28-C46-04
 
+- **GIVEN** story US28-C46: As authorized organization staff, I want one clear regional-discovery control, so that we can offer the list and map deliberately without changing public publication.
 - **THEN** Save derives organization/actor from trusted context, checks the expected revision, retains required evidence and offers authoritative readback. A stale On request cannot undo a newer Off.
 
 #### Scenario: AC28-C46-05
 
+- **GIVEN** story US28-C46: As authorized organization staff, I want one clear regional-discovery control, so that we can offer the list and map deliberately without changing public publication.
 - **THEN** The interface distinguishes Off, missing setup, denied management permission and source/renderer failure. It adds no per-region switch, personal exception, device-location request or policy matrix.
 
 ### Requirement: REQ28-C47 — Use one safe published corpus for regional browsing
@@ -4896,22 +5358,27 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-1925a
 
 #### Scenario: AC28-C47-01
 
+- **GIVEN** story US28-C47: As a missionary, I want regional browsing to contain only approved public ministry information, so that exploration cannot reveal private people or locations.
 - **THEN** No arbitrary default Site, cross-organization join or cross-locale fallback widens the corpus. Hidden and Shared-by-link entries contribute no regional totals, ordering or visible regions.
 
 #### Scenario: AC28-C47-02
 
+- **GIVEN** story US28-C47: As a missionary, I want regional browsing to contain only approved public ministry information, so that exploration cannot reveal private people or locations.
 - **THEN** Approved broad-region mapping and geometry are admitted server-side before labels, counts, shapes, accessibility text, URLs or provider requests.
 
 #### Scenario: AC28-C47-03
 
+- **GIVEN** story US28-C47: As a missionary, I want regional browsing to contain only approved public ministry information, so that exploration cannot reveal private people or locations.
 - **THEN** The browser receives no raw private coordinates for rounding; internal addresses are not geocoded, device location is not requested, and invented centroid pins do not imply a person's actual location.
 
 #### Scenario: AC28-C47-04
 
+- **GIVEN** story US28-C47: As a missionary, I want regional browsing to contain only approved public ministry information, so that exploration cannot reveal private people or locations.
 - **THEN** An unknown region has no sensitive-location fallback. Otherwise admitted unmappable entries remain useful in the applicable list-only presentation without a fabricated map position.
 
 #### Scenario: AC28-C47-05
 
+- **GIVEN** story US28-C47: As a missionary, I want regional browsing to contain only approved public ministry information, so that exploration cannot reveal private people or locations.
 - **THEN** Withdrawal, source restriction, Site/locale change and organization Off invalidate the affected output before new release. Counts and accessible labels cannot preserve excluded identities.
 
 ### Requirement: REQ28-C48 — Explore regions with a complete list and usable map
@@ -4924,26 +5391,32 @@ Story: US28-C48. Source: coaching-resources.md. Decision basis: D13 selected lis
 
 #### Scenario: AC28-C48-01
 
+- **GIVEN** story US28-C48: As a missionary, I want to explore approved ministries using a list or a world map, so that I can use the view that works for my device and accessibility needs.
 - **THEN** Changing the selected broad region updates both views. Panning or zooming the map does not silently change the list's filter, and Reset has a clear scope.
 
 #### Scenario: AC28-C48-02
 
+- **GIVEN** story US28-C48: As a missionary, I want to explore approved ministries using a list or a world map, so that I can use the view that works for my device and accessibility needs.
 - **THEN** The actual world overview supports region selection and navigation without drag, pinch, hover or color being the only interaction. It does not trap ordinary page scrolling.
 
 #### Scenario: AC28-C48-03
 
+- **GIVEN** story US28-C48: As a missionary, I want to explore approved ministries using a list or a world map, so that I can use the view that works for my device and accessibility needs.
 - **THEN** The list is a complete usable alternative with keyboard and screen-reader support. Opening an admitted public page and returning preserves current selection/position subject to refreshed authority.
 
 #### Scenario: AC28-C48-04
 
+- **GIVEN** story US28-C48: As a missionary, I want to explore approved ministries using a list or a world map, so that I can use the view that works for my device and accessibility needs.
 - **THEN** Map assets load when needed. A renderer failure presents a truthful map error and Retry while the independent authorized list remains usable; a source failure is not mislabeled as an empty region.
 
 #### Scenario: AC28-C48-05
 
+- **GIVEN** story US28-C48: As a missionary, I want to explore approved ministries using a list or a world map, so that I can use the view that works for my device and accessibility needs.
 - **THEN** Renderer, worker, style, font, attribution, license, network disclosure and supported-device behavior are qualified before release. An already installed library does not authorize a new provider or remote disclosure.
 
 #### Scenario: AC28-C48-06
 
+- **GIVEN** story US28-C48: As a missionary, I want to explore approved ministries using a list or a world map, so that I can use the view that works for my device and accessibility needs.
 - **THEN** Temporary list fallback is resilience, not permanent completion of the map scope. Disabled, complete-empty, no-match, source failure and map failure remain distinct states.
 
 ### Requirement: REQ28-C49 — Prove and operate the complete coaching and resource journeys
@@ -4954,48 +5427,60 @@ Every clause in `openspec/contracts/missionary-workspace-depth.md#contract-d5541
 
 #### Scenario: AC28-C49-01
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Each protected source has exact tenant/subject/episode/version/occurrence ownership, trusted actor attribution and tenant-consistent relationships. Missing/null scope grants no access; invitation validity, positive revisions and valid start/end combinations are enforced. Required authorization history is append-only with attributed corrections and governed retention, not erased by a cascade. Old-state and resulting-state authorization are proved through effective grants, row policies, views/functions, storage, asynchronous readers and privileged paths; a permitted update cannot reparent, widen or revive a forbidden state.
 
 #### Scenario: AC28-C49-02
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Tests exercise duplicate requests, lost responses after acceptance, concurrent Save/Share/Stop, stale Publish after Disable, recipient or subject revocation during release, context switching, restored data and exact before/at/after expiry, including a wait crossing the deadline. Expected results assert durable domain outcomes and current disclosure rather than only implementation calls.
 
 #### Scenario: AC28-C49-03
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Financial tests cover source-line duplication, correction, historical terms, incompatible currencies/calendars, incomplete coverage and inference across retained releases. Activity tests cover the four real outcomes, participant attribution, duplicate representations, calendar precision, quantity revisions, one-off/pause and sharing continuation.
 
 #### Scenario: AC28-C49-04
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Narrative and task tests cover private autosave, captured prompt wording before first save, exact recipient publication, stopped access, limits/Unicode composition, meaning invalidation, due/status-only updates and source-controlled successors. Resource/guide/geography tests cover current bytes, withdrawn references, unsafe metadata, publication races and provider/network disclosure.
 
 #### Scenario: AC28-C49-05
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** The real journeys meet WCAG 2.2 AA and Core interaction rules: complete keyboard/screen-reader operation, labels and useful errors, focus restoration, persistent outcomes, non-color meaning, non-excepted 320 CSS-pixel reflow, 200 percent text resizing and 400 percent zoom. Core uses 44-pixel hit areas; this is not misrepresented as WCAG's 24 CSS-pixel minimum and exceptions. RTL, long international names, input methods, reduced motion and safe localized currency/date/zone labels are exercised.
 
 #### Scenario: AC28-C49-06
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Weak-network/device tests prove bounded metadata-first browsing, lazy body/file/map loading, meaningful retry and safe input recovery without a false offline-save promise. No all-record browser filtering, per-card financial fan-out or silent truncation is accepted as complete behavior.
 
 #### Scenario: AC28-C49-07
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Before activation, owners declare and measure supported cardinalities, concurrency, request/query/memory, latency/freshness and recovery bounds against production-shaped data. The exact ratified operational thresholds below are preserved; unspecified budgets require owner qualification rather than invented universal numbers.
 
 #### Scenario: AC28-C49-08
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Migration and mixed-version tests preserve existing choices, prevent inferred historical enrollment/publication/grants, fence incompatible old writers and prove containment without deleting independent source history or reviving ended access. When old software cannot represent accepted new history, recovery uses a safe forward correction rather than unsafe rollback.
 
 #### Scenario: AC28-C49-09
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Retention for drafts, accepted narratives, source evidence, preferences and copies is finite and classification-owned where required; access expiry is not retention expiry. Activation requires the actual schedules and restore behavior without importing an unrelated phase's duration.
 
 #### Scenario: AC28-C49-10
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Decision, glossary, source-owner contracts, requirements, design, implementation work, tests and release evidence agree on role names, states, periods, defaults and exact limits. Documentary checks, synthetic examples and read-only code inspection are not reported as deployed authorization, provider or usability proof.
 
 #### Scenario: AC28-C49-11
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Each applicable signal in the following operating table has a working route to its named owner and the stated response. Monitoring never supplies permission to launch a known incorrect or unsafe journey.
 
 #### Scenario: AC28-C49-12
 
+- **GIVEN** story US28-C49: As the accountable product and service owners, we want explicit proof and operating signals, so that optional coaching and resources stay truthful, private and usable after launch.
 - **THEN** Protected durable history records the actual actor, subject, purpose, reviewed scope/version, transition cause and stable effect identity, separately from technical logs and narrative bodies. Diagnostic events do not copy protected prose or invitation proof; an audit reference retained after access ends grants no right to read the former shared content.

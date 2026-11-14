@@ -7,7 +7,21 @@ import type {
   SupportInboxStats,
   SupportInboxStatusBucket,
   SupportInboxView,
+  SupportLabel,
 } from "../types";
+
+/**
+ * Drops labels named like a badge already shown beside them (a priority of
+ * "Urgent" next to an "Urgent" label), so the same word is not shown twice.
+ */
+export function labelsWithoutName(
+  labels: SupportLabel[],
+  name: string | null | undefined,
+): SupportLabel[] {
+  if (!name) return labels;
+  const shown = name.trim().toLowerCase();
+  return labels.filter((label) => label.name.trim().toLowerCase() !== shown);
+}
 
 const ACTIVE_STATUSES: SupportConversationStatus[] = ["open", "pending"];
 
@@ -183,11 +197,6 @@ function filterByQuery(
   });
 }
 
-/**
- * Counts per status with mocked WoW deltas. Real metrics ship in Phase 4.
- * Deltas are deterministic functions of the bucket count so the UI does not
- * jitter between renders.
- */
 export function computeInboxStats(
   rows: SupportConversation[],
   now: Date | string = new Date(),
@@ -202,7 +211,7 @@ export function computeInboxStats(
       return {
         status,
         count,
-        deltaPercent: deterministicDelta(status, count),
+        deltaPercent: null,
       };
     },
   );
@@ -218,7 +227,7 @@ export function computeInboxStats(
     inboxId,
     generatedAt: generatedAt.toISOString(),
     total: filteredRows.length,
-    totalDelta: deterministicDelta("__total__", filteredRows.length),
+    totalDelta: null,
     buckets,
     pastDueCount: selectPastDue(filteredRows, now).length,
     escalatedCount: selectEscalated(filteredRows).length,
@@ -266,14 +275,4 @@ export function countResolvedSince(
     if (toDate(row.resolvedAt).getTime() >= cutoff) count += 1;
   }
   return count;
-}
-
-function deterministicDelta(seed: string, count: number): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  }
-  const base = ((hash % 11) + 11) % 11; // 0..10
-  const sign = count % 2 === 0 ? 1 : -1;
-  return sign * base;
 }

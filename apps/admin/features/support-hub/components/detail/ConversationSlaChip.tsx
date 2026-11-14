@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@asym/ui/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { AlertTriangle, Clock, ShieldCheck } from "lucide-react";
 
 import { useSupportNow } from "../../lib/now";
@@ -43,53 +43,24 @@ export function ConversationSlaChip({
 
   if (overdue) {
     return (
-      <Chip
-        tone="rose"
-        icon={<AlertTriangle className="size-3" />}
-        label={`Overdue · ${formatRelative(due, nowIso)}`}
-      />
+      <Badge variant="destructive-subtle">
+        <AlertTriangle aria-hidden="true" className="size-3" />
+        {`Reply overdue by ${formatRelative(due, nowIso)}`}
+      </Badge>
     );
   }
   if (isAtRisk) {
     return (
-      <Chip
-        tone="amber"
-        icon={<Clock className="size-3" />}
-        label={`Due in ${formatRelative(due, nowIso)}`}
-      />
+      <Badge variant="warning">
+        <Clock aria-hidden="true" className="size-3" />
+        {`Reply due in ${formatRelative(due, nowIso)}`}
+      </Badge>
     );
   }
   return (
-    <Chip
-      tone="emerald"
-      icon={<ShieldCheck className="size-3" />}
-      label={`On track · due ${formatRelative(due, nowIso)}`}
-    />
-  );
-}
-
-interface ChipProps {
-  tone: "rose" | "amber" | "emerald";
-  icon: React.ReactNode;
-  label: string;
-}
-
-const TONE_CLASSES: Record<ChipProps["tone"], string> = {
-  rose: "border-destructive/30 bg-destructive/10 text-destructive",
-  amber: "border-warning/30 bg-warning/10 text-warning",
-  emerald: "border-success/30 bg-success/10 text-success",
-};
-
-function Chip({ tone, icon, label }: ChipProps) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ring-1 ring-inset ring-transparent",
-        TONE_CLASSES[tone],
-      )}
-    >
-      {icon}
-      {label}
-    </span>
+    <Badge variant="success">
+      <ShieldCheck aria-hidden="true" className="size-3" />
+      {`On track, due in ${formatRelative(due, nowIso)}`}
+    </Badge>
   );
 }

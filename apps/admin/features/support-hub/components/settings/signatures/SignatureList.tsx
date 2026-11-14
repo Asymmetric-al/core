@@ -1,8 +1,17 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import { Pencil, PenLine, Plus, Star, Trash2 } from "lucide-react";
-import * as React from "react";
 import { toast } from "sonner";
 
 import { SignatureForm } from "./SignatureForm";
@@ -12,39 +21,59 @@ import {
   useSetDefaultSupportSignature,
 } from "../../../hooks/use-support-mutations";
 import { useSupportSignatures } from "../../../hooks/use-support-signatures";
+import { useConfirm } from "../../workspace/confirm-provider";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
+import { SettingsEditorSheet } from "../SettingsEditorSheet";
+import {
+  SettingsListState,
+  isSettingsListPending,
+  settingsHeaderAction,
+} from "../SettingsListState";
+import { SettingsNotAppliedNote } from "../SettingsNotAppliedNote";
 import { SettingsPanel } from "../SettingsPanel";
+import { SettingsIconButton } from "../SettingsRowActions";
+import { useSettingsEditor } from "../use-settings-editor";
 
 import type { SupportSignature } from "../../../types";
 
 export function SignatureList() {
-  const { data: signatures } = useSupportSignatures();
+  const query = useSupportSignatures();
+  const signatures = query.data;
+  const listState = {
+    isLoading: query.isLoading,
+    isError: query.isError,
+    itemCount: signatures.length,
+  };
   const { data: agents } = useSupportAgents();
   const deleteSig = useDeleteSupportSignature();
   const setDefault = useSetDefaultSupportSignature();
-  const [editing, setEditing] = React.useState<SupportSignature | "new" | null>(
-    null,
-  );
-
-  const editingRow = editing && editing !== "new" ? editing : null;
+  const editor = useSettingsEditor<SupportSignature>();
+  const editingRow = editor.record;
 
   const ownerName = (ownerAgentId: string | null): string => {
     if (!ownerAgentId) return "Workspace";
     return agents.find((agent) => agent.id === ownerAgentId)?.name ?? "Unknown";
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (row: SupportSignature) => {
-    if (!window.confirm(`Delete signature "${row.name}"?`)) return;
-    try {
-      await deleteSig.mutateAsync({ id: row.id });
-      toast.success("Signature deleted.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not delete the signature.",
-      );
-    }
+    await confirm({
+      title: `Delete the ${row.name} signature?`,
+      confirmLabel: "Delete signature",
+      action: async () => {
+        try {
+          await deleteSig.mutateAsync({ id: row.id });
+          toast.success("Signature deleted.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Could not delete the signature.",
+          );
+          throw error;
+        }
+      },
+    });
   };
 
   const handleMakeDefault = async (row: SupportSignature) => {
@@ -64,94 +93,105 @@ export function SignatureList() {
     }
   };
 
+  const createButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={isSettingsListPending(listState)}
+      onClick={editor.openNew}
+    >
+      <Plus data-icon="inline-start" aria-hidden="true" />
+      New signature
+    </Button>
+  );
+
   return (
     <div className="flex flex-col gap-4">
+      <SettingsNotAppliedNote>
+        Replies currently sign with the agent’s name, title and email. Saved
+        signatures aren’t added to replies yet.
+      </SettingsNotAppliedNote>
       <SettingsPanel
         title="Signatures"
-        description="Outbound replies append the default signature. Agent-owned signatures override the workspace default."
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing("new")}
-          >
-            <Plus className="size-3.5" />
-            New signature
-          </Button>
-        }
+        description="Signatures for replies. An agent’s own default takes priority over the workspace default."
+        actions={settingsHeaderAction(listState, createButton)}
       >
-        {signatures.length === 0 ? (
-          <SupportEmptySection
-            icon={<PenLine className="size-4" />}
-            title="No signatures yet"
-            description="Create a workspace signature first, then override per agent."
-          />
-        ) : (
-          <ul className="flex flex-col divide-y divide-border">
-            {signatures.map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-center gap-3 py-2"
-              >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <PenLine className="size-4" />
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-xs font-semibold text-foreground">
-                    {row.name}{" "}
-                    {row.isDefault ? (
-                      <span className="ml-1 inline-flex h-4 items-center rounded-md bg-primary px-1.5 text-xs font-black uppercase tracking-wider text-primary-foreground">
-                        Default
-                      </span>
+        <SettingsListState
+          noun="signatures"
+          {...listState}
+          onRetry={query.refetch}
+        >
+          {signatures.length === 0 ? (
+            <SupportEmptySection
+              icon={<PenLine className="size-4" />}
+              title="No signatures yet"
+              description="Create a workspace signature first, then override per agent."
+              action={createButton}
+            />
+          ) : (
+            <ItemGroup className="gap-2">
+              {signatures.map((row) => (
+                <Item key={row.id} variant="outline" size="sm">
+                  <ItemMedia variant="icon">
+                    <PenLine aria-hidden="true" />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0">
+                    <ItemTitle>
+                      {row.name}
+                      {row.isDefault ? (
+                        <Badge variant="secondary">Default</Badge>
+                      ) : null}
+                    </ItemTitle>
+                    <ItemDescription>
+                      {ownerName(row.ownerAgentId)} · {row.bodyText}
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <SettingsIconButton
+                      label={`Edit ${row.name}`}
+                      tooltip="Edit"
+                      onClick={() => editor.openRecord(row)}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </SettingsIconButton>
+                    {!row.isDefault ? (
+                      <SettingsIconButton
+                        label={`Make ${row.name} default`}
+                        tooltip="Make default"
+                        disabled={setDefault.isPending}
+                        onClick={() => void handleMakeDefault(row)}
+                      >
+                        <Star aria-hidden="true" />
+                      </SettingsIconButton>
                     ) : null}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {ownerName(row.ownerAgentId)} · {row.bodyText.slice(0, 80)}
-                    {row.bodyText.length > 80 ? "…" : ""}
-                  </span>
-                </div>
-                {!row.isDefault ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => void handleMakeDefault(row)}
-                    aria-label={`Make ${row.name} default`}
-                  >
-                    <Star className="size-3.5 text-warning" />
-                  </Button>
-                ) : null}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setEditing(row)}
-                  aria-label={`Edit ${row.name}`}
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => void handleDelete(row)}
-                  aria-label={`Delete ${row.name}`}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
+                    <SettingsIconButton
+                      label={`Delete ${row.name}`}
+                      tooltip="Delete"
+                      onClick={() => void handleDelete(row)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </SettingsIconButton>
+                  </ItemActions>
+                </Item>
+              ))}
+            </ItemGroup>
+          )}
+        </SettingsListState>
       </SettingsPanel>
-      {editing ? (
+
+      <SettingsEditorSheet
+        editor={editor}
+        title={editingRow ? `Edit “${editingRow.name}”` : "New signature"}
+        description="Saved for reference: replies don’t add saved signatures yet."
+      >
         <SignatureForm
+          key={editingRow?.id ?? "new-signature"}
           signature={editingRow}
-          onSaved={() => setEditing(null)}
-          onCancel={() => setEditing(null)}
+          onSaved={editor.close}
+          onCancel={editor.requestClose}
         />
-      ) : null}
+      </SettingsEditorSheet>
     </div>
   );
 }

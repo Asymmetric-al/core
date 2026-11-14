@@ -1,5 +1,7 @@
 "use client";
 
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,7 +9,6 @@ import { toResendConnectPayload } from "./resend-form-schema";
 import {
   ResendConnectedView,
   ResendDisconnectedView,
-  ResendPageHeader,
   ResendTestDialog,
 } from "./resend-sections";
 import { useResendConnectForm, useResendTestForm } from "./use-resend-forms";
@@ -184,7 +185,7 @@ export default function ResendSettingsPage() {
     setIsHydratingConnection,
   });
 
-  const handleDisconnect = async () => {
+  const handleDisconnect = async (): Promise<boolean> => {
     try {
       const response = await fetchWithSupabaseAuth("/api/email/connect", {
         method: "DELETE",
@@ -200,7 +201,7 @@ export default function ResendSettingsPage() {
         toast.error("Disconnect failed", {
           description: data.error || "Unable to disconnect Resend.",
         });
-        return;
+        return false;
       }
 
       setConnection({
@@ -216,10 +217,12 @@ export default function ResendSettingsPage() {
       });
       connectForm.setFieldValue("apiKey", "");
       toast.info("Resend disconnected");
+      return true;
     } catch {
       toast.error("Disconnect failed", {
         description: "Network error while disconnecting Resend.",
       });
+      return false;
     }
   };
 
@@ -235,50 +238,60 @@ export default function ResendSettingsPage() {
 
   if (isHydratingConnection) {
     return (
-      <div className="container max-w-4xl py-8">
-        <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-          Loading Resend integration settings…
+      <PageShell
+        title="Email delivery"
+        description="Send receipts and email through your own verified domain with Resend."
+        density="compact"
+      >
+        <div className="flex flex-col gap-4" role="status">
+          <span className="sr-only">Loading email delivery settings…</span>
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   const canSendTestEmail = connection.sendReady;
 
   return (
-    <div className="container max-w-4xl space-y-8 py-8">
-      <ResendPageHeader isConnected={connection.status === "connected"} />
+    <PageShell
+      title="Email delivery"
+      description="Send receipts and email through your own verified domain with Resend."
+      density="compact"
+    >
+      <div className="flex flex-col gap-8">
+        {connection.status === "connected" ? (
+          <ResendConnectedView
+            canSendTestEmail={canSendTestEmail}
+            connection={connection}
+            onDisconnect={handleDisconnect}
+            onOpenTestDialog={() => handleTestDialogOpenChange(true)}
+          />
+        ) : (
+          <ResendDisconnectedView
+            connectionWarnings={connection.warnings}
+            connectionError={connection.error}
+            connectionStatus={connection.status}
+            form={connectForm}
+            showApiKey={showApiKey}
+            onToggleApiKeyVisibility={() =>
+              setShowApiKey((currentValue) => !currentValue)
+            }
+          />
+        )}
 
-      {connection.status === "connected" ? (
-        <ResendConnectedView
-          canSendTestEmail={canSendTestEmail}
-          connection={connection}
-          onDisconnect={handleDisconnect}
-          onOpenTestDialog={() => handleTestDialogOpenChange(true)}
+        <ResendTestDialog
+          form={testForm}
+          fromEmail={String(connectForm.getFieldValue("fromEmail") ?? "")}
+          fromName={String(connectForm.getFieldValue("fromName") ?? "")}
+          open={showTestDialog}
+          testError={testError}
+          testStatus={testStatus}
+          onOpenChange={handleTestDialogOpenChange}
         />
-      ) : (
-        <ResendDisconnectedView
-          connectionWarnings={connection.warnings}
-          connectionError={connection.error}
-          connectionStatus={connection.status}
-          form={connectForm}
-          showApiKey={showApiKey}
-          onToggleApiKeyVisibility={() =>
-            setShowApiKey((currentValue) => !currentValue)
-          }
-        />
-      )}
-
-      <ResendTestDialog
-        form={testForm}
-        fromEmail={String(connectForm.getFieldValue("fromEmail") ?? "")}
-        fromName={String(connectForm.getFieldValue("fromName") ?? "")}
-        open={showTestDialog}
-        testError={testError}
-        testStatus={testStatus}
-        onOpenChange={handleTestDialogOpenChange}
-      />
-    </div>
+      </div>
+    </PageShell>
   );
 }
 

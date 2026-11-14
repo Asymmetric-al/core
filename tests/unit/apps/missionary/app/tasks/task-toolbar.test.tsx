@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -13,6 +14,19 @@ import { afterEach, expect, it, vi } from "vitest";
 import TasksPage from "../../../../../../apps/missionary/app/tasks/page-client";
 
 import type { Task } from "@asym/lib/hooks/use-tasks";
+
+// jsdom has no matchMedia; the page picks its first view from screen width.
+const media = vi.hoisted(() => ({ phone: false }));
+vi.stubGlobal("matchMedia", (query: string) => ({
+  matches: media.phone && query.includes("max-width"),
+  media: query,
+  onchange: null,
+  addEventListener() {},
+  removeEventListener() {},
+  addListener() {},
+  removeListener() {},
+  dispatchEvent: () => false,
+}));
 
 const tasks = vi.hoisted(() => ({
   refresh: vi.fn(),
@@ -85,7 +99,7 @@ it("exposes the selected view while switching the actual task page content", asy
     name: "List view",
     pressed: false,
   });
-  expect(screen.getByRole("heading", { name: "To Do 1" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "To do 1" })).toBeTruthy();
 
   fireEvent.click(list);
   expect(list.getAttribute("aria-pressed")).toBe("true");
@@ -94,13 +108,13 @@ it("exposes the selected view while switching the actual task page content", asy
     await screen.findByRole("checkbox", { name: "Complete Call partner" }),
   ).toBeTruthy();
   await waitFor(() =>
-    expect(screen.queryByRole("heading", { name: "To Do 1" })).toBeNull(),
+    expect(screen.queryByRole("heading", { name: "To do 1" })).toBeNull(),
   );
 
   fireEvent.click(board);
   expect(board.getAttribute("aria-pressed")).toBe("true");
   expect(list.getAttribute("aria-pressed")).toBe("false");
-  expect(await screen.findByRole("heading", { name: "To Do 1" })).toBeTruthy();
+  expect(await screen.findByRole("heading", { name: "To do 1" })).toBeTruthy();
   await waitFor(() =>
     expect(
       screen.queryByRole("checkbox", { name: "Complete Call partner" }),
@@ -122,24 +136,70 @@ it("keeps the named refresh control connected to the existing task refresh", () 
   expect(tasks.moveTask).not.toHaveBeenCalled();
 });
 
-it("exposes the current task filter on its summary controls", async () => {
+/** The value shown under a summary figure's label. */
+function figure(label: string) {
+  return screen.getByText(label, { selector: "dt" }).nextElementSibling
+    ?.textContent;
+}
+
+// One control filters the list. The summary figures report counts; the tabs
+// filter, and use the same words as the figures.
+it("filters with the tabs only, while the summary figures just report", async () => {
   render(<TasksPage />);
 
+  expect(figure("Open")).toBe("1");
+  expect(figure("Done")).toBe("0");
   expect(
-    screen.getByRole("button", { name: "1 Active", pressed: true }),
-  ).toBeTruthy();
-  const completed = screen.getByRole("button", {
-    name: "0 Completed",
-    pressed: false,
-  });
-  fireEvent.click(completed);
+    screen.queryByRole("button", { name: /^\d+ (Open|Done)$/ }),
+  ).toBeNull();
+  expect(
+    screen.getByText("Open", { selector: "dt" }).closest("button"),
+  ).toBeNull();
 
-  expect(completed.getAttribute("aria-pressed")).toBe("true");
-  expect(
-    screen.getByRole("button", { name: "1 Active", pressed: false }),
-  ).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "List view" }));
+  const tabs = screen.getByRole("tablist");
+  expect(
+    within(tabs)
+      .getAllByRole("tab")
+      .map((tab) => tab.textContent),
+  ).toEqual(["Open", "Overdue", "Today", "Done", "All"]);
+  // Short names keep all five tabs within a 320px phone.
+  expect(
+    within(tabs).getByRole("tab", { name: "Open", selected: true }),
+  ).toBeTruthy();
+
+  fireEvent.click(within(tabs).getByRole("tab", { name: "Done" }));
+  expect(
+    within(tabs).getByRole("tab", { name: "Done", selected: true }),
+  ).toBeTruthy();
   expect(
     await screen.findByRole("heading", { name: "All caught up" }),
   ).toBeTruthy();
+});
+
+it("uses the same page header as the other missionary pages", () => {
+  const { container } = render(<TasksPage />);
+
+  expect(screen.getByRole("heading", { level: 1, name: "Tasks" })).toBeTruthy();
+  expect(container.querySelector('[data-slot="page-shell-header"]')).toBeNull();
+});
+
+it("leaves no empty filter row when nothing is filtered", () => {
+  render(<TasksPage />);
+
+  expect(screen.queryByRole("button", { name: "Clear all" })).toBeNull();
+  const search = screen.getByRole("textbox", { name: "Search" });
+  const bar = search.closest('[tabindex="-1"]');
+  expect(bar?.children).toHaveLength(1);
+});
+
+it("opens on the list on phones, where the board would scroll sideways", () => {
+  media.phone = true;
+  render(<TasksPage />);
+  expect(
+    screen
+      .getByRole("button", { name: "List view", exact: true })
+      .getAttribute("aria-pressed"),
+  ).toBe("true");
+  media.phone = false;
 });

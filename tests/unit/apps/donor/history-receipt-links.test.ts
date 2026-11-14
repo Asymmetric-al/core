@@ -21,15 +21,14 @@ describe("donor history receipt/statement links", () => {
     // A downloadable anchor bound to the row's receiptUrl (not an inert button).
     expect(source).toMatch(/href=\{tx\.receiptUrl\}/);
     expect(source).toMatch(/download/);
-    expect(source).toMatch(
-      /aria-label=\{`Download receipt for \$\{tx\.recipient\}`\}/,
-    );
+    expect(source).toMatch(/aria-label=\{receiptLabel\(tx\)\}/);
   });
 
-  it("wires Open Statement to the annual statement route for the gift's year", () => {
-    expect(source).toMatch(
-      /href=\{`\/api\/donor\/statements\/\$\{new Date\(tx\.date\)\.getFullYear\(\)\}`\}/,
+  it("wires the year summary to the annual statement route for the selected year", () => {
+    const page = readRepoFile(
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
     );
+    expect(page).toContain("href={`/api/donor/statements/${year}`}");
   });
 
   it("introduces no one-off hex colors (Maia/zinc tokens only)", () => {

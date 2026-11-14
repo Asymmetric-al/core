@@ -1,16 +1,8 @@
-/* Placeholder text */
-.tiptap p.is-editor-empty:first-child::before {
+/* Placeholder: only an empty editor shows its prompt, not every new empty line. */
+.tiptap .is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: var(--muted-foreground, oklch(0.552 0.016 285.938));
-  pointer-events: none;
-  height: 0;
-}
-
-.tiptap [data-placeholder]::before {
-  content: attr(data-placeholder);
-  float: left;
-  color: var(--muted-foreground, oklch(0.552 0.016 285.938));
+  color: var(--muted-foreground);
   pointer-events: none;
   height: 0;
 }
@@ -34,11 +26,12 @@
 
 /* Links — smooth underline transition */
 .tiptap a {
-  color: var(--primary, oklch(0.21 0.006 285.885));
+  color: var(--primary);
   text-decoration: underline;
   text-underline-offset: 0.2em;
   text-decoration-thickness: 1px;
-  transition: text-decoration-thickness 150ms ease;
+  transition: text-decoration-thickness var(--duration-micro)
+    var(--ease-out-soft);
   cursor: pointer;
 }
 
@@ -48,15 +41,15 @@
 
 /* Blockquote */
 .tiptap blockquote {
-  border-left: 4px solid var(--primary, oklch(0.21 0.006 285.885));
+  border-left: 4px solid var(--primary);
   padding-left: 1rem;
   font-style: italic;
-  color: var(--muted-foreground, oklch(0.552 0.016 285.938));
+  color: var(--muted-foreground);
 }
 
 /* Code blocks */
 .tiptap pre {
-  background: var(--muted, oklch(0.967 0.001 286.375));
+  background: var(--muted);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   overflow-x: auto;
@@ -65,7 +58,7 @@
 }
 
 .tiptap code {
-  background: var(--muted, oklch(0.967 0.001 286.375));
+  background: var(--muted);
   border-radius: 0.25rem;
   padding: 0.15rem 0.35rem;
   font-family: var(--font-geist-mono, ui-monospace, monospace);
@@ -95,13 +88,13 @@
 /* Horizontal rule */
 .tiptap hr {
   border: none;
-  border-top: 1px solid var(--border, oklch(0.92 0.004 286.32));
+  border-top: 1px solid var(--border);
   margin: 1.5rem 0;
 }
 
 /* Selection highlight */
 .tiptap ::selection {
-  background: oklch(0.488 0.243 264.376 / 0.2);
+  background: color-mix(in oklch, var(--primary) 20%, transparent);
 }
 
 /* Images — resizable wrapper */
@@ -110,17 +103,17 @@
   max-width: 100%;
   margin: 0.75rem 0;
   line-height: 0;
-  transition: outline-color 150ms ease;
+  transition: outline-color var(--duration-micro) var(--ease-out-soft);
   outline: 2px solid transparent;
   outline-offset: 2px;
   border-radius: 0.5rem;
 }
 
 .image-selected {
-  outline-color: var(--primary, oklch(0.21 0.006 285.885));
+  outline-color: var(--primary);
 }
 
-/* Focus: no browser outline since parent handles ring */
+/* Focus: no browser outline; the editor frame draws the ring. */
 .tiptap:focus {
   outline: none;
 }
@@ -136,4 +129,22 @@
     font-size: 1.25rem;
     line-height: 1.75rem;
   }
+}
+
+/* Prose colours follow the theme tokens, so posts read the same in every app
+   and in dark mode without per-page overrides. */
+.tiptap.prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--primary);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--muted-foreground);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--muted-foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-code: var(--foreground);
+  line-height: 1.7;
 }

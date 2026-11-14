@@ -1,6 +1,14 @@
 import "./globals.css";
 
-import { ButtonLink } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@asym/ui/components/shadcn/empty";
+import { fontVariables } from "@asym/ui/fonts";
 import Link from "next/link";
 
 import type { Metadata } from "next";
@@ -13,21 +21,25 @@ export const metadata: Metadata = {
 export default function GlobalNotFound() {
   return (
     <html lang="en">
-      <body className="m-0 bg-background font-sans text-foreground">
+      <body
+        className={`${fontVariables} m-0 bg-background font-sans antialiased text-foreground`}
+      >
         <main className="flex min-h-dvh items-center justify-center p-6">
-          <section className="w-full max-w-110 rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
-            <p className="mb-3 text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
-              404
-            </p>
-            <h1 className="mb-3 text-3xl font-semibold">Page not found</h1>
-            <p className="m-0 text-sm text-muted-foreground">
-              This admin route does not exist or is no longer available.
-            </p>
-            <ButtonLink
-              className="mt-6"
-              render={<Link href="/">Return home</Link>}
-            />
-          </section>
+          <Empty className="max-w-lg">
+            <EmptyHeader>
+              <EmptyTitle>
+                <h1>Page not found</h1>
+              </EmptyTitle>
+              <EmptyDescription>
+                This admin route does not exist or is no longer available.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Link href="/" className={buttonVariants()}>
+                Return home
+              </Link>
+            </EmptyContent>
+          </Empty>
         </main>
       </body>
     </html>

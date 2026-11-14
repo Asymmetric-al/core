@@ -42,7 +42,7 @@ const locationMutationSchema = z.object({
     .finite("Longitude must be a number")
     .min(-180, "Longitude must be at least -180")
     .max(180, "Longitude must be at most 180"),
-  type: z.enum(["missionary", "project", "custom"]),
+  type: z.enum(["missionary", "project", "custom", "partner"]),
   linked_id: z.string().trim().min(1).nullable().optional(),
   summary: z.string().trim().max(5000).nullable().optional(),
   status: z.enum(["draft", "published"]),
@@ -90,7 +90,9 @@ function normalizeLocationMutation(
     lat: input.lat,
     lng: input.lng,
     type: input.type,
-    linked_id: input.type === "custom" ? null : (input.linked_id ?? null),
+    linked_id: ["missionary", "project"].includes(input.type)
+      ? (input.linked_id ?? null)
+      : null,
     summary: input.summary?.trim() ? input.summary.trim() : null,
     status: input.status,
   };

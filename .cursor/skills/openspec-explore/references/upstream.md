@@ -1,27 +1,27 @@
 ---
 source_name: Fission-AI/OpenSpec (openspec-explore)
-source_url: https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/openspec-explore
+source_url: https://github.com/Fission-AI/OpenSpec/tree/v2.0.0/skills/openspec-explore
 source_type: github
 upstream_path: skills/openspec-explore/
-skills_lock_hash: 40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed
-last_reviewed: 2026-10-21
+skills_lock_hash: c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac
+last_reviewed: 2026-11-13
 ---
 
 # Upstream: openspec-explore
 
-Canonical copy in this repo: `docs/ai/skills/openspec-explore/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/openspec-explore/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/Fission-AI/OpenSpec
-- **Ref:** `v1.14.3`
-- **Commit reviewed:** `c794978f4f8845ce59693373c9dd882ee776588c`
+- **Ref:** `v2.0.0`
+- **Commit reviewed:** `d12c2817776779e06891d68230773b3bb673b106`
 - **Upstream path:** `skills/openspec-explore/`
 - **Lock skillPath:** `skills/openspec-explore/SKILL.md`
-- **Computed hash:** `40732f0d2a14bacb5a70e1ba81dff66c239dadb66648928cc2ccc9c08dbbb5ed`
+- **Computed hash:** `c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac`
 
 ## Refresh from upstream
 
 1. Run `bun run skills:refresh-upstream`.
-2. The script clones `https://github.com/Fission-AI/OpenSpec.git` at `v1.14.3`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/openspec-explore/`, and updates this metadata.
+2. The script clones `https://github.com/Fission-AI/OpenSpec.git` at `v2.0.0`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/openspec-explore/`, and updates this metadata.
 3. Run `bun run skills:sync` and `bun run skills:verify` to refresh runtime mirrors.
 
 ## Notes for maintainers

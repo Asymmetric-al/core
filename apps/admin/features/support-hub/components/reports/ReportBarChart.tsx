@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
+import { ChartCard } from "@asym/ui/components/primitives/chart-wrappers";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import dynamic from "next/dynamic";
 
 import type { SupportReportSeries } from "../../types";
@@ -15,11 +10,20 @@ interface ReportBarChartProps {
   series: SupportReportSeries;
   title: string;
   description?: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+  note?: string;
+  /** Tooltip name for the bar values; defaults to the title. */
+  valueLabel?: string;
 }
 
 function Fallback() {
   return (
-    <div className="h-70 w-full animate-pulse rounded-xl bg-muted/40 ring-1 ring-border" />
+    <div role="status" aria-label="Loading chart">
+      <Skeleton className="h-70 w-full" />
+      <span className="sr-only">Loading chart…</span>
+    </div>
   );
 }
 
@@ -35,10 +39,10 @@ const BarChartContent = dynamic(
 
     function BarChartInner({
       series,
-      title,
+      valueLabel,
     }: {
       series: SupportReportSeries;
-      title: string;
+      valueLabel: string;
     }) {
       if (series.buckets.length === 0) {
         return (
@@ -56,7 +60,7 @@ const BarChartContent = dynamic(
           <ChartContainer
             layout="fill"
             className="w-full"
-            config={{ value: { label: title, color: "var(--chart-1)" } }}
+            config={{ value: { label: valueLabel, color: "var(--chart-1)" } }}
           >
             <BarChart
               accessibilityLayer
@@ -107,16 +111,31 @@ export function ReportBarChart({
   series,
   title,
   description,
+  isLoading = false,
+  isError = false,
+  onRetry,
+  valueLabel,
+  note,
 }: ReportBarChartProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-      </CardHeader>
-      <CardContent className="pl-0">
-        <BarChartContent series={series} title={title} />
-      </CardContent>
-    </Card>
+    <ChartCard
+      title={title}
+      description={description}
+      headingLevel={2}
+      summary={series.buckets
+        .map(
+          (bucket) =>
+            `${bucket.label}: ${bucket.value} ${valueLabel?.toLowerCase() ?? (series.unit === "count" ? title.toLowerCase() : series.unit)}.`,
+        )
+        .join(" ")}
+      note={note}
+      isLoading={isLoading && !isError}
+      isError={isError}
+      isEmpty={series.buckets.every((bucket) => bucket.value === 0)}
+      emptyMessage="No activity in this range"
+      onRetry={onRetry}
+    >
+      <BarChartContent series={series} valueLabel={valueLabel ?? title} />
+    </ChartCard>
   );
 }

@@ -351,6 +351,11 @@ type MapMarkerProps = {
   children: ReactNode;
   onClick?: () => void;
   draggable?: boolean;
+  /**
+   * Accessible name for a clickable marker. With `onClick`, the marker becomes
+   * a focusable button that Enter and Space activate.
+   */
+  label?: string;
 };
 
 export function MapMarker({
@@ -359,6 +364,7 @@ export function MapMarker({
   children,
   onClick,
   draggable = false,
+  label,
 }: MapMarkerProps) {
   const { map, isLoaded } = useMap();
   const markerRef = useRef<maplibregl.Marker | null>(null);
@@ -370,7 +376,9 @@ export function MapMarker({
     }
 
     const element = document.createElement("div");
-    element.className = "map-marker-container";
+    // The focus ring only shows for keyboard-activatable markers (below).
+    element.className =
+      "map-marker-container rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
     return element;
   }, []);
 
@@ -380,6 +388,29 @@ export function MapMarker({
       markerElement.style.cursor = onClick ? "pointer" : "";
     }
   }, [markerElement, onClick]);
+
+  // Keyboard reach: a labelled, clickable marker is a button in the tab order.
+  const keyboardLabel = onClick ? label : undefined;
+  useEffect(() => {
+    if (!markerElement) return;
+    if (!keyboardLabel) {
+      markerElement.removeAttribute("role");
+      markerElement.removeAttribute("tabindex");
+      markerElement.removeAttribute("aria-label");
+      return;
+    }
+    markerElement.setAttribute("role", "button");
+    markerElement.setAttribute("tabindex", "0");
+    markerElement.setAttribute("aria-label", keyboardLabel);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      event.stopPropagation();
+      onClickRef.current?.();
+    };
+    markerElement.addEventListener("keydown", handleKeyDown);
+    return () => markerElement.removeEventListener("keydown", handleKeyDown);
+  }, [keyboardLabel, markerElement]);
 
   useLayoutEffect(() => {
     if (!isLoaded || !map || !markerElement) return;
@@ -526,6 +557,7 @@ export function MapOverlay({
 function ZoomInIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -545,6 +577,7 @@ function ZoomInIcon() {
 function ZoomOutIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -563,6 +596,7 @@ function ZoomOutIcon() {
 function LocateIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -586,6 +620,7 @@ function LocateIcon() {
 function MaximizeIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -607,6 +642,7 @@ function MaximizeIcon() {
 function SunIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -633,6 +669,7 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -699,7 +736,8 @@ export function MapControls({
               type="button"
               onClick={handleZoomIn}
               className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
-              title="Zoom In"
+              aria-label="Zoom in"
+              title="Zoom in"
             >
               <ZoomInIcon />
             </button>
@@ -707,7 +745,8 @@ export function MapControls({
               type="button"
               onClick={handleZoomOut}
               className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
-              title="Zoom Out"
+              aria-label="Zoom out"
+              title="Zoom out"
             >
               <ZoomOutIcon />
             </button>
@@ -718,7 +757,8 @@ export function MapControls({
             type="button"
             onClick={handleGeolocate}
             className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
-            title="Find My Location"
+            aria-label="Find my location"
+            title="Find my location"
           >
             <LocateIcon />
           </button>
@@ -728,7 +768,8 @@ export function MapControls({
             type="button"
             onClick={handleFullscreen}
             className="hover:bg-accent p-2.5 transition-colors"
-            title="Toggle Fullscreen"
+            aria-label="Toggle full screen"
+            title="Toggle full screen"
           >
             <MaximizeIcon />
           </button>

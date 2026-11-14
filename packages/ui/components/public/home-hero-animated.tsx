@@ -13,6 +13,8 @@ import Link from "next/link";
 
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 
+import { SampleFiguresNote } from "./sample-figures-note";
+
 const heroStatIcons = {
   activity: Activity,
   users: Users,
@@ -146,6 +148,7 @@ export function HomeHeroAnimated({
               </m.div>
             );
           })}
+          <SampleFiguresNote tone="media" className="w-56" />
         </div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-media-foreground/90 flex flex-col items-center gap-3 text-xs font-semibold tracking-widest uppercase">

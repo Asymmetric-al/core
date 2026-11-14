@@ -39,3 +39,5 @@ export {
 } from "./use-engagement";
 
 export { ReactionBar, type ReactionBarProps } from "./reaction-bar";
+
+export { MinistryUpdateMediaUnavailable } from "./media-unavailable";

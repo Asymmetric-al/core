@@ -52,6 +52,9 @@ function resolvePayloadSecret() {
 
 export default buildConfig({
   admin: {
+    theme: "light",
+    // Short dates, as elsewhere in Mission Control ("Nov 9, 2026, 3:45 PM").
+    dateFormat: "MMM d, yyyy, h:mm a",
     dependencies: {
       vercelBlobClientUploadHandler: {
         type: "component",
@@ -59,13 +62,25 @@ export default buildConfig({
       },
     },
     components: {
-      beforeNav: ["/src/cms-ui/root/Nav.tsx#Nav"],
       graphics: {
         Icon: "/src/cms-ui/brand/Icon.tsx#Icon",
         Logo: "/src/cms-ui/brand/Logo.tsx#Logo",
       },
-      header: ["/src/cms-ui/root/Header.tsx#Header"],
+      // Studio chrome for stock Payload screens; native screens render
+      // StudioLayout themselves and these slots step aside.
+      header: [
+        "/src/cms-ui/web-studio/shell/studio-template-chrome.tsx#StudioTemplateHeader",
+      ],
+      Nav: "/src/cms-ui/web-studio/shell/studio-template-chrome.tsx#StudioTemplateNav",
       views: {
+        account: {
+          Component:
+            "/src/cms-ui/web-studio/shell/studio-account-view.tsx#StudioAccountView",
+        },
+        dashboard: {
+          Component:
+            "/src/cms-ui/web-studio/dashboard/WebStudioDashboardView.tsx#WebStudioDashboardView",
+        },
         webStudioTemplates: {
           Component:
             "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView",
@@ -104,6 +119,17 @@ export default buildConfig({
     },
   },
   endpoints: [webStudioCreateFromTemplateEndpoint],
+  i18n: {
+    translations: {
+      en: {
+        general: {
+          noLabel: "Not set",
+          payloadSettings: "Web Studio preferences",
+          resetPreferences: "Reset preferences",
+        },
+      },
+    },
+  },
   collections: [
     CmsUsers,
     Tenants,

@@ -1,5 +1,6 @@
 import { validateUuidReference } from "./page-builders";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -21,12 +22,9 @@ const nativeMissionaryProfilesAdmin = isNativeCollectionWebStudioEnabled(
             Component:
               "/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx#MissionaryProfilesNativeListView",
           },
-          edit: {
-            default: {
-              Component:
-                "/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx#MissionaryProfilesNativeEditView",
-            },
-          },
+          edit: studioDocumentEditViews(
+            "/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx#MissionaryProfilesNativeEditView",
+          ),
         },
       },
     }
@@ -55,6 +53,7 @@ export const MissionaryProfiles: CollectionConfig = {
   fields: [
     {
       name: "tenant",
+      label: "Organization",
       type: "relationship",
       relationTo: "tenants",
       required: true,
@@ -84,7 +83,7 @@ export const MissionaryProfiles: CollectionConfig = {
       },
       admin: {
         description:
-          "Canonical missionary UUID from public.missionaries. Used for cross-reference lookup when creating missionary giving pages.",
+          "Set automatically. Links this profile to the missionary in Mission Control.",
         readOnly: true,
       },
     },

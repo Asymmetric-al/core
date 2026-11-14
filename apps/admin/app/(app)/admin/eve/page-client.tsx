@@ -7,6 +7,10 @@ import {
   type EveKillSwitchMutationResult,
 } from "@asym/api/eve/governance/types";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
+import {
+  MetricCard,
+  MetricGrid,
+} from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
@@ -33,7 +37,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -41,7 +44,6 @@ import {
   CircleX,
   FileSearch,
   History,
-  Power,
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
@@ -56,8 +58,13 @@ import { EveNotificationsPanel } from "./notifications-panel";
 import { EVE_GOVERNANCE_QUERY_KEY } from "./query-keys";
 import { EveRetentionPanel } from "./retention-panel";
 import {
+  EveUnavailableSections,
+  formatStatusLabel,
+  useEveSectionReady,
+} from "./section-states";
+import {
   EveCapabilityConnectionsPanel,
-  EveWorkspaceIndex,
+  EveOperationsWorkspace,
 } from "./workspace-shell";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
@@ -169,39 +176,68 @@ function formatPolicyStatus(status: string): string {
   return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}`;
 }
 
+type BadgeTone = "destructive" | "secondary" | "success" | "warning";
+
+function runTone(
+  run: Pick<EveGovernancePageData["recentRuns"][number], "decision" | "status">,
+): BadgeTone {
+  if (run.status === "failed") return "destructive";
+  if (run.decision === "blocked") return "warning";
+  return run.status === "completed" ? "success" : "secondary";
+}
+
+function auditResultTone(result: string): BadgeTone {
+  if (result === "failed") return "destructive";
+  if (result === "blocked") return "warning";
+  return result === "succeeded" ? "success" : "secondary";
+}
+
 const TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
   dateStyle: "medium",
   timeStyle: "short",
 };
 
-function StatusCard({
-  description,
-  label,
-  value,
-  warning = false,
+export function EveGovernanceStatusRow({
+  system,
 }: {
-  description: string;
-  label: string;
-  value: string;
-  warning?: boolean;
+  system: EveGovernancePageData["system"];
 }) {
+  const attention = (value: string, warning: boolean) => (
+    <>
+      {value}
+      {warning ? <Badge variant="warning">Needs attention</Badge> : null}
+    </>
+  );
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-xl">
-          <span className="flex items-center justify-between gap-3">
-            {value}
-            <Badge variant={warning ? "destructive" : "secondary"}>
-              {warning ? "Attention" : "Observed"}
-            </Badge>
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
+    <MetricGrid label="Eve status">
+      <MetricCard
+        label="Release gate"
+        value={attention(
+          system.releaseEnabled ? "Enabled" : "Disabled",
+          system.releaseEnabled,
+        )}
+        detail="Eve cannot act on its own while this is off."
+      />
+      <MetricCard
+        label="Emergency state"
+        value={attention(
+          system.emergencyOff ? "Emergency engaged" : "Emergency clear",
+          system.emergencyOff,
+        )}
+        detail="An engaged emergency switch keeps Eve stopped."
+      />
+      <MetricCard
+        label="Policy status"
+        value={attention(
+          formatPolicyStatus(system.policyStatus),
+          system.policyStatus !== "ready",
+        )}
+        detail={
+          system.policySummary ??
+          "A ready policy is required before Eve can act."
+        }
+      />
+    </MetricGrid>
   );
 }
 
@@ -242,7 +278,7 @@ function KillSwitchControl({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-foreground">{copy.label}</p>
-          <Badge variant={enabled ? "destructive" : "outline"}>
+          <Badge variant={enabled ? "warning" : "success"}>
             {enabled ? "Engaged" : "Clear"}
           </Badge>
         </div>
@@ -291,35 +327,56 @@ function KillSwitchControl({
   );
 }
 
-function EveGovernanceLoading() {
-  return (
-    <div
-      role="status"
-      aria-label="Loading Eve governance state"
-      className="grid gap-4 md:grid-cols-3"
-    >
-      <span className="sr-only">Loading Eve governance state…</span>
-      {Array.from({ length: 3 }, (_, index) => (
-        <Card key={`eve-governance-loading-${index}`}>
-          <CardContent className="space-y-3 p-6">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-8 w-36" />
-            <Skeleton className="h-4 w-full" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
+const GOVERNANCE_SECTIONS = [
+  {
+    id: "eve-emergency-controls",
+    title: "Kill-switch controls",
+    description:
+      "Each change is saved under your name in the audit history. Clearing a switch never switches Eve on.",
+  },
+  {
+    id: "eve-active-runs",
+    title: "Recent governed runs",
+    description:
+      "What Eve tried to do recently and whether its safety rules allowed it. Eve’s private reasoning is never shown.",
+  },
+  {
+    id: "eve-failures",
+    title: "Governed failures",
+    description:
+      "Runs and recorded actions that failed, newest first. Only short summaries are shown, never full records or Eve’s private reasoning.",
+  },
+  {
+    id: "eve-audit",
+    title: "Audit history",
+    description:
+      "Every action Eve or an admin took, and why it was allowed or blocked. Sensitive details are removed before saving, and prompts and Eve’s private reasoning are never stored.",
+  },
+] as const;
 
-function EveGovernanceLoadError({ errorMessage }: { errorMessage?: string }) {
+const IDENTITY_MODE_LABELS = {
+  admin: "Administrator",
+  service: "Service account",
+  github_bot: "GitHub bot",
+} as const;
+
+function EveGovernanceLoadError({
+  errorMessage,
+  onRetry,
+}: {
+  errorMessage?: string;
+  onRetry?: () => void;
+}) {
   return (
     <Alert variant="destructive">
       <AlertTriangle aria-hidden="true" className="size-4" />
       <AlertTitle>Could not load Eve governance state</AlertTitle>
       <AlertDescription>
-        {errorMessage ?? "The governance store is unavailable."} Eve remains
-        fail-closed.
+        {errorMessage ?? "Eve's safety settings could not be reached."} Eve
+        stays switched off until they load.
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Try again
+        </Button>
       </AlertDescription>
     </Alert>
   );
@@ -338,9 +395,9 @@ function EveGovernanceStatusAlert({
         : "Eve is safely gated";
   const description =
     system.source === "missing"
-      ? "The kernel is fail-closed. Eve cannot run until app-owned governance state is restored."
+      ? "Eve's safety settings are missing, so Eve stays switched off until they are restored."
       : system.releaseEnabled
-        ? "Every action still requires ready policy and clear kill-switch state."
+        ? "Eve can act only while the policy is ready and every kill switch is clear."
         : "Eve cannot perform autonomous actions while the release gate is disabled.";
 
   return (
@@ -369,7 +426,7 @@ function collectGovernedFailures(
             {
               id: `run:${run.id}`,
               label: run.action,
-              summary: `${run.reason}. Target: ${run.target ?? "No external target"}.`,
+              summary: `${formatStatusLabel(run.reason)}. Target: ${run.target ?? "No external target"}.`,
               timestamp: run.updatedAt,
             },
           ]
@@ -402,15 +459,15 @@ function EveRecentRunsCard({
   return (
     <Card id="eve-active-runs">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={2}>
           <span className="flex items-center gap-2">
             <Bot aria-hidden="true" className="size-5" />
             Recent governed runs
           </span>
         </CardTitle>
         <CardDescription>
-          Decision summaries from the governance kernel. No hidden model
-          reasoning is shown.
+          What Eve tried to do recently and whether its safety rules allowed it.
+          Eve&apos;s private reasoning is never shown.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -433,10 +490,9 @@ function EveRecentRunsCard({
                     {run.target ?? "No external target"}
                   </p>
                 </div>
-                <Badge
-                  variant={run.decision === "blocked" ? "outline" : "secondary"}
-                >
-                  {run.status}: {run.reason}
+                <Badge variant={runTone(run)}>
+                  {formatPolicyStatus(run.status)}:{" "}
+                  {formatPolicyStatus(run.reason).toLowerCase()}
                 </Badge>
               </li>
             ))}
@@ -464,8 +520,9 @@ function EveGovernedFailuresCard({
           </span>
         </CardTitle>
         <CardDescription>
-          Failed run and audit summaries from app-owned governance state. No raw
-          record payloads or hidden reasoning are rendered.
+          Runs and recorded actions that failed, newest first. Only short
+          summaries are shown, never full records or Eve&apos;s private
+          reasoning.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -513,16 +570,16 @@ function EveAuditHistoryCard({
   return (
     <Card id="eve-audit">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={2}>
           <span className="flex items-center gap-2">
             <History aria-hidden="true" className="size-5" />
             Audit history
           </span>
         </CardTitle>
         <CardDescription>
-          App-owned action records with decision summaries and redacted replay
-          metadata. Raw prompts and hidden model reasoning are never stored
-          here.
+          Every action Eve or an admin took, and why it was allowed or blocked.
+          Sensitive details are removed before saving, and prompts and
+          Eve&apos;s private reasoning are never stored.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -545,18 +602,14 @@ function EveAuditHistoryCard({
                         {event.action}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {event.actorId} · {event.identityMode} ·{" "}
-                        {formatDateTime(event.createdAt, TIMESTAMP_FORMAT)}
+                        {event.actorId} ·{" "}
+                        {IDENTITY_MODE_LABELS[event.identityMode] ??
+                          formatStatusLabel(event.identityMode)}{" "}
+                        · {formatDateTime(event.createdAt, TIMESTAMP_FORMAT)}
                       </p>
                     </div>
-                    <Badge
-                      variant={
-                        event.result === "failed" || event.result === "blocked"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {event.result}
+                    <Badge variant={auditResultTone(event.result)}>
+                      {formatPolicyStatus(event.result)}
                     </Badge>
                   </summary>
                   <div className="mt-4 grid gap-4 rounded-lg border border-border bg-muted/25 p-4 text-sm md:grid-cols-2">
@@ -594,7 +647,8 @@ function EveAuditHistoryCard({
                           Initiator
                         </dt>
                         <dd className="min-w-0">
-                          {event.initiatorType}: {event.initiatorId}
+                          {formatStatusLabel(event.initiatorType)}:{" "}
+                          {event.initiatorId}
                         </dd>
                       </div>
                       <div className="flex gap-3">
@@ -602,25 +656,28 @@ function EveAuditHistoryCard({
                           Policy
                         </dt>
                         <dd className="min-w-0">
-                          {event.policyId} ({event.policyStatus})
+                          {event.policyId} (
+                          {formatStatusLabel(event.policyStatus)})
                         </dd>
                       </div>
                       <div className="flex gap-3">
                         <dt className="w-28 shrink-0 text-muted-foreground">
                           Model role
                         </dt>
-                        <dd className="min-w-0">{event.modelRole}</dd>
+                        <dd className="min-w-0">
+                          {formatStatusLabel(event.modelRole)}
+                        </dd>
                       </div>
                       <div className="flex gap-3">
                         <dt className="w-28 shrink-0 text-muted-foreground">
-                          Redaction contract
+                          Redaction version
                         </dt>
                         <dd className="min-w-0">{event.redactionVersion}</dd>
                       </div>
                     </dl>
                     <div className="space-y-1 md:col-span-2">
                       <p className="font-medium text-foreground">
-                        Redacted debug metadata
+                        Technical details (sensitive values removed)
                       </p>
                       <pre className="overflow-x-auto rounded-md bg-background p-3 text-xs text-muted-foreground">
                         {JSON.stringify(event.debugMetadata, null, 2)}
@@ -646,7 +703,10 @@ export function EveGovernanceView({
   mutationPendingKey,
   onConfirmKillSwitch,
   onSetKillSwitch,
+  onRetry,
+  showStatusRow = true,
 }: {
+  showStatusRow?: boolean;
   data?: EveGovernancePageData;
   errorMessage?: string;
   isError: boolean;
@@ -655,22 +715,37 @@ export function EveGovernanceView({
   mutationPendingKey?: EveKillSwitchKey;
   onConfirmKillSwitch?: (request: KillSwitchConfirmationRequest) => void;
   onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
+  onRetry?: () => void;
 }) {
   const { formatDateTime } = useLocaleFormat();
+  useEveSectionReady(
+    !isLoading && !isError && Boolean(data),
+    GOVERNANCE_SECTIONS,
+  );
   if (isLoading) {
-    return <EveGovernanceLoading />;
+    return (
+      <EveUnavailableSections
+        sections={GOVERNANCE_SECTIONS}
+        isLoading
+        loadingLabel="Loading Eve governance state"
+      />
+    );
   }
 
   if (isError || !data) {
-    return <EveGovernanceLoadError errorMessage={errorMessage} />;
+    return (
+      <div className="space-y-6">
+        <EveGovernanceLoadError errorMessage={errorMessage} onRetry={onRetry} />
+        <EveUnavailableSections
+          sections={GOVERNANCE_SECTIONS}
+          isLoading={false}
+          loadingLabel="Loading Eve governance state"
+        />
+      </div>
+    );
   }
 
   const { system } = data;
-  const releaseLabel = system.releaseEnabled ? "Enabled" : "Disabled";
-  const emergencyLabel = system.emergencyOff
-    ? "Emergency engaged"
-    : "Emergency clear";
-  const policyLabel = formatPolicyStatus(system.policyStatus);
   const failures = collectGovernedFailures(data);
   const confirmKillSwitch = (request: KillSwitchConfirmationRequest) => {
     if (onConfirmKillSwitch) {
@@ -690,29 +765,7 @@ export function EveGovernanceView({
       ) : null}
       <EveGovernanceStatusAlert system={system} />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatusCard
-          label="Release gate"
-          value={releaseLabel}
-          description="The app-owned master gate for every autonomous effect."
-          warning={system.releaseEnabled}
-        />
-        <StatusCard
-          label="Emergency state"
-          value={emergencyLabel}
-          description="Emergency-off takes precedence over an enabled release gate."
-          warning={system.emergencyOff}
-        />
-        <StatusCard
-          label="Policy status"
-          value={policyLabel}
-          description={
-            system.policySummary ??
-            "Policy must report ready before an autonomous effect can proceed."
-          }
-          warning={system.policyStatus !== "ready"}
-        />
-      </div>
+      {showStatusRow ? <EveGovernanceStatusRow system={system} /> : null}
 
       {mutationError ? (
         <Alert variant="destructive">
@@ -724,15 +777,15 @@ export function EveGovernanceView({
 
       <Card id="eve-emergency-controls">
         <CardHeader>
-          <CardTitle>
+          <CardTitle role="heading" aria-level={2}>
             <span className="flex items-center gap-2">
               <ShieldAlert aria-hidden="true" className="size-5" />
               Kill-switch controls
             </span>
           </CardTitle>
           <CardDescription>
-            Every change is atomic, attributed to your verified admin identity,
-            and recorded in audit history. Clearing a switch never enables Eve.
+            Each change is saved under your name in the audit history. Clearing
+            a switch never switches Eve on.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -789,36 +842,66 @@ export default function EveGovernancePage() {
 
   return (
     <PageShell
-      title="Eve Operations"
-      description="Inspect real governance state, approvals, failures, policy, memory, and emergency controls before using chat."
+      title="Eve operations"
+      description="Governance state, approvals, policy and emergency controls for the Eve assistant."
       density="compact"
       actions={
-        <Badge variant="outline">
-          <Power aria-hidden="true" className="size-3.5" />
-          Controls audited
-        </Badge>
+        <p className="text-xs text-muted-foreground">
+          {query.dataUpdatedAt
+            ? `Updated ${new Date(query.dataUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+            : "Awaiting governance state"}
+        </p>
       }
     >
-      <EveWorkspaceIndex />
-      <EveLaunchReadinessPanel />
-      <EveGovernanceView
-        data={query.data}
-        errorMessage={query.error?.message}
-        isError={query.isError}
-        isLoading={query.isLoading}
-        mutationError={mutation.error?.message}
-        mutationPendingKey={
-          mutation.isPending ? mutation.variables?.switchKey : undefined
+      <EveOperationsWorkspace
+        statusRow={
+          query.isError ? (
+            <EveGovernanceLoadError
+              errorMessage={query.error?.message}
+              onRetry={() => void query.refetch()}
+            />
+          ) : query.data ? (
+            <EveGovernanceStatusRow system={query.data.system} />
+          ) : (
+            <p role="status">Loading Eve status…</p>
+          )
         }
-        onConfirmKillSwitch={setKillSwitch}
+        panels={{
+          overview: (
+            <>
+              <EveLaunchReadinessPanel />
+              <EveGovernanceView
+                showStatusRow={false}
+                data={query.data}
+                errorMessage={query.error?.message}
+                isError={query.isError}
+                isLoading={query.isLoading}
+                mutationError={mutation.error?.message}
+                mutationPendingKey={
+                  mutation.isPending ? mutation.variables?.switchKey : undefined
+                }
+                onConfirmKillSwitch={setKillSwitch}
+                onRetry={() => void query.refetch()}
+              />
+            </>
+          ),
+          approvals: <EveApprovalBudgetPanel />,
+          policy: (
+            <>
+              <EveModelPolicyPanel />
+              <EveAdminMemoryPanel />
+              <EveRetentionPanel />
+            </>
+          ),
+          connections: (
+            <>
+              <EveNotificationsPanel />
+              <EveEngineeringMonitorsPanel />
+              <EveCapabilityConnectionsPanel />
+            </>
+          ),
+        }}
       />
-      <EveApprovalBudgetPanel />
-      <EveModelPolicyPanel />
-      <EveAdminMemoryPanel />
-      <EveNotificationsPanel />
-      <EveEngineeringMonitorsPanel />
-      <EveRetentionPanel />
-      <EveCapabilityConnectionsPanel />
     </PageShell>
   );
 }

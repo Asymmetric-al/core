@@ -75,4 +75,33 @@ describe("rich-text-editor/extensions", () => {
     expect(isAllowedUri("https://example.com")).toBe(true);
     expect(isAllowedUri("javascript:alert(1)")).toBe(false);
   });
+
+  it("prompts in plain sentence case and names an empty heading by its level", () => {
+    const placeholder = (
+      getExtension(createDefaultExtensions(), "placeholder") as {
+        options: {
+          placeholder: (props: {
+            node: { type: { name: string }; attrs: { level?: number } };
+          }) => string;
+        };
+      }
+    ).options.placeholder;
+
+    expect(
+      placeholder({ node: { type: { name: "paragraph" }, attrs: {} } }),
+    ).toBe("Write something…");
+    expect(
+      placeholder({ node: { type: { name: "heading" }, attrs: { level: 2 } } }),
+    ).toBe("Heading 2");
+  });
+
+  it("autolinks bare domains over https", () => {
+    const starterKit = getExtension(
+      createDefaultExtensions(),
+      "starterKit",
+    ) as { options?: Record<string, unknown> };
+    const link = starterKit.options?.link as Record<string, unknown>;
+
+    expect(link.defaultProtocol).toBe("https");
+  });
 });

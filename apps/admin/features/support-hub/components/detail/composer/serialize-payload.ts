@@ -25,23 +25,6 @@ interface SerializeArgs {
   mergeContext?: MergeVariableContext;
 }
 
-/**
- * Pure serializer that turns a Tiptap JSON snapshot into the support reply
- * payload shape. Lives next to the composer (not in `models/`) because it
- * encodes UI-side concerns (signature handling, plain-text fallback).
- *
- * - Tiptap JSON is stored verbatim — never mutated by the signature flag, so
- *   toggling the signature does not garble the editor doc.
- * - HTML is built from the JSON tree as a small subset (paragraph, br, list,
- *   blockquote, link, mark) so the donor receives the same content the agent
- *   typed. Phase 5 may swap this for `editor.getHTML()` once the composer
- *   exposes the editor instance.
- * - The plain-text fallback walks the JSON tree.
- *
- * `attachments` are passed straight through; the mock pipeline doesn't ship
- * file bytes yet but the SupportReplyPayload contract has carried them since
- * Phase 2.
- */
 export function serializeReplyPayload({
   rawJson,
   attachments,

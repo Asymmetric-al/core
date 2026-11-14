@@ -8,6 +8,7 @@ import {
   type Page,
 } from "@playwright/test";
 
+import { installDonorPhotoFixture } from "./helpers/donor-photo";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
@@ -26,12 +27,17 @@ type DemoAuthState = { available: true } | { available: false; reason: string };
 let demoAuthState: DemoAuthState | null = null;
 
 async function gotoDonorSettings(page: Page) {
+  await installDonorPhotoFixture(page);
   await page.goto("/donor-dashboard/settings");
-  await expect(page.getByText("Public Avatar")).toBeVisible();
-  await expect(page.getByRole("button", { name: /upload new/i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Photo", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /upload photo|change photo/i }),
+  ).toBeVisible();
 }
 
-/** Opens the "Crop Image" dialog from Upload New; a missing fixture fails the test. */
+/** Opens the photo crop dialog; a missing fixture fails the test. */
 async function openAvatarCropper(page: Page) {
   expect(
     fs.existsSync(TEST_IMAGE_PATH),
@@ -39,7 +45,9 @@ async function openAvatarCropper(page: Page) {
   ).toBe(true);
 
   const fileChooserPromise = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: /upload new/i }).click();
+  await page
+    .getByRole("button", { name: /upload photo|change photo/i })
+    .click();
   const fileChooser = await fileChooserPromise;
   await fileChooser.setFiles(TEST_IMAGE_PATH);
 
@@ -48,9 +56,14 @@ async function openAvatarCropper(page: Page) {
   return dialog;
 }
 
-/** What the "Upload public avatar" trigger renders: the image src, or the initials fallback. */
+/** Observe the photo itself independently from its upload trigger. */
 async function observeAvatar(page: Page) {
-  const trigger = page.getByRole("button", { name: "Upload public avatar" });
+  const trigger = page
+    .locator('[data-slot="card"]')
+    .filter({
+      has: page.getByRole("heading", { name: "Photo", exact: true }),
+    })
+    .locator('[data-slot="avatar"]');
   await expect(trigger).toBeVisible();
 
   const image = trigger.locator("img");
@@ -178,7 +191,9 @@ test.describe("Image Upload and Crop Flow", () => {
   }) => {
     await gotoDonorSettings(page);
 
-    const uploadButton = page.getByRole("button", { name: /upload new/i });
+    const uploadButton = page.getByRole("button", {
+      name: /upload photo|change photo/i,
+    });
     await expect(uploadButton).toBeEnabled();
 
     const removeButton = page.getByRole("button", { name: /remove/i });
@@ -269,12 +284,12 @@ test.describe("Image Upload Validation", () => {
 });
 
 test.describe("Large File Upload", () => {
-  test("settings copy advertises large-file auto-optimization", async ({
-    page,
-  }) => {
+  test("settings gives useful photo format guidance", async ({ page }) => {
     await gotoDonorSettings(page);
 
-    await expect(page.getByText(/large files auto-optimized/i)).toBeVisible();
+    await expect(
+      page.getByText("JPG, PNG, WebP or GIF. Large files auto-optimized."),
+    ).toBeVisible();
   });
 });
 

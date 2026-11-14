@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -17,8 +22,10 @@ import {
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Send } from "lucide-react";
+import Link from "next/link";
 
 export interface EmailStudioTestSendDialogProps {
+  error?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   toEmail: string;
@@ -28,6 +35,7 @@ export interface EmailStudioTestSendDialogProps {
 }
 
 export function EmailStudioTestSendDialog({
+  error,
   open,
   onOpenChange,
   toEmail,
@@ -47,10 +55,24 @@ export function EmailStudioTestSendDialog({
           <DialogHeader>
             <DialogTitle>Send test email</DialogTitle>
             <DialogDescription>
-              Sends the current editor export to a real inbox using the tenant
+              Queue a test email to a real inbox using your organization’s
               Resend connection.
             </DialogDescription>
           </DialogHeader>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTitle>The test email could not be queued</AlertTitle>
+              <AlertDescription>
+                <p>{error}</p>
+                <Link
+                  href="/settings/integrations/resend"
+                  className="underline underline-offset-4"
+                >
+                  Check Resend connection
+                </Link>
+              </AlertDescription>
+            </Alert>
+          ) : null}
           <FieldGroup className="py-2">
             <Field>
               <FieldLabel htmlFor="test-to-email">Recipient</FieldLabel>

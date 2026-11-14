@@ -1,0 +1,15 @@
+{
+  "extends": "../../../../apps/admin/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "types": ["node"],
+    "plugins": []
+  },
+  "include": [
+    "./crm-contrib-fixtures.ts",
+    "./export-fixtures.ts",
+    "./verify-fixtures.ts"
+  ],
+  "exclude": ["node_modules"]
+}

@@ -1,5 +1,19 @@
 "use client";
 
+export class SupportApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "SupportApiError";
+  }
+}
+
+export function isSupportNotFoundError(error: unknown): boolean {
+  return error instanceof SupportApiError && error.status === 404;
+}
+
 interface ApiErrorBody {
   error?: string;
 }
@@ -21,7 +35,7 @@ export async function supportApiGet<T>(path: string): Promise<T> {
     headers: { accept: "application/json" },
   });
   if (!response.ok) {
-    throw new Error(await readApiError(response));
+    throw new SupportApiError(await readApiError(response), response.status);
   }
   return (await response.json()) as T;
 }
@@ -40,7 +54,7 @@ export async function supportApiJson<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(await readApiError(response));
+    throw new SupportApiError(await readApiError(response), response.status);
   }
   if (response.status === 204) {
     return undefined as T;

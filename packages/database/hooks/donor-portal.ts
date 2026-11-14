@@ -3,14 +3,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { parseJsonResponse } from "../http/parse-json-response";
+import { getQueryClient } from "../providers/query-client";
 
 export type DonorPortalDonation = {
   id: string;
   date: string;
   amountCents: number;
   amount: number;
+  /** Refunded so far; a partly refunded gift is still Paid. */
+  refundedAmountCents?: number;
+  refundedAmount?: number;
   currency: string;
-  status: "Succeeded" | "Processing" | "Failed";
+  /** Paid, Processing, Failed or Refunded (glossary status words). */
+  status: "Paid" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
   receiptUrl: string;
@@ -21,6 +26,21 @@ export type DonorPortalDonation = {
     type: "missionary" | "fund" | "general";
     avatarUrl: string | null;
   };
+  /** The missionary the gift supports, when it supports one. */
+  missionary: DonorPortalGiftMissionary | null;
+  /** The fund it was designated to, when it has one. */
+  fund: DonorPortalGiftFund | null;
+};
+
+export type DonorPortalGiftMissionary = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+};
+
+export type DonorPortalGiftFund = {
+  id: string;
+  name: string;
 };
 
 export type DonorPortalRecurringGift = {
@@ -40,6 +60,8 @@ export type DonorPortalRecurringGift = {
   paymentsCompleted: number;
   paymentsRemaining: number | null;
   designation: DonorPortalDonation["designation"];
+  missionary: DonorPortalGiftMissionary | null;
+  fund: DonorPortalGiftFund | null;
 };
 
 export type DonorPortalSnapshot = {
@@ -61,6 +83,7 @@ export type DonorPortalSnapshot = {
     doNotContact: boolean;
     doNotEmail: boolean;
     givingPreferences: Record<string, unknown>;
+    address: DonorPortalAddress | null;
     stripeCustomerConfigured: boolean;
   };
   summary: {
@@ -74,7 +97,17 @@ export type DonorPortalSnapshot = {
     latestImpactLabel: string | null;
   };
   donations: DonorPortalDonation[];
+  /**
+   * False when only the newest gifts were loaded, so totals over `donations`
+   * can miss older gifts. Absent means the list is complete.
+   */
+  donationsComplete?: boolean;
   recurringGifts: DonorPortalRecurringGift[];
+  /**
+   * False when only the newest recurring gifts were loaded, so a total over
+   * them can miss an older active gift. Absent means the list is complete.
+   */
+  recurringGiftsComplete?: boolean;
   paymentMethods: Array<{
     id: string;
     label: string;
@@ -93,6 +126,15 @@ export type DonorPortalSnapshot = {
   };
 };
 
+export type DonorPortalAddress = {
+  street: string;
+  street2: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+};
+
 export type DonorPortalPatch = {
   firstName?: string;
   lastName?: string;
@@ -106,6 +148,7 @@ export type DonorPortalPatch = {
   doNotContact?: boolean;
   doNotEmail?: boolean;
   givingPreferences?: Record<string, unknown>;
+  address?: Partial<DonorPortalAddress> | null;
 };
 
 const DONOR_PORTAL_QUERY_KEY = ["donor", "portal"] as const;
@@ -124,6 +167,26 @@ export async function fetchDonorPortalSnapshot(): Promise<DonorPortalSnapshot> {
   );
 
   return payload.portal;
+}
+
+/**
+ * A missionary the signed-in donor already gives to, from portal data this
+ * visit has loaded. It never fetches, so public pages such as checkout make
+ * no account request for anonymous visitors.
+ */
+export function knownDonorRecipient(missionaryId: string | null) {
+  if (!missionaryId) return null;
+  const snapshot = getQueryClient().getQueryData<DonorPortalSnapshot>(
+    DONOR_PORTAL_QUERY_KEY,
+  );
+  const gifts = [
+    ...(snapshot?.donations ?? []),
+    ...(snapshot?.recurringGifts ?? []),
+  ];
+  return (
+    gifts.find((gift) => gift.missionary?.id === missionaryId)?.missionary ??
+    null
+  );
 }
 
 export function useDonorPortalSnapshot() {
@@ -171,6 +234,39 @@ export function useCreateDonorBillingPortalSession() {
       });
 
       return parseJsonResponse<{ url: string; stripeManaged: true }>(response);
+    },
+  });
+}
+
+/** A saved payment method as the wallet shows it (read from Stripe). */
+export type DonorWalletPaymentMethod = {
+  id: string;
+  kind: "card" | "bank";
+  brand: string;
+  last4: string;
+  expMonth: number | null;
+  expYear: number | null;
+  isDefault: boolean;
+  recurringGiftIds: string[];
+};
+
+export type DonorWallet =
+  | { status: "linked"; methods: DonorWalletPaymentMethod[] }
+  | { status: "not_linked"; methods: [] };
+
+const DONOR_WALLET_QUERY_KEY = ["donor", "wallet"] as const;
+
+/** The donor's saved payment methods. Changes happen in Stripe's portal. */
+export function useDonorWallet() {
+  return useQuery({
+    queryKey: DONOR_WALLET_QUERY_KEY,
+    queryFn: async () => {
+      const response = await fetch("/api/donor/payment-methods", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        method: "GET",
+      });
+      return parseJsonResponse<DonorWallet>(response);
     },
   });
 }

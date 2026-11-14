@@ -7,7 +7,7 @@
 
 When changing schema, RLS, Auth-related SQL, Storage policies, or Supabase CLI/MCP behavior, load **`docs/ai/skills/supabase/SKILL.md`** (platform-wide Supabase guidance). For Postgres performance and RLS cost, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**. For Next.js App Router + Supabase Auth only, use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**.
 
-To refresh the vendored Supabase skills from [supabase/agent-skills](https://skills.sh/supabase/agent-skills): `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, then `bun run skills:sync` and `bun run skills:verify`.
+To refresh the vendored Supabase skills from [supabase/agent-skills](https://skills.sh/supabase/agent-skills), follow the reviewed procedure in `docs/ai/rules/agent-skill-routing.md`: a targeted import with the pinned Skills CLI from a reviewed checkout, then `bun run skills:refresh-upstream --only=supabase/agent-skills`, then `bun run skills:sync` and `bun run skills:verify`.
 
 ## Triggers
 
@@ -42,10 +42,12 @@ Use this doc when a task touches:
 ## Commands
 
 - Local migrations + seed:
-  - `supabase db reset --local`
+  - `bun run supabase -- db reset --local`
   - `bash ./scripts/seed-demo.sh local`
 - Hosted migrations (explicit DB URL):
-  - `supabase db push --db-url "$SUPABASE_DB_URL"`
+  - `bun run supabase -- db push --db-url "$SUPABASE_DB_URL"`
+- Always go through `bun run supabase --`: `scripts/supabase-cli.mjs` uses a global CLI only when its
+  version equals the repository pin and otherwise runs the pinned version.
 - Hosted seed:
   - `bash ./scripts/seed-demo.sh hosted`
 - Row-count verification:

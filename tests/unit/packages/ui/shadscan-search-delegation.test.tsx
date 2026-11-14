@@ -56,6 +56,6 @@ it("delegates a real native trigger click without introducing another interactiv
   fireEvent.click(trigger);
   expect(onActivate).toHaveBeenCalledOnce();
   expect(
-    await view.findByRole("dialog", { name: "Command Palette" }),
+    await view.findByRole("dialog", { name: "Command palette" }),
   ).toBeTruthy();
 });

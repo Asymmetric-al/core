@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "kind": "workflow-pack",
+  "name": "core-factory",
+  "description": "Core software factory: serialized admission, six-role delivery rounds, operator chat and bounded analysis.",
+  "compatibility": { "archon": "0.14.0" },
+  "entrypoints": {
+    "select": "select/select.yaml",
+    "deliver": "deliver/deliver.yaml",
+    "answer": "answer/answer.yaml",
+    "analyze": "analyze/analyze.yaml",
+    "probe": "probe/probe.yaml"
+  }
+}
