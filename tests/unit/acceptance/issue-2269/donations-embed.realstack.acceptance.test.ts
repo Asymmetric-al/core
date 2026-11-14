@@ -19,6 +19,8 @@ import { resolve } from "node:path";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { checkDonorsEmbed } from "../issue-2370/donors-embed-scan";
+
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
@@ -124,7 +126,7 @@ function embeds(select: string): Embed[] {
 }
 
 describe("#2269 static (C1, C2, C8)", () => {
-  it("C1: no profiles!donor_id hint under apps/ or packages/; no donors!donor_id in the in-scope files", () => {
+  it("C1: no profiles!donor_id hint under apps/ or packages/; donors!donor_id repo-wide only in allow-listed files", () => {
     const grep = (pattern: string, ...paths: string[]) =>
       spawnSync(
         "git",
@@ -133,17 +135,17 @@ describe("#2269 static (C1, C2, C8)", () => {
           encoding: "utf8",
         },
       );
-    for (const r of [
-      grep("profiles!donor_id", "apps", "packages"),
-      // donors!donor_id is narrowed to the in-scope files (donations/index.ts,
-      // graphql/handler.ts, select.ts) per Samson's ruling on #2269, because
-      // follower-requests uses donors!donor_id legitimately; profiles!donor_id
-      // above stays repo-wide.
-      grep("donors!donor_id", REST, GQL, SELECT_TS),
-    ]) {
+    for (const r of [grep("profiles!donor_id", "apps", "packages")]) {
       expect(r.stdout).toBe("");
       expect(r.status).toBe(1);
     }
+    // donors!donor_id is scanned across the whole repository (#2370, widening
+    // the #2269 narrowing): only the allow-listed files may hit, namely the
+    // follower-requests reads that use it on purpose and this test. Both
+    // follower-requests reads must still hit so the allow-list can't go stale.
+    const donors = checkDonorsEmbed();
+    expect(donors.violations).toEqual([]);
+    expect(donors.missing).toEqual([]);
   });
   it(`C1: ${SELECT_TS} exports ${NAME} = spec 1.1`, async () =>
     expect((await constant()).replace(/\s+/g, "")).toBe(
