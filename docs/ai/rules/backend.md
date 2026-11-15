@@ -5,7 +5,7 @@
 Use this before changing server actions, route handlers, database access, or migrations.
 
 **Applies when:** Touching Supabase clients, auth/session, database queries, migrations, or server actions.
-**Do not use when:** Only changing UI with no data/auth impact (use `rules/frontend.md`).
+**Do not use when:** Only changing UI with no data/auth impact (use `docs/ai/rules/frontend.md`).
 
 ## Rules
 
@@ -15,7 +15,7 @@ Use this before changing server actions, route handlers, database access, or mig
 - Migrations/seed data:
   - `supabase/migrations/*.sql`
   - `supabase/seed.sql`
-- Supabase CLI is used through the repo runner: `bun run supabase -- <command>` (global CLI preferred when installed, pinned fallback otherwise).
+- Supabase CLI is used through the repo runner: `bun run supabase -- <command>` (`scripts/supabase-cli.mjs` uses a global CLI only when its version equals the repository pin, otherwise the pinned version).
 
 ### Supabase access (critical)
 
@@ -33,8 +33,7 @@ Use this before changing server actions, route handlers, database access, or mig
 - Asym Postgres owns application and CRM truth. Twenty CRM is retired; do not restore Twenty clients, credentials, routes, webhooks, synchronization, projections, or provider-backed CRM reads.
 - All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
 - Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
-- Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).
-- CI enforcement is `scripts/verify/data-boundary-check.sh`.
+- `bun run verify:data-boundary` (`scripts/verify/data-boundary-check.mjs`) enforces the banned imports and approved exceptions in CI and `bun run ci:preflight`.
 
 ### Security & auth
 
@@ -67,10 +66,6 @@ Use this before changing server actions, route handlers, database access, or mig
 - Store secrets in `.env.local` only.
 - Use `NEXT_PUBLIC_` only for browser-safe values.
 - Keep `.env.example` updated with required keys (no secrets).
-
-### Data pipeline note
-
-- This repo does not contain `tier_1` / `tier_2` batch pipelines. Do not add them unless requested.
 
 ## Workflow
 
@@ -132,8 +127,8 @@ export function MyComponent() {
 
 ### Route segment config policy (required)
 
-- With `cacheComponents: true` enabled in this repo, App Router route segment config exports are disabled.
-- In `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`, do **not** export any of:
+- Next.js removes `dynamic`, `dynamicParams`, `revalidate` and `fetchCache` when Cache Components is enabled. Core also bans `runtime`, `preferredRegion` and `maxDuration`; `bun run verify:workspace-contract` (`scripts/verify-workspace-contract.mjs`) rejects all seven.
+- In `apps/*/{app,src/app}/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`, do **not** export any of:
   - `runtime`
   - `dynamic`
   - `dynamicParams`

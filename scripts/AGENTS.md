@@ -22,7 +22,7 @@ Use this doc when editing or running:
 6. Prefer Bun/Node with `node:path`, `node:fs`, argument arrays, and `shell: false` for new or changed maintenance tooling. Avoid Bash-only canonical workflows, hardcoded `/tmp`, `sed -i`, and symlink-only designs.
 7. `bun run skills:sync` **mutates** generated mirrors. `bun run skills:verify` **must not** change the working tree.
 
-## Seed Script Added (2026-02-16)
+## Seed script
 
 - `scripts/seed-demo.sh`
   - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
@@ -46,6 +46,6 @@ Use this doc when editing or running:
 
 - [ ] Hosted mode requires explicit env vars and target URL validation
 - [ ] Script output avoids secrets
-- [ ] Commands fail fast (`set -euo pipefail`)
+- [ ] Shell scripts fail fast (`set -euo pipefail`)
 - [ ] Verification mode checks seeded table counts and profile singleton condition
 - [ ] Skill verify is non-mutating; skill sync is the write path

@@ -17,20 +17,18 @@ Use this when creating or refining unstyled primitive components and behavior-he
 - **Docs first:** Start from [reference-links.md](reference-links.md), then read the exact component page before writing code.
 - **Behavior before styling:** Preserve Base UI interaction and accessibility behavior before adding project styles.
 - **Styling agnostic:** Keep logic and visuals decoupled; prefer wrappers and class composition over forking behavior code.
-- **Tailwind compatibility:** Base UI examples target Tailwind v4. If a target package uses v3, convert unsupported utilities to v3-safe equivalents.
 - **Composable APIs:** Favor controlled/uncontrolled patterns, small props, and clear slots over monolithic components.
 - **A11y is non-negotiable:** Keep labels, descriptions, focus handling, keyboard support, and ARIA relationships intact.
 - **Styled wrapper contracts:** Preserve state-based `className`/`style`, `render`, refs, and cancelable events. Use `packages/ui/lib/base-ui.ts` to merge a Base UI class callback after receiving state; ordinary `cn`/CVA calls do not evaluate it.
-- **Forms:** Keep TanStack Form as the validation/submission owner. Base UI Field can supply accessible relationships without adding a second Form state system. Group labels name a group; they are not labels for Select/Combobox controls.
+- **Forms:** Keep TanStack Form as the validation/submission owner. Base UI Field can supply accessible relationships without adding a second Form state system; the shared adapter is `packages/ui/components/primitives/tanstack-form.tsx`. Group labels name a group; they are not labels for Select/Combobox controls.
+- **Shared ownership:** Styled wrappers belong in `packages/ui` (`components/shadcn` or `components/primitives`), not in an app. Check for an existing `@asym/ui` component before adding one.
 
 ## Workflow
 
-1. Confirm `@base-ui/react` is present in the target workspace `package.json`.
-2. Open the exact docs page from [reference-links.md](reference-links.md) for the primitive you need.
-3. Implement behavior with Base UI primitives first, then layer project styles (`cn`, tokens, Tailwind).
-4. Convert any Tailwind v4-only example classes if the target workspace is still on Tailwind v3.
-5. Validate keyboard navigation, focus states, and screen-reader output.
-6. Run local quality gates (typecheck/lint/tests relevant to changed scope).
+1. Check `packages/ui/package.json` for the installed `@base-ui/react` version and open the exact docs page from [reference-links.md](reference-links.md) for the primitive you need.
+2. Implement behavior with Base UI primitives first, then layer project styles (`cn`, semantic tokens, Tailwind v4).
+3. Validate keyboard navigation, focus states, and screen-reader output.
+4. Run the checks relevant to the changed scope (typecheck, lint, unit, a11y).
 
 ## Checklists
 
@@ -39,7 +37,6 @@ Use this when creating or refining unstyled primitive components and behavior-he
 - [ ] Primitive choice matches the interaction model (dialog/menu/select/etc.)
 - [ ] Controlled/uncontrolled behavior is explicit and testable
 - [ ] Styling is layered without breaking interaction semantics
-- [ ] Tailwind classes are compatible with the target package version
 - [ ] Labels, descriptions, and focus behavior are preserved
 
 ### Review checklist
@@ -77,21 +74,14 @@ export function FieldShell({ label, error, children }: FieldShellProps) {
 }
 ```
 
-Use a Base UI-aware control such as the shared `Input` inside this shell. Core's
-existing TanStack adapter already handles the product form case; reuse it instead
-of adding another field wrapper. The static shadcn Field layout parts also support
+Use a Base UI-aware control such as the shared `Input` inside this shell. For
+product forms, reuse the TanStack adapter in
+`packages/ui/components/primitives/tanstack-form.tsx` instead of adding another
+field wrapper. The static shadcn Field layout parts also support
 display-only content and should not be globally replaced with behavioral Field.
-
-### Tailwind v4 to v3 guardrail
-
-```txt
-When docs examples rely on Tailwind v4-only utilities,
-replace them with equivalent v3-safe utilities before commit.
-```
 
 ## Common mistakes / pitfalls
 
 - Styling first, then patching broken interactions later
-- Copying examples without checking Tailwind version compatibility
 - Mixing multiple primitive systems in one component without intent
 - Building large wrapper components with too many boolean props

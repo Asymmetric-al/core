@@ -1,9 +1,10 @@
 # TypeScript compiler, API and configuration guide
 
-All 15 compiled application/shared-package workspaces use stable native
-TypeScript 7. The root retains the supported full TypeScript 6 JavaScript API
-for AST scripts, typescript-eslint and the legacy editor SDK. This document's
-existing path is retained for links; compiler preparation is complete.
+Every compiled application and shared-package workspace uses stable native
+TypeScript 7 (`bun run verify:typescript-toolchain` reports the current count
+and versions). The root retains the supported full TypeScript 6 JavaScript API
+for AST scripts, typescript-eslint and the legacy editor SDK. The file name is
+historical; this is the current compiler and tsconfig policy.
 
 ## Ownership and installed resolution
 

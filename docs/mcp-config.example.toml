@@ -1,31 +1,16 @@
-########## MCP Servers ##########
+########## Optional personal MCP servers ##########
 
-# This template lists MCP servers commonly used/recommended in this repo.
-# Treat it as a starting point, not a required shape or workflow.
-#
-# Use it however you prefer:
-# - copy it to any local filename/path you like
-# - split it into multiple files if that fits your setup
-# - customize args/env to match your own tooling
+# The project configs (.mcp.json, .cursor/mcp.json, .codex/config.toml) already
+# register next-devtools, shadcn and reui (and inngest-dev for Claude Code and
+# Cursor). This file lists optional extra servers for your own user/global
+# config, in Codex TOML form. Copy only what you use.
 #
 # Do not commit credentials or tokens.
-
-
-# [mcp_servers.shadcn]
-# command = "npx"
-# args = ["-y", "shadcn@latest", "mcp"]
-# env = { EMAIL = "you@example.com", LICENSE_KEY = "..." }
-
-###
 
 # ReUI Pro: export REUI_LICENSE_KEY in the agent's process environment.
 # Codex reads the variable by name; ${REUI_LICENSE_KEY} is not TOML interpolation.
 # For browser OAuth instead, omit bearer_token_env_var and run codex mcp login reui.
 # See docs/guides/development/reui.md for registry installation and verification.
-# [mcp_servers.reui]
-# url = "https://mcp.reui.io"
-# bearer_token_env_var = "REUI_LICENSE_KEY"
-# http_headers = { "X-Reui-Style" = "base-maia" }
 
 ###
 
@@ -83,13 +68,6 @@
 
 # [mcp_servers.stripe]
 # url = "https://mcp.stripe.com"
-
-###
-
-# [mcp_servers.directus]
-# command = "npx"
-# args = ["@directus/content-mcp@latest"]
-# env = { DIRECTUS_URL = "https://your-directus-instance.com", DIRECTUS_TOKEN = "..." }
 
 ###
 

@@ -1,7 +1,7 @@
 # 5-ship-working-tree
 
 **Name:** `5-ship-working-tree`  
-**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct **CODEOWNERS reviewer(s)** (only) immediately, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures. Additional **human** reviewer routing is retired; merge happens autonomously via the **Merge Captain** pipeline (required checks and review settings: `docs/ci.md`, Branch protection).
+**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct **CODEOWNERS reviewer(s)** (only) immediately, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures. Do not request additional human reviewers: `develop` requires zero approving reviews and merges through GitHub once required checks pass (`docs/ci.md`, Branch protection).
 
 **Applies when:** You have meaningful local changes (staged/unstaged/untracked) that you want shipped via PR.  
 **Do not use when:** You are mid-rebase/merge, you suspect secrets are present, or you need a multi-commit / multi-PR breakdown.
@@ -488,14 +488,11 @@ Optional but recommended:
 **Important:** CODEOWNERS does not always auto-request reviews unless repo settings/branch protection require it. Always explicitly request reviewers.
 
 **Goal:** Request **only** the relevant **CODEOWNER(s)** (prefer individuals).  
-This command **must not** request an additional human reviewer—`develop` has no required review and merges autonomously via the Merge Captain pipeline once required checks pass.
+This command **must not** request an additional human reviewer: `develop` requires zero approving reviews and merges once required checks pass (`docs/ci.md`, Branch protection).
 
 #### 11.1) Resolve CODEOWNERS (source-of-truth)
 
-1. Locate CODEOWNERS file (first found wins):
-   - `.github/CODEOWNERS`
-   - `CODEOWNERS`
-   - `docs/CODEOWNERS`
+1. Read `.github/CODEOWNERS`, the only CODEOWNERS file in this repository.
 2. Determine changed files:
    - `git fetch origin --prune`
    - `git diff --name-only origin/<base>...HEAD`
@@ -543,14 +540,13 @@ Greptile (async review):
 
 - **Do not block/wait** for Greptile inside Cursor.
 - Greptile reviews asynchronously and chains a Codex review automatically.
-- Additional **human** reviewer routing is retired: `develop` has no required review and merges
-  autonomously via the **Merge Captain** pipeline once required checks pass. Required
-  checks and review settings are recorded in `docs/ci.md` (Branch protection).
+- Do not request additional human reviewers. Required checks and review settings are
+  recorded in `docs/ci.md` (Branch protection).
 
 Optional one-time check:
 
 ```bash
-gh pr view --comments | rg -n "greptile|codex|Merge Captain|automation:" || true
+gh pr view --comments | rg -n "greptile|codex|automation:" || true
 ```
 
 On **success**:

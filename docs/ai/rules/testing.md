@@ -158,8 +158,10 @@ already reachable from `develop`.
   `bun run test:e2e:development-smoke[:admin|:donor|:missionary]`.
 - Uses Vercel Protection Bypass for Automation via **headers**
   (`x-vercel-protection-bypass`, `x-vercel-set-bypass-cookie`), never query
-  params. Secrets live in `.claude/settings.local.json` (gitignored). Do not
-  commit secrets and do not put bypass tokens in URLs, scripts, or CI logs.
+  params. Secrets live in `.claude/settings.local.json`, which the repository
+  `.gitignore` does not list; confirm `git check-ignore .claude/settings.local.json`
+  before adding secrets. Do not commit secrets and do not put bypass tokens in
+  URLs, scripts, or CI logs.
 - This is a **smoke** suite, not regression coverage, and is not required for
   branch protection. See `docs/qa/development-headless-smoke.md` for details.
 
@@ -278,7 +280,7 @@ npx playwright show-report
 
 ## Common mistakes / pitfalls
 
-- Adding Jest/Vitest without a request
+- Adding a second test runner (Jest, `bun test`) instead of Vitest
 - Ignoring a11y failures
 - Writing brittle selectors or XPath
 - Allowing tests to depend on each other

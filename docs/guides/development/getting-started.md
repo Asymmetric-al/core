@@ -1,39 +1,16 @@
 # Developer Guide
 
-This guide helps new developers get started with the Asymmetric.al codebase. Target: make your first change within 1 hour.
-The "Give Hope" tenant name that appears in some demo defaults is a test frontend, not the organization.
-
-## Quick Start
-
-Install Node.js 24 at or above the tested version in `.node-version` and the
-exact Bun version in `.bun-version`. Setup and preflight reject other Node
-majors; GitHub Actions pins the exact tested checkpoint.
-
-Follow the canonical Quickstart in `README.md`:
-
-```bash
-# Credential-free Mission Control sandbox:
-bun run setup:mission-control:cloud
-bun run dev:mission-control
-
-# Hosted Supabase app development:
-bun run setup
-# set these required values in .env.local:
-# NEXT_PUBLIC_SUPABASE_URL
-# NEXT_PUBLIC_SUPABASE_ANON_KEY
-bun run dev
-bun run verify
-```
-
-For deterministic build workflows (strict local vs CI-equivalent), see `docs/guides/development/build-runbook.md`.
+Local development reference: environment variables, troubleshooting and
+everyday commands. Install prerequisites and run setup from the root
+[`README.md`](../../../README.md). The "Give Hope" tenant name that appears in
+some demo defaults is a test frontend, not the organization.
 
 ## Supabase Cloud
 
-Most contributor development uses a hosted Supabase project (no local DB required). If you need a fully local DB for development/testing, this repo also supports the Supabase CLI (Docker) and deterministic demo seed (see `README.md` "Supabase Demo Seed").
+Most contributor development uses a hosted Supabase project (no local DB required). A fully local database runs through the Supabase CLI (Docker): `bun run db:migrate:local` or `bun run seed:demo:local`.
 
 - **Required env vars**: Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 - **Access**: Ask a maintainer for the shared dev project URL + anon key.
-- **Schema/seed**: Managed by maintainers or CI in a separate workflow/repo.
 
 ## Environment Variable Matrix
 
@@ -87,24 +64,24 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 
 ## Common Commands
 
-| Command                                                               | Description                                                    |
-| --------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `bun run setup`                                                       | Hosted Supabase setup (env + deps + verify)                    |
-| `bun run setup:mission-control:cloud`                                 | Credential-free Mission Control setup for disposable sandboxes |
-| `bun run dev:mission-control`                                         | Run the Mission Control admin app in credential-free mode      |
-| `bun run verify`                                                      | Validate dev server + basic connectivity                       |
-| `bun run dev`                                                         | Start all apps in dev mode                                     |
-| `bun run dev:admin`                                                   | Start admin app only                                           |
-| `bun run dev:donor`                                                   | Start donor app only                                           |
-| `bun run dev:missionary`                                              | Start missionary app only                                      |
-| `bun run lint`                                                        | Lint all apps and packages                                     |
-| `bun run typecheck`                                                   | Type-check all apps and packages                               |
-| `bun run build`                                                       | Build all apps and packages                                    |
-| `bun run test:e2e`                                                    | Run Playwright E2E tests                                       |
-| `bun run react-doctor:first-party -- --full --offline --fail-on none` | Run the configured first-party React Doctor audit              |
+| Command                               | Description                                                    |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `bun run setup`                       | Hosted Supabase setup (env + deps + verify)                    |
+| `bun run setup:mission-control:cloud` | Credential-free Mission Control setup for disposable sandboxes |
+| `bun run dev:mission-control`         | Run the Mission Control admin app in credential-free mode      |
+| `bun run verify`                      | Workspace contract; HTTP checks with `VERIFY_HTTP=1`           |
+| `bun run dev`                         | Start all apps in dev mode                                     |
+| `bun run dev:admin`                   | Start admin app only                                           |
+| `bun run dev:donor`                   | Start donor app only                                           |
+| `bun run dev:missionary`              | Start missionary app only                                      |
+| `bun run lint`                        | Lint all apps and packages                                     |
+| `bun run typecheck`                   | Type-check all apps and packages                               |
+| `bun run build`                       | Build the admin, donor and missionary apps                     |
+| `bun run test:e2e`                    | Run Playwright E2E tests                                       |
+| `bun run react-doctor:audit`          | Run the configured React Doctor audit                          |
 
 Build troubleshooting and CI-parity commands are documented in `docs/guides/development/build-runbook.md`.
-Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`), while app builds compile through Next.js.
+Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`; `packages/eve-runtime` runs its own `scripts/build.mjs`), while app builds compile through Next.js.
 If you see Next.js lockfile/workspace-root warnings, follow `Multiple lockfile warnings during Next.js build` in the runbook.
 
 Twenty CRM was retired on 2026-07-06
@@ -113,339 +90,4 @@ Asym Postgres owns CRM truth. Do not add `TWENTY_*`, `CRM_SYNC_*`, or
 `NEXT_PUBLIC_TWENTY_*` variables, and do not restore Twenty clients, routes,
 webhooks, or health checks.
 
-React/Next.js cleanup audits are documented in `docs/guides/development/react-doctor.md`. The configured audit is advisory unless CI or a focused task chooses stricter `failOn` behavior.
-
-## Project Structure
-
-This is a **Turborepo monorepo** with three Next.js applications and eight shared packages:
-
-```
-core/
-├── apps/                       # Next.js applications
-│   ├── admin/                 # Mission Control (admin dashboard)
-│   │   ├── app/              # Next.js App Router
-│   │   │   ├── (admin)/mc/  # Admin routes
-│   │   │   ├── api/         # API routes
-│   │   │   └── auth/        # Auth callbacks
-│   │   ├── components/       # App-specific components
-│   │   ├── features/         # App-specific features
-│   │   ├── lib/              # App-specific utilities
-│   │   ├── .env.local        # App-specific environment variables
-│   │   └── package.json
-│   │
-│   ├── missionary/           # Missionary dashboard
-│   │   ├── app/              # Next.js App Router
-│   │   ├── components/
-│   │   ├── features/
-│   │   ├── lib/
-│   │   ├── .env.local
-│   │   └── package.json
-│   │
-│   └── donor/                # Donor portal
-│       ├── app/              # Next.js App Router
-│       ├── components/
-│       ├── features/
-│       ├── lib/
-│       ├── .env.local
-│       └── package.json
-│
-├── packages/                  # Shared packages
-│   ├── ui/                   # @asym/ui - UI components
-│   │   ├── components/      # Shared UI components
-│   │   │   ├── shadcn/     # shadcn/ui primitives
-│   │   │   ├── dashboard/  # Dashboard components
-│   │   │   └── feed/       # Social feed components
-│   │   └── package.json
-│   │
-│   ├── lib/                  # @asym/lib - Utilities
-│   │   ├── utils.ts         # Common utilities (cn, formatters)
-│   │   ├── hooks/           # Shared React hooks
-│   │   └── package.json
-│   │
-│   ├── database/             # @asym/database - Supabase & TanStack DB
-│   │   ├── supabase/        # Supabase clients
-│   │   ├── collections/     # TanStack DB collections
-│   │   └── package.json
-│   │
-│   ├── env/                  # @asym/env - Environment schema
-│   │   ├── src/schema.ts    # createEnv + zod validation contract
-│   │   └── package.json
-│   │
-│   ├── auth/                 # @asym/auth - Authentication
-│   ├── config/               # @asym/config - Configuration
-│   ├── email/                # @asym/email - Email services
-│   └── mock-data/            # @asym/mock-data - Shared demo fixtures
-│
-├── tooling/                  # Build tooling
-│   ├── eslint-config/       # Shared ESLint config
-│   └── typescript-config/   # Shared TypeScript config
-│
-├── turbo.json                # Turborepo configuration
-└── package.json              # Root package (delegates only)
-```
-
-## Key Patterns
-
-### 1. Package Architecture
-
-The monorepo uses **internal packages** that are imported by apps:
-
-```typescript
-// Package imports (from any app)
-import { Button, Card } from "@asym/ui";
-import { cn, formatCurrency, useIsMobile } from "@asym/lib";
-import { createClient } from "@asym/database/supabase/client";
-import { useAuth } from "@asym/auth";
-import { SITE_CONFIG } from "@asym/config";
-import { env } from "@asym/env";
-```
-
-### 2. App-Specific Feature Module Structure
-
-Each app has its own `features/` directory for app-specific logic:
-
-```
-apps/admin/features/
-└── mission-control/
-    ├── index.ts              # Public API (barrel export)
-    ├── components/           # Feature-specific components
-    │   └── index.ts          # Component barrel export
-    ├── hooks/                # Feature-specific hooks
-    └── context.tsx           # Feature context (optional)
-```
-
-### 3. Import Conventions
-
-```typescript
-// UI components from @asym/ui package
-import { Button, Card, Input } from "@asym/ui";
-
-// Utilities from @asym/lib package
-import { cn, formatCurrency, useIsMobile } from "@asym/lib";
-
-// Database from @asym/database package
-import { createClient } from "@asym/database/supabase/client";
-import { useLiveQuery } from "@asym/database/hooks";
-
-// Auth from @asym/auth package
-import { useAuth } from "@asym/auth";
-
-// Config from @asym/config package
-import { SITE_CONFIG, NAVIGATION } from "@asym/config";
-
-// Environment from @asym/env package
-import { env } from "@asym/env";
-
-// App-specific feature components (within an app)
-import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
-
-// App-specific components (within an app)
-import { DashboardLayout } from "@/components/layouts";
-```
-
-### 4. Page Structure
-
-```typescript
-// apps/admin/app/(admin)/mc/my-page/page.tsx
-import { PageHeader } from '@/features/mission-control/components/patterns/page-header'
-import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
-import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
-
-export default function MyPage() {
-  return (
-    <TilePage
-      title="Page Title"
-      description="What this page does"
-    >
-      {/* Page content */}
-    </TilePage>
-  )
-}
-```
-
-### 5. Responsive Design
-
-Use the responsive utilities from `@asym/lib`:
-
-```typescript
-// CSS utility classes
-<div className="container-responsive">  // Responsive container
-<div className="grid-responsive-3">     // 1 → 2 → 3 columns
-<h1 className="text-responsive-h1">     // Fluid typography
-
-// React hooks from @asym/lib
-import { useIsMobile, useBreakpoint } from '@asym/lib'
-
-function MyComponent() {
-  const isMobile = useIsMobile()
-  const breakpoint = useBreakpoint() // 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-}
-```
-
-See `docs/guides/ui-design/responsive-design.md` for full documentation.
-
-## Adding a New Page
-
-### Step 1: Choose which app
-
-Decide which app the page belongs to:
-
-- **Admin app** (`apps/admin/`) - Mission Control features
-- **Missionary app** (`apps/missionary/`) - Missionary dashboard features
-- **Donor app** (`apps/donor/`) - Donor portal features
-
-### Step 2: Create the page file
-
-```bash
-# For Mission Control (admin app)
-mkdir -p apps/admin/app/\(admin\)/mc/my-page
-touch apps/admin/app/\(admin\)/mc/my-page/page.tsx
-
-# For Missionary Dashboard
-mkdir -p apps/missionary/app/my-page
-touch apps/missionary/app/my-page/page.tsx
-
-# For Donor Portal
-mkdir -p apps/donor/app/\(donor\)/donor-dashboard/my-page
-touch apps/donor/app/\(donor\)/donor-dashboard/my-page/page.tsx
-```
-
-### Step 3: Add the basic structure
-
-```typescript
-// apps/admin/app/(admin)/mc/my-page/page.tsx
-import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
-import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
-
-export default function MyPage() {
-  return (
-    <TilePage
-      title="My New Page"
-      description="A short description of what this page does"
-    >
-      <div className="grid-responsive-2">
-        <Card className="card-padding">
-          <CardHeader>
-            <CardTitle>Section 1</CardTitle>
-          </CardHeader>
-          <CardContent>
-            Content here
-          </CardContent>
-        </Card>
-      </div>
-    </TilePage>
-  )
-}
-```
-
-### Step 4: Add navigation (if needed)
-
-Edit the appropriate navigation file:
-
-- **Admin:** `apps/admin/app/mc-shell.tsx` (shell + sidebar navigation)
-- **Missionary:** `apps/missionary/components/app-sidebar.tsx`
-- **Donor:** `apps/donor/features/donor/components/DonorSubNav.tsx`
-
-## Adding a New Component
-
-### Step 1: Create in the right location
-
-- **Shared across all apps**: `packages/ui/components/`
-- **App-specific**: `apps/[app-name]/components/`
-- **Feature-specific**: `apps/[app-name]/features/[feature]/components/`
-- **UI primitive**: Don't add here, use shadcn/ui from `@asym/ui`
-
-### Step 2: Follow the naming convention
-
-- Files: `kebab-case.tsx`
-- Components: `PascalCase`
-- Hooks: `use-kebab-case.ts`
-
-### Step 3: Export from barrel (if in a package)
-
-```typescript
-// packages/ui/components/index.ts
-export { MyNewComponent } from "./my-new-component";
-
-// Or for app-specific components
-// apps/admin/components/index.ts
-export { MyNewComponent } from "./my-new-component";
-```
-
-## Working with Mock Data
-
-Mock data is canonical in `packages/mock-data/` and exposed to each app through `apps/[app-name]/lib/mock-data/index.ts`. For development:
-
-```typescript
-// In an app (e.g., apps/admin/)
-import {
-  MISSIONARIES, // Array of missionary records
-  DONORS, // Array of donor records
-  DONATIONS, // Array of donation records
-  getMissionaryById, // Get single missionary
-  getDonorById, // Get single donor
-  getFieldWorkers, // Get public worker list
-} from "@/lib/mock-data";
-```
-
-**Note:** Edit shared demo fixtures in `packages/mock-data/`. Keep app-local `apps/[app-name]/lib/mock-data/index.ts` files as thin compatibility re-exports for `@/lib/mock-data` imports.
-
-## Common Tasks
-
-### Run tests before committing
-
-```bash
-# From repo root - canonical PR/push readiness
-bun run ci:preflight
-
-# Optional (non-blocking in CI, but recommended for flow changes)
-bun run test:e2e
-
-# For a specific app (examples)
-bun run typecheck:admin && bun run lint:admin && bun run build:admin
-```
-
-### Check responsive behavior
-
-1. Open Chrome DevTools (F12)
-2. Click device toolbar (Ctrl+Shift+M)
-3. Test at: 375px, 768px, 1024px, 1440px
-
-### Debug API routes
-
-```bash
-# Test with curl (adjust port if needed)
-# Dev ports (default): donor :3000, admin :3030, missionary :4000
-curl http://localhost:3000/api/missionaries | jq
-```
-
-### Work on a specific app
-
-```bash
-# Start only the admin app
-bun run dev:admin
-
-# Build only the missionary app
-bun run build:missionary
-
-# Lint only the donor app
-bun run lint:donor
-```
-
-### Work on a specific package
-
-```bash
-# Build only the UI package
-turbo run build --filter=@asym/ui
-
-# Type-check only the database package
-turbo run typecheck --filter=@asym/database
-```
-
-## Getting Help
-
-1. Read `docs/guides/architecture/overview.md` for system overview
-2. Read `docs/guides/development/contributing.md` for code standards
-3. Read `docs/guides/ui-design/responsive-design.md` for responsive patterns
-4. Check existing similar code for patterns
-5. Review `turbo.json` for available tasks and dependencies
+React/Next.js cleanup audits are documented in `docs/guides/development/react-doctor.md`; `bun run react-doctor:check` is the strict acceptance check.

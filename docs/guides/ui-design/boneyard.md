@@ -2,7 +2,7 @@
 
 ## Version and upstream
 
-- **npm:** track **`boneyard-js@^1.8.1`** (see [0xGF/boneyard releases](https://github.com/0xGF/boneyard/releases)). The 1.8.x line continues guided `skeletons` config, redirect/auth diagnostics, and styling controls; pass **app origin URLs only** to the CLI so it reads each app’s `boneyard.config.json` and visits configured `skeletons` routes (not full `/boneyard/...` paths, which trigger specific-page mode and skip skeletons).
+- **npm:** `boneyard-js` is pinned to **`1.10.0`** in the apps, in `@asym/ui` and in the root `boneyard:*` scripts (`bunx boneyard-js@1.10.0`); keep them in step. Pass **app origin URLs only** to the CLI so it reads each app’s `boneyard.config.json` and visits configured `skeletons` routes (not full `/boneyard/...` paths, which trigger specific-page mode and skip skeletons).
 - **Monorepo:** `@asym/ui` re-exports the React `Skeleton` as `BoneyardSkeleton` from `boneyard-js/react` but does **not** list `boneyard-js` as a runtime `dependency`. It is an **optional** `peerDependency` plus a **`devDependency`** for `@asym/ui`’s own typecheck. Apps that render Boneyard at runtime declare **`boneyard-js`** in their **`dependencies`** (`@asym/admin`, `@asym/missionary-app`, `@asym/donor`).
 
 ## Triggers
@@ -24,7 +24,7 @@
 
 ## Guided crawling (`skeletons` in `boneyard.config.json`)
 
-boneyard-js **1.8+** supports a top-level **`skeletons`** object: keys are skeleton **names**, values include **`route`** (path on the same origin as the CLI start URL) and optional **`wait`** (ms override for that page). When present, the CLI **skips** link discovery and visits only those routes — ideal for monorepos with multiple apps and public `/boneyard/*` capture pages.
+boneyard-js supports a top-level **`skeletons`** object: keys are skeleton **names**, values include **`route`** (path on the same origin as the CLI start URL) and optional **`wait`** (ms override for that page). When present, the CLI **skips** link discovery and visits only those routes — ideal for monorepos with multiple apps and public `/boneyard/*` capture pages.
 
 **CLI start URL:** pass the app **origin** (`http://localhost:3030`, `4000`, or `3000`). Do **not** pass a full capture path like `http://localhost:3030/boneyard/contributions` — that selects specific-page mode and ignores `skeletons`.
 
@@ -68,8 +68,8 @@ Use **`{app}-{area}-{section}`** so names are unique within an app crawl (duplic
 
 Protected apps redirect unauthenticated users. Capture runs in Playwright **without** your session cookies, so pilot screens use **dedicated public routes** under `/boneyard/...`:
 
-- **Admin / missionary:** path prefixes are allowlisted in each app’s layout public-path list.
-- **Donor:** `apps/donor/proxy.ts` lists **`/boneyard`** under `publicRoutes` so nested capture routes remain reachable without a session.
+- **Admin / donor:** `apps/admin/proxy.ts` and `apps/donor/proxy.ts` list **`/boneyard`** under `publicRoutes` so nested capture routes remain reachable without a session. The admin capture page lives at `apps/admin/app/(auth)/boneyard/`.
+- **Missionary:** `apps/missionary/proxy.ts` takes its public routes from `MISSIONARY_PUBLIC_ROUTES` in `apps/missionary/lib/route-policy.ts`, which includes `/boneyard`.
 
 Missionary **`/boneyard` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.
 
@@ -102,7 +102,7 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 - [ ] Public capture routes set **`robots: { index: false, follow: false }`** in page/layout metadata.
 - [ ] `boneyard.config.json` includes **`skeletons`** entries for each named capture route.
 - [ ] Root capture scripts pass **origin URLs only** (not full `/boneyard/...` paths).
-- [ ] Donor proxy allowlists `/boneyard` (no trailing slash) so nested capture routes stay public.
+- [ ] The app's proxy public-route list includes `/boneyard` so nested capture routes stay public.
 
 ## Playwright smoke (`tests/e2e/boneyard-smoke.spec.ts`)
 

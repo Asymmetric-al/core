@@ -16,7 +16,6 @@ Root `AGENTS.md` already provides ordinary repository orientation.
 ## When to use
 
 - You are auditing or changing `AGENTS.md`, rule/skill routing, or instruction budgets.
-- A tool or workflow only surfaced a root `SKILL.md` and you need the full picture.
 - You changed or added something under `docs/ai/skills/` and must refresh mirrors.
 
 ## Workflow
@@ -24,7 +23,7 @@ Root `AGENTS.md` already provides ordinary repository orientation.
 1. Read and follow root **`AGENTS.md`**, the nearest scoped instructions, and
    `openspec/specs/agent-instruction-system/spec.md`.
 2. For **canonical** task skills maintained by this repo, use **`docs/ai/skills/*/SKILL.md`** and **`docs/ai/rules/agent-skill-routing.md`**.
-3. After changing skills under `docs/ai/skills/`, run **`bun run skills:sync`** and ensure **`bun run skills:verify`** passes before committing.
+3. After changing skills under `docs/ai/skills/`, run **`bun run skills:sync`**, then `node scripts/update-skill-audit-hashes.mjs --skill <name>` for each changed skill (`tests/unit/docs/skill-inventory-audit.test.ts` checks the installed payload hashes in `docs/ai/skill-source-audit.json`), and ensure **`bun run skills:verify`** passes before committing.
 4. Optional tool-specific or ecosystem skills may originate under
    **`.agents/skills/`** and be mirrored into **`.cursor/skills/`** and
    **`.claude/skills/`**; use them only when their `SKILL.md` description
@@ -34,7 +33,7 @@ Root `AGENTS.md` already provides ordinary repository orientation.
 
 - [ ] Root and scoped instruction sources opened for the maintenance task.
 - [ ] Relevant `docs/ai/skills/<topic>/SKILL.md` files loaded per `docs/ai/rules/agent-skill-routing.md`.
-- [ ] If `docs/ai/skills/` was edited: `bun run skills:sync` and `bun run skills:verify` run and clean.
+- [ ] If `docs/ai/skills/` was edited: `bun run skills:sync`, the audit-hash update for each changed skill, and `bun run skills:verify` run and clean.
 
 ## See also
 

@@ -1,167 +1,43 @@
 # Documentation
 
-Welcome to the Asymmetric.al Core documentation! This directory contains all project documentation organized by category.
+Repository rules and routing live in the root [`AGENTS.md`](../AGENTS.md);
+setup and verification commands live in the root [`README.md`](../README.md).
+Accepted product and platform requirements live in
+[`openspec/`](../openspec/project.md).
+[Document authority](./ai/document-authority.md) explains which source wins
+for product decisions, phase packages, supersession and generated files. Asym
+Postgres owns CRM truth; Twenty records are retired history, not setup or
+rollback instructions.
 
-Start with [Document authority and current contracts](./ai/document-authority.md)
-for product decisions, phase packages, supersession and generated source ownership.
-For CRM, Asym Postgres is authoritative; Twenty integration records are retired
-research/history, not setup or rollback instructions.
+## Start here
 
----
+- [Architecture overview](./guides/architecture/overview.md): apps, routes and
+  data flow.
+- [Data-access boundary](./guides/architecture/data-access-boundary.md): where
+  business data logic and browser table access may live.
+- [Developer guide](./guides/development/getting-started.md): environment
+  variables, troubleshooting and everyday commands.
+- [Build runbook](./guides/development/build-runbook.md): build modes, Turbo
+  caching and build troubleshooting.
+- [CI](./ci.md): workflows, jobs and dated branch-protection evidence.
+- [Environment variable audit](./env-var-audit.md): variable inventory.
 
-## 📁 Directory Structure
+## Directories
 
-### `guides/` - Developer Guides
+| Directory                        | Contents                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------- |
+| [`ai/`](./ai/)                   | Agent rulebooks (`ai/rules/`), canonical skills (`ai/skills/`), audits and provenance |
+| [`adr/`](./adr/README.md)        | Architecture decision records                                                         |
+| [`guides/`](./guides/)           | Architecture, development, feature, operations and UI guides                          |
+| [`prds/`](./prds/)               | Product requirement packages and roadmaps                                             |
+| [`features/`](./features/)       | Feature packages, grill notes and evidence                                            |
+| [`security/`](./security/)       | Security models and policies                                                          |
+| [`ops/`](./ops/)                 | Operations runbooks, deployment reports and phase evidence                            |
+| [`maintenance/`](./maintenance/) | Dependency and tooling modernization records                                          |
+| [`qa/`](./qa/)                   | QA evidence and audit tooling                                                         |
+| [`auth/`](./auth/sign-in.md)     | Sign-in modes, demo accounts and auth hardening status                                |
+| [`agents/`](./agents/domain.md)  | Issue-tracker, triage-label and domain-doc conventions used by agent skills           |
+| [`vendor/`](./vendor/payload.md) | Payload source provenance and upgrade workflow                                        |
 
-Organized documentation for developers working on this project:
-
-#### **Architecture**
-
-- **[Architecture Overview](./guides/architecture/overview.md)** - System architecture, monorepo structure, and design patterns
-- **[Technical Decisions](./guides/architecture/technical-decisions.md)** - Key technical decisions and their rationale
-
-#### **Development**
-
-- **[TypeScript 6 / 7 readiness](./guides/typescript-6-readiness.md)** - Prep policy for future TypeScript upgrades (not the upgrade itself)
-- **[Getting Started](./guides/development/getting-started.md)** - Development setup, workflow, and best practices
-- **[Contributing Guide](./guides/development/contributing.md)** - How to contribute to the project
-- **[React Doctor](./guides/development/react-doctor.md)** - Configured first-party React Doctor audit workflow and documented exceptions
-- **[Mock Data Guide](./guides/development/mock-data.md)** - Working with mock data and seeding
-- **[TanStack Integration](./guides/development/tanstack-integration.md)** - TanStack Table and Query integration guide
-- **[MCP Config Example](./guides/development/mcp-config.example.toml)** - Model Context Protocol configuration template
-
-#### **Features**
-
-- **[Email Studio](./guides/features/email-studio.md)** - React Email template builder with Resend delivery
-- **[PDF Studio](./guides/features/pdf-studio.md)** - Document/PDF editor for receipts and statements
-- **[Care Hub](./guides/features/care-hub.md)** - Member care and personnel management
-- **[Teams & Permissions](./guides/features/teams-and-permissions.md)** - Access control and team management
-- **[Resend Integration](./guides/features/resend-integration.md)** - Email delivery service integration
-
-#### **UI & Design**
-
-- **[Component Inventory](./guides/ui-design/component-inventory.md)** - Complete inventory of UI components
-- **[Component Sources](./guides/ui-design/component-sources.md)** - Component sources and design system
-- **[Responsive Design](./guides/ui-design/responsive-design.md)** - Responsive design patterns and breakpoints
-- **[Icons Guide](./guides/ui-design/icons.md)** - Icon system and usage
-- **[PWA Icons](./guides/ui-design/pwa-icons.md)** - Progressive Web App icon configuration
-
----
-
-### `summary/` - Task Summaries & Migration Docs
-
-AI-generated documentation following the naming convention `YYYY-MM-DD-HH-MM_{short_detail}.md`:
-
-- **`turborepo/`** - Turborepo migration documentation and compliance audits
-
----
-
-### `ai/` - AI Assistant Configuration
-
-Configuration and rules for AI coding assistants:
-
-- **`rules/`** - AI agent rules (general, frontend, backend, testing, TypeScript future-proofing)
-- **`skills/`** - AI agent skills for specific technologies
-- **`audits/`** - UI and other audit artifacts
-- **`stack-registry.md`** - Technology stack registry
-- **`working-set.example.md`** - Template for ignored local scratch (`working-set.local.md`); the tracked `working-set.md` is a historical record
-- **`nia.md`** - Nia MCP usage, source-check workflow, and local sync hygiene
-
-**Root-level code quality audit:** [`CODE_QUALITY_AUDIT.md`](../CODE_QUALITY_AUDIT.md) — verified maintainability snapshot for `develop` (see also `docs/ai/audits/`).
-
-**See:** `AGENTS.md` in the root for the AI agent router.
-
----
-
-## 🚀 Quick Start
-
-### For New Developers
-
-1. Start with **[Getting Started Guide](./guides/development/getting-started.md)**
-2. Read **[Architecture Overview](./guides/architecture/overview.md)** for system overview
-3. Review **[Contributing Guide](./guides/development/contributing.md)** for workflow
-4. Check **[Features](./guides/features/)** for module-specific documentation
-
-### For Contributors
-
-1. Read **[Contributing Guide](./guides/development/contributing.md)**
-2. Follow the **[Technical Decisions](./guides/architecture/technical-decisions.md)** for context
-3. Check **[Component Inventory](./guides/ui-design/component-inventory.md)** before creating new UI
-
-### For Feature Setup
-
-1. **Email/PDF Studio:** See **[Email Studio](./guides/features/email-studio.md)** or **[PDF Studio](./guides/features/pdf-studio.md)**
-2. **Resend:** See **[Resend Integration](./guides/features/resend-integration.md)**
-3. **Teams:** See **[Teams & Permissions](./guides/features/teams-and-permissions.md)**
-
----
-
-## 📝 Documentation Standards
-
-- All documentation is written in Markdown
-- Use clear, concise language
-- Include code examples where appropriate
-- Keep documentation up-to-date with code changes
-- Follow the **[Contributing Guide](./guides/development/contributing.md)** for documentation contributions
-- **AI-generated docs:** Follow naming convention `YYYY-MM-DD-HH-MM_{short_detail}.md` in `docs/summary/{feature}/`
-
----
-
-## 🔗 External Resources
-
-- **[Next.js Documentation](https://nextjs.org/docs)** - Next.js framework
-- **[Turborepo Documentation](https://turbo.build/repo/docs)** - Monorepo build system
-- **[Supabase Documentation](https://supabase.com/docs)** - Backend and database
-- **[shadcn/ui Documentation](https://ui.shadcn.com)** - UI component library
-
----
-
-**Last Updated:** 2026-01-23
-
-### For Feature Development
-
-1. Check **`modules/`** for feature-specific docs
-2. Review **`guides/ui-inventory.md`** for available components
-3. See **`guides/technical-decisions.md`** for patterns
-
-### For AI Assistants
-
-1. See **`AGENTS.md`** in root for routing
-2. Load rules from **`ai/rules/`** based on task
-3. Load skills from **`ai/skills/`** for specific technologies
-
----
-
-## 📝 Documentation Standards
-
-### File Naming
-
-- Use lowercase with hyphens: `developer-guide.md`
-- Date-prefixed for historical docs: `2026-01-23-phase-1-complete.md`
-- Clear, descriptive names
-
-### Structure
-
-- Start with a clear title and purpose
-- Include table of contents for long docs
-- Use headings for organization
-- Include code examples where relevant
-- Add links to related docs
-
-### Maintenance
-
-- Keep docs up-to-date with code changes
-- Archive outdated docs in appropriate subdirectories
-- Update this README when adding new categories
-
----
-
-## 🔗 Related Documentation
-
-- **Root README.md** - Project overview and quick start
-- **AGENTS.md** - AI agent router and rules
-- **CONTRIBUTING.md** - Contribution guidelines (also in `guides/`)
-
----
-
-**Last Updated:** 2026-01-23
+Optional personal MCP servers are listed in
+[`mcp-config.example.toml`](./mcp-config.example.toml).

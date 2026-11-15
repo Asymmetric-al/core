@@ -3,115 +3,63 @@ name: rechart
 description: "Build responsive, readable charts with Recharts using correct data mapping and composition. Use whenever creating charts with Recharts — LineChart, BarChart, AreaChart, PieChart, wrapped in ResponsiveContainer with a fixed-height parent. Not for charts built with other libraries."
 ---
 
-# Recharts — Skill
+# Recharts in Core
 
-**Name:** `recharts`
-**Purpose:** Build responsive, readable charts with Recharts using correct data mapping and composition.
-Use this skill whenever creating charts with Recharts.
-
-**Applies when:** Using `LineChart`, `BarChart`, `AreaChart`, `PieChart`, `ResponsiveContainer`.
-**Do not use when:** Charts are not built with Recharts.
+Core pins Recharts 3 (`recharts` in `packages/ui/package.json` and the app manifests). Build charts with the shared shadcn chart wrapper in `packages/ui/components/shadcn/chart.tsx`; `packages/ui/components/primitives/chart-wrappers.tsx` adds `ChartCard` and `KpiTile` compositions.
 
 ## Rules
 
-- **Always responsive:** Wrap charts in `ResponsiveContainer` and ensure a fixed height parent.
-- **Explicit data model:** Normalize data and use stable `dataKey` values.
-- **Pick the simplest chart:** Use `LineChart` for trends, `BarChart` for comparisons, `AreaChart` for cumulative/volume, `PieChart` for part-to-whole.
-- **Interactivity:** Add `Tooltip`; add `Legend` when multiple series exist.
-- **Performance:** Disable animation for large/static dashboards and reduce point count.
+- **Use `ChartContainer`:** It supplies `ResponsiveContainer`, theme-aware `--color-<key>` variables from a `ChartConfig`, and token-based axis/grid styling. Default layout keeps an aspect ratio; `layout="fill"` fills a parent with a definite height class (no inline `style`).
+- **Theme colors:** Set series colors in `ChartConfig` with `chartColor(index)` or `var(--chart-N)`, then reference `var(--color-<key>)` in `fill`/`stroke`. No raw palette colors.
+- **Tooltips and legends:** Use `ChartTooltip` with `ChartTooltipContent` and `ChartLegend` with `ChartLegendContent`; format money and units with the owning formatter.
+- **Explicit data model:** Normalize data and use stable `dataKey` values. Pick the simplest chart: line for trends, bar for comparisons, area for cumulative volume, pie only for part-to-whole.
+- **Accessibility:** Provide an accessible alternative (a table or text summary) for the data. If the chart is hidden from assistive technology, set `accessibilityLayer={false}` and say why in a comment.
+- **Performance:** Set `isAnimationActive={false}` for dashboards and large or frequently updated data, aggregate large sets, and consider `next/dynamic` to keep Recharts out of the initial bundle.
 
-## Workflow
+## Checklist
 
-1. Define the data shape and stable keys.
-2. Choose the simplest chart that answers the question.
-3. Wrap in `ResponsiveContainer` with a height.
-4. Add axes, tooltip, and legend as needed.
-5. Disable animation or aggregate data for large sets.
+- [ ] Chart wrapped in `ChartContainer` with a `ChartConfig`
+- [ ] Series colors come from chart tokens via `--color-<key>`
+- [ ] `dataKey` values match field names; tooltip shows correct units
+- [ ] Accessible alternative for the data exists
+- [ ] Animation disabled where data is large or live
 
-## Checklists
+## Example
 
-### Implementation checklist
-
-- [ ] Chart is wrapped in `ResponsiveContainer`
-- [ ] X/Y axes are present when needed
-- [ ] Tooltip shows correct units
-- [ ] `dataKey` matches field names
-
-### Review checklist
-
-- [ ] Animations disabled for large datasets
-- [ ] Colors are accessible
-
-## Minimal examples
-
-### Line chart (trend)
+See `apps/admin/app/(app)/crm/giving-by-year-chart.tsx` for a complete chart with `next/dynamic`, `layout="fill"`, a formatted tooltip, and a table alternative.
 
 ```tsx
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@asym/ui/components/shadcn/chart";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
-export function SalesChart({
+const config = {
+  amount: { label: "Settled giving", color: "var(--chart-1)" },
+} satisfies ChartConfig;
+
+export function GivingBars({
   data,
 }: {
-  data: Array<{ month: string; sales: number }>;
+  data: { label: string; amount: number }[];
 }) {
   return (
-    <div style={{ height: 320 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={data}
-          margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="sales" dot={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ChartContainer config={config}>
+      <BarChart data={data}>
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey="label" tickLine={false} axisLine={false} />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Bar
+          dataKey="amount"
+          fill="var(--color-amount)"
+          radius={4}
+          isAnimationActive={false}
+        />
+      </BarChart>
+    </ChartContainer>
   );
 }
 ```
-
-### Custom tooltip
-
-```tsx
-type TooltipProps = {
-  active?: boolean;
-  label?: string;
-  payload?: Array<{ name?: string; value?: number | string }>;
-};
-
-export function CustomTooltip({ active, label, payload }: TooltipProps) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-md border bg-white p-2 text-sm shadow">
-      <div className="font-medium">{label}</div>
-      <ul className="mt-1 space-y-0.5">
-        {payload.map((p, i) => (
-          <li key={i}>
-            {p.name}: {p.value}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-```
-
-## Common mistakes / pitfalls
-
-- Missing `ResponsiveContainer` or fixed-height parent
-- Mismatched `dataKey` values
-- Over-animating large dashboards
-- Rendering too many points without aggregation

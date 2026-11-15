@@ -1,65 +1,23 @@
 # shadcn/studio MCP — Workflow
 
 **Name:** `shadcn-studio-mcp`
-**Purpose:** Enforce the exact step-by-step workflow required by the shadcn/studio MCP server.
-Use this only when running shadcn/studio MCP workflows.
+**Purpose:** Step order for the shadcn/studio MCP server's `/cui`, `/rui`, `/iui` and `/ftc` workflows.
 
-**Applies when:** Using shadcn/studio MCP workflows `/cui`, `/rui`, `/iui`, or `/ftc`.
-**Do not use when:** Editing UI manually without shadcn/studio MCP tools.
-
-**Note:** Nia (MCP) searches must remain repo-scoped to `Asymmetric-al/core` and include the required preamble built as `docs/ai/nia.md` describes (stack tags from `docs/ai/stack-registry.md`, plus local scratch if present).
+**Applies when:** The shadcn/studio MCP server is connected in your client and you are running one of those workflows. Core does not configure that server; the `shadcn` entry in `.mcp.json`, `.cursor/mcp.json` and `.codex/config.toml` is the official shadcn MCP (`scripts/shadcn/mcp.mjs`).
+**Do not use when:** Editing UI manually or through the official shadcn MCP. ReUI (`@reui`) is unrelated to `/rui`.
 
 ## Workflow
 
-1. Identify which workflow applies: `/cui`, `/rui`, `/iui`, or `/ftc`.
-2. Follow the MCP workflow steps exactly, in order.
-3. Do not add extra tool calls or skip steps.
-4. Do not stop mid-workflow for user confirmation.
+1. Identify the workflow: `/cui`, `/rui`, `/iui` or `/ftc`.
+2. Follow the server's steps in order. Do not skip, reorder or add tool calls the workflow does not call for.
+   - **/cui (Create UI):** collect every block before installing any; after installing, customize the content.
+   - **/rui (Refine UI):** update existing components only.
+   - **/iui (Inspiration UI)** and **/ftc (Figma to code):** follow their sequences as given.
+3. If you deviate, return to the step you should be on and continue from there.
+4. Installed output lands in `packages/ui` and is adapted to exact `base-maia` before it is accepted (`packages/ui/AGENTS.md`). The workflow does not widen the authorized scope of the task.
 
-### Workflow-specific rules
+## Checklist
 
-- **/cui (Create UI):**
-  - Collect all blocks first.
-  - Install last.
-  - After install, automatically customize content.
-- **/rui (Refine UI):**
-  - Follow the refine sequence and update existing components only.
-- **/iui (Inspiration UI):**
-  - Follow the inspiration sequence exactly.
-- **/ftc (Figma to code):**
-  - Follow the figma-to-code sequence exactly.
-
-### Recovery protocol (if you deviate)
-
-1. Stop immediately.
-2. Identify the step you should be on.
-3. Resume from that exact step.
-4. Do not explain the deviation; continue to completion.
-
-## Checklists
-
-### Before starting
-
-- [ ] Confirm the workflow type (`/cui`, `/rui`, `/iui`, `/ftc`)
-- [ ] Commit to following the MCP step order exactly
-
-### Completion checklist
-
-- [ ] All steps executed in order
-- [ ] No extra tool calls
-- [ ] Workflow completed without pauses for confirmation
-
-## Minimal examples
-
-- `/cui Create a hero section for the landing page`
-- `/rui Refine the pricing card layout`
-- `/iui Provide inspiration for a dashboard layout`
-- `/ftc Convert the provided Figma frame`
-
-## Common mistakes / pitfalls
-
-- Skipping or reordering steps
-- Installing before finishing block collection in `/cui`
-- Asking "should I continue?" mid-workflow
-- Adding extra tool calls outside the workflow
-- Stopping before the workflow is complete
+- [ ] Workflow type confirmed
+- [ ] Steps executed in the server's order, with no extra tool calls
+- [ ] Output adapted to `base-maia` in `packages/ui`

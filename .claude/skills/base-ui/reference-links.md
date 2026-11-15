@@ -2,43 +2,14 @@
 
 Source index: [https://base-ui.com/llms.txt](https://base-ui.com/llms.txt)
 
-Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump here only when detailed docs navigation is needed.
+Lookup index for Base UI documentation pages.
 
 ## Overview
 
 - [Quick start](https://base-ui.com/react/overview/quick-start.md)
 - [Accessibility](https://base-ui.com/react/overview/accessibility.md)
-- [Releases](https://base-ui.com/react/overview/releases.md)
+- [Releases](https://base-ui.com/react/overview/releases.md) — compare against the version pinned in `packages/ui/package.json`
 - [About Base UI](https://base-ui.com/react/overview/about.md)
-
-### Release notes
-
-- [v1.0.0](https://base-ui.com/react/overview/releases/v1-0-0.md)
-- [v1.0.0-alpha.4](https://base-ui.com/react/overview/releases/v1-0-0-alpha-4.md)
-- [v1.0.0-alpha.5](https://base-ui.com/react/overview/releases/v1-0-0-alpha-5.md)
-- [v1.0.0-alpha.6](https://base-ui.com/react/overview/releases/v1-0-0-alpha-6.md)
-- [v1.0.0-alpha.7](https://base-ui.com/react/overview/releases/v1-0-0-alpha-7.md)
-- [v1.0.0-alpha.8](https://base-ui.com/react/overview/releases/v1-0-0-alpha-8.md)
-- [v1.0.0-beta.0](https://base-ui.com/react/overview/releases/v1-0-0-beta-0.md)
-- [v1.0.0-beta.1](https://base-ui.com/react/overview/releases/v1-0-0-beta-1.md)
-- [v1.0.0-beta.2](https://base-ui.com/react/overview/releases/v1-0-0-beta-2.md)
-- [v1.0.0-beta.3](https://base-ui.com/react/overview/releases/v1-0-0-beta-3.md)
-- [v1.0.0-beta.4](https://base-ui.com/react/overview/releases/v1-0-0-beta-4.md)
-- [v1.0.0-beta.5](https://base-ui.com/react/overview/releases/v1-0-0-beta-5.md)
-- [v1.0.0-beta.6](https://base-ui.com/react/overview/releases/v1-0-0-beta-6.md)
-- [v1.0.0-beta.7](https://base-ui.com/react/overview/releases/v1-0-0-beta-7.md)
-- [v1.0.0-rc.0](https://base-ui.com/react/overview/releases/v1-0-0-rc-0.md)
-- [v1.0.0-rc.1](https://base-ui.com/react/overview/releases/v1-0-0-rc-1.md)
-- [v1.0.0-rc.2](https://base-ui.com/react/overview/releases/v1-0-0-rc-2.md)
-- [v1.1.0](https://base-ui.com/react/overview/releases/v1-1-0.md)
-- [v1.2.0](https://base-ui.com/react/overview/releases/v1-2-0.md)
-- [v1.3.0](https://base-ui.com/react/overview/releases/v1-3-0.md)
-- [v1.4.0](https://base-ui.com/react/overview/releases/v1-4-0.md)
-- [v1.4.1](https://base-ui.com/react/overview/releases/v1-4-1.md)
-- [v1.5.0](https://base-ui.com/react/overview/releases/v1-5-0.md)
-- [v1.6.0](https://base-ui.com/react/overview/releases/v1-6-0.md)
-- [v1.7.0](https://base-ui.com/react/overview/releases/v1-7-0.md)
-- [v1.8.0](https://base-ui.com/react/overview/releases/v1-8-0.md)
 
 ## Handbook
 
@@ -95,8 +66,3 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 - [Direction Provider](https://base-ui.com/react/utils/direction-provider.md)
 - [mergeProps](https://base-ui.com/react/utils/merge-props.md)
 - [useRender](https://base-ui.com/react/utils/use-render.md)
-
-## Notes
-
-- Base UI docs examples use Tailwind CSS v4 utility conventions.
-- If a target workspace is on Tailwind v3, convert incompatible examples before shipping code.

@@ -44,59 +44,33 @@ before running `bun run skills:sync`.
 - [ ] No `shadcn init`, preset-switch, Radix, or React Aria
 - [ ] Overlay reconciled before `bun run skills:sync`
 
-# shadcn/ui Design System - Skill
+# shadcn/ui in Core
 
-**Name:** `moai-library-shadcn`
-**Purpose:** Build consistent, accessible UI using shadcn/ui components, tokens, and composable primitives.
-Use this skill whenever selecting, installing, composing, or customizing shadcn/ui in this repo.
-
-**Applies when:** Working with shadcn/ui components, Tailwind tokens/themes, registry items, or component wrappers.
-**Do not use when:** Switching shadcn styles, running `shadcn init` / `shadcn create`, or introducing Radix / React Aria. Core UI is always Base UI + exact `base-maia`; pair this skill with `packages/ui/AGENTS.md`. Use `base-ui` for primitive API details after this skill.
+Use this skill whenever selecting, installing, composing, or customizing shadcn/ui in this repo. Use `base-ui` for primitive API details after this skill.
 
 ## Rules
 
 - **Docs first:** Start with [reference-links.md](reference-links.md), then open the exact component doc before editing.
-- **Copied-in code is first-party:** Treat `components/ui/*` as owned project code with stable conventions.
-- **Prefer install over reinvention:** Use CLI/registry install paths for base components, then customize in wrappers.
+- **Where components live:** shadcn components are copied into `packages/ui/components/shadcn/` (the `ui` alias `@/components/shadcn` in `packages/ui/components.json`) and are first-party code. Apps import them as `@asym/ui/components/shadcn/<name>`. Shared wrappers and UI SDK behavior wrappers live in `packages/ui/components/primitives/`.
+- **No app-local forks:** Do not copy a shared component into an app to make a local variation; add a variant, slot, or composition wrapper in `packages/ui`.
+- **Prefer install over reinvention:** Use CLI/registry install paths for base components, then adapt the output to Maia.
 - **Behavior primitives stay intact:** Keep accessibility and keyboard behavior from the Base UI-backed internals (Base UI is the only primitive base; UI SDK fills only interactions no shared component provides, per `packages/ui/AGENTS.md`).
-- **Tokens over one-offs:** Centralize color, radius, spacing, and typography; avoid hardcoded one-off styles.
-- **Composable APIs:** Keep props minimal, use Base UI's `render` prop intentionally (no `asChild` here), and avoid boolean-prop explosion.
-- **Interoperability guardrail:** If mixing with Base UI primitives, document the boundary and keep one clear owner per interaction.
+- **Tokens over one-offs:** Use semantic tokens for color, radius, spacing, and typography; avoid hardcoded one-off styles.
+- **Composable APIs:** Keep props minimal, use Base UI's `render` prop (no `asChild`), and avoid boolean-prop explosion.
 
-## Workflow
+## Checklist
 
-1. Check whether an existing component already solves the need in `components/ui/*`.
-2. Open the relevant docs from [reference-links.md](reference-links.md).
-3. Choose install path:
-   - CLI/registry install for standard components and blocks.
-   - Manual composition only when customization requires it.
-4. Compose app-specific wrappers outside `components/ui/*`.
-5. Verify keyboard, focus, labels/descriptions, and light/dark behavior.
-6. Run scoped quality gates for changed packages.
+- [ ] Existing `@asym/ui` component evaluated before creating a new one
+- [ ] Token-based styling (no unnecessary arbitrary values)
+- [ ] `cn()` and variants consistent with existing patterns
+- [ ] `render` prop and composition semantics correct
+- [ ] Focus, keyboard, labels, descriptions, and light/dark behavior verified
+- [ ] No duplicate variants that should be shared
 
-## Checklists
-
-### Implementation checklist
-
-- [ ] Existing shadcn component evaluated before creating new primitive
-- [ ] Token-based styling used (no unnecessary arbitrary values)
-- [ ] `cn()` and variants are consistent with existing patterns
-- [ ] `render` prop and composition semantics are correct
-- [ ] a11y behavior (focus, keyboard, ARIA) preserved
-
-### Review checklist
-
-- [ ] No duplicate component variants that should be shared
-- [ ] Wrapper components are outside `components/ui/*`
-- [ ] Forms include labels, help text, and error messaging
-- [ ] Any Base UI crossover is explicit and justified
-
-## Minimal examples
-
-### Reuse existing primitive
+## Example
 
 ```tsx
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 
 export function Actions() {
   return (
@@ -108,37 +82,7 @@ export function Actions() {
 }
 ```
 
-### Extend in wrapper layer
-
-```tsx
-import { Button } from "@/components/ui/button";
-
-type LoadingButtonProps = React.ComponentProps<typeof Button> & {
-  loading?: boolean;
-};
-
-export function LoadingButton({
-  loading,
-  children,
-  ...props
-}: LoadingButtonProps) {
-  return (
-    <Button disabled={loading} {...props}>
-      {children}
-    </Button>
-  );
-}
-```
-
 ## Additional resources
 
 - Full shadcn docs index: [reference-links.md](reference-links.md)
 - Base primitives companion skill: [`docs/ai/skills/base-ui/SKILL.md`](../base-ui/SKILL.md)
-- Base docs index: [`docs/ai/skills/base-ui/reference-links.md`](../base-ui/reference-links.md)
-
-## Common mistakes / pitfalls
-
-- Editing copied-in primitives when a thin wrapper is enough
-- Ignoring docs updates and relying on stale memory
-- Mixing primitive systems inside one component without clear ownership
-- Breaking keyboard/focus behavior while styling

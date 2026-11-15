@@ -35,34 +35,32 @@ Do not use this skill when:
 
 ## Core Rules
 
-1. Use `@supabase/ssr` patterns for App Router integration.
-2. Use `@/lib/supabase/server` for server-side code and `@/lib/supabase/client` for client-side code.
-3. Use middleware to refresh and enforce session state on protected routes.
-4. Do not manually store or forward auth tokens in client code.
-5. Use Server Actions (or secure route handlers) for privileged auth operations.
-6. Maintain RLS assumptions; do not bypass policy boundaries.
+1. Shared auth lives in `packages/auth` (`@asym/auth`); read `packages/auth/AGENTS.md` first. Apps re-export package contracts instead of creating a second client.
+2. Route protection and session refresh run in each app's `proxy.ts` (Next.js 16 Proxy, formerly middleware) through `createAuthMiddleware` from `@asym/auth/middleware`, which validates the user with `auth.getUser()`. Public routes are listed explicitly there.
+3. Server code resolves the caller with `getAuthContext`, `requireAuth`, or `requireRole` from `@asym/auth/context`. Business data access stays in `packages/api`; app route handlers must not import `@asym/database/supabase/*` or `@supabase/*` directly (`docs/guides/architecture/data-access-boundary.md`).
+4. Supabase clients come from `packages/database`: `@asym/database/supabase/server` for server code, `createBrowserClient` from `@asym/database/supabase` for the browser, and `@asym/database/supabase/admin` (service role) only in trusted server code.
+5. Auth callbacks re-export the shared handler (`export { GET } from "@asym/api/auth/callback"`).
+6. Do not manually store or forward auth tokens in client code. Maintain RLS assumptions; do not bypass policy boundaries. Fail closed.
 
 ## Workflow
 
-1. Identify execution boundary first (server component, client component, middleware, action, or route handler).
-2. Ensure the correct Supabase client is used for that boundary.
-3. Verify middleware coverage for protected routes.
-4. Verify callback handling exchanges auth code/session correctly.
-5. Validate auth checks before sensitive reads/writes.
-6. Verify end-to-end login/logout/session refresh behavior.
+1. Identify the execution boundary first (Server Component, Client Component, proxy, Server Action, or route handler).
+2. Use the shared helper for that boundary; do not create a new Supabase client.
+3. Check the app's `proxy.ts` public-route list when adding or protecting a route.
+4. Validate auth and role before sensitive reads or writes.
+5. Write the regression test first (`packages/auth/context.*.test.ts` cover the request auth context), then verify login, logout, and session refresh end to end.
 
 ## Checklist
 
-- [ ] Server code imports `@/lib/supabase/server`
-- [ ] Client code imports `@/lib/supabase/client`
-- [ ] Protected paths are covered by auth middleware
-- [ ] Callback route/session exchange is correctly handled
-- [ ] No service role keys in client-side code
+- [ ] Shared auth stays in `packages/auth`; apps re-export
+- [ ] Protected and public routes are correct in `proxy.ts`
+- [ ] Server code uses `@asym/auth/context`; no direct Supabase imports in app route handlers
+- [ ] No service-role client outside trusted server code
 - [ ] No manual token persistence logic added
 
 ## Common Anti-Patterns
 
-- Using browser clients in server actions
-- Using server clients in client components
-- Calling `getSession` blindly in server render paths without user validation
-- Storing JWTs manually in localStorage/cookies
+- Using the browser client in Server Actions or the server client in Client Components
+- Trusting `getSession()` in server render paths without validating the user
+- Storing JWTs manually in localStorage or cookies
+- Adding an app-local Supabase client or auth callback instead of re-exporting the shared one

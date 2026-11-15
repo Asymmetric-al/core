@@ -103,31 +103,10 @@
   `bun run verify:reui` and explicit `bun run verify:reui --live`. The latter
   checks authenticated MCP/Pro access and paid registry source independently.
 
-## Monorepo scoping (pick the right app first)
-
-- Admin app: `apps/admin` (`@asym/admin`)
-- Donor app: `apps/donor` (`@asym/donor`)
-- Missionary app: `apps/missionary` (`@asym/missionary-app`)
-
-Use turbo filters when working on one app:
-
-- `bunx turbo run dev --filter=@asym/admin`
-- `bunx turbo run dev --filter=@asym/donor`
-- `bunx turbo run dev --filter=@asym/missionary-app`
-
 ## Where Next.js docs live
 
 - Primary source: nearest matching `node_modules/next/dist/docs/` for the app being changed.
-- Current state: all app workspaces use `next@16.3.3`.
 - If multiple Next.js versions are introduced later, use the docs path that matches the app's installed version.
-
-## OpenSpec workflow
-
-- Read `openspec/config.yaml` and `openspec/project.md` plus the relevant files under `openspec/specs/` and `openspec/changes/` before non-trivial feature, behavior, or multi-step project work.
-- Use the locally pinned CLI only: `bun run openspec -- <command>`.
-- Use `bun run openspec -- list`, `show`, and `validate` when working from an active change.
-- Keep OpenSpec focused on durable project context and intended behavior; keep `AGENTS.md` as the always-on routing layer.
-- Do not run `openspec update` against this repository. Do not use a moving latest npm dist-tag for OpenSpec.
 
 ## Fallback docs generation (`.next-docs`)
 
@@ -148,23 +127,6 @@ This repo commits `.next-docs/` on purpose because remote/sandbox agent runs can
 
 ## Next.js DevTools MCP workflow
 
-1. Start the target app dev server first (use turbo filter for one app).
+1. Start the target app first (`bun run dev:admin`, `bun run dev:donor` or `bun run dev:missionary`).
 2. Connect the `next-devtools` MCP server from root `.mcp.json`.
 3. Use MCP for runtime errors, route state, and live app debugging while the server is running.
-
-## Checks for safe, repeatable agent changes
-
-Full repo:
-
-- `bun run check`
-
-Scoped while changing one app:
-
-- `bunx turbo run lint --filter=@asym/admin`
-- `bunx turbo run lint --filter=@asym/donor`
-- `bunx turbo run lint --filter=@asym/missionary-app`
-- `bunx turbo run typecheck --filter=@asym/admin`
-- `bunx turbo run typecheck --filter=@asym/donor`
-- `bunx turbo run typecheck --filter=@asym/missionary-app`
-
-Unit tests are currently run repo-wide with `bun run test:unit`.

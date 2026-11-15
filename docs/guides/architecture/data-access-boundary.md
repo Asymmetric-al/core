@@ -27,11 +27,35 @@ projections. Do not import `@asym/api/crm/client*` or recreate
 1. Primary: ESLint `no-restricted-imports` rules in `eslint.config.mjs` (see ticket 2.2.2) catch violations during linting.
 2. Secondary: `scripts/verify/data-boundary-check.mjs` runs in CI as a belt-and-suspenders guard.
 
-The CI script scans API route handlers for direct Supabase imports and app
-source for restored Twenty client imports or retired Twenty credential usage.
+In practice the script is the only enforcing check. `bun run lint` lints each
+workspace with its own `eslint.config.mjs`, which loads the shared
+`restrictedImports()` rule from `tooling/eslint-config/restricted-imports.mjs`
+(cross-app and `motion/react` bans only). The route-handler and
+component/feature Supabase bans, and the Twenty client ban
+(`appRestrictedImports()`), are declared only in the root `eslint.config.mjs`,
+so they apply to root-config runs and editors, not to `bun run lint` or the CI
+lint job.
+
+`bun run verify:data-boundary` (run in the CI `lint` job and by
+`bun run ci:preflight`) fails when:
+
+- a file under `apps/*/app/api/**` or `apps/*/src/app/api/**` imports
+  `@asym/database/supabase/{admin,server,client}`, `@supabase/ssr` or
+  `@supabase/supabase-js` (every `api/health/route.ts` is skipped);
+- any file under `apps/**` imports `@supabase/supabase-js`, or the browser
+  client entry point `@asym/database/supabase`, outside the script's per-file
+  allowlists;
+- any file under `apps/**` references a retired Twenty client path or
+  credential (`TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, `NEXT_PUBLIC_TWENTY_*`);
+- any file under `apps/`, `packages/` or `scripts/`, or `.env.example`,
+  contains a retired Twenty runtime marker (the `TWENTY_*` and `CRM_SYNC_*`
+  variables or the removed `crm/client` paths).
+
 Routes outside `app/api/` (for example `apps/donor/app/auth/callback/route.ts`,
 which now re-exports `GET` from `@asym/api/auth/callback`) are outside the API
-route Supabase scope but follow the same delegation pattern.
+route Supabase scope but follow the same delegation pattern. The script does
+not check `@asym/database/supabase/server` or `/admin` imports in app server
+code outside `app/api/`; business data logic still belongs in `packages/api`.
 
 ## Workflow
 
@@ -72,18 +96,26 @@ It no longer returns designations or donor rows.
 
 ## Approved Exceptions
 
-| File                                                    | Allowed import                   | Justification                                                                                                                                                                                                                                                                                     |
-| ------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/*/app/api/health/route.ts`                        | `@asym/database/supabase/server` | Health endpoints are minimal connectivity probes; no business logic to delegate to API layer.                                                                                                                                                                                                     |
-| `packages/graphql/handler.ts`                           | `@asym/database/supabase/admin`  | GraphQL is a shared-record surface adapter, not a second product surface. Gift begin and Ministry Update Engagement mutations MUST go through `@asym/api` command modules (ADR-0120). The gateway exception covers remaining queries/selects and Yoga context construction, not those mutations.  |
-| `packages/lib/audit/logger.ts`                          | internal                         | Audit logger is infrastructure, not a route handler.                                                                                                                                                                                                                                              |
-| `apps/admin/app/api/cms/**` and `apps/admin/src/cms/**` | Payload Local API                | Payload CMS runs inside the admin app, so CMS data access cannot delegate to `packages/api` without moving the Payload runtime. Public code paths are further confined to the single published-content reader choke-point by the hard `verify:cms-public-sole-entry` gate (issue #523, ADR-0028). |
+Only the rows marked "script" are encoded in
+`scripts/verify/data-boundary-check.mjs`; the others are policy exceptions
+outside the paths or imports the script checks.
+
+| File                                                    | Allowed import                                | Enforced by                     | Justification                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------- | --------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/*/app/api/health/route.ts`                        | `@asym/database/supabase/server`              | script (path skip); root ESLint | Health endpoints are connectivity probes. The current admin, donor and missionary health routes re-export `createAppHealthHandler` from `@asym/api/health/app` and import no Supabase client.                                                                                                     |
+| `apps/admin/src/cms/auth/supabase-strategy.ts`          | `@supabase/supabase-js` (and `@supabase/ssr`) | script (raw-import allowlist)   | Server-side Payload auth strategy that verifies Supabase sessions; not a table read path.                                                                                                                                                                                                         |
+| `apps/admin/lib/authenticated-fetch.ts`                 | `@asym/database/supabase` (browser client)    | script (browser allowlist)      | Browser auth helper that reads the session to attach the access token to fetches; not a table read path.                                                                                                                                                                                          |
+| `packages/graphql/handler.ts`                           | `@asym/database/supabase/admin`               | not scanned (package)           | GraphQL is a shared-record surface adapter, not a second product surface. Gift begin and Ministry Update Engagement mutations MUST go through `@asym/api` command modules (ADR-0120). The gateway exception covers remaining queries/selects and Yoga context construction, not those mutations.  |
+| `packages/lib/audit/logger.ts`                          | `@asym/database/supabase/admin`               | not scanned (package)           | Audit logger is infrastructure, not a route handler.                                                                                                                                                                                                                                              |
+| `apps/admin/app/api/cms/**` and `apps/admin/src/cms/**` | Payload Local API                             | not a banned import             | Payload CMS runs inside the admin app, so CMS data access cannot delegate to `packages/api` without moving the Payload runtime. Public code paths are further confined to the single published-content reader choke-point by the hard `verify:cms-public-sole-entry` gate (issue #523, ADR-0028). |
 
 ## How to add a new exception
 
 1. Justify in the PR why the file cannot delegate to `packages/api/src/*`.
 2. Add the file and rationale to the Approved Exceptions table in this document.
-3. If the file is under `apps/*/app/api/`, add an explicit exclusion comment/pattern in `scripts/verify/data-boundary-check.mjs`.
+3. If the script would flag the file, add it to the matching per-file
+   allowlist in `scripts/verify/data-boundary-check.mjs`; each allowlist covers
+   one class of banned import.
 
 ## Checklist
 
@@ -103,7 +135,7 @@ It no longer returns designations or donor rows.
 
 ## Correct pattern
 
-- Route handler: `apps/admin/app/api/posts/route.ts` re-exports `GET` and `POST` from `@asym/api/posts` and does not import Supabase directly.
+- Route handler: `apps/donor/app/api/posts/route.ts` re-exports `GET` and `POST` from `@asym/api/posts` and does not import Supabase directly.
 - Business logic: `packages/api/src/posts/index.ts` imports `getAdminClient` from `@asym/database/supabase/admin`, which is the correct location for data-layer logic.
 
 Web Studio Phase 3 staff directory endpoints follow the same pattern:

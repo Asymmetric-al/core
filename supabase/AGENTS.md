@@ -27,7 +27,7 @@ Use this doc when a task touches:
 5. For demo public access, enforce read-only policies via migration SQL.
 6. Run migration + seed + count checks before finalizing.
 
-## Demo Dataset Notes (2026-02-16)
+## Demo dataset
 
 - Seed file: `supabase/seed.sql`
   - Resets and reseeds public app tables deterministically.

@@ -3,22 +3,19 @@ name: motion
 description: "Implement smooth, accessible animations with motion/react (Framer Motion) in React. Use when adding animations, gestures, or layout transitions with motion, AnimatePresence, useScroll, and related APIs. Requires a 'use client' boundary; not for strictly server-rendered components or when no animation is needed."
 ---
 
-# Motion (Framer Motion) — Skill
+# Motion (`motion/react`) in Core
 
-**Name:** `motion`
-**Purpose:** Implement smooth, accessible animations with `motion/react` in React.
-Use this skill whenever adding animations, gestures, or layout transitions.
-
-**Applies when:** Using `motion/react` (`motion`, `AnimatePresence`, `useScroll`, etc.).
-**Do not use when:** No animations are needed or the component is strictly server-rendered.
+API usage for `motion/react`. Core's motion contract (tokens, presets, route view transitions, reduced-motion baseline) lives in `docs/ai/skills/anim/SKILL.md`; read it first.
 
 ## Rules
 
+- **Import path:** ESLint bans direct `motion/react` and `framer-motion` imports. Import from `@asym/lib/motion`, whose `motion` export is the lazy `m` component; the root `MotionProvider` (`@asym/lib/motion-provider`) supplies `LazyMotion` and `MotionConfig reducedMotion="user"` in every app.
 - **Client-only boundary:** Motion requires `'use client'`; keep client islands small.
 - **Start simple:** Begin with opacity/translate before adding spring physics.
-- **Use the right tool:** `AnimatePresence` for enter/exit, `layout` for layout, `whileHover`/`whileTap` for gestures.
-- **Respect reduced motion:** Use `useReducedMotion()`.
-- **Bundle discipline:** Use `LazyMotion` for larger motion surfaces.
+- **Use the right tool:** `AnimatePresence` for enter/exit and `whileHover`/`whileTap` for gestures.
+- **No layout or drag features:** `MotionProvider` loads `domAnimation`, which excludes the `layout` and `drag` features (they are in `domMax`). A `layout` or `drag` prop does nothing under it. Animate `opacity`/`transform` instead; loading `domMax` is a deliberate bundle decision for the shared provider, not a per-component fix.
+- **Respect reduced motion:** `MotionConfig` already disables transform and layout animation for reduced-motion users; use `useReducedMotion()` when the component needs a different fallback.
+- **Shared timing:** Use `@asym/lib/motion-presets` constants and transitions instead of literal durations and curves.
 
 ## Workflow
 
@@ -35,7 +32,7 @@ Use this skill whenever adding animations, gestures, or layout transitions.
 - [ ] `'use client'` only where needed
 - [ ] Reduced motion behavior defined
 - [ ] `AnimatePresence` wraps conditional UI
-- [ ] Layout transitions use `layout`
+- [ ] No reliance on `layout` or `drag` props (not loaded by `domAnimation`)
 
 ### Review checklist
 
@@ -49,7 +46,8 @@ Use this skill whenever adding animations, gestures, or layout transitions.
 ```tsx
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 
 export function Toast({
   open,
@@ -65,7 +63,7 @@ export function Toast({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.18 }}
+          transition={transitionStandard}
         >
           {children}
         </motion.div>
@@ -75,29 +73,13 @@ export function Toast({
 }
 ```
 
-### Layout animation
-
-```tsx
-"use client";
-
-import { motion } from "motion/react";
-
-export function Expander({ open }: { open: boolean }) {
-  return (
-    <motion.div layout className="overflow-hidden rounded-md border p-3">
-      <div className="font-medium">Title</div>
-      {open ? <div className="mt-2 text-sm">More content...</div> : null}
-    </motion.div>
-  );
-}
-```
-
 ### Reduced motion
 
 ```tsx
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 
 export function FadeIn({ children }: { children: React.ReactNode }) {
   const reduce = useReducedMotion();
@@ -105,7 +87,7 @@ export function FadeIn({ children }: { children: React.ReactNode }) {
     <motion.div
       initial={reduce ? false : { opacity: 0, y: 6 }}
       animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={transitionStandard}
     >
       {children}
     </motion.div>
@@ -116,6 +98,7 @@ export function FadeIn({ children }: { children: React.ReactNode }) {
 ## Common mistakes / pitfalls
 
 - Unmounting without `AnimatePresence` (exit animations never run)
-- Animating layout without `layout`
+- Expecting `layout` or `drag` to animate under the shared `domAnimation` provider
 - Putting Motion in a huge client tree
+- Importing from `motion/react` directly or adding another `LazyMotion` provider
 - Animating large lists without virtualization
