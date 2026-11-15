@@ -16,9 +16,10 @@ missionaries and other personnel.
 
 ## Rules that apply here
 
-- Access: every member-care API route calls `requireMemberCareAccess`, which
+- Access: member-care API routes call `requireMemberCareAccess`, which
   requires an authenticated user with a tenant and a `staff`, `admin` or
-  `super_admin` role. Keep tenant scoping on every read and write.
+  `super_admin` role; the private-notes route instead uses `withOperation`
+  with the same three roles. Keep tenant scoping on every read and write.
 - Writes go through the Zod schemas and commands in
   `packages/api/src/admin/member-care/mutations.ts`; route handlers only parse
   the request and call them.

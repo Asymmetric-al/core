@@ -90,7 +90,7 @@ implementation task.
 
 - If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `docs/ai/rules/shadcn-studio-mcp.md`.
 - Do not apply shadcn/studio MCP rules for manual UI edits.
-- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `docs/ai/nia.md`).
+- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and build the search preamble as `docs/ai/nia.md` describes (from `docs/ai/stack-registry.md` plus local task context; the tracked `docs/ai/working-set.md` is a historical record).
 
 ### Browser data and state management
 

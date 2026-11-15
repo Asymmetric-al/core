@@ -10,7 +10,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 ## Rules
 
 - **E2E framework:** Playwright (configured in `playwright.config.ts`).
-- **Unit tests:** Vitest (configured for `tests/unit/**/*.test.ts(x)`).
+- **Unit tests:** Vitest (`vitest.config.mts` collects `tests/unit/**/*.test.ts(x)`, `packages/api/tests/unit/**`, `packages/auth/**/*.test.ts` and `apps/factory-console/tests/**`). New app and shared-package tests go under `tests/unit/`.
 - **Unit-test skill:** Use `docs/ai/skills/vitest/SKILL.md` for Core-specific
   Vitest 5 test placement, filtering, mocking, environments, isolation, and
   measured coverage scope. Use `bun run test:unit` for the full gate; do not use

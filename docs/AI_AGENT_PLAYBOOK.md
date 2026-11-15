@@ -15,10 +15,13 @@
 - For Codex desktop, `.agents/skills/*` is the closest repo-level match to Codex's documented skill discovery behavior.
 - For Cursor Agent Window, committed `.cursor/skills/*` improves visible availability, while `AGENTS.md` still provides the strongest always-on routing contract.
 - After pulling skill changes, run `bun run skills:verify`; if it reports drift, run `bun run skills:sync` and commit the refreshed mirrors.
-- Skills CLI operations that restore or update skills are mutating. Use targeted
-  `npx skills add <package> -y` commands when refreshing upstream packages; do
-  not use `npx skills check` as a read-only check because it can rewrite
-  `.agents/skills/*` and `skills-lock.json`.
+- Skills CLI operations that restore or update skills are mutating. Refresh an
+  upstream skill only with the pinned, targeted form in
+  `docs/ai/rules/agent-skill-routing.md` (`npx --yes skills@1.5.7 add
+<reviewed-checkout> --skill <name> --agent codex --copy -y`, run from an
+  isolated scratch directory), never a bare `npx skills add <package> -y`, which
+  installs the whole pack. Do not use `npx skills check` as a read-only check
+  because it can rewrite `.agents/skills/*` and `skills-lock.json`.
 - Manual vendors document their source in
   `docs/ai/skills/<name>/references/upstream.md`; preserve repo overlays before
   syncing mirrors.
@@ -35,8 +38,11 @@
 - Official Inngest skills are vendored canonically under
   `docs/ai/skills/inngest-*`, with `docs/ai/skills/inngest/SKILL.md` as the
   router.
-- These skills are for agent guidance and integration work. They do not mean
-  product runtime Inngest has been adopted in `apps/*` or `packages/*`.
+- These skills are agent guidance. Product runtime Inngest is installed
+  separately (`packages/api/src/workflows/`, served by
+  `apps/admin/app/api/inngest/route.ts`; see `docs/ai/stack-registry.md`);
+  neither the skills nor the installed code establishes live Cloud
+  qualification.
 - Refresh Inngest skills with `bun run skills:refresh-inngest`, then run
   `bun run skills:sync` and `bun run skills:verify`.
 - The Inngest dev-server MCP is configured as `inngest-dev` in root `.mcp.json`

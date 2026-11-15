@@ -1,7 +1,8 @@
 #!/bin/bash
 # One-off import rewrite from the January 2026 Turborepo component migration.
-# Kept for history; do not rerun. Its target paths no longer exist, and it uses
-# BSD/macOS `sed -i ''` syntax.
+# Kept for history; do not rerun. It still rewrites imports across the live
+# apps/admin, apps/missionary and apps/donor trees, and it uses BSD/macOS
+# `sed -i ''` syntax.
 
 echo "🔧 Fixing imports in apps..."
 

@@ -24,10 +24,10 @@ projections. Do not import `@asym/api/crm/client*` or recreate
 
 ## Enforcement
 
-1. Primary: ESLint `no-restricted-imports` rules in `eslint.config.mjs` (see ticket 2.2.2) catch violations during linting.
-2. Secondary: `scripts/verify/data-boundary-check.mjs` runs in CI as a belt-and-suspenders guard.
+1. Enforcing check: `scripts/verify/data-boundary-check.mjs` (`bun run verify:data-boundary`) runs in CI and `bun run ci:preflight`.
+2. Editor aid only: ESLint `no-restricted-imports` rules in the root `eslint.config.mjs` (see ticket 2.2.2), for the reason below.
 
-In practice the script is the only enforcing check. `bun run lint` lints each
+`bun run lint` lints each
 workspace with its own `eslint.config.mjs`, which loads the shared
 `restrictedImports()` rule from `tooling/eslint-config/restricted-imports.mjs`
 (cross-app and `motion/react` bans only). The route-handler and

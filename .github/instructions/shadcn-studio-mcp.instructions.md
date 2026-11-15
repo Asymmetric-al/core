@@ -10,6 +10,7 @@ Applies only when the shadcn/studio MCP server is connected and a `/cui`, `/rui`
 - `/cui` (Create UI): collect every block before installing any; after installing, customize the content.
 - `/rui` (Refine UI): update existing components only.
 - `/iui` (Inspiration UI) and `/ftc` (Figma to code): follow their sequences as given.
+- Once a workflow starts, complete it without pausing between its steps for user confirmation; the server's own prompts are the checkpoints.
 - If you deviate, return to the step you should be on and continue from there.
 - Installed output still lands in `packages/ui` and is adapted to `base-maia` before it is accepted. The workflow does not widen the authorized scope of the task.
 

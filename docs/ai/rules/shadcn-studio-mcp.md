@@ -13,8 +13,9 @@
    - **/cui (Create UI):** collect every block before installing any; after installing, customize the content.
    - **/rui (Refine UI):** update existing components only.
    - **/iui (Inspiration UI)** and **/ftc (Figma to code):** follow their sequences as given.
-3. If you deviate, return to the step you should be on and continue from there.
-4. Installed output lands in `packages/ui` and is adapted to exact `base-maia` before it is accepted (`packages/ui/AGENTS.md`). The workflow does not widen the authorized scope of the task.
+3. Once a workflow starts, complete it without pausing between its steps for user confirmation; the server's own prompts are the checkpoints.
+4. If you deviate, return to the step you should be on and continue from there.
+5. Installed output lands in `packages/ui` and is adapted to exact `base-maia` before it is accepted (`packages/ui/AGENTS.md`). The workflow does not widen the authorized scope of the task.
 
 ## Checklist
 

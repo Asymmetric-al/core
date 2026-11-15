@@ -26,7 +26,7 @@ Use this before changing server actions, route handlers, database access, or mig
   when a collection exists.
 - For allowed/forbidden import boundaries by code area, see
   [`docs/guides/architecture/db-client-usage-matrix.md`](../../guides/architecture/db-client-usage-matrix.md).
-- **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
+- **Route handlers:** `apps/*/app/api/**` route handlers must not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
 
 ### Data Access Boundary
 
@@ -37,7 +37,7 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Security & auth
 
-- Assume RLS is active.
+- Assume RLS is active for user-JWT clients; the service-role admin client bypasses it, so code on that client enforces tenant scope itself.
 - Do not manually manage tokens.
 - Never use the service role key in client-side code.
 - For auth/session/middleware tasks, load `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
@@ -80,7 +80,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Implementation checklist
 
-- [ ] Server code uses `@asym/database/supabase/server`
+- [ ] Request-session server code uses `@asym/database/supabase/server`
+- [ ] `packages/api` code on the service-role admin client (`@asym/database/supabase/admin`, which bypasses RLS) authenticates and authorizes the caller first (for example `withOperation` with `roles`), takes the tenant from that server-side auth context, and scopes every query by tenant
 - [ ] Client table reads use `@asym/database/hooks` or approved collections
 - [ ] Browser Supabase client usage is limited to approved auth/storage helpers
 - [ ] Inputs validated with Zod
@@ -110,12 +111,12 @@ export async function myAction() {
 
 ### Client-side client
 
-```ts
-import { createClient } from "@asym/database/supabase/client";
+Browser table data goes through `@asym/database/hooks`. The browser client (`createBrowserClient` from `@asym/database/supabase`; there is no `@asym/database/supabase/client` export) is for approved auth and Storage helpers only; see the [client usage matrix](../../guides/architecture/db-client-usage-matrix.md).
 
-export function MyComponent() {
-  const supabase = createClient();
-}
+```ts
+import { createBrowserClient } from "@asym/database/supabase";
+
+const supabase = createBrowserClient();
 ```
 
 ## Common mistakes / pitfalls

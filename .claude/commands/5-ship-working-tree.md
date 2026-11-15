@@ -164,13 +164,12 @@ git pull --ff-only origin <base>
   2. Restore your local version from `.git/autoship/untracked.tgz` (preferred) or `working-tree.patch`.
   3. Continue the flow once `git status` shows your intended modifications.
 
-After a successful stash pop and `git status` is clean (no conflicts), **drop the autoship stash** to avoid leaving stray stashes:
+A successful `git stash pop` already removes the autoship entry, so do **not** run `git stash drop` afterwards: `stash@{0}` would then be someone else's entry (the stash stack is shared with every worktree). Only when a pop stops on conflicts does the entry remain; after resolving, drop it by its message, never by position:
 
 ```bash
-# drop only the autoship stash entry you created
-git stash list | rg "autoship: pre-base-update" || true
-# if it's the most recent and already applied:
-git stash drop stash@{0} || true
+# find the index of the entry you created, then drop exactly that one
+git stash list | rg "autoship: pre-base-update"
+git stash drop "stash@{<n>}"   # <n> from the line above, re-read immediately before dropping
 ```
 
 If `ff-only` fails (diverged history), **stop** and ask the user to resolve (do not auto-merge).

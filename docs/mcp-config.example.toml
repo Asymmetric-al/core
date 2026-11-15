@@ -7,9 +7,11 @@
 #
 # Do not commit credentials or tokens.
 
-# ReUI Pro: export REUI_LICENSE_KEY in the agent's process environment.
-# Codex reads the variable by name; ${REUI_LICENSE_KEY} is not TOML interpolation.
-# For browser OAuth instead, omit bearer_token_env_var and run codex mcp login reui.
+# ReUI Pro: the project .codex/config.toml entry sets
+# bearer_token_env_var = "REUI_LICENSE_KEY", so export REUI_LICENSE_KEY in the
+# agent's process environment (Codex reads the variable by name;
+# ${REUI_LICENSE_KEY} is not TOML interpolation). For browser OAuth instead,
+# use a personal entry without bearer_token_env_var and run codex mcp login reui.
 # See docs/guides/development/reui.md for registry installation and verification.
 
 ###

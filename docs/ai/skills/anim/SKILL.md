@@ -84,7 +84,7 @@ ESLint (`tooling/eslint-config/restricted-imports.mjs`) bans importing `motion/r
 
 Because `motion` is the lazy `m` component, it needs the `MotionProvider` from `@asym/lib/motion-provider` above it (`LazyMotion features={domAnimation}` plus `MotionConfig reducedMotion="user"`). Each app's root `layout.tsx` already mounts it.
 
-## Operative rules
+## Repo motion standard (operative rules)
 
 `packages/ui/styles/globals.css` and `packages/lib/motion-presets.ts` are the runtime contract. This file and the Motion section of `docs/ai/rules/frontend.md` describe how to apply it; keep them in sync when policy changes.
 
