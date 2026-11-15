@@ -6,7 +6,10 @@ import { StateConflict } from "../../../scripts/archon-factory/pack/.shared/arch
 import { FACTORY_MARKER } from "../../../scripts/archon-factory/pack/.shared/readiness.mjs";
 import {
   DISPOSITION_CHOICES,
+  adoptBaseUpdate,
   adoptResolution,
+  outsideHeadBlock,
+  outsideHeadDecision,
   asRepair,
   baseIntegrationFailure,
   carryForward,
@@ -1065,6 +1068,140 @@ describe("operator conflict resolution (publication-merge#7)", () => {
         descends: true,
       }),
     ).toEqual({ action: "none" });
+  });
+
+  // GitHub's "Update branch" merges the target branch into the pull request.
+  // On 13 November 2026 that was pressed on two factory pull requests.
+  it("adopts an update from the target branch pushed on top of the candidate", () => {
+    expect(
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: true,
+        baseUpdate: true,
+      }),
+    ).toEqual({ action: "update" });
+  });
+
+  it("never adopts outside commits of their own, or an update that does not contain the candidate", () => {
+    expect(
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: true,
+        baseUpdate: false,
+      }),
+    ).toEqual({ action: "none" });
+    expect(
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: false,
+        baseUpdate: true,
+      }),
+    ).toEqual({ action: "none" });
+  });
+
+  // An outside head that is not adopted stops the stage before it answers
+  // or resolves anything on the pull request.
+  it("blocks on an outside head it does not adopt and says how to put the branch back", () => {
+    const outcome = outsideHeadBlock({
+      branch: "factory/12-x",
+      liveHead: MERGE_SHA,
+      head: HEAD,
+      published: OLD,
+    });
+    expect(outcome.reason).toContain(MERGE_SHA.slice(0, 12));
+    expect(outcome.ledger.blocked).toMatchObject({
+      code: "outside-head",
+      detail: expect.stringContaining(MERGE_SHA),
+    });
+    expect(outcome.ledger.blocked.recovery).toContain(
+      `--force-with-lease=factory/12-x:${MERGE_SHA} origin ${OLD}:refs/heads/factory/12-x`,
+    );
+    expect(outcome.ledger.blocked.recovery).toMatch(/retry/);
+    expect(outcome.ledger.fingerprint).toBe(`outside-head:${MERGE_SHA}`);
+  });
+
+  // An adoption records a base computed from the target branch as the clone
+  // knows it. With a clone that could not be refreshed that can be an old
+  // base, so nothing is adopted or blocked: the stage waits.
+  it("waits before any adoption or block when the clone could not be refreshed", () => {
+    const wait = { action: "wait" };
+    expect([
+      reconcileHead({
+        value: value({ conflict }),
+        liveHead: MERGE_SHA,
+        descends: true,
+        refreshed: false,
+      }),
+      reconcileHead({
+        value: value(),
+        liveHead: MERGE_SHA,
+        descends: true,
+        baseUpdate: true,
+        refreshed: false,
+      }),
+      reconcileHead({ value: value(), liveHead: MERGE_SHA, refreshed: false }),
+    ]).toEqual([wait, wait, wait]);
+    // The factory's own heads need no fresh refs.
+    expect(
+      reconcileHead({ value: value(), liveHead: HEAD, refreshed: false }),
+    ).toEqual({ action: "ok" });
+  });
+
+  // The stage fetches before it judges an outside head. When that fetch
+  // failed, a head it could not adopt may only look foreign because the
+  // clone's refs are old: it waits and looks again, and does not block.
+  it("waits when the clone could not be refreshed, and blocks when it could", () => {
+    const args = {
+      branch: "factory/12-x",
+      liveHead: MERGE_SHA,
+      head: HEAD,
+      published: HEAD,
+    };
+    const stale = outsideHeadDecision({ ...args, refreshed: false });
+    const fresh = outsideHeadDecision({ ...args, refreshed: true });
+    expect({
+      stale: [stale.verdict, Object.keys(stale.ledger)],
+      staleReason: stale.reason,
+      fresh: [fresh.verdict, fresh.ledger.blocked.code],
+    }).toEqual({
+      stale: ["WAIT", []],
+      staleReason: expect.stringMatching(/could not be refreshed.*next round/s),
+      fresh: ["BLOCKED", "outside-head"],
+    });
+  });
+
+  it("records the update as the candidate and sends it to the review-only route", () => {
+    expect(
+      adoptBaseUpdate({
+        value: value({ pending: null }),
+        liveHead: MERGE_SHA,
+        base: BASE,
+        now: "t1",
+        target: "develop",
+      }),
+    ).toMatchObject({
+      fields: {
+        head: MERGE_SHA,
+        base: BASE,
+        reviews: null,
+        final: null,
+        pr: { number: 7, head: MERGE_SHA, pending: null, conflict: null },
+      },
+      outcome: {
+        verdict: "REPAIR",
+        reason: expect.stringMatching(
+          /develop.*outside the factory.*reviewed again/s,
+        ),
+        ledger: {
+          repair: { reviewOnly: true, source: "readiness" },
+          fingerprint: `outside-base-update:${MERGE_SHA}`,
+          adopted: { from: HEAD, head: MERGE_SHA, base: BASE },
+        },
+      },
+    });
   });
 
   it("records the resolution as the candidate and sends it to the review-only route", () => {

@@ -23,10 +23,13 @@ import * as hostGit from "../../../scripts/archon-factory/pack/.shared/git.mjs";
 
 const {
   HARDENED,
+  addsOnlyTarget,
   createGit,
   ensureIssueRepo,
+  fetchMirror,
   hardenedArgs,
   prepareBranch,
+  refreshIssueRefs,
   statusPorcelain,
   trustIssueRepo,
   trustOutbox,
@@ -652,5 +655,303 @@ describe("a build round's unrecorded commit", () => {
       }),
     ).rejects.toMatchObject({ code: "dirty-workspace" });
     expect(readFileSync(`${repo}/README.md`, "utf8")).toBe("uncommitted\n");
+  });
+});
+
+// Two rounds that start in the same pass both fetch into the one mirror. Git
+// moves every remote-tracking ref with compare-and-swap, so the fetch that
+// arrives second fails on each ref the first one already moved, although the
+// mirror is current by then. On 13 November 2026 that cost issue 2370 a round.
+describe("the shared mirror fetch", () => {
+  const FETCH = ["fetch", "--prune", "--no-tags", "origin"];
+  // What Git 2.50 printed on the factory when the race was lost.
+  const LOST_RACE = [
+    "From github.com:Asymmetric-al/core",
+    "   8facb0881..208058f44  t3/archon-factory-vm100-commissioning -> origin/t3/archon-factory-vm100-commissioning",
+    "error: fetching ref refs/remotes/origin/develop failed: incorrect old value provided",
+  ].join("\n");
+  const paths = { mirror: "/srv/core-factory/mirror.git" };
+  const scripted = (...results: { code: number; stderr: string }[]) => {
+    const calls: { args: string[]; gitDir?: string }[] = [];
+    const pauses: number[] = [];
+    return {
+      calls,
+      pauses,
+      pause: async (ms: number) => void pauses.push(ms),
+      git: {
+        git: async (args: string[], options: { gitDir?: string } = {}) => {
+          calls.push({ args, gitDir: options.gitDir });
+          return {
+            stdout: "",
+            ...results[Math.min(calls.length, results.length) - 1],
+          };
+        },
+      },
+    };
+  };
+  const done = { code: 0, stderr: "" };
+
+  it("runs again when another round's fetch moved the same refs first", async () => {
+    const { git, calls, pauses, pause } = scripted(
+      { code: 1, stderr: LOST_RACE },
+      done,
+    );
+
+    await expect(fetchMirror({ git, paths, pause })).resolves.toEqual({
+      attempts: 2,
+    });
+    expect({ calls, pauses: pauses.length }).toEqual({
+      calls: [
+        { args: FETCH, gitDir: paths.mirror },
+        { args: FETCH, gitDir: paths.mirror },
+      ],
+      pauses: 1,
+    });
+  });
+
+  it.each([
+    "error: cannot lock ref 'refs/remotes/origin/develop': is at 208058f44b917513a61a29d54402d8aa80435605 but expected 8facb0881d0b1a4f5f0f1f6f3b5a1f6a55a1c2d3",
+    "error: cannot lock ref 'refs/remotes/origin/new': reference already exists",
+    "fatal: Unable to create '/srv/core-factory/mirror.git/packed-refs.lock': File exists.",
+  ])(
+    "runs again after the same race as older Git reports it: %s",
+    async (stderr) => {
+      const { git, calls, pause } = scripted({ code: 1, stderr }, done);
+
+      await expect(fetchMirror({ git, paths, pause })).resolves.toEqual({
+        attempts: 2,
+      });
+      expect(calls).toHaveLength(2);
+    },
+  );
+
+  it("reports any other failure at once", async () => {
+    const { git, calls, pauses, pause } = scripted({
+      code: 128,
+      stderr:
+        "fatal: unable to access 'https://github.com/Asymmetric-al/core/': Could not resolve host: github.com",
+    });
+
+    await expect(fetchMirror({ git, paths, pause })).rejects.toThrow(
+      /git fetch --prune failed \(128\): .*Could not resolve host/,
+    );
+    expect({ calls: calls.length, pauses }).toEqual({ calls: 1, pauses: [] });
+  });
+
+  it("gives up after four attempts when the race keeps being lost", async () => {
+    const { git, calls, pauses, pause } = scripted({
+      code: 1,
+      stderr: LOST_RACE,
+    });
+
+    await expect(fetchMirror({ git, paths, pause })).rejects.toThrow(
+      /git fetch --prune failed \(1\): .*incorrect old value provided/s,
+    );
+    expect({ calls: calls.length, pauses: pauses.length }).toEqual({
+      calls: 4,
+      pauses: 3,
+    });
+  });
+
+  it("leaves the mirror current when two rounds fetch at the same moment (real Git)", async () => {
+    const { root, paths: real, git } = factory();
+    const upstream = `${root}/upstream`;
+    plain(root, "--git-dir", real.mirror, "remote", "add", "origin", upstream);
+    plain(
+      root,
+      "--git-dir",
+      real.mirror,
+      "config",
+      "remote.origin.fetch",
+      "+refs/heads/*:refs/remotes/origin/*",
+    );
+    const branches = Array.from({ length: 40 }, (_, index) => `lane-${index}`);
+    const first = plain(upstream, "rev-parse", "HEAD~1");
+    for (const branch of branches)
+      plain(upstream, "update-ref", `refs/heads/${branch}`, first);
+    await fetchMirror({ git, paths: real });
+    const moved = plain(upstream, "rev-parse", "HEAD");
+    for (const branch of branches)
+      plain(upstream, "update-ref", `refs/heads/${branch}`, moved);
+    const pause = () => new Promise((resolve) => setTimeout(resolve, 25));
+
+    await Promise.all([
+      fetchMirror({ git, paths: real, pause }),
+      fetchMirror({ git, paths: real, pause }),
+    ]);
+
+    const refs = plain(
+      root,
+      "--git-dir",
+      real.mirror,
+      "for-each-ref",
+      "--format=%(objectname)",
+      "refs/remotes/origin/lane-*",
+    ).split("\n");
+    expect({ count: refs.length, heads: [...new Set(refs)] }).toEqual({
+      count: branches.length,
+      heads: [moved],
+    });
+  }, 60_000);
+});
+
+// GitHub's "Update branch" merges the target branch into a pull request. On
+// 13 November 2026 that was pressed on two pull requests the factory was
+// working on. Such a head is adopted (and reviewed again); any other outside
+// head is not.
+describe("an update from the target branch pushed outside the factory", () => {
+  it("is recognised only when the pushed head adds nothing but the target branch", async () => {
+    const { paths, git, base } = factory();
+    const where = await ensureIssueRepo({ git, paths, issue: 7 });
+    const repo: string = where.repo;
+    await prepareBranch({
+      git,
+      repo,
+      branch: "factory/7-x",
+      head: null,
+      base,
+    });
+    writeFileSync(`${repo}/feature.txt`, "the factory's candidate\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "feat(#7): factory round 1");
+    const candidate = plain(repo, "rev-parse", "HEAD");
+    // What "Update branch" pushes: develop merged into the candidate.
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const updated = plain(repo, "rev-parse", "HEAD");
+    // Somebody's own commit on top of the candidate, and an update that
+    // carries such a commit along.
+    plain(repo, "checkout", "--quiet", "-b", "outside", candidate);
+    writeFileSync(`${repo}/outside.txt`, "not the factory's\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "an outside commit");
+    const foreign = plain(repo, "rev-parse", "HEAD");
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const foreignUpdated = plain(repo, "rev-parse", "HEAD");
+    const check = (head: string, from = candidate) =>
+      addsOnlyTarget(
+        { git, repo },
+        { candidate: from, head, target: "develop" },
+      );
+
+    expect({
+      updated: await check(updated),
+      foreign: await check(foreign),
+      foreignUpdated: await check(foreignUpdated),
+      same: await check(candidate),
+      withoutTheCandidate: await check(base),
+      onAnotherCandidate: await check(updated, foreign),
+    }).toEqual({
+      updated: true,
+      foreign: false,
+      foreignUpdated: false,
+      same: false,
+      withoutTheCandidate: false,
+      onAnotherCandidate: false,
+    });
+  });
+
+  // A merge commit is not listed among ordinary commits, so its tree is
+  // compared with a clean merge of its parents: a merge can carry changes of
+  // its own, or name the target branch as a parent while dropping its changes.
+  it("is not recognised when a merge carries changes of its own or drops the target branch's", async () => {
+    const { paths, git, base } = factory();
+    const where = await ensureIssueRepo({ git, paths, issue: 7 });
+    const repo: string = where.repo;
+    await prepareBranch({
+      git,
+      repo,
+      branch: "factory/7-x",
+      head: null,
+      base,
+    });
+    writeFileSync(`${repo}/feature.txt`, "the factory's candidate\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "feat(#7): factory round 1");
+    const candidate = plain(repo, "rev-parse", "HEAD");
+    const at = (name: string) => {
+      plain(repo, "checkout", "--quiet", "-B", name, candidate);
+    };
+
+    at("smuggled");
+    plain(repo, "merge", "--quiet", "--no-commit", "origin/develop");
+    writeFileSync(`${repo}/smuggled.txt`, "added inside the merge\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "Merge branch 'develop'");
+    const smuggled = plain(repo, "rev-parse", "HEAD");
+
+    at("dropped");
+    plain(
+      repo,
+      "merge",
+      "--quiet",
+      "--no-edit",
+      "-s",
+      "ours",
+      "origin/develop",
+    );
+    const dropped = plain(repo, "rev-parse", "HEAD");
+
+    // Two updates in a row, as when the button is pressed twice.
+    at("twice");
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const first = plain(repo, "rev-parse", "HEAD");
+    plain(repo, "checkout", "--quiet", "--detach", "origin/develop");
+    writeFileSync(`${repo}/later.txt`, "develop moved on\n");
+    plain(repo, "add", "-A");
+    plain(repo, "commit", "--quiet", "-m", "later work on develop");
+    plain(repo, "update-ref", "refs/remotes/origin/develop", "HEAD");
+    plain(repo, "checkout", "--quiet", "-B", "twice", first);
+    plain(repo, "merge", "--quiet", "--no-edit", "origin/develop");
+    const twice = plain(repo, "rev-parse", "HEAD");
+
+    const check = (head: string) =>
+      addsOnlyTarget({ git, repo }, { candidate, head, target: "develop" });
+    expect({
+      smuggled: await check(smuggled),
+      dropped: await check(dropped),
+      twice: await check(twice),
+    }).toEqual({ smuggled: false, dropped: false, twice: true });
+  });
+});
+
+// The feedback stage classifies the head GitHub shows near the end of a round
+// that fetched at its start, many minutes earlier. Somebody can press "Update
+// branch" in between.
+describe("refreshing an issue clone in the middle of a round", () => {
+  it("brings in what was pushed after the round's first fetch", async () => {
+    const { root, paths, git } = factory();
+    const upstream = `${root}/upstream`;
+    plain(root, "--git-dir", paths.mirror, "remote", "add", "origin", upstream);
+    plain(
+      root,
+      "--git-dir",
+      paths.mirror,
+      "config",
+      "remote.origin.fetch",
+      "+refs/heads/*:refs/remotes/origin/*",
+    );
+    const where = await ensureIssueRepo({ git, paths, issue: 7 });
+    const repo: string = where.repo;
+    writeFileSync(`${upstream}/later.txt`, "pushed during the round\n");
+    plain(upstream, "add", "-A");
+    plain(upstream, "commit", "--quiet", "-m", "later work on develop");
+    const pushed = plain(upstream, "rev-parse", "HEAD");
+    const known = () => {
+      try {
+        plain(repo, "cat-file", "-e", `${pushed}^{commit}`);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const before = known();
+
+    await refreshIssueRefs({ git, paths, issue: 7 });
+
+    expect({
+      before,
+      after: known(),
+      target: plain(repo, "rev-parse", "refs/remotes/origin/develop"),
+    }).toEqual({ before: false, after: true, target: pushed });
   });
 });

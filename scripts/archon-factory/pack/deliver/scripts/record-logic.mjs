@@ -474,6 +474,18 @@ function publicationFault(report) {
   );
 }
 
+// What the operator reads next to a native hold: who clears it, and with
+// which control. The control itself checks identity, effects and the run.
+function nativeRecoveryAdvice(fault) {
+  const command =
+    "issue <n> recover-native; retry, reopen and release cannot clear it";
+  if (fault.reason === "native-publication-effects-unreconciled")
+    return `The run may have published or merged before it failed. The control does the external readback of the issue's branch and pull request on GitHub: it refuses while a merge the factory requested is unsettled, and a branch head the factory did not publish sends the issue to the feedback stage, which reads the pull request first. Run ${command}`;
+  if (fault.action === "native-recovery")
+    return `The intake pass clears this hold by itself, after any reset the provider reported. To stop waiting, run ${command}`;
+  return `Deal with the cause (sign-in, budget, configuration or an unclear result), then run ${command}`;
+}
+
 function nativeDecision(nativeFaults, item) {
   const stored = item?.nativeFaults;
   const storedHold =
@@ -481,7 +493,25 @@ function nativeDecision(nativeFaults, item) {
     (nativeFaultRequiresHold(stored) ||
       stored?.runId !== item?.run?.id ||
       publicationFault(stored));
-  let fault = storedHold ? stored : nativeFaults;
+  // The engine wakes a run it paused for a usage limit, and that run can meet
+  // another fault before it ends: the limit again, with a later reset, or a
+  // sign-in that expired meanwhile. A newer report of the same run that still
+  // requires a hold replaces a stored hold the intake pass would clear by
+  // itself, so the pass waits for the right reset or leaves it to a person. A
+  // publish or readiness step that failed counts too: it is held for a person
+  // below, and the stored usage-limit hold must not hide it. A clean report
+  // never clears a hold, a hold that waits for a person is never replaced, and
+  // the engine's own pause (`native-wait`) is not taken: nothing would clear
+  // it.
+  const newer =
+    storedHold &&
+    stored?.action === "native-recovery" &&
+    typeof item?.run?.id === "string" &&
+    stored.runId === item.run.id &&
+    nativeFaults?.runId === item.run.id &&
+    nativeFaults.action !== "native-wait" &&
+    (nativeFaultRequiresHold(nativeFaults) || publicationFault(nativeFaults));
+  let fault = storedHold && !newer ? stored : nativeFaults;
   if (!storedHold && fault === undefined) return null;
   const sameRun =
     typeof item?.run?.id === "string" && fault?.runId === item.run.id;
@@ -527,12 +557,10 @@ function nativeDecision(nativeFaults, item) {
       detail: String(
         fault?.detail ?? fault?.reason ?? `Native execution requires ${action}`,
       ).slice(0, 1200),
-      recovery: String(
-        fault?.recovery ??
-          (fault.reason === "native-publication-effects-unreconciled"
-            ? "Require independent external GitHub and remote-branch readback for the exact run, branch and candidate before any finite recovery; do not retry or release ownership automatically"
-            : "Validate the same-profile native run identity and effects before any finite recovery; do not retry or release ownership automatically"),
-      ).slice(0, 600),
+      recovery: String(fault?.recovery ?? nativeRecoveryAdvice(fault)).slice(
+        0,
+        600,
+      ),
       route: item?.run?.route ?? item?.route ?? "initial",
     },
   };

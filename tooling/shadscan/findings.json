@@ -988,7 +988,7 @@
       "proof": [
         {
           "path": "apps/factory-console/src/components/issue-detail.tsx",
-          "sha256": "51c38be24d04b2c9f60f7587a8698e505f59633d580bbb6a8160c9c0144d9ed5"
+          "sha256": "c8a489d326142872acf55d3c1d6e63511c7d7395754839d2a15bd2ec39b429af"
         },
         {
           "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",

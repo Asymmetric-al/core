@@ -309,8 +309,21 @@ export function markResolved(
 //   review   the recorded head was never published: review it, then publish
 //   resolve  an operator pushed a resolution of this candidate's recorded
 //            base conflict (`descends`: the live head contains the candidate)
+//   update   somebody merged the target branch into the pull request on
+//            GitHub ("Update branch"): the live head contains the candidate
+//            and adds nothing but the target branch (`baseUpdate`)
+//   wait     a head the factory did not publish, and the clone could not be
+//            refreshed (`refreshed === false`): an adoption would record a
+//            base from old refs and a block could be wrong, so the next
+//            round, which fetches again, decides
 //   none     a head the factory did not publish; the decision blocks on it
-export function reconcileHead({ value, liveHead, descends = false }) {
+export function reconcileHead({
+  value,
+  liveHead,
+  descends = false,
+  baseUpdate = false,
+  refreshed = null,
+}) {
   const pending = value.pr?.pending ?? null;
   if (pending && liveHead === pending.head && value.head !== liveHead)
     return value.head === pending.from && pending.carried
@@ -321,10 +334,63 @@ export function reconcileHead({ value, liveHead, descends = false }) {
       ? { action: "ok" }
       : { action: "record" };
   if (value.pr?.head === liveHead) return { action: "review" };
+  if (refreshed === false) return { action: "wait" };
   const conflict = value.pr?.conflict ?? null;
   if (conflict && conflict.head === value.head && descends === true)
     return { action: "resolve", conflict };
+  if (descends === true && baseUpdate === true) return { action: "update" };
   return { action: "none" };
+}
+
+// A head the factory did not publish and does not adopt stops the feedback
+// stage at once, before it answers or resolves anything on the pull request:
+// those answers would be about somebody else's commit. The blocker names the
+// head and how to put the branch back.
+export function outsideHeadBlock({ branch, liveHead, head, published }) {
+  const recorded = published ?? head;
+  return {
+    reason: `The branch on GitHub is at ${liveHead.slice(0, 12)}, which the factory did not publish; nothing on the pull request was answered`,
+    ledger: {
+      blocked: {
+        code: "outside-head",
+        detail: `GitHub shows ${liveHead} on ${branch}. The factory published ${recorded ?? "nothing"} and holds ${head ?? "no candidate"}. The outside commits are not just an update from the target branch on top of the candidate, so they were not adopted.`,
+        recovery: `If the outside commits are only an update from the target branch, put the branch back and retry: git push --force-with-lease=${branch}:${liveHead} origin ${recorded}:refs/heads/${branch}. If they are somebody's own work, decide by hand whether it belongs in the issue.`,
+      },
+      fingerprint: `outside-head:${liveHead}`,
+    },
+  };
+}
+
+// What the stage answers for an outside head it did not adopt. With a clone
+// that could not be refreshed the head may only look foreign because the local
+// refs are old, so the stage waits and the next round, which fetches again,
+// decides. With fresh refs it blocks.
+export function outsideHeadDecision({ refreshed, ...head }) {
+  if (refreshed === false)
+    return {
+      verdict: "WAIT",
+      reason: `The branch on GitHub is at ${head.liveHead.slice(0, 12)}, which the factory did not publish, and the clone could not be refreshed to judge it; nothing on the pull request was answered and the next round looks again`,
+      ledger: {},
+    };
+  return { verdict: "BLOCKED", ...outsideHeadBlock(head) };
+}
+
+// An update from the target branch that somebody applied on GitHub becomes
+// the candidate, the same way an operator's conflict resolution does: nothing
+// about the merged result was reviewed, so it goes to the review-only route.
+export function adoptBaseUpdate({ value, liveHead, base, now, target }) {
+  const adoption = adoptResolution({ value, liveHead, base, now });
+  return {
+    fields: adoption.fields,
+    outcome: {
+      ...adoption.outcome,
+      reason: `Adopted ${liveHead.slice(0, 12)}: ${target} was merged into the branch outside the factory, on top of ${String(value.head).slice(0, 12)}; it is reviewed again before anything else`,
+      ledger: {
+        ...adoption.outcome.ledger,
+        fingerprint: `outside-base-update:${liveHead}`,
+      },
+    },
+  };
 }
 
 // The operator's resolution becomes the candidate. Nothing about it was

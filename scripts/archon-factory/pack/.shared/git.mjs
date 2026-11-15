@@ -336,11 +336,95 @@ export async function ensureMirror({ git, paths, remote }) {
   }
 }
 
-export async function fetchMirror({ git, paths }) {
-  await git.ok(["fetch", "--prune", "--no-tags", "origin"], {
-    gitDir: paths.mirror,
-    timeoutMs: 15 * 60_000,
-  });
+// What Git prints when another process moved or locked a ref first: 2.50 and
+// later, earlier releases, and a held lock file.
+const REF_RACE =
+  /incorrect old value provided|reference already exists|cannot lock ref|Unable to create '[^'\n]*\.lock'/;
+const MIRROR_FETCHES = 4;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Every round fetches into the one mirror, and two rounds can start in the
+// same second. Git moves each remote-tracking ref with compare-and-swap, so
+// the fetch that arrives second fails on every ref the first one already
+// moved, although the mirror is current by then. Fetching is idempotent, so a
+// fetch that lost that race runs again. Any other failure is reported at once.
+export async function fetchMirror({ git, paths, pause = sleep }) {
+  for (let attempts = 1; ; attempts += 1) {
+    const result = await git.git(["fetch", "--prune", "--no-tags", "origin"], {
+      gitDir: paths.mirror,
+      timeoutMs: 15 * 60_000,
+    });
+    if (result.code === 0) return { attempts };
+    if (attempts >= MIRROR_FETCHES || !REF_RACE.test(result.stderr))
+      throw new Error(
+        `git fetch --prune failed (${result.code}): ${result.stderr.trim().slice(-800)}`,
+      );
+    await pause(attempts * 1000 + Math.floor(Math.random() * 500));
+  }
+}
+
+// True when everything `head` adds to `candidate` is the target branch:
+// `head` contains `candidate`, every other commit it brings is on
+// `origin/<target>` or is a merge that joins the two, and each of those
+// merges has exactly the tree a clean merge of its parents gives. That is what
+// GitHub's "Update branch" pushes onto a pull request. A merge that carries
+// changes of its own, drops the target branch's changes or resolves a
+// conflict by hand is somebody's work and is not recognised.
+export async function addsOnlyTarget(
+  { git, repo },
+  { candidate, head, target },
+) {
+  if (!sha.test(candidate ?? "") || !sha.test(head ?? "") || head === candidate)
+    return false;
+  const contains = await git.git(
+    ["merge-base", "--is-ancestor", candidate, head],
+    { cwd: repo },
+  );
+  if (contains.code !== 0) return false;
+  const own = await git.ok(
+    [
+      "rev-list",
+      "--no-merges",
+      "--max-count=1",
+      head,
+      `^${candidate}`,
+      `^origin/${target}`,
+    ],
+    { cwd: repo },
+  );
+  if (own.trim() !== "") return false;
+  const merges = (
+    await git.ok(
+      [
+        "rev-list",
+        "--merges",
+        "--parents",
+        head,
+        `^${candidate}`,
+        `^origin/${target}`,
+      ],
+      { cwd: repo },
+    )
+  )
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.split(" "));
+  if (merges.length === 0) return false;
+  for (const [merge, ...parents] of merges) {
+    if (parents.length !== 2) return false;
+    const clean = await git.git(
+      ["merge-tree", "--write-tree", parents[0], parents[1]],
+      { cwd: repo },
+    );
+    if (clean.code !== 0) return false;
+    const tree = (
+      await git.ok(["rev-parse", "--verify", "--quiet", `${merge}^{tree}`], {
+        cwd: repo,
+      })
+    ).trim();
+    if (clean.stdout.split("\n")[0].trim() !== tree) return false;
+  }
+  return true;
 }
 
 export async function revParse({ git, gitDir, cwd }, ref) {
@@ -385,6 +469,15 @@ export async function ensureIssueRepo({ git, paths, issue }) {
     timeoutMs: 10 * 60_000,
   });
   return where;
+}
+
+// Bring an issue clone up to date with GitHub in the middle of a round: the
+// mirror first, then the clone from the mirror. A round fetches when it
+// starts; a stage that reads GitHub much later (readiness) calls this before
+// it compares a live head with local history.
+export async function refreshIssueRefs({ git, paths, issue }) {
+  await fetchMirror({ git, paths });
+  return ensureIssueRepo({ git, paths, issue });
 }
 
 export async function statusPorcelain({ git }, repo) {

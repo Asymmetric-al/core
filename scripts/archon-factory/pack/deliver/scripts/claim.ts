@@ -118,7 +118,7 @@ try {
     paths: round.paths,
     remote: round.config.repository.remote,
   });
-  await fetchMirror({ git: round.git, paths: round.paths });
+  const mirror = await fetchMirror({ git: round.git, paths: round.paths });
   await ensureIssueRepo({
     git: round.git,
     paths: round.paths,
@@ -204,6 +204,7 @@ try {
     head: value.head,
     reusedWorkspace: prepared.reused,
     ...(prepared.restored ? { restoredCommit: prepared.restored } : {}),
+    ...(mirror.attempts > 1 ? { mirrorFetchAttempts: mirror.attempts } : {}),
     install,
     policy: release,
   });
