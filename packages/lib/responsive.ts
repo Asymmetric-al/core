@@ -1,32 +1,10 @@
 /**
- * Responsive Design System
- *
- * A comprehensive responsive system following modern UX/UI best practices:
- *
- * 1. PERCEPTUAL CONSISTENCY: Spacing and sizing that "feels" the same across devices
- *    - Uses relative scaling ratios rather than fixed pixel values
- *    - Adjusts optical weight for different screen densities
- *
- * 2. FLUID TYPOGRAPHY: Text that scales smoothly between breakpoints
- *    - Uses clamp() for seamless scaling without media query jumps
- *    - Maintains optimal reading line-length (45-75 characters)
- *
- * 3. TOUCH-FIRST INTERACTIONS: Mobile interactions prioritized
- *    - 44px minimum touch targets (Apple HIG)
- *    - 48px recommended (Material Design)
- *    - Adequate spacing between interactive elements
- *
- * 4. CONTENT-DRIVEN BREAKPOINTS: Based on content, not devices
- *    - sm (640px): Text content starts needing more room
- *    - md (768px): Two-column layouts become viable
- *    - lg (1024px): Full dashboard layouts
- *    - xl (1280px): Extended sidebars, more columns
- *    - 2xl (1536px): Ultra-wide optimizations
- *
- * Usage:
- * - Import constants and use in JavaScript when needed
- * - For CSS, prefer the utility classes in globals.css
- * - Use CSS custom properties for runtime flexibility
+ * Layout values for code that needs them in JavaScript: breakpoints (the
+ * Tailwind defaults, sm 640 to 2xl 1536), container, spacing, touch-target
+ * sizes (44px minimum per Apple HIG, 48px recommended per Material Design),
+ * fluid type built on CSS `clamp()`, and responsive class maps. Re-exported by
+ * `packages/ui/lib/responsive.ts`. For styling, prefer Tailwind utilities and
+ * the CSS tokens in `packages/ui/styles/globals.css`.
  */
 
 export const BREAKPOINTS = {

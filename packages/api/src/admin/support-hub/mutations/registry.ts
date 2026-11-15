@@ -32,9 +32,7 @@ import type {
 
 /**
  * Registry-style CRUD wrappers for every Support Hub static entity. All of
- * these are thin: parse the input schema, delegate to the adapter. Phase 8
- * gets the entire suite for free when `adapter/index.ts` swaps to the
- * Supabase implementation.
+ * these are thin: parse the input schema, delegate to the adapter.
  */
 
 export const saveSupportLabel = (input: SaveLabelInput) =>

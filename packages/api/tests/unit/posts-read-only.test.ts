@@ -20,8 +20,8 @@ afterAll(() => {
   process.env.SKIP_ENV_VALIDATION = previousSkipEnvValidation;
 });
 
-// Missionaries can now publish their own updates (see posts/create.ts and
-// tests/unit/packages/api/posts/create-post.test.ts). Creation still needs a
+// Missionaries publish their own updates (see posts/create.ts and
+// tests/unit/packages/api/posts/create-post.test.ts). Creation needs a
 // signed-in missionary: a request without a session never reaches the
 // database.
 describe("posts POST", () => {

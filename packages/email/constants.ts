@@ -1,15 +1,5 @@
-/**
- * Resend integration constants.
- */
-
-/**
- * Base URL for Resend's REST API.
- */
 export const RESEND_API_BASE = "https://api.resend.com";
 
-/**
- * Resend API endpoint paths.
- */
 export const RESEND_ENDPOINTS = {
   EMAILS_SEND: "/emails",
   EMAILS_BATCH_SEND: "/emails/batch",
@@ -30,9 +20,6 @@ export const RESEND_REQUIRED_PERMISSIONS = ["sending_access"] as const;
  */
 export const RESEND_OPTIONAL_PERMISSIONS = ["full_access"] as const;
 
-/**
- * Application-level error codes for Resend operations.
- */
 export const RESEND_ERROR_CODES = {
   INVALID_API_KEY: "invalid_api_key",
   UNAUTHORIZED: "unauthorized",
@@ -51,9 +38,6 @@ export const RESEND_ERROR_CODES = {
   UNKNOWN: "unknown",
 } as const;
 
-/**
- * Standard HTTP status codes used by the integration.
- */
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,
@@ -101,9 +85,6 @@ export const RATE_LIMIT_CONFIG = {
   burstSize: 25,
 } as const;
 
-/**
- * Help URLs for common deliverability issues.
- */
 export const DELIVERABILITY_HELP_URLS = {
   API_KEY: "https://resend.com/docs/dashboard/api-keys/introduction",
   SENDER_VERIFICATION: "https://resend.com/docs/dashboard/domains/introduction",

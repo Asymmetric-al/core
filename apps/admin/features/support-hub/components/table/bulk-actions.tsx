@@ -74,13 +74,13 @@ function toastBulkReport(
 }
 
 /**
- * Bulk action bar wired into `DataTableResponsive.floatingBarActions`. Each
- * action delegates to one of the Phase 2 mutation hooks; each hook already
- * invalidates the right cache keys so the table and board converge on the
- * next paint.
+ * Bulk actions for the table's selection bar (`DataGridSelectionBar` in
+ * `SupportTableView`). Each action runs one support mutation per selected
+ * row through `runBulkMutations`; every mutation invalidates the support
+ * query cache, so the table and board refresh together.
  *
- * Phase 5 adds the "Add label..." action, which opens a managed dialog so
- * the agent can pick a label before any mutation fires.
+ * "Add label..." first opens a dialog so the agent picks a label before any
+ * mutation fires.
  */
 export function useSupportBulkActions(): UseBulkActionsReturn {
   const currentAgentId = useCurrentSupportAgentId();

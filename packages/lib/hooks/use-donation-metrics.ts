@@ -2,10 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-/**
- * Types for donation metrics and chart data
- */
-
 export interface ChartDataPoint {
   date: string;
   value: number;
@@ -141,7 +137,8 @@ function qualifyShownMoney(
 }
 
 /**
- * Aggregates donations by day within a date range
+ * Sums completed gifts per local calendar day over the inclusive range; every
+ * day in the range is present, zero-filled.
  */
 function aggregateByDay(
   donations: RawDonation[],
@@ -171,8 +168,8 @@ function aggregateByDay(
 }
 
 /**
- * Aggregates donations by month with breakdown by type
- * Returns data for the specified number of months ending at current month
+ * Sums completed gifts per local calendar month, split by donation type, for
+ * the `months` months ending with the month of `now` (zero-filled).
  */
 function aggregateByMonth(
   donations: RawDonation[],
@@ -223,9 +220,6 @@ function aggregateByMonth(
     }));
 }
 
-/**
- * Formats ISO month string (YYYY-MM) to short month name
- */
 function formatMonth(isoMonth: string): string {
   const parts = isoMonth.split("-");
   const year = parts[0] ?? "2024";
@@ -234,9 +228,6 @@ function formatMonth(isoMonth: string): string {
   return date.toLocaleDateString("en-US", { month: "short" });
 }
 
-/**
- * Calculates percentage change between two values
- */
 function calculateChange(
   current: number,
   previous: number,
@@ -253,10 +244,9 @@ function calculateChange(
 }
 
 /**
- * Hook for fetching and computing donation metrics for a missionary
- *
- * @param missionaryId - The UUID of the missionary
- * @returns Donation metrics including this month, last month, YTD totals, and monthly breakdown
+ * Fetches `/api/missionaries/:missionaryId/metrics` and derives this-month,
+ * last-month and year-to-date totals with comparisons, plus the monthly
+ * breakdown.
  */
 export function useDonationMetrics(
   missionaryId: string,

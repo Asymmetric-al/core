@@ -26,10 +26,9 @@ interface UseSupportConversationReturn {
 }
 
 /**
- * Returns a single conversation by id. Implemented as a client-side filter
- * over the conversations collection rather than a separate single-result
- * query so it stays consistent with optimistic updates from the mutation
- * hooks.
+ * Reads one conversation from its own route. Support mutations invalidate
+ * the whole support query cache, so this refetches alongside the list after
+ * a change.
  */
 export function useSupportConversation(
   conversationId: string | null | undefined,

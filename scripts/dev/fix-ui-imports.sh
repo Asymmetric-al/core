@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# Script to fix imports in @asym/ui package to use relative paths instead of @/ aliases
-# This follows Turborepo best practices where packages use relative imports
+# One-off rewrite from the January 2026 Turborepo migration: @asym/ui imports
+# switched from @/ aliases to relative paths. packages/ui now maps `@/*` in its
+# own tsconfig. Kept for history; do not rerun (components/feed no longer
+# exists). Uses BSD/macOS `sed -i ''` syntax.
 
 cd packages/ui || exit 1
 
 echo "Fixing @/components/ui/* imports to use ../shadcn/*..."
 
-# Fix imports in components/feed/
 find components/feed -name "*.tsx" -type f -exec sed -i '' \
   -e 's|from "@/components/ui/dialog"|from "../shadcn/dialog"|g' \
   -e 's|from "@/components/ui/avatar"|from "../shadcn/avatar"|g' \
@@ -23,7 +24,6 @@ find components/feed -name "*.tsx" -type f -exec sed -i '' \
 
 echo "✅ Fixed feed components"
 
-# Fix imports in components/shadcn/
 find components/shadcn -name "*.tsx" -type f -exec sed -i '' \
   -e 's|from "@/lib/responsive"|from "../../lib/responsive"|g' \
   -e 's|from "@/lib/utils"|from "../../lib/utils"|g' \
@@ -31,7 +31,6 @@ find components/shadcn -name "*.tsx" -type f -exec sed -i '' \
 
 echo "✅ Fixed shadcn components"
 
-# Fix imports in components/shadcn/data-grid/
 find components/shadcn/data-grid -name "*.tsx" -type f -exec sed -i '' \
   -e 's|from "../types"|from "./types"|g' \
   -e 's|from "../data-grid-cell"|from "./data-grid-cell"|g' \

@@ -21,8 +21,8 @@ It is not a controller, queue, scheduler, service, role runner, checkout copier 
 | ------------------ | ------------------------------------------ | -------- |
 | `cpus`             | 2                                          | 16       |
 | `memoryMb`         | 2048                                       | 32768    |
-| `pids`             | 128                                        | 2048     |
-| `timeoutMs`        | 900000                                     | 3600000  |
+| `pids`             | 128                                        | 8192     |
+| `timeoutMs`        | 900000                                     | 7200000  |
 | `controlTimeoutMs` | 5000 per Docker call                       | 30000    |
 | `outputBytes`      | 1048576 combined stdout/stderr input bytes | 16777216 |
 

@@ -96,10 +96,6 @@ export type {
   SupportTeam,
 } from "../collections/support-hub";
 
-/* ------------------------------------------------------------------------ */
-/*  Live query hooks                                                         */
-/* ------------------------------------------------------------------------ */
-
 export function useSupportConversationsLive() {
   return useLiveQuery(supportConversationsCollection);
 }

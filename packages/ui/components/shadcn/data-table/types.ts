@@ -112,7 +112,8 @@ export interface DataTableConfig {
   manualFiltering?: boolean;
   virtualization?: VirtualizationConfig;
 
-  // Legacy virtualization fields kept for backward compatibility.
+  // Flat fields from before `virtualization`, kept for backward compatibility.
+  // The virtualization ones are its fallbacks; columnResizingPersistKey is unread.
   enableVirtualization?: boolean;
   virtualRowHeight?: number;
   virtualOverscan?: number;

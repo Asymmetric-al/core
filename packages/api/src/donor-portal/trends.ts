@@ -1,8 +1,8 @@
 /**
- * Giving Trends projection for the donor history chart.
- * Aggregates the already-live `portal.donations` into monthly totals so the
- * chart no longer renders a hardcoded MONTHLY_DATA array. Pure + deterministic
- * (no `Date.now`) — fully unit-testable.
+ * Giving Trends projection written for the donor history chart. No app imports
+ * it today: the history page builds its own series (`monthlyGivingSeries`).
+ * Aggregates portal donations into monthly totals. Pure and deterministic (no
+ * `Date.now`).
  */
 
 export interface GivingTrendPoint {

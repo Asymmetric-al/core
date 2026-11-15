@@ -2,8 +2,8 @@ import { instant } from "@next/playwright";
 import { expect, test } from "@playwright/test";
 
 /**
- * Instant Navigation guards (Next.js 16.3 Cache Components + Partial
- * Prefetching) for the donor public site, per `instant-nav.rig.md`.
+ * Instant Navigation guards (Next.js Cache Components + Partial Prefetching)
+ * for the donor public site, per `instant-nav.rig.md`.
  *
  * An `instant()` verdict is only trustworthy against a production build with
  * the testing API exposed (`EXPOSE_TESTING_API=1`); `next dev` neither
@@ -142,9 +142,9 @@ test.describe("Instant navigation (donor public site)", () => {
       // (workers-client.tsx) — a full prefetch, which makes the testing lock
       // skip its shell-only restriction — and `generateStaticParams` in the
       // route prerenders each worker page for that prefetch to pull.
-      // Regresses if the `prefetch` prop is dropped, NOT if
-      // `prefetch = 'allow-runtime'` is added or removed; the route
-      // deliberately omits it (see the note above WorkerProfilePage).
+      // Regresses if the `prefetch` prop is dropped. The route sets no
+      // `prefetch` segment override and needs no runtime prefetch (see the
+      // note above WorkerProfilePage).
       await expect(
         page.getByRole("heading", { level: 1, name: /miller/i }),
       ).toBeVisible();

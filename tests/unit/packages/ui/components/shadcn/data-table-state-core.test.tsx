@@ -3,10 +3,10 @@
 /**
  * Characterization tests for `useDataTableStateCore`.
  *
- * These pin the CURRENT behavior of the shared table-state hook ahead of the
- * TanStack Table v8 -> v9 engine migration. They exercise the hook through its
- * public interface only (options in, state/setters out) so they must keep
- * passing unchanged after the engine swap.
+ * Written before the TanStack Table v8 -> v9 engine migration to pin the
+ * shared table-state hook's behavior across it. They exercise the hook through
+ * its public interface only (options in, state/setters out), so an engine
+ * change must keep them passing unchanged.
  */
 
 import { act, cleanup, renderHook } from "@testing-library/react";

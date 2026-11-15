@@ -262,8 +262,9 @@ async function verifyE2EAuthSignature(
 /**
  * Mint a signed E2E bypass cookie value: `"<base64url(payload)>.<base64url(hmac)>"`.
  *
- * Throws when `E2E_AUTH_SECRET` is unset — an unsigned bypass primitive is exactly
- * the gap this guards against, so we refuse to produce one.
+ * Throws when no signing key is available (`E2E_AUTH_SECRET` unset against a real
+ * remote datasource; see `getE2EAuthSecret`) — an unsigned bypass primitive is
+ * exactly the gap this guards against, so we refuse to produce one.
  */
 export async function createE2EAuthCookieValue(
   session: E2EAuthSession,
@@ -295,8 +296,9 @@ export async function createE2EAuthCookieValue(
  * for any missing / unsigned / forged / expired / malformed value so callers
  * fall back to an unauthenticated context.
  *
- * Fails closed when `E2E_AUTH_SECRET` is unset: without the shared secret the
- * signature cannot be trusted, so no bypass identity is granted.
+ * Fails closed when no signing key is available (`E2E_AUTH_SECRET` unset against
+ * a real remote datasource): without the shared secret the signature cannot be
+ * trusted, so no bypass identity is granted.
  *
  * INVARIANT — this function proves the cookie is *authentic*, NOT that the
  * environment is *allowed* to honor a bypass. Every caller that grants identity

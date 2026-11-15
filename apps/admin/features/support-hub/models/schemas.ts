@@ -1,9 +1,8 @@
 /**
- * Lightweight Zod helpers for app-side mutation inputs. The wire format
- * schemas live next to the collections in `packages/database/collections/
- * support-hub.ts`; this file only declares the small enums and discriminated
- * unions a mutation hook needs to validate caller arguments before touching
- * the collection.
+ * Small Zod enums and the macro-action union that type the client mutation
+ * inputs in `stores/support-store.ts`. Record schemas live in
+ * `packages/database/collections/support-hub.schema.ts`; the server
+ * validates requests with `packages/api/src/admin/support-hub/schemas.ts`.
  */
 import {
   SUPPORT_CONVERSATION_STATUSES,

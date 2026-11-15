@@ -1,9 +1,4 @@
-/**
- * Mock Users Data
- *
- * Comprehensive mock data for all user types: missionaries, donors, and staff.
- * All data is realistic, "lived-in", and ready for use across the application.
- */
+/** Demo fixtures for missionaries, donors and staff. */
 
 import type { Missionary, Donor, StaffMember } from "./types";
 

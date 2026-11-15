@@ -1,15 +1,5 @@
 import { supportHubAdapter } from "../adapter";
 
-/**
- * Read entry points for every static Support Hub registry — labels,
- * macros, canned responses, saved views, agents, teams, business hours,
- * SLA policies, signatures, automation rules, notification preferences,
- * inboxes + inbox settings.
- *
- * Each delegates straight to the adapter so Phase 8 can replace the
- * implementation without touching consumers.
- */
-
 export const listSupportLabels = () => supportHubAdapter.labels.list();
 export const listSupportMacros = () => supportHubAdapter.macros.list();
 export const listSupportCannedResponses = () =>

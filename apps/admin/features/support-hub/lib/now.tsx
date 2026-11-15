@@ -37,10 +37,9 @@ export function SupportNowProvider({
 }
 
 /**
- * Returns the contextual "now" timestamp. Falls back to a synchronous read
- * inside an effect-free initializer so server-render snapshots stay
- * deterministic — but in practice every consumer is wrapped by
- * `SupportNowProvider` from `SupportInbox`.
+ * Returns the provider's "now". Outside a provider it returns the fixed
+ * epoch `FALLBACK_NOW`, never the real clock, so renders stay pure;
+ * `SupportInbox` and `SupportWorkspaceShell` both mount the provider.
  */
 export function useSupportNow(): string {
   const value = React.use(SupportNowContext);

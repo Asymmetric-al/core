@@ -65,9 +65,10 @@ function documentFrom(raw: unknown): StateDocument | null {
 }
 
 /**
- * Output bound of one `state list` read. A 2,000-issue factory whose work
- * items keep 40 rounds with long summaries lists at about 25 MB; the bound
- * keeps that readable while still capping server memory.
+ * Output bound of one `state list` read. The synthetic scale fixture (2,000
+ * issues, 40 rounds each with long summaries, more history than the pack's
+ * 12-entry limit) lists at about 25 MB; the bound keeps that readable while
+ * still capping server memory.
  */
 export const LIST_OUTPUT_LIMIT = 48_000_000;
 

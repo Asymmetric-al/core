@@ -1,18 +1,10 @@
 /**
- * Resend Multi-Tenant Email Integration Types
- *
- * This module defines all types for the Resend integration, including:
- * - Tenant email settings and credentials
- * - Email templates and campaigns
- * - Event webhooks and analytics
- * - Compliance and preferences
+ * Row, request and configuration types for the tenant-scoped Resend email
+ * integration: settings, sender profiles, templates, campaigns, the send log,
+ * events, suppressions, deliverability, analytics, preferences and webhooks.
  */
 
 import type { EmailBuilderKind } from "./email-builder-types";
-
-// =============================================================================
-// CORE ENUMS AND CONSTANTS
-// =============================================================================
 
 export type EmailMessageType = "transactional" | "marketing";
 
@@ -54,15 +46,10 @@ export type ResendEventType =
   | "email.suppressed"
   | "email.received";
 
-// =============================================================================
-// TENANT EMAIL SETTINGS
-// =============================================================================
-
 export interface TenantEmailSettings {
   id: string;
   tenant_id: string;
 
-  // Connection status
   is_connected: boolean;
   connection_verified_at: string | null;
   last_error: string | null;
@@ -75,23 +62,19 @@ export interface TenantEmailSettings {
   // API key hint (last 4 chars for display)
   resend_api_key_hint: string | null;
 
-  // Deliverability status
   domain_authenticated: boolean;
   dkim_verified: boolean;
   spf_verified: boolean;
   dmarc_policy: DMARCPolicy | null;
   deliverability_score: number | null;
 
-  // Webhook config
   webhook_url: string | null;
   validation_snapshot: ResendValidationSnapshot | null;
 
-  // Rate limits
   daily_send_limit: number;
   sends_today: number;
   limit_reset_at: string | null;
 
-  // Audit
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -123,10 +106,6 @@ export interface TenantEmailSettingsUpdate {
   limit_reset_at?: string | null;
 }
 
-// =============================================================================
-// SENDER PROFILES
-// =============================================================================
-
 export interface EmailSenderProfile {
   id: string;
   tenant_id: string;
@@ -157,10 +136,6 @@ export interface EmailSenderProfileUpdate {
   is_verified?: boolean;
 }
 
-// =============================================================================
-// EMAIL TEMPLATES
-// =============================================================================
-
 export interface EmailTemplate {
   id: string;
   tenant_id: string;
@@ -181,18 +156,14 @@ export interface EmailTemplate {
   text_content: string | null;
   text_exported_at: string | null;
 
-  // Email metadata
   default_subject: string | null;
   default_preheader: string | null;
 
-  // Status
   is_active: boolean;
   is_system: boolean;
 
-  // Versioning
   version: number;
 
-  // Audit
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -237,48 +208,36 @@ export interface EmailTemplateUpdate {
   version?: number;
 }
 
-// =============================================================================
-// EMAIL CAMPAIGNS
-// =============================================================================
-
 export interface EmailCampaign {
   id: string;
   tenant_id: string;
   name: string;
   description: string | null;
 
-  // Content
   template_id: string | null;
   subject: string;
   preheader_text: string | null;
 
-  // Sender
   sender_profile_id: string | null;
 
-  // Audience
   audience_type: CampaignAudienceType;
   audience_query: Record<string, unknown> | null;
   recipient_count: number | null;
 
-  // Status & scheduling
   status: CampaignStatus;
   scheduled_at: string | null;
   timezone: string;
 
-  // Progress
   started_at: string | null;
   completed_at: string | null;
   sent_count: number;
   failed_count: number;
 
-  // Tracking settings
   track_opens: boolean;
   track_clicks: boolean;
 
-  // Suppression group
   suppression_group_id: string | null;
 
-  // Audit
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -333,10 +292,6 @@ export interface EmailCampaignWithRelations extends EmailCampaign {
   suppression_group?: EmailSuppressionGroup | null;
 }
 
-// =============================================================================
-// CAMPAIGN RECIPIENTS
-// =============================================================================
-
 export interface EmailCampaignRecipient {
   id: string;
   campaign_id: string;
@@ -366,10 +321,6 @@ export interface EmailCampaignRecipientUpdate {
   sent_at?: string | null;
   error_message?: string | null;
 }
-
-// =============================================================================
-// SEND LOG (IDEMPOTENCY)
-// =============================================================================
 
 export interface EmailSendLog {
   id: string;
@@ -404,10 +355,6 @@ export interface EmailSendLogInsert {
   error_message?: string | null;
 }
 
-// =============================================================================
-// EVENT TRACKING
-// =============================================================================
-
 export interface EmailEvent {
   id: string;
   tenant_id: string;
@@ -439,10 +386,6 @@ export interface EmailEventInsert {
   campaign_id?: string | null;
   raw_event?: Record<string, unknown> | null;
 }
-
-// =============================================================================
-// SUPPRESSION GROUPS & SUPPRESSIONS
-// =============================================================================
 
 export interface EmailSuppressionGroup {
   id: string;
@@ -480,11 +423,6 @@ export interface EmailSuppressionInsert {
   source?: SuppressionSource | null;
 }
 
-// =============================================================================
-// API REQUEST/RESPONSE TYPES
-// =============================================================================
-
-// Connect Resend
 export interface ConnectResendRequest {
   apiKey: string;
   defaultFromEmail: string;
@@ -586,7 +524,6 @@ export interface TestSendEmailResponse {
   warning?: string;
 }
 
-// Send Email
 export interface EmailRecipient {
   email: string;
   name?: string;
@@ -606,18 +543,14 @@ export interface EmailSendRequest {
   subject: string;
   preheaderText?: string;
 
-  // Recipients
   recipients: EmailRecipient[];
 
-  // Personalization
   globalMergeTags?: Record<string, string>;
 
-  // Metadata
   campaignId?: string;
   correlationId: string;
   idempotencyKey: string;
 
-  // Options
   sendAt?: string; // ISO date string
   trackOpens?: boolean;
   trackClicks?: boolean;
@@ -641,10 +574,6 @@ export interface EmailSendResult {
   retryAfter?: number;
 }
 
-// =============================================================================
-// DELIVERABILITY TYPES
-// =============================================================================
-
 export interface DeliverabilityCheck {
   id: string;
   name: string;
@@ -664,10 +593,6 @@ export interface DeliverabilityStatus {
   pendingCount: number;
   lastChecked: string | null;
 }
-
-// =============================================================================
-// ANALYTICS TYPES
-// =============================================================================
 
 export interface CampaignOverviewStats {
   sent: number;
@@ -741,10 +666,6 @@ export interface TenantEmailAnalytics {
   }>;
 }
 
-// =============================================================================
-// MERGE TAG TYPES
-// =============================================================================
-
 export type MergeTagType = "string" | "currency" | "date" | "url" | "number";
 
 export interface MergeTagDefinition {
@@ -774,10 +695,6 @@ export interface MergeTagValidation {
   missingRequiredTags: string[];
 }
 
-// =============================================================================
-// PREFERENCES TYPES
-// =============================================================================
-
 export interface EmailPreferencesData {
   email: string;
   tenantName: string;
@@ -798,10 +715,6 @@ export interface UpdatePreferencesRequest {
   }>;
   globalUnsubscribe?: boolean;
 }
-
-// =============================================================================
-// WEBHOOK TYPES
-// =============================================================================
 
 export interface ResendWebhookEnvelope<TData = Record<string, unknown>> {
   type: string;
@@ -862,10 +775,6 @@ export interface ResendReceivedAttachment {
   [key: string]: unknown;
 }
 
-// =============================================================================
-// SERVICE CONFIGURATION TYPES
-// =============================================================================
-
 export interface RateLimitConfig {
   maxRequestsPerMinute: number;
   maxRecipientsPerRequest: number;
@@ -902,10 +811,6 @@ export interface EmailServiceConfig {
   batch: BatchConfig;
   alerts: AlertConfig;
 }
-
-// =============================================================================
-// CONSTANTS
-// =============================================================================
 
 export const TRANSACTIONAL_EMAIL_TYPES = [
   "donation_receipt",

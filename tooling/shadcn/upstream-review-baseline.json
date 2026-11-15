@@ -1900,7 +1900,7 @@
     },
     {
       "path": "packages/ui/components/primitives/image-upload.tsx",
-      "localSha256": "2eee040f0c894bad6ff375dc3a80c856389fb97e54ac15a3841355894b03fb29",
+      "localSha256": "59b20224bad282beacdb466ffd473dfefd3843dc09c36a02b79018f20a01f15c",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/image-upload.tsx",
@@ -2154,7 +2154,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "localSha256": "697d76da026613468c8ea37e2a3da230b0779cbda3322ec3fbfca353365c1762",
+      "localSha256": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": ["packages/ui/styles/globals.css", "docs/ai/rules/frontend.md"]
     }
@@ -2198,7 +2198,7 @@
     },
     {
       "path": "packages/ui/components/primitives/image-upload.tsx",
-      "sha256": "2eee040f0c894bad6ff375dc3a80c856389fb97e54ac15a3841355894b03fb29"
+      "sha256": "59b20224bad282beacdb466ffd473dfefd3843dc09c36a02b79018f20a01f15c"
     },
     {
       "path": "packages/ui/components/primitives/map.tsx",
@@ -2346,7 +2346,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/icons/index.tsx",
-      "sha256": "1a369264254049a22b0b52f26bad2662d9ab299ec784be75ab5631735924eb0c"
+      "sha256": "a106db14501481d5aa114107f413056fa05ec47db8f6052b3e1b0d9ca0f01fc6"
     },
     {
       "path": "packages/ui/components/shadcn/image-cropper-helpers.ts",
@@ -2562,7 +2562,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "sha256": "697d76da026613468c8ea37e2a3da230b0779cbda3322ec3fbfca353365c1762"
+      "sha256": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
@@ -2634,7 +2634,7 @@
     },
     {
       "path": "tests/unit/packages/ui/data-grid-search-filtering.test.tsx",
-      "sha256": "8f1cc403a428944d61eaeb01f24090fd2399421a2ad5e16fc7e1d1a63d2afb86"
+      "sha256": "839c59b73cf0f708c4a3530296b62e59a86f31f78e921b533ba607364b972a14"
     },
     {
       "path": "tests/unit/packages/ui/drawer-swipe-direction.test.ts",

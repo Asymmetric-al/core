@@ -9,7 +9,7 @@ interface ConversationCrmLink {
   label: string;
   href: string;
   icon: React.ReactNode;
-  /** Tooltip / aria-label content shown to assistive tech. */
+  /** Shown as the link's `title` tooltip. */
   description: string;
 }
 

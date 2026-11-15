@@ -25,8 +25,8 @@ import { useStudioDirtyState } from "./shell-navigation-guard";
 import type { ReactNode } from "react";
 
 /**
- * Header and export-dialog pieces shared by the Email Studio and PDF Studio
- * page clients so both surfaces stay visually identical and change together.
+ * Breadcrumb, device toggle, save button and exported-HTML preview for the
+ * PDF Studio page client. Email Studio uses its own header and export dialog.
  */
 
 export type StudioPreviewDevice = "desktop" | "mobile";

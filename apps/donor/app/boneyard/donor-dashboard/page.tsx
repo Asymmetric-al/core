@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * The capture client seeds its skeleton with `Math.random()`, which Cache
- * Components requires to sit under a Suspense boundary. This route used to
- * borrow the root layout's catch-all boundary; now it owns one. Nothing here is
- * indexed, so an empty fallback costs nothing.
+ * The capture fixture (`DonorDashboardMainBody`) reads the current time during
+ * render (for example `new Date().getFullYear()`), which Cache Components
+ * requires to sit under a Suspense boundary, and the root layout has none.
+ * Nothing here is indexed, so an empty fallback costs nothing.
  */
 export default function Page() {
   return (

@@ -13,7 +13,7 @@ interface MessagesResponse {
 }
 
 interface UseSupportMessagesOptions {
-  /** When true, drops `type === "note"` rows. Defaults to false (show all). */
+  /** When true, drops private rows (`isPrivate`, such as internal notes). */
   excludePrivate?: boolean;
 }
 
@@ -26,9 +26,8 @@ interface UseSupportMessagesReturn {
 }
 
 /**
- * Subscribes to the messages collection scoped to a single conversation,
- * sorted by `postedAt` ascending so the email thread renders top-to-bottom in
- * order.
+ * Reads one conversation's messages from its route, sorted by `postedAt`
+ * ascending (ties by id) so the thread renders oldest first.
  */
 export function useSupportMessages(
   conversationId: string | null | undefined,

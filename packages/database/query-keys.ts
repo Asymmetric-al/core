@@ -25,8 +25,8 @@ export const adminSurfaceQueryKeys = {
   tasks: ["admin", "tasks"] as const,
   taskStaff: ["admin", "tasks", "staff"] as const,
   taskLinkedEntities: ["admin", "tasks", "linked-entities"] as const,
-  // Compatibility aliases for legacy mock care collections that still exist
-  // in the repo but are no longer the authoritative member-care source.
+  // No current reader: the mock care collections these keyed are gone. Member
+  // care reads use memberCareDashboard / memberCareDetail.
   carePersonnel: ["admin", "care", "personnel"] as const,
   careActivity: ["admin", "care", "activity"] as const,
   memberCareDashboard: ["admin", "member-care", "dashboard"] as const,

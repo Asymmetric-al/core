@@ -433,7 +433,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "9348772ff61e4e21689bd5a956289523d2064716111ae235796de3d8acc2dd34"
+          "sha256": "06dae23ccf80c1084a5cbdabfab73389de5b99929b29bc5fe0f7f4e732f8b908"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
@@ -716,7 +716,7 @@
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
-          "sha256": "94687c2a6229c0a7c07563940e0c1a06c413fe254c0fbcb1754a3c8df9e60352"
+          "sha256": "0a92bdd3a1029b7f8f84ce437a33e8a55d1d82254a88f924b5ede5cf2607b932"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
@@ -1197,7 +1197,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1259,7 +1259,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1541,7 +1541,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1559,7 +1559,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         }
       ]
     },
@@ -1572,7 +1572,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1592,7 +1592,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1620,7 +1620,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "472f1822e1fee11b21ce08fc0ebb33e1e0a5db187b85517b58810e53d7c7aca7"
+          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -2584,7 +2584,7 @@
       "proof": [
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
-          "sha256": "94687c2a6229c0a7c07563940e0c1a06c413fe254c0fbcb1754a3c8df9e60352"
+          "sha256": "0a92bdd3a1029b7f8f84ce437a33e8a55d1d82254a88f924b5ede5cf2607b932"
         },
         {
           "path": "packages/ui/components/shadcn/sheet.tsx",

@@ -12,9 +12,8 @@ interface ActivityEntryProps {
 }
 
 /**
- * Compact activity log line for system events (status changes, escalations,
- * macro runs, etc.). Phase 2's `support_messages.type === "system"` rows feed
- * directly into this renderer.
+ * Compact activity line for `type === "system"` messages (status changes,
+ * escalations, macro runs); `ConversationTimeline` routes them here.
  */
 export function ActivityEntry({ message }: ActivityEntryProps) {
   return (

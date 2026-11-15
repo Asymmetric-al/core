@@ -7,9 +7,11 @@ import type Stripe from "stripe";
 
 /**
  * Per-tenant Stripe resolution: tenant key lookup, key normalization, and the
- * canonical environment fallback, behind one interface. Seven money-path
- * handlers previously each re-implemented this with divergent fallbacks
- * (process.env vs serverEnv) and empty-string handling.
+ * canonical environment fallback (`serverEnv`), behind one interface. Money-path
+ * handlers acting for a tenant resolve keys here rather than reading env or
+ * tenant rows themselves, so fallback and empty-string handling cannot diverge
+ * between them. (The platform webhook verifier in ./webhooks.ts reads
+ * `process.env` directly.)
  *
  * A missing tenant row is `tenant_not_found` and never borrows the platform
  * env key: falling back there would point provider operations (refunds,

@@ -1,7 +1,8 @@
 // The core-deliver round as the installed pack defines it
 // (scripts/archon-factory/pack/deliver/deliver.yaml). Step states are derived
 // only from the engine's node states for the issue's live round run; the
-// route decides which steps the round plans (claim.ts stage table).
+// route decides which steps the round plans (the STAGES table in
+// deliver/scripts/claim-logic.mjs).
 import type { NodeTiming, RunDetailView } from "./contracts";
 import type { IssueSummary } from "./factory";
 

@@ -1,19 +1,17 @@
 # @asym/admin - Mission Control
 
-Admin application for Asymmetric.al Mission Control.
+Mission Control, the staff operations app (port 3030). It also serves the
+public CMS read routes (`/api/cms/public/*`) that the donor app's public
+website consumes.
 
-## Features
+## Route areas
 
-- Organization management
-- User administration
-- Content moderation
-- Analytics and reporting
-- Email campaigns
-- PDF generation
-- Web studio
-- Care management
-- Event management
-- Task management
+Staff routes live under `app/(app)/`: CRM (records, notes, relationships),
+contributions, reports, support, care, events, mobilize, tasks, workflows,
+automations, email, PDF, sign, content moderation (`feed`), settings and
+administration (teams, Eve). Web Studio, the Payload CMS admin, lives under
+`app/(payload)/web-studio`. `docs/guides/architecture/overview.md` maps routes
+and data flow.
 
 ## Mission Control landing dashboard
 
@@ -32,8 +30,9 @@ Design guidance for this surface:
 - Reserve color for meaning: destructive/red for risk, amber for waiting or
   due-soon, green for healthy/complete, blue for active/in-progress, purple for
   training or special category where already established.
-- Preserve the tile registry (`TILES`/`WORKFLOWS`) as the source for module
-  routing and quick actions. UI changes should not alter route contracts.
+- Preserve the tile registry (`TILES`/`WORKFLOWS` in
+  `packages/lib/mission-control/tiles.ts`) as the source for module routing
+  and quick actions. UI changes should not alter route contracts.
 - Keep customization affordances visual unless a real persistence mechanism is
   intentionally added.
 
@@ -87,18 +86,26 @@ bun run lint:admin
 
 ## Structure
 
-- `app/` - Next.js App Router pages and layouts
+- `app/` - Next.js App Router pages, layouts and thin API route handlers
 - `components/` - Admin-specific components
-- `features/` - Feature modules (mission-control)
-- `lib/` - Admin-specific utilities
+- `features/` - Feature modules (`mission-control`, `support-hub`, `studios`)
+- `lib/` - Admin-specific utilities, including the role gate
+  (`lib/admin-access.ts`)
+- `src/` - Payload CMS: collections, access rules and the public content
+  reader (`src/cms`), the Web Studio UI (`src/cms-ui`), applied migrations
+  (`src/migrations`) and Payload styling (`src/styles`)
+- `payload.config.ts`, `proxy.ts`, `next.config.ts` - Payload, edge auth and
+  Next.js configuration
 
 ## Dependencies
 
-This app depends on the following shared packages:
+The main workspace packages this app uses (`package.json` has the full list):
 
 - `@asym/ui` - UI components and theme
-- `@asym/database` - Database access layer
-- `@asym/lib` - Shared utilities
-- `@asym/config` - Configuration
-- `@asym/auth` - Authentication
+- `@asym/api` - Server business logic and data access
+- `@asym/database` - Supabase clients, collections and hooks
+- `@asym/auth` - Authentication and the edge proxy
+- `@asym/env` - Environment validation
+- `@asym/lib`, `@asym/config` - Shared utilities and configuration
 - `@asym/email` - Email integration
+- `@asym/mock-data` - Shared fixture data (re-exported from `lib/mock-data`)

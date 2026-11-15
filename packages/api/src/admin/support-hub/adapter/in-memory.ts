@@ -62,14 +62,12 @@ import type {
 } from "@asym/database/collections/support-hub.schema";
 
 /**
- * In-memory implementation of {@link SupportHubAdapter}. Phase 7 ships this
- * as the only available implementation; Phase 8 will introduce a sibling
- * `./supabase.ts` module and flip the export in `./index.ts`.
+ * In-memory implementation of {@link SupportHubAdapter}, kept as a test
+ * fixture. The live adapter is `./supabase.ts` (see `./index.ts`).
  *
  * Design notes:
- * - The state is module-scoped so successive route-handler invocations see
- *   the same mutations within a process. That is intentional for local dev,
- *   demo deploys, and unit tests.
+ * - The state is module-scoped so successive calls within a process see the
+ *   same mutations; `__resetInMemorySupportHubStore` restores the seeds.
  * - Reads always return cloned arrays so callers can mutate the result
  *   without affecting the store.
  * - Mutations return the freshly-cloned row so callers can echo it back to
@@ -116,8 +114,8 @@ function tenantScopeForReads(): string {
 }
 
 /**
- * Phase 7 ships a single-tenant in-memory store. Reject cross-tenant writes so
- * the API cannot mutate another org's data once multi-tenant data exists.
+ * The in-memory store is seeded only for the demo tenant, so a write bound to
+ * any other tenant is refused; unbound calls (tests) may write.
  */
 function assertWritableTenantScope(): void {
   const scope = getSupportHubRequestTenantId();

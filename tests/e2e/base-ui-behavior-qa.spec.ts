@@ -5,10 +5,8 @@ import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
 /**
- * Behavior QA for the Radix → Base UI migration.
- *
- * Exercises the converted primitives where they are composed for real in the
- * mission-control shell (`apps/admin/app/mc-shell.tsx` + the profile menu
+ * Behavior QA for Base UI primitives where they are composed for real in the
+ * Mission Control shell (`apps/admin/app/mc-shell.tsx` + the profile menu
  * block): DropdownMenu triggers via Base UI `render`, Escape + focus
  * restoration, and link-composed sidebar buttons. The shell's demo language,
  * activity and notification menus were removed (ADR-0027 names the bell

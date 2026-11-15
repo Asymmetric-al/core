@@ -71,9 +71,9 @@ function WorkerCard({
           // cannot carry per-worker content. That content is still instant
           // because `generateStaticParams` prerenders each worker as its own
           // static page — the click pulls a static file, not a server render,
-          // which is why the route deliberately skips `prefetch =
-          // 'allow-runtime'` (one server render per visible card, for content
-          // that is already static). Giving progress streams in after.
+          // so the route needs no runtime prefetch (that would cost one
+          // server render per visible card for content that is already
+          // static). Giving progress streams in after.
           prefetch
           className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-2xl"
           aria-label={`View ${worker.title}'s profile`}

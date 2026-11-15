@@ -9,9 +9,8 @@ interface ConversationMacrosMenuProps {
 }
 
 /**
- * Conversation-header mount point for the macro launcher. Wraps
- * `<MacroLauncher />` with a header-friendly trigger so the popover behavior
- * stays in one place.
+ * Conversation-header mount point for `<MacroLauncher />` with its full-size
+ * trigger; the composer mounts the compact one.
  */
 export function ConversationMacrosMenu({
   conversation,

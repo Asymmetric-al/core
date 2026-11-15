@@ -19,6 +19,6 @@ export function crmRecordAvatarTransitionName(recordId: string): string {
   return `crm-record-avatar:${recordId}`;
 }
 
-/** Settings page title block ↔ other surfaces if needed later. */
+/** Page-title block shared by the missionary settings and profile pages. */
 export const MISSIONARY_SETTINGS_HEADER_VT_NAME =
   "missionary-settings-header" as const;
