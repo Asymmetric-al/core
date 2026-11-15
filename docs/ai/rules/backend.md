@@ -81,7 +81,7 @@ Use this before changing server actions, route handlers, database access, or mig
 ### Implementation checklist
 
 - [ ] Request-session server code uses `@asym/database/supabase/server`
-- [ ] `packages/api` code on the service-role admin client (`@asym/database/supabase/admin`, which bypasses RLS) authenticates and authorizes the caller first (for example `withOperation` with `roles`), takes the tenant from that server-side auth context, and scopes every query by tenant
+- [ ] New tenant data access from no-JWT or privileged server code goes through `withTenant` (`docs/security/tenant-guard.md`), not a new service-role admin-client site: those sites are frozen in `docs/security/service-role-client-allowlist.json` (`bun run verify:service-role-clients`), and adding one needs a security ruling. Existing allowlisted admin-client code (which bypasses RLS) authenticates and authorizes the caller first and scopes every query by tenant
 - [ ] Client table reads use `@asym/database/hooks` or approved collections
 - [ ] Browser Supabase client usage is limited to approved auth/storage helpers
 - [ ] Inputs validated with Zod

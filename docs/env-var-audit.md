@@ -61,7 +61,7 @@
 
 - `turbo.json` `build.env` keys hash into the Turborepo cache key ([task `env`](https://turborepo.dev/docs/reference/configuration#env)). They are limited to variables that can affect compiled Next.js or workspace output or Payload build-time behavior: `NODE_ENV`, `CORE_EVE_BUILD_MODE`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `SUPABASE_*`, `PAYLOAD_SECRET`, `DATABASE_URL`, `PAYLOAD_DATABASE_URI`, `PAYLOAD_DATABASE_POOL_MAX`, `DONOR_APP_URL`, `SKIP_ENV_VALIDATION`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_ENCRYPTION_KEY`, `SENTRY_AUTH_TOKEN`, `SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_RELEASE`, `CLOUDINARY_API_SECRET`, `ALLOW_DEMO_ACCOUNTS` and `DEMO_ONLY_LOGIN`. `turbo.json` is the source of truth; `globalEnv` adds `VERCEL*` variables to every task hash.
 - Runtime-only secrets (for example `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CRON_SECRET`, `DOCRAPTOR_API_KEY`) stay out of `build.env` so changing them does not bust the build cache for unchanged source.
-- Playwright, E2E, demo-credential and generic CI flags (`PLAYWRIGHT_*`, `E2E_*`, `DEMO_*`, `CI`, `ASYM_USE_CI_ENV_DEFAULTS`) are excluded: they are test or dev-server concerns and caused unrelated cache invalidation when listed.
+- Playwright, E2E, demo-credential and generic CI flags (`PLAYWRIGHT_*`, `E2E_*`, demo account credentials under `DEMO_*`, `CI`, `ASYM_USE_CI_ENV_DEFAULTS`) are excluded (the demo-mode switches `DEMO_ONLY_LOGIN` and `ALLOW_DEMO_ACCOUNTS` are the listed exceptions): they are test or dev-server concerns and caused unrelated cache invalidation when listed.
 
 ### Playwright config
 

@@ -95,7 +95,8 @@ SKIP_ENV_VALIDATION=1 <command>
 | `packages/*/**` build-time config | ⚠️ Gradual             | Migrate opportunistically; document exceptions |
 
 Documented runtime exception: `packages/auth/e2e-auth.ts` reads `process.env`
-directly so it stays edge-safe (see its `getE2EAuthSecret` doc). Other package
-runtime modules still read `process.env` directly (for example
-`packages/api/src/stripe/webhooks.ts`, `packages/api/src/email/crypto.ts` and
-the health routes); treat them as migration debt, not precedent.
+directly so it stays edge-safe (see its `getE2EAuthSecret` doc). `packages/api/src/stripe/webhooks.ts` also reads its
+platform webhook credentials at request time on purpose (`serverEnv` snapshots at
+import and would freeze overrides). Other package runtime modules that read
+`process.env` directly (for example `packages/api/src/email/crypto.ts` and the
+health routes) are migration debt, not precedent.

@@ -156,7 +156,9 @@ git switch <base>
 git pull --ff-only origin <base>
 ```
 
-**If `git stash pop` later fails with** `error: could not restore untracked files from stash`:
+The stash stack is shared with every worktree, so another session may push an entry after yours. Never restore or drop by position (`git stash pop`, `stash@{0}`); always address the autoship entry by its message.
+
+**If restoring later fails with** `error: could not restore untracked files from stash`:
 
 - This usually means an “untracked” file became **tracked on `<base>`** before restore.
 - Recovery order (use the autoship backups, not stash internals):
@@ -164,12 +166,14 @@ git pull --ff-only origin <base>
   2. Restore your local version from `.git/autoship/untracked.tgz` (preferred) or `working-tree.patch`.
   3. Continue the flow once `git status` shows your intended modifications.
 
-A successful `git stash pop` already removes the autoship entry, so do **not** run `git stash drop` afterwards: `stash@{0}` would then be someone else's entry (the stash stack is shared with every worktree). Only when a pop stops on conflicts does the entry remain; after resolving, drop it by its message, never by position:
+Restore with `git stash apply` of the entry found by message, then drop that same entry. Re-read its index immediately before each command, because other sessions can shift it. `apply` leaves the entry in place on success and on failure (conflicts or untracked-file errors), so drop it only after `git status` shows the restore is complete:
 
 ```bash
-# find the index of the entry you created, then drop exactly that one
+# <n> is the index on the line whose message matches; re-read it before each command
 git stash list | rg "autoship: pre-base-update"
-git stash drop "stash@{<n>}"   # <n> from the line above, re-read immediately before dropping
+git stash apply "stash@{<n>}"
+git stash list | rg "autoship: pre-base-update"
+git stash drop "stash@{<n>}"
 ```
 
 If `ff-only` fails (diverged history), **stop** and ask the user to resolve (do not auto-merge).
@@ -178,10 +182,10 @@ Create the feature branch:
 
 ```bash
 git switch -c <new-branch>
-git stash pop
+# restore the autoship entry by message (apply, verify, then drop) as described above
 ```
 
-If `stash pop` results in conflicts:
+If restoring results in conflicts:
 
 - Stop and notify the user.
 - Do **not** proceed to commit/PR creation until conflicts are resolved.
@@ -372,7 +376,7 @@ git stash push -u -m "autoship: before format baseline split"
 git switch <base>
 git pull --ff-only origin <base>
 git switch -c chore-format-baseline-YYYYMMDD
-git stash pop
+# restore the "autoship: before format baseline split" entry by message (apply, verify, then drop)
 ```
 
 > If you stashed feature work, immediately stash it again after switching branches to avoid mixing. The goal is: **baseline PR contains only formatting**.
