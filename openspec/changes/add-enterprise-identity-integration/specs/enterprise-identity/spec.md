@@ -1,5 +1,12 @@
 # Enterprise Sign-In & Directory Integration
 
+## Purpose
+
+Define the contract for enterprise sign-in and directory integration: verified
+identity-provider connections, SAML sign-in bound to the exact provider and
+tenant, SCIM user and group lifecycle, staff sign-in enforcement with
+administrator recovery, and directory reconciliation.
+
 ## ADDED Requirements
 
 ### Requirement: EID-W01 Qualify current identity/PDP substrate, reserved seams, exact support matrix and adopted successor

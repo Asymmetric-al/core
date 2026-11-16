@@ -19,13 +19,15 @@ export interface CloudinaryUploadResponse {
 
 /**
  * Uploads a file directly to Cloudinary using a signed request.
- * The signature is obtained from the local API route.
+ * The signature is requested from the current app's
+ * `/api/upload/cloudinary/signature` route so the API secret stays server-side.
+ * No app currently serves that route (it was deleted in 217777eda), so this
+ * call fails whenever `NEXT_PUBLIC_CLOUDINARY_ENABLED` is on.
  */
 export async function uploadToCloudinary(
   file: Blob | File,
   options: { folder?: string; purpose?: string } = {},
 ): Promise<CloudinaryUploadResponse> {
-  // 1. Get signature from our API
   const signatureResponse = await fetch("/api/upload/cloudinary/signature", {
     method: "POST",
     body: JSON.stringify(options),
@@ -42,7 +44,6 @@ export async function uploadToCloudinary(
   const { signature, timestamp, apiKey, cloudName, folder, context } =
     await signatureResponse.json();
 
-  // 2. Prepare FormData for Cloudinary
   const formData = new FormData();
   formData.append("file", file);
   formData.append("api_key", apiKey);
@@ -51,7 +52,6 @@ export async function uploadToCloudinary(
   if (folder) formData.append("folder", folder);
   if (context) formData.append("context", context);
 
-  // 3. Upload to Cloudinary
   const uploadResponse = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
     {

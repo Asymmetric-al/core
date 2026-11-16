@@ -5,7 +5,7 @@
 Use PR preview smoke QA when a ready-for-review PR targets `develop`, is not a
 fork, is not a draft, and has the `qa:smoke` label.
 
-Codex should apply `qa:smoke` when a PR affects user-facing runtime flows:
+Agents should apply `qa:smoke` when a PR affects user-facing runtime flows:
 
 - `apps/admin/**`, `apps/donor/**`, or `apps/missionary/**`
 - `packages/ui/**`, `packages/auth/**`, `packages/api/**`
@@ -93,9 +93,11 @@ Use a dedicated identity in the isolated preview datasource. The workflow
 prefers `QA_PREVIEW_TEST_EMAIL` / `QA_PREVIEW_TEST_PASSWORD` and falls back to the
 existing QA pair when the preview-specific pair is absent. The suite still
 receives `QA_TEST_EMAIL` / `QA_TEST_PASSWORD`, so credential redaction is
-unchanged. The identity must have legitimate access to the three tested
-surfaces and the associated donor/missionary fixture records; login success
-alone does not establish that access.
+unchanged. Configure both Preview credential secrets together: a partial
+Preview pair fails validation, and the legacy QA pair is used only when both
+Preview secrets are absent. The identity must have legitimate access to the
+three tested surfaces and the associated donor/missionary fixture records;
+login success alone does not establish that access.
 
 ## Required Secrets
 
@@ -212,8 +214,6 @@ production deployments remain available. Existing development URLs keep the last
 - [ ] No production deployment was requested
 - [ ] No secrets, credentials, tokens, cookies, reports, or bypass URLs were
       posted
-
-Configure both Preview credential secrets together. A partial Preview pair fails validation; the legacy QA pair is used only when both Preview secrets are absent.
 
 Preview compilation runs on Vercel against the selected immutable PR head.
 GitHub Actions installs only the dependencies and browser needed for smoke QA;

@@ -30,10 +30,6 @@ export const MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY = [
   "needs-attention",
 ] as const;
 
-/**
- * @remarks Requires the Mission Control needs-attention API route slice before
- * admin UI imports this hook.
- */
 async function loadNeedsAttention() {
   const response = await fetch("/api/admin/mission-control/needs-attention", {
     credentials: "same-origin",

@@ -284,7 +284,7 @@
       family cutover. Verify no dual write, date-only ownership, fuzzy
       adoption, silent lane switching, or whole-history replay remains.
 - [ ] 10.4 Targeted and full strict OpenSpec validation pass:
-      `bunx @fission-ai/openspec@1.7.0 validate add-accounting-exports-reconciliation --strict`
-      and `bunx @fission-ai/openspec@1.7.0 validate --all --strict`.
+      `bun run openspec -- validate add-accounting-exports-reconciliation --strict`
+      and `bun run openspec:validate`.
 - [ ] 10.5 Archive only after deployed behavior is verified and the merged
       `accounting-operations` and `platform-boundaries` specs match production.

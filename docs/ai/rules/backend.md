@@ -5,7 +5,7 @@
 Use this before changing server actions, route handlers, database access, or migrations.
 
 **Applies when:** Touching Supabase clients, auth/session, database queries, migrations, or server actions.
-**Do not use when:** Only changing UI with no data/auth impact (use `rules/frontend.md`).
+**Do not use when:** Only changing UI with no data/auth impact (use `docs/ai/rules/frontend.md`).
 
 ## Rules
 
@@ -15,7 +15,7 @@ Use this before changing server actions, route handlers, database access, or mig
 - Migrations/seed data:
   - `supabase/migrations/*.sql`
   - `supabase/seed.sql`
-- Supabase CLI is used through the repo runner: `bun run supabase -- <command>` (global CLI preferred when installed, pinned fallback otherwise).
+- Supabase CLI is used through the repo runner: `bun run supabase -- <command>` (`scripts/supabase-cli.mjs` uses a global CLI only when its version equals the repository pin, otherwise the pinned version).
 
 ### Supabase access (critical)
 
@@ -26,19 +26,18 @@ Use this before changing server actions, route handlers, database access, or mig
   when a collection exists.
 - For allowed/forbidden import boundaries by code area, see
   [`docs/guides/architecture/db-client-usage-matrix.md`](../../guides/architecture/db-client-usage-matrix.md).
-- **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
+- **Route handlers:** `apps/*/app/api/**` route handlers must not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
 
 ### Data Access Boundary
 
 - Asym Postgres owns application and CRM truth. Twenty CRM is retired; do not restore Twenty clients, credentials, routes, webhooks, synchronization, projections, or provider-backed CRM reads.
 - All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
 - Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
-- Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).
-- CI enforcement is `scripts/verify/data-boundary-check.sh`.
+- `bun run verify:data-boundary` (`scripts/verify/data-boundary-check.mjs`) enforces the banned imports and approved exceptions in CI and `bun run ci:preflight`.
 
 ### Security & auth
 
-- Assume RLS is active.
+- Assume RLS is active for user-JWT clients; the service-role admin client bypasses it, so code on that client enforces tenant scope itself.
 - Do not manually manage tokens.
 - Never use the service role key in client-side code.
 - For auth/session/middleware tasks, load `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
@@ -68,10 +67,6 @@ Use this before changing server actions, route handlers, database access, or mig
 - Use `NEXT_PUBLIC_` only for browser-safe values.
 - Keep `.env.example` updated with required keys (no secrets).
 
-### Data pipeline note
-
-- This repo does not contain `tier_1` / `tier_2` batch pipelines. Do not add them unless requested.
-
 ## Workflow
 
 1. Determine if the code runs on server or client.
@@ -85,7 +80,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Implementation checklist
 
-- [ ] Server code uses `@asym/database/supabase/server`
+- [ ] Request-session server code uses `@asym/database/supabase/server`
+- [ ] New tenant data access from no-JWT or privileged server code goes through `withTenant` (`docs/security/tenant-guard.md`), not a new service-role admin-client site: those sites are frozen in `docs/security/service-role-client-allowlist.json` (`bun run verify:service-role-clients`), and adding one needs a security ruling. Existing allowlisted admin-client code (which bypasses RLS) authenticates and authorizes the caller first and scopes every query by tenant
 - [ ] Client table reads use `@asym/database/hooks` or approved collections
 - [ ] Browser Supabase client usage is limited to approved auth/storage helpers
 - [ ] Inputs validated with Zod
@@ -115,12 +111,12 @@ export async function myAction() {
 
 ### Client-side client
 
-```ts
-import { createClient } from "@asym/database/supabase/client";
+Browser table data goes through `@asym/database/hooks`. The browser client (`createBrowserClient` from `@asym/database/supabase`; there is no `@asym/database/supabase/client` export) is for approved auth and Storage helpers only; see the [client usage matrix](../../guides/architecture/db-client-usage-matrix.md).
 
-export function MyComponent() {
-  const supabase = createClient();
-}
+```ts
+import { createBrowserClient } from "@asym/database/supabase";
+
+const supabase = createBrowserClient();
 ```
 
 ## Common mistakes / pitfalls
@@ -132,8 +128,8 @@ export function MyComponent() {
 
 ### Route segment config policy (required)
 
-- With `cacheComponents: true` enabled in this repo, App Router route segment config exports are disabled.
-- In `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`, do **not** export any of:
+- Next.js removes `dynamic`, `dynamicParams`, `revalidate` and `fetchCache` when Cache Components is enabled. Core also bans `runtime`, `preferredRegion` and `maxDuration`; `bun run verify:workspace-contract` (`scripts/verify-workspace-contract.mjs`) rejects all seven.
+- In `apps/*/{app,src/app}/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`, do **not** export any of:
   - `runtime`
   - `dynamic`
   - `dynamicParams`

@@ -61,7 +61,7 @@ describe("skill scanner example syntax", () => {
         path.join(repo, "scripts", script),
         path.join(root, "scripts", script),
       );
-      // Includes production dependencies once the helper is shared by both CLIs.
+      // Both CLIs import their shared helpers from scripts/lib.
       if (existsSync(path.join(repo, "scripts/lib")))
         await cp(
           path.join(repo, "scripts/lib"),

@@ -1,8 +1,4 @@
-/**
- * Mock Activities Data
- *
- * Comprehensive mock data for tasks, activities, posts, and alerts.
- */
+/** Demo fixtures for tasks, activities, posts, alerts and feed items. */
 
 import type { Task, Activity, Post, Alert, FeedItem } from "./types";
 

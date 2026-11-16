@@ -1,3 +1,9 @@
+## Purpose
+
+Prioritize development feedback by using conditional compilation for routine
+development and treating deployment as an explicit development checkpoint,
+while release verification remains complete.
+
 ## ADDED Requirements
 
 ### Requirement: Routine development uses conditional compilation

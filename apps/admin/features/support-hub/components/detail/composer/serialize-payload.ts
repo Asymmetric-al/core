@@ -17,10 +17,10 @@ interface SerializeArgs {
   signatureAgent: SupportAssignee | null;
   appendSignature: boolean;
   /**
-   * Defensive merge-variable substitution at serialize time. Most callers
-   * already substitute at insertion time (so the editor JSON is clean), but
-   * macro / canned-response insertions that bypass the composer rely on this
-   * pass to keep `{{donor.name}}` from leaking into a donor email.
+   * Second merge-variable pass at serialize time. Canned responses and
+   * macros substitute when they insert, but a token still in the editor
+   * text (for example one typed by hand) would otherwise reach the donor as
+   * a literal `{{donor.name}}`. Values are inserted into `html` unescaped.
    */
   mergeContext?: MergeVariableContext;
 }

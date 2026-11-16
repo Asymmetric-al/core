@@ -1,5 +1,5 @@
-/* Updated: 2025-12-30 - Maia Theme (Soft & Rounded) */
-/* Responsive Design System - See docs/RESPONSIVE.md for standards */
+/* Core's single token source: Maia theme, Zinc palette, base styles and motion. */
+/* Spacing, container and touch-target tokens: packages/ui/README.md (Token Reference). */
 /* UI SDK injects its few runtime rules (such as hiding closed popups) into the
  * `ui-sdk` layer after mount. Naming it first keeps it below every Tailwind
  * layer, so Core's tokens and utilities win. Keep this the first statement and
@@ -141,7 +141,7 @@
   /* ============================================
      RESPONSIVE DESIGN SYSTEM VARIABLES
      These provide consistent spacing/sizing across all breakpoints
-     See docs/RESPONSIVE.md for full documentation
+     Listed in packages/ui/README.md (Token Reference)
      ============================================ */
 
   --container-max-width: 1600px;

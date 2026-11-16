@@ -35,9 +35,11 @@ interface UseSupportReportOptions {
 }
 
 /**
- * Full Phase 6 report hook. Consumes the conversation + message + label +
- * business-hours collections and returns a `SupportReportSeries` through
- * `buildReportSeries`.
+ * Builds one report in the browser: fetches the tenant's conversations and
+ * messages from `/api/admin/support/reports`, then aggregates them with the
+ * labels and the default business hours (the one marked default, else the
+ * first) through `buildReportSeries`. A team scope stays loading until the
+ * team list contains the selected team.
  */
 export function useSupportReport(
   request: SupportReportRequest,

@@ -4,10 +4,9 @@ export type {
 } from "@asym/database/hooks";
 
 /**
- * Automation rule types moved to `./automation.ts` in Phase 6 and live on the
- * database collections (`supportAutomationRulesCollection`). The canonical
- * exports are re-surfaced here so legacy imports that still read the rule
- * shape via `types/policy` keep compiling.
+ * The automation rule types live in `./automation.ts`; this re-export keeps
+ * them reachable through `types/policy`. Nothing imports that path directly
+ * today (`types/index.ts` re-exports both files).
  */
 export type {
   SupportAutomationAction,

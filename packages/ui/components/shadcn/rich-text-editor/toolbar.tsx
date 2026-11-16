@@ -36,8 +36,6 @@ import {
   TooltipTrigger,
 } from "../tooltip";
 
-/* ---------------------------- Tool definitions ---------------------------- */
-
 export type ToolbarTool =
   | "bold"
   | "italic"
@@ -115,8 +113,6 @@ function shortcutKeys(shortcut: Shortcut) {
       : ["Ctrl", ...shortcut].join("+"),
   };
 }
-
-/* -------------------------------------------------------------------------- */
 
 export interface EditorToolbarProps {
   /** Pass an editor directly, or omit to use context. */

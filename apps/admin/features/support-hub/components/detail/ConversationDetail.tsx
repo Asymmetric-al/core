@@ -57,8 +57,8 @@ export function ConversationDetail({
     refetch,
   } = useSupportConversation(conversationId);
 
-  // Phase 7: when the detail pane closes, restore focus to the row / card
-  // that opened it. The hook reads `document.activeElement` on mount.
+  // When the detail pane closes, focus returns to the row or card that
+  // opened it: the hook records `document.activeElement` when one opens.
   useFocusReturn(conversationId !== null);
   const threadRef = useRef<HTMLElement | null>(null);
 

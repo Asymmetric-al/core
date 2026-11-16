@@ -5,7 +5,7 @@ import { resolveTenantStripe } from "../../src/stripe/tenant-client";
 /**
  * Interface tests for the per-tenant Stripe resolution module (money path).
  * One deep module owns tenant lookup, key normalization, and the canonical
- * env fallback that seven handlers previously each re-implemented.
+ * env fallback, so handlers do not re-implement them.
  */
 
 type TenantRow = {

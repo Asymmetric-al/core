@@ -30,12 +30,10 @@ test.describe("development-missionary smoke", () => {
         page.getByRole("heading", { name: /^welcome back(?:, .+)?$/i }),
     });
 
-    // Dashboard is the missionary landing at `/`.
     await expect(page).toHaveURL(/\/$/);
     await expect(page).toHaveTitle(/dashboard/i);
     await assertNoVisibleLoginPrompt(page);
 
-    // Main heading.
     await expect(
       page.getByRole("heading", { name: /^welcome back(?:, .+)?$/i }).first(),
     ).toBeVisible();
@@ -56,7 +54,6 @@ test.describe("development-missionary smoke", () => {
     await expect(page).toHaveURL(/\/donors(\/|$)/);
     await expect(page).toHaveTitle(/partners/i);
 
-    // Heading or empty-state UI.
     const partnersHeading = page.getByRole("heading", { name: /partners/i });
     const emptyState = page.getByText(/no partners found/i);
     expect(

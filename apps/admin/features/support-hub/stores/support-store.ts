@@ -41,9 +41,10 @@ import type { SupportReplyPayload } from "../models/editor-payload";
  * `useSupportMessages`. Privileged writes stay server-command owned in
  * `use-support-mutations.ts`.
  *
- * Adapter rule: do NOT call collection methods (insert/update/delete) from
- * outside the hooks module. Hooks own the optimistic flow + invalidation;
- * this file owns the typed contracts and the collection registry.
+ * Do not write through these collections: every support write is a server
+ * route call in `use-support-mutations.ts`, which then invalidates the
+ * support query cache. This file owns the typed input contracts and the
+ * collection registry.
  */
 export const supportStore = {
   collections: {
@@ -103,11 +104,11 @@ export const supportStore = {
       authorAgentId: z.string().min(1),
       payload: supportReplyPayloadSchema,
       /**
-       * `send` performs the optimistic donor reply (default — preserves the
-       * Phase 3 bulk action contract). `draft` writes a `support_messages`
-       * row with `deliveryState: "draft"` and skips the conversation-side
-       * timestamp bumps so the inbox does not treat the draft as a real
-       * outbound message.
+       * `send` (default) stores the reply with `deliveryState: "queued"` and
+       * bumps the conversation's reply timestamps. `draft` writes a
+       * `support_messages` row with `deliveryState: "draft"` and skips those
+       * bumps so the inbox does not treat the draft as a real outbound
+       * message.
        */
       mode: z.enum(["send", "draft"]).default("send"),
     }),
@@ -175,8 +176,6 @@ export const supportStore = {
        */
       excludeAgentIds: z.array(z.string().min(1)).default([]),
     }),
-
-    /* ----- Phase 6 inputs ------------------------------------------------ */
 
     saveInboxSettings: z.object({
       id: z.string().min(1),
@@ -285,9 +284,10 @@ export const supportStore = {
 } as const;
 
 /**
- * Inputs use `z.input<...>` so caller-side defaults (`reason`, `mode`) stay
- * optional at the type level — they only become required after Zod fills them
- * in inside the mutation hook.
+ * Inputs use `z.input<...>` so defaulted fields (`reason`, `mode`) stay
+ * optional for callers. Nothing parses these schemas on the client; the
+ * server's schemas in `packages/api/src/admin/support-hub/schemas.ts` apply
+ * the same defaults.
  */
 export type AssignConversationInput = z.input<
   typeof supportStore.inputs.assignConversation

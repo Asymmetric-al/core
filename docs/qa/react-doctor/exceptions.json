@@ -4955,7 +4955,7 @@
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "61e75871e91b63b21c0ebbfe558dee2232026defa13bb707606965c7a420438e",
-      "sourceFileHash": "2eee040f0c894bad6ff375dc3a80c856389fb97e54ac15a3841355894b03fb29",
+      "sourceFileHash": "59b20224bad282beacdb466ffd473dfefd3843dc09c36a02b79018f20a01f15c",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -4974,7 +4974,7 @@
       "help": "Pass children or render props instead so parent code does not depend on fragile cloned child props.",
       "line": 550,
       "column": 10,
-      "offset": 14324,
+      "offset": 14311,
       "length": 18,
       "endLine": 550,
       "category": "Maintainability",
@@ -4992,7 +4992,7 @@
       ],
       "reconsiderWhen": "Reconsider if the public trigger API is migrated to an explicit render/slot contract and ref/handler/focus compatibility is preserved by tests.",
       "sourceContextHash": "3a40d2cda64e43c76e02019959f82f7caadd5a6cf2b419f95af5218fe0847f85",
-      "sourceFileHash": "2eee040f0c894bad6ff375dc3a80c856389fb97e54ac15a3841355894b03fb29",
+      "sourceFileHash": "59b20224bad282beacdb466ffd473dfefd3843dc09c36a02b79018f20a01f15c",
       "evidenceFileHashes": {
         "packages/ui/components/primitives/image-upload-helpers.ts": "089d051ea2a5f48842e25ac3df71f8ccaca5acfb5e1132a8957bed720c0ac9bc",
         "tests/unit/packages/ui/components/primitives/image-upload-helpers.test.ts": "8f146bb02894c9144f926761226a197379e40127427b114e8a35edaaf872ce7a"
@@ -5484,7 +5484,7 @@
       "help": "Keep hover, focus, and pressed feedback to paint-only or transform properties so nearby content does not move when the state changes.",
       "line": 91,
       "column": 9,
-      "offset": 2647,
+      "offset": 2657,
       "length": 288,
       "endLine": 94,
       "category": "Maintainability",
@@ -5502,7 +5502,7 @@
       ],
       "reconsiderWhen": "Reconsider if the skip link participates in normal flow in either state, positioning utilities change, or browser focus/layout checks reveal movement.",
       "sourceContextHash": "590a7c65bc6f80695a103df04d7e9df368b50a83c5c70ed11d39b5e9bba6058d",
-      "sourceFileHash": "94687c2a6229c0a7c07563940e0c1a06c413fe254c0fbcb1754a3c8df9e60352",
+      "sourceFileHash": "0a92bdd3a1029b7f8f84ce437a33e8a55d1d82254a88f924b5ede5cf2607b932",
       "evidenceFileHashes": {
         "tests/e2e/public-about-layout.spec.ts": "2f1ec366547d5e0751714020141510dd0488f7abb8a3b527ac90d9ac5b878769"
       }
@@ -5517,7 +5517,7 @@
       "help": "Add an element with the referenced id, or update the fragment link to point to an existing target.",
       "line": 92,
       "column": 11,
-      "offset": 2660,
+      "offset": 2670,
       "length": 20,
       "endLine": 92,
       "category": "Accessibility",
@@ -5536,7 +5536,7 @@
       ],
       "reconsiderWhen": "Reconsider for any new Navbar consumer lacking this target, a changed target ID, or a layout/skip-link integration change.",
       "sourceContextHash": "956e15307b63fcd63f82367e2c51b16f1280f29d9bcd0954227693777c980504",
-      "sourceFileHash": "94687c2a6229c0a7c07563940e0c1a06c413fe254c0fbcb1754a3c8df9e60352",
+      "sourceFileHash": "0a92bdd3a1029b7f8f84ce437a33e8a55d1d82254a88f924b5ede5cf2607b932",
       "evidenceFileHashes": {
         "apps/donor/app/(public)/(hero)/layout.tsx": "4eec09cc800f31966292d2483da52cd47788825e98c91d3b299ea88d29143cfd",
         "apps/donor/app/(public)/(solid)/layout.tsx": "56955d7a5529210bb8238ee3d8aefa516ee956f8b4038ae0edc255d9e8ba0ac7",

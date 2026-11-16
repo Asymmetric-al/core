@@ -1,22 +1,25 @@
 /** @vitest-environment jsdom */
 
 /**
- * Proves that the DataGrid search box actually filters rows when
- * `enableSearch: true, enableFilter: false`.
+ * DataGrid search must filter rows when `enableSearch: true,
+ * enableFilter: false`.
  *
  * Approach (focused useTable test, not a full DataGrid render):
  * A full DataGrid render in jsdom is unstable here because DataGrid leans
  * heavily on row virtualization (TanStack Virtual + ResizeObserver) and the
  * Motion animation library. Both break under jsdom even with global stubs —
- * see the existing `data-table-subscriptions.test.tsx` for the lighter
- * DataTable (non-virtualized) render pattern.
+ * see `data-table-subscriptions.test.tsx` for the lighter DataTable
+ * (non-virtualized) render pattern.
  *
- * Instead we build a `useTable` instance the same way `data-grid.tsx` does —
- * same features (`dataTableFeatures`) and manual processing options — then
- * drive the `globalFilter` state and assert `table.getRowModel().rows` shrinks.
- * This test FAILS against the pre-fix flag (`filtering: enableFilter` → false)
- * because v9 skips filtering when manualFiltering is true (ADR-2):
- * all four rows would still be returned regardless of the filter value.
+ * Instead the harness builds a `useTable` instance with the shared feature set
+ * (`dataTableFeatures`) and filtering left on, which is what `data-grid.tsx`'s
+ * `manualFiltering: !(enableFilter || enableSearch)` resolves to here, then
+ * drives `globalFilter` and asserts `table.getRowModel().rows` shrinks. With
+ * `manualFiltering: true`, v9 skips the filtered row model and all four rows
+ * come back regardless of the filter (ADR-2 in
+ * docs/guides/architecture/tanstack-table-v9-decisions.md). The harness copies
+ * those options rather than reading them from `data-grid.tsx`, so it does not
+ * catch a regression of that flag on its own.
  */
 
 import * as React from "react";
@@ -52,9 +55,7 @@ const donors: Donor[] = [
 
 const columns: ColumnDef<Donor>[] = [{ accessorKey: "name", header: "Name" }];
 
-// ---------------------------------------------------------------------------
-// jsdom globals — same pattern as data-table-subscriptions.test.tsx
-// ---------------------------------------------------------------------------
+// jsdom lacks these browser APIs; same stubs as data-table-subscriptions.test.tsx.
 beforeAll(() => {
   vi.stubGlobal(
     "ResizeObserver",
@@ -93,11 +94,6 @@ afterEach(() => {
   cleanup();
 });
 
-// ---------------------------------------------------------------------------
-// Focused useTable harness — mirrors data-grid.tsx's row-model setup when
-// enableSearch: true, enableFilter: false
-// ---------------------------------------------------------------------------
-
 /**
  * Captures the live `table.getRowModel().rows` count after each render so the
  * test can assert on it without touching the DOM.
@@ -109,8 +105,9 @@ function SearchFilterHarness({
 }) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
-  // This mirrors the exact useTable call in data-grid.tsx with
-  // enableSearch: true, enableFilter: false → filtering: false || true = true
+  // Filtering stays on (manualFiltering defaults to false), as data-grid.tsx
+  // resolves `!(enableFilter || enableSearch)` with search enabled. The other
+  // options are not a copy of data-grid.tsx's call.
   const table = useTable({
     features: dataTableFeatures,
     manualSorting: true,
@@ -155,10 +152,7 @@ describe("DataGrid search filtering (focused useTable test)", () => {
       getByTestId("filter-trigger").click();
     });
 
-    // After setting globalFilter to "Alice" only 1 row should match.
-    // This assertion FAILS on the pre-fix flag (`filtering: enableFilter` →
-    // false) because v9 silently returns all rows when filteredRowModel is
-    // absent (ADR-2).
+    // Only "Alice" matches. With manual filtering, all four rows would remain.
     expect(capturedCount).toBe(1);
   });
 });

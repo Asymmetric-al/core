@@ -1,9 +1,9 @@
 /**
  * Single swap point for the Support Hub server-side data layer.
  *
- * Phase 8 — `supabaseSupportHubAdapter` is the live implementation. The
- * in-memory adapter remains exported only as a focused test fixture for
- * legacy parity tests.
+ * `supabaseSupportHubAdapter` is the live implementation. The in-memory
+ * adapter and its reset helper remain exported only as test fixtures for
+ * the Support Hub unit tests.
  */
 
 import { supabaseSupportHubAdapter } from "./supabase";

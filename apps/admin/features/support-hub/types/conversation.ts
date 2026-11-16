@@ -1,8 +1,7 @@
 /**
  * Re-export the wire-format conversation types and enums from
  * `@asym/database` so the feature folder has one canonical type source.
- * App-only enrichments live in this file; new server-shape additions go in
- * `packages/database/collections/support-hub.ts`.
+ * Change the shape in `packages/database/collections/support-hub.schema.ts`.
  */
 export {
   SUPPORT_CHANNELS,

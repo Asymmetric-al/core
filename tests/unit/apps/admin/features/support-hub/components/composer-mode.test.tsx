@@ -95,7 +95,6 @@ describe("ComposerActions a11y / mode switch", () => {
     expect(
       screen.getByRole("button", { name: /Send reply to donor/i }),
     ).toBeTruthy();
-    // Reply mode also exposes Save draft.
     expect(screen.getByRole("button", { name: /Save draft/i })).toBeTruthy();
   });
 
@@ -113,7 +112,6 @@ describe("ComposerActions a11y / mode switch", () => {
     expect(
       screen.getByRole("button", { name: /Add internal note/i }),
     ).toBeTruthy();
-    // Note mode does NOT show the Save draft button.
     expect(screen.queryByRole("button", { name: /Save draft/i })).toBeNull();
   });
 

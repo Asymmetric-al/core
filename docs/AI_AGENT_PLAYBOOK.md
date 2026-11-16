@@ -15,10 +15,13 @@
 - For Codex desktop, `.agents/skills/*` is the closest repo-level match to Codex's documented skill discovery behavior.
 - For Cursor Agent Window, committed `.cursor/skills/*` improves visible availability, while `AGENTS.md` still provides the strongest always-on routing contract.
 - After pulling skill changes, run `bun run skills:verify`; if it reports drift, run `bun run skills:sync` and commit the refreshed mirrors.
-- Skills CLI operations that restore or update skills are mutating. Use targeted
-  `npx skills add <package> -y` commands when refreshing upstream packages; do
-  not use `npx skills check` as a read-only check because it can rewrite
-  `.agents/skills/*` and `skills-lock.json`.
+- Skills CLI operations that restore or update skills are mutating. Refresh an
+  upstream skill only with the pinned, targeted form in
+  `docs/ai/rules/agent-skill-routing.md` (`npx --yes skills@1.5.7 add
+<reviewed-checkout> --skill <name> --agent codex --copy -y`, run from an
+  isolated scratch directory), never a bare `npx skills add <package> -y`, which
+  installs the whole pack. Do not use `npx skills check` as a read-only check
+  because it can rewrite `.agents/skills/*` and `skills-lock.json`.
 - Manual vendors document their source in
   `docs/ai/skills/<name>/references/upstream.md`; preserve repo overlays before
   syncing mirrors.
@@ -35,8 +38,11 @@
 - Official Inngest skills are vendored canonically under
   `docs/ai/skills/inngest-*`, with `docs/ai/skills/inngest/SKILL.md` as the
   router.
-- These skills are for agent guidance and integration work. They do not mean
-  product runtime Inngest has been adopted in `apps/*` or `packages/*`.
+- These skills are agent guidance. Product runtime Inngest is installed
+  separately (`packages/api/src/workflows/`, served by
+  `apps/admin/app/api/inngest/route.ts`; see `docs/ai/stack-registry.md`);
+  neither the skills nor the installed code establishes live Cloud
+  qualification.
 - Refresh Inngest skills with `bun run skills:refresh-inngest`, then run
   `bun run skills:sync` and `bun run skills:verify`.
 - The Inngest dev-server MCP is configured as `inngest-dev` in root `.mcp.json`
@@ -103,31 +109,10 @@
   `bun run verify:reui` and explicit `bun run verify:reui --live`. The latter
   checks authenticated MCP/Pro access and paid registry source independently.
 
-## Monorepo scoping (pick the right app first)
-
-- Admin app: `apps/admin` (`@asym/admin`)
-- Donor app: `apps/donor` (`@asym/donor`)
-- Missionary app: `apps/missionary` (`@asym/missionary-app`)
-
-Use turbo filters when working on one app:
-
-- `bunx turbo run dev --filter=@asym/admin`
-- `bunx turbo run dev --filter=@asym/donor`
-- `bunx turbo run dev --filter=@asym/missionary-app`
-
 ## Where Next.js docs live
 
 - Primary source: nearest matching `node_modules/next/dist/docs/` for the app being changed.
-- Current state: all app workspaces use `next@16.3.3`.
 - If multiple Next.js versions are introduced later, use the docs path that matches the app's installed version.
-
-## OpenSpec workflow
-
-- Read `openspec/config.yaml` and `openspec/project.md` plus the relevant files under `openspec/specs/` and `openspec/changes/` before non-trivial feature, behavior, or multi-step project work.
-- Use the locally pinned CLI only: `bun run openspec -- <command>`.
-- Use `bun run openspec -- list`, `show`, and `validate` when working from an active change.
-- Keep OpenSpec focused on durable project context and intended behavior; keep `AGENTS.md` as the always-on routing layer.
-- Do not run `openspec update` against this repository. Do not use a moving latest npm dist-tag for OpenSpec.
 
 ## Fallback docs generation (`.next-docs`)
 
@@ -148,23 +133,6 @@ This repo commits `.next-docs/` on purpose because remote/sandbox agent runs can
 
 ## Next.js DevTools MCP workflow
 
-1. Start the target app dev server first (use turbo filter for one app).
+1. Start the target app first (`bun run dev:admin`, `bun run dev:donor` or `bun run dev:missionary`).
 2. Connect the `next-devtools` MCP server from root `.mcp.json`.
 3. Use MCP for runtime errors, route state, and live app debugging while the server is running.
-
-## Checks for safe, repeatable agent changes
-
-Full repo:
-
-- `bun run check`
-
-Scoped while changing one app:
-
-- `bunx turbo run lint --filter=@asym/admin`
-- `bunx turbo run lint --filter=@asym/donor`
-- `bunx turbo run lint --filter=@asym/missionary-app`
-- `bunx turbo run typecheck --filter=@asym/admin`
-- `bunx turbo run typecheck --filter=@asym/donor`
-- `bunx turbo run typecheck --filter=@asym/missionary-app`
-
-Unit tests are currently run repo-wide with `bun run test:unit`.

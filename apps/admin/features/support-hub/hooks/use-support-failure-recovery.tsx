@@ -17,7 +17,7 @@ export interface SupportFailureRecord {
   kind: SupportFailureKind;
   message: string;
   conversationId: string | null;
-  /** Sync retry callback. The composer / bulk-action surface invokes it. */
+  /** Re-runs the failed mutation; the banner's retry awaits it. */
   retry: () => Promise<void> | void;
   /** Set when the failure was reported. */
   occurredAt: string;
@@ -37,9 +37,9 @@ interface ProviderProps {
 }
 
 /**
- * Owns the "last failed mutation" record so the composer + bulk-action
- * surfaces can render an inline retry banner without prop drilling. Mounted
- * inside `<SupportInbox />` alongside the existing palette + now providers.
+ * Owns the "last failed mutation" record, so a reporter (today only the
+ * composer) and `<SupportFailureBanner />` share it without prop drilling.
+ * Mounted inside `<SupportInbox />` alongside the palette and now providers.
  */
 export function SupportFailureRecoveryProvider({ children }: ProviderProps) {
   const [failure, setFailure] = React.useState<SupportFailureRecord | null>(

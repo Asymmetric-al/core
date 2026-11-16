@@ -22,19 +22,22 @@ const result = await sendEmail("re_xxx", {
 
 ## Files
 
-| File           | Purpose                            |
-| -------------- | ---------------------------------- |
-| `index.ts`     | Public exports                     |
-| `constants.ts` | Config, error codes, API endpoints |
-| `resend.ts`    | Core service: validation, sending  |
+| File           | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `index.ts`     | Public exports                                                          |
+| `constants.ts` | Config, error codes, API endpoints                                      |
+| `resend.ts`    | Barrel for `@asym/email/resend`                                         |
+| `resend/`      | Client, key validation, sending, inbound email and webhook verification |
+| `types.ts`     | Row, request and config types for the integration                       |
 
 ## Prerequisites
 
 1. Resend account with API key (needs sending access)
 2. Verified sender (single sender or domain auth)
 
-Production sends must include a stable idempotency key using an
-`<event-type>/<entity-id>` pattern. Single sends are capped at 50 recipients;
+`sendEmail` rejects a send without an `idempotencyKey` (at most 256
+characters); use a stable `<event-type>/<entity-id>` key. Single sends are
+capped at 50 recipients (`RESEND_LIMITS.maxRecipientsPerEmail`);
 bulk/campaign work should use explicit batching before calling Resend.
 
 ## Docs

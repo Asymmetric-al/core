@@ -3,9 +3,8 @@ import { describe, expect, it } from "vitest";
 import { buildGivingTrends } from "../../src/donor-portal/trends";
 
 /**
- * TDD — Giving Trends projection for the donor history chart.
- * Replaces the hardcoded MONTHLY_DATA with an aggregation computed from the
- * already-live `portal.donations`. Pure → no DB needed.
+ * Giving Trends projection for the donor history chart: an aggregation
+ * computed from `portal.donations`. Pure → no DB needed.
  */
 
 function d(date: string, amountCents: number, status = "Paid") {

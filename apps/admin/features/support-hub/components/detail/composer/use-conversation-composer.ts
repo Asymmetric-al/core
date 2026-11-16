@@ -24,7 +24,7 @@ export type ComposerMode = "reply" | "note";
 export interface ConversationComposerHandlers {
   /** Active mode (reply / private note). */
   mode: ComposerMode;
-  /** Switch composer mode. Re-uses the same draft per mode. */
+  /** Switch composer mode; each mode keeps its own draft and attachments. */
   setMode: (mode: ComposerMode) => void;
 
   /** Tiptap document JSON serialized as a string for the active mode. */
@@ -44,14 +44,14 @@ export interface ConversationComposerHandlers {
   isPending: boolean;
   /** Identifies the initiating action; private notes use the primary send action. */
   pendingAction: "send" | "draft" | null;
-  /** True when the editor body is non-empty (used to gate send / save buttons). */
+  /** True when the body has content or attachments are staged (gates send / save). */
   isDirty: boolean;
 
   /** Primary action — send the donor reply or post the private note. */
   send: () => Promise<void>;
   /** Save the current reply as a draft (no donor email is sent). */
   saveDraft: () => Promise<void>;
-  /** Discard the current draft body (does not touch persisted drafts). */
+  /** Clear the active mode's body and attachments (saved drafts are untouched). */
   reset: () => void;
 
   /** Resolved agent used for signature + author attribution. */

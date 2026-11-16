@@ -32,7 +32,6 @@ export function QuickGiveInput({
   const [amount, setAmount] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
-  // Show the CTA if focused OR if there's an amount entered
   const isExpanded = isFocused || amount.length > 0;
   const hasValidAmount =
     amount.length > 0 && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0;

@@ -1,12 +1,12 @@
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 /**
- * Without this file the nearest boundary above `/checkout` was the root layout's
- * `<Suspense fallback={null}>`, so the whole content region committed EMPTY on
- * every navigation while `page.tsx` awaited `searchParams`.
+ * Boundary for `page.tsx`'s `await searchParams`. The root layout has no
+ * Suspense boundary, so this skeleton is what fills the content region on
+ * every navigation while that await resolves.
  *
  * The geometry is copied from the real frame in `checkout-client.tsx` (the
- * `min-h-screen … pt-24 pb-24` wrapper, `container … max-w-7xl`, and the
+ * `min-h-dvh … pb-24 pt-24` wrapper, `container … max-w-7xl`, and the
  * `lg:grid-cols-12` 7/5 split) so the skeleton occupies the same box at every
  * breakpoint and the swap does not shift layout.
  */

@@ -11,13 +11,18 @@ focused on domain logic.
 `withOperation` runs the same setup sequence for each wrapped handler:
 
 1. Create `requestId` with `crypto.randomUUID()`.
-2. Initialize admin DB client via `getAdminClient()`.
-3. Load auth context via `getAuthContext()`.
-4. Enforce access with `requireRole(...)` or `requireAuth(...)`.
-5. Build audit helper via `createAuditLogger(...)`.
-6. Call the wrapped handler with a typed `OperationContext`.
-7. Normalize failures to `{ error, requestId }`:
-   - Thrown errors go through `toErrorResponse(..., requestId)`.
+2. Read the request's `cookie` header so a `GET` handler is not statically
+   prerendered under Cache Components before `cookies()` runs.
+3. Initialize the admin DB client via `getAdminClient()`.
+4. Load auth context via `getAuthContext(request)`.
+5. Enforce access with `requireRole(auth, options.roles)` when `roles` is set,
+   otherwise `requireAuth(auth)`.
+6. Build the audit helper via `createAuditLogger(auth, request)`.
+7. Call the wrapped handler with a typed `OperationContext`.
+8. Normalize failures to `{ error, requestId }`:
+   - Thrown errors go through `toErrorResponse(error, "Internal error", requestId)`;
+     5xx errors are also logged. Next.js prerender control-flow errors are
+     rethrown, never converted to JSON.
    - Handler-returned non-OK **JSON** responses whose body is an object with a
      **string** `error` property and no existing **string** `requestId` get
      `requestId` merged in. Other shapes or non-JSON responses are unchanged.
@@ -28,11 +33,12 @@ includes `requestId`.
 ## When To Use It
 
 Use `withOperation` for `POST`, `PATCH`, `PUT`, and `DELETE` handlers in
-`packages/api/src/`.
+`packages/api/src/`, and for `GET` handlers that need the same authenticated
+admin-client and audit setup (many staff `GET` handlers already use it).
 
 ## When Not To Use It
 
-- `GET` handlers, unless they already require the same auth/admin/audit setup.
+- Public or unauthenticated handlers.
 - Health endpoints under `packages/api/src/health/`.
 - Read-only demo or stub handlers that always return a fixed response and do not
   run domain logic.
@@ -40,33 +46,27 @@ Use `withOperation` for `POST`, `PATCH`, `PUT`, and `DELETE` handlers in
 
 ## Import Path Rule
 
-Always import it with a relative path from route modules:
-
-- `../shared/with-operation` (or equivalent relative path)
-
-Do not export `withOperation` from `packages/api/package.json`.
+Import it with a relative path to `packages/api/src/shared/with-operation.ts`
+(for example `../../shared/with-operation`). It is intentionally not exported
+from `packages/api/package.json`.
 
 ## `OperationContext` Reference
 
 | Field           | Type                                   | Purpose                                    |
 | --------------- | -------------------------------------- | ------------------------------------------ |
-| `supabaseAdmin` | `SupabaseClient`                       | Privileged DB client for mutation work     |
+| `supabaseAdmin` | non-null admin `SupabaseClient`        | Privileged DB client for mutation work     |
 | `auth`          | `AuthenticatedContext`                 | Authenticated user/tenant context          |
 | `audit`         | `ReturnType<typeof createAuditLogger>` | Structured audit logging helper            |
 | `request`       | `NextRequest`                          | Incoming request object                    |
 | `requestId`     | `string`                               | Request correlation ID for error responses |
+| `routeContext`  | `{ params?: Promise<...> }` (optional) | Dynamic route params, also passed as arg 2 |
 
-## Migration Checklist
+## Wrapping a handler
 
-1. Keep the existing domain logic body intact.
-2. Replace boilerplate setup with:
-   - `export const METHOD = withOperation(async (ctx) => { ... }, options)`
-3. Pass role constraints through `options.roles` when needed.
-4. Remove duplicate imports now handled by the wrapper
-   (`getAdminClient`, auth guards, audit logger setup).
-5. Preserve existing status codes and response payloads from domain logic.
-   Wrapped handler-returned JSON errors shaped as `{ error: string }` receive
-   `requestId` when missing.
-6. Keep fixed-response demo/stub handlers as plain route functions (no
-   `withOperation`); their error bodies may omit `requestId` by design.
-7. Add or update tests for auth/admin failure paths and successful passthrough.
+1. Write `export const METHOD = withOperation(async (ctx, routeContext) => { ... }, options)`.
+2. Pass role constraints through `options.roles` when needed.
+3. Do not repeat setup the wrapper already does (`getAdminClient`, auth
+   guards, audit logger).
+4. Keep fixed-response demo/stub handlers as plain route functions; their
+   error bodies may omit `requestId`.
+5. Test the auth/admin failure paths and successful passthrough.

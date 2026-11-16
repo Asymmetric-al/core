@@ -12,10 +12,10 @@ import { getProtectedShellState } from "@/lib/admin-access";
  * prerenders into the static shell of every route in the group.
  *
  * Do NOT hoist `{children}` out of this boundary. `getProtectedShellState`
- * redirects unauthorized users, and `proxy.ts` enforces authentication only —
- * never role (see `lib/admin-access.ts`). With children outside, a signed-in
- * donor's browser would receive flushed admin markup before the redirect
- * reached the stream.
+ * redirects users without an admin role or a tenant (`lib/admin-access.ts`).
+ * `proxy.ts` already rejects wrong-role sessions at the edge, but this gate is
+ * the defense in depth behind it: with children outside, admin markup would
+ * flush to the browser before the gate's redirect reached the stream.
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

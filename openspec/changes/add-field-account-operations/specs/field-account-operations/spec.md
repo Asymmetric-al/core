@@ -1,5 +1,12 @@
 # Field Account Operations Capability
 
+## Purpose
+
+Define the contract for organization-controlled Field Accounts: the support
+subledger covering support admission and close, assessment, planning, expense
+and handoff truth, assignment-scoped projection, integrity, opening and
+activation, correction, and records and export meaning.
+
 ## ADDED Requirements
 
 ### Requirement: D1 Finance-closed Support Cycles Preserve Independent Financial Truth

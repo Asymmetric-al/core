@@ -1,81 +1,16 @@
 # Applications
 
-This directory contains the three independent Next.js applications that make up the Asymmetric.al platform.
+Each directory is an independent Next.js App Router application. Read its
+`AGENTS.md` before changing it.
 
-## App Structure
+| App               | Package                 | Dev port | Surface                                                                                                    |
+| ----------------- | ----------------------- | -------: | ---------------------------------------------------------------------------------------------------------- |
+| `admin`           | `@asym/admin`           |     3030 | Mission Control (staff operations) and Payload CMS / Web Studio                                            |
+| `donor`           | `@asym/donor`           |     3000 | Public ministry website (`app/(public)`) and donor portal (`app/(dashboard)/donor-dashboard`)              |
+| `missionary`      | `@asym/missionary-app`  |     4000 | Missionary workspace                                                                                       |
+| `factory-console` | `@asym/factory-console` |     3092 | Private operator console for the software factory VM (`apps/factory-console/AGENTS.md`); not a product app |
 
-```
-apps/
-├── admin/              # Mission Control (staff-only)
-├── donor/              # Public site + Donor portal
-└── missionary/         # Missionary dashboard
-```
-
-## App Boundaries
-
-### `apps/admin` - Mission Control
-
-- **Users**: Admin, Finance, Staff, Member Care, Mobilizers
-- **Routes**: `/mc/*`
-- **Purpose**: Organization management, CRM, contributions, reporting
-- **Can Import**: `@asym/ui`, `@asym/database`, `@asym/auth`, `@asym/lib`
-- **Cannot Import**: `apps/donor/*`, `apps/missionary/*`
-
-### `apps/donor` - Public Site + Donor Portal
-
-- **Users**: Public visitors + Authenticated donors
-- **Routes**: `/` (public), `/dashboard/*` (authenticated)
-- **Purpose**: Public website, donation checkout, donor self-service
-- **Can Import**: `@asym/ui`, `@asym/database`, `@asym/auth`, `@asym/lib`
-- **Cannot Import**: `apps/admin/*`, `apps/missionary/*`
-
-### `apps/missionary` - Missionary Dashboard
-
-- **Users**: Missionaries (field workers)
-- **Routes**: `/missionary/*`
-- **Purpose**: Donor engagement, task management, impact tracking
-- **Can Import**: `@asym/ui`, `@asym/database`, `@asym/auth`, `@asym/lib`
-- **Cannot Import**: `apps/admin/*`, `apps/donor/*`
-
-## Architecture Rules
-
-### ✅ Allowed
-
-- Import from `@asym/*` packages
-- Import from own `components/`, `lib/`, `hooks/`
-- Share code via packages
-
-### ❌ Forbidden
-
-- Import from other apps
-- Duplicate components (use `@asym/ui` instead)
-- Create own Supabase client (use `@asym/database`)
-
-## Development
-
-Each app runs independently:
-
-```bash
-# Run specific app
-bun run dev:admin
-bun run dev:donor
-bun run dev:missionary
-
-# Build specific app
-bun run build:admin
-
-# Run all apps
-bun run dev
-```
-
-## Deployment
-
-Each app deploys independently to Vercel:
-
-- **Admin**: `admin.asymmetric.al`
-- **Donor**: `www.asymmetric.al` + `app.asymmetric.al`
-- **Missionary**: `missionary.asymmetric.al`
-
-## Next Steps
-
-See `turbo.json` + each app's `package.json` for task definitions and ports.
+Apps own surface-specific routes and UI. Shared behavior belongs in
+`packages/*` and is imported as `@asym/*`; an app never imports from another
+app. Start one app with `bun run dev:<app>` or all product apps with
+`bun run dev`.

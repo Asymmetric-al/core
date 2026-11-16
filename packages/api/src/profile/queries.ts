@@ -1,6 +1,5 @@
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
-/** Fetches a full profile row for the authenticated tenant. */
 export function findFullProfileById(
   supabase: AdminSupabaseClient,
   profileId: string,

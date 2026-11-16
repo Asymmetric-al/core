@@ -1,146 +1,25 @@
-﻿# Technical Decisions
+# Technical Decisions
+
+Decisions that still constrain current code. Each section names the files it
+applies to.
 
 ## React Compiler Enablement (Annotation Mode)
 
-### Issue
-
-`react-doctor` reported "React Compiler: Not found" because the compiler was not enabled in app configs and the required Babel plugin was not installed.
-
-### Solution
-
-Enabled React Compiler in gradual opt-in mode across Next.js apps:
-
-- Added `babel-plugin-react-compiler` as a dev dependency at workspace root
-- Set `reactCompiler.compilationMode = "annotation"` in:
-  - `apps/admin/next.config.ts`
-  - `apps/donor/next.config.ts`
-  - `apps/missionary/next.config.ts`
-
-Using annotation mode keeps risk low and avoids global behavior changes. Only files explicitly marked with `"use memo"` are compiled.
-
-### Performance Note
-
-This rollout mainly enables compiler infrastructure and resolves "not found" status. Material runtime performance improvements require targeted `"use memo"` adoption in suitable components.
-
-### Date
-
-February 2026
-
-## TanStack Table + React Compiler Compatibility
-
-### Issue
-
-TanStack Table (v8.x) is not fully compatible with the React Compiler's automatic memoization. The library uses internal state patterns that conflict with the compiler's optimization strategies, potentially causing runtime errors or unexpected behavior.
-
-### Solution
-
-Applied the `"use no memo"` directive to components using `useReactTable`:
-
-- `packages/ui/components/shadcn/data-table/data-table.tsx`
-- `packages/ui/components/shadcn/data-grid/data-grid.tsx`
-
-This directive tells the React Compiler to skip automatic memoization for these specific files, allowing TanStack Table to manage its own reactivity.
-
-### References
-
-- [TanStack Table React Adapter Docs](https://tanstack.com/table/latest/docs/framework/react/react-table)
-- [React Compiler opt-out directives](https://react.dev/learn/react-compiler#opting-out)
-
-### Date
-
-December 2024
+React Compiler runs in opt-in annotation mode in every product app:
+`reactCompiler.compilationMode = "annotation"` in `apps/admin/next.config.ts`,
+`apps/donor/next.config.ts` and `apps/missionary/next.config.ts`, with
+`babel-plugin-react-compiler` as a root dev dependency. Only files marked
+`"use memo"` are compiled; enabling the compiler alone changes no runtime
+behavior. Files that must never be compiled carry `"use no memo"` (for example
+the vendored ReUI data-grid files under `packages/ui/components/reui/data-grid/`,
+which wrap TanStack Table).
 
 ## Tiptap StarterKit Extensions (v3)
 
-### Issue
-
-Tiptap v3's StarterKit now includes Link and Underline extensions by default. Registering them separately causes "Duplicate extension names" warnings.
-
-### Solution
-
-Configure Link extension through StarterKit.configure() instead of registering separately:
-
-```ts
-StarterKit.configure({
-  link: {
-    openOnClick: false,
-    HTMLAttributes: {
-      class: "text-primary underline cursor-pointer",
-    },
-  },
-});
-```
-
-### Files Modified
-
-- `packages/ui/components/shadcn/rich-text-editor/extensions.ts`
-
-### Date
-
-December 2024
-
-## Dynamic Icon Components Pattern
-
-### Issue
-
-React Compiler's `react-hooks/static-components` rule flags components created during render (e.g., via `useMemo(() => getIcon(...))`). This causes components to reset their state on each render.
-
-### Solution
-
-Call `getIcon()` directly without wrapping in `useMemo`, storing the result in a regular const:
-
-```ts
-// Instead of:
-const Icon = useMemo(() => getIcon(item.icon), [item.icon]);
-
-// Use:
-const IconComponent = getIcon(item.icon);
-```
-
-### Files Modified
-
-- `apps/admin/features/mission-control/components/app-shell/mobile-sidebar.tsx` (since removed — the admin shell now lives in `apps/admin/app/mc-shell.tsx`)
-- `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx` (since removed — see `apps/admin/app/mc-shell.tsx`)
-- `apps/admin/features/mission-control/components/tiles/tile-card.tsx`
-
-### Date
-
-December 2024
-
-## Client-Only Rendering Pattern
-
-### Issue
-
-Using `useState` + `useEffect` for client-only rendering triggers `react-hooks/set-state-in-effect` warnings.
-
-### Solution
-
-Use `useSyncExternalStore` which is the React 18+ recommended approach:
-
-```ts
-const emptySubscribe = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
-function ClientOnly({ children, fallback }) {
-  const isClient = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot,
-  );
-  return isClient ? children : fallback;
-}
-```
-
-### Files Modified
-
-- `apps/donor/features/donor/components/DashboardUI.tsx`
-
-The admin copy (`apps/admin/features/mission-control/components/client-only.tsx`) was removed in November 2026 because nothing used it.
-
-### Date
-
-December 2024
+Tiptap v3's StarterKit includes Link and Underline. Registering them separately
+causes "Duplicate extension names" warnings, so configure Link through
+`StarterKit.configure({ link: { ... } })`, as
+`packages/ui/components/shadcn/rich-text-editor/extensions.ts` does.
 
 ## Read-Model Modules for Admin Dashboard (Ticket 2.2.7)
 
@@ -163,15 +42,12 @@ patterns grow.
    - scoped `cacheTag(...)` keys for future invalidation
 3. Keep read-model DB access server-only by calling
    `getAdminClient()` inside read-model functions.
-4. Convert admin dashboard root page to a Server Component wrapper that fetches
-   stats and renders existing client dashboard UI unchanged.
-5. Admin org-wide **Contributions** (`/contributions`) evolved after this note: the
-   route is a **client page** (`page.tsx`) using `ContributionsMainBody`,
-   `useAdminContributions` (TanStack Query, mock data until a real API exists), and
-   optional Boneyard loading. The earlier `contributions-client.tsx` split was
-   removed as unused dead code.
-6. Skip speculative missionary-detail wiring because no dedicated
-   `apps/admin/app/missionaries/[id]/page.tsx` route exists yet.
+4. The admin dashboard root page (`apps/admin/app/(app)/page.tsx`) is a Server
+   Component that resolves the tenant and loads stats through
+   `dashboard-stats-loader.ts`.
+5. Admin org-wide **Contributions** (`/contributions`) has since moved on from
+   this note; its current page, permission checks and data hooks live in
+   `apps/admin/app/(app)/contributions/`.
 
 ### Schema Alignment
 

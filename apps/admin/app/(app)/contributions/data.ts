@@ -2,7 +2,11 @@ import { normalizeSharedPaymentStatus } from "@asym/api/admin/contribution-share
 
 import type { Contribution } from "./types";
 
-/** Live-query page reads from TanStack DB; keep empty for typing / fallbacks. */
+/**
+ * Empty on purpose: the hub reads `GET /api/admin/contributions`. This list is
+ * only what mock mode (`NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK=1`) and tests
+ * read.
+ */
 export const mockContributions: Contribution[] = [];
 
 /** Static timestamps for Boneyard capture, unit tests, and skeleton fixtures. */

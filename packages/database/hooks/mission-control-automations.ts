@@ -57,10 +57,6 @@ export const MISSION_CONTROL_AUTOMATIONS_QUERY_KEY = [
   "automations",
 ] as const;
 
-/**
- * @remarks Requires the Mission Control automations API route slice before
- * admin UI imports this hook.
- */
 async function loadMissionControlAutomations(): Promise<MissionControlAutomationsResponse> {
   const response = await fetch("/api/admin/mission-control/automations", {
     credentials: "same-origin",

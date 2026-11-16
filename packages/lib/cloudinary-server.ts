@@ -41,16 +41,15 @@ export function generateCloudinarySignature(
 
   const timestamp = Math.round(new Date().getTime() / 1000);
 
-  // Filter out empty values and exclude metadata/tags if they are objects
   const signatureParams: Record<string, CloudinarySignatureParam> = {
     ...params,
     timestamp,
   };
 
-  // Sort keys alphabetically
   const sortedKeys = Object.keys(signatureParams).sort();
 
-  // Construct signature string: "key1=value1&key2=value2...apiSecret"
+  // Signature string: "key1=value1&key2=value2...apiSecret", skipping
+  // UNSIGNED_UPLOAD_KEYS and null/undefined/empty values.
   const signatureString =
     sortedKeys
       .flatMap((key) =>

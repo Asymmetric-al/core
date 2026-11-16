@@ -17,11 +17,11 @@ Use this skill to avoid request-context leaks and to enforce proper cache invali
 - **Cached vs dynamic:** Shared data should be cached; request/user-specific data must be dynamic and streamed behind `<Suspense>`.
 - **No request context inside cache:** Never call `cookies()`, `headers()`, or auth/session inside a `'use cache'` scope.
 - **Cached functions must be async:** Any `'use cache'` function/component must be `async`.
-- **Prefer code-local caching:** Favor `'use cache'`, `cacheLife`, `cacheTag` over route-segment config (`revalidate`, `dynamic`).
-- **Mutations must invalidate tags:** Use `updateTag` for immediate consistency or `revalidateTag` for background refresh.
-- **PPR + generateStaticParams:** Do not return empty arrays; keep request-specific logic out of the shell.
-- **Instant Navigation (16.3):** with `partialPrefetching: true`, Next.js prefetches one reusable shell per route. Every server `await` is a Stream (`<Suspense>`) / Cache (`'use cache'`) / Block (`export const instant = false` + reason comment) decision; Instant Insights errors link the canonical fix at `nextjs.org/docs/messages/...` — apply that pattern, don't improvise.
-- **Prefetch escalation:** `<Link prefetch={true}>` extends prefetching to build-time-known cached content on that link; `export const prefetch = 'allow-runtime'` extends it to request-time cached content and requires PR justification.
+- **Code-local caching only:** With Cache Components on, the `dynamic`, `dynamicParams`, `revalidate`, and `fetchCache` route segment exports are removed; use `'use cache'`, `cacheLife`, and `cacheTag`.
+- **Mutations must invalidate tags:** In Server Actions, use `updateTag` for read-your-own-writes consistency. In Route Handlers (or for background refresh), use `revalidateTag(tag, "max")`; `updateTag` throws outside Server Actions.
+- **generateStaticParams:** Return at least one param for dynamic routes (an empty array is a build error under Cache Components); keep request-specific logic out of the shell.
+- **Instant navigation:** All Core apps set `cacheComponents: true` and `partialPrefetching: true`, so Next.js prefetches one reusable App Shell per route. Every server `await` is a Stream (`<Suspense>`) / Cache (`'use cache'`) / Block (`export const instant = false` + reason comment) decision. The dev overlay's instant-navigation insights link the documented fix for each case; apply that pattern instead of improvising.
+- **Prefetch escalation:** `<Link prefetch={true}>` additionally resolves URL data (`params`, `searchParams`) and the cached content behind it for that link; if the destination reads non-static data such as cookies or headers, each such prefetch is a fresh server render. Opt in per `docs/ai/rules/frontend.md`. The `prefetch` segment export accepts only `'auto'`, `'partial'`, and `'force-disabled'` (see `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/prefetch.md`).
 
 ## Workflow
 
@@ -45,7 +45,7 @@ Use this skill to avoid request-context leaks and to enforce proper cache invali
 
 ### Review checklist
 
-- [ ] Route segment config avoided unless required
+- [ ] No removed route segment config (`dynamic`, `revalidate`, `fetchCache`, `dynamicParams`)
 - [ ] PPR shells do not include request-specific logic
 
 ## Minimal examples

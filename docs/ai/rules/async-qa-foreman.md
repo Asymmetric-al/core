@@ -1,7 +1,7 @@
 # Async QA Foreman Workflow
 
 **Name:** `async-qa-foreman`
-**Purpose:** Use a Cursor background subagent as a skeptical QA foreman while the main agent continues implementing, verifying, and fixing the task to completion.
+**Purpose:** Use the `qa-foreman` background subagent (`.cursor/agents/qa-foreman.md`, mirrored to `.claude/agents/`) as a skeptical QA foreman while the main agent continues implementing, verifying, and fixing the task to completion.
 **Applies when:** The user asks for Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, a second agent to challenge quality, or unusually careful implementation with repeated verification.
 **Do not use when:** The task is a tiny local edit, a pure writing task, a one-line search, or anything where a background subagent would add cost without improving quality.
 
@@ -34,7 +34,7 @@ Also use it for larger implementation tasks where the user clearly wants extra p
    - Read matching `docs/ai/rules/*` rulebooks.
    - Read matching `docs/ai/skills/*/SKILL.md` files when a skill trigger applies.
    - For Next.js work, read the relevant installed or committed Next docs before coding.
-   - Use Nia MCP repo-scoped to `Asymmetric-al/core` for architecture, data-flow, integration, refactor, and "where is this?" work when available.
+   - When Nia is available, use it repo-scoped to `Asymmetric-al/core` for architecture, data-flow, integration, refactor, and "where is this?" work (`docs/ai/nia.md`); otherwise use direct repo reads and say so.
 2. **Define the work before coding.**
    - Write success criteria.
    - Write a verification plan.
@@ -81,7 +81,7 @@ Also use it for larger implementation tasks where the user clearly wants extra p
 - [ ] Read matching rulebooks
 - [ ] Read matching skills
 - [ ] Read relevant Next.js docs for Next.js work
-- [ ] Used Nia MCP repo-scoped to `Asymmetric-al/core` when required, or noted fallback
+- [ ] Used Nia repo-scoped to `Asymmetric-al/core` when available, or noted the fallback
 - [ ] Defined success criteria
 - [ ] Defined verification plan
 - [ ] Identified likely files and known risks

@@ -1,6 +1,6 @@
 /**
- * Coercion helpers for untrusted JSON — Supabase rows, webhook payloads, and
- * external CRM responses. Import these instead of redefining per file.
+ * Coercion helpers for untrusted JSON such as Supabase rows and webhook
+ * payloads. Import these instead of redefining per file.
  */
 
 /** Fallback timestamp used by `timestampOrDefault` for missing/invalid input. */
@@ -21,7 +21,7 @@ export function asString(value: unknown): string | null {
 }
 
 /**
- * Lenient CRM-payload coercion: trims strings (empty -> null), stringifies
+ * Lenient coercion: trims strings (empty -> null), stringifies
  * numbers and booleans, and unwraps `{ value: string }` field wrappers.
  */
 export function coerceString(value: unknown): string | null {
@@ -57,7 +57,7 @@ export function findFirstString(
 }
 
 /**
- * Display name from a nested CRM object: prefers name/displayName/fullName,
+ * Display name from a nested object: prefers name/displayName/fullName,
  * then falls back to joining firstName + lastName.
  */
 export function getNestedName(value: unknown): string | null {

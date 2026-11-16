@@ -1,6 +1,5 @@
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
-/** Fetches user reaction status for a set of posts in parallel. */
 export async function getPostReactionStatus(
   supabase: AdminSupabaseClient,
   postIds: string[],

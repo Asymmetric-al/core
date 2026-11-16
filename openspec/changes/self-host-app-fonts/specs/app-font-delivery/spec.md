@@ -1,3 +1,9 @@
+## Purpose
+
+Deliver the existing shared app fonts from reviewed repository assets so
+compilation and font loading need no Google Fonts request, while preserving
+existing typography.
+
 ## ADDED Requirements
 
 ### Requirement: App fonts compile and load from reviewed local assets

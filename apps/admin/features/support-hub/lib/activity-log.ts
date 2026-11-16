@@ -18,12 +18,13 @@ export type SupportActivityVerb =
 
 export interface SupportActivityInput {
   conversation: SupportConversation;
-  /** When omitted, the activity row is attributed to "Mission Control". */
+  /** Only an agent actor is logged; without one nothing is written. */
   actor?: SupportParticipant | null;
+  /** Accepted but not sent: the note carries only the text. */
   verb: SupportActivityVerb;
-  /** Single-line, human-readable summary rendered by `<ActivityEntry />`. */
+  /** Single-line, human-readable summary; becomes the private note's text. */
   body: string;
-  /** When set, the row is marked as a failure (e.g. macro action could not run). */
+  /** Prefixes the note with "failed: " (e.g. a macro action could not run). */
   failed?: boolean;
 }
 
@@ -32,9 +33,9 @@ interface SupportActivityResult {
 }
 
 /**
- * Persists an internal activity note through the Support Hub route layer.
- * Phase 8 routes all client writes through `/api/admin/support/*`; callers
- * that do not have an agent actor skip logging instead of writing local state.
+ * Posts an activity line as a private note through
+ * `/api/admin/support/conversations/{id}/notes`. Without an agent actor it
+ * writes nothing and returns an empty `messageId`.
  */
 export async function logSupportActivity({
   conversation,

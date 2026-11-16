@@ -11,7 +11,7 @@ interface StatCardProps {
   label: string;
   value: React.ReactNode;
   hint?: string;
-  /** Render `value` in tabular-nums (Geist Mono) — useful for time-style metrics. */
+  /** Render `value` in the mono font (it is tabular-nums either way). */
   mono?: boolean;
   /** Subtle accent dot to the left of the label (Maia/Zinc tones only). */
   tone?: "zinc" | "amber" | "rose" | "emerald";
@@ -27,9 +27,9 @@ const TONE_DOT_CLASSES: Record<NonNullable<StatCardProps["tone"]>, string> = {
 };
 
 /**
- * Single stat tile shared by the support-hub stats strip. Mirrors the Maia
- * pattern from `apps/admin/app/(app)/contributions/main-body.tsx` so the page reads
- * as part of Mission Control rather than a pasted donor block.
+ * Stat tile with a tone dot and an entrance animation. Exported from
+ * `components/stats` but rendered nowhere today: `StatsStrip` uses Mission
+ * Control's shared metric cards.
  */
 export function StatCard({
   label,

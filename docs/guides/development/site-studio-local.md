@@ -2,7 +2,7 @@
 
 This runbook is the deterministic local path for Payload CMS and Web Studio. It
 uses local Supabase/Postgres only and does not require hosted Supabase, Vercel,
-Stripe, Resend, Cloudinary, Twenty, or production secrets.
+Stripe, Resend, Cloudinary, or production secrets.
 
 ## Commands
 

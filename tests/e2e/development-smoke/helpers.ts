@@ -40,12 +40,10 @@ export function observeAuthenticationRequests(page: Page): void {
 }
 
 /**
- * Shared helpers for headless development-deployment smoke tests.
- *
- * Secrets stay inside the Playwright process — credentials are read once from
- * environment variables (injected by `.claude/local-bin/asym-qa headless …`
- * from `.claude/settings.local.json`), passed straight to Playwright's `fill`,
- * and never logged.
+ * Secrets stay inside the Playwright process: QA_TEST_EMAIL and
+ * QA_TEST_PASSWORD are read from the environment (see
+ * docs/qa/development-headless-smoke.md), passed straight to Playwright's
+ * `fill`, and never logged.
  */
 
 export type QaCredentials = {
@@ -75,9 +73,6 @@ export function getQaCredentials(): QaCredentials {
   return { email, password };
 }
 
-/**
- * Quick check: is the current URL a /login page?
- */
 export function isOnLoginRoute(page: Page): boolean {
   try {
     return new URL(page.url()).pathname.startsWith("/login");
@@ -118,9 +113,6 @@ async function fillLoginFields(
   expect(await passwordInput.inputValue()).not.toEqual("");
 }
 
-/**
- * Submit the visible "Sign In" / "Log in" button on the login form.
- */
 async function clickSubmit(page: Page): Promise<void> {
   const submit = page
     .getByRole("button", { name: /^(sign in|log ?in)$/i })
@@ -186,7 +178,7 @@ async function waitForAuthenticatedState(
     return;
   }
 
-  // Legacy fallback: URL leaves /login + small stability window.
+  // No marker: the URL must leave /login and stay off it for a short window.
   const stabilityWindowMs = options.stabilityWindowMs ?? 2_500;
   while (Date.now() < deadline) {
     const remaining = deadline - Date.now();
@@ -287,8 +279,7 @@ export async function loginThroughForm(
  * a short stability window, which is racier on surfaces that flick to `/`
  * then bounce back to `/login` while client-side guards re-check the session.
  *
- * Backward-compatible: `ensureAuthenticated(page, "/donor-dashboard")` still
- * works (string short-hand for `{ targetPath }`).
+ * A string second argument is shorthand for `{ targetPath }`.
  */
 export async function ensureAuthenticated(
   page: Page,
@@ -353,9 +344,6 @@ export async function ensureAuthenticated(
   expect(isOnLoginRoute(page)).toBeFalsy();
 }
 
-/**
- * Common assertion: no visible login form remains on the current page.
- */
 export async function assertNoVisibleLoginPrompt(page: Page): Promise<void> {
   const visiblePassword = page.locator(
     'input[type="password"]:visible:not([aria-hidden="true"])',
@@ -364,8 +352,6 @@ export async function assertNoVisibleLoginPrompt(page: Page): Promise<void> {
 }
 
 /**
- * Common assertion: no visible role=alert error banner on the page.
- *
  * Intentionally narrow — only counts `[role="alert"]` with non-empty text.
  * Skeleton / loading placeholders and toast notifications without role=alert
  * are not flagged here.
@@ -380,11 +366,11 @@ export async function assertNoErrorBanner(page: Page): Promise<void> {
  *  - current URL origin/path (no query or fragment)
  *  - page title
  *  - main heading text (first h1/h2/h3)
- *  - count of password inputs still in the DOM
+ *  - count of visible password inputs
  *  - last 50 document/fetch/XHR method/status/origin/path observations
  *
- * Never reads or attaches input values. Call from a `test.afterEach` block
- * when `testInfo.status !== testInfo.expectedStatus`.
+ * Never reads or attaches input values. Call from `test.afterEach`; it does
+ * nothing when the test ended with its expected status.
  */
 export async function collectFailureEvidence(
   page: Page,

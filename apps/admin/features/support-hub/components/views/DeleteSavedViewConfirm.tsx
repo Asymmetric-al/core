@@ -24,8 +24,8 @@ interface DeleteSavedViewConfirmProps {
 }
 
 /**
- * Confirms a destructive saved-view delete. The Phase 2 collection writer
- * removes the row in-memory; future Supabase swap reuses the same hook.
+ * Confirms a destructive saved-view delete, which goes through the
+ * saved-views route (`useDeleteSupportSavedView`).
  */
 export function DeleteSavedViewConfirm({
   view,

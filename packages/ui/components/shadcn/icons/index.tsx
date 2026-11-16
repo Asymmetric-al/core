@@ -248,7 +248,6 @@ import {
   Youtube,
 } from "../../icons/brand-social";
 
-// Main registry - simple re-exports
 export {
   Accessibility,
   Activity,
@@ -496,8 +495,7 @@ export {
   type LucideProps,
 };
 
-// Unified Aliases (modernizing common aliases)
-// Use specific names for clarity in the UI components
+// `…Icon` aliases, matching lucide-react's suffixed export names.
 export {
   X as XIcon,
   Search as SearchIcon,
@@ -509,7 +507,7 @@ export {
   Circle as CircleIcon,
   Plus as PlusIcon,
   Minus as MinusIcon,
-  PanelLeft as PanelLeftIcon, // Fixes sidebar.tsx dependency
+  PanelLeft as PanelLeftIcon,
   MoreHorizontal as MoreHorizontalIcon,
   MoreVertical as MoreVerticalIcon,
   CircleCheck as CircleCheckIcon,

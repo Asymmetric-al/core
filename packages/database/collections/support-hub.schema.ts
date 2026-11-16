@@ -4,10 +4,6 @@ import { z } from "zod";
 // tenant-scoped `/api/admin/support/**` routes; Give Hope seed lives only in
 // the in-memory adapter fixtures.
 
-/* ------------------------------------------------------------------------ */
-/*  Constants & enums                                                        */
-/* ------------------------------------------------------------------------ */
-
 export const SUPPORT_CONVERSATION_STATUSES = [
   "open",
   "pending",
@@ -157,10 +153,6 @@ export const supportClockTimeSchema = z.string().transform((value, ctx) => {
   }
   return normalized;
 });
-
-/* ------------------------------------------------------------------------ */
-/*  Schemas                                                                  */
-/* ------------------------------------------------------------------------ */
 
 export const supportLabelSchema = z.object({
   id: z.string().min(1),
@@ -505,10 +497,6 @@ export const supportNotificationPreferencesSchema = z.object({
   createdAt: isoString,
   updatedAt: isoString,
 });
-
-/* ------------------------------------------------------------------------ */
-/*  Public types — derived from the schemas                                  */
-/* ------------------------------------------------------------------------ */
 
 export type SupportLabel = z.output<typeof supportLabelSchema>;
 export type SupportAssignee = z.output<typeof supportAssigneeSchema>;

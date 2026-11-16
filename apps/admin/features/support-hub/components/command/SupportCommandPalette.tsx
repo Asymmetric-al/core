@@ -52,17 +52,17 @@ import type {
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
- * Inbox-scoped command palette. Opens with `Cmd/Ctrl + K` (wired through
- * `useInboxShortcuts`). Sections:
+ * Inbox-scoped command palette. Opens with Ctrl/Command K (wired through
+ * `useInboxShortcuts`). Groups:
  *
- *   1. Navigation       — switch view tabs / layout, jump to inbox
- *   2. This conversation — resolve / pending / snooze / assign / round-robin
- *   3. Macros           — every saved macro
- *   4. Saved views      — every saved-view filter
- *   5. Quick reply tone — switch composer mode (handled by the keyboard map)
+ *   1. Navigation   — switch view tab or layout
+ *   2. Conversation — the selected conversation's status, snooze,
+ *                     assignment and round-robin actions
+ *   3. Macros       — run a saved macro on the selected conversation
+ *   4. Saved views  — apply a saved view's filters
  *
- * Keeps the global Mission Control dialog untouched — no window listener,
- * no overlap with the global search shortcut.
+ * It adds no window listener, so it never competes with Mission Control's
+ * global search shortcut.
  */
 export function SupportCommandPalette() {
   const palette = useSupportCommandPalette();

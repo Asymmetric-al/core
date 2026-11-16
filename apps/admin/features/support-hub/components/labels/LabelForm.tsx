@@ -51,10 +51,10 @@ const TONE_DOT_CLASSES: Record<SupportLabelTone, string> = {
 };
 
 /**
- * Inline form used inside `<LabelManagerDialog />`. Saves through the Phase 5
- * `useSaveSupportLabel` mutation (additive over the Phase 2 collection
- * writer) so the optimistic flow + cache invalidation is identical to every
- * other support-hub mutation.
+ * Label form used by `<LabelManagerDialog />` and the Labels settings panel.
+ * Saves through `useSaveSupportLabel`, which calls the support labels route
+ * and then invalidates the support query cache like every other support-hub
+ * mutation.
  */
 export function LabelForm({
   label,

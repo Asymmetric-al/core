@@ -53,9 +53,10 @@ function governanceAllowsRuntime(
 }
 
 /**
- * Converts app-owned governance decisions into the narrow configuration that a
- * future Eve host may consume. This function never reads prompts, memory, or
- * provider output as governance and performs no model or provider call.
+ * Converts app-owned governance decisions into the narrow configuration that
+ * specialist activation consumes (src/specialists/runtime-policy.ts). This
+ * function never reads prompts, memory, or provider output as governance and
+ * performs no model or provider call.
  *
  * Direct-provider fallbacks are deliberately excluded from the foundation.
  * Their provider clients and live fallback actuation require later, separately

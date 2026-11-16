@@ -60,7 +60,8 @@ Use the local server only when remote MCP is unavailable:
 }
 ```
 
-Do not commit MCP configs that contain API keys.
+Keep API keys and Nia workspace configuration in user or global settings; do
+not commit MCP configs that contain them.
 
 ### GitHub repository source
 
@@ -152,18 +153,3 @@ Treat these as Nia workspace mutations:
 
 In read-only or planning modes, do not run mutation tools. Instead, document the
 intended command or MCP action.
-
-## Repository hygiene
-
-Nia alignment changes must not commit local sync, cache, wheel, or scratch
-artifacts. Keep API keys and local Nia workspace configuration in user or global
-settings, not in the repository.
-
-## Checklist
-
-- [ ] Nia repo searches are scoped to `Asymmetric-al/core`
-- [ ] Search queries include the required preamble
-- [ ] Top matches are read before editing
-- [ ] External docs/repos are justified and followed by a repo-scoped pass
-- [ ] Nia workspace mutations are not run in read-only/plan mode
-- [ ] API keys and local sync configs are never committed

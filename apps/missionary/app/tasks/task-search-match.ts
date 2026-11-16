@@ -1,6 +1,6 @@
 import type { Task } from "@asym/lib/hooks/use-tasks";
 
-/** Lowercased search string; used by Tasks page client filtering. */
+/** `searchLower` must already be lowercased. */
 export function taskMatchesClientSearch(
   task: Task,
   searchLower: string,

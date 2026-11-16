@@ -5,13 +5,13 @@ import { useMC } from "@asym/lib/mission-control/context";
 import { useSupportAgents } from "../hooks/use-support-agents";
 
 /**
- * Resolves the currently signed-in Mission Control user to a Support Hub
- * agent id. Today the match is by email (the mock agents use the same
- * `*@givehope.org` addresses as the staff seed). When real `support_agents`
- * land, this hook is the single place where the resolution swaps.
+ * Resolves the signed-in Mission Control user to a Support Hub agent id: the
+ * tenant agent whose email matches the user's (case-insensitive) or whose id
+ * equals the user id. Returns `null` until agents have loaded, or when no
+ * agent matches.
  *
- * Returns `null` until the agents collection has hydrated or until the user
- * email matches no agent. Memoization is left to the React Compiler.
+ * The composer sends this id as `authorAgentId`; the reply and note routes
+ * use it as given and do not check it against the signed-in user.
  */
 export function useCurrentSupportAgentId(): string | null {
   const { user } = useMC();

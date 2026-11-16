@@ -1,8 +1,7 @@
 /**
- * Mock Data Types
- *
- * Centralized type definitions for all mock data used across the application.
- * These types mirror the expected database schema for easy migration to real data.
+ * Shapes of the demo fixtures in this package. They are UI-oriented demo
+ * shapes (camelCase fields, synthetic ids), not the database schema; database
+ * row types live in `@asym/database/types`.
  */
 
 export type UserRole = "admin" | "staff" | "missionary" | "donor";

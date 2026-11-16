@@ -1,5 +1,12 @@
 # Governed SMS Messaging & Channel Activation
 
+## Purpose
+
+Define the contract for governed SMS messaging and channel activation: sender
+setup and registration, phone-purpose enrollment, withdrawal and re-consent,
+inbound and control-keyword handling, preflighted dispatch with provider
+evidence, Support Hub replies, and organization campaigns.
+
 ## ADDED Requirements
 
 ### Requirement: SMS-W01 Census source contracts, preserve transport-dark generation, adopt exact successor and support profile

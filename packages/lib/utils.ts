@@ -3,10 +3,8 @@ const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 /**
- * Formats a number as USD currency.
- *
- * @param amount - The numeric amount to format
- * @returns Formatted currency string (e.g., "$1,234.56")
+ * Formats a major-unit (dollar) amount as en-US USD. Always USD and never
+ * divides by 100, so it is wrong for cents or other currencies.
  *
  * @example
  * formatCurrency(1234.5) // "$1,234.50"

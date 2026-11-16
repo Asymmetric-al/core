@@ -33,10 +33,10 @@ interface SaveViewDialogProps {
 }
 
 /**
- * Names the active inbox filter and persists it into the support saved-views
- * collection. Re-uses the `useSaveSupportSavedView` Phase 2 hook; the
- * collection writer already invalidates the right cache keys so the saved-
- * view bar re-renders without manual refresh.
+ * Names the active inbox filter and saves it through
+ * `useSaveSupportSavedView` (the saved-views route); the mutation
+ * invalidates the support query cache, so the saved-views bar updates on
+ * its own.
  */
 export function SaveViewDialog({
   open,

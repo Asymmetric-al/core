@@ -29,7 +29,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 1. Read this file and `packages/ui/AGENTS.md` for any UI work.
 2. Confirm Instant Navigation: Stream, Cache, or explicit Block.
 3. Follow TDD for substantive behavior (`docs/ai/skills/tdd/SKILL.md`).
-4. Run `bunx turbo run lint typecheck --filter=@asym/missionary-app`.
+4. Run `bunx turbo run lint typecheck --filter=@asym/missionary-app`, the focused unit tests (`bunx vitest run tests/unit/apps/missionary/<area>`; most unit tests for this app live under the root `tests/unit/apps/missionary/`, with dashboard, analytics and chart tests in `tests/unit/missionary-*`), and `bun run verify:data-boundary` when routes or data access change. `bun run check` is the broader gate.
 
 ## Checklist
 

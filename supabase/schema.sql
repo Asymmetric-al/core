@@ -1,5 +1,5 @@
--- Supabase Schema for Asymmetric.al
--- Canonical schema for the hosted Supabase project
+-- Historical schema snapshot for Asymmetric.al; NOT the source of truth and
+-- not kept in sync. The applied schema is supabase/migrations/*.sql.
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -1293,8 +1293,8 @@ ON CONFLICT (id) DO NOTHING;
 -- ==========================================
 -- RLS (Row Level Security)
 -- ==========================================
--- For development/demo ease, we are keeping RLS disabled on most tables.
--- In production, you MUST enable RLS and define policies.
+-- This snapshot disables RLS on most tables; that is not the applied policy.
+-- Migrations enable RLS and FORCE it on tenant tables (20261025070000).
 
 ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenants DISABLE ROW LEVEL SECURITY;
