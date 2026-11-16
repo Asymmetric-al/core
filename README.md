@@ -34,8 +34,8 @@ stay accurate wherever they appear.
   website, email, PDF documents and signatures.
 - **Donor portal** for self-service: giving history, recurring gifts, payment
   methods, receipts and ministry updates.
-- **Public ministry website** for discovery and giving: missionary and project
-  pages and checkout.
+- **Public ministry website** for discovery and giving: missionary profiles, a
+  where-we-work map, CMS pages and checkout.
 - **Missionary workspace** for support raising: donors, ministry updates,
   tasks and analytics.
 - **One source of truth.** Asym Postgres owns CRM, giving and operational
@@ -77,8 +77,8 @@ Core is under active development.
 
 These are cropped from the browser captures in
 [`docs/qa/core-ui/after/`](docs/qa/core-ui/README.md), taken from a local
-development build in October 2026 with demo data. The figures on the demo
-website are sample content.
+development build in October 2026 with demo fixtures and placeholder database
+endpoints. The figures on the demo website are sample content.
 
 ## How it fits together
 
@@ -98,12 +98,16 @@ flowchart LR
     api["packages/api<br/>business logic and authorization"]
     auth["packages/auth<br/>sessions"]
     database["packages/database<br/>approved browser data access"]
+    email["packages/email"]
     ui["packages/ui<br/>design system"]
   end
 
   apps --> shared
-  shared --> postgres[("Supabase Postgres<br/>row-level security")]
-  shared --> providers["Stripe, Resend, Inngest"]
+  api --> postgres[("Supabase Postgres<br/>row-level security")]
+  auth --> postgres
+  database --> postgres
+  api --> providers["Stripe, Inngest"]
+  api --> email --> resend["Resend"]
 ```
 
 Core is a Bun + Turborepo monorepo of Next.js App Router applications:
@@ -148,12 +152,13 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Open `http://localhost:3030`. Setup writes gitignored `.env.local` defaults
-(placeholder Supabase URL and key, `E2E_AUTH_BYPASS=true`, CI env defaults),
-installs with the frozen lockfile and runs `bun run skills:verify`. Because the
-Supabase credentials are placeholders, this mode shows the interface without
-real data. An explicit `E2E_AUTH_BYPASS=false` is kept unless you pass
-`--force-bypass`.
+Open `http://localhost:3030`. Setup fills missing or placeholder values in the
+gitignored `.env.local` (a placeholder Supabase URL and key,
+`E2E_AUTH_BYPASS=true`, CI env defaults) and keeps real values you already set.
+It installs with the frozen lockfile and runs `bun run skills:verify`. With the
+placeholder Supabase project you see the interface, sample content and empty
+states, not live data. An explicit `E2E_AUTH_BYPASS=false` is kept unless you
+pass `--force-bypass`.
 
 ### Run against a hosted Supabase project
 
