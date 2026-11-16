@@ -31,7 +31,9 @@ human-oriented index. It does not prove that proposed work has shipped.
 
 **Capability specs:** `donation-lifecycle`, `contribution-operations`,
 `crm-core`, `identity-and-access`, `workflow-orchestration`,
-`agent-instruction-system`, `eve-autonomous-operations`.
+`agent-instruction-system`, `shared-ui-primitives`, `ui-class-merging`,
+`eve-autonomous-operations` and the other `eve-*` specs.
+`bun run openspec -- list --specs` prints the current set.
 
 Read every unconditionally referenced `openspec/contracts/` section in full.
 The complete clauses, concise requirement, and original scenarios form one
@@ -45,7 +47,7 @@ Architecture trees and route tables stay in
 ## Monorepo boundaries
 
 - `apps/admin` — Mission Control (port 3030)
-- `apps/donor` — donor app (port 3000)
+- `apps/donor` — donor portal and public tenant website (port 3000)
 - `apps/missionary` — missionary app (port 4000)
 - `packages/api` — canonical business and data-access boundary
 - `packages/auth`, `packages/database`, `packages/env`, `packages/ui`
@@ -55,8 +57,10 @@ Architecture trees and route tables stay in
 
 - `AGENTS.md` is the always-on coding-agent router.
 - Canonical skills live under `docs/ai/skills/`.
-- `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` are generated
-  mirrors (`bun run skills:sync` / `bun run skills:verify`).
+- `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` are runtime
+  mirrors (`bun run skills:sync` / `bun run skills:verify`). `.agents/skills/`
+  also holds ecosystem-origin skills that have no canonical copy; the other two
+  mirror those as well.
 - TDD is required for substantive behavior. UI preserves exact `base-maia`.
 
 ## OpenSpec workflow
@@ -74,7 +78,8 @@ Selected workflows: Explore, Propose, Update, Apply, Verify, Sync, Archive.
 Skills start at `docs/ai/skills/openspec-explore/SKILL.md`. Numbered commands
 `/1-start-project` through `/4-close-project` wrap those workflows.
 
-Do not enable New, Continue, Fast-forward, Bulk archive, Onboard, or Stores.
+Do not enable New, Continue, Fast-forward, Bulk archive, Onboard, Stores, or a
+custom schema.
 Do not run `openspec update` against this customized repository.
 Do not archive until implementation is accepted repository reality.
 
@@ -95,6 +100,7 @@ qualification and the change remains active until implementation is accepted.
 
 - `bun run openspec:validate`
 - `bun run openspec:audit-archive`
+- `bun run verify:openspec-deltas`
 - `bun run skills:verify`
 - `bun run check`
 - `bun run ci:preflight`

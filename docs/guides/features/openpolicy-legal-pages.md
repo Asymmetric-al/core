@@ -216,7 +216,7 @@ ratification edit.
       representative restore behavior have production-shaped evidence.
 - [ ] Publication evidence identifies the exact reviewed public-policy version;
       documentation ratification alone is not treated as publication.
-- [ ] `bunx @fission-ai/openspec@1.7.0 validate add-field-account-operations --strict`
+- [ ] `bun run openspec -- validate add-field-account-operations --strict`
       and `bun run format:check` pass for the governing documentation change;
       the release manifest also names and passes the exact runtime tests for
       every activated lifecycle path.

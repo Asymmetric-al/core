@@ -1,7 +1,7 @@
 schema: spec-driven
 
 context: |
-  Asymmetric.al/core is a Bun and Turborepo monorepo for Mission Control,
+  Asymmetric-al/core is a Bun and Turborepo monorepo for Mission Control,
   donor, missionary, and public-site experiences.
 
   Asym Postgres owns application and CRM truth. Twenty CRM is retired and
@@ -60,8 +60,9 @@ operations:
       - Surface out-of-scope work before implementing it.
       - Update artifacts when implementation discoveries materially change the plan.
       - Use TDD for behavioral changes and focused tests before broad checks.
-      - Invoke the Core Guardian for material product, data, tenant, authorization,
-        financial, publication, or communication changes.
+      - Invoke the OpenSpec Guardian (docs/ai/rules/openspec-guardian.md) for
+        material product, data, tenant, authorization, financial, publication,
+        or communication changes.
 
   archive:
     guidance:

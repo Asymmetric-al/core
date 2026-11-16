@@ -33,6 +33,7 @@ Also use it for non-trivial feature work, behavior changes, multi-step project w
 
 OpenSpec is the durable source of truth for product intent, surface boundaries, principles, system boundaries, and active behavior changes.
 The main coding agent can drift when it focuses too much on implementation details. The OpenSpec Guardian exists to catch that drift early.
+`openspec/config.yaml` and `/4-close-project` formerly called this reviewer the Core Guardian.
 The guardian answers these questions:
 
 1. Is the main agent still solving the user's actual prompt?
