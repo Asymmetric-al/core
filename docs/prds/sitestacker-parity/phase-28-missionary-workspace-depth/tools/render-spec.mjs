@@ -179,6 +179,9 @@ for (const r of records) {
     "\n";
   for (const a of r.acceptance) {
     const gwt = a.text.match(/^Given (.*?), when (.*?), then (.*)$/i);
+    // A criterion that states no trigger takes its owning story, verbatim, as
+    // the scenario's context. The criterion stays the unchanged outcome, and
+    // the story never narrows the requirement's unconditional contract.
     const outcome = gwt
       ? "- **GIVEN** " +
         gwt[1] +
@@ -186,7 +189,12 @@ for (const r of records) {
         gwt[2] +
         "\n- **THEN** " +
         gwt[3]
-      : "- **THEN** " + a.text;
+      : "- **GIVEN** story " +
+        r.story +
+        ": " +
+        r.text +
+        "\n- **THEN** " +
+        a.text;
     spec += "\n#### Scenario: " + a.id + "\n\n" + outcome + "\n";
   }
 }
@@ -215,7 +223,9 @@ let stale = false;
 for (const [file, raw] of outputs) {
   const config = await resolveConfig(file);
   let text = await format(raw, { ...config, filepath: file });
-  if (file.endsWith("/specs/missionary-workspace-depth/spec.md")) {
+  if (
+    file.endsWith(path.join("specs", "missionary-workspace-depth", "spec.md"))
+  ) {
     text = await renderContractView({
       repoRoot: root,
       capability: "missionary-workspace-depth",

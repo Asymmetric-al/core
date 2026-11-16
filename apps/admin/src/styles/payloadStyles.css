@@ -247,44 +247,237 @@ html[data-theme="dark"] {
   color: var(--color-text);
 }
 
-.payload-admin-wrapper,
-.payload-admin-wrapper * {
-  font-family:
-    var(--font-sans),
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+/* Payload's preflight (`border: 0 solid` in `payload-default`) resets
+   border-color to currentColor and outranks the shared base layer, so every
+   bare `border` utility would draw in the text color. Re-assert the shared
+   default inside Payload's own layer with zero specificity: it beats only the
+   preflight, and any Payload component rule or utility still wins. */
+@layer payload-default {
+  :where(*, ::before, ::after, ::backdrop) {
+    border-color: var(--border);
+  }
+
+  /* Payload's base also indents every list. Mission Control markup expects
+     the shared reset; Payload-owned regions (document form, where-builder)
+     keep Payload's spacing. */
+  :where([data-web-studio-shell], [data-web-studio-chrome])
+    :is(ul, ol):not(
+      :where(.payload-native-edit *, [data-web-studio-where-builder] *)
+    ) {
+    padding-left: 0;
+  }
 }
 
-.payload-admin-wrapper button,
-.payload-admin-wrapper .btn,
-.payload-admin-wrapper input,
-.payload-admin-wrapper textarea,
-.payload-admin-wrapper select {
-  border-radius: calc(var(--radius) - 2px);
+/* Mission Control chrome inside Payload's default template.
+   Native Web Studio screens render StudioLayout; stock screens get the Studio
+   top bar and rail through the template's `header` and `Nav` slots. Either
+   way Payload's own app header (sidebar toggle + step nav) would be a second
+   header, and its grid reserves a column for a nav it no longer renders. */
+.template-default {
+  display: flex;
+  flex-direction: column;
 }
 
-.payload-admin-wrapper a {
-  transition:
-    color 0.2s ease,
-    opacity 0.2s ease;
+@media (min-width: 48rem) {
+  .template-default {
+    flex-direction: row;
+  }
 }
 
-.payload-native-edit .doc-header {
+.template-default__wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.template-default .app-header {
   display: none;
 }
 
-.payload-native-edit .collection-edit__form {
-  padding-top: 0;
+/* The native document workspace owns the title and Edit/Versions/API links;
+   Payload's document header above it would repeat both. */
+.template-default__wrap:has([data-web-studio-native-document]) .doc-header {
+  display: none;
 }
 
+/* Mission Control chrome sets the shared base text size; Payload-owned
+   regions inside it keep Payload's own body type. */
+.payload-native-edit,
+[data-web-studio-where-builder] {
+  font-size: var(--text-body-medium-font-size);
+  line-height: var(--text-body-medium-line-height);
+  letter-spacing: var(--text-letter-spacing);
+}
+
+/* Below 768px Payload halves the gap between fields (to 0.75rem), so each
+   label sits tight under the previous input. The Studio editor keeps a
+   readable 1rem rhythm on phones and small tablets. */
+@media (max-width: 48rem) {
+  .payload-native-edit .render-fields {
+    --spacing-field: var(--spacer-3);
+  }
+}
+
+/* The Studio editor keeps one column. Payload's sidebar fields (a giving or
+   project page's read-only source ID) follow the page's own fields as
+   secondary details instead of a narrow column beside them; the workspace's
+   inspector is the side column. */
+.payload-native-edit .document-fields {
+  display: block;
+}
+
+.payload-native-edit .document-fields--has-sidebar {
+  --main-width: 100%;
+  --main-border: none;
+}
+
+.payload-native-edit .document-fields--has-sidebar .document-fields__edit {
+  padding-bottom: var(--spacer-4);
+}
+
+.payload-native-edit .document-fields__sidebar-wrap {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  border-top: 1px solid var(--border);
+}
+
+.payload-native-edit .document-fields__sidebar {
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.payload-native-edit .document-fields__sidebar-fields {
+  padding-block: var(--spacer-4);
+}
+
+/* Payload's document action bar (status meta, Preview, Save Draft, Publish,
+   and the ⋯ menu with Duplicate / Delete / Unpublish) heads the native
+   editor card and sticks below the Studio top bar (`h-14`). */
 .payload-native-edit .doc-controls {
-  display: none;
+  top: 3.5rem;
+  background-color: var(--card);
+  /* Payload's button tokens at the shared Button `size="sm"` geometry. */
+  --button-height: calc(var(--spacing) * 8);
+  --button-radius: var(--radius-md);
 }
 
-.payload-native-edit .collection-edit__main-wrapper {
-  border-top: 0;
+/* Payload keeps the actions (Save Draft, Publish, the ⋯ menu and their
+   permissions and states); they read as the shared Buttons beside them:
+   Publish as the primary, Save Draft as outline, icon actions as ghost. */
+.payload-native-edit .doc-controls .btn {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: var(--font-weight-medium);
+}
+
+.payload-native-edit .doc-controls .btn--size-medium:not(.btn--icon-only) {
+  padding-inline: calc(var(--spacing) * 3);
+}
+
+.payload-native-edit .doc-controls .btn.btn--style-secondary {
+  color: var(--foreground);
+  background-color: var(--background);
+  border-color: var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.payload-native-edit
+  .doc-controls
+  .btn.btn--style-secondary:hover:not(.btn--disabled) {
+  color: var(--accent-foreground);
+  background-color: var(--accent);
+}
+
+/* Disabled until there is something to save: the shared Button's 50% fade,
+   so the primary still reads as the primary. */
+.payload-native-edit .doc-controls .btn--style-primary.btn--disabled,
+.payload-native-edit .doc-controls .btn--style-primary.btn--disabled:hover {
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+}
+
+.payload-native-edit .doc-controls .btn--disabled:not(.btn--loading) {
+  opacity: 0.5;
+}
+
+/* Payload's bulk actions (Edit, Publish, Unpublish, Delete many) sit in
+   Core's selection bar; they keep Payload's permissions, confirmations and
+   requests and read as the shared ghost Buttons at size="sm". */
+[data-web-studio-bulk-actions] .btn {
+  margin: 0;
+  height: calc(var(--spacing) * 8);
+  padding-inline: calc(var(--spacing) * 3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground);
+}
+
+[data-web-studio-bulk-actions] .btn:hover:not(.btn--disabled) {
+  color: var(--accent-foreground);
+  background-color: var(--accent);
+}
+
+/* Grouped lists are Payload's server tables (one per group) inside the
+   Studio card; they read as the ReUI grid beside them: a muted header row,
+   sentence-weight headings, row rules and plain title links. */
+[data-web-studio-grouped-list] .table-section__heading {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: var(--font-weight-semibold);
+  color: var(--foreground);
+}
+
+[data-web-studio-grouped-list] .simple-pagination__info {
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+}
+
+[data-web-studio-grouped-list] table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+[data-web-studio-grouped-list] th {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  background-color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--muted-foreground);
+}
+
+[data-web-studio-grouped-list] td {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--foreground);
+}
+
+[data-web-studio-grouped-list] tbody tr:hover td {
+  background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+
+[data-web-studio-grouped-list] td a {
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+[data-web-studio-grouped-list] td a:hover {
+  text-decoration: underline;
+}
+
+/* Payload's stock list wraps its <table> in `div.table`, a name Tailwind also
+   emits as `display: table`. Utilities now outrank Payload's layer, so keep
+   the wrapper Payload's flex column. */
+div.table {
+  display: flex;
 }
 
 @media (prefers-reduced-motion: reduce) {

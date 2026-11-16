@@ -14,7 +14,7 @@ export const GET = withOperation(
 
     let query = supabaseAdmin
       .from("missionaries")
-      .select("id, tenant_id, profile_id")
+      .select("id, tenant_id, profile_id, location, mission_field")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -70,6 +70,8 @@ export const GET = withOperation(
       const profile = pid ? profilesById[pid] : undefined;
       return {
         id: row.id as string,
+        location: row.location ?? null,
+        missionField: row.mission_field ?? null,
         tenant_id: row.tenant_id as string | null,
         profile: profile
           ? { full_name: profile.full_name, display_name: profile.display_name }

@@ -14,11 +14,16 @@ async function loadOverrides(
   client: NonNullable<ReturnType<typeof getAdminClient>["client"]>,
   tenantId: string,
 ): Promise<WorkflowNotificationOverrides> {
-  const { data } = await client
+  const { data, error } = await client
     .from("workflow_notification_policies")
     .select("overrides")
     .eq("tenant_id", tenantId)
     .maybeSingle();
+
+  if (error)
+    throw new Error(
+      "workflow_summaries_failed: workflow_notification_policies",
+    );
 
   return (data?.overrides ?? {}) as WorkflowNotificationOverrides;
 }

@@ -161,7 +161,29 @@ function previewBody(output, component, root) {
     text.indexOf(start, startOffset + start.length) < 0,
     `Duplicate ${component} preview`,
   );
-  return text.slice(startOffset, endOffset + PREVIEW_END.length);
+  const body = text.slice(startOffset, endOffset + PREVIEW_END.length);
+  const hunkOffset = body.search(/^│ │ @@/m);
+  const metadata = hunkOffset < 0 ? body : body.slice(0, hunkOffset);
+  const source = hunkOffset < 0 ? "" : body.slice(hunkOffset);
+  const normalizePath = (value) =>
+    safeRelativePath(value.replaceAll("\\", "/"));
+  return (
+    metadata
+      .replace(
+        /^(│\s+[~+=]\s+)(.+?)(\s+(?:overwrite|create|unchanged)\s*)$/gm,
+        (_match, prefix, file, suffix) =>
+          `${prefix}${normalizePath(file)}${suffix}`,
+      )
+      .replace(
+        /^(├ )(.+?)( \((?:overwrite|create|unchanged)\))$/gm,
+        (_match, prefix, file, suffix) =>
+          `${prefix}${normalizePath(file)}${suffix}`,
+      )
+      .replace(
+        /^(│ │ (?:--- a\/|\+\+\+ b\/))(.+)$/gm,
+        (_match, prefix, file) => `${prefix}${normalizePath(file)}`,
+      ) + source
+  );
 }
 
 export function parseDryRun(output, component, root) {

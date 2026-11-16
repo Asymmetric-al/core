@@ -5,12 +5,11 @@ import {
   SidebarInset,
 } from "@asym/ui/components/shadcn/sidebar";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
+import { usePathname } from "next/navigation";
 
 import { AppHeader } from "./app-header";
-import { AppSidebar } from "./app-sidebar";
-import { DashboardFooter } from "./dashboard-footer";
-
-import type { UserRole } from "./navigation-items";
+import { AppSidebar, isActivePath } from "./app-sidebar";
+import { getNavItems, type UserRole } from "./navigation-items";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -18,7 +17,6 @@ interface AppShellProps {
   title?: string;
   tenantLogo?: string;
   tenantName?: string;
-  showFooter?: boolean;
   navigation?: React.ReactNode;
 }
 
@@ -28,18 +26,25 @@ export function AppShell({
   title,
   tenantLogo,
   tenantName,
-  showFooter = true,
   navigation,
 }: AppShellProps) {
+  const pathname = usePathname();
+  const sectionLabel = getNavItems(role).find((item) =>
+    isActivePath(pathname, item.href),
+  )?.title;
+
   return (
     <SidebarProvider>
       <AppSidebar role={role} tenantLogo={tenantLogo} tenantName={tenantName} />
       <SidebarInset className="flex min-h-svh min-w-0 flex-col">
-        <AppHeader title={title} navigation={navigation} />
+        <AppHeader
+          title={title}
+          sectionLabel={sectionLabel}
+          navigation={navigation}
+        />
         <RouteMainViewTransitionBoundary className="container-responsive flex-1 py-responsive-section">
           {children}
         </RouteMainViewTransitionBoundary>
-        {showFooter && <DashboardFooter />}
       </SidebarInset>
     </SidebarProvider>
   );

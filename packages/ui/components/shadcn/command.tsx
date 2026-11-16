@@ -1,6 +1,7 @@
 "use client";
 
 import { Command as CommandPrimitive } from "cmdk";
+import { SearchIcon } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
@@ -12,25 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./dialog";
-
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
 
 function Command({
   className,
@@ -49,8 +31,8 @@ function Command({
 }
 
 function CommandDialog({
-  title = "Command Palette",
-  description = "Search for a command to run...",
+  title = "Command palette",
+  description = "Search for a command to run…",
   children,
   className,
   showCloseButton = true,
@@ -130,7 +112,9 @@ function CommandInput({
           className={cn(
             "placeholder:text-muted-foreground box-border h-10 w-full rounded-xl border-2 border-solid border-border/70 bg-background py-0 pl-9 pr-3 text-sm shadow-none outline-none ring-0 transition-colors",
             "hover:border-border/85 disabled:cursor-not-allowed disabled:opacity-50",
-            "focus:border-ring focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+            // The global :focus-visible rule adds a ring offset; cancel it too, or
+            // its band paints stray edge lines inside a clipped popover.
+            "focus:border-ring focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
             className,
           )}
           {...props}
@@ -157,7 +141,7 @@ function CommandInput({
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
-          "placeholder:text-muted-foreground flex h-full w-full rounded-none border-0 bg-transparent py-0 text-sm shadow-none outline-none ring-0 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "placeholder:text-muted-foreground flex h-full w-full rounded-none border-0 bg-transparent py-0 text-sm shadow-none outline-none ring-0 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
           className,
         )}
         {...props}

@@ -14,13 +14,16 @@ const policy = {
   applicationFloors: {
     "apps/admin": 35,
     "apps/donor": 41,
+    "apps/factory-console": 52,
     "apps/missionary": 47,
   },
   applicationCategoryFloors: Object.fromEntries(
-    ["apps/admin", "apps/donor", "apps/missionary"].map((project) => [
-      project,
-      Object.fromEntries(AUDIT_CATEGORIES.map((category) => [category, 0])),
-    ]),
+    ["apps/admin", "apps/donor", "apps/factory-console", "apps/missionary"].map(
+      (project) => [
+        project,
+        Object.fromEntries(AUDIT_CATEGORIES.map((category) => [category, 0])),
+      ],
+    ),
   ),
 };
 
@@ -59,6 +62,7 @@ function completeReport() {
     findings: [
       "apps/admin",
       "apps/donor",
+      "apps/factory-console",
       "apps/missionary",
       "packages/ui",
     ].flatMap((packageDir) =>
@@ -82,7 +86,7 @@ function completeReport() {
       })),
     ),
     workspace: {
-      applicationCount: 3,
+      applicationCount: 4,
       truncated: 0,
       skipped: [],
       projects: [
@@ -94,6 +98,12 @@ function completeReport() {
         },
         {
           packageDir: "apps/donor",
+          kind: "application",
+          poolsIntoScore: true,
+          score: 100,
+        },
+        {
+          packageDir: "apps/factory-console",
           kind: "application",
           poolsIntoScore: true,
           score: 100,
@@ -152,11 +162,32 @@ describe("Shadscan complete workspace gate", () => {
     },
   );
 
+  it("requires the private operator Console to be assessed like every application", () => {
+    const report = completeReport();
+    report.workspace.projects = report.workspace.projects.filter(
+      (project) => project.packageDir !== "apps/factory-console",
+    );
+    report.workspace.applicationCount = 3;
+    report.findings = report.findings.filter(
+      (finding) => finding.packageDir !== "apps/factory-console",
+    );
+    expect(() => validateReport(report, policy)).toThrow(
+      /Incomplete application coverage/,
+    );
+    const unprotected = structuredClone(policy);
+    delete (unprotected.applicationFloors as Record<string, number>)[
+      "apps/factory-console"
+    ];
+    expect(() => validatePolicy(unprotected)).toThrow(
+      /protect every application/,
+    );
+  });
+
   it("requires category protection for every application", () => {
     const incompletePolicy = structuredClone(policy);
     delete incompletePolicy.applicationCategoryFloors["apps/missionary"];
     expect(() => validatePolicy(incompletePolicy)).toThrow(
-      /category.*all three applications/,
+      /category.*every application/,
     );
   });
 
@@ -183,11 +214,11 @@ describe("Shadscan complete workspace gate", () => {
     expect(favicon.maxScore).toBe(2);
     favicon.status = "fail";
     favicon.score = 0;
-    // Foundation earns 25 of 27 points in admin, 79 of 81 across all apps.
+    // Foundation earns 25 of 27 points in admin, 106 of 108 across all apps.
     // Its weighted scores still round to admin 99 and pooled 100.
     report.workspace.projects[0]!.score = 99;
     report.categories[0]!.percentage = 98;
-    report.categories[0]!.score = (79 / 81) * 20;
+    report.categories[0]!.score = (106 / 108) * 20;
     expect(validateReport(report, policy)).toBe(report);
 
     const protectedPolicy = structuredClone(policy);

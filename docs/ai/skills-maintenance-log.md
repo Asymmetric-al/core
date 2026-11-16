@@ -1,6 +1,37 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-09
+Last updated: 2026-11-14
+
+## UI SDK skill import - 2026-11-14
+
+Imported `ui-sdk` from `vercel-labs/ui` `packages/core/skills/ui-sdk` at
+`8ff6bcf7100d48230a3fab8c72475d99316cc58a` (Apache-2.0), the commit tagged
+`@ui-sdk/core@0.1.0-beta.2`, together with the exact `@ui-sdk/core` and
+`@ui-sdk/react` pins in `packages/ui`. The tree is identical to the copy that
+the installed package bundles, and `skills@1.5.7` wrote the lock hash from the
+package directory form (it does not discover the skill from the repository
+root). Core narrowed the description to Base UI gaps, added a top note and a
+marked overlay, and kept the references byte-identical apart from three marked
+secret-scanner comments with Apache-2.0 change notices. The import ran no
+upstream code. `tests/unit/docs/ui-sdk-skill.test.ts` keeps the skill and the
+SDK pin on the same release.
+
+## OpenSpec skill refresh to v2.0.0 - 2026-11-13 (AL-2661)
+
+Refreshed the seven selected OpenSpec skills from `Fission-AI/OpenSpec` tag
+`v2.0.0` (`d12c2817776779e06891d68230773b3bb673b106`) with
+`scripts/refresh-upstream-skills.mjs --only=Fission-AI/OpenSpec`, alongside the
+CLI pin. Upstream changed all seven raw entrypoints. Four installed skills
+changed (`openspec-explore`, `openspec-propose`, `openspec-update-change`,
+`openspec-verify-change`). In the other three the only upstream change is in
+the store-selection passage that the refresh adapter replaces with Core's
+project check, so their installed copies are byte-identical. The refresh
+re-applied Core's overlays, wrapper permission and provenance, and each changed
+skill's diff was read against the 2.0.0 CLI it calls. The seven records in
+[skill-source-audit.json](skill-source-audit.json) cite that commit, its raw
+entrypoint hashes and the current lock hashes. The v1.14.3 comparison they
+replace remains in the per-skill table of the 2026-10-22 audit below. The
+refresh ran no upstream code.
 
 ## p3-stack and pr-review-toolkit import - 2026-11-09
 

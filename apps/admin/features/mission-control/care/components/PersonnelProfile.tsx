@@ -2,769 +2,990 @@
 
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Calendar } from "@asym/ui/components/shadcn/calendar";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Meter } from "@asym/ui/components/shadcn/meter";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@asym/ui/components/shadcn/popover";
 import {
   LegacyRichTextEditor,
   RichTextViewer,
+  isRichText,
+  isPostContentEmpty,
+  extractPlainText,
 } from "@asym/ui/components/shadcn/rich-text-editor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
-import { cn } from "@asym/ui/lib/utils";
+import { format } from "date-fns";
 import {
-  Heart,
-  MessageCircle,
+  CalendarDays,
+  Flag,
+  FlagOff,
+  ListChecks,
   Lock,
-  Clock,
-  MapPin,
-  Globe,
-  Phone,
-  AlertTriangle,
-  Plus,
+  MessageSquareText,
 } from "lucide-react";
-import React, { useId, useMemo, useState, useEffect } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
-import { HealthHeatmap } from "./HealthHeatmap";
+import { ACTIVITY_TYPE_LABELS, CHECK_IN_INTERVAL_DAYS } from "./care-display";
+import { LogCareContactDialog } from "./log-care-contact-dialog";
 import {
-  useCreateCareThreadPost,
   useCreateCarePrivateNote,
+  useCreateCareThreadPost,
   useCreateOrUpdateCareGoal,
-  useLogCareActivity,
   useSetManualAttentionFlag,
   useUpsertCareRequirement,
 } from "../hooks/use-care";
+import { isLoggedContact } from "../member-care.derived";
 
-import type { CarePersonnel, ActivityLogEntry } from "../types";
-import type { MemberCarePrivateNote } from "@asym/database/hooks";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
+import type { ActivityLogEntry, CarePersonnel } from "../types";
+import type {
+  MemberCarePrivateNote,
+  MemberCareGoal,
+  MemberCareRequirement,
+} from "@asym/database/hooks";
 
 interface PersonnelProfileProps {
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
   privateNotes: MemberCarePrivateNote[];
+  goals?: MemberCareGoal[];
+  requirements?: MemberCareRequirement[];
 }
 
-function PersonnelProfileHeaderCard({
+const HEALTH_SIGNAL_LABELS: Record<
+  keyof CarePersonnel["healthSignals"],
+  string
+> = {
+  emotional: "Emotional",
+  spiritual: "Spiritual",
+  physical: "Physical",
+  financial: "Financial",
+};
+
+async function runCareAction(
+  action: () => Promise<unknown>,
+  { success, failure }: { success: string; failure: string },
+): Promise<boolean> {
+  try {
+    await action();
+    toast.success(success);
+    return true;
+  } catch {
+    toast.error(failure);
+    return false;
+  }
+}
+
+export function PersonnelProfileActions({
   personnel,
-  localTime,
-  onLogCheckIn,
-  onToggleManualAttention,
-  isLoggingCheckIn,
-  isUpdatingAttention,
 }: {
   personnel: CarePersonnel;
-  localTime: string | null;
-  onLogCheckIn: () => Promise<void>;
-  onToggleManualAttention: () => Promise<void>;
-  isLoggingCheckIn: boolean;
-  isUpdatingAttention: boolean;
 }) {
-  const attentionLabelId = useId();
+  const setManualAttention = useSetManualAttentionFlag();
+  const flagged = Boolean(personnel.manualAttention);
+
   return (
-    <Card className="overflow-hidden">
-      <div className="h-24 bg-primary" />
-      <CardContent className="pt-0 pb-6 px-6">
-        <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-10">
-          <Avatar className="size-24">
-            <AvatarImage src={personnel.avatarUrl} />
-            <AvatarFallback>{personnel.initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-2xl font-semibold text-foreground">
-                {personnel.name}
-              </h2>
-              <Badge
-                variant={
-                  personnel.status === "Healthy"
-                    ? "success"
-                    : personnel.status === "At Risk"
-                      ? "destructive"
-                      : "warning"
-                }
-              >
-                {personnel.status}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground font-medium">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="size-3.5" /> {personnel.location}
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Globe className="size-3.5" /> {personnel.region}
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="size-3.5" /> {localTime || "--:--"} (Local)
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={onToggleManualAttention}
-              disabled={isUpdatingAttention}
-              focusableWhenDisabled={isUpdatingAttention}
-              aria-labelledby={attentionLabelId}
-            >
-              <AlertTriangle className="mr-2 size-4 text-muted-foreground" />
-              <span id={attentionLabelId}>
-                {isUpdatingAttention
-                  ? "Updating..."
-                  : personnel.manualAttention
-                    ? "Clear Attention"
-                    : "Flag Attention"}
-              </span>
-            </Button>
-            <Button
-              onClick={onLogCheckIn}
-              disabled={isLoggingCheckIn}
-              focusableWhenDisabled={isLoggingCheckIn}
-            >
-              <Heart className="mr-2 size-4" /> Log Check-in
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={setManualAttention.isPending}
+        onClick={() =>
+          void runCareAction(
+            () =>
+              setManualAttention.mutateAsync({
+                personnelId: personnel.id,
+                manualAttention: !flagged,
+              }),
+            {
+              success: flagged
+                ? "Attention flag cleared"
+                : "Flagged for attention",
+              failure: "The flag could not be updated. Try again.",
+            },
+          )
+        }
+      >
+        {flagged ? <FlagOff aria-hidden="true" /> : <Flag aria-hidden="true" />}
+        {flagged ? "Clear attention flag" : "Flag for attention"}
+      </Button>
+      <LogCareContactDialog personnel={personnel} />
+    </>
   );
 }
 
-function OverviewTabContentSection({
+function ProfileCard({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId}>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2 id={headingId}>{title}</h2>
+          </CardTitle>
+          {description ? (
+            <CardDescription>{description}</CardDescription>
+          ) : null}
+          {action}
+        </CardHeader>
+        <CardContent>{children}</CardContent>
+      </Card>
+    </section>
+  );
+}
+
+type CareContentNode = {
+  text?: string;
+  type?: string;
+  content?: CareContentNode[];
+};
+
+function plainText(value: string) {
+  if (!isRichText(value)) {
+    // Legacy editor HTML coexists with literal notes, including angle brackets.
+    if (
+      !/<\/?(?:p|div|span|br|strong|em|b|i|u|s|a|ul|ol|li|blockquote|h[1-6]|pre|code|img|script|style)\b[^>]*>/i.test(
+        value,
+      )
+    )
+      return value;
+    const text = extractPlainText(
+      value
+        .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
+        .replace(
+          /<br\s*\/?\s*>|<\/(?:p|div|li|blockquote|h[1-6]|pre)\s*>/gi,
+          "\n",
+        ),
+    );
+    const entities: Record<string, string> = {
+      amp: "&",
+      lt: "<",
+      gt: ">",
+      quot: '"',
+      apos: "'",
+      nbsp: " ",
+    };
+    return text
+      .replace(
+        /&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi,
+        (entity, code: string) => {
+          if (!code.startsWith("#"))
+            return entities[code.toLowerCase()] ?? entity;
+          const point =
+            code[1]?.toLowerCase() === "x"
+              ? parseInt(code.slice(2), 16)
+              : Number(code.slice(1));
+          return point > 0 && point <= 0x10ffff
+            ? String.fromCodePoint(point)
+            : "\uFFFD";
+        },
+      )
+      .trim();
+  }
+  const readNode = (node: CareContentNode): string => {
+    if (node.type === "text") return node.text ?? "";
+    if (node.type === "hardBreak") return "\n";
+    const text = (node.content ?? []).map(readNode).join("");
+    return ["paragraph", "heading", "listItem"].includes(node.type ?? "")
+      ? `${text}\n`
+      : text;
+  };
+  try {
+    return readNode(JSON.parse(value)).trim();
+  } catch {
+    return "Content could not be displayed.";
+  }
+}
+
+/** Entry dates in the viewer's locale, as elsewhere in Mission Control. */
+const ENTRY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+};
+
+function useEntryDate() {
+  const { formatDateTime } = useLocaleFormat();
+  return (value: string) => formatDateTime(value, ENTRY_DATE_OPTIONS);
+}
+
+function ActivityTimeline({
+  activities,
+  emptyText,
+  rich = false,
+}: {
+  activities: ActivityLogEntry[];
+  emptyText: string;
+  /** Show the full formatted entry (the care thread) instead of its text. */
+  rich?: boolean;
+}) {
+  const entryDate = useEntryDate();
+  if (activities.length === 0) {
+    return <p className="text-sm text-muted-foreground">{emptyText}</p>;
+  }
+  return (
+    <ol className="flex flex-col gap-4">
+      {[...activities]
+        .sort((a, b) =>
+          rich
+            ? Date.parse(a.date) - Date.parse(b.date)
+            : Date.parse(b.date) - Date.parse(a.date),
+        )
+        .map((activity) => (
+          <li key={activity.id} className="flex gap-3">
+            <MessageSquareText
+              aria-hidden="true"
+              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+            />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-x-3">
+                <p className="text-sm font-medium">
+                  {ACTIVITY_TYPE_LABELS[activity.type]}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {activity.authorName} · {entryDate(activity.date)}
+                </p>
+              </div>
+              {rich && isRichText(activity.content) ? (
+                <RichTextViewer value={activity.content} size="sm" />
+              ) : (
+                <p className="whitespace-pre-line text-sm text-muted-foreground">
+                  {plainText(activity.content)}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+    </ol>
+  );
+}
+
+function OverviewTab({
   personnel,
   activities,
-  heatmapData,
 }: {
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
-  heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
-  const { formatDate } = useLocaleFormat();
   return (
-    <TabsContent value="overview" className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Wellness Heatmap
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Interaction frequency and intensity over the last 90 days.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <HealthHeatmap data={heatmapData} />
-            <div className="mt-6 space-y-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Recent Activity
-              </h4>
-              <div className="space-y-3">
-                {activities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex gap-3 p-3 rounded-lg border border-border bg-muted/30"
-                  >
-                    <div className="mt-0.5">
-                      {activity.type === "Video Call" ? (
-                        <Phone className="size-4 text-info" />
-                      ) : (
-                        <MessageCircle className="size-4 text-success" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-foreground">
-                          {activity.type}
-                        </span>
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {formatDate(activity.date)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {activity.content}
-                      </p>
-                      <div className="text-xs text-muted-foreground font-semibold uppercase">
-                        By {activity.authorName}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">
-                Health Signals
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {Object.entries(personnel.healthSignals).map(([key, value]) => (
-                <div key={key} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-semibold capitalize">
-                    <span>{key}</span>
-                    <span
-                      className={cn(
-                        value > 80
-                          ? "text-success"
-                          : value > 50
-                            ? "text-warning"
-                            : "text-destructive",
-                      )}
-                    >
-                      {value}%
+    <TabsContent value="overview" className="flex flex-col gap-6">
+      <div className="grid gap-6 md:grid-cols-2">
+        <ProfileCard
+          title="Health signals"
+          description={
+            Object.values(personnel.healthSignals).every(
+              (value) => value === null,
+            )
+              ? "No wellbeing assessment has been recorded."
+              : "Recorded wellbeing assessments, out of 100."
+          }
+        >
+          <ul className="flex flex-col gap-4">
+            {(
+              Object.keys(HEALTH_SIGNAL_LABELS) as Array<
+                keyof CarePersonnel["healthSignals"]
+              >
+            ).map((key) => {
+              const value = personnel.healthSignals[key];
+              return (
+                <li key={key} className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>{HEALTH_SIGNAL_LABELS[key]}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {value ?? "Not assessed"}
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full w-(--health-signal-width) rounded-full transition-colors",
-                        value > 80
-                          ? "bg-success"
-                          : value > 50
-                            ? "bg-warning"
-                            : "bg-destructive",
-                      )}
-                      style={
-                        {
-                          "--health-signal-width": `${value}%`,
-                        } as React.CSSProperties
-                      }
+                  {/* A measurement on a 0–100 scale, not a task's progress. */}
+                  {value !== null ? (
+                    <Meter
+                      value={value}
+                      aria-label={`${HEALTH_SIGNAL_LABELS[key]} health ${value} out of 100`}
                     />
-                  </div>
-                </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </ProfileCard>
+        <ProfileCard
+          title="Open care needs"
+          description="What the care team is following up on."
+        >
+          {personnel.careGaps.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No open care needs.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {personnel.careGaps.map((gap) => (
+                <li key={gap} className="flex items-start gap-2 text-sm">
+                  <ListChecks
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  {gap}
+                </li>
               ))}
-            </CardContent>
-          </Card>
-
-          {personnel.careGaps.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2 text-destructive">
-                  <AlertTriangle className="size-4" />
-                  <CardTitle className="text-sm font-semibold uppercase">
-                    Active Care Gaps
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {personnel.careGaps.map((gap) => (
-                    <li
-                      key={gap}
-                      className="text-xs font-medium text-destructive flex items-center gap-2"
-                    >
-                      <div className="size-1 rounded-full bg-destructive" />
-                      {gap}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            </ul>
           )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">
-                Personal & Family Info
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 text-xs text-muted-foreground">
-                <div className="flex justify-between gap-4">
-                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                    Household
-                  </span>
-                  <span>Not provided</span>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                    Dependents
-                  </span>
-                  <span>Not provided</span>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                    Preferred language
-                  </span>
-                  <span>Not provided</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">
-                Emergency Contact
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-xs font-semibold text-foreground">
-                Not yet recorded
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Add emergency contact information in profile editing flows.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        </ProfileCard>
       </div>
+      <ProfileCard
+        title="Recent activity"
+        description="The last five calls, visits and notes."
+      >
+        <ActivityTimeline
+          activities={[...activities]
+            .filter(isLoggedContact)
+            .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+            .slice(0, 5)}
+          emptyText="No care activity has been logged yet."
+        />
+      </ProfileCard>
     </TabsContent>
   );
 }
 
-function CareThreadTabContent({
+function CareThreadTab({
   personnel,
   activities,
 }: {
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
 }) {
-  const pendingActionLabelId = useId();
-  const { formatDateTime } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createThreadPost = useCreateCareThreadPost();
-  const threadEntries = activities;
 
   return (
     <TabsContent value="care-thread">
-      <Card className="min-h-100">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">Care Thread</CardTitle>
-          <CardDescription className="text-xs">
-            Shared updates and contextual care notes for {personnel.name}.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-4">
-          {threadEntries.length === 0 ? (
-            <div className="rounded-xl border border-border bg-muted p-4 text-xs text-muted-foreground">
-              No thread updates yet.
-            </div>
-          ) : (
-            threadEntries.map((entry) => (
-              <div
-                key={entry.id}
-                className="rounded-xl border border-border bg-card p-4 shadow-sm"
-              >
-                <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                    {entry.authorName}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {formatDateTime(entry.date)}
-                  </span>
-                </div>
-                <RichTextViewer value={entry.content} />
-              </div>
-            ))
-          )}
-
-          <div className="rounded-xl border border-border p-4">
+      <ProfileCard
+        title="Care thread"
+        description={`Shared updates about ${personnel.name} for the care team.`}
+      >
+        <div className="flex flex-col gap-6">
+          <ActivityTimeline
+            rich
+            activities={activities.filter(
+              (activity) => activity.kind === "thread",
+            )}
+            emptyText="No updates yet. Post the first one below."
+          />
+          <div className="flex flex-col gap-3 rounded-lg border p-3">
             <LegacyRichTextEditor
               aria-label="Care thread update"
+              readOnly={createThreadPost.isPending}
               imagePurpose="care-thread"
               value={draft}
               onChange={setDraft}
-              placeholder="Post an update to the care thread..."
+              placeholder="Post an update to the care thread…"
             />
-            <div className="mt-3 flex justify-end">
+            <p className="text-sm text-muted-foreground">
+              Shared with the care team. To record a call or visit, use Log
+              contact.
+            </p>
+            <div className="flex justify-end">
               <Button
-                aria-labelledby={`${pendingActionLabelId}-13`}
-                focusableWhenDisabled={createThreadPost.isPending}
                 size="sm"
+                disabled={
+                  createThreadPost.isPending || isPostContentEmpty(draft)
+                }
                 onClick={async () => {
-                  if (!draft.trim()) return;
-                  await createThreadPost.mutateAsync({
-                    personnelId: personnel.id,
-                    content: draft,
-                  });
-                  setDraft("");
+                  if (createThreadPost.isPending || isPostContentEmpty(draft))
+                    return;
+                  const posted = await runCareAction(
+                    () =>
+                      createThreadPost.mutateAsync({
+                        personnelId: personnel.id,
+                        content: draft,
+                      }),
+                    {
+                      success: "Update posted",
+                      failure: "The update could not be posted. Try again.",
+                    },
+                  );
+                  if (posted) setDraft("");
                 }}
-                disabled={createThreadPost.isPending}
               >
-                <span id={`${pendingActionLabelId}-13`}>
-                  {createThreadPost.isPending ? "Posting..." : "Post Update"}
-                </span>
+                {createThreadPost.isPending ? "Posting…" : "Post update"}
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </ProfileCard>
     </TabsContent>
   );
 }
 
-function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
-  const pendingActionLabelId = useId();
+const RHYTHM_ACTIVITY_LABELS = {
+  "Check-in": "Check-in",
+  "Video Call": "Video call",
+  "In-Person Visit": "In-person visit",
+  "Pastoral Note": "Pastoral note",
+} as const;
+type RhythmActivity = keyof typeof RHYTHM_ACTIVITY_LABELS;
 
+function CareRhythmForm({
+  personnelId,
+  requirements,
+}: {
+  personnelId: string;
+  requirements: MemberCareRequirement[];
+}) {
+  const fieldId = useId();
+  const initial = requirements.find(
+    (requirement) => requirement.activityType === "Check-in",
+  );
+  const [activity, setActivity] = useState<RhythmActivity>("Check-in");
+  const [days, setDays] = useState(
+    String(initial?.intervalDays ?? CHECK_IN_INTERVAL_DAYS),
+  );
+  const [note, setNote] = useState(initial?.notes ?? "");
+  const existing = requirements.find(
+    (requirement) => requirement.activityType === activity,
+  );
+  const upsertRequirement = useUpsertCareRequirement();
+  const interval = Number(days);
+  const valid = Number.isInteger(interval) && interval > 0;
+
+  return (
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        if (!valid || upsertRequirement.isPending) return;
+        const trimmed = note.trim();
+        const saved = await runCareAction(
+          () =>
+            upsertRequirement.mutateAsync({
+              personnelId,
+              ...(existing ? { id: existing.id } : {}),
+              activityType: activity,
+              intervalDays: interval,
+              notes: trimmed,
+            }),
+          {
+            success: "Contact schedule saved",
+            failure: "The contact schedule could not be saved. Try again.",
+          },
+        );
+        if (!saved) return;
+      }}
+    >
+      <p className="text-sm font-medium">
+        {existing ? "Update a contact schedule" : "Add a contact schedule"}
+      </p>
+      {existing ? (
+        <p className="text-sm text-muted-foreground">
+          This replaces the saved {ACTIVITY_TYPE_LABELS[activity].toLowerCase()}{" "}
+          interval.
+        </p>
+      ) : null}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor={`${fieldId}-activity`}
+            className="text-xs text-muted-foreground"
+          >
+            Contact
+          </label>
+          <Select<RhythmActivity>
+            items={RHYTHM_ACTIVITY_LABELS}
+            value={activity}
+            onValueChange={(value) => {
+              if (!value) return;
+              setActivity(value);
+              const saved = requirements.find(
+                (requirement) => requirement.activityType === value,
+              );
+              setDays(String(saved?.intervalDays ?? CHECK_IN_INTERVAL_DAYS));
+              setNote(saved?.notes ?? "");
+            }}
+          >
+            <SelectTrigger id={`${fieldId}-activity`} aria-label="Contact">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(RHYTHM_ACTIVITY_LABELS) as RhythmActivity[]).map(
+                (value) => (
+                  <SelectItem key={value} value={value}>
+                    {RHYTHM_ACTIVITY_LABELS[value]}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor={`${fieldId}-days`}
+            className="text-xs text-muted-foreground"
+          >
+            Every (days)
+          </label>
+          <Input
+            id={`${fieldId}-days`}
+            type="number"
+            min={1}
+            inputMode="numeric"
+            value={days}
+            onChange={(event) => setDays(event.target.value)}
+            aria-invalid={!valid || undefined}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor={`${fieldId}-note`}
+            className="text-xs text-muted-foreground"
+          >
+            Note (optional)
+          </label>
+          <Input
+            id={`${fieldId}-note`}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="For example: while on home assignment"
+          />
+        </div>
+      </div>
+      <Button
+        type="submit"
+        variant="outline"
+        className="self-start"
+        disabled={upsertRequirement.isPending || !valid}
+      >
+        {upsertRequirement.isPending
+          ? "Saving…"
+          : existing
+            ? "Update schedule"
+            : "Add schedule"}
+      </Button>
+    </form>
+  );
+}
+
+function CarePlanTab({
+  personnel,
+  goals,
+  requirements,
+}: {
+  personnel: CarePersonnel;
+  goals: MemberCareGoal[];
+  requirements: MemberCareRequirement[];
+}) {
+  const goalFieldId = useId();
+  const [goal, setGoal] = useState("");
+  const [targetDate, setTargetDate] = useState<Date>();
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const upsertCareGoal = useCreateOrUpdateCareGoal();
-  const upsertCareRequirement = useUpsertCareRequirement();
-  const planItems = personnel.careGaps.length
-    ? personnel.careGaps.map((gap, index) => ({
-        id: `${personnel.id}-${index}`,
-        title: gap,
-        status: index === 0 ? "Overdue" : "Pending",
-      }))
-    : [
-        {
-          id: `${personnel.id}-routine`,
-          title: "Routine monthly wellness check-in",
-          status: "Pending",
-        },
-      ];
-
+  const { formatDate } = useLocaleFormat();
   return (
     <TabsContent value="care-plan">
-      <Card className="min-h-100">
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <CardTitle className="text-base font-semibold">
-                Care Plan
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Goals, interventions, and due care tasks for this member.
-              </CardDescription>
+      <ProfileCard
+        title="Care plan"
+        description="Goals and contact schedules the care team is working on."
+      >
+        <div className="flex flex-col gap-6">
+          {goals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No care goals yet. Add a goal when the team agrees on a next step.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {[...goals]
+                .sort(
+                  (first, second) =>
+                    Number(first.status === "completed") -
+                    Number(second.status === "completed"),
+                )
+                .map((savedGoal) => (
+                  <li
+                    key={savedGoal.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-sm"
+                  >
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <span className="font-medium">{savedGoal.title}</span>
+                      <span className="text-muted-foreground">
+                        {savedGoal.status === "completed"
+                          ? "Completed"
+                          : savedGoal.status === "active"
+                            ? "Active"
+                            : "Pending"}
+                        {savedGoal.targetDate
+                          ? ` · Target ${formatDate(savedGoal.targetDate)}`
+                          : ""}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={upsertCareGoal.isPending}
+                      onClick={() =>
+                        void runCareAction(
+                          () =>
+                            upsertCareGoal.mutateAsync({
+                              personnelId: personnel.id,
+                              id: savedGoal.id,
+                              title: savedGoal.title,
+                              status:
+                                savedGoal.status === "completed"
+                                  ? "active"
+                                  : "completed",
+                              targetDate: savedGoal.targetDate,
+                            }),
+                          {
+                            success:
+                              savedGoal.status === "completed"
+                                ? "Goal reopened"
+                                : "Goal completed",
+                            failure:
+                              "The goal could not be updated. Try again.",
+                          },
+                        )
+                      }
+                    >
+                      {savedGoal.status === "completed"
+                        ? "Reopen"
+                        : "Mark done"}
+                    </Button>
+                  </li>
+                ))}
+            </ul>
+          )}
+          <form
+            className="flex flex-col gap-3"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              if (!goal.trim() || upsertCareGoal.isPending) return;
+              const saved = await runCareAction(
+                () =>
+                  upsertCareGoal.mutateAsync({
+                    personnelId: personnel.id,
+                    title: goal.trim(),
+                    status: "active",
+                    ...(targetDate
+                      ? { targetDate: format(targetDate, "yyyy-MM-dd") }
+                      : {}),
+                  }),
+                {
+                  success: "Care goal added",
+                  failure: "The goal could not be saved. Try again.",
+                },
+              );
+              if (saved) {
+                setGoal("");
+                setTargetDate(undefined);
+              }
+            }}
+          >
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={goalFieldId} className="text-sm font-medium">
+                Add a goal
+              </label>
+              <Input
+                id={goalFieldId}
+                value={goal}
+                onChange={(event) => setGoal(event.target.value)}
+                placeholder="For example: monthly video call through March"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`${goalFieldId}-target`} className="text-sm">
+                Target date (optional)
+              </label>
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger
+                  id={`${goalFieldId}-target`}
+                  render={
+                    <Button type="button" variant="outline">
+                      <CalendarDays aria-hidden="true" />
+                      {targetDate ? formatDate(targetDate) : "Select date"}
+                    </Button>
+                  }
+                />
+                <PopoverContent align="start" className="w-auto">
+                  <PopoverTitle className="sr-only">Target date</PopoverTitle>
+                  <Calendar
+                    mode="single"
+                    selected={targetDate}
+                    defaultMonth={targetDate}
+                    onSelect={(date) => {
+                      setTargetDate(date);
+                      setDatePickerOpen(false);
+                    }}
+                    autoFocus
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setTargetDate(undefined);
+                        setDatePickerOpen(false);
+                      }}
+                    >
+                      Clear date
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <Button
-              aria-labelledby={`${pendingActionLabelId}-14`}
-              focusableWhenDisabled={upsertCareGoal.isPending}
-              size="sm"
-              onClick={async () => {
-                await upsertCareGoal.mutateAsync({
-                  personnelId: personnel.id,
-                  title: `Follow-up plan (${makeDisplayDate().toLocaleDateString()})`,
-                  status: "active",
-                });
-              }}
-              disabled={upsertCareGoal.isPending}
-            >
-              <span id={`${pendingActionLabelId}-14`}>
-                {upsertCareGoal.isPending ? "Saving..." : "Add Goal"}
-              </span>
-            </Button>
-            <Button
-              aria-labelledby={`${pendingActionLabelId}-15`}
-              focusableWhenDisabled={upsertCareRequirement.isPending}
-              size="sm"
+              type="submit"
               variant="outline"
-              onClick={async () => {
-                await upsertCareRequirement.mutateAsync({
-                  personnelId: personnel.id,
-                  activityType: "Check-in",
-                  intervalDays: 30,
-                  notes: "Monthly wellness check-in cadence.",
-                });
-              }}
-              disabled={upsertCareRequirement.isPending}
+              className="self-start"
+              disabled={upsertCareGoal.isPending || !goal.trim()}
             >
-              <span id={`${pendingActionLabelId}-15`}>
-                {upsertCareRequirement.isPending
-                  ? "Saving..."
-                  : "Add Requirement"}
-              </span>
+              {upsertCareGoal.isPending ? "Saving…" : "Add goal"}
             </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 space-y-3">
-          {planItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between rounded-xl border border-border bg-card p-4"
-            >
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {item.title}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Owner: Member Care Team
-                </p>
-              </div>
-              <Badge
-                variant={item.status === "Overdue" ? "destructive" : "info"}
-              >
-                {item.status}
-              </Badge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </TabsContent>
-  );
-}
-
-function ActivityTabContent({
-  activities,
-  heatmapData,
-}: {
-  activities: ActivityLogEntry[];
-  heatmapData: Array<{ date: string; intensity: number; type: string }>;
-}) {
-  const { formatDateTime } = useLocaleFormat();
-  return (
-    <TabsContent value="activity" className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">
-            Activity Log
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Full chronological care activity timeline.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-3">
-          {activities.map((activity) => (
-            <div
-              key={activity.id}
-              className="rounded-xl border border-border bg-muted/40 p-4"
-            >
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">
-                  {activity.type}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatDateTime(activity.date)}
-                </p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {activity.content}
+          </form>
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-medium">Contact schedules</h3>
+            {requirements.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No saved contact schedules. Follow-up is due after more than{" "}
+                {CHECK_IN_INTERVAL_DAYS} days without contact, or when no
+                contact is recorded.
               </p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">
-            Activity Heatmap
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Contact intensity over recent weeks.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <HealthHeatmap data={heatmapData} />
-        </CardContent>
-      </Card>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {requirements.map((requirement) => (
+                  <li key={requirement.id} className="text-sm">
+                    {ACTIVITY_TYPE_LABELS[requirement.activityType]} · Every{" "}
+                    {requirement.intervalDays} days
+                    {requirement.notes ? ` · ${requirement.notes}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <CareRhythmForm
+            key={requirements
+              .map(
+                (requirement) =>
+                  `${requirement.id}:${requirement.intervalDays}:${requirement.notes}`,
+              )
+              .join("|")}
+            personnelId={personnel.id}
+            requirements={requirements}
+          />
+        </div>
+      </ProfileCard>
     </TabsContent>
   );
 }
 
-function SecureNotesTabContent({
+function ActivityTab({ activities }: { activities: ActivityLogEntry[] }) {
+  return (
+    <TabsContent value="activity">
+      <ProfileCard
+        title="Activity"
+        description="Every call, visit and note, newest first."
+      >
+        <ActivityTimeline
+          activities={activities.filter(isLoggedContact)}
+          emptyText="No care activity has been logged yet."
+        />
+      </ProfileCard>
+    </TabsContent>
+  );
+}
+
+function PrivateNotesTab({
   personnelId,
   privateNotes,
 }: {
   personnelId: string;
   privateNotes: MemberCarePrivateNote[];
 }) {
-  const pendingActionLabelId = useId();
-  const { formatDate } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createPrivateNote = useCreateCarePrivateNote();
+  const entryDate = useEntryDate();
 
   return (
     <TabsContent value="secure-notes">
-      <Card className="min-h-100">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base font-semibold">
-                Private Pastoral Notes
-              </CardTitle>
-              <Lock className="size-3.5 text-warning" />
-            </div>
-            <CardDescription className="text-xs">
-              Only visible to you and platform super admins.
-            </CardDescription>
-          </div>
-          <Button size="sm" variant="outline">
-            <Plus className="mr-2 size-3.5" /> Add Private Note
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-4 p-6">
-          <div className="rounded-xl border border-warning/25 bg-warning/10 p-4 text-xs text-warning">
-            Private notes are visible only to the author and platform super
-            admins. They are for internal ministry/admin use only. Do not store
-            regulated or legally protected information unless your organization
-            has explicitly approved that use.
-          </div>
-          {privateNotes.length > 0 ? (
-            <div className="space-y-4">
-              {privateNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className="p-4 rounded-xl border border-warning/25 bg-card shadow-sm space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-warning">
-                      {note.authorName}
-                    </span>
-                    <span className="text-xs text-muted-foreground font-medium">
-                      {formatDate(note.date)}
-                    </span>
-                  </div>
-                  <RichTextViewer value={note.content} />
-                </div>
-              ))}
-            </div>
+      <ProfileCard
+        title="Private notes"
+        description="Visible only to you and platform super admins."
+      >
+        <div className="flex flex-col gap-6">
+          <Alert>
+            <Lock aria-hidden="true" />
+            <AlertTitle>For internal ministry use</AlertTitle>
+            <AlertDescription>
+              Do not store regulated or legally protected information unless
+              your organization has approved it.
+            </AlertDescription>
+          </Alert>
+          {privateNotes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No private notes yet.
+            </p>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-warning">
-              <Lock className="size-12 mb-4 opacity-20" />
-              <p className="text-sm font-medium">No private notes yet</p>
-            </div>
+            <ol className="flex flex-col gap-4">
+              {privateNotes.map((note) => (
+                <li key={note.id} className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">
+                    {note.authorName} · {entryDate(note.date)}
+                  </p>
+                  <div className="text-sm">
+                    {isRichText(note.content) ? (
+                      <RichTextViewer value={note.content} size="sm" />
+                    ) : (
+                      <p className="whitespace-pre-line">
+                        {plainText(note.content)}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
           )}
-
-          <div className="rounded-xl border border-warning/25 bg-card p-4">
+          <div className="flex flex-col gap-3 rounded-lg border p-3">
             <LegacyRichTextEditor
               aria-label="Private care note"
+              readOnly={createPrivateNote.isPending}
               imagePurpose="care-note"
               value={draft}
               onChange={setDraft}
-              placeholder="Add a secure note..."
+              placeholder="Write a private note…"
             />
-            <div className="mt-3 flex justify-end">
+            <div className="flex justify-end">
               <Button
-                aria-labelledby={`${pendingActionLabelId}-16`}
-                focusableWhenDisabled={createPrivateNote.isPending}
                 size="sm"
+                disabled={
+                  createPrivateNote.isPending || isPostContentEmpty(draft)
+                }
                 onClick={async () => {
-                  if (!draft.trim()) return;
-                  await createPrivateNote.mutateAsync({
-                    personnelId,
-                    content: draft,
-                  });
-                  setDraft("");
+                  if (createPrivateNote.isPending || isPostContentEmpty(draft))
+                    return;
+                  const saved = await runCareAction(
+                    () =>
+                      createPrivateNote.mutateAsync({
+                        personnelId,
+                        content: draft,
+                      }),
+                    {
+                      success: "Private note saved",
+                      failure: "The note could not be saved. Try again.",
+                    },
+                  );
+                  if (saved) setDraft("");
                 }}
-                disabled={createPrivateNote.isPending}
               >
-                <span id={`${pendingActionLabelId}-16`}>
-                  {createPrivateNote.isPending
-                    ? "Saving..."
-                    : "Save Secure Note"}
-                </span>
+                {createPrivateNote.isPending ? "Saving…" : "Save note"}
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </ProfileCard>
     </TabsContent>
   );
 }
+
+const PROFILE_TABS = [
+  { value: "overview", label: "Overview" },
+  { value: "care-thread", label: "Care thread" },
+  { value: "care-plan", label: "Care plan" },
+  { value: "activity", label: "Activity" },
+  { value: "secure-notes", label: "Private notes" },
+] as const;
+
+type ProfileTab = (typeof PROFILE_TABS)[number]["value"];
+
+const PROFILE_TAB_LABELS = Object.fromEntries(
+  PROFILE_TABS.map((tab) => [tab.value, tab.label]),
+) as Record<ProfileTab, string>;
 
 export function PersonnelProfile({
   personnel,
   activities,
   privateNotes,
+  goals = [],
+  requirements = [],
 }: PersonnelProfileProps) {
-  const [localTime, setLocalTime] = useState<string | null>(null);
-  const logCareActivity = useLogCareActivity();
-  const setManualAttention = useSetManualAttentionFlag();
-
-  const heatmapData = useMemo(
-    () =>
-      activities.map((a, index) => ({
-        date: a.date.split("T")[0] ?? "",
-        intensity: (index % 4) + 1,
-        type: a.type,
-      })),
-    [activities],
-  );
-
-  useEffect(() => {
-    const updateTime = () => {
-      setLocalTime(
-        makeDisplayDate().toLocaleTimeString("en-US", {
-          timeZone: personnel.timezone,
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      );
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 60000);
-    return () => clearInterval(timer);
-  }, [personnel.timezone]);
-
+  const [tab, setTab] = useState<ProfileTab>("overview");
   return (
-    <div className="space-y-6">
-      <PersonnelProfileHeaderCard
-        personnel={personnel}
-        localTime={localTime}
-        onLogCheckIn={async () => {
-          await logCareActivity.mutateAsync({
-            personnelId: personnel.id,
-            type: "Check-in",
-            content: "Quick wellness check-in logged from profile header.",
-          });
-        }}
-        onToggleManualAttention={async () => {
-          await setManualAttention.mutateAsync({
-            personnelId: personnel.id,
-            manualAttention: !Boolean(personnel.manualAttention),
-          });
-        }}
-        isLoggingCheckIn={logCareActivity.isPending}
-        isUpdatingAttention={setManualAttention.isPending}
-      />
-
-      <Tabs defaultValue="overview" className="w-full">
-        <div className="mb-6 overflow-x-auto pb-1">
-          <TabsList aria-label="Personnel profile" variant="line">
-            {[
-              "overview",
-              "care-thread",
-              "care-plan",
-              "activity",
-              "secure-notes",
-            ].map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                <span className="capitalize">{tab.replace("-", " ")}</span>
-              </TabsTrigger>
+    <Tabs
+      value={tab}
+      onValueChange={(next) => setTab(next as ProfileTab)}
+      className="flex flex-col gap-6"
+    >
+      <div className="sm:hidden">
+        <Select<ProfileTab>
+          items={PROFILE_TAB_LABELS}
+          value={tab}
+          onValueChange={(next) => next && setTab(next)}
+        >
+          <SelectTrigger aria-label="Profile section">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PROFILE_TABS.map((entry) => (
+              <SelectItem key={entry.value} value={entry.value}>
+                {entry.label}
+              </SelectItem>
             ))}
-          </TabsList>
-        </div>
-
-        <OverviewTabContentSection
-          personnel={personnel}
-          activities={activities}
-          heatmapData={heatmapData}
-        />
-
-        <CareThreadTabContent personnel={personnel} activities={activities} />
-
-        <CarePlanTabContent personnel={personnel} />
-
-        <ActivityTabContent activities={activities} heatmapData={heatmapData} />
-
-        <SecureNotesTabContent
-          personnelId={personnel.id}
-          privateNotes={privateNotes}
-        />
-      </Tabs>
-    </div>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="hidden overflow-x-auto sm:block">
+        <TabsList aria-label="Personnel profile" variant="line">
+          {PROFILE_TABS.map((entry) => (
+            <TabsTrigger key={entry.value} value={entry.value}>
+              {entry.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+      <OverviewTab personnel={personnel} activities={activities} />
+      <CareThreadTab personnel={personnel} activities={activities} />
+      <CarePlanTab
+        personnel={personnel}
+        goals={goals}
+        requirements={requirements}
+      />
+      <ActivityTab activities={activities} />
+      <PrivateNotesTab personnelId={personnel.id} privateNotes={privateNotes} />
+    </Tabs>
   );
 }

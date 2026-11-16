@@ -45,6 +45,29 @@ describe("#2224 criterion 2: openAvatarCropper asserts the fixture and the Crop 
     ).toBe(true);
   });
 
+  it.each([
+    ["Upload photo", { fallback: "DD" }],
+    [
+      "Change photo",
+      { src: "http://localhost:3001/avatars/donor.png", fallback: "DD" },
+    ],
+  ])("opens the cropper using the %s control", async (name, avatar) => {
+    const result = await runFresh(pick.open, { avatar });
+    expect(result.outcome, result.details.join("\n")).toBe("passed");
+    const elements = result.world.elements();
+    expect(
+      elements
+        .filter((element) => element.role === "button")
+        .map((element) => element.name),
+    ).toContain(name);
+    expect(
+      elements.filter((element) => element.attrs?.type === "file"),
+    ).toHaveLength(1);
+    expect(elements.some((element) => element.name === "Upload New")).toBe(
+      false,
+    );
+  });
+
   it.each(CROPPER_TESTS)(
     "the %s test fails (not skips, not passes) when test-image.png is missing",
     async (which) => {
@@ -157,7 +180,11 @@ describe("#2224 criterion 4: cancel observes the real avatar and checks nothing 
 
   it("the cancel test no longer swallows a missing observation", () => {
     const src = specSource();
-    expect(src).toContain("Upload public avatar");
+    const observation = functionBody(src, "observeAvatar");
+    expect(observation).toContain('[data-slot="card"]');
+    expect(observation).toContain('[data-slot="avatar"]');
+    expect(observation).toMatch(/name: "Photo", exact: true/);
+    expect(observation).not.toContain("Upload public avatar");
     expect(src).not.toMatch(/img\[alt="Uploaded"\]/);
     expect(pick.cancel(loadSpec()).src).not.toMatch(
       /\.catch\(\s*\(\)\s*=>\s*null\s*\)/,

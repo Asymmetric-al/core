@@ -18,6 +18,17 @@ export type ChartConfig = {
   );
 };
 
+const CHART_TOKEN_COUNT = 5;
+
+/**
+ * The semantic chart colour for a series by position: `var(--chart-1)` to
+ * `var(--chart-5)`, then round again. Use it in a `ChartConfig` so series
+ * follow the Maia theme in light and dark.
+ */
+export function chartColor(index: number): string {
+  return `var(--chart-${(index % CHART_TOKEN_COUNT) + 1})`;
+}
+
 type ChartContextProps = {
   config: ChartConfig;
 };

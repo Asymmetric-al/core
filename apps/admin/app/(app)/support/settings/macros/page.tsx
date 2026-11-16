@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { MacroList } from "@/features/support-hub/components/settings/macros/MacroList";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Macros · Support settings",
+};
 
 export default function SupportSettingsMacrosPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Macros"
-      description="One-click action sequences for donor care work."
-    >
+    <>
       <MacroList />
-    </SupportWorkspaceShell>
+    </>
   );
 }

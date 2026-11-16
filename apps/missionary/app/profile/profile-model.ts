@@ -3,11 +3,6 @@ export const BIO_MIN_WORDS = 200;
 export const BIO_MAX_WORDS = 600;
 export const BIO_MAX_CHARS = 3500;
 
-export const PLACEHOLDER_AVATAR =
-  "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face";
-export const PLACEHOLDER_COVER =
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop";
-
 /** Live preview frame sizes (scaled to container in profile preview column). */
 export const MOBILE_PREVIEW_WIDTH = 320;
 export const MOBILE_PREVIEW_HEIGHT = 568;

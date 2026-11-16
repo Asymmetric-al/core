@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { parseAmountToCents } from "../admin/contribution-operations/catalog";
+
 /**
  * Offline contribution entry contract (Contributions Hub).
  * Source: DONOR_ANONYMITY_GUEST_GIVING_SPEC §6 + §9.3.
@@ -67,10 +69,23 @@ const receivedDate = requiredText("Received date").refine(
   "Received date must be a valid ISO date or timestamp",
 );
 
-const amount = z.coerce
-  .number()
-  .finite()
-  .positive("Amount must be greater than 0");
+/**
+ * Dollars, as a number or as typed text ("1,500.00"). Read through the same
+ * digit-based parser as refunds and corrections, so a sub-cent or exponent
+ * amount is rejected rather than rounded into a different gift.
+ */
+const amount = z.union([z.number(), z.string()]).transform((value, ctx) => {
+  const cents = parseAmountToCents(String(value));
+  if (cents === null || cents <= 0) {
+    ctx.addIssue({
+      code: "custom",
+      message:
+        "Amount must be greater than 0, in dollars and cents (at most two decimal places)",
+    });
+    return z.NEVER;
+  }
+  return cents / 100;
+});
 
 const knownOffline = z.object({
   donorMode: z.literal("known"),

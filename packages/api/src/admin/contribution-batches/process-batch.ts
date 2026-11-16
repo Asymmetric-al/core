@@ -1,5 +1,6 @@
 import { asPayload, createContributionBatchPreview } from "./preview";
 import { summarizeContributionBatchResults } from "./results";
+import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
 import {
   CRM_POSTING_UNAVAILABLE_NEXT_STEP,
@@ -524,7 +525,7 @@ export async function processPersistedContributionBatch(input: {
   const { data: batchRow, error: batchError } = await input.supabaseAdmin
     .from("contribution_operation_batches")
     .select(
-      "id, operation, source_surface, reason, confirmation_snapshot, status, processed_count, succeeded_count, skipped_count, failed_count, follow_up_task_count, created_by_profile_id, created_at",
+      "id, operation, source_surface, reason, confirmation_snapshot, status, execution_mode, processed_count, succeeded_count, skipped_count, failed_count, follow_up_task_count, created_by_profile_id, created_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.batchId)
@@ -553,6 +554,15 @@ export async function processPersistedContributionBatch(input: {
         followUpTasksCreated: Number(batchRow.follow_up_task_count ?? 0),
       },
     };
+  }
+
+  // An immediate batch runs inside its creating request and has no items to
+  // claim; processing it here would finalize it with zero counts.
+  if (batchRow.execution_mode === "immediate") {
+    throw new ApiHttpError(
+      409,
+      "This batch is still being sent by its original request.",
+    );
   }
 
   // Retire persisted batches for retired CRM posting operations without

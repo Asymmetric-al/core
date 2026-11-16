@@ -1,6 +1,5 @@
 "use client";
 
-import { Input } from "@asym/ui/components/shadcn/input";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import * as React from "react";
@@ -14,6 +13,8 @@ import {
 } from "../../../hooks/use-support-inbox-settings";
 import { useSaveSupportInboxSettings } from "../../../hooks/use-support-mutations";
 import { useSupportSignatures } from "../../../hooks/use-support-signatures";
+import { SettingsListState } from "../SettingsListState";
+import { SettingsNotAppliedNote } from "../SettingsNotAppliedNote";
 import { SettingsPanel } from "../SettingsPanel";
 import { SettingsRow } from "../SettingsRow";
 import { SettingsToolbar } from "../SettingsToolbar";
@@ -22,8 +23,9 @@ import type { SupportInboxSettings } from "../../../types";
 
 export function InboxSettingsForm() {
   const { data: inboxes } = useSupportInboxes();
-  const { data: activeSettings } = useSupportInboxSettings();
-  const { data: signatures } = useSupportSignatures();
+  const inboxSettings = useSupportInboxSettings();
+  const activeSettings = inboxSettings.data;
+  const signatures = useSupportSignatures();
   const slaPolicies = useSupportSlaPolicies();
   const businessHours = useSupportBusinessHours();
   const saveSettings = useSaveSupportInboxSettings();
@@ -42,14 +44,28 @@ export function InboxSettingsForm() {
   }
 
   if (!activeSettings) {
+    // Settings load as an empty list first, so "no inbox" waits for a
+    // successful load.
     return (
-      <SettingsPanel
-        title="Inbox identity"
-        description="No default inbox configured yet."
-      >
-        <p className="text-xs text-muted-foreground">
-          Configure an inbox in the Mission Control integrations area first.
-        </p>
+      <SettingsPanel title="Inbox defaults">
+        <SettingsListState
+          noun="inbox settings"
+          isLoading={inboxSettings.isLoading}
+          isError={inboxSettings.isError}
+          itemCount={0}
+          onRetry={inboxSettings.refetch}
+        >
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-foreground">
+              No support inbox exists for your organization yet.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              These settings appear once a support inbox has been set up.
+              Inboxes can’t be created here yet, so ask a support admin to set
+              one up.
+            </p>
+          </div>
+        </SettingsListState>
       </SettingsPanel>
     );
   }
@@ -57,8 +73,7 @@ export function InboxSettingsForm() {
   if (!draft) return null;
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(activeSettings);
-  const inboxName =
-    inboxes.find((row) => row.id === draft.inboxId)?.name ?? "Donor Care";
+  const inboxName = inboxes.find((row) => row.id === draft.inboxId)?.name;
 
   const handleSave = async () => {
     if (!isDirty) return;
@@ -84,106 +99,77 @@ export function InboxSettingsForm() {
   };
 
   return (
-    <SettingsPanel
-      title={`Inbox identity — ${inboxName}`}
-      description="Default sender, signature, SLA, and off-hours behavior for this inbox."
-    >
-      <InboxDefaultSelection
-        label="Default signature"
-        description="Applied when an agent has no personal signature yet."
-        emptyLabel="No default signature"
-        options={signatures}
-        value={draft.defaultSignatureId}
-        onChange={(defaultSignatureId) =>
-          setDraft({ ...draft, defaultSignatureId })
-        }
-      />
-      <InboxDefaultSelection
-        label="Default SLA policy"
-        description="Timer applied to new conversations routed to this inbox."
-        emptyLabel="No SLA policy"
-        options={slaPolicies.data ?? []}
-        value={draft.defaultSlaPolicyId}
-        onChange={(defaultSlaPolicyId) =>
-          setDraft({ ...draft, defaultSlaPolicyId })
-        }
-      />
-      <InboxDefaultSelection
-        label="Business hours"
-        description="Used by the reports business-hours filter + off-hours routing rules."
-        emptyLabel="24/7 coverage"
-        options={businessHours.data ?? []}
-        value={draft.defaultBusinessHoursId}
-        onChange={(defaultBusinessHoursId) =>
-          setDraft({ ...draft, defaultBusinessHoursId })
-        }
-      />
-      <SettingsRow
-        label="Round-robin assignment"
-        description="Automatically distribute new inbound conversations across available agents."
+    <div className="flex flex-col gap-4">
+      <SettingsNotAppliedNote>
+        The default signature, SLA policy and business hours are saved for this
+        inbox, but replies, SLA timers and reports don’t use them yet.
+      </SettingsNotAppliedNote>
+      <SettingsPanel
+        title={inboxName ? `${inboxName} inbox` : "Inbox defaults"}
       >
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={draft.roundRobinEnabled}
-            onCheckedChange={(value) =>
-              setDraft({ ...draft, roundRobinEnabled: value })
-            }
-            aria-label="Round-robin assignment"
-          />
-          <span className="text-xs text-muted-foreground">
-            {draft.roundRobinEnabled ? "Enabled" : "Disabled"}
-          </span>
-        </div>
-      </SettingsRow>
-      <SettingsRow
-        label="Auto-resolve"
-        description="Resolve conversations that are pending with no reply for this many days."
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-30">
-            <Input
-              type="number"
-              min={1}
-              max={365}
-              value={draft.autoResolveAfterDays ?? ""}
-              onChange={(event) =>
-                setDraft({
-                  ...draft,
-                  autoResolveAfterDays: event.target.value
-                    ? Number(event.target.value)
-                    : null,
-                })
+        <InboxDefaultSelection
+          label="Default signature"
+          description="The signature this inbox’s replies would use."
+          emptyLabel="No default signature"
+          options={signatures.data}
+          noun="signatures"
+          loadState={signatures}
+          value={draft.defaultSignatureId}
+          onChange={(defaultSignatureId) =>
+            setDraft({ ...draft, defaultSignatureId })
+          }
+        />
+        <InboxDefaultSelection
+          label="Default SLA policy"
+          description="The response targets new conversations in this inbox would get."
+          emptyLabel="No SLA policy"
+          options={slaPolicies.data}
+          noun="SLA policies"
+          loadState={slaPolicies}
+          value={draft.defaultSlaPolicyId}
+          onChange={(defaultSlaPolicyId) =>
+            setDraft({ ...draft, defaultSlaPolicyId })
+          }
+        />
+        <InboxDefaultSelection
+          label="Business hours"
+          description="The working hours this inbox would follow."
+          emptyLabel="No default schedule"
+          options={businessHours.data}
+          noun="business hours"
+          loadState={businessHours}
+          value={draft.defaultBusinessHoursId}
+          onChange={(defaultBusinessHoursId) =>
+            setDraft({ ...draft, defaultBusinessHoursId })
+          }
+        />
+        <SettingsRow
+          control
+          label="Donor panel"
+          description="Show the donor's CRM record beside each conversation."
+        >
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={draft.showContactSidecar}
+              onCheckedChange={(value) =>
+                setDraft({ ...draft, showContactSidecar: value })
               }
+              aria-label="Donor panel"
             />
+            <span className="text-xs text-muted-foreground">
+              {draft.showContactSidecar ? "Shown" : "Hidden"}
+            </span>
           </div>
-          <span className="text-xs text-muted-foreground">days</span>
-        </div>
-      </SettingsRow>
-      <SettingsRow
-        label="Contact sidecar"
-        description="Show the donor CRM panel alongside the conversation detail."
-      >
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={draft.showContactSidecar}
-            onCheckedChange={(value) =>
-              setDraft({ ...draft, showContactSidecar: value })
-            }
-            aria-label="Contact sidecar"
-          />
-          <span className="text-xs text-muted-foreground">
-            {draft.showContactSidecar ? "Visible" : "Hidden"}
-          </span>
-        </div>
-      </SettingsRow>
+        </SettingsRow>
 
-      <SettingsToolbar
-        isDirty={isDirty}
-        isSaving={saveSettings.isPending}
-        onSave={handleSave}
-        onCancel={() => setDraft(activeSettings)}
-      />
-    </SettingsPanel>
+        <SettingsToolbar
+          isDirty={isDirty}
+          isSaving={saveSettings.isPending}
+          onSave={handleSave}
+          onCancel={() => setDraft(activeSettings)}
+        />
+      </SettingsPanel>
+    </div>
   );
 }
 
@@ -192,6 +178,8 @@ function InboxDefaultSelection({
   description,
   emptyLabel,
   options,
+  noun,
+  loadState,
   value,
   onChange,
 }: {
@@ -199,12 +187,20 @@ function InboxDefaultSelection({
   description: string;
   emptyLabel: string;
   options: ReadonlyArray<{ id: string; name: string }>;
+  noun: string;
+  loadState: { isLoading: boolean; isError: boolean; refetch: () => unknown };
   value: string | null;
   onChange: (value: string | null) => void;
 }) {
   return (
     <SettingsRow control label={label} description={description}>
-      <div className="max-w-sm">
+      <SettingsListState
+        noun={noun}
+        isLoading={loadState.isLoading}
+        isError={loadState.isError}
+        itemCount={loadState.isError ? 0 : options.length}
+        onRetry={loadState.refetch}
+      >
         <SearchableSelect
           items={[
             { value: "none", label: emptyLabel },
@@ -216,8 +212,9 @@ function InboxDefaultSelection({
             onChange(nextValue === "none" ? null : nextValue);
           }}
           aria-label={label}
+          className="h-9 max-w-sm"
         />
-      </div>
+      </SettingsListState>
     </SettingsRow>
   );
 }

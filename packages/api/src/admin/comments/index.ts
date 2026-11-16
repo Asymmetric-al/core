@@ -29,11 +29,11 @@ export async function GET(request: NextRequest) {
       .select(
         `
         *,
-        author:profiles!user_id(id, first_name, last_name, avatar_url, full_name),
         post:posts!post_id!inner(id, content, missionary_id, tenant_id)
       `,
+        { count: "exact" },
       )
-      .eq("posts.tenant_id", ctx.tenantId);
+      .eq("post.tenant_id", ctx.tenantId);
 
     if (postId) {
       query = query.eq("post_id", postId);
@@ -43,12 +43,59 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    const { data: comments, error } = await query;
+    const { data: comments, error, count } = await query;
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return NextResponse.json({ comments: comments ?? [] });
+    const authorIds = [
+      ...new Set(
+        (comments ?? [])
+          .map((comment) => comment.user_id)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const authors = new Map<
+      string,
+      {
+        id: string;
+        first_name: string | null;
+        last_name: string | null;
+        avatar_url: string | null;
+        full_name: string;
+      }
+    >();
+    if (authorIds.length > 0) {
+      // Comments reference auth.users, so profiles must be read separately.
+      const { data: profiles, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("id, first_name, last_name, full_name, avatar_url")
+        .eq("tenant_id", ctx.tenantId)
+        .in("id", authorIds);
+      if (profileError)
+        return NextResponse.json(
+          { error: profileError.message },
+          { status: 500 },
+        );
+      for (const profile of profiles ?? []) {
+        authors.set(profile.id, {
+          ...profile,
+          full_name:
+            profile.full_name?.trim() ||
+            [profile.first_name, profile.last_name]
+              .filter(Boolean)
+              .join(" ")
+              .trim(),
+        });
+      }
+    }
+    return NextResponse.json({
+      comments: (comments ?? []).map((comment) => ({
+        ...comment,
+        author: authors.get(comment.user_id ?? "") ?? null,
+      })),
+      total: count ?? null,
+    });
   } catch (e) {
     return toErrorResponse(e);
   }

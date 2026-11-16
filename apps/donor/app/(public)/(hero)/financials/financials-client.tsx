@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { SampleFiguresNote } from "@asym/ui/components/public/sample-figures-note";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Download, FileText, CheckCircle, ShieldCheck } from "lucide-react";
+import { FileText, CheckCircle, ShieldCheck } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 const data = [
@@ -87,6 +87,10 @@ export function FinancialsPageClient() {
             We believe that every dollar you give is a sacred trust. Here is
             exactly how we use it to change lives.
           </p>
+          <SampleFiguresNote className="mt-6">
+            Sample figures and statements for this demo organization, not its
+            real accounts.
+          </SampleFiguresNote>
         </div>
       </section>
 
@@ -232,28 +236,14 @@ export function FinancialsPageClient() {
           <h2 className="text-3xl font-semibold text-foreground mb-10 tracking-tight">
             Annual Reports & Filings
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[2023, 2022, 2021].map((year) => (
-              <div
-                key={year}
-                className="bg-card p-8 rounded-2xl border border-border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[box-shadow,transform] duration-300 group cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-8">
-                  <FileText className="size-10 text-muted-foreground group-hover:text-info transition-colors" />
-                  <span className="font-semibold text-3xl text-foreground">
-                    {year}
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Download className="size-4" /> Annual Report (PDF)
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Download className="size-4" /> IRS Form 990
-                  </Button>
-                </div>
-              </div>
-            ))}
+          <div className="flex max-w-xl items-start gap-4 rounded-2xl border border-border bg-card p-8">
+            <FileText
+              aria-hidden="true"
+              className="size-8 shrink-0 text-muted-foreground"
+            />
+            <p className="text-muted-foreground">
+              Annual reports and IRS filings aren’t published on this site yet.
+            </p>
           </div>
         </div>
       </section>

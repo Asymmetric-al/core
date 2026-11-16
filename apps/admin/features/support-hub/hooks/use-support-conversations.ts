@@ -23,6 +23,7 @@ interface UseSupportConversationsReturn {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  refetch: () => Promise<unknown>;
 }
 
 /**
@@ -56,5 +57,6 @@ export function useSupportConversations(
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }

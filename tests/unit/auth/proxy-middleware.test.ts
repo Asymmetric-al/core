@@ -111,7 +111,7 @@ describe("apps/donor/proxy (auth middleware)", () => {
     expect(mockedGetSupabasePublicConfig).toHaveBeenCalled();
   });
 
-  it("redirects unauthenticated checkout visitors to the homepage without a next param", async () => {
+  it("sends signed-out checkout visitors to sign in and back to the same gift", async () => {
     mockedGetSupabasePublicConfig.mockReturnValue({
       url: "https://example.supabase.co",
       key: "anon-key",
@@ -124,7 +124,13 @@ describe("apps/donor/proxy (auth middleware)", () => {
     );
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("https://example.test/");
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(location.origin).toBe("https://example.test");
+    expect(location.pathname).toBe("/login");
+    // The whole gift (worker, recipient) survives sign-in; no payment UI first.
+    expect(location.searchParams.get("next")).toBe(
+      "/checkout?workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
+    );
   });
 
   it("allows authenticated checkout visitors through the donor proxy", async () => {

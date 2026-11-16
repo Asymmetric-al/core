@@ -1,0 +1,42 @@
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached:
+    [claim, context, after-scope, feedback-facts, dispose, readiness, record]
+claim:
+  {
+    proceed: "yes",
+    route: feedback,
+    do_scope: "no",
+    do_define: "no",
+    do_build: "no",
+    do_feedback: "yes",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "Round 3",
+  }
+context:
+  {
+    ok: "yes",
+    fingerprint: "f1",
+    changed: "no",
+    scope_assignment: "scope",
+    reason: "ok",
+  }
+after-scope:
+  {
+    proceed: "yes",
+    define: "no",
+    build: "no",
+    ezra_assignment: "",
+    reason: "Reservations reacquired",
+  }
+feedback-facts:
+  { dispose: "yes", samson_assignment: "dispose", reason: "2 items" }
+dispose:
+  {
+    task_status: DONE,
+    items: [{ id: t1, action: rebut, reply: "No: see a.ts:3", reason: r }],
+    summary: s,
+  }
+readiness: { verdict: PR_READY, reason: "all checks passed" }
+record: { outcome: PR_READY, next: "", reason: "ready" }

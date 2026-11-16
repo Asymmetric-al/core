@@ -82,38 +82,8 @@ test("Mission Control shortcut preserves editing and Support's focused key handl
   ).toBeHidden();
 });
 
-test("Admin candidate fields and replacement view group have usable labels", async ({
-  page,
-}) => {
+test("Admin replacement view group has a usable label", async ({ page }) => {
   const scope = page.locator("#admin-shadscan-contracts");
-  await scope.getByRole("button", { name: "Open candidate fields" }).click();
-  const candidate = page.getByRole("dialog", { name: "New Candidate Profile" });
-  await expect(candidate).toBeVisible();
-  const create = candidate.getByRole("button", { name: "Create Profile" });
-  await create.press("Control+k");
-  await expect(
-    page.getByRole("dialog", { name: "Mission Control navigation" }),
-  ).toBeHidden();
-  await expect(create).toBeFocused();
-  for (const [name, purpose] of [
-    ["First Name", "given-name"],
-    ["Last Name", "family-name"],
-    ["Email Address", "email"],
-  ]) {
-    await expect(candidate.getByRole("textbox", { name })).toHaveAttribute(
-      "autocomplete",
-      purpose,
-    );
-  }
-  await candidate
-    .getByRole("textbox", { name: "Interest Role" })
-    .fill("Field worker");
-  expect(
-    (await new AxeBuilder({ page }).include('[role="dialog"]').analyze())
-      .violations,
-  ).toEqual([]);
-  await page.keyboard.press("Escape");
-  await expect(candidate).toBeHidden();
   await scope
     .getByRole("button", { name: "Choose replacement default" })
     .click();

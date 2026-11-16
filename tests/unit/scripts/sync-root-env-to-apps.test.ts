@@ -41,6 +41,23 @@ afterEach(() => {
 });
 
 describe("linkRootEnvToApps", () => {
+  it("never links the root env, with its Supabase and CRM secrets, into the operator Console", () => {
+    const repoRoot = makeRepoRoot();
+
+    const results = linkRootEnvToApps(repoRoot);
+
+    expect(results.map((result) => result.app)).toEqual([
+      "admin",
+      "donor",
+      "missionary",
+    ]);
+    expect(
+      fs.existsSync(
+        path.join(repoRoot, "apps", "factory-console", ".env.local"),
+      ),
+    ).toBe(false);
+  });
+
   it("creates app-local links to the repo-root env file", () => {
     const repoRoot = makeRepoRoot();
 

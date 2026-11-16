@@ -1,14 +1,21 @@
+import { contributionActionTitle } from "@asym/api/admin/contribution-operations/catalog";
+import {
+  CONTRIBUTION_ACTION_TYPES,
+  type ContributionActionType,
+} from "@asym/api/admin/contribution-operations/types";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Field,
   FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
-import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CircleCheck, LoaderCircle } from "lucide-react";
+import { ArrowRight, CircleCheck, TriangleAlert } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +27,7 @@ import {
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
 import {
+  receiptOutcomeStatusLabel,
   receiptSnapshotPdfUrl,
   resolveInitialReceiptDeliveryValue,
   resolveReceiptDeliveryError,
@@ -49,7 +57,15 @@ export interface ContributionCorrectionRequestView {
   status: string;
   reason: string;
   requestedByProfileId: string | null;
+  /** Requester's display name, when the detail read model could name them. */
+  requestedByName?: string | null;
   createdAt: string;
+  /**
+   * What the request changes, as current → proposed lines built from its own
+   * payload. Null when the payload cannot be read: the change is unknown, so
+   * the request cannot be approved here.
+   */
+  proposedChange?: CorrectionChangeLine[] | null;
   receiptDeliveryProposal?: ReceiptDeliveryProposal | null;
   receiptAffectedFields?: string[];
   viewerCanDecide?: boolean;
@@ -97,6 +113,25 @@ async function postCorrectionRequestDecision(input: {
   };
 }
 
+function isContributionActionType(
+  value: string,
+): value is ContributionActionType {
+  return (CONTRIBUTION_ACTION_TYPES as readonly string[]).includes(value);
+}
+
+/**
+ * Name the amount request as the Needs attention summary does. Other known
+ * requests use their catalog title; unknown older keys read generically.
+ */
+function correctionRequestTitle(actionType: string): string {
+  if (actionType === "amount_correction") {
+    return "Amount correction";
+  }
+  return isContributionActionType(actionType)
+    ? contributionActionTitle(actionType)
+    : "Correction request";
+}
+
 function formatRequestedAt(createdAt: string): string {
   const parsed = new Date(createdAt);
   if (Number.isNaN(parsed.getTime())) {
@@ -109,6 +144,12 @@ function formatRequestedAt(createdAt: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+export interface CorrectionChangeLine {
+  label: string;
+  from: string | null;
+  to: string;
 }
 
 export function CorrectionApprovalPanel({
@@ -133,41 +174,45 @@ export function CorrectionApprovalPanel({
       !decidedOutcomes[request.id],
   );
   const decidedEntries = Object.entries(decidedOutcomes);
-
+  const headingId = useId();
   if (pendingRequests.length === 0 && decidedEntries.length === 0) {
     return null;
   }
 
   return (
-    <>
-      <Separator />
-      <section
-        aria-label="Correction approvals"
-        className="space-y-3"
-        data-testid="correction-approval-panel"
-      >
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+    <section
+      aria-labelledby={headingId}
+      className="flex flex-col gap-3 border-t pt-6"
+      data-testid="correction-approval-panel"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h3 id={headingId} className="text-sm font-medium text-foreground">
           Correction approvals
-        </p>
-        {pendingRequests.map((request) => (
-          <CorrectionApprovalRequestCard
-            key={request.id}
-            request={request}
-            receiptDelivery={receiptDelivery ?? null}
-            onDecided={(outcome) => {
-              setDecidedOutcomes((previous) => ({
-                ...previous,
-                [request.id]: outcome,
-              }));
-              onDecided?.();
-            }}
-          />
-        ))}
-        {decidedEntries.map(([requestId, outcome]) => (
-          <CorrectionDecisionResult key={requestId} outcome={outcome} />
-        ))}
-      </section>
-    </>
+        </h3>
+        {pendingRequests.length > 0 ? (
+          <Badge variant="warning">
+            {pendingRequests.length} awaiting decision
+          </Badge>
+        ) : null}
+      </div>
+      {pendingRequests.map((request) => (
+        <CorrectionApprovalRequestCard
+          key={request.id}
+          request={request}
+          receiptDelivery={receiptDelivery ?? null}
+          onDecided={(outcome) => {
+            setDecidedOutcomes((previous) => ({
+              ...previous,
+              [request.id]: outcome,
+            }));
+            onDecided?.();
+          }}
+        />
+      ))}
+      {decidedEntries.map(([requestId, outcome]) => (
+        <CorrectionDecisionResult key={requestId} outcome={outcome} />
+      ))}
+    </section>
   );
 }
 
@@ -189,6 +234,8 @@ function CorrectionApprovalRequestCard({
   );
 
   const proposal = request.receiptDeliveryProposal ?? null;
+  const changeLines = request.proposedChange ?? null;
+  const changeUnreadable = changeLines === null;
   const affectedFields = request.receiptAffectedFields ?? [];
   const showDelivery = Boolean(receiptDelivery) && affectedFields.length > 0;
   const deliveryValue: ReceiptDeliveryValue =
@@ -223,11 +270,22 @@ function CorrectionApprovalRequestCard({
     },
   });
 
+  // The decision in flight, so its button can show progress in place.
+  const pendingDecision = decisionMutation.isPending
+    ? (decisionMutation.variables?.decision ?? null)
+    : null;
+
   const submitDecision = (decision: "approve" | "reject") => {
+    if (decisionMutation.isPending) {
+      return;
+    }
     if (decision === "reject" && !decisionReason.trim()) {
       setDecisionReasonError(
         "A reason is required to reject this correction request.",
       );
+      return;
+    }
+    if (decision === "approve" && changeUnreadable) {
       return;
     }
     if (decision === "approve" && deliveryError) {
@@ -265,18 +323,60 @@ function CorrectionApprovalRequestCard({
 
   return (
     <div
-      className="space-y-3 rounded-lg border border-border bg-card p-4"
+      className="flex flex-col gap-4 rounded-lg border p-4"
       data-testid={`correction-request-${request.id}`}
     >
-      <div className="space-y-1">
-        <p className="text-sm font-semibold capitalize text-foreground">
-          {request.actionType.replace(/_/g, " ")}
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium text-foreground">
+          {correctionRequestTitle(request.actionType)}
         </p>
         <p className="text-xs text-muted-foreground">
-          Requested {formatRequestedAt(request.createdAt)}
+          {request.requestedByName
+            ? `Requested by ${request.requestedByName} · `
+            : "Requested "}
+          {formatRequestedAt(request.createdAt)}
         </p>
-        <p className="text-sm text-muted-foreground">{request.reason}</p>
       </div>
+      {changeLines ? (
+        <ul
+          aria-label="Proposed change"
+          className="flex flex-col gap-1.5 rounded-md bg-muted/50 px-3 py-2"
+        >
+          {changeLines.map((line) => (
+            <li
+              key={line.label}
+              className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm"
+            >
+              <span className="text-muted-foreground">{line.label}</span>
+              {line.from !== null ? (
+                <>
+                  <span className="text-foreground tabular-nums">
+                    {line.from}
+                  </span>
+                  <ArrowRight
+                    className="size-3.5 self-center text-muted-foreground"
+                    aria-label="changes to"
+                  />
+                </>
+              ) : null}
+              <span className="font-medium text-foreground tabular-nums">
+                {line.to}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Alert>
+          <TriangleAlert aria-hidden="true" />
+          <AlertDescription>
+            This request&apos;s change can&apos;t be read, so it can&apos;t be
+            approved here. Reject it with a reason and ask for a new request.
+          </AlertDescription>
+        </Alert>
+      )}
+      <p className="border-l-2 pl-3 text-sm text-foreground">
+        {request.reason}
+      </p>
 
       {showDelivery && receiptDelivery && (
         <ReceiptDeliveryChoiceField
@@ -307,29 +407,52 @@ function CorrectionApprovalRequestCard({
         />
       </Field>
 
-      {decisionMutation.isPending ? (
-        <p role="status" className="flex items-center gap-2 text-sm">
-          <LoaderCircle className="size-4 animate-spin" aria-hidden />
-          Submitting decision…
-        </p>
-      ) : (
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button
-            variant="outline"
-            className=""
-            onClick={() => submitDecision("reject")}
-          >
-            Reject
-          </Button>
-          <Button
-            className=""
-            disabled={Boolean(deliveryError)}
-            onClick={() => submitDecision("approve")}
-          >
-            Approve
-          </Button>
-        </div>
-      )}
+      {/* Both buttons stay mounted while a decision submits, so focus stays
+          on the clicked one; the always-mounted status announces progress. */}
+      <div className="flex flex-wrap justify-end gap-2">
+        <span role="status" className="sr-only">
+          {pendingDecision === "approve"
+            ? "Approving correction…"
+            : pendingDecision === "reject"
+              ? "Rejecting correction…"
+              : ""}
+        </span>
+        <Button
+          variant="outline"
+          disabled={decisionMutation.isPending}
+          focusableWhenDisabled={pendingDecision === "reject"}
+          aria-busy={pendingDecision === "reject" || undefined}
+          onClick={() => submitDecision("reject")}
+        >
+          {pendingDecision === "reject" ? (
+            <>
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+              Rejecting…
+            </>
+          ) : (
+            "Reject"
+          )}
+        </Button>
+        <Button
+          disabled={
+            decisionMutation.isPending ||
+            changeUnreadable ||
+            Boolean(deliveryError)
+          }
+          focusableWhenDisabled={pendingDecision === "approve"}
+          aria-busy={pendingDecision === "approve" || undefined}
+          onClick={() => submitDecision("approve")}
+        >
+          {pendingDecision === "approve" ? (
+            <>
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+              Approving…
+            </>
+          ) : (
+            "Approve"
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -343,21 +466,21 @@ function CorrectionDecisionResult({
 
   return (
     <div
-      className="space-y-2 rounded-lg border border-border bg-muted/30 p-4"
+      className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-4"
       data-testid="correction-decision-result"
     >
       <p
         role="status"
         className="flex items-center gap-2 text-sm font-medium text-foreground"
       >
-        <CircleCheck className="size-4" aria-hidden />
+        <CircleCheck className="size-4 text-success" aria-hidden="true" />
         {outcome.decision === "approve"
           ? "Correction request approved."
           : "Correction request rejected."}
       </p>
       {receiptOutcome && receiptOutcome.status !== "not_required" && (
         <p className="text-xs text-muted-foreground">
-          Receipt: {receiptOutcome.status.replace(/_/g, " ")}
+          Receipt: {receiptOutcomeStatusLabel(receiptOutcome.status)}
         </p>
       )}
       {receiptOutcome?.status === "pdf_generated" &&
@@ -369,6 +492,7 @@ function CorrectionDecisionResult({
             className="text-xs font-medium text-foreground underline underline-offset-2"
           >
             Download updated receipt PDF
+            <span className="sr-only"> (opens in a new tab)</span>
           </a>
         )}
     </div>

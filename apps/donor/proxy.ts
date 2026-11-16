@@ -19,14 +19,10 @@ export const proxy = createAuthMiddleware({
     "/no-access",
     "/boneyard",
   ],
+  // Checkout needs a signed-in donor, so signed-out visitors go to sign-in
+  // with the gift kept in `next` and come straight back to it. They never
+  // reach the payment UI or the donate API first.
   protectedRoutePrefixes: ["/donor-dashboard", "/checkout"],
-  unauthenticatedRedirects: [
-    {
-      prefix: "/checkout",
-      redirectTo: "/",
-      preserveNext: false,
-    },
-  ],
   loginPath: "/login",
   redirectAuthenticatedTo: "/donor-dashboard",
   unauthorizedRedirectTo: "/",

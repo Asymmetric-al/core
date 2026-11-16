@@ -1,0 +1,97 @@
+name: core-answer
+description: >-
+  One operator chat turn with Samson about the Core factory. Samson answers from
+  a bounded factual snapshot and may propose one structured operation; the
+  Console validates and executes operations only on explicit operator
+  confirmation. It never resumes or writes into a worker session.
+provider: claude
+mutates_checkout: false
+worktree:
+  enabled: false
+inputs:
+  question:
+    required: true
+    description: The operator's message
+  conversation:
+    required: true
+    description: Console conversation identifier
+  request:
+    required: true
+    description: Idempotency key for this turn
+nodes:
+  - id: facts
+    script: facts
+    runtime: bun
+    timeout: 120000
+    output_format:
+      type: object
+      properties:
+        assignment: { type: string }
+        reason: { type: string }
+      required: [assignment, reason]
+      additionalProperties: false
+
+  - id: answer
+    depends_on: [facts]
+    command: answer
+    with:
+      assignment: $facts.output.assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob]
+    idle_timeout: 600000
+    output_format:
+      type: object
+      properties:
+        answer: { type: string }
+        sources: { type: array, items: { type: string } }
+        needs_clarification: { type: boolean }
+        clarification: { type: string }
+        operation:
+          type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                [
+                  none,
+                  pause-intake,
+                  resume-intake,
+                  drain,
+                  stop,
+                  resume,
+                  hold-merge,
+                  release-merge,
+                  hold,
+                  release,
+                  retry,
+                  reopen,
+                  assign-scope,
+                  reprioritize,
+                ]
+            issue: { type: integer }
+            issues: { type: array, items: { type: integer } }
+            endState: { type: string, enum: [PR_READY, MERGED, unchanged] }
+            reason: { type: string }
+          required: [kind, issue, issues, endState, reason]
+          additionalProperties: false
+      required: [answer, sources, needs_clarification, clarification, operation]
+      additionalProperties: false
+
+  # Reads the answer node's result from $NODE_OUTCOMES_FILE: a binding to a
+  # failed producer would fail this node and leave the turn unrecorded.
+  - id: record
+    depends_on: [facts, answer]
+    trigger_rule: all_done
+    script: record
+    runtime: bun
+    timeout: 60000
+    output_format:
+      type: object
+      properties:
+        recorded: { type: string, enum: ["yes", "no"] }
+        reason: { type: string }
+      required: [recorded, reason]
+      additionalProperties: false

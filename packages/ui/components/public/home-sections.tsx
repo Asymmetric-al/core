@@ -4,7 +4,6 @@ import {
   Activity,
   Users,
   Globe,
-  Sparkles,
   Heart,
   ShieldCheck,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 
 import { HomeHeroAnimated } from "./home-hero-animated";
+import { SampleFiguresNote } from "./sample-figures-note";
 
 import type { CSSProperties } from "react";
 
@@ -44,20 +44,6 @@ const projects = [
   },
 ];
 
-const activities = [
-  "Sarah C. just supported clean water in Ghana",
-  "Emergency medical supplies deployed to Lebanon",
-  "New missionary team onboarding in Thailand",
-  "Monthly goal reached for Rural Education fund",
-  "David R. pledged $500 to Refugee Response",
-  "Clean water well completed in Bekaa Valley",
-];
-
-const tickerActivities = [
-  ...activities.map((text) => ({ key: `${text}-1`, text })),
-  ...activities.map((text) => ({ key: `${text}-2`, text })),
-];
-
 const heroStats = [
   { label: "Deployed", val: "$26.4M", icon: "activity" },
   { label: "Partners", val: "42.1k", icon: "users" },
@@ -67,30 +53,6 @@ const ratingStars = ["star-1", "star-2", "star-3", "star-4", "star-5"] as const;
 
 const HERO_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIBAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFESEGMRJBYf/EABQBAQAAAAAAAAAAAAAAAAAAAAX/xAAZEQACAwEAAAAAAAAAAAAAAAABAgADESH/2gAMAwEAAhEDEEA/";
-
-export function LiveTicker() {
-  return (
-    <aside
-      aria-label="Recent activity feed"
-      className="bg-muted border-y border-border py-3 overflow-hidden whitespace-nowrap relative"
-    >
-      <div className="flex animate-marquee gap-12 items-center" role="marquee">
-        {tickerActivities.map((activity) => (
-          <div
-            key={activity.key}
-            className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-foreground"
-          >
-            <span
-              className="size-1.5 rounded-full bg-foreground shadow-sm shadow-foreground/20"
-              aria-hidden="true"
-            />
-            <span>{activity.text}</span>
-          </div>
-        ))}
-      </div>
-    </aside>
-  );
-}
 
 export function HomeHero() {
   return (
@@ -158,11 +120,11 @@ export function HomeMission() {
                     aria-hidden="true"
                   />
                   <h3 className="font-semibold text-foreground font-display">
-                    Real-Time Data
+                    Updates from the field
                   </h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    Monitor impact with live updates, GPS-tagged reports, and
-                    transparent financial auditing.
+                    Follow the missionaries you support through the updates they
+                    post.
                   </p>
                 </article>
               </div>
@@ -199,36 +161,13 @@ export function HomeMission() {
 
               <figcaption className="absolute inset-x-0 bottom-0 bg-media-scrim/75 p-6 text-media-foreground sm:p-8">
                 <p className="text-xs font-semibold text-media-foreground/90 mb-2">
-                  Live Deployment
+                  Where we serve
                 </p>
                 <p className="text-3xl font-semibold font-display tracking-tight">
                   Bekaa Valley, <br />
                   Lebanon
                 </p>
               </figcaption>
-            </div>
-
-            <div className="absolute z-20 -top-6 -right-6 bg-card p-6 rounded-2xl shadow-sm border border-border max-w-50 hidden xl:block">
-              <Sparkles
-                className="size-5 text-muted-foreground mb-3"
-                aria-hidden="true"
-              />
-              <blockquote className="text-xs font-semibold text-foreground leading-relaxed">
-                &quot;Our fastest deployment yet. Resources reached the field in{" "}
-                <span className="text-foreground">under 4 hours</span>.&quot;
-              </blockquote>
-              <footer className="mt-4 flex items-center gap-3">
-                <div
-                  className="size-7 rounded-full bg-muted"
-                  aria-hidden="true"
-                />
-                <div>
-                  <cite className="text-xs font-semibold uppercase tracking-wider text-foreground not-italic">
-                    Dr. Elias H.
-                  </cite>
-                  <p className="text-xs text-muted-foreground">Field Lead</p>
-                </div>
-              </footer>
             </div>
           </figure>
         </div>
@@ -257,10 +196,13 @@ export function HomeStats() {
               Impact Score.
             </h2>
           </div>
-          <p className="text-invert-foreground/75 max-w-md text-xl sm:text-2xl leading-relaxed font-light tracking-tight">
-            Radical transparency is our core infrastructure. We track every cent
-            from pledge to payload.
-          </p>
+          <div className="max-w-md space-y-4">
+            <p className="text-invert-foreground/75 text-xl sm:text-2xl leading-relaxed font-light tracking-tight">
+              Radical transparency is our core infrastructure. We track every
+              cent from pledge to payload.
+            </p>
+            <SampleFiguresNote tone="inverted" />
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -370,6 +312,7 @@ export function HomeFeatured() {
             >
               Current Priorities.
             </h2>
+            <SampleFiguresNote />
           </div>
           <Link
             href="/workers"

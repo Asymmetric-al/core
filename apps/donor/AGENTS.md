@@ -10,7 +10,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Donor app (`@asym/donor`)
 
-**Scope:** Donor-facing UI in `apps/donor`. Do not copy root `AGENTS.md`.
+**Scope:** `apps/donor` hosts two product surfaces. Do not copy root `AGENTS.md`.
+
+- **Donor portal** (`app/(dashboard)`): authenticated donor self-service for giving history, recurring gifts, payment methods, receipts and statements.
+- **Public ministry website** (`app/(public)`): the tenant's public face for discovery, stories, CMS pages and public giving. Keep staff or operational depth in Mission Control.
+- Both surfaces project the shared operational records owned in `packages/api`; a gift made here is the same fact staff and missionaries see. Public CMS content is owned separately: Mission Control's Payload adapter (`apps/admin/src/cms/public`) implements the provider-neutral contract in `packages/api/src/cms/public`, and this app reads it through admin's `/api/cms/public/*` routes (`docs/guides/architecture/overview.md`). Do not add a second content, giving or donor-record authority here. Intent: `openspec/specs/platform-surfaces/spec.md`.
 
 - Default port **3000**. Start: `bun run dev:donor`. Cloud: `node scripts/run-with-ci-env.mjs -- bun run dev:donor` after `bun run setup:mission-control:cloud` (see `docs/guides/development/cursor-cloud.md`).
 - Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow `docs/ai/rules/frontend.md` § Instant Navigation. Stream request-time data; do not set `instant = false` without a comment.

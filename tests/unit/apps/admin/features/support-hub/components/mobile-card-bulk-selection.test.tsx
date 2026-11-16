@@ -85,7 +85,7 @@ const second = {
 };
 const rows = [first, second];
 function label(row: SupportConversation) {
-  return `Select conversation ${row.id}: ${row.subject}`;
+  return `Select ${row.subject} from ${row.externalContactName}`;
 }
 
 beforeEach(() => {
@@ -160,17 +160,17 @@ describe("Support mobile row selection", () => {
         status: "resolved",
       }),
     );
-    fireEvent.click(
-      screen.getByRole("button", { name: /Fixture contact.*Receipt question/ }),
-    );
-    expect(onOpen).toHaveBeenCalledExactlyOnceWith(first.id);
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: label(first), exact: true }),
-    );
+    // A bulk action clears the selection it acted on.
     await waitFor(() =>
       expect(
         screen.queryByRole("toolbar", { name: "Selected record actions" }),
       ).toBeNull(),
     );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /^Fixture contact.*Receipt question/,
+      }),
+    );
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith(first.id);
   });
 });

@@ -22,16 +22,20 @@ const workspaces = [
   "apps/admin",
   "apps/donor",
   "apps/missionary",
+  "apps/factory-console",
   "packages/ui",
   "packages/missionary",
 ];
+// The operator Console keeps its App Router under src/app.
+const appRouterRoot = (workspace: string) =>
+  workspace === "apps/factory-console" ? "src/app" : "app";
 
 function fixturePath(workspace: string) {
   return path.join(
     root,
     workspace,
     workspace.startsWith("apps/")
-      ? "app/design-system-theme-probe.tsx"
+      ? `${appRouterRoot(workspace)}/design-system-theme-probe.tsx`
       : "components/design-system-theme-probe.tsx",
   );
 }

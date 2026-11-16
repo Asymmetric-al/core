@@ -24,9 +24,13 @@ const workspaces = [
   "apps/admin",
   "apps/donor",
   "apps/missionary",
+  "apps/factory-console",
   "packages/ui",
   "packages/missionary",
 ];
+// The operator Console keeps its App Router under src/app.
+const appRouterRoot = (workspace: string) =>
+  workspace === "apps/factory-console" ? "src/app" : "app";
 const linters = new Map<string, ESLint>();
 function actualLinter(workspace?: string) {
   const cwd = workspace ? path.join(root, workspace) : root;
@@ -47,7 +51,7 @@ function consumerPath(workspace: string) {
     root,
     workspace,
     workspace.startsWith("apps/")
-      ? "app/design-system-resolution-probe.tsx"
+      ? `${appRouterRoot(workspace)}/design-system-resolution-probe.tsx`
       : "components/consumer/design-system-resolution-probe.tsx",
   );
 }

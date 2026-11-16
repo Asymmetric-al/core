@@ -23,13 +23,19 @@ This is the always-on Codex entrypoint for `Asymmetric-al/core`. Keep it a compa
 
 ## Repository map
 
-Core is a Bun + Turborepo monorepo with three Next.js App Router applications:
+Core is Asymmetric.al: one connected platform for Christian missions sending organizations. Organizations are tenants; staff, missionaries and donors are users within them. Accepted intent lives in `openspec/specs/platform-product-intent/spec.md` and `openspec/specs/platform-surfaces/spec.md`.
 
-- `apps/admin` (`@asym/admin`) — Mission Control
-- `apps/donor` (`@asym/donor`) — donor experience
-- `apps/missionary` (`@asym/missionary-app`) — missionary experience
+It is a Bun + Turborepo monorepo with three Next.js App Router applications carrying four product surfaces:
 
-Apps own surface-specific routes and UI. Shared behavior belongs in workspace packages such as `packages/api`, `packages/auth`, `packages/database`, `packages/env`, and `packages/ui`. Use `package.json`, `turbo.json`, and `docs/ai/monorepo-architecture.md` for the current workspace and command details; do not duplicate volatile package versions here.
+- `apps/admin` (`@asym/admin`) — Mission Control: staff operations and the home of operational depth
+- `apps/donor` (`@asym/donor`) — the donor portal (authenticated self-service, `apps/donor/app/(dashboard)`) and the public ministry website (discovery, stories and public giving, `apps/donor/app/(public)`)
+- `apps/missionary` (`@asym/missionary-app`) — the missionary workspace for support raising and communication
+
+A fourth app, `apps/factory-console`, is the private operator Console of the Core software factory (`scripts/archon-factory`). It runs only on the factory VM and is not a product app.
+
+Apps own surface-specific routes and UI. Shared behavior belongs in workspace packages such as `packages/api`, `packages/auth`, `packages/database`, `packages/env`, and `packages/ui`. Each fact has one owner; surfaces show role-appropriate projections of it, so trace a shared record's consumers across apps before changing it.
+
+`docs/guides/architecture/overview.md` maps current routes and data flow. Use `package.json`, `turbo.json`, and `docs/ai/monorepo-architecture.md` for the current workspace and command details; do not duplicate volatile package versions here.
 
 ## Authority and evidence
 
@@ -55,6 +61,7 @@ Open the closest file for the path being changed:
 | Admin app                           | `apps/admin/AGENTS.md`           |
 | Donor app                           | `apps/donor/AGENTS.md`           |
 | Missionary app                      | `apps/missionary/AGENTS.md`      |
+| Factory operator Console            | `apps/factory-console/AGENTS.md` |
 | Server APIs and mutations           | `packages/api/AGENTS.md`         |
 | Auth and sessions                   | `packages/auth/AGENTS.md`        |
 | Database types and browser data     | `packages/database/AGENTS.md`    |
@@ -86,7 +93,7 @@ Read the rulebooks for the work in scope; a small edit does not require loading 
 - **Product safety:** tenant and permission correctness outrank convenience. Preserve financial and operational truth, keep secrets and privileged effects server-side, and never weaken auth, payment, webhook, or data boundaries for a shortcut. Relevant durable intent lives in `openspec/specs/platform-principles/spec.md` and `openspec/specs/platform-boundaries/spec.md`.
 - **CRM retirement:** Asym Postgres owns all CRM truth. Twenty CRM is retired; do not restore its clients, credentials, vendor store, sync, cutover or rollback paths. Dated records and compatibility identifiers do not authorize a live integration.
 - **Data ownership:** business database logic belongs in `packages/api`; app API route handlers stay thin. Browser-visible table access uses approved `packages/database` collections and hooks. Follow the data-access boundary guide and its enforced exceptions.
-- **UI system:** every UI or UX change must preserve exact `base-maia`, Base UI primitives, Zinc-oriented semantic CSS-variable tokens, shared ownership in `packages/ui`, and the existing Core design language. Do not introduce another style, preset, primitive base, component system, or app-local fork.
+- **UI system:** every UI or UX change must preserve exact `base-maia`, Base UI primitives, Zinc-oriented semantic CSS-variable tokens, shared ownership in `packages/ui`, and the existing Core design language. Do not introduce another style, preset, primitive base, competing component system, or app-local fork. UI SDK may supply only behaviors no existing `@asym/ui` component provides, as `packages/ui/AGENTS.md` scopes it.
 - **TDD:** substantive features, bug fixes, and behavior-changing refactors use red-green-refactor at the nearest stable seam. Documentation-only, formatting-only, exact generated mirrors, and provenance-only changes use deterministic structural verification instead of artificial failing tests.
 - **Next.js navigation:** all apps use Cache Components and partial prefetching. For route work, inspect the app config and treat each server await as an intentional Stream, Cache, or Block decision. Detailed rules and tests live in the frontend rulebook and matching Next.js skills.
 - **Generated and mirrored content:** consult `docs/ai/protected-paths.md` before editing generated, mirrored, or vendored trees. Canonical skill sources live in `docs/ai/skills`; use `bun run skills:sync` to write mirrors and `bun run skills:verify` to check them without mutation.

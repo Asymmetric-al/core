@@ -1,169 +1,48 @@
 "use client";
 
-import { getTileById } from "@asym/lib/mission-control/tiles";
-import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { FileText, Send, CheckCircle, Search, Download } from "lucide-react";
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { PenTool } from "lucide-react";
 import Link from "next/link";
 
-import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
-
 export default function SignStudioPage() {
-  const tile = getTileById("sign")!;
-
   return (
-    <TilePage tile={tile}>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active Sends</CardDescription>
-            <CardTitle className="text-2xl">18</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">awaiting signatures</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Completed (30d)</CardDescription>
-            <CardTitle className="text-2xl">142</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-success">all attached to CRM</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Templates</CardDescription>
-            <CardTitle className="text-2xl">24</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              active packet templates
-            </p>
-          </CardContent>
-        </Card>
+    <PageShell
+      title="Sign Studio"
+      description="Send documents for signature and keep the signed copies."
+      density="compact"
+    >
+      <div className="rounded-xl border">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <PenTool aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>Sign Studio is not set up yet</EmptyTitle>
+            <EmptyDescription>
+              Signature requests, templates and signed documents will appear
+              here once a signing service is connected. Until then, keep
+              agreements with the person&apos;s record in the CRM.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Link
+              href="/crm"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Open CRM
+            </Link>
+          </EmptyContent>
+        </Empty>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            <span className="flex items-center gap-2">
-              <Search className="size-4" />
-              Search Documents
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="w-full max-w-md">
-              <Input
-                aria-label="Search documents"
-                placeholder="Search by signer name, email, or document ID..."
-              />
-            </div>
-            <Button>Search</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info">
-              <FileText className="size-5" />
-            </div>
-            <CardTitle className="text-base">Packet Templates</CardTitle>
-            <CardDescription>
-              Forms, uploads, and signature steps
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ButtonLink
-              variant="outline"
-              size="sm"
-              className="w-full"
-              render={<Link href="/mc/sign/templates">Manage Templates</Link>}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
-              <Send className="size-5" />
-            </div>
-            <CardTitle className="text-base">Active Sends</CardTitle>
-            <CardDescription>Documents out for signature</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ButtonLink
-              variant="outline"
-              size="sm"
-              className="w-full"
-              render={<Link href="/mc/sign/active">View Active</Link>}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
-              <CheckCircle className="size-5" />
-            </div>
-            <CardTitle className="text-base">Completed Docs</CardTitle>
-            <CardDescription>Signed and archived documents</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ButtonLink
-              variant="outline"
-              size="sm"
-              className="w-full"
-              render={<Link href="/mc/sign/completed">View Completed</Link>}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-              <Download className="size-5" />
-            </div>
-            <CardTitle className="text-base">Export</CardTitle>
-            <CardDescription>Bulk download and audit exports</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ButtonLink
-              variant="outline"
-              size="sm"
-              className="w-full"
-              render={<Link href="/mc/sign/export">Export Documents</Link>}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-base">How it works</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <ul className="list-disc list-inside space-y-1 ml-2 text-sm text-muted-foreground">
-            <li>
-              Packet templates include forms, uploads, and signature steps
-            </li>
-            <li>Initiators can be staff or Mobilize flows</li>
-            <li>Completed docs attach to CRM records with full audit trails</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </TilePage>
+    </PageShell>
   );
 }

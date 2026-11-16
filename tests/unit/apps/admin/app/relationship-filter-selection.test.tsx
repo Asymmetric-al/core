@@ -30,8 +30,9 @@ it("announces active domain filters while preserving toggle, reset, and search c
   expect(onDomainToggle).toHaveBeenCalledOnce();
   fireEvent.click(all);
   expect(clearDomains).toHaveBeenCalledOnce();
+  // The shared grid search is an <input type="search"> (role "searchbox").
   fireEvent.change(
-    screen.getByRole("textbox", { name: "Search CRM relationships" }),
+    screen.getByRole("searchbox", { name: "Search CRM relationships" }),
     { target: { value: "household" } },
   );
   expect(onSearchChange).toHaveBeenCalledWith("household");

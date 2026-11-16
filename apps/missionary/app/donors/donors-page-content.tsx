@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import * as React from "react";
 
 import { DonorsPageDetail } from "./donors-page-detail";
 import { DonorsPageActivityDialogs } from "./donors-page-dialogs";
 import { DonorsPageHeader } from "./donors-page-header";
 import { DonorsPageRoster } from "./donors-page-roster";
 import { DonorsPageStats } from "./donors-page-stats";
+import { OpenPartnerFromLink } from "./open-partner-from-link";
 
 export function DonorsPageContent() {
   return (
@@ -23,6 +25,9 @@ export function DonorsPageContent() {
         <DonorsPageDetail />
       </div>
       <DonorsPageActivityDialogs />
+      <React.Suspense fallback={null}>
+        <OpenPartnerFromLink />
+      </React.Suspense>
     </motion.div>
   );
 }

@@ -4,7 +4,7 @@ import "./analytics-fonts.css";
 import React, { useEffect, useState } from "react";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1931 This browser fixture mounts the real application surface; no app imports another app.
-import { DonorSubNav } from "../../../apps/donor/features/donor/components/DonorSubNav";
+import { DonorPortalHeader } from "../../../apps/donor/features/donor/components/donor-portal-header";
 // eslint-disable-next-line no-restricted-imports -- AL-1931 This browser fixture mounts the real application surface; no app imports another app.
 import { MissionaryLayoutShell } from "../../../apps/missionary/app/_providers/missionary-layout-shell";
 // eslint-disable-next-line no-restricted-imports -- AL-1931 This browser fixture mounts the real application surface; no app imports another app.
@@ -78,8 +78,7 @@ function WorkspaceContracts() {
     </MissionaryLayoutShell>
   ) : (
     <div className="bg-background text-foreground">
-      <div className="h-16" aria-hidden />
-      <DonorSubNav />
+      <DonorPortalHeader />
       <main>{content}</main>
     </div>
   );

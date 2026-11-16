@@ -1,5 +1,11 @@
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
-import { ButtonLink } from "@asym/ui/components/shadcn/button";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,6 +13,7 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createPayloadRequest } from "payload";
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { getPayloadClient } from "@/src/cms/get-payload";
@@ -28,6 +35,8 @@ type PageProps = {
  * `redirect()` / `notFound()` have to resolve before the response flushes.
  */
 export const instant = false;
+
+export const metadata: Metadata = { title: "Draft preview" };
 
 export default async function WebStudioAuthenticatedPreviewPage({
   params,
@@ -82,19 +91,25 @@ export default async function WebStudioAuthenticatedPreviewPage({
   );
   const renderedLayout = renderPreviewLayout(preview.layout, preview.id);
   const label = getWebStudioPreviewCollectionLabel(collection);
+  const status =
+    doc._status === "published"
+      ? "Published"
+      : doc._status === "draft"
+        ? "Draft"
+        : null;
 
   return (
     <main className="min-h-dvh bg-background text-foreground">
       <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <p className="font-semibold text-muted-foreground text-xs uppercase tracking-widest">
-              Authenticated Preview
-            </p>
             <h1 className="text-2xl font-semibold tracking-tight">
               {preview.title}
             </h1>
-            <p className="text-muted-foreground text-sm">{label}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-muted-foreground text-sm">{label}</p>
+              {status ? <Badge variant="secondary">{status}</Badge> : null}
+            </div>
           </div>
           <ButtonLink
             variant="outline"
@@ -108,6 +123,18 @@ export default async function WebStudioAuthenticatedPreviewPage({
           />
         </div>
       </header>
+
+      <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+        <Alert role="note" variant="info">
+          <AlertTitle>Private preview</AlertTitle>
+          <AlertDescription>
+            Only signed-in editors with access to this document can see this
+            preview. It shows the latest saved version, which may be a draft.
+            Unsaved changes are not included. Preview buttons do not navigate;
+            their destinations are shown below them.
+          </AlertDescription>
+        </Alert>
+      </div>
 
       <article className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
         {preview.summary ? (
@@ -139,6 +166,27 @@ export default async function WebStudioAuthenticatedPreviewPage({
 }
 
 type PreviewBlock = Record<string, unknown>;
+
+function PreviewButton({
+  label,
+  href,
+  variant,
+}: {
+  label: string;
+  href: string;
+  variant?: "outline";
+}) {
+  return (
+    <div className="min-w-0 space-y-2">
+      <Button type="button" variant={variant} disabled focusableWhenDisabled>
+        {label}
+      </Button>
+      <p className="break-words text-sm text-muted-foreground">
+        Links to {href}
+      </p>
+    </div>
+  );
+}
 
 function renderPreviewLayout(layout: unknown, pageId: string): ReactNode {
   if (!Array.isArray(layout)) {
@@ -206,7 +254,7 @@ function renderHeroBlock(block: PreviewBlock, key: string) {
       ) : null}
       <div className="space-y-4 p-6">
         {readOptionalString(block.eyebrow) ? (
-          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-widest">
+          <p className="text-sm font-medium text-muted-foreground">
             {readOptionalString(block.eyebrow)}
           </p>
         ) : null}
@@ -218,7 +266,7 @@ function renderHeroBlock(block: PreviewBlock, key: string) {
             {readOptionalString(block.subheading)}
           </p>
         ) : null}
-        {href && label ? <ButtonLink href={href}>{label}</ButtonLink> : null}
+        {href && label ? <PreviewButton label={label} href={href} /> : null}
       </div>
     </section>
   );
@@ -242,9 +290,7 @@ function renderCallToActionBlock(block: PreviewBlock, key: string) {
           ) : null}
         </div>
         {href ? (
-          <ButtonLink variant="outline" href={href}>
-            {label}
-          </ButtonLink>
+          <PreviewButton label={label} href={href} variant="outline" />
         ) : null}
       </div>
     </section>
@@ -374,7 +420,7 @@ function renderTestimonialBlock(block: PreviewBlock, key: string) {
   return (
     <section key={key} className="rounded-lg border border-border bg-card p-6">
       <blockquote className="text-xl leading-relaxed">
-        &quot;{readRequiredString(block.quote)}&quot;
+        “{readRequiredString(block.quote)}”
       </blockquote>
       {readOptionalString(block.attribution) ? (
         <p className="mt-4 font-semibold text-muted-foreground text-sm">

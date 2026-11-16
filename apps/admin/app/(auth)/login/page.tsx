@@ -24,10 +24,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       appId="admin"
       nextPath={nextPath}
       demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
-      title="Sign In"
-      subtitle="Access the admin portal"
-      registerHref="/register"
-      forgotPasswordHref="/forgot-password"
+      title="Sign in"
+      subtitle="Access is by invitation. Ask your Mission Control administrator for an account or to reset your password."
+      // Invitation guidance replaces registration and unavailable reset links.
+      showRegisterLink={false}
+      forgotPasswordHref={null}
     />
   );
 }

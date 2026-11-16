@@ -4,10 +4,14 @@ import {
   WorkerJsonLd,
   BreadcrumbJsonLd,
 } from "@asym/lib/seo";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { ArrowLeft, Rss, Heart, MessageCircle, Share2 } from "lucide-react";
+import { ArrowLeft, Heart, Info, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -142,13 +146,16 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
 
             <div className="flex items-center justify-between pt-3 border-t border-border">
               <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive cursor-pointer transition-colors">
-                  <Heart className="size-3.5" aria-hidden="true" />{" "}
+                {/* Static counts, not controls. */}
+                <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Heart className="size-3.5" aria-hidden="true" />
                   {update.likes}
+                  <span className="sr-only"> likes</span>
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-muted-foreground cursor-pointer transition-colors">
-                  <MessageCircle className="size-3.5" aria-hidden="true" />{" "}
+                <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <MessageCircle className="size-3.5" aria-hidden="true" />
                   {update.comments}
+                  <span className="sr-only"> comments</span>
                 </span>
               </div>
             </div>
@@ -174,27 +181,16 @@ async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
           <h3 className="text-xl font-semibold text-foreground">
             Latest from the Field
           </h3>
-          <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
-            <span className="relative flex size-2" aria-hidden="true">
-              <span className="animate-ping absolute inline-flex size-full rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex rounded-full size-2 bg-success" />
-            </span>
-            Updates posted directly by {workerTitle}
+          <p className="text-muted-foreground text-sm mt-1">
+            Sample updates shown for {workerTitle}&apos;s public profile.
           </p>
         </div>
-        <Button variant="outline" size="sm" className="hidden sm:flex">
-          <Rss className="mr-2 size-4" aria-hidden="true" /> Subscribe
-        </Button>
       </div>
 
       <div className="space-y-2">
         {PUBLIC_UPDATES.map((update) => (
           <UpdateCard key={update.id} update={update} />
         ))}
-      </div>
-
-      <div className="pt-8 text-center">
-        <Button variant="ghost">Load older updates</Button>
       </div>
     </>
   );
@@ -249,6 +245,8 @@ async function GivingWidgetSection({ id }: { id: string }) {
       raised={worker.raised}
       goal={worker.goal}
       percentRaised={percentRaised}
+      // Funding comes from static demo data (@asym/mock-data).
+      sampleFunding
     />
   );
 }
@@ -313,6 +311,18 @@ export default async function WorkerProfilePage({ params }: PageProps) {
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 lg:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
             <article className="lg:col-span-7 xl:col-span-8 space-y-10">
+              {/* Worker profiles are static demo data (@asym/mock-data). */}
+              <Alert variant="info" role="note">
+                <Info aria-hidden="true" />
+                <AlertTitle>Sample profile</AlertTitle>
+                <AlertDescription>
+                  <p>
+                    Everything on this profile is demo content, including the
+                    Verified badge, funding progress and field updates. None of
+                    it is live information.
+                  </p>
+                </AlertDescription>
+              </Alert>
               <WorkerProfileHeroWithViewTransitions worker={worker} />
 
               <TabsClient
@@ -329,13 +339,6 @@ export default async function WorkerProfilePage({ params }: PageProps) {
                 <Suspense fallback={<GivingWidgetSkeleton />}>
                   <GivingWidgetSection id={worker.id} />
                 </Suspense>
-
-                <div className="flex gap-4 justify-center">
-                  <Button variant="ghost">
-                    <Share2 className="mr-2 size-4" aria-hidden="true" /> Share
-                    Profile
-                  </Button>
-                </div>
               </div>
             </aside>
           </div>

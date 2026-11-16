@@ -48,8 +48,7 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
 > = {
   media: {
     createLabel: "Upload media",
-    description:
-      "Tenant-scoped media assets. Upload, edit alt text, and manage image variants.",
+    description: "Images and files used across the public site.",
     editDescription:
       "Upload metadata and asset preview stay Payload-owned; Mission Control owns the surrounding workspace.",
     hasDrafts: false,
@@ -64,10 +63,9 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     titleSingular: "Media asset",
   },
   "missionary-giving-pages": {
-    createLabel: "New missionary page",
+    createLabel: "New giving page",
     createHref: "/web-studio/pages/give",
-    description:
-      "Missionary giving pages tied to canonical missionary records, marketing blocks, and donation context.",
+    description: "Giving pages for each missionary's supporters.",
     editDescription:
       "Missionary giving pages keep Payload draft, publish, and block editing behavior while the shared document shell owns framing.",
     hasDrafts: true,
@@ -75,24 +73,16 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     icon: Globe2,
     listPath: "/web-studio/collections/missionary-giving-pages",
     previewMode: "public-link",
-    previewPathForData: (data) => {
-      const missionaryId =
-        typeof data?.missionaryId === "string" ? data.missionaryId : "";
-      return missionaryId
-        ? `/workers/${encodeURIComponent(missionaryId)}`
-        : null;
-    },
     preferences:
       WEB_STUDIO_COLLECTION_PREFERENCE_MAP["missionary-giving-pages"],
-    sectionLabel: "Missionary Pages",
+    sectionLabel: "Giving pages",
     slug: "missionary-giving-pages",
-    titlePlural: "Missionary Pages",
-    titleSingular: "Missionary Page",
+    titlePlural: "Giving pages",
+    titleSingular: "Giving page",
   },
   "missionary-profiles": {
     createLabel: "New profile",
-    description:
-      "Missionary profile records with portrait relationships and public-facing bio/location content.",
+    description: "Public bios, portraits and locations for missionaries.",
     editDescription:
       "Profiles keep Payload relationship/upload field behavior while using the shared document workspace.",
     hasDrafts: false,
@@ -101,15 +91,15 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     listPath: "/web-studio/collections/missionary-profiles",
     previewMode: "none",
     preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["missionary-profiles"],
-    sectionLabel: "Missionary Profiles",
+    sectionLabel: "Missionary profiles",
     slug: "missionary-profiles",
-    titlePlural: "Missionary Profiles",
-    titleSingular: "Missionary Profile",
+    titlePlural: "Missionary profiles",
+    titleSingular: "Missionary profile",
   },
   "ministry-updates": {
     createLabel: "New update",
-    description:
-      "Published ministry updates tied to missionary profiles with drafts, autosave, and donor homepage consumption.",
+    createHref: "/web-studio/ministry-updates/new",
+    description: "News from the field for donor homepages.",
     editDescription:
       "Updates keep Payload draft and publish semantics while using a shared Mission Control frame.",
     hasDrafts: true,
@@ -118,15 +108,14 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     listPath: "/web-studio/collections/ministry-updates",
     previewMode: "public-link",
     preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["ministry-updates"],
-    sectionLabel: "Ministry Updates",
+    sectionLabel: "Ministry updates",
     slug: "ministry-updates",
-    titlePlural: "Ministry Updates",
-    titleSingular: "Ministry Update",
+    titlePlural: "Ministry updates",
+    titleSingular: "Ministry update",
   },
   navigation: {
     createLabel: "New navigation",
-    description:
-      "Tenant-scoped navigation trees with array-based link items and open-in-new-tab settings.",
+    description: "Menus and links for the public site.",
     editDescription:
       "Navigation arrays and row controls remain Payload form widgets inside the shared editor shell.",
     hasDrafts: false,
@@ -142,9 +131,7 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
   },
   "page-templates": {
     createLabel: "New template",
-    createHref: "/web-studio/templates",
-    description:
-      "Template gallery for standard pages, missionary pages, and fund-backed project pages.",
+    description: "Starting layouts for every new page.",
     editDescription:
       "Templates store default layout blocks and metadata while remaining ordinary Payload editorial assets.",
     hasDrafts: true,
@@ -153,16 +140,15 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     listPath: "/web-studio/collections/page-templates",
     previewMode: "none",
     preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["page-templates"],
-    sectionLabel: "Templates",
+    sectionLabel: "Page templates",
     slug: "page-templates",
-    titlePlural: "Page Templates",
-    titleSingular: "Page Template",
+    titlePlural: "Page templates",
+    titleSingular: "Page template",
   },
   pages: {
     createLabel: "New page",
-    createHref: "/web-studio/templates?pageType=standard",
-    description:
-      "Tenant-scoped site pages. Search, filter, and open a document to edit.",
+    createHref: "/web-studio/pages/new-from-template",
+    description: "Site pages with drafts and publishing.",
     editDescription:
       "Pages keep Payload draft, publish, and Lexical form behavior while the shared document shell owns framing.",
     hasDrafts: true,
@@ -183,8 +169,7 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
   "project-pages": {
     createLabel: "New project page",
     createHref: "/web-studio/projects/new",
-    description:
-      "Fund-backed project landing pages with template-driven layout, marketing copy, and donation context.",
+    description: "Fund-backed project pages with giving context.",
     editDescription:
       "Project pages keep Payload draft, publish, and block editing behavior while the shared document shell owns framing.",
     hasDrafts: true,
@@ -192,15 +177,11 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     icon: Target,
     listPath: "/web-studio/collections/project-pages",
     previewMode: "public-link",
-    previewPathForData: (data) => {
-      const slug = typeof data?.slug === "string" ? data.slug : "";
-      return slug ? `/projects/${encodeURIComponent(slug)}` : null;
-    },
     preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["project-pages"],
-    sectionLabel: "Project Pages",
+    sectionLabel: "Project pages",
     slug: "project-pages",
-    titlePlural: "Project Pages",
-    titleSingular: "Project Page",
+    titlePlural: "Project pages",
+    titleSingular: "Project page",
   },
 };
 
@@ -208,6 +189,42 @@ export function getWebStudioCollectionConfig(
   slug: WebStudioCollectionSlug,
 ): WebStudioCollectionConfig {
   return WEB_STUDIO_COLLECTION_CONFIGS[slug];
+}
+
+export const WEB_STUDIO_COLLECTION_GROUPS: ReadonlyArray<{
+  id: "content" | "site";
+  label: string;
+  slugs: readonly WebStudioCollectionSlug[];
+}> = [
+  {
+    id: "content",
+    label: "Content",
+    slugs: [
+      "pages",
+      "missionary-giving-pages",
+      "project-pages",
+      "ministry-updates",
+      "missionary-profiles",
+    ],
+  },
+  {
+    id: "site",
+    label: "Site",
+    slugs: ["navigation", "page-templates", "media"],
+  },
+];
+
+export function getGroupedWebStudioCollections() {
+  const enabled = new Map(
+    getEnabledWebStudioCollections().map((config) => [config.slug, config]),
+  );
+  return WEB_STUDIO_COLLECTION_GROUPS.map((group) => ({
+    ...group,
+    collections: group.slugs.flatMap((slug) => {
+      const config = enabled.get(slug);
+      return config ? [config] : [];
+    }),
+  })).filter((group) => group.collections.length > 0);
 }
 
 export function getEnabledWebStudioCollections() {

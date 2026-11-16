@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 
-export default function SupportSettingsLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return children;
+import { SupportSettingsLayout } from "@/features/support-hub/components/workspace/SupportSettingsLayout";
+
+export default function SettingsLayout({ children }: { children: ReactNode }) {
+  return <SupportSettingsLayout>{children}</SupportSettingsLayout>;
 }

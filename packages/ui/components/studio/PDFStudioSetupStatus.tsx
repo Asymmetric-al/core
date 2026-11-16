@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useEffect, useRef } from "react";
 
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Badge, badgeVariants } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Collapsible,
@@ -39,28 +39,43 @@ import {
 } from "@asym/ui/components/shadcn/dialog";
 import { cn } from "@asym/ui/lib/utils";
 
+/** Each setup state on the shared Badge tones, in sentence case. */
 const pdfStudioStatusConfig = {
   not_configured: {
-    color: "bg-warning/10 text-warning border-warning/20",
+    tone: "warning",
     icon: AlertCircle,
-    label: "Free Mode",
+    label: "Free mode",
   },
   free_tier: {
-    color: "bg-warning/10 text-warning border-warning/20",
+    tone: "warning",
     icon: AlertCircle,
-    label: "Free Tier",
+    label: "Free tier",
   },
   configured: {
-    color: "bg-info/10 text-info border-info/20",
+    tone: "info",
     icon: CheckCircle2,
     label: "Configured",
   },
   white_label: {
-    color: "bg-success/10 text-success border-success/20",
+    tone: "success",
     icon: Crown,
-    label: "White Label",
+    label: "White label",
   },
-};
+} as const;
+
+/** The banner's surface per tone (the Alert tones' fill and border). */
+const BANNER_TONES = {
+  warning: "border-warning/25 bg-warning/10 text-foreground",
+  info: "border-info/25 bg-info/10 text-foreground",
+  success: "border-success/25 bg-success/10 text-foreground",
+} as const;
+
+/** The banner icon carries the tone, as the Alert icons do. */
+const ICON_TONES = {
+  warning: "text-warning",
+  info: "text-info",
+  success: "text-success",
+} as const;
 
 interface PDFStudioSetupStatusProps {
   variant?: "badge" | "banner" | "inline";
@@ -86,20 +101,21 @@ export function PDFStudioSetupStatus({
           render={
             <button
               type="button"
+              aria-label={`${currentStatus.label}: open PDF Studio setup`}
               className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
-                currentStatus.color,
+                badgeVariants({ variant: currentStatus.tone }),
+                "cursor-pointer",
                 className,
               )}
             >
-              <Icon className="size-3" />
+              <Icon aria-hidden="true" className="size-3" />
               {currentStatus.label}
             </button>
           }
         />
         <DialogContent scrollable className="sm:max-w-125">
           <DialogHeader>
-            <DialogTitle>PDF Studio Configuration</DialogTitle>
+            <DialogTitle>PDF Studio setup</DialogTitle>
             <DialogDescription>{status.message}</DialogDescription>
           </DialogHeader>
           <PDFStudioSetupPanel config={config} status={status} />
@@ -113,12 +129,12 @@ export function PDFStudioSetupStatus({
       <div
         className={cn(
           "flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3",
-          currentStatus.color,
+          BANNER_TONES[currentStatus.tone],
           className,
         )}
       >
         <div className="flex items-center gap-2">
-          <Icon className="size-4" />
+          <Icon className={cn("size-4", ICON_TONES[currentStatus.tone])} />
           <span className="text-sm font-medium">{status.message}</span>
         </div>
         {showSetupButton && status.status !== "white_label" && (
@@ -133,7 +149,7 @@ export function PDFStudioSetupStatus({
             />
             <DialogContent scrollable className="sm:max-w-125">
               <DialogHeader>
-                <DialogTitle>PDF Studio Configuration</DialogTitle>
+                <DialogTitle>PDF Studio setup</DialogTitle>
                 <DialogDescription>
                   Configure your Unlayer account for full functionality.
                 </DialogDescription>
@@ -207,7 +223,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">
             Environment
           </div>
           <div className="text-sm font-medium text-foreground capitalize">
@@ -215,7 +231,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           </div>
         </div>
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">
             Project ID
           </div>
           <div className="text-sm font-medium text-foreground">
@@ -225,8 +241,8 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Available Features
+        <div className="text-xs font-medium text-muted-foreground">
+          Available features
         </div>
         <div className="flex flex-wrap gap-1.5">
           {status.features.map((feature) => (
@@ -478,7 +494,7 @@ export function PDFStudioConfigBadge({ className }: { className?: string }) {
   return (
     <Badge variant="warning" className={className}>
       <AlertCircle className="size-3 mr-1" />
-      Free Mode
+      Free mode
     </Badge>
   );
 }

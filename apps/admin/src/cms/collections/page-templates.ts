@@ -2,9 +2,11 @@ import {
   PAGE_TEMPLATE_PAGE_TYPES,
   createTenantField,
   createTemplateLayoutField,
+  webStudioCreateFlowView,
   withTenantAccessAndHooks,
 } from "./page-builders";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import { PAGE_TEMPLATES_SLUG } from "../constants";
 
 import type { CollectionConfig } from "payload";
@@ -19,12 +21,13 @@ const nativePageTemplatesAdmin = isNativeCollectionWebStudioEnabled(
             Component:
               "/src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx#PageTemplatesNativeListView",
           },
-          edit: {
-            default: {
-              Component:
-                "/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx#PageTemplatesNativeEditView",
-            },
-          },
+          edit: studioDocumentEditViews(
+            "/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx#PageTemplatesNativeEditView",
+          ),
+          // The gallery's registered view renders the new-template form here.
+          ...webStudioCreateFlowView(
+            "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView",
+          ),
         },
       },
     }

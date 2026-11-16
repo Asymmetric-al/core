@@ -29,6 +29,7 @@ import {
   useSnoozeSupportConversation,
   useToggleSupportLabel,
 } from "../../hooks/use-support-mutations";
+import { SUPPORT_AGENT_SETUP_MESSAGE } from "../../lib/agent-setup";
 import {
   runBulkMutations,
   type BulkMutationReport,
@@ -183,7 +184,7 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
       icon: UserCheck,
       onClick: (rows) => {
         if (!currentAgentId) {
-          toast.error("No agent matched the current Mission Control user yet.");
+          toast.error(SUPPORT_AGENT_SETUP_MESSAGE);
           return;
         }
         void runBulkMutations(rows, (row) =>

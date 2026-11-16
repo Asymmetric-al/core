@@ -22,6 +22,7 @@ function summary() {
     applications: [
       { packageDir: "apps/admin", score: 80, floor: 35 },
       { packageDir: "apps/donor", score: 80, floor: 41 },
+      { packageDir: "apps/factory-console", score: 80, floor: 52 },
       { packageDir: "apps/missionary", score: 80, floor: 47 },
     ],
     libraries: [],

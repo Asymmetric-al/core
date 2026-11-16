@@ -2,6 +2,11 @@
 
 import { motion } from "@asym/lib/motion";
 import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CardContent,
@@ -36,12 +41,7 @@ import {
   TAGLINE_MAX_LENGTH,
 } from "./profile-model";
 import { staggerContainer, fadeInUp } from "./profile-motion";
-import {
-  AvatarUploadArea,
-  CoverUploadArea,
-  FormField,
-  MotionCard,
-} from "./profile-primitives";
+import { CoverUploadArea, FormField, MotionCard } from "./profile-primitives";
 
 import type { ProfileData, ValidationErrors } from "./profile-model";
 
@@ -69,7 +69,7 @@ export function ProfileFormColumn({
           <CardTitle>
             <span className="flex items-center gap-2">
               <User className="size-4" />
-              Personal Details
+              Personal details
             </span>
           </CardTitle>
         </CardHeader>
@@ -81,14 +81,14 @@ export function ProfileFormColumn({
             animate="animate"
           >
             <div className="grid sm:grid-cols-2 gap-4">
-              <FormField label="First Name" error={validationErrors.firstName}>
+              <FormField label="First name" error={validationErrors.firstName}>
                 <Input
                   value={profile.firstName}
                   onChange={(e) => updateProfile("firstName", e.target.value)}
                   placeholder="Your first name"
                 />
               </FormField>
-              <FormField label="Last Name" error={validationErrors.lastName}>
+              <FormField label="Last name" error={validationErrors.lastName}>
                 <Input
                   value={profile.lastName}
                   onChange={(e) => updateProfile("lastName", e.target.value)}
@@ -125,8 +125,8 @@ export function ProfileFormColumn({
                 <p className="text-sm text-muted-foreground flex items-start gap-1.5">
                   <Info className="size-3 mt-0.5 shrink-0" />
                   <span>
-                    A brief description of your work that appears next to your
-                    name on the giving page and directory.
+                    A short line about your work, shown with your name on your
+                    giving page.
                     <span
                       className={cn(
                         "ml-1 font-medium",
@@ -150,16 +150,15 @@ export function ProfileFormColumn({
             </FormField>
 
             <FormField
-              label="About You"
+              label="About you"
               error={validationErrors.bio}
               helperText={
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground flex items-start gap-1.5">
                     <Info className="size-3 mt-0.5 shrink-0" />
                     <span>
-                      Share your story, calling, and ministry work. This appears
-                      on your public profile page. Include what you do, where
-                      you serve, and how supporters can pray for you.
+                      Your story for your giving page: what you do, where you
+                      serve and how supporters can pray for you.
                     </span>
                   </p>
                   <p
@@ -172,7 +171,9 @@ export function ProfileFormColumn({
                           : "text-success",
                     )}
                   >
-                    {bioWordCount} / {BIO_MIN_WORDS}–{BIO_MAX_WORDS} words
+                    {bioWordCount < BIO_MIN_WORDS
+                      ? `${bioWordCount} words · aim for ${BIO_MIN_WORDS} or more`
+                      : `${bioWordCount} of ${BIO_MAX_WORDS} words`}
                   </p>
                 </div>
               }
@@ -194,7 +195,7 @@ export function ProfileFormColumn({
           <CardTitle>
             <span className="flex items-center gap-2">
               <ImageIcon className="size-4" />
-              Profile Photos
+              Profile photos
             </span>
           </CardTitle>
         </CardHeader>
@@ -203,24 +204,15 @@ export function ProfileFormColumn({
             className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
             variants={fadeInUp}
           >
-            <ImageUpload
-              value={profile.avatarUrl}
-              onChange={(url) => {
-                updateProfile("avatarUrl", url);
-                onSave();
-              }}
-              path="avatars"
-              aspect={1}
-              triggerAriaLabel="Upload profile picture"
-            >
-              <AvatarUploadArea
-                avatarUrl={profile.avatarUrl}
-                initials={initials}
-              />
-            </ImageUpload>
+            <Avatar className="size-24 sm:size-28">
+              {profile.avatarUrl ? (
+                <AvatarImage src={profile.avatarUrl} alt="" />
+              ) : null}
+              <AvatarFallback>{initials || "?"}</AvatarFallback>
+            </Avatar>
             <div className="space-y-2 text-center sm:text-left">
               <p className="text-sm font-medium text-foreground">
-                Profile Picture
+                Profile picture
               </p>
               <p className="text-xs text-muted-foreground max-w-55">
                 Square image, at least 400x400px. JPG or PNG, max 5MB.
@@ -232,17 +224,18 @@ export function ProfileFormColumn({
                   onSave();
                 }}
                 path="avatars"
+                aspect={1}
               >
                 <Button type="button" variant="outline" size="sm">
                   <Upload aria-hidden data-icon="inline-start" />
-                  Upload Photo
+                  {profile.avatarUrl ? "Change photo" : "Upload photo"}
                 </Button>
               </ImageUpload>
             </div>
           </motion.div>
 
           <motion.div className="space-y-2" variants={fadeInUp}>
-            <Label>Cover Photo</Label>
+            <Label>Cover photo</Label>
             <ImageUpload
               value={profile.coverUrl}
               onChange={(url) => {
@@ -256,7 +249,7 @@ export function ProfileFormColumn({
               <CoverUploadArea coverUrl={profile.coverUrl} />
             </ImageUpload>
             <p className="text-xs text-muted-foreground">
-              This image appears at the top of your public profile. Max 10MB.
+              Shown across the top of your giving page. Up to 10MB.
             </p>
           </motion.div>
         </CardContent>
@@ -267,7 +260,7 @@ export function ProfileFormColumn({
           <CardTitle>
             <span className="flex items-center gap-2">
               <Globe className="size-4" />
-              Social Links
+              Social links
             </span>
           </CardTitle>
         </CardHeader>

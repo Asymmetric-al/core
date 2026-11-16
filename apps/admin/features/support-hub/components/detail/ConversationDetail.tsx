@@ -1,7 +1,11 @@
 "use client";
 
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sheet,
   SheetContent,
@@ -11,16 +15,26 @@ import {
 } from "@asym/ui/components/shadcn/sheet";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
-import { ArrowLeft, MessageSquareWarning } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Mail,
+  MessageSquareWarning,
+  StickyNote,
+} from "lucide-react";
+import { useRef, useState } from "react";
 
 import { ConversationComposer } from "./composer/ConversationComposer";
 import { ConversationDetailEmpty } from "./ConversationDetailEmpty";
 import { ConversationHeader } from "./ConversationHeader";
 import { ConversationTimeline } from "./ConversationTimeline";
 import { useSupportConversation } from "../../hooks/use-support-conversation";
+import { SupportApiError } from "../../lib/api-client";
 import { useFocusReturn } from "../../lib/use-focus-return";
 
+import type { ComposerMode } from "./composer/use-conversation-composer";
 import type { SupportAssignee, SupportConversation } from "../../types";
+import type { RefObject } from "react";
 
 interface ConversationDetailProps {
   conversationId: string | null;
@@ -29,38 +43,31 @@ interface ConversationDetailProps {
   layout: "sheet" | "inline";
 }
 
-/**
- * Real conversation workspace. Replaces the Phase 3 `<DetailPanePlaceholder />`.
- * Same prop shape so the SupportInbox swap is one import + one rename.
- *
- * Composition:
- *   - `<ConversationHeader />` — donor identity + status / priority / assignee
- *     menus + SLA chip + Snooze / Resolve actions + close button.
- *   - `<ConversationTimeline />` — merged email + note + activity stream.
- *   - `<ConversationComposer />` — Tiptap reply / private note tabs sticky at
- *     the bottom of the pane scroll container (NOT the page).
- *
- * Phase 5 extension points are documented in the composer files (slash menu,
- * mention extension, macro / canned-response slots, hotkey surface).
- */
 export function ConversationDetail({
   conversationId,
   onClose,
   layout,
 }: ConversationDetailProps) {
-  const { data: conversation, isLoading } =
-    useSupportConversation(conversationId);
+  const {
+    data: conversation,
+    isLoading,
+    isError,
+    isNotFound,
+    error,
+    refetch,
+  } = useSupportConversation(conversationId);
 
   // Phase 7: when the detail pane closes, restore focus to the row / card
   // that opened it. The hook reads `document.activeElement` on mount.
   useFocusReturn(conversationId !== null);
+  const threadRef = useRef<HTMLElement | null>(null);
 
   if (layout === "inline") {
     return (
       <aside
         aria-label="Conversation detail"
         className={cn(
-          "flex h-full min-h-120 flex-col rounded-2xl border border-border bg-card shadow-sm",
+          "flex h-full min-h-0 flex-col rounded-xl border border-border bg-card shadow-sm",
           conversationId === null && "items-center justify-center text-center",
         )}
       >
@@ -72,6 +79,10 @@ export function ConversationDetail({
           <DetailBody
             conversation={conversation}
             isLoading={isLoading}
+            isError={isError}
+            isNotFound={isNotFound}
+            error={error}
+            onRetry={refetch}
             onClose={onClose}
           />
         )}
@@ -86,27 +97,32 @@ export function ConversationDetail({
         if (!open) onClose();
       }}
     >
+      {/* The conversation header carries the close button; a second one
+          from the sheet would repeat it. */}
+      {/* Focus starts on the thread (the reason to open the sheet), not on
+          the first toolbar button. */}
       <SheetContent
         side="right"
-        className="w-full max-w-xl sm:max-w-xl"
         showCloseButton={isLoading && !conversation}
+        initialFocus={threadRef}
+        className="flex w-full max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <SheetHeader className="px-4 py-3">
-            <SheetTitle className="text-sm font-semibold">
-              Conversation
-            </SheetTitle>
-            <SheetDescription className="sr-only">
-              Donor email thread, internal notes, and reply composer.
-            </SheetDescription>
-          </SheetHeader>
-          <Separator />
-          <DetailBody
-            conversation={conversation}
-            isLoading={isLoading}
-            onClose={onClose}
-          />
-        </div>
+        <SheetHeader className="sr-only">
+          <SheetTitle>{conversation?.subject ?? "Conversation"}</SheetTitle>
+          <SheetDescription>
+            Donor email thread, internal notes, and reply composer.
+          </SheetDescription>
+        </SheetHeader>
+        <DetailBody
+          conversation={conversation}
+          isLoading={isLoading}
+          isError={isError}
+          isNotFound={isNotFound}
+          error={error}
+          onRetry={refetch}
+          onClose={onClose}
+          threadRef={threadRef}
+        />
       </SheetContent>
     </Sheet>
   );
@@ -115,12 +131,54 @@ export function ConversationDetail({
 interface DetailBodyProps {
   conversation: SupportConversation | undefined;
   isLoading: boolean;
+  isError: boolean;
+  isNotFound: boolean;
+  error: unknown;
+  onRetry: () => Promise<unknown>;
   onClose: () => void;
+  /** The scrolling thread, for the sheet's initial focus. */
+  threadRef?: RefObject<HTMLElement | null>;
 }
 
-function DetailBody({ conversation, isLoading, onClose }: DetailBodyProps) {
+function DetailBody({
+  conversation,
+  isLoading,
+  onClose,
+  threadRef,
+  isError,
+  isNotFound,
+  error,
+  onRetry,
+}: DetailBodyProps) {
+  // The composer starts closed in both layouts, so the thread is what staff
+  // read first (the desktop pane is one screen tall and an open composer
+  // took most of it); Reply or Internal note opens it.
+  const [composerMode, setComposerMode] = useState<ComposerMode | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+
   if (isLoading && !conversation) {
     return <DetailSkeleton />;
+  }
+  if (!conversation && isError && !isNotFound) {
+    const accessDenied =
+      error instanceof SupportApiError &&
+      (error.status === 401 || error.status === 403);
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Couldn’t load conversation</AlertTitle>
+        <AlertDescription>
+          {accessDenied
+            ? "You don’t have access to this conversation. Sign in with an authorized account or ask a support admin."
+            : "Something went wrong loading it. Try again, or go back to the inbox."}
+        </AlertDescription>
+        <Button variant="outline" size="sm" onClick={() => void onRetry()}>
+          Try again
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          Back to inbox
+        </Button>
+      </Alert>
+    );
   }
   if (!conversation) {
     return <ConversationNotFound onClose={onClose} />;
@@ -131,17 +189,69 @@ function DetailBody({ conversation, isLoading, onClose }: DetailBodyProps) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <ConversationHeader conversation={conversation} onClose={onClose} />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      {/* A keyboard user can scroll the thread once it is focused. */}
+      <section
+        ref={threadRef}
+        aria-label="Messages"
+        tabIndex={0}
+        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+      >
         <ConversationTimeline conversationId={conversation.id} />
-      </div>
+      </section>
       <div className="border-t border-border bg-muted/40 p-3">
-        {/* Keyed per conversation so drafts, attachments, and mode start fresh
-            when the agent switches threads instead of being reset in an effect. */}
-        <ConversationComposer
-          key={conversation.id}
-          conversation={conversation}
-          agent={agent}
-        />
+        {composerMode === null ? null : (
+          <div className={cn("flex flex-col gap-2", !composerOpen && "hidden")}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="self-end"
+              onClick={() => setComposerOpen(false)}
+            >
+              <ChevronDown aria-hidden="true" />
+              Hide composer
+            </Button>
+            {/* Keyed per conversation so drafts, attachments, and mode start
+                fresh when the agent switches threads instead of being reset in
+                an effect. Hiding keeps it mounted, so a draft survives. */}
+            <ConversationComposer
+              key={conversation.id}
+              conversation={conversation}
+              agent={agent}
+              initialMode={composerMode}
+              active={composerOpen}
+            />
+          </div>
+        )}
+        {composerOpen ? null : (
+          <div
+            className={cn("grid gap-2", composerMode === null && "grid-cols-2")}
+          >
+            <Button
+              type="button"
+              onClick={() => {
+                setComposerMode((mode) => mode ?? "reply");
+                setComposerOpen(true);
+              }}
+            >
+              <Mail aria-hidden="true" />
+              {composerMode === null ? "Reply" : "Show composer"}
+            </Button>
+            {composerMode === null ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setComposerMode("note");
+                  setComposerOpen(true);
+                }}
+              >
+                <StickyNote aria-hidden="true" />
+                Internal note
+              </Button>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -173,8 +283,8 @@ function ConversationNotFound({ onClose }: ConversationNotFoundProps) {
         Conversation not found
       </p>
       <p className="max-w-xs text-xs text-muted-foreground">
-        It may have been resolved or removed. Head back to the inbox to pick
-        another conversation.
+        It may have been removed or you may not have access. Head back to the
+        inbox to pick another conversation.
       </p>
       <Button
         type="button"

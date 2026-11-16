@@ -101,13 +101,13 @@ describe("Map GPU initialization failure", () => {
 
     await screen.findByRole("alert");
 
-    expect(screen.queryByRole("button", { name: "Zoom In" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Zoom Out" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Zoom out" })).toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Find My Location" }),
+      screen.queryByRole("button", { name: "Find my location" }),
     ).toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Toggle Fullscreen" }),
+      screen.queryByRole("button", { name: "Toggle full screen" }),
     ).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Toggle map theme" }),

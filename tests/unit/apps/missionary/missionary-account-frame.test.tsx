@@ -14,7 +14,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
   useRouter: () => navigation,
 }));
-vi.mock("@asym/auth/client-session", () => ({ signOutClientSession: vi.fn() }));
+vi.mock("@asym/auth/client-session", () => ({
+  signOutClientSession: vi.fn(),
+  // The sidebar identity subscribes to client auth state; stay "loading".
+  subscribeToClientAuthState: () => () => {},
+}));
+vi.mock("@asym/database/hooks", () => ({
+  useMissionaryPortalSnapshot: () => ({ data: undefined }),
+  usePendingFollowRequestCount: () => ({ data: undefined }),
+}));
 vi.mock("@asym/database/supabase", () => ({
   createBrowserClient: () => ({
     auth: { getUser: async () => ({ data: { user: null } }) },
@@ -175,12 +183,16 @@ it.each(accountScreens)(
       expect(
         view.getByText(/Self-service registration is not available/),
       ).toBeTruthy();
-      expect(view.queryByRole("button", { name: "Create Account" })).toBeNull();
+      expect(view.queryByRole("button", { name: "Create account" })).toBeNull();
     }
     if (pathname === "/forgot-password") {
-      expect(view.getByText(/Password reset is not enabled yet/)).toBeTruthy();
       expect(
-        view.getByRole("link", { name: "Back to login" }).getAttribute("href"),
+        view.getByText(/Resetting your password by email isn’t available yet/),
+      ).toBeTruthy();
+      expect(
+        view
+          .getByRole("link", { name: "Back to sign in" })
+          .getAttribute("href"),
       ).toBe("/login");
     }
   },
@@ -197,8 +209,9 @@ it.each([
   navigation.pathname = pathname;
   const view = render(compose(<h1>Existing page</h1>));
   expect(view.getByRole("banner")).toBeTruthy();
-  expect(view.getByRole("contentinfo")).toBeTruthy();
-  expect(view.getByRole("button", { name: "Sign out" })).toBeTruthy();
+  // The workspace has no footer, and sign-out lives in the account menu.
+  expect(view.queryByRole("contentinfo")).toBeNull();
+  expect(view.queryByRole("button", { name: "Sign out" })).toBeNull();
   expect(
     view.getAllByRole("button", { name: "Toggle Sidebar" }).length,
   ).toBeGreaterThan(0);
@@ -262,7 +275,7 @@ it.each(["palette", "sidebar"])(
     fireEvent(window, shortcut);
     expect(shortcut.defaultPrevented).toBe(true);
     await view.findByRole("dialog", { name: "Missionary navigation" });
-    fireEvent.click(view.getByRole("option", { name: "Dashboard" }));
+    fireEvent.click(view.getByRole("option", { name: "Home" }));
     expect(navigation.push).toHaveBeenCalledWith("/");
   },
 );

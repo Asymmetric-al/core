@@ -8487,7 +8487,8 @@
       "route_consumers": ["/events (page)"],
       "after_literal_palette": [],
       "after_shared_ui_imports": ["@asym/ui/components/shadcn/card"],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/feed/content-moderation-page-client.tsx",
@@ -8693,7 +8694,8 @@
         "@asym/ui/components/shadcn/tooltip",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/feed/page.tsx",
@@ -8841,7 +8843,8 @@
         "@asym/ui/components/shadcn/tabs",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/mobilize/page-client.tsx",
@@ -9513,7 +9516,8 @@
         "@asym/ui/components/shadcn/dropdown-menu",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-detail-drawer.tsx",
@@ -9534,7 +9538,8 @@
       "reachable": "not-in-static-route-import-graph; may be supported dynamic integration, test-only, or legacy; inspect actual owner before cleanup",
       "after_literal_palette": [],
       "after_shared_ui_imports": [],
-      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup"
+      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-drawer-sections.tsx",
@@ -9611,7 +9616,8 @@
         "@asym/ui/components/shadcn/visually-hidden",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-drawer.tsx",
@@ -9631,7 +9637,8 @@
       "route_consumers": ["/tasks (page)"],
       "after_literal_palette": [],
       "after_shared_ui_imports": ["@asym/ui/components/shadcn/sheet"],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-form-sections.tsx",
@@ -9724,7 +9731,8 @@
         "@asym/ui/components/shadcn/popover",
         "@asym/ui/components/shadcn/select"
       ],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-form.tsx",
@@ -9752,7 +9760,8 @@
       "route_consumers": ["/tasks (page)"],
       "after_literal_palette": [],
       "after_shared_ui_imports": ["@asym/ui/components/shadcn/dialog"],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/task-modal.tsx",
@@ -9773,7 +9782,8 @@
       "reachable": "not-in-static-route-import-graph; may be supported dynamic integration, test-only, or legacy; inspect actual owner before cleanup",
       "after_literal_palette": [],
       "after_shared_ui_imports": [],
-      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup"
+      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/tasks-content-sections.tsx",
@@ -9830,7 +9840,8 @@
         "@asym/ui/components/shadcn/tabs",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/tasks/tasks-content.tsx",
@@ -10693,7 +10704,8 @@
         "@asym/ui/components/shadcn/sheet",
         "@asym/ui/components/shadcn/tabs"
       ],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/app/(app)/care/directory/page-client.tsx",
@@ -13162,7 +13174,8 @@
       "route_consumers": ["/ (layout)"],
       "after_literal_palette": [],
       "after_shared_ui_imports": [],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/components/icons.tsx",
@@ -13317,7 +13330,8 @@
         "@asym/ui/components/shadcn/command",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx",
@@ -13360,7 +13374,8 @@
         "@asym/ui/components/shadcn/tooltip",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/care/components/PersonnelList.tsx",
@@ -13417,7 +13432,8 @@
         "@asym/ui/components/shadcn/data-table/types",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/care/components/PersonnelProfile.tsx",
@@ -13560,7 +13576,8 @@
       "reachable": "not-in-static-route-import-graph; may be supported dynamic integration, test-only, or legacy; inspect actual owner before cleanup",
       "after_literal_palette": [],
       "after_shared_ui_imports": [],
-      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup"
+      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx",
@@ -13614,7 +13631,8 @@
         "@asym/ui/components/shadcn/card",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/care/components/UI.tsx",
@@ -13711,7 +13729,8 @@
         "@asym/ui/components/shadcn/dialog",
         "@asym/ui/lib/utils"
       ],
-      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup"
+      "implementation_disposition": "retained; no active static route consumer, exports/dynamic owner inspected before any cleanup",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/components/app-shell/index.tsx",
@@ -13864,7 +13883,8 @@
       "route_consumers": ["/sign (page)"],
       "after_literal_palette": [],
       "after_shared_ui_imports": ["@asym/ui/components/shadcn/breadcrumb"],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/components/patterns/skeletons.tsx",
@@ -13989,7 +14009,8 @@
       "route_consumers": ["/ (page)"],
       "after_literal_palette": [],
       "after_shared_ui_imports": [],
-      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement"
+      "implementation_disposition": "retained; existing behavior/composition or indirect shared improvement",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx",
@@ -14201,7 +14222,8 @@
         "@asym/ui/components/shadcn/button",
         "@asym/ui/components/shadcn/card"
       ],
-      "implementation_disposition": "improved; verification joined above per route"
+      "implementation_disposition": "improved; verification joined above per route",
+      "post_audit_status": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree."
     },
     {
       "file": "apps/admin/features/mission-control/components/tiles/workflows-panel.tsx",
@@ -19555,5 +19577,43 @@
       "pre_integration_source_sha256": "842818b87f0a0a2af7c47a593da22ef50f1479f75c4ffc75e458400c3f1bf44a",
       "upstream_source_sha256": "4df5921ed010b5c02e72cd493a69600d8f65f0d2b3b9cf6f377b6bc0520c1ee7"
     }
-  ]
+  ],
+  "post_audit_removals": {
+    "recordedAt": "2026-11-11",
+    "reason": "Deleted on 2026-11-11 by the admin workspaces hill-climb, round 12 (sample-data and prototype removal). Entry kept as audit history; the file is no longer in the source tree.",
+    "files": [
+      "apps/admin/app/(app)/admin/teams/teams-data.ts",
+      "apps/admin/app/(app)/admin/teams/teams-sections.tsx",
+      "apps/admin/app/(app)/events/events-derived.ts",
+      "apps/admin/app/(app)/events/registration-trends-chart.tsx",
+      "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
+      "apps/admin/app/(app)/feed/feed-mock-data.ts",
+      "apps/admin/app/(app)/feed/feed-model.ts",
+      "apps/admin/app/(app)/feed/use-content-moderation-page.ts",
+      "apps/admin/app/(app)/mobilize/mobilize-sections.tsx",
+      "apps/admin/app/(app)/mobilize/stage-colors.ts",
+      "apps/admin/app/(app)/tasks/tags.ts",
+      "apps/admin/app/(app)/tasks/task-columns.tsx",
+      "apps/admin/app/(app)/tasks/task-detail-drawer.tsx",
+      "apps/admin/app/(app)/tasks/task-drawer-sections.tsx",
+      "apps/admin/app/(app)/tasks/task-drawer.tsx",
+      "apps/admin/app/(app)/tasks/task-form-model.ts",
+      "apps/admin/app/(app)/tasks/task-form-sections.tsx",
+      "apps/admin/app/(app)/tasks/task-form.tsx",
+      "apps/admin/app/(app)/tasks/task-modal.tsx",
+      "apps/admin/app/(app)/tasks/tasks-content-sections.tsx",
+      "apps/admin/app/(app)/tasks/types.ts",
+      "apps/admin/app/(app)/tasks/use-task-form.ts",
+      "apps/admin/features/mission-control/care/components/CareTools.tsx",
+      "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx",
+      "apps/admin/features/mission-control/care/components/PersonnelList.tsx",
+      "apps/admin/features/mission-control/care/components/ShortcutsHelp.tsx",
+      "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx",
+      "apps/admin/features/mission-control/care/components/UI.tsx",
+      "apps/admin/features/mission-control/components/client-only.tsx",
+      "apps/admin/features/mission-control/components/patterns/page-header.tsx",
+      "apps/admin/features/mission-control/components/tiles/mission-control-chart-views.tsx",
+      "apps/admin/features/mission-control/components/tiles/tile-page.tsx"
+    ]
+  }
 }

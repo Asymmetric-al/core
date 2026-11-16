@@ -1,12 +1,34 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
-import { appendFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { appendFileSync, globSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
+const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
+
+// Product apps: the Vercel-deployed release set. Production, merge-queue and
+// manual (workflow_dispatch) CI, `bun run build` and shared product inputs
+// compile exactly these three.
 export const BUILD_APPS = Object.freeze(["admin", "donor", "missionary"]);
+// Private operator apps (apps/factory-console: a loopback service on VM 100,
+// never deployed to Vercel). They are compilation targets but deliberately not
+// in the product release set: a non-product build must not gate a product
+// release or lengthen the 15-minute CI build job on every full compile. They
+// compile on develop PRs, the only place their changes are reviewed, whenever
+// their own files, a workspace package in their dependency graph, or a shared
+// install/compilation input changes, or when the diff is unknown. Unlike the
+// product apps, ordinary source edits count: no Vercel preview builds an
+// operator app, and only `next build` proves its server/client boundaries and
+// Cache Components prerendering, which typecheck and lint do not.
+export const OPERATOR_BUILD_APPS = Object.freeze(["factory-console"]);
+export const COMPILATION_APPS = Object.freeze([
+  ...BUILD_APPS,
+  ...OPERATOR_BUILD_APPS,
+]);
 const BUILD_CONFIG =
   /(?:^|\/)(?:package\.json|vercel\.json|tsconfig(?:\.[^/]+)?\.json|(?:next|postcss|tailwind|vite)\.config\.[cm]?[jt]s)$/;
-const SHARED_INPUTS = new Set([
+// Root installation and toolchain inputs shared by every compiled app.
+const INSTALL_INPUTS = new Set([
   "bun.lock",
   "bun.lockb",
   "package.json",
@@ -16,9 +38,13 @@ const SHARED_INPUTS = new Set([
   ".node-version",
   ".nvmrc",
   ".npmrc",
+]);
+const SHARED_INPUTS = new Set([
+  ...INSTALL_INPUTS,
   ".vercelignore",
   "scripts/load-workspace-env.mjs",
 ]);
+const SHARED_TYPESCRIPT_CONFIG = /^tooling\/typescript-config\/.*\.jsonc?$/;
 
 export function resolveCompilation({
   event,
@@ -26,6 +52,25 @@ export function resolveCompilation({
   baseBranch,
   changedFiles,
   full = false,
+}) {
+  return [
+    ...resolveProductCompilation({
+      event,
+      branch,
+      baseBranch,
+      changedFiles,
+      full,
+    }),
+    ...resolveOperatorCompilation({ event, baseBranch, changedFiles }),
+  ];
+}
+
+function resolveProductCompilation({
+  event,
+  branch,
+  baseBranch,
+  changedFiles,
+  full,
 }) {
   if (
     full ||
@@ -44,11 +89,13 @@ export function resolveCompilation({
 
   const apps = new Set();
   for (const file of changedFiles) {
-    const app = /^apps\/(admin|donor|missionary)\//.exec(file)?.[1];
+    // Operator app files are that app's own inputs, never shared product
+    // build configuration.
+    const app = compilationAppOf(file);
     const shared =
       SHARED_INPUTS.has(file) ||
       file.startsWith("vendor/react-pdf-packages/") ||
-      /^tooling\/typescript-config\/.*\.jsonc?$/.test(file) ||
+      SHARED_TYPESCRIPT_CONFIG.test(file) ||
       (!app && BUILD_CONFIG.test(file)) ||
       /^scripts\/(?:vercel\/|verify\/ci-build|repair-workspace-links\.mjs|resolve-monorepo-root\.mjs)/.test(
         file,
@@ -60,6 +107,79 @@ export function resolveCompilation({
     if (app && BUILD_CONFIG.test(file)) apps.add(app);
   }
   return BUILD_APPS.filter((app) => apps.has(app));
+}
+
+function resolveOperatorCompilation({ event, baseBranch, changedFiles }) {
+  if (event !== "pull_request" || baseBranch !== "develop") return [];
+  if (!Array.isArray(changedFiles)) return [...OPERATOR_BUILD_APPS];
+  return OPERATOR_BUILD_APPS.filter((app) => {
+    const inputs = [
+      `apps/${app}`,
+      ...readWorkspaceDependencyDirs(`apps/${app}`),
+    ];
+    return changedFiles.some(
+      (file) =>
+        INSTALL_INPUTS.has(file) ||
+        SHARED_TYPESCRIPT_CONFIG.test(file) ||
+        // ci-build and its link repair dispatch every compilation; ci.yml
+        // owns the build job. Vercel-only inputs are excluded.
+        /^scripts\/(?:verify\/ci-build|repair-workspace-links\.mjs)/.test(
+          file,
+        ) ||
+        file === ".github/workflows/ci.yml" ||
+        inputs.some((directory) => file.startsWith(`${directory}/`)),
+    );
+  });
+}
+
+function compilationAppOf(file) {
+  const app = /^apps\/([^/]+)\//.exec(file)?.[1];
+  return COMPILATION_APPS.includes(app) ? app : undefined;
+}
+
+/**
+ * Workspace directories an app compiles against: the transitive closure of
+ * its `workspace:` runtime dependencies (`dependencies`, `peerDependencies`,
+ * `optionalDependencies`), read from the manifests. Development-only
+ * workspaces (lint and TypeScript configuration) do not change `next build`
+ * output; shared TypeScript configuration is a separate shared input.
+ */
+export function readWorkspaceDependencyDirs(appDirectory, rootDir = REPO_ROOT) {
+  const readManifest = (directory) =>
+    JSON.parse(
+      readFileSync(path.join(rootDir, directory, "package.json"), "utf8"),
+    );
+  const workspaceDirectories = new Map(
+    globSync(
+      readManifest(".").workspaces.map((pattern) => `${pattern}/package.json`),
+      { cwd: rootDir },
+    ).map((manifest) => {
+      const directory = path.dirname(manifest).replaceAll("\\", "/");
+      return [readManifest(directory).name, directory];
+    }),
+  );
+  const found = new Set();
+  const pending = [appDirectory];
+  while (pending.length > 0) {
+    const manifest = readManifest(pending.pop());
+    for (const field of [
+      "dependencies",
+      "peerDependencies",
+      "optionalDependencies",
+    ])
+      for (const [name, specifier] of Object.entries(manifest[field] ?? {})) {
+        const directory = workspaceDirectories.get(name);
+        if (
+          !String(specifier).startsWith("workspace:") ||
+          !directory ||
+          found.has(directory)
+        )
+          continue;
+        found.add(directory);
+        pending.push(directory);
+      }
+  }
+  return [...found].sort();
 }
 
 export function readCompilationChanges({
@@ -110,15 +230,25 @@ export function validateCiGate({ results, buildRequested }) {
   );
 }
 
+export function parseBuildSelection(text = "[]") {
+  let apps;
+  try {
+    apps = JSON.parse(text);
+  } catch {
+    apps = null;
+  }
+  if (
+    !Array.isArray(apps) ||
+    apps.length === 0 ||
+    apps.some((app) => !COMPILATION_APPS.includes(app))
+  )
+    throw new Error("Invalid compilation app selection");
+  return apps;
+}
+
 function main() {
   if (process.argv.includes("--build")) {
-    const apps = JSON.parse(process.env.CI_BUILD_APPS ?? "[]");
-    if (
-      !Array.isArray(apps) ||
-      apps.length === 0 ||
-      apps.some((app) => !BUILD_APPS.includes(app))
-    )
-      throw new Error("Invalid compilation app selection");
+    const apps = parseBuildSelection(process.env.CI_BUILD_APPS ?? "[]");
     for (const app of apps) {
       const result = spawnSync("bun", ["run", `build:${app}`], {
         stdio: "inherit",

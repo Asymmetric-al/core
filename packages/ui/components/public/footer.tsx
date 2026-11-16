@@ -3,7 +3,6 @@ import Link from "next/link";
 interface FooterLink {
   label: string;
   href: string;
-  badge?: string;
 }
 
 interface FooterSection {
@@ -19,7 +18,6 @@ const footerSections: FooterSection[] = [
       { label: "Where We Work", href: "/where-we-work" },
       { label: "Financial Integrity", href: "/financials" },
       { label: "FAQ", href: "/faq" },
-      { label: "Contact", href: "/about#contact" },
     ],
   },
   {
@@ -27,14 +25,9 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "Missionary Directory", href: "/workers" },
       { label: "Ways to Give", href: "/ways-to-give" },
-      { label: "Make a Donation", href: "/checkout" },
+      // Every gift has a recipient, so giving starts from the directory.
+      { label: "Make a Donation", href: "/workers" },
       { label: "Donor Portal", href: "/donor-dashboard" },
-    ],
-  },
-  {
-    title: "Platform",
-    links: [
-      { label: "Donor Portal", href: "/donor-dashboard", badge: "Partner" },
     ],
   },
 ];
@@ -42,6 +35,7 @@ const footerSections: FooterSection[] = [
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -60,6 +54,7 @@ function FacebookIcon({ className }: { className?: string }) {
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -80,6 +75,7 @@ function InstagramIcon({ className }: { className?: string }) {
 function TwitterIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -98,6 +94,7 @@ function TwitterIcon({ className }: { className?: string }) {
 function LinkedinIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -118,6 +115,7 @@ function LinkedinIcon({ className }: { className?: string }) {
 function HeartIcon({ className }: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -151,7 +149,7 @@ export function Footer() {
   return (
     <footer className="bg-invert text-invert-foreground py-12 sm:py-16 lg:py-24 border-t border-invert-foreground/5">
       <div className="container-responsive">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-12 mb-12 lg:mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 mb-12 lg:mb-16">
           <div className="sm:col-span-2 lg:col-span-1 space-y-4 sm:space-y-6">
             <Link href="/" className="flex items-center gap-2">
               <div className="size-8 bg-invert-foreground text-invert rounded-lg flex items-center justify-center font-semibold text-sm">
@@ -181,11 +179,6 @@ export function Footer() {
                       className="hover:text-invert-foreground transition-colors touch-target inline-flex items-center gap-2"
                     >
                       {link.label}
-                      {link.badge && (
-                        <span className="text-xs bg-invert-foreground/10 px-1.5 py-0.5 rounded text-invert-foreground/75">
-                          {link.badge}
-                        </span>
-                      )}
                     </Link>
                   </li>
                 ))}

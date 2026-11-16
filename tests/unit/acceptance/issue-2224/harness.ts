@@ -15,7 +15,7 @@
  * against a fake `@playwright/test` plus a small, deterministic model of the
  * donor settings page (`World`). The model follows the product seams the spec
  * cites (image-upload.tsx processFile/handleDrop/accept, image-cropper.tsx,
- * page-client.tsx avatar trigger, the stub /api/upload/image route and the
+ * page-client.tsx Photo card, the stub /api/upload/image route and the
  * demo-account endpoint). Each knob in WorldConfig is one product behaviour
  * that a mutation check in spec §4 removes, so "the test fails when the
  * product behaviour is gone" can be checked in Vitest.
@@ -79,7 +79,7 @@ export const unitFile = () =>
 
 export const TITLES = {
   /** §1.7 / criterion 9. */
-  largeFile: "settings copy advertises large-file auto-optimization",
+  largeFile: "settings gives useful photo format guidance",
   /** §1.8 / criterion 12: unchanged. */
   apiSuite: "Backend Image Processing",
   apiInvalidToken: "API endpoint should exist for image processing",
@@ -143,7 +143,8 @@ export function functionBody(src: string, name: string): string | undefined {
 
 export type Box = { x: number; y: number; width: number; height: number };
 export type WorldConfig = {
-  /** `accept` on both ImageUpload inputs; null removes the attribute. */
+  settingsVersion: "current" | "baseline";
+  /** `accept` on the ImageUpload input; null removes the attribute. */
   accept: string | null;
   /** test-image.png is missing for fs and for Playwright path reads. */
   fixtureMissing: boolean;
@@ -159,16 +160,16 @@ export type WorldConfig = {
   cancelEmitsUploadRequest: boolean;
   cancelShowsSuccessToast: boolean;
   cancelChangesAvatar: boolean;
-  /** The "Upload public avatar" trigger's avatar; null = trigger absent. */
+  /** The Photo card's avatar; null = preview absent. */
   avatar: { src?: string; fallback: string } | null;
   invalidToast: boolean;
   invalidMessage: string;
   invalidOpensDialog: boolean;
   /** Overrides the dialog box; null = boundingBox() returns null. */
   dialogBox?: Box | null;
-  largeFileCopy: boolean;
+  photoFormatCopy: string | null;
   removeButton: boolean;
-  uploadNewEnabled: boolean;
+  uploadPhotoEnabled: boolean;
   /** GET /api/auth/demo-account. */
   demo: { status: number; body: unknown };
   /** POST /api/auth/demo-account (session install). */
@@ -183,6 +184,7 @@ export type WorldConfig = {
 };
 
 export const DEFAULT_WORLD: WorldConfig = {
+  settingsVersion: "current",
   accept: ACCEPT_SET.join(","),
   fixtureMissing: false,
   chooserOpensDialog: true,
@@ -193,13 +195,13 @@ export const DEFAULT_WORLD: WorldConfig = {
   cancelEmitsUploadRequest: false,
   cancelShowsSuccessToast: false,
   cancelChangesAvatar: false,
-  avatar: { fallback: "DD" },
+  avatar: { src: "http://localhost:3001/avatars/donor.png", fallback: "DD" },
   invalidToast: true,
   invalidMessage: UNSUPPORTED_MESSAGE,
   invalidOpensDialog: false,
-  largeFileCopy: true,
+  photoFormatCopy: "JPG, PNG, WebP or GIF. Large files auto-optimized.",
   removeButton: true,
-  uploadNewEnabled: true,
+  uploadPhotoEnabled: true,
   demo: { status: 200, body: { roles: { donor: true } } },
   session: { status: 200 },
   upload: { missing: 401, invalid: 401, other: 501, errorBody: true },
@@ -315,10 +317,13 @@ export class World {
 
   elements(): El[] {
     const c = this.cfg;
+    const baseline = c.settingsVersion === "baseline";
+    const photoParent = baseline ? "body" : "photo-card";
+    const avatarId = baseline ? "avatar-trigger" : "avatar-preview";
     const els: El[] = [{ id: "body", css: ["body"], visible: true }];
     const root = (i: number): El => ({
       id: `root-${i}`,
-      parent: "body",
+      parent: photoParent,
       css: ["div", '[class*="relative"]', ".relative"],
       visible: true,
     });
@@ -335,35 +340,49 @@ export class World {
       visible: false,
       enabled: true,
     });
-    els.push({
-      id: "public-avatar",
-      parent: "body",
-      text: "Public Avatar",
-      css: ["div"],
-      visible: true,
-    });
-    els.push(root(0), input(0));
+    if (baseline) {
+      els.push({
+        id: "public-avatar",
+        parent: "body",
+        text: "Public Avatar",
+        css: ["div"],
+        visible: true,
+      });
+      els.push(root(0), input(0));
+    } else {
+      els.push({
+        id: "photo-card",
+        parent: "body",
+        css: ["div", '[data-slot="card"]'],
+        attrs: { "data-slot": "card" },
+        visible: true,
+      });
+    }
     if (this.avatar) {
       els.push({
-        id: "avatar-trigger",
-        parent: "root-0",
-        role: "button",
-        name: "Upload public avatar",
-        label: "Upload public avatar",
-        css: [
-          "div",
-          '[class*="relative"]',
-          '[aria-label="Upload public avatar"]',
-          '[role="button"]',
-        ],
-        attrs: { "aria-label": "Upload public avatar", role: "button" },
+        id: avatarId,
+        parent: baseline ? "root-0" : photoParent,
+        role: baseline ? "button" : undefined,
+        name: baseline ? "Upload public avatar" : undefined,
+        label: baseline ? "Upload public avatar" : undefined,
+        css: baseline
+          ? [
+              "div",
+              '[class*="relative"]',
+              '[aria-label="Upload public avatar"]',
+              '[role="button"]',
+            ]
+          : ["span", '[data-slot="avatar"]'],
+        attrs: baseline
+          ? { "aria-label": "Upload public avatar", role: "button" }
+          : { "data-slot": "avatar" },
         visible: true,
         enabled: true,
       });
       if (this.avatar.src)
         els.push({
           id: "avatar-img",
-          parent: "avatar-trigger",
+          parent: avatarId,
           role: "img",
           css: ["img"],
           attrs: { src: this.avatar.src },
@@ -372,7 +391,7 @@ export class World {
       else
         els.push({
           id: "avatar-fallback",
-          parent: "avatar-trigger",
+          parent: avatarId,
           text: this.avatar.fallback,
           css: ["span"],
           visible: true,
@@ -380,36 +399,44 @@ export class World {
     }
     els.push({
       id: "profile-photo",
-      parent: "body",
+      parent: photoParent,
       role: "heading",
-      name: "Profile Photo",
-      text: "Profile Photo",
+      name: baseline ? "Profile Photo" : "Photo",
+      text: baseline ? "Profile Photo" : "Photo",
       css: ["h3"],
       visible: true,
     });
-    if (c.largeFileCopy)
+    if (c.photoFormatCopy !== null)
       els.push({
         id: "copy",
-        parent: "body",
-        text: "JPG, GIF or PNG. Large files auto-optimized.",
+        parent: photoParent,
+        text: baseline
+          ? "JPG, GIF or PNG. Large files auto-optimized."
+          : c.photoFormatCopy,
         css: ["p"],
         visible: true,
       });
-    els.push(root(1), input(1));
+    const photoInput = baseline ? 1 : 0;
+    const uploadName = baseline
+      ? "Upload New"
+      : this.avatar?.src
+        ? "Change photo"
+        : "Upload photo";
+    els.push(root(photoInput), input(photoInput));
     els.push({
-      id: "upload-new",
-      parent: "root-1",
+      id: baseline ? "upload-new" : "upload-photo",
+      parent: `root-${photoInput}`,
       role: "button",
-      name: "Upload New",
-      text: "Upload New",
+      name: uploadName,
+      text: uploadName,
       css: ["button"],
       visible: true,
-      enabled: c.uploadNewEnabled,
+      enabled: c.uploadPhotoEnabled,
     });
-    if (c.removeButton)
+    if (c.removeButton && (baseline || this.avatar?.src))
       els.push({
         id: "remove",
-        parent: "body",
+        parent: photoParent,
         role: "button",
         name: "Remove",
         text: "Remove",
@@ -666,6 +693,8 @@ const SUPPORTED_CSS = [
   ".relative",
   "[data-sonner-toast]",
   '[aria-label="Upload public avatar"]',
+  '[data-slot="card"]',
+  '[data-slot="avatar"]',
 ];
 
 function matchStep(el: El, s: Step): boolean {
@@ -911,6 +940,7 @@ function makeLocator(w: World, steps: Step[], page: () => unknown): Locator {
       if (e.enabled === false)
         throw new Error(`locator.click: element is not enabled: ${e.id}`);
       if (e.id === "upload-new") w.emit("filechooser", fileChooser(1));
+      else if (e.id === "upload-photo") w.emit("filechooser", fileChooser(0));
       else if (e.id === "avatar-trigger") w.emit("filechooser", fileChooser(0));
       else if (e.id === "cancel") await w.cancel();
       else if (e.id === "apply") {

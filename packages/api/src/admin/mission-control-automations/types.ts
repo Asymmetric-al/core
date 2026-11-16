@@ -89,11 +89,28 @@ export interface MissionControlAutomationSummary {
   invalidRules: number;
   executions24h: number;
   failedRuns24h: number;
+  /**
+   * Failed runs in the window that no listed rule accounts for: the log
+   * row names no rule (deleting a rule clears it) or the rule can't be read.
+   * Rules past the newest page that ran are listed, so this is never them.
+   */
+  failedRunsWithoutRule24h: number;
   activityLogBacked: boolean;
   integrationHealthBacked: boolean;
 }
 
+/** A rule's runs in the activity log over the summary's 24-hour window. */
+export interface AutomationRuleRecentActivity {
+  runs24h: number;
+  failedRuns24h: number;
+  /** ISO time of the rule's latest failed run in the window, or null. */
+  lastFailureAt: string | null;
+}
+
+export type MissionControlAutomationRuleWithActivity = AutomationRule &
+  AutomationRuleRecentActivity;
+
 export interface MissionControlAutomationDashboard {
-  automationRules: AutomationRule[];
+  automationRules: MissionControlAutomationRuleWithActivity[];
   summary: MissionControlAutomationSummary;
 }

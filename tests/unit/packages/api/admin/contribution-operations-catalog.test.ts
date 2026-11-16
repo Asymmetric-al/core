@@ -6,6 +6,7 @@ import {
   contributionActionName,
   contributionActionTitle,
   operationDefinitionFor,
+  parseAmountToCents,
 } from "../../../../../packages/api/src/admin/contribution-operations/catalog";
 import {
   CONTRIBUTION_ACTION_TYPES,
@@ -208,5 +209,63 @@ describe("contributionActionName", () => {
     expect(contributionActionName("retry_staged_gift")).toBe(
       "CRM posting retry",
     );
+  });
+});
+
+describe("parseAmountToCents", () => {
+  it("reads what staff type as exact integer cents", () => {
+    expect(parseAmountToCents("10")).toBe(1000);
+    expect(parseAmountToCents("10.5")).toBe(1050);
+    expect(parseAmountToCents("25.50")).toBe(2550);
+    expect(parseAmountToCents(" 1500.00 ")).toBe(150_000);
+    // Grouped thousands are normal typing for money.
+    expect(parseAmountToCents("1,500.00")).toBe(150_000);
+    expect(parseAmountToCents("1,000")).toBe(100_000);
+    expect(parseAmountToCents("12,345,678.90")).toBe(1_234_567_890);
+    expect(parseAmountToCents("$1,500")).toBe(150_000);
+    expect(parseAmountToCents(".75")).toBe(75);
+    // No floating-point drift: 0.29 * 100 is 28.999… as a float.
+    expect(parseAmountToCents("0.29")).toBe(29);
+    expect(parseAmountToCents("1.10")).toBe(110);
+  });
+
+  it("rejects anything that is not one whole amount, rather than reading part of it", () => {
+    for (const text of [
+      undefined,
+      "",
+      "   ",
+      "600abc",
+      "abc",
+      "1,00",
+      "1,0000",
+      "10,00.00",
+      "0.005",
+      "1.234",
+      "-5",
+      "+5",
+      "1e3",
+      "1 000",
+      "1.2.3",
+      "$",
+      "Infinity",
+      "NaN",
+    ]) {
+      expect(parseAmountToCents(text), String(text)).toBeNull();
+    }
+  });
+
+  it("builds correction and refund payloads only from a strict amount", () => {
+    expect(
+      OPERATION_DEFINITIONS.amount_correction.buildPayload({
+        values: { ...EMPTY_VALUES, amountDollars: "1,500.00" },
+        stagedGiftId: null,
+      }),
+    ).toEqual({ amount: 150_000 });
+    expect(() =>
+      OPERATION_DEFINITIONS.amount_correction.buildPayload({
+        values: { ...EMPTY_VALUES, amountDollars: "600abc" },
+        stagedGiftId: null,
+      }),
+    ).toThrow(/amount/i);
   });
 });

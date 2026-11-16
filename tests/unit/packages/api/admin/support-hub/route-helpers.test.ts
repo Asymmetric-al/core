@@ -63,7 +63,9 @@ describe("requireSupportHubAccess", () => {
       role: "staff",
       profileRole: "staff",
     });
-    hasAnyContextRoleMock.mockReturnValue(true);
+    hasAnyContextRoleMock.mockImplementation(
+      (auth: { role: string }, roles: string[]) => roles.includes(auth.role),
+    );
     const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -72,7 +74,26 @@ describe("requireSupportHubAccess", () => {
       userId: "user-1",
       userEmail: "user-1@example.com",
       isSuperAdmin: false,
+      canManageAll: false,
     });
+  });
+
+  it("lets support admins manage every agent's per-agent settings", async () => {
+    getAuthContextMock.mockResolvedValue({
+      isAuthenticated: true,
+      userId: "user-2",
+      email: "user-2@example.com",
+      tenantId: "tenant-1",
+      role: "admin",
+      profileRole: "admin",
+    });
+    hasAnyContextRoleMock.mockImplementation(
+      (auth: { role: string }, roles: string[]) => roles.includes(auth.role),
+    );
+    const result = await requireSupportHubAccess(authRequest);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.context.canManageAll).toBe(true);
   });
 });
 

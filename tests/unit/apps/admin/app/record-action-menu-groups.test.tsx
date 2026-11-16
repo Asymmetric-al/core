@@ -14,6 +14,9 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock }));
+
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Exercise the actual app actions cell and its Base UI menu ancestry.
 import { getContributionColumns } from "../../../../../apps/admin/app/(app)/contributions/columns";
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Exercise the actual app actions cell and its Base UI menu ancestry.
@@ -189,14 +192,103 @@ describe("record action menu groups", () => {
       }),
     );
     const group = await screen.findByRole("group", { name: "Actions" });
+    // View details first, then the shareable link, then the processor ID.
     expect(
-      within(group).getByRole("menuitem", { name: "Copy Transaction ID" }),
-    ).toBeTruthy();
-    const details = within(group).getByRole("menuitem", {
-      name: "View Details",
-    });
-    expect(within(group).getAllByRole("menuitem")).toHaveLength(2);
-    fireEvent.click(details);
+      within(group)
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent),
+    ).toEqual(["View details", "Copy link", "Copy transaction ID"]);
+    fireEvent.click(
+      within(group).getByRole("menuitem", { name: "View details" }),
+    );
     expect(onViewContribution).toHaveBeenCalledExactlyOnceWith(contribution);
+  });
+
+  it("copies the canonical contribution link", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    try {
+      render(
+        <ActionCell
+          columns={getContributionColumns({ onViewContribution: vi.fn() })}
+          record={contribution}
+        />,
+      );
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Contribution actions for Ada Lovelace",
+        }),
+      );
+      fireEvent.click(
+        await screen.findByRole("menuitem", { name: "Copy link" }),
+      );
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/contributions/${contribution.id}`,
+      );
+      await vi.waitFor(() =>
+        expect(toastMock.success).toHaveBeenCalledWith(
+          "Contribution link copied",
+        ),
+      );
+    } finally {
+      if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
+      else Reflect.deleteProperty(navigator, "clipboard");
+    }
+  });
+
+  it("offers no ID copy for a gift without its own processor ID", async () => {
+    render(
+      <ActionCell
+        columns={getContributionColumns({ onViewContribution: vi.fn() })}
+        record={{ ...contribution, transactionId: null }}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Contribution actions for Ada Lovelace",
+      }),
+    );
+    const group = await screen.findByRole("group", { name: "Actions" });
+    // The link already shares the gift; an internal ID is not a
+    // transaction ID.
+    expect(
+      within(group)
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent),
+    ).toEqual(["View details", "Copy link"]);
+  });
+
+  it("says when the transaction ID could not be copied, instead of doing nothing", async () => {
+    const clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: undefined,
+    });
+    try {
+      render(
+        <ActionCell
+          columns={getContributionColumns({ onViewContribution: vi.fn() })}
+          record={contribution}
+        />,
+      );
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Contribution actions for Ada Lovelace",
+        }),
+      );
+      fireEvent.click(
+        await screen.findByRole("menuitem", { name: "Copy transaction ID" }),
+      );
+      expect(toastMock.error).toHaveBeenCalledWith(
+        "Could not copy to clipboard",
+      );
+    } finally {
+      if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
+      else Reflect.deleteProperty(navigator, "clipboard");
+    }
   });
 });

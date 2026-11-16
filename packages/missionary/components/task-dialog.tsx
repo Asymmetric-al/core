@@ -105,8 +105,8 @@ const TASK_TYPES: {
 ];
 
 const TASK_STATUSES: { label: string; value: TaskStatus }[] = [
-  { value: "not_started", label: "Not Started" },
-  { value: "in_progress", label: "In Progress" },
+  { value: "not_started", label: "Not started" },
+  { value: "in_progress", label: "In progress" },
   { value: "waiting", label: "Waiting" },
   { value: "completed", label: "Completed" },
   { value: "deferred", label: "Deferred" },
@@ -239,7 +239,7 @@ function TaskTitleField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="title">
       {(field) => (
         <field.TextField
-          label="Task Title *"
+          label="Title *"
           placeholder="e.g., Call to thank for donation"
         />
       )}
@@ -269,7 +269,7 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
               }}
               value={field.state.value}
             >
-              <SelectControlLabel>Task Type</SelectControlLabel>
+              <SelectControlLabel>Task type</SelectControlLabel>
               <SelectTrigger>
                 <SelectValue placeholder="Select type">
                   {selectedTaskType ? (
@@ -413,7 +413,7 @@ function DatePickerField({
                 type="button"
                 variant="ghost"
                 size="icon"
-                aria-label={`Clear ${label}`}
+                aria-label={`Clear ${label.toLowerCase()}`}
                 onClick={() => {
                   field.handleChange(null);
                   triggerRef.current?.focus();
@@ -518,7 +518,7 @@ function TaskNotesField({ form }: { form: MissionaryTaskFormApi }) {
       {(field) => (
         <field.TextareaField
           description="These notes are only visible to you"
-          label="Internal Notes"
+          label="Internal notes"
           placeholder="Private notes (not visible to partner)..."
         />
       )}
@@ -655,14 +655,14 @@ export function TaskDialog({
               <DatePickerField
                 form={form}
                 icon={CalendarIcon}
-                label="Due Date"
+                label="Due date"
                 name="due_date"
                 placeholder="Select date"
               />
               <DatePickerField
                 form={form}
                 icon={Bell}
-                label="Reminder Date"
+                label="Reminder date"
                 name="reminder_date"
                 placeholder="Set reminder"
               />

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildNeedsAttentionGroups,
   mapNeedsAttentionRow,
+  withoutRetiredNeedsAttention,
 } from "../../../../../packages/api/src/admin/mission-control-tasks/read-model";
 
 describe("mission control needs attention read model", () => {
@@ -83,6 +84,16 @@ describe("mission control needs attention read model", () => {
         count: 1,
         items: [expect.objectContaining({ id: "attention_2" })],
       },
+    ]);
+  });
+
+  it("drops retired issue kinds: CRM posting is retired, so its failures are not work", () => {
+    const rows = [
+      { id: "a", issueType: "crm_post_failed" },
+      { id: "b", issueType: "receipt_failed" },
+    ];
+    expect(withoutRetiredNeedsAttention(rows).map((row) => row.id)).toEqual([
+      "b",
     ]);
   });
 });

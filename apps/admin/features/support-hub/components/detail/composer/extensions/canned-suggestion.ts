@@ -18,13 +18,17 @@ interface CannedSuggestionOptions {
   cannedResponses: SupportCannedResponse[];
   /** Context fed to `applyMergeVariables` at insert time. */
   mergeContext: MergeVariableContext;
+  getContext?: () => {
+    cannedResponses: SupportCannedResponse[];
+    mergeContext: MergeVariableContext;
+  };
+  isEnabled?: () => boolean;
 }
 
 interface CannedSuggestionItem extends SuggestionItem {
   body: string;
+  isHtml: boolean;
 }
-
-const SUGGESTION_PLUGIN_KEY = "support-canned-suggestion";
 
 /**
  * Tiptap extension that opens a canned-response picker when the agent types
@@ -44,14 +48,17 @@ export const CannedResponseSuggestionExtension =
       };
     },
     addProseMirrorPlugins() {
-      const { cannedResponses, mergeContext } = this.options;
-
       const suggestion: SuggestionOptions<CannedSuggestionItem> = {
         editor: this.editor,
         char: "/",
         startOfLine: false,
+        allow: () =>
+          this.editor.isEditable && (this.options.isEnabled?.() ?? true),
         items: ({ query }) =>
-          cannedResponses
+          (
+            this.options.getContext?.().cannedResponses ??
+            this.options.cannedResponses
+          )
             .filter((row) => matchesCanned(row, query))
             .slice(0, 8)
             .map((row) => ({
@@ -59,11 +66,27 @@ export const CannedResponseSuggestionExtension =
               label: row.title,
               description: previewBody(row.bodyText),
               hint: row.shortCode,
-              body: row.bodyHtml ?? row.bodyText ?? "",
+              body: row.bodyHtml || row.bodyText || "",
+              isHtml: Boolean(row.bodyHtml),
             })),
         command: ({ editor, range, props }) => {
-          const html = applyMergeVariables(props.body, mergeContext);
-          editor.chain().focus().deleteRange(range).insertContent(html).run();
+          const body = applyMergeVariables(
+            props.body,
+            this.options.getContext?.().mergeContext ??
+              this.options.mergeContext,
+          );
+          const content = props.isHtml
+            ? body
+            : body.split("\n").map((line) => ({
+                type: "paragraph",
+                content: line ? [{ type: "text", text: line }] : [],
+              }));
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent(content)
+            .run();
         },
         render: buildSuggestionRenderer<CannedSuggestionItem>({
           heading: "Canned responses",
@@ -86,5 +109,3 @@ function previewBody(text: string | null | undefined): string {
   const collapsed = text.replace(/\s+/g, " ").trim();
   return collapsed.length > 80 ? `${collapsed.slice(0, 80)}…` : collapsed;
 }
-
-void SUGGESTION_PLUGIN_KEY;

@@ -15,12 +15,22 @@ export interface RichTextViewerProps {
   /** Stored value — JSON string or legacy plain text / HTML. */
   value: string;
   className?: string;
+  /**
+   * Type scale. `responsive` (default) grows from small to base type at the
+   * `sm` breakpoint; `sm` stays small for dense lists such as timelines.
+   */
+  size?: "responsive" | "sm";
 }
 
-export function RichTextViewer({ value, className }: RichTextViewerProps) {
+export function RichTextViewer({
+  value,
+  className,
+  size = "responsive",
+}: RichTextViewerProps) {
   const content = React.useMemo(() => parseContent(value), [value]);
   const contentClassName = cn(
-    "tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert",
+    "tiptap prose prose-sm max-w-none dark:prose-invert",
+    size === "responsive" && "sm:prose-base",
     className,
   );
   const renderedContent = React.useMemo(() => {

@@ -1,7 +1,13 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { Button } from "../shadcn/button";
 import {
@@ -25,6 +31,23 @@ export interface NavigationCommandPaletteProps {
   triggerLabel: string;
   items: readonly NavigationCommandItem[];
   onNavigate: (href: string) => void;
+}
+
+const subscribeToPlatform = () => () => {};
+
+/**
+ * The search shortcut for this device only ("⌘ K" on Apple devices, "Ctrl K"
+ * elsewhere). Null while server rendering, so the hint never mismatches.
+ */
+function useShortcutLabel() {
+  return useSyncExternalStore(
+    subscribeToPlatform,
+    () =>
+      /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+        ? "⌘ K"
+        : "Ctrl K",
+    () => null,
+  );
 }
 
 export function NavigationCommandPalette({
@@ -83,6 +106,8 @@ export function NavigationCommandPalette({
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [open, openSearch]);
 
+  const shortcutLabel = useShortcutLabel();
+
   return (
     <>
       <Button
@@ -95,10 +120,14 @@ export function NavigationCommandPalette({
         onClick={openSearch}
       >
         <Search aria-hidden data-icon="inline-start" />
-        <span>Search</span>
-        <span className="hidden md:inline-flex" aria-hidden>
-          <Kbd>Ctrl/⌘ K</Kbd>
-        </span>
+        {/* The accessible name comes from aria-label; the visible word yields
+            its width to page context on narrow screens. */}
+        <span className="max-sm:hidden">Search</span>
+        {shortcutLabel ? (
+          <span className="hidden md:inline-flex" aria-hidden>
+            <Kbd>{shortcutLabel}</Kbd>
+          </span>
+        ) : null}
       </Button>
       <CommandDialog
         title={title}

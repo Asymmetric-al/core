@@ -2,8 +2,12 @@
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label as UiLabel } from "@asym/ui/components/shadcn/label";
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -26,8 +30,17 @@ interface LabelFormProps {
   label?: SupportLabel | null;
   onSaved: () => void;
   onCancel: () => void;
+  onStateChange?: (state: { hasChanges: boolean; isSaving: boolean }) => void;
 }
 
+const TONE_LABELS: Record<SupportLabelTone, string> = {
+  zinc: "Neutral",
+  blue: "Blue",
+  amber: "Amber",
+  rose: "Red",
+  emerald: "Green",
+  violet: "Violet",
+};
 const TONE_DOT_CLASSES: Record<SupportLabelTone, string> = {
   zinc: "bg-muted-foreground",
   blue: "bg-info",
@@ -43,7 +56,12 @@ const TONE_DOT_CLASSES: Record<SupportLabelTone, string> = {
  * writer) so the optimistic flow + cache invalidation is identical to every
  * other support-hub mutation.
  */
-export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
+export function LabelForm({
+  label,
+  onSaved,
+  onCancel,
+  onStateChange,
+}: LabelFormProps) {
   const saveLabel = useSaveSupportLabel();
   const [name, setName] = React.useState(label?.name ?? "");
   const [description, setDescription] = React.useState(
@@ -53,18 +71,34 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
     label?.tone ?? "zinc",
   );
 
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const hasChanges =
+    name !== (label?.name ?? "") ||
+    description !== (label?.description ?? "") ||
+    tone !== (label?.tone ?? "zinc");
+  React.useEffect(() => {
+    onStateChange?.({ hasChanges, isSaving: saveLabel.isPending });
+  }, [onStateChange, hasChanges, saveLabel.isPending]);
+  React.useEffect(
+    () => () => onStateChange?.({ hasChanges: false, isSaving: false }),
+    [onStateChange],
+  );
   const trimmedName = name.trim();
+  const [nameError, setNameError] = React.useState("");
 
   const handleSave = async () => {
     if (trimmedName.length === 0) {
-      toast.info("Give the label a name first.");
+      setNameError("Enter a label name.");
+      nameRef.current?.focus();
       return;
     }
     try {
       await saveLabel.mutateAsync({
         id: label?.id,
         name: trimmedName,
-        slug: label?.slug ?? slugify(trimmedName),
+        slug:
+          label?.slug ??
+          (slugify(trimmedName) || `label-${crypto.randomUUID().slice(0, 8)}`),
         tone,
         description: description.trim().length > 0 ? description.trim() : null,
       });
@@ -78,20 +112,33 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 text-card-foreground">
-      <div className="space-y-2">
-        <UiLabel htmlFor="support-label-name">Name</UiLabel>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!saveLabel.isPending) void handleSave();
+      }}
+      className="flex flex-col gap-3"
+    >
+      <Field>
+        <FieldLabel htmlFor="support-label-name">Name</FieldLabel>
         <Input
           id="support-label-name"
+          ref={nameRef}
           value={name}
-          onChange={(event) => setName(event.target.value)}
+          aria-invalid={Boolean(nameError)}
+          aria-describedby={nameError ? "support-label-name-error" : undefined}
+          onChange={(event) => {
+            setName(event.target.value);
+            setNameError("");
+          }}
           placeholder="Finance"
           maxLength={80}
           autoFocus
         />
-      </div>
-      <div className="space-y-2">
-        <UiLabel htmlFor="support-label-description">Description</UiLabel>
+        <FieldError id="support-label-name-error">{nameError}</FieldError>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="support-label-description">Description</FieldLabel>
         <Input
           id="support-label-description"
           value={description}
@@ -99,9 +146,9 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
           placeholder="What kind of donor questions belong here?"
           maxLength={140}
         />
-      </div>
-      <div className="space-y-2">
-        <UiLabel id="support-label-tone">Tone</UiLabel>
+      </Field>
+      <div>
+        <FieldLabel id="support-label-tone">Tone</FieldLabel>
         <ToggleGroup
           aria-labelledby="support-label-tone"
           value={[tone]}
@@ -123,7 +170,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
                 key={option}
                 value={option}
                 type="button"
-                aria-label={`Use ${option} tone`}
+                aria-label={`Use ${TONE_LABELS[option]} tone`}
               >
                 <span
                   aria-hidden
@@ -132,34 +179,39 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
                     TONE_DOT_CLASSES[option],
                   )}
                 />
-                {option}
+                {TONE_LABELS[option]}
                 {isActive ? <Check aria-hidden="true" /> : null}
               </ToggleGroupItem>
             );
           })}
         </ToggleGroup>
       </div>
-      <div className="space-y-2">
-        <UiLabel>Preview</UiLabel>
+      <div>
+        <FieldLabel>Preview</FieldLabel>
         <Badge variant={LABEL_BADGE_VARIANTS[tone]}>
           {trimmedName.length > 0 ? trimmedName : "Label preview"}
         </Badge>
       </div>
       <div className="flex items-center justify-end gap-2 pt-1">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={saveLabel.isPending}
+          onClick={onCancel}
+        >
           Cancel
         </Button>
         <Button
-          type="button"
+          type="submit"
           size="sm"
-          onClick={handleSave}
-          disabled={saveLabel.isPending || trimmedName.length === 0}
+          disabled={saveLabel.isPending}
           focusableWhenDisabled={saveLabel.isPending}
         >
           {label ? "Save changes" : "Create label"}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 

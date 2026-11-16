@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.next-diagnostic/
+.env*
+!.env.example
+tsconfig.tsbuildinfo
+test-results/
+playwright-report/

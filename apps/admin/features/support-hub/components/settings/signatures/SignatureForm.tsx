@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
@@ -10,9 +9,9 @@ import { toast } from "sonner";
 
 import { useSupportAgents } from "../../../hooks/use-support-agents";
 import { useSaveSupportSignature } from "../../../hooks/use-support-mutations";
-import { SettingsPanel } from "../SettingsPanel";
+import { plainTextToHtml } from "../../../lib/text";
+import { SettingsEditorForm } from "../SettingsEditorSheet";
 import { SettingsRow } from "../SettingsRow";
-import { SettingsToolbar } from "../SettingsToolbar";
 
 import type { SupportSignature } from "../../../types";
 
@@ -64,9 +63,7 @@ export function SignatureForm({
         ownerAgentId,
         name: name.trim(),
         bodyText: bodyText.trim(),
-        bodyHtml: bodyText.trim().startsWith("<")
-          ? bodyText.trim()
-          : `<p>${escapeHtml(bodyText.trim()).replace(/\n/g, "<br/>")}</p>`,
+        bodyHtml: plainTextToHtml(bodyText.trim()),
         isDefault,
       });
       toast.success(signature ? "Signature updated." : "Signature created.");
@@ -81,9 +78,14 @@ export function SignatureForm({
   };
 
   return (
-    <SettingsPanel
-      title={signature ? `Edit "${signature.name}"` : "New signature"}
-      description="Rendered at the bottom of outbound donor replies when enabled."
+    <SettingsEditorForm
+      draft={{ name, ownerAgentId, bodyText, isDefault }}
+      canSave={isDirty}
+      isNew={!signature}
+      isSaving={save.isPending}
+      noun="signature"
+      onSave={() => void handleSave()}
+      onCancel={onCancel}
     >
       <SettingsRow label="Name" htmlFor="sig-name">
         <Input
@@ -96,7 +98,7 @@ export function SignatureForm({
       <SettingsRow
         control
         label="Owner"
-        description="Workspace signatures apply to every agent; agent-owned signatures override the default."
+        description="A workspace signature is shared by every agent. An agent’s own signature takes priority over it."
       >
         <div className="max-w-sm">
           <SearchableSelect
@@ -118,9 +120,11 @@ export function SignatureForm({
       </SettingsRow>
       <SettingsRow
         label="Body"
-        description="Plain text or basic HTML. Line breaks render as-is."
+        htmlFor="sig-body"
+        description="Plain text. Line breaks are kept; markup is displayed as text."
       >
         <Textarea
+          id="sig-body"
           value={bodyText}
           onChange={(event) => setBodyText(event.target.value)}
           rows={6}
@@ -128,8 +132,9 @@ export function SignatureForm({
         />
       </SettingsRow>
       <SettingsRow
+        control
         label="Default"
-        description="Agent signatures default per agent; workspace signatures default across the tenant."
+        description="Marks the default for its owner: the agent, or the whole workspace."
       >
         <div className="flex items-center gap-2">
           <Switch
@@ -143,12 +148,6 @@ export function SignatureForm({
         </div>
       </SettingsRow>
 
-      <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-
       <div className="space-y-1.5">
         <p className="text-sm font-medium text-muted-foreground">Preview</p>
         <div className="rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs text-foreground">
@@ -159,20 +158,6 @@ export function SignatureForm({
           ))}
         </div>
       </div>
-
-      <SettingsToolbar
-        isDirty={isDirty}
-        isSaving={save.isPending}
-        onSave={handleSave}
-        onCancel={onCancel}
-      />
-    </SettingsPanel>
+    </SettingsEditorForm>
   );
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }

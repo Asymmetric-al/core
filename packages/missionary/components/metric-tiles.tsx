@@ -6,9 +6,17 @@ import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import * as React from "react";
 
+import {
+  formatCents,
+  formatCurrencyFromCents,
+  moneyCurrency,
+  MONEY_UNAVAILABLE,
+} from "./money-units";
+
 interface MetricTileProps {
   title: string;
   amount: string;
+  exactAmount: string;
   change?: string;
   trend?: "up" | "down" | "neutral";
   data: ChartDataPoint[];
@@ -21,7 +29,7 @@ function MetricTileSkeleton({ title }: { title: string }) {
     <Card role="status" aria-atomic="true">
       <span className="sr-only">Loading {title}</span>
       <CardContent className="p-0 flex flex-row items-stretch h-18 md:h-20">
-        <div className="flex flex-col justify-between p-2.5 pr-0 shrink-0 min-w-25 sm:min-w-30 max-w-3/5">
+        <div className="flex min-w-25 max-w-3/5 shrink-0 flex-col justify-between p-2.5 pr-3 sm:min-w-30">
           <div className="flex flex-col gap-1.5">
             <Skeleton className="h-2 w-16" />
             <Skeleton className="h-5 w-20" />
@@ -41,6 +49,7 @@ function MetricTileSkeleton({ title }: { title: string }) {
 function MetricTile({
   title,
   amount,
+  exactAmount,
   change,
   trend,
   data,
@@ -53,30 +62,36 @@ function MetricTile({
     return <MetricTileSkeleton title={title} />;
   }
 
-  const chartData = data.length > 0 ? data : [{ date: "1", value: 0 }];
-
   return (
     <Card>
       <CardContent className="p-0 flex flex-row items-stretch min-h-24">
-        <div className="flex flex-col justify-between p-2.5 pr-0 shrink-0 min-w-25 sm:min-w-30 max-w-3/5">
+        <div className="flex flex-col justify-between p-2.5 pr-3 shrink-0 min-w-25 sm:min-w-30 max-w-3/5">
           <div className="flex flex-col">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest leading-none mb-0.5 truncate">
+            <p className="text-xs font-medium text-muted-foreground leading-none mb-1 truncate">
               {title}
             </p>
-            <h3 className="wrap-anywhere text-lg md:text-xl font-semibold text-foreground tracking-tighter leading-tight">
+            <h3
+              aria-label={exactAmount}
+              title={exactAmount}
+              className="wrap-anywhere text-lg md:text-xl font-semibold text-foreground tracking-tighter leading-tight"
+            >
               {amount}
             </h3>
           </div>
-          {change && (
-            <div className="flex items-center gap-1">
+          {change !== undefined ? (
+            <div className="flex min-w-0 items-center gap-1">
               <Badge variant="secondary">
                 {trend === "up" ? "+" : ""}
                 {change}
               </Badge>
-              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-tighter whitespace-nowrap truncate">
+              <span className="min-w-0 truncate text-xs text-muted-foreground">
                 vs prior
               </span>
             </div>
+          ) : (
+            <p className="min-w-0 truncate text-xs text-muted-foreground">
+              No prior-period comparison
+            </p>
           )}
         </div>
         <div className="flex-1 min-w-15 relative overflow-hidden">
@@ -84,11 +99,13 @@ function MetricTile({
             <React.Suspense
               fallback={<div aria-hidden className="size-full bg-muted/30" />}
             >
-              <MetricSparkline
-                chartData={chartData}
-                color={color}
-                gradientId={gradientId}
-              />
+              {data.length > 0 ? (
+                <MetricSparkline
+                  chartData={data}
+                  color={color}
+                  gradientId={gradientId}
+                />
+              ) : null}
             </React.Suspense>
           </div>
         </div>
@@ -97,16 +114,9 @@ function MetricTile({
   );
 }
 
-function formatCurrency(value: number): string {
-  if (value >= 1000) {
-    return `$${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
-  }
-  return `$${value.toLocaleString()}`;
-}
-
-function formatChange(change: number): string {
-  const sign = change >= 0 ? "" : "";
-  return `${sign}${change.toFixed(1)}%`;
+/** Undefined when there is no prior period to compare against. */
+function formatChange(change: number | null): string | undefined {
+  return change === null ? undefined : `${change.toFixed(1)}%`;
 }
 
 interface MetricTilesProps {
@@ -114,8 +124,9 @@ interface MetricTilesProps {
 }
 
 export function MetricTiles({ missionaryId }: MetricTilesProps) {
-  const { thisMonth, lastMonth, yearToDate, isLoading, error } =
+  const { thisMonth, lastMonth, yearToDate, isLoading, error, currency } =
     useDonationMetrics(missionaryId);
+  const qualifiedCurrency = moneyCurrency(currency);
 
   if (error) {
     return (
@@ -127,30 +138,38 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+      {!isLoading && !qualifiedCurrency ? (
+        <p className="col-span-full text-sm text-muted-foreground">
+          {MONEY_UNAVAILABLE}
+        </p>
+      ) : null}
       <MetricTile
         title="This Month"
-        amount={formatCurrency(thisMonth.total)}
-        change={formatChange(thisMonth.change)}
+        amount={formatCurrencyFromCents(thisMonth.total, currency)}
+        exactAmount={formatCents(thisMonth.total, currency)}
+        change={qualifiedCurrency ? formatChange(thisMonth.change) : undefined}
         trend={thisMonth.trend}
-        data={thisMonth.data}
+        data={qualifiedCurrency ? thisMonth.data : []}
         color="var(--chart-1)"
         isLoading={isLoading}
       />
       <MetricTile
         title="Last Month"
-        amount={formatCurrency(lastMonth.total)}
-        change={formatChange(lastMonth.change)}
+        amount={formatCurrencyFromCents(lastMonth.total, currency)}
+        exactAmount={formatCents(lastMonth.total, currency)}
+        change={qualifiedCurrency ? formatChange(lastMonth.change) : undefined}
         trend={lastMonth.trend}
-        data={lastMonth.data}
+        data={qualifiedCurrency ? lastMonth.data : []}
         color="var(--chart-2)"
         isLoading={isLoading}
       />
       <MetricTile
         title="Year to Date"
-        amount={formatCurrency(yearToDate.total)}
-        change={formatChange(yearToDate.change)}
+        amount={formatCurrencyFromCents(yearToDate.total, currency)}
+        exactAmount={formatCents(yearToDate.total, currency)}
+        change={qualifiedCurrency ? formatChange(yearToDate.change) : undefined}
         trend={yearToDate.trend}
-        data={yearToDate.data}
+        data={qualifiedCurrency ? yearToDate.data : []}
         color="var(--chart-3)"
         isLoading={isLoading}
       />

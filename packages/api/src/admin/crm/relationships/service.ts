@@ -34,7 +34,7 @@ export type RelationshipsClient = {
 };
 
 const PLEDGE_SELECT =
-  "id, tenant_id, donor_id, amount, frequency, currency, start_date, created_at";
+  "id, tenant_id, donor_id, amount, frequency, currency, status, start_date, created_at";
 
 const ROLLBACK_CONTRACT = {
   existingCrmPath: "/crm",

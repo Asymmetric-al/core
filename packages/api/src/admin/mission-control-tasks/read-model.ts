@@ -59,6 +59,27 @@ const ISSUE_LABELS: Partial<Record<MissionControlIssueType, string>> = {
   recurring_gift_issue: "Recurring gift",
 };
 
+/**
+ * Issue kinds from retired integrations. CRM posting to the old CRM is
+ * retired (Asym Postgres owns CRM truth), so its past failures are history
+ * on each gift, not work anyone can do. Needs Attention leaves them out at
+ * the source, so every surface (the Contributions hub, Home) shows the same
+ * actionable list; the attention rows themselves are kept.
+ */
+export const RETIRED_NEEDS_ATTENTION_ISSUE_TYPES: readonly MissionControlIssueType[] =
+  ["crm_post_failed"];
+
+const RETIRED_ISSUE_TYPE_SET = new Set<string>(
+  RETIRED_NEEDS_ATTENTION_ISSUE_TYPES,
+);
+
+/** Needs Attention entries staff can act on: retired issue kinds dropped. */
+export function withoutRetiredNeedsAttention<T extends { issueType: string }>(
+  items: readonly T[],
+): T[] {
+  return items.filter((item) => !RETIRED_ISSUE_TYPE_SET.has(item.issueType));
+}
+
 function normalizeUrgency(value: string): MissionControlUrgency {
   if (value === "critical" || value === "high" || value === "normal") {
     return value;

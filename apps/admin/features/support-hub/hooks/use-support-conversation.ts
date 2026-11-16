@@ -2,7 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import {
+  isSupportNotFoundError,
+  supportApiGet,
+  supportApiQueryDefaults,
+} from "../lib/api-client";
 import { supportHubQueryKeys } from "../lib/query-keys";
 
 import type { SupportConversation } from "@asym/database/hooks";
@@ -16,6 +20,9 @@ interface UseSupportConversationReturn {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  refetch: () => Promise<unknown>;
+  isNotFound: boolean;
+  error: unknown;
 }
 
 /**
@@ -46,5 +53,8 @@ export function useSupportConversation(
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
+    isNotFound: isSupportNotFoundError(query.error),
+    error: query.error,
   };
 }

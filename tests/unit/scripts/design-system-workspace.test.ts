@@ -10,9 +10,13 @@ const workspaces = [
   "apps/admin",
   "apps/donor",
   "apps/missionary",
+  "apps/factory-console",
   "packages/ui",
   "packages/missionary",
 ];
+// The operator Console keeps its App Router under src/app.
+const appRouterRoot = (workspace: string) =>
+  workspace === "apps/factory-console" ? "src/app" : "app";
 
 describe("workspace configuration under the root-cwd lint adapter", () => {
   for (const workspace of workspaces) {
@@ -56,7 +60,8 @@ describe("workspace configuration under the root-cwd lint adapter", () => {
       const filePath = path.join(
         root,
         workspace,
-        "app/native-link-policy-probe.tsx",
+        appRouterRoot(workspace),
+        "native-link-policy-probe.tsx",
       );
       for (const cwd of [root, path.join(root, workspace)]) {
         const eslint = new ESLint({

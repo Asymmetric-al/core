@@ -1,22 +1,29 @@
 import {
-  Home,
-  Users,
-  Heart,
-  Settings,
   BarChart3,
-  UserCircle,
   CreditCard,
   FileText,
+  Heart,
+  Home,
+  Info,
+  ListChecks,
   Newspaper,
-  CheckSquare,
+  Settings,
+  UserRoundPen,
+  Users,
 } from "lucide-react";
 
 export type UserRole = "donor" | "missionary" | "admin";
 
-interface NavItem {
+export interface NavItem {
   title: string;
   href: string;
   icon: typeof Home;
+}
+
+export interface NavGroup {
+  /** Omitted for the first, unlabelled group. */
+  label?: string;
+  items: NavItem[];
 }
 
 const donorNavItems: NavItem[] = [
@@ -28,31 +35,44 @@ const donorNavItems: NavItem[] = [
   { title: "Settings", href: "/donor-dashboard/settings", icon: Settings },
 ];
 
-const missionaryNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/", icon: Home },
-  { title: "Donors", href: "/donors", icon: Users },
+/**
+ * The missionary workspace, grouped by job: daily work first, then insight,
+ * then the public page. Names match each page's title. Settings, help and
+ * sign-out live in the account menu.
+ */
+const missionaryNavGroups: NavGroup[] = [
   {
-    title: "Ministry Updates",
-    href: "/feed",
-    icon: Newspaper,
+    items: [
+      { title: "Home", href: "/", icon: Home },
+      { title: "Partners", href: "/donors", icon: Users },
+      { title: "Tasks", href: "/tasks", icon: ListChecks },
+      { title: "Updates", href: "/feed", icon: Newspaper },
+    ],
   },
   {
-    title: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
+    label: "Insights",
+    items: [{ title: "Analytics", href: "/analytics", icon: BarChart3 }],
   },
-  { title: "Tasks", href: "/tasks", icon: CheckSquare },
-  { title: "Profile", href: "/profile", icon: UserCircle },
-  { title: "Settings", href: "/settings", icon: Settings },
+  {
+    label: "Your page",
+    items: [{ title: "Giving page", href: "/profile", icon: UserRoundPen }],
+  },
 ];
 
+export function getNavGroups(role: UserRole): NavGroup[] {
+  return role === "missionary"
+    ? missionaryNavGroups
+    : [{ items: donorNavItems }];
+}
+
+/** Every destination, flat (search and the current-section label). */
 export function getNavItems(role: UserRole): NavItem[] {
-  switch (role) {
-    case "donor":
-      return donorNavItems;
-    case "missionary":
-      return missionaryNavItems;
-    default:
-      return donorNavItems;
-  }
+  const items = getNavGroups(role).flatMap((group) => group.items);
+  return role === "missionary"
+    ? [
+        ...items,
+        { title: "Settings", href: "/settings", icon: Settings },
+        { title: "About this app", href: "/help/about", icon: Info },
+      ]
+    : items;
 }

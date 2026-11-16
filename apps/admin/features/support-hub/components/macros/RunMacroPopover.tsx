@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@asym/ui/components/shadcn/alert";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -9,12 +15,14 @@ import {
   CommandList,
 } from "@asym/ui/components/shadcn/command";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { MacroPreviewLine } from "./MacroPreviewLine";
 import { useSupportMacros } from "../../hooks/use-support-macros";
 import { useRunSupportMacro } from "../../hooks/use-support-mutations";
+import { SUPPORT_AGENT_SETUP_MESSAGE } from "../../lib/agent-setup";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
 import { macroNeedsComposerInsert } from "../../lib/macro-runner";
 
@@ -38,14 +46,15 @@ export function RunMacroPopover({
   onCannedResponseInsert,
   onAfterRun,
 }: RunMacroPopoverProps) {
-  const { data: macros } = useSupportMacros();
+  const macroQuery = useSupportMacros();
+  const macros = macroQuery.data;
   const runMacro = useRunSupportMacro();
   const currentAgentId = useCurrentSupportAgentId();
   const [busyMacroId, setBusyMacroId] = React.useState<string | null>(null);
 
   const handleRun = async (macro: SupportMacro) => {
     if (!currentAgentId) {
-      toast.error("No agent matched the current Mission Control user yet.");
+      toast.error(SUPPORT_AGENT_SETUP_MESSAGE);
       return;
     }
     if (macroNeedsComposerInsert(macro) && !onCannedResponseInsert) {
@@ -82,14 +91,45 @@ export function RunMacroPopover({
     }
   };
 
+  if (macroQuery.isError)
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Macros couldn’t load</AlertTitle>
+        <AlertDescription>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void macroQuery.refetch()}
+          >
+            Try again
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  if (macroQuery.isLoading || !macroQuery.isReady)
+    return (
+      <p role="status" className="p-4 text-sm text-muted-foreground">
+        Loading macros…
+      </p>
+    );
+  if (macros.length === 0)
+    return (
+      <div className="p-4 text-sm">
+        <p>No macros yet.</p>
+        <Link
+          href="/support/settings/macros"
+          className={buttonVariants({ variant: "link" })}
+        >
+          Set up macros
+        </Link>
+      </div>
+    );
   return (
     <Command>
       <CommandInput popoverChrome placeholder="Search macros..." />
       <CommandList>
-        <CommandEmpty>
-          No macros yet. Create one from the macros settings (coming in Phase
-          6).
-        </CommandEmpty>
+        <CommandEmpty>No macros match your search.</CommandEmpty>
         <CommandGroup heading="Macros">
           {macros.map((macro) => (
             <CommandItem

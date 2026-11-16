@@ -1,5 +1,17 @@
 import { beforeEach } from "vitest";
 
+import { repositoryGitEnvironment } from "../../scripts/git/environment.mjs";
+
+/**
+ * Git hooks export checkout-local variables (`git rev-parse --local-env-vars`,
+ * e.g. GIT_DIR from a linked worktree). Clear them for every test so temp-repo
+ * helpers cannot write into the launching checkout (#2526).
+ */
+const repositoryEnvironment = repositoryGitEnvironment(process.env);
+for (const name of Object.keys(process.env)) {
+  if (!Object.hasOwn(repositoryEnvironment, name)) delete process.env[name];
+}
+
 process.env.SKIP_ENV_VALIDATION ??= "1";
 process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://example.supabase.co";
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "example-anon-key";

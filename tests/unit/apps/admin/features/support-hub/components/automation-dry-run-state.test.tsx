@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1965: App regression test at the dry-run preview's public UI boundary.
@@ -12,10 +19,22 @@ import type {
   SupportConversation,
 } from "../../../../../../../apps/admin/features/support-hub/types";
 
-const hooks = vi.hoisted(() => ({ rows: [] as SupportConversation[] }));
+const hooks = vi.hoisted(() => ({
+  rows: [] as SupportConversation[],
+  isLoading: false,
+  isError: false,
+  refetch: vi.fn(),
+}));
 vi.mock(
   "../../../../../../../apps/admin/features/support-hub/hooks/use-support-conversations",
-  () => ({ useSupportConversations: () => ({ data: hooks.rows }) }),
+  () => ({
+    useSupportConversations: () => ({
+      data: hooks.rows,
+      isLoading: hooks.isLoading,
+      isError: hooks.isError,
+      refetch: hooks.refetch,
+    }),
+  }),
 );
 
 const rule: SupportAutomationRule = {
@@ -71,6 +90,9 @@ function conversation(
 
 beforeEach(() => {
   hooks.rows = [];
+  hooks.isLoading = false;
+  hooks.isError = false;
+  hooks.refetch.mockReset().mockResolvedValue(undefined);
 });
 afterEach(() => {
   cleanup();
@@ -97,11 +119,6 @@ describe("AutomationDryRunPreview selection", () => {
 
   it("defaults to the first loaded conversation and evaluates its actual inbox", () => {
     const { rerender } = render(<AutomationDryRunPreview rule={rule} />);
-    expect(
-      screen
-        .getByRole("button", { name: "Pick another" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
     hooks.rows = [conversation("conv-1", "Receipt question", "inbox-finance")];
     rerender(<AutomationDryRunPreview rule={rule} />);
     expect(
@@ -163,18 +180,87 @@ describe("AutomationDryRunPreview selection", () => {
     expect(screen.getByText("Rule matches")).toBeTruthy();
   });
 
-  it("picks another conversation from the loaded rows", () => {
+  it("offers no random conversation picker", () => {
     hooks.rows = [
       conversation("conv-1", "Receipt question", "inbox-finance"),
       conversation("conv-2", "Address change", "inbox-general"),
     ];
-    vi.spyOn(Math, "random").mockReturnValue(0.75);
     render(<AutomationDryRunPreview rule={rule} />);
-    fireEvent.click(screen.getByRole("button", { name: "Pick another" }));
+    expect(screen.queryByRole("button", { name: "Pick another" })).toBeNull();
+  });
+});
+
+describe("AutomationDryRunPreview result", () => {
+  it("keeps a visible Dry run heading that says nothing is changed", () => {
+    render(<AutomationDryRunPreview rule={rule} />);
+    expect(screen.getByText("Dry run")).toBeTruthy();
+    expect(screen.getByText(/Nothing is changed/)).toBeTruthy();
+  });
+
+  it("announces the result with each reason as a list item", () => {
+    hooks.rows = [conversation("conv-1", "Receipt question", "inbox-finance")];
+    render(<AutomationDryRunPreview rule={rule} />);
+    const result = screen.getByRole("status");
+    expect(result.textContent).toContain("Rule matches");
+    const reasons = within(result).getAllByRole("listitem");
+    expect(reasons.length).toBeGreaterThan(0);
+    for (const reason of reasons) {
+      expect(reason.textContent?.trim().startsWith("•")).toBe(false);
+    }
+  });
+
+  it("names actions the preview doesn't simulate, apart from planned ones", () => {
+    hooks.rows = [conversation("conv-1", "Receipt question", "inbox-finance")];
+    render(
+      <AutomationDryRunPreview
+        rule={{
+          ...rule,
+          actions: [
+            { kind: "mark_escalated" },
+            { kind: "run_macro", macroId: "m-1" },
+          ],
+        }}
+      />,
+    );
+    const group = screen.getByRole("group", {
+      name: "Not simulated in this preview",
+    });
+    expect(within(group).getByText("Mark escalated")).toBeTruthy();
+    expect(within(group).getByText("Run macro")).toBeTruthy();
     expect(
-      screen.getByRole("combobox", { name: "Conversation to test" })
-        .textContent,
-    ).toContain("Address change");
-    expect(screen.getByText("Rule does not match")).toBeTruthy();
+      screen.getByText("This preview doesn’t simulate these actions."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/mark_escalated|run_macro/)).toBeNull();
+    expect(screen.queryByText(/server/i)).toBeNull();
+  });
+
+  it("says plainly when there are no conversations to test against", () => {
+    render(<AutomationDryRunPreview rule={rule} />);
+    expect(
+      screen.getByText("No conversations to test against yet."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/seed conversations/)).toBeNull();
+  });
+});
+
+describe("AutomationDryRunPreview load states", () => {
+  it("says conversations are loading instead of asking staff to seed the inbox", () => {
+    hooks.isLoading = true;
+    render(<AutomationDryRunPreview rule={rule} />);
+    expect(screen.getByRole("status").textContent).toContain(
+      "Loading conversations",
+    );
+    expect(screen.queryByText(/seed conversations/)).toBeNull();
+  });
+
+  it("shows a failed conversations load with Try again", async () => {
+    hooks.isError = true;
+    render(<AutomationDryRunPreview rule={rule} />);
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Couldn’t load conversations",
+    );
+    expect(screen.queryByText(/seed conversations/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(hooks.refetch).toHaveBeenCalledOnce());
   });
 });

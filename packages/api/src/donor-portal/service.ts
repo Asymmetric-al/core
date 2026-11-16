@@ -49,12 +49,14 @@ const DONOR_SELECT = `
   do_not_contact,
   do_not_email,
   has_active_pledge,
-  stripe_customer_id
+  stripe_customer_id,
+  address
 `;
 
 const DONATION_SELECT = `
   id,
   amount,
+  refund_amount,
   currency,
   status,
   donation_type,
@@ -191,6 +193,14 @@ export async function resolveDonorPortalContext(
   return { profile, donor };
 }
 
+/**
+ * Newest gifts the portal snapshot carries. One more is read so a capped list
+ * can be told apart from a donor whose whole history fits.
+ */
+const RECENT_GIFT_LIMIT = 250;
+/** Newest recurring gifts the snapshot carries, read the same way. */
+const RECENT_PLEDGE_LIMIT = 100;
+
 export async function getDonorPortalSnapshot(input: {
   supabaseAdmin: AdminSupabaseClient;
   profileId: string;
@@ -210,7 +220,7 @@ export async function getDonorPortalSnapshot(input: {
         .eq("tenant_id", input.tenantId)
         .eq("donor_id", donor.id)
         .order("gift_date", { ascending: false })
-        .limit(250) as unknown as Promise<
+        .limit(RECENT_GIFT_LIMIT + 1) as unknown as Promise<
         SupabaseResult<DonorPortalDonationRow[]>
       >,
       input.supabaseAdmin
@@ -219,7 +229,7 @@ export async function getDonorPortalSnapshot(input: {
         .eq("tenant_id", input.tenantId)
         .eq("donor_id", donor.id)
         .order("created_at", { ascending: false })
-        .limit(100) as unknown as Promise<
+        .limit(RECENT_PLEDGE_LIMIT + 1) as unknown as Promise<
         SupabaseResult<DonorPortalPledgeRow[]>
       >,
       input.supabaseAdmin
@@ -233,12 +243,20 @@ export async function getDonorPortalSnapshot(input: {
     ],
   );
 
+  const donationRows = assertArrayResult(
+    donationsResult,
+    "Unable to load donor giving history",
+  );
+  const donationsComplete = donationRows.length <= RECENT_GIFT_LIMIT;
   const donations = normalizeDonationRows(
-    assertArrayResult(donationsResult, "Unable to load donor giving history"),
+    donationRows.slice(0, RECENT_GIFT_LIMIT),
   );
-  const pledges = normalizePledgeRows(
-    assertArrayResult(pledgesResult, "Unable to load donor recurring gifts"),
+  const pledgeRows = assertArrayResult(
+    pledgesResult,
+    "Unable to load donor recurring gifts",
   );
+  const recurringGiftsComplete = pledgeRows.length <= RECENT_PLEDGE_LIMIT;
+  const pledges = normalizePledgeRows(pledgeRows.slice(0, RECENT_PLEDGE_LIMIT));
 
   if (preferencesResult.error && preferencesResult.error.code !== "PGRST116") {
     throw new ApiHttpError(
@@ -247,13 +265,17 @@ export async function getDonorPortalSnapshot(input: {
     );
   }
 
-  return buildDonorPortalSnapshot({
-    profile,
-    donor,
-    donations,
-    pledges,
-    feedPreferences: preferencesResult.data,
-  });
+  return {
+    ...buildDonorPortalSnapshot({
+      profile,
+      donor,
+      donations,
+      pledges,
+      feedPreferences: preferencesResult.data,
+    }),
+    donationsComplete,
+    recurringGiftsComplete,
+  };
 }
 
 export async function getOwnedDonation(input: {

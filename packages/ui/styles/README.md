@@ -30,3 +30,4 @@ This directory contains the shared Tailwind v4 CSS-first design token stylesheet
 
 - Apps **may** add `@source` directives and layout utilities in `@layer utilities`
 - Apps **may NOT** add theme primitives (colors, radii, fonts, spacing scale) - edit `globals.css` instead and follow the process in `packages/ui/README.md`
+- `@layer ui-sdk;` stays the first statement of `globals.css`, above `@import "tailwindcss"`, and admin repeats it in `apps/admin/app/css-layer-order.css`. UI SDK injects its few runtime rules into that layer, which must rank below every Tailwind layer. Never import the SDK's optional default stylesheet.

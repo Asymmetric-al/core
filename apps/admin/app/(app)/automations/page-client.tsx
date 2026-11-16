@@ -5,537 +5,152 @@ import {
   type MissionControlAutomationRuleDto,
   type MissionControlAutomationSummary,
 } from "@asym/database/hooks";
-import { resolveMissionControlAutomationLifecycle } from "@asym/database/mission-control-automations";
-import { motion, useReducedMotion } from "@asym/lib/motion";
-import { propsHeroEntrance, STAGGER_TIGHT } from "@asym/lib/motion-presets";
+import {
+  MetricCard,
+  MetricGrid,
+} from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@asym/ui/components/shadcn/empty";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@asym/ui/components/shadcn/input-group";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemSeparator,
-  ItemTitle,
-} from "@asym/ui/components/shadcn/item";
-import { Label } from "@asym/ui/components/shadcn/label";
+import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
-import {
-  AlertTriangle,
-  ClipboardList,
-  Link2,
-  Play,
-  Search,
-  Zap,
-} from "lucide-react";
-import { Fragment, useMemo, useState, type ReactNode } from "react";
+import { Activity, AlertTriangle, RotateCw } from "lucide-react";
+import Link from "next/link";
+import { useId, useMemo, useRef, useState } from "react";
 
-import { filterAutomationRules, formatTriggerKind } from "./automation-rules";
+import {
+  automationFailureAttribution,
+  failingAutomationRules,
+  filterAutomationRules,
+} from "./automation-rules";
+import { AutomationRulesGrid } from "./rules-grid";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
+
+const ACTIVITY_LOG_WINDOW = "Last 24 hours, from the automation activity log";
 
 function formatCount(value: number): string {
   return numberFormatter.format(value);
 }
 
-function LoadingStatCard() {
-  return (
-    <Card>
-      <CardContent aria-busy="true" className="p-6">
-        <div className="flex items-center justify-between pb-2">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="size-4 rounded" />
-        </div>
-        <Skeleton className="mt-3 h-8 w-16" />
-        <Skeleton className="mt-2 h-3 w-32" />
-      </CardContent>
-    </Card>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  sublabel,
-  value,
-  valueClassName,
+function FailedRunsDetail({
+  automationRules,
+  failingOnly,
+  onToggleFailingOnly,
+  summary,
 }: {
-  icon: ReactNode;
-  label: string;
-  sublabel: string;
-  value: number;
-  valueClassName?: string;
+  automationRules: MissionControlAutomationRuleDto[];
+  failingOnly: boolean;
+  onToggleFailingOnly: () => void;
+  summary: MissionControlAutomationSummary;
 }) {
+  if (summary.failedRuns24h === 0) return ACTIVITY_LOG_WINDOW;
+  const { failingRules, note } = automationFailureAttribution(
+    automationRules,
+    summary,
+  );
+  const text = note ? `Last 24 hours. ${note}` : "Last 24 hours.";
+  if (failingRules.length === 0) return text;
+  const showLabel =
+    failingRules.length === 1
+      ? "Show the failing rule"
+      : `Show the ${formatCount(failingRules.length)} failing rules`;
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex flex-row items-center justify-between pb-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {label}
-          </span>
-          {icon}
-        </div>
-        <div>
-          <div
-            className={cn(
-              "text-3xl font-semibold tabular-nums tracking-tight text-foreground",
-              valueClassName,
-            )}
-          >
-            {formatCount(value)}
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      {text}{" "}
+      <Button variant="link" size="xs" onClick={onToggleFailingOnly}>
+        {failingOnly ? "Show all rules" : showLabel}
+      </Button>
+    </>
   );
 }
 
 function AutomationStatsRow({
+  automationRules,
+  failingOnly,
   isLoading,
+  onToggleFailingOnly,
   summary,
 }: {
+  automationRules: MissionControlAutomationRuleDto[];
+  failingOnly: boolean;
   isLoading: boolean;
+  onToggleFailingOnly: () => void;
   summary?: MissionControlAutomationSummary;
 }) {
-  const reduceMotion = useReducedMotion();
-
   if (isLoading) {
     return (
-      <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-5">
-        {Array.from({ length: 5 }, (_, index) => (
-          <LoadingStatCard key={`automation-stat-loading-${index}`} />
+      <MetricGrid label="Loading automation summary" busy>
+        {[0, 1, 2, 3].map((index) => (
+          <Skeleton key={index} className="h-24 rounded-xl" />
         ))}
-      </div>
+      </MetricGrid>
     );
   }
-
-  if (!summary) {
-    return null;
-  }
-
-  const stats = [
-    {
-      label: "Active Rules",
-      value: summary.activeRules,
-      sublabel: "Enabled persisted rules",
-      icon: <Zap aria-hidden="true" className="size-4 text-muted-foreground" />,
-    },
-    {
-      label: "Total Rules",
-      value: summary.totalRules,
-      sublabel: "Rules stored for this tenant",
-      icon: (
-        <ClipboardList
-          aria-hidden="true"
-          className="size-4 text-muted-foreground"
-        />
-      ),
-    },
-    {
-      label: "Executions (24h)",
-      value: summary.executions24h,
-      sublabel: "Persisted activity log rows",
-      icon: (
-        <Play aria-hidden="true" className="size-4 text-muted-foreground" />
-      ),
-    },
-    {
-      label: "Invalid Rules",
-      value: summary.invalidRules,
-      sublabel: "Rows with contradictory lifecycle state",
-      icon: (
-        <AlertTriangle aria-hidden="true" className="size-4 text-destructive" />
-      ),
-      valueClassName: summary.invalidRules > 0 ? "text-destructive" : "",
-    },
-    {
-      label: "Failed Runs (24h)",
-      value: summary.failedRuns24h,
-      sublabel: "Activity logs with failures",
-      icon: (
-        <AlertTriangle aria-hidden="true" className="size-4 text-destructive" />
-      ),
-      valueClassName: summary.failedRuns24h > 0 ? "text-destructive" : "",
-    },
-  ];
+  if (!summary) return null;
 
   return (
-    <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-5">
-      {stats.map((stat, index) => (
-        <motion.div
-          key={stat.label}
-          {...propsHeroEntrance(reduceMotion, index * STAGGER_TIGHT, 12)}
-        >
-          <StatCard
-            label={stat.label}
-            value={stat.value}
-            sublabel={stat.sublabel}
-            icon={stat.icon}
-            valueClassName={stat.valueClassName}
+    <MetricGrid label="Automation summary">
+      <MetricCard
+        label="Active rules"
+        value={formatCount(summary.activeRules)}
+        detail={`Of ${formatCount(summary.totalRules)} rules`}
+      />
+      <MetricCard
+        label="Rule runs"
+        value={formatCount(summary.executions24h)}
+        detail={ACTIVITY_LOG_WINDOW}
+      />
+      <MetricCard
+        label="Failed rule runs"
+        value={formatCount(summary.failedRuns24h)}
+        tone={summary.failedRuns24h > 0 ? "critical" : "default"}
+        detail={
+          <FailedRunsDetail
+            automationRules={automationRules}
+            failingOnly={failingOnly}
+            onToggleFailingOnly={onToggleFailingOnly}
+            summary={summary}
           />
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function RulesLoadingState() {
-  return (
-    <div
-      aria-busy="true"
-      aria-label="Loading automation rules"
-      className="space-y-4 p-6"
-    >
-      <p className="text-sm text-muted-foreground">
-        Loading automation dashboard
-      </p>
-      {Array.from({ length: 3 }, (_, index) => (
-        <div
-          key={`automation-rule-loading-${index}`}
-          className="flex items-center justify-between gap-4"
-        >
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-9 rounded-lg" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-3 w-64" />
-            </div>
-          </div>
-          <Skeleton className="h-6 w-16 rounded-full" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function AutomationRulesEmptyState({
-  description,
-  icon,
-  title,
-}: {
-  description: string;
-  icon: ReactNode;
-  title: string;
-}) {
-  return (
-    <Empty className="py-14">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">{icon}</EmptyMedia>
-        <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{description}</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
-  );
-}
-
-function AutomationRuleRow({
-  index,
-  isLast,
-  rule,
-}: {
-  index: number;
-  isLast: boolean;
-  rule: MissionControlAutomationRuleDto;
-}) {
-  const status = resolveMissionControlAutomationLifecycle(rule).displayStatus;
-
-  return (
-    <Fragment key={rule.id ?? `${rule.name}-${index}`}>
-      <Item role="listitem" size="default">
-        <ItemMedia variant="icon">
-          <Zap aria-hidden="true" className="size-4" />
-        </ItemMedia>
-        <ItemContent className="min-w-0">
-          <ItemTitle className="max-w-full truncate font-semibold">
-            {rule.name}
-          </ItemTitle>
-          <ItemDescription className="truncate text-xs">
-            Trigger: {formatTriggerKind(rule.trigger.kind)}
-          </ItemDescription>
-        </ItemContent>
-        <ItemActions>
-          <Badge
-            className="shrink-0"
-            variant={status === "Active" ? "default" : "outline"}
-          >
-            {status}
-          </Badge>
-        </ItemActions>
-      </Item>
-      {isLast ? null : <ItemSeparator />}
-    </Fragment>
-  );
-}
-
-function RulesCardBody({
-  allRuleCount,
-  filteredRules,
-  isBlocked,
-  isLoading,
-}: {
-  allRuleCount: number;
-  filteredRules: MissionControlAutomationRuleDto[];
-  isBlocked: boolean;
-  isLoading: boolean;
-}) {
-  if (isLoading) {
-    return <RulesLoadingState />;
-  }
-
-  if (isBlocked) {
-    return (
-      <AutomationRulesEmptyState
-        description="Automation rules cannot be displayed until the persisted dashboard response loads successfully."
-        icon={<AlertTriangle className="size-5" />}
-        title="Automation rules unavailable"
+        }
       />
-    );
-  }
-
-  if (allRuleCount === 0) {
-    return (
-      <AutomationRulesEmptyState
-        description="This tenant has no persisted Mission Control automation rules."
-        icon={<Zap className="size-5" />}
-        title="No automation rules yet"
+      <MetricCard
+        label="Rules needing repair"
+        value={formatCount(summary.invalidRules)}
+        tone={summary.invalidRules > 0 ? "attention" : "default"}
+        detail={
+          summary.invalidRules > 0
+            ? "Marked active but switched off; each is explained below"
+            : "None"
+        }
       />
-    );
-  }
-
-  if (filteredRules.length === 0) {
-    return (
-      <AutomationRulesEmptyState
-        description="No persisted automation rules match the current filter."
-        icon={<Search className="size-5" />}
-        title="No matching automation rules"
-      />
-    );
-  }
-
-  return (
-    <ItemGroup>
-      {filteredRules.map((rule, index) => (
-        <AutomationRuleRow
-          key={rule.id ?? `${rule.name}-${index}`}
-          index={index}
-          isLast={index === filteredRules.length - 1}
-          rule={rule}
-        />
-      ))}
-    </ItemGroup>
+    </MetricGrid>
   );
 }
 
-function AutomationRulesCard({
-  allRuleCount,
-  filteredRules,
-  isBlocked,
-  isLoading,
-  onSearchChange,
-  search,
+function AutomationsErrorAlert({
+  message,
+  onRetry,
 }: {
-  allRuleCount: number;
-  filteredRules: MissionControlAutomationRuleDto[];
-  isBlocked: boolean;
-  isLoading: boolean;
-  onSearchChange: (value: string) => void;
-  search: string;
+  message: string;
+  onRetry?: () => void;
 }) {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      className="min-w-0 md:col-span-4"
-      {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 4, 12)}
-    >
-      <Card>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="text-base font-semibold">
-              Automation Rules
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Rules configured for Mission Control automations.
-            </CardDescription>
-          </div>
-          <div className="w-full sm:w-56">
-            <Label className="sr-only" htmlFor="automation-rule-filter">
-              Filter automation rules
-            </Label>
-            <InputGroup>
-              <InputGroupAddon>
-                <Search aria-hidden="true" className="size-3.5" />
-              </InputGroupAddon>
-              <InputGroupInput
-                disabled={isLoading || isBlocked || allRuleCount === 0}
-                id="automation-rule-filter"
-                onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Filter rules..."
-                type="search"
-                value={search}
-              />
-            </InputGroup>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <RulesCardBody
-            allRuleCount={allRuleCount}
-            filteredRules={filteredRules}
-            isBlocked={isBlocked}
-            isLoading={isLoading}
-          />
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
-function IntegrationTelemetryCard({
-  isLoading,
-  summary,
-}: {
-  isLoading: boolean;
-  summary?: MissionControlAutomationSummary;
-}) {
-  const telemetryBacked = summary?.integrationHealthBacked === true;
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      className="min-w-0 md:col-span-3"
-      {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 5, 12)}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">
-            Connection Telemetry
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Provider health appears here only after it is backed by persisted
-            telemetry.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          {isLoading ? (
-            <div
-              aria-busy="true"
-              aria-label="Loading integration telemetry"
-              className="space-y-4"
-            >
-              <Skeleton className="size-10 rounded-lg" />
-              <Skeleton className="h-4 w-56" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-4/5" />
-            </div>
-          ) : (
-            <div className="rounded-lg border border-border bg-background p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Link2 aria-hidden="true" className="size-5" />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {telemetryBacked
-                        ? "Connection telemetry is backed by persisted data"
-                        : "Connection telemetry is not wired yet"}
-                    </h3>
-                    <Badge variant="outline" className="">
-                      {telemetryBacked ? "Backed" : "Not wired yet"}
-                    </Badge>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Live provider statuses will be shown only after a real
-                    integration telemetry source is connected.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
-function AutomationBestPracticesCard() {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <motion.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 6, 12)}>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold uppercase tracking-wide">
-            Automation Guardrails
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <ul className="ml-2 list-inside list-disc space-y-1 text-sm text-muted-foreground">
-            <li>
-              Use{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
-                idempotency keys
-              </code>{" "}
-              on create actions to prevent duplicates.
-            </li>
-            <li>
-              Keep rule names domain-prefixed, such as{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
-                mobilize.
-              </code>{" "}
-              or{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
-                giving.
-              </code>
-            </li>
-            <li>
-              Assign a clear owner for failure review before enabling a rule.
-            </li>
-            <li>
-              Review persisted activity logs before treating an automation as
-              production-ready.
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
-function AutomationsErrorAlert({ message }: { message: string }) {
   return (
     <Alert variant="destructive">
       <AlertTriangle className="size-4" />
       <AlertTitle>Could not load automations</AlertTitle>
-      <AlertDescription>{message}</AlertDescription>
+      <AlertDescription>
+        <p>{message}</p>
+        {onRetry ? (
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            <RotateCw aria-hidden="true" />
+            Retry
+          </Button>
+        ) : null}
+      </AlertDescription>
     </Alert>
   );
 }
@@ -546,53 +161,88 @@ export function AutomationsPageView({
   hasLoadedData = true,
   isError,
   isLoading,
+  onRetry,
   summary,
 }: {
   automationRules: MissionControlAutomationRuleDto[];
   errorMessage?: string;
   hasLoadedData?: boolean;
   isError: boolean;
+  onRetry?: () => void;
   isLoading: boolean;
   summary?: MissionControlAutomationSummary;
 }) {
   const [search, setSearch] = useState("");
-  const queryError =
-    errorMessage ?? "Could not load persisted automation data.";
+  const [failingOnly, setFailingOnly] = useState(false);
+  const rulesHeadingId = useId();
+  const rulesHeadingRef = useRef<HTMLHeadingElement>(null);
+  const queryError = errorMessage ?? "Couldn't load automations.";
   const missingSummary = !isLoading && !isError && hasLoadedData && !summary;
 
-  const filteredRules = useMemo(
-    () => filterAutomationRules(automationRules, search),
-    [automationRules, search],
-  );
+  const filteredRules = useMemo(() => {
+    const matching = filterAutomationRules(automationRules, search);
+    return failingOnly ? failingAutomationRules(matching) : matching;
+  }, [automationRules, failingOnly, search]);
+
+  const toggleFailingOnly = () => {
+    const next = !failingOnly;
+    setFailingOnly(next);
+    if (next) {
+      rulesHeadingRef.current?.focus({ preventScroll: true });
+      rulesHeadingRef.current?.scrollIntoView?.({ block: "start" });
+    }
+  };
 
   return (
     <PageShell
       title="Automations"
-      description="Workflow automation and integration management."
+      description="See the rules that run automatically and how they performed."
       density="compact"
+      actions={
+        <ButtonLink
+          variant="outline"
+          size="sm"
+          render={<Link href="/workflows" />}
+        >
+          <Activity aria-hidden="true" />
+          Workflow runs
+        </ButtonLink>
+      }
     >
-      <div className="space-y-8">
-        <AutomationStatsRow isLoading={isLoading} summary={summary} />
+      <div className="flex flex-col gap-6">
+        <AutomationStatsRow
+          automationRules={automationRules}
+          failingOnly={failingOnly}
+          isLoading={isLoading}
+          onToggleFailingOnly={toggleFailingOnly}
+          summary={summary}
+        />
+        <p role="note" className="text-sm text-muted-foreground">
+          Rules are managed by the platform and can’t be edited here. Run and
+          failure counts cover up to 1,000 most recent logged runs in the last
+          24 hours. Busy periods may be incomplete.
+        </p>
 
-        {isError ? <AutomationsErrorAlert message={queryError} /> : null}
-
-        {missingSummary ? (
-          <AutomationsErrorAlert message="The automations response did not include a persisted dashboard summary." />
+        {isError ? (
+          <AutomationsErrorAlert message={queryError} onRetry={onRetry} />
         ) : null}
 
-        <div className="grid gap-6 text-left md:grid-cols-7">
-          <AutomationRulesCard
-            allRuleCount={automationRules.length}
-            filteredRules={filteredRules}
-            isBlocked={isError || Boolean(missingSummary)}
-            isLoading={isLoading}
-            onSearchChange={setSearch}
-            search={search}
-          />
-          <IntegrationTelemetryCard isLoading={isLoading} summary={summary} />
-        </div>
+        {missingSummary ? (
+          <AutomationsErrorAlert message="The automations list came back without its summary, so it isn't shown." />
+        ) : null}
 
-        <AutomationBestPracticesCard />
+        <AutomationRulesGrid
+          allRuleCount={automationRules.length}
+          failingOnly={failingOnly}
+          filteredRules={filteredRules}
+          headingId={rulesHeadingId}
+          headingRef={rulesHeadingRef}
+          isBlocked={isError || Boolean(missingSummary)}
+          isLoading={isLoading}
+          onSearchChange={setSearch}
+          onShowAllRules={() => setFailingOnly(false)}
+          search={search}
+        />
       </div>
     </PageShell>
   );
@@ -614,6 +264,7 @@ export default function AutomationsPage() {
       hasLoadedData={Boolean(automationsQuery.data)}
       isError={automationsQuery.isError}
       isLoading={automationsQuery.isPending}
+      onRetry={() => void automationsQuery.refetch()}
       summary={automationsQuery.data?.summary}
     />
   );

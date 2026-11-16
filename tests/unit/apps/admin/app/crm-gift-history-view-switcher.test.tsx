@@ -46,7 +46,8 @@ function renderSwitcher(input: {
 }
 
 async function openMenu(view: ReturnType<typeof render>) {
-  fireEvent.click(view.getByRole("button", { name: "Gift history views" }));
+  // The visible view name is part of the accessible name (WCAG 2.5.3).
+  fireEvent.click(view.getByRole("button", { name: /^Gift history views/ }));
   await waitFor(() => {
     expect(view.getByText("Save current as view…")).toBeTruthy();
   });
@@ -105,6 +106,19 @@ describe("crm gift history view switcher", () => {
     expect(view.queryByText("Delete view…")).toBeNull();
   });
 
+  it("includes the visible view name in the trigger's accessible name", () => {
+    const active = makeView();
+    const named = renderSwitcher({ views: [active], activeViewId: active.id });
+    expect(
+      named.getByRole("button", { name: "Gift history views: Major donors" }),
+    ).toBeTruthy();
+    cleanup();
+    const unnamed = renderSwitcher({ views: [], activeViewId: null });
+    expect(
+      unnamed.getByRole("button", { name: "Gift history views" }).textContent,
+    ).toBe("Views");
+  });
+
   it("hides Set as default when the active view is already the default", async () => {
     const active = makeView({ isDefault: true });
     const view = renderSwitcher({
@@ -115,5 +129,13 @@ describe("crm gift history view switcher", () => {
 
     expect(view.queryByText("Set as default")).toBeNull();
     expect(view.getByText("Delete view…")).toBeTruthy();
+  });
+
+  it("lists saved views under their own heading, apart from the view actions", async () => {
+    const view = renderSwitcher({ views: [makeView()], activeViewId: null });
+    await openMenu(view);
+    const group = view.getByRole("group", { name: "Saved views" });
+    expect(group.textContent).toContain("Major donors");
+    expect(group.textContent).not.toContain("Save current as view…");
   });
 });

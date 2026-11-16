@@ -107,4 +107,28 @@ describe("rich-text-editor/rich-text-viewer", () => {
     rerender(<RichTextViewer value='{"type":"doc"' />);
     expect(screen.getByText('{"type":"doc"')).toBeTruthy();
   });
+
+  it("grows its type with the screen by default", () => {
+    const { container } = render(
+      <RichTextViewer value='{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Note"}]}]}' />,
+    );
+    const root = container.firstElementChild!;
+    expect(root.classList.contains("prose-sm")).toBe(true);
+    expect(root.classList.contains("sm:prose-base")).toBe(true);
+  });
+
+  it("keeps compact type at every width when size is sm", () => {
+    const json =
+      '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Note"}]}]}';
+    for (const value of [json, "<p>Legacy note</p>"]) {
+      const { container, unmount } = render(
+        <RichTextViewer value={value} size="sm" className="custom-class" />,
+      );
+      const root = container.firstElementChild!;
+      expect(root.classList.contains("prose-sm"), value).toBe(true);
+      expect(root.classList.contains("sm:prose-base"), value).toBe(false);
+      expect(root.classList.contains("custom-class"), value).toBe(true);
+      unmount();
+    }
+  });
 });

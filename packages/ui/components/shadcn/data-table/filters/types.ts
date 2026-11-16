@@ -276,6 +276,75 @@ export function createFilterGroup(
   };
 }
 
+/**
+ * One AND group of an OR of AND groups: a row matches the filter when it
+ * matches every condition of at least one group.
+ */
+export interface FilterConditionGroup {
+  id: string;
+  conditions: FilterCondition[];
+}
+
+/**
+ * The filter read as an OR of AND groups, the shape the grouped builder
+ * edits. A flat AND list is one group; a flat OR list is one group per
+ * condition. Top-level conditions beside groups each form their own group.
+ */
+export function filterGroupsOf(
+  filter: AdvancedFilterState,
+): FilterConditionGroup[] {
+  const single = (condition: FilterCondition): FilterConditionGroup => ({
+    id: `group-${condition.id}`,
+    conditions: [condition],
+  });
+  if (filter.groups.length === 0) {
+    const [first] = filter.conditions;
+    if (!first) return [];
+    if (filter.logic === "or") return filter.conditions.map(single);
+    return [{ id: `group-${first.id}`, conditions: filter.conditions }];
+  }
+  return [
+    ...filter.conditions.map(single),
+    ...filter.groups.map((group) => ({
+      id: group.id,
+      conditions: group.conditions,
+    })),
+  ];
+}
+
+/**
+ * The filter state for an OR of AND groups, in the simplest shape that
+ * says it: nothing, a flat AND list (one group), a flat OR list (every
+ * group one condition), or OR-joined AND groups. Empty groups are dropped.
+ * Flat lists stay flat so consumers that only read `conditions` still work.
+ */
+export function filterStateOfGroups(
+  groups: readonly FilterConditionGroup[],
+): AdvancedFilterState {
+  const filled = groups.filter((group) => group.conditions.length > 0);
+  const [first] = filled;
+  if (!first) return createEmptyFilterState();
+  if (filled.length === 1) {
+    return { logic: "and", conditions: first.conditions, groups: [] };
+  }
+  if (filled.every((group) => group.conditions.length === 1)) {
+    return {
+      logic: "or",
+      conditions: filled.flatMap((group) => group.conditions),
+      groups: [],
+    };
+  }
+  return {
+    logic: "or",
+    conditions: [],
+    groups: filled.map((group) => ({
+      id: group.id,
+      logic: "and",
+      conditions: group.conditions,
+    })),
+  };
+}
+
 export function serializeFilter(filter: AdvancedFilterState): string {
   return JSON.stringify(filter, (_key, value) => {
     if (value instanceof Date) {

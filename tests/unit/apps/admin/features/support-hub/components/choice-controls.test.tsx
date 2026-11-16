@@ -47,8 +47,8 @@ describe("Support Hub choice controls", () => {
 
   it("navigates label tones by keyboard and saves the selected value", async () => {
     render(<LabelForm onSaved={() => undefined} onCancel={() => undefined} />);
-    const zinc = screen.getByRole("button", { name: "Use zinc tone" });
-    const blue = screen.getByRole("button", { name: "Use blue tone" });
+    const zinc = screen.getByRole("button", { name: "Use Neutral tone" });
+    const blue = screen.getByRole("button", { name: "Use Blue tone" });
     expect(blue.tabIndex).toBe(-1);
     zinc.focus();
     fireEvent.keyDown(zinc, { key: "ArrowRight" });

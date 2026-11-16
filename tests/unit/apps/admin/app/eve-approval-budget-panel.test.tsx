@@ -87,6 +87,52 @@ afterEach(() => {
 });
 
 describe("Eve approval budget overrides", () => {
+  it("does not claim empty approval queues while loading", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    renderPanel();
+    expect(screen.queryByText("No approval requests.")).toBeNull();
+    expect(screen.queryByText("No policy decisions yet.")).toBeNull();
+    expect(screen.getByText("Approval queue")).toBeTruthy();
+  });
+
+  it("shows a retryable read failure instead of successful empty queues", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: "Policy unavailable" }),
+      })
+      .mockResolvedValue(response(view));
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    await screen.findByText("Policy unavailable");
+    expect(screen.queryByText("No approval requests.")).toBeNull();
+    expect(screen.queryByText("No policy decisions yet.")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByText("No approval requests.");
+  });
+
+  it("marks cached policy lists stale after a failed refresh and preserves micro-dollar spend", async () => {
+    getQueryClient().setQueryData(queryKey, {
+      ...view,
+      budgets: [{ ...view.budgets[0], usedUsdMicros: 1 }],
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: "Refresh failed" }),
+      }),
+    );
+    renderPanel();
+    expect(screen.getByText(/\$0\.000001/)).toBeTruthy();
+    await act(() => getQueryClient().invalidateQueries({ queryKey }));
+    await screen.findByText(/lists below may be out of date/i);
+    expect(screen.queryByText("No approval requests.")).toBeNull();
+  });
   it("keeps the initiating allowance button focusable while its disabled peer cannot activate", async () => {
     const firstBudget = view.budgets[0];
     if (!firstBudget) throw new Error("The test requires one budget");

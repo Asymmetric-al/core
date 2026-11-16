@@ -56,7 +56,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.uploadStatus === "failed") {
     return {
-      description: "The latest upload failed before Payload could save it.",
+      description: "The latest upload could not be saved. Try again.",
       label: "Upload failed",
       tone: "danger",
     };
@@ -64,7 +64,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.uploadStatus === "uploading") {
     return {
-      description: "Payload is still uploading media for this document.",
+      description: "Media for this document is still uploading.",
       label: "Uploading",
       tone: "info",
     };
@@ -72,7 +72,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.processing) {
     return {
-      description: "Payload is validating and saving this document.",
+      description: "Checking fields and saving this document.",
       label: "Saving",
       tone: "info",
     };
@@ -80,7 +80,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.backgroundProcessing) {
     return {
-      description: "Payload autosave is writing a draft in the background.",
+      description: "Saving a draft in the background.",
       label: "Autosaving",
       tone: "info",
     };
@@ -88,7 +88,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.submitted && !input.isValid) {
     return {
-      description: "Payload validation blocked the latest save attempt.",
+      description: "Some fields need fixing before this can save.",
       label: "Needs fixes",
       tone: "danger",
     };
@@ -96,7 +96,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.modified) {
     return {
-      description: "There are local changes that Payload has not saved yet.",
+      description: "Your latest changes have not been saved yet.",
       label: "Unsaved changes",
       tone: "warning",
     };
@@ -104,7 +104,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.hasDrafts && input.mostRecentVersionIsAutosaved) {
     return {
-      description: "The latest draft version came from Payload autosave.",
+      description: "The latest draft was saved automatically.",
       label: "Autosaved draft",
       tone: "success",
     };
@@ -120,7 +120,7 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.status === "published") {
     return {
-      description: "The published version is available to public readers.",
+      description: "This document has a published version.",
       label: "Published",
       tone: "success",
     };
@@ -128,14 +128,14 @@ export function resolveNativeDocumentPrimaryState(
 
   if (input.status === "draft") {
     return {
-      description: "The saved document is still private to Web Studio.",
+      description: "The latest saved version is a draft.",
       label: "Draft saved",
       tone: "info",
     };
   }
 
   return {
-    description: "Payload has saved the current document state.",
+    description: "Your document is saved.",
     label: "Saved",
     tone: "success",
   };
@@ -157,6 +157,16 @@ export function buildNativeDocumentStateItems(
   ];
 }
 
+export function glanceNativeDocumentStateItems(
+  items: NativeDocumentStateItem[],
+): NativeDocumentStateItem[] {
+  return items.filter((item) => {
+    if (item.id === "editing") return false;
+    if (item.id === "publication") return item.tone !== "muted";
+    return item.tone === "warning" || item.tone === "danger";
+  });
+}
+
 function resolvePublicationState(
   input: NativeDocumentStateItemsInput,
 ): NativeDocumentPrimaryState {
@@ -168,9 +178,13 @@ function resolvePublicationState(
     };
   }
 
+  // Who can see it, not the status again: public reads (the organization's
+  // site) get only published versions (`publishedPublicReadAccess`); drafts
+  // stay with signed-in editors.
   if (input.status === "published") {
     return {
-      description: "Public routes can read only this published version.",
+      description:
+        "The organization's site can show this version. Only editors see drafts.",
       label: "Public",
       tone: "success",
     };
@@ -178,23 +192,25 @@ function resolvePublicationState(
 
   if (input.hasPublishedDoc && input.unpublishedVersionCount > 0) {
     return {
-      description: "A public version exists, with newer private draft changes.",
-      label: "Draft ahead",
+      description:
+        "The site can show the last published version. Publish to share these changes.",
+      label: "Older version public",
       tone: "warning",
     };
   }
 
   if (input.hasPublishedDoc) {
     return {
-      description: "A published version exists for public readers.",
-      label: "Published copy",
+      description:
+        "The organization's site can show the published version. Only editors see drafts.",
+      label: "Public",
       tone: "success",
     };
   }
 
   return {
-    description: "Public routes exclude this document until it is published.",
-    label: "Private draft",
+    description: "The site can't show this until it is published.",
+    label: "Editors only",
     tone: "info",
   };
 }
@@ -212,8 +228,8 @@ function resolveAutosaveState(
 
   if (input.backgroundProcessing) {
     return {
-      description: "Payload is writing the draft without blocking editing.",
-      label: "Running",
+      description: "Saving a draft while you keep editing.",
+      label: "Saving",
       tone: "info",
     };
   }
@@ -221,14 +237,14 @@ function resolveAutosaveState(
   if (input.mostRecentVersionIsAutosaved) {
     return {
       description: "The most recent private version was autosaved.",
-      label: "Ready",
+      label: "Saved",
       tone: "success",
     };
   }
 
   return {
     description: "Draft autosave is enabled for this collection.",
-    label: "Enabled",
+    label: "On",
     tone: "success",
   };
 }
@@ -238,24 +254,43 @@ function resolvePreviewState(
 ): NativeDocumentPrimaryState {
   if (!input.previewSupported) {
     return {
-      description: "This collection has no Web Studio preview surface.",
-      label: "Unavailable",
+      description: "Preview is not available for this collection.",
+      label: "No preview",
       tone: "muted",
     };
   }
 
   if (!input.documentId || !input.previewURL) {
     return {
-      description:
-        "Save the document before opening the authenticated preview.",
+      description: "Save the document before opening its private preview.",
       label: "Save first",
       tone: "warning",
     };
   }
 
   return {
-    description: "Preview opens inside authenticated Web Studio only.",
-    label: "Authenticated",
+    description:
+      "Preview is available only to signed-in editors with access to this document.",
+    label: "Private preview",
     tone: "success",
   };
+}
+
+export function describeUnpublishedVersions(count: number | undefined): string {
+  if (!count) return "None";
+  return count === 1 ? "1 saved version" : `${count} saved versions`;
+}
+
+export function documentHeading({
+  title,
+  documentId,
+  singular,
+}: {
+  title: string | undefined;
+  documentId: string | null | undefined;
+  singular: string;
+}): string {
+  const id = documentId == null ? "" : String(documentId);
+  if (title && title !== id) return title;
+  return id ? `Untitled (${id})` : `Untitled ${singular.toLowerCase()}`;
 }

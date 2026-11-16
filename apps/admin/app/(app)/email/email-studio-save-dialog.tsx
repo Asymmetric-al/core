@@ -66,90 +66,101 @@ function EmailStudioSaveDialogFields({
       className="sm:max-w-120"
       showCloseButton={!isSaving}
     >
-      <DialogHeader>
-        <DialogTitle>Save Email Template</DialogTitle>
-        <DialogDescription>
-          Enter the details for your email template. Subject and preheader will
-          be used as defaults when sending.
-        </DialogDescription>
-      </DialogHeader>
-      <FieldGroup className="py-4">
-        <Field>
-          <FieldLabel htmlFor="template-name">
-            Template Name <span className="text-destructive">*</span>
-          </FieldLabel>
-          <Input
-            id="template-name"
-            placeholder="e.g., Monthly Newsletter"
-            value={draft.name}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!isSaving && draft.name.trim()) onConfirmSave(draft);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Save email template</DialogTitle>
+          <DialogDescription>
+            Enter the details for your email template. Subject and preheader
+            will be used as defaults when sending.
+          </DialogDescription>
+        </DialogHeader>
+        <FieldGroup className="py-4">
+          <Field>
+            <FieldLabel htmlFor="template-name">
+              Template name <span className="text-destructive">*</span>
+            </FieldLabel>
+            <Input
+              id="template-name"
+              required
+              placeholder="e.g., Monthly newsletter"
+              value={draft.name}
+              disabled={isSaving}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="template-subject">Email subject</FieldLabel>
+            <Input
+              id="template-subject"
+              placeholder="e.g., News from our ministry"
+              value={draft.subject}
+              disabled={isSaving}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  subject: event.target.value,
+                }))
+              }
+            />
+            <FieldDescription>
+              The subject line that recipients will see
+            </FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="template-preheader">
+              Inbox preview text
+            </FieldLabel>
+            <Textarea
+              id="template-preheader"
+              placeholder="A short preview after the subject…"
+              value={draft.preheader}
+              disabled={isSaving}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  preheader: event.target.value,
+                }))
+              }
+              rows={2}
+            />
+            <FieldDescription>
+              Shown in inbox previews. Keep it under 90 characters.
+            </FieldDescription>
+          </Field>
+        </FieldGroup>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
             disabled={isSaving}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                name: event.target.value,
-              }))
-            }
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="template-subject">Email Subject</FieldLabel>
-          <Input
-            id="template-subject"
-            placeholder="e.g., Exciting Updates from Our Ministry"
-            value={draft.subject}
-            disabled={isSaving}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                subject: event.target.value,
-              }))
-            }
-          />
-          <FieldDescription>
-            The subject line that recipients will see
-          </FieldDescription>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="template-preheader">Preheader Text</FieldLabel>
-          <Textarea
-            id="template-preheader"
-            placeholder="Preview text that appears after the subject in inbox..."
-            value={draft.preheader}
-            disabled={isSaving}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                preheader: event.target.value,
-              }))
-            }
-            rows={2}
-          />
-          <FieldDescription>
-            Shown in inbox previews. Keep it under 90 characters.
-          </FieldDescription>
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        <Button
-          variant="outline"
-          onClick={() => onOpenChange(false)}
-          disabled={isSaving}
-        >
-          Cancel
-        </Button>
-        <Button
-          focusableWhenDisabled={isSaving}
-          onClick={() => onConfirmSave(draft)}
-          disabled={!draft.name.trim() || isSaving}
-        >
-          {isSaving ? (
-            <Spinner data-icon="inline-start" />
-          ) : (
-            <Save data-icon="inline-start" />
-          )}
-          Save Template
-        </Button>
-      </DialogFooter>
+          >
+            Cancel
+          </Button>
+          <Button
+            focusableWhenDisabled={isSaving}
+            type="submit"
+            disabled={!draft.name.trim() || isSaving}
+          >
+            {isSaving ? (
+              <Spinner data-icon="inline-start" />
+            ) : (
+              <Save aria-hidden="true" data-icon="inline-start" />
+            )}
+            Save template
+          </Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
   );
 }

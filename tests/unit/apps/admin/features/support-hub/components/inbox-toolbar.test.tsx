@@ -60,7 +60,7 @@ describe("SupportFailureBanner", () => {
     // banner is a recovery affordance, so it must not interrupt speech.
     expect(banner.getAttribute("aria-live")).toBe("polite");
     expect(screen.getByRole("button", { name: /retry/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /dismiss/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Dismiss" })).toBeTruthy();
   });
 
   it("clears the banner when Dismiss is pressed", () => {

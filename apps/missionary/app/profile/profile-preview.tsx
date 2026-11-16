@@ -21,8 +21,6 @@ import {
   DESKTOP_PREVIEW_WIDTH,
   MOBILE_PREVIEW_HEIGHT,
   MOBILE_PREVIEW_WIDTH,
-  PLACEHOLDER_AVATAR,
-  PLACEHOLDER_COVER,
 } from "./profile-model";
 import { fadeInUp, gentleTransition, springTransition } from "./profile-motion";
 import {
@@ -57,15 +55,19 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
         }}
       >
         <div className="absolute top-0 left-0 right-0 h-30">
-          <motion.img
-            key={profile.coverUrl || "placeholder"}
-            src={profile.coverUrl || PLACEHOLDER_COVER}
-            alt="Cover"
-            className="size-full object-cover"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25 }}
-          />
+          {profile.coverUrl ? (
+            <motion.img
+              key={profile.coverUrl}
+              src={profile.coverUrl}
+              alt="Cover"
+              className="size-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25 }}
+            />
+          ) : (
+            <div aria-hidden className="size-full bg-muted" />
+          )}
           <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" />
         </div>
 
@@ -76,7 +78,7 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
             transition={springTransition}
           >
             <Avatar className="size-full">
-              <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+              <AvatarImage src={profile.avatarUrl || undefined} />
               <AvatarFallback>{initials || "U"}</AvatarFallback>
             </Avatar>
           </motion.div>
@@ -88,9 +90,6 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
               <h2 className="text-lg font-semibold text-foreground tracking-tight">
                 {profile.firstName || "First"} {profile.lastName || "Last"}
               </h2>
-              <div className="flex items-center gap-1 rounded-full bg-info/10 text-info border border-info/20 text-xs font-semibold uppercase tracking-wider p-2">
-                <Check className="size-2" /> Verified
-              </div>
             </div>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-0.5">
               <MapPin className="size-2.5" />
@@ -233,21 +232,25 @@ function DesktopProfilePreview({
           style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}
         >
           <div className="h-18">
-            <Image
-              src={profile.coverUrl || PLACEHOLDER_COVER}
-              alt="Cover"
-              width={400}
-              height={72}
-              unoptimized
-              className="size-full object-cover"
-            />
+            {profile.coverUrl ? (
+              <Image
+                src={profile.coverUrl}
+                alt="Cover"
+                width={400}
+                height={72}
+                unoptimized
+                className="size-full object-cover"
+              />
+            ) : (
+              <div aria-hidden className="size-full bg-muted" />
+            )}
             <div className="absolute inset-x-0 top-0 h-18 bg-linear-to-t from-background/40 via-transparent to-transparent" />
           </div>
 
           <div className="px-5 pb-4">
             <div className="flex items-end gap-3 -mt-6">
               <Avatar className="size-12">
-                <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+                <AvatarImage src={profile.avatarUrl || undefined} />
                 <AvatarFallback>{initials || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 pb-0.5 min-w-0">
@@ -334,18 +337,22 @@ export function ProfilePreviewColumn({
       <div className="sticky top-24 pb-6">
         <div className="flex items-center justify-between mb-3 px-1">
           <span className="text-xs font-medium text-muted-foreground">
-            Live Preview
+            Live preview
           </span>
           <PreviewToggle value={previewMode} onChange={setPreviewMode} />
         </div>
 
-        <AnimatePresence mode="wait">
-          {previewMode === "mobile" ? (
-            <MobileProfilePreview profile={profile} initials={initials} />
-          ) : (
-            <DesktopProfilePreview profile={profile} initials={initials} />
-          )}
-        </AnimatePresence>
+        {/* Look-only: the give box and tabs here belong to the donor page and
+            have nothing to act on in this app. */}
+        <div inert data-giving-page-preview="">
+          <AnimatePresence mode="wait">
+            {previewMode === "mobile" ? (
+              <MobileProfilePreview profile={profile} initials={initials} />
+            ) : (
+              <DesktopProfilePreview profile={profile} initials={initials} />
+            )}
+          </AnimatePresence>
+        </div>
 
         <motion.p
           className="text-xs text-muted-foreground text-center mt-3 flex items-center justify-center gap-1"
@@ -354,11 +361,17 @@ export function ProfilePreviewColumn({
           transition={{ delay: 0.3 }}
         >
           <span className="relative flex size-2">
-            <span className="animate-ping absolute inline-flex size-full rounded-full bg-success opacity-75" />
+            <span className="motion-safe:animate-ping absolute inline-flex size-full rounded-full bg-success opacity-75" />
             <span className="relative inline-flex rounded-full size-2 bg-success" />
           </span>
           Updates as you type
         </motion.p>
+        {/* No donor route serves a page per missionary yet, so there is no
+            link to copy or open. Say so rather than offer a broken one. */}
+        <p className="text-xs text-muted-foreground text-center mt-1">
+          Your giving page isn’t live for supporters yet. This is how it will
+          look.
+        </p>
       </div>
     </motion.div>
   );

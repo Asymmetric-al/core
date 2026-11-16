@@ -70,6 +70,12 @@ export interface ContributionDesignationSet {
 }
 
 export interface SharedContributionRowFields {
+  /**
+   * Present (and true) only when the gift's receipts are suppressed. The
+   * receipt status shows "not_sent" for such a gift, but the server will not
+   * send one, so clients planning a send read this flag.
+   */
+  receiptSuppressed?: true;
   /** Canonical staff-facing gift identity (`donation.id`). */
   donationId: string;
   amountCents: number;

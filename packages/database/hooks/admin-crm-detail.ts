@@ -42,11 +42,15 @@ async function fetchCrmRecordDetail({
   });
 
   if (!response.ok) {
-    throw new Error(
-      await parseJsonError(
-        response,
-        `Failed to load CRM record detail (${response.status})`,
+    // The status tells a record that isn't there apart from a failed read.
+    throw Object.assign(
+      new Error(
+        await parseJsonError(
+          response,
+          `Failed to load CRM record detail (${response.status})`,
+        ),
       ),
+      { status: response.status },
     );
   }
 
@@ -82,8 +86,21 @@ async function createLinkedCrmNote(input: {
   return (await response.json()) as AdminCrmNoteCreateResponse;
 }
 
+/** Statuses no retry can change: no such record, or no access to it. */
+const FINAL_DETAIL_STATUSES = new Set([400, 401, 403, 404]);
+
+function errorStatus(error: unknown): number | null {
+  return error instanceof Error &&
+    "status" in error &&
+    typeof error.status === "number"
+    ? error.status
+    : null;
+}
+
 export function useAdminCrmRecordDetail(recordId: string | null) {
   return useQuery({
+    retry: (failureCount, error) =>
+      !FINAL_DETAIL_STATUSES.has(errorStatus(error) ?? 0) && failureCount < 3,
     enabled: Boolean(recordId),
     gcTime: 5 * 60 * 1000,
     queryFn: ({ signal }) =>

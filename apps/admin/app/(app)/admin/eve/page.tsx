@@ -7,7 +7,7 @@ import { canAccessEveOperationsWorkspace } from "./workspace-access";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Eve Operations",
+  title: "Eve operations",
   description:
     "Observe and control Eve governance state before autonomous operation.",
 };

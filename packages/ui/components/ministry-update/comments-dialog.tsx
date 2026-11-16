@@ -48,6 +48,11 @@ export interface CommentsDialogProps {
   /** Controlled open-state setter. */
   onOpenChange: (open: boolean) => void;
   /**
+   * Whether the viewer can add a comment. When false the thread is shown
+   * read-only, with no composer that could look like it posted.
+   */
+  canComment?: boolean;
+  /**
    * Called after a comment is accepted (persisted or demo no-op) so the
    * owning bar can bump its shared comment count.
    */
@@ -81,6 +86,7 @@ export function CommentsDialog({
   open,
   onOpenChange,
   onCommentAdded,
+  canComment = true,
 }: CommentsDialogProps): React.JSX.Element {
   const [content, setContent] = React.useState("");
   const queryClient = useQueryClient();
@@ -175,7 +181,9 @@ export function CommentsDialog({
               </div>
             ) : comments.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                No comments yet. Be the first to comment!
+                {canComment
+                  ? "No comments yet. Be the first to comment!"
+                  : "No comments yet."}
               </p>
             ) : (
               <div className="space-y-4">
@@ -208,32 +216,39 @@ export function CommentsDialog({
             )}
           </ScrollArea>
 
-          <form onSubmit={handleSubmit} className="flex gap-2 border-t pt-4">
-            <Input
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              placeholder="Add a comment..."
-              required
-              disabled={addComment.isPending}
-              aria-label="Comment text"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!content.trim() || addComment.isPending}
-              focusableWhenDisabled={addComment.isPending}
-              aria-label="Send comment"
-            >
-              {addComment.isPending ? (
-                <Spinner aria-hidden="true" />
-              ) : (
-                <Send className="size-4" />
-              )}
-            </Button>
-          </form>
-          <p role="status" aria-atomic="true" className="sr-only">
-            {addComment.isPending ? "Sending comment…" : ""}
-          </p>
+          {canComment ? (
+            <>
+              <form
+                onSubmit={handleSubmit}
+                className="flex gap-2 border-t pt-4"
+              >
+                <Input
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  placeholder="Add a comment..."
+                  required
+                  disabled={addComment.isPending}
+                  aria-label="Comment text"
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!content.trim() || addComment.isPending}
+                  focusableWhenDisabled={addComment.isPending}
+                  aria-label="Send comment"
+                >
+                  {addComment.isPending ? (
+                    <Spinner aria-hidden="true" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                </Button>
+              </form>
+              <p role="status" aria-atomic="true" className="sr-only">
+                {addComment.isPending ? "Sending comment…" : ""}
+              </p>
+            </>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

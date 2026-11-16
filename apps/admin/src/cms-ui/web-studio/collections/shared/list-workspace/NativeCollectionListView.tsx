@@ -1,39 +1,29 @@
 "use client";
 
-import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@asym/ui/components/shadcn/empty";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
-import {
-  ListControls,
-  PageControls,
+  DefaultListView,
   RelationshipProvider,
   SelectionProvider,
-  Table,
   TableColumnsProvider,
   useConfig,
+  useListDrawerContext,
   useListQuery,
-  usePreferences,
-  useTableColumns,
 } from "@payloadcms/ui";
-import { FileSearch, Plus } from "lucide-react";
-import { formatAdminURL } from "payload/shared";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { useId } from "react";
 
+import {
+  getStudioListConfig,
+  type StudioListCollectionSlug,
+} from "./list-config";
+import { NativeCollectionGrid } from "./NativeCollectionGrid";
 import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
-import { getWebStudioCollectionConfig } from "../../config";
 
-import type { WebStudioCollectionSlug } from "../../config";
 import type {
+  ListViewGroup,
   QueryPreset,
   ResolvedFilterOptions,
   SanitizedCollectionPermission,
@@ -51,7 +41,7 @@ export type NativeCollectionListViewProps = {
   BeforeListTable?: React.ReactNode;
   /** When set, overrides `createHref` from collection config and Payload default create URL */
   createHrefOverride?: string;
-  collectionSlug: WebStudioCollectionSlug;
+  collectionSlug: StudioListCollectionSlug;
   columnState: TableColumnsProviderProps["columnState"];
   Description?: React.ReactNode;
   disableBulkDelete?: boolean;
@@ -68,249 +58,162 @@ export type NativeCollectionListViewProps = {
   renderedFilters?: Map<string, React.ReactNode>;
   resolvedFilterOptions?: Map<string, ResolvedFilterOptions>;
   Table?: React.ReactNode | React.ReactNode[];
+  /** Payload's grouped documents while the list has a groupBy. */
+  groupedData?: ListViewGroup[];
   viewType: ViewTypes;
 };
 
+/**
+ * Payload list view override shared by every native Web Studio collection.
+ * Payload owns the query (URL + preferences), access, column state and cell
+ * rendering; Mission Control owns the page shell, toolbar and ReUI grid.
+ *
+ * Payload also renders this view inside its list drawers (choosing an
+ * existing upload, pinning documents). There a row must select rather than
+ * navigate and a second Studio chrome would nest, so drawers get Payload's
+ * stock list, which already implements selection.
+ */
 export function NativeCollectionListView(props: NativeCollectionListViewProps) {
-  const {
-    AfterList,
-    AfterListTable,
-    beforeActions,
-    BeforeList,
-    BeforeListTable,
-    createHrefOverride,
-    collectionSlug,
-    columnState,
-    Description: _Description,
-    disableBulkDelete: _disableBulkDelete,
-    disableBulkEdit: _disableBulkEdit,
-    disableQueryPresets,
-    enableRowSelections: _enableRowSelections,
-    hasCreatePermission,
-    hasDeletePermission: _hasDeletePermission,
-    hasTrashPermission: _hasTrashPermission,
-    listMenuItems,
-    newDocumentURL,
-    queryPreset,
-    queryPresetPermissions,
-    renderedFilters,
-    resolvedFilterOptions,
-    Table: InitialTable,
-    viewType: _viewType,
-  } = props;
+  const { isInDrawer } = useListDrawerContext();
+  if (isInDrawer) {
+    return (
+      <DefaultListView {...(props as ComponentProps<typeof DefaultListView>)} />
+    );
+  }
+  return <StudioCollectionListView {...props} />;
+}
 
-  const studioConfig = getWebStudioCollectionConfig(collectionSlug);
-  const { getPreference, setPreference } = usePreferences();
-  const [filterExpanded, setFilterExpanded] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const pref = await getPreference<{ filterExpanded?: boolean }>(
-          studioConfig.preferences.listUi,
-        );
-        if (cancelled) return;
-
-        if (pref && typeof pref.filterExpanded === "boolean") {
-          setFilterExpanded(pref.filterExpanded);
-        }
-      } catch {
-        /* ignore */
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getPreference, studioConfig.preferences.listUi]);
-
-  const persistFilterExpanded = async (next: boolean) => {
-    setFilterExpanded(next);
-
-    try {
-      await setPreference(studioConfig.preferences.listUi, {
-        filterExpanded: next,
-      });
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const {
-    config: {
-      routes: { admin: adminRoute },
-    },
-    getEntityConfig,
-  } = useConfig();
+function StudioCollectionListView({
+  AfterList,
+  AfterListTable,
+  BeforeList,
+  BeforeListTable,
+  createHrefOverride,
+  collectionSlug,
+  columnState,
+  disableBulkDelete,
+  disableBulkEdit,
+  enableRowSelections,
+  hasCreatePermission,
+  hasDeletePermission,
+  hasTrashPermission,
+  newDocumentURL,
+  Table,
+  groupedData,
+  viewType,
+}: NativeCollectionListViewProps) {
+  const recordsId = useId();
+  const { data } = useListQuery();
+  const studioConfig = getStudioListConfig(collectionSlug);
+  const { getEntityConfig } = useConfig();
   const collectionConfig = getEntityConfig({ collectionSlug });
-
-  const title = useMemo(
-    () =>
-      collectionConfig?.labels?.plural
-        ? typeof collectionConfig.labels.plural === "string"
-          ? collectionConfig.labels.plural
-          : String(collectionConfig.labels.plural)
-        : studioConfig.titlePlural,
-    [collectionConfig?.labels?.plural, studioConfig.titlePlural],
-  );
-
-  const listHref = formatAdminURL({
-    adminRoute,
-    path: `/collections/${collectionSlug}`,
-  });
-
-  const { data, handleSearchChange, query } = useListQuery();
-  const docs = data?.docs ?? [];
-  const totalDocs = data?.totalDocs ?? 0;
-  const createHref =
-    createHrefOverride ?? studioConfig.createHref ?? newDocumentURL;
+  // Studio titles match the rail and breadcrumbs ("Navigation", not
+  // Payload's generated "Navigations").
+  const title = studioConfig.titlePlural;
+  const createHref = hasCreatePermission
+    ? (createHrefOverride ?? studioConfig.createHref ?? newDocumentURL)
+    : null;
+  const useAsTitle = String(collectionConfig?.admin?.useAsTitle ?? "id");
+  const trash = viewType === "trash";
+  const trashEnabled = Boolean(collectionConfig?.trash);
+  const noun = title.toLowerCase();
+  // Payload's bulk actions, as its own list view offers them.
+  const bulk =
+    enableRowSelections && collectionConfig
+      ? {
+          collection: collectionConfig,
+          disableBulkDelete,
+          disableBulkEdit,
+          hasDeletePermission,
+          hasTrashPermission,
+        }
+      : null;
 
   return (
-    <StudioLayout sectionLabel={studioConfig.sectionLabel}>
+    <StudioLayout
+      recordsId={recordsId}
+      sectionLabel={studioConfig.sectionLabel}
+      currentLabel={trash ? "Trash" : undefined}
+    >
       <PageShell
-        title={title}
-        description={studioConfig.description}
+        title={trash ? `${title} trash` : title}
+        description={
+          trash
+            ? trashEnabled
+              ? `Deleted ${noun}. Open one to restore it or delete it permanently.`
+              : `${title} are deleted permanently, so nothing is kept here.`
+            : studioConfig.description
+        }
         density="compact"
         actions={
-          hasCreatePermission && createHref ? (
-            <ButtonLink size="sm" render={<Link href={createHref} />}>
-              <Plus className="mr-2 size-4" />
-              {studioConfig.createLabel}
-            </ButtonLink>
-          ) : null
+          trash ? (
+            <Link
+              href={studioConfig.listPath}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <ArrowLeft aria-hidden="true" />
+              Back to {noun}
+            </Link>
+          ) : (
+            <>
+              {trashEnabled ? (
+                <Link
+                  href={`${studioConfig.listPath}/trash`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  <Trash2 aria-hidden="true" />
+                  Trash
+                </Link>
+              ) : null}
+              {createHref ? (
+                <Link
+                  href={createHref}
+                  className={buttonVariants({ size: "sm" })}
+                >
+                  <Plus aria-hidden="true" />
+                  {studioConfig.createLabel}
+                </Link>
+              ) : null}
+            </>
+          )
         }
       >
-        <FilterBar
-          className="mb-6"
-          search={{
-            value: query?.search ?? "",
-            onChange: (value) => void handleSearchChange?.(value),
-            placeholder: `Search ${title.toLowerCase()}...`,
-          }}
-          filters={
-            <Button
-              type="button"
-              variant={filterExpanded ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => void persistFilterExpanded(!filterExpanded)}
-            >
-              Columns &amp; filters
-            </Button>
-          }
-          activeFilters={
-            filterExpanded
-              ? [
-                  {
-                    label: "Columns & filters",
-                    onRemove: () => void persistFilterExpanded(false),
-                  },
-                ]
-              : []
-          }
-          onReset={() => {
-            void handleSearchChange?.("");
-            void persistFilterExpanded(false);
-          }}
-        />
-
-        <div className="rounded-lg border border-border bg-card shadow-sm">
-          <div
-            className={cn(
-              "border-border border-b px-4 py-3",
-              !filterExpanded && "hidden",
-            )}
+        <div className="flex flex-col gap-6">
+          {BeforeList}
+          {BeforeListTable}
+          <TableColumnsProvider
+            collectionSlug={collectionSlug}
+            columnState={columnState}
           >
-            <ListControls
-              beforeActions={beforeActions}
-              collectionConfig={collectionConfig}
-              collectionSlug={collectionSlug}
-              disableQueryPresets={
-                collectionConfig?.enableQueryPresets !== true ||
-                disableQueryPresets
-              }
-              listMenuItems={listMenuItems}
-              queryPreset={queryPreset}
-              queryPresetPermissions={queryPresetPermissions}
-              renderedFilters={renderedFilters}
-              resolvedFilterOptions={resolvedFilterOptions}
-            />
-          </div>
-
-          <div className="px-2 py-4 sm:px-4">
-            {BeforeList}
-            {BeforeListTable}
-            <TableColumnsProvider
-              collectionSlug={collectionSlug}
-              columnState={columnState}
-            >
-              <SelectionProvider docs={docs} totalDocs={totalDocs}>
-                <RelationshipProvider>
-                  <NativeCollectionTableBridge InitialTable={InitialTable} />
-                </RelationshipProvider>
-                <div className="mt-6 border-border border-t pt-4">
-                  <PageControls collectionConfig={collectionConfig} />
+            <RelationshipProvider>
+              <SelectionProvider
+                docs={data?.docs ?? []}
+                totalDocs={data?.totalDocs ?? 0}
+              >
+                <div id={recordsId} tabIndex={-1}>
+                  <NativeCollectionGrid
+                    title={title}
+                    singularTitle={studioConfig.titleSingular}
+                    bulk={bulk}
+                    useAsTitle={useAsTitle}
+                    hasDrafts={studioConfig.hasDrafts}
+                    listPath={studioConfig.listPath}
+                    createHref={createHref}
+                    createLabel={studioConfig.createLabel}
+                    fields={collectionConfig?.fields ?? []}
+                    groupedTable={Table}
+                    groupedData={groupedData}
+                    trash={trash}
+                    trashEnabled={trashEnabled}
+                  />
                 </div>
               </SelectionProvider>
-            </TableColumnsProvider>
-            {AfterListTable}
-            {AfterList}
-          </div>
+            </RelationshipProvider>
+          </TableColumnsProvider>
+          {AfterListTable}
+          {AfterList}
         </div>
-
-        <p className="mt-6 text-muted-foreground text-xs">
-          Tip: Column visibility and ordering persist via Payload list
-          preferences.{" "}
-          <Link
-            className="font-semibold text-primary underline-offset-4 hover:underline"
-            href={listHref}
-          >
-            Open stock list view
-          </Link>{" "}
-          if you need the default Payload chrome.
-        </p>
       </PageShell>
     </StudioLayout>
   );
-}
-
-function NativeCollectionTableBridge({
-  InitialTable,
-}: {
-  InitialTable: NativeCollectionListViewProps["Table"];
-}) {
-  const { columns } = useTableColumns();
-  const { data } = useListQuery();
-  const rows = data?.docs ?? [];
-
-  if (!InitialTable) {
-    if (!data) {
-      return <Skeleton className="h-48 w-full rounded-lg" />;
-    }
-
-    if (rows.length === 0) {
-      return (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <FileSearch className="size-5" />
-            </EmptyMedia>
-            <EmptyTitle>No documents found</EmptyTitle>
-            <EmptyDescription>
-              Adjust the current search or filters to show matching documents.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      );
-    }
-
-    return (
-      <div>
-        <Table columns={columns} data={rows} />
-      </div>
-    );
-  }
-
-  return InitialTable;
 }

@@ -30,8 +30,9 @@ These repo-owned sections are intentionally kept on top of the vendored
 components.build skill. If upstream refreshes replace this file, reconcile this
 overlay before running `bun run skills:sync`.
 
-**Base UI only:** shared primitives come from `@base-ui/react` via the shadcn
-`base-maia` style in `packages/ui`. Where the vendored spec references Radix
+**Base UI first:** shared primitives come from `@base-ui/react` via the shadcn
+`base-maia` style in `packages/ui`; UI SDK fills only interactions no shared
+component provides, per `packages/ui/AGENTS.md`. Where the vendored spec references Radix
 or `asChild`, use Base UI's `render` prop instead and never add
 `radix-ui`/`@radix-ui/*`. See `docs/ai/rules/frontend.md`.
 

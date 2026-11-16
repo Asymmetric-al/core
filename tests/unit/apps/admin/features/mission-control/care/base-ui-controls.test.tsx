@@ -10,6 +10,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const requirementMutation = vi.hoisted(() => ({
+  mutateAsync: vi.fn().mockResolvedValue({}),
+}));
+
 vi.mock(
   "../../../../../../../apps/admin/features/mission-control/care/hooks/use-care",
   () => {
@@ -20,18 +24,24 @@ vi.mock(
       useCreateOrUpdateCareGoal: useMutation,
       useLogCareActivity: useMutation,
       useSetManualAttentionFlag: useMutation,
-      useUpsertCareRequirement: useMutation,
+      useUpsertCareRequirement: () => ({
+        mutateAsync: requirementMutation.mutateAsync,
+        isPending: false,
+      }),
     };
   },
 );
 
-vi.mock("@asym/ui/components/shadcn/rich-text-editor", () => ({
-  LegacyRichTextEditor: () => null,
-  RichTextViewer: () => null,
-}));
+vi.mock(
+  "@asym/ui/components/shadcn/rich-text-editor",
+  async (importOriginal) => ({
+    ...(await importOriginal<object>()),
+    LegacyRichTextEditor: () => null,
+    RichTextViewer: () => null,
+  }),
+);
 
 import { PersonnelProfile } from "../../../../../../../apps/admin/features/mission-control/care/components/PersonnelProfile";
-import { PersonnelList } from "../../../../../../../apps/admin/features/mission-control/care/components/PersonnelList";
 
 import type { CarePersonnel } from "../../../../../../../apps/admin/features/mission-control/care/types";
 
@@ -64,15 +74,6 @@ afterEach(() => {
 });
 
 describe("Care Base UI controls", () => {
-  it("offers personnel details as one named link without a nested button", () => {
-    render(<PersonnelList data={[personnel]} />);
-    const link = screen.getByRole("link", {
-      name: "View Care Member's care profile",
-    });
-    expect(link.getAttribute("href")).toBe("/care/directory/person-1");
-    expect(link.querySelector("button")).toBeNull();
-  });
-
   it("supports arrow-key navigation between personnel profile tabs", async () => {
     render(
       <PersonnelProfile
@@ -83,9 +84,9 @@ describe("Care Base UI controls", () => {
     );
 
     const tablist = screen.getByRole("tablist", { name: "Personnel profile" });
-    const overview = within(tablist).getByRole("tab", { name: "overview" });
+    const overview = within(tablist).getByRole("tab", { name: "Overview" });
     const careThread = within(tablist).getByRole("tab", {
-      name: "care thread",
+      name: "Care thread",
     });
     overview.focus();
     fireEvent.keyDown(overview, { key: "ArrowRight" });
@@ -93,6 +94,75 @@ describe("Care Base UI controls", () => {
     expect(overview.getAttribute("aria-selected")).toBe("true");
     fireEvent.click(careThread);
     expect(careThread.getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByRole("tabpanel", { name: "care thread" })).toBeTruthy();
+    expect(screen.getByRole("tabpanel", { name: "Care thread" })).toBeTruthy();
+  });
+
+  it("shows health signals as measurements (meters), not as progress", () => {
+    render(
+      <PersonnelProfile
+        personnel={personnel}
+        activities={[]}
+        privateNotes={[]}
+      />,
+    );
+    expect(screen.queryAllByRole("progressbar")).toHaveLength(0);
+    expect(screen.getAllByRole("meter").length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("lets phones reach every profile section from a select, Private notes included", async () => {
+    render(
+      <PersonnelProfile
+        personnel={personnel}
+        activities={[]}
+        privateNotes={[]}
+      />,
+    );
+
+    // Five tabs overflow a phone; the select lists them all, so the last
+    // section is never hidden off the edge with no cue.
+    fireEvent.mouseDown(
+      screen.getByRole("combobox", { name: "Profile section" }),
+    );
+    const option = await screen.findByRole("option", {
+      name: "Private notes",
+    });
+    fireEvent.pointerDown(option, { pointerType: "mouse", buttons: 1 });
+    fireEvent.click(option);
+
+    // The select and the tab strip drive the same section.
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole("tab", { name: "Private notes", hidden: true })
+          .getAttribute("aria-selected"),
+      ).toBe("true"),
+    );
+  });
+
+  it("sets a contact rhythm from the care plan, as the base version could", async () => {
+    render(
+      <PersonnelProfile
+        personnel={personnel}
+        activities={[]}
+        privateNotes={[]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Care plan" }));
+    const days = await screen.findByRole("spinbutton", {
+      name: "Every (days)",
+    });
+    fireEvent.change(days, { target: { value: "14" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Note (optional)" }), {
+      target: { value: "Fortnightly call while on furlough" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add schedule" }));
+    await waitFor(() =>
+      expect(requirementMutation.mutateAsync).toHaveBeenCalledWith({
+        personnelId: "person-1",
+        activityType: "Check-in",
+        intervalDays: 14,
+        notes: "Fortnightly call while on furlough",
+      }),
+    );
   });
 });

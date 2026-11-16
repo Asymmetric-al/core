@@ -1,130 +1,176 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { cn } from "@asym/ui/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import { Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { useSupportLabels } from "../../../hooks/use-support-labels";
 import { useDeleteSupportLabel } from "../../../hooks/use-support-mutations";
+import { LABEL_BADGE_VARIANTS } from "../../labels/label-badge-variants";
 import { LabelForm } from "../../labels/LabelForm";
+import { useConfirm } from "../../workspace/confirm-provider";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
+import { SettingsDiscardConfirmation } from "../SettingsEditorSheet";
+import {
+  SettingsListState,
+  isSettingsListPending,
+  settingsHeaderAction,
+} from "../SettingsListState";
 import { SettingsPanel } from "../SettingsPanel";
+import { SettingsIconButton } from "../SettingsRowActions";
+import { useSettingsEditor } from "../use-settings-editor";
 
-import type { SupportLabel, SupportLabelTone } from "../../../types";
-
-const TONE_DOT: Record<SupportLabelTone, string> = {
-  zinc: "bg-muted-foreground",
-  blue: "bg-info",
-  amber: "bg-warning",
-  rose: "bg-destructive",
-  emerald: "bg-success",
-  violet: "bg-chart-3",
-};
+import type { SupportLabel } from "../../../types";
 
 export function LabelsSettingsPanel() {
-  const { data: labels } = useSupportLabels();
+  const query = useSupportLabels();
+  const labels = query.data;
+  const listState = {
+    isLoading: query.isLoading,
+    isError: query.isError,
+    itemCount: labels.length,
+  };
   const deleteLabel = useDeleteSupportLabel();
-  const [editing, setEditing] = React.useState<SupportLabel | "new" | null>(
-    null,
-  );
+  const editor = useSettingsEditor<SupportLabel>();
+  const editingLabel = editor.record;
+  const updateGuard = editor.updateGuard;
 
-  const editingLabel = editing && editing !== "new" ? editing : null;
-
+  const confirm = useConfirm();
   const handleDelete = async (label: SupportLabel) => {
-    if (
-      !window.confirm(
-        `Remove the "${label.name}" label? It will be stripped from every conversation that still has it.`,
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteLabel.mutateAsync({ id: label.id });
-      toast.success("Label deleted.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not delete the label.",
-      );
-    }
+    await confirm({
+      title: `Delete the ${label.name} label?`,
+      description: "It is removed from every conversation that still has it.",
+      confirmLabel: "Delete label",
+      action: async () => {
+        try {
+          await deleteLabel.mutateAsync({ id: label.id });
+          toast.success("Label deleted.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Could not delete the label.",
+          );
+          throw error;
+        }
+      },
+    });
   };
 
+  const createButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={isSettingsListPending(listState)}
+      onClick={editor.openNew}
+    >
+      <Plus data-icon="inline-start" aria-hidden="true" />
+      New label
+    </Button>
+  );
+
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <SettingsPanel
         title="Labels"
         description="Tag donor conversations across the inbox, board, and reports."
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing("new")}
-          >
-            <Plus className="size-3.5" />
-            New label
-          </Button>
-        }
+        actions={settingsHeaderAction(listState, createButton)}
       >
-        {labels.length === 0 ? (
-          <SupportEmptySection
-            icon={<Tag className="size-4" />}
-            title="No labels yet"
-            description="Create the first label to start triaging donor questions."
-          />
-        ) : (
-          <ul className="flex flex-col divide-y divide-border">
-            {labels.map((label) => (
-              <li key={label.id} className="flex items-center gap-3 py-2">
-                <span
-                  aria-hidden
-                  className={cn(
-                    "size-2.5 shrink-0 rounded-full",
-                    TONE_DOT[label.tone],
-                  )}
-                />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-xs font-semibold text-foreground">
-                    {label.name}
-                  </span>
-                  {label.description ? (
-                    <span className="truncate text-xs text-muted-foreground">
-                      {label.description}
-                    </span>
-                  ) : null}
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setEditing(label)}
-                  aria-label={`Edit ${label.name}`}
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => void handleDelete(label)}
-                  aria-label={`Delete ${label.name}`}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <SettingsListState noun="labels" {...listState} onRetry={query.refetch}>
+          {labels.length === 0 ? (
+            <SupportEmptySection
+              icon={<Tag className="size-4" />}
+              title="No labels yet"
+              description="Create a label to sort donor conversations, such as receipts."
+              action={createButton}
+            />
+          ) : (
+            <ItemGroup className="gap-2">
+              {labels.map((label) => (
+                <Item key={label.id} variant="outline" size="sm">
+                  <ItemContent className="min-w-0">
+                    {/* The label as the inbox shows it, in its own colour. */}
+                    <ItemTitle>
+                      <Badge variant={LABEL_BADGE_VARIANTS[label.tone]}>
+                        {label.name}
+                      </Badge>
+                    </ItemTitle>
+                    {label.description ? (
+                      <ItemDescription>{label.description}</ItemDescription>
+                    ) : null}
+                  </ItemContent>
+                  <ItemActions>
+                    <SettingsIconButton
+                      label={`Edit ${label.name}`}
+                      tooltip="Edit"
+                      onClick={() => editor.openRecord(label)}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </SettingsIconButton>
+                    <SettingsIconButton
+                      label={`Delete ${label.name}`}
+                      tooltip="Delete"
+                      onClick={() => void handleDelete(label)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </SettingsIconButton>
+                  </ItemActions>
+                </Item>
+              ))}
+            </ItemGroup>
+          )}
+        </SettingsListState>
       </SettingsPanel>
 
-      {editing ? (
-        <LabelForm
-          label={editingLabel}
-          onSaved={() => setEditing(null)}
-          onCancel={() => setEditing(null)}
-        />
-      ) : null}
-    </div>
+      {/* The label form is the one the inbox's label manager uses, with its
+          own Cancel and Save, so it sits in a small dialog. An outside click
+          doesn't close it, so a half-typed label isn't lost by accident. */}
+      <Dialog
+        open={editor.open}
+        onOpenChange={(open) => {
+          if (!open) editor.requestClose();
+        }}
+        disablePointerDismissal
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingLabel ? `Edit “${editingLabel.name}”` : "New label"}
+            </DialogTitle>
+            <DialogDescription>
+              Labels tag conversations in the inbox, board and reports.
+            </DialogDescription>
+          </DialogHeader>
+          {editor.hasTarget ? (
+            <LabelForm
+              key={editingLabel?.id ?? "new-label"}
+              label={editingLabel}
+              onSaved={editor.close}
+              onCancel={editor.requestClose}
+              onStateChange={updateGuard}
+            />
+          ) : null}
+          <SettingsDiscardConfirmation editor={editor} />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -1,18 +1,20 @@
 "use client";
-"use no memo";
 
+import { insideForRole, quickActionsForRole } from "@asym/config/tiles";
+import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import Link from "next/link";
 
-import { DynamicIcon, ChevronRight } from "../icons";
+import { ChevronRight, DynamicIcon } from "../icons";
 
 import type { Tile } from "@asym/lib/mission-control/types";
 
@@ -20,66 +22,84 @@ interface TileCardProps {
   tile: Tile;
 }
 
-export function TileCard({ tile }: TileCardProps) {
-  return (
-    <div className="relative flex flex-col">
-      <Card className="flex flex-1 flex-col overflow-hidden">
-        <CardHeader>
-          <div className="mb-2 flex items-start justify-between">
-            <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
-              <DynamicIcon name={tile.icon} className="size-5" />
-            </div>
-            <span
-              aria-hidden="true"
-              className="flex size-8 items-center justify-center rounded-full text-muted-foreground"
-            >
-              <ChevronRight className="size-4" />
-            </span>
-          </div>
-          <CardTitle className="text-lg font-semibold">{tile.title}</CardTitle>
-          <CardDescription className="mt-1 line-clamp-2 text-sm leading-6">
-            {tile.purpose}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-1 flex-col gap-4">
-          <div className="flex-1">
-            <p className="text-xs mb-2 font-medium text-muted-foreground">
-              Features
-            </p>
-            <p className="text-sm leading-6 text-muted-foreground">
-              {tile.inside}
-            </p>
-          </div>
+// Keeps " · " separators on the preceding feature so wrapped lines never start with "·".
+const FEATURE_SEPARATOR = " · ";
+const ATTACHED_FEATURE_SEPARATOR = " · ";
 
-          {tile.quickActions.length > 0 && (
-            <div className="relative z-10 mt-auto border-t border-border pt-3">
-              <div className="flex flex-wrap gap-2">
-                {tile.quickActions.slice(0, 3).map((action) => (
-                  <ButtonLink
-                    key={action.label}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full"
-                    render={
-                      <Link href={resolveMissionControlHref(action.href)} />
-                    }
-                  >
-                    {action.icon && <DynamicIcon name={action.icon} />}
-                    <span className="flex-1 text-start">{action.label}</span>
-                  </ButtonLink>
-                ))}
-              </div>
-            </div>
+function distinctShortcuts(
+  tile: Tile,
+  role: Parameters<typeof quickActionsForRole>[1],
+) {
+  const seen = new Set([resolveMissionControlHref(tile.route)]);
+  return quickActionsForRole(tile, role).flatMap((action) => {
+    const href = resolveMissionControlHref(action.href);
+    if (seen.has(href)) return [];
+    seen.add(href);
+    return [{ ...action, href }];
+  });
+}
+
+export function TileCard({ tile }: TileCardProps) {
+  const { role } = useMC();
+  const shortcuts = distinctShortcuts(tile, role);
+  return (
+    // The directory is a grid of ~350px cards, so the shortcuts always take
+    // their own row: beside the text they squeezed it to a word per line.
+    <Item render={<li />} variant="outline" size="sm">
+      <ItemMedia variant="icon">
+        <DynamicIcon name={tile.icon} aria-hidden="true" />
+      </ItemMedia>
+      <ItemContent className="min-w-0 self-start">
+        <ItemTitle>
+          <Link
+            href={resolveMissionControlHref(tile.route)}
+            aria-label={"Open " + tile.title}
+            className="inline-flex items-center gap-1 rounded-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            {tile.title}
+            <ChevronRight
+              aria-hidden="true"
+              className="size-3.5 shrink-0 text-muted-foreground"
+            />
+          </Link>
+        </ItemTitle>
+        <ItemDescription className="line-clamp-none">
+          {tile.purpose}
+        </ItemDescription>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {insideForRole(tile, role).replaceAll(
+            FEATURE_SEPARATOR,
+            ATTACHED_FEATURE_SEPARATOR,
           )}
-        </CardContent>
-      </Card>
-      <Link
-        href={resolveMissionControlHref(tile.route)}
-        className="absolute inset-0 z-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label={`Open ${tile.title}`}
-      >
-        <span className="sr-only">Open {tile.title}</span>
-      </Link>
-    </div>
+        </p>
+      </ItemContent>
+      {/* Cards in a grid row share a height; self-end keeps the shortcuts
+          on the card's bottom edge, level across the row. */}
+      {shortcuts.length > 0 && (
+        <ItemActions className="basis-full self-end">
+          <div
+            role="group"
+            aria-label={`${tile.title} shortcuts`}
+            className="flex w-full flex-wrap gap-2 border-t pt-2"
+          >
+            {shortcuts.map((action) => (
+              <ButtonLink
+                key={action.href}
+                variant="ghost"
+                size="sm"
+                render={
+                  <Link href={action.href}>
+                    {action.icon && (
+                      <DynamicIcon name={action.icon} aria-hidden="true" />
+                    )}
+                    {action.label}
+                  </Link>
+                }
+              />
+            ))}
+          </div>
+        </ItemActions>
+      )}
+    </Item>
   );
 }

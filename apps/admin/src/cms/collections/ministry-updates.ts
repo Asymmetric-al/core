@@ -1,5 +1,7 @@
+import { webStudioCreateFlowView } from "./page-builders";
 import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   PUBLIC_COLLECTION_CAPABILITIES,
   publishedPublicReadAccess,
@@ -25,12 +27,12 @@ const nativeMinistryUpdatesAdmin = isNativeCollectionWebStudioEnabled(
             Component:
               "/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx#MinistryUpdatesNativeListView",
           },
-          edit: {
-            default: {
-              Component:
-                "/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx#MinistryUpdatesNativeEditView",
-            },
-          },
+          edit: studioDocumentEditViews(
+            "/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx#MinistryUpdatesNativeEditView",
+          ),
+          ...webStudioCreateFlowView(
+            "/src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx#MinistryUpdateCreateView",
+          ),
         },
       },
     }
@@ -70,6 +72,7 @@ export const MinistryUpdates: CollectionConfig = {
   fields: [
     {
       name: "tenant",
+      label: "Organization",
       type: "relationship",
       relationTo: "tenants",
       required: true,

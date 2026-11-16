@@ -2,6 +2,7 @@
 
 import { SUPPORT_AUTOMATION_TRIGGERS } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import {
   Select,
@@ -17,13 +18,19 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { useSaveSupportAutomationRule } from "../../../hooks/use-support-mutations";
+import {
+  automationActionIssue,
+  automationConditionIssue,
+  describeIncompleteRows,
+  incompleteRowNumbers,
+} from "../../../lib/settings-validation";
 import { createDraftRow, createDraftRows } from "../draft-rows";
-import { SettingsPanel } from "../SettingsPanel";
+import { SettingsEditorForm } from "../SettingsEditorSheet";
 import { SettingsRow } from "../SettingsRow";
-import { SettingsToolbar } from "../SettingsToolbar";
 import { AutomationActionRow } from "./AutomationActionRow";
 import { AutomationConditionRow } from "./AutomationConditionRow";
 import { AutomationDryRunPreview } from "./AutomationDryRunPreview";
+import { AUTOMATION_TRIGGER_LABELS } from "../../../lib/status-labels";
 
 import type {
   SupportAutomationAction,
@@ -64,6 +71,18 @@ export function AutomationRuleForm({
     () => actionRows.map((row) => row.value),
     [actionRows],
   );
+  // Inline errors wait for the first save attempt, then track every edit.
+  const [showErrors, setShowErrors] = React.useState(false);
+  const conditionIssues = React.useMemo(
+    () => conditions.map(automationConditionIssue),
+    [conditions],
+  );
+  const actionIssues = React.useMemo(
+    () => actions.map(automationActionIssue),
+    [actions],
+  );
+  const nameError = name.trim() ? null : "Give the rule a name.";
+  const actionsError = actions.length === 0 ? "Add at least one action." : null;
   const handleAddCondition = () => {
     const row = createDraftRow<SupportAutomationCondition>({
       kind: "subject_contains",
@@ -108,12 +127,18 @@ export function AutomationRuleForm({
   );
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      toast.info("Give the rule a name first.");
-      return;
-    }
-    if (actions.length === 0) {
-      toast.info("Add at least one action.");
+    const rowSummary = describeIncompleteRows([
+      { noun: "condition", numbers: incompleteRowNumbers(conditionIssues) },
+      { noun: "action", numbers: incompleteRowNumbers(actionIssues) },
+    ]);
+    const problems = [nameError, actionsError, rowSummary].filter(
+      (problem): problem is string => problem !== null,
+    );
+    // Stop before sending: the server would reject the rule with a generic
+    // payload error that doesn't say which row is incomplete.
+    if (problems.length > 0) {
+      setShowErrors(true);
+      toast.error(problems.join(" "));
       return;
     }
     try {
@@ -138,11 +163,20 @@ export function AutomationRuleForm({
   };
 
   return (
-    <SettingsPanel
-      title={rule ? `Edit "${rule.name}"` : "New automation rule"}
-      description="Trigger + conditions + actions, all ANDed together. Use dry-run below to preview results before saving."
+    <SettingsEditorForm
+      draft={{ name, description, enabled, trigger, conditions, actions }}
+      canSave={isDirty}
+      isNew={!rule}
+      isSaving={save.isPending}
+      noun="rule"
+      onSave={() => void handleSave()}
+      onCancel={onCancel}
     >
-      <SettingsRow label="Name" htmlFor="automation-name">
+      <SettingsRow
+        label="Name"
+        htmlFor="automation-name"
+        error={showErrors ? (nameError ?? undefined) : undefined}
+      >
         <Input
           id="automation-name"
           value={name}
@@ -160,8 +194,9 @@ export function AutomationRuleForm({
         />
       </SettingsRow>
       <SettingsRow
+        control
         label="Enabled"
-        description="Disabled rules are saved but do not run."
+        description="Turn off to keep the rule saved but skipped once rules start running."
       >
         <div className="flex items-center gap-2">
           <Switch
@@ -180,12 +215,10 @@ export function AutomationRuleForm({
         description="Event that causes the rule to evaluate."
       >
         <Select
-          items={[
-            ...SUPPORT_AUTOMATION_TRIGGERS.map((kind) => ({
-              value: kind,
-              label: formatTrigger(kind),
-            })),
-          ]}
+          items={SUPPORT_AUTOMATION_TRIGGERS.map((kind) => ({
+            value: kind,
+            label: formatTrigger(kind),
+          }))}
           value={trigger}
           onValueChange={(value) => {
             if (value !== null) setTrigger(value);
@@ -226,10 +259,12 @@ export function AutomationRuleForm({
             No conditions, the rule fires for every event.
           </p>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {conditionRows.map(({ id, value: condition }) => (
+          <ol className="flex flex-col gap-2">
+            {conditionRows.map(({ id, value: condition }, index) => (
               <AutomationConditionRow
                 key={id}
+                index={index}
+                error={showErrors ? conditionIssues[index] : null}
                 condition={condition}
                 onChange={(next) =>
                   setConditionRows((prev) =>
@@ -245,7 +280,7 @@ export function AutomationRuleForm({
                 }
               />
             ))}
-          </ul>
+          </ol>
         )}
       </div>
 
@@ -265,14 +300,20 @@ export function AutomationRuleForm({
           </Button>
         </div>
         {actions.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            Add at least one action to save the rule.
-          </p>
+          showErrors && actionsError ? (
+            <FieldError>{actionsError}</FieldError>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Add at least one action to save the rule.
+            </p>
+          )
         ) : (
-          <ul className="flex flex-col gap-2">
-            {actionRows.map(({ id, value: action }) => (
+          <ol className="flex flex-col gap-2">
+            {actionRows.map(({ id, value: action }, index) => (
               <AutomationActionRow
                 key={id}
+                index={index}
+                error={showErrors ? actionIssues[index] : null}
                 action={action}
                 onChange={(next) =>
                   setActionRows((prev) =>
@@ -286,41 +327,16 @@ export function AutomationRuleForm({
                 }
               />
             ))}
-          </ul>
+          </ol>
         )}
       </div>
 
       <AutomationDryRunPreview rule={previewRule} />
-
-      <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-
-      <SettingsToolbar
-        isDirty={isDirty}
-        isSaving={save.isPending}
-        onSave={handleSave}
-        onCancel={onCancel}
-      />
-    </SettingsPanel>
+    </SettingsEditorForm>
   );
 }
 
-function formatTrigger(kind: SupportAutomationRule["trigger"]): string {
-  switch (kind) {
-    case "conversation_created":
-      return "Conversation created";
-    case "message_received":
-      return "Message received";
-    case "status_changed":
-      return "Status changed";
-    case "label_added":
-      return "Label added";
-    case "past_due_reached":
-      return "Past-due reached";
-    default:
-      return kind;
-  }
+/** A trigger as staff read it, in sentence case. */
+export function formatTrigger(kind: SupportAutomationRule["trigger"]): string {
+  return AUTOMATION_TRIGGER_LABELS[kind];
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useId } from "react";
 
 import {
   DeleteNamedViewDialog,
@@ -23,6 +25,18 @@ interface GiftHistorySectionProps {
   onRefresh: () => void | Promise<unknown>;
 }
 
+function GiftHistoryLoading() {
+  return (
+    <div role="status" className="flex flex-col gap-2 rounded-lg border p-3">
+      <p className="text-sm text-muted-foreground">
+        Loading donor workflow history...
+      </p>
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-full" />
+    </div>
+  );
+}
+
 export function GiftHistorySection({
   detail,
   isLoading,
@@ -30,6 +44,7 @@ export function GiftHistorySection({
   onRefresh,
 }: GiftHistorySectionProps) {
   const giftHistory = useGiftHistoryViewController({ detail });
+  const headingId = useId();
 
   const handleGiftHistoryApplyNamedView = giftHistory.applyNamedView;
   const handleGiftHistoryOpenCreateViewDialog =
@@ -65,63 +80,85 @@ export function GiftHistorySection({
   const handleGiftHistoryConfirmDeleteView = giftHistory.confirmDeleteView;
   const handleGiftHistorySetNextDefaultChoice =
     giftHistory.setNextDefaultChoice;
+
+  let body;
+  if (detail?.giftHistory.length) {
+    body = (
+      // The heading's "First 100 shown" badge states the cap once.
+      <GiftHistoryRows
+        giftRows={giftHistory.giftRows}
+        onOpenGift={onOpenGift}
+        onPinRowAction={handleGiftHistoryPinRowAction}
+        onRunOperation={handleGiftHistoryRunInlineOperation}
+        tablePreferences={giftHistory.tablePreferences}
+        viewSettings={giftHistory.viewSettings}
+      />
+    );
+  } else if (isLoading) {
+    body = <GiftHistoryLoading />;
+  } else if (detail) {
+    body = (
+      <div className="rounded-lg border border-dashed p-4">
+        <p className="text-sm font-medium">No gifts recorded yet</p>
+        <p className="text-sm text-muted-foreground">
+          Gifts appear here once this donor gives.
+        </p>
+      </div>
+    );
+  } else {
+    body = null;
+  }
+
   return (
     <>
-      {detail?.giftHistory.length ? (
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Gift history
-            </h3>
-            <div className="flex items-center gap-1">
-              <Badge variant="secondary" className="">
-                {giftHistory.giftRows.length}
-              </Badge>
-              {detail.giftHistoryTruncated ? (
-                <Badge variant="outline" className="">
-                  First 100 shown
-                </Badge>
+      {body ? (
+        <section aria-labelledby={headingId} className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h3
+                id={headingId}
+                className="text-sm font-semibold text-foreground"
+              >
+                Gift history
+              </h3>
+              {detail?.giftHistory.length ? (
+                <>
+                  <Badge variant="secondary">
+                    {giftHistory.giftRows.length}
+                  </Badge>
+                  {detail.giftHistoryTruncated ? (
+                    <Badge variant="outline">First 100 shown</Badge>
+                  ) : null}
+                </>
               ) : null}
-              <GiftHistoryViewSwitcher
-                views={giftHistory.namedViews}
-                activeViewId={giftHistory.activeViewId}
-                onApplyView={handleGiftHistoryApplyNamedView}
-                onSaveCurrentAs={handleGiftHistoryOpenCreateViewDialog}
-                onRename={handleGiftHistoryOpenRenameViewDialog}
-                onDuplicate={handleGiftHistoryOpenDuplicateViewDialog}
-                onSetDefault={handleGiftHistorySetDefaultView}
-                onResetToSaved={handleGiftHistoryApplyNamedView}
-                onDelete={handleGiftHistoryOpenDeleteViewDialog}
-              />
-              <GiftHistoryViewSettingsMenu
-                settings={giftHistory.viewSettings}
-                canManageTenantDefaults={giftHistory.canManageTenantDefaults}
-                onPatch={handleGiftHistorySaveViewSettings}
-                onRequestReset={handleGiftHistoryRequestViewSettingsReset}
-                onRequestSetTenantDefault={
-                  handleGiftHistoryRequestSetTenantDefault
-                }
-              />
             </div>
+            {detail?.giftHistory.length ? (
+              <div className="flex items-center gap-1">
+                <GiftHistoryViewSwitcher
+                  views={giftHistory.namedViews}
+                  activeViewId={giftHistory.activeViewId}
+                  onApplyView={handleGiftHistoryApplyNamedView}
+                  onSaveCurrentAs={handleGiftHistoryOpenCreateViewDialog}
+                  onRename={handleGiftHistoryOpenRenameViewDialog}
+                  onDuplicate={handleGiftHistoryOpenDuplicateViewDialog}
+                  onSetDefault={handleGiftHistorySetDefaultView}
+                  onResetToSaved={handleGiftHistoryApplyNamedView}
+                  onDelete={handleGiftHistoryOpenDeleteViewDialog}
+                />
+                <GiftHistoryViewSettingsMenu
+                  settings={giftHistory.viewSettings}
+                  canManageTenantDefaults={giftHistory.canManageTenantDefaults}
+                  onPatch={handleGiftHistorySaveViewSettings}
+                  onRequestReset={handleGiftHistoryRequestViewSettingsReset}
+                  onRequestSetTenantDefault={
+                    handleGiftHistoryRequestSetTenantDefault
+                  }
+                />
+              </div>
+            ) : null}
           </div>
-          {detail.giftHistoryTruncated ? (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Gift history is capped at the 100 most recent gifts.
-            </p>
-          ) : null}
-          <GiftHistoryRows
-            giftRows={giftHistory.giftRows}
-            onOpenGift={onOpenGift}
-            onPinRowAction={handleGiftHistoryPinRowAction}
-            onRunOperation={handleGiftHistoryRunInlineOperation}
-            tablePreferences={giftHistory.tablePreferences}
-            viewSettings={giftHistory.viewSettings}
-          />
-        </div>
-      ) : isLoading ? (
-        <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-          Loading donor workflow history...
-        </div>
+          {body}
+        </section>
       ) : null}
 
       <ContributionOperationShell

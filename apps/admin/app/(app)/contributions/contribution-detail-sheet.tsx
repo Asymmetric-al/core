@@ -15,7 +15,21 @@ import {
 } from "@asym/api/admin/contribution-shared";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { getInitials } from "@asym/lib/utils";
-import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
 import {
   Avatar,
   AvatarFallback,
@@ -23,35 +37,49 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@asym/ui/components/shadcn/collapsible";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import {
   AlertCircle,
   CheckCircle2,
+  ChevronRight,
   Copy,
-  DollarSign,
-  LoaderCircle,
+  ExternalLink,
+  Info,
   Receipt,
   RefreshCcw,
+  TriangleAlert,
   Undo2,
   X,
 } from "lucide-react";
+import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  ContributionReceiptStatus,
+  ContributionStatusBadge,
+} from "./contribution-status";
 import {
   CorrectionApprovalPanel,
   type ContributionCorrectionRequestView,
 } from "./correction-approval-panel";
+import { formatPaymentMethod } from "./data";
+import { effectiveContributionStatus } from "./hub-model";
 
 import type { ContributionReceiptDeliveryContext } from "./receipt-delivery-choice";
-import type { Contribution, ContributionStatus } from "./types";
+import type { Contribution } from "./types";
 import type {
   ContributionActionAvailability,
   ContributionCrmPostState,
@@ -63,18 +91,7 @@ import type {
   ContributionDesignationSet,
   SharedContributionCrmPostStatus,
 } from "@asym/database/types";
-
-/* ------------------------------------------------------------------ */
-/*  Status dot colors — accent colors for semantic meaning              */
-/* ------------------------------------------------------------------ */
-
-const statusDotColor: Record<ContributionStatus, string> = {
-  completed: "bg-success",
-  pending: "bg-warning",
-  processing: "bg-info",
-  failed: "bg-destructive",
-  refunded: "bg-muted-foreground",
-};
+import type { ReactNode } from "react";
 
 /* ------------------------------------------------------------------ */
 /*  CRM post state helpers (ADR-CD-012)                                 */
@@ -108,31 +125,139 @@ function crmPostStatusDotColor(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Detail field component                                              */
+/*  Staged gift review labels                                          */
 /* ------------------------------------------------------------------ */
+
+const STAGED_GIFT_STATUS_LABELS: Record<
+  NonNullable<Contribution["stagedGiftStatus"]>,
+  string
+> = {
+  received: "Received",
+  needs_review: "Needs review",
+  ready_to_post: "Ready to post",
+  posted: "Posted",
+  failed: "Failed",
+  refunded: "Refunded",
+  voided: "Voided",
+};
+
+function stagedGiftDotColor(status: Contribution["stagedGiftStatus"]) {
+  if (status === "posted") return "bg-success";
+  if (status === "failed") return "bg-destructive";
+  return "bg-warning";
+}
+
+/**
+ * Review reasons are stored as comma-separated codes (see
+ * `determineInitialReview` in packages/api/src/giving/staged-gifts.ts) or as
+ * a free-text staff note, which passes through unchanged.
+ */
+const REVIEW_REASON_LABELS: Record<string, string> = {
+  donor_match_missing: "No matching donor record",
+  allocation_missing: "No fund or missionary chosen",
+};
+
+function reviewReasonLabel(reason: string): string {
+  return reason
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => REVIEW_REASON_LABELS[part] ?? part)
+    .join(", ");
+}
+
+/* ------------------------------------------------------------------ */
+/*  Recurring agreement labels                                         */
+/* ------------------------------------------------------------------ */
+
+const AGREEMENT_STATUS_LABELS: Record<string, string> = {
+  active: "Active",
+  pending: "Pending",
+  paused: "Paused",
+  past_due: "Past due",
+  canceled: "Canceled",
+  cancelled: "Canceled",
+  completed: "Completed",
+};
+
+function agreementStatusLabel(status: string | null): string {
+  if (!status) {
+    return "Status unknown";
+  }
+  const known = AGREEMENT_STATUS_LABELS[status.toLowerCase()];
+  if (known) {
+    return known;
+  }
+  // Unrecognized stored values still read as words, never snake_case.
+  const words = status.replace(/[_-]+/g, " ").trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Layout parts                                                        */
+/* ------------------------------------------------------------------ */
+
+function StatusDot({ className }: { className: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("size-2 shrink-0 rounded-full", className)}
+    />
+  );
+}
+
+/**
+ * One titled section of the sheet. Sections share a hairline divider and a
+ * heading level so screen-reader users can jump between them.
+ */
+function SheetSection({
+  title,
+  children,
+  action,
+}: {
+  title: string;
+  children: ReactNode;
+  action?: ReactNode;
+}) {
+  const headingId = useId();
+  return (
+    <section
+      aria-labelledby={headingId}
+      className="flex flex-col gap-3 border-t pt-6"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h3 id={headingId} className="text-sm font-medium text-foreground">
+          {title}
+        </h3>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 function DetailField({
   label,
   children,
   mono = false,
+  wide = false,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   mono?: boolean;
+  wide?: boolean;
 }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-        {label}
-      </p>
-      <p
+    <div className={cn("flex min-w-0 flex-col gap-1", wide && "col-span-2")}>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd
         className={cn(
-          "text-sm font-semibold text-foreground",
-          mono && "font-mono tabular-nums",
+          "text-sm text-foreground",
+          mono && "font-mono text-xs break-all",
         )}
       >
         {children}
-      </p>
+      </dd>
     </div>
   );
 }
@@ -251,25 +376,25 @@ function ContributionDetailSheetFrame({
   onClose,
   open,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   donorDisplayName: string;
   onClose: () => void;
   open: boolean;
 }) {
+  // Open on the content rather than the close button, so the first thing a
+  // pointer user sees is the gift (not a focus ring) and Tab still reaches
+  // every action in order.
+  const contentRef = useRef<HTMLDivElement>(null);
   return (
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <SheetContent showCloseButton={false} className="w-full sm:max-w-lg">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-            <div className="flex items-center gap-2">
-              <DollarSign
-                className="size-4 text-muted-foreground"
-                aria-hidden
-              />
-              <SheetTitle className="m-0 text-sm font-semibold uppercase tracking-wider">
-                Contribution Details
-              </SheetTitle>
-            </div>
+      <SheetContent
+        showCloseButton={false}
+        initialFocus={contentRef}
+        className="w-full sm:max-w-xl"
+      >
+        <div className="flex min-h-0 flex-1 flex-col text-left">
+          <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-4 sm:px-6">
+            <SheetTitle className="text-base">Contribution details</SheetTitle>
             <SheetDescription className="sr-only">
               Contribution details for {donorDisplayName}, including donor,
               receipt, staged gift, and payment information.
@@ -280,11 +405,15 @@ function ContributionDetailSheetFrame({
               onClick={onClose}
               aria-label="Close contribution details"
             >
-              <X className="size-4" aria-hidden="true" />
+              <X aria-hidden="true" />
             </Button>
           </div>
 
-          <ScrollArea className="min-h-0 flex-1">{children}</ScrollArea>
+          <ScrollArea className="min-h-0 flex-1">
+            <div ref={contentRef} tabIndex={-1} className="outline-none">
+              {children}
+            </div>
+          </ScrollArea>
         </div>
       </SheetContent>
     </Sheet>
@@ -293,14 +422,25 @@ function ContributionDetailSheetFrame({
 
 function ContributionDetailLoadingState() {
   return (
-    <div className="p-6">
-      <div
-        role="status"
-        aria-live="polite"
-        className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-medium text-muted-foreground"
-      >
-        <LoaderCircle className="size-4 animate-spin" aria-hidden />
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
+      <p role="status" aria-live="polite" className="sr-only">
         Loading contribution details...
+      </p>
+      <div aria-hidden="true" className="flex items-center gap-3">
+        <Skeleton className="size-10 rounded-full" />
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3 w-52" />
+        </div>
+      </div>
+      <Skeleton aria-hidden="true" className="h-28 w-full rounded-xl" />
+      <div aria-hidden="true" className="grid grid-cols-2 gap-x-6 gap-y-4">
+        {Array.from({ length: 6 }, (_, index) => (
+          <div key={index} className="flex flex-col gap-1.5">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -314,9 +454,10 @@ function ContributionDetailErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <Alert variant="destructive">
-        <AlertCircle className="size-4" aria-hidden />
+        <AlertCircle aria-hidden="true" />
+        <AlertTitle>Couldn&apos;t load this contribution</AlertTitle>
         <AlertDescription>
           <p>{errorMessage}</p>
           {onRetry && (
@@ -327,13 +468,41 @@ function ContributionDetailErrorState({
               className="mt-2"
               onClick={onRetry}
             >
-              <RefreshCcw className="size-3.5" aria-hidden />
+              <RefreshCcw aria-hidden="true" />
               Retry
             </Button>
           )}
         </AlertDescription>
       </Alert>
     </div>
+  );
+}
+
+/**
+ * A refresh that fails after the gift already loaded (for example right after
+ * an action) keeps the last loaded details on screen, and says so.
+ */
+function ContributionDetailStaleNotice({ onRetry }: { onRetry?: () => void }) {
+  return (
+    <Alert variant="warning">
+      <AlertCircle aria-hidden="true" />
+      <AlertTitle>Couldn&apos;t refresh this contribution</AlertTitle>
+      <AlertDescription>
+        <p>Showing the last loaded details, which may be out of date.</p>
+        {onRetry && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="mt-2"
+            onClick={onRetry}
+          >
+            <RefreshCcw aria-hidden="true" />
+            Retry
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 }
 
@@ -400,7 +569,7 @@ export function ContributionDetailSheet({
             onRetry={onRetry}
           />
         ) : (
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <p className="text-sm text-muted-foreground">
               Contribution details are unavailable.
             </p>
@@ -422,7 +591,7 @@ export function ContributionDetailSheet({
     parentRetryScope,
     parentRetryActionPending,
     pendingActionMatches,
-    designationRetryGuidanceShownInActions,
+    designationRetryGuidanceShownInNote,
     missingStagedGiftWorkflow,
     canSendReceipt,
     receiptActionPending,
@@ -433,6 +602,7 @@ export function ContributionDetailSheet({
     showRefundAction,
     canRefund,
     visibleBlockedEntries,
+    retiredCrmEntries,
     showRecurringSection,
     isOneTimeGiftWithAgreement,
   } = getContributionDetailWorkflow(contribution, {
@@ -444,15 +614,19 @@ export function ContributionDetailSheet({
     pendingAction,
   });
 
+  // The retired-CRM note sits with the posting history when there is any;
+  // otherwise it closes the Actions section.
+  const showsCrmPostingHistory = Boolean(crmPostState && crmPostStateHasSignal);
+
+  // Same fallback as the row menu: a gift without a processor transaction
+  // copies its gift ID, and the button says which one it copies.
   const handleCopyTxn = async () => {
-    const tid = contribution.transactionId;
-    if (!tid) {
-      toast.error("No transaction ID to copy");
-      return;
-    }
+    const value = contribution.transactionId ?? contribution.id;
     try {
-      await navigator.clipboard.writeText(tid);
-      toast.success("Transaction ID copied to clipboard");
+      await navigator.clipboard.writeText(value);
+      toast.success(
+        contribution.transactionId ? "Transaction ID copied" : "Gift ID copied",
+      );
     } catch {
       toast.error("Could not copy to clipboard");
     }
@@ -464,8 +638,8 @@ export function ContributionDetailSheet({
       onClose={onClose}
       open={open}
     >
-      <div className="p-6 space-y-8">
-        {/* ---- Donor + Status ---- */}
+      <div className="flex flex-col gap-6 p-4 sm:p-6">
+        {errorMessage && <ContributionDetailStaleNotice onRetry={onRetry} />}
         <ContributionDonorSummary
           donorAvatar={donorAvatar}
           resolvedDonorDisplayName={resolvedDonorDisplayName}
@@ -474,43 +648,6 @@ export function ContributionDetailSheet({
           contribution={contribution}
         />
 
-        <Separator />
-
-        {/* ---- Details grid ---- */}
-        <ContributionDetailsGrid
-          formatDate={formatDate}
-          contribution={contribution}
-          designations={designations}
-          crmPostStateHasSignal={crmPostStateHasSignal}
-        />
-
-        {/* ---- Designations (ADR-CD-008 / ADR-CD-011) ---- */}
-        <ContributionDesignationsSection designations={designations} />
-
-        {/* ---- Historical CRM post state (ADR-CD-012) ---- */}
-        <ContributionCrmPostingSection
-          crmPostState={crmPostState}
-          crmPostStateHasSignal={crmPostStateHasSignal}
-          canRetryCrmScope={canRetryCrmScope}
-          parentRetryScope={parentRetryScope}
-          parentRetryActionPending={parentRetryActionPending}
-          isActionPending={isActionPending}
-          stagedGiftId={stagedGiftId}
-          onRetryCrmPost={onRetryCrmPost}
-          contribution={contribution}
-          designations={designations}
-          pendingActionMatches={pendingActionMatches}
-          designationRetryGuidanceShownInActions={
-            designationRetryGuidanceShownInActions
-          }
-        />
-
-        {/* ---- Notes ---- */}
-        <ContributionNotesSection contribution={contribution} />
-
-        <Separator />
-
-        {/* ---- Actions ---- */}
         <ContributionActionsSection
           missingStagedGiftWorkflow={missingStagedGiftWorkflow}
           handleCopyTxn={handleCopyTxn}
@@ -530,6 +667,7 @@ export function ContributionDetailSheet({
           canRefund={canRefund}
           onRefund={onRefund}
           visibleBlockedEntries={visibleBlockedEntries}
+          retiredCrmEntries={showsCrmPostingHistory ? [] : retiredCrmEntries}
         />
 
         {/* ---- Correction approvals (AL-263) ---- */}
@@ -539,12 +677,43 @@ export function ContributionDetailSheet({
           onDecided={onDecided}
         />
 
+        <ContributionDetailsGrid
+          formatDate={formatDate}
+          contribution={contribution}
+          designations={designations}
+          crmPostStateHasSignal={crmPostStateHasSignal}
+        />
+
+        {/* ---- Designations (ADR-CD-008 / ADR-CD-011) ---- */}
+        <ContributionDesignationsSection designations={designations} />
+
+        <ContributionNotesSection contribution={contribution} />
+
         {/* ---- Recurring agreement context (ADR-CD-007) ---- */}
         <ContributionRecurringSection
           recurring={recurring}
           showRecurringSection={showRecurringSection}
           isOneTimeGiftWithAgreement={isOneTimeGiftWithAgreement}
           formatDate={formatDate}
+        />
+
+        {/* ---- Historical CRM post state (ADR-CD-012) ---- */}
+        <ContributionCrmPostingSection
+          crmPostState={crmPostState}
+          crmPostStateHasSignal={crmPostStateHasSignal}
+          canRetryCrmScope={canRetryCrmScope}
+          parentRetryScope={parentRetryScope}
+          parentRetryActionPending={parentRetryActionPending}
+          isActionPending={isActionPending}
+          stagedGiftId={stagedGiftId}
+          onRetryCrmPost={onRetryCrmPost}
+          contribution={contribution}
+          designations={designations}
+          pendingActionMatches={pendingActionMatches}
+          designationRetryGuidanceShownInNote={
+            designationRetryGuidanceShownInNote
+          }
+          retiredCrmEntries={retiredCrmEntries}
         />
 
         {/* ---- Provider proof (ADR-CD-014, role-gated) ---- */}
@@ -574,54 +743,56 @@ function ContributionDonorSummary({
   contribution: Contribution;
 }) {
   return (
-    <>
-      <div className="flex items-start gap-4">
-        <Avatar className="size-16">
-          <AvatarImage
-            src={donorAvatar ?? undefined}
-            alt={resolvedDonorDisplayName}
-          />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <Avatar aria-hidden="true" className="size-10">
+          {!isAnonymous && donorAvatar ? (
+            <AvatarImage src={donorAvatar} alt="" />
+          ) : null}
           <AvatarFallback>
             {isAnonymous ? "?" : getInitials(resolvedDonorDisplayName)}
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-1 pt-1">
-          <h3 className="text-2xl font-semibold text-foreground tracking-tight">
-            {isAnonymous ? "Anonymous Donor" : resolvedDonorDisplayName}
+        <div className="flex min-w-0 flex-col">
+          <h3 className="truncate text-base font-semibold text-foreground">
+            {isAnonymous ? "Anonymous donor" : resolvedDonorDisplayName}
           </h3>
           {!isAnonymous && donorEmail && (
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="truncate text-sm text-muted-foreground">
               {donorEmail}
             </p>
           )}
-          <div className="flex items-center gap-2 pt-2">
-            <Badge variant="outline">
-              <span
-                className={cn(
-                  "size-1.5 shrink-0 rounded-full mr-1.5",
-                  statusDotColor[contribution.status],
-                )}
-              />
-              {contribution.status}
-            </Badge>
-            <Badge variant="secondary">{contribution.type}</Badge>
-          </div>
         </div>
       </div>
 
       {/* ---- Amount display ---- */}
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">
-          Amount
-        </p>
-        <p className="text-3xl font-semibold font-mono tabular-nums text-foreground tracking-tight">
+      <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">Amount</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ContributionStatusBadge
+              status={effectiveContributionStatus(contribution)}
+            />
+            <Badge variant="outline">{contribution.type}</Badge>
+          </div>
+        </div>
+        <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums">
           {formatSharedContributionAmount(
             contribution.shared.amountCents,
             contribution.shared.currencyCode,
           )}
         </p>
+        {contribution.shared.refundedAmountCents > 0 ? (
+          <p className="text-sm text-muted-foreground tabular-nums">
+            Refunded{" "}
+            {formatSharedContributionAmount(
+              contribution.shared.refundedAmountCents,
+              contribution.shared.currencyCode,
+            )}
+          </p>
+        ) : null}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -637,79 +808,65 @@ function ContributionDetailsGrid({
   crmPostStateHasSignal: boolean;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <DetailField label="Date">
-        {formatDate(contribution.date, {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </DetailField>
-
-      <DetailField label="Payment Method">
-        {contribution.paymentMethod}
-      </DetailField>
-
-      <DetailField label="Source">{contribution.source}</DetailField>
-
-      {!designations && (
-        <DetailField label="Fund">
-          <span>{contribution.fundName}</span>
-          <span className="block font-mono text-xs text-muted-foreground">
-            {contribution.fundCode}
-          </span>
+    <SheetSection title="Details">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+        <DetailField label="Date">
+          {formatDate(contribution.date, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
         </DetailField>
-      )}
 
-      <DetailField label="Transaction ID" mono>
-        {contribution.transactionId}
-      </DetailField>
+        <DetailField label="Payment method">
+          {formatPaymentMethod(contribution.paymentMethod)}
+        </DetailField>
 
-      <DetailField label="Receipt">
-        <span className="flex items-center gap-2">
-          <span
-            className={cn(
-              "size-2 shrink-0 rounded-full",
-              contribution.receiptSent
-                ? "bg-success"
-                : "bg-muted-foreground/40",
-            )}
+        <DetailField label="Source">{contribution.source}</DetailField>
+
+        {!designations && (
+          // `fundCode` carries the fund's UUID in live data; the name is the
+          // staff-facing identity, so no internal id renders under it.
+          <DetailField label="Fund">{contribution.fundName}</DetailField>
+        )}
+
+        <DetailField label="Receipt">
+          <ContributionReceiptStatus
+            status={contribution.shared.receiptStatus}
           />
-          {contribution.receiptSent ? "Sent" : "Pending"}
-        </span>
-      </DetailField>
-
-      {contribution.stagedGiftStatus && (
-        <DetailField label="Review">
-          <span className="flex items-center gap-2">
-            <span
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                contribution.stagedGiftStatus === "posted"
-                  ? "bg-success"
-                  : contribution.stagedGiftStatus === "failed"
-                    ? "bg-destructive"
-                    : "bg-warning",
-              )}
-            />
-            {contribution.stagedGiftStatus.replace(/_/g, " ")}
-          </span>
         </DetailField>
-      )}
 
-      {contribution.crmPostStatus && !crmPostStateHasSignal && (
-        <DetailField label="CRM post status">
-          {contribution.crmPostStatus.replace(/_/g, " ")}
-        </DetailField>
-      )}
+        {contribution.stagedGiftStatus && (
+          <DetailField label="Import review">
+            <span className="flex items-center gap-2">
+              <StatusDot
+                className={stagedGiftDotColor(contribution.stagedGiftStatus)}
+              />
+              {STAGED_GIFT_STATUS_LABELS[contribution.stagedGiftStatus] ??
+                contribution.stagedGiftStatus}
+            </span>
+          </DetailField>
+        )}
 
-      {contribution.missionaryName && (
-        <DetailField label="Missionary">
-          {contribution.missionaryName}
+        {contribution.crmPostStatus && !crmPostStateHasSignal && (
+          <DetailField label="CRM post status">
+            {SHARED_CRM_POST_STATUS_LABELS[contribution.crmPostStatus] ??
+              contribution.crmPostStatus}
+          </DetailField>
+        )}
+
+        {contribution.missionaryName && (
+          <DetailField label="Missionary">
+            {contribution.missionaryName}
+          </DetailField>
+        )}
+
+        <DetailField label="Transaction ID" mono wide>
+          {contribution.transactionId ?? "Unavailable"}
         </DetailField>
-      )}
-    </div>
+      </dl>
+    </SheetSection>
   );
 }
 
@@ -720,88 +877,108 @@ function ContributionDesignationsSection({
 }) {
   return (
     designations && (
-      <>
-        <Separator />
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Designations
-          </p>
-          {!designations.reconcilesToGiftAmount && (
-            <Alert>
-              <AlertDescription>
-                <p className="text-xs">
-                  Designation lines do not reconcile to the gift amount. Review
-                  the designation set before relying on these allocations.
-                </p>
-              </AlertDescription>
-            </Alert>
-          )}
-          <ul className="space-y-2">
-            {designations.lines.map((line) => {
-              const hasContext = Boolean(
-                line.memo || line.restriction || line.missionaryName,
-              );
+      <SheetSection title="Designations">
+        {!designations.reconcilesToGiftAmount && (
+          <Alert>
+            <TriangleAlert aria-hidden="true" />
+            <AlertDescription>
+              Designation lines do not reconcile to the gift amount. Review the
+              designation set before relying on these allocations.
+            </AlertDescription>
+          </Alert>
+        )}
+        <ul className="flex flex-col divide-y rounded-lg border">
+          {designations.lines.map((line) => {
+            const hasContext = designationLineHasContext(line);
+            const lineSummary = (
+              <>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {line.fundName}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {FUND_TYPE_LABELS[line.fundType]}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-medium text-foreground tabular-nums">
+                  {formatSharedContributionAmount(
+                    line.amountCents,
+                    line.currencyCode,
+                  )}
+                </span>
+              </>
+            );
 
-              return (
-                <li
-                  key={line.id}
-                  className="rounded-lg border border-border bg-card"
-                >
-                  <details className="group">
-                    <summary
-                      className={cn(
-                        "flex items-center justify-between gap-3 p-3",
-                        hasContext
-                          ? "cursor-pointer list-none"
-                          : "pointer-events-none list-none",
+            // Only lines with context to reveal are disclosures; a line with
+            // nothing to expand is a plain row, so keyboard and screen-reader
+            // users never meet a toggle that opens nothing.
+            return (
+              <li key={line.id}>
+                {hasContext ? (
+                  // Top-aligned with the chevron nudged to the fund name's
+                  // line, so every row reads name, amount, chevron on line 1.
+                  <DetailDisclosure
+                    triggerClassName="items-start gap-3 px-3 py-2.5 [&>svg]:mt-0.5"
+                    trigger={lineSummary}
+                  >
+                    <div className="flex flex-col gap-1 border-t bg-muted/30 px-3 py-2.5">
+                      {line.missionaryName && (
+                        <p className="text-xs text-muted-foreground">
+                          Supports{" "}
+                          <span className="font-medium text-foreground">
+                            {line.missionaryName}
+                          </span>
+                        </p>
                       )}
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-semibold text-foreground">
-                          {line.fundName}
-                        </span>
-                        <span className="block text-xs uppercase tracking-wider text-muted-foreground">
-                          {FUND_TYPE_LABELS[line.fundType]}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-sm font-semibold font-mono tabular-nums text-foreground">
-                        {formatSharedContributionAmount(
-                          line.amountCents,
-                          line.currencyCode,
-                        )}
-                      </span>
-                    </summary>
-                    {hasContext && (
-                      <div className="space-y-1 border-t border-border px-3 py-2">
-                        {line.missionaryName && (
-                          <p className="text-xs text-muted-foreground">
-                            Supports{" "}
-                            <span className="font-medium text-foreground">
-                              {line.missionaryName}
-                            </span>
-                          </p>
-                        )}
-                        {line.memo && (
-                          <p className="text-xs text-muted-foreground">
-                            Donor memo: “{line.memo}”
-                          </p>
-                        )}
-                        {line.restriction && (
-                          <p className="text-xs text-muted-foreground">
-                            Restriction: {line.restriction}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </details>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </>
+                      {line.memo && (
+                        <p className="text-xs text-muted-foreground">
+                          Donor memo: “{line.memo}”
+                        </p>
+                      )}
+                      {line.restriction && (
+                        <p className="text-xs text-muted-foreground">
+                          Restriction: {line.restriction}
+                        </p>
+                      )}
+                    </div>
+                  </DetailDisclosure>
+                ) : (
+                  // Same row geometry as a summary, with the chevron's width
+                  // kept so amounts stay aligned down the list.
+                  <div className="flex items-start gap-3 px-3 py-2.5">
+                    {lineSummary}
+                    <span aria-hidden="true" className="size-4 shrink-0" />
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        {hasMixedLineContext(designations.lines) ? (
+          <p className="text-xs text-muted-foreground">
+            Lines with an arrow open who they support and any donor memo or
+            restriction.
+          </p>
+        ) : null}
+      </SheetSection>
     )
   );
+}
+
+function designationLineHasContext(line: {
+  memo: string | null;
+  restriction: string | null;
+  missionaryName: string | null;
+}) {
+  return Boolean(line.memo || line.restriction || line.missionaryName);
+}
+
+/** Only some lines open, so an arrow on one row and not the next needs a word. */
+function hasMixedLineContext(
+  lines: Parameters<typeof designationLineHasContext>[0][],
+) {
+  const withContext = lines.filter(designationLineHasContext).length;
+  return withContext > 0 && withContext < lines.length;
 }
 
 function ContributionCrmPostingSection({
@@ -816,7 +993,8 @@ function ContributionCrmPostingSection({
   contribution,
   designations,
   pendingActionMatches,
-  designationRetryGuidanceShownInActions,
+  designationRetryGuidanceShownInNote,
+  retiredCrmEntries,
 }: {
   crmPostState: ContributionDetailSheetProps["crmPostState"];
   crmPostStateHasSignal: boolean;
@@ -832,178 +1010,243 @@ function ContributionCrmPostingSection({
     actionType: ContributionDetailPendingAction["actionType"],
     scope?: CrmPostFailedScope,
   ) => boolean;
-  designationRetryGuidanceShownInActions: boolean;
+  designationRetryGuidanceShownInNote: boolean;
+  retiredCrmEntries: ContributionActionAvailability[];
 }) {
   return (
     crmPostState &&
     crmPostStateHasSignal && (
-      <>
-        <Separator />
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Historical CRM posting
-          </p>
-          {crmPostState.adapterLimitation && (
-            <Alert>
-              <AlertDescription>
-                <p className="text-xs">{crmPostState.adapterLimitation}</p>
-              </AlertDescription>
-            </Alert>
-          )}
-          <ul className="space-y-2">
-            <li className="space-y-2 rounded-lg border border-border bg-card p-3">
-              <div className="flex items-center justify-between gap-3">
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-foreground">
-                    Parent gift record
-                  </span>
-                  {crmPostState.parent.twentyRecordId && (
-                    <span className="block truncate font-mono text-xs text-muted-foreground">
-                      {crmPostState.parent.twentyRecordId}
-                    </span>
-                  )}
+      <SheetSection title="Historical CRM posting">
+        {/* One quiet note for the whole history: why posting is retired
+            and any limit of the old record, never a second callout. */}
+        <RetiredCrmPostingNote
+          entries={retiredCrmEntries}
+          limitation={crmPostState.adapterLimitation}
+        />
+        <ul className="flex flex-col divide-y rounded-lg border">
+          <li className="flex flex-col gap-2 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex min-w-0 flex-col">
+                <span className="text-sm font-medium text-foreground">
+                  Parent gift record
                 </span>
-                <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
-                  <span
-                    className={cn(
-                      "size-2 shrink-0 rounded-full",
-                      crmPostStatusDotColor(crmPostState.parent.status),
-                    )}
-                  />
-                  {crmPostStatusLabel(crmPostState.parent.status)}
-                </span>
-              </div>
-              {isCrmPostFailure(crmPostState.parent.status) &&
-                crmPostState.parent.lastError && (
-                  <p className="text-xs text-destructive">
-                    {crmPostState.parent.lastError}
-                  </p>
-                )}
-              {canRetryCrmScope && parentRetryScope && (
-                <Button
-                  focusableWhenDisabled={parentRetryActionPending}
-                  variant="outline"
-                  size="sm"
-                  disabled={isActionPending}
-                  tabIndex={workflowActionTabIndex(
-                    isActionPending,
-                    parentRetryActionPending,
-                  )}
-                  onClick={() =>
-                    stagedGiftId &&
-                    onRetryCrmPost?.(
-                      parentRetryScope,
-                      stagedGiftId,
-                      contribution.id,
-                    )
-                  }
-                >
-                  <RefreshCcw className="size-3.5" aria-hidden />
-                  Retry parent record
-                </Button>
+              </span>
+              <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-foreground">
+                <StatusDot
+                  className={crmPostStatusDotColor(crmPostState.parent.status)}
+                />
+                {crmPostStatusLabel(crmPostState.parent.status)}
+              </span>
+            </div>
+            {isCrmPostFailure(crmPostState.parent.status) &&
+              crmPostState.parent.lastError && (
+                <p className="text-xs text-destructive">
+                  {crmPostState.parent.lastError}
+                </p>
               )}
-            </li>
-            {crmPostState.designationRecords.map((record, index) => {
-              const allocationId = record.allocationId;
-              const line = allocationId
-                ? (designations?.lines.find(
-                    (candidate) => candidate.id === allocationId,
-                  ) ?? null)
-                : null;
-              const lineLabel =
-                line?.fundName ??
-                (allocationId
-                  ? `Designation ${allocationId}`
-                  : "Designation line");
-              const retryScope = crmPostState.failedScopes.find(
-                (scope) =>
-                  scope.scope === "designation" &&
-                  scope.allocationId === allocationId,
-              );
-              const lineRetryActionPending = retryScope
-                ? pendingActionMatches("retry_staged_gift", retryScope)
-                : false;
+            {canRetryCrmScope && parentRetryScope && (
+              <Button
+                focusableWhenDisabled={parentRetryActionPending}
+                variant="outline"
+                size="sm"
+                disabled={isActionPending}
+                tabIndex={workflowActionTabIndex(
+                  isActionPending,
+                  parentRetryActionPending,
+                )}
+                className="self-start"
+                onClick={() =>
+                  stagedGiftId &&
+                  onRetryCrmPost?.(
+                    parentRetryScope,
+                    stagedGiftId,
+                    contribution.id,
+                  )
+                }
+              >
+                <RefreshCcw aria-hidden="true" />
+                Retry parent record
+              </Button>
+            )}
+          </li>
+          {crmPostState.designationRecords.map((record, index) => {
+            const allocationId = record.allocationId;
+            const lineLabel = crmDesignationRecordLabel(
+              allocationId,
+              designations,
+            );
+            const retryScope = crmPostState.failedScopes.find(
+              (scope) =>
+                scope.scope === "designation" &&
+                scope.allocationId === allocationId,
+            );
+            const lineRetryActionPending = retryScope
+              ? pendingActionMatches("retry_staged_gift", retryScope)
+              : false;
 
-              return (
-                <li
-                  key={allocationId ?? `designation-record-${index}`}
-                  className="space-y-2 rounded-lg border border-border bg-card p-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-foreground">
-                        {lineLabel}
-                      </span>
-                      {record.twentyRecordId && (
-                        <span className="block truncate font-mono text-xs text-muted-foreground">
-                          {record.twentyRecordId}
-                        </span>
-                      )}
+            return (
+              <li
+                key={allocationId ?? `designation-record-${index}`}
+                className="flex flex-col gap-2 px-3 py-2.5"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {lineLabel}
                     </span>
-                    <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
-                      <span
-                        className={cn(
-                          "size-2 shrink-0 rounded-full",
-                          crmPostStatusDotColor(record.status),
-                        )}
-                      />
-                      {crmPostStatusLabel(record.status)}
-                    </span>
-                  </div>
-                  {isCrmPostFailure(record.status) && record.lastError && (
-                    <p className="text-xs text-destructive">
-                      {record.lastError}
-                    </p>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-foreground">
+                    <StatusDot
+                      className={crmPostStatusDotColor(record.status)}
+                    />
+                    {crmPostStatusLabel(record.status)}
+                  </span>
+                </div>
+                {isCrmPostFailure(record.status) && record.lastError && (
+                  <p className="text-xs text-destructive">{record.lastError}</p>
+                )}
+                {retryScope &&
+                  !designationRetryGuidanceShownInNote &&
+                  !isContributionRouteCrmRetryScopeSupported("designation") && (
+                    <div role="note" className="flex flex-col gap-1">
+                      <p className="text-xs font-medium text-foreground">
+                        {CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP}
+                      </p>
+                    </div>
                   )}
-                  {retryScope &&
-                    !designationRetryGuidanceShownInActions &&
-                    !isContributionRouteCrmRetryScopeSupported(
-                      "designation",
-                    ) && (
-                      <div role="note" className="space-y-1 p-2">
-                        <p className="text-xs font-medium text-foreground">
-                          {CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP}
-                        </p>
-                      </div>
-                    )}
-                  {canRetryCrmScope &&
-                    retryScope &&
-                    allocationId &&
-                    isContributionRouteCrmRetryScopeSupported(
-                      "designation",
-                    ) && (
-                      <Button
-                        focusableWhenDisabled={lineRetryActionPending}
-                        variant="outline"
-                        size="sm"
-                        disabled={isActionPending}
-                        tabIndex={workflowActionTabIndex(
-                          isActionPending,
-                          lineRetryActionPending,
-                        )}
-                        onClick={() =>
-                          stagedGiftId &&
-                          onRetryCrmPost?.(
-                            { scope: "designation", allocationId },
-                            stagedGiftId,
-                            contribution.id,
-                          )
-                        }
-                      >
-                        <RefreshCcw className="size-3.5" aria-hidden />
-                        Retry this line
-                      </Button>
-                    )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </>
+                {canRetryCrmScope &&
+                  retryScope &&
+                  allocationId &&
+                  isContributionRouteCrmRetryScopeSupported("designation") && (
+                    <Button
+                      focusableWhenDisabled={lineRetryActionPending}
+                      variant="outline"
+                      size="sm"
+                      disabled={isActionPending}
+                      tabIndex={workflowActionTabIndex(
+                        isActionPending,
+                        lineRetryActionPending,
+                      )}
+                      className="self-start"
+                      onClick={() =>
+                        stagedGiftId &&
+                        onRetryCrmPost?.(
+                          { scope: "designation", allocationId },
+                          stagedGiftId,
+                          contribution.id,
+                        )
+                      }
+                    >
+                      <RefreshCcw aria-hidden="true" />
+                      Retry this line
+                    </Button>
+                  )}
+              </li>
+            );
+          })}
+        </ul>
+        <CrmRecordIdsDisclosure
+          crmPostState={crmPostState}
+          designations={designations}
+        />
+      </SheetSection>
     )
+  );
+}
+
+/** A designation's fund name, else its allocation id, for posting history. */
+function crmDesignationRecordLabel(
+  allocationId: string | null,
+  designations: ContributionDetailSheetProps["designations"],
+) {
+  const line = allocationId
+    ? designations?.lines.find((candidate) => candidate.id === allocationId)
+    : undefined;
+  return (
+    line?.fundName ??
+    (allocationId ? `Designation ${allocationId}` : "Designation line")
+  );
+}
+
+/**
+ * Retired CRM record IDs are audit detail, not something staff act on: one
+ * folded list (still reachable by find-in-page) with a copy button per ID.
+ */
+function CrmRecordIdsDisclosure({
+  crmPostState,
+  designations,
+}: {
+  crmPostState: NonNullable<ContributionDetailSheetProps["crmPostState"]>;
+  designations: ContributionDetailSheetProps["designations"];
+}) {
+  const records = [
+    {
+      key: "parent",
+      label: "Parent gift record",
+      copyName: "parent gift",
+      recordId: crmPostState.parent.twentyRecordId,
+    },
+    ...crmPostState.designationRecords.map((record, index) => {
+      const label = crmDesignationRecordLabel(
+        record.allocationId,
+        designations,
+      );
+      return {
+        key: record.allocationId ?? `designation-record-${index}`,
+        label,
+        copyName: label,
+        recordId: record.twentyRecordId,
+      };
+    }),
+  ].filter(
+    (record): record is typeof record & { recordId: string } =>
+      typeof record.recordId === "string" && record.recordId.length > 0,
+  );
+
+  if (records.length === 0) {
+    return null;
+  }
+
+  const copyRecordId = async (recordId: string) => {
+    try {
+      await navigator.clipboard.writeText(recordId);
+      toast.success("Record ID copied");
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
+  };
+
+  return (
+    <DetailDisclosure
+      framed
+      triggerClassName="gap-2 px-3 py-2 text-xs text-muted-foreground"
+      trigger={<span className="min-w-0 flex-1">Historical record IDs</span>}
+    >
+      <dl className="flex flex-col gap-2 border-t p-3 text-xs">
+        {records.map((record) => (
+          <div key={record.key} className="flex flex-col gap-0.5">
+            <dt className="text-muted-foreground">{record.label}</dt>
+            <dd className="flex min-w-0 items-center gap-1">
+              <span className="truncate font-mono text-foreground">
+                {record.recordId}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Copy ${record.copyName} record ID`}
+                onClick={() => void copyRecordId(record.recordId)}
+              >
+                <Copy aria-hidden="true" />
+              </Button>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </DetailDisclosure>
   );
 }
 
@@ -1015,39 +1258,148 @@ function ContributionNotesSection({
   return (
     <>
       {contribution.notes && (
-        <>
-          <Separator />
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Notes
-            </p>
-            <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                {contribution.notes}
-              </p>
-            </div>
-          </div>
-        </>
+        <SheetSection title="Notes">
+          <p className="rounded-lg border bg-muted/30 p-3 text-sm text-foreground">
+            {contribution.notes}
+          </p>
+        </SheetSection>
       )}
 
       {contribution.stagedGiftReviewReason && (
-        <>
-          <Separator />
-          <div className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Review reason
-            </p>
-            <Alert>
-              <AlertDescription>
-                <p className="text-sm font-medium">
-                  {contribution.stagedGiftReviewReason.replace(/,/g, ", ")}
-                </p>
-              </AlertDescription>
-            </Alert>
-          </div>
-        </>
+        <SheetSection title="Review reason">
+          <Alert>
+            <Info aria-hidden="true" />
+            <AlertDescription>
+              {reviewReasonLabel(contribution.stagedGiftReviewReason)}
+            </AlertDescription>
+          </Alert>
+        </SheetSection>
       )}
     </>
+  );
+}
+
+/**
+ * Groups blocked-action reasons that say the same thing (for example both
+ * retired CRM posting actions), so staff read each reason once.
+ */
+function groupBlockedEntries(entries: ContributionActionAvailability[]) {
+  const groups = new Map<
+    string,
+    { names: string[]; reason: string; nextStep: string | null }
+  >();
+  for (const entry of entries) {
+    const key = `${entry.blockedReason}\u0000${entry.nextStep ?? ""}`;
+    const existing = groups.get(key);
+    const name = contributionActionName(entry.actionType);
+    if (existing) {
+      existing.names.push(name);
+    } else {
+      groups.set(key, {
+        names: [name],
+        reason: entry.blockedReason ?? "",
+        nextStep: entry.nextStep ?? null,
+      });
+    }
+  }
+  return [...groups.entries()].map(([key, group]) => ({ key, ...group }));
+}
+
+/**
+ * One disclosure for the sheet, on the shared Base UI Collapsible: a real
+ * button that reports aria-expanded, a chevron that turns when open, and a
+ * panel kept in the page (hidden until found) so find-in-page still reaches
+ * the folded detail.
+ */
+function DetailDisclosure({
+  trigger,
+  framed = false,
+  triggerClassName,
+  children,
+}: {
+  trigger: ReactNode;
+  /** Draws the bordered panel used for standalone disclosures. */
+  framed?: boolean;
+  triggerClassName?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={framed ? "rounded-lg border" : undefined}>
+      <Collapsible>
+        <CollapsibleTrigger
+          render={
+            <button
+              type="button"
+              className={cn(
+                "flex w-full cursor-pointer items-center rounded-lg text-left transition-colors outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50",
+                triggerClassName,
+              )}
+            >
+              {trigger}
+              <ChevronRight
+                aria-hidden="true"
+                className="size-4 shrink-0 text-muted-foreground transition-transform in-data-panel-open:rotate-90"
+              />
+            </button>
+          }
+        />
+        <CollapsibleContent hiddenUntilFound>{children}</CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
+}
+
+/**
+ * Why CRM approval and posting retry never render: one collapsed line, with
+ * the affected actions, the reason and the next step one click away.
+ */
+function RetiredCrmPostingNote({
+  entries,
+  limitation = null,
+}: {
+  entries: ContributionActionAvailability[];
+  /** A known limit of the historical record (e.g. no per-line records). */
+  limitation?: string | null;
+}) {
+  const groups = groupBlockedEntries(entries);
+  if (groups.length === 0 && !limitation) {
+    return null;
+  }
+  return (
+    <div data-slot="crm-history-note">
+      <DetailDisclosure
+        framed
+        triggerClassName="gap-2 px-3 py-2 text-xs text-muted-foreground"
+        trigger={
+          <>
+            <Info aria-hidden="true" className="size-3.5 shrink-0" />
+            <span className="min-w-0 flex-1">
+              CRM posting is retired; posting state is shown for history only.
+            </span>
+          </>
+        }
+      >
+        <ul className="flex flex-col gap-3 border-t p-3">
+          {groups.map((group) => (
+            <li key={group.key} className="flex flex-col gap-1 text-xs">
+              <p className="font-medium text-foreground">
+                {group.names.join(" · ")}
+              </p>
+              <p className="text-muted-foreground">{group.reason}</p>
+              {group.nextStep ? (
+                <p className="text-muted-foreground">{group.nextStep}</p>
+              ) : null}
+            </li>
+          ))}
+          {limitation ? (
+            <li className="flex flex-col gap-1 text-xs">
+              <p className="font-medium text-foreground">About this record</p>
+              <p className="text-muted-foreground">{limitation}</p>
+            </li>
+          ) : null}
+        </ul>
+      </DetailDisclosure>
+    </div>
   );
 }
 
@@ -1070,6 +1422,7 @@ function ContributionActionsSection({
   canRefund,
   onRefund,
   visibleBlockedEntries,
+  retiredCrmEntries,
 }: {
   missingStagedGiftWorkflow: boolean;
   handleCopyTxn: () => Promise<void>;
@@ -1089,50 +1442,27 @@ function ContributionActionsSection({
   canRefund: boolean;
   onRefund: ContributionDetailSheetProps["onRefund"];
   visibleBlockedEntries: ContributionActionAvailability[];
+  retiredCrmEntries: ContributionActionAvailability[];
 }) {
+  const blockedGroups = groupBlockedEntries(visibleBlockedEntries);
+
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Actions
-      </p>
-
-      {missingStagedGiftWorkflow && (
-        <div
-          role="note"
-          className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
-        >
-          <p className="text-sm font-medium text-foreground">
-            This gift has no staged gift workflow record, so finance workflow
-            actions are unavailable.
-          </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            The donation is valid and shown read-only. Import or create a staged
-            gift to run finance workflow actions for it.
-          </p>
-        </div>
-      )}
-
+    <SheetSection title="Actions">
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={handleCopyTxn}>
-          <Copy className="size-3.5" />
-          Copy Transaction ID
+        <Button variant="outline" size="sm" onClick={handleCopyTxn}>
+          <Copy aria-hidden="true" />
+          {contribution.transactionId ? "Copy transaction ID" : "Copy gift ID"}
         </Button>
         {canSendReceipt && (
-          <Button
-            focusableWhenDisabled={receiptActionPending}
-            variant="outline"
+          <ReceiptAction
+            alreadySent={contribution.receiptSent}
             disabled={!stagedGiftId || isActionPending}
-            tabIndex={workflowActionTabIndex(
-              isActionPending,
-              receiptActionPending,
-            )}
-            onClick={() =>
+            isActionPending={isActionPending}
+            receiptActionPending={receiptActionPending}
+            onSend={() =>
               stagedGiftId && onSendReceipt?.(stagedGiftId, contribution.id)
             }
-          >
-            <Receipt className="size-3.5" />
-            Send Receipt
-          </Button>
+          />
         )}
         {canApproveGift && (
           <Button
@@ -1148,8 +1478,8 @@ function ContributionActionsSection({
               onApproveStagedGift?.(stagedGiftId, contribution.id)
             }
           >
-            <CheckCircle2 className="size-3.5" />
-            Approve/Post
+            <CheckCircle2 aria-hidden="true" />
+            Approve and post
           </Button>
         )}
         {canRetryGift && (
@@ -1165,8 +1495,8 @@ function ContributionActionsSection({
               stagedGiftId && onRetryStagedGift?.(stagedGiftId, contribution.id)
             }
           >
-            <RefreshCcw className="size-3.5" />
-            Retry Posting
+            <RefreshCcw aria-hidden="true" />
+            Retry posting
           </Button>
         )}
         {showRefundAction && (
@@ -1176,29 +1506,118 @@ function ContributionActionsSection({
             tabIndex={isActionPending ? -1 : undefined}
             onClick={() => onRefund?.(contribution.id)}
           >
-            <Undo2 className="size-3.5" />
-            Refund Gift
+            <Undo2 aria-hidden="true" />
+            Refund gift
           </Button>
         )}
       </div>
 
-      {visibleBlockedEntries.length > 0 && (
-        <ul className="space-y-1.5">
-          {visibleBlockedEntries.map((entry) => (
+      {missingStagedGiftWorkflow && (
+        <div
+          role="note"
+          className="flex gap-2 rounded-lg border bg-muted/30 p-3"
+        >
+          <Info
+            aria-hidden="true"
+            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+          />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-foreground">
+              This gift has no staged gift workflow record, so finance workflow
+              actions are unavailable.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              The donation is valid and shown read-only. Import or create a
+              staged gift to run finance workflow actions for it.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {blockedGroups.length > 0 && (
+        <ul className="flex flex-col gap-2">
+          {blockedGroups.map((group) => (
             <li
-              key={entry.actionType}
-              className="text-xs text-muted-foreground leading-relaxed"
+              key={group.key}
+              className="flex gap-2 rounded-lg border bg-muted/30 p-3"
             >
-              <span className="font-medium text-foreground">
-                {contributionActionName(entry.actionType)}:
-              </span>{" "}
-              {entry.blockedReason}
-              {entry.nextStep ? ` ${entry.nextStep}` : null}
+              <Info
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+              />
+              <div className="flex min-w-0 flex-col gap-1 text-xs">
+                <p className="font-medium text-foreground">
+                  {group.names.join(" · ")}
+                </p>
+                <p className="text-muted-foreground">{group.reason}</p>
+                {group.nextStep ? (
+                  <p className="text-muted-foreground">{group.nextStep}</p>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>
       )}
-    </div>
+
+      <RetiredCrmPostingNote entries={retiredCrmEntries} />
+    </SheetSection>
+  );
+}
+
+/**
+ * The gift's receipt action. A first send goes straight out; once a receipt
+ * was sent the action reads "Resend receipt" and asks before sending the
+ * donor a second copy, as the Hub's batch send does.
+ */
+function ReceiptAction({
+  alreadySent,
+  disabled,
+  isActionPending,
+  receiptActionPending,
+  onSend,
+}: {
+  alreadySent: boolean;
+  disabled: boolean;
+  isActionPending: boolean;
+  receiptActionPending: boolean;
+  onSend: () => void;
+}) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const label = alreadySent ? "Resend receipt" : "Send receipt";
+
+  return (
+    <>
+      <Button
+        focusableWhenDisabled={receiptActionPending}
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        tabIndex={workflowActionTabIndex(isActionPending, receiptActionPending)}
+        onClick={() => (alreadySent ? setConfirmOpen(true) : onSend())}
+      >
+        <Receipt aria-hidden="true" />
+        {label}
+      </Button>
+      {alreadySent ? (
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Resend receipt?</AlertDialogTitle>
+              <AlertDialogDescription>
+                A receipt was already sent for this gift. The donor will get
+                another copy.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction disabled={disabled} onClick={onSend}>
+                Resend receipt
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
+    </>
   );
 }
 
@@ -1237,78 +1656,72 @@ function ContributionRecurringSection({
   return (
     recurring &&
     showRecurringSection && (
-      <>
-        <Separator />
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Recurring giving
+      <SheetSection title="Recurring giving">
+        {isOneTimeGiftWithAgreement && (
+          <p className="text-sm text-muted-foreground">
+            This gift is linked to a recurring agreement.
           </p>
-          {isOneTimeGiftWithAgreement && (
-            <p className="text-xs text-muted-foreground">
-              This gift is linked to a recurring agreement.
+        )}
+        {recurring.providerRecurrenceWithoutAgreement && (
+          <Alert>
+            <TriangleAlert aria-hidden="true" />
+            <AlertDescription>
+              The payment provider reports this gift as recurring, but no
+              internal recurring agreement is linked. Review and link the
+              recurring agreement to close this reconciliation gap.
+            </AlertDescription>
+          </Alert>
+        )}
+        {recurring.agreement && (
+          <div className="flex flex-col gap-1 rounded-lg border p-3">
+            <p className="text-sm font-medium text-foreground tabular-nums">
+              {formatSharedContributionAmount(
+                recurring.agreement.amountCents,
+                recurring.agreement.currencyCode,
+              )}{" "}
+              {recurring.agreement.frequency ?? "· frequency not recorded"}
             </p>
-          )}
-          {recurring.providerRecurrenceWithoutAgreement && (
-            <Alert>
-              <AlertDescription>
-                <p className="text-xs">
-                  The payment provider reports this gift as recurring, but no
-                  internal recurring agreement is linked. Review and link the
-                  recurring agreement to close this reconciliation gap.
-                </p>
-              </AlertDescription>
-            </Alert>
-          )}
-          {recurring.agreement && (
-            <div className="rounded-lg border border-border bg-card p-3 space-y-1">
-              <p className="text-sm font-semibold text-foreground">
-                {formatSharedContributionAmount(
-                  recurring.agreement.amountCents,
-                  recurring.agreement.currencyCode,
-                )}{" "}
-                {recurring.agreement.frequency ?? "recurring"}
+            <p className="text-xs text-muted-foreground">
+              {[
+                recurring.agreement.fundName,
+                recurring.agreement.missionaryName,
+                agreementStatusLabel(recurring.agreement.status),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              {recurring.agreement.nextExpectedGiftAt
+                ? ` · Next expected ${formatDate(
+                    recurring.agreement.nextExpectedGiftAt,
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}`
+                : null}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Gifts under this agreement: {recurring.agreement.linkedGiftCount}
+              {recurring.agreement.lastLinkedGiftAt
+                ? ` · Last gift ${formatDate(
+                    recurring.agreement.lastLinkedGiftAt,
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}`
+                : null}
+            </p>
+            {recurring.agreement.stripeSubscriptionId && (
+              <p className="font-mono text-xs break-all text-muted-foreground">
+                Subscription reference:{" "}
+                {recurring.agreement.stripeSubscriptionId}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {recurring.agreement.fundName ?? "General Fund"}
-                {recurring.agreement.missionaryName
-                  ? ` · ${recurring.agreement.missionaryName}`
-                  : null}
-                {" · "}
-                {recurring.agreement.status ?? "active"}
-                {recurring.agreement.nextExpectedGiftAt
-                  ? ` · Next expected ${formatDate(
-                      recurring.agreement.nextExpectedGiftAt,
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )}`
-                  : null}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Gifts under this agreement:{" "}
-                {recurring.agreement.linkedGiftCount}
-                {recurring.agreement.lastLinkedGiftAt
-                  ? ` · Last gift ${formatDate(
-                      recurring.agreement.lastLinkedGiftAt,
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )}`
-                  : null}
-              </p>
-              {recurring.agreement.stripeSubscriptionId && (
-                <p className="text-xs font-mono text-muted-foreground">
-                  Stripe evidence: {recurring.agreement.stripeSubscriptionId}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </>
+            )}
+          </div>
+        )}
+      </SheetSection>
     )
   );
 }
@@ -1320,33 +1733,37 @@ function ContributionProviderSection({
 }) {
   return (
     providerProof && (
-      <>
-        <Separator />
-        <details className="rounded-lg border border-border bg-card">
-          <summary className="cursor-pointer list-none p-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Provider proof
-          </summary>
-          <div className="space-y-2 border-t border-border p-3">
-            <DetailField label="Payment intent" mono>
-              {providerProof.paymentIntentId ?? "—"}
-            </DetailField>
-            <DetailField label="Charge" mono>
-              {providerProof.chargeId ?? "—"}
-            </DetailField>
-            {providerProof.refundIds.length > 0 && (
-              <DetailField label="Refund IDs" mono>
-                {providerProof.refundIds.join(", ")}
+      <section className="border-t pt-6">
+        <DetailDisclosure
+          framed
+          triggerClassName="gap-2 px-3 py-2.5 text-sm font-medium text-foreground"
+          trigger={<span className="min-w-0 flex-1">Provider proof</span>}
+        >
+          <div className="flex flex-col gap-3 border-t p-3">
+            <dl className="flex flex-col gap-3">
+              <DetailField label="Payment intent" mono>
+                {providerProof.paymentIntentId ?? "—"}
               </DetailField>
-            )}
-            <div className="flex flex-wrap gap-3 pt-1">
+              <DetailField label="Charge" mono>
+                {providerProof.chargeId ?? "—"}
+              </DetailField>
+              {providerProof.refundIds.length > 0 && (
+                <DetailField label="Refund IDs" mono>
+                  {providerProof.refundIds.join(", ")}
+                </DetailField>
+              )}
+            </dl>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
               {providerProof.dashboardUrls.paymentIntent && (
                 <a
                   href={providerProof.dashboardUrls.paymentIntent}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-medium text-foreground underline underline-offset-2"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-2"
                 >
                   Open payment in Stripe
+                  <span className="sr-only"> (opens in a new tab)</span>
+                  <ExternalLink aria-hidden="true" className="size-3" />
                 </a>
               )}
               {providerProof.dashboardUrls.charge && (
@@ -1354,15 +1771,17 @@ function ContributionProviderSection({
                   href={providerProof.dashboardUrls.charge}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-medium text-foreground underline underline-offset-2"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-2"
                 >
                   Open charge in Stripe
+                  <span className="sr-only"> (opens in a new tab)</span>
+                  <ExternalLink aria-hidden="true" className="size-3" />
                 </a>
               )}
             </div>
           </div>
-        </details>
-      </>
+        </DetailDisclosure>
+      </section>
     )
   );
 }
@@ -1375,8 +1794,8 @@ function ContributionMetadataSection({
   contribution: Contribution;
 }) {
   return (
-    <div className="pt-2 space-y-1">
-      <p className="text-xs text-muted-foreground font-semibold">
+    <div className="flex flex-col gap-1 border-t pt-4 text-xs text-muted-foreground">
+      <p>
         Created{" "}
         {formatDateTime(contribution.createdAt, {
           month: "short",
@@ -1387,7 +1806,7 @@ function ContributionMetadataSection({
         })}
       </p>
       {contribution.updatedAt !== contribution.createdAt && (
-        <p className="text-xs text-muted-foreground font-semibold">
+        <p>
           Updated{" "}
           {formatDateTime(contribution.updatedAt, {
             month: "short",
@@ -1448,7 +1867,9 @@ function getContributionDetailWorkflow(
         }
       : rawRetryEntry;
   const receiptEntry = availabilityByAction?.get("resend_receipt") ?? null;
-  const designationRetryGuidanceShownInActions = Boolean(
+  // The retired-CRM note already states the designation retry guidance, so
+  // per-line copies in Historical CRM posting are suppressed.
+  const designationRetryGuidanceShownInNote = Boolean(
     retryEntry &&
     !retryEntry.available &&
     retryEntry.blockedReason === CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
@@ -1472,8 +1893,16 @@ function getContributionDetailWorkflow(
     showRefundAction && refundEntry && !refundEntry.available
       ? refundEntry
       : null;
+  const shownWorkflowEntries = missingStagedGiftWorkflow
+    ? []
+    : blockedWorkflowEntries;
+  // Approve and retry never render while CRM posting is retired; their
+  // shared reason is background, so it folds into a one-line note instead
+  // of leading the Actions list. Reasons for actions staff can see (receipt,
+  // refund) stay inline.
+  const retiredCrmEntries = shownWorkflowEntries.filter(isRetiredCrmEntry);
   const visibleBlockedEntries = [
-    ...(missingStagedGiftWorkflow ? [] : blockedWorkflowEntries),
+    ...shownWorkflowEntries.filter((entry) => !isRetiredCrmEntry(entry)),
     ...(refundBlockedEntry?.blockedReason ? [refundBlockedEntry] : []),
   ];
 
@@ -1574,7 +2003,7 @@ function getContributionDetailWorkflow(
     parentRetryScope,
     parentRetryActionPending,
     pendingActionMatches,
-    designationRetryGuidanceShownInActions,
+    designationRetryGuidanceShownInNote,
     missingStagedGiftWorkflow,
     canSendReceipt,
     receiptActionPending,
@@ -1585,9 +2014,18 @@ function getContributionDetailWorkflow(
     showRefundAction,
     canRefund,
     visibleBlockedEntries,
+    retiredCrmEntries,
     showRecurringSection,
     isOneTimeGiftWithAgreement,
   };
+}
+
+function isRetiredCrmEntry(entry: ContributionActionAvailability): boolean {
+  return (
+    (entry.actionType === "approve_staged_gift" ||
+      entry.actionType === "retry_staged_gift") &&
+    entry.blockedReason === CRM_POSTING_UNAVAILABLE_REASON
+  );
 }
 
 function workflowActionTabIndex(

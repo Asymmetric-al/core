@@ -416,6 +416,30 @@
       "relativePath": "UI.md",
       "upstream": "Create a **throwaway route** following whatever routing convention the project already uses. Don't invent a new top-level structure. Name it so it's obviously a prototype (e.g. include the word `prototype` in the path or filename). Same `?variant=` pattern.",
       "core": "In Core, prefer an isolated HTML file or static harness outside production app routes. Create a **throwaway route** only when a new routed surface is included in the user's explicit prototype scope. Do not add `apps/*/app/prototypes/` routes automatically. Name the harness clearly as a prototype and retain the same `?variant=` pattern."
+    },
+    {
+      "skillName": "tdd",
+      "relativePath": "SKILL.md",
+      "upstream": "When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.",
+      "core": "When exploring the codebase, use the project's domain language for test names and interface vocabulary, and respect ADRs in the area you're touching. Follow `docs/agents/domain.md`: start at `CONTEXT-MAP.md` and open only the context that matches the task. The root `CONTEXT.md` is very large, so search it for the terms you need instead of reading it whole."
+    },
+    {
+      "skillName": "diagnosing-bugs",
+      "relativePath": "SKILL.md",
+      "upstream": "When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.",
+      "core": "When exploring the codebase, build a clear mental model of the relevant modules and check ADRs in the area you're touching. Follow `docs/agents/domain.md`: start at `CONTEXT-MAP.md` and open only the context that matches the bug. The root `CONTEXT.md` is very large, so search it for the terms you need instead of reading it whole."
+    },
+    {
+      "skillName": "improve-codebase-architecture",
+      "relativePath": "SKILL.md",
+      "upstream": "Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.",
+      "core": "Read the domain glossary and any ADRs for the area you're touching first. Follow `docs/agents/domain.md`: start at `CONTEXT-MAP.md` and open only the matching context. The root `CONTEXT.md` is very large, so search it for the terms you need instead of reading it whole."
+    },
+    {
+      "skillName": "implement",
+      "relativePath": "SKILL.md",
+      "upstream": "Run typechecking regularly, single test files regularly, and the full test suite once at the end.",
+      "core": "Run typechecking and single test files regularly. Before review, run the gate that fits the change as `docs/ai/rules/testing.md` describes: `bun run check` for a tight loop and `bun run ci:preflight` before a pull request."
     }
   ],
   "snapshots": [

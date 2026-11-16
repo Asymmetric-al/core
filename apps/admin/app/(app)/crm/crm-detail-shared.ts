@@ -5,9 +5,6 @@ import type {
   CrmGiftHistoryFiltersSortSettings,
 } from "@asym/database/types";
 
-/** Placeholder shown for missing CRM record fields. */
-export const EMPTY_CELL_VALUE = "N/A";
-
 /**
  * Per-scope view settings patch: absent = unchanged, null = scoped reset,
  * value = replace (#272).

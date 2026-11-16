@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { installDonorPhotoFixture } from "./helpers/donor-photo";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
@@ -45,12 +46,24 @@ test.describe("Donor usability smoke", () => {
     page,
   }) => {
     await installDemoDonorSession(page);
+    await installDonorPhotoFixture(page);
     await page.goto("/donor-dashboard/settings");
 
-    await expect(page.getByText("Public Avatar")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /upload new/i }),
+      page.getByRole("heading", { name: "Photo", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Change photo", exact: true }),
     ).toBeEnabled();
-    await expect(page.getByRole("button", { name: /remove/i })).toBeVisible();
+    const remove = page.getByRole("button", { name: "Remove", exact: true });
+    await expect(remove).toBeVisible();
+    await remove.click();
+    await expect(
+      page.getByRole("button", { name: "Upload photo", exact: true }),
+    ).toBeEnabled();
+    await expect(remove).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Save changes", exact: true }),
+    ).toBeVisible();
   });
 });

@@ -1,91 +1,56 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
+import { useMissionaryPortalSnapshot } from "@asym/database/hooks";
 import {
   Card,
-  CardAction,
   CardContent,
+  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
-import { Heart, AlertCircle, Users, Repeat } from "lucide-react";
 import * as React from "react";
 
 import { formatCurrency } from "./donors-model";
-import { smoothTransition } from "./donors-page-motion";
 import { useDonorsPageViewFields } from "./use-donors-page-view";
-
-const MotionCard = motion.create(Card);
 
 function StatCard({
   label,
   value,
-  subtext,
-  icon: Icon,
-  iconBg,
-  iconColor,
+  detail,
   onClick,
   isActive,
-  delay = 0,
 }: {
   label: string;
   value: string | number;
-  subtext: string;
-  icon: React.ElementType;
-  iconBg: string;
-  iconColor: string;
+  detail: string;
   onClick?: () => void;
   isActive?: boolean;
-  delay?: number;
 }) {
   const content = (
-    <MotionCard
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ ...smoothTransition, delay }}
-      className={cn(
-        "hover-lift border-border bg-card shadow-sm transition-[color,background-color,border-color,box-shadow,transform,opacity] rounded-xl",
-        onClick && "cursor-pointer",
-        isActive && "border-primary ring-2 ring-ring/20",
-      )}
-    >
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-xs text-muted-foreground">{label}</CardTitle>
-        <CardAction>
-          <div
-            className={cn(
-              "size-9 rounded-lg border flex items-center justify-center",
-              iconBg,
-            )}
-          >
-            <Icon className={cn("size-4", iconColor)} />
-          </div>
-        </CardAction>
+        <CardDescription>{label}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-0.5">
-        <motion.p
-          key={value}
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-xl font-semibold tracking-tight text-foreground"
-        >
+      <CardContent className="flex flex-col gap-1">
+        <p className="text-xl font-semibold tracking-tight tabular-nums text-foreground sm:text-2xl">
           {value}
-        </motion.p>
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          {subtext}
-        </span>
+        </p>
+        <p className="text-sm text-muted-foreground">{detail}</p>
       </CardContent>
-    </MotionCard>
+    </Card>
   );
 
   if (onClick) {
+    // The tile doubles as a filter for the list below.
     return (
       <button
         type="button"
         onClick={onClick}
         aria-pressed={Boolean(isActive)}
-        className="text-left w-full press-feedback rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          "w-full cursor-pointer rounded-xl text-left transition-shadow hover:ring-1 hover:ring-ring/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          isActive && "ring-2 ring-primary",
+        )}
       >
         {content}
       </button>
@@ -96,7 +61,11 @@ function StatCard({
 
 export function DonorsPageStats() {
   const view = useDonorsPageViewFields();
-  const { all: donorRows, hasMore: hasMoreDonors } = view.donors;
+  const {
+    all: donorRows,
+    hasMore: hasMoreDonors,
+    selected: selectedDonor,
+  } = view.donors;
   const { statusFilter, pledgeFilter } = view.filters;
   const { applyStatFilter } = view.actions;
   const {
@@ -104,62 +73,55 @@ export function DonorsPageStats() {
     activePledgeCount,
     atRiskCount,
     lapsedCount,
-    monthlyPledgeTotal,
     totalGiven,
   } = view.summary;
+  // With more pages to load, the roster numbers describe the loaded
+  // partners only.
+  const loaded = hasMoreDonors ? " (loaded so far)" : "";
+  // Committed support comes from the same source as Home, so the two agree
+  // and anonymous partners' gifts are counted.
+  const support = useMissionaryPortalSnapshot().data?.support;
+  const monthlyPartners = support?.monthlyPartnerCount ?? activePledgeCount;
+  const committedAmount = formatCurrency(
+    support?.recurringMonthlyCents,
+    support?.recurringCurrency,
+  );
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    // Below lg an open partner fills the page: the tiles step aside, like the
+    // list does, so the partner starts at the top. "Back" brings both back.
+    <div
+      className={cn(
+        "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4",
+        selectedDonor && "max-lg:hidden",
+      )}
+    >
       <StatCard
-        label={hasMoreDonors ? "Partners loaded" : "Total Partners"}
+        label="Partners"
         value={hasMoreDonors ? `${donorRows.length}+` : donorRows.length}
-        subtext={
-          hasMoreDonors
-            ? `${activeCount} active in loaded window`
-            : `${activeCount} active`
-        }
-        icon={Users}
-        iconBg="bg-muted border-border"
-        iconColor="text-foreground"
-        delay={0}
+        detail={`${activeCount} active${loaded}`}
       />
       <StatCard
-        label="Total Given"
-        value={formatCurrency(totalGiven)}
-        subtext={hasMoreDonors ? "Lifetime (loaded window)" : "Lifetime"}
-        icon={Heart}
-        iconBg="bg-primary/10 border-primary/20"
-        iconColor="text-primary"
-        delay={0.05}
+        label="Given, all time"
+        value={formatCurrency(totalGiven, null)}
+        detail="Lifetime giving is unavailable because its currency is unknown."
       />
       <StatCard
-        label="Recurring Donations"
-        value={activePledgeCount}
-        subtext={
-          hasMoreDonors
-            ? `${formatCurrency(monthlyPledgeTotal)}/mo (loaded window)`
-            : `${formatCurrency(monthlyPledgeTotal)}/mo`
+        label="Monthly partners"
+        value={monthlyPartners}
+        detail={
+          committedAmount === "Unavailable"
+            ? "Committed amount unavailable: currencies are mixed or unknown."
+            : `${committedAmount} a month committed`
         }
-        icon={Repeat}
-        iconBg="bg-accent border-border"
-        iconColor="text-primary"
         onClick={() => applyStatFilter("activePledge")}
         isActive={pledgeFilter === "Active"}
-        delay={0.1}
       />
       <StatCard
-        label="Needs Attention"
+        label="Need attention"
         value={atRiskCount + lapsedCount}
-        subtext={
-          hasMoreDonors
-            ? `${atRiskCount} at risk, ${lapsedCount} lapsed (loaded window)`
-            : `${atRiskCount} at risk, ${lapsedCount} lapsed`
-        }
-        icon={AlertCircle}
-        iconBg="bg-muted border-border"
-        iconColor="text-muted-foreground"
+        detail={`${atRiskCount} at risk · ${lapsedCount} lapsed${loaded}`}
         onClick={() => applyStatFilter("needsAttention")}
         isActive={statusFilter === "Needs Attention"}
-        delay={0.15}
       />
     </div>
   );

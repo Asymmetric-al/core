@@ -10,11 +10,11 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ContributionsMainBody } from "../../../../../apps/admin/app/(app)/contributions/main-body";
 import { makeMobileContribution } from "./contribution-mobile-fixture";
+import { ContributionsMainBody } from "../../../../../apps/admin/app/(app)/contributions/main-body";
 
-// Real DataTableResponsive, installed TanStack beta9 engine, shared Checkbox,
-// floating actions and confirmation dialog. Only browser/network seams adapted.
+// Real ReUI DataGridPanel mobile list, installed TanStack v9 engine, shared Checkbox,
+// in-flow selection bar and confirmation dialog. Only browser/network seams adapted.
 const rows = [
   makeMobileContribution(),
   makeMobileContribution({
@@ -86,7 +86,10 @@ describe("Contribution mobile card selection", () => {
     expect(second.getAttribute("aria-checked")).toBe("true");
     expect(onOpen).not.toHaveBeenCalled();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Send Receipts", exact: true }),
+      await screen.findByRole("button", {
+        name: "Send receipts…",
+        exact: true,
+      }),
     );
     const dialog = await screen.findByRole("alertdialog", {
       name: "Send receipts?",
@@ -155,5 +158,25 @@ describe("Contribution mobile card selection", () => {
         screen.queryByRole("toolbar", { name: "Selected record actions" }),
       ).toBeNull(),
     );
+  });
+
+  it("lines each card's status row up under the donor name", async () => {
+    render(
+      <ContributionsMainBody
+        data={rows}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />,
+    );
+    const primary = await screen.findByRole("button", {
+      name: /Fixture Alpha.*General Fund/,
+    });
+    // The donor name, fund and status row share one content column, so the
+    // badge starts on the same edge as the name instead of a guessed offset.
+    const column = primary.closest<HTMLElement>('[data-slot="item-content"]');
+    expect(column).toBeTruthy();
+    expect(within(column!).getByText("Completed")).toBeTruthy();
+    expect(within(column!).getByText(/One-time · Credit card/)).toBeTruthy();
+    expect(column!.querySelector('[data-slot="avatar"]')).toBeNull();
   });
 });

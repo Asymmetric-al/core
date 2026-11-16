@@ -13,6 +13,7 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
   private limitCount: number | null = null;
   private orderColumn: string | null = null;
   private orderAscending = true;
+  private rangeWindow: { from: number; to: number } | null = null;
 
   constructor(private readonly rows: Row[]) {}
 
@@ -48,6 +49,11 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
   limit(count: number) {
     this.limitCount = count;
+    return this;
+  }
+
+  range(from: number, to: number) {
+    this.rangeWindow = { from, to };
     return this;
   }
 
@@ -90,6 +96,9 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
             String(right[column] ?? ""),
           ) * direction,
       );
+    }
+    if (this.rangeWindow) {
+      rows = rows.slice(this.rangeWindow.from, this.rangeWindow.to + 1);
     }
     return this.limitCount == null ? rows : rows.slice(0, this.limitCount);
   }
@@ -245,6 +254,163 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWriteMode: "disabled",
       platformPaymentTruth: true,
     });
+  });
+
+  it("says not found only when the tenant has no such record", async () => {
+    const read = (supabaseAdmin: unknown) =>
+      getAdminCrmDonorDetail({
+        donorId: "donor-missing",
+        role: "staff",
+        supabaseAdmin: supabaseAdmin as never,
+        tenantId: "tenant-1",
+      });
+
+    await expect(read(createSupabaseFixture(baseTables))).rejects.toMatchObject(
+      { status: 404 },
+    );
+
+    // A failed read is a server error, so the page can offer Retry instead
+    // of calling the record missing.
+    const failing = {
+      from(table: string) {
+        const builder = createSupabaseFixture(baseTables).from(table);
+        if (table === "donors") {
+          builder.maybeSingle = async () => ({
+            data: null,
+            error: { message: "connection reset" },
+          });
+          builder.single = builder.maybeSingle as never;
+        }
+        return builder;
+      },
+    };
+    await expect(read(failing)).rejects.toMatchObject({ status: 500 });
+
+    // A malformed id cannot name a record.
+    const malformed = {
+      from(table: string) {
+        const builder = createSupabaseFixture(baseTables).from(table);
+        if (table === "donors") {
+          builder.maybeSingle = async () => ({
+            data: null,
+            error: { code: "22P02", message: "invalid input syntax" },
+          });
+          builder.single = builder.maybeSingle as never;
+        }
+        return builder;
+      },
+    };
+    await expect(read(malformed)).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("counts only settled gifts, in any stored spelling, in the support breakdown", async () => {
+    const gift = (id: string, status: string | null) => ({
+      ...baseTables.donations![0]!,
+      amount: 1000,
+      id,
+      status,
+    });
+    const detail = await getAdminCrmDonorDetail({
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donations: [
+          gift("settled-legacy", "Succeeded"),
+          gift("settled-padded", " completed "),
+          gift("no-status", null),
+          gift("pending", "pending"),
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+    });
+
+    const total = (rows: Array<{ amountCents: number }>) =>
+      rows.reduce((sum, row) => sum + row.amountCents, 0);
+    expect(total(detail.support.byFund)).toBe(2000);
+    expect(total(detail.support.byMissionary)).toBe(2000);
+  });
+
+  it("titles each gift on the timeline by what happened to it", async () => {
+    const gift = (id: string, status: string | null, extra: Row = {}) => ({
+      ...baseTables.donations![0]!,
+      id,
+      status,
+      ...extra,
+    });
+    const detail = await getAdminCrmDonorDetail({
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donations: [
+          gift("ok", "Succeeded"),
+          gift("failed", "failed"),
+          gift("pending", null),
+          gift("refunded", "refunded", { refund_amount: 12500 }),
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+    });
+    const entry = (id: string) =>
+      detail.timeline.find((item) => item.id === `gift:${id}`);
+
+    expect(entry("ok")).toMatchObject({
+      title: "Gift received",
+      paymentStatus: "completed",
+    });
+    expect(entry("failed")).toMatchObject({
+      title: "Gift failed",
+      paymentStatus: "failed",
+    });
+    expect(entry("pending")).toMatchObject({
+      title: "Gift pending",
+      paymentStatus: "pending",
+    });
+    expect(entry("refunded")).toMatchObject({
+      title: "Gift refunded",
+      paymentStatus: "refunded",
+    });
+    expect(
+      detail.timeline.find((item) => item.kind === "activity")?.paymentStatus,
+    ).toBeNull();
+  });
+
+  it("names the record owner from profiles, as the records list does", async () => {
+    const donorWithOwner = {
+      ...baseTables.donors![0]!,
+      missionary_id: "profile-owner",
+    };
+    const detail = await getAdminCrmDonorDetail({
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donors: [donorWithOwner],
+        profiles: [
+          { id: "profile-owner", display_name: "Priya Nair" },
+          { id: "profile-other", display_name: "Someone Else" },
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+    });
+
+    expect(detail.donor.missionaryId).toBe("profile-owner");
+    expect(detail.donor.missionaryName).toBe("Priya Nair");
+  });
+
+  it("leaves the owner unnamed when the record has none", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donors: [{ ...baseTables.donors![0]!, missionary_id: null }],
+      }) as never,
+      tenantId: "tenant-1",
+    });
+
+    expect(detail.donor.missionaryName).toBeNull();
   });
 
   it("exposes historical provider record ids only to provider operators", async () => {

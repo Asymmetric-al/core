@@ -4,12 +4,14 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { serializeReplyPayload } from "./serialize-payload";
+import { useSupportAgents } from "../../../hooks/use-support-agents";
 import { useSupportConversation } from "../../../hooks/use-support-conversation";
 import { useSupportFailureRecovery } from "../../../hooks/use-support-failure-recovery";
 import {
   useAddSupportPrivateNote,
   useSendSupportReply,
 } from "../../../hooks/use-support-mutations";
+import { SUPPORT_AGENT_SETUP_MESSAGE } from "../../../lib/agent-setup";
 import { useCurrentSupportAgentId } from "../../../lib/current-agent";
 import { buildMergeVariableContext } from "../../../lib/merge-variables";
 import { isRichTextPayloadDirty } from "../../../lib/rich-text-dirty";
@@ -63,30 +65,26 @@ interface Options {
   /** Agent to attribute messages to. Defaults to `useCurrentSupportAgentId`. */
   agentId?: string | null;
   agent?: SupportAssignee | null;
+  /** Reply or internal note when the composer first opens. */
+  initialMode?: ComposerMode;
 }
 
 const EMPTY_DRAFT: Record<ComposerMode, string> = { reply: "", note: "" };
 
-/**
- * Holds the local Tiptap state per mode and threads it through the Phase 2
- * mutations. Sonner toasts wrap success and failure paths so the composer
- * never silently drops work.
- *
- * The hook does not own the editor instance — the editor lives inside
- * `<SupportTipTapEditor />` via `EditorRoot`, which calls `setValue` on every
- * doc change. That keeps the state location predictable and lets Phase 5
- * tap into the editor via `useEditorContext()` without prop drilling.
- */
 export function useConversationComposer({
   conversationId,
   agentId,
   agent,
+  initialMode = "reply",
 }: Options): ConversationComposerHandlers {
   const fallbackAgentId = useCurrentSupportAgentId();
   const authorAgentId = agentId ?? fallbackAgentId ?? null;
-  const resolvedAgent = agent ?? null;
+  const { data: agents } = useSupportAgents();
+  const resolvedAgent =
+    agents.find((candidate) => candidate.id === authorAgentId) ??
+    (agent?.id === authorAgentId ? agent : null);
 
-  const [modeState, setModeState] = React.useState<ComposerMode>("reply");
+  const [modeState, setModeState] = React.useState<ComposerMode>(initialMode);
   const [drafts, setDrafts] =
     React.useState<Record<ComposerMode, string>>(EMPTY_DRAFT);
   const [attachmentsByMode, setAttachmentsByMode] = React.useState<
@@ -103,6 +101,7 @@ export function useConversationComposer({
 
   const sendReply = useSendSupportReply();
   const addNote = useAddSupportPrivateNote();
+  const mutationInFlight = React.useRef(false);
   const failure = useSupportFailureRecovery();
   const isPending = sendReply.isPending || addNote.isPending;
   const pendingAction: ConversationComposerHandlers["pendingAction"] =
@@ -150,9 +149,20 @@ export function useConversationComposer({
 
   const isDirty = isRichTextPayloadDirty(value) || attachments.length > 0;
 
+  const runMutation = async (action: () => Promise<void>) => {
+    if (mutationInFlight.current) return;
+    mutationInFlight.current = true;
+    try {
+      await action();
+    } finally {
+      mutationInFlight.current = false;
+    }
+  };
+
   const send = async () => {
+    if (mutationInFlight.current || isPending) return;
     if (!authorAgentId) {
-      toast.error("No agent matched the current Mission Control user yet.");
+      toast.error(SUPPORT_AGENT_SETUP_MESSAGE);
       return;
     }
     if (!isDirty) {
@@ -182,7 +192,7 @@ export function useConversationComposer({
         reset();
       };
       try {
-        await performAddNote();
+        await runMutation(performAddNote);
       } catch (error) {
         const message = extractErrorMessage(error, "Could not save the note.");
         toast.error(message);
@@ -190,7 +200,7 @@ export function useConversationComposer({
           kind: "add-note",
           message,
           conversationId,
-          retry: performAddNote,
+          retry: () => runMutation(performAddNote),
         });
       }
       return;
@@ -215,7 +225,7 @@ export function useConversationComposer({
       reset();
     };
     try {
-      await performSend();
+      await runMutation(performSend);
     } catch (error) {
       const message = extractErrorMessage(error, "Could not send the reply.");
       toast.error(message);
@@ -223,18 +233,19 @@ export function useConversationComposer({
         kind: "send-reply",
         message,
         conversationId,
-        retry: performSend,
+        retry: () => runMutation(performSend),
       });
     }
   };
 
   const saveDraft = async () => {
+    if (mutationInFlight.current || isPending) return;
     if (modeState !== "reply") {
       toast.info("Drafts are only available for donor replies.");
       return;
     }
     if (!authorAgentId) {
-      toast.error("No agent matched the current Mission Control user yet.");
+      toast.error(SUPPORT_AGENT_SETUP_MESSAGE);
       return;
     }
     if (!isDirty) {
@@ -260,7 +271,7 @@ export function useConversationComposer({
       reset();
     };
     try {
-      await performDraft();
+      await runMutation(performDraft);
     } catch (error) {
       const message = extractErrorMessage(error, "Could not save the draft.");
       toast.error(message);
@@ -268,7 +279,7 @@ export function useConversationComposer({
         kind: "save-draft",
         message,
         conversationId,
-        retry: performDraft,
+        retry: () => runMutation(performDraft),
       });
     }
   };

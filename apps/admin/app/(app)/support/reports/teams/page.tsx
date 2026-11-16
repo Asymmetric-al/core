@@ -1,5 +1,3 @@
-"use client";
-
 import { TeamsReport } from "@/features/support-hub/components/reports";
 import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
 
@@ -8,9 +6,11 @@ export default function SupportReportsTeamsPage() {
     <SupportWorkspaceShell
       section="reports"
       title="Teams"
-      description="Conversation volume across donor care teams."
+      description="How many conversations created in the selected range are assigned to each team."
     >
       <TeamsReport />
     </SupportWorkspaceShell>
   );
 }
+
+export const metadata = { title: "Teams · Support reports" };

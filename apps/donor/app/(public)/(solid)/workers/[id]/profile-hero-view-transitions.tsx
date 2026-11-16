@@ -9,6 +9,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { MapPin, ShieldCheck } from "lucide-react";
 import Image from "next/image";
@@ -39,7 +40,8 @@ export function WorkerProfileHeroWithViewTransitions({
             className="absolute inset-0 bg-linear-to-t from-media-scrim/90 via-media-scrim/20 to-transparent"
             aria-hidden="true"
           />
-          <figcaption className="absolute bottom-5 left-5 text-media-foreground flex items-center gap-2">
+          {/* Bottom-right so the overlapping avatar never covers it. */}
+          <figcaption className="absolute bottom-5 right-5 text-media-foreground flex items-center gap-2">
             <MapPin
               className="size-4 text-media-foreground"
               aria-hidden="true"
@@ -57,7 +59,7 @@ export function WorkerProfileHeroWithViewTransitions({
         <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-background shadow-sm -mt-14 sm:-mt-16 bg-card relative z-10 ring-1 ring-ring">
           <AvatarImage src={worker.image} alt="" className="object-cover" />
           <AvatarFallback className="text-lg font-semibold bg-muted text-foreground">
-            {worker.title.substring(0, 2)}
+            {workerInitials(worker.title)}
           </AvatarFallback>
         </Avatar>
 
@@ -70,17 +72,26 @@ export function WorkerProfileHeroWithViewTransitions({
                 {worker.title}
               </h1>
             </SharedNamedViewTransition>
-            <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-success/10 text-success border border-success/10 text-sm font-medium ">
-              <ShieldCheck className="size-3.5" aria-hidden="true" /> Verified
-            </div>
+            <Badge variant="success">
+              <ShieldCheck aria-hidden="true" /> Verified
+            </Badge>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
-            <span>{worker.category}</span>
-            <span className="size-1 rounded-full bg-muted" aria-hidden="true" />
-            <span>Partner since 2019</span>
-          </div>
+          <p className="text-muted-foreground font-medium text-sm">
+            {worker.category}
+          </p>
         </div>
       </div>
     </header>
   );
+}
+
+/** "The Miller Family" → "MF": skip a leading article, take two initials. */
+function workerInitials(title: string) {
+  const words = title.split(" ").filter(Boolean);
+  const significant =
+    words[0]?.toLowerCase() === "the" ? words.slice(1) : words;
+  return significant
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("");
 }

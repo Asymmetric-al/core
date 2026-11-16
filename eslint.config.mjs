@@ -4,6 +4,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import { baseConfig } from "@asym/eslint-config/base.mjs";
 import { designSystemConfig } from "@asym/eslint-config/design-system.mjs";
 import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
+import { reuiDataGridFiles } from "@asym/eslint-config/reui-data-grid-exceptions.mjs";
 
 const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
 
@@ -84,14 +85,29 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    // ADR-3 sanctioned exceptions: the boundary module is the ONE place allowed
-    // to import the engine, and types.ts augments the engine's module.
+    // ADR-3 sanctioned exceptions: the boundary modules are the only places
+    // allowed to import the engine (the shared data-table's tanstack.ts and,
+    // for grids on the vendored ReUI data-grid, data-grid-engine.ts), types.ts
+    // augments the engine's module, and the vendored registry files keep
+    // their upstream imports so they can be re-synced (see
+    // tooling/eslint-config/reui-data-grid-exceptions.mjs).
     files: [
       "packages/ui/components/shadcn/data-table/tanstack.ts",
       "packages/ui/components/shadcn/data-table/types.ts",
+      "packages/ui/components/data-grid-panel/data-grid-engine.ts",
+      ...reuiDataGridFiles.map((file) => `packages/ui/${file}`),
     ],
     rules: {
       "no-restricted-imports": appRestrictedImports(),
+    },
+  },
+  {
+    // The vendored ReUI registry files keep upstream hook dependency lists so
+    // they re-sync cleanly from the registry; Core's own grid code (the
+    // data-grid-panel composition) stays under the rule.
+    files: reuiDataGridFiles.map((file) => `packages/ui/${file}`),
+    rules: {
+      "react-hooks/exhaustive-deps": "off",
     },
   },
   {

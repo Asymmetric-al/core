@@ -78,6 +78,11 @@ docs/ai/skills/unslop/SKILL.md
 # need no modification notice (docs/ai/skills/review-pr/references/upstream.md).
 docs/ai/skills/review-pr/references/agents/
 
+# Apache-2.0 UI SDK references keep upstream's code samples byte-identical;
+# Core's provenance file stays formatted (docs/ai/skills/ui-sdk/references/upstream.md).
+docs/ai/skills/ui-sdk/references/*
+!docs/ai/skills/ui-sdk/references/upstream.md
+
 # Local Supabase CLI temp state
 supabase/.temp/
 

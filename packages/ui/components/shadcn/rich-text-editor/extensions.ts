@@ -17,6 +17,7 @@ function createStarterKit({ openOnClick }: { openOnClick: boolean }) {
     },
     link: {
       openOnClick,
+      defaultProtocol: "https",
       isAllowedUri: (url) => isAllowedPostLinkHref(url),
       HTMLAttributes: LINK_HTML_ATTRIBUTES,
     },
@@ -61,7 +62,7 @@ export const viewerExtensions = [
 export function createDefaultExtensions(
   options?: CreateDefaultExtensionsOptions,
 ) {
-  const placeholderText = options?.placeholder?.trim() || "Type something...";
+  const placeholderText = options?.placeholder?.trim() || "Write something…";
 
   return [
     createStarterKit({ openOnClick: false }),
@@ -76,7 +77,7 @@ export function createDefaultExtensions(
     Placeholder.configure({
       placeholder: ({ node }) => {
         if (node.type.name === "heading") {
-          return "What is the title?";
+          return `Heading ${node.attrs.level}`;
         }
         return placeholderText;
       },

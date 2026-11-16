@@ -1,120 +1,174 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import { Clock, Pencil, Plus, Trash2 } from "lucide-react";
-import * as React from "react";
 import { toast } from "sonner";
 
 import { BusinessHoursForm } from "./BusinessHoursForm";
 import { useSupportBusinessHours } from "../../../hooks/use-support-inbox-settings";
 import { useDeleteSupportBusinessHours } from "../../../hooks/use-support-mutations";
+import { useConfirm } from "../../workspace/confirm-provider";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
+import { SettingsEditorSheet } from "../SettingsEditorSheet";
+import {
+  SettingsListState,
+  isSettingsListPending,
+  settingsHeaderAction,
+} from "../SettingsListState";
+import { SettingsNotAppliedNote } from "../SettingsNotAppliedNote";
 import { SettingsPanel } from "../SettingsPanel";
+import { SettingsIconButton } from "../SettingsRowActions";
+import { useSettingsEditor } from "../use-settings-editor";
 
 import type { SupportBusinessHours } from "../../../types";
+
+function plural(count: number, noun: string) {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
 
 export function BusinessHoursList() {
   const query = useSupportBusinessHours();
   const deleteHours = useDeleteSupportBusinessHours();
-  const [editing, setEditing] = React.useState<
-    SupportBusinessHours | "new" | null
-  >(null);
+  const editor = useSettingsEditor<SupportBusinessHours>();
+  const editingHours = editor.record;
 
-  const rows = (query.data ?? []) as SupportBusinessHours[];
-  const editingHours = editing && editing !== "new" ? editing : null;
-
-  const handleDelete = async (row: SupportBusinessHours) => {
-    if (!window.confirm(`Delete business hours "${row.name}"?`)) return;
-    try {
-      await deleteHours.mutateAsync({ id: row.id });
-      toast.success("Business hours deleted.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not delete business hours.",
-      );
-    }
+  const rows = query.data;
+  const listState = {
+    isLoading: query.isLoading,
+    isError: query.isError,
+    itemCount: rows.length,
   };
+
+  const confirm = useConfirm();
+  const handleDelete = async (row: SupportBusinessHours) => {
+    await confirm({
+      title: `Delete ${row.name}?`,
+      description: "Its weekly schedule and holidays are removed.",
+      confirmLabel: "Delete hours",
+      action: async () => {
+        try {
+          await deleteHours.mutateAsync({ id: row.id });
+          toast.success("Business hours deleted.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Could not delete business hours.",
+          );
+          throw error;
+        }
+      },
+    });
+  };
+
+  const createButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={isSettingsListPending(listState)}
+      onClick={editor.openNew}
+    >
+      <Plus data-icon="inline-start" aria-hidden="true" />
+      New schedule
+    </Button>
+  );
 
   return (
     <div className="flex flex-col gap-4">
+      <SettingsNotAppliedNote>
+        Only the reports business-hours filter uses the default schedule today,
+        and it reads the times as UTC. SLA timers and off-hours automation don’t
+        run yet.
+      </SettingsNotAppliedNote>
       <SettingsPanel
         title="Business hours"
-        description="Define when donor care staff are on the clock. Drives SLA timers and off-hours automation."
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing("new")}
-          >
-            <Plus className="size-3.5" />
-            New schedule
-          </Button>
-        }
+        description="When donor care staff are on the clock."
+        actions={settingsHeaderAction(listState, createButton)}
       >
-        {rows.length === 0 ? (
-          <SupportEmptySection
-            icon={<Clock className="size-4" />}
-            title="No business hours yet"
-            description="Create a schedule to enable SLA timers and the business-hours report filter."
-          />
-        ) : (
-          <ul className="flex flex-col divide-y divide-border">
-            {rows.map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-center gap-3 py-2"
-              >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Clock className="size-4" />
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-xs font-semibold text-foreground">
-                    {row.name}{" "}
-                    {row.isDefault ? (
-                      <span className="ml-1 inline-flex h-4 items-center rounded-md bg-primary px-1.5 text-xs font-black uppercase tracking-wider text-primary-foreground">
-                        Default
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {row.timezone} ·{" "}
-                    {row.weeklySchedule.filter((entry) => entry.enabled).length}{" "}
-                    working days · {row.holidays.length} holidays
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setEditing(row)}
-                  aria-label={`Edit ${row.name}`}
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => void handleDelete(row)}
-                  aria-label={`Delete ${row.name}`}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <SettingsListState
+          noun="business hours"
+          {...listState}
+          onRetry={query.refetch}
+        >
+          {rows.length === 0 ? (
+            <SupportEmptySection
+              icon={<Clock className="size-4" />}
+              title="No business hours yet"
+              description="Create a schedule to use the business-hours report filter."
+              action={createButton}
+            />
+          ) : (
+            <ItemGroup className="gap-2">
+              {rows.map((row) => (
+                <Item key={row.id} variant="outline" size="sm">
+                  <ItemMedia variant="icon">
+                    <Clock aria-hidden="true" />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0">
+                    <ItemTitle>
+                      {row.name}
+                      {row.isDefault ? (
+                        <Badge variant="secondary">Default</Badge>
+                      ) : null}
+                    </ItemTitle>
+                    <ItemDescription>
+                      {row.timezone} ·{" "}
+                      {plural(
+                        row.weeklySchedule.filter((entry) => entry.enabled)
+                          .length,
+                        "working day",
+                      )}{" "}
+                      · {plural(row.holidays.length, "holiday")}
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <SettingsIconButton
+                      label={`Edit ${row.name}`}
+                      tooltip="Edit"
+                      onClick={() => editor.openRecord(row)}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </SettingsIconButton>
+                    <SettingsIconButton
+                      label={`Delete ${row.name}`}
+                      tooltip="Delete"
+                      onClick={() => void handleDelete(row)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </SettingsIconButton>
+                  </ItemActions>
+                </Item>
+              ))}
+            </ItemGroup>
+          )}
+        </SettingsListState>
       </SettingsPanel>
-      {editing ? (
+
+      <SettingsEditorSheet
+        editor={editor}
+        title={
+          editingHours ? `Edit “${editingHours.name}”` : "New business hours"
+        }
+        description="Weekly schedule and holidays. The reports business-hours filter uses the workspace default."
+      >
         <BusinessHoursForm
+          key={editingHours?.id ?? "new-hours"}
           hours={editingHours}
-          onSaved={() => setEditing(null)}
-          onCancel={() => setEditing(null)}
+          onSaved={editor.close}
+          onCancel={editor.requestClose}
         />
-      ) : null}
+      </SettingsEditorSheet>
     </div>
   );
 }

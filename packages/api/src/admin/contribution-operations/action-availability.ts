@@ -1,4 +1,8 @@
 import {
+  getContributionReceiptSendBlock,
+  isCompletedContributionPaymentStatus,
+} from "./catalog";
+import {
   CRM_POSTING_UNAVAILABLE_NEXT_STEP,
   CRM_POSTING_UNAVAILABLE_REASON,
   isContributionCrmPostingSupported,
@@ -174,35 +178,17 @@ function retryAvailability(
   });
 }
 
-function isCompletedPaymentStatus(paymentStatus: string | null): boolean {
-  const normalizedStatus = paymentStatus?.toLowerCase() ?? null;
-
-  return (
-    normalizedStatus === "completed" ||
-    normalizedStatus === "succeeded" ||
-    normalizedStatus === "success"
-  );
-}
-
 function receiptAvailability(
   stagedGift: ActionAvailabilityStagedGiftInput,
   paymentStatus: string | null,
 ): ContributionActionAvailability {
-  if (stagedGift.receiptStatus === "suppressed") {
-    return entry("resend_receipt", {
-      available: false,
-      blockedReason: "Receipts are suppressed for this gift.",
-      nextStep:
-        "Review the donor's receipt preference before sending donor communication.",
-    });
-  }
-
-  if (!isCompletedPaymentStatus(paymentStatus)) {
-    return entry("resend_receipt", {
-      available: false,
-      blockedReason: "The payment is not completed yet.",
-      nextStep: "Receipts can be sent once the gift payment completes.",
-    });
+  // Shared with the Hub's bulk receipt dialog so its counts match this rule.
+  const block = getContributionReceiptSendBlock({
+    receiptStatus: stagedGift.receiptStatus,
+    paymentStatus,
+  });
+  if (block) {
+    return entry("resend_receipt", { available: false, ...block });
   }
 
   return entry("resend_receipt", { available: true });
@@ -222,7 +208,7 @@ function refundAvailability(
   }
 
   if (
-    !isCompletedPaymentStatus(paymentStatus) &&
+    !isCompletedContributionPaymentStatus(paymentStatus) &&
     paymentStatus !== "refunded"
   ) {
     return entry("refund", {

@@ -1,0 +1,25 @@
+[Unit]
+Description=Core factory owner Console (commissioning; intake not enabled)
+After=network-online.target core-archon.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=admin
+Group=admin
+WorkingDirectory=/home/admin/.local/share/core-factory-console/current
+Environment=HOME=/home/admin
+Environment=PATH=/opt/node-v24.22.1-linux-x64/bin:/usr/local/bin:/usr/bin:/bin
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=39342
+EnvironmentFile=/home/admin/.config/core-factory-console/owner.env
+ExecStart=/opt/node-v24.22.1-linux-x64/bin/node /home/admin/.local/share/core-factory-console/current/apps/factory-console/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

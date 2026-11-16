@@ -1,7 +1,12 @@
 "use client";
 
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { AlertTriangle, RefreshCw, X } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import * as React from "react";
 
 import { useSupportFailureRecovery } from "../hooks/use-support-failure-recovery";
@@ -25,51 +30,45 @@ export function SupportFailureBanner() {
     try {
       await failure.retry();
       clear();
+    } catch {
+      return;
     } finally {
       setRetrying(false);
     }
   };
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex items-start justify-between gap-3 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-foreground shadow-sm"
-    >
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider">
-            {labelForKind(failure.kind)} failed
-          </p>
-          <p className="mt-0.5 text-xs">{failure.message}</p>
+    <Alert variant="warning" role="status" aria-live="polite">
+      <AlertTriangle aria-hidden="true" />
+      <AlertTitle>{labelForKind(failure.kind)} failed</AlertTitle>
+      <AlertDescription>
+        <p>{failure.message}</p>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void handleRetry()}
+            disabled={retrying}
+            focusableWhenDisabled={retrying}
+          >
+            <RefreshCw
+              className={retrying ? "size-3.5 animate-spin" : "size-3.5"}
+            />
+            Retry
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={clear}
+            disabled={retrying}
+          >
+            Dismiss
+          </Button>
         </div>
-      </div>
-      <div className="flex items-center gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => void handleRetry()}
-          disabled={retrying}
-          focusableWhenDisabled={retrying}
-        >
-          <RefreshCw
-            className={retrying ? "size-3.5 animate-spin" : "size-3.5"}
-          />
-          Retry
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={clear}
-          aria-label="Dismiss failure"
-        >
-          <X className="size-3.5" />
-        </Button>
-      </div>
-    </div>
+      </AlertDescription>
+    </Alert>
   );
 }
 

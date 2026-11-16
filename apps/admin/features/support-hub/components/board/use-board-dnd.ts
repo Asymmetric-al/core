@@ -32,7 +32,6 @@ interface UseBoardDndReturn {
     onDragEnter: (event: React.DragEvent<HTMLElement>) => void;
     onDragLeave: (event: React.DragEvent<HTMLElement>) => void;
     onDrop: (event: React.DragEvent<HTMLElement>) => void;
-    "aria-dropeffect": "move";
   };
 }
 
@@ -105,7 +104,6 @@ export function useBoardDnd({ onDrop }: UseBoardDndOptions): UseBoardDndReturn {
     UseBoardDndReturn["getColumnDropProps"]
   >(
     (status) => ({
-      "aria-dropeffect": "move" as const,
       onDragOver: (event) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";

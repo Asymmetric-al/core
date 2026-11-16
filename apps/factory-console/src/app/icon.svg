@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="factoryConsoleIconTitle">
+  <title id="factoryConsoleIconTitle">Core Factory Console</title>
+  <rect width="64" height="64" rx="14" fill="#18181b" />
+  <path d="M10 34h11l7-18 8 32 6-14h12" fill="none" stroke="#fafafa" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

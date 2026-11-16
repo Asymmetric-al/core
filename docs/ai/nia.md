@@ -13,7 +13,7 @@ Use this guide whenever an agent or contributor:
 
 - Repo policy: `AGENTS.md`
 - Stack tags: `docs/ai/stack-registry.md`
-- Local task context: `docs/ai/working-set.md`
+- Local task context: optional ignored scratch at `docs/ai/working-set.local.md`
 - Nia docs index: `https://docs.trynia.ai/llms.txt`
 - Nia API base and MCP remote URL: use the current values from the Nia MCP
   installation docs; this repo intentionally does not hardcode them because the
@@ -80,8 +80,10 @@ knowledge.
 
 Generated local sync and scratch outputs stay untracked: `.nia-sync/`,
 `.nia_sync_local/`, `~/.nia-sync/`, Python bytecode, and the local
-`docs/ai/working-set.md` scratch file. The repository keeps
-`docs/ai/working-set.example.md` as the committed template.
+`docs/ai/working-set.local.md` scratch file. The repository keeps
+`docs/ai/working-set.example.md` as the committed template. The tracked
+`docs/ai/working-set.md` is a historical record of dated entries, not scratch:
+do not overwrite it, and do not read it as current instructions.
 
 ## Agent workflow
 
@@ -91,8 +93,8 @@ Generated local sync and scratch outputs stay untracked: `.nia-sync/`,
    - Skip it for tiny single-file edits where local reads already provide enough
      evidence.
 2. Build a preamble for repo searches from `docs/ai/stack-registry.md` and
-   local task context. `docs/ai/working-set.md` is gitignored scratch context;
-   use `docs/ai/working-set.example.md` if you need to create it.
+   local task context. `docs/ai/working-set.local.md` is optional gitignored
+   scratch; use `docs/ai/working-set.example.md` if you need to create it.
 
    ```text
    Repo: Asymmetric-al/core

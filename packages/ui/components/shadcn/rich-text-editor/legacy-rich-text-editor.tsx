@@ -19,6 +19,7 @@ export interface LegacyRichTextEditorProps {
   /** Shared feed-composer density and shape, without consumer appearance overrides. */
   variant?: "default" | "feed";
   disabled?: boolean;
+  readOnly?: boolean;
   toolbarPosition?: "top" | "bottom";
   actions?: React.ReactNode;
   onImageClick?: () => void;
@@ -42,6 +43,7 @@ export function LegacyRichTextEditor({
   contentClassName,
   variant = "default",
   disabled,
+  readOnly,
   toolbarPosition = "top",
   actions,
   onImageClick,
@@ -84,9 +86,8 @@ export function LegacyRichTextEditor({
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden flex flex-col",
-        disabled && "opacity-50 cursor-not-allowed",
-        variant === "feed" && "rounded-xl sm:rounded-2xl",
+        "relative flex w-full flex-col",
+        variant === "feed" && "overflow-hidden rounded-xl sm:rounded-2xl",
         className,
       )}
     >
@@ -95,11 +96,18 @@ export function LegacyRichTextEditor({
         value={value}
         onChange={onChange}
         disabled={disabled}
+        readOnly={readOnly}
         placeholder={placeholder}
         proseInvert={proseInvert}
         variant={variant}
         editorClassName={contentClassName}
-        className="border-0 shadow-none ring-0 focus-within:ring-0 rounded-none ring-offset-0"
+        // The feed composer's card is the field's frame, so the editor drops
+        // its own border and focus ring there; elsewhere it keeps the input look.
+        className={
+          variant === "feed"
+            ? "rounded-none border-0 shadow-none has-[.ProseMirror-focused]:ring-0"
+            : undefined
+        }
       >
         {toolbarPosition === "top" && (
           <EditorToolbar
@@ -111,6 +119,7 @@ export function LegacyRichTextEditor({
         <EditorContent />
         {toolbarPosition === "bottom" && (
           <EditorToolbar
+            position="bottom"
             onImageUpload={onImageUpload}
             onImageClick={onImageClick}
             actions={actions}

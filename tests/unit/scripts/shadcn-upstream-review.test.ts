@@ -227,7 +227,13 @@ function installedCliFixture() {
     ].join("\n"),
   );
   chmodSync(command, 0o755);
-  return { root, cwd, command, packageDirectory, installerMarker };
+  return {
+    root,
+    cwd,
+    command: process.execPath,
+    packageDirectory,
+    installerMarker,
+  };
 }
 
 describe("shadcn upstream review gate", () => {

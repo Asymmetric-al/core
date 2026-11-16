@@ -4,8 +4,10 @@ import {
   EditorContent,
   EditorRoot,
   EditorToolbar,
+  useEditorContext,
   type Extensions,
 } from "@asym/ui/components/shadcn/rich-text-editor";
+import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
 import {
@@ -21,6 +23,7 @@ interface SupportTipTapEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  active?: boolean;
   /**
    * Visual mode tints the editor card so agents can never confuse a public
    * reply with an internal note.
@@ -30,54 +33,17 @@ interface SupportTipTapEditorProps {
   beforeBody?: ReactNode;
   /** Optional row rendered below the editor body (action row, attachments). */
   footer?: ReactNode;
-  /** Optional row rendered before the toolbar tool group (Phase 5 macro slot). */
   beforeToolbar?: ReactNode;
-  /** Optional row rendered after the toolbar tool group (Phase 5 macro slot). */
   afterToolbar?: ReactNode;
-  /**
-   * Phase 5 hook for mode-aware Tiptap extensions (canned suggestion in reply
-   * mode, mention suggestion in note mode). Forwarded straight to
-   * `EditorRoot.extraExtensions`.
-   */
   extraExtensions?: Extensions;
 }
-
-/**
- * Donor-care wrapper around the shared `@asym/ui` Tiptap surface. Composes
- * `EditorRoot` (which builds the editor + provides the editor context),
- * `EditorContent`, and `EditorToolbar` with the Maia tool set we want for
- * donor email reply work — restrained but rich enough.
- *
- * Why a wrapper rather than calling `useEditor` directly:
- * - Reuses `EditorRoot`'s SSR-safe options, link bubble menu, and value <->
- *   JSON sync that the rest of the repo already trusts.
- * - Keeps Phase 4 entirely inside the support-hub feature folder; no new
- *   tiptap dependency is added to `apps/admin`.
- *
- * Phase 5 extension contract (named in `phase-04-detail-and-composer.md`):
- *
- * - `beforeToolbar` and `afterToolbar` accept React nodes that mount inside
- *   the toolbar bar (used for the macros launcher and the canned-response
- *   palette).
- * - `beforeBody` accepts React nodes rendered above the editor surface (used
- *   for `@`-mention-style suggestion popovers).
- * - The editor instance is reachable from every descendant via
- *   `useEditorContext()` from `@asym/ui/components/shadcn/rich-text-editor`,
- *   so Phase 5's keyboard shortcut surface can mount its hotkey hook
- *   alongside the composer without prop drilling.
- *
- * Adding new Tiptap extensions (e.g. slash command, mention) is the only
- * change that requires a follow-up: `EditorRoot` currently builds a fixed
- * extension set via `createDefaultExtensions(...)`. Phase 5 will add an
- * `extraExtensions?: Extension[]` prop to `EditorRoot` and forward it from
- * here as `props.extraExtensions`. The contract on this side stays stable.
- */
 
 export function SupportTipTapEditor({
   value,
   onChange,
   placeholder,
   disabled,
+  active = true,
   tone = "reply",
   beforeBody,
   footer,
@@ -96,8 +62,14 @@ export function SupportTipTapEditor({
       placeholder={placeholder}
       proseInvert={false}
       extraExtensions={extraExtensions}
-      editorClassName="min-h-35"
+      className={cn(
+        "border border-border bg-card shadow-sm",
+        tone === "note" && "border-warning/30 bg-warning/5",
+      )}
+      // Compact: in the desktop pane the thread needs the height.
+      editorClassName="min-h-20 text-sm leading-relaxed text-foreground"
     >
+      <EditorFocus active={active} />
       {beforeToolbar ? (
         <div className="border-b border-border bg-muted/40 px-3 py-1.5">
           {beforeToolbar}
@@ -114,4 +86,12 @@ export function SupportTipTapEditor({
       {footer}
     </EditorRoot>
   );
+}
+
+function EditorFocus({ active }: { active: boolean }) {
+  const { editor } = useEditorContext();
+  React.useEffect(() => {
+    if (active && editor?.isEditable) editor.commands.focus("end");
+  }, [active, editor]);
+  return null;
 }

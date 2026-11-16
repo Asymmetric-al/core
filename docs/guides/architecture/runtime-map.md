@@ -156,6 +156,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/table-preferences/tenant-default`              | Node.js (no `runtime` segment export) | Audited CRM tenant default preferences             |
 | admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                           |
 | admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation                   |
+| admin      | `/api/admin/crm/tags`                                          | Node.js (no `runtime` segment export) | Staff-only tenant CRM tag options                  |
 | admin      | `/api/admin/eve/admin-memory`                                  | Node.js (no `runtime` segment export) | Owner-bound private Eve memory and history         |
 | admin      | `/api/admin/eve/approval-budget`                               | Node.js (no `runtime` segment export) | Audited trust-zone and hard-budget tracer          |
 | admin      | `/api/admin/eve/engineering-monitors`                          | Node.js (no `runtime` segment export) | Safe engineering monitor status and findings       |
@@ -267,6 +268,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client                |
 | donor      | `/api/donor/feed-preferences`                                  | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| donor      | `/api/donor/payment-methods`                                   | Node.js (no `runtime` segment export) | Saved Stripe cards, admin client                   |
 | donor      | `/api/donor/portal`                                            | Node.js (no `runtime` segment export) | Donor self-service BFF, admin client               |
 | donor      | `/api/donor/receipts/[donationId]`                             | Node.js (no `runtime` segment export) | Owned donor receipt download, admin client         |
 | donor      | `/api/donor/statements/[year]`                                 | Node.js (no `runtime` segment export) | Owned donor statement download                     |
@@ -317,6 +319,30 @@ full inventory around long dynamic path names.
 | admin | `/api/admin/contribution-operations/actions`                                  | Node.js (no `runtime` segment export) | Contribution operation action executor    |
 | admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |
 | admin | `/api/admin/contribution-operations/receipt-snapshots/[snapshotId]/pdf`       | Node.js (no `runtime` segment export) | Updated receipt snapshot PDF download     |
+
+## Private operator service: factory Console (VM 100)
+
+`apps/factory-console` (`@asym/factory-console`) is the owner-only operator
+Console for the Core software factory. It is not a product app and is never
+deployed to Vercel: it has no Vercel project, `vercel.json`, Sentry release,
+health contract or production promotion. It runs only on VM 100 `core-dev` as
+the standalone Next.js `server.js` of `core-factory-console.service`, bound to
+guest loopback `127.0.0.1:39342` and reached through the owner's SSH tunnel;
+`bun run dev` / `start` in the app bind `127.0.0.1:3092` for local work. All
+configuration is server-only (`CONSOLE_*`, `ARCHON_*`, `FACTORY_*`; no
+`NEXT_PUBLIC_*`, Supabase or CRM secret), and its backends are the Archon
+engine on `127.0.0.1:39190`, the Archon CLI and the installed pack's
+`control.mjs` (see `apps/factory-console/README.md`). Its App Router lives in
+`src/app`; the same no-segment-export rule applies.
+
+CI compiles it as an operator target on develop pull requests that touch the
+app or a workspace package it depends on, never in product release or
+merge-queue compilation (`OPERATOR_BUILD_APPS` in
+`scripts/verify/ci-build-policy.mjs`).
+
+| App             | Route family             | Runtime policy                        | Reason                                                     |
+| --------------- | ------------------------ | ------------------------------------- | ---------------------------------------------------------- |
+| factory-console | `/api/console/[...path]` | Node.js (no `runtime` segment export) | Basic-auth loopback BFF; spawns Archon CLI / `control.mjs` |
 
 ## Phase 22 D17 public-subject runtime split
 

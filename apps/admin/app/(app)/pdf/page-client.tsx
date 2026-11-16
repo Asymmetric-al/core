@@ -9,6 +9,7 @@ import {
   type DocumentTemplateV1,
   type TemplateCategory,
 } from "@asym/pdf-template-schema";
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -36,9 +38,20 @@ import {
   DropdownMenuTrigger,
   DropdownMenuShortcut,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from "@asym/ui/components/shadcn/empty";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldDescription,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Kbd } from "@asym/ui/components/shadcn/kbd";
-import { Label } from "@asym/ui/components/shadcn/label";
 import {
   Select,
   SelectContent,
@@ -47,6 +60,8 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Tooltip,
@@ -61,7 +76,6 @@ import {
   Save,
   Download,
   ChevronRight,
-  Settings,
   FileCode,
   Undo2,
   Redo2,
@@ -74,10 +88,7 @@ import {
   Maximize2,
   Minimize2,
   Sparkles,
-  History,
   FileDown,
-  Printer,
-  RotateCcw,
   AlertCircle,
 } from "lucide-react";
 import React, {
@@ -85,6 +96,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useId,
   useReducer,
 } from "react";
 import { toast } from "sonner";
@@ -93,11 +105,26 @@ import {
   NativePdfDocumentBuilderSection,
   type NativePreviewState,
 } from "./native-pdf-document-builder-section";
+import {
+  FREE_MODE_PDF_EXPORT_NOTE,
+  isUnlayerPdfExportBlocked,
+  runUnlayerPdfExport,
+} from "./pdf-export";
+import {
+  nativeRenderFeedback,
+  type NativeRenderResponse,
+} from "./pdf-native-feedback";
+import {
+  StudioDiscardDialog,
+  useStudioDiscardGuard,
+} from "../../../features/studios/studio-discard-guard";
+import { usePlatformModifierLabel } from "../../../features/studios/use-platform-modifier";
 
 import type { PDFTemplateCategory, PDFTemplateEngine } from "@/lib/pdf-studio";
 import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
 import type { LegacyUnlayerDocumentEditorHandle } from "@asym/ui/components/studio/legacy/UnlayerDocumentEditor";
 
+import { useStudioFullscreen } from "@/components/studio/shell-navigation-guard";
 import {
   StudioExportedHtmlPreview,
   type StudioPreviewDevice,
@@ -151,6 +178,7 @@ interface PDFStudioUiState {
   studioConfig: PDFStudioFullConfig | null;
   isFullscreen: boolean;
   copiedHtml: boolean;
+  isCopyingHtml: boolean;
 }
 
 type PDFStudioUiAction =
@@ -165,6 +193,7 @@ type PDFStudioUiAction =
   | { type: "set_show_delete_dialog"; value: boolean }
   | { type: "set_fullscreen"; value: boolean }
   | { type: "toggle_fullscreen" }
+  | { type: "set_copying_html"; value: boolean }
   | { type: "set_copied_html"; value: boolean };
 
 const DEFAULT_DESIGN: UnlayerDesignJSON = {
@@ -180,7 +209,7 @@ const DEFAULT_DESIGN: UnlayerDesignJSON = {
 
 const DEFAULT_PDF_METADATA: PDFMetadata = {
   id: null,
-  name: "Untitled Document",
+  name: "Untitled document",
   description: "",
   category: "custom",
   pageSize: "Letter",
@@ -303,6 +332,7 @@ const INITIAL_PDF_STUDIO_UI_STATE: PDFStudioUiState = {
   studioConfig: null,
   isFullscreen: false,
   copiedHtml: false,
+  isCopyingHtml: false,
 };
 
 function pdfStudioUiReducer(
@@ -340,6 +370,12 @@ function pdfStudioUiReducer(
       return { ...state, isFullscreen: action.value };
     case "toggle_fullscreen":
       return { ...state, isFullscreen: !state.isFullscreen };
+    case "set_copying_html":
+      return {
+        ...state,
+        isCopyingHtml: action.value,
+        copiedHtml: action.value ? false : state.copiedHtml,
+      };
     case "set_copied_html":
       return { ...state, copiedHtml: action.value };
     default:
@@ -356,6 +392,8 @@ interface PDFStudioHeaderStatus {
   isFullscreen: boolean;
   engine: PDFTemplateEngine;
   nativeBuilderEnabled: boolean;
+  /** Free mode: Unlayer refuses PDF export, so the item says so up front. */
+  pdfExportBlocked?: boolean;
 }
 
 interface PDFStudioHeaderActions {
@@ -378,7 +416,7 @@ interface PDFStudioHeaderSectionProps {
   actions: PDFStudioHeaderActions;
 }
 
-function PDFStudioHeaderSection({
+export function PDFStudioHeaderSection({
   metadata,
   status: {
     hasUnsavedChanges,
@@ -389,6 +427,7 @@ function PDFStudioHeaderSection({
     isFullscreen,
     engine,
     nativeBuilderEnabled,
+    pdfExportBlocked = false,
   },
   actions: {
     onUndo,
@@ -404,222 +443,243 @@ function PDFStudioHeaderSection({
     onOpenDeleteDialog,
   },
 }: PDFStudioHeaderSectionProps) {
+  const exportNoteId = useId();
+  const modifier = usePlatformModifierLabel();
   return (
-    <header className="h-12 md:h-14 bg-background border-b border-border flex items-center justify-between px-2 md:px-4 shrink-0 z-20">
-      <div className="flex items-center gap-2 md:gap-3 min-w-0">
-        <div className="flex items-center gap-2">
+    <>
+      <header className="h-12 md:h-14 bg-background border-b border-border flex items-center justify-between px-2 md:px-4 shrink-0 z-20">
+        <h1 className="sr-only">PDF Studio</h1>
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <div className="p-1.5 rounded-lg bg-chart-3/10 text-foreground">
-            <FileText className="size-4" />
+            <FileText aria-hidden="true" className="size-4" />
           </div>
-          <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-foreground">
-            PDF Studio
+
+          <div className="hidden md:block">
+            <PDFStudioSetupStatus variant="badge" />
+          </div>
+
+          <div className="hidden md:block">
+            <Separator orientation="vertical" className="h-5" />
+          </div>
+
+          <StudioTemplateBreadcrumb
+            name={metadata.name}
+            hasUnsavedChanges={hasUnsavedChanges}
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
+            <Tooltip>
+              <TooltipTrigger
+                aria-label="Undo"
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onUndo}
+                    disabled={!isEditorReady}
+                  >
+                    <Undo2 className="size-3.5" />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">
+                <p>Undo</p>
+                <Kbd className="ml-1.5">{modifier}+Z</Kbd>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                aria-label="Redo"
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onRedo}
+                    disabled={!isEditorReady}
+                  >
+                    <Redo2 className="size-3.5" />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">
+                <p>Redo</p>
+                <Kbd className="ml-1.5">{modifier}+Shift+Z</Kbd>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          <div className="hidden md:block">
+            <StudioPreviewDeviceToggle
+              value={previewDevice}
+              onChange={onPreview}
+              disabled={!isEditorReady}
+            />
+          </div>
+
+          <div className="hidden md:block">
+            <Separator orientation="vertical" className="h-5" />
+          </div>
+
+          <span className="hidden lg:flex">
+            <Badge variant="outline">
+              <FileCode aria-hidden="true" />
+              {engine === "asym_pdf_document_builder"
+                ? "Native editor"
+                : "Classic editor"}
+            </Badge>
           </span>
-        </div>
 
-        <div className="hidden md:block">
-          <PDFStudioSetupStatus variant="badge" />
-        </div>
-
-        <div className="hidden md:block">
-          <Separator orientation="vertical" className="h-5" />
-        </div>
-
-        <StudioTemplateBreadcrumb
-          name={metadata.name}
-          hasUnsavedChanges={hasUnsavedChanges}
-        />
-      </div>
-
-      <div className="flex items-center gap-1.5 md:gap-2">
-        <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
           <Tooltip>
             <TooltipTrigger
-              aria-label="Undo"
+              aria-label="Open template"
               render={
                 <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onUndo}
-                  disabled={!isEditorReady}
+                  variant="outline"
+                  size="sm"
+                  onClick={onLoadTemplate}
+                  disabled={isSaving || isExporting}
                 >
-                  <Undo2 className="size-3.5" />
+                  <FolderOpen aria-hidden="true" />
+                  <span className="hidden xl:inline">Open template</span>
                 </Button>
               }
             />
-            <TooltipContent side="bottom">
-              <p>Undo</p>
-              <Kbd className="ml-1.5">⌘Z</Kbd>
-            </TooltipContent>
+            <TooltipContent side="bottom">Open template</TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              aria-label="Redo"
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onRedo}
-                  disabled={!isEditorReady}
-                >
-                  <Redo2 className="size-3.5" />
-                </Button>
-              }
-            />
-            <TooltipContent side="bottom">
-              <p>Redo</p>
-              <Kbd className="ml-1.5">⌘⇧Z</Kbd>
-            </TooltipContent>
-          </Tooltip>
-        </div>
 
-        <div className="hidden md:block">
-          <StudioPreviewDeviceToggle
-            value={previewDevice}
-            onChange={onPreview}
-            disabled={!isEditorReady}
-          />
-        </div>
-
-        <div className="hidden md:block">
-          <Separator orientation="vertical" className="h-5" />
-        </div>
-
-        <div className="hidden lg:flex items-center gap-1 rounded-md border text-xs font-medium uppercase text-muted-foreground p-2">
-          <FileCode className="size-3" />
-          {engine === "asym_pdf_document_builder" ? "Native" : "Unlayer"}
-        </div>
-
-        <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger
-              aria-label="Export"
-              render={
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!isEditorReady || isExporting}
-                    >
-                      {isExporting ? (
-                        <span className="size-3.5 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      ) : (
-                        <Download className="size-3.5" />
-                      )}
-                      <span className="hidden sm:inline text-xs font-medium">
-                        Export
-                      </span>
-                    </Button>
-                  }
-                />
-              }
-            />
-            <TooltipContent side="bottom">Export options</TooltipContent>
-          </Tooltip>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onExportPDF}>
-              <FileDown className="size-4 mr-2" />
-              Export as PDF
-              <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onExportHtml}>
-              <FileCode className="size-4 mr-2" />
-              Export as HTML
-              <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => toast.info("Print functionality coming soon")}
-            >
-              <Printer className="size-4 mr-2" />
-              Print
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <StudioSaveButton
-          onClick={onSaveClick}
-          disabled={!isEditorReady || isSaving}
-          isSaving={isSaving}
-        />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="More PDF template actions"
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger
+                aria-label="Export"
+                render={
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!isEditorReady || isExporting}
+                      >
+                        {isExporting ? (
+                          <span className="size-3.5 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : (
+                          <Download className="size-3.5" />
+                        )}
+                        <span className="hidden sm:inline text-xs font-medium">
+                          Export
+                        </span>
+                      </Button>
+                    }
+                  />
+                }
+              />
+              <TooltipContent side="bottom">Export options</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={onExportPDF}
+                disabled={pdfExportBlocked}
+                aria-describedby={pdfExportBlocked ? exportNoteId : undefined}
               >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onNewTemplate}>
-              <Plus className="size-4 mr-2" />
-              New Document
-            </DropdownMenuItem>
-            {nativeBuilderEnabled && (
-              <DropdownMenuItem onClick={onNewNativeTemplate}>
-                <Sparkles className="size-4 mr-2" />
-                New Native Document
+                <FileDown className="size-4 mr-2" />
+                {engine === "asym_pdf_document_builder"
+                  ? "Test render with sample data"
+                  : "Export as PDF"}
               </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              onClick={() => toast.info("Template settings coming soon")}
-            >
-              <Settings className="size-4 mr-2" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onLoadTemplate}>
-              <FolderOpen className="size-4 mr-2" />
-              Load Template
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => toast.info("Duplicate coming soon")}
-            >
-              <Copy className="size-4 mr-2" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => toast.info("Version history coming soon")}
-            >
-              <History className="size-4 mr-2" />
-              Version History
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onNewTemplate}>
-              <RotateCcw className="size-4 mr-2" />
-              Reset Template
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onToggleFullscreen}>
-              {isFullscreen ? (
-                <Minimize2 className="size-4 mr-2" />
-              ) : (
-                <Maximize2 className="size-4 mr-2" />
+              <DropdownMenuItem onClick={onExportHtml}>
+                <FileCode className="size-4 mr-2" />
+                {engine === "asym_pdf_document_builder"
+                  ? "Export as JSON"
+                  : "Export as HTML"}
+                <DropdownMenuShortcut>{modifier}+E</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <StudioSaveButton
+            onClick={onSaveClick}
+            disabled={!isEditorReady || isSaving}
+            isSaving={isSaving}
+          />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="More PDF template actions"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onNewTemplate}>
+                <Plus className="size-4 mr-2" />
+                New document
+              </DropdownMenuItem>
+              {nativeBuilderEnabled && (
+                <DropdownMenuItem onClick={onNewNativeTemplate}>
+                  <Sparkles className="size-4 mr-2" />
+                  New native document
+                </DropdownMenuItem>
               )}
-              {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-              <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              disabled={!metadata.id}
-              onClick={onOpenDeleteDialog}
-            >
-              <Trash2 className="size-4 mr-2" />
-              Archive Template
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </header>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onToggleFullscreen}>
+                {isFullscreen ? (
+                  <Minimize2 className="size-4 mr-2" />
+                ) : (
+                  <Maximize2 className="size-4 mr-2" />
+                )}
+                {isFullscreen ? "Exit full screen" : "Full screen"}
+                <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={!metadata.id}
+                onClick={onOpenDeleteDialog}
+              >
+                <Trash2 className="size-4 mr-2" />
+                Archive template
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+      {pdfExportBlocked ? (
+        <Alert role="note" variant="warning" className="shrink-0">
+          <AlertDescription id={exportNoteId}>
+            {FREE_MODE_PDF_EXPORT_NOTE}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+      <p
+        role="note"
+        className={cn(
+          "shrink-0 border-b px-4 py-2 text-sm text-muted-foreground",
+          engine === "asym_pdf_document_builder" ? "md:hidden" : "lg:hidden",
+        )}
+      >
+        {engine === "asym_pdf_document_builder" ? (
+          <>
+            PDF Studio works best on a larger screen. The editor remains
+            available below.
+          </>
+        ) : (
+          <>
+            Scroll left or right within the editor below to reach the full
+            document canvas and tools.
+          </>
+        )}
+      </p>
+    </>
   );
 }
 
-function PDFSaveDialogSection({
+export function PDFSaveDialogSection({
   open,
   onOpenChange,
   metadata,
@@ -634,6 +694,7 @@ function PDFSaveDialogSection({
   isSaving: boolean;
   onConfirmSave: () => void;
 }) {
+  const fieldId = useId();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-130">
@@ -651,24 +712,26 @@ function PDFSaveDialogSection({
             your documents.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-5 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">
+        <FieldGroup className="py-4">
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-name`}>
               Template Name <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <Input
-              id="name"
+              id={`${fieldId}-name`}
+              required
+              aria-required="true"
               value={metadata.name}
               onChange={(e) =>
                 setMetadata((prev) => ({ ...prev, name: e.target.value }))
               }
               placeholder="e.g., Annual Tax Receipt"
             />
-          </div>
+          </Field>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-category`}>Category</FieldLabel>
               <Select
                 value={metadata.category}
                 onValueChange={(value) => {
@@ -681,7 +744,7 @@ function PDFSaveDialogSection({
                   }));
                 }}
               >
-                <SelectTrigger id="category">
+                <SelectTrigger id={`${fieldId}-category`}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -692,10 +755,10 @@ function PDFSaveDialogSection({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
-            <div className="grid gap-2">
-              <Label htmlFor="pageSize">Page Size</Label>
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-pageSize`}>Page Size</FieldLabel>
               <Select
                 value={metadata.pageSize}
                 onValueChange={(value) => {
@@ -705,7 +768,7 @@ function PDFSaveDialogSection({
                   setMetadata((prev) => ({ ...prev, pageSize: value }));
                 }}
               >
-                <SelectTrigger id="pageSize">
+                <SelectTrigger id={`${fieldId}-pageSize`}>
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -716,11 +779,13 @@ function PDFSaveDialogSection({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="orientation">Orientation</Label>
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-orientation`}>
+              Orientation
+            </FieldLabel>
             <Select
               value={metadata.orientation}
               onValueChange={(value) => {
@@ -730,7 +795,7 @@ function PDFSaveDialogSection({
                 setMetadata((prev) => ({ ...prev, orientation: value }));
               }}
             >
-              <SelectTrigger id="orientation">
+              <SelectTrigger id={`${fieldId}-orientation`}>
                 <SelectValue placeholder="Select orientation" />
               </SelectTrigger>
               <SelectContent>
@@ -741,12 +806,15 @@ function PDFSaveDialogSection({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+          <Field>
+            <FieldLabel htmlFor={`${fieldId}-description`}>
+              Description
+            </FieldLabel>
             <Textarea
-              id="description"
+              id={`${fieldId}-description`}
+              aria-describedby={`${fieldId}-description-hint`}
               value={metadata.description}
               onChange={(e) =>
                 setMetadata((prev) => ({
@@ -756,14 +824,18 @@ function PDFSaveDialogSection({
               }
               placeholder="Brief description of this template's purpose…"
             />
-            <p className="text-xs text-muted-foreground">
+            <FieldDescription id={`${fieldId}-description-hint`}>
               A brief description helps team members understand when to use this
               template.
-            </p>
-          </div>
-        </div>
+            </FieldDescription>
+          </Field>
+        </FieldGroup>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            disabled={isSaving}
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
@@ -772,13 +844,13 @@ function PDFSaveDialogSection({
           >
             {isSaving ? (
               <>
-                <span className="size-4 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                <Spinner data-icon="inline-start" />
                 Saving…
               </>
             ) : (
               <>
                 <Save className="size-4 mr-2" />
-                {metadata.id ? "Update Template" : "Save Template"}
+                {metadata.id ? "Update template" : "Save template"}
               </>
             )}
           </Button>
@@ -795,6 +867,7 @@ function PDFExportDialogSection({
   studioConfig,
   exportedHtml,
   copiedHtml,
+  isCopyingHtml,
   onCopyHtml,
   onDownloadHtml,
 }: {
@@ -804,12 +877,13 @@ function PDFExportDialogSection({
   studioConfig: PDFStudioFullConfig | null;
   exportedHtml: string;
   copiedHtml: boolean;
+  isCopyingHtml: boolean;
   onCopyHtml: () => void;
   onDownloadHtml: () => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-170">
+      <DialogContent className="sm:max-w-170" aria-busy={isCopyingHtml}>
         <DialogHeader>
           <DialogTitle>
             <span className="flex items-center gap-2">
@@ -849,17 +923,26 @@ function PDFExportDialogSection({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          <Button variant="outline" onClick={onCopyHtml}>
-            {copiedHtml ? (
+          <Button
+            variant="outline"
+            onClick={onCopyHtml}
+            disabled={isCopyingHtml}
+            aria-busy={isCopyingHtml}
+          >
+            {isCopyingHtml ? (
+              <Spinner aria-hidden="true" data-icon="inline-start" />
+            ) : copiedHtml ? (
               <Check className="size-4 mr-2 text-success" />
             ) : (
               <Copy className="size-4 mr-2" />
             )}
-            {copiedHtml
-              ? "Copied!"
-              : engine === "asym_pdf_document_builder"
-                ? "Copy JSON"
-                : "Copy HTML"}
+            {isCopyingHtml
+              ? "Copying…"
+              : copiedHtml
+                ? "Copied!"
+                : engine === "asym_pdf_document_builder"
+                  ? "Copy JSON"
+                  : "Copy HTML"}
           </Button>
           <Button onClick={onDownloadHtml}>
             <Download className="size-4 mr-2" />
@@ -889,7 +972,7 @@ function PDFDeleteDialogSection({
           <AlertDialogTitle>
             <span className="flex items-center gap-2">
               <AlertCircle className="size-5 text-destructive" />
-              Archive Template
+              Archive template
             </span>
           </AlertDialogTitle>
           <AlertDialogDescription>
@@ -908,19 +991,29 @@ function PDFDeleteDialogSection({
   );
 }
 
-function PDFTemplatePickerDialog({
+export function PDFTemplatePickerDialog({
   open,
   onOpenChange,
   templates,
   isLoading,
+  loadFailed,
+  onRetry,
   onSelect,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   templates: PDFTemplateListEntry[];
   isLoading: boolean;
+  loadFailed: boolean;
+  onRetry: () => void;
   onSelect: (template: PDFTemplateListEntry) => void;
 }) {
+  const [search, setSearch] = useState("");
+  const visibleTemplates = templates.filter((template) =>
+    `${template.name} ${template.category.replaceAll("_", " ")} ${template.engine === "asym_pdf_document_builder" ? "Native document builder" : "Unlayer"} ${template.status}`
+      .toLowerCase()
+      .includes(search.trim().toLowerCase()),
+  );
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-140">
@@ -934,22 +1027,51 @@ function PDFTemplatePickerDialog({
             </span>
           </DialogTitle>
           <DialogDescription>
-            Reopen a tenant PDF template from Mission Control storage.
+            Choose a saved PDF template from this organization.
           </DialogDescription>
         </DialogHeader>
+        <Input
+          aria-label="Search templates"
+          type="search"
+          placeholder="Search templates…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
         <div className="max-h-105 overflow-y-auto py-2">
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-              <span className="animate-spin rounded-full border-2 border-current border-t-transparent size-4" />
-              Loading templates…
+          {loadFailed ? (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Templates couldn’t be loaded. Try again.
+              </AlertDescription>
+              <Button variant="outline" onClick={onRetry}>
+                Try again
+              </Button>
+            </Alert>
+          ) : isLoading ? (
+            <div role="status" className="space-y-2 py-4">
+              <span className="sr-only">Loading templates…</span>
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
             </div>
           ) : templates.length === 0 ? (
-            <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-              No saved PDF templates yet.
-            </div>
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>No saved PDF templates yet.</EmptyTitle>
+                <EmptyDescription>
+                  Save a template to reopen it here.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : visibleTemplates.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>No matching templates</EmptyTitle>
+                <EmptyDescription>Try a different search.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="space-y-2">
-              {templates.map((template) => (
+              {visibleTemplates.map((template) => (
                 <button
                   key={template.id}
                   type="button"
@@ -961,12 +1083,21 @@ function PDFTemplatePickerDialog({
                       {template.name}
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                      {template.category.replace(/_/g, " ")} ·{" "}
-                      {template.page_size} · {template.orientation} ·{" "}
+                      {PDF_TEMPLATE_CATEGORIES.find(
+                        (category) => category.value === template.category,
+                      )?.label ?? "Custom"}{" "}
+                      · {template.page_size} ·{" "}
+                      {template.orientation === "portrait"
+                        ? "Portrait"
+                        : "Landscape"}{" "}
+                      ·{" "}
                       {template.engine === "asym_pdf_document_builder"
-                        ? "native"
-                        : "unlayer"}{" "}
-                      · {template.status}
+                        ? "Native document builder"
+                        : "Unlayer"}{" "}
+                      ·{" "}
+                      <Badge variant="outline">
+                        {template.status.replaceAll("_", " ")}
+                      </Badge>
                     </div>
                   </div>
                   <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
@@ -978,20 +1109,6 @@ function PDFTemplatePickerDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-type ExportPdfResult =
-  { ok: true; url?: string } | { ok: false; error: unknown };
-
-async function runExportPdf(
-  editor: LegacyUnlayerDocumentEditorHandle,
-): Promise<ExportPdfResult> {
-  try {
-    const pdfResult = await editor.exportPdf();
-    return { ok: true, url: pdfResult?.url ?? undefined };
-  } catch (error) {
-    return { ok: false, error };
-  }
 }
 
 type DeleteTemplateResult = { ok: true } | { ok: false; error: string };
@@ -1182,8 +1299,10 @@ async function runNativePreview(template: DocumentTemplateV1) {
   };
 }
 
-function usePDFStudioController() {
+export function usePDFStudioController() {
   const editorRef = useRef<LegacyUnlayerDocumentEditorHandle>(null);
+  const copyHtmlInFlightRef = useRef(false);
+  const copiedHtmlTimeoutRef = useRef<number | null>(null);
   const [ui, dispatchUi] = useReducer(
     pdfStudioUiReducer,
     INITIAL_PDF_STUDIO_UI_STATE,
@@ -1193,6 +1312,7 @@ function usePDFStudioController() {
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templates, setTemplates] = useState<PDFTemplateListEntry[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [templateLoadFailed, setTemplateLoadFailed] = useState(false);
   const [nativeTemplateText, setNativeTemplateText] = useState(() =>
     stringifyNativeTemplate(
       createNativeTemplateFromMetadata(DEFAULT_PDF_METADATA),
@@ -1214,7 +1334,18 @@ function usePDFStudioController() {
     studioConfig,
     isFullscreen,
     copiedHtml,
+    isCopyingHtml,
   } = ui;
+  const discardGuard = useStudioDiscardGuard(hasUnsavedChanges);
+
+  useEffect(
+    () => () => {
+      if (copiedHtmlTimeoutRef.current !== null) {
+        window.clearTimeout(copiedHtmlTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const handleUndo = useCallback(() => {
     editorRef.current?.undo();
@@ -1267,26 +1398,14 @@ function usePDFStudioController() {
             template,
           }),
         });
-        const { ok, body } = await readJsonBody<{
-          render?: { status?: string; errors?: Array<{ message: string }> };
-          error?: string;
-        }>(response);
-        const renderStatus = body?.render?.status;
-
-        if (!ok || renderStatus === "error") {
-          toast.error("Native render unavailable", {
-            description:
-              body?.render?.errors?.[0]?.message ??
-              body?.error ??
-              "Official output requires native render rollout and DocRaptor server config.",
-          });
-        } else {
-          toast.success("Native render completed");
-        }
-      } catch (error) {
-        toast.error("Native render failed", {
+        const { ok, body } = await readJsonBody<NativeRenderResponse>(response);
+        const feedback = nativeRenderFeedback(ok, body ?? undefined);
+        const notify = feedback.success ? toast.success : toast.error;
+        notify(feedback.title, { description: feedback.description });
+      } catch {
+        toast.error("Test render unavailable", {
           description:
-            error instanceof Error ? error.message : "Invalid native template",
+            "Check the document JSON and preview diagnostics, then try again.",
         });
       } finally {
         dispatchUi({ type: "set_exporting", value: false });
@@ -1294,55 +1413,88 @@ function usePDFStudioController() {
       return;
     }
 
-    if (!editorRef.current) return;
+    if (
+      isUnlayerPdfExportBlocked({
+        engine: metadata.engine,
+        config: studioConfig,
+      })
+    ) {
+      // Unlayer refuses the export in free mode and never answers, so say
+      // so instead of starting an export that cannot finish.
+      toast.error("PDF export isn't available in free mode", {
+        description: FREE_MODE_PDF_EXPORT_NOTE,
+      });
+      return;
+    }
+
+    const editor = editorRef.current;
+    if (!editor) return;
     dispatchUi({ type: "set_exporting", value: true });
-    const result = await runExportPdf(editorRef.current);
-    if (result.ok) {
-      if (result.url) {
-        window.open(result.url, "_blank", "noopener,noreferrer");
-        toast.success("PDF exported successfully", {
-          description: "Your PDF is ready for download",
-          duration: 4000,
-        });
-      } else {
-        toast.info("PDF export initiated", {
-          description: "Your document is being prepared for download…",
-          duration: 3000,
-        });
-      }
-    } else {
+    const result = await runUnlayerPdfExport(() => editor.exportPdf());
+    if (result.status === "ready") {
+      window.open(result.url, "_blank", "noopener,noreferrer");
+      toast.success("PDF exported", {
+        description: "It opened in a new tab, ready to download.",
+        duration: 4000,
+      });
+    } else if (result.status === "failed") {
       console.error("PDF export error:", result.error);
-      toast.error("Failed to export PDF", {
+      toast.error("Couldn't export the PDF", {
+        description: "The editor could not export this document. Try again.",
+      });
+    } else {
+      // No link, or no answer: Unlayer made no file. The usual cause is an
+      // Unlayer plan without PDF export.
+      toast.error("Unlayer didn't make a PDF", {
         description:
-          "PDF export requires an Unlayer project ID. Configure your Unlayer account for PDF export.",
+          "Unlayer only exports PDFs on a paid plan. Check the plan for this Unlayer project, or export as HTML.",
       });
     }
     dispatchUi({ type: "set_exporting", value: false });
-  }, [metadata.engine, nativeTemplateText]);
+  }, [metadata.engine, nativeTemplateText, studioConfig]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+      if (
+        e.defaultPrevented ||
+        e.isComposing ||
+        showSaveDialog ||
+        showExportDialog ||
+        showDeleteDialog ||
+        showTemplatePicker ||
+        discardGuard.pending
+      )
+        return;
+      const key = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && key === "s") {
         e.preventDefault();
-        if (isEditorReady && !isSaving) {
+        if (
+          (isEditorReady || metadata.engine === "asym_pdf_document_builder") &&
+          !isSaving &&
+          !isExporting
+        ) {
           handleSaveClick();
         }
+        return;
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+      if (
+        e.target instanceof HTMLElement &&
+        e.target.closest(
+          'input, textarea, select, [contenteditable]:not([contenteditable="false"])',
+        )
+      )
+        return;
+      if ((e.metaKey || e.ctrlKey) && key === "z" && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && key === "z") {
         e.preventDefault();
         handleRedo();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
+      if ((e.metaKey || e.ctrlKey) && key === "e") {
         e.preventDefault();
         handleExportHtml();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === "p") {
-        e.preventDefault();
-        handleExportPDF();
       }
       if (e.key === "Escape" && isFullscreen) {
         dispatchUi({ type: "set_fullscreen", value: false });
@@ -1354,6 +1506,13 @@ function usePDFStudioController() {
   }, [
     isEditorReady,
     isSaving,
+    isExporting,
+    metadata.engine,
+    showSaveDialog,
+    showExportDialog,
+    showDeleteDialog,
+    showTemplatePicker,
+    discardGuard.pending,
     isFullscreen,
     handleSaveClick,
     handleUndo,
@@ -1368,17 +1527,6 @@ function usePDFStudioController() {
         type: "editor_ready",
         config: config as PDFStudioFullConfig,
       });
-
-      if (!config.account.isConfigured) {
-        toast.info("PDF Studio is running in free mode", {
-          description: "Configure your Unlayer account for full features",
-          duration: 4000,
-          action: {
-            label: "Setup",
-            onClick: () => {},
-          },
-        });
-      }
     },
     [],
   );
@@ -1482,18 +1630,39 @@ function usePDFStudioController() {
     }
   }, [metadata.id]);
 
-  const handleCopyHtml = useCallback(() => {
-    navigator.clipboard.writeText(exportedHtml);
-    dispatchUi({ type: "set_copied_html", value: true });
-    toast.success(
-      metadata.engine === "asym_pdf_document_builder"
-        ? "JSON copied to clipboard"
-        : "HTML copied to clipboard",
-    );
-    setTimeout(
-      () => dispatchUi({ type: "set_copied_html", value: false }),
-      2000,
-    );
+  const handleCopyHtml = useCallback(async () => {
+    if (copyHtmlInFlightRef.current) return;
+    copyHtmlInFlightRef.current = true;
+    if (copiedHtmlTimeoutRef.current !== null) {
+      window.clearTimeout(copiedHtmlTimeoutRef.current);
+      copiedHtmlTimeoutRef.current = null;
+    }
+    dispatchUi({ type: "set_copying_html", value: true });
+    const format =
+      metadata.engine === "asym_pdf_document_builder" ? "JSON" : "HTML";
+    try {
+      if (typeof navigator.clipboard?.writeText !== "function") {
+        toast.error("Copy unavailable", {
+          description:
+            "Clipboard access is unavailable. Download the source instead.",
+        });
+        return;
+      }
+      await navigator.clipboard.writeText(exportedHtml);
+      dispatchUi({ type: "set_copied_html", value: true });
+      copiedHtmlTimeoutRef.current = window.setTimeout(() => {
+        copiedHtmlTimeoutRef.current = null;
+        dispatchUi({ type: "set_copied_html", value: false });
+      }, 2000);
+      toast.success(`${format} copied to clipboard`);
+    } catch {
+      toast.error("Copy failed", {
+        description: `Could not copy ${format} to the clipboard. Try again or download the source.`,
+      });
+    } finally {
+      copyHtmlInFlightRef.current = false;
+      dispatchUi({ type: "set_copying_html", value: false });
+    }
   }, [exportedHtml, metadata.engine]);
 
   const handleDownloadHtml = useCallback(() => {
@@ -1552,7 +1721,7 @@ function usePDFStudioController() {
     [metadata.engine, nativeTemplateText],
   );
 
-  const handleNewTemplate = useCallback(() => {
+  const replaceWithNewTemplate = useCallback(() => {
     setMetadata(DEFAULT_PDF_METADATA);
     currentDesignRef.current = null;
     setNativePreview(EMPTY_NATIVE_PREVIEW_STATE);
@@ -1560,10 +1729,9 @@ function usePDFStudioController() {
       editorRef.current.loadDesign(DEFAULT_DESIGN);
     }
     dispatchUi({ type: "set_unsaved_changes", value: false });
-    toast.info("New document created");
   }, []);
 
-  const handleNewNativeTemplate = useCallback(() => {
+  const replaceWithNewNativeTemplate = useCallback(() => {
     const nextMetadata: PDFMetadata = {
       ...DEFAULT_PDF_METADATA,
       engine: "asym_pdf_document_builder",
@@ -1575,24 +1743,22 @@ function usePDFStudioController() {
     setNativePreview(EMPTY_NATIVE_PREVIEW_STATE);
     currentDesignRef.current = null;
     dispatchUi({ type: "set_unsaved_changes", value: false });
-    toast.info("Native document created");
   }, []);
 
   const handleOpenTemplatePicker = useCallback(async () => {
     setShowTemplatePicker(true);
     setIsLoadingTemplates(true);
+    setTemplateLoadFailed(false);
     try {
       setTemplates(await fetchPdfTemplates());
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to load PDF templates",
-      );
+    } catch {
+      setTemplateLoadFailed(true);
     } finally {
       setIsLoadingTemplates(false);
     }
   }, []);
 
-  const handleSelectTemplate = useCallback((template: PDFTemplateListEntry) => {
+  const replaceWithTemplate = useCallback((template: PDFTemplateListEntry) => {
     if (template.engine === "asym_pdf_document_builder") {
       const nativeTemplate = DocumentTemplateV1Schema.parse(template.design);
       setMetadata(metadataFromNativeTemplate(nativeTemplate, template.id));
@@ -1636,10 +1802,13 @@ function usePDFStudioController() {
     setShowTemplatePicker,
     templates,
     isLoadingTemplates,
+    templateLoadFailed,
+    discardGuard,
     exportedHtml,
     studioConfig,
     isFullscreen,
     copiedHtml,
+    isCopyingHtml,
     nativeTemplateText,
     nativePreview,
     handleUndo,
@@ -1655,10 +1824,21 @@ function usePDFStudioController() {
     handleCopyHtml,
     handleDownloadHtml,
     handlePreview,
-    handleNewTemplate,
-    handleNewNativeTemplate,
+    handleNewTemplate: () => {
+      if (!isSaving && !isExporting)
+        discardGuard.requestAction(replaceWithNewTemplate);
+    },
+    handleNewNativeTemplate: () => {
+      if (!isSaving && !isExporting)
+        discardGuard.requestAction(replaceWithNewNativeTemplate);
+    },
     handleOpenTemplatePicker,
-    handleSelectTemplate,
+    handleSelectTemplate: (template: PDFTemplateListEntry) => {
+      if (isSaving || isExporting) return;
+      setShowTemplatePicker(false);
+      if (template.id === metadata.id) return;
+      discardGuard.requestAction(() => replaceWithTemplate(template));
+    },
   };
 }
 
@@ -1680,10 +1860,13 @@ export default function PDFStudio() {
     setShowTemplatePicker,
     templates,
     isLoadingTemplates,
+    templateLoadFailed,
+    discardGuard,
     exportedHtml,
     studioConfig,
     isFullscreen,
     copiedHtml,
+    isCopyingHtml,
     nativeTemplateText,
     nativePreview,
     handleUndo,
@@ -1704,11 +1887,14 @@ export default function PDFStudio() {
     handleOpenTemplatePicker,
     handleSelectTemplate,
   } = usePDFStudioController();
+  const rootRef = useRef<HTMLDivElement>(null);
+  useStudioFullscreen(isFullscreen, rootRef);
   const isNativeBuilder = metadata.engine === "asym_pdf_document_builder";
   const effectiveEditorReady = isNativeBuilder || isEditorReady;
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "flex flex-col bg-background",
         isFullscreen
@@ -1727,6 +1913,10 @@ export default function PDFStudio() {
           isFullscreen,
           engine: metadata.engine,
           nativeBuilderEnabled: nativeBuilderPublicEnabled,
+          pdfExportBlocked: isUnlayerPdfExportBlocked({
+            engine: metadata.engine,
+            config: studioConfig,
+          }),
         }}
         actions={{
           onUndo: handleUndo,
@@ -1744,7 +1934,7 @@ export default function PDFStudio() {
         }}
       />
 
-      <div className="flex-1 relative overflow-hidden bg-muted/30">
+      <div className="flex-1 relative min-w-0 overflow-hidden bg-muted/30">
         {isNativeBuilder ? (
           <NativePdfDocumentBuilderSection
             templateText={nativeTemplateText}
@@ -1753,23 +1943,32 @@ export default function PDFStudio() {
             onPreview={() => handlePreview(previewDevice)}
           />
         ) : (
-          <LegacyUnlayerDocumentEditor
-            editorId="pdf-studio-editor"
-            onReady={handleEditorReady}
-            onDesignUpdate={handleDesignUpdate}
-            ref={editorRef}
-            className="absolute inset-0"
-            appearance={{
-              theme: "modern_light",
-              panels: {
-                tools: {
-                  dock: "right",
-                  collapsible: true,
-                  defaultUncollapsed: true,
-                },
-              },
-            }}
-          />
+          <div
+            role="region"
+            aria-label="PDF editor canvas"
+            tabIndex={0}
+            className="absolute inset-0 overflow-x-auto overflow-y-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          >
+            <div className="relative h-full min-w-5xl lg:min-w-0">
+              <LegacyUnlayerDocumentEditor
+                editorId="pdf-studio-editor"
+                onReady={handleEditorReady}
+                onDesignUpdate={handleDesignUpdate}
+                ref={editorRef}
+                className="absolute inset-0"
+                appearance={{
+                  theme: "modern_light",
+                  panels: {
+                    tools: {
+                      dock: "right",
+                      collapsible: true,
+                      defaultUncollapsed: true,
+                    },
+                  },
+                }}
+              />
+            </div>
+          </div>
         )}
       </div>
 
@@ -1793,6 +1992,7 @@ export default function PDFStudio() {
         studioConfig={studioConfig}
         exportedHtml={exportedHtml}
         copiedHtml={copiedHtml}
+        isCopyingHtml={isCopyingHtml}
         onCopyHtml={handleCopyHtml}
         onDownloadHtml={handleDownloadHtml}
       />
@@ -1811,8 +2011,13 @@ export default function PDFStudio() {
         onOpenChange={setShowTemplatePicker}
         templates={templates}
         isLoading={isLoadingTemplates}
+        loadFailed={templateLoadFailed}
+        onRetry={() => {
+          void handleOpenTemplatePicker();
+        }}
         onSelect={handleSelectTemplate}
       />
+      <StudioDiscardDialog guard={discardGuard} />
     </div>
   );
 }

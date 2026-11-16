@@ -7,55 +7,50 @@ import { FundingProgress } from "../../../packages/missionary/components/funding
 
 afterEach(cleanup);
 describe("funding progress presentation", () => {
-  it("preserves provided amounts and signed remaining value for overfunding", () => {
+  it("formats checked minor units and compares matching known currencies", () => {
     render(
       <FundingProgress
-        monthlySupport={7500}
-        monthlyGoal={5000}
-        percentFunded={150}
+        monthlySupport={750000}
+        supportCurrency="USD"
+        monthlyGoal={500000}
+        goalCurrency="USD"
       />,
     );
-    expect(screen.getByText("$7,500", { exact: true })).toBeTruthy();
-    expect(screen.getByText("of $5,000", { exact: true })).toBeTruthy();
-    expect(screen.getByText("$-2,500", { exact: true })).toBeTruthy();
-    expect(screen.getByText("150%", { exact: true })).toBeTruthy();
-  });
-  it("exposes a bounded progress value while retaining the supplied funding percentage", () => {
-    render(
-      <FundingProgress
-        monthlySupport={7500}
-        monthlyGoal={5000}
-        percentFunded={150}
-      />,
-    );
+    expect(screen.getByText("$7,500.00", { exact: true })).toBeTruthy();
+    expect(screen.getByText("of $5,000.00", { exact: true })).toBeTruthy();
+    expect(screen.getByText("$0.00", { exact: true })).toBeTruthy();
     const progress = screen.getByRole("progressbar", {
       name: "Monthly support funded",
-      exact: true,
     });
     expect(progress.getAttribute("aria-valuenow")).toBe("100");
-    expect(progress.getAttribute("aria-valuemax")).toBe("100");
-    expect(progress.getAttribute("aria-valuetext")).toBe("150% funded");
+    expect(screen.queryByText("+12%")).toBeNull();
   });
-  it("bounds negative progress announcements while retaining signed values", () => {
+
+  it("does not compare different currencies", () => {
     render(
       <FundingProgress
-        monthlySupport={-1250}
-        monthlyGoal={5000}
-        percentFunded={-25}
+        monthlySupport={1000}
+        supportCurrency="JPY"
+        monthlyGoal={500000}
+        goalCurrency="USD"
       />,
     );
-    const progress = screen.getByRole("progressbar", {
-      name: "Monthly support funded",
-      exact: true,
-    });
-    expect(progress.getAttribute("aria-valuenow")).toBe("0");
-    expect(progress.getAttribute("aria-valuetext")).toBe("-25% funded");
-    expect(
-      progress
-        .querySelector<HTMLElement>("[style]")
-        ?.style.getPropertyValue("--funding-progress-transform"),
-    ).toBe("scaleX(0)");
-    expect(screen.getByText("$-1,250", { exact: true })).toBeTruthy();
-    expect(screen.getByText("$6,250", { exact: true })).toBeTruthy();
+    expect(screen.getByText("¥1,000", { exact: true })).toBeTruthy();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.getByText(/currencies are mixed or unknown/)).toBeTruthy();
+  });
+
+  it("does not invent currency or percentage for unknown funding", () => {
+    render(
+      <FundingProgress
+        monthlySupport={1000}
+        supportCurrency={null}
+        monthlyGoal={500000}
+        goalCurrency={null}
+      />,
+    );
+    expect(screen.queryByText(/\$/)).toBeNull();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.getByText(/currencies are mixed or unknown/)).toBeTruthy();
   });
 });

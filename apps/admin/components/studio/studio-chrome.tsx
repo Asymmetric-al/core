@@ -20,6 +20,8 @@ import {
   Smartphone,
 } from "lucide-react";
 
+import { useStudioDirtyState } from "./shell-navigation-guard";
+
 import type { ReactNode } from "react";
 
 /**
@@ -32,18 +34,30 @@ export type StudioPreviewDevice = "desktop" | "mobile";
 export function StudioTemplateBreadcrumb({
   name,
   hasUnsavedChanges,
+  onOpenTemplates,
 }: {
   name: string;
   hasUnsavedChanges: boolean;
+  onOpenTemplates?: () => void;
 }) {
+  useStudioDirtyState(hasUnsavedChanges);
   return (
     <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="hidden shrink-0 lg:inline">Templates</span>
-      <ChevronRight
-        aria-hidden="true"
-        className="hidden size-3 shrink-0 lg:block"
-      />
-      <span className="sr-only font-medium text-foreground lg:not-sr-only lg:max-w-45 lg:truncate">
+      {onOpenTemplates ? (
+        <>
+          <Button
+            type="button"
+            variant="link"
+            size="xs"
+            className="shrink-0"
+            onClick={onOpenTemplates}
+          >
+            Templates
+          </Button>
+          <ChevronRight aria-hidden="true" className="size-3 shrink-0" />
+        </>
+      ) : null}
+      <span className="min-w-0 truncate font-medium text-foreground lg:max-w-45">
         {name}
       </span>
       {hasUnsavedChanges && (
@@ -87,7 +101,7 @@ export function StudioPreviewDeviceToggle({
           render={
             <ToggleGroupItem value="desktop" aria-label="Desktop preview">
               <Monitor aria-hidden="true" className="size-3.5" />
-              <span className="hidden lg:inline ml-1.5 text-xs font-medium uppercase tracking-wider">
+              <span className="ml-1.5 hidden text-xs font-medium lg:inline">
                 Desktop
               </span>
             </ToggleGroupItem>
@@ -100,7 +114,7 @@ export function StudioPreviewDeviceToggle({
           render={
             <ToggleGroupItem value="mobile" aria-label="Mobile preview">
               <Smartphone aria-hidden="true" className="size-3.5" />
-              <span className="hidden lg:inline ml-1.5 text-xs font-medium uppercase tracking-wider">
+              <span className="ml-1.5 hidden text-xs font-medium lg:inline">
                 Mobile
               </span>
             </ToggleGroupItem>

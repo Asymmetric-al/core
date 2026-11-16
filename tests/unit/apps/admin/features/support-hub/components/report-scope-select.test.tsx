@@ -14,7 +14,7 @@ const { agentsMock, inboxesMock, labelsMock, routeStateMock, setStateMock } =
         to: "2026-05-01T00:00:00.000Z",
         groupBy: "day" as const,
         businessHoursOnly: false,
-        scopeKind: "inbox" as const,
+        scopeKind: "inbox" as "inbox" | "team",
         scopeId: "",
       },
     },
@@ -24,6 +24,12 @@ const { agentsMock, inboxesMock, labelsMock, routeStateMock, setStateMock } =
 vi.mock(
   "../../../../../../../apps/admin/features/support-hub/hooks/use-support-agents",
   () => ({
+    useSupportTeams: () => ({
+      data: [{ id: "team-1", name: "Care team" }],
+      isReady: true,
+      isLoading: false,
+      isError: false,
+    }),
     useSupportAgents: () => ({
       data: agentsMock.current,
       isError: false,
@@ -81,6 +87,39 @@ vi.mock(
 import { ReportScopeSelect } from "../../../../../../../apps/admin/features/support-hub/components/reports/ReportScopeSelect";
 
 describe("ReportScopeSelect", () => {
+  it("keeps supported linked scopes and their target", () => {
+    routeStateMock.current.scopeKind = "team";
+    routeStateMock.current.scopeId = "team-1";
+    render(<ReportScopeSelect kinds={["all", "team"]} />);
+    expect(
+      screen.getByRole("combobox", { name: "Team", exact: true }),
+    ).toBeTruthy();
+    expect(setStateMock).not.toHaveBeenCalled();
+  });
+
+  it("persists All when a linked scope is unsupported by the report", async () => {
+    routeStateMock.current.scopeKind = "team";
+    routeStateMock.current.scopeId = "team-1";
+    render(<ReportScopeSelect kinds={["all", "inbox", "agent"]} />);
+    await waitFor(() =>
+      expect(setStateMock).toHaveBeenCalledWith({
+        scopeKind: "all",
+        scopeId: "",
+      }),
+    );
+    expect(
+      screen.queryByRole("combobox", { name: "Team", exact: true }),
+    ).toBeNull();
+  });
+
+  it("offers actual teams rather than silently using all conversations", () => {
+    routeStateMock.current.scopeKind = "team";
+    render(<ReportScopeSelect />);
+    expect(
+      screen.getByRole("combobox", { name: "Team", exact: true }),
+    ).toBeTruthy();
+    expect(screen.getByText("Care team")).toBeTruthy();
+  });
   beforeEach(() => {
     inboxesMock.current = [{ id: "inbox-1", name: "General Inbox" }];
     agentsMock.current = [];

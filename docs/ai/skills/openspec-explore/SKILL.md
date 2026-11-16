@@ -201,7 +201,7 @@ If the user asks you to capture the exploration as a new change, that request is
 3. Follow the returned `template` and `instruction` fields. Read completed dependency files listed in `dependencies`, and apply `context` and `rules` as constraints without copying them into the artifact. Choose the output path before creating anything: when `resolvedOutputPath` is a glob, use the instruction to choose a concrete path inside `changeRoot` and verify it remains inside `changeRoot` after resolving symlinks, both in its parent directories and in the file itself if it already exists; if it does not, stop and tell the user. Otherwise the output path is `resolvedOutputPath`. If the instruction delegates creation to a specific skill or command, invoke it only if it can write the artifact to that output path; otherwise stop and tell the user. Otherwise write the artifact to that output path. Verify that the selected concrete output exists at that output path.
 4. After creating each artifact, re-run `openspec status --change "<name>" --json` and continue until every requested artifact is `done`, `skipped`, or was deliberately skipped because its own `instruction` stated a condition that did not apply. Tell the user about a deliberate conditional skip, remember it, and do not reconsider it. Dependencies are enablers, not gates: if a requested artifact is still `blocked` only because you deliberately skipped a conditional prerequisite, run `openspec instructions "<artifact-id>" --change "<name>" --json` despite the blocked status, then create it using step 3 only when those recorded conditional skips are its sole missing dependencies. If a requested artifact is blocked by a prerequisite the user did not ask to capture and cannot be conditionally skipped, explain that dependency and ask before expanding the capture.
 
-Capture the artifact(s) the user requested without asking them to invoke another workflow command. If they asked only to start a change, stop after scaffolding and show its status. When the requested capture is done, stop there and name where the work continues: `/openspec-propose` writes the remaining planning artifacts, and `/openspec-apply-change` implements the change once tasks exist. Capturing artifacts never starts implementing them.
+Capture the artifact(s) the user requested without asking them to invoke another workflow. If they asked only to start a change, stop after scaffolding and show its status. When the requested capture is done, stop there and name where the work continues: `/openspec-propose` writes the remaining planning artifacts, and `/openspec-apply-change` implements the change once tasks exist. Capturing artifacts never starts implementing them.
 
 ### When a change exists
 
@@ -363,7 +363,7 @@ You: That changes everything.
 
 There's no required ending. Discovery might:
 
-- **Flow into a proposal**: "Ready to start? Run `/openspec-propose` and this becomes a change."
+- **Flow into a proposal**: "Ready to start? Use the `/openspec-propose` skill and this becomes a change."
 - **Result in artifact updates**: "Updated the design with these decisions"
 - **Just provide clarity**: User has what they need, moves on
 - **Continue later**: "We can pick this up anytime"

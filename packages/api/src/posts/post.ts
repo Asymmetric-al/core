@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { normalizeStoredPostContent } from "./content";
-import { postIdParamSchema } from "../schemas/posts";
+import { postIdParamSchema, postUpdateSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import { findProfileByUserId } from "../shared/queries";
 
@@ -52,8 +52,18 @@ export async function PATCH(
     const ctx = auth as AuthenticatedContext;
     const { postId } = postIdParamSchema.parse(await params);
 
-    const body = await request.json();
-    const { content, media, status, visibility, post_type } = body;
+    // Same closed vocabulary as creation, so an edit can't store a
+    // visibility or type the feeds don't understand.
+    const {
+      title,
+      content,
+      media,
+      status,
+      visibility,
+      post_type,
+      autosave,
+      expected_updated_at,
+    } = postUpdateSchema.parse(await request.json());
 
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
@@ -90,6 +100,10 @@ export async function PATCH(
     if (status !== undefined) updateData.status = status;
     if (visibility !== undefined) updateData.visibility = visibility;
     if (post_type !== undefined) updateData.post_type = post_type;
+    if (title !== undefined) updateData.title = title;
+    if (autosave) updateData.expected_status = "draft";
+    if (expected_updated_at !== undefined)
+      updateData.expected_updated_at = expected_updated_at;
 
     const { error: rpcError } = await supabaseAdmin.rpc(
       "atomic_update_post_with_audit",
@@ -104,6 +118,15 @@ export async function PATCH(
       },
     );
     if (rpcError) {
+      if (rpcError.code === "40001") {
+        return NextResponse.json(
+          {
+            error:
+              "This update changed while you were editing. Reload it before saving again.",
+          },
+          { status: 409 },
+        );
+      }
       if (rpcError.code === "P0002") {
         return NextResponse.json({ error: "Post not found" }, { status: 404 });
       }

@@ -61,7 +61,7 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
   });
 
   it("quotes the header row through the shared serializer", () => {
-    expect(csv.slice(1)).toMatch(/^"id","label","amount_cents"/);
+    expect(csv.slice(1)).toMatch(/^"id","label","net_amount_cents"/);
   });
 
   it("neutralizes spreadsheet formula injection after a leading no-break space in the label column", () => {
@@ -75,5 +75,46 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
 
   it("JSON-serializes and quotes object metadata cells", () => {
     expect(csv).toContain(`"{""source"":""donors""}"`);
+  });
+});
+
+describe("serializeAdminCrmReportCsv — coverage", () => {
+  const CRLF = String.fromCharCode(13, 10);
+  const records = (csv: string) =>
+    csv
+      .slice(1)
+      .split(CRLF)
+      .map((line) => line.split(","));
+
+  it("marks every row of a capped report as incomplete, with the read limit", () => {
+    const capped = buildReportResponse(params, rows, {
+      completeness: {
+        complete: false,
+        donationLimit: 50000,
+        includedGiftCount: 50000,
+      },
+      distinctDonorCount: 2,
+      distinctGiftCount: 3,
+    });
+    const [header, ...data] = records(serializeAdminCrmReportCsv(capped));
+
+    expect(header?.slice(-2)).toEqual([
+      '"report_complete"',
+      '"report_gift_limit"',
+    ]);
+    expect(data).toHaveLength(2);
+    for (const row of data) {
+      expect(row.slice(-2)).toEqual(['"false"', '"50000"']);
+    }
+  });
+
+  it("marks a complete report as complete", () => {
+    const [, ...data] = records(
+      serializeAdminCrmReportCsv(buildReportResponse(params, rows)),
+    );
+    expect(data).toHaveLength(2);
+    for (const row of data) {
+      expect(row.at(-2)).toBe('"true"');
+    }
   });
 });

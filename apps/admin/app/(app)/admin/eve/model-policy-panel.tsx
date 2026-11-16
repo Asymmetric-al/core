@@ -30,6 +30,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@asym/ui/components/shadcn/collapsible";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -39,7 +44,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -47,10 +51,13 @@ import {
   AlertTriangle,
   BadgeDollarSign,
   BrainCircuit,
+  ChevronDown,
   Network,
   ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
+
+import { EveUnavailableSections, useEveSectionReady } from "./section-states";
 
 import type {
   EveModelPolicyAdminView,
@@ -367,22 +374,40 @@ function PolicyLifecycleRow({
   );
 }
 
-function EveModelPolicyLoading() {
-  return (
-    <div role="status">
-      <span className="sr-only">Loading model policy…</span>
-      <Skeleton className="h-52 w-full" />
-    </div>
-  );
-}
+const MODEL_POLICY_SECTIONS = [
+  {
+    id: "eve-model-policy",
+    title: "Model policy",
+    description: "Which models Eve may use.",
+  },
+  {
+    id: "eve-eval-health",
+    title: "Eval health",
+    description: "Test results for the model policy.",
+  },
+  {
+    id: "eve-subagents",
+    title: "Subagent policy",
+    description: "Helper agents and their overrides.",
+  },
+] as const;
 
-function EveModelPolicyLoadError({ message }: { message?: string }) {
+function EveModelPolicyLoadError({
+  message,
+  onRetry,
+}: {
+  message?: string;
+  onRetry: () => void;
+}) {
   return (
     <Alert variant="destructive">
       <AlertTriangle aria-hidden="true" className="size-4" />
       <AlertTitle>Could not load Eve model policy</AlertTitle>
       <AlertDescription>
         {message ?? "The model-policy store is unavailable."}
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Try again
+        </Button>
       </AlertDescription>
     </Alert>
   );
@@ -473,21 +498,40 @@ function EveModelPolicyDraftCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Draft a policy version</CardTitle>
+        <CardTitle role="heading" aria-level={3}>
+          Draft a policy version
+        </CardTitle>
         <CardDescription>
           Drafts are immutable. Editing this JSON creates a new version;
           evaluation and activation remain separate deliberate actions.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Textarea
-          aria-label="Model policy JSON"
-          value={draftText}
-          onChange={(event) => onDraftTextChange(event.target.value)}
-        />
-        <Button disabled={isPending} onClick={onSubmit}>
-          Create immutable draft
-        </Button>
+      <CardContent>
+        <Collapsible className="flex flex-col gap-4">
+          <CollapsibleTrigger
+            render={
+              <Button variant="outline" className="self-start">
+                <ChevronDown aria-hidden="true" />
+                Edit policy JSON
+              </Button>
+            }
+          />
+          <CollapsibleContent className="flex flex-col gap-4">
+            <Textarea
+              aria-label="Model policy JSON"
+              rows={20}
+              value={draftText}
+              onChange={(event) => onDraftTextChange(event.target.value)}
+            />
+            <Button
+              className="self-start"
+              disabled={isPending}
+              onClick={onSubmit}
+            >
+              Create immutable draft
+            </Button>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );
@@ -500,13 +544,13 @@ function EveModelPolicyOverrideCard({
   overrideRequests,
   overrideScopeId,
   overrideScopeType,
-  overrideUsdMicros,
+  overrideUsd,
   onOverrideMinutesChange,
   onOverrideReasonChange,
   onOverrideRequestsChange,
   onOverrideScopeIdChange,
   onOverrideScopeTypeChange,
-  onOverrideUsdMicrosChange,
+  onOverrideUsdChange,
   onSubmit,
 }: {
   isPending: boolean;
@@ -515,19 +559,19 @@ function EveModelPolicyOverrideCard({
   overrideRequests: string;
   overrideScopeId: string;
   overrideScopeType: "role" | "subagent";
-  overrideUsdMicros: string;
+  overrideUsd: string;
   onOverrideMinutesChange: (value: string) => void;
   onOverrideReasonChange: (value: string) => void;
   onOverrideRequestsChange: (value: string) => void;
   onOverrideScopeIdChange: (value: string) => void;
   onOverrideScopeTypeChange: (value: "role" | "subagent") => void;
-  onOverrideUsdMicrosChange: (value: string) => void;
+  onOverrideUsdChange: (value: string) => void;
   onSubmit: () => void;
 }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={3}>
           <span className="flex items-center gap-2">
             <BadgeDollarSign aria-hidden="true" className="size-5" />
             Emergency budget override
@@ -572,14 +616,16 @@ function EveModelPolicyOverrideCard({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="eve-override-usd">Additional USD micros</Label>
+          <Label htmlFor="eve-override-usd">Additional spend (USD)</Label>
           <Input
             id="eve-override-usd"
-            max="100000000"
+            max="100"
+            step="0.01"
+            inputMode="decimal"
             min="0"
             type="number"
-            value={overrideUsdMicros}
-            onChange={(event) => onOverrideUsdMicrosChange(event.target.value)}
+            value={overrideUsd}
+            onChange={(event) => onOverrideUsdChange(event.target.value)}
           />
         </div>
         <div className="space-y-2">
@@ -659,14 +705,14 @@ function EveModelPolicyLoadedView({
   overrideRequests,
   overrideScopeId,
   overrideScopeType,
-  overrideUsdMicros,
+  overrideUsd,
   onDraftTextChange,
   onOverrideMinutesChange,
   onOverrideReasonChange,
   onOverrideRequestsChange,
   onOverrideScopeIdChange,
   onOverrideScopeTypeChange,
-  onOverrideUsdMicrosChange,
+  onOverrideUsdChange,
   onSubmitDraft,
   onSubmitOverride,
 }: {
@@ -683,14 +729,14 @@ function EveModelPolicyLoadedView({
   overrideRequests: string;
   overrideScopeId: string;
   overrideScopeType: "role" | "subagent";
-  overrideUsdMicros: string;
+  overrideUsd: string;
   onDraftTextChange: (value: string) => void;
   onOverrideMinutesChange: (value: string) => void;
   onOverrideReasonChange: (value: string) => void;
   onOverrideRequestsChange: (value: string) => void;
   onOverrideScopeIdChange: (value: string) => void;
   onOverrideScopeTypeChange: (value: "role" | "subagent") => void;
-  onOverrideUsdMicrosChange: (value: string) => void;
+  onOverrideUsdChange: (value: string) => void;
   onSubmitDraft: () => void;
   onSubmitOverride: () => void;
 }) {
@@ -700,7 +746,7 @@ function EveModelPolicyLoadedView({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle>
+              <CardTitle role="heading" aria-level={2}>
                 <span className="flex items-center gap-2">
                   <BrainCircuit aria-hidden="true" className="size-5" />
                   Shared model policy
@@ -755,13 +801,13 @@ function EveModelPolicyLoadedView({
           overrideRequests={overrideRequests}
           overrideScopeId={overrideScopeId}
           overrideScopeType={overrideScopeType}
-          overrideUsdMicros={overrideUsdMicros}
+          overrideUsd={overrideUsd}
           onOverrideMinutesChange={onOverrideMinutesChange}
           onOverrideReasonChange={onOverrideReasonChange}
           onOverrideRequestsChange={onOverrideRequestsChange}
           onOverrideScopeIdChange={onOverrideScopeIdChange}
           onOverrideScopeTypeChange={onOverrideScopeTypeChange}
-          onOverrideUsdMicrosChange={onOverrideUsdMicrosChange}
+          onOverrideUsdChange={onOverrideUsdChange}
           onSubmit={onSubmitOverride}
         />
       ) : null}
@@ -779,7 +825,7 @@ export function EveModelPolicyPanel() {
     "role" | "subagent"
   >("role");
   const [overrideScopeId, setOverrideScopeId] = useState("agent");
-  const [overrideUsdMicros, setOverrideUsdMicros] = useState("1000000");
+  const [overrideUsd, setOverrideUsd] = useState("1");
   const [overrideRequests, setOverrideRequests] = useState("10");
   const [overrideMinutes, setOverrideMinutes] = useState("60");
   const [overrideReason, setOverrideReason] = useState("");
@@ -798,12 +844,32 @@ export function EveModelPolicyPanel() {
     },
   });
 
+  useEveSectionReady(query.isSuccess, MODEL_POLICY_SECTIONS);
+
   if (query.isLoading) {
-    return <EveModelPolicyLoading />;
+    return (
+      <EveUnavailableSections
+        sections={MODEL_POLICY_SECTIONS}
+        isLoading
+        loadingLabel="Loading model policy"
+      />
+    );
   }
 
   if (query.isError || !query.data) {
-    return <EveModelPolicyLoadError message={query.error?.message} />;
+    return (
+      <div className="space-y-6">
+        <EveModelPolicyLoadError
+          message={query.error?.message}
+          onRetry={() => void query.refetch()}
+        />
+        <EveUnavailableSections
+          sections={MODEL_POLICY_SECTIONS}
+          isLoading={false}
+          loadingLabel="Loading model policy"
+        />
+      </div>
+    );
   }
 
   const data = query.data;
@@ -826,7 +892,7 @@ export function EveModelPolicyPanel() {
         policyId: data.activePolicy.id,
         scopeType: overrideScopeType,
         scopeId: overrideScopeId,
-        additionalUsdMicros: Number(overrideUsdMicros),
+        additionalUsdMicros: Math.round(Number(overrideUsd) * 1_000_000),
         additionalInputTokens: 0,
         additionalOutputTokens: 0,
         additionalRequests: Number(overrideRequests),
@@ -847,14 +913,14 @@ export function EveModelPolicyPanel() {
       overrideRequests={overrideRequests}
       overrideScopeId={overrideScopeId}
       overrideScopeType={overrideScopeType}
-      overrideUsdMicros={overrideUsdMicros}
+      overrideUsd={overrideUsd}
       onDraftTextChange={setDraftText}
       onOverrideMinutesChange={setOverrideMinutes}
       onOverrideReasonChange={setOverrideReason}
       onOverrideRequestsChange={setOverrideRequests}
       onOverrideScopeIdChange={setOverrideScopeId}
       onOverrideScopeTypeChange={setOverrideScopeType}
-      onOverrideUsdMicrosChange={setOverrideUsdMicros}
+      onOverrideUsdChange={setOverrideUsd}
       onSubmitDraft={submitDraft}
       onSubmitOverride={submitOverride}
     />

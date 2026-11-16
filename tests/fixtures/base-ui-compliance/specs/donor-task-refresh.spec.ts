@@ -18,7 +18,7 @@ for (const width of [320, 1440]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/task-toolbar.html?surface=donor&loading=true");
-    const add = page.getByRole("button", { name: "Add Task", exact: true });
+    const add = page.getByRole("button", { name: "Add task", exact: true });
     await expect(add).toHaveAttribute("aria-disabled", "true");
     await add.press("Enter");
     await add.press("Space");
@@ -60,7 +60,7 @@ for (const width of [320, 1440]) {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Add Task", exact: true }),
+      page.getByRole("button", { name: "Add task", exact: true }),
     ).toBeFocused();
 
     await control(page, { command: "loading", loading: false });
@@ -120,7 +120,7 @@ for (const width of [320, 1440]) {
     await control(page, { command: "settle", success: true });
     await expect(dialog).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Add Task", exact: true }),
+      page.getByRole("button", { name: "Add task", exact: true }),
     ).toBeFocused();
     const counts = JSON.parse(
       (await page

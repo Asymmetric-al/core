@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import { ButtonGroup } from "@asym/ui/components/shadcn/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import type { SupportSavedView } from "../../types";
@@ -17,8 +17,8 @@ interface SavedViewItemProps {
   view: SupportSavedView;
   isActive: boolean;
   onSelect: () => void;
-  onRename: () => void;
-  onDelete: () => void;
+  onRename?: () => void;
+  onDelete?: () => void;
 }
 
 /**
@@ -33,65 +33,53 @@ export function SavedViewItem({
   onDelete,
 }: SavedViewItemProps) {
   return (
-    <div
-      className={cn(
-        "inline-flex h-8 items-center gap-1 rounded-lg border bg-card px-1 text-xs font-medium pointer-coarse:h-auto",
-        isActive
-          ? "border-primary text-foreground shadow-sm"
-          : "border-border text-muted-foreground hover:border-border",
-      )}
-    >
-      <button
+    // One shared button group: apply the view, or open its actions. The
+    // applied view is announced (aria-pressed) and filled, not only outlined.
+    <ButtonGroup aria-label={`Saved view ${view.name}`}>
+      <Button
         type="button"
+        variant={isActive ? "secondary" : "outline"}
+        size="sm"
+        aria-pressed={isActive}
         onClick={onSelect}
-        className={cn(
-          "rounded-md px-2 py-0.5",
-          isActive
-            ? "text-foreground"
-            : "text-muted-foreground hover:text-foreground",
-        )}
       >
-        <span className="truncate max-w-40 block">{view.name}</span>
-      </button>
-      <DropdownMenu>
-        <div className="w-6 shrink-0 pointer-coarse:w-11">
+        <span className="max-w-40 truncate">{view.name}</span>
+      </Button>
+      {(onRename || onDelete) && (
+        <DropdownMenu>
           <DropdownMenuTrigger
             render={
               <Button
                 type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="w-full"
+                variant={isActive ? "secondary" : "outline"}
+                size="icon-sm"
                 aria-label={`Saved view actions for ${view.name}`}
               >
-                <MoreHorizontal className="size-3" />
+                <MoreHorizontal aria-hidden="true" />
               </Button>
             }
           />
-        </div>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            closeOnClick={false}
-            onClick={() => {
-              onRename();
-            }}
-          >
-            <Pencil className="size-3.5 text-muted-foreground" />
-            Rename / scope
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant="destructive"
-            closeOnClick={false}
-            onClick={() => {
-              onDelete();
-            }}
-          >
-            <Trash2 className="size-3.5" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+          <DropdownMenuContent align="end">
+            {onRename && (
+              <DropdownMenuItem closeOnClick={false} onClick={onRename}>
+                <Pencil aria-hidden="true" />
+                Rename or change scope
+              </DropdownMenuItem>
+            )}
+            {onRename && onDelete && <DropdownMenuSeparator />}
+            {onDelete && (
+              <DropdownMenuItem
+                variant="destructive"
+                closeOnClick={false}
+                onClick={onDelete}
+              >
+                <Trash2 aria-hidden="true" />
+                Delete
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </ButtonGroup>
   );
 }

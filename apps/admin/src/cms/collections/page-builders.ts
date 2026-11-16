@@ -25,15 +25,15 @@ export const PROJECT_PAGE_TYPE = "project";
 export const MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE = "ministry_update";
 
 export const PAGE_TYPE_OPTIONS = [
-  { label: "Standard Page", value: STANDARD_PAGE_TYPE },
-  { label: "Missionary Giving Page", value: MISSIONARY_GIVING_PAGE_TYPE },
-  { label: "Project Page", value: PROJECT_PAGE_TYPE },
+  { label: "Standard page", value: STANDARD_PAGE_TYPE },
+  { label: "Missionary giving page", value: MISSIONARY_GIVING_PAGE_TYPE },
+  { label: "Project page", value: PROJECT_PAGE_TYPE },
 ] as const;
 
 export const PAGE_TEMPLATE_PAGE_TYPES = [
   ...PAGE_TYPE_OPTIONS,
   {
-    label: "Ministry Update Starter",
+    label: "Ministry update starter",
     value: MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE,
   },
 ] as const;
@@ -183,16 +183,16 @@ async function validateGivingSourceReference(
   });
 
   if (!publicTenantId && !isSuperAdmin(context)) {
-    return "Tenant is not linked to giving data.";
+    return "This organization is not linked to giving data.";
   }
 
   if (!publicTenantId) {
-    return "Choose a tenant before validating this reference.";
+    return "Choose an organization before checking this reference.";
   }
 
   if (source === "missionary") {
     const { data } = await findMissionaryById(supabase, value, publicTenantId);
-    return data?.id ? true : "Missionary not found for tenant.";
+    return data?.id ? true : "Missionary not found in this organization.";
   }
 
   const { data } = await supabase
@@ -202,7 +202,7 @@ async function validateGivingSourceReference(
     .eq("tenant_id", publicTenantId)
     .maybeSingle();
 
-  return data?.id ? true : "Fund not found for tenant.";
+  return data?.id ? true : "Fund not found in this organization.";
 }
 
 const validateMissionarySourceReference: Validate = (value, options) =>
@@ -421,15 +421,18 @@ export function createPageLayoutField(name = "layout"): Field {
     type: "blocks",
     blocks: pageLayoutBlocks,
     labels: {
-      singular: "Layout Section",
-      plural: "Layout Sections",
+      singular: "Layout section",
+      plural: "Layout sections",
     },
+    // Sections are edited in the page, not listed, filtered or grouped.
+    admin: { disabled: { column: true, filter: true, groupBy: true } },
   };
 }
 
 export function createTenantField(): Field {
   return {
     name: "tenant",
+    label: "Organization",
     type: "relationship",
     relationTo: "tenants",
     required: true,
@@ -477,10 +480,13 @@ export function createLegacyRichTextField(
   return {
     name,
     type: "checkbox",
+    label: "Use body text when there are no sections",
     defaultValue: true,
     admin: {
       description:
-        "When enabled, public rendering may fall back to the legacy content field if no layout blocks are configured.",
+        "When the page has no layout sections, the public page shows the body text instead.",
+      // A rendering switch, not something staff sort lists by.
+      disabled: { column: true, filter: true, groupBy: true },
     },
   };
 }
@@ -496,10 +502,13 @@ export function buildPageBuilderCollectionFields(
           required: true,
           index: true,
           validate: validateMissionarySourceReference,
+          label: "Missionary ID",
           admin: {
             description:
-              "Canonical missionary ID from public.missionaries. Prefilled by the create flow.",
+              "The missionary this page raises support for. Set when the page is created.",
             readOnly: true,
+            // The editor header names the record; the raw ID is a detail.
+            position: "sidebar",
           },
         } satisfies Field)
       : ({
@@ -508,10 +517,13 @@ export function buildPageBuilderCollectionFields(
           required: true,
           index: true,
           validate: validateFundSourceReference,
+          label: "Fund ID",
           admin: {
             description:
-              "Canonical fund ID from public.funds. Prefilled by the create flow.",
+              "The fund this page raises money for. Set when the page is created.",
             readOnly: true,
+            // The editor header names the record; the raw ID is a detail.
+            position: "sidebar",
           },
         } satisfies Field);
 
@@ -531,7 +543,7 @@ export function buildPageBuilderCollectionFields(
             relationTo: "missionary-profiles",
             admin: {
               description:
-                "Optional link to the CMS missionary profile used for ministry updates and editorial cross-navigation.",
+                "Optional: the missionary profile this page links to, for their ministry updates.",
             },
           },
         ] satisfies Field[])
@@ -540,8 +552,12 @@ export function buildPageBuilderCollectionFields(
     {
       name: "templateKey",
       type: "text",
+      label: "Template key",
       required: true,
       index: true,
+      admin: {
+        description: "The template this page started from.",
+      },
     },
     createTemplateRelationshipField(),
     {
@@ -562,9 +578,26 @@ export function buildPageBuilderCollectionFields(
     {
       name: "seoDescription",
       type: "textarea",
+      label: "Search description",
+      admin: {
+        description: "Shown under the page title in search results.",
+      },
     },
     createPageLayoutField(),
   ];
+}
+
+/**
+ * Serves a Core create flow on a collection's `/create` route. Payload's
+ * stock create view saves an empty draft as soon as it renders for an
+ * autosave collection (so every visit left an "Untitled (N)" draft); the
+ * Core flow saves nothing until the editor submits it. Pass a flow already
+ * registered as a root admin view, so the import map holds it.
+ */
+export function webStudioCreateFlowView(Component: string) {
+  return {
+    webStudioCreate: { Component, path: "/create", exact: true },
+  };
 }
 
 export function buildPageBuilderVersions() {

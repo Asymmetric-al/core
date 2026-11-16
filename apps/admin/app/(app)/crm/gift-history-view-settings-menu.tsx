@@ -57,7 +57,7 @@ export function GiftHistoryViewSettingsMenu({
             size="icon-sm"
             aria-label="Gift history view settings"
           >
-            <Settings2 className="size-4" aria-hidden="true" />
+            <Settings2 aria-hidden="true" />
           </Button>
         }
       />
@@ -189,9 +189,9 @@ export function GiftHistoryViewSettingsMenu({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Tenant default</DropdownMenuLabel>
+              <DropdownMenuLabel>Organization default</DropdownMenuLabel>
               <DropdownMenuItem onClick={onRequestSetTenantDefault}>
-                Set current settings as tenant default…
+                Set current settings as organization default…
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </>

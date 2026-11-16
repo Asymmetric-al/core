@@ -19,8 +19,9 @@ the command to exit successfully. Hooks and CI never use that option.
 
 ## Coverage and scores
 
-The scan starts at the workspace root. All three deployed applications must be
-discovered: `apps/admin`, `apps/donor` and `apps/missionary`. The gate also retains
+The scan starts at the workspace root. All four gated applications must be
+discovered: the deployed `apps/admin`, `apps/donor` and `apps/missionary`, and the
+private operator app `apps/factory-console`. The gate also retains
 the reviewed library inventory, including the workspace root. Missing projects,
 truncated discovery, incomplete source coverage, incompatible report versions
 and unassessed scores fail the gate.
@@ -84,8 +85,8 @@ bulk rehashing to restore green checks is not evidence review.
 
 ## Core's intentional contracts
 
-Applications currently force the light theme. A global theme shortcut would
-contradict that choice. App-local `components.json` files are prohibited; shadcn
+The three product applications currently force the light theme. A global theme
+shortcut would contradict that choice. App-local `components.json` files are prohibited; shadcn
 configuration belongs to `packages/ui`. Private Mission Control and missionary
 pages keep their publication restrictions rather than adding public social cards
 for a score. The public donor site's declared social image must resolve.
@@ -98,6 +99,14 @@ compose the shared Base UI/base-maia command widget, and use the existing
 permitted destinations. Public giving, checkout and login flows retain their
 existing navigation. The published scanner still misses this shared-package
 composition; executable caller and keyboard/focus tests support that finding.
+
+The Factory Console (`apps/factory-console`) is one owner's private control
+surface on the factory VM, reached only through that owner's SSH tunnel; it is
+not a product application. It has a visible light and dark switch and no toast
+channel, command menu, theme shortcut or social preview. Those omissions are
+recorded with their reasons under "Deliberate omissions" in
+`apps/factory-console/README.md`. They were proposed on 2026-11-12, when the
+Console first came under this gate, and await the owner's ratification.
 
 Authenticated CMS preview retains its blocking dynamic boundary. Redirect-only
 Suspense siblings retain invisible fallbacks. Global Next.js recovery boundaries

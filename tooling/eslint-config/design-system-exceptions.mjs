@@ -1,5 +1,10 @@
 import path from "node:path";
 
+import {
+  reuiDataGridArbitraryValues,
+  reuiDataGridFiles,
+} from "./reui-data-grid-exceptions.mjs";
+
 // Permanent, reviewed boundaries from integrate-design-system-lint. Allowances
 // match properties, not values: new uses in these files still require review.
 // Ordinary static styling debt belongs in native suppressions, not this table.
@@ -112,6 +117,23 @@ export function designSystemExceptions({ scope, rootDir }) {
             allow: ["not-prose", ...allow],
             deny: ["not-prose", ...allow].map((name) => `*:${name}`),
           },
+        ],
+      },
+    });
+  }
+  if (scope === "packages/ui") {
+    entries.push({
+      name: "core/design-system/vendored-reui-data-grid",
+      basePath,
+      files: reuiDataGridFiles,
+      // See reui-data-grid-exceptions.mjs for the reviewed rationale.
+      rules: {
+        "shadcn/no-restyle": "off",
+        "shadcn/require-static-classes": "off",
+        "shadcn/no-inline-styles": "off",
+        "shadcn/no-arbitrary-values": [
+          "error",
+          { allow: reuiDataGridArbitraryValues },
         ],
       },
     });

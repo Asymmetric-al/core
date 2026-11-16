@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import React from "react";
+import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import {
   cleanup,
   act,
@@ -9,9 +9,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
-import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 
 function FormExample() {
   const form = useAsymForm({
@@ -87,7 +86,37 @@ function PendingFormExample({ onSubmit }: { onSubmit: () => Promise<void> }) {
 
 afterEach(cleanup);
 
+function SwitchExample() {
+  const form = useAsymForm({ defaultValues: { inspector: true } });
+  return (
+    <form.AppForm>
+      <form.AppField name="inspector">
+        {(field) => (
+          <field.SwitchField
+            label="Inspector"
+            description="Show document state beside the form."
+          />
+        )}
+      </form.AppField>
+    </form.AppForm>
+  );
+}
+
 describe("shared form accessible relationships", () => {
+  it("keeps a switch's description under its label, with the switch beside them", () => {
+    render(<SwitchExample />);
+    const control = screen.getByRole("switch", { name: "Inspector" });
+    const description = screen.getByText(
+      "Show document state beside the form.",
+    );
+    const label = screen.getByText("Inspector");
+    const content = description.closest('[data-slot="field-content"]');
+    expect(content).toBeTruthy();
+    expect(content?.contains(label)).toBe(true);
+    expect(content?.contains(control)).toBe(false);
+    expect(control.getAttribute("aria-describedby")).toContain(description.id);
+  });
+
   it("natively disables pending submit controls and suppresses repeat clicks and form submissions", async () => {
     let complete!: () => void;
     const onSubmit = vi.fn(

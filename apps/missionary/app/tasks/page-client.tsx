@@ -2,13 +2,14 @@
 
 import { useTasks } from "@asym/lib/hooks";
 import { getFullTaskMoveIndex } from "@asym/lib/hooks/task-move-index";
+import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
-import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
   AlertDescription,
@@ -170,51 +171,37 @@ function TaskListSkeleton() {
   );
 }
 
-function StatCard({
+function SummaryFigure({
   label,
   value,
-  color,
-  onClick,
-  isActive,
+  urgent = false,
 }: {
   label: string;
   value: number;
-  color: string;
-  onClick?: () => void;
-  isActive?: boolean;
+  urgent?: boolean;
 }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      aria-label={`${value} ${label}`}
-      aria-pressed={Boolean(isActive)}
-      className={cn(
-        "press-feedback flex min-w-0 items-center gap-3 rounded-xl border px-4 py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        color,
-        isActive ? "border-primary ring-2 ring-ring/20" : "border-border",
-      )}
-    >
-      <div className="flex flex-col">
-        <motion.span
-          key={value}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-3xl font-semibold tabular-nums tracking-tight"
-        >
-          {value}
-        </motion.span>
-        <span className="mt-1 text-sm font-medium">{label}</span>
-      </div>
-    </motion.button>
+    <div className="flex min-w-0 flex-col gap-1 rounded-xl border border-border bg-card px-4 py-3 sm:py-4">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd
+        className={cn(
+          "text-2xl font-semibold tabular-nums tracking-tight",
+          urgent ? "text-destructive" : "text-foreground",
+        )}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 
-type ViewFilter = "all" | "active" | "completed" | "overdue" | "today";
+type ViewFilter =
+  "all" | "active" | "completed" | "overdue" | "today" | "deferred";
 type ViewMode = "list" | "board";
 type TasksPageState = {
   viewFilter: ViewFilter;
-  viewMode: ViewMode;
+  /** Null until the missionary picks a view; until then it follows the screen. */
+  viewMode: ViewMode | null;
   searchTerm: string;
   taskDialogOpen: boolean;
   editingTask: Task | null;
@@ -243,10 +230,11 @@ type TasksPageActionsProps = {
   loading: boolean;
   refresh: () => void | Promise<void>;
   addTaskRef: React.RefObject<HTMLButtonElement | null>;
+  listViewRef: React.RefObject<HTMLButtonElement | null>;
   editingTask: Task | null;
   initialStatus: TaskStatus | undefined;
   taskDialogOpen: boolean;
-  setViewMode: (value: React.SetStateAction<ViewMode>) => void;
+  setViewMode: (value: ViewMode) => void;
   setTaskDialogOpen: (value: React.SetStateAction<boolean>) => void;
   setEditingTask: (value: React.SetStateAction<Task | null>) => void;
   setInitialStatus: (
@@ -259,6 +247,7 @@ function TasksPageActions({
   loading,
   refresh,
   addTaskRef,
+  listViewRef,
   editingTask,
   initialStatus,
   taskDialogOpen,
@@ -280,6 +269,7 @@ function TasksPageActions({
           <LayoutGrid className="size-4" />
         </Button>
         <Button
+          ref={listViewRef}
           aria-label="List view"
           aria-pressed={viewMode === "list"}
           variant={viewMode === "list" ? "secondary" : "ghost"}
@@ -312,7 +302,7 @@ function TasksPageActions({
         trigger={
           <Button ref={addTaskRef}>
             <Plus aria-hidden data-icon="inline-start" />
-            Add Task
+            Add task
           </Button>
         }
       />
@@ -320,52 +310,22 @@ function TasksPageActions({
   );
 }
 
-type TasksStatsGridProps = {
-  stats: TasksStats;
-  viewFilter: ViewFilter;
-  setViewFilter: (value: React.SetStateAction<ViewFilter>) => void;
-};
-
-function TasksStatsGrid({
-  stats,
-  viewFilter,
-  setViewFilter,
-}: TasksStatsGridProps) {
+/**
+ * The workload at a glance. These are plain figures: the list's tabs, which
+ * use the same words, are the one control that filters.
+ */
+function TasksStatsGrid({ stats }: { stats: TasksStats }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <StatCard
-        label="Active"
-        value={stats.notStarted + stats.inProgress}
-        color="bg-info/10 text-info"
-        onClick={() => setViewFilter("active")}
-        isActive={viewFilter === "active"}
-      />
-      <StatCard
-        label="Completed"
-        value={stats.completed}
-        color="bg-success/10 text-success"
-        onClick={() => setViewFilter("completed")}
-        isActive={viewFilter === "completed"}
-      />
+    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <SummaryFigure label="Open" value={stats.notStarted + stats.inProgress} />
+      <SummaryFigure label="Done" value={stats.completed} />
       {stats.overdue > 0 && (
-        <StatCard
-          label="Overdue"
-          value={stats.overdue}
-          color="bg-destructive/10 text-destructive"
-          onClick={() => setViewFilter("overdue")}
-          isActive={viewFilter === "overdue"}
-        />
+        <SummaryFigure label="Overdue" value={stats.overdue} urgent />
       )}
       {stats.dueToday > 0 && (
-        <StatCard
-          label="Due Today"
-          value={stats.dueToday}
-          color="bg-warning/10 text-warning"
-          onClick={() => setViewFilter("today")}
-          isActive={viewFilter === "today"}
-        />
+        <SummaryFigure label="Due today" value={stats.dueToday} />
       )}
-    </div>
+    </dl>
   );
 }
 
@@ -403,23 +363,25 @@ function TasksFilterBar({
       search={{
         value: searchTerm,
         onChange: setSearchTerm,
-        placeholder: "Search mission tasks...",
+        placeholder: "Search tasks…",
       }}
       filters={
         <div className="flex flex-wrap items-center gap-2">
+          {/* The filter row sizes to its content and can't scroll, so short
+              tab names keep all five within a 320px phone. */}
           {viewMode === "list" && (
-            <div className="hidden md:block">
-              <Tabs
-                value={viewFilter}
-                onValueChange={(v) => setViewFilter(v as ViewFilter)}
-              >
-                <TabsList>
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="completed">Done</TabsTrigger>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+            <Tabs
+              value={viewFilter}
+              onValueChange={(v) => setViewFilter(v as ViewFilter)}
+            >
+              <TabsList aria-label="Show tasks">
+                <TabsTrigger value="active">Open</TabsTrigger>
+                <TabsTrigger value="overdue">Overdue</TabsTrigger>
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="completed">Done</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
 
           <DropdownMenu>
@@ -433,7 +395,7 @@ function TasksFilterBar({
             />
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuLabel>Task Type</DropdownMenuLabel>
+                <DropdownMenuLabel>Task type</DropdownMenuLabel>
                 {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
                   <DropdownMenuCheckboxItem
                     key={value}
@@ -468,7 +430,9 @@ function TasksFilterBar({
         </div>
       }
       activeFilters={activeFilterChips}
-      onReset={clearFilters}
+      onReset={
+        activeFilterChips.length > 0 || searchTerm ? clearFilters : undefined
+      }
     />
   );
 }
@@ -487,7 +451,31 @@ type TasksContentProps = {
   rememberTaskAction: (event: React.SyntheticEvent<HTMLDivElement>) => void;
   handleCreateInStatus: (status: TaskStatus) => void;
   setTaskDialogOpen: (value: React.SetStateAction<boolean>) => void;
+  showDeferredInList: () => void;
 };
+
+/** The board has no Deferred column, so say how many tasks it leaves out. */
+function DeferredTasksNote({
+  count,
+  showDeferredInList,
+}: {
+  count: number;
+  showDeferredInList: () => void;
+}) {
+  if (count === 0) return null;
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+      <p>
+        {count === 1
+          ? "1 deferred task isn’t shown on the board."
+          : `${count} deferred tasks aren’t shown on the board.`}
+      </p>
+      <Button variant="link" onClick={showDeferredInList}>
+        Show in list
+      </Button>
+    </div>
+  );
+}
 
 function TasksContent({
   error,
@@ -503,6 +491,7 @@ function TasksContent({
   rememberTaskAction,
   handleCreateInStatus,
   setTaskDialogOpen,
+  showDeferredInList,
 }: TasksContentProps) {
   return (
     <AnimatePresence mode="wait">
@@ -510,12 +499,12 @@ function TasksContent({
         <div className="flex flex-col items-center gap-4 py-8">
           <Alert variant="destructive" role="alert">
             <AlertCircle aria-hidden />
-            <AlertTitle>Sync failed</AlertTitle>
+            <AlertTitle>We couldn’t load your tasks</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
           <Button onClick={refresh} variant="outline">
             <RefreshCw aria-hidden data-icon="inline-start" />
-            Retry Sync
+            Try again
           </Button>
         </div>
       ) : loading && displayedTasks.length === 0 ? (
@@ -540,6 +529,13 @@ function TasksContent({
           exit={{ opacity: 0, y: -10 }}
           transition={smoothTransition}
         >
+          {/* Above the columns, so it is seen without scrolling past cards. */}
+          <DeferredTasksNote
+            count={
+              displayedTasks.filter((task) => task.status === "deferred").length
+            }
+            showDeferredInList={showDeferredInList}
+          />
           <TaskKanbanBoard
             tasks={displayedTasks}
             onMoveTask={moveTask}
@@ -557,7 +553,9 @@ function TasksContent({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="grid gap-3"
+          // One shrinkable column: long partner names truncate instead of
+          // widening every card past a phone screen.
+          className="grid grid-cols-1 gap-3"
         >
           {displayedTasks.map((task, index) => (
             <TaskRow
@@ -586,7 +584,7 @@ function TasksContent({
           <EmptyContent>
             <Button onClick={() => setTaskDialogOpen(true)}>
               <Plus aria-hidden data-icon="inline-start" />
-              Create New Task
+              Add a task
             </Button>
           </EmptyContent>
         </Empty>
@@ -622,7 +620,7 @@ function DeleteTaskDialog({
     <AlertDialog open={deleteDialogOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent initialFocus={cancelRef} finalFocus={finalFocus}>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Task</AlertDialogTitle>
+          <AlertDialogTitle>Delete task</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete &quot;{taskToDelete?.title}
             &quot;? This action cannot be undone.
@@ -656,7 +654,7 @@ function DeleteTaskDialog({
             }}
             variant="destructive"
           >
-            {deletePending ? "Deleting…" : "Delete Task"}
+            {deletePending ? "Deleting…" : "Delete task"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -682,13 +680,15 @@ function useTasksPageController() {
   const deletionInFlight = React.useRef(false);
   const deletionSucceeded = React.useRef(false);
   const addTaskRef = React.useRef<HTMLButtonElement | null>(null);
+  const listViewRef = React.useRef<HTMLButtonElement | null>(null);
+  const focusListViewAfterSwitch = React.useRef(false);
   const cancelDeleteRef = React.useRef<HTMLButtonElement | null>(null);
   const deleteReturnFocus = React.useRef<HTMLButtonElement | null>(null);
   const deleteReturnTaskId = React.useRef<string | null>(null);
 
   const [state, setState] = useState<TasksPageState>({
     viewFilter: "active",
-    viewMode: "board",
+    viewMode: null,
     searchTerm: "",
     taskDialogOpen: false,
     editingTask: null,
@@ -700,7 +700,7 @@ function useTasksPageController() {
   });
   const {
     viewFilter,
-    viewMode,
+    viewMode: chosenViewMode,
     searchTerm,
     taskDialogOpen,
     editingTask,
@@ -710,6 +710,9 @@ function useTasksPageController() {
     typeFilter,
     priorityFilter,
   } = state;
+  // Phones open on the list: the board's columns would scroll sideways.
+  const isPhone = useMediaQuery("(max-width: 767px)");
+  const viewMode: ViewMode = chosenViewMode ?? (isPhone ? "list" : "board");
 
   const setField = useCallback(
     <K extends keyof TasksPageState>(
@@ -734,9 +737,24 @@ function useTasksPageController() {
     [setField],
   );
   const setViewMode = useCallback(
-    (value: React.SetStateAction<ViewMode>) => setField("viewMode", value),
+    (value: ViewMode) => setField("viewMode", value),
     [setField],
   );
+  // The deferred note leaves with the board when the list opens, so focus
+  // moves to the now-selected List view control instead of the page body.
+  const showDeferredInList = useCallback(() => {
+    focusListViewAfterSwitch.current = true;
+    setField("viewFilter", "deferred");
+    setField("viewMode", "list");
+  }, [setField]);
+  React.useEffect(() => {
+    if (viewMode !== "list" || !focusListViewAfterSwitch.current) return;
+    focusListViewAfterSwitch.current = false;
+    listViewRef.current?.focus();
+  }, [viewMode]);
+  // Until tasks have loaded there are no counts to report; zeros would
+  // misstate the workload (first load, retry after a failure, or an error).
+  const showStats = !((loading || error) && filteredTasks.length === 0);
   const setSearchTerm = useCallback(
     (value: React.SetStateAction<string>) => setField("searchTerm", value),
     [setField],
@@ -805,6 +823,9 @@ function useTasksPageController() {
         case "completed":
           result = result.filter((t) => t.status === "completed");
           break;
+        case "deferred":
+          result = result.filter((t) => t.status === "deferred");
+          break;
         case "overdue":
           result = result.filter((t) => {
             if (t.status === "completed" || t.status === "deferred")
@@ -816,8 +837,10 @@ function useTasksPageController() {
           });
           break;
         case "today":
+          // Matches the Due Today count, which leaves out deferred tasks.
           result = result.filter((t) => {
-            if (t.status === "completed") return false;
+            if (t.status === "completed" || t.status === "deferred")
+              return false;
             if (!t.due_date) return false;
             return isToday(new Date(t.due_date));
           });
@@ -939,6 +962,13 @@ function useTasksPageController() {
 
   const activeFilterChips = useMemo(() => {
     const chips = [];
+    // Deferred has no tab (the board's note opens it), so it shows as a chip.
+    if (viewMode === "list" && viewFilter === "deferred") {
+      chips.push({
+        label: "Deferred only",
+        onRemove: () => setViewFilter("active"),
+      });
+    }
     if (typeFilter !== "all") {
       chips.push({
         label: `Type: ${TASK_TYPE_CONFIG[typeFilter].label}`,
@@ -952,7 +982,15 @@ function useTasksPageController() {
       });
     }
     return chips;
-  }, [typeFilter, priorityFilter, setTypeFilter, setPriorityFilter]);
+  }, [
+    viewMode,
+    viewFilter,
+    typeFilter,
+    priorityFilter,
+    setViewFilter,
+    setTypeFilter,
+    setPriorityFilter,
+  ]);
 
   const resolveDeleteFinalFocus = () => {
     const taskIsVisible = displayedTasks.some(
@@ -970,6 +1008,7 @@ function useTasksPageController() {
     loading,
     refresh,
     addTaskRef,
+    listViewRef,
     editingTask,
     initialStatus,
     taskDialogOpen,
@@ -978,8 +1017,10 @@ function useTasksPageController() {
     setEditingTask,
     setInitialStatus,
     stats,
+    showStats,
     viewFilter,
     setViewFilter,
+    showDeferredInList,
     searchTerm,
     typeFilter,
     priorityFilter,
@@ -1013,6 +1054,7 @@ function TasksPageView() {
     loading,
     refresh,
     addTaskRef,
+    listViewRef,
     editingTask,
     initialStatus,
     taskDialogOpen,
@@ -1021,8 +1063,10 @@ function TasksPageView() {
     setEditingTask,
     setInitialStatus,
     stats,
+    showStats,
     viewFilter,
     setViewFilter,
+    showDeferredInList,
     searchTerm,
     typeFilter,
     priorityFilter,
@@ -1049,16 +1093,17 @@ function TasksPageView() {
     handleDeleteConfirm,
   } = useTasksPageController();
   return (
-    <PageShell
-      title="Mission Tasks"
-      description="Manage follow-ups, calls, and partner communications."
-      badge="Personal Workflow"
-      actions={
+    <div className="flex flex-col gap-6 pb-20">
+      <PageHeader
+        title="Tasks"
+        description="Calls, emails and thank-yous that keep you close to your partners."
+      >
         <TasksPageActions
           viewMode={viewMode}
           loading={loading}
           refresh={refresh}
           addTaskRef={addTaskRef}
+          listViewRef={listViewRef}
           editingTask={editingTask}
           initialStatus={initialStatus}
           taskDialogOpen={taskDialogOpen}
@@ -1067,14 +1112,9 @@ function TasksPageView() {
           setEditingTask={setEditingTask}
           setInitialStatus={setInitialStatus}
         />
-      }
-    >
+      </PageHeader>
       <div className="flex flex-col gap-6">
-        <TasksStatsGrid
-          stats={stats}
-          viewFilter={viewFilter}
-          setViewFilter={setViewFilter}
-        />
+        {showStats && <TasksStatsGrid stats={stats} />}
 
         <TasksFilterBar
           viewMode={viewMode}
@@ -1104,6 +1144,7 @@ function TasksPageView() {
           rememberTaskAction={rememberTaskAction}
           handleCreateInStatus={handleCreateInStatus}
           setTaskDialogOpen={setTaskDialogOpen}
+          showDeferredInList={showDeferredInList}
         />
 
         <DeleteTaskDialog
@@ -1117,7 +1158,7 @@ function TasksPageView() {
           handleDeleteConfirm={handleDeleteConfirm}
         />
       </div>
-    </PageShell>
+    </div>
   );
 }
 

@@ -155,7 +155,7 @@ function TaskDetailsSheetHeader({
             </>
           ) : (
             <>
-              <Circle className="mr-2 size-4" /> Mark Done
+              <Circle className="mr-2 size-4" /> Mark done
             </>
           )}
         </Button>

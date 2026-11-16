@@ -1,6 +1,63 @@
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
+export function PageShellSkeleton({
+  label = "Loading page…",
+  announce = true,
+}: {
+  label?: string;
+  announce?: boolean;
+}) {
+  return (
+    <div className="mx-auto flex w-full max-w-(--page-max) flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      {announce ? (
+        <span role="status" className="sr-only">
+          {label}
+        </span>
+      ) : null}
+      <div aria-hidden="true" className="flex flex-col gap-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48 max-w-full" />
+          <Skeleton className="h-4 w-96 max-w-full" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ShellSkeleton() {
+  return (
+    <div className="flex min-h-svh w-full">
+      <span role="status" className="sr-only">
+        Loading Mission Control…
+      </span>
+      <div
+        aria-hidden="true"
+        className="hidden w-64 shrink-0 space-y-6 border-r bg-sidebar p-4 md:block"
+      >
+        <Skeleton className="h-10 w-full" />
+        {Array.from({ length: 8 }, (_, index) => (
+          <Skeleton key={index} className="h-8 w-full" />
+        ))}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div
+          aria-hidden="true"
+          className="flex h-12 items-center gap-3 border-b px-4"
+        >
+          <Skeleton className="size-6" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <PageShellSkeleton announce={false} />
+      </div>
+    </div>
+  );
+}
+
 function TileCardSkeleton() {
   return (
     <Card className="flex flex-col">

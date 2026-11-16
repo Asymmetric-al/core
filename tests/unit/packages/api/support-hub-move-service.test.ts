@@ -16,6 +16,7 @@ interface MoveTables {
   conversations?: Record<string, Record<string, unknown> | null>;
   destination?: Record<string, unknown> | null;
   agent?: Record<string, unknown> | null;
+  agentError?: { code: string };
   batch?: Record<string, unknown> | null;
   acquire?: Array<{ acquired: boolean; claim_id?: string }>;
 }
@@ -51,7 +52,7 @@ function createMoveClientMock(tables: MoveTables) {
             if (table === "support_agents") {
               return Promise.resolve({
                 data: tables.agent ?? null,
-                error: null,
+                error: tables.agentError ?? null,
               });
             }
             if (table === "support_bulk_move_operations") {
@@ -142,6 +143,18 @@ const baseInput = {
 };
 
 describe("audited support conversation move (#296)", () => {
+  it("does not write or unassign when the agent lookup fails", async () => {
+    const mock = createMoveClientMock({
+      conversations: {
+        "conv-1": conversationRow({ assignee_agent_id: "agent-1" }),
+      },
+      destination: { id: "inbox-dst", tenant_id: TENANT_ID },
+      agentError: { code: "08006" },
+    });
+    const result = await moveSupportConversation(mock.client, baseInput);
+    expect(result).toMatchObject({ status: "failed", code: "move_failed" });
+    expect(mock.writes).toEqual([]);
+  });
   it("validates the reason lightly: trimmed, 5-500 chars, free text", () => {
     expect(validateMoveReason("   ok   ")).toBeNull();
     expect(validateMoveReason("x".repeat(501))).toBeNull();

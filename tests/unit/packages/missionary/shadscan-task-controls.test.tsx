@@ -56,16 +56,16 @@ it("clears a task date through a named keyboard control without clearing its oth
       onOpenChange={vi.fn()}
     />,
   );
-  const clearDueDate = screen.getByRole("button", { name: "Clear Due Date" });
+  const clearDueDate = screen.getByRole("button", { name: "Clear due date" });
   clearDueDate.focus();
   fireEvent.click(clearDueDate);
 
-  const dueDate = screen.getByRole("button", { name: "Due Date Select date" });
+  const dueDate = screen.getByRole("button", { name: "Due date Select date" });
   expect(document.activeElement).toBe(dueDate);
   expect(
-    screen.getByRole("button", { name: /Reminder Date April/ }),
+    screen.getByRole("button", { name: /Reminder date April/ }),
   ).toBeTruthy();
-  expect(screen.queryByRole("button", { name: "Clear Due Date" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Clear due date" })).toBeNull();
 });
 
 it("offers task view filters directly without requiring a mobile site-navigation panel", () => {
@@ -88,7 +88,7 @@ it("names kanban creation and editing controls independently of their icons", ()
     />,
   );
   expect(
-    screen.getByRole("button", { name: "Add task to To Do" }),
+    screen.getByRole("button", { name: "Add task to To do" }),
   ).toBeTruthy();
   expect(screen.getByRole("button", { name: "Move Follow up" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Edit Follow up" }));

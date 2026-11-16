@@ -624,6 +624,40 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
         (view) => !(view.id === id && view.tenantId === scope),
       );
     },
+    async updateIfOwned(input, ownerAgentId) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      const row = store.savedViews.find(
+        (view) =>
+          view.id === input.id &&
+          view.tenantId === scope &&
+          view.ownerAgentId === ownerAgentId &&
+          view.scope === "personal",
+      );
+      if (!row) return null;
+      row.name = input.name;
+      row.slug = input.slug;
+      row.ownerAgentId = ownerAgentId;
+      row.scope = input.scope;
+      row.filter = input.filter;
+      row.updatedAt = nowIso();
+      return clone(row);
+    },
+    async deleteIfOwned(id, ownerAgentId) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      const before = store.savedViews.length;
+      store.savedViews = store.savedViews.filter(
+        (view) =>
+          !(
+            view.id === id &&
+            view.tenantId === scope &&
+            view.ownerAgentId === ownerAgentId &&
+            view.scope === "personal"
+          ),
+      );
+      return store.savedViews.length < before;
+    },
   },
   inboxes: {
     async list() {

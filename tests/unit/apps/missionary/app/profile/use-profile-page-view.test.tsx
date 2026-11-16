@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, waitFor } from "@testing-library/react";
+import { renderDraftHook as renderHook } from "../../../../fixtures/retained-drafts";
 import * as React from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -102,6 +103,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   getQueryClient().clear();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -137,6 +140,25 @@ describe("useProfilePageView", () => {
     expect(toast.info).toHaveBeenCalledWith("Changes discarded");
   });
 
+  it("stops unload protection when edits return to the saved profile", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    const dirtyUnload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(dirtyUnload);
+    expect(dirtyUnload.defaultPrevented).toBe(true);
+
+    act(() => result.current.updateProfile("location", "London"));
+    const cleanUnload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(cleanUnload);
+    expect(result.current.hasChanges).toBe(false);
+    expect(cleanUnload.defaultPrevented).toBe(false);
+  });
+
   it("commits a successful save as the new baseline", async () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse(200, apiProfile))
@@ -162,6 +184,91 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.location).toBe("Paris");
     expect(result.current.hasChanges).toBe(false);
     expect(toast.success).toHaveBeenCalledWith("Profile saved");
+    expect(result.current.saveSuccess).toBe(true);
+
+    act(() => {
+      result.current.updateProfile("bio", "A newer unsaved edit");
+    });
+
+    expect(result.current.hasChanges).toBe(true);
+    expect(result.current.saveSuccess).toBe(false);
+  });
+
+  it("cancels the save-success timeout when the profile unmounts", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+    const { result, unmount } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    vi.useFakeTimers();
+    const schedule = vi.spyOn(globalThis, "setTimeout");
+    const cancel = vi.spyOn(globalThis, "clearTimeout");
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    await act(async () => {
+      await result.current.handleSave();
+    });
+    expect(result.current.saveSuccess).toBe(true);
+    const timeoutIndex = schedule.mock.calls.findIndex(
+      ([, delay]) => delay === 2000,
+    );
+    expect(timeoutIndex).toBeGreaterThanOrEqual(0);
+    const timeoutHandle = schedule.mock.results[timeoutIndex]?.value;
+
+    unmount();
+
+    expect(cancel).toHaveBeenCalledWith(timeoutHandle);
+  });
+
+  it("clears save success only after two seconds", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    vi.useFakeTimers();
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    await act(async () => {
+      await result.current.handleSave();
+    });
+
+    act(() => vi.advanceTimersByTime(1999));
+    expect(result.current.saveSuccess).toBe(true);
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current.saveSuccess).toBe(false);
+  });
+
+  it("does not let an earlier save timeout clear a newer success", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }))
+      .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    vi.useFakeTimers();
+
+    act(() => result.current.updateProfile("location", "Paris"));
+    await act(async () => {
+      await result.current.handleSave();
+    });
+    act(() => vi.advanceTimersByTime(1000));
+    act(() => result.current.updateProfile("location", "Berlin"));
+    expect(result.current.saveSuccess).toBe(false);
+    await act(async () => {
+      await result.current.handleSave();
+    });
+
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.saveSuccess).toBe(true);
+    act(() => vi.advanceTimersByTime(1000));
+    expect(result.current.saveSuccess).toBe(false);
   });
 
   it("surfaces the API error message when saving fails", async () => {
@@ -201,7 +308,7 @@ describe("useProfilePageView", () => {
     const coverUrl = "https://cdn.example/new-cover.jpg";
     fetchMock.mockResolvedValueOnce(jsonResponse(200, { ok: true }));
 
-    // Profile Photos calls updateProfile(field, url); handleSave() in one
+    // The photo uploader calls updateProfile(field, url); handleSave() in one
     // event. The save must read that pending edit, not the previous render.
     await act(async () => {
       result.current.updateProfile("coverUrl", coverUrl);
@@ -641,6 +748,8 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.location).toBe("Paris");
     expect(result.current.profile.bio).toBe("typed during save");
     expect(result.current.hasChanges).toBe(true);
+    expect(result.current.saveSuccess).toBe(false);
+    expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
   });
 
   it("exposes a load failure as fetchError and toasts once", async () => {

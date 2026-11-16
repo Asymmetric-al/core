@@ -1,0 +1,111 @@
+name: core-analyze
+description: >-
+  Bounded advisory analysis of factory evidence: a trusted collector freezes a
+  sanitized packet, a tool-less analyst explains patterns, and a validator
+  records a report. Advisory only; never a required gate.
+provider: claude
+mutates_checkout: false
+worktree:
+  enabled: false
+inputs:
+  trigger:
+    default: operator
+    description: operator, incident, daily or retrospective
+  scope:
+    default: factory
+    description: factory, or issue:<number>
+  request:
+    required: true
+    description: Idempotency key
+nodes:
+  - id: collect
+    script: collect
+    runtime: bun
+    timeout: 120000
+    output_format:
+      type: object
+      properties:
+        analyze: { type: string, enum: ["yes", "no"] }
+        assignment: { type: string }
+        reason: { type: string }
+      required: [analyze, assignment, reason]
+      additionalProperties: false
+
+  - id: analyst
+    depends_on: [collect]
+    when: "$collect.output.analyze == 'yes'"
+    command: analyze
+    with:
+      assignment: $collect.output.assignment
+    model: opus
+    effort: medium
+    context: fresh
+    settingSources: []
+    # Turn budget (S11.16): Archon 0.14.0 has no node-level turn cap (maxTurns
+    # exists only on inline sub-agents). No tools makes each attempt one
+    # structured reply. max_attempts bounds only ordinary transient failures
+    # and timeouts (one retry); unknown failures are not retried. Capacity and
+    # rate-limit failures fall outside it: the engine gives them at least five
+    # retries, and a rate limit that outlasts those (or a quota wait) pauses
+    # the run and resumes this node. So the six-turn target is not enforced
+    # here; it is an engine limitation recorded at commissioning.
+    allowed_tools: []
+    retry: { max_attempts: 1 }
+    idle_timeout: 600000
+    output_format:
+      type: object
+      properties:
+        result: { type: string, enum: [findings, no-actionable-concern] }
+        observations:
+          type: array
+          maxItems: 8
+          items:
+            type: object
+            properties:
+              text: { type: string }
+              evidence: { type: array, items: { type: string } }
+            required: [text, evidence]
+            additionalProperties: false
+        findings:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              material: { type: boolean }
+              explanation: { type: string }
+              alternatives: { type: array, items: { type: string } }
+              evidence: { type: array, items: { type: string } }
+              next_step: { type: string }
+              how_to_tell: { type: string }
+            required:
+              [
+                title,
+                material,
+                explanation,
+                alternatives,
+                evidence,
+                next_step,
+                how_to_tell,
+              ]
+            additionalProperties: false
+        coverage_limits: { type: array, items: { type: string } }
+      required: [result, observations, findings, coverage_limits]
+      additionalProperties: false
+
+  # Reads the analyst's result from $NODE_OUTCOMES_FILE: a binding to a failed
+  # producer would fail this node and leave the analysis unrecorded.
+  - id: record
+    depends_on: [collect, analyst]
+    trigger_rule: all_done
+    script: record
+    runtime: bun
+    timeout: 60000
+    output_format:
+      type: object
+      properties:
+        status: { type: string }
+        reason: { type: string }
+      required: [status, reason]
+      additionalProperties: false

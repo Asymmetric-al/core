@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { cn } from "@asym/ui/lib/utils";
-import { AlertCircle, Check, Loader2 } from "lucide-react";
-import * as React from "react";
+import { AlertCircle, Check } from "lucide-react";
 
 interface SettingsToolbarProps {
   isDirty: boolean;
@@ -17,7 +17,7 @@ interface SettingsToolbarProps {
 /**
  * Persistent footer showing the dirty state + Save / Discard actions. Sits
  * at the bottom of each settings form so agents never lose track of
- * unsaved work.
+ * unsaved work. The status line is announced as it changes.
  */
 export function SettingsToolbar({
   isDirty,
@@ -27,6 +27,11 @@ export function SettingsToolbar({
   savedLabel = "Saved",
   className,
 }: SettingsToolbarProps) {
+  const status = isSaving
+    ? "Saving…"
+    : isDirty
+      ? "You have unsaved changes."
+      : savedLabel;
   return (
     <div
       className={cn(
@@ -34,24 +39,20 @@ export function SettingsToolbar({
         className,
       )}
     >
-      <span
+      <p
+        role="status"
         className={cn(
           "inline-flex items-center gap-2 text-xs font-medium",
           isDirty ? "text-warning" : "text-muted-foreground",
         )}
       >
         {isDirty ? (
-          <>
-            <AlertCircle className="size-3.5" />
-            You have unsaved changes.
-          </>
+          <AlertCircle aria-hidden="true" className="size-3.5" />
         ) : (
-          <>
-            <Check className="size-3.5 text-success" />
-            {savedLabel}
-          </>
+          <Check aria-hidden="true" className="size-3.5 text-success" />
         )}
-      </span>
+        {status}
+      </p>
       <div className="flex items-center gap-2">
         <Button
           type="button"
@@ -69,7 +70,10 @@ export function SettingsToolbar({
           disabled={!isDirty || isSaving}
           onClick={onSave}
         >
-          {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : null}
+          {/* Hidden: the status line above already says "Saving…". */}
+          {isSaving ? (
+            <Spinner aria-hidden="true" data-icon="inline-start" />
+          ) : null}
           Save changes
         </Button>
       </div>

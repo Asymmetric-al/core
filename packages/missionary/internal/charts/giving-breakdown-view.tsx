@@ -8,17 +8,32 @@ import {
   ChartLegendContent,
 } from "@asym/ui/components/shadcn/chart";
 import * as React from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import {
+  formatCents,
+  formatCurrencyFromCents,
+  MONEY_UNAVAILABLE,
+  moneyCurrency,
+} from "../../components/money-units";
 
 import type { useDonationMetrics } from "@asym/lib/hooks";
 import type { ChartConfig } from "@asym/ui/components/shadcn/chart";
+import type { XAxisTickContentProps } from "recharts";
 const chartConfig = {
   recurring: {
     label: "Recurring",
     color: "var(--chart-1)",
   },
   oneTime: {
-    label: "One-Time",
+    label: "One-time",
     color: "var(--chart-2)",
   },
   offline: {
@@ -155,103 +170,259 @@ function createRoundedBarShape(dataKey: DonationBarKey) {
 const RecurringBarShape = createRoundedBarShape("recurring");
 const OneTimeBarShape = createRoundedBarShape("oneTime");
 const OfflineBarShape = createRoundedBarShape("offline");
+export function formatAxisMoney(value: number, currency: string) {
+  return formatCurrencyFromCents(Math.round(value), currency);
+}
+
+const SERIES: DonationBarKey[] = ["recurring", "oneTime", "offline"];
+const SHAPES = {
+  recurring: RecurringBarShape,
+  oneTime: OneTimeBarShape,
+  offline: OfflineBarShape,
+};
+
+const SHORT_MONTH = new Intl.DateTimeFormat("en-US", { month: "short" });
+const SHORT_MONTHS = Array.from({ length: 12 }, (_, index) =>
+  SHORT_MONTH.format(new Date(2000, index, 1)),
+);
+const MONTH_NAME = new Intl.DateTimeFormat("en-US", { month: "long" });
+const MONTH_AND_YEAR = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric",
+});
+
+/** "Oct" of 2025 as "October 2025", or "October" without a year. */
+function fullMonthName(month: string, year?: number) {
+  const index = SHORT_MONTHS.indexOf(month);
+  if (index === -1) return year ? `${month} ${year}` : month;
+  const date = new Date(year || 2000, index, 1);
+  return (year ? MONTH_AND_YEAR : MONTH_NAME).format(date);
+}
+
+interface GivingMonthRow extends MonthlyData {
+  month: string;
+  year: number;
+  /** The month in full, as the table reads it out. */
+  monthName: string;
+}
+
+/**
+ * The chart's values for screen readers: the plotted bars are hidden from
+ * them, so each month's exact amounts by kind of gift are read from here.
+ */
+function GivingByMonthTable({
+  rows,
+  series,
+  currency,
+}: {
+  rows: GivingMonthRow[];
+  series: DonationBarKey[];
+  currency: string;
+}) {
+  const first = rows[0];
+  const last = rows.at(-1);
+  const period =
+    first && last
+      ? `, ${fullMonthName(first.month, first.year)} to ${fullMonthName(last.month, last.year)}`
+      : "";
+  return (
+    // A table grows to fit its content whatever its width, so the hidden
+    // wrapper does the clipping; sr-only on the table could widen the page.
+    <div className="sr-only">
+      <table>
+        <caption>{`Giving by month${period}`}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            {series.map((key) => (
+              <th key={key} scope="col">
+                {chartConfig[key].label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={`${row.year}-${row.month}`}>
+              <th scope="row">{row.monthName}</th>
+              {series.map((key) => (
+                <td key={key}>{formatCents(row[key], currency)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function GivingBreakdownView({
   monthlyBreakdown,
+  currency,
+  committedCents,
+  committedCurrency,
 }: {
   monthlyBreakdown: ReturnType<typeof useDonationMetrics>["monthlyBreakdown"];
+  /** Monthly recurring support now committed; drawn as a dashed line. */
+  committedCents?: number | null;
+  committedCurrency?: string | null;
+  currency: string;
 }) {
   const reduceMotion = useReducedMotion();
+  if (!moneyCurrency(currency)) return <p>{MONEY_UNAVAILABLE}</p>;
+  const canCompareCommitments =
+    moneyCurrency(committedCurrency) === moneyCurrency(currency) &&
+    committedCents != null &&
+    Number.isSafeInteger(committedCents) &&
+    committedCents >= 0;
+  // Only series with gifts get a bar and a legend entry.
+  const series = SERIES.filter((key) =>
+    monthlyBreakdown.some((month) => month[key] > 0),
+  );
+  const lastIndex = monthlyBreakdown.length - 1;
+  // The table names each month in full, with its year once they span two.
+  const spansYears =
+    new Set(monthlyBreakdown.map((month) => month.year)).size > 1;
+  // The current month is still in progress, so it reads "so far".
+  const data = monthlyBreakdown.map((month, index) => {
+    const soFar = index === lastIndex ? " (so far)" : "";
+    const name = month.year ? `${month.month} ${month.year}` : month.month;
+    const monthName = fullMonthName(
+      month.month,
+      spansYears ? month.year : undefined,
+    );
+    return {
+      ...month,
+      label: `${name}${soFar}`,
+      monthName: `${monthName}${soFar}`,
+    };
+  });
+  // The first month and each January show the year underneath ("’26"), so
+  // every label stays as narrow as the month and none are dropped for room.
+  const yearUnder = (index: number) => {
+    const point = data[index];
+    if (!point?.year || (index !== 0 && point.month !== "Jan")) return null;
+    return `’${String(point.year).slice(2)}`;
+  };
+  const monthTick = ({ x, y, payload, index }: XAxisTickContentProps) => {
+    const year = yearUnder(index);
+    return (
+      <text
+        x={x}
+        y={y}
+        dy={12}
+        textAnchor="middle"
+        fontSize={12}
+        fill="var(--muted-foreground)"
+      >
+        <tspan x={x}>{String(payload.value)}</tspan>
+        {year ? (
+          <tspan x={x} dy={14}>
+            {year}
+          </tspan>
+        ) : null}
+      </text>
+    );
+  };
   return (
-    <div className="h-50 sm:h-62.5 md:h-75 w-full grid grid-cols-1 grid-rows-1 items-stretch">
-      <ChartContainer config={chartConfig} className="w-full self-stretch">
-        <BarChart
-          data={monthlyBreakdown}
-          margin={{
-            top: 5,
-            right: 5,
-            left: 0,
-            bottom: 0,
-          }}
-          barGap={2}
-        >
-          <CartesianGrid
-            vertical={false}
-            strokeDasharray="3 3"
-            stroke="var(--border)"
-            opacity={0.3}
-          />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            tickMargin={5}
-            axisLine={false}
-            fontSize={12}
-            fontWeight={700}
-            stroke="var(--muted-foreground)"
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            tickLine={false}
-            axisLine={false}
-            fontSize={12}
-            fontWeight={700}
-            tickFormatter={(value) =>
-              value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
-            }
-            width={48}
-            tickMargin={4}
-            stroke="var(--muted-foreground)"
-          />
-          <ChartTooltip
-            cursor={{ fill: "var(--muted)", opacity: 0.4 }}
-            content={
-              <ChartTooltipContent
-                indicator="dot"
-                formatter={(value, name) => {
-                  const labels: Record<string, string> = {
-                    recurring: "Recurring",
-                    oneTime: "One-Time",
-                    offline: "Offline",
-                  };
-                  return (
+    <>
+      <div className="h-64 w-full min-w-0 sm:h-72">
+        {/* The table below reads these values out, so the plotted area is
+          hidden from screen readers and, being hidden, takes no focus. */}
+        <ChartContainer config={chartConfig} layout="fill" className="w-full">
+          <BarChart
+            aria-hidden
+            accessibilityLayer={false}
+            data={data}
+            margin={{
+              top: 5,
+              right: 5,
+              left: 0,
+              bottom: 0,
+            }}
+            barGap={2}
+          >
+            <CartesianGrid
+              vertical={false}
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              opacity={0.3}
+            />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={5}
+              axisLine={false}
+              fontSize={12}
+              stroke="var(--muted-foreground)"
+              interval="preserveStartEnd"
+              height={36}
+              tick={monthTick}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              fontSize={12}
+              tickFormatter={(value) =>
+                formatAxisMoney(Number(value), currency)
+              }
+              width={48}
+              tickMargin={4}
+              stroke="var(--muted-foreground)"
+            />
+            <ChartTooltip
+              cursor={{ fill: "var(--muted)", opacity: 0.4 }}
+              content={
+                <ChartTooltipContent
+                  indicator="dot"
+                  labelFormatter={(_, payload) =>
+                    String(payload?.[0]?.payload?.label ?? "")
+                  }
+                  formatter={(value, name) => (
                     <span className="flex items-center gap-2">
-                      <span>{labels[name as string] || name}</span>
-                      <span className="font-black">
-                        ${Number(value).toLocaleString()}
+                      <span>
+                        {chartConfig[name as DonationBarKey]?.label ?? name}
+                      </span>
+                      <span className="font-semibold tabular-nums">
+                        {formatCents(Number(value), currency)}
                       </span>
                     </span>
-                  );
-                }}
+                  )}
+                />
+              }
+            />
+            <ChartLegend content={<ChartLegendContent />} />
+            {series.map((key) => (
+              <Bar
+                key={key}
+                isAnimationActive={!reduceMotion}
+                dataKey={key}
+                stackId="donations"
+                fill={`var(--color-${key})`}
+                maxBarSize={48}
+                shape={SHAPES[key]}
               />
-            }
-          />
-          <ChartLegend content={<ChartLegendContent />} />
-          <Bar
-            isAnimationActive={!reduceMotion}
-            dataKey="recurring"
-            stackId="donations"
-            fill="var(--color-recurring)"
-            maxBarSize={48}
-            shape={RecurringBarShape}
-          />
-          <Bar
-            isAnimationActive={!reduceMotion}
-            dataKey="oneTime"
-            stackId="donations"
-            fill="var(--color-oneTime)"
-            maxBarSize={48}
-            shape={OneTimeBarShape}
-          />
-          <Bar
-            isAnimationActive={!reduceMotion}
-            dataKey="offline"
-            stackId="donations"
-            fill="var(--color-offline)"
-            maxBarSize={48}
-            shape={OfflineBarShape}
-          />
-        </BarChart>
-      </ChartContainer>
-    </div>
+            ))}
+            {canCompareCommitments && committedCents > 0 ? (
+              <ReferenceLine
+                y={committedCents}
+                stroke="var(--foreground)"
+                strokeDasharray="4 4"
+                strokeOpacity={0.5}
+                ifOverflow="extendDomain"
+              />
+            ) : null}
+          </BarChart>
+        </ChartContainer>
+        <GivingByMonthTable rows={data} series={series} currency={currency} />
+      </div>
+      {(committedCents !== undefined || committedCurrency !== undefined) &&
+      !canCompareCommitments ? (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Committed-support line unavailable: chart and commitments need
+          matching known currencies and valid amounts.
+        </p>
+      ) : null}
+    </>
   );
 }

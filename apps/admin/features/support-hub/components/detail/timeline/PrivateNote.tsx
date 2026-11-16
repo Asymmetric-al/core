@@ -9,8 +9,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { RichTextViewer } from "@asym/ui/components/shadcn/rich-text-editor";
 import { Lock } from "lucide-react";
 
-import { useSupportNow } from "../../../lib/now";
-import { formatRelative } from "../../../lib/time";
+import { RelativeTime } from "../../RelativeTime";
 
 import type { SupportMessage } from "../../../types";
 
@@ -23,7 +22,6 @@ interface PrivateNoteProps {
  * agent always knows the donor never sees this content.
  */
 export function PrivateNote({ message }: PrivateNoteProps) {
-  const nowIso = useSupportNow();
   return (
     <article
       className="rounded-2xl border border-warning/20 bg-warning/5 p-4 shadow-sm ring-1 ring-warning/20"
@@ -47,7 +45,7 @@ export function PrivateNote({ message }: PrivateNoteProps) {
           </Badge>
         </div>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
-          {formatRelative(message.postedAt, nowIso)}
+          <RelativeTime value={message.postedAt} />
         </span>
       </header>
       <div className="mt-2 text-sm leading-relaxed text-foreground">

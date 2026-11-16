@@ -11,6 +11,7 @@ import { asString, isRecord } from "../../shared/json-coerce";
 import type {
   AutomationActivationStatus,
   AutomationRule,
+  AutomationRuleRecentActivity,
   MissionControlAutomationDashboard,
   MissionControlAutomationSummary,
 } from "./types";
@@ -20,7 +21,8 @@ type SupabaseAdmin = AdminSupabaseClient;
 type JsonRecord = Record<string, unknown>;
 
 const ACTIVITY_LOG_LOOKBACK_MS = 24 * 60 * 60 * 1000;
-const ACTIVITY_LOG_SUMMARY_LIMIT = 1000;
+/** PostgREST max_rows (supabase/config.toml): the activity read pages. */
+const ACTIVITY_LOG_PAGE_SIZE = 1000;
 const AUTOMATION_ACTIVATION_STATUSES = new Set<AutomationActivationStatus>([
   "draft",
   "ready",
@@ -180,18 +182,20 @@ function assertActiveStatusReady(input: {
   }
 }
 
+const AUTOMATION_RULE_COLUMNS =
+  "id, name, mode, trigger, conditions, actions, run_mode, enabled, activation_status, updated_at";
+const AUTOMATION_RULE_PAGE_LIMIT = 100;
+
 export async function listMissionControlAutomationRules(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
 }) {
   const { data, error } = await input.supabaseAdmin
     .from("mission_control_automation_rules")
-    .select(
-      "id, name, mode, trigger, conditions, actions, run_mode, enabled, activation_status, updated_at",
-    )
+    .select(AUTOMATION_RULE_COLUMNS)
     .eq("tenant_id", input.tenantId)
     .order("updated_at", { ascending: false })
-    .limit(100);
+    .limit(AUTOMATION_RULE_PAGE_LIMIT);
 
   if (error) {
     throw new Error(error.message);
@@ -200,34 +204,115 @@ export async function listMissionControlAutomationRules(input: {
   return ((data ?? []) as JsonRecord[]).map(toAutomationRule);
 }
 
-async function loadMissionControlAutomationActivitySummary(input: {
+/**
+ * The tenant's rules with these ids. The dashboard reads rules that ran in
+ * the window but fell outside the newest page, so their runs land on a
+ * listed rule instead of reading as a deleted rule's.
+ */
+async function listMissionControlAutomationRulesById(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
-}): Promise<
-  Pick<
-    MissionControlAutomationSummary,
-    "activityLogBacked" | "executions24h" | "failedRuns24h"
-  >
-> {
-  const cutoff = new Date(Date.now() - ACTIVITY_LOG_LOOKBACK_MS).toISOString();
+  ruleIds: string[];
+}): Promise<AutomationRule[]> {
+  if (input.ruleIds.length === 0) return [];
+
   const { data, error } = await input.supabaseAdmin
-    .from("mission_control_automation_activity_logs")
-    .select("failures, created_at")
+    .from("mission_control_automation_rules")
+    .select(AUTOMATION_RULE_COLUMNS)
     .eq("tenant_id", input.tenantId)
-    .gte("created_at", cutoff)
-    .order("created_at", { ascending: false })
-    .limit(ACTIVITY_LOG_SUMMARY_LIMIT);
+    .in("id", input.ruleIds)
+    .order("updated_at", { ascending: false })
+    .limit(input.ruleIds.length);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  const rows = (data ?? []) as JsonRecord[];
+  return ((data ?? []) as JsonRecord[]).map(toAutomationRule);
+}
+
+const NO_RECENT_ACTIVITY: AutomationRuleRecentActivity = {
+  runs24h: 0,
+  failedRuns24h: 0,
+  lastFailureAt: null,
+};
+
+/**
+ * Per-rule runs and failures from the same activity rows the summary
+ * counts. Rows with no rule (the foreign key clears it when a rule is
+ * deleted) count only in the summary.
+ */
+function summarizeActivityByRule(
+  rows: JsonRecord[],
+): Map<string, AutomationRuleRecentActivity> {
+  const byRule = new Map<string, AutomationRuleRecentActivity>();
+  for (const row of rows) {
+    const ruleId = asString(row.rule_id);
+    if (!ruleId) continue;
+    const current = byRule.get(ruleId) ?? { ...NO_RECENT_ACTIVITY };
+    current.runs24h += 1;
+    if (activityLogHasFailures(row)) {
+      current.failedRuns24h += 1;
+      const createdAt = asString(row.created_at);
+      if (
+        createdAt &&
+        (current.lastFailureAt === null ||
+          Date.parse(createdAt) > Date.parse(current.lastFailureAt))
+      ) {
+        current.lastFailureAt = createdAt;
+      }
+    }
+    byRule.set(ruleId, current);
+  }
+  return byRule;
+}
+
+async function loadMissionControlAutomationActivitySummary(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+}): Promise<{
+  summary: Pick<
+    MissionControlAutomationSummary,
+    "activityLogBacked" | "executions24h" | "failedRuns24h"
+  >;
+  byRule: Map<string, AutomationRuleRecentActivity>;
+  /** Failed runs whose log row names no rule (its rule was deleted). */
+  failedRunsWithoutRule: number;
+}> {
+  const cutoff = new Date(Date.now() - ACTIVITY_LOG_LOOKBACK_MS).toISOString();
+  // Every run in the window, page by page: a rule past one page must not
+  // read as "No runs", and the totals must count every run.
+  const rows: JsonRecord[] = [];
+  for (let from = 0; ;) {
+    const { data, error } = await input.supabaseAdmin
+      .from("mission_control_automation_activity_logs")
+      .select("rule_id, failures, created_at")
+      .eq("tenant_id", input.tenantId)
+      .gte("created_at", cutoff)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(from, from + ACTIVITY_LOG_PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const page = (data ?? []) as JsonRecord[];
+    if (page.length === 0) break;
+    rows.push(...page);
+    from += page.length;
+  }
 
   return {
-    executions24h: rows.length,
-    failedRuns24h: rows.filter(activityLogHasFailures).length,
-    activityLogBacked: true,
+    summary: {
+      executions24h: rows.length,
+      failedRuns24h: rows.filter(activityLogHasFailures).length,
+      activityLogBacked: true,
+    },
+    byRule: summarizeActivityByRule(rows),
+    failedRunsWithoutRule: rows.filter(
+      (row) => !asString(row.rule_id) && activityLogHasFailures(row),
+    ).length,
   };
 }
 
@@ -235,16 +320,48 @@ export async function loadMissionControlAutomationDashboard(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
 }): Promise<MissionControlAutomationDashboard> {
-  const automationRules = await listMissionControlAutomationRules(input);
+  const pageRules = await listMissionControlAutomationRules(input);
+  const activity = await loadMissionControlAutomationActivitySummary(input);
+
+  // The page holds the newest rules only. A rule that ran in the window but
+  // sits past it is read by id, so its runs and failures stay on a rule.
+  const listedIds = new Set(
+    pageRules.flatMap((rule) => (rule.id ? [rule.id] : [])),
+  );
+  const ranOutsidePage = [...activity.byRule.keys()].filter(
+    (ruleId) => !listedIds.has(ruleId),
+  );
+  const extraRules = await listMissionControlAutomationRulesById({
+    ...input,
+    ruleIds: ranOutsidePage,
+  });
+  const automationRules = [...pageRules, ...extraRules];
   const ruleSummary = countRuleSummary(automationRules);
-  const activitySummary =
-    await loadMissionControlAutomationActivitySummary(input);
+
+  // A rule id that could not be read back has no rule to show, so its
+  // failures count with the runs that name no rule.
+  const readIds = new Set(
+    extraRules.flatMap((rule) => (rule.id ? [rule.id] : [])),
+  );
+  const failedRunsOfUnreadRules = ranOutsidePage
+    .filter((ruleId) => !readIds.has(ruleId))
+    .reduce(
+      (total, ruleId) =>
+        total + (activity.byRule.get(ruleId)?.failedRuns24h ?? 0),
+      0,
+    );
 
   return {
-    automationRules,
+    automationRules: automationRules.map((rule) => ({
+      ...rule,
+      ...((rule.id ? activity.byRule.get(rule.id) : undefined) ??
+        NO_RECENT_ACTIVITY),
+    })),
     summary: {
       ...ruleSummary,
-      ...activitySummary,
+      ...activity.summary,
+      failedRunsWithoutRule24h:
+        activity.failedRunsWithoutRule + failedRunsOfUnreadRules,
       integrationHealthBacked: false,
     },
   };

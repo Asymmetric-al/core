@@ -27,6 +27,6 @@ describe("admin table action menu grouping", () => {
       "apps/admin/app/(app)/contributions/columns.tsx",
     );
 
-    expect(actionsGroupSource(source)).toContain("View Details");
+    expect(actionsGroupSource(source)).toContain("View details");
   });
 });

@@ -1,3 +1,5 @@
+import { moneyProgress } from "./money-units";
+
 import type { MissionaryPortalSnapshot } from "@asym/database/hooks";
 
 /**
@@ -8,10 +10,13 @@ import type { MissionaryPortalSnapshot } from "@asym/database/hooks";
  */
 
 export interface DashboardSupportView {
-  goalCents: number;
-  raisedCents: number;
-  remainingCents: number;
-  percentFunded: number;
+  goalCents: number | null;
+  goalCurrency: string | null;
+  monthlyCommittedCurrency: string | null;
+  /** Active recurring pledges, normalised to a month. */
+  monthlyCommittedCents: number | null;
+  remainingCents: number | null;
+  percentFunded: number | null;
   giftCount: number;
   activeDonorCount: number;
   hasGoal: boolean;
@@ -19,6 +24,7 @@ export interface DashboardSupportView {
 
 export interface DashboardUpdateView {
   id: string;
+  title: string;
   content: string;
   createdAt: string | null;
 }
@@ -28,6 +34,8 @@ export interface DashboardTaskView {
   title: string;
   priority: string;
   dueDate: string | null;
+  /** Due before today (local calendar day). */
+  overdue: boolean;
 }
 
 export interface DashboardAlertView {
@@ -43,28 +51,55 @@ interface MissionaryDashboardView {
   alerts: DashboardAlertView[];
 }
 
+/** A YYYY-MM-DD (or ISO) due date as a local calendar day. */
+function localDay(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+function isOverdue(dueDate: string | null, now: Date): boolean {
+  if (!dueDate) return false;
+  const due = localDay(dueDate);
+  if (!due) return false;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return due.getTime() < today.getTime();
+}
+
+/** Task statuses that no longer need doing: completed or set aside. */
+const CLOSED_TASK_STATUSES = new Set(["completed", "deferred"]);
+
 export function buildMissionaryDashboardView(
   snapshot: MissionaryPortalSnapshot | undefined | null,
+  now: Date = new Date(),
 ): MissionaryDashboardView {
   const rawSupport = snapshot?.support ?? null;
+  const progress = rawSupport
+    ? moneyProgress(
+        rawSupport.recurringMonthlyCents,
+        rawSupport.recurringCurrency,
+        rawSupport.goalCents,
+        rawSupport.goalCurrency,
+      )
+    : null;
   const support: DashboardSupportView | null = rawSupport
     ? {
         goalCents: rawSupport.goalCents,
-        raisedCents: rawSupport.raisedCents,
-        remainingCents: Math.max(
-          0,
-          rawSupport.goalCents - rawSupport.raisedCents,
-        ),
-        percentFunded: rawSupport.percentFunded,
+        goalCurrency: rawSupport.goalCurrency,
+        monthlyCommittedCurrency: rawSupport.recurringCurrency,
+        monthlyCommittedCents: rawSupport.recurringMonthlyCents,
+        remainingCents: progress?.remaining ?? null,
+        percentFunded: progress?.percent ?? null,
         giftCount: rawSupport.giftCount,
         activeDonorCount: rawSupport.activeDonorCount,
-        hasGoal: rawSupport.goalCents > 0,
+        hasGoal: progress !== null,
       }
     : null;
 
   const updates: DashboardUpdateView[] = (snapshot?.ministryUpdates ?? []).map(
     (update) => ({
       id: String(update.id),
+      title: update.title,
       content: update.excerpt,
       createdAt: update.createdAt,
     }),
@@ -72,33 +107,32 @@ export function buildMissionaryDashboardView(
 
   const pendingTasks: DashboardTaskView[] = (snapshot?.tasks ?? []).flatMap(
     (task) =>
-      task.status !== "completed"
-        ? [
+      CLOSED_TASK_STATUSES.has(task.status)
+        ? []
+        : [
             {
               id: String(task.id),
               title: task.title,
               priority: task.priority ?? "none",
               dueDate: task.due_date ?? null,
+              overdue: isOverdue(task.due_date ?? null, now),
             },
-          ]
-        : [],
+          ],
   );
 
   const alerts: DashboardAlertView[] = [];
   if (pendingTasks.length > 0) {
-    const noun = pendingTasks.length === 1 ? "task needs" : "tasks need";
-    alerts.push({
-      id: "tasks",
-      text: `${pendingTasks.length} support ${noun} attention`,
-      severity: "high",
-    });
-  }
-  if (support && support.activeDonorCount > 0) {
-    alerts.push({
-      id: "donors",
-      text: `${support.activeDonorCount} active donor relationships`,
-      severity: "medium",
-    });
+    const overdue = pendingTasks.filter((task) => task.overdue).length;
+    const open = `${pendingTasks.length} open ${pendingTasks.length === 1 ? "task" : "tasks"}`;
+    alerts.push(
+      overdue > 0
+        ? {
+            id: "tasks",
+            text: `${overdue} of ${open} ${overdue === 1 ? "is" : "are"} overdue`,
+            severity: "high",
+          }
+        : { id: "tasks", text: open, severity: "medium" },
+    );
   }
 
   return { support, updates, pendingTasks, alerts };

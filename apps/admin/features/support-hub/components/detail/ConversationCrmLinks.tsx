@@ -1,5 +1,6 @@
 "use client";
 
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 
@@ -37,12 +38,15 @@ export function ConversationCrmLinks({
           <Link
             href={link.href}
             prefetch={false}
-            aria-label={link.description}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            title={link.description}
+            className={buttonVariants({ variant: "outline", size: "xs" })}
           >
             {link.icon}
             {link.label}
-            <ExternalLink className="size-3 text-muted-foreground" />
+            <ExternalLink
+              aria-hidden="true"
+              className="size-3 text-muted-foreground"
+            />
           </Link>
         </li>
       ))}

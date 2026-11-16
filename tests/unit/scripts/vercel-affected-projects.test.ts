@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -50,6 +52,13 @@ describe("Vercel affected-project deployment controls", () => {
         rootDirectory: "apps/missionary",
       },
     ]);
+  });
+
+  it("keeps the private VM 100 operator Console off Vercel", () => {
+    expect(
+      VERCEL_PROJECTS.map((project) => project.rootDirectory),
+    ).not.toContain("apps/factory-console");
+    expect(existsSync("apps/factory-console/vercel.json")).toBe(false);
   });
 
   it("builds the exact Vercel API endpoints and PATCH payload", () => {

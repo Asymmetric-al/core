@@ -45,8 +45,38 @@ export interface OperationDefinition {
   }) => Record<string, unknown>;
 }
 
+/**
+ * One whole money amount as staff type it: optional "$", digits with
+ * optional grouped thousands ("1,500"), and up to two decimal places.
+ */
+const AMOUNT_PATTERN = /^\$?(\d{1,3}(?:,\d{3})+|\d+)?(?:\.(\d{1,2}))?$/;
+
+/**
+ * The amount as exact integer cents, or null when the text is not one
+ * whole amount. Strict on purpose: `parseFloat` read "1,500.00" as 1 and
+ * "600abc" as 600, so a refund or correction could submit a different
+ * amount than the one typed. The cents come from the digits (no floating
+ * point), so "0.29" is 29, not 28.
+ */
+export function parseAmountToCents(text: string | undefined): number | null {
+  const match = AMOUNT_PATTERN.exec((text ?? "").trim());
+  if (!match) return null;
+  const [, whole = "", fraction] = match;
+  if (whole === "" && fraction === undefined) return null;
+  const cents =
+    Number(whole.replaceAll(",", "") || "0") * 100 +
+    Number((fraction ?? "").padEnd(2, "0") || "0");
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
 function dollarsToCents(amountDollars: string | undefined): number {
-  return Math.round(Number.parseFloat(amountDollars || "0") * 100);
+  const cents = parseAmountToCents(amountDollars);
+  if (cents === null) {
+    // The shell validates the amount before it builds a payload; a payload
+    // is never built from text that is not one whole amount.
+    throw new Error("The amount is not a valid money amount.");
+  }
+  return cents;
 }
 
 export const OPERATION_DEFINITIONS: Record<
@@ -217,4 +247,50 @@ export function operationDefinitionFor(
   actionType: SupportedOperationActionType,
 ): OperationDefinition {
   return OPERATION_DEFINITIONS[actionType];
+}
+
+/** Payment states the server treats as settled for receipts and refunds. */
+export function isCompletedContributionPaymentStatus(
+  paymentStatus: string | null,
+): boolean {
+  const normalizedStatus = paymentStatus?.toLowerCase() ?? null;
+
+  return (
+    normalizedStatus === "completed" ||
+    normalizedStatus === "succeeded" ||
+    normalizedStatus === "success"
+  );
+}
+
+export interface ContributionReceiptSendBlock {
+  blockedReason: string;
+  nextStep: string;
+}
+
+/**
+ * Why a receipt cannot be sent for a gift that has a staged gift record, or
+ * null when it can. The server's `resend_receipt` availability applies this
+ * rule, and it lives here (a client-safe module) so the Hub's bulk receipt
+ * dialog counts exactly the gifts the server would receipt.
+ */
+export function getContributionReceiptSendBlock(input: {
+  receiptStatus: string | null;
+  paymentStatus: string | null;
+}): ContributionReceiptSendBlock | null {
+  if (input.receiptStatus === "suppressed") {
+    return {
+      blockedReason: "Receipts are suppressed for this gift.",
+      nextStep:
+        "Review the donor's receipt preference before sending donor communication.",
+    };
+  }
+
+  if (!isCompletedContributionPaymentStatus(input.paymentStatus)) {
+    return {
+      blockedReason: "The payment is not completed yet.",
+      nextStep: "Receipts can be sent once the gift payment completes.",
+    };
+  }
+
+  return null;
 }

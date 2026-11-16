@@ -1,14 +1,26 @@
-import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarDays,
+  parseISO,
+  startOfDay,
+} from "date-fns";
 
 import type {
   AttentionGap,
+  CareRequirement,
   CarePlanTask,
   DashboardNotification,
   MemberCareDerivationInput,
 } from "./member-care.types";
 import type { ActivityLogEntry, ActivityType, CarePersonnel } from "./types";
 
-const DEFAULT_ROUTINE_INTERVAL_DAYS = 30;
+export const DEFAULT_ROUTINE_INTERVAL_DAYS = 30;
+
+/** The overview lists birthdays falling within this many days. */
+export const UPCOMING_BIRTHDAY_WINDOW_DAYS = 14;
+
+/** The overview counts care activity logged within this many days. */
+export const RECENT_CHECK_IN_WINDOW_DAYS = 30;
 
 const TYPE_INTERVALS: Partial<Record<ActivityType, number>> = {
   "Video Call": 14,
@@ -26,7 +38,7 @@ function toDate(input: string): Date {
 }
 
 function safeDaysSince(
-  date: string | undefined,
+  date: string | null | undefined,
   now: Date,
 ): number | undefined {
   if (!date) return undefined;
@@ -46,14 +58,14 @@ export function getIntervalDaysForActivity(type: ActivityType): number {
 export function getUpcomingBirthdays(
   personnel: CarePersonnel[],
   now = new Date(),
-  windowDays = 14,
+  windowDays = UPCOMING_BIRTHDAY_WINDOW_DAYS,
 ): CarePersonnel[] {
-  const end = addDays(now, windowDays);
+  const today = startOfDay(now);
+  const end = addDays(today, windowDays);
 
   return personnel
     .filter((person) => {
-      const birthday = (person as CarePersonnel & { birthDate?: string })
-        .birthDate;
+      const birthday = person.birthDate;
       if (!birthday) return false;
       const parsed = toDate(birthday);
       if (Number.isNaN(parsed.getTime())) return false;
@@ -63,19 +75,15 @@ export function getUpcomingBirthdays(
         parsed.getMonth(),
         parsed.getDate(),
       );
-      if (nextBirthday < now) {
+      if (nextBirthday < today) {
         nextBirthday.setFullYear(now.getFullYear() + 1);
       }
 
-      return nextBirthday >= now && nextBirthday <= end;
+      return nextBirthday >= today && nextBirthday <= end;
     })
     .sort((a, b) => {
-      const aDate = toDate(
-        (a as CarePersonnel & { birthDate: string }).birthDate,
-      );
-      const bDate = toDate(
-        (b as CarePersonnel & { birthDate: string }).birthDate,
-      );
+      const aDate = toDate(a.birthDate!);
+      const bDate = toDate(b.birthDate!);
       const nextA = new Date(
         now.getFullYear(),
         aDate.getMonth(),
@@ -86,8 +94,8 @@ export function getUpcomingBirthdays(
         bDate.getMonth(),
         bDate.getDate(),
       );
-      if (nextA < now) nextA.setFullYear(now.getFullYear() + 1);
-      if (nextB < now) nextB.setFullYear(now.getFullYear() + 1);
+      if (nextA < today) nextA.setFullYear(now.getFullYear() + 1);
+      if (nextB < today) nextB.setFullYear(now.getFullYear() + 1);
       return nextA.getTime() - nextB.getTime();
     });
 }
@@ -100,110 +108,189 @@ function getLatestActivityByPersonnel(
   return activities
     .filter(
       (entry) =>
-        entry.personnelId === personnelId && (!type || entry.type === type),
+        isLoggedContact(entry) &&
+        entry.personnelId === personnelId &&
+        Number.isFinite(toDate(entry.date).getTime()) &&
+        (!type || entry.type === type),
     )
     .sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime())[0];
 }
+
+export function isLoggedContact(entry: ActivityLogEntry): boolean {
+  return entry.kind !== "thread";
+}
+
+export function getLastContactDate(
+  person: Pick<CarePersonnel, "id" | "lastCheckIn">,
+  activities: ActivityLogEntry[],
+  lastContacts?: MemberCareDerivationInput["lastContacts"],
+): string | null {
+  const personContacts = lastContacts?.[person.id];
+  const candidates = [
+    person.lastCheckIn,
+    ...(personContacts
+      ? Object.values(personContacts)
+      : [getLatestActivityByPersonnel(activities, person.id)?.date]),
+  ].filter(
+    (value): value is string =>
+      typeof value === "string" &&
+      Number.isFinite(toDate(value).getTime()) &&
+      toDate(value).getTime() > 0,
+  );
+  return (
+    candidates.sort((a, b) => toDate(b).getTime() - toDate(a).getTime())[0] ??
+    null
+  );
+}
+
+export function toCareRequirements(
+  requirements: NonNullable<MemberCareDerivationInput["requirements"]>,
+): CareRequirement[] {
+  const unique = new Map<string, CareRequirement>();
+  for (const requirement of requirements) {
+    const key = `${requirement.personnelId}:${requirement.activityType}`;
+    const previous = unique.get(key);
+    if (
+      !previous ||
+      (requirement.intervalDays ??
+        getIntervalDaysForActivity(requirement.activityType)) <
+        (previous.intervalDays ??
+          getIntervalDaysForActivity(previous.activityType))
+    ) {
+      unique.set(key, requirement);
+    }
+  }
+  return [...unique.values()];
+}
+
+const SEVERITY_RANK = { critical: 0, high: 1, moderate: 2 };
 
 export function getAttentionGaps({
   personnel,
   activities,
   requirements = [],
+  lastContacts,
   now = new Date(),
 }: Pick<
   MemberCareDerivationInput,
-  "personnel" | "activities" | "requirements" | "now"
+  "personnel" | "activities" | "requirements" | "lastContacts" | "now"
 >): AttentionGap[] {
   const gaps: AttentionGap[] = [];
-
+  const cadences = toCareRequirements(requirements);
   for (const person of personnel) {
-    const latest = getLatestActivityByPersonnel(activities, person.id);
     const lastContactDays = safeDaysSince(
-      latest?.date ?? person.lastCheckIn,
+      getLastContactDate(person, activities, lastContacts),
       now,
     );
-    const personRequirements = requirements.filter(
-      (requirement) => requirement.personnelId === person.id,
-    );
-
+    const base = {
+      personnelId: person.id,
+      personnelName: person.name,
+      status: person.status,
+      daysSinceLastContact: lastContactDays,
+    };
     if (person.manualAttention) {
       gaps.push({
-        personnelId: person.id,
-        personnelName: person.name,
-        status: person.status,
+        ...base,
         reason: "manual_attention",
-        reasonLabel: "Flagged for manual attention",
-        daysSinceLastContact: lastContactDays,
-        daysOverdue: Math.max(lastContactDays ?? 0, 0),
+        reasonLabel: "Flagged for attention",
+        daysOverdue: 0,
         severity: "critical",
       });
       continue;
     }
-
-    if (personRequirements.length === 0) {
-      if ((lastContactDays ?? 0) > DEFAULT_ROUTINE_INTERVAL_DAYS) {
-        gaps.push({
-          personnelId: person.id,
-          personnelName: person.name,
-          status: person.status,
-          reason: "routine_checkin",
-          reasonLabel: `No contact for ${lastContactDays} days`,
-          daysSinceLastContact: lastContactDays,
-          daysOverdue: (lastContactDays ?? 0) - DEFAULT_ROUTINE_INTERVAL_DAYS,
-          severity: isCriticalStatus(person.status) ? "critical" : "moderate",
-        });
-      }
+    if (isCriticalStatus(person.status)) {
+      gaps.push({
+        ...base,
+        reason: "status",
+        reasonLabel: person.status === "Crisis" ? "Crisis" : "At risk",
+        daysOverdue: 0,
+        severity: "critical",
+      });
       continue;
     }
-
-    for (const requirement of personRequirements) {
-      const latestForType = getLatestActivityByPersonnel(
-        activities,
-        person.id,
-        requirement.activityType,
-      );
-      const intervalDays =
+    if (lastContactDays === undefined) {
+      gaps.push({
+        ...base,
+        reason: "never_contacted",
+        reasonLabel: "No care contact recorded",
+        daysOverdue: DEFAULT_ROUTINE_INTERVAL_DAYS,
+        severity: "high",
+      });
+      continue;
+    }
+    const saved = cadences.filter((r) => r.personnelId === person.id);
+    if (saved.length === 0) {
+      if (lastContactDays > DEFAULT_ROUTINE_INTERVAL_DAYS)
+        gaps.push({
+          ...base,
+          reason: "routine_checkin",
+          reasonLabel: `No contact for ${lastContactDays} days`,
+          daysOverdue: lastContactDays - DEFAULT_ROUTINE_INTERVAL_DAYS,
+          severity: "moderate",
+        });
+      continue;
+    }
+    const personContacts = lastContacts?.[person.id];
+    for (const requirement of saved) {
+      const date = personContacts
+        ? personContacts[requirement.activityType]
+        : getLatestActivityByPersonnel(
+            activities,
+            person.id,
+            requirement.activityType,
+          )?.date;
+      const days = safeDaysSince(date, now);
+      const interval =
         requirement.intervalDays ??
         getIntervalDaysForActivity(requirement.activityType);
-
-      if (!latestForType || requirement.neverMet) {
+      const label =
+        requirement.label ??
+        requirement.activityType.charAt(0) +
+          requirement.activityType.slice(1).toLowerCase();
+      if (days === undefined || requirement.neverMet) {
         gaps.push({
-          personnelId: person.id,
-          personnelName: person.name,
-          status: person.status,
+          ...base,
           reason: "never_met_requirement",
-          reasonLabel: `Never met: ${requirement.label ?? requirement.activityType}`,
-          daysOverdue: intervalDays,
+          reasonLabel: `Never met: ${label}`,
+          daysOverdue: interval,
           severity: "high",
         });
-        continue;
-      }
-
-      const daysSince = safeDaysSince(latestForType.date, now) ?? 0;
-      if (daysSince > intervalDays) {
+      } else if (days > interval) {
         gaps.push({
-          personnelId: person.id,
-          personnelName: person.name,
-          status: person.status,
+          ...base,
           reason: "requirement_gap",
-          reasonLabel: `${requirement.label ?? requirement.activityType} overdue`,
-          daysSinceLastContact: daysSince,
-          daysOverdue: daysSince - intervalDays,
-          severity:
-            isCriticalStatus(person.status) || daysSince - intervalDays > 14
-              ? "critical"
-              : "high",
+          reasonLabel: `${label} overdue`,
+          daysOverdue: days - interval,
+          severity: days - interval > 14 ? "critical" : "high",
         });
       }
     }
   }
-
   return gaps.sort((a, b) => {
-    if (a.reason === "manual_attention" && b.reason !== "manual_attention")
-      return -1;
-    if (b.reason === "manual_attention" && a.reason !== "manual_attention")
-      return 1;
-    return b.daysOverdue - a.daysOverdue;
+    const priority = (gap: AttentionGap) =>
+      gap.reason === "manual_attention"
+        ? 0
+        : gap.reason === "status"
+          ? gap.status === "Crisis"
+            ? 1
+            : 2
+          : 3;
+    return (
+      priority(a) - priority(b) ||
+      SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+      b.daysOverdue - a.daysOverdue
+    );
+  });
+}
+
+export function getPeopleNeedingAttention(
+  input: MemberCareDerivationInput,
+): AttentionGap[] {
+  const seen = new Set<string>();
+  return getAttentionGaps(input).filter((gap) => {
+    if (seen.has(gap.personnelId)) return false;
+    seen.add(gap.personnelId);
+    return true;
   });
 }
 
@@ -219,7 +306,7 @@ export function getDueCareTasks(
 ): CarePlanTask[] {
   return tasks
     .flatMap((task) => {
-      if (!(task.status !== "completed")) return [];
+      if (task.status === "completed") return [];
       const isPastDue = toDate(task.dueDate) < now;
       return [
         {
@@ -271,9 +358,10 @@ export function getDashboardNotifications(
 export function getRecentCheckInCount(
   activities: ActivityLogEntry[],
   now = new Date(),
-  days = 30,
+  days = RECENT_CHECK_IN_WINDOW_DAYS,
 ): number {
   return activities.filter((activity) => {
+    if (!isLoggedContact(activity)) return false;
     const daysSince = safeDaysSince(activity.date, now);
     return typeof daysSince === "number" && daysSince >= 0 && daysSince <= days;
   }).length;

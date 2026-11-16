@@ -13,6 +13,8 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   applyManagedSkillCompatibility,
+  assertRegularSkillEntrypoint,
+  ensureExplicitOnlyNativePolicy,
   formatManagedSkillOutput,
 } from "./lib/managed-skill-compatibility.mjs";
 import {
@@ -317,7 +319,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/Fission-AI/OpenSpec.git",
     source: "Fission-AI/OpenSpec",
     sourceUrl: "https://github.com/Fission-AI/OpenSpec",
-    ref: "v1.14.3",
+    ref: "v2.0.0",
     sourceRoot: "skills",
     skillNames: openspecSkillNames,
     lockSkillPath(skillName) {
@@ -327,7 +329,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/Fission-AI/OpenSpec/tree/v1.14.3/skills/${skillName}`;
+      return `https://github.com/Fission-AI/OpenSpec/tree/v2.0.0/skills/${skillName}`;
     },
     skillExtraCopies: Object.fromEntries(
       openspecSkillNames.map((skillName) => [
@@ -2649,6 +2651,12 @@ async function prepareGithubSkillRefresh({
       );
     return null;
   }
+  // `cp` copies a link as a link. A linked skill directory would make the
+  // staging path a link, and every later write would follow it out of the tree.
+  if (!(await lstat(upstreamSkillDir)).isDirectory())
+    throw new Error(
+      "Upstream skill source must be a real directory: " + upstreamSkillDir,
+    );
   if (group.source === "cloudflare/security-audit-skill")
     await assertSecurityAuditSource(upstreamSkillDir, cloneDir);
   await assertCanonicalDirectoryEntry(to);
@@ -2659,6 +2667,8 @@ async function prepareGithubSkillRefresh({
 
   try {
     await cp(upstreamSkillDir, staging, { recursive: true });
+    // `cp` keeps a linked SKILL.md as a link; reject it before any transform.
+    await assertRegularSkillEntrypoint(staging);
     await copySkillExtraFiles({
       cloneDir,
       targetRoot: staging,
@@ -2675,6 +2685,8 @@ async function prepareGithubSkillRefresh({
     await formatSkillTarget(staging);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
+    // The final frontmatter is settled here; keep Codex's native policy in step.
+    await ensureExplicitOnlyNativePolicy(staging);
 
     const hash = await sha256File(path.join(staging, "SKILL.md"));
     await writeUpstreamMetadata({
@@ -3020,6 +3032,8 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     await applyManagedSkillCompatibility(skillName, staging);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
+    // The final frontmatter is settled here; keep Codex's native policy in step.
+    await ensureExplicitOnlyNativePolicy(staging);
     await formatManagedSkillOutput(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
     await assertReviewedSkillFileModes(skillName, staging);

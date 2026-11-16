@@ -15,21 +15,21 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Shared UI primitives live in `packages/ui`. Apps should consume them via `@asym/ui`.
   The detailed `base-maia` implementation contract is `packages/ui/AGENTS.md`.
 - Do not generate shadcn components inside `apps/*`.
-- All shared primitives are Base UI (`@base-ui/react`) via the shadcn `base-maia` style. The repo is Base UI only.
+- Shared primitives are Base UI (`@base-ui/react`) via the shadcn `base-maia` style, the only primitive base. UI SDK (`@ui-sdk/react`) is the one approved complementary behavior library, limited to interactions no existing `@asym/ui` component provides and wrapped in `packages/ui` (see "UI SDK" in `packages/ui/AGENTS.md` and `docs/ai/skills/ui-sdk/SKILL.md`).
 - For app code, follow the existing feature structure already used in each app.
 
 ### Imports
 
-- In `apps/*`, import shared UI from `@asym/ui` (deep imports are currently the standard).
-- In `packages/ui`, prefer the internal `@/` alias for new or touched files.
+- In `apps/*`, import shared UI from `@asym/ui` (deep imports are currently the standard). Never import `@ui-sdk/*` in an app; import its `@asym/ui` wrapper.
+- In `packages/ui`, prefer the internal `@/` alias for new or touched files that apps never import. Components, primitives, and hooks that apps import use `@asym/ui/...` or relative imports, because each app typechecks them with its own `@/` mapping.
 - Keep existing internal `@asym/ui/*` imports working until they are migrated; avoid mixing patterns within the same file.
 - Import icons from `lucide-react`.
 
 ### Component and primitive policy
 
-- Base UI for all behavior-heavy primitives. Never add `radix-ui` or `@radix-ui/*` imports, dependencies, or `--radix-*` CSS variables.
+- Base UI for every behavior-heavy primitive it provides; UI SDK only for the gaps above, through a `packages/ui` wrapper. Never add `radix-ui` or `@radix-ui/*` imports, dependencies, or `--radix-*` CSS variables.
 - Composition uses Base UI's `render` prop — `asChild` does not exist here. For link-style buttons, prefer `buttonVariants` on the `Link`/`<a>` over rendering `Button` as a link.
-- State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated.
+- State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated. UI SDK wrappers style that library's own documented `data-slot` and state attributes (for example `data-filled`) with semantic tokens, never its optional `web.css`.
 - Use `'use client'` only when required (hooks, state, browser APIs).
 - Reuse existing shared primitives before creating new ones.
 - For accessibility audits or fixes involving names, semantics, keyboard/focus,
@@ -146,7 +146,7 @@ implementation task.
 
 - [ ] `'use client'` only where required
 - [ ] Shared `@asym/ui` primitives reused when possible
-- [ ] New/refactored primitives follow Base UI first policy
+- [ ] New/refactored primitives follow Base UI first policy; any UI SDK use fills a gap no shared component covers, through a `packages/ui` wrapper
 - [ ] No `radix-ui`/`@radix-ui/*` imports anywhere; composition uses Base UI `render`, not `asChild`
 - [ ] Tailwind uses tokens (no arbitrary values)
 - [ ] Browser table reads go through `@asym/database/hooks` or collection exports
@@ -158,7 +158,7 @@ implementation task.
 ### Review checklist
 
 - [ ] App imports use `@asym/ui` (not app-local shadcn copies)
-- [ ] New/touched `packages/ui` files use `@/`; legacy internal `@asym/ui/*` imports are allowed when untouched
+- [ ] New/touched `packages/ui` files use `@/` unless apps import them (those use `@asym/ui/...` or relative paths); legacy internal `@asym/ui/*` imports are allowed when untouched
 - [ ] Icons imported from `lucide-react`
 - [ ] No Zustand usage
 - [ ] shadcn/studio MCP rules used only when running `/cui`, `/rui`, `/iui`, `/ftc`
@@ -233,4 +233,5 @@ export function SearchForm() {
 - Using arbitrary Tailwind values instead of tokens
 - Hardcoding colors instead of shared Maia/Zinc tokens
 - Using Zustand or other unapproved state libraries
+- Reaching for UI SDK where Base UI or another existing `@asym/ui` component covers the interaction, importing `@ui-sdk/*` in an app, re-exporting the SDK, or loading its optional `web.css`
 - Forcing TanStack Form onto trivial search/filter or server-only form surfaces

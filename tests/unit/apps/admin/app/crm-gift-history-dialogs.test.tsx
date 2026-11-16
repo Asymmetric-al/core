@@ -18,7 +18,9 @@ describe("tenant default confirmation layout", () => {
       />,
     );
 
-    const confirm = view.getByRole("button", { name: "Set tenant default" });
+    const confirm = view.getByRole("button", {
+      name: "Set organization default",
+    });
     expect(confirm.parentElement?.classList.contains("flex-wrap")).toBe(true);
   });
 });

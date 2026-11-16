@@ -16,6 +16,7 @@ import { BASELINE_SPEC, ROOT, loadSpec, pick, read, runFresh } from "./harness";
 
 const source = read(BASELINE_SPEC);
 const opts = { source };
+const historicalSettings = { settingsVersion: "baseline" as const };
 
 describe("#2224 criterion 16: the acceptance suite runs under test:unit and fails the pre-fix spec", () => {
   it("test:unit includes tests/unit/acceptance/**", () => {
@@ -33,26 +34,47 @@ describe("#2224 criterion 16: the acceptance suite runs under test:unit and fail
 
   it("the pre-fix open test passes with no fixture (vacuous pass)", async () => {
     expect(
-      (await runFresh(pick.open, { fixtureMissing: true }, opts)).outcome,
+      (
+        await runFresh(
+          pick.open,
+          { ...historicalSettings, fixtureMissing: true },
+          opts,
+        )
+      ).outcome,
     ).toBe("passed");
   });
 
   it("the pre-fix cancel test passes with no avatar to observe", async () => {
-    expect((await runFresh(pick.cancel, { avatar: null }, opts)).outcome).toBe(
-      "passed",
-    );
+    expect(
+      (
+        await runFresh(
+          pick.cancel,
+          { ...historicalSettings, avatar: null },
+          opts,
+        )
+      ).outcome,
+    ).toBe("passed");
   });
 
   it("the pre-fix drag test passes when drop does nothing", async () => {
     expect(
-      (await runFresh(pick.drag, { dropOpensDialog: false }, opts)).outcome,
+      (
+        await runFresh(
+          pick.drag,
+          { ...historicalSettings, dropOpensDialog: false },
+          opts,
+        )
+      ).outcome,
     ).toBe("passed");
   });
 
   it("the pre-fix invalid test passes on a generic error message", async () => {
     const r = await runFresh(
       pick.invalid,
-      { invalidMessage: "Invalid file. Please select an image." },
+      {
+        ...historicalSettings,
+        invalidMessage: "Invalid file. Please select an image.",
+      },
       opts,
     );
     expect(r.outcome).toBe("passed");
@@ -61,7 +83,10 @@ describe("#2224 criterion 16: the acceptance suite runs under test:unit and fail
   it("the pre-fix readiness check ignores a 503", async () => {
     const r = await runFresh(
       pick.open,
-      { demo: { status: 503, body: { roles: { donor: true } } } },
+      {
+        ...historicalSettings,
+        demo: { status: 503, body: { roles: { donor: true } } },
+      },
       opts,
     );
     expect(r.outcome).toBe("passed");
@@ -70,7 +95,7 @@ describe("#2224 criterion 16: the acceptance suite runs under test:unit and fail
   it("the pre-fix beforeEach skips under CI", async () => {
     const r = await runFresh(
       pick.open,
-      { demo: { status: 500, body: {} } },
+      { ...historicalSettings, demo: { status: 500, body: {} } },
       { ...opts, env: { CI: "1" } },
     );
     expect(r.outcome).toBe("skipped");

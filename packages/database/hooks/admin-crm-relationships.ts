@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import type {
@@ -69,10 +69,12 @@ function mapSortField(sorting: SortingState): {
 }
 
 function buildRelationshipsSearchParams({
+  after,
   domains,
   search,
   sorting,
 }: {
+  after: string | null;
   domains: CrmRelationshipDomain[];
   search: string;
   sorting: SortingState;
@@ -81,6 +83,9 @@ function buildRelationshipsSearchParams({
   const sort = mapSortField(sorting);
 
   searchParams.set("limit", "50");
+  if (after) {
+    searchParams.set("after", after);
+  }
   searchParams.set("sort", sort.sort);
   searchParams.set("dir", sort.dir);
 
@@ -104,17 +109,20 @@ async function parseJsonError(response: Response, fallback: string) {
 }
 
 async function fetchCrmRelationships({
+  after,
   domains,
   search,
   signal,
   sorting,
 }: {
+  after: string | null;
   domains: CrmRelationshipDomain[];
   search: string;
   signal: AbortSignal;
   sorting: SortingState;
 }) {
   const searchParams = buildRelationshipsSearchParams({
+    after,
     domains,
     search,
     sorting,
@@ -142,8 +150,9 @@ async function fetchCrmRelationships({
 export function useAdminCrmRelationshipsGrid() {
   const [search, setSearch] = React.useState("");
   const [domains, setDomains] = React.useState<CrmRelationshipDomain[]>([]);
+  // Newest activity first; Updated stays one click away in View.
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "updatedAt", desc: true },
+    { id: "lastActivityAt", desc: true },
   ]);
   const debouncedSearch = useDebouncedValue(search, 250);
   // Toggling appends/removes domains, so the raw array's order depends on the
@@ -154,18 +163,24 @@ export function useAdminCrmRelationshipsGrid() {
     [domains],
   );
 
-  const relationshipsQuery = useQuery({
+  // Pages follow the API's cursor so the grid can continue past the first
+  // 50 relationships ("Load more"); the report covers all rows on every page.
+  const relationshipsQuery = useInfiniteQuery({
     queryKey: [
       ...CRM_RELATIONSHIPS_QUERY_KEY,
       { domains: domainsKey, search: debouncedSearch, sorting },
     ],
-    queryFn: ({ signal }) =>
+    queryFn: ({ signal, pageParam }) =>
       fetchCrmRelationships({
         domains,
+        after: pageParam,
         search: debouncedSearch,
         signal,
         sorting,
       }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
     gcTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
     refetchOnWindowFocus: false,
@@ -182,21 +197,38 @@ export function useAdminCrmRelationshipsGrid() {
 
   const clearDomains = React.useCallback(() => setDomains([]), []);
 
+  const firstPage = relationshipsQuery.data?.pages[0];
+  const relationships = React.useMemo(
+    () =>
+      (relationshipsQuery.data?.pages ?? []).flatMap(
+        (page) => page.rows,
+      ) as CrmRelationshipRow[],
+    [relationshipsQuery.data],
+  );
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = relationshipsQuery;
+  const loadMore = React.useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   return {
     clearDomains,
-    configured: relationshipsQuery.data?.configured ?? true,
+    configured: firstPage?.configured ?? true,
     domains,
+    hasMore: hasNextPage,
+    isFetchingMore: isFetchingNextPage,
     isLoading: relationshipsQuery.isPending,
-    missing: relationshipsQuery.data?.missing ?? [],
-    mode: relationshipsQuery.data?.mode ?? "local",
+    loadMore,
+    missing: firstPage?.missing ?? [],
+    mode: firstPage?.mode ?? "local",
     onDomainToggle: toggleDomain,
     onRefresh: relationshipsQuery.refetch,
     onSearchChange: setSearch,
     onSortingChange: setSorting,
-    relationships: (relationshipsQuery.data?.rows ??
-      []) as CrmRelationshipRow[],
-    report: relationshipsQuery.data?.report ?? null,
-    rollback: relationshipsQuery.data?.rollback,
+    relationships,
+    report: firstPage?.report ?? null,
+    rollback: firstPage?.rollback,
     search,
     sorting,
     tableError:

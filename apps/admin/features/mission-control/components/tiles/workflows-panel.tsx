@@ -1,55 +1,66 @@
 "use client";
 
+import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
-import { WORKFLOWS } from "@asym/lib/mission-control/tiles";
+import { TILES, WORKFLOWS } from "@asym/lib/mission-control/tiles";
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import Link from "next/link";
+import { useId } from "react";
 
-import { ArrowRight } from "../icons";
+import { ChevronRight } from "../icons";
 
 export function WorkflowsPanel() {
+  const { role } = useMC();
+  const headingId = useId();
+  const permittedTiles = new Set(
+    TILES.filter(
+      (tile) => tile.roles.includes(role) && !tile.unavailableReason,
+    ).map((tile) => tile.id),
+  );
+  const workflows = WORKFLOWS.filter((workflow) =>
+    permittedTiles.has(workflow.primaryTile),
+  );
+  if (workflows.length === 0) return null;
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-foreground">
-            Suggested workflows
-          </h2>
-          <p className="text-sm font-medium text-muted-foreground">
-            Common tasks and multi-step processes for your role.
-          </p>
-        </div>
+    <section aria-labelledby={headingId} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h2 id={headingId} className="text-lg font-semibold text-foreground">
+          Common tasks
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Where each kind of work starts for your role.
+        </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {WORKFLOWS.map((workflow) => (
-          <Link
+      <div className="grid gap-4 sm:grid-cols-2">
+        {workflows.map((workflow) => (
+          <Item
             key={workflow.id}
-            href={resolveMissionControlHref(workflow.route)}
-            className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            variant="outline"
+            size="sm"
+            render={<Link href={resolveMissionControlHref(workflow.route)} />}
           >
-            <Card className="h-full overflow-hidden">
-              <CardHeader className="space-y-1.5">
-                <div className="mb-1 flex items-center justify-between">
-                  <div className="flex size-9 items-center justify-center rounded-xl border border-border bg-muted">
-                    <ArrowRight className="size-4 text-muted-foreground" />
-                  </div>
-                </div>
-                <CardTitle className="text-base font-semibold">
-                  {workflow.title}
-                </CardTitle>
-                <CardDescription className="mt-1 text-sm leading-6">
-                  {workflow.description}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+            <ItemContent className="min-w-0 self-start">
+              <ItemTitle>{workflow.title}</ItemTitle>
+              <ItemDescription className="line-clamp-none">
+                {workflow.description}
+              </ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <ChevronRight
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+            </ItemActions>
+          </Item>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

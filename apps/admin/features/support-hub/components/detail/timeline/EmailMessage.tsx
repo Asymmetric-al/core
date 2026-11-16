@@ -12,8 +12,8 @@ import { cn } from "@asym/ui/lib/utils";
 import { Paperclip, RotateCcw, Save } from "lucide-react";
 import { useId, useState } from "react";
 
-import { useSupportNow } from "../../../lib/now";
-import { formatRelative } from "../../../lib/time";
+import { formatAttachmentSize } from "../../../lib/attachment-size";
+import { RelativeTime } from "../../RelativeTime";
 
 import type {
   SupportMessage,
@@ -62,11 +62,9 @@ function emailMessageChrome(message: SupportMessage) {
 function EmailMessageHeader({
   message,
   isDraft,
-  nowIso,
 }: {
   message: SupportMessage;
   isDraft: boolean;
-  nowIso: string;
 }) {
   const headers = message.emailHeaders;
 
@@ -107,7 +105,7 @@ function EmailMessageHeader({
         ) : null}
       </div>
       <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-        {formatRelative(message.postedAt, nowIso)}
+        <RelativeTime value={message.postedAt} />
       </span>
     </header>
   );
@@ -134,6 +132,10 @@ function EmailMessageAttachmentsFooter({
         >
           <Paperclip className="size-3 text-muted-foreground" />
           <span className="max-w-50 truncate">{attachment.filename}</span>
+          <span className="text-muted-foreground">
+            {formatAttachmentSize(attachment.sizeBytes)} · Not available to
+            download
+          </span>
         </span>
       ))}
       {showInboundAttachmentState(message) ? (
@@ -149,7 +151,6 @@ function EmailMessageAttachmentsFooter({
  * use an amber tint and never surface as "delivered" content.
  */
 export function EmailMessage({ message }: EmailMessageProps) {
-  const nowIso = useSupportNow();
   const chrome = emailMessageChrome(message);
 
   return (
@@ -157,11 +158,7 @@ export function EmailMessage({ message }: EmailMessageProps) {
       className={cn("rounded-2xl border bg-card shadow-sm", chrome.className)}
       aria-label={chrome.ariaLabel}
     >
-      <EmailMessageHeader
-        message={message}
-        isDraft={chrome.isDraft}
-        nowIso={nowIso}
-      />
+      <EmailMessageHeader message={message} isDraft={chrome.isDraft} />
 
       <div className="px-4 py-3">
         <RichTextViewer value={renderableBody(message)} />

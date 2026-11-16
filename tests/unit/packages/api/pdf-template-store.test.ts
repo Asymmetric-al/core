@@ -12,6 +12,7 @@ import {
   archivePdfTemplate,
   createPdfTemplate,
   listPdfTemplates,
+  readPdfTemplate,
   PdfTemplateStorageUnavailableError,
   updatePdfTemplate,
   type PdfTemplateRow,
@@ -136,6 +137,61 @@ function templateRow(overrides: Partial<PdfTemplateRow> = {}): PdfTemplateRow {
 }
 
 describe("pdf template store", () => {
+  it.each(["unlayer", "asym_pdf_document_builder"] as const)(
+    "can read and resave a legacy category for %s without inventing a receipt category",
+    async (engine) => {
+      const legacy = { ...templateRow({ engine }), category: "receipt" };
+      const { client, records } = createFakeSupabase([
+        { data: legacy },
+        { data: legacy },
+        { data: templateRow({ engine, category: "custom" }) },
+      ]);
+      getAdminClientMock.mockReturnValue({ client });
+      const opened = await readPdfTemplate("tenant_1", legacy.id);
+      expect(opened?.category).toBe("custom");
+      const saved = await updatePdfTemplate({
+        tenantId: "tenant_1",
+        templateId: legacy.id,
+        patch: { category: opened!.category },
+      });
+      expect(saved.category).toBe("custom");
+      expect(records[2]?.payload).toMatchObject({ category: "custom" });
+      expect(legacy.category).toBe("receipt");
+    },
+  );
+
+  it.each(["unlayer", "asym_pdf_document_builder"] as const)(
+    "normalizes legacy categories for %s list/detail and preserves valid categories",
+    async (engine) => {
+      const legacyRows = [
+        "receipt",
+        "newsletter",
+        "briefing",
+        "unrecognized",
+      ].map((category) => ({ ...templateRow({ engine }), category }));
+      const valid = templateRow({ engine, category: "tax_receipt" });
+      const { client } = createFakeSupabase([
+        { data: [...legacyRows, valid] },
+        ...legacyRows.map((row) => ({ data: row })),
+      ]);
+      getAdminClientMock.mockReturnValue({ client });
+      const listed = await listPdfTemplates("tenant_1");
+      expect(listed.map((row) => row.category)).toEqual([
+        "custom",
+        "custom",
+        "custom",
+        "custom",
+        "tax_receipt",
+      ]);
+      for (const row of legacyRows) {
+        expect(await readPdfTemplate("tenant_1", row.id)).toMatchObject({
+          category: "custom",
+          engine,
+        });
+      }
+      expect(legacyRows[0]?.category).toBe("receipt");
+    },
+  );
   beforeEach(() => {
     vi.clearAllMocks();
   });

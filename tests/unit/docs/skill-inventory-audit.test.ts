@@ -604,6 +604,8 @@ const expectedNames = [
   ...baselineSkillNames,
   "security-audit",
   "council",
+  // vercel-labs/ui skill bundled with the installed @ui-sdk/core release.
+  "ui-sdk",
   ...p3StackSkillNames,
   // Anthropic pr-review-toolkit plugin command, adapted as a skill.
   "review-pr",

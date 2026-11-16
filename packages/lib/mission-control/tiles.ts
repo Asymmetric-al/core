@@ -13,32 +13,36 @@ import type { Tile, Workflow } from "./types";
  */
 export const TILES: Tile[] = tiles;
 
+/**
+ * Common tasks and the page each one starts on. Each entry opens that page;
+ * the description says what is there, not a multi-step flow.
+ */
 export const WORKFLOWS: Workflow[] = [
   {
     id: "gift-lifecycle",
-    title: "Gift Lifecycle",
-    description: "From donation to receipt to year-end statement",
+    title: "Review gifts and receipts",
+    description: "Contributions: new gifts, receipts to send and corrections.",
     primaryTile: "contributions",
     route: "/contributions",
   },
   {
-    id: "missionary-onboarding",
-    title: "Missionary Onboarding",
-    description: "Application through training to field deployment",
-    primaryTile: "mobilize",
-    route: "/mobilize",
+    id: "support-inbox",
+    title: "Answer support email",
+    description: "Support Hub: donor, applicant and missionary email.",
+    primaryTile: "support",
+    route: "/support",
   },
   {
-    id: "event-registration-giving",
-    title: "Event Registration with Giving",
-    description: "Register, attend, and give at conferences",
-    primaryTile: "events",
-    route: "/events",
+    id: "field-locations",
+    title: "Update field locations",
+    description: "Mobilize: the places shown on the public map.",
+    primaryTile: "mobilize",
+    route: "/mobilize/locations",
   },
   {
     id: "care-signal-action",
-    title: "Care Signal to Action",
-    description: "Identify needs and respond with care plans",
+    title: "Follow up on member care",
+    description: "Member Care: who needs follow-up and recent check-ins.",
     primaryTile: "care",
     route: "/care",
   },

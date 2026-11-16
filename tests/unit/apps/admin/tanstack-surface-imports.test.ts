@@ -17,7 +17,11 @@ describe("admin TanStack surface migrations", () => {
       "apps/admin/app/(app)/contributions/page-client.tsx",
     );
 
-    expect(mainBodySource).toMatch(/DataTableResponsive/);
+    // The hub renders through the shared ReUI grid composition (with its
+    // mobile card list), never a hand-rolled table.
+    expect(mainBodySource).toMatch(/DataGridPanel/);
+    expect(mainBodySource).toMatch(/renderMobileRow/);
+    expect(mainBodySource).not.toMatch(/@tanstack\/react-table/);
     expect(pageSource).toMatch(/useAdminContributions/);
     expect(pageSource).toMatch(/mc-contributions-live/);
   });
@@ -32,9 +36,10 @@ describe("admin TanStack surface migrations", () => {
   it("loads task data from shared package hooks instead of local mock state", () => {
     const source = readRepoFile("apps/admin/app/(app)/tasks/tasks-content.tsx");
 
-    expect(source).toMatch(/useTasksRows/);
-    expect(source).toMatch(/useTaskStaff/);
-    expect(source).toMatch(/useTaskLinkedEntities/);
+    expect(source).toMatch(/useMissionControlNeedsAttention/);
+    expect(source).not.toMatch(
+      /useTasksRows|useTaskStaff|useTaskLinkedEntities|SampleDataNotice/,
+    );
     expect(source).not.toMatch(/MOCK_TASKS/);
   });
 
@@ -50,29 +55,29 @@ describe("admin TanStack surface migrations", () => {
     expect(careSource).toMatch(/@asym\/database\/hooks/);
   });
 
+  it("keeps disconnected Mobilize free of sample collection hooks", () => {
+    const source = readRepoFile(
+      "apps/admin/app/(app)/mobilize/page-client.tsx",
+    );
+    expect(source).not.toMatch(/useMobilizeCandidates|SampleDataNotice/);
+    expect(source).toContain("Pipeline not connected yet");
+  });
+
   it("moves raw table surfaces onto shared hooks for attendees, mobilize, and teams", () => {
     const eventsSource = readRepoFile(
       "apps/admin/app/(app)/events/page-client.tsx",
     );
-    const mobilizePageSource = readRepoFile(
-      "apps/admin/app/(app)/mobilize/page-client.tsx",
-    );
-    const mobilizeSectionsSource = readRepoFile(
-      "apps/admin/app/(app)/mobilize/mobilize-sections.tsx",
-    );
     const teamsPageSource = readRepoFile(
       "apps/admin/app/(app)/admin/teams/page-client.tsx",
     );
-    const teamsSectionsSource = readRepoFile(
-      "apps/admin/app/(app)/admin/teams/teams-sections.tsx",
-    );
 
-    expect(eventsSource).toMatch(/useEventAttendees/);
-    expect(eventsSource).toMatch(/DataTableWrapper/);
-    expect(mobilizePageSource).toMatch(/useMobilizeCandidates/);
-    expect(mobilizeSectionsSource).toMatch(/DataTableWrapper/);
-    expect(teamsPageSource).toMatch(/useTeams/);
-    expect(teamsPageSource).toMatch(/useTeamMembers/);
-    expect(teamsSectionsSource).toMatch(/DataTableWrapper/);
+    expect(eventsSource).not.toMatch(
+      /useEventAttendees|SampleDataNotice|MOCK_/,
+    );
+    expect(eventsSource).toContain("Events is not connected yet");
+    expect(teamsPageSource).not.toMatch(
+      /useTeams|useTeamMembers|SampleDataNotice/,
+    );
+    expect(teamsPageSource).toMatch(/DataGridPanel/);
   });
 });

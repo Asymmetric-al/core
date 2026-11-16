@@ -1,14 +1,11 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
+import { ChartCard } from "@asym/ui/components/primitives/chart-wrappers";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import dynamic from "next/dynamic";
 import { useId } from "react";
+
+import { reportTrendChartForm } from "../../lib/report-chart-form";
 
 import type { SupportReportSeries } from "../../types";
 
@@ -16,18 +13,25 @@ interface ReportLineChartProps {
   series: SupportReportSeries;
   title: string;
   description?: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+  note?: string;
 }
 
 function Fallback() {
   return (
-    <div className="h-70 w-full animate-pulse rounded-xl bg-muted/40 ring-1 ring-border" />
+    <div role="status" aria-label="Loading chart">
+      <Skeleton className="h-70 w-full" />
+      <span className="sr-only">Loading chart…</span>
+    </div>
   );
 }
 
 const LineChartContent = dynamic(
   async () => {
     const [
-      { Area, AreaChart, CartesianGrid, XAxis, YAxis },
+      { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis },
       { ChartContainer, ChartTooltip, ChartTooltipContent },
     ] = await Promise.all([
       import("recharts"),
@@ -53,13 +57,64 @@ const LineChartContent = dynamic(
         label: bucket.label,
         value: bucket.value,
       }));
+      const config = { value: { label: title, color: "var(--chart-1)" } };
+      const grid = (
+        <CartesianGrid
+          strokeDasharray="3 3"
+          vertical={false}
+          stroke="var(--border)"
+        />
+      );
+      const xAxis = (
+        <XAxis
+          dataKey="label"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          stroke="var(--muted-foreground)"
+        />
+      );
+      const yAxis = (
+        <YAxis
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          stroke="var(--muted-foreground)"
+          allowDecimals={false}
+        />
+      );
+      // A month by day drawn as a curve reads as one spike over quiet days;
+      // bars keep each day its own mark.
+      if (reportTrendChartForm(data.length) === "bar") {
+        return (
+          <div className="h-70 w-full">
+            <ChartContainer layout="fill" className="w-full" config={config}>
+              <BarChart
+                accessibilityLayer
+                data={data}
+                margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+                maxBarSize={24}
+              >
+                {grid}
+                {xAxis}
+                {yAxis}
+                <ChartTooltip
+                  cursor={{ fill: "var(--muted)" }}
+                  content={<ChartTooltipContent />}
+                />
+                <Bar
+                  dataKey="value"
+                  fill="var(--color-value)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+          </div>
+        );
+      }
       return (
         <div className="h-70 w-full">
-          <ChartContainer
-            layout="fill"
-            className="w-full"
-            config={{ value: { label: title, color: "var(--chart-1)" } }}
-          >
+          <ChartContainer layout="fill" className="w-full" config={config}>
             <AreaChart
               accessibilityLayer
               data={data}
@@ -70,34 +125,18 @@ const LineChartContent = dynamic(
                   <stop
                     offset="5%"
                     stopColor="var(--color-value)"
-                    stopOpacity={0.14}
+                    stopOpacity={0.3}
                   />
                   <stop
                     offset="95%"
                     stopColor="var(--color-value)"
-                    stopOpacity={0}
+                    stopOpacity={0.04}
                   />
                 </linearGradient>
               </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="var(--border)"
-              />
-              <XAxis
-                dataKey="label"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                stroke="var(--muted-foreground)"
-              />
-              <YAxis
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                stroke="var(--muted-foreground)"
-                allowDecimals={false}
-              />
+              {grid}
+              {xAxis}
+              {yAxis}
               <ChartTooltip
                 content={<ChartTooltipContent indicator="line" />}
               />
@@ -124,16 +163,30 @@ export function ReportLineChart({
   series,
   title,
   description,
+  isLoading = false,
+  isError = false,
+  onRetry,
+  note,
 }: ReportLineChartProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-      </CardHeader>
-      <CardContent className="pl-0">
-        <LineChartContent series={series} title={title} />
-      </CardContent>
-    </Card>
+    <ChartCard
+      title={title}
+      description={description}
+      headingLevel={2}
+      summary={series.buckets
+        .map(
+          (bucket) =>
+            `${bucket.label}: ${bucket.value} ${series.unit === "count" ? title.toLowerCase() : series.unit}.`,
+        )
+        .join(" ")}
+      note={note}
+      isLoading={isLoading && !isError}
+      isError={isError}
+      isEmpty={series.buckets.every((bucket) => bucket.value === 0)}
+      emptyMessage="No activity in this range"
+      onRetry={onRetry}
+    >
+      <LineChartContent series={series} title={title} />
+    </ChartCard>
   );
 }

@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
 import {
+  BUILD_APPS,
   readCompilationChanges,
   resolveCompilation,
 } from "./ci-build-policy.mjs";
@@ -152,14 +153,22 @@ export function getPreflightStages({
     changedFiles,
     full,
   });
+  // `bun run build` compiles exactly the product apps; any other selected app
+  // (or a partial product selection) runs its own `build:<app>` stage.
+  const wholeProduct = BUILD_APPS.every((app) => apps.includes(app));
+  const separate = wholeProduct
+    ? apps.filter((app) => !BUILD_APPS.includes(app))
+    : apps;
   return stages.flatMap((stage) => {
     if (stage.id !== "build") return [stage];
-    if (apps.length === 3) return [stage];
-    return apps.map((app) => ({
-      ...stage,
-      id: `build-${app}`,
-      script: `build:${app}`,
-    }));
+    return [
+      ...(wholeProduct ? [stage] : []),
+      ...separate.map((app) => ({
+        ...stage,
+        id: `build-${app}`,
+        script: `build:${app}`,
+      })),
+    ];
   });
 }
 

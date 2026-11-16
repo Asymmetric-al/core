@@ -27,19 +27,25 @@ export type CrmRelationshipRecordKind =
   | "activity";
 
 export type CrmRelationshipAuthorityScope =
-  "crm_relationship" | "finance_summary" | "care_excluded";
+  "crm_relationship" | "finance_summary" | "member_care" | "care_excluded";
 
 export type CrmRelationshipRow = {
   id: string;
   recordKind: CrmRelationshipRecordKind;
   recordId: string;
+  /**
+   * The CRM donor record this row opens: the donor itself for people,
+   * churches, organizations and households, the pledging donor for a pledge,
+   * and null for missionaries and activity (no donor record).
+   */
+  donorId: string | null;
   domain: CrmRelationshipDomain;
   displayName: string;
   secondaryLabel: string | null;
   relationshipKind: string;
   status: string | null;
   location: string | null;
-  sourceSystem: "Asym CRM" | "Asym finance summary";
+  sourceSystem: "Asym CRM" | "Asym finance summary" | "Asym member care";
   authorityScope: CrmRelationshipAuthorityScope;
   authorityLabel: string;
   memberCount: number | null;
@@ -86,11 +92,27 @@ export type CrmRelationshipReport = {
   };
   totalRows: number;
   domainCounts: Record<CrmRelationshipDomain, number>;
-  pledgeCommitmentCount: number;
-  pledgeCommitmentTotalCents: number;
+  activeCommitments: CrmRelationshipActiveCommitments;
   householdCount: number;
   recentActivityCount: number;
   duplicateCompanyCandidates: number;
   duplicatePersonCandidates: number;
   excludedCareActivityCount: number;
+};
+
+/**
+ * Active pledges only. Money is a monthly equivalent per currency so weekly,
+ * quarterly and yearly pledges add up honestly and currencies never mix.
+ */
+export type CrmRelationshipActiveCommitments = {
+  /** Active pledges, including any with an unknown frequency. */
+  pledgeCount: number;
+  monthlyByCurrency: Array<{
+    /** ISO 4217 code, upper case. */
+    currency: string;
+    monthlyCents: number;
+    pledgeCount: number;
+  }>;
+  /** Active pledges left out of the monthly figure (one-off or unknown). */
+  unknownFrequencyCount: number;
 };

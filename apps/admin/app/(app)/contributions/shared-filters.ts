@@ -11,7 +11,12 @@ import {
 } from "@asym/api/admin/contribution-shared";
 
 import type { Contribution } from "./types";
-import type { DataTableFilterOption } from "@asym/ui/components/shadcn/data-table";
+
+/** One selectable value in a hub filter (label shown, value matched). */
+export interface HubFilterOption {
+  label: string;
+  value: string;
+}
 
 /**
  * Hub adoption of the shared CRM/Hub contribution filters (issue #274,
@@ -76,7 +81,7 @@ function enumValueLabels(
 
 function buildChipOptions(
   definition: SharedContributionFilterDefinition,
-): DataTableFilterOption[] {
+): HubFilterOption[] {
   if (definition.kind === "flag") {
     return [{ label: definition.label, value: definition.id }];
   }
@@ -89,7 +94,7 @@ interface HubSharedFilterChip {
   /** Shared filter id; doubles as the hidden filter-only column id. */
   id: SharedContributionFilterId;
   label: string;
-  options: DataTableFilterOption[];
+  options: HubFilterOption[];
 }
 
 /** Chips the Hub renders for the shared filters, in registry order. */
@@ -220,14 +225,32 @@ export function matchesHubSharedFilterSelection(
 }
 
 /**
+ * The Hub-only grid status (e.g. "processing") a gift sits under, or null
+ * when it sits under its shared payment status. Processing is the Hub's finer
+ * split of shared "pending", so a processing gift belongs to Processing only;
+ * a refund still wins, as it does for the Status badge
+ * (`effectiveContributionStatus`).
+ */
+function hubOnlyGridStatus(contribution: Contribution): string | null {
+  if (
+    isKeyOf(SHARED_PAYMENT_STATUS_LABELS, contribution.status) ||
+    contribution.shared.paymentStatus === "refunded"
+  ) {
+    return null;
+  }
+  return contribution.status;
+}
+
+/**
  * Status-chip evaluator (issue #274 payment-status meaning split).
  *
  * Selections in the shared payment vocabulary (completed / pending / failed /
  * refunded) evaluate through the shared evaluator against
  * `row.shared.paymentStatus`, so a fully refunded gift whose
  * `donations.status` stayed "completed" matches "Refunded" exactly like it
- * does in CRM. Hub-only grid statuses (e.g. "processing") stay extension
- * selections matched against the grid status, as before.
+ * does in CRM. Hub-only grid statuses (e.g. "processing") match the grid
+ * status, and a gift under one of them matches no shared option, so each gift
+ * matches exactly one Status option.
  */
 export function matchesHubPaymentStatusSelection(
   contribution: Contribution,
@@ -237,33 +260,30 @@ export function matchesHubPaymentStatusSelection(
   if (selectedValues.length === 0) {
     return true;
   }
+  const hubOnlyStatus = hubOnlyGridStatus(contribution);
   return selectedValues.some((value) => {
     if (isKeyOf(SHARED_PAYMENT_STATUS_LABELS, value)) {
-      return matchesSharedContributionFilter(
-        { shared: contribution.shared },
-        { id: "payment_status", value },
+      return (
+        hubOnlyStatus === null &&
+        matchesSharedContributionFilter(
+          { shared: contribution.shared },
+          { id: "payment_status", value },
+        )
       );
     }
-    return contribution.status === value;
+    return hubOnlyStatus === value;
   });
 }
 
 /**
  * Faceted-count values for the Status chip. The Status column keeps its grid
  * status accessor for cell rendering and sorting, but its filter matches
- * through {@link matchesHubPaymentStatusSelection}: shared-vocabulary options
- * match `shared.paymentStatus`, and Hub-only grid statuses (e.g. "processing")
- * match the grid status. This helper mirrors that exactly so the chip popover
- * counts agree with what selecting an option returns — a row counts under its
- * shared payment status, plus its grid status when that grid status is a
- * Hub-only extension rather than a shared-vocabulary value.
+ * through {@link matchesHubPaymentStatusSelection}. This helper mirrors that
+ * exactly: one value per gift, so the option counts add up to the gifts shown
+ * and agree with what selecting each option returns.
  */
 export function getHubPaymentStatusFacetValues(
   contribution: Contribution,
 ): string[] {
-  const values = [contribution.shared.paymentStatus as string];
-  if (!isKeyOf(SHARED_PAYMENT_STATUS_LABELS, contribution.status)) {
-    values.push(contribution.status);
-  }
-  return values;
+  return [hubOnlyGridStatus(contribution) ?? contribution.shared.paymentStatus];
 }

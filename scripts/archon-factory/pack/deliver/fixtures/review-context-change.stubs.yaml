@@ -1,0 +1,102 @@
+# I1: the issue context changed before a review-only round. after-scope runs
+# no AI stage and records the change for Ezra; the recorded head is frozen
+# again and reviewed, and after-assess returns the clear candidate to Ezra
+# instead of final acceptance.
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached:
+    [
+      claim,
+      context,
+      after-scope,
+      after-define,
+      freeze,
+      micaiah,
+      luke,
+      seal,
+      after-assess,
+      after-adjudicate,
+      record,
+    ]
+claim:
+  {
+    proceed: "yes",
+    route: review,
+    do_scope: "no",
+    do_define: "no",
+    do_build: "yes",
+    do_feedback: "no",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "Round 4",
+  }
+context:
+  {
+    ok: "yes",
+    fingerprint: "f2",
+    changed: "yes",
+    scope_assignment: "scope",
+    reason: "ok",
+  }
+after-scope:
+  {
+    proceed: "yes",
+    define: "no",
+    build: "no",
+    ezra_assignment: "",
+    reason: "Review-only round on the recorded head; the context change is recorded for Ezra",
+  }
+after-define:
+  {
+    build: "no",
+    freeze: "yes",
+    bezalel_assignment: "",
+    reason: "Review-only round on the recorded head",
+  }
+freeze:
+  {
+    review: "yes",
+    candidate: "abc",
+    micaiah_assignment: "m",
+    luke_assignment: "l",
+    reason: "Recorded candidate frozen again for review",
+  }
+micaiah:
+  {
+    task_status: DONE,
+    decision: CLEAR,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    scope: s,
+    findings: [],
+    checks_run: [],
+    limitations: [],
+  }
+luke:
+  {
+    task_status: DONE,
+    decision: CLEAR,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    scope: s,
+    findings: [],
+    checks_run: [],
+    limitations: [],
+  }
+seal: { assess: "no", assessment_assignment: "", reason: "clear" }
+after-assess:
+  {
+    adjudicate: "no",
+    final: "no",
+    agabus_assignment: "",
+    ezra_final_assignment: "",
+    reason: "Both reviews CLEAR, but Ezra must correct the acceptance first",
+  }
+after-adjudicate:
+  { final: "no", ezra_final_assignment: "", reason: "Repairs pending" }
+record:
+  {
+    outcome: continue,
+    next: oracle,
+    reason: "after-assess: 1 repair item(s) for Ezra",
+  }

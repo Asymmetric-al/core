@@ -1,4 +1,6 @@
-import { Building2, Heart, Receipt, Sparkles, UserPlus } from "lucide-react";
+import { Heart, Receipt, UserPlus } from "lucide-react";
+
+import { isContributionGiftParam } from "../../../../app/(app)/contributions/contribution-detail-query";
 
 import type { SupportContactRef } from "../../types";
 
@@ -17,15 +19,7 @@ export function buildCrmLinks(
 ): ConversationCrmLink[] {
   const links: ConversationCrmLink[] = [];
 
-  if (contact?.contactId) {
-    links.push({
-      key: "contact",
-      label: "Profile",
-      href: `/crm?contact=${encodeURIComponent(contact.contactId)}`,
-      icon: <UserPlus className="size-3 text-muted-foreground" />,
-      description: `Open CRM profile ${contact.contactId}`,
-    });
-  } else if (donorEmail) {
+  if (donorEmail) {
     links.push({
       key: "contact-search",
       label: "Find in CRM",
@@ -39,39 +33,20 @@ export function buildCrmLinks(
     links.push({
       key: "donor",
       label: "Donor",
-      href: `/contributions?donor=${encodeURIComponent(contact.donorId)}`,
+      href: `/crm?donor=${encodeURIComponent(contact.donorId)}`,
       icon: <Heart className="size-3 text-destructive" />,
       description: `Open donor giving history for ${contact.donorId}`,
     });
   }
 
-  if (contact?.contributionId) {
+  const contributionId = contact?.contributionId;
+  if (contributionId && isContributionGiftParam(contributionId)) {
     links.push({
       key: "gift",
       label: "Gift",
-      href: `/contributions?contribution=${encodeURIComponent(contact.contributionId)}`,
+      href: `/contributions?gift=${encodeURIComponent(contributionId)}`,
       icon: <Receipt className="size-3 text-warning" />,
-      description: `Open contribution ${contact.contributionId}`,
-    });
-  }
-
-  if (contact?.missionaryId) {
-    links.push({
-      key: "missionary",
-      label: "Missionary",
-      href: `/crm?missionary=${encodeURIComponent(contact.missionaryId)}`,
-      icon: <Sparkles className="size-3 text-chart-3" />,
-      description: `Open missionary ${contact.missionaryId}`,
-    });
-  }
-
-  if (contact?.churchId) {
-    links.push({
-      key: "church",
-      label: "Church",
-      href: `/crm?church=${encodeURIComponent(contact.churchId)}`,
-      icon: <Building2 className="size-3 text-muted-foreground" />,
-      description: `Open church ${contact.churchId}`,
+      description: `Open contribution ${contributionId}`,
     });
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyContent,
@@ -10,9 +10,11 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { LifeBuoy, RotateCcw } from "lucide-react";
+import Link from "next/link";
 
 interface SupportInboxEmptyStateProps {
-  onResetFilters: () => void;
+  onResetFilters?: () => void;
+  settingsHref?: string;
   /** Primary line. Defaults to a filtered-search wording. */
   title?: string;
   /** Secondary line. Defaults to a filter-tweaking suggestion. */
@@ -26,6 +28,7 @@ interface SupportInboxEmptyStateProps {
  */
 export function SupportInboxEmptyState({
   onResetFilters,
+  settingsHref,
   title = "No conversations match your filters",
   description = "Adjust the view, status, label, or assignee filters above to widen the search.",
 }: SupportInboxEmptyStateProps) {
@@ -41,15 +44,25 @@ export function SupportInboxEmptyState({
         <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onResetFilters}
-        >
-          <RotateCcw aria-hidden="true" />
-          Reset filters
-        </Button>
+        {settingsHref ? (
+          <Link
+            href={settingsHref}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            Inbox settings
+          </Link>
+        ) : null}
+        {onResetFilters ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onResetFilters}
+          >
+            <RotateCcw aria-hidden="true" />
+            Reset filters
+          </Button>
+        ) : null}
       </EmptyContent>
     </Empty>
   );

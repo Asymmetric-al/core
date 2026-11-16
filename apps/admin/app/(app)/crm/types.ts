@@ -1,9 +1,4 @@
 import type { CrmDonorDetailResponse, CrmGridRow } from "@asym/database/types";
-import type { Badge } from "@asym/ui/components/shadcn/badge";
-import type { ComponentProps } from "react";
-
-type BadgeVariant = ComponentProps<typeof Badge>["variant"];
-
 export type { CrmGridRow };
 
 export type ActivityType =
@@ -21,6 +16,13 @@ export interface Activity {
 /** Drawer model: grid row plus timeline (loaded incrementally later). */
 export type CrmRecord = CrmGridRow & {
   activities: Activity[];
+  /**
+   * The owner's id (`donors.missionary_id`) when the record came from the
+   * detail read. With `assignedMissionaryName` null it means the record has
+   * an owner whose name that read does not carry (the drawer looks it up).
+   * Grid rows leave it unset.
+   */
+  assignedMissionaryId?: string | null;
 };
 
 export function toCrmRecord(row: CrmGridRow): CrmRecord {
@@ -52,8 +54,12 @@ export function toCrmRecordFromDetail(
       donor.profileId != null && donor.profileId.length > 0 ? "linked" : "none",
     linkedAuthUserId: donor.profileId,
     tags: donor.tags,
-    assignedMissionaryName:
-      detail.support.byMissionary[0]?.missionaryName ?? null,
+    // The owner is `donors.missionary_id`, a profile id, named from profiles
+    // by the detail read as the grid names it. Never the gift totals per
+    // missionary (`support.byMissionary`), which are keyed by
+    // `missionaries.id` and say who received gifts, not who owns the record.
+    assignedMissionaryName: donor.missionaryName ?? null,
+    assignedMissionaryId: donor.missionaryId,
     avatarUrl: donor.avatarUrl,
     email: donor.email,
     phone: donor.phone,
@@ -63,11 +69,3 @@ export function toCrmRecordFromDetail(
     activities: [],
   };
 }
-
-export const PORTAL_BADGE_VARIANT: Record<
-  CrmGridRow["portalAccessLabel"],
-  BadgeVariant
-> = {
-  linked: "success",
-  none: "secondary",
-};

@@ -4,29 +4,104 @@ import { useMissionControlNeedsAttention } from "@asym/database/hooks";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card } from "@asym/ui/components/shadcn/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RotateCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import { ContributionDetailOverlay } from "./contribution-detail-overlay";
 import {
+  INVALID_CONTRIBUTION_LINK_MESSAGE,
   invalidateContributionOperationQueries,
   isContributionGiftParam,
 } from "./contribution-detail-query";
 import { boneyardContributionsFixture, mockContributions } from "./data";
+import { useContributionFreshness } from "./freshness-indicator";
 import {
-  ContributionFreshnessIndicator,
-  useContributionFreshness,
-} from "./freshness-indicator";
-import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
+  ContributionsMainBody,
+  ContributionsPageActions,
+  hasContributionsPageActions,
+} from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
 import { CONTRIBUTIONS_PAGE_META } from "../../../components/table-page-meta";
+
+import type { Contribution } from "./types";
 
 /** When `"1"`, table data comes from `mockContributions` (local dev only). */
 const USE_MOCK_CONTRIBUTIONS_UI =
   process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK === "1";
+
+/** For a failure whose cause is unknown (a 500, a failed query). */
+const LOAD_ERROR_NEXT_STEP =
+  "Something went wrong while loading. Retry, or try again in a few minutes.";
+/** Only when the request never reached the server. */
+const NETWORK_ERROR_NEXT_STEP = "Check your connection, then retry.";
+
+/**
+ * Messages that only restate "loading failed" (the list route's and the
+ * loader's fallbacks). They would echo the title, so the next step shows
+ * instead; a specific server message is shown as is.
+ */
+const GENERIC_LOAD_ERROR =
+  /^(could ?n[o']t|failed to|unable to) load (the )?contributions\.?$/i;
+/** Messages browsers use when a request never reached the server. */
+const NETWORK_FAILURE =
+  /^(failed to fetch|load failed|network ?error( when attempting to fetch resource)?|network request failed)\.?$/i;
+
+function describeLoadError(message: string | null): string {
+  const trimmed = message?.trim() ?? "";
+  if (NETWORK_FAILURE.test(trimmed)) return NETWORK_ERROR_NEXT_STEP;
+  return trimmed && !GENERIC_LOAD_ERROR.test(trimmed)
+    ? trimmed
+    : LOAD_ERROR_NEXT_STEP;
+}
+
+/**
+ * Inline list failure: the whole workspace depends on the list, so the error
+ * replaces it in place with the server's reason (or a next step when the
+ * server gave none) and a working retry.
+ */
+function ContributionsLoadError({
+  message,
+  onRetry,
+}: {
+  message: string | null;
+  onRetry: () => void;
+}) {
+  return (
+    <Card role="alert">
+      <Empty>
+        <EmptyHeader>
+          {/* Destructive tone tells a failed load from an empty list. */}
+          <EmptyMedia variant="icon">
+            <AlertCircle className="text-destructive" />
+          </EmptyMedia>
+          <EmptyTitle>
+            <h2>Couldn&apos;t load contributions</h2>
+          </EmptyTitle>
+          <EmptyDescription>{describeLoadError(message)}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+            <RotateCw aria-hidden="true" />
+            Retry
+          </Button>
+        </EmptyContent>
+      </Empty>
+    </Card>
+  );
+}
 
 export default function ContributionsPage({
   canManageContributions = false,
@@ -40,6 +115,8 @@ export default function ContributionsPage({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const giftParam = searchParams.get("gift");
+  // Home links to one needs-attention kind with ?attention=<group key>.
+  const attentionKeys = searchParams.getAll("attention").filter(Boolean);
   const selectedGiftParam = isContributionGiftParam(giftParam)
     ? giftParam
     : null;
@@ -96,6 +173,11 @@ export default function ContributionsPage({
     [giftParam, pathname, router, searchParams],
   );
 
+  const handleSelectContribution = useCallback(
+    (contribution: Contribution) => openGift(contribution.id),
+    [openGift],
+  );
+
   const closeGift = useCallback(() => {
     setGiftSelection({ giftParam, donationId: null });
     // Smart close removes only the gift selection from route state; filters,
@@ -113,6 +195,10 @@ export default function ContributionsPage({
       return;
     }
 
+    // The fixed id keeps a re-render from stacking a second toast.
+    toast.error(INVALID_CONTRIBUTION_LINK_MESSAGE, {
+      id: "invalid-contribution-link",
+    });
     const params = new URLSearchParams(searchParams.toString());
     params.delete("gift");
     const query = params.toString();
@@ -128,16 +214,28 @@ export default function ContributionsPage({
     : USE_MOCK_CONTRIBUTIONS_UI
       ? mockContributions
       : (contributionsQuery.data ?? []);
+  // The server leaves retired kinds (CRM posting) out of Needs Attention;
+  // their old failures stay on each gift as history only.
   const needsAttentionGroups = isError
     ? []
     : (needsAttentionQuery.data?.groups ?? []);
+  // Read on its own: a failed check must not pass for "nothing needs
+  // attention". A failed gifts load already replaces the whole workspace.
+  const needsAttentionFailed = !isError && needsAttentionQuery.isError;
 
   const errorMessage =
     contributionsQuery.error instanceof Error
       ? contributionsQuery.error.message
       : contributionsQuery.error != null
         ? String(contributionsQuery.error)
-        : "Could not load contributions.";
+        : null;
+  const isLoadingOlder =
+    !USE_MOCK_CONTRIBUTIONS_UI && Boolean(contributionsQuery.isLoadingOlder);
+  // A failed older page (or refresh) keeps the gifts on screen; only a
+  // failed first load replaces the workspace with the error above.
+  const loadIssue = USE_MOCK_CONTRIBUTIONS_UI
+    ? null
+    : (contributionsQuery.loadIssue ?? null);
 
   return (
     <PageShell
@@ -145,35 +243,19 @@ export default function ContributionsPage({
       description={CONTRIBUTIONS_PAGE_META.description}
       density={CONTRIBUTIONS_PAGE_META.density}
       actions={
-        <ContributionsPageActions
-          canManageContributions={canManageContributions}
-        />
+        hasContributionsPageActions(canManageContributions) ? (
+          <ContributionsPageActions
+            canManageContributions={canManageContributions}
+          />
+        ) : undefined
       }
     >
-      <div data-testid="mc-contributions-live">
-        <ContributionFreshnessIndicator show={showFreshness} />
+      <div data-testid="mc-contributions-live" className="flex flex-col gap-6">
         {isError ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card py-20 text-center">
-            <div className="mb-4 flex size-16 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10">
-              <AlertCircle className="size-8 text-destructive" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground uppercase tracking-tight">
-              Load failed
-            </h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-sm font-medium">
-              {errorMessage}
-            </p>
-            <Button
-              type="button"
-              onClick={() => void contributionsQuery.refetch()}
-              variant="outline"
-              size="lg"
-              className="mt-6"
-            >
-              <RefreshCw className="mr-2 size-4" />
-              Retry
-            </Button>
-          </div>
+          <ContributionsLoadError
+            message={errorMessage}
+            onRetry={() => void contributionsQuery.refetch()}
+          />
         ) : (
           <BoneyardSkeleton
             name="admin-contributions-content"
@@ -195,14 +277,17 @@ export default function ContributionsPage({
             <ContributionsMainBody
               data={contributionRows}
               isLoading={isPagePending}
+              isLoadingOlder={isLoadingOlder}
+              loadIssue={loadIssue}
               needsAttentionGroups={needsAttentionGroups}
-              onSelectContribution={(contribution) => {
-                openGift(contribution.id);
-              }}
-              onOpenContributionById={(contributionId) => {
-                openGift(contributionId);
-              }}
+              needsAttentionFailed={needsAttentionFailed}
+              onRetryNeedsAttention={() => void needsAttentionQuery.refetch()}
+              showFreshness={showFreshness}
+              onRefresh={() => void contributionsQuery.refetch()}
+              onSelectContribution={handleSelectContribution}
+              onOpenContributionById={openGift}
               onBulkReceiptSuccess={handleBulkReceiptSuccess}
+              initialNeedsAttentionKeys={attentionKeys}
             />
           </BoneyardSkeleton>
         )}

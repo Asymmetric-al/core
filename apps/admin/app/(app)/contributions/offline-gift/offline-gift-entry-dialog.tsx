@@ -516,7 +516,7 @@ function GiftFactsSection({
             inputMode="decimal"
             label="Amount (USD) *"
             placeholder="0.00"
-            type="number"
+            type="text"
           />
         )}
       </form.AppField>

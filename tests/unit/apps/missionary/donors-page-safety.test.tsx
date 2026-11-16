@@ -46,6 +46,8 @@ vi.mock("@asym/database/hooks", () => ({
 }));
 vi.mock("@asym/lib/hooks", () => ({
   useAuth: () => ({ profile: { id: "missionary-1" }, loading: false }),
+  // Desktop layout: the roster and detail sit side by side.
+  useMediaQuery: () => false,
 }));
 vi.mock("@asym/database/query-keys", () => ({
   invalidateSupabaseTableQuery: async () => {},
@@ -241,7 +243,7 @@ describe("Partners roster safety", () => {
       fireEvent.click(screen.getByRole("tab", { name: "Contact" }));
       expect(
         screen.getByRole("tabpanel", { name: "Contact" }).textContent,
-      ).toContain("Mailing Address");
+      ).toContain("Mailing address");
       fireEvent.click(screen.getByRole("tab", { name: "Recurring" }));
       expect(
         screen.getByRole("tabpanel", { name: "Recurring" }).textContent,

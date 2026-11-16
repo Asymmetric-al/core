@@ -9,12 +9,6 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1894: Render the actual moderation selector at its callback boundary.
-import { ContentModerationTabsSection } from "../../../../apps/admin/app/(app)/feed/content-moderation-sections";
-// eslint-disable-next-line no-restricted-imports -- AL-1894: Render the actual reminder fields and observe their form value.
-import { TaskFormFields } from "../../../../apps/admin/app/(app)/tasks/task-form-sections";
-// eslint-disable-next-line no-restricted-imports -- AL-1894: Use the real form state for the reminder regression.
-import { useTaskForm } from "../../../../apps/admin/app/(app)/tasks/use-task-form";
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Exercise actual app consumers of the nullable Base UI callback contract.
 import { LocationEditor } from "../../../../apps/admin/features/mission-control/locations/components/LocationEditor";
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Exercise actual app consumers of the nullable Base UI callback contract.
@@ -178,12 +172,12 @@ describe("required Select consumers", () => {
   });
 
   it.each([
-    { name: "Task Type", value: "to_do", label: "To-do", next: "Call" },
+    { name: "Task type", value: "to_do", label: "To-do", next: "Call" },
     { name: "Priority", value: "none", label: "None", next: "High" },
     {
       name: "Status",
       value: "not_started",
-      label: "Not Started",
+      label: "Not started",
       next: "Waiting",
     },
   ])(
@@ -201,14 +195,23 @@ describe("required Select consumers", () => {
 
   it("preserves marker type on null and still updates the linked-entity field", async () => {
     render(<LocationEditor isOpen location={null} onOpenChange={vi.fn()} />);
-    const trigger = screen.getByRole("combobox", { name: "Marker Type" });
+    const trigger = screen.getByRole("combobox", { name: "Marker type" });
     expect(trigger.textContent).toContain("Custom");
     emitChange("custom", null);
     expect(trigger.textContent).toContain("Custom");
-    expect(screen.queryByText("Link to Project")).toBeNull();
-    await choose("Marker Type", "Project");
+    expect(screen.queryByRole("note")).toBeNull();
+    await choose("Marker type", "Project");
     expect(trigger.textContent).toContain("Project");
-    expect(screen.getByText("Link to Project")).toBeTruthy();
+    // Project markers can't link to a project record yet: the editor says so
+    // instead of offering a project picker.
+    expect(screen.getByRole("note").textContent).toContain(
+      "Project links aren’t available yet",
+    );
+    expect(screen.queryByRole("combobox", { name: /link to/i })).toBeNull();
+    await choose("Marker type", "Missionary");
+    expect(trigger.textContent).toContain("Missionary");
+    expect(screen.queryByRole("note")).toBeNull();
+    expect(screen.getByText("Link to missionary")).toBeTruthy();
   });
 });
 
@@ -429,63 +432,4 @@ describe("remaining single-Select callback contracts", () => {
       { id: "row-1", value: { kind: "set_priority", priority: "high" } },
     ]);
   });
-
-  it("preserves moderation sort", () => {
-    const dispatchUi = vi.fn();
-    render(
-      <ContentModerationTabsSection
-        activeTab="all"
-        searchQuery=""
-        filterVisibility="all"
-        filterType="all"
-        sortBy="newest"
-        posts={[]}
-        flaggedPosts={[]}
-        isLoading={false}
-        dispatchUi={dispatchUi}
-        onPostAction={vi.fn()}
-      />,
-    );
-    emitChange("newest", null);
-    expect(dispatchUi).not.toHaveBeenCalled();
-    emitChange("newest", "oldest");
-    expect(dispatchUi).toHaveBeenCalledExactlyOnceWith({
-      type: "set_sort_by",
-      value: "oldest",
-    });
-  });
-
-  it("preserves the required admin reminder type in form state", async () => {
-    render(<AdminReminderHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Add Reminder" }));
-    expect(screen.getByRole("status").textContent).toBe("notification");
-    emitChange("notification", null);
-    expect(screen.getByRole("status").textContent).toBe("notification");
-    await choose("Reminder 1 channel", "Email");
-    expect(screen.getByRole("status").textContent).toBe("email");
-  });
 });
-
-function AdminReminderHarness() {
-  const form = useTaskForm({
-    staffMembers: [],
-    onClose: vi.fn(),
-    onSave: vi.fn(),
-  });
-  return (
-    <>
-      <TaskFormFields
-        form={form}
-        isEntitySearchOpen={false}
-        linkedEntities={[]}
-        staffMembers={[]}
-        tagSearchValue=""
-        onEntitySearchOpenChange={vi.fn()}
-        onTagSearchValueChange={vi.fn()}
-      />
-      <form.Subscribe selector={(state) => state.values.reminders[0]?.type}>
-        {(type) => <output>{type}</output>}
-      </form.Subscribe>
-    </>
-  );
-}

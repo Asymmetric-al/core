@@ -1,335 +1,85 @@
 "use client";
 
+import { useMissionControlNeedsAttention } from "@asym/database/hooks";
 import {
-  useTaskLinkedEntities,
-  useTaskStaff,
-  useTasksRows,
-} from "@asym/database/hooks";
+  MetricCard,
+  MetricGrid,
+} from "@asym/ui/components/primitives/metric-card";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Plus } from "lucide-react";
-import { useMemo, useCallback, useReducer } from "react";
-
-import { getTaskColumns } from "./task-columns";
-import { TaskDrawer } from "./task-drawer";
-import { TaskForm } from "./task-form";
 import {
-  TasksFilterSection,
-  TasksStatsCardsSection,
-  TasksTableSection,
-  type TasksViewTab,
-} from "./tasks-content-sections";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
-import type { Task, TaskStatus } from "./types";
-
-import { TASKS_PAGE_META } from "@/components/table-page-meta";
-
-interface TasksUiState {
-  selectedTask: Task | null;
-  editingTask: Task | null;
-  isModalOpen: boolean;
-  activeTab: TasksViewTab;
-  showCompleted: boolean;
-  searchTerm: string;
-}
-
-type TasksUiAction =
-  | { type: "set-selected-task"; task: Task | null }
-  | { type: "open-create-modal" }
-  | { type: "open-edit-modal"; task: Task }
-  | { type: "close-modal" }
-  | { type: "set-active-tab"; tab: TasksViewTab }
-  | { type: "set-show-completed"; value: boolean }
-  | { type: "set-search-term"; value: string };
-
-const INITIAL_TASKS_UI_STATE: TasksUiState = {
-  selectedTask: null,
-  editingTask: null,
-  isModalOpen: false,
-  activeTab: "all",
-  showCompleted: false,
-  searchTerm: "",
-};
-
-function tasksUiReducer(
-  state: TasksUiState,
-  action: TasksUiAction,
-): TasksUiState {
-  switch (action.type) {
-    case "set-selected-task":
-      return { ...state, selectedTask: action.task };
-    case "open-create-modal":
-      return { ...state, editingTask: null, isModalOpen: true };
-    case "open-edit-modal":
-      return { ...state, editingTask: action.task, isModalOpen: true };
-    case "close-modal":
-      return { ...state, isModalOpen: false, editingTask: null };
-    case "set-active-tab":
-      return { ...state, activeTab: action.tab };
-    case "set-show-completed":
-      return { ...state, showCompleted: action.value };
-    case "set-search-term":
-      return { ...state, searchTerm: action.value };
-    default:
-      return state;
-  }
-}
+import { FollowUpsGrid } from "./follow-ups-grid";
 
 export function TasksPageContent() {
-  const [uiState, dispatchUi] = useReducer(
-    tasksUiReducer,
-    INITIAL_TASKS_UI_STATE,
-  );
-  const tasksQuery = useTasksRows();
-  const staffQuery = useTaskStaff();
-  const linkedEntitiesQuery = useTaskLinkedEntities();
-  const {
-    selectedTask,
-    editingTask,
-    isModalOpen,
-    activeTab,
-    showCompleted,
-    searchTerm,
-  } = uiState;
-  const tasks = useMemo(
-    () => (tasksQuery.data ?? []) as Task[],
-    [tasksQuery.data],
-  );
-  const staffMembers = staffQuery.data ?? [];
-  const linkedEntities = linkedEntitiesQuery.data ?? [];
-  const isLoading =
-    tasksQuery.isLoading ||
-    staffQuery.isLoading ||
-    linkedEntitiesQuery.isLoading;
-  const tasksCollection = tasksQuery.collection;
-
-  const stats = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const overdue = tasks.filter(
-      (t) =>
-        t.status !== "completed" && t.due_date && new Date(t.due_date) < today,
-    ).length;
-
-    const dueToday = tasks.filter(
-      (t) =>
-        t.status !== "completed" &&
-        t.due_date &&
-        new Date(t.due_date).toDateString() === today.toDateString(),
-    ).length;
-
-    const inProgress = tasks.filter((t) => t.status === "in_progress").length;
-    const completed = tasks.filter((t) => t.status === "completed").length;
-
-    return { overdue, dueToday, inProgress, completed };
-  }, [tasks]);
-
-  const filteredTasks = useMemo(() => {
-    let filtered = tasks;
-
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          t.title.toLowerCase().includes(search) ||
-          t.description?.toLowerCase().includes(search) ||
-          t.assigned_to_name?.toLowerCase().includes(search) ||
-          t.linked_entity?.name.toLowerCase().includes(search),
-      );
-    }
-
-    if (!showCompleted) {
-      filtered = filtered.filter(
-        (t) => t.status !== "completed" && t.status !== "cancelled",
-      );
-    }
-
-    if (activeTab === "my") {
-      filtered = filtered.filter((t) => t.assigned_to === "staff-1");
-    } else if (activeTab === "overdue") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      filtered = filtered.filter(
-        (t) =>
-          t.status !== "completed" &&
-          t.due_date &&
-          new Date(t.due_date) < today,
-      );
-    }
-
-    return filtered;
-  }, [tasks, activeTab, showCompleted, searchTerm]);
-
-  const handleToggleComplete = useCallback(
-    (task: Task) => {
-      if (!tasksCollection) {
-        return;
-      }
-
-      const newStatus: TaskStatus =
-        task.status === "completed" ? "todo" : "completed";
-      const timestamp = new Date().toISOString();
-      const tx = tasksCollection.update(task.id, (draft) => {
-        draft.status = newStatus;
-        draft.completed_at = newStatus === "completed" ? timestamp : undefined;
-        draft.updated_at = timestamp;
-      });
-
-      void tx.when("settled");
-    },
-    [tasksCollection],
-  );
-
-  const handleUpdateTask = useCallback(
-    (updatedTask: Task) => {
-      if (!tasksCollection) {
-        return;
-      }
-
-      const tx = tasksCollection.update(updatedTask.id, (draft) => {
-        Object.assign(draft, updatedTask);
-      });
-
-      void tx.when("settled");
-      dispatchUi({ type: "set-selected-task", task: updatedTask });
-    },
-    [tasksCollection],
-  );
-
-  const handleDeleteTask = useCallback(
-    (taskId: string) => {
-      if (!tasksCollection) {
-        return;
-      }
-
-      const tx = tasksCollection.delete(taskId);
-      void tx.when("settled");
-      dispatchUi({ type: "set-selected-task", task: null });
-    },
-    [tasksCollection],
-  );
-
-  const handleSaveTask = useCallback(
-    (taskData: Partial<Task>) => {
-      if (!tasksCollection) {
-        return;
-      }
-
-      if (taskData.id) {
-        const tx = tasksCollection.update(taskData.id, (draft) => {
-          Object.assign(draft, taskData, {
-            updated_at: new Date().toISOString(),
-          });
-        });
-
-        void tx.when("settled");
-      } else {
-        const newTask: Task = {
-          ...(taskData as Task),
-          id: crypto.randomUUID(),
-          tenant_id: "tenant-1",
-          created_by: "staff-1",
-          reminders: taskData.reminders || [],
-          comments: [],
-          tags: taskData.tags || [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        const tx = tasksCollection.insert(newTask);
-        void tx.when("settled");
-      }
-      dispatchUi({ type: "close-modal" });
-    },
-    [tasksCollection],
-  );
-
-  const handleViewTask = useCallback((task: Task) => {
-    dispatchUi({ type: "set-selected-task", task });
-  }, []);
-
-  const handleOpenEditTask = useCallback((task: Task) => {
-    dispatchUi({ type: "open-edit-modal", task });
-  }, []);
-
-  const columns = useMemo(
-    () =>
-      getTaskColumns({
-        onViewTask: handleViewTask,
-        onEditTask: handleOpenEditTask,
-        onDeleteTask: handleDeleteTask,
-        onToggleComplete: handleToggleComplete,
-      }),
-    [
-      handleDeleteTask,
-      handleOpenEditTask,
-      handleToggleComplete,
-      handleViewTask,
-    ],
-  );
-
+  const query = useMissionControlNeedsAttention();
+  const items = query.data?.items ?? [];
   return (
     <PageShell
-      title={TASKS_PAGE_META.title}
-      description={TASKS_PAGE_META.description}
-      density={TASKS_PAGE_META.density}
-      actions={
-        <Button onClick={() => dispatchUi({ type: "open-create-modal" })}>
-          <Plus className="mr-2 size-4" />
-          New Mission Task
-        </Button>
-      }
+      title="Tasks"
+      description="Follow-ups raised by Mission Control. Open the linked record to resolve the underlying issue. Team to-dos are no longer available here."
+      density="compact"
     >
-      <div className="space-y-5">
-        <TasksStatsCardsSection
-          activeTab={activeTab}
-          stats={stats}
-          onOverdueClick={() =>
-            dispatchUi({ type: "set-active-tab", tab: "overdue" })
-          }
-        />
-
-        <TasksFilterSection
-          activeTab={activeTab}
-          searchTerm={searchTerm}
-          showCompleted={showCompleted}
-          onSearchChange={(value) =>
-            dispatchUi({ type: "set-search-term", value })
-          }
-          onTabChange={(tab) => dispatchUi({ type: "set-active-tab", tab })}
-          onShowCompletedChange={(value) =>
-            dispatchUi({
-              type: "set-show-completed",
-              value,
-            })
-          }
-        />
-
-        <TasksTableSection
-          columns={columns}
-          data={filteredTasks}
-          isLoading={isLoading}
-          onCreateTask={() => dispatchUi({ type: "open-create-modal" })}
-        />
-      </div>
-
-      <TaskDrawer
-        task={selectedTask}
-        staffMembers={staffMembers}
-        linkedEntities={linkedEntities}
-        onClose={() => dispatchUi({ type: "set-selected-task", task: null })}
-        onUpdate={handleUpdateTask}
-        onDelete={handleDeleteTask}
-      />
-
-      <TaskForm
-        open={isModalOpen}
-        task={editingTask}
-        staffMembers={staffMembers}
-        linkedEntities={linkedEntities}
-        onClose={() => dispatchUi({ type: "close-modal" })}
-        onSave={handleSaveTask}
-      />
+      <section
+        aria-labelledby="needs-attention-heading"
+        className="flex flex-col gap-4"
+      >
+        <h2 id="needs-attention-heading" className="text-lg font-semibold">
+          Needs attention
+        </h2>
+        {query.isError ? (
+          <Alert variant="destructive">
+            <AlertTitle>Couldn’t load follow-ups</AlertTitle>
+            <AlertDescription>
+              <p>{query.error.message}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void query.refetch()}
+              >
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : query.isPending ? (
+          <div role="status" aria-label="Loading follow-ups">
+            <Skeleton className="h-32 w-full" />
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Showing up to 100 most recently seen open follow-ups. Counts below
+              cover this list; older items may not be shown. Retired issues are
+              excluded.
+            </p>
+            <MetricGrid label="Listed follow-ups">
+              <MetricCard
+                label="Listed follow-ups"
+                value={items.length}
+                detail="Open items in this list"
+              />
+              <MetricCard
+                label="Critical"
+                value={
+                  items.filter((item) => item.urgency === "critical").length
+                }
+                detail="Handle these first"
+              />
+              <MetricCard
+                label="High"
+                value={items.filter((item) => item.urgency === "high").length}
+                detail="Handle soon"
+              />
+            </MetricGrid>
+            <FollowUpsGrid items={items} />
+          </>
+        )}
+      </section>
     </PageShell>
   );
 }

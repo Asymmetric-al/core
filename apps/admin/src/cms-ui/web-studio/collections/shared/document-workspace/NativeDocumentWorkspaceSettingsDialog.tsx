@@ -46,12 +46,9 @@ export function NativeDocumentWorkspaceSettingsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-semibold tracking-tight">
-            {sectionLabel} workspace
-          </DialogTitle>
+          <DialogTitle>{sectionLabel} workspace</DialogTitle>
           <DialogDescription>
-            View settings persist per user via Payload preferences (not local
-            storage).
+            Choose what the document workspace shows. Saved to your account.
           </DialogDescription>
         </DialogHeader>
 
@@ -114,7 +111,9 @@ function WorkspaceSettingsInner({
 
   if (!initialValues) {
     return (
-      <p className="text-muted-foreground text-sm">Loading preferences…</p>
+      <p role="status" className="text-sm text-muted-foreground">
+        Loading preferences…
+      </p>
     );
   }
 
@@ -159,7 +158,7 @@ function WorkspaceSettingsForm({
 
   return (
     <form
-      className="space-y-6"
+      className="flex flex-col gap-6"
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -169,8 +168,8 @@ function WorkspaceSettingsForm({
       <form.AppField name="inspectorOpen">
         {(field) => (
           <field.SwitchField
-            label="Inspector column"
-            description="Reserve space for the document sidebar layout (visual hint)."
+            label="Inspector"
+            description="Show document state, details and links beside the form."
           />
         )}
       </form.AppField>
@@ -178,13 +177,13 @@ function WorkspaceSettingsForm({
       <form.AppField name="showSlugChip">
         {(field) => (
           <field.SwitchField
-            label="Show slug chip"
-            description="Display the slug or identifier next to the document title."
+            label="Slug"
+            description="Show the page address under the title."
           />
         )}
       </form.AppField>
 
-      <DialogFooter className="gap-2 sm:gap-0">
+      <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

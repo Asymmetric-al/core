@@ -1,0 +1,115 @@
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached:
+    [
+      claim,
+      context,
+      after-scope,
+      after-define,
+      freeze,
+      micaiah,
+      luke,
+      seal,
+      after-assess,
+      after-adjudicate,
+      final,
+      publish,
+      record,
+    ]
+claim:
+  {
+    proceed: "yes",
+    route: review,
+    do_scope: "no",
+    do_define: "no",
+    do_build: "yes",
+    do_feedback: "no",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "Round 4",
+  }
+context:
+  {
+    ok: "yes",
+    fingerprint: "f1",
+    changed: "no",
+    scope_assignment: "scope",
+    reason: "ok",
+  }
+after-scope:
+  {
+    proceed: "yes",
+    define: "no",
+    build: "no",
+    ezra_assignment: "",
+    reason: "Review-only round",
+  }
+after-define:
+  {
+    build: "no",
+    freeze: "yes",
+    bezalel_assignment: "",
+    reason: "Review-only round on the recorded head",
+  }
+freeze:
+  {
+    review: "yes",
+    candidate: "abc",
+    micaiah_assignment: "m",
+    luke_assignment: "l",
+    reason: "Recorded head re-frozen without a commit",
+  }
+micaiah:
+  {
+    task_status: DONE,
+    decision: CLEAR,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    scope: s,
+    findings: [],
+    checks_run: [],
+    limitations: [],
+  }
+luke:
+  {
+    task_status: DONE,
+    decision: CLEAR,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    scope: s,
+    findings: [],
+    checks_run: [],
+    limitations: [],
+  }
+seal: { assess: "no", assessment_assignment: "", reason: "clear" }
+after-assess:
+  {
+    adjudicate: "no",
+    final: "yes",
+    agabus_assignment: "",
+    ezra_final_assignment: "f",
+    reason: "clear",
+  }
+after-adjudicate: { final: "yes", ezra_final_assignment: "f", reason: "none" }
+final:
+  {
+    task_status: DONE,
+    decision: PASS,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    criteria:
+      [
+        {
+          id: C1,
+          result: PASS,
+          evidence: e,
+          correction: "",
+          owner: implementation,
+        },
+      ],
+    checks_run: [],
+    limitations: [],
+  }
+publish:
+  { published: "yes", pr: "https://example.invalid/pr/1", reason: "published" }
+record: { outcome: continue, next: feedback, reason: "published" }

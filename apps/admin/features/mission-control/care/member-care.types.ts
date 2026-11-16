@@ -22,6 +22,8 @@ export type CarePlanTask = {
 
 export type AttentionReasonKind =
   | "manual_attention"
+  | "status"
+  | "never_contacted"
   | "routine_checkin"
   | "requirement_gap"
   | "never_met_requirement";
@@ -49,6 +51,7 @@ export type MemberCareDerivationInput = {
   personnel: CarePersonnel[];
   activities: ActivityLogEntry[];
   requirements?: CareRequirement[];
+  lastContacts?: Record<string, Partial<Record<ActivityType, string>>>;
   tasks?: CarePlanTask[];
   now?: Date;
 };

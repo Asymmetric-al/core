@@ -1,192 +1,297 @@
 "use client";
 
-import {
-  formatPledgeCurrency,
-  formatPledgeDate,
-  mapRecurringGiftToPledgeView,
-} from "@asym/api/donor-portal/pledge-view";
+import { formatPledgeDate } from "@asym/api/donor-portal/pledge-view";
+import { formatMoney, isSupportedCurrency } from "@asym/api/money";
 import {
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
+  useDonorWallet,
+  type DonorPortalRecurringGift,
 } from "@asym/database/hooks";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
-  CalendarClock,
-  ExternalLink,
-  HeartHandshake,
-  Loader2,
-} from "lucide-react";
-import { useState } from "react";
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
-type PledgeView = ReturnType<typeof mapRecurringGiftToPledgeView>;
+import { todayDateInputValue } from "@/lib/dates";
 
-function initialsOf(name: string): string {
+const ACTIVE = new Set(["active", "processing", "trialing"]);
+const PAUSED = new Set(["paused"]);
+
+/** How often a gift repeats, in the words people use. */
+const SCHEDULE: Record<string, { phrase: string; periodsPerYear: number }> = {
+  weekly: { phrase: "a week", periodsPerYear: 52 },
+  biweekly: { phrase: "every 2 weeks", periodsPerYear: 26 },
+  monthly: { phrase: "a month", periodsPerYear: 12 },
+  quarterly: { phrase: "every 3 months", periodsPerYear: 4 },
+  annually: { phrase: "a year", periodsPerYear: 1 },
+  annual: { phrase: "a year", periodsPerYear: 1 },
+  yearly: { phrase: "a year", periodsPerYear: 1 },
+};
+
+function schedule(frequency: string) {
+  return (
+    SCHEDULE[frequency.toLowerCase()] ?? {
+      phrase: frequency,
+      periodsPerYear: 0,
+    }
+  );
+}
+
+function giftCurrency(currency: string | null | undefined) {
+  return currency && isSupportedCurrency(currency)
+    ? currency.trim().toUpperCase()
+    : null;
+}
+
+type GiftStanding = "Active" | "Paused" | "Stopped";
+
+function standing(status: string): GiftStanding {
+  const normalized = status.toLowerCase();
+  if (ACTIVE.has(normalized)) return "Active";
+  if (PAUSED.has(normalized)) return "Paused";
+  return "Stopped";
+}
+
+const STANDING_VARIANT: Record<
+  GiftStanding,
+  "success" | "warning" | "secondary"
+> = {
+  Active: "success",
+  Paused: "warning",
+  Stopped: "secondary",
+};
+
+/** What active gifts add up to each month (quarterly gifts spread out). */
+export function monthlyEquivalent(gifts: DonorPortalRecurringGift[]) {
+  const activeGifts = gifts.filter(
+    (gift) => standing(gift.status) === "Active",
+  );
+  const currencyGifts = activeGifts.length > 0 ? activeGifts : gifts;
+  const currency = giftCurrency(currencyGifts[0]?.currency);
+  if (
+    !currency ||
+    currencyGifts.some((gift) => giftCurrency(gift.currency) !== currency)
+  ) {
+    return null;
+  }
+
+  let annualMinorUnits = 0n;
+  for (const gift of activeGifts) {
+    const periodsPerYear = schedule(gift.frequency).periodsPerYear;
+    if (
+      !Number.isSafeInteger(gift.amountCents) ||
+      gift.amountCents < 0 ||
+      periodsPerYear === 0
+    ) {
+      return null;
+    }
+    annualMinorUnits += BigInt(gift.amountCents) * BigInt(periodsPerYear);
+  }
+  const amountCents = Number((annualMinorUnits + 6n) / 12n);
+  return Number.isSafeInteger(amountCents) ? { amountCents, currency } : null;
+}
+
+/** "Next gift today" for today, otherwise the date. */
+function nextGiftLabel(date: string) {
+  return date.slice(0, 10) === todayDateInputValue()
+    ? "Next gift today"
+    : `Next gift ${formatPledgeDate(date)}`;
+}
+
+function initials(name: string) {
   return (
     name
-      .split(" ")
-      .map((part) => part[0] ?? "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
       .join("")
-      .toUpperCase()
-      .slice(0, 2) || "··"
+      .toUpperCase() || "?"
   );
 }
 
-function statusVariant(status: string): "success" | "warning" | "secondary" {
-  const normalized = status.toLowerCase();
-  return normalized === "active"
-    ? "success"
-    : normalized === "paused"
-      ? "warning"
-      : "secondary";
-}
-
-function PledgeCard({ pledge }: { pledge: PledgeView }) {
+function brandName(brand: string) {
+  const names: Record<string, string> = {
+    visa: "Visa",
+    mastercard: "Mastercard",
+    amex: "American Express",
+    discover: "Discover",
+  };
   return (
-    <Card className="text-left">
-      <CardContent className="p-5 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Avatar className="size-11 border border-border">
-              {pledge.recipientAvatar ? (
-                <AvatarImage src={pledge.recipientAvatar} alt="" />
-              ) : null}
-              <AvatarFallback className="bg-muted text-foreground text-sm font-semibold ">
-                {initialsOf(pledge.recipientName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <p className="font-semibold text-foreground truncate">
-                {pledge.recipientName}
-              </p>
-              <p className="text-sm font-medium text-muted-foreground">
-                {pledge.recipientCategory}
-              </p>
-            </div>
-          </div>
-          <Badge variant={statusVariant(pledge.status)} className="shrink-0">
-            {pledge.status}
-          </Badge>
-        </div>
-
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-semibold tracking-tight text-foreground">
-            {formatPledgeCurrency(pledge.amount, pledge.currency)}
-          </span>
-          <span className="text-xs font-medium text-muted-foreground">
-            / {pledge.frequency}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <CalendarClock className="size-3.5" aria-hidden="true" />
-          <span>Next charge {formatPledgeDate(pledge.nextChargeDate)}</span>
-        </div>
-
-        {pledge.paymentMethodLabel ? (
-          <p className="text-xs text-muted-foreground truncate">
-            {pledge.paymentMethodLabel}
-          </p>
-        ) : null}
-      </CardContent>
-    </Card>
+    names[brand.toLowerCase()] ?? brand.charAt(0).toUpperCase() + brand.slice(1)
   );
 }
 
-function PledgesHeader({
-  onManage,
-  managing,
-  isInitiator,
+function GiftRow({
+  gift,
+  paidWith,
 }: {
-  onManage: () => void;
-  managing: boolean;
-  isInitiator: boolean;
+  gift: DonorPortalRecurringGift;
+  paidWith: string;
 }) {
+  const name = gift.missionary?.name ?? gift.designation.name;
+  const avatar = gift.missionary?.avatarUrl ?? gift.designation.avatarUrl;
+  const giftStanding = standing(gift.status);
+  const currency = giftCurrency(gift.currency);
+  const amount =
+    currency && Number.isSafeInteger(gift.amountCents) && gift.amountCents >= 0
+      ? formatMoney(gift.amountCents, currency, "en-US")
+      : "Amount unavailable";
+  const nameId = `recurring-gift-${gift.id}`;
+  // An unnamed missionary is shown by its fund; don't repeat it below.
+  const fundLine =
+    gift.fund?.name === name ? null : (gift.fund?.name ?? "General support");
+  const when =
+    giftStanding === "Active"
+      ? gift.nextChargeAt
+        ? nextGiftLabel(gift.nextChargeAt)
+        : "Next gift date not set"
+      : giftStanding === "Paused"
+        ? "No gift scheduled while paused"
+        : gift.endsAt
+          ? `Stopped ${formatPledgeDate(gift.endsAt)}`
+          : "No more gifts scheduled";
+
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
-      <div>
-        <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight ">
-          Recurring Pledges
-        </h1>
-        <p className="text-muted-foreground mt-2 font-semibold text-xs">
-          Manage your ongoing commitments and impact.
-        </p>
+    <li
+      aria-labelledby={nameId}
+      className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-4"
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <Avatar size="lg">
+          {avatar ? <AvatarImage src={avatar} alt="" /> : null}
+          <AvatarFallback>{initials(name)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <p id={nameId} className="truncate font-medium text-foreground">
+            {name}
+          </p>
+          {fundLine ? (
+            <p className="truncate text-sm text-muted-foreground">{fundLine}</p>
+          ) : null}
+        </div>
       </div>
-      <Button
-        onClick={onManage}
-        disabled={managing}
-        focusableWhenDisabled={managing && isInitiator}
+      <div className="flex flex-col gap-1 sm:w-48">
+        <p className="font-medium tabular-nums text-foreground">
+          {`${amount} ${schedule(gift.frequency).phrase}`}
+        </p>
+        <p className="text-sm text-muted-foreground">{when}</p>
+      </div>
+      <p className="text-sm text-muted-foreground sm:w-56">{paidWith}</p>
+      <Badge
+        variant={STANDING_VARIANT[giftStanding]}
+        className="self-start sm:self-center"
       >
-        {managing && isInitiator ? (
-          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
-        ) : (
-          <ExternalLink className="mr-2 size-4" aria-hidden="true" />
-        )}
-        Manage in billing portal
-      </Button>
-    </div>
+        {giftStanding}
+      </Badge>
+    </li>
   );
 }
 
 export default function DonorPledgesPage() {
   const snapshot = useDonorPortalSnapshot();
+  const wallet = useDonorWallet();
   const billingPortal = useCreateDonorBillingPortalSession();
-  const [billingPortalInitiator, setBillingPortalInitiator] = useState<
-    "header" | "empty" | null
-  >(null);
 
-  const openBillingPortal = async (initiator: "header" | "empty") => {
-    setBillingPortalInitiator(initiator);
+  const openPaymentSettings = async () => {
     try {
       const { url } = await billingPortal.mutateAsync();
       window.location.assign(url);
     } catch {
-      // error surfaced via billingPortal.error below
-    } finally {
-      setBillingPortalInitiator(null);
+      // Surfaced below through billingPortal.error.
     }
   };
 
-  const pledges = (snapshot.data?.recurringGifts ?? []).map(
-    mapRecurringGiftToPledgeView,
+  const gifts = snapshot.data?.recurringGifts ?? [];
+  // Active and paused first, then stopped gifts for the record.
+  const ordered = [...gifts].sort(
+    (a, b) =>
+      Number(standing(a.status) === "Stopped") -
+      Number(standing(b.status) === "Stopped"),
   );
+  const methods = wallet.data?.status === "linked" ? wallet.data.methods : [];
+  const paidWith = (gift: DonorPortalRecurringGift) => {
+    const method = methods.find((candidate) =>
+      candidate.recurringGiftIds.includes(gift.id),
+    );
+    if (!method) return gift.paymentMethodLabel;
+    return method.kind === "bank"
+      ? `Bank account ending in ${method.last4}`
+      : `${brandName(method.brand)} ending in ${method.last4}`;
+  };
+  const activeGifts = gifts.filter(
+    (gift) => standing(gift.status) === "Active",
+  );
+  const activeCount = activeGifts.length;
+  // Only the newest recurring gifts load; an older active gift may be
+  // missing, so a total over them would be understated.
+  const giftsComplete = snapshot.data?.recurringGiftsComplete !== false;
+  const monthlyTotal = giftsComplete ? monthlyEquivalent(gifts) : null;
+  const spreadsGifts = activeGifts.some((gift) => {
+    const periodsPerYear = schedule(gift.frequency).periodsPerYear;
+    return periodsPerYear > 0 && periodsPerYear < 12;
+  });
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20">
-      <PledgesHeader
-        onManage={() => openBillingPortal("header")}
-        managing={billingPortal.isPending}
-        isInitiator={billingPortalInitiator === "header"}
-      />
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-20">
+      <PageHeader
+        title="Recurring gifts"
+        description="Gifts that repeat on a schedule. You can change the amount, card or date, or stop a gift, at any time."
+      >
+        {gifts.length > 0 ? (
+          <Button
+            onClick={openPaymentSettings}
+            disabled={billingPortal.isPending}
+            focusableWhenDisabled
+          >
+            {billingPortal.isPending ? (
+              <Loader2
+                data-icon="inline-start"
+                className="animate-spin"
+                aria-hidden
+              />
+            ) : null}
+            Change or stop a gift
+          </Button>
+        ) : null}
+      </PageHeader>
 
       {billingPortal.error ? (
-        <p role="alert" className="text-sm text-destructive px-1">
-          We couldn&apos;t open the billing portal. Please try again.
+        <p role="alert" className="text-sm text-destructive">
+          We couldn’t open your payment settings. Please try again.
         </p>
       ) : null}
 
       {snapshot.isLoading ? (
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+          className="flex flex-col gap-4"
           aria-busy="true"
-          aria-label="Loading pledges"
+          aria-label="Loading recurring gifts"
         >
-          {[0, 1, 2, 3].map((key) => (
-            <Skeleton key={key} className="h-44 w-full rounded-xl" />
-          ))}
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       ) : snapshot.error ? (
         <Card>
-          <CardContent className="p-6 space-y-3 text-left">
-            <p role="alert" className="text-sm font-medium text-destructive">
-              We couldn&apos;t load your recurring pledges.
+          <CardContent className="flex flex-col items-start gap-3">
+            <p role="alert" className="text-sm text-foreground">
+              We couldn’t load your recurring gifts.
             </p>
             <Button
               variant="outline"
@@ -197,45 +302,65 @@ export default function DonorPledgesPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : pledges.length === 0 ? (
-        <Card>
-          <CardContent className="p-10 flex flex-col items-center text-center gap-3">
-            <HeartHandshake
-              className="size-8 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <div>
-              <p className="font-semibold text-foreground">
-                No recurring pledges yet
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                When you set up a recurring gift, it will appear here.
-              </p>
-            </div>
-            <Button
-              focusableWhenDisabled={
-                billingPortal.isPending && billingPortalInitiator === "empty"
-              }
-              variant="outline"
-              onClick={() => openBillingPortal("empty")}
-              disabled={billingPortal.isPending}
-              className="mt-2"
-            >
-              <ExternalLink
-                className="mr-2 size-4"
-                aria-hidden="true"
-                data-icon="inline-start"
-              />
-              Open billing portal
-            </Button>
-          </CardContent>
-        </Card>
+      ) : gifts.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No recurring gifts yet</EmptyTitle>
+            <EmptyDescription>
+              A monthly gift gives a missionary support they can plan around.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Link href="/workers" className={buttonVariants()}>
+              Find a missionary
+            </Link>
+          </EmptyContent>
+        </Empty>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {pledges.map((pledge) => (
-            <PledgeCard key={pledge.id} pledge={pledge} />
-          ))}
-        </div>
+        <>
+          <Card>
+            <CardContent className="flex flex-col gap-1">
+              <p className="text-sm text-muted-foreground">
+                Your recurring giving
+              </p>
+              <p className="text-3xl font-semibold tracking-tight tabular-nums text-foreground">
+                {monthlyTotal
+                  ? `${formatMoney(monthlyTotal.amountCents, monthlyTotal.currency, "en-US")} a month`
+                  : "Monthly total unavailable"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {!giftsComplete
+                  ? `From at least ${activeCount} active gifts.`
+                  : activeCount === 1
+                    ? "From 1 active gift."
+                    : `From ${activeCount} active gifts.`}
+                {spreadsGifts
+                  ? " Gifts every 3 months or once a year are spread across the months."
+                  : null}
+              </p>
+              {!monthlyTotal ? (
+                <p className="text-sm text-muted-foreground">
+                  {giftsComplete
+                    ? "Gift amounts, currencies or schedules cannot be combined into one monthly total."
+                    : "Only your newest recurring gifts are listed here, so they can’t be added up into a monthly total."}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <ul className="flex flex-col divide-y divide-border">
+                {ordered.map((gift) => (
+                  <GiftRow
+                    key={gift.id}
+                    gift={gift}
+                    paidWith={paidWith(gift)}
+                  />
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

@@ -35,16 +35,24 @@ type AdminSupabaseClient = NonNullable<
   ReturnType<typeof getAdminClient>["client"]
 >;
 
-export type PdfTemplateCategory =
-  | "tax_receipt"
-  | "donation_receipt"
-  | "annual_statement"
-  | "letter"
-  | "certificate"
-  | "missionary_report"
-  | "report"
-  | "invoice"
-  | "custom";
+const PDF_TEMPLATE_CATEGORIES = [
+  "tax_receipt",
+  "donation_receipt",
+  "annual_statement",
+  "letter",
+  "certificate",
+  "missionary_report",
+  "report",
+  "invoice",
+  "custom",
+] as const;
+export type PdfTemplateCategory = (typeof PDF_TEMPLATE_CATEGORIES)[number];
+
+function normalizeTemplateCategory(row: PdfTemplateRow): PdfTemplateRow {
+  return PDF_TEMPLATE_CATEGORIES.includes(row.category)
+    ? row
+    : { ...row, category: "custom" };
+}
 
 export type PdfTemplateStatus = "draft" | "published" | "archived";
 export type PdfTemplateEngine = "unlayer" | "asym_pdf_document_builder";
@@ -269,7 +277,9 @@ export async function listPdfTemplates(
   });
 
   if (error) throwSupabaseError(error);
-  return (data as unknown as PdfTemplateRow[]) ?? [];
+  return ((data as unknown as PdfTemplateRow[]) ?? []).map(
+    normalizeTemplateCategory,
+  );
 }
 
 export async function readPdfTemplate(
@@ -285,7 +295,9 @@ export async function readPdfTemplate(
     .maybeSingle();
 
   if (error) throwSupabaseError(error);
-  return (data as unknown as PdfTemplateRow | null) ?? null;
+  return data
+    ? normalizeTemplateCategory(data as unknown as PdfTemplateRow)
+    : null;
 }
 
 export async function requirePdfTemplate(

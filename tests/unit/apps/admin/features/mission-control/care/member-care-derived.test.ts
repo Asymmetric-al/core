@@ -9,6 +9,8 @@ import {
   getDueCareTasks,
   getIntervalDaysForActivity,
   getUpcomingBirthdays,
+  getLastContactDate,
+  getPeopleNeedingAttention,
 } from "../../../../../../../apps/admin/features/mission-control/care/member-care.derived";
 import type {
   ActivityLogEntry,
@@ -103,6 +105,119 @@ const requirements: CareRequirement[] = [
 ];
 
 describe("member care derivations", () => {
+  it("uses complete server contacts for saved cadences and keeps urgent people independent of cadence", () => {
+    const people = [
+      { ...personnel[0]!, id: "flag", lastCheckIn: now.toISOString() },
+      {
+        ...personnel[1]!,
+        id: "crisis",
+        status: "Crisis" as const,
+        lastCheckIn: now.toISOString(),
+      },
+      {
+        ...personnel[1]!,
+        id: "risk",
+        status: "At Risk" as const,
+        lastCheckIn: now.toISOString(),
+      },
+      { ...personnel[1]!, id: "weekly", lastCheckIn: "2026-04-10T00:00:00Z" },
+      {
+        ...personnel[1]!,
+        id: "quarterly",
+        lastCheckIn: "2026-02-01T00:00:00Z",
+      },
+      { ...personnel[1]!, id: "never", lastCheckIn: null },
+    ];
+    const saved = [
+      {
+        id: "weekly-1",
+        personnelId: "weekly",
+        activityType: "Video Call" as const,
+        intervalDays: 7,
+      },
+      {
+        id: "weekly-2",
+        personnelId: "weekly",
+        activityType: "Video Call" as const,
+        intervalDays: 30,
+      },
+      {
+        id: "quarterly-1",
+        personnelId: "quarterly",
+        activityType: "Video Call" as const,
+        intervalDays: 90,
+      },
+    ];
+    const lastContacts = {
+      weekly: { "Video Call": "2026-04-01T00:00:00Z" },
+      quarterly: { "Video Call": "2026-02-01T00:00:00Z" },
+    };
+    const input = {
+      personnel: people,
+      activities: [],
+      requirements: saved,
+      lastContacts,
+      now,
+    };
+    const gaps = getAttentionGaps(input);
+    expect(gaps.filter((gap) => gap.personnelId === "weekly")).toHaveLength(1);
+    expect(gaps.find((gap) => gap.personnelId === "weekly")).toMatchObject({
+      reason: "requirement_gap",
+      daysOverdue: 3,
+    });
+    expect(gaps.find((gap) => gap.personnelId === "quarterly")).toBeUndefined();
+    expect(gaps.find((gap) => gap.personnelId === "never")).toMatchObject({
+      reason: "never_contacted",
+      reasonLabel: "No care contact recorded",
+      severity: "high",
+      daysOverdue: 30,
+    });
+    expect(
+      getPeopleNeedingAttention(input).map((gap) => gap.personnelId),
+    ).toEqual(["flag", "crisis", "risk", "never", "weekly"]);
+    expect(
+      getLastContactDate(
+        { id: "quarterly", lastCheckIn: null },
+        [],
+        lastContacts,
+      ),
+    ).toBe("2026-02-01T00:00:00Z");
+  });
+  it("includes today's birthday after midnight and sorts the next occurrence", () => {
+    const people = [
+      { ...personnel[0]!, birthDate: "1990-04-12" },
+      { ...personnel[1]!, birthDate: "1990-04-11" },
+    ];
+    expect(
+      getUpcomingBirthdays(people, new Date("2026-04-11T12:00:00")),
+    ).toEqual([people[1], people[0]]);
+  });
+
+  it("uses the later valid logged contact or check-in, ignoring thread posts", () => {
+    const person = { ...personnel[1]!, lastCheckIn: "2026-04-10T12:00:00Z" };
+    expect(getLastContactDate(person, activities)).toBe(person.lastCheckIn);
+    const contacts = [
+      {
+        ...activities[0]!,
+        date: "2026-04-11T10:00:00Z",
+        kind: "activity" as const,
+      },
+      {
+        ...activities[0]!,
+        date: "2026-04-12T10:00:00Z",
+        kind: "thread" as const,
+      },
+    ];
+    expect(getLastContactDate(person, contacts)).toBe(contacts[0]!.date);
+    expect(getLastContactDate({ ...person, lastCheckIn: null }, [])).toBeNull();
+    expect(getRecentCheckInCount([contacts[1]!], new Date("2026-04-13"))).toBe(
+      0,
+    );
+    expect(
+      getAttentionGaps({ personnel: [person], activities: [], now }),
+    ).toEqual([]);
+  });
+
   it("maps interval defaults by activity type", () => {
     expect(getIntervalDaysForActivity("Video Call")).toBe(14);
     expect(getIntervalDaysForActivity("Crisis Intervention")).toBe(7);

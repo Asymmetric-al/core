@@ -32,6 +32,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Rocket, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
+import {
+  LAUNCH_PERMISSION_LABELS,
+  LAUNCH_PERMISSIONS,
+  PlatformOwnerField,
+} from "./platform-owner-field";
 import { EVE_GOVERNANCE_QUERY_KEY } from "./query-keys";
 
 import type { EveGovernanceSnapshot } from "@asym/api/eve/governance/types";
@@ -97,22 +102,25 @@ async function mutateReadiness(
 
 function launchStatusVariant(status: string) {
   return status === "ready" || status === "completed"
-    ? "default"
+    ? "success"
     : status === "not_ready" || status === "rolled_back"
       ? "destructive"
       : "secondary";
+}
+
+function formatLaunchStatus(status: string) {
+  const phrase = status.split("_").join(" ");
+  return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}`;
 }
 
 type LaunchManifest = LaunchReadinessResponse["manifests"][number];
 type LaunchRecord = NonNullable<LaunchReadinessResponse["latestLaunch"]>;
 
 function LaunchReadinessStatusGrid({
-  governance,
   isLoading,
   manifest,
   runtimeTarget,
 }: {
-  governance: EveGovernanceSnapshot | null | undefined;
   isLoading: boolean;
   manifest: LaunchManifest | undefined;
   runtimeTarget: LaunchReadinessResponse["runtimeTarget"];
@@ -122,28 +130,10 @@ function LaunchReadinessStatusGrid({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="rounded-lg border p-3">
-        <p className="text-xs text-muted-foreground">Release</p>
-        <Badge
-          className="mt-2"
-          variant={governance?.releaseEnabled ? "destructive" : "secondary"}
-        >
-          {governance?.releaseEnabled ? "Enabled" : "Off"}
-        </Badge>
-      </div>
-      <div className="rounded-lg border p-3">
-        <p className="text-xs text-muted-foreground">Emergency</p>
-        <Badge
-          className="mt-2"
-          variant={governance?.emergencyOff ? "destructive" : "outline"}
-        >
-          {governance?.emergencyOff ? "Engaged" : "Clear"}
-        </Badge>
-      </div>
+    <div className="grid gap-3 sm:grid-cols-2">
       <div className="rounded-lg border p-3">
         <p className="text-xs text-muted-foreground">Runtime target</p>
-        <Badge className="mt-2" variant="outline">
+        <Badge className="mt-2" variant={runtimeTarget ? "success" : "warning"}>
           {runtimeTarget ? "Configured" : "Incomplete"}
         </Badge>
       </div>
@@ -153,7 +143,7 @@ function LaunchReadinessStatusGrid({
           className="mt-2"
           variant={manifest ? launchStatusVariant(manifest.status) : "outline"}
         >
-          {manifest?.status ?? "None"}
+          {manifest ? formatLaunchStatus(manifest.status) : "None"}
         </Badge>
       </div>
     </div>
@@ -174,7 +164,7 @@ function LaunchManifestImportSection({
   return (
     <section aria-labelledby="eve-launch-manifest-title">
       <Label id="eve-launch-manifest-title" htmlFor="eve-launch-manifest">
-        Signed-off launch evidence manifest
+        Signed-off launch evidence (JSON)
       </Label>
       <Textarea
         id="eve-launch-manifest"
@@ -207,18 +197,18 @@ function LaunchReasonSection({
   return (
     <section aria-labelledby="eve-launch-reason-title">
       <Label id="eve-launch-reason-title" htmlFor="eve-launch-reason">
-        Review or control reason
+        Reason for this change
       </Label>
       <Input
         id="eve-launch-reason"
         className="mt-2"
         value={reason}
         onChange={(event) => onReasonChange(event.target.value)}
-        placeholder="Concise, non-sensitive operator rationale"
+        placeholder="A short reason, with no personal or secret details"
       />
       <p className="mt-2 text-xs text-muted-foreground">
-        Required for every review, permission, release, and canary control
-        below, including the first-run state with no imported manifest.
+        Every button below needs a reason, even before any evidence is imported.
+        It is saved with the change in the audit history.
       </p>
     </section>
   );
@@ -244,7 +234,7 @@ function LaunchIndependentReviewSection({
     <section className="space-y-3" aria-labelledby="eve-launch-review-title">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 id="eve-launch-review-title" className="text-sm font-medium">
-          Independent review
+          Two-person review
         </h3>
         <span className="text-xs text-muted-foreground">
           {manifest.reviews.length} recorded review(s)
@@ -252,13 +242,13 @@ function LaunchIndependentReviewSection({
       </div>
       {manifest.evaluation.blockers.length > 0 ? (
         <p className="text-xs text-destructive">
-          {manifest.evaluation.blockers.length} readiness blocker(s):{" "}
+          {manifest.evaluation.blockers.length} problem(s) stop this launch:{" "}
           {manifest.evaluation.blockers.slice(0, 3).join(", ")}
         </p>
       ) : null}
       <details className="rounded-lg border p-3">
         <summary className="cursor-pointer text-sm font-medium">
-          Inspect exact manifest and content hash
+          Show the full evidence and its fingerprint
         </summary>
         <p className="mt-2 break-all text-xs text-muted-foreground">
           SHA-256: {manifest.contentHash}
@@ -300,41 +290,59 @@ function LaunchPermissionsSection({
   onProfileIdChange: (value: string) => void;
   onSetPermission: (permission: EveLaunchPermission, enabled: boolean) => void;
 }) {
+  const unavailable =
+    isPending || profileId.trim().length === 0 || explanation.length === 0;
+
   return (
     <section
       className="space-y-3"
       aria-labelledby="eve-launch-permissions-title"
     >
       <h3 id="eve-launch-permissions-title" className="text-sm font-medium">
-        Dedicated launch permissions
+        Launch permissions
       </h3>
-      <Label htmlFor="eve-launch-profile">Platform-owner profile ID</Label>
-      <Input
-        id="eve-launch-profile"
-        value={profileId}
-        onChange={(event) => onProfileIdChange(event.target.value)}
-        placeholder="00000000-0000-4000-8000-000000000000"
+      <p className="text-xs text-muted-foreground">
+        Only a platform owner can grant or revoke these, and they can only be
+        given to another platform owner.
+      </p>
+      <PlatformOwnerField
+        profileId={profileId}
+        onProfileIdChange={onProfileIdChange}
       />
-      <div className="flex flex-wrap gap-2">
-        {(["release.review", "release.activate"] as const).flatMap(
-          (permission) =>
-            ([true, false] as const).map((enabled) => (
-              <Button
-                key={`${permission}:${enabled}`}
-                size="sm"
-                variant="outline"
-                disabled={
-                  isPending ||
-                  profileId.length === 0 ||
-                  explanation.length === 0
-                }
-                onClick={() => onSetPermission(permission, enabled)}
-              >
-                {enabled ? "Grant" : "Revoke"} {permission}
-              </Button>
-            )),
-        )}
-      </div>
+      <ul className="divide-y rounded-lg border">
+        {LAUNCH_PERMISSIONS.map((permission) => {
+          const { label, detail } = LAUNCH_PERMISSION_LABELS[permission];
+          return (
+            <li
+              key={permission}
+              className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{label}</p>
+                <p className="text-xs text-muted-foreground">{detail}</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                {([true, false] as const).map((enabled) => {
+                  const verb = enabled ? "Grant" : "Revoke";
+                  return (
+                    <Button
+                      key={String(enabled)}
+                      size="sm"
+                      variant="outline"
+                      aria-label={`${verb}: ${label}`}
+                      focusableWhenDisabled={isPending}
+                      disabled={unavailable}
+                      onClick={() => onSetPermission(permission, enabled)}
+                    >
+                      {verb}
+                    </Button>
+                  );
+                })}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
@@ -356,6 +364,17 @@ function LaunchReleaseControlsSection({
   onMutate: (body: Record<string, unknown>) => void;
   runtimeTarget: LaunchReadinessResponse["runtimeTarget"];
 }) {
+  const activateUnavailable =
+    isPending ||
+    !manifest ||
+    manifest.status !== "ready" ||
+    !canActivate ||
+    !runtimeTarget ||
+    !governance ||
+    explanation.length === 0;
+  const emergencyOffUnavailable =
+    isPending || !governance || explanation.length === 0;
+
   return (
     <section
       className="rounded-lg border border-destructive/40 p-4"
@@ -366,21 +385,24 @@ function LaunchReleaseControlsSection({
         className="flex items-center gap-2 text-sm font-medium"
       >
         <ShieldAlert aria-hidden="true" className="size-4 text-destructive" />
-        Release and emergency controls
+        Switch Eve on or off
       </h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Activation needs approved evidence that matches this deployment.
+        Emergency off stops Eve at once.
+      </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <AlertDialog>
           <AlertDialogTrigger
-            disabled={
-              isPending ||
-              !manifest ||
-              manifest.status !== "ready" ||
-              !canActivate ||
-              !runtimeTarget ||
-              !governance ||
-              explanation.length === 0
+            disabled={activateUnavailable}
+            render={
+              <Button
+                size="sm"
+                variant={activateUnavailable ? "outline" : "default"}
+              >
+                Activate this deployment
+              </Button>
             }
-            render={<Button size="sm">Activate exact target</Button>}
           />
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -388,9 +410,10 @@ function LaunchReleaseControlsSection({
                 Activate Eve for this exact deployment?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This is the only control here that can enable Eve. The server
-                will re-check the target, manifest hash, reviews, governance
-                version, policy, and kill switches atomically.
+                This is the only button that can switch Eve on. Before it does,
+                the server checks again that the evidence matches this
+                deployment, both reviews are approved, the policy is ready and
+                every kill switch is clear. Then a 15-minute trial run starts.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -405,7 +428,7 @@ function LaunchReleaseControlsSection({
                   })
                 }
               >
-                Activate and start canary
+                Activate and start trial run
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -430,9 +453,9 @@ function LaunchReleaseControlsSection({
         ) : null}
         <Button
           size="sm"
-          variant="destructive"
+          variant={emergencyOffUnavailable ? "outline" : "destructive"}
           focusableWhenDisabled={isPending}
-          disabled={isPending || !governance || explanation.length === 0}
+          disabled={emergencyOffUnavailable}
           onClick={() =>
             onMutate({
               kind: "safety_control",
@@ -486,10 +509,11 @@ function LaunchCanarySection({
       aria-labelledby="eve-launch-canary-title"
     >
       <h3 id="eve-launch-canary-title" className="text-sm font-medium">
-        Active 15-minute canary
+        15-minute trial run in progress
       </h3>
       <p className="text-xs text-muted-foreground">
-        Deadline: {formatDateTime(launch.canaryDeadline)}
+        Mark it passed before {formatDateTime(launch.canaryDeadline)}. If it
+        fails or time runs out, Eve is switched off with emergency off.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button
@@ -506,7 +530,7 @@ function LaunchCanarySection({
             })
           }
         >
-          Record all canaries passed
+          Mark every trial check passed
         </Button>
         <Button
           size="sm"
@@ -523,7 +547,7 @@ function LaunchCanarySection({
             })
           }
         >
-          Fail canary and roll back
+          Fail the trial and switch Eve off
         </Button>
       </div>
     </section>
@@ -567,7 +591,7 @@ export function EveLaunchReadinessPanel() {
       setLocalError(undefined);
       mutation.mutate({ kind: "manifest", document });
     } catch {
-      setLocalError("The launch manifest must be valid JSON.");
+      setLocalError("The launch evidence must be valid JSON.");
     }
   };
 
@@ -576,7 +600,7 @@ export function EveLaunchReadinessPanel() {
       kind: "permission",
       enabled,
       permission,
-      profileId,
+      profileId: profileId.trim(),
       reason: explanation,
     });
   };
@@ -584,15 +608,17 @@ export function EveLaunchReadinessPanel() {
   return (
     <Card id="eve-launch-readiness">
       <CardHeader>
-        <CardTitle>
+        <CardTitle role="heading" aria-level={2}>
           <span className="flex items-center gap-2">
             <Rocket aria-hidden="true" className="size-5" />
             Launch readiness
           </span>
         </CardTitle>
         <CardDescription>
-          Target-bound evidence, two-person review, explicit activation, and a
-          fail-closed canary. Importing or reviewing evidence cannot enable Eve.
+          Eve goes live in four steps: import signed-off evidence for this exact
+          deployment, get it approved by a release reviewer and a security
+          reviewer (two different people), activate it, then pass a 15-minute
+          trial run. Importing or reviewing evidence never switches Eve on.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -609,7 +635,6 @@ export function EveLaunchReadinessPanel() {
           </Alert>
         ) : null}
         <LaunchReadinessStatusGrid
-          governance={governance}
           isLoading={query.isLoading}
           manifest={manifest}
           runtimeTarget={query.data?.runtimeTarget}
@@ -651,9 +676,9 @@ export function EveLaunchReadinessPanel() {
         />
 
         <LaunchReleaseControlsSection
+          governance={governance}
           canActivate={Boolean(query.data?.canActivate)}
           explanation={explanation}
-          governance={governance}
           isPending={mutation.isPending}
           manifest={manifest}
           onMutate={(body) => mutation.mutate(body)}

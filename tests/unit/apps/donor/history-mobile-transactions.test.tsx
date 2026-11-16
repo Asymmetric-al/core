@@ -7,35 +7,34 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { HistoryTransactionsCard } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/page-content";
 import type { Transaction } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/history/types";
 import { getDemoDonorPortalSnapshot } from "../../../../packages/api/src/donor-portal/demo-snapshot";
+import { toDonorHistoryTransaction } from "../../../../packages/database/collections/donor-history";
 
+vi.mock("next/link", () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    href: string;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
 vi.mock("@asym/database/hooks", () => ({
   useDonorHistoryTransactions: () => ({ data: [], isLoading: false }),
 }));
 
 const transactions: Transaction[] = getDemoDonorPortalSnapshot().donations.map(
-  (donation) => ({
-    id: donation.id,
-    date: donation.date,
-    amount: donation.amount,
-    recipient: donation.designation.name,
-    recipientAvatar: donation.designation.avatarUrl ?? undefined,
-    category:
-      donation.designation.type === "fund"
-        ? "Project"
-        : donation.designation.type === "missionary"
-          ? "Missionary"
-          : "General",
-    type: donation.type,
-    method: donation.method,
-    last4: "Stripe",
-    status: donation.status,
-    receiptUrl: donation.receiptUrl,
-  }),
+  toDonorHistoryTransaction,
 );
 
 function installMobileMedia() {
@@ -73,19 +72,19 @@ it("shows the actual transaction identity, formatted amount/date and status in n
   expect(screen.getByText("Jun 15, 2026")).toBeTruthy();
   expect(screen.getByText("Apr 22, 2026")).toBeTruthy();
   expect(screen.getByText("Feb 10, 2026")).toBeTruthy();
-  expect(screen.getAllByText("Succeeded")).toHaveLength(2);
+  expect(screen.getAllByText("Paid")).toHaveLength(2);
   expect(screen.getByText("Processing")).toBeTruthy();
-  expect(screen.getByText("Missionary")).toBeTruthy();
-  expect(screen.getByText("Project")).toBeTruthy();
-  expect(screen.getByText("General")).toBeTruthy();
+  expect(screen.getByRole("link", { name: "Monthly gift" })).toBeTruthy();
+  expect(screen.getAllByText("One-time gift")).toHaveLength(2);
+  expect(screen.getAllByText("General support")).toHaveLength(3);
   expect(screen.getByText("Page 1 of 1")).toBeTruthy();
 });
 
-it("keeps successful receipt and statement links bound to the same transaction without offering a processing receipt", async () => {
+it("keeps the receipt link bound to its paid gift and offers none for a processing gift", async () => {
   installMobileMedia();
   render(<HistoryTransactionsCard filteredTransactions={transactions} />);
   const receipt = await screen.findByRole("link", {
-    name: "Download receipt for Field Team 1",
+    name: /^Download receipt for Field Team 1, /,
   });
   expect(receipt.getAttribute("href")).toBe(transactions[0]!.receiptUrl);
   expect(receipt.hasAttribute("download")).toBe(true);
@@ -97,17 +96,34 @@ it("keeps successful receipt and statement links bound to the same transaction w
   expect(activate).toHaveBeenCalledTimes(1);
   expect(
     screen.queryByRole("link", {
-      name: "Download receipt for General fund",
+      name: /^Download receipt for General fund, /,
     }),
   ).toBeNull();
 
-  const card = receipt.closest('[role="article"]');
-  expect(card).toBeTruthy();
-  fireEvent.click(
-    within(card as HTMLElement).getByRole("button", { name: "Open actions" }),
+  // Statements live with the year summary, not on each gift.
+  expect(screen.queryByRole("button", { name: "Open actions" })).toBeNull();
+});
+
+it("says a year has no gifts yet instead of blaming filters that aren't set", () => {
+  installMobileMedia();
+  const view = render(
+    <HistoryTransactionsCard
+      filteredTransactions={[]}
+      filtersActive={false}
+      year="2027"
+    />,
   );
-  const statement = await screen.findByRole("menuitem", {
-    name: "Open Statement",
-  });
-  expect(statement.getAttribute("href")).toBe("/api/donor/statements/2026");
+  expect(screen.getByRole("status").textContent).toContain(
+    "No gifts in 2027 yet",
+  );
+  expect(screen.queryByText(/clear the filters/)).toBeNull();
+
+  view.rerender(
+    <HistoryTransactionsCard
+      filteredTransactions={[]}
+      filtersActive
+      year="2027"
+    />,
+  );
+  expect(screen.getByRole("status").textContent).toContain("No gifts match");
 });

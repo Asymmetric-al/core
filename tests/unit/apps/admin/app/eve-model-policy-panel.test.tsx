@@ -68,6 +68,45 @@ function response(data: EveModelPolicyAdminView) {
 }
 
 describe("Eve model-policy scope control", () => {
+  it("keeps policy anchors during a pending read", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    renderPanel();
+    for (const section of [
+      "eve-model-policy",
+      "eve-eval-health",
+      "eve-subagents",
+    ]) {
+      expect(document.getElementById(section)).not.toBeNull();
+    }
+  });
+
+  it("keeps anchors and retries a failed policy read", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({ error: "Policy unavailable" }),
+      })
+      .mockResolvedValue(response(view));
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    await screen.findByText("Could not load Eve model policy");
+    for (const section of [
+      "eve-model-policy",
+      "eve-eval-health",
+      "eve-subagents",
+    ]) {
+      expect(document.getElementById(section)).not.toBeNull();
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByText(/Active policy v1/);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("confirms the selected subagent scope in the bounded override payload", async () => {
     const fetchMock = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) => response(view),
@@ -85,6 +124,9 @@ describe("Eve model-policy scope control", () => {
     await waitFor(() => expect(document.activeElement).toBe(scope));
     fireEvent.change(screen.getByLabelText("Scope identifier"), {
       target: { value: "reviewer" },
+    });
+    fireEvent.change(screen.getByLabelText("Additional spend (USD)"), {
+      target: { value: "12.34" },
     });
     fireEvent.change(screen.getByLabelText("Reason"), {
       target: { value: "Bounded review allowance" },
@@ -110,6 +152,7 @@ describe("Eve model-policy scope control", () => {
         scopeId: "reviewer",
         reason: "Bounded review allowance",
         additionalRequests: 10,
+        additionalUsdMicros: 12_340_000,
       });
     });
   });

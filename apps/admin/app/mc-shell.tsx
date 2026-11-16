@@ -1,28 +1,51 @@
 "use client";
 
+import {
+  findNavDestination,
+  getNavItemsByRole,
+  getNavSectionsByRole,
+  type NavItem,
+  type Role,
+} from "@asym/config/navigation";
 import { MCProvider, useMC } from "@asym/lib/mission-control/context";
+import { ROLE_LABELS } from "@asym/lib/mission-control/roles";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@asym/ui/components/shadcn/breadcrumb";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@asym/ui/components/shadcn/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import { AppIcon } from "@asym/ui/components/shadcn/icons/AppIcon";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -31,319 +54,356 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from "@asym/ui/components/shadcn/sidebar";
-import ActivityDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-activity";
-import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
-import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
 import ProfileDropdown, {
+  initialsOf,
   type ProfileDropdownMenuItem,
 } from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
-import { ThemeProvider } from "@asym/ui/lib/theme-provider";
-import {
-  Activity,
-  BarChart3,
-  Bell,
-  Calendar,
-  CheckSquare,
-  ChevronRight,
-  DollarSign,
-  FileText,
-  Globe,
-  Heart,
-  Info,
-  Languages,
-  LifeBuoy,
-  LogOut,
-  Mail,
-  PenTool,
-  Rocket,
-  Shield,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { cn } from "@asym/ui/lib/utils";
+import { ChevronRight, Info, Shield, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { EveGlobalPanel } from "./eve/global-panel";
 
 import type { MCBootstrapState } from "@asym/lib/mission-control/bootstrap";
 import type { ReactNode } from "react";
 
-import { ClientOnly } from "@/features/mission-control/components/client-only";
+import {
+  ShellNavigationProvider,
+  useShellNavigation,
+} from "@/components/studio/shell-navigation-guard";
 import { MissionControlNavigationSearch } from "@/features/mission-control/components/navigation-search";
 
-/* ------------------------------------------------------------------ */
-/*  Navigation data                                                    */
-/* ------------------------------------------------------------------ */
+type NavDestination = NonNullable<ReturnType<typeof findNavDestination>>;
 
-interface NavItem {
-  title: string;
-  href: string;
-  icon: typeof DollarSign;
-  items?: { title: string; href: string }[];
-}
+const ABOUT_MENU_ITEM: ProfileDropdownMenuItem = {
+  label: "About",
+  href: "/help/about",
+  icon: Info,
+};
 
-const mainNav: NavItem[] = [{ title: "Dashboard", href: "/", icon: BarChart3 }];
-
-const moduleNav: NavItem[] = [
-  { title: "CRM", href: "/crm", icon: Users },
-  { title: "Contributions", href: "/contributions", icon: DollarSign },
-  { title: "Reports", href: "/reports", icon: BarChart3 },
-  {
-    title: "Ministry Updates",
-    href: "/feed",
-    icon: Activity,
-    items: [
-      { title: "Moderation", href: "/feed" },
-      { title: "Org Updates", href: "/feed/org-updates" },
-    ],
-  },
-  { title: "Member Care", href: "/care", icon: Heart },
-  { title: "Mobilize", href: "/mobilize", icon: Rocket },
-];
-
-const toolNav: NavItem[] = [
-  { title: "Web Studio", href: "/web-studio", icon: Globe },
-  { title: "Email Studio", href: "/email", icon: Mail },
-  { title: "PDF Studio", href: "/pdf", icon: FileText },
-  { title: "Tasks", href: "/tasks", icon: CheckSquare },
-  { title: "Support Hub", href: "/support", icon: LifeBuoy },
-  { title: "Event Hub", href: "/events", icon: Calendar },
-  { title: "Sign Studio", href: "/sign", icon: PenTool },
-  { title: "Automations", href: "/automations", icon: Sparkles },
-];
-
-const systemNav: NavItem[] = [{ title: "Admin", href: "/admin", icon: Shield }];
-
-const adminProfileMenuItems: readonly ProfileDropdownMenuItem[] = [
-  { label: "Administration", href: "/admin", icon: Shield },
-  { label: "Manage team", href: "/admin/teams", icon: Users },
-  { label: "About", href: "/help/about", icon: Info },
-];
-
-/* ------------------------------------------------------------------ */
-/*  Nav section component                                              */
-/* ------------------------------------------------------------------ */
-
-function NavSection({
-  items,
-  label,
-  pathname,
-}: {
-  items: NavItem[];
-  label?: string;
-  pathname: string;
-}) {
-  return (
-    <SidebarGroup className="p-0">
-      {label && <SidebarGroupLabel className="mb-1">{label}</SidebarGroupLabel>}
-      <SidebarGroupContent>
-        <SidebarMenu className="gap-0.5">
-          {items.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
-
-            if (item.items) {
-              return (
-                <Collapsible
-                  key={item.title}
-                  defaultOpen={item.items.some((sub) =>
-                    pathname.startsWith(sub.href),
-                  )}
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger
-                      render={
-                        <SidebarMenuButton
-                          tooltip={item.title}
-                          isActive={isActive}
-                        >
-                          <AppIcon icon={item.icon} animated={isActive} />
-                          <span className="truncate text-sm">{item.title}</span>
-                          <ChevronRight className="ml-auto size-3.5 text-muted-foreground transition-transform duration-200 in-data-panel-open:rotate-90" />
-                        </SidebarMenuButton>
-                      }
-                    />
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.items.map((sub) => {
-                          const subActive = pathname === sub.href;
-                          return (
-                            <SidebarMenuSubItem key={sub.href}>
-                              <SidebarMenuSubButton
-                                render={<Link href={sub.href} />}
-                                isActive={subActive}
-                              >
-                                <span className="truncate text-sm">
-                                  {sub.title}
-                                </span>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        })}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
-              );
-            }
-
-            return (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  render={<Link href={item.href} />}
-                  isActive={isActive}
-                  tooltip={item.title}
-                >
-                  <AppIcon icon={item.icon} animated={isActive} />
-                  <span className="truncate text-sm">{item.title}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+function profileMenuItems(role: Role): ProfileDropdownMenuItem[] {
+  // Mirror the sidebar: the shortcuts are its Administration pages.
+  const administration = getNavItemsByRole(role).find(
+    (item) => item.id === "admin",
   );
+  if (!administration) return [ABOUT_MENU_ITEM];
+  const staffDirectory = administration.items?.find(
+    (item) => item.id === "admin-teams",
+  );
+  return [
+    { label: "Administration", href: "/admin", icon: Shield },
+    ...(staffDirectory
+      ? [
+          {
+            label: staffDirectory.title,
+            href: staffDirectory.href,
+            icon: Users,
+          },
+        ]
+      : []),
+    ABOUT_MENU_ITEM,
+  ];
 }
 
-/* ------------------------------------------------------------------ */
-/*  User footer                                                        */
-/* ------------------------------------------------------------------ */
+function NavIcon({ item, active }: { item: NavItem; active: boolean }) {
+  return <AppIcon icon={item.icon} animated={active} />;
+}
 
-function UserFooter() {
-  const { user } = useMC();
+function useCloseMobileSidebar() {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return () => {
+    if (isMobile) setOpenMobile(false);
+  };
+}
 
-  return (
-    <SidebarFooter className="p-3">
-      <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-        <Avatar>
-          <AvatarImage
-            src={
-              user?.avatarUrl ||
-              "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
+function NavEntry({
+  item,
+  current,
+}: {
+  item: NavItem;
+  current: NavDestination | null;
+}) {
+  const { state, isMobile } = useSidebar();
+  const [userOpen, setUserOpen] = useState<boolean | null>(null);
+  const inModule = current?.item.id === item.id;
+  const open = userOpen ?? inModule;
+  const subItems = item.items ?? [];
+  const closeMobileSidebar = useCloseMobileSidebar();
+
+  if (subItems.length === 0) {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          render={<Link href={item.href} onClick={closeMobileSidebar} />}
+          isActive={inModule}
+          aria-current={inModule ? "page" : undefined}
+          tooltip={item.title}
+        >
+          <NavIcon item={item} active={inModule} />
+          <span className="truncate">{item.title}</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+
+  if (state === "collapsed" && !isMobile) {
+    return (
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton
+                isActive={inModule}
+                tooltip={item.title}
+                aria-label={`${item.title} pages`}
+              >
+                <NavIcon item={item} active={inModule} />
+                <span className="truncate">{item.title}</span>
+              </SidebarMenuButton>
             }
           />
-          <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-          <span className="truncate text-sm font-medium leading-tight text-sidebar-foreground">
-            {user?.name || "User Name"}
-          </span>
-          <span className="text-xs text-muted-foreground truncate">
-            Missionary
-          </span>
-        </div>
-      </div>
-    </SidebarFooter>
+          <DropdownMenuContent side="right" align="start">
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                render={<Link href={item.href} />}
+                aria-current={
+                  inModule && (!current?.sub || current.sub.href === item.href)
+                    ? "page"
+                    : undefined
+                }
+              >
+                {item.title}
+              </DropdownMenuItem>
+              {subItems
+                .filter((sub) => sub.href !== item.href)
+                .map((sub) => (
+                  <DropdownMenuItem
+                    key={sub.id}
+                    render={<Link href={sub.href} />}
+                    aria-current={
+                      current?.sub?.id === sub.id ? "page" : undefined
+                    }
+                  >
+                    {sub.title}
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={setUserOpen}
+      // The collapsible root IS the list item: a wrapper div inside the menu
+      // <ul> breaks list semantics (axe list).
+      render={<SidebarMenuItem />}
+    >
+      <SidebarMenuButton
+        render={<Link href={item.href} onClick={closeMobileSidebar} />}
+        isActive={inModule}
+        tooltip={item.title}
+      >
+        <NavIcon item={item} active={inModule} />
+        <span className="truncate">{item.title}</span>
+      </SidebarMenuButton>
+      <CollapsibleTrigger
+        render={
+          <SidebarMenuAction
+            aria-label={`${open ? "Hide" : "Show"} ${item.title} pages`}
+          >
+            <ChevronRight className="transition-transform duration-200 in-data-panel-open:rotate-90" />
+          </SidebarMenuAction>
+        }
+      />
+      <CollapsibleContent>
+        <SidebarMenuSub aria-label={`${item.title} pages`}>
+          {subItems.map((sub) => {
+            const subActive = current?.sub?.id === sub.id;
+            return (
+              <SidebarMenuSubItem key={sub.id}>
+                <SidebarMenuSubButton
+                  render={<Link href={sub.href} onClick={closeMobileSidebar} />}
+                  isActive={subActive}
+                  aria-current={subActive ? "page" : undefined}
+                >
+                  <span className="truncate">{sub.title}</span>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            );
+          })}
+        </SidebarMenuSub>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  App sidebar                                                        */
-/* ------------------------------------------------------------------ */
+function organizationInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || "M";
+}
 
 function AppSidebar() {
   const pathname = usePathname();
+  const { role, tenant } = useMC();
+  const current = findNavDestination(pathname);
+  const tenantName = tenant?.name?.trim();
+  const organization = tenantName || "Mission Control";
+  const closeMobileSidebar = useCloseMobileSidebar();
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-3">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
-            G
-          </div>
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold leading-tight tracking-tight text-sidebar-foreground">
-              Give Hope
-            </span>
-            <span className="text-xs leading-tight text-muted-foreground">
-              Mission Control
-            </span>
-          </div>
-        </Link>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              render={<Link href="/" onClick={closeMobileSidebar} />}
+              tooltip={organization}
+            >
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
+              >
+                {organizationInitial(organization)}
+              </span>
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-sm font-semibold leading-tight">
+                  {organization}
+                </span>
+                {/* Without a tenant name the title already says it. */}
+                {tenantName && tenantName !== "Mission Control" ? (
+                  <span className="truncate text-xs leading-tight text-muted-foreground">
+                    Mission Control
+                  </span>
+                ) : null}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        <NavSection items={mainNav} pathname={pathname} />
-        <NavSection items={moduleNav} label="Modules" pathname={pathname} />
-        <NavSection items={toolNav} label="Tools" pathname={pathname} />
-        <NavSection items={systemNav} label="System" pathname={pathname} />
+        {getNavSectionsByRole(role).map((group) => (
+          <SidebarGroup key={group.section} className="p-0">
+            {group.label ? (
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            ) : null}
+            <SidebarGroupContent>
+              <SidebarMenu
+                className="gap-0.5"
+                aria-label={group.label ?? "Home"}
+              >
+                {group.items.map((item) => (
+                  <NavEntry key={item.id} item={item} current={current} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
-
-      <ClientOnly fallback={null}>
-        <UserFooter />
-      </ClientOnly>
 
       <SidebarRail />
     </Sidebar>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Top header                                                         */
-/* ------------------------------------------------------------------ */
+const UNLISTED_PAGES: Array<{ href: string; title: string }> = [
+  { href: "/help/about", title: "About" },
+  { href: "/sign", title: "Sign Studio" },
+];
 
-function AppHeader() {
-  const { user, signOut, role } = useMC();
-  const router = useRouter();
-  const handleNavigate = router.push;
-  const handleSignOut = () => {
-    void signOut();
-  };
+function HeaderBreadcrumbs() {
+  const pathname = usePathname();
+  const current = findNavDestination(pathname);
+  if (!current) {
+    const page = UNLISTED_PAGES.find(
+      (entry) =>
+        pathname === entry.href || pathname.startsWith(`${entry.href}/`),
+    );
+    if (!page) return null;
+    return (
+      <div className="min-w-0">
+        <Breadcrumb>
+          <BreadcrumbList className="flex-nowrap">
+            <BreadcrumbItem className="min-w-0">
+              <BreadcrumbPage>
+                <span className="block truncate">{page.title}</span>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+    );
+  }
+
+  const { item, sub } = current;
+  const showSub = sub !== null && sub.href !== item.href;
+  const moduleIsPage = !showSub && pathname === item.href;
+  const subIsPage = showSub && pathname === sub.href;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-12 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-4 max-sm:hidden" />
+    <div className="min-w-0">
+      <Breadcrumb>
+        <BreadcrumbList className="flex-nowrap">
+          <BreadcrumbItem className={cn("min-w-0", showSub && "max-sm:hidden")}>
+            {moduleIsPage ? (
+              <BreadcrumbPage>
+                <span className="block truncate">{item.title}</span>
+              </BreadcrumbPage>
+            ) : (
+              <BreadcrumbLink render={<Link href={item.href} />}>
+                <span className="block truncate">{item.title}</span>
+              </BreadcrumbLink>
+            )}
+          </BreadcrumbItem>
+          {showSub ? (
+            <>
+              <BreadcrumbSeparator className="max-sm:hidden" />
+              <BreadcrumbItem className="min-w-0">
+                {subIsPage ? (
+                  <BreadcrumbPage>
+                    <span className="block truncate">{sub.title}</span>
+                  </BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink render={<Link href={sub.href} />}>
+                    <span className="block truncate">{sub.title}</span>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </>
+          ) : null}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </div>
+  );
+}
+
+function AppHeader() {
+  const { user, signOut, role, tenant } = useMC();
+  const router = useRouter();
+  const roleLabel = ROLE_LABELS[role];
+  const { requestAction } = useShellNavigation();
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background">
+      <div className="flex h-12 items-center gap-2 px-4">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-1 h-4" />
+        <HeaderBreadcrumbs />
+        <div className="ml-auto flex items-center gap-1">
           <MissionControlNavigationSearch
             role={role}
-            onNavigate={handleNavigate}
+            onNavigate={(href) => requestAction(() => router.push(href))}
           />
-        </div>
-        <div className="flex items-center gap-1">
-          <LanguageDropdown
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Change language"
-                className="max-sm:hidden"
-              >
-                <Languages className="size-4" />
-              </Button>
-            }
-          />
-          <ActivityDialog
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Open activity"
-                className="max-sm:hidden"
-              >
-                <Activity className="size-4" />
-              </Button>
-            }
-          />
-          <NotificationDropdown
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Open notifications"
-              >
-                <span className="relative inline-flex">
-                  <Bell className="size-4" />
-                  <span className="bg-destructive absolute -top-0.5 -right-0.5 size-1.5 rounded-full ring-2 ring-background" />
-                </span>
-              </Button>
-            }
-          />
+          <EveGlobalPanel placement="header" />
           <ProfileDropdown
             trigger={
               <Button
@@ -351,54 +411,47 @@ function AppHeader() {
                 size="icon-sm"
                 aria-label="Open profile menu"
               >
-                <Avatar className="size-7">
-                  <AvatarImage
-                    src={
-                      user?.avatarUrl ||
-                      "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
-                    }
-                  />
+                <Avatar size="sm">
+                  {user?.avatarUrl ? (
+                    <AvatarImage src={user.avatarUrl} />
+                  ) : null}
                   <AvatarFallback>
-                    {user?.name?.charAt(0) || "U"}
+                    {user?.name || user?.email ? (
+                      initialsOf(user.name || user.email)
+                    ) : (
+                      <UserRound aria-hidden="true" />
+                    )}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             }
             user={user}
-            menuItems={adminProfileMenuItems}
-            onSignOut={signOut}
+            detail={[roleLabel, tenant?.name].filter(Boolean).join(" · ")}
+            menuItems={profileMenuItems(role)}
+            onSignOut={() => {
+              requestAction(() => {
+                void signOut();
+              });
+            }}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            data-testid="auth-signout"
-            className="max-md:hidden"
-            onClick={handleSignOut}
-          >
-            <LogOut className="mr-1 size-3.5" />
-            Sign out
-          </Button>
         </div>
       </div>
     </header>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Shell                                                              */
-/* ------------------------------------------------------------------ */
-
 function ApplicationShell({ children }: { children: ReactNode }) {
+  const { fullscreen } = useShellNavigation();
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <ClientOnly
-          fallback={<div className="h-12 border-b bg-background/95" />}
-        >
+      {!fullscreen ? <AppSidebar /> : null}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {!fullscreen ? (
           <AppHeader />
-        </ClientOnly>
-        <RouteMainViewTransitionBoundary className="flex-1 overflow-auto">
+        ) : (
+          <div inert aria-hidden="true" className="h-12 border-b" />
+        )}
+        <RouteMainViewTransitionBoundary className="flex min-w-0 flex-1 flex-col">
           {children}
         </RouteMainViewTransitionBoundary>
       </div>
@@ -418,21 +471,18 @@ export function MCShell({
     pathname === "/web-studio" || pathname.startsWith("/web-studio/");
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      forcedTheme="light"
-      enableSystem={false}
-      disableTransitionOnChange
-    >
-      <MCProvider initialState={initialState}>
-        {isPayloadAdmin ? (
-          children
-        ) : (
+    <MCProvider initialState={initialState}>
+      {isPayloadAdmin ? (
+        <>
+          {children}
+          {/* Web Studio has no app header, so Eve floats there. */}
+          <EveGlobalPanel placement="floating" />
+        </>
+      ) : (
+        <ShellNavigationProvider>
           <ApplicationShell>{children}</ApplicationShell>
-        )}
-        <EveGlobalPanel />
-      </MCProvider>
-    </ThemeProvider>
+        </ShellNavigationProvider>
+      )}
+    </MCProvider>
   );
 }

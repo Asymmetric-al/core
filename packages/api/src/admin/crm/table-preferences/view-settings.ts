@@ -168,7 +168,7 @@ interface PreferenceLayerWithPin {
 
 function describeFallback(source: CrmViewSettingsSource): string {
   return source === "tenant_default"
-    ? "the tenant default"
+    ? "the organization default"
     : "the system default";
 }
 
@@ -221,7 +221,7 @@ export function previewCrmViewSettingsReset(input: {
   if (resetPin) {
     changes.push(
       tenantPin
-        ? "The pinned row action returns to the tenant default."
+        ? "The pinned row action returns to the organization default."
         : "The pinned row action returns to the system next-best action.",
     );
   }

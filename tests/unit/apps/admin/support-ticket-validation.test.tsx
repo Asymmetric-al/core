@@ -28,8 +28,16 @@ describe("Support ticket form validation", () => {
       .closest("form");
     if (!form) throw new Error("Create ticket must submit its form");
     fireEvent.submit(form);
-    expect(view.getByRole("alert").textContent).toContain(
-      "Contact, subject, support track, priority, and summary are required.",
+    expect(
+      view.getAllByRole("alert").map((error) => error.textContent),
+    ).toEqual(
+      expect.arrayContaining([
+        "Enter a contact name.",
+        "Enter a valid contact email.",
+        "Enter a subject.",
+        "Choose a support track.",
+        "Enter a summary.",
+      ]),
     );
     expect(request).not.toHaveBeenCalled();
   });

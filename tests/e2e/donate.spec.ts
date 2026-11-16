@@ -23,7 +23,7 @@ test.describe("Donation flow", () => {
     await expect(page.getByText(/donate|give|support/i).first()).toBeVisible();
   });
 
-  test("unauthenticated checkout access redirects home before payment UI or API interaction", async ({
+  test("signed-out checkout goes to sign-in, keeps the gift, and never reaches payment UI or API", async ({
     page,
   }) => {
     const donateApiRequests: string[] = [];
@@ -42,10 +42,12 @@ test.describe("Donation flow", () => {
       },
     );
 
-    await page.waitForURL((url) => url.pathname === "/" && url.search === "");
+    await page.waitForURL((url) => url.pathname === "/login");
     const redirectedUrl = new URL(page.url());
-    expect(redirectedUrl.pathname).toBe("/");
-    expect(redirectedUrl.search).toBe("");
+    expect(redirectedUrl.searchParams.get("next")).toBe(
+      "/checkout?amount=100&workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001&fund_id=40000000-0000-0000-0000-000000000001",
+    );
+    await expect(page.getByText(/sign in to finish your gift/i)).toBeVisible();
     await expect(page.getByRole("heading", { name: /your gift/i })).toHaveCount(
       0,
     );

@@ -4,7 +4,15 @@ import type {
   SupportQueueSummary,
   SupportTicket,
   SupportTicketFilter,
+  SupportTicketStatus,
 } from "./support-hub.types";
+
+export const SUPPORT_TICKET_STATUS_LABELS = {
+  open: "Open",
+  waiting: "Waiting",
+  resolved: "Resolved",
+  escalated: "Escalated",
+} satisfies Record<SupportTicketStatus, string>;
 
 export function formatSupportRelativeTime(
   input: string,

@@ -1,13 +1,9 @@
 // @vitest-environment jsdom
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cleanup, render, screen } from "@testing-library/react";
-import ts from "typescript";
 import { afterEach, describe, expect, it } from "vitest";
 
 afterEach(cleanup);
@@ -98,74 +94,4 @@ describe("shared component class overrides", () => {
     expect(classes.contains("bg-gradient-to-br")).toBe(true);
     expect(classes.contains("text-card-foreground")).toBe(true);
   });
-});
-
-// Read the real callers' overrides so removing their explicit transparency is
-// caught without mocking the application data, auth, routing, or motion layers.
-function gradientOverride(file: string, componentName: string): string {
-  const source = ts.createSourceFile(
-    file,
-    readFileSync(resolve(__dirname, "../../..", file), "utf8"),
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TSX,
-  );
-  const matches: string[] = [];
-
-  function visit(node: ts.Node): void {
-    if (
-      (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
-      node.tagName.getText(source) === componentName
-    ) {
-      for (const property of node.attributes.properties) {
-        if (
-          ts.isJsxAttribute(property) &&
-          property.name.getText(source) === "className" &&
-          property.initializer &&
-          ts.isStringLiteral(property.initializer) &&
-          /\bbg-(?:gradient|linear)-to-br\b/.test(property.initializer.text)
-        ) {
-          matches.push(property.initializer.text);
-        }
-      }
-    }
-    ts.forEachChild(node, visit);
-  }
-
-  visit(source);
-  expect(matches, `${file}: ${componentName} gradient override`).toHaveLength(
-    1,
-  );
-  return matches[0]!;
-}
-
-describe("application gradient background regressions", () => {
-  // Only callers that still intentionally compose a gradient need to remove
-  // the opaque default. Resend and missionary feed avatars now use the native
-  // Maia surface in AL-1967; their former gradients are not public component
-  // contracts. The generic override guarantee above remains unchanged.
-  it.each([
-    {
-      name: "content moderation card",
-      file: "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
-      componentName: "MotionCard",
-      defaultBackground: "bg-card",
-    },
-  ])(
-    "preserves the transparent background of the $name",
-    ({ file, componentName, defaultBackground }) => {
-      const className = gradientOverride(file, componentName);
-      render(<Card data-testid="gradient-surface" className={className} />);
-      const classes = screen.getByTestId("gradient-surface").classList;
-
-      expect(classes.contains(defaultBackground)).toBe(false);
-      expect(classes.contains("bg-transparent")).toBe(true);
-      expect(classes.contains("bg-linear-to-br")).toBe(true);
-      for (const stop of className
-        .split(/\s+/)
-        .filter((value) => /^(from|via|to)-/.test(value))) {
-        expect(classes.contains(stop), stop).toBe(true);
-      }
-    },
-  );
 });

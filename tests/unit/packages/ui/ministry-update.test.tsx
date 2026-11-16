@@ -695,6 +695,33 @@ describe("ReactionBar readOnly (I3)", () => {
   });
 });
 
+describe("ReactionBar read-only comments", () => {
+  // With nothing to read and no way to write, a button would open an empty
+  // dialog, so the count is shown as plain text.
+  it("shows no comments as text instead of a button", () => {
+    render(
+      <ReactionBar
+        update={{ id: nextUpdateId(), comment_count: 0 }}
+        comments="read"
+        transport={createMemoryEngagementTransport()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Comments/ })).toBeNull();
+    expect(screen.getByText("No comments")).toBeTruthy();
+  });
+
+  it("still opens the conversation when there are comments to read", () => {
+    render(
+      <ReactionBar
+        update={{ id: nextUpdateId(), comment_count: 2 }}
+        comments="read"
+        transport={createMemoryEngagementTransport()}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Comments 2" })).toBeTruthy();
+  });
+});
+
 describe("ReactionBar interactive", () => {
   const kinds: ReactionKind[] = ["love", "prayer", "fire"];
 

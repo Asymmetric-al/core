@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { supportHubReadModel } from "@asym/database/collections/support-workspace";
+import { z } from "zod";
 
 import { ApiHttpError } from "../../shared/http-errors";
 
@@ -138,8 +139,8 @@ export async function getSupportMetadata(
     queues: structuredClone(supportHubReadModel.queues),
     tickets: [],
     contacts,
-    macros: structuredClone(supportHubReadModel.macros),
-    knowledge: structuredClone(supportHubReadModel.knowledge),
+    macros: [],
+    knowledge: [],
   };
 }
 
@@ -201,7 +202,23 @@ export async function getSupportTicket(
     throw new ApiHttpError(500, error.message);
   }
 
-  return data ? mapTicketRow(data as SupportTicketRow) : null;
+  if (!data) return null;
+  const ticket = mapTicketRow(data as SupportTicketRow);
+  if (!ticket.assignedTo) return ticket;
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("tenant_id", tenantId)
+    .eq("id", ticket.assignedTo)
+    .maybeSingle();
+  const assignedToName =
+    profileError || !profile
+      ? undefined
+      : [profile.first_name, profile.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim() || undefined;
+  return { ...ticket, assignedToName };
 }
 
 export async function createSupportTicket(
@@ -210,14 +227,35 @@ export async function createSupportTicket(
   userId: string,
   input: CreateSupportTicketInput,
 ): Promise<SupportTicket> {
+  let contactName = input.contactName;
+  let contactEmail = input.contactEmail;
+  if (input.contactId) {
+    if (!z.string().uuid().safeParse(input.contactId).success)
+      throw new ApiHttpError(422, "Choose a valid saved contact.");
+    const { data: contact, error: contactError } = await supabaseAdmin
+      .from("support_contacts")
+      .select("id, name, email")
+      .eq("tenant_id", tenantId)
+      .eq("id", input.contactId)
+      .maybeSingle();
+    if (contactError)
+      throw new ApiHttpError(
+        500,
+        "The contact couldn’t be checked. Try again.",
+      );
+    if (!contact)
+      throw new ApiHttpError(422, "Choose a contact in this workspace.");
+    contactName = contact.name;
+    contactEmail = contact.email;
+  }
   const publicId = createSupportTicketPublicId();
   const { data, error } = await supabaseAdmin
     .from("support_tickets")
     .insert({
       channel: "form",
       contact_id: input.contactId ?? null,
-      contact_email_snapshot: input.contactEmail || null,
-      contact_name_snapshot: input.contactName,
+      contact_email_snapshot: contactEmail || null,
+      contact_name_snapshot: contactName,
       created_by: userId,
       priority: input.priority,
       public_id: publicId,
@@ -233,13 +271,17 @@ export async function createSupportTicket(
     .single();
 
   if (error) {
-    throw new ApiHttpError(500, error.message);
+    console.error("Support ticket creation failed", {
+      code: error.code,
+      tenantId,
+    });
+    throw new ApiHttpError(500, "The ticket couldn’t be saved. Try again.");
   }
 
   return mapTicketRow(data as SupportTicketRow);
 }
 
-async function listSupportContacts(
+export async function listSupportContacts(
   supabaseAdmin: AdminSupabaseClient,
   tenantId: string,
 ): Promise<SupportContact[]> {

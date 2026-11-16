@@ -49,7 +49,7 @@ function labelFor(key: string): string {
 }
 
 /**
- * Monthly totals of SETTLED (Succeeded) gifts, ascending by month. Only months
+ * Monthly totals of SETTLED (Paid) gifts, ascending by month. Only months
  * with at least one settled gift appear (the chart can zero-fill a window if it
  * wants); rows with an unparseable date are skipped.
  */
@@ -59,7 +59,7 @@ export function buildGivingTrends(
   const byMonth = new Map<string, { totalCents: number; giftCount: number }>();
 
   for (const donation of donations) {
-    if (donation.status !== "Succeeded") continue;
+    if (donation.status !== "Paid") continue;
     const key = monthKey(donation.date);
     if (!key) continue;
     const current = byMonth.get(key) ?? { totalCents: 0, giftCount: 0 };

@@ -22,7 +22,9 @@ describe("support new ticket page", () => {
       "Summary",
     ]) {
       expect(source).toMatch(
-        new RegExp(`>\\s*${label}\\s*</(?:Label|SelectControlLabel)>`),
+        new RegExp(
+          `>\\s*${label}\\s*</(?:Label|FieldLabel|SelectControlLabel)>`,
+        ),
       );
     }
     expect(source).toContain("Create ticket");

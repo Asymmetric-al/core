@@ -49,6 +49,8 @@ function createEditorMock(overrides?: {
   canUndo?: boolean;
   canRedo?: boolean;
   href?: string;
+  editable?: boolean;
+  selectionEmpty?: boolean;
 }) {
   const calls: string[] = [];
 
@@ -70,6 +72,15 @@ function createEditorMock(overrides?: {
       chain
     ),
     unsetLink: () => (calls.push("unsetLink"), chain),
+    insertContent: (content: {
+      text: string;
+      marks: { attrs: { href: string } }[];
+    }) => (
+      calls.push(
+        `insertLinkedText:${content.text}->${content.marks[0]?.attrs.href}`,
+      ),
+      chain
+    ),
     setImage: ({ src }: { src: string }) => (
       calls.push(`setImage:${src}`),
       chain
@@ -96,6 +107,9 @@ function createEditorMock(overrides?: {
     }),
     getAttributes: (name: string) =>
       name === "link" ? { href: overrides?.href } : {},
+    isEditable: overrides?.editable ?? true,
+    state: { selection: { empty: overrides?.selectionEmpty ?? false } },
+    view: { dom: document.createElement("div") },
     isDestroyed: false,
     on: (_event: string, _fn: () => void) => () => {},
     off: () => {},
@@ -124,12 +138,12 @@ describe("rich-text-editor/toolbar", () => {
     expect(
       screen.getByRole("toolbar", { name: "Text formatting" }),
     ).toBeTruthy();
-    const bold = screen.getByRole("button", { name: "Bold (Ctrl+B)" });
+    const bold = screen.getByRole("button", { name: "Bold" });
     bold.focus();
     fireEvent.keyDown(bold, { key: "ArrowRight" });
     await waitFor(() =>
       expect(document.activeElement).toBe(
-        screen.getByRole("button", { name: "Italic (Ctrl+I)" }),
+        screen.getByRole("button", { name: "Italic" }),
       ),
     );
     fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
@@ -149,22 +163,71 @@ describe("rich-text-editor/toolbar", () => {
     ).toHaveLength(1);
   });
 
+  it("wraps its tools onto more lines instead of hiding them off-screen", () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "italic", "link", "image", "undo", "redo"]}
+        onImageClick={() => {}}
+      />,
+    );
+    const toolbar = screen.getByRole("toolbar", { name: "Text formatting" });
+    const row = toolbar.querySelector("[data-toolbar-row]");
+    expect(row?.className).toContain("flex-wrap");
+    expect(row?.contains(screen.getByRole("button", { name: "Undo" }))).toBe(
+      true,
+    );
+    expect(toolbar.closest("[data-slot=scroll-area]")).toBeNull();
+  });
+
   it("exposes history commands as actions and blocks disabled activation", () => {
     const { editor, calls } = createEditorMock({
       canUndo: false,
       canRedo: false,
     });
     render(<EditorToolbar editor={editor as never} tools={["undo", "redo"]} />);
-    const undo = screen.getByRole("button", { name: "Undo (Ctrl+Z)" });
+    const undo = screen.getByRole("button", { name: "Undo" });
     expect(undo.hasAttribute("aria-pressed")).toBe(false);
     fireEvent.click(undo);
     expect(calls).not.toContain("undo");
   });
+  it("names each control plainly and announces its keyboard shortcut", () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "heading", "bulletList", "redo"]}
+      />,
+    );
+    // jsdom reports a non-Apple platform, so shortcuts use Control.
+    expect(
+      screen
+        .getByRole("button", { name: "Bold" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+B");
+    expect(
+      screen
+        .getByRole("button", { name: "Heading 1" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Alt+1");
+    expect(
+      screen
+        .getByRole("button", { name: "Bullet list" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+8");
+    expect(
+      screen
+        .getByRole("button", { name: "Redo" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+Z");
+  });
+
   it("renders default tools and hides image without image handlers", () => {
     const { editor } = createEditorMock();
     render(<EditorToolbar editor={editor as never} />);
 
-    expect(screen.getByLabelText("Bold (Ctrl+B)")).toBeTruthy();
+    expect(screen.getByLabelText("Bold")).toBeTruthy();
     expect(screen.queryByLabelText("Insert image")).toBeNull();
     expect(screen.queryByLabelText("Upload image")).toBeNull();
   });
@@ -192,14 +255,14 @@ describe("rich-text-editor/toolbar", () => {
       />,
     );
 
-    fireEvent.click(screen.getByLabelText("Bold (Ctrl+B)"));
-    fireEvent.click(screen.getByLabelText("Italic (Ctrl+I)"));
-    fireEvent.click(screen.getByLabelText("Underline (Ctrl+U)"));
+    fireEvent.click(screen.getByLabelText("Bold"));
+    fireEvent.click(screen.getByLabelText("Italic"));
+    fireEvent.click(screen.getByLabelText("Underline"));
     fireEvent.click(screen.getByLabelText("Heading 1"));
     fireEvent.click(screen.getByLabelText("Heading 2"));
     fireEvent.click(screen.getByLabelText("Quote"));
-    fireEvent.click(screen.getByLabelText("Bullet List"));
-    fireEvent.click(screen.getByLabelText("Numbered List"));
+    fireEvent.click(screen.getByLabelText("Bullet list"));
+    fireEvent.click(screen.getByLabelText("Numbered list"));
 
     expect(calls).toEqual(
       expect.arrayContaining([
@@ -214,14 +277,12 @@ describe("rich-text-editor/toolbar", () => {
       ]),
     );
 
-    expect(
-      screen.getByLabelText("Undo (Ctrl+Z)").getAttribute("data-disabled"),
-    ).toBe("");
-    expect(
-      screen
-        .getByLabelText("Redo (Ctrl+Shift+Z)")
-        .getAttribute("data-disabled"),
-    ).toBe("");
+    expect(screen.getByLabelText("Undo").getAttribute("data-disabled")).toBe(
+      "",
+    );
+    expect(screen.getByLabelText("Redo").getAttribute("data-disabled")).toBe(
+      "",
+    );
   });
 
   it("supports link add/update/remove and rejects invalid links", async () => {
@@ -233,7 +294,7 @@ describe("rich-text-editor/toolbar", () => {
 
     const input = screen.getByLabelText("Link URL");
     fireEvent.change(input, { target: { value: "example.org/path" } });
-    fireEvent.click(screen.getByRole("button", { name: "Update" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save link" }));
 
     await waitFor(() => {
       expect(calls).toContain("setLink:https://example.org/path");
@@ -254,11 +315,16 @@ describe("rich-text-editor/toolbar", () => {
       screen.getByLabelText("Link URL").closest("form") as HTMLFormElement,
     );
 
-    await waitFor(() => {
-      expect(toastError).toHaveBeenCalledWith("Please enter a valid URL");
-    });
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toBe(
+      "Enter a web address, like https://example.org",
+    );
+    expect(screen.getByLabelText("Link URL").getAttribute("aria-invalid")).toBe(
+      "true",
+    );
+    expect(calls).not.toContain("setLink:javascript:alert(1)");
 
-    fireEvent.click(screen.getByLabelText("Remove link"));
+    fireEvent.click(screen.getByRole("button", { name: "Remove link" }));
     expect(calls).toContain("unsetLink");
   });
 
@@ -321,5 +387,104 @@ describe("rich-text-editor/toolbar", () => {
       expect(failingUpload).toHaveBeenCalledWith(file2);
       expect(toastError).toHaveBeenCalledWith("upload failed");
     });
+  });
+
+  it("names each control plainly and exposes its keyboard shortcut", () => {
+    const { editor } = createEditorMock();
+    render(<EditorToolbar editor={editor as never} tools={["bold", "redo"]} />);
+
+    expect(
+      screen
+        .getByRole("button", { name: "Bold" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+B");
+    expect(
+      screen
+        .getByRole("button", { name: "Redo" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+Shift+Z");
+  });
+
+  it("shows the active format as pressed without a primary fill", () => {
+    const { editor } = createEditorMock({ isActive: { bold: true } });
+    render(
+      <EditorToolbar editor={editor as never} tools={["bold", "italic"]} />,
+    );
+
+    const bold = screen.getByRole("button", { name: "Bold" });
+    expect(bold.getAttribute("aria-pressed")).toBe("true");
+    expect(bold.className).not.toContain("bg-primary");
+    expect(
+      screen
+        .getByRole("button", { name: "Italic" })
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
+  });
+
+  it("turns every control off while the editor cannot be edited", () => {
+    const { editor, calls } = createEditorMock({ editable: false });
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "bulletList", "link", "undo"]}
+      />,
+    );
+
+    for (const name of ["Bold", "Bullet list", "Add link", "Undo"]) {
+      expect(
+        screen.getByRole("button", { name }).hasAttribute("data-disabled"),
+      ).toBe(true);
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Bold" }));
+    expect(calls).not.toContain("toggleBold");
+  });
+
+  it("inserts the address as linked text when nothing is selected", async () => {
+    const { editor, calls } = createEditorMock({ selectionEmpty: true });
+    render(<EditorToolbar editor={editor as never} tools={["link"]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add link" }));
+    fireEvent.change(await screen.findByLabelText("Link URL"), {
+      target: { value: "example.org" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save link" }));
+
+    await waitFor(() => {
+      expect(calls).toContain(
+        "insertLinkedText:example.org->https://example.org/",
+      );
+    });
+    expect(calls.some((call) => call.startsWith("setLink:"))).toBe(false);
+  });
+
+  it("opens the link form with Ctrl+K from the text", async () => {
+    const { editor } = createEditorMock();
+    render(<EditorToolbar editor={editor as never} tools={["link"]} />);
+
+    fireEvent.keyDown(editor.view.dom, { key: "k", ctrlKey: true });
+
+    expect(await screen.findByLabelText("Link URL")).toBeTruthy();
+  });
+
+  it("draws its divider above the content when placed at the bottom", () => {
+    const { editor } = createEditorMock();
+    const { container, rerender } = render(
+      <EditorToolbar editor={editor as never} tools={["bold"]} />,
+    );
+    const bar = () =>
+      container.querySelector('[data-slot="editor-toolbar"]') as HTMLElement;
+    expect(bar().className.split(" ")).toEqual(
+      expect.arrayContaining(["sticky", "border-b"]),
+    );
+
+    rerender(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold"]}
+        position="bottom"
+      />,
+    );
+    expect(bar().className.split(" ")).toContain("border-t");
+    expect(bar().className.split(" ")).not.toContain("sticky");
   });
 });

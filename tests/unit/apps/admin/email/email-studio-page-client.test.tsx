@@ -142,7 +142,7 @@ vi.mock("@asym/ui/components/shadcn/alert", () => ({
     </div>
   ),
   AlertDescription: ({ children }: { children: React.ReactNode }) => (
-    <p>{children}</p>
+    <div>{children}</div>
   ),
   AlertTitle: ({ children }: { children: React.ReactNode }) => (
     <h3>{children}</h3>
@@ -534,7 +534,7 @@ function stubStudioFetch(
         const id = method === "PATCH" ? url.split("/").at(-1) : "tmpl_new";
         return jsonOk({
           success: true,
-          template: { id, name: body.name ?? "Untitled Email" },
+          template: { id, name: body.name ?? "Untitled email" },
         });
       }
       if (method === "POST" && url === "/api/email/templates/test-send") {
@@ -555,6 +555,8 @@ describe("EmailStudio page", () => {
     editorHandle.loadDesign.mockClear();
     editorHandle.undo.mockClear();
     editorHandle.redo.mockClear();
+    editorHandle.canUndo.mockReturnValue(false);
+    editorHandle.canRedo.mockReturnValue(false);
     editorMount.count = 0;
     editorReadyControl.defer = false;
     editorReadyControl.nestedReady = false;
@@ -569,6 +571,68 @@ describe("EmailStudio page", () => {
     vi.unstubAllGlobals();
   });
 
+  it("tracks available editor history after changes and after undo", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    expect(
+      screen.getByRole("button", { name: "Undo", exact: true }),
+    ).toHaveProperty("disabled", true);
+    editorHandle.canUndo.mockReturnValue(true);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Simulate design update" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Undo", exact: true }),
+    ).toHaveProperty("disabled", false);
+    editorHandle.canUndo.mockReturnValue(false);
+    editorHandle.canRedo.mockReturnValue(true);
+    fireEvent.click(screen.getByRole("button", { name: "Undo", exact: true }));
+    expect(editorHandle.undo).toHaveBeenCalledOnce();
+    expect(
+      screen.getByRole("button", { name: "Undo", exact: true }),
+    ).toHaveProperty("disabled", true);
+    expect(
+      screen.getByRole("button", { name: "Redo", exact: true }),
+    ).toHaveProperty("disabled", false);
+  });
+
+  it("cancels or confirms a new template without prematurely replacing the draft", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    fireEvent.change(screen.getByPlaceholderText("Untitled email"), {
+      target: { value: "Keep this draft" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /more email template actions/i }),
+    );
+    fireEvent.click(screen.getByText("New template", { exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByPlaceholderText("Untitled email")).toHaveProperty(
+      "value",
+      "Keep this draft",
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /more email template actions/i }),
+    );
+    fireEvent.click(screen.getByText("New template", { exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(screen.getByPlaceholderText("Untitled email")).toHaveProperty(
+      "value",
+      "Untitled email",
+    );
+    expect(vi.mocked(toast.success)).not.toHaveBeenCalledWith(
+      "New template created",
+    );
+  });
+
   it("keeps legacy templates in read-only mode after preview closes", async () => {
     render(
       <QueryProvider>
@@ -578,7 +642,7 @@ describe("EmailStudio page", () => {
 
     await screen.findByTestId("react-email-editor");
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /legacy welcome/i }),
     );
@@ -602,7 +666,7 @@ describe("EmailStudio page", () => {
 
     fireEvent.keyDown(window, { key: "s", metaKey: true });
     await waitFor(() => {
-      expect(screen.queryByText("Save Email Template")).toBeNull();
+      expect(screen.queryByText("Save email template")).toBeNull();
     });
     expect(editorHandle.exportEmail).not.toHaveBeenCalled();
     expect(screen.queryByTestId("react-email-editor")).toBeNull();
@@ -644,7 +708,7 @@ describe("EmailStudio page", () => {
     await screen.findByTestId("react-email-editor");
     const mountsBeforeLoad = editorMount.count;
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -675,7 +739,7 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -700,7 +764,7 @@ describe("EmailStudio page", () => {
     editorHandle.loadDesign.mockClear();
     const mountsBeforeReselect = editorMount.count;
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -718,11 +782,11 @@ describe("EmailStudio page", () => {
     expect(
       (screen.getByRole("button", { name: /^undo$/i }) as HTMLButtonElement)
         .disabled,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       (screen.getByRole("button", { name: /^redo$/i }) as HTMLButtonElement)
         .disabled,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       (
         screen.getByRole("button", {
@@ -744,7 +808,7 @@ describe("EmailStudio page", () => {
     expect(editorHandle.loadDesign).not.toHaveBeenCalled();
 
     fireEvent.keyDown(window, { key: "s", metaKey: true });
-    expect(await screen.findByText("Save Email Template")).toBeTruthy();
+    expect(await screen.findByText("Save email template")).toBeTruthy();
   });
 
   it("keeps Save disabled until the remounted editor is ready when switching React Email templates", async () => {
@@ -774,7 +838,7 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -792,7 +856,7 @@ describe("EmailStudio page", () => {
 
     editorReadyControl.defer = true;
     const mountsBeforeSwitch = editorMount.count;
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react digest/i }),
     );
@@ -812,7 +876,7 @@ describe("EmailStudio page", () => {
     ).toBe(true);
 
     fireEvent.keyDown(window, { key: "s", metaKey: true });
-    expect(screen.queryByText("Save Email Template")).toBeNull();
+    expect(screen.queryByText("Save email template")).toBeNull();
 
     editorReadyControl.fireReady?.();
     await waitFor(() => {
@@ -838,17 +902,18 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.change(screen.getByPlaceholderText("Untitled Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Untitled email"), {
       target: { value: "April campaign" },
     });
     expect(screen.getByText("Unsaved")).toBeTruthy();
 
     editorReadyControl.defer = true;
     const mountsBeforeLoad = editorMount.count;
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
+    fireEvent.click(screen.getByRole("button", { name: /discard changes/i }));
 
     await waitFor(() => {
       expect(screen.getByTestId("editor-template-id").textContent).toBe(
@@ -863,7 +928,7 @@ describe("EmailStudio page", () => {
     ).toBe(true);
 
     fireEvent.keyDown(window, { key: "s", metaKey: true });
-    expect(screen.queryByText("Save Email Template")).toBeNull();
+    expect(screen.queryByText("Save email template")).toBeNull();
 
     editorReadyControl.fireReady?.();
     await waitFor(() => {
@@ -889,7 +954,7 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /legacy welcome/i }),
     );
@@ -902,7 +967,7 @@ describe("EmailStudio page", () => {
       }),
     ).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /legacy welcome/i }),
     );
@@ -914,7 +979,7 @@ describe("EmailStudio page", () => {
         .disabled,
     ).toBe(true);
     fireEvent.keyDown(window, { key: "s", metaKey: true });
-    expect(screen.queryByText("Save Email Template")).toBeNull();
+    expect(screen.queryByText("Save email template")).toBeNull();
   });
 
   it("keeps the dirty draft when the template picker is dismissed without a selection", async () => {
@@ -932,20 +997,20 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.change(screen.getByPlaceholderText("Untitled Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Untitled email"), {
       target: { value: "April campaign" },
     });
     expect(screen.getByText("Unsaved")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
-    await screen.findByText("Open template");
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
+    await screen.findByRole("heading", { name: "Open template" });
     fireEvent.click(screen.getByRole("button", { name: /dismiss dialog/i }));
 
-    expect(screen.queryByText("Open template")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Open template" })).toBeNull();
     expect(screen.getByText("Unsaved")).toBeTruthy();
     expect(screen.getByTestId("editor-template-id").textContent).toBe("draft");
     expect(
-      (screen.getByPlaceholderText("Untitled Email") as HTMLInputElement).value,
+      (screen.getByPlaceholderText("Untitled email") as HTMLInputElement).value,
     ).toBe("April campaign");
   });
 
@@ -976,7 +1041,7 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -987,7 +1052,7 @@ describe("EmailStudio page", () => {
     });
 
     const mountsBeforeSwitch = editorMount.count;
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react digest/i }),
     );
@@ -1009,7 +1074,7 @@ describe("EmailStudio page", () => {
     });
   });
 
-  it("sends one persist request when Save Template is clicked twice", async () => {
+  it("sends one persist request when Save template is clicked twice", async () => {
     let resolvePersist: ((value: unknown) => void) | undefined;
     const persistPromise = new Promise((resolve) => {
       resolvePersist = resolve;
@@ -1029,8 +1094,8 @@ describe("EmailStudio page", () => {
 
     await screen.findByTestId("react-email-editor");
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-    await screen.findByText("Save Email Template");
-    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly Newsletter"), {
+    await screen.findByText("Save email template");
+    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly newsletter"), {
       target: { value: "April campaign" },
     });
     fireEvent.click(screen.getByRole("button", { name: /save template/i }));
@@ -1054,7 +1119,7 @@ describe("EmailStudio page", () => {
     );
 
     await waitFor(() => {
-      expect(screen.queryByText("Save Email Template")).toBeNull();
+      expect(screen.queryByText("Save email template")).toBeNull();
     });
   });
 
@@ -1091,7 +1156,7 @@ describe("EmailStudio page", () => {
     });
 
     fireEvent.keyDown(recipient, { key: "s", metaKey: true });
-    expect(screen.queryByText("Save Email Template")).toBeNull();
+    expect(screen.queryByText("Save email template")).toBeNull();
 
     resolveTestSend?.(
       jsonOk({
@@ -1124,7 +1189,7 @@ describe("EmailStudio page", () => {
 
     await screen.findByTestId("react-email-editor");
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly Newsletter"), {
+    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly newsletter"), {
       target: { value: "April campaign" },
     });
     fireEvent.click(screen.getByRole("button", { name: /save template/i }));
@@ -1156,7 +1221,7 @@ describe("EmailStudio page", () => {
       }),
     );
     await waitFor(() => {
-      expect(screen.queryByText("Save Email Template")).toBeNull();
+      expect(screen.queryByText("Save email template")).toBeNull();
     });
   });
 
@@ -1168,7 +1233,7 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    const nameInput = screen.getByPlaceholderText("Untitled Email");
+    const nameInput = screen.getByPlaceholderText("Untitled email");
     nameInput.focus();
     fireEvent.keyDown(nameInput, { key: "z", metaKey: true });
 
@@ -1225,14 +1290,14 @@ describe("EmailStudio page", () => {
     await screen.findByTestId("react-email-editor");
     expect(screen.queryByText("Unsaved")).toBeNull();
 
-    fireEvent.change(screen.getByPlaceholderText("Untitled Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Untitled email"), {
       target: { value: "April campaign" },
     });
 
     expect(screen.getByText("Unsaved")).toBeTruthy();
   });
 
-  it("clears the unsaved badge when a dirty draft loads a legacy template", async () => {
+  it("keeps the dirty draft until discarding before loading a legacy template", async () => {
     stubStudioFetch((url, method) => {
       if (method === "GET" && url === "/api/email/templates") {
         return mixedTemplatesResponse();
@@ -1247,15 +1312,21 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.change(screen.getByPlaceholderText("Untitled Email"), {
+    fireEvent.change(screen.getByPlaceholderText("Untitled email"), {
       target: { value: "April campaign" },
     });
     expect(screen.getByText("Unsaved")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /legacy welcome/i }),
     );
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Untitled email")).toHaveProperty(
+      "value",
+      "April campaign",
+    );
+    fireEvent.click(screen.getByRole("button", { name: /discard changes/i }));
     fireEvent.click(screen.getByRole("button", { name: /close preview/i }));
 
     expect(screen.queryByText("Unsaved")).toBeNull();
@@ -1280,14 +1351,14 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /legacy welcome/i }),
     );
     fireEvent.click(screen.getByRole("button", { name: /close preview/i }));
 
     editorReadyControl.defer = true;
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -1299,7 +1370,7 @@ describe("EmailStudio page", () => {
     ).toBe(true);
 
     fireEvent.keyDown(window, { key: "s", metaKey: true });
-    expect(screen.queryByText("Save Email Template")).toBeNull();
+    expect(screen.queryByText("Save email template")).toBeNull();
 
     editorReadyControl.fireReady?.();
     await waitFor(() => {
@@ -1326,7 +1397,7 @@ describe("EmailStudio page", () => {
     );
 
     await screen.findByTestId("react-email-editor");
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -1374,16 +1445,16 @@ describe("EmailStudio page", () => {
 
     await screen.findByTestId("react-email-editor");
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-    await screen.findByText("Save Email Template");
+    await screen.findByText("Save email template");
 
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /legacy welcome/i }),
     );
 
     editorReadyControl.defer = true;
     editorHandle.appliedDesign = {};
-    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
     );
@@ -1441,7 +1512,7 @@ describe("EmailStudio page", () => {
     const mountsBeforeSave = editorMount.count;
 
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly Newsletter"), {
+    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly newsletter"), {
       target: { value: "April campaign" },
     });
     fireEvent.click(screen.getByRole("button", { name: /save template/i }));
@@ -1542,7 +1613,7 @@ describe("EmailStudio page", () => {
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
-        "Test email sent",
+        "Test email queued",
         expect.objectContaining({
           description: "Test email queued for qa@example.com.",
         }),
@@ -1557,5 +1628,49 @@ describe("EmailStudio page", () => {
     expect(
       (screen.getByLabelText(/recipient/i) as HTMLInputElement).value,
     ).toBe("");
+  });
+  it("keeps a failed test send in the dialog and clears the error on retry and reopen", async () => {
+    let fail = true;
+    stubStudioFetch((url, method) => {
+      if (method === "POST" && url === "/api/email/templates/test-send") {
+        return Promise.resolve(
+          fail
+            ? {
+                ok: false,
+                json: async () => ({ error: "Resend is not connected" }),
+              }
+            : jsonOk({ success: true, messageId: "provider-secret-id" }),
+        );
+      }
+      return null;
+    });
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+    fireEvent.change(screen.getByLabelText(/recipient/i), {
+      target: { value: "qa@example.com" },
+    });
+    fireEvent.submit(screen.getByLabelText(/recipient/i).closest("form")!);
+    expect(await screen.findByText("Resend is not connected")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Check Resend connection" })
+        .getAttribute("href"),
+    ).toBe("/settings/integrations/resend");
+    expect(screen.getByLabelText(/recipient/i)).toBeTruthy();
+    fail = false;
+    fireEvent.submit(screen.getByLabelText(/recipient/i).closest("form")!);
+    await waitFor(() =>
+      expect(screen.queryByLabelText(/recipient/i)).toBeNull(),
+    );
+    expect(toast.success).toHaveBeenCalledWith("Test email queued", {
+      description: "Test email queued for qa@example.com.",
+    });
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+    expect(screen.queryByText("Resend is not connected")).toBeNull();
   });
 });

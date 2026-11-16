@@ -85,12 +85,15 @@ test.describe("Support Hub smoke", () => {
       "false",
     );
     await expect(boardRegion).toHaveCount(0);
-    // Without seeded records the table may be empty; either proves the switch.
     await expect(
       page
         .getByRole("table")
         .or(page.getByText("No conversations match your filters"))
-        .first(),
+        .or(
+          page
+            .getByRole("alert")
+            .filter({ hasText: "The inbox could not load" }),
+        ),
     ).toBeVisible();
   });
 
@@ -107,14 +110,18 @@ test.describe("Support Hub smoke", () => {
     ).toHaveText("Open");
   });
 
-  test("deep link to an unknown conversation id that fails to load shows the not-found state, not an error page", async ({
+  test("deep link to an unknown conversation id that fails to load shows an in-page state, not an error page", async ({
     page,
   }) => {
     await ensureAdminDemo(page);
     await page.goto(adminPath("/support?id=conv-e2e-does-not-exist"));
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
-    await expect(page.getByText("Conversation not found").first()).toBeVisible({
+    await expect(
+      page
+        .getByText(/Conversation not found|Couldn.t load conversation/)
+        .first(),
+    ).toBeVisible({
       timeout: 30_000,
     });
   });

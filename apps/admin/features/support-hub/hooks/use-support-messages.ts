@@ -22,6 +22,7 @@ interface UseSupportMessagesReturn {
   isLoading: boolean;
   isReady: boolean;
   isError: boolean;
+  refetch: () => Promise<unknown>;
 }
 
 /**
@@ -66,5 +67,6 @@ export function useSupportMessages(
     isLoading: query.isLoading,
     isReady: query.isSuccess,
     isError: query.isError,
+    refetch: query.refetch,
   };
 }

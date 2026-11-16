@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { LabelsSettingsPanel } from "@/features/support-hub/components/settings/labels/LabelsSettingsPanel";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Labels · Support settings",
+};
 
 export default function SupportSettingsLabelsPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Labels"
-      description="Maintain the donor care label library used across the inbox."
-    >
+    <>
       <LabelsSettingsPanel />
-    </SupportWorkspaceShell>
+    </>
   );
 }

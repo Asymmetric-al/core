@@ -13,14 +13,14 @@ interface BoardColumnProps {
   count: number;
   isHovered: boolean;
   isDragging: boolean;
-  dropProps: React.HTMLAttributes<HTMLDivElement> & {
-    "aria-dropeffect": "move";
-  };
+  dropProps: React.HTMLAttributes<HTMLElement>;
   /**
    * Phase 7 a11y improvement — overrides the default `${label} column` aria
    * label so screen readers announce the count alongside the column name.
    */
   ariaLabel?: string;
+  /** The lane jump scrolls to and focuses the lane through this ref. */
+  laneRef?: React.Ref<HTMLElement>;
   children: React.ReactNode;
 }
 
@@ -43,15 +43,22 @@ export function BoardColumn({
   isDragging,
   dropProps,
   ariaLabel,
+  laneRef,
   children,
 }: BoardColumnProps) {
   const tone = STATUS_TONES[status];
 
   return (
     <section
+      ref={laneRef}
+      // Focused by the lane jump only, so it adds no Tab stop.
+      tabIndex={-1}
       aria-label={ariaLabel ?? `${label} column`}
       className={cn(
-        "flex h-full min-h-0 min-w-65 flex-1 flex-col rounded-2xl border bg-muted/40 p-3",
+        // The lane is the drop target, so it stretches to the tallest lane
+        // in its row. Lanes grow with their cards at every width: every card
+        // stays in page flow, so none hides behind an inner scroll.
+        "flex min-w-0 flex-col self-stretch rounded-xl border bg-muted/40 p-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         tone.tint,
         isHovered && "border-border bg-muted/80",
       )}
@@ -67,11 +74,12 @@ export function BoardColumn({
       <p className="mb-3 hidden text-xs text-muted-foreground lg:block">
         {description}
       </p>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+      <div className="flex flex-1 flex-col gap-2">
         {count === 0 ? (
           <div
             className={cn(
-              "flex flex-1 items-center justify-center rounded-xl border border-dashed text-xs text-muted-foreground",
+              // Fills the stretched lane, with a floor for a lone lane.
+              "flex min-h-24 flex-1 items-center justify-center rounded-xl border border-dashed text-xs text-muted-foreground",
               isDragging
                 ? "border-border text-muted-foreground"
                 : "border-border",

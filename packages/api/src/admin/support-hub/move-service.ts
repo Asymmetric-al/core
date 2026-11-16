@@ -157,13 +157,14 @@ export async function moveSupportConversation(
   // conversation arrives unassigned with no automatic round-robin.
   let assigneeCleared = false;
   if (conversation.assignee_agent_id) {
-    const { data: agent } = await client
+    const { data: agent, error: agentError } = await client
       .from("support_agents")
       .select("id, is_active")
       .eq("tenant_id", input.tenantId)
       .eq("id", conversation.assignee_agent_id)
       .maybeSingle();
 
+    if (agentError) return failure(input.conversationId, "move_failed");
     assigneeCleared = !agent || agent.is_active === false;
   }
 

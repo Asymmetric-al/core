@@ -1,6 +1,9 @@
 "use client";
 
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { AlertCircle, Check, FileCode, Monitor } from "lucide-react";
 
 export interface NativePreviewState {
@@ -34,7 +37,12 @@ export function NativePdfDocumentBuilderSection({
             <FileCode className="size-4 text-muted-foreground" />
             Document JSON
           </div>
-          <Button size="sm" variant="outline" onClick={onPreview}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onPreview}
+            disabled={preview.status === "loading"}
+          >
             <Monitor className="mr-2 size-4" />
             Preview
           </Button>
@@ -56,11 +64,19 @@ export function NativePdfDocumentBuilderSection({
             <Monitor className="size-4 text-muted-foreground" />
             Authoring Preview
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {preview.status === "loading" && (
-              <span className="size-3 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" />
-            )}
-            {preview.status}
+          <div
+            role="status"
+            className="flex items-center gap-2 text-xs text-muted-foreground"
+          >
+            {preview.status === "loading" && <Spinner aria-hidden="true" />}
+            {
+              {
+                idle: "Not previewed yet",
+                loading: "Previewing…",
+                success: "Previewed with sample data",
+                error: "Preview failed",
+              }[preview.status]
+            }
           </div>
         </div>
         <div className="flex min-h-0 flex-1 flex-col">
@@ -74,10 +90,10 @@ export function NativePdfDocumentBuilderSection({
           />
           <div className="max-h-40 overflow-y-auto border-t bg-background p-3">
             {preview.error ? (
-              <div className="flex items-start gap-2 text-sm text-destructive">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{preview.error}</span>
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle aria-hidden="true" />
+                <AlertDescription>{preview.error}</AlertDescription>
+              </Alert>
             ) : preview.diagnostics.length > 0 ? (
               <div className="space-y-2">
                 {preview.diagnostics.map((diagnostic, index) => (
@@ -87,17 +103,30 @@ export function NativePdfDocumentBuilderSection({
                   >
                     <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                     <span>
-                      {diagnostic.severity}: {diagnostic.message}
+                      <Badge
+                        variant={
+                          diagnostic.severity === "error"
+                            ? "destructive"
+                            : "outline"
+                        }
+                      >
+                        {diagnostic.severity === "info"
+                          ? "Info"
+                          : diagnostic.severity === "warning"
+                            ? "Warning"
+                            : "Error"}
+                      </Badge>{" "}
+                      {diagnostic.message}
                     </span>
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : preview.status === "success" ? (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Check className="size-3.5" />
-                Preview ready
+                No preview issues found.
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>

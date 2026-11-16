@@ -452,7 +452,7 @@ export function getPDFStudioSetupStatus(): {
   return {
     status: "configured",
     message:
-      "PDF Studio is configured. Upgrade to white-label to remove branding.",
+      "PDF Studio is configured. Exports keep the Unlayer editor's branding until white-label is enabled.",
     setupUrl: "https://dashboard.unlayer.com",
     features: [...freeFeatures, ...paidFeatures],
     missingFeatures: whiteLabelFeatures,

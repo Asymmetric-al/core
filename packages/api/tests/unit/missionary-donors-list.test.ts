@@ -190,6 +190,59 @@ describe("buildMissionaryDonorRows", () => {
     pledges,
   });
 
+  it("marks a partner as giving monthly only from this missionary's active pledges", () => {
+    const monthly = (id: string) =>
+      rows.find((row) => row.id === id)?.has_active_pledge;
+    expect(monthly("donor-B")).toBe(true);
+    // The stored flag says yes, but no pledge to this missionary backs it.
+    expect(monthly("donor-D")).toBe(false);
+  });
+
+  it("counts a partner from their first gift or pledge when that came before the record", () => {
+    const [row] = buildMissionaryDonorRows({
+      missionaryProfileId,
+      donors: [
+        {
+          ...namedDonor,
+          id: "donor-since",
+          joined_date: "2026-07-14",
+          created_at: "2026-07-14",
+        },
+      ],
+      activities: [
+        {
+          id: "gift-early",
+          donor_id: "donor-since",
+          type: "gift",
+          date: "2026-01-05",
+          created_at: "2026-01-05",
+          title: "Gift",
+          amount: 5000,
+        },
+      ],
+      pledges: [
+        {
+          ...pledges[1]!,
+          id: "pledge-since",
+          donor_id: "donor-since",
+          start_date: "2026-03-01",
+          created_at: "2026-03-01",
+        },
+      ],
+    });
+    expect(row?.joined_date).toBe("2026-01-05");
+  });
+
+  it("keeps the record date when nothing came before it", () => {
+    const [row] = buildMissionaryDonorRows({
+      missionaryProfileId,
+      donors: [{ ...namedDonor, id: "donor-new", joined_date: "2026-01-02" }],
+      activities: [],
+      pledges: [],
+    });
+    expect(row?.joined_date).toBe("2026-01-02");
+  });
+
   it("only returns donors for THIS missionary (tenant/ownership scoping)", () => {
     expect(rows.map((r) => r.id).sort()).toEqual([
       "donor-A",
@@ -202,7 +255,7 @@ describe("buildMissionaryDonorRows", () => {
 
   function expectRedactedDonorRow(id: string, rawFragments: string[]) {
     const row = rows.find((r) => r.id === id)!;
-    expect(row.name).toBe("Anonymous donor");
+    expect(row.name).toBe("Anonymous partner");
     expect(row.email).toBe("");
     expect(row.phone).toBe("");
     expect(row.mobile).toBeUndefined();
@@ -222,7 +275,7 @@ describe("buildMissionaryDonorRows", () => {
     return row;
   }
 
-  it("redacts the anonymous donor — Anonymous donor + zero identifiers", () => {
+  it("redacts the anonymous donor — Anonymous partner + zero identifiers", () => {
     const a = expectRedactedDonorRow("donor-A", [
       "Ada",
       "ada@example.com",
@@ -236,10 +289,10 @@ describe("buildMissionaryDonorRows", () => {
       "Called Ada",
       "follow-up",
     ]);
-    // support stats stay visible (§7.2)
-    expect(a.total_given).toBe(50000);
+    // Unqualified money is unavailable; non-monetary support stats stay visible (§7.2)
+    expect(a.total_given).toBeNull();
     expect(a.last_gift_date).toBe("2026-07-01");
-    expect(a.last_gift_amount).toBe(10000);
+    expect(a.last_gift_amount).toBeNull();
     expect(a.frequency).toBe("Monthly");
     expect(a.score).toBe(90);
     expect(a.status).toBe("Active");
@@ -455,7 +508,7 @@ describe("buildMissionaryDonorRows", () => {
 
   it("leaks NO raw identity of anonymous donors anywhere in their payloads", () => {
     for (const id of ["donor-A", "donor-D", "donor-E", "donor-F"]) {
-      expect(rows.find((r) => r.id === id)?.name).toBe("Anonymous donor");
+      expect(rows.find((r) => r.id === id)?.name).toBe("Anonymous partner");
     }
   });
 });
@@ -667,9 +720,17 @@ describe("getMissionaryDonorRows", () => {
       column: "tenant_id",
       value: "tenant-1",
     });
+    // Pledges name the missionaries row, not the profile, so they are scoped
+    // through that row's profile: a partner's gifts to other missionaries
+    // must not count as this missionary's recurring support.
     expectNoOperation(fake.queries.donor_pledges!, {
       method: "eq",
       column: "missionary_id",
+    });
+    expect(fake.queries.donor_pledges!.operations).toContainEqual({
+      method: "eq",
+      column: "missionary.profile_id",
+      value: missionaryProfileId,
     });
     expect(fake.queries.donor_pledges!.operations).toContainEqual({
       method: "in",

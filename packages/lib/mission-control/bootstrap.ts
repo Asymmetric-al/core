@@ -50,9 +50,10 @@ export function createMCBootstrapState(
     input.tenant ??
     (input.tenantId
       ? {
+          // Known id, unknown name: never invent an organization.
           id: input.tenantId,
-          name: "Give Hope",
-          slug: "give-hope",
+          name: "",
+          slug: "",
         }
       : null);
 

@@ -80,14 +80,19 @@ export function EmailStudioExportDialog({
             </div>
           </div>
           <div className="relative flex-1 overflow-hidden rounded-lg border bg-muted/30">
-            <pre className="h-100 overflow-auto p-4 text-xs leading-relaxed">
+            <pre
+              role="region"
+              aria-label="HTML preview"
+              tabIndex={0}
+              className="h-100 overflow-auto p-4 text-xs leading-relaxed focus-visible:outline-2 focus-visible:outline-ring"
+            >
               <code>{exportedHtml.slice(0, 3000)}</code>
             </pre>
             {exportedHtml.length > 3000 ? (
-              <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-muted/80 to-transparent p-3 text-center text-xs text-muted-foreground">
-                <Layers className="mr-1 inline size-3" />
-                Showing first 3,000 characters of{" "}
-                {exportedHtml.length.toLocaleString()} total
+              <div className="border-t p-3 text-center text-xs text-muted-foreground">
+                <Layers aria-hidden="true" className="mr-1 inline size-3" />
+                The preview shows the first 3,000 characters. Copy or download
+                for the full HTML.
               </div>
             ) : null}
           </div>

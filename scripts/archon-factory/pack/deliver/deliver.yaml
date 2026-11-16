@@ -1,0 +1,645 @@
+name: core-deliver
+description: >-
+  One delivery round for one authorized Core issue: Samson scopes, Ezra defines
+  acceptance, Bezalel builds, normal hooks freeze the candidate, Micaiah and Luke
+  review it independently, Agabus adjudicates real disputes, Ezra verifies, and
+  trusted code publishes and decides readiness. Started only by the factory's
+  delivery binding; never run it by hand against arbitrary issues.
+provider: claude
+mutates_checkout: false
+worktree:
+  enabled: false
+inputs:
+  issue:
+    required: true
+    description: Authorized Core issue number
+  assignment:
+    required: true
+    description: Durable assignment identifier recorded by the selector
+nodes:
+  # --- Claim the issue lease and decide this round's stages -----------------
+  - id: claim
+    script: claim
+    runtime: bun
+    timeout: 1200000
+    output_format:
+      type: object
+      properties:
+        proceed: { type: string, enum: ["yes", "no"] }
+        route: { type: string }
+        do_scope: { type: string, enum: ["yes", "no"] }
+        do_define: { type: string, enum: ["yes", "no"] }
+        do_build: { type: string, enum: ["yes", "no"] }
+        do_feedback: { type: string, enum: ["yes", "no"] }
+        needs_wait: { type: string, enum: ["yes", "no"] }
+        wait_until: { type: string }
+        reason: { type: string }
+      required:
+        [
+          proceed,
+          route,
+          do_scope,
+          do_define,
+          do_build,
+          do_feedback,
+          needs_wait,
+          wait_until,
+          reason,
+        ]
+      additionalProperties: false
+
+  - id: cooldown
+    depends_on: [claim]
+    when: "$claim.output.needs_wait == 'yes'"
+    wait:
+      until: "$claim.output.wait_until"
+
+  - id: context
+    depends_on: [claim, cooldown]
+    trigger_rule: none_failed_min_one_success
+    when: "$claim.output.proceed == 'yes'"
+    script: context
+    runtime: bun
+    timeout: 600000
+    output_format:
+      type: object
+      properties:
+        ok: { type: string, enum: ["yes", "no"] }
+        fingerprint: { type: string }
+        changed: { type: string, enum: ["yes", "no"] }
+        scope_assignment: { type: string }
+        reason: { type: string }
+      required: [ok, fingerprint, changed, scope_assignment, reason]
+      additionalProperties: false
+
+  # --- Samson scopes the first round -----------------------------------------
+  - id: scope
+    depends_on: [context]
+    when: "$claim.output.do_scope == 'yes' && $context.output.ok == 'yes'"
+    command: scope
+    with:
+      assignment: $context.output.scope_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite]
+    idle_timeout: 900000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        decision: { type: string, enum: [proceed, blocked] }
+        brief: { type: string }
+        source_paths: { type: array, items: { type: string } }
+        test_paths: { type: array, items: { type: string } }
+        docs_only: { type: boolean }
+        shared_areas: { type: array, items: { type: string } }
+        out_of_scope: { type: array, items: { type: string } }
+        sources: { type: array, items: { type: string } }
+        blocker: { type: string }
+        uncertainty: { type: string }
+      required:
+        [
+          task_status,
+          decision,
+          brief,
+          source_paths,
+          test_paths,
+          docs_only,
+          shared_areas,
+          out_of_scope,
+          sources,
+          blocker,
+          uncertainty,
+        ]
+      additionalProperties: false
+
+  - id: after-scope
+    depends_on: [context, scope]
+    trigger_rule: none_failed_min_one_success
+    when: "$claim.output.do_build == 'yes' && $context.output.ok == 'yes' || $claim.output.do_feedback == 'yes' && $context.output.ok == 'yes'"
+    script: after-scope
+    runtime: bun
+    with:
+      scope: { from: $scope.output, if_skipped: null }
+    output_format:
+      type: object
+      properties:
+        proceed: { type: string, enum: ["yes", "no"] }
+        define: { type: string, enum: ["yes", "no"] }
+        build: { type: string, enum: ["yes", "no"] }
+        ezra_assignment: { type: string }
+        reason: { type: string }
+      required: [proceed, define, build, ezra_assignment, reason]
+      additionalProperties: false
+
+  # --- Ezra defines (or corrects) acceptance --------------------------------
+  - id: define
+    depends_on: [after-scope]
+    when: "$after-scope.output.define == 'yes'"
+    command: define
+    with:
+      assignment: $after-scope.output.ezra_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools:
+      [Read, Grep, Glob, TodoWrite, Write, Edit, mcp__core-check__run_check]
+    mcp: mcp/core-check.json
+    idle_timeout: 900000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        criteria:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              statement: { type: string }
+              check: { type: string }
+              evidence: { type: string }
+            required: [id, statement, check, evidence]
+            additionalProperties: false
+        test_paths: { type: array, items: { type: string } }
+        checks_run: { type: array, items: { type: string } }
+        gaps: { type: array, items: { type: string } }
+        questions: { type: array, items: { type: string } }
+      required: [task_status, criteria, test_paths, checks_run, gaps, questions]
+      additionalProperties: false
+
+  - id: after-define
+    depends_on: [after-scope, define]
+    trigger_rule: none_failed_min_one_success
+    when: "$claim.output.do_build == 'yes'"
+    script: after-define
+    runtime: bun
+    timeout: 600000
+    with:
+      define: { from: $define.output, if_skipped: null }
+      planned: $after-scope.output.build
+    output_format:
+      type: object
+      properties:
+        build: { type: string, enum: ["yes", "no"] }
+        freeze: { type: string, enum: ["yes", "no"] }
+        bezalel_assignment: { type: string }
+        reason: { type: string }
+      required: [build, freeze, bezalel_assignment, reason]
+      additionalProperties: false
+
+  # --- Bezalel implements or repairs -----------------------------------------
+  - id: build
+    depends_on: [after-define]
+    when: "$after-define.output.build == 'yes'"
+    command: build
+    with:
+      assignment: $after-define.output.bezalel_assignment
+    model: opus
+    effort: medium
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools:
+      [
+        Read,
+        Grep,
+        Glob,
+        TodoWrite,
+        Write,
+        Edit,
+        NotebookEdit,
+        mcp__core-check__run_check,
+      ]
+    mcp: mcp/core-check.json
+    idle_timeout: 1200000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        changed_paths: { type: array, items: { type: string } }
+        checks_run: { type: array, items: { type: string } }
+        gaps: { type: array, items: { type: string } }
+        oracle_requests: { type: array, items: { type: string } }
+        questions: { type: array, items: { type: string } }
+      required:
+        [
+          task_status,
+          changed_paths,
+          checks_run,
+          gaps,
+          oracle_requests,
+          questions,
+        ]
+      additionalProperties: false
+
+  # --- Normal hooks freeze the candidate; separate reviewer views ------------
+  # A review-only round freezes the recorded head again without a build.
+  - id: freeze
+    depends_on: [after-define, build]
+    trigger_rule: none_failed_min_one_success
+    when: "$after-define.output.freeze == 'yes'"
+    script: freeze
+    runtime: bun
+    # Two hooked commits (add 2 min + commit 30 min each, the second when hooks
+    # rewrite content), clean installs before hooks and after commit (30 min
+    # each), and both reviewer views: 129 min plus one minute of headroom.
+    timeout: 7800000
+    with:
+      build: { from: $build.output, if_skipped: null }
+    output_format:
+      type: object
+      properties:
+        review: { type: string, enum: ["yes", "no"] }
+        candidate: { type: string }
+        micaiah_assignment: { type: string }
+        luke_assignment: { type: string }
+        reason: { type: string }
+      required: [review, candidate, micaiah_assignment, luke_assignment, reason]
+      additionalProperties: false
+
+  - id: micaiah
+    depends_on: [freeze]
+    when: "$freeze.output.review == 'yes'"
+    command: review-micaiah
+    with:
+      assignment: $freeze.output.micaiah_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite, mcp__core-check__run_check]
+    mcp: mcp/core-check.json
+    idle_timeout: 1200000
+    output_format: &review_result
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        decision: { type: string, enum: [CLEAR, FINDINGS, INCONCLUSIVE] }
+        candidate_sha: { type: string }
+        acceptance_revision: { type: string }
+        scope: { type: string }
+        findings:
+          type: array
+          items:
+            type: object
+            properties:
+              severity: { type: string, enum: [P0, P1, P2, P3] }
+              condition: { type: string }
+              interaction: { type: string }
+              consequence: { type: string }
+              location: { type: string }
+              evidence: { type: string }
+              correction: { type: string }
+              owner: { type: string, enum: [implementation, acceptance] }
+            required:
+              [
+                severity,
+                condition,
+                interaction,
+                consequence,
+                location,
+                evidence,
+                correction,
+                owner,
+              ]
+            additionalProperties: false
+        checks_run: { type: array, items: { type: string } }
+        limitations: { type: array, items: { type: string } }
+      required:
+        [
+          task_status,
+          decision,
+          candidate_sha,
+          acceptance_revision,
+          scope,
+          findings,
+          checks_run,
+          limitations,
+        ]
+      additionalProperties: false
+
+  - id: luke
+    depends_on: [freeze]
+    when: "$freeze.output.review == 'yes'"
+    command: review-luke
+    with:
+      assignment: $freeze.output.luke_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite, mcp__core-check__run_check]
+    mcp: mcp/core-check.json
+    idle_timeout: 1200000
+    output_format: *review_result
+
+  # Both first passes are sealed together before anyone consumes them.
+  - id: seal
+    depends_on: [freeze, micaiah, luke]
+    trigger_rule: none_failed_min_one_success
+    when: "$freeze.output.review == 'yes'"
+    script: seal
+    runtime: bun
+    with:
+      micaiah: { from: $micaiah.output, if_skipped: null }
+      luke: { from: $luke.output, if_skipped: null }
+      candidate: $freeze.output.candidate
+    output_format:
+      type: object
+      properties:
+        assess: { type: string, enum: ["yes", "no"] }
+        assessment_assignment: { type: string }
+        reason: { type: string }
+      required: [assess, assessment_assignment, reason]
+      additionalProperties: false
+
+  - id: assess
+    depends_on: [seal]
+    when: "$seal.output.assess == 'yes'"
+    command: assess
+    with:
+      assignment: $seal.output.assessment_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite]
+    idle_timeout: 900000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        dispositions:
+          type: array
+          items:
+            type: object
+            properties:
+              finding: { type: string }
+              action:
+                {
+                  type: string,
+                  enum:
+                    [
+                      repair-implementation,
+                      repair-acceptance,
+                      adjudicate,
+                      not-material,
+                    ],
+                }
+              reason: { type: string }
+            required: [finding, action, reason]
+            additionalProperties: false
+        summary: { type: string }
+      required: [task_status, dispositions, summary]
+      additionalProperties: false
+
+  - id: after-assess
+    depends_on: [seal, assess]
+    trigger_rule: none_failed_min_one_success
+    when: "$freeze.output.review == 'yes'"
+    script: after-assess
+    runtime: bun
+    with:
+      assess: { from: $assess.output, if_skipped: null }
+    output_format:
+      type: object
+      properties:
+        adjudicate: { type: string, enum: ["yes", "no"] }
+        final: { type: string, enum: ["yes", "no"] }
+        agabus_assignment: { type: string }
+        ezra_final_assignment: { type: string }
+        reason: { type: string }
+      required:
+        [adjudicate, final, agabus_assignment, ezra_final_assignment, reason]
+      additionalProperties: false
+
+  - id: agabus
+    depends_on: [after-assess]
+    when: "$after-assess.output.adjudicate == 'yes'"
+    command: adjudicate
+    with:
+      assignment: $after-assess.output.agabus_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite, mcp__core-check__run_check]
+    mcp: mcp/core-check.json
+    idle_timeout: 900000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        rulings:
+          type: array
+          items:
+            type: object
+            properties:
+              claim: { type: string }
+              ruling: { type: string, enum: [ACCEPT, REJECT, NEEDS_EVIDENCE] }
+              reason: { type: string }
+              correction: { type: string }
+            required: [claim, ruling, reason, correction]
+            additionalProperties: false
+        checks_run: { type: array, items: { type: string } }
+        limitations: { type: array, items: { type: string } }
+      required: [task_status, rulings, checks_run, limitations]
+      additionalProperties: false
+
+  - id: after-adjudicate
+    depends_on: [after-assess, agabus]
+    trigger_rule: none_failed_min_one_success
+    when: "$freeze.output.review == 'yes'"
+    script: after-adjudicate
+    runtime: bun
+    with:
+      agabus: { from: $agabus.output, if_skipped: null }
+      planned_final: $after-assess.output.final
+      ezra_final_assignment: $after-assess.output.ezra_final_assignment
+    output_format:
+      type: object
+      properties:
+        final: { type: string, enum: ["yes", "no"] }
+        ezra_final_assignment: { type: string }
+        reason: { type: string }
+      required: [final, ezra_final_assignment, reason]
+      additionalProperties: false
+
+  # --- Ezra's criterion-by-criterion final acceptance ------------------------
+  - id: final
+    depends_on: [after-adjudicate]
+    when: "$after-adjudicate.output.final == 'yes'"
+    command: final
+    with:
+      assignment: $after-adjudicate.output.ezra_final_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite, mcp__core-check__run_check]
+    mcp: mcp/core-check.json
+    idle_timeout: 1200000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        decision: { type: string, enum: [PASS, FAIL, INCONCLUSIVE] }
+        candidate_sha: { type: string }
+        acceptance_revision: { type: string }
+        criteria:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              result: { type: string, enum: [PASS, FAIL, INCONCLUSIVE] }
+              evidence: { type: string }
+              correction: { type: string }
+              # Who corrects a FAIL: Ezra (acceptance) or Bezalel (implementation).
+              owner: { type: string, enum: [implementation, acceptance] }
+            required: [id, result, evidence, correction, owner]
+            additionalProperties: false
+        checks_run: { type: array, items: { type: string } }
+        limitations: { type: array, items: { type: string } }
+      required:
+        [
+          task_status,
+          decision,
+          candidate_sha,
+          acceptance_revision,
+          criteria,
+          checks_run,
+          limitations,
+        ]
+      additionalProperties: false
+
+  - id: publish
+    depends_on: [after-adjudicate, final]
+    trigger_rule: none_failed_min_one_success
+    when: "$after-adjudicate.output.final == 'yes'"
+    script: publish
+    runtime: bun
+    # Pre-push hook (85 min) + mirror push (10 min) + PR calls.
+    timeout: 6600000
+    with:
+      final: { from: $final.output, if_skipped: null }
+    output_format:
+      type: object
+      properties:
+        published: { type: string, enum: ["yes", "no"] }
+        pr: { type: string }
+        reason: { type: string }
+      required: [published, pr, reason]
+      additionalProperties: false
+
+  # --- Feedback rounds: CI, external review and readiness --------------------
+  - id: feedback-facts
+    depends_on: [context, after-scope]
+    when: "$claim.output.do_feedback == 'yes' && $context.output.ok == 'yes' && $after-scope.output.proceed == 'yes'"
+    script: feedback-facts
+    runtime: bun
+    timeout: 600000
+    output_format:
+      type: object
+      properties:
+        dispose: { type: string, enum: ["yes", "no"] }
+        samson_assignment: { type: string }
+        reason: { type: string }
+      required: [dispose, samson_assignment, reason]
+      additionalProperties: false
+
+  - id: dispose
+    depends_on: [feedback-facts]
+    when: "$feedback-facts.output.dispose == 'yes'"
+    command: dispose
+    with:
+      assignment: $feedback-facts.output.samson_assignment
+    model: opus
+    effort: high
+    context: fresh
+    settingSources: ["project"]
+    allowed_tools: [Read, Grep, Glob, TodoWrite]
+    idle_timeout: 900000
+    output_format:
+      type: object
+      properties:
+        task_status: { type: string, enum: [DONE, BLOCKED] }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              action:
+                {
+                  type: string,
+                  enum:
+                    [
+                      fix-implementation,
+                      fix-acceptance,
+                      rebut,
+                      obsolete,
+                      decline-nit,
+                      rerun-flake,
+                      adjudicate,
+                    ],
+                }
+              reply: { type: string }
+              reason: { type: string }
+            required: [id, action, reply, reason]
+            additionalProperties: false
+        summary: { type: string }
+      required: [task_status, items, summary]
+      additionalProperties: false
+
+  - id: readiness
+    depends_on: [feedback-facts, dispose]
+    trigger_rule: none_failed_min_one_success
+    when: "$claim.output.do_feedback == 'yes' && $context.output.ok == 'yes' && $after-scope.output.proceed == 'yes'"
+    script: readiness
+    runtime: bun
+    # Base merge (10 min) + pre-push hook (85 min) + mirror push (10 min) + reads.
+    timeout: 7200000
+    with:
+      dispose: { from: $dispose.output, if_skipped: null }
+    output_format:
+      type: object
+      properties:
+        verdict: { type: string }
+        reason: { type: string }
+        # Set with MERGED: whether the factory or someone outside it merged.
+        merged_by: { type: string, enum: [factory, external] }
+      required: [verdict, reason]
+      additionalProperties: false
+
+  # --- Settle the round: one finish write, then the successor if any ---------
+  - id: record
+    depends_on:
+      [
+        claim,
+        context,
+        after-scope,
+        after-define,
+        freeze,
+        seal,
+        after-assess,
+        after-adjudicate,
+        publish,
+        readiness,
+      ]
+    trigger_rule: all_done
+    always_run: true
+    script: record
+    runtime: bun
+    timeout: 300000
+    output_format:
+      type: object
+      properties:
+        outcome: { type: string }
+        next: { type: string }
+        reason: { type: string }
+      required: [outcome, next, reason]
+      additionalProperties: false

@@ -304,7 +304,7 @@ export const PUT_TENANT_DEFAULT = withOperation(
     } catch (error) {
       return toErrorResponse(
         error,
-        "Failed to save the tenant default.",
+        "Failed to save the organization default.",
         requestId,
       );
     }

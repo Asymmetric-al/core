@@ -1,16 +1,39 @@
 import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 
 import { ApiHttpError } from "../../../shared/http-errors";
+import {
+  deriveEffectiveContribution,
+  mapContributionAdjustmentRow,
+  type ContributionAdjustmentRecord,
+} from "../../contribution-shared/effective-values";
 import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
+import { normalizeSharedPaymentStatus } from "../../contribution-shared/row-contract";
+import { toContributionCents } from "../../contribution-shared/row-inputs";
 
 import type { AdminCrmReportParams } from "./query";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
+  AdminCrmReportCompleteness,
   AdminCrmReportResponse,
   CrmReportRow,
 } from "@asym/database/types";
 
 type SupabaseAdmin = AdminSupabaseClient;
+
+/**
+ * PostgREST answers at most `max_rows` (1,000, supabase/config.toml) rows per
+ * request whatever `.limit()` asks for, so the report reads in pages.
+ */
+const REPORT_PAGE_SIZE = 1000;
+
+/**
+ * Upper bound on gifts one report reads. Past it the totals are flagged
+ * incomplete rather than presented as the whole period.
+ */
+export const CRM_REPORT_DONATION_LIMIT = 50_000;
+
+/** Donation ids per adjustments request, keeping the request URL short. */
+const ADJUSTMENT_ID_CHUNK = 150;
 
 interface DonationRow {
   id: string;
@@ -18,7 +41,9 @@ interface DonationRow {
   missionary_id: string | null;
   fund_id: string | null;
   amount: number | string | null;
+  refund_amount: number | string | null;
   status: string | null;
+  gift_date?: string | null;
   created_at: string | null;
 }
 
@@ -41,6 +66,22 @@ interface LabelRow {
   } | null;
 }
 
+/** One designation of a settled gift, net of refunds, after corrections. */
+interface ReportGiftLine {
+  amountCents: number;
+  fundId: string | null;
+  missionaryId: string | null;
+}
+
+/** A settled gift as the report counts it. */
+interface ReportGift {
+  id: string;
+  donorId: string | null;
+  createdAt: string | null;
+  netAmountCents: number;
+  lines: ReportGiftLine[];
+}
+
 function assertNoError(
   error: { message?: string } | null,
   fallback: string,
@@ -48,15 +89,6 @@ function assertNoError(
   if (error) {
     throw new ApiHttpError(500, error.message ?? fallback);
   }
-}
-
-function toCents(value: number | string | null | undefined): number {
-  if (value == null) {
-    return 0;
-  }
-
-  const numberValue = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(numberValue) ? Math.round(numberValue) : 0;
 }
 
 function uniq(values: Array<string | null | undefined>) {
@@ -76,30 +108,139 @@ function profileName(row: LabelRow): string {
   );
 }
 
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The day after a calendar date, for an exclusive upper bound. */
+function nextDay(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! + 1))
+    .toISOString()
+    .slice(0, 10);
+}
+
+/**
+ * The period as a PostgREST or filter on the canonical gift date
+ * (gift_date), with the row's creation time only for a gift that has no
+ * gift date. A calendar-date bound compares with gift_date directly; an
+ * instant compares by its UTC date.
+ */
+export function giftDatePeriodFilter(
+  dateFrom: string | null,
+  dateTo: string | null,
+): string | null {
+  if (!dateFrom && !dateTo) return null;
+  const giftTerms: string[] = [];
+  const createdTerms: string[] = [];
+  if (dateFrom) {
+    giftTerms.push(`gift_date.gte.${dateFrom.slice(0, 10)}`);
+    createdTerms.push(`created_at.gte.${dateFrom}`);
+  }
+  if (dateTo) {
+    giftTerms.push(`gift_date.lte.${dateTo.slice(0, 10)}`);
+    createdTerms.push(
+      DATE_ONLY.test(dateTo)
+        ? `created_at.lt.${nextDay(dateTo)}`
+        : `created_at.lte.${dateTo}`,
+    );
+  }
+  return `and(${giftTerms.join(",")}),and(gift_date.is.null,${createdTerms.join(",")})`;
+}
+
 async function fetchDonations(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
   params: AdminCrmReportParams,
-) {
-  let query = supabaseAdmin
-    .from("donations")
-    .select("id, donor_id, missionary_id, fund_id, amount, status, created_at")
-    .eq("tenant_id", tenantId)
-    .eq("status", "completed")
-    .order("created_at", { ascending: false })
-    .limit(5000);
+  maxDonations: number,
+): Promise<{ donations: DonationRow[]; complete: boolean }> {
+  const donations: DonationRow[] = [];
+  // Read one row past the limit so a full period is told apart from a cut one.
+  const wanted = maxDonations + 1;
 
-  if (params.filters.dateFrom) {
-    query = query.gte("created_at", params.filters.dateFrom);
+  while (donations.length < wanted) {
+    const from = donations.length;
+    const to = Math.min(from + REPORT_PAGE_SIZE, wanted) - 1;
+    let query = supabaseAdmin
+      .from("donations")
+      .select(
+        "id, donor_id, missionary_id, fund_id, amount, refund_amount, status, gift_date, created_at",
+      )
+      // No status filter: an applied payment-state correction can settle a
+      // pending or failed gift, or unsettle a completed one, so every gift in
+      // the period is read and toReportGifts decides on the effective status.
+      .eq("tenant_id", tenantId);
+
+    const period = giftDatePeriodFilter(
+      params.filters.dateFrom,
+      params.filters.dateTo,
+    );
+    if (period) {
+      query = query.or(period);
+    }
+
+    const { data, error } = await query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(from, to);
+    assertNoError(error, "Failed to load CRM report donations.");
+
+    const page = (data ?? []) as DonationRow[];
+    donations.push(...page);
+    // Stop on an empty page, not a short one: a server cap below the page
+    // size would otherwise end the read early and look complete.
+    if (page.length === 0) {
+      break;
+    }
   }
 
-  if (params.filters.dateTo) {
-    query = query.lte("created_at", params.filters.dateTo);
+  const complete = donations.length <= maxDonations;
+  return {
+    complete,
+    donations: complete ? donations : donations.slice(0, maxDonations),
+  };
+}
+
+async function fetchAppliedAdjustments(
+  supabaseAdmin: SupabaseAdmin,
+  tenantId: string,
+  donationIds: string[],
+): Promise<Map<string, ContributionAdjustmentRecord[]>> {
+  const byDonationId = new Map<string, ContributionAdjustmentRecord[]>();
+
+  for (
+    let start = 0;
+    start < donationIds.length;
+    start += ADJUSTMENT_ID_CHUNK
+  ) {
+    const ids = donationIds.slice(start, start + ADJUSTMENT_ID_CHUNK);
+    for (let from = 0; ; from += REPORT_PAGE_SIZE) {
+      const { data, error } = await supabaseAdmin
+        .from("contribution_adjustments")
+        .select(
+          "id, donation_id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
+        )
+        .eq("tenant_id", tenantId)
+        .eq("status", "applied")
+        .in("donation_id", ids)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, from + REPORT_PAGE_SIZE - 1);
+      assertNoError(error, "Failed to load contribution corrections.");
+
+      const page = (data ?? []) as Array<Record<string, unknown>>;
+      for (const row of page) {
+        const donationId =
+          typeof row.donation_id === "string" ? row.donation_id : "";
+        const existing = byDonationId.get(donationId) ?? [];
+        existing.push(mapContributionAdjustmentRow(row));
+        byDonationId.set(donationId, existing);
+      }
+      if (page.length === 0) {
+        break;
+      }
+    }
   }
 
-  const { data, error } = await query;
-  assertNoError(error, "Failed to load CRM report donations.");
-  return (data ?? []) as DonationRow[];
+  return byDonationId;
 }
 
 async function fetchFundLabels(
@@ -152,52 +293,174 @@ async function fetchDonors(
   return new Map(((data ?? []) as DonorRow[]).map((row) => [row.id, row]));
 }
 
-function aggregateDonations(input: {
-  donations: DonationRow[];
-  getGroupId: (row: DonationRow) => string | null;
+/**
+ * Splits `total` across `weights` in proportion, in whole cents, handing the
+ * rounding remainder to the largest weights so the parts add up exactly.
+ */
+function splitCents(total: number, weights: number[]): number[] {
+  const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
+  if (weightSum <= 0) {
+    return weights.map((_, index) => (index === 0 ? total : 0));
+  }
+
+  const parts = weights.map((weight) =>
+    Math.floor((total * weight) / weightSum),
+  );
+  let remainder = total - parts.reduce((sum, part) => sum + part, 0);
+  const byWeight = weights
+    .map((weight, index) => ({ index, weight }))
+    .sort((left, right) => right.weight - left.weight);
+  for (let cursor = 0; remainder > 0; cursor = (cursor + 1) % parts.length) {
+    parts[byWeight[cursor]!.index]! += 1;
+    remainder -= 1;
+  }
+  return parts;
+}
+
+/**
+ * Turns raw donations into the gifts the report counts: approved corrections
+ * applied to the amount, status and designation (ADR-CD-004), refunds
+ * subtracted, and anything not settled or with no money kept left out.
+ */
+function toReportGifts(
+  donations: DonationRow[],
+  adjustmentsByDonationId: Map<string, ContributionAdjustmentRecord[]>,
+): ReportGift[] {
+  const gifts: ReportGift[] = [];
+
+  for (const donation of donations) {
+    const { effective, effectiveDesignationLines } =
+      deriveEffectiveContribution({
+        adjustments: adjustmentsByDonationId.get(donation.id) ?? [],
+        original: {
+          amountCents: toContributionCents(donation.amount),
+          fundId: donation.fund_id,
+          missionaryId: donation.missionary_id,
+          paymentStatus: donation.status ?? "pending",
+        },
+      });
+
+    if (normalizeSharedPaymentStatus(effective.paymentStatus) !== "completed") {
+      continue;
+    }
+
+    const netAmountCents =
+      effective.amountCents -
+      Math.max(0, toContributionCents(donation.refund_amount));
+    if (netAmountCents <= 0) {
+      continue;
+    }
+
+    const designations =
+      effectiveDesignationLines && effectiveDesignationLines.length > 0
+        ? effectiveDesignationLines
+        : [
+            {
+              amountCents: effective.amountCents,
+              fundId: effective.fundId,
+              missionaryId: effective.missionaryId,
+            },
+          ];
+    const shares = splitCents(
+      netAmountCents,
+      designations.map((line) => Math.max(0, line.amountCents)),
+    );
+
+    gifts.push({
+      createdAt: donation.created_at,
+      donorId: donation.donor_id,
+      id: donation.id,
+      lines: designations.map((line, index) => ({
+        amountCents: shares[index] ?? 0,
+        fundId: line.fundId,
+        missionaryId: line.missionaryId,
+      })),
+      netAmountCents,
+    });
+  }
+
+  return gifts;
+}
+
+interface ReportAggregate {
+  rows: CrmReportRow[];
+  /** Distinct donors across the visible rows (anonymous gifts left out). */
+  distinctDonorCount: number;
+  /** Distinct gifts across the visible rows (a split gift counts once). */
+  distinctGiftCount: number;
+}
+
+function aggregateGifts(input: {
+  gifts: ReportGift[];
+  /** Groups per designation line, or per gift when omitted. */
+  getLineGroupId?: (line: ReportGiftLine) => string | null;
+  getGiftGroupId?: (gift: ReportGift) => string | null;
   getLabel: (id: string | null) => string;
   getStatus?: (id: string | null) => string | null;
   search: string | null;
-}): CrmReportRow[] {
-  const rows = new Map<string, CrmReportRow & { donorIds: Set<string> }>();
+}): ReportAggregate {
+  type Accumulator = CrmReportRow & {
+    donorIds: Set<string>;
+    giftIds: Set<string>;
+  };
+  const rows = new Map<string, Accumulator>();
 
-  for (const donation of input.donations) {
-    const groupId = input.getGroupId(donation) ?? "unassigned";
-    const label = input.getLabel(groupId === "unassigned" ? null : groupId);
+  const add = (gift: ReportGift, rawGroupId: string | null, cents: number) => {
+    const groupId = rawGroupId ?? "unassigned";
+    const id = groupId === "unassigned" ? null : groupId;
     const row = rows.get(groupId) ?? {
       amountCents: 0,
       donorCount: 0,
       donorIds: new Set<string>(),
       giftCount: 0,
+      giftIds: new Set<string>(),
       id: groupId,
-      label,
+      label: input.getLabel(id),
       lastGiftAt: null,
       metadata: {},
-      status:
-        input.getStatus?.(groupId === "unassigned" ? null : groupId) ?? null,
+      status: input.getStatus?.(id) ?? null,
     };
 
-    row.amountCents += toCents(donation.amount);
-    row.giftCount += 1;
-    if (donation.donor_id) {
-      row.donorIds.add(donation.donor_id);
+    row.amountCents += cents;
+    row.giftIds.add(gift.id);
+    if (gift.donorId) {
+      row.donorIds.add(gift.donorId);
     }
     if (
-      donation.created_at &&
+      gift.createdAt &&
       (!row.lastGiftAt ||
-        new Date(donation.created_at).getTime() >
-          new Date(row.lastGiftAt).getTime())
+        new Date(gift.createdAt).getTime() > new Date(row.lastGiftAt).getTime())
     ) {
-      row.lastGiftAt = donation.created_at;
+      row.lastGiftAt = gift.createdAt;
     }
+    row.giftCount = row.giftIds.size;
     row.donorCount = row.donorIds.size;
     rows.set(groupId, row);
+  };
+
+  for (const gift of input.gifts) {
+    if (input.getLineGroupId) {
+      for (const line of gift.lines) {
+        add(gift, input.getLineGroupId(line), line.amountCents);
+      }
+    } else {
+      add(gift, input.getGiftGroupId?.(gift) ?? null, gift.netAmountCents);
+    }
   }
 
-  return Array.from(rows.values())
-    .filter((row) => matchesSearch(row.label, input.search))
-    .map(({ donorIds: _donorIds, ...row }) => row)
-    .sort((left, right) => right.amountCents - left.amountCents);
+  const visible = Array.from(rows.values()).filter((row) =>
+    matchesSearch(row.label, input.search),
+  );
+  const donorIds = new Set(visible.flatMap((row) => [...row.donorIds]));
+  const giftIds = new Set(visible.flatMap((row) => [...row.giftIds]));
+
+  return {
+    distinctDonorCount: donorIds.size,
+    distinctGiftCount: giftIds.size,
+    rows: visible
+      .map(({ donorIds: _donorIds, giftIds: _giftIds, ...row }) => row)
+      .sort((left, right) => right.amountCents - left.amountCents),
+  };
 }
 
 async function buildSyncFailureRows(
@@ -240,6 +503,8 @@ export async function buildAdminCrmReport(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   params: AdminCrmReportParams;
+  /** Read bound; defaults to {@link CRM_REPORT_DONATION_LIMIT}. */
+  maxDonations?: number;
 }): Promise<AdminCrmReportResponse> {
   if (input.params.slice === "sync-failures") {
     const rows = await buildSyncFailureRows(
@@ -250,24 +515,43 @@ export async function buildAdminCrmReport(input: {
     return buildReportResponse(input.params, rows);
   }
 
-  const donations = await fetchDonations(
+  const donationLimit = input.maxDonations ?? CRM_REPORT_DONATION_LIMIT;
+  const { complete, donations } = await fetchDonations(
     input.supabaseAdmin,
     input.tenantId,
     input.params,
+    donationLimit,
   );
+  const adjustments = await fetchAppliedAdjustments(
+    input.supabaseAdmin,
+    input.tenantId,
+    donations.map((donation) => donation.id),
+  );
+  const gifts = toReportGifts(donations, adjustments);
+  const completeness: AdminCrmReportCompleteness = {
+    complete,
+    donationLimit,
+    includedGiftCount: donations.length,
+  };
+  const respond = (aggregate: ReportAggregate) =>
+    buildReportResponse(input.params, aggregate.rows, {
+      completeness,
+      distinctDonorCount: aggregate.distinctDonorCount,
+      distinctGiftCount: aggregate.distinctGiftCount,
+    });
+  const lines = gifts.flatMap((gift) => gift.lines);
 
   if (input.params.slice === "funds") {
     const labels = await fetchFundLabels(
       input.supabaseAdmin,
-      uniq(donations.map((donation) => donation.fund_id)),
+      uniq(lines.map((line) => line.fundId)),
     );
-    return buildReportResponse(
-      input.params,
-      aggregateDonations({
-        donations,
-        getGroupId: (donation) => donation.fund_id,
+    return respond(
+      aggregateGifts({
         getLabel: (id) =>
           id ? (labels.get(id)?.name ?? "Unnamed fund") : "Unassigned fund",
+        getLineGroupId: (line) => line.fundId,
+        gifts,
         search: input.params.filters.search,
       }),
     );
@@ -276,15 +560,14 @@ export async function buildAdminCrmReport(input: {
   if (input.params.slice === "missionaries") {
     const labels = await fetchMissionaryLabels(
       input.supabaseAdmin,
-      uniq(donations.map((donation) => donation.missionary_id)),
+      uniq(lines.map((line) => line.missionaryId)),
     );
-    return buildReportResponse(
-      input.params,
-      aggregateDonations({
-        donations,
-        getGroupId: (donation) => donation.missionary_id,
+    return respond(
+      aggregateGifts({
         getLabel: (id) =>
           id ? profileName(labels.get(id) ?? { id }) : "Unassigned missionary",
+        getLineGroupId: (line) => line.missionaryId,
+        gifts,
         search: input.params.filters.search,
       }),
     );
@@ -292,13 +575,11 @@ export async function buildAdminCrmReport(input: {
 
   const donors = await fetchDonors(
     input.supabaseAdmin,
-    uniq(donations.map((donation) => donation.donor_id)),
+    uniq(gifts.map((gift) => gift.donorId)),
   );
-  return buildReportResponse(
-    input.params,
-    aggregateDonations({
-      donations,
-      getGroupId: (donation) => donation.donor_id,
+  return respond(
+    aggregateGifts({
+      getGiftGroupId: (gift) => gift.donorId,
       getLabel: (id) => {
         if (!id) {
           return "Anonymous donor";
@@ -307,6 +588,7 @@ export async function buildAdminCrmReport(input: {
         return donor?.name ?? donor?.organization ?? "Unnamed donor";
       },
       getStatus: (id) => (id ? (donors.get(id)?.status ?? null) : null),
+      gifts,
       search: input.params.filters.search,
     }),
   );
@@ -315,35 +597,57 @@ export async function buildAdminCrmReport(input: {
 export function buildReportResponse(
   params: AdminCrmReportParams,
   rows: CrmReportRow[],
+  aggregate?: {
+    completeness: AdminCrmReportCompleteness;
+    distinctDonorCount: number;
+    distinctGiftCount: number;
+  },
 ): AdminCrmReportResponse {
-  const donorIds = rows.map((row) => row.donorCount);
   return {
     audit: {
       exportRequired: true,
       loggedEvents: ["actor", "tenant", "filters", "rowCount", "timestamp"],
+    },
+    completeness: aggregate?.completeness ?? {
+      complete: true,
+      donationLimit: null,
+      includedGiftCount: rows.reduce((sum, row) => sum + row.giftCount, 0),
     },
     filters: params.filters,
     rows,
     slice: params.slice,
     totals: {
       amountCents: rows.reduce((sum, row) => sum + row.amountCents, 0),
-      donorCount: donorIds.reduce((sum, count) => sum + count, 0),
-      giftCount: rows.reduce((sum, row) => sum + row.giftCount, 0),
+      // Row counts overlap (one donor gives to several funds, one gift splits
+      // across funds), so gift reports pass distinct people and gifts. The
+      // row sum is only a fallback for rows that cannot overlap.
+      donorCount:
+        aggregate?.distinctDonorCount ??
+        rows.reduce((sum, row) => sum + row.donorCount, 0),
+      giftCount:
+        aggregate?.distinctGiftCount ??
+        rows.reduce((sum, row) => sum + row.giftCount, 0),
       rowCount: rows.length,
     },
   };
 }
 
 export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
+  // Every row says whether the report read every gift in the period, so a
+  // file cut at the read limit can't pass for complete once downloaded.
+  const reportComplete = report.completeness.complete === true;
+  const reportGiftLimit = report.completeness.donationLimit ?? "";
   const headers = [
     "id",
     "label",
-    "amount_cents",
+    "net_amount_cents",
     "gift_count",
     "donor_count",
     "last_gift_at",
     "status",
     "metadata",
+    "report_complete",
+    "report_gift_limit",
   ];
   const rows = report.rows.map((row) =>
     [
@@ -355,6 +659,8 @@ export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
       row.lastGiftAt,
       row.status,
       row.metadata,
+      reportComplete,
+      reportGiftLimit,
     ]
       .map(csvSafeCell)
       .join(","),

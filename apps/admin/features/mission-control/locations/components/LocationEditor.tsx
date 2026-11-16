@@ -1,6 +1,11 @@
 "use client";
 
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Field,
@@ -28,11 +33,13 @@ import {
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Loader2, Trash2 } from "lucide-react";
-import { useId } from "react";
+import { Info, Loader2, Trash2 } from "lucide-react";
+import { useId, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { useLinkedEntities, useUpsertLocation } from "../hooks/use-locations";
+import { LOCATION_TYPE_OPTIONS } from "../location-labels";
 
 import type { Location } from "../hooks/use-locations";
 
@@ -40,11 +47,23 @@ const locationSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, "Title is required"),
   summary: z.string().optional(),
-  type: z.enum(["missionary", "project", "custom"]),
+  type: z.enum(["missionary", "project", "custom", "partner"]),
   linked_id: z.string().nullable().optional(),
   status: z.enum(["draft", "published"]),
-  lat: z.number(),
-  lng: z.number(),
+  // Empty until typed or placed on the map, so a new location never
+  // silently lands at 0, 0.
+  lat: z
+    .number()
+    .min(-90, "Latitude is between -90 and 90.")
+    .max(90, "Latitude is between -90 and 90.")
+    .optional()
+    .refine((value) => value !== undefined, "Enter a latitude."),
+  lng: z
+    .number()
+    .min(-180, "Longitude is between -180 and 180.")
+    .max(180, "Longitude is between -180 and 180.")
+    .optional()
+    .refine((value) => value !== undefined, "Enter a longitude."),
 });
 
 type LocationFormValues = z.infer<typeof locationSchema>;
@@ -59,8 +78,8 @@ function toLocationFormValues(
     type: location?.type ?? "custom",
     linked_id: location?.linked_id ?? null,
     status: location?.status ?? "draft",
-    lat: location?.lat ?? 0,
-    lng: location?.lng ?? 0,
+    lat: location?.lat,
+    lng: location?.lng,
   };
 }
 
@@ -103,25 +122,39 @@ export function LocationEditor({
   onDelete,
 }: LocationEditorProps) {
   const publishedId = useId();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { mutateAsync: upsertLocation, isPending: isSaving } =
     useUpsertLocation();
   const { data: linkedEntities } = useLinkedEntities();
 
-  const form = useLocationEditorForm(location, upsertLocation, onOpenChange);
+  const form = useLocationEditorForm(
+    location,
+    upsertLocation,
+    onOpenChange,
+    setSubmitError,
+  );
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-md">
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle className="text-xl font-black uppercase tracking-tight">
-              {location?.id ? "Edit Location" : "Add Location"}
+            <SheetTitle>
+              {location?.id ? "Edit location" : "Add location"}
             </SheetTitle>
             <SheetDescription>
-              Configure the geographical marker and its details.
+              {location?.id
+                ? "Change the marker's details or move it by editing its coordinates."
+                : "Enter the coordinates in decimal degrees, or close this and use Place on map to drop a pin."}
             </SheetDescription>
           </SheetHeader>
 
+          {submitError ? (
+            <Alert variant="destructive">
+              <AlertTitle>Location could not save</AlertTitle>
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          ) : null}
           <form
             className="space-y-6 px-4"
             onSubmit={(event) => {
@@ -133,19 +166,33 @@ export function LocationEditor({
             <form.AppField name="title">
               {(field) => (
                 <field.TextField
-                  label="Location Title"
-                  placeholder="e.g. Amazon Medical Center"
+                  label="Title"
+                  placeholder="For example: Amazon Medical Center"
                 />
               )}
             </form.AppField>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <form.AppField name="lat">
-                {(field) => <field.NumberField label="Latitude" step="any" />}
+                {(field) => (
+                  <field.NumberField
+                    allowEmpty
+                    label="Latitude"
+                    placeholder="Between -90 and 90"
+                    step="any"
+                  />
+                )}
               </form.AppField>
 
               <form.AppField name="lng">
-                {(field) => <field.NumberField label="Longitude" step="any" />}
+                {(field) => (
+                  <field.NumberField
+                    allowEmpty
+                    label="Longitude"
+                    placeholder="Between -180 and 180"
+                    step="any"
+                  />
+                )}
               </form.AppField>
             </div>
 
@@ -161,7 +208,7 @@ export function LocationEditor({
                 <field.TextareaField
                   inputClassName="min-h-25 resize-none"
                   label="Summary"
-                  placeholder="Brief description of work at this location..."
+                  placeholder="A short description of the work here"
                 />
               )}
             </form.AppField>
@@ -172,7 +219,9 @@ export function LocationEditor({
                   <Field orientation="horizontal">
                     <FieldContent>
                       <FieldTitle>Published</FieldTitle>
-                      <FieldDescription>Visible on public map</FieldDescription>
+                      <FieldDescription>
+                        Shown on the public map.
+                      </FieldDescription>
                     </FieldContent>
                     <Switch
                       id={publishedId}
@@ -188,31 +237,12 @@ export function LocationEditor({
               )}
             </form.Field>
 
-            <SheetFooter className="gap-3 px-0 pt-6">
-              <form.Subscribe
-                selector={(state) => ({
-                  canSubmit: state.canSubmit,
-                  isSubmitting: state.isSubmitting,
-                })}
-              >
-                {({ canSubmit, isSubmitting }) => (
-                  <Button
-                    focusableWhenDisabled={isSaving || isSubmitting}
-                    className="w-full"
-                    disabled={!canSubmit || isSaving || isSubmitting}
-                    type="submit"
-                  >
-                    {(isSaving || isSubmitting) && (
-                      <Loader2 className="mr-2 size-4 animate-spin" />
-                    )}
-                    {location?.id ? "Update Location" : "Save Location"}
-                  </Button>
-                )}
-              </form.Subscribe>
-
+            {/* The Mobilize sheet footer: Cancel left of the primary, and
+                below it when the footer stacks; Delete sits apart. */}
+            <SheetFooter className="flex-col-reverse px-0 pt-6 sm:flex-row sm:flex-wrap sm:justify-end">
               {location?.id && onDelete ? (
                 <Button
-                  className="w-full"
+                  className="sm:mr-auto"
                   onClick={() => {
                     if (location.id) {
                       onDelete(location.id);
@@ -221,9 +251,36 @@ export function LocationEditor({
                   type="button"
                   variant="destructive"
                 >
-                  <Trash2 className="mr-2 size-4" /> Delete Marker
+                  <Trash2 aria-hidden="true" /> Delete location
                 </Button>
               ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <form.Subscribe
+                selector={(state) => ({
+                  isSubmitting: state.isSubmitting,
+                })}
+              >
+                {({ isSubmitting }) => (
+                  // Stays enabled while fields are incomplete, so a press
+                  // shows what is missing instead of doing nothing.
+                  <Button
+                    focusableWhenDisabled={isSaving || isSubmitting}
+                    disabled={isSaving || isSubmitting}
+                    type="submit"
+                  >
+                    {(isSaving || isSubmitting) && (
+                      <Loader2 aria-hidden="true" className="animate-spin" />
+                    )}
+                    {location?.id ? "Save changes" : "Save location"}
+                  </Button>
+                )}
+              </form.Subscribe>
             </SheetFooter>
           </form>
         </div>
@@ -253,32 +310,33 @@ function LocationTypeField({
             render={<Field data-invalid={errors.length > 0} />}
           >
             <FieldPrimitive.Label nativeLabel={false} render={<FieldTitle />}>
-              Marker Type
+              Marker type
             </FieldPrimitive.Label>
             <FieldContent>
               <Select<LocationFormValues["type"]>
-                items={[
-                  { value: "missionary", label: "Missionary" },
-                  { value: "project", label: "Project" },
-                  { value: "custom", label: "Custom" },
-                ]}
+                items={LOCATION_TYPE_OPTIONS}
                 onOpenChange={(open) => {
                   if (!open) {
                     field.handleBlur();
                   }
                 }}
                 onValueChange={(value) => {
-                  if (value !== null) field.handleChange(value);
+                  if (value !== null && value !== field.state.value) {
+                    field.handleChange(value);
+                    form.setFieldValue("linked_id", null);
+                  }
                 }}
                 value={field.state.value}
               >
-                <SelectTrigger aria-label="Location type">
+                <SelectTrigger aria-label="Marker type">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="missionary">Missionary</SelectItem>
-                  <SelectItem value="project">Project</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  {LOCATION_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FieldPrimitive.Error
@@ -303,7 +361,16 @@ function LocationLinkedEntityField({
   return (
     <form.Subscribe selector={(state) => state.values.type}>
       {(selectedType) =>
-        selectedType !== "custom" ? (
+        selectedType === "project" ? (
+          <Alert role="note" variant="info">
+            <Info aria-hidden="true" />
+            <AlertTitle>Project links aren’t available yet</AlertTitle>
+            <AlertDescription>
+              Project markers can’t be linked to a project record. Describe the
+              project in the summary instead.
+            </AlertDescription>
+          </Alert>
+        ) : selectedType === "missionary" ? (
           <form.Field name="linked_id">
             {(field) => {
               const showErrors =
@@ -322,28 +389,16 @@ function LocationLinkedEntityField({
                     nativeLabel={false}
                     render={<FieldTitle />}
                   >
-                    Link to{" "}
-                    {selectedType === "missionary" ? "Missionary" : "Project"}
+                    Link to missionary
                   </FieldPrimitive.Label>
                   <FieldContent>
                     <SearchableSelect
-                      items={
-                        selectedType === "missionary"
-                          ? (linkedEntities?.missionaries ?? []).map(
-                              (missionary) => ({
-                                value: missionary.id,
-                                label:
-                                  missionary.full_name?.trim() || missionary.id,
-                              }),
-                            )
-                          : [
-                              {
-                                value: "__empty",
-                                label: "No projects found",
-                                disabled: true,
-                              },
-                            ]
-                      }
+                      items={(linkedEntities?.missionaries ?? []).map(
+                        (missionary) => ({
+                          value: missionary.id,
+                          label: missionary.full_name?.trim() || missionary.id,
+                        }),
+                      )}
                       onOpenChange={(open) => {
                         if (!open) {
                           field.handleBlur();
@@ -351,11 +406,11 @@ function LocationLinkedEntityField({
                       }}
                       onValueChange={(value) => {
                         if (value === null) return;
-                        field.handleChange(value === "__empty" ? null : value);
+                        field.handleChange(value);
                       }}
                       value={field.state.value ?? null}
-                      aria-label={`Link to ${selectedType === "missionary" ? "Missionary" : "Project"}`}
-                      placeholder={`Select ${selectedType}`}
+                      aria-label="Link to missionary"
+                      placeholder="Select a missionary"
                     />
                     <FieldPrimitive.Error
                       match={errors.length > 0}
@@ -376,6 +431,7 @@ function useLocationEditorForm(
   location: LocationEditorProps["location"],
   upsertLocation: ReturnType<typeof useUpsertLocation>["mutateAsync"],
   onOpenChange: LocationEditorProps["onOpenChange"],
+  setSubmitError: (message: string | null) => void,
 ) {
   const form = useAsymForm({
     defaultValues: toLocationFormValues(location),
@@ -383,11 +439,28 @@ function useLocationEditorForm(
       onChange: locationSchema,
     },
     onSubmit: async ({ value }) => {
-      await upsertLocation({
-        ...value,
-        linked_id: value.type === "custom" ? null : (value.linked_id ?? null),
-      });
-      onOpenChange(false);
+      const { lat, lng } = value;
+      if (lat === undefined || lng === undefined) return;
+      setSubmitError(null);
+      try {
+        await upsertLocation({
+          ...value,
+          lat,
+          lng,
+          linked_id: ["missionary", "project"].includes(value.type)
+            ? (value.linked_id ?? null)
+            : null,
+        });
+        toast.success("Location saved");
+        onOpenChange(false);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Could not save this location. Try again.";
+        setSubmitError(message);
+        toast.error(message);
+      }
     },
   });
   return form;

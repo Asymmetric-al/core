@@ -52,6 +52,7 @@ function relationshipFixture(
     commitmentFrequency: null,
     createdAt: updatedAt,
     dedupeKey: null,
+    donorId: null,
     lastActivityAt: updatedAt,
     location: null,
     memberCount: null,
@@ -338,8 +339,69 @@ describe("local CRM relationships", () => {
     expect(result.rows[0]?.recordKind).toBe("commitment");
     expect(result.rows[0]?.commitmentAmountCents).toBe(25000);
     expect(result.rows[0]?.primaryContactName).toBe("Jordan Lee");
+    // The pledge opens its donor's CRM record.
+    expect(result.rows[0]?.donorId).toBe("donor-jordan");
     expect(JSON.stringify(result.rows[0])).not.toContain("pi_secret");
     expect(JSON.stringify(result.rows[0])).not.toContain("receipt");
+  });
+
+  it("links each row to the donor record it was built from, if any", async () => {
+    const supabase = supabaseWith({
+      donors: [
+        {
+          id: "donor-jordan",
+          tenant_id: TENANT_A,
+          name: "Jordan Lee",
+          type: "individual",
+          organization: null,
+          spouse: "Pat Lee",
+          updated_at: "2026-08-18T12:00:00.000Z",
+        },
+      ],
+      missionaries: [
+        {
+          id: "missionary-1",
+          tenant_id: TENANT_A,
+          profile_id: null,
+          updated_at: "2026-08-18T12:00:00.000Z",
+        },
+      ],
+      profiles: [],
+      donor_pledges: [
+        {
+          id: "pledge-known",
+          tenant_id: TENANT_A,
+          donor_id: "donor-jordan",
+          amount: 1000,
+          frequency: "monthly",
+          created_at: "2026-01-01T00:00:00.000Z",
+        },
+        {
+          // Its donor is not one of this tenant's records: no link.
+          id: "pledge-orphan",
+          tenant_id: TENANT_A,
+          donor_id: "donor-elsewhere",
+          amount: 1000,
+          frequency: "monthly",
+          created_at: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      member_care_activities: [],
+    });
+
+    const result = await listMissionControlCrmRelationships({
+      actor: actor(),
+      supabase,
+      params,
+    });
+    const donorIdOf = (id: string) =>
+      result.rows.find((row) => row.id === id)?.donorId;
+
+    expect(donorIdOf("person:donor-jordan")).toBe("donor-jordan");
+    expect(donorIdOf("household:donor-jordan")).toBe("donor-jordan");
+    expect(donorIdOf("commitment:pledge-known")).toBe("donor-jordan");
+    expect(donorIdOf("commitment:pledge-orphan")).toBeNull();
+    expect(donorIdOf("missionary:missionary-1")).toBeNull();
   });
 
   it("excludes care-sensitive activity from the activity domain", async () => {
@@ -515,5 +577,129 @@ describe("CRM relationship report", () => {
     });
     expect(report.duplicatePersonCandidates).toBe(1);
     expect(report.duplicateCompanyCandidates).toBe(0);
+  });
+});
+
+describe("CRM relationship commitments", () => {
+  function pledge(
+    id: string,
+    overrides: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      amount: 12000,
+      created_at: "2026-01-01T00:00:00.000Z",
+      currency: "usd",
+      donor_id: null,
+      frequency: "monthly",
+      id,
+      start_date: "2026-01-01",
+      status: "active",
+      tenant_id: TENANT_A,
+      ...overrides,
+    };
+  }
+
+  async function listWithPledges(pledges: Record<string, unknown>[]) {
+    return listMissionControlCrmRelationships({
+      actor: actor(),
+      params,
+      supabase: supabaseWith({
+        donor_pledges: pledges,
+        donors: [],
+        member_care_activities: [],
+        missionaries: [],
+        profiles: [],
+      }),
+    });
+  }
+
+  it("counts only active pledges toward commitments, whatever the status spelling", async () => {
+    const result = await listWithPledges([
+      pledge("active", { status: "active" }),
+      pledge("active-title", { status: "Active" }),
+      pledge("paused", { status: "paused" }),
+      pledge("cancelled", { status: "cancelled" }),
+      pledge("unknown", { status: null }),
+    ]);
+
+    expect(result.report.activeCommitments.pledgeCount).toBe(2);
+    expect(result.report.activeCommitments.monthlyByCurrency).toEqual([
+      { currency: "USD", monthlyCents: 24000, pledgeCount: 2 },
+    ]);
+    // Inactive and unknown-status pledges stay listed, with their status.
+    expect(
+      result.rows
+        .filter((row) => row.domain === "pledges")
+        .map((row) => row.status)
+        .sort(),
+    ).toEqual(["Active", "active", "cancelled", "paused", null].sort());
+  });
+
+  it("states commitments as a monthly equivalent and leaves out unknown frequencies", async () => {
+    const result = await listWithPledges([
+      pledge("monthly", { amount: 10000, frequency: "monthly" }),
+      pledge("quarterly", { amount: 30000, frequency: "quarterly" }),
+      pledge("annual", { amount: 120000, frequency: "Annually" }),
+      pledge("weekly", { amount: 1200, frequency: "weekly" }),
+      pledge("once", { amount: 50000, frequency: "one_time" }),
+      pledge("blank", { amount: 50000, frequency: null }),
+    ]);
+
+    expect(result.report.activeCommitments).toEqual({
+      monthlyByCurrency: [
+        {
+          currency: "USD",
+          // 10,000 + 30,000/3 + 120,000/12 + 1,200 x 52/12
+          monthlyCents: 10000 + 10000 + 10000 + 5200,
+          pledgeCount: 4,
+        },
+      ],
+      pledgeCount: 6,
+      unknownFrequencyCount: 2,
+    });
+  });
+
+  it("keeps each currency's monthly total apart", async () => {
+    const result = await listWithPledges([
+      pledge("usd", { amount: 10000, currency: "usd" }),
+      pledge("cad", { amount: 5000, currency: "CAD" }),
+    ]);
+
+    expect(result.report.activeCommitments.monthlyByCurrency).toEqual([
+      { currency: "USD", monthlyCents: 10000, pledgeCount: 1 },
+      { currency: "CAD", monthlyCents: 5000, pledgeCount: 1 },
+    ]);
+  });
+});
+
+describe("CRM relationship activity source", () => {
+  it("labels member-care activity as Member Care, not CRM", async () => {
+    const result = await listMissionControlCrmRelationships({
+      actor: actor(),
+      params,
+      supabase: supabaseWith({
+        donor_pledges: [],
+        donors: [],
+        member_care_activities: [
+          {
+            id: "care-1",
+            occurred_at: "2026-08-01T00:00:00.000Z",
+            tenant_id: TENANT_A,
+            title: "Weekly check-in",
+            type: "check_in",
+          },
+        ],
+        missionaries: [],
+        profiles: [],
+      }),
+    });
+
+    const activity = result.rows.find((row) => row.domain === "activity");
+    expect(activity).toMatchObject({
+      authorityLabel: "Asym member care",
+      authorityScope: "member_care",
+      sourceSystem: "Asym member care",
+    });
+    expect(result.report.sourceSystems.care).toMatch(/always left out/i);
   });
 });

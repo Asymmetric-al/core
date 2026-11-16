@@ -1,117 +1,156 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
 import { MessageSquareText, Pencil, Plus, Trash2 } from "lucide-react";
-import * as React from "react";
 import { toast } from "sonner";
 
 import { CannedResponseForm } from "./CannedResponseForm";
 import { useSupportCannedResponses } from "../../../hooks/use-support-canned-responses";
 import { useDeleteSupportCannedResponse } from "../../../hooks/use-support-mutations";
+import { useConfirm } from "../../workspace/confirm-provider";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
+import { SettingsEditorSheet } from "../SettingsEditorSheet";
+import {
+  SettingsListState,
+  isSettingsListPending,
+  settingsHeaderAction,
+} from "../SettingsListState";
 import { SettingsPanel } from "../SettingsPanel";
+import { SettingsIconButton } from "../SettingsRowActions";
+import { useSettingsEditor } from "../use-settings-editor";
 
 import type { SupportCannedResponse } from "../../../types";
 
 export function CannedResponseList() {
-  const { data: responses } = useSupportCannedResponses();
+  const query = useSupportCannedResponses();
+  const responses = query.data;
+  const listState = {
+    isLoading: query.isLoading,
+    isError: query.isError,
+    itemCount: responses.length,
+  };
   const deleteResponse = useDeleteSupportCannedResponse();
-  const [editing, setEditing] = React.useState<
-    SupportCannedResponse | "new" | null
-  >(null);
+  const editor = useSettingsEditor<SupportCannedResponse>();
+  const editingResponse = editor.record;
 
-  const editingResponse = editing && editing !== "new" ? editing : null;
-
+  const confirm = useConfirm();
   const handleDelete = async (row: SupportCannedResponse) => {
-    if (!window.confirm(`Delete canned response "${row.title}"?`)) return;
-    try {
-      await deleteResponse.mutateAsync({ id: row.id });
-      toast.success("Canned response deleted.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not delete the canned response.",
-      );
-    }
+    await confirm({
+      title: `Delete the ${row.title} canned response?`,
+      confirmLabel: "Delete response",
+      action: async () => {
+        try {
+          await deleteResponse.mutateAsync({ id: row.id });
+          toast.success("Canned response deleted.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Could not delete the canned response.",
+          );
+          throw error;
+        }
+      },
+    });
   };
 
+  const createButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={isSettingsListPending(listState)}
+      onClick={editor.openNew}
+    >
+      <Plus data-icon="inline-start" aria-hidden="true" />
+      New response
+    </Button>
+  );
+
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <SettingsPanel
         title="Canned responses"
-        description="Library of reusable replies. Insert with / inside the composer."
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing("new")}
-          >
-            <Plus className="size-3.5" />
-            New response
-          </Button>
-        }
+        description="Replies you send often. In the reply composer, type / and the shortcode to insert one."
+        actions={settingsHeaderAction(listState, createButton)}
       >
-        {responses.length === 0 ? (
-          <SupportEmptySection
-            icon={<MessageSquareText className="size-4" />}
-            title="No canned responses yet"
-            description="Create your first reply template to speed up donor care work."
-          />
-        ) : (
-          <ul className="flex flex-col divide-y divide-border">
-            {responses.map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-start gap-3 py-3"
-              >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <MessageSquareText className="size-4" />
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-xs font-semibold text-foreground">
-                    {row.title}
-                    <span className="ml-2 inline-flex items-center rounded-md border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
-                      /{row.shortCode}
-                    </span>
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {row.bodyText.slice(0, 160)}
-                    {row.bodyText.length > 160 ? "…" : ""}
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setEditing(row)}
-                  aria-label={`Edit ${row.title}`}
-                >
-                  <Pencil className="size-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => void handleDelete(row)}
-                  aria-label={`Delete ${row.title}`}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <SettingsListState
+          noun="canned responses"
+          {...listState}
+          onRetry={query.refetch}
+        >
+          {responses.length === 0 ? (
+            <SupportEmptySection
+              icon={<MessageSquareText className="size-4" />}
+              title="No canned responses yet"
+              description="Create a reply you send often, such as how to get a tax receipt."
+              action={createButton}
+            />
+          ) : (
+            <ItemGroup className="gap-2">
+              {responses.map((row) => (
+                <Item key={row.id} variant="outline" size="sm">
+                  <ItemMedia variant="icon">
+                    <MessageSquareText aria-hidden="true" />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0">
+                    <ItemTitle>
+                      {row.title}
+                      <Badge variant="outline">
+                        <code>/{row.shortCode}</code>
+                      </Badge>
+                    </ItemTitle>
+                    <ItemDescription>{row.bodyText}</ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <SettingsIconButton
+                      label={`Edit ${row.title}`}
+                      tooltip="Edit"
+                      onClick={() => editor.openRecord(row)}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </SettingsIconButton>
+                    <SettingsIconButton
+                      label={`Delete ${row.title}`}
+                      tooltip="Delete"
+                      onClick={() => void handleDelete(row)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </SettingsIconButton>
+                  </ItemActions>
+                </Item>
+              ))}
+            </ItemGroup>
+          )}
+        </SettingsListState>
       </SettingsPanel>
 
-      {editing ? (
+      <SettingsEditorSheet
+        editor={editor}
+        title={
+          editingResponse
+            ? `Edit “${editingResponse.title}”`
+            : "New canned response"
+        }
+        description="Inserted by typing / and the shortcode in the reply composer."
+      >
         <CannedResponseForm
+          key={editingResponse?.id ?? "new-response"}
           response={editingResponse}
-          onSaved={() => setEditing(null)}
-          onCancel={() => setEditing(null)}
+          onSaved={editor.close}
+          onCancel={editor.requestClose}
         />
-      ) : null}
-    </div>
+      </SettingsEditorSheet>
+    </>
   );
 }

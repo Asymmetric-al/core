@@ -3,9 +3,11 @@ import {
   buildPageBuilderCollectionFields,
   buildPageBuilderHooks,
   buildPageBuilderVersions,
+  webStudioCreateFlowView,
 } from "./page-builders";
 import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   PUBLIC_COLLECTION_CAPABILITIES,
   publishedPublicReadAccess,
@@ -63,12 +65,12 @@ const nativeMissionaryGivingPagesAdmin = isNativeCollectionWebStudioEnabled(
             Component:
               "/src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx#MissionaryGivingPagesNativeListView",
           },
-          edit: {
-            default: {
-              Component:
-                "/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx#MissionaryGivingPagesNativeEditView",
-            },
-          },
+          edit: studioDocumentEditViews(
+            "/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx#MissionaryGivingPagesNativeEditView",
+          ),
+          ...webStudioCreateFlowView(
+            "/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx#MissionaryGivingCreateView",
+          ),
         },
       },
     }

@@ -112,7 +112,7 @@ function SearchableSelect({
         aria-label={controlName ? `${controlName} options` : "Choose an option"}
         className={contentClassName}
       >
-        <InputGroup className="m-2 mb-0 w-auto">
+        <InputGroup className="m-2 mb-1 w-auto">
           <InputGroupAddon>
             <SearchIcon aria-hidden="true" />
           </InputGroupAddon>

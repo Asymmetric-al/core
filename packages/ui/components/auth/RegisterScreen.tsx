@@ -18,6 +18,9 @@ import {
   AuthCardTitle,
   AuthInput,
   AuthLabel,
+  AuthMark,
+  AuthMessage,
+  AuthShell,
 } from "./auth-primitives";
 
 export interface RegisterScreenProps {
@@ -41,7 +44,7 @@ function toRegistrationErrorMessage(error: unknown): string {
 export function RegisterScreen({
   appId,
   enabled,
-  title = "Create Account",
+  title = "Create account",
   subtitle = "Create your account to continue",
   loginHref = "/login",
 }: RegisterScreenProps) {
@@ -55,6 +58,7 @@ export function RegisterScreen({
   const [notice, setNotice] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const submissionInFlight = React.useRef(false);
+  const passwordHintId = React.useId();
 
   const handleSubmit = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -114,99 +118,97 @@ export function RegisterScreen({
   );
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-muted px-4 py-8">
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background via-muted to-muted" />
-      <div className="relative z-10 w-full max-w-md">
-        <AuthCard>
-          <AuthCardHeader>
-            <AuthCardTitle>{title}</AuthCardTitle>
-            <AuthCardDescription>{subtitle}</AuthCardDescription>
-          </AuthCardHeader>
-          <AuthCardContent>
-            {enabled ? (
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <AuthLabel htmlFor="firstName">First Name</AuthLabel>
-                    <AuthInput
-                      id="firstName"
-                      autoComplete="given-name"
-                      value={firstName}
-                      onChange={(event) => setFirstName(event.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <AuthLabel htmlFor="lastName">Last Name</AuthLabel>
-                    <AuthInput
-                      id="lastName"
-                      autoComplete="family-name"
-                      value={lastName}
-                      onChange={(event) => setLastName(event.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <AuthLabel htmlFor="email">Email</AuthLabel>
+    <AuthShell>
+      <AuthCard>
+        <AuthCardHeader>
+          <AuthMark />
+          <AuthCardTitle>{title}</AuthCardTitle>
+          <AuthCardDescription>{subtitle}</AuthCardDescription>
+        </AuthCardHeader>
+        <AuthCardContent>
+          {enabled ? (
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-2">
+                  <AuthLabel htmlFor="firstName">First name</AuthLabel>
                   <AuthInput
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    id="firstName"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
                     required
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <AuthLabel htmlFor="password">Password</AuthLabel>
+                <div className="flex flex-col gap-2">
+                  <AuthLabel htmlFor="lastName">Last name</AuthLabel>
                   <AuthInput
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    minLength={8}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    id="lastName"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
                     required
                   />
                 </div>
-
-                <AuthButton type="submit" loading={isSubmitting}>
-                  Create Account
-                </AuthButton>
-              </form>
-            ) : (
-              <div className="rounded-xl border border-border bg-muted/60 p-4 text-sm text-muted-foreground">
-                Self-service registration is not available for this portal.
-                Please contact your administrator for access.
               </div>
-            )}
 
-            {error ? (
-              <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
-              </p>
-            ) : null}
-            {notice ? (
-              <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
-                {notice}
-              </p>
-            ) : null}
+              <div className="flex flex-col gap-2">
+                <AuthLabel htmlFor="email">Email</AuthLabel>
+                <AuthInput
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </div>
 
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                href={loginHref}
-                className="font-medium text-foreground hover:underline"
-              >
-                Sign In
-              </Link>
-            </p>
-          </AuthCardContent>
-        </AuthCard>
-      </div>
-    </main>
+              <div className="flex flex-col gap-2">
+                <AuthLabel htmlFor="password">Password</AuthLabel>
+                <AuthInput
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  // Matches the length check in handleSubmit.
+                  minLength={8}
+                  aria-describedby={passwordHintId}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+                <p
+                  id={passwordHintId}
+                  className="text-sm text-muted-foreground"
+                >
+                  At least 8 characters.
+                </p>
+              </div>
+
+              <AuthButton type="submit" loading={isSubmitting}>
+                Create account
+              </AuthButton>
+            </form>
+          ) : (
+            <AuthMessage tone="info">
+              Self-service registration is not available for this portal. Please
+              contact your administrator for access.
+            </AuthMessage>
+          )}
+
+          {error ? <AuthMessage tone="error">{error}</AuthMessage> : null}
+          {notice ? <AuthMessage tone="success">{notice}</AuthMessage> : null}
+
+          <p className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              href={loginHref}
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
+        </AuthCardContent>
+      </AuthCard>
+    </AuthShell>
   );
 }

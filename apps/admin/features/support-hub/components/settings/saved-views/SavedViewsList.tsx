@@ -1,32 +1,75 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Bookmark, Trash2 } from "lucide-react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { DropdownMenuItem } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
+import { Bookmark, Copy, Inbox, Trash2 } from "lucide-react";
 import Link from "next/link";
-import * as React from "react";
 import { toast } from "sonner";
 
+import { useSupportAgents } from "../../../hooks/use-support-agents";
 import { useDeleteSupportSavedView } from "../../../hooks/use-support-mutations";
 import { useSupportSavedViews } from "../../../hooks/use-support-saved-views";
+import {
+  describeSavedViewFilter,
+  savedViewHref,
+} from "../../../lib/saved-view-links";
+import { canManageSavedView } from "../../../lib/settings-access";
+import { useConfirm } from "../../workspace/confirm-provider";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
+import { SettingsListState } from "../SettingsListState";
 import { SettingsPanel } from "../SettingsPanel";
+import { SettingsActionsMenu, SettingsIconButton } from "../SettingsRowActions";
 
 import type { SupportSavedView } from "../../../types";
 
 export function SavedViewsList() {
-  const { data: savedViews } = useSupportSavedViews();
+  const query = useSupportSavedViews();
+  const savedViews = query.data;
+  const agents = useSupportAgents().data;
   const deleteView = useDeleteSupportSavedView();
+  const agentName = (agentId: string) =>
+    agents.find((agent) => agent.id === agentId)?.name;
 
+  const confirm = useConfirm();
   const handleDelete = async (view: SupportSavedView) => {
-    if (!window.confirm(`Delete saved view "${view.name}"?`)) return;
+    await confirm({
+      title: `Delete the ${view.name} view?`,
+      description: "Anyone using its link will lose it.",
+      confirmLabel: "Delete view",
+      action: async () => {
+        try {
+          await deleteView.mutateAsync({ id: view.id });
+          toast.success("Saved view deleted.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Could not delete the saved view.",
+          );
+          throw error;
+        }
+      },
+    });
+  };
+
+  const copyLink = async (view: SupportSavedView) => {
     try {
-      await deleteView.mutateAsync({ id: view.id });
-      toast.success("Saved view deleted.");
-    } catch (error) {
+      const url = new URL(savedViewHref(view.filter), window.location.origin);
+      await navigator.clipboard.writeText(url.toString());
+      toast.success("Link copied.");
+    } catch {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not delete the saved view.",
+        "Couldn’t copy the link. Open the view and copy it from the address bar.",
       );
     }
   };
@@ -34,54 +77,89 @@ export function SavedViewsList() {
   return (
     <SettingsPanel
       title="Saved views"
-      description="Named filters shared across the team. Create new views from the inbox toolbar."
+      description="Named inbox filters. Workspace views are for everyone; personal views belong to one agent. Create new views from the inbox toolbar."
     >
-      {savedViews.length === 0 ? (
-        <SupportEmptySection
-          icon={<Bookmark className="size-4" />}
-          title="No saved views yet"
-          description="Save a filter from the inbox toolbar and it will show up here."
-          action={
-            <Link
-              href="/support"
-              className="inline-flex h-8 items-center rounded-lg bg-primary px-3 text-xs font-black uppercase tracking-wider text-primary-foreground"
-            >
-              Open inbox
-            </Link>
-          }
-        />
-      ) : (
-        <ul className="flex flex-col divide-y divide-border">
-          {savedViews.map((view) => (
-            <li key={view.id} className="flex items-center gap-3 py-2">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                <Bookmark className="size-4" />
-              </span>
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-xs font-semibold text-foreground">
-                  {view.name}
-                  <span className="ml-2 inline-flex h-4 items-center rounded-md bg-muted px-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    {view.scope}
-                  </span>
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  view:{view.filter.view} · status:{view.filter.status} ·
-                  layout:{view.filter.layout}
-                </span>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => void handleDelete(view)}
-                aria-label={`Delete ${view.name}`}
-              >
-                <Trash2 className="size-3.5 text-destructive" />
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <SettingsListState
+        noun="saved views"
+        isLoading={query.isLoading}
+        isError={query.isError}
+        itemCount={savedViews.length}
+        onRetry={query.refetch}
+      >
+        {savedViews.length === 0 ? (
+          <SupportEmptySection
+            icon={<Bookmark className="size-4" />}
+            title="No saved views yet"
+            description="Save a filter from the inbox toolbar and it will show up here."
+            action={
+              <Link href="/support" className={buttonVariants({ size: "sm" })}>
+                Open inbox
+              </Link>
+            }
+          />
+        ) : (
+          <ItemGroup className="gap-2">
+            {savedViews.map((view) => {
+              const href = savedViewHref(view.filter);
+              // Support admins see other agents' personal views; say whose.
+              const ownerName =
+                view.scope === "personal" &&
+                view.ownerAgentId &&
+                view.ownerAgentId !== query.access.agentId
+                  ? agentName(view.ownerAgentId)
+                  : undefined;
+              return (
+                <Item key={view.id} variant="outline" size="sm">
+                  <ItemMedia variant="icon">
+                    <Bookmark aria-hidden="true" />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0">
+                    <ItemTitle>
+                      <Link
+                        href={href}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {view.name}
+                      </Link>
+                      <Badge variant="outline">
+                        {view.scope === "workspace"
+                          ? "Workspace"
+                          : ownerName
+                            ? `Personal · ${ownerName}`
+                            : "Personal"}
+                      </Badge>
+                    </ItemTitle>
+                    <ItemDescription>
+                      {describeSavedViewFilter(view.filter, { agentName })}
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <SettingsActionsMenu label={`Actions for ${view.name}`}>
+                      <DropdownMenuItem render={<Link href={href} />}>
+                        <Inbox aria-hidden="true" />
+                        Open in inbox
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => void copyLink(view)}>
+                        <Copy aria-hidden="true" />
+                        Copy link
+                      </DropdownMenuItem>
+                    </SettingsActionsMenu>
+                    {canManageSavedView(query.access, view) ? (
+                      <SettingsIconButton
+                        label={`Delete ${view.name}`}
+                        tooltip="Delete"
+                        onClick={() => void handleDelete(view)}
+                      >
+                        <Trash2 aria-hidden="true" />
+                      </SettingsIconButton>
+                    ) : null}
+                  </ItemActions>
+                </Item>
+              );
+            })}
+          </ItemGroup>
+        )}
+      </SettingsListState>
     </SettingsPanel>
   );
 }

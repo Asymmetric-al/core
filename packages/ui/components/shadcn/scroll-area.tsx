@@ -9,8 +9,12 @@ import { mergeBaseUIClassName } from "../../lib/base-ui";
 function ScrollArea({
   className,
   children,
+  edgeFade,
   ...props
-}: ScrollAreaPrimitive.Root.Props) {
+}: ScrollAreaPrimitive.Root.Props & {
+  /** Fade the horizontal edges that have hidden, scrollable content. */
+  edgeFade?: "x";
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -19,7 +23,10 @@ function ScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        className={cn(
+          "size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1",
+          edgeFade === "x" && "scroll-fade-x",
+        )}
       >
         <ScrollAreaPrimitive.Content data-slot="scroll-area-content">
           {children}

@@ -2,9 +2,11 @@ import {
   buildPageBuilderCollectionFields,
   buildPageBuilderHooks,
   buildPageBuilderVersions,
+  webStudioCreateFlowView,
 } from "./page-builders";
 import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { studioDocumentEditViews } from "../../cms-ui/web-studio/shell/document-tabs";
 import {
   PUBLIC_COLLECTION_CAPABILITIES,
   publishedPublicReadAccess,
@@ -28,12 +30,12 @@ const nativeProjectPagesAdmin = isNativeCollectionWebStudioEnabled(
             Component:
               "/src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx#ProjectPagesNativeListView",
           },
-          edit: {
-            default: {
-              Component:
-                "/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx#ProjectPagesNativeEditView",
-            },
-          },
+          edit: studioDocumentEditViews(
+            "/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx#ProjectPagesNativeEditView",
+          ),
+          ...webStudioCreateFlowView(
+            "/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx#ProjectPageCreateView",
+          ),
         },
       },
     }

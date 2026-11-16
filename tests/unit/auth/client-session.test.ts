@@ -45,6 +45,51 @@ function createProfileClient(profile: unknown) {
 }
 
 describe("client session auth state", () => {
+  it("drops the old owner before a new user profile load resolves, but not on same-user refresh", async () => {
+    const firstUser = { id: "first" } as User;
+    const secondUser = { id: "second" } as User;
+    const profileClient = createProfileClient({ id: "first-profile" });
+    const nextProfile = deferred<{ data: unknown; error: null }>();
+    let authCallback!: (event: string, session: { user: User }) => void;
+    const supabase = {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: firstUser },
+          error: null,
+        })),
+        onAuthStateChange: vi.fn((callback) => {
+          authCallback = callback;
+          return { data: { subscription: { unsubscribe: vi.fn() } } };
+        }),
+      },
+      from: profileClient.from,
+    };
+    const states = vi.fn();
+    const { subscribeToClientAuthState } =
+      await import("../../../packages/auth/client-session");
+    const stop = subscribeToClientAuthState(states, {
+      supabase: supabase as never,
+    });
+    await vi.waitFor(() => expect(states).toHaveBeenCalled());
+    states.mockClear();
+    authCallback("TOKEN_REFRESHED", { user: firstUser });
+    await vi.waitFor(() => expect(states).toHaveBeenCalled());
+    expect(states).not.toHaveBeenCalledWith(
+      expect.objectContaining({ loading: true }),
+    );
+    profileClient.single.mockImplementationOnce(
+      () => nextProfile.promise as never,
+    );
+    authCallback("SIGNED_IN", { user: secondUser });
+    expect(states).toHaveBeenLastCalledWith({
+      user: secondUser,
+      profile: null,
+      loading: true,
+    });
+    stop();
+    nextProfile.resolve({ data: { id: "second-profile" }, error: null });
+    await flushPromises();
+  });
   it("loads the current user and profile through one module interface", async () => {
     const user = { id: "user-1", email: "donor@example.com" } as User;
     const profile = { id: "profile-1", user_id: "user-1", role: "donor" };

@@ -315,8 +315,8 @@ for (const viewport of [
       page.getByRole("button", { name: "All Questions", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
     await expect(
-      page.getByRole("link", { name: "Email Support", exact: true }),
-    ).toHaveAttribute("href", "/contact");
+      page.getByRole("link", { name: "Open the donor portal", exact: true }),
+    ).toHaveAttribute("href", "/donor-dashboard");
     await expect(
       page.getByRole("button", { name: "Chat with Us", exact: true }),
     ).toHaveCount(0);

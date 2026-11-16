@@ -31,10 +31,10 @@ function sources(dir = path.join(repoRoot, PRINCIPAL_DIR)): [string, string][] {
     if (statSync(p).isDirectory()) return sources(p);
     return /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name)
       ? [
-          [path.relative(repoRoot, p), readFileSync(p, "utf8")] as [
-            string,
-            string,
-          ],
+          [
+            path.relative(repoRoot, p).split(path.sep).join("/"),
+            readFileSync(p, "utf8"),
+          ] as [string, string],
         ]
       : [];
   });

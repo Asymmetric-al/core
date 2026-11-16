@@ -12,6 +12,7 @@ import {
   getDonorEmailHref,
   getGivingHistoryRows,
   hasDonorsActiveFilters,
+  nextPartnerLinkStep,
   removeTagSelection,
   toPartnerSafeDonor,
   toggleTagSelection,
@@ -30,6 +31,7 @@ function createRecurringDonation(
   return {
     id: "recurring-1",
     amount: 0,
+    currency: "USD",
     frequency: "Monthly",
     status: "active",
     start_date: "2026-01-01T00:00:00.000Z",
@@ -47,6 +49,7 @@ function createActivity(overrides: Partial<Activity>): Activity {
     type: "note",
     date: "2026-01-01T00:00:00.000Z",
     title: "Activity",
+    currency: null,
     ...overrides,
   };
 }
@@ -78,7 +81,7 @@ function createDonor(overrides: Partial<Donor>): Donor {
 }
 
 describe("donors page model helpers", () => {
-  it("derives summary counts and monthly pledge totals without changing frequency conversion", () => {
+  it("keeps counts without inventing currency for lifetime or incomplete roster totals", () => {
     const donors = [
       createDonor({
         id: "active-monthly",
@@ -95,7 +98,11 @@ describe("donors page model helpers", () => {
         total_given: 250,
         has_active_pledge: true,
         recurring_donations: [
-          createRecurringDonation({ amount: 120, frequency: "Quarterly" }),
+          createRecurringDonation({
+            amount: 120,
+            currency: "JPY",
+            frequency: "Quarterly",
+          }),
         ],
       }),
       createDonor({
@@ -118,8 +125,8 @@ describe("donors page model helpers", () => {
       activePledgeCount: 3,
       atRiskCount: 1,
       lapsedCount: 1,
-      monthlyPledgeTotal: 230,
-      totalGiven: 1000,
+      monthlyPledgeTotal: null,
+      totalGiven: null,
     });
   });
 
@@ -291,7 +298,7 @@ describe("donors page model helpers", () => {
     const safe = toPartnerSafeDonor(poisoned);
 
     expect(safe.name).toBe(ANONYMOUS_DONOR_LABEL);
-    expect(safe.initials).toBe("AD");
+    expect(safe.initials).toBe("AP");
     expect(safe.email).toBe("");
     expect(safe.phone).toBe("");
     expect(safe.mobile).toBeUndefined();
@@ -361,5 +368,51 @@ describe("donors page model helpers", () => {
     expect(getDonorEmailHref("")).toBeNull();
     expect(getDonorEmailHref("   ")).toBeNull();
     expect(getDonorEmailHref(undefined)).toBeNull();
+  });
+});
+
+describe("nextPartnerLinkStep", () => {
+  const loaded = { isLoading: false, hasError: false, isLoadingMore: false };
+
+  it("waits while the list is still loading or has failed", () => {
+    expect(
+      nextPartnerLinkStep("p-9", [], {
+        ...loaded,
+        isLoading: true,
+        hasMore: true,
+      }),
+    ).toBe("wait");
+    expect(
+      nextPartnerLinkStep("p-9", [], {
+        ...loaded,
+        hasError: true,
+        hasMore: true,
+      }),
+    ).toBe("wait");
+  });
+
+  it("opens a partner who is already loaded", () => {
+    expect(
+      nextPartnerLinkStep("p-2", ["p-1", "p-2"], { ...loaded, hasMore: true }),
+    ).toBe("open");
+  });
+
+  it("loads the next page while the partner may still be on it", () => {
+    expect(
+      nextPartnerLinkStep("p-99", ["p-1"], { ...loaded, hasMore: true }),
+    ).toBe("load-more");
+    expect(
+      nextPartnerLinkStep("p-99", ["p-1"], {
+        ...loaded,
+        hasMore: true,
+        isLoadingMore: true,
+      }),
+    ).toBe("wait");
+  });
+
+  it("reports a partner who isn't in the whole list", () => {
+    expect(
+      nextPartnerLinkStep("p-99", ["p-1"], { ...loaded, hasMore: false }),
+    ).toBe("missing");
   });
 });

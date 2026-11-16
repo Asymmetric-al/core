@@ -40,6 +40,7 @@ import {
   projectContributionDetailForViewer,
   projectCorrectionRequestsForViewer,
 } from "./viewer-projection";
+import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -76,8 +77,10 @@ const actionTypeSchema = z
 const sourceSurfaceSchema = z.enum(CONTRIBUTION_SOURCE_SURFACES);
 
 export const actionRequestSchema = z.object({
-  contributionId: z.string().uuid(),
-  stagedGiftId: z.string().uuid().nullable().optional(),
+  // GUID shape, not strict RFC UUIDs: seeded and imported gifts use ids
+  // outside the RFC version range, and the detail overlay opens them.
+  contributionId: z.guid(),
+  stagedGiftId: z.guid().nullable().optional(),
   actionType: actionTypeSchema,
   sourceSurface: sourceSurfaceSchema.default("api"),
   reason: z.string().max(1000).nullable().optional(),
@@ -220,6 +223,10 @@ export const POST = withOperation(
         dependencies: createContributionActionDependencies(supabaseAdmin),
       });
 
+      if (result.approvalStatus === "applied" && !result.idempotentReplay) {
+        revalidateAdminContributionsCache(auth.tenantId);
+      }
+
       // Same mode-aware dashboard links as GET so the canonical detail an
       // action returns never disagrees with the detail endpoint.
       const providerDashboardTestMode =
@@ -293,6 +300,14 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         dependencies: createContributionActionDependencies(supabaseAdmin),
         recordOutcome: recordCorrectionApprovalOutcome,
       });
+
+      if (
+        outcome.result?.approvalStatus === "applied" &&
+        !outcome.idempotentReplay &&
+        !outcome.result.idempotentReplay
+      ) {
+        revalidateAdminContributionsCache(auth.tenantId);
+      }
 
       // Consistency with GET / POST actions: project provider identifiers for
       // the viewer. Not a leak today (deciders already hold

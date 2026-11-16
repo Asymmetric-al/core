@@ -1,16 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 
 import { CannedResponseList } from "@/features/support-hub/components/settings/canned-responses/CannedResponseList";
-import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
+
+export const metadata: Metadata = {
+  title: "Canned responses · Support settings",
+};
 
 export default function SupportSettingsCannedResponsesPage() {
   return (
-    <SupportWorkspaceShell
-      section="settings"
-      title="Canned responses"
-      description="Reusable reply templates inserted with / in the composer."
-    >
+    <>
       <CannedResponseList />
-    </SupportWorkspaceShell>
+    </>
   );
 }

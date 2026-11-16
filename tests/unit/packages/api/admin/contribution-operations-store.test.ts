@@ -197,6 +197,99 @@ describe("contribution operations store", () => {
     );
   });
 
+  it("describes each pending correction request's own change and requester", async () => {
+    const tenantId = "00000000-0000-4000-8000-000000000001";
+    const donationId = "00000000-0000-4000-8000-000000000002";
+    const currentFundId = "00000000-0000-4000-8000-000000000010";
+    const proposedFundId = "00000000-0000-4000-8000-000000000011";
+    const requesterId = "00000000-0000-4000-8000-000000000020";
+    const queriedProfileIds: unknown[][] = [];
+    const supabaseAdmin = createSupabaseStub({
+      donations: {
+        data: {
+          id: donationId,
+          tenant_id: tenantId,
+          fund_id: currentFundId,
+          amount: 100_000,
+          currency: "usd",
+          status: "completed",
+          donation_type: "one_time",
+          payment_method: "card",
+          is_recurring: false,
+          refund_amount: 0,
+          created_at: "2026-05-01T00:00:00.000Z",
+          updated_at: "2026-05-01T00:00:00.000Z",
+        },
+        error: null,
+      },
+      contribution_adjustments: emptyRows,
+      funds: (query) => {
+        expectTenantScoped(query, tenantId);
+        expectIncludesIds(query, [currentFundId, proposedFundId]);
+        return {
+          data: [
+            { id: currentFundId, name: "General Fund" },
+            { id: proposedFundId, name: "Clean Water Initiative" },
+          ],
+          error: null,
+        };
+      },
+      profiles: (query) => {
+        queriedProfileIds.push(query.inFilters.get("id") ?? []);
+        expectTenantScoped(query, tenantId);
+        return {
+          data: [{ id: requesterId, display_name: "Joel Ramirez" }],
+          error: null,
+        };
+      },
+      ...baseContributionTables(),
+      contribution_correction_requests: {
+        data: [
+          {
+            id: "request_amount",
+            action_type: "amount_correction",
+            status: "pending",
+            reason: "Donor sent a larger check",
+            requested_by_profile_id: requesterId,
+            created_at: "2026-05-06T00:00:00.000Z",
+            payload: { amount: 150_000 },
+          },
+          {
+            id: "request_fund",
+            action_type: "fund_correction",
+            status: "pending",
+            reason: "Wrong fund",
+            requested_by_profile_id: requesterId,
+            created_at: "2026-05-07T00:00:00.000Z",
+            payload: { fundId: proposedFundId },
+          },
+        ],
+        error: null,
+      },
+    });
+
+    const detail = await loadContributionDetailFromSupabase({
+      supabaseAdmin,
+      tenantId,
+      contributionId: donationId,
+    });
+
+    expect(queriedProfileIds).toEqual([[requesterId]]);
+    const byId = new Map(
+      detail.correctionRequests.map((request) => [request.id, request]),
+    );
+    expect(byId.get("request_amount")).toMatchObject({
+      requestedByName: "Joel Ramirez",
+      proposedChange: [{ label: "Amount", from: "$1,000.00", to: "$1,500.00" }],
+    });
+    expect(byId.get("request_fund")).toMatchObject({
+      requestedByName: "Joel Ramirez",
+      proposedChange: [
+        { label: "Fund", from: "General Fund", to: "Clean Water Initiative" },
+      ],
+    });
+  });
+
   it("hydrates donor, CRM, correction request, and recurring agreement detail", async () => {
     const tenantId = "00000000-0000-4000-8000-000000000011";
     const donationId = "00000000-0000-4000-8000-000000000012";
@@ -465,9 +558,14 @@ describe("contribution operations store", () => {
         status: "pending",
         reason: "Needs review",
         requestedByProfileId: "profile_requester",
+        // Not a profile UUID, so there is no name to look up.
+        requestedByName: null,
         createdAt: "2026-05-06T00:00:00.000Z",
         receiptDeliveryProposal: null,
         receiptAffectedFields: [],
+        // The stored payload is empty, so the change cannot be described
+        // and the approver is not offered approval.
+        proposedChange: null,
       },
     ]);
     expect(detail.payment.stripe).toMatchObject({

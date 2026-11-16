@@ -1,5 +1,3 @@
-"use client";
-
 import { LabelsReport } from "@/features/support-hub/components/reports";
 import { SupportWorkspaceShell } from "@/features/support-hub/components/workspace";
 
@@ -8,9 +6,11 @@ export default function SupportReportsLabelsPage() {
     <SupportWorkspaceShell
       section="reports"
       title="Labels"
-      description="Which donor care labels drive the most activity."
+      description="How many conversations created in the selected range carry each label."
     >
       <LabelsReport />
     </SupportWorkspaceShell>
   );
 }
+
+export const metadata = { title: "Labels · Support reports" };

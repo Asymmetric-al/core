@@ -442,3 +442,42 @@ describe("admin/contribution-operations/action-availability", () => {
     });
   });
 });
+
+describe("admin/contribution-operations/catalog receipt send eligibility", () => {
+  it("is the same rule the resend_receipt availability entry applies", async () => {
+    const { getContributionReceiptSendBlock } =
+      await import("../../../../../packages/api/src/admin/contribution-operations/catalog");
+    const cases = [
+      { receiptStatus: "pending", paymentStatus: "completed" },
+      { receiptStatus: "pending", paymentStatus: "succeeded" },
+      { receiptStatus: "pending", paymentStatus: "pending" },
+      { receiptStatus: "pending", paymentStatus: "processing" },
+      { receiptStatus: "sent", paymentStatus: "refunded" },
+      { receiptStatus: "suppressed", paymentStatus: "completed" },
+    ];
+    for (const input of cases) {
+      const entry = availabilityFor(
+        buildContributionActionAvailability({
+          stagedGift: {
+            id: "staged-1",
+            status: "posted",
+            receiptStatus: input.receiptStatus,
+            crmPostStatus: null,
+          },
+          paymentStatus: input.paymentStatus,
+        }),
+        "resend_receipt",
+      );
+      const block = getContributionReceiptSendBlock(input);
+      expect(block === null).toBe(entry.available);
+      expect(block?.blockedReason ?? null).toBe(entry.blockedReason);
+      expect(block?.nextStep ?? null).toBe(entry.nextStep);
+    }
+    expect(
+      getContributionReceiptSendBlock({
+        receiptStatus: "pending",
+        paymentStatus: "pending",
+      })?.blockedReason,
+    ).toBe("The payment is not completed yet.");
+  });
+});

@@ -89,4 +89,19 @@ describe("editor accessibility boundary", () => {
     expect(editor.options.editorProps.attributes).toBe(attributes);
     expect(attributes).toHaveBeenCalled();
   });
+
+  it("tells assistive tech when the editor is read-only", async () => {
+    const editor = await renderEditor();
+    expect(editor.view.dom.hasAttribute("aria-readonly")).toBe(false);
+
+    await act(async () => {
+      editor.setEditable(false);
+    });
+    expect(editor.view.dom.getAttribute("aria-readonly")).toBe("true");
+
+    await act(async () => {
+      editor.setEditable(true);
+    });
+    expect(editor.view.dom.hasAttribute("aria-readonly")).toBe(false);
+  });
 });

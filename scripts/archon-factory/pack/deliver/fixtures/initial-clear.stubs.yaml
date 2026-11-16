@@ -1,0 +1,145 @@
+fixture:
+  inputs: { issue: "101", assignment: "a101-fixture" }
+  reached:
+    [
+      claim,
+      context,
+      scope,
+      after-scope,
+      define,
+      after-define,
+      build,
+      freeze,
+      micaiah,
+      luke,
+      seal,
+      after-assess,
+      after-adjudicate,
+      final,
+      publish,
+      record,
+    ]
+claim:
+  {
+    proceed: "yes",
+    route: initial,
+    do_scope: "yes",
+    do_define: "yes",
+    do_build: "yes",
+    do_feedback: "no",
+    needs_wait: "no",
+    wait_until: "",
+    reason: "Round 1",
+  }
+context:
+  {
+    ok: "yes",
+    fingerprint: "f1",
+    changed: "no",
+    scope_assignment: "scope",
+    reason: "ok",
+  }
+scope:
+  {
+    task_status: DONE,
+    decision: proceed,
+    brief: "b",
+    source_paths: ["apps/x/**"],
+    test_paths: ["tests/x/**"],
+    docs_only: false,
+    shared_areas: [],
+    out_of_scope: [],
+    sources: [],
+    blocker: "",
+    uncertainty: "",
+  }
+after-scope:
+  {
+    proceed: "yes",
+    define: "yes",
+    build: "yes",
+    ezra_assignment: "ezra",
+    reason: "design",
+  }
+define:
+  {
+    task_status: DONE,
+    criteria: [{ id: C1, statement: s, check: c, evidence: e }],
+    test_paths: ["tests/x/a.test.ts"],
+    checks_run: [],
+    gaps: [],
+    questions: [],
+  }
+after-define:
+  { build: "yes", freeze: "yes", bezalel_assignment: "bezalel", reason: "ok" }
+build:
+  {
+    task_status: DONE,
+    changed_paths: ["apps/x/a.ts"],
+    checks_run: [],
+    gaps: [],
+    oracle_requests: [],
+    questions: [],
+  }
+freeze:
+  {
+    review: "yes",
+    candidate: "abc",
+    micaiah_assignment: "m",
+    luke_assignment: "l",
+    reason: "frozen",
+  }
+micaiah:
+  {
+    task_status: DONE,
+    decision: CLEAR,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    scope: s,
+    findings: [],
+    checks_run: [],
+    limitations: [],
+  }
+luke:
+  {
+    task_status: DONE,
+    decision: CLEAR,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    scope: s,
+    findings: [],
+    checks_run: [],
+    limitations: [],
+  }
+seal: { assess: "no", assessment_assignment: "", reason: "clear" }
+after-assess:
+  {
+    adjudicate: "no",
+    final: "yes",
+    agabus_assignment: "",
+    ezra_final_assignment: "f",
+    reason: "clear",
+  }
+after-adjudicate: { final: "yes", ezra_final_assignment: "f", reason: "none" }
+final:
+  {
+    task_status: DONE,
+    decision: PASS,
+    candidate_sha: abc,
+    acceptance_revision: r,
+    criteria:
+      [
+        {
+          id: C1,
+          result: PASS,
+          evidence: e,
+          correction: "",
+          owner: implementation,
+        },
+      ],
+    checks_run: [],
+    limitations: [],
+  }
+publish:
+  { published: "yes", pr: "https://example.invalid/pr/1", reason: "published" }
+record: { outcome: continue, next: feedback, reason: "published" }
