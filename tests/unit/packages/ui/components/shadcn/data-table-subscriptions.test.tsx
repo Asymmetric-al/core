@@ -4,7 +4,7 @@
  * Behavior tests for the focused-subscription data-table chrome.
  *
  * The pagination and action-bar chrome are memoized and subscribe to
- * individual table state slices (`useSelector(table.atoms.<slice>)`) instead
+ * individual table state slices (`useSelector` on the table's slice atoms) instead
  * of re-rendering with the table-creating parent. These tests prove that:
  *
  * 1. the pagination chrome still works end to end (next/prev, page size),
@@ -60,7 +60,7 @@ const people: Person[] = [
 const columns: ColumnDef<Person>[] = [{ accessorKey: "name", header: "Name" }];
 
 beforeAll(() => {
-  // jsdom is missing layout/observer APIs that Radix popovers and motion use.
+  // jsdom is missing layout/observer APIs that popovers and Motion use.
   vi.stubGlobal(
     "ResizeObserver",
     class {

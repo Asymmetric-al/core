@@ -19,10 +19,6 @@ export const ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY = [
   "table-preferences",
 ] as const;
 
-/**
- * @remarks Requires the CRM table-preferences API route slice before admin UI
- * imports these hooks.
- */
 async function parsePreferenceError(response: Response, fallback: string) {
   const payload = (await response.json().catch(() => null)) as {
     error?: string;

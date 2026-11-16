@@ -147,8 +147,8 @@ function EmailMessageAttachmentsFooter({
 
 /**
  * Inbound or outbound email rendering. Inbound = neutral left accent;
- * outbound = emerald left accent so agents can scan threads quickly. Drafts
- * use an amber tint and never surface as "delivered" content.
+ * outbound = success-toned left accent so agents can scan threads quickly.
+ * Drafts use the warning tint and never surface as "delivered" content.
  */
 export function EmailMessage({ message }: EmailMessageProps) {
   const chrome = emailMessageChrome(message);

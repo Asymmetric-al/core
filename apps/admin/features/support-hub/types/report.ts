@@ -3,7 +3,7 @@ import type { SupportReportSlice } from "@asym/database/hooks";
 export { SUPPORT_REPORT_SLICES } from "@asym/database/hooks";
 export type { SupportReportSlice } from "@asym/database/hooks";
 
-/* App-only computed shapes returned by `lib/selectors.ts` + `lib/report-aggregations.ts`. */
+/* App-only computed shapes returned by `lib/report-aggregations.ts`. */
 export interface SupportReportBucket {
   key: string;
   label: string;
@@ -44,6 +44,6 @@ export interface SupportReportSeries {
   unit: SupportReportUnit;
   total: number;
   buckets: SupportReportBucket[];
-  /** When set, the caller has exposed the full filter context for export. */
+  /** The request the series was built from; `buildReportSeries` sets it. */
   request?: SupportReportRequest;
 }

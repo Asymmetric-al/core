@@ -21,9 +21,8 @@ interface UseSupportInboxStatsReturn {
 }
 
 /**
- * Computes inbox stats over the live conversation collection. Result is
- * memoized on `data` so consumers can pass it to chart components without
- * triggering re-renders on every realtime tick.
+ * Computes inbox stats from the conversations query, memoized on the rows,
+ * the inbox and `now`.
  */
 export function useSupportInboxStats(
   options: UseSupportInboxStatsOptions = {},

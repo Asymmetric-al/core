@@ -5,13 +5,12 @@ import {
 } from "@playwright/test";
 
 /**
- * Shared Playwright surface configuration.
- *
- * The per-app "boneyard" configs (playwright.admin/donor/missionary.config.ts)
- * and the main playwright.config.ts previously each re-implemented base-URL
- * normalization, worker counts, server-reuse policy, and the dev-server
- * command, and had already drifted (reuse policy, E2E_AUTH_BYPASS defaults).
- * This module owns that policy; configs compose it instead of re-typing it.
+ * Shared Playwright surface configuration. The main playwright.config.ts and
+ * the per-app "boneyard" configs (playwright.admin/donor/missionary.config.ts)
+ * take base-URL normalization, worker counts, server-reuse policy and the
+ * dev-server command from here; the boneyard configs also take their whole
+ * run policy from {@link defineBoneyardConfig}. Change that policy here rather
+ * than in one config, so the configs cannot drift apart.
  */
 
 const DEFAULT_LOCAL_WORKERS = 1;

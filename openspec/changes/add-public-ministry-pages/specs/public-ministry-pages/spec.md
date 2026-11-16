@@ -1,5 +1,13 @@
 # Public Ministry Pages Capability
 
+## Purpose
+
+Define the contract for public pages where donors meet a missionary, team,
+project, campaign or designated purpose and move into the correct giving flow,
+including typed Page identity and subjects, editorial revisions, contributor
+authority, release workflow, publication reach, Ministry Updates, discovery
+and current-serving composition.
+
 ## ADDED Requirements
 
 ### Requirement: D1 Typed Public Page Families Share One Publication Contract

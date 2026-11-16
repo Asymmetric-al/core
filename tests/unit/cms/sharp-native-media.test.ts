@@ -120,8 +120,9 @@ describe("native CMS image dependencies", () => {
     (_, importer) => {
       const loadedSharp = createRequire(importer)("sharp") as typeof sharp;
 
-      // Maintainer advisories: libvips <0.35.0, libheif <0.35.4,
-      // and librsvg <0.35.5. Check loaded code, not only manifest ranges.
+      // sharp maintainer advisories: the bundled libvips is affected before
+      // sharp 0.35.0, libheif before 0.35.4 and librsvg before 0.35.5. Check
+      // the loaded native versions, not only manifest ranges.
       expect(versionNumber(loadedSharp.versions.sharp)).toBeGreaterThanOrEqual(
         35_005,
       );

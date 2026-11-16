@@ -12,12 +12,11 @@ import * as React from "react";
 import { useSupportFailureRecovery } from "../hooks/use-support-failure-recovery";
 
 /**
- * Inline failure banner rendered above the inbox body whenever a support
- * mutation fails. The banner offers a one-click retry that calls the
- * `retry` callback bundled into the failure record. Phase 7 surfaces this
- * for the send-reply / save-draft / add-note / assign / status / label /
- * snooze / run-macro mutations; sonner toasts remain in place as the
- * lightweight notification surface.
+ * Inline failure banner above the inbox body for the last failure reported
+ * through `useSupportFailureRecovery`, with a retry that calls the record's
+ * `retry`. Only the composer reports today (send reply, save draft, add
+ * note); the other `SupportFailureKind` values have no reporter, so those
+ * failures show only as toasts.
  */
 export function SupportFailureBanner() {
   const { failure, clear } = useSupportFailureRecovery();

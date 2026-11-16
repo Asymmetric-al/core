@@ -1,3 +1,9 @@
+## Purpose
+
+Define ownership of asynchronous UI state, so only the owning checkout attempt
+or latest feed request updates it, and preserve calendar-date presentation
+across visitor time zones.
+
 ## ADDED Requirements
 
 ### Requirement: Checkout transitions retain exact attempt ownership

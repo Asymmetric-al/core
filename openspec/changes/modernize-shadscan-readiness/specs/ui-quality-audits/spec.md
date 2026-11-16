@@ -1,3 +1,10 @@
+## Purpose
+
+Keep Core's UI quality audits reproducible and complete across its
+applications, with independent per-application score floors,
+evidence-preserving classification, accessible UI repairs, and reviewed
+upstream-component and browser-run evidence.
+
 ## ADDED Requirements
 
 ### Requirement: Workspace UI Audits Are Reproducible And Complete

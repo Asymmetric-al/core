@@ -18,8 +18,8 @@ interface ProviderProps {
 
 /**
  * Owns the open / close state of `<SupportCommandPalette />`. Mounted once
- * inside `<SupportInbox />` so every nested component (keyboard hook, header,
- * composer chrome) can share a single open state.
+ * inside `<SupportInbox />`, whose keyboard shortcuts open it, so the inbox
+ * and the palette share one open state.
  */
 export function SupportCommandPaletteProvider({ children }: ProviderProps) {
   const [isOpen, setIsOpen] = React.useState(false);

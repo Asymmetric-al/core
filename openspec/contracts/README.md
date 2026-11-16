@@ -48,3 +48,10 @@ conditional prefixes, comments, and fenced examples fail closed. The explicitly
 listed pre-migration archives in `legacy-archives.json` retain their original
 inline format as immutable history. They predate this convention; current and
 newly archived contracts receive the full reference check.
+
+Some sections cite a source as `[VERIFIED-REPO: <path>]` or
+`[VERIFIED-REPO: <path>:<line>]`. The marker records what the author cited when
+the requirement was written. The cited files have changed since, so a line
+number may no longer hold that passage, and a cited `openspec/changes/<change>`
+path may now sit under `openspec/changes/archive/`; find the passage by its
+text. Leave the marker as written: it is part of the content-addressed body.

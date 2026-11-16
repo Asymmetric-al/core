@@ -19,7 +19,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
   Supabase client libraries, package manager `bun`. Current workspace manifests
   and lockfile own exact versions; this rulebook does not pin a second version
   list.
-- **TypeScript roadmap prep:** `docs/guides/typescript-6-readiness.md` and `docs/ai/rules/typescript-future-proofing.md` (not a substitute for the version upgrade task).
+- **TypeScript compiler and configuration:** `docs/ai/rules/typescript-future-proofing.md`.
 
 ### Label taxonomy (required for every issue)
 

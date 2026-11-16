@@ -18,7 +18,8 @@ const retainedSnapshots = new Set([
   "pdf",
 ]);
 
-// Reviewed baseline c4d36cb029121641b8882237632d0d6da434049e; this task adds security-audit and council.
+// Skills at reviewed baseline c4d36cb029121641b8882237632d0d6da434049e.
+// Skills added after it are listed separately in expectedNames below.
 const baselineSkillNames = [
   "accessibility-review",
   "agent-browser",

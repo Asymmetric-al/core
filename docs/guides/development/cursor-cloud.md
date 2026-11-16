@@ -1,6 +1,6 @@
 # Cursor Cloud specific instructions
 
-Cloud-agent and disposable-VM setup for this monorepo. Root `AGENTS.md` points here; do not copy this runbook into always-on agent context.
+Cloud-agent and disposable-VM setup for this monorepo. `apps/admin/AGENTS.md` and `apps/donor/AGENTS.md` point here; do not copy this runbook into always-on agent context.
 
 ## Triggers
 
@@ -10,7 +10,7 @@ Cloud-agent and disposable-VM setup for this monorepo. Root `AGENTS.md` points h
 
 ## Workflow
 
-1. Read this runbook instead of copying it into root `AGENTS.md`.
+1. Read this runbook instead of copying it into an `AGENTS.md` file.
 2. For Mission Control without live credentials, run `bun run setup:mission-control:cloud` then `bun run dev:mission-control`.
 3. For donor in cloud sandboxes, wrap with `node scripts/run-with-ci-env.mjs -- bun run dev:donor`.
 4. Start local Supabase only after Docker is running; use the `LOCK TABLE` workaround below when the foundation migration fails.
@@ -80,15 +80,9 @@ mv supabase/seed.sql "$STAGING/seed.sql"
 
 ### Environment variables
 
-Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.config.ts` calls **`loadEnvConfig` from `@next/env`** on the monorepo root so Payload and Next see `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, etc., without copying files.
+Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.config.ts` loads the monorepo root env through `scripts/load-workspace-env.mjs` (`loadEnvConfig` from `@next/env`) so Payload and Next see `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, etc., without copying files.
 
-Optional (older pattern): symlink root `.env.local` into each app if you rely on tooling that only reads `apps/<app>/.env.local`:
-
-```bash
-ln -sf ../../.env.local apps/donor/.env.local
-ln -sf ../../.env.local apps/admin/.env.local
-ln -sf ../../.env.local apps/missionary/.env.local
-```
+Only for tooling that reads `apps/<app>/.env.local`, run `bun run env:link-apps` to link the root file into each app (Windows falls back to hardlinks; existing app files are kept unless you pass `--force`).
 
 Minimum required env vars for local dev (from `supabase status -o env`):
 
@@ -101,7 +95,7 @@ Optional (local dev and Cursor Cloud sandboxes only; do **not** rely on this in 
 
 ### Checks
 
-Standard commands documented in `AGENTS.md` monorepo rules section:
+Standard commands from root `AGENTS.md`:
 
 - Lint: `bun run lint`
 - Typecheck: `bun run typecheck`

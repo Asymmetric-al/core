@@ -1,56 +1,22 @@
-# Shared Packages
+# Shared packages
 
-This directory contains shared packages used across all apps in the monorepo.
+Workspace packages imported by the apps as `@asym/<name>` with `workspace:*`
+dependencies. Packages with their own `AGENTS.md` have local rules; read them
+before editing.
 
-## Package Structure
+| Package       | Owns                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `api`         | Server business logic and data access called by thin app route handlers (`AGENTS.md`)                                        |
+| `auth`        | Authentication, sessions and the shared proxy middleware (`AGENTS.md`)                                                       |
+| `database`    | Supabase clients, generated types, approved browser collections and hooks (`AGENTS.md`)                                      |
+| `ui`          | Shared `base-maia` UI components, tokens and fonts (`AGENTS.md`)                                                             |
+| `env`         | Environment schema and validation (`README.md`)                                                                              |
+| `email`       | Email rendering and Resend delivery (`README.md`)                                                                            |
+| `eve-runtime` | Product Eve agent runtime (`AGENTS.md`)                                                                                      |
+| `lib`         | Cross-app utilities and hooks                                                                                                |
+| `config`      | Shared site, navigation and studio configuration                                                                             |
+| `missionary`  | Missionary workspace components used by `apps/missionary` (`apps/admin` declares the dependency but imports nothing from it) |
+| `graphql`     | GraphQL handler used by the donor app                                                                                        |
+| `mock-data`   | Demo fixtures (`docs/guides/development/mock-data.md`)                                                                       |
 
-```
-packages/
-├── ui/                 # Shared UI components (@asym/ui)
-├── database/           # Supabase clients + types (@asym/database)
-├── auth/               # Authentication logic (@asym/auth)
-├── email/              # Resend integration (@asym/email)
-├── lib/                # Shared utilities (@asym/lib)
-└── config/             # Shared configs (@asym/config)
-```
-
-## Package Naming Convention
-
-All packages use the `@asym/*` namespace:
-
-- `@asym/ui` - UI components
-- `@asym/database` - Database access
-- `@asym/auth` - Authentication
-- `@asym/email` - Email functionality
-- `@asym/lib` - Utilities
-- `@asym/config` - Shared configurations
-
-## Usage in Apps
-
-Apps import from packages using the `@asym/*` namespace:
-
-```typescript
-// ✅ Correct
-import { Button } from "@asym/ui";
-import { createClient } from "@asym/database";
-import { useAuth } from "@asym/auth";
-
-// ❌ Wrong - never import from other apps
-import { Button } from "../../../apps/admin/components/button";
-```
-
-## Development
-
-Each package has its own `package.json` and can be developed independently.
-
-To work on a package:
-
-```bash
-cd packages/ui
-bun install
-bun run build
-```
-
-## Next Steps
-
-Packages will be created in Phase 2 of the migration. See `docs/refactorturbo/2026-01-20-turborepo-migration-plan.md` for details.
+Lint and TypeScript configuration packages live in `tooling/*`.

@@ -64,7 +64,7 @@ export async function requireSupportHubAccess(
 
 /**
  * Runs the handler after `requireSupportHubAccess()` succeeds, binding the
- * authenticated tenant for adapter-level isolation (Phase 7 in-memory).
+ * authenticated tenant that the adapter scopes every read and write to.
  */
 export async function withSupportHubAccess(
   request: Request,

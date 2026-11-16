@@ -1,11 +1,10 @@
 /**
  * Server-confirmed checkout outcome contract (client-safe).
  *
- * The public donor checkout must NOT decide success on its own — the previous
- * mock flipped to a "success" screen after a client-side timer, which is a lie
- * in a money flow. This module derives the donor-facing outcome from the
- * SERVER's Stripe PaymentIntent status, reusing the shared payment vocabulary in
- * `./payment-status-language` ("Stripe is the payment authority").
+ * The public donor checkout must NOT decide success on its own (for example
+ * from a client-side timer). This module derives the donor-facing outcome from
+ * the SERVER's Stripe PaymentIntent status, reusing the shared payment
+ * vocabulary in `./payment-status-language` ("Stripe is the payment authority").
  *
  * Pure + client-safe: no Stripe SDK, no network, no server-only imports.
  */
@@ -96,9 +95,8 @@ export interface CheckoutOutcome {
 }
 
 /**
- * Decide what the checkout may show, from server truth only. This is the direct
- * replacement for the old client-timer "success": the confirmation screen and
- * any success claim are gated on the Stripe PaymentIntent status.
+ * Decide what the checkout may show, from server truth only: the confirmation
+ * screen and any success claim are gated on the Stripe PaymentIntent status.
  */
 export function decideCheckoutOutcome({
   paymentIntentStatus,

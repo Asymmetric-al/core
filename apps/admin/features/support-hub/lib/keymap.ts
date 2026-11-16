@@ -5,8 +5,8 @@
  * inside the command palette so the agent can discover the shortcuts
  * without leaving the page.
  *
- * Phase 6 extends this surface — add new entries here, do not register
- * one-off `addEventListener` calls inside components.
+ * Add new inbox shortcuts here; do not register one-off `addEventListener`
+ * calls inside components.
  */
 
 export type SupportShortcutAction =

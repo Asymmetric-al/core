@@ -18,7 +18,7 @@ Read these before changing tests or configuration:
 - `tests/setup/unit-env.ts` — safe env defaults and browser shims.
 - `scripts/verify/unit-tests.mjs` — the full unit gate and platform behavior.
 - `docs/ai/rules/testing.md` — repository-wide test and CI policy.
-- `.next-docs/01-app/02-guides/testing/vitest.mdx` when testing Next.js code.
+- `node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md` (or the committed `.next-docs/` copy) when testing Next.js code.
 
 Do not use `bun test`; that selects Bun's test runner. Use Vitest through the
 committed scripts or `bunx vitest`.

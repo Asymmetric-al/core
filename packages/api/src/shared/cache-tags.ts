@@ -1,7 +1,8 @@
 import { revalidateTag } from "next/cache";
 
 export const CACHE_TAGS = {
-  // Legacy broad tag retained for compatibility with older paths.
+  // Legacy broad tag: no current read attaches it and no mutation revalidates
+  // it; feeds use `tenantPosts`/`post`.
   posts: "posts",
   tenantPosts: (tenantId: string) => `posts:tenant:${tenantId}`,
   post: (postId: string) => `post:${postId}`,

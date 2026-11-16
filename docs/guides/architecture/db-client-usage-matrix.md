@@ -1,46 +1,39 @@
 # DB Client Usage Matrix
 
-This guide defines where each Supabase client is allowed in this monorepo and
-which imports are forbidden.
+Where each Supabase client may be used. The governing rule and its approved
+exceptions are in the [data-access boundary](./data-access-boundary.md).
 
-## Canonical import surfaces
+## Import surfaces (`packages/database/package.json` exports)
 
-- Browser client: `@asym/database/supabase/client`
-- Server client: `@asym/database/supabase/server`
-- Admin client: `@asym/database/supabase/admin`
-- Browser table data: `@asym/database/hooks` and
-  `@asym/database/collections`
+- Browser client: `createBrowserClient` from `@asym/database/supabase`
+  (`packages/database/supabase/client.ts`). There is no
+  `@asym/database/supabase/client` export.
+- Server (request-cookie) client: `@asym/database/supabase/server`
+- Service-role admin client: `getAdminClient` / `createAdminClient` from
+  `@asym/database/supabase/admin` (server only)
+- Browser table data: `@asym/database/hooks` and `@asym/database/collections`
 
-Direct imports from `@supabase/ssr` and `@supabase/supabase-js` are reserved for
-the database adapter layer in `packages/database/supabase/*`.
+## Matrix
 
-## Allowed and Forbidden Matrix
-
-| Code location                                      | Browser client            | Server client                                   | Admin client                               | Direct `@supabase/*` imports | Enforcement                                                                                      |
-| -------------------------------------------------- | ------------------------- | ----------------------------------------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| `apps/*/components/**`                             | Auth/helpers only         | Forbidden                                       | Forbidden                                  | Forbidden                    | `verify:data-boundary`; browser table reads use `@asym/database/hooks`                           |
-| `apps/*/features/**`                               | Auth/helpers only         | Forbidden                                       | Forbidden                                  | Forbidden                    | `verify:data-boundary`; browser table reads use `@asym/database/hooks`                           |
-| `packages/ui/**`                                   | Auth/storage helpers only | Forbidden                                       | Forbidden                                  | Forbidden                    | Shared primitives must not own business table reads                                              |
-| `apps/*/app/api/**` route handlers                 | Forbidden                 | Forbidden                                       | Forbidden                                  | Forbidden                    | ESLint `no-restricted-imports` in `eslint.config.mjs` (ticket `2.2.2`)                           |
-| `packages/api/src/**` business handlers            | Forbidden                 | Allowed when request-context reads are required | Allowed for privileged business operations | Forbidden                    | Architectural rule (data-access boundary); CI/script enforcement is introduced by ticket `2.2.1` |
-| `packages/auth/**` and middleware/proxy auth flows | Forbidden                 | Allowed                                         | Forbidden                                  | Forbidden                    | Auth boundary rule (`nextjs-supabase-auth` skill and backend rules)                              |
-| `packages/database/supabase/**`                    | Not a consumer layer      | Not a consumer layer                            | Not a consumer layer                       | Allowed                      | Adapter layer; this is the only layer that should depend on raw Supabase SDK imports             |
-
-## Route handler policy
-
-Route handlers under `apps/*/app/api/**` should be thin and primarily re-export
-business handlers from `@asym/api/*`. They should not instantiate Supabase
-clients directly, including `@asym/database/supabase` and
-`@asym/database/supabase/*` imports.
+| Code location                         | Browser client                                                                      | Server / admin client                                                                                                                               | Direct `@supabase/*` imports                                                                                     | Enforcement                                                                                                                                                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/**` (all app source)            | Forbidden except allowlisted auth helpers (`apps/admin/lib/authenticated-fetch.ts`) | Not script-checked; business data logic still belongs in `packages/api` (a few server modules such as `apps/admin/lib/admin-access.ts` import them) | `@supabase/supabase-js` forbidden except `apps/admin/src/cms/auth/supabase-strategy.ts`                          | `verify:data-boundary` (CI)                                                                                                                                                                   |
+| `apps/*/components/**`, `features/**` | As above                                                                            | Forbidden                                                                                                                                           | Forbidden                                                                                                        | Root `eslint.config.mjs` only (editors/root-cwd runs; workspace lint does not load it)                                                                                                        |
+| `apps/*/app/api/**` route handlers    | Forbidden                                                                           | Forbidden (except `api/health/route.ts`)                                                                                                            | Forbidden                                                                                                        | ESLint `no-restricted-imports` in `eslint.config.mjs` (ticket `2.2.2`). That root config is not loaded by workspace lint; the CI check is `verify:data-boundary`                              |
+| `packages/ui/**`                      | Auth screens only (`components/auth/LoginScreen.tsx`)                               | Forbidden                                                                                                                                           | Forbidden                                                                                                        | Root `eslint.config.mjs` only                                                                                                                                                                 |
+| `packages/api/src/**`                 | Forbidden                                                                           | Allowed; admin client for privileged business operations                                                                                            | `@supabase/ssr` `createServerClient` in request-session helpers (for example `shared/request-session-client.ts`) | Architectural rule (data-access boundary); CI/script enforcement is introduced by ticket `2.2.1`. `verify:data-boundary` scans `apps/**` only, so `packages/api` itself is not script-checked |
+| `packages/auth/**`                    | `client-session.ts` (browser session helper)                                        | Allowed                                                                                                                                             | `@supabase/ssr` and `@supabase/supabase-js` in `context.ts` and `middleware.ts`                                  | Auth boundary (`packages/auth/AGENTS.md`)                                                                                                                                                     |
+| `packages/database/supabase/**`       | Defines it                                                                          | Defines them                                                                                                                                        | Allowed                                                                                                          | Adapter layer                                                                                                                                                                                 |
 
 ## Quick decision guide
 
-- Building browser UI over Supabase table rows: use `@asym/database/hooks` or
-  approved collection exports.
-- Building auth/session helpers, Storage upload helpers, or other low-level
-  browser Supabase utilities: use the browser client only through approved
-  shared helpers.
-- Implementing API business logic: keep it in `packages/api/src/**`, then
-  re-export from app route handlers.
-- Working on low-level Supabase adapter code: limit raw `@supabase/*` imports to
-  `packages/database/supabase/*`.
+- Browser UI over Supabase table rows: use `@asym/database/hooks` or approved
+  collection exports.
+- Browser auth/session or Storage helpers: use the browser client only in an
+  approved shared helper; app files need an allowlist entry in
+  `scripts/verify/data-boundary-check.mjs`.
+- API business logic: keep it in `packages/api/src/**` and re-export it from
+  the app route handler.
+- New raw `@supabase/*` usage belongs in `packages/database/supabase/*`, or in
+  `packages/auth`/`packages/api` request-session code that needs
+  `createServerClient` with request cookies.

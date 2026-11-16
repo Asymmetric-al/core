@@ -2,8 +2,7 @@
 
 ## 1. Summary
 
-- `.github/workflows/ci.yml` is implemented and operational with 5 required jobs: `format -> lint -> typecheck -> build -> test-unit`.
-- `.github/workflows/ci-integration.yml` is implemented and operational with 3 required jobs: `migrate -> smoke -> test-e2e`.
+- CI jobs, gates and required checks are described in [`docs/ci.md`](./ci.md); this audit covers only how they consume environment variables.
 - `@asym/env` (`packages/env/`) validates startup environment variables at runtime via `@t3-oss/env-nextjs` + `zod`.
 - `SKIP_ENV_VALIDATION=1` bypasses env validation in CI `build`, `smoke`, and `test-e2e` jobs.
 - `turbo.json` declares build env inputs, and `.env.local` was not inspected to avoid reading local secrets.
@@ -48,25 +47,21 @@
 
 ## 3. CI-Specific Findings
 
-### `ci.yml` - Fast Checks (5 jobs, all required)
+### `ci.yml`
 
-- All 5 jobs inject `TURBO_TOKEN` (GitHub secret) and `TURBO_TEAM` (GitHub variable) for Turborepo remote cache.
-- The `build` job additionally injects `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from GitHub secrets, plus `SKIP_ENV_VALIDATION=1`; this prevents `@asym/env` (`packages/env/src/schema.ts:L89`) from throwing when Supabase values are empty on fork PRs.
-- The `lint` job also runs `bun run verify:workspace-contract` and `bun run verify:eslint`.
+- Jobs that run Turbo inject `TURBO_TOKEN` (GitHub secret) and `TURBO_TEAM` (GitHub variable) for Turborepo remote cache, and restore a local `.turbo/` cache with `actions/cache`.
+- The `build` job injects `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from GitHub secrets plus `SKIP_ENV_VALIDATION=1`, so `@asym/env` does not throw when the secrets are empty on fork PRs. `test-unit` uses stub Supabase values.
 
-### `ci-integration.yml` - Integration (3 jobs)
+### `ci-integration.yml`
 
-- `migrate`: applies all `supabase/migrations/*.sql` files in order against a fresh Postgres 15 container; `DATABASE_URL` is set via `$GITHUB_ENV` (not a secret).
-- `smoke` and `test-e2e`: use hardcoded stub values for Supabase (`NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key`) and also set `SKIP_ENV_VALIDATION=1`.
-- `test-e2e` additionally sets `CI=1` and `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3005` as step-level env vars.
+- `migrate` runs against a Postgres service container; `DATABASE_URL` and `PAYLOAD_DATABASE_URI` are job-level stub connection strings, not secrets.
+- `smoke`, `test-e2e-smoke` and `instant-nav` use stub Supabase values (`https://example.supabase.co`, `example-anon-key`) and `SKIP_ENV_VALIDATION=1`. The full `test-e2e` job takes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from repository secrets and switches to the stub values (plus `ASYM_E2E_REQUIRE_HERMETIC_SUPABASE=1`) only for non-production pull requests, pushes to `develop` and non-production manual runs. E2E jobs set `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3005`.
 
 ### Turbo build env inputs
 
-- `turbo.json` `build` task `env` keys are limited to variables that can affect **compiled** Next.js / workspace output or Payload CMS build-time behavior. They hash into the Turborepo cache key ([task `env`](https://turborepo.dev/docs/reference/configuration#env)).
-- **Included (current root `turbo.json`):** `NODE_ENV`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `SUPABASE_*`, `PAYLOAD_SECRET`, `DATABASE_URL`, `PAYLOAD_DATABASE_URI`, `PAYLOAD_DATABASE_POOL_MAX`, `DONOR_APP_URL`, `SKIP_ENV_VALIDATION`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_ENCRYPTION_KEY`, `SENTRY_AUTH_TOKEN`, `SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_RELEASE`, `CLOUDINARY_API_SECRET`, `ALLOW_DEMO_ACCOUNTS`, `DEMO_ONLY_LOGIN`.
-- **Not in `build.env` (runtime / API only; use `NEXT_PUBLIC_*` or route code instead of build hash):** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CRON_SECRET`, `DOCRAPTOR_API_KEY` — changing them should not bust the Turborepo `build` cache for unchanged source.
-- **Excluded on purpose:** Playwright / E2E / demo-credentials / generic CI flags (`PLAYWRIGHT_*`, `E2E_*`, `DEMO_*`, `CI`, `ASYM_USE_CI_ENV_DEFAULTS`) — those are test or dev-server concerns; listing them under `build` `env` caused unrelated cache invalidation and did not match this audit’s split between “build hash” vs “tests”.
-- **Redundancy note:** `NEXT_PUBLIC_SUPABASE_*` and other public client vars are covered by the `NEXT_PUBLIC_*` wildcard; `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_DB_URL` are covered by `SUPABASE_*`.
+- `turbo.json` `build.env` keys hash into the Turborepo cache key ([task `env`](https://turborepo.dev/docs/reference/configuration#env)). They are limited to variables that can affect compiled Next.js or workspace output or Payload build-time behavior: `NODE_ENV`, `CORE_EVE_BUILD_MODE`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `SUPABASE_*`, `PAYLOAD_SECRET`, `DATABASE_URL`, `PAYLOAD_DATABASE_URI`, `PAYLOAD_DATABASE_POOL_MAX`, `DONOR_APP_URL`, `SKIP_ENV_VALIDATION`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_ENCRYPTION_KEY`, `SENTRY_AUTH_TOKEN`, `SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_RELEASE`, `CLOUDINARY_API_SECRET`, `ALLOW_DEMO_ACCOUNTS` and `DEMO_ONLY_LOGIN`. `turbo.json` is the source of truth; `globalEnv` adds `VERCEL*` variables to every task hash.
+- Runtime-only secrets (for example `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CRON_SECRET`, `DOCRAPTOR_API_KEY`) stay out of `build.env` so changing them does not bust the build cache for unchanged source.
+- Playwright, E2E, demo-credential and generic CI flags (`PLAYWRIGHT_*`, `E2E_*`, demo account credentials under `DEMO_*`, `CI`, `ASYM_USE_CI_ENV_DEFAULTS`) are excluded (the demo-mode switches `DEMO_ONLY_LOGIN` and `ALLOW_DEMO_ACCOUNTS` are the listed exceptions): they are test or dev-server concerns and caused unrelated cache invalidation when listed.
 
 ### Playwright config
 
@@ -83,13 +78,13 @@
 ### Fork PR safety
 
 - GitHub secrets are unavailable on fork PRs. The `build` job receives empty Supabase values; this is safe because `SKIP_ENV_VALIDATION=1` prevents `@asym/env` from throwing.
-- Turbo remote cache is unavailable without `TURBO_TOKEN`, so CI falls back to the local `.turbo/` cache via `actions/cache@v4`.
+- Turbo remote cache is unavailable without `TURBO_TOKEN`, so CI falls back to the local `.turbo/` cache restored with `actions/cache`.
 
 ## 4. Risk Notes
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are required by `packages/env/src/schema.ts` (non-optional `z.string().url()` / `z.string().min(1)`); they throw at app startup unless `SKIP_ENV_VALIDATION=1` is set.
 - Env vars referenced in build/test steps that could affect CI if unset:
-  - Build (Turborepo hash / `turbo.json` `build.env`): see **Turbo build env inputs** above; matches `NEXT_PUBLIC_*` plus server/CMS/email/payment secrets that may be read during `next build` or package `tsc` graph analysis.
+  - Build (Turborepo hash / `turbo.json` `build.env`): see **Turbo build env inputs** above.
   - Tests: `DATABASE_URL` (integration jobs), `CI`, `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_PORT` (`.github/workflows/ci-integration.yml`, `playwright.config.ts`) — not part of `build.env` in `turbo.json`.
 - Sensitive-looking env vars (names indicate secrets/keys): `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_ENCRYPTION_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, `SENTRY_AUTH_TOKEN`, `CLOUDINARY_API_SECRET`, `DOCRAPTOR_API_KEY`, `CRON_SECRET`, `TURBO_TOKEN` (secret), and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (client-safe key but still a key).
 - No untracked or ignored env files were inspected; only tracked references were used for this audit.

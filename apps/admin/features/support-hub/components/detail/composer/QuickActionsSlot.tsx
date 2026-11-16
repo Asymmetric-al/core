@@ -3,14 +3,13 @@
 import * as React from "react";
 
 interface QuickActionsSlotProps {
-  /** Phase 5 macros / canned-response palette mounts these nodes. */
   children?: React.ReactNode;
 }
 
 /**
- * Empty slot rendered inside the composer chrome. Phase 5 will pass children
- * (canned response launcher, macro picker, slash menu trigger) without
- * requiring any composer rewrite.
+ * Wrapper for extra actions passed as the composer's `slots.beforeSend`;
+ * renders nothing when empty. No caller passes any today: macros mount in
+ * the editor footer (`ComposerMacros`) and canned responses open from `/` in the editor.
  */
 export function QuickActionsSlot({ children }: QuickActionsSlotProps) {
   if (!children) return null;

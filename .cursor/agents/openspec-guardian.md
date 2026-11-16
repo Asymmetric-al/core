@@ -118,7 +118,7 @@ Examples:
 - Apps own app-specific routes and UI.
 - Packages own shared code across apps.
 - `packages/api` is the shared data-access boundary.
-- App route handlers should not import `packages/database` directly.
+- App route handlers stay thin re-exports and do not import `@asym/database/supabase/*`, `@supabase/ssr` or `@supabase/supabase-js` (`docs/guides/architecture/data-access-boundary.md`).
 - Public website behavior and authenticated portal behavior must stay clearly separated.
 - Sensitive operations, money state, publication, tenant scope, and role boundaries must follow OpenSpec.
 

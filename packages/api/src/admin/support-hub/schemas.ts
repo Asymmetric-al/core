@@ -14,10 +14,10 @@ import { z } from "zod";
 
 /**
  * Server-side Zod schemas for every Support Hub mutation surface. Mirrors the
- * `supportStore.inputs.*` shapes from Phase 2 / 5 / 6 so the same payloads
- * the UI builds today can be POSTed to the route handlers without
- * translation. Phase 8 will reuse these schemas verbatim against the real
- * Supabase adapter.
+ * admin client's `supportStore.inputs.*` shapes
+ * (`apps/admin/features/support-hub/stores/support-store.ts`) so the payloads
+ * the UI builds can be POSTed to the route handlers without translation;
+ * change both together.
  */
 
 const idSchema = z.string().min(1);

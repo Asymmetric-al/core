@@ -59,10 +59,9 @@ export function TaskRow({
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;
 
-  // Stagger entrance only — no per-row `layout` (was causing the
-  // CSS+JS double grammar with the hover lift); hover lift moves to
-  // the touch-safe `hover-lift` utility; no per-element whileTap on
-  // the checkbox.
+  // Stagger entrance only. No per-row `layout`: it would fight the
+  // touch-safe CSS `hover-lift` utility that owns the hover motion. No
+  // per-element whileTap on the checkbox.
   return (
     <motion.div
       initial={reduceMotion ? false : { opacity: 0, y: 12 }}

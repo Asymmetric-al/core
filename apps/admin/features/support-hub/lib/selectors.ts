@@ -93,7 +93,7 @@ export function selectWaitingOnDonor(
 }
 
 /**
- * Drives the `?view=` toggle in the inbox toolbar. Falls through to the input
+ * Drives the `?view=` tabs (`ViewTabs`). Falls through to the input
  * rows when `view === "all"` so consumers can use this as the single entry
  * point without branching.
  */
@@ -123,8 +123,8 @@ export function selectByView(
 }
 
 /**
- * Compose route-state filters into a single predicate over conversations.
- * Used by the list / board / table views and by reports.
+ * Route-state filters that `selectConversations` applies for the board,
+ * the table and the view-tab counts.
  */
 export interface SupportConversationFilter {
   view: SupportInboxView;
@@ -240,8 +240,8 @@ export function computeInboxStats(
 }
 
 /**
- * Average wall-clock minutes between the first inbound message and the first
- * agent reply across the conversations that have been responded to. Returns 0
+ * Average wall-clock minutes from `firstMessageAt` to `firstRespondedAt`
+ * across the conversations that have been responded to. Returns 0
  * when no row qualifies so the stat-card never renders `NaN`.
  */
 export function computeAverageFirstResponseMinutes(

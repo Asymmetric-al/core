@@ -47,10 +47,11 @@ Registration is collection-scoped via `admin.components.views` in each collectio
 - `CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES`
 - `CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES`
 
-Payload implements CMS storage schema, bounded collection access, editor list state and the document form runtime (including Lexical, relationships, arrays, and uploads). Supabase and the Core permission services remain the human identity/access authority; Payload editor status is not the adopted Phase 22–24 public release or serving authority. The native shell currently owns the **default** list/edit surfaces; nested document subviews such as versions/API/live-preview still use stock Payload routing/components unless a collection-specific wrapper is added later. See:
+Payload implements CMS storage schema, bounded collection access, editor list state and the document form runtime (including Lexical, relationships, arrays, and uploads). Supabase and the Core permission services remain the human identity/access authority; Payload editor status is not the adopted Phase 22–24 public release or serving authority. The native shell currently owns the **default** list/edit surfaces; nested document subviews such as versions/API/live-preview still use stock Payload routing/components unless a collection-specific wrapper is added later.
 
-- `docs/guides/architecture/web-studio-phase1.md`
-- `docs/guides/architecture/web-studio-phase2.md`
+The Web Studio shell renders inside the Payload `(payload)` layout. `MCShell`
+(`apps/admin/app/mc-shell.tsx`) skips its own chrome for `/web-studio` paths, so
+do not wrap Web Studio views in the Mission Control shell a second time.
 
 ## Data model boundaries
 
@@ -63,7 +64,7 @@ Payload implements CMS storage schema, bounded collection access, editor list st
 
 - Supabase remains the identity provider.
 - Payload auth uses a custom Supabase session strategy (`supabase-strategy`).
-- Admin middleware enforces staff/admin/super-admin access before `/web-studio` routes.
+- The admin proxy (`apps/admin/proxy.ts`, `createAuthMiddleware`) admits only `staff`, `admin` and `super_admin` roles to every non-public route, including `/web-studio`; `/api/cms/public` is a public route.
 
 ## Tenant isolation model
 
@@ -132,11 +133,12 @@ Payload runtime access stays in `apps/admin`; donor and shared packages must not
 Other apps consume the shared public-content contract and their qualified
 transport; they do not acquire an app-to-app source dependency on donor code. It forwards `x-forwarded-host` and normalizes CMS responses into app-safe helpers:
 
-- `fetchPublishedCmsPage(slugSegments, hostOverride?)`
-- `fetchPublishedCmsPageResult(slugSegments, hostOverride?)`
-- `fetchPublishedMissionaryGivingPage(missionaryId, hostOverride?)`
-- `fetchPublishedProjectPage(slug, hostOverride?)`
-- `fetchPublishedCmsUpdates(limit?, hostOverride?)`
+- `fetchPublishedCmsPageResult(slugSegments, hostOverride?)` and
+  `resolvePublishedCmsPageRouteState(...)`
+- `fetchPublishedMissionaryGivingPageResult(missionaryId, hostOverride?)`
+- `fetchPublishedProjectPageResult(slug, hostOverride?)`
+- `fetchPublishedCmsUpdates(limit?, hostOverride?)` and
+  `fetchPublishedCmsUpdatesResult(limit?, hostOverride?)`
 
 Its response classification can inform a thin adapter, but current host-forwarding
 and Tenant-only behavior must not be copied as authority for the adopted

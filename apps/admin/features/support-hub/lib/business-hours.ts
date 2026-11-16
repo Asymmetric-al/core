@@ -34,9 +34,9 @@ function parseClock(value: string): { hours: number; minutes: number } | null {
 
 /**
  * Returns true when `iso` falls inside the weekly schedule of `hours` and is
- * not a holiday. Pure: no timezone math beyond what UTC offers — the schedule
- * is interpreted as if it were authored in UTC because our mock data has no
- * tenant timezone plumbing yet. Phase 7 will pipe the tenant timezone in.
+ * not a holiday. Known limitation: the schedule and holiday dates are read
+ * in UTC and `hours.timezone` is ignored, so for a non-UTC schedule the
+ * result is off by that zone's offset. Phase 7 will pipe the tenant timezone in.
  */
 export function isWithinBusinessHours(
   hours: SupportBusinessHours,
@@ -67,8 +67,8 @@ export function isWithinBusinessHours(
 
 /**
  * Counts the number of minutes between `start` and `end` that fall inside
- * business hours. Steps minute-by-minute for simplicity (the mock data sets
- * are small); Phase 7 can replace this with a faster interval-intersect
+ * business hours. Steps minute by minute, so its cost grows with the span
+ * (only tests call it today); Phase 7 can replace this with a faster interval-intersect
  * implementation when real data volumes warrant it.
  */
 export function minutesWithinBusinessHours(

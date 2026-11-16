@@ -1,7 +1,7 @@
 # Supabase Workflow Rules
 
 **Name:** `supabase-workflow-rules`
-**Purpose:** Guardrails for schema migrations, demo seed data, and read-only demo posture in this repo.
+**Purpose:** Guardrails for schema migrations, tenant RLS and grants, and demo seed data in this repo.
 
 ## Agent skills (Supabase)
 
@@ -16,7 +16,7 @@ Use this doc when a task touches:
 - `supabase/migrations/*.sql`
 - `supabase/seed.sql`
 - local/hosted Supabase apply or seed flows
-- demo RLS/policy changes
+- RLS, policy or grant changes
 
 ## Workflow Steps
 
@@ -24,20 +24,16 @@ Use this doc when a task touches:
 2. Keep `supabase/seed.sql` deterministic and idempotent.
 3. Ensure seed data satisfies relational constraints and required columns.
 4. Keep secrets out of SQL and docs (env vars only).
-5. For demo public access, enforce read-only policies via migration SQL.
-6. Run migration + seed + count checks before finalizing.
+5. Tenant tables keep RLS enabled and forced, with tenant-scoped policies; `anon` and `PUBLIC` get no reads. Making any read public needs a new owner ruling (`docs/security/tenant-read-floor.md`). No-JWT server work that must stay inside one tenant uses `withTenant` (`docs/security/tenant-guard.md`).
+6. Run migration + seed + count checks before finalizing. CI (`.github/workflows/ci-integration.yml`) also runs `node scripts/verify/supabase-migrations.mjs` (`bun run verify:supabase-migrations`; needs `DATABASE_URL` for a disposable Postgres), which applies the migrations and runs the tenant RLS catalog gate: every public tenant table needs RLS enabled and forced plus a policy or a reviewed entry in `docs/security/rls-deny-by-default-exceptions.json`.
 
-## Demo Dataset Notes (2026-02-16)
+## Demo dataset
 
 - Seed file: `supabase/seed.sql`
   - Resets and reseeds public app tables deterministically.
   - Creates exactly one profile identity tied to one auth user.
   - Seeds all public app-facing tables, including `campaigns`, `notification_queue`, and `pledge_charge_attempts`.
-- Read-only demo migration:
-  - `supabase/migrations/20260216153000_demo_readonly_rls.sql`
-  - Public `SELECT` only on demo-visible tables.
-  - Revokes anon/authenticated write access.
-  - Locks down internal/admin tables (including backup tables).
+- Historical: `supabase/migrations/20260216153000_demo_readonly_rls.sql` (February 2026) granted public `SELECT` on demo-visible tables and revoked anon/authenticated writes. Later migrations superseded that posture: `20261025120800_close_public_reads_tenant_scope.sql` (#2312) removed the public reads, and some tables now accept authenticated own-row writes. Do not reintroduce public reads.
 
 ## Commands
 
@@ -58,6 +54,6 @@ Use this doc when a task touches:
 - [ ] `supabase/seed.sql` is deterministic and idempotent
 - [ ] Seed inserts exactly one row in `public.profiles`
 - [ ] FK graph is valid (no orphaned references)
-- [ ] Demo-visible tables are read-only for `anon`/`authenticated`
+- [ ] No `anon`/`PUBLIC` reads on tenant tables; RLS enabled and forced, with a policy or a reviewed deny-by-default entry
 - [ ] Internal tables are not exposed
 - [ ] No secrets are committed in SQL/docs/scripts

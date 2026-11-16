@@ -25,7 +25,8 @@ const DEFAULT_LOAD_STATUSES: ReadonlyArray<SupportConversation["status"]> = [
  *
  * The function recomputes the rotation from live data on every call, so the
  * future server-side scheduler can reuse the same logic without a persisted
- * cursor (see `phase-05-productivity.md` follow-up list).
+ * cursor (see the "Phase 6 follow-up list" in
+ * `docs/features/support-hub/phase-05-productivity.md`).
  */
 export function selectNextRoundRobinAgent({
   conversations,

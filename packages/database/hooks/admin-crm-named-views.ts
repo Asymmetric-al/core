@@ -16,10 +16,6 @@ export const ADMIN_CRM_NAMED_VIEWS_QUERY_KEY = [
   "named-views",
 ] as const;
 
-/**
- * @remarks Requires the CRM named-views API route slice before admin UI imports
- * these hooks.
- */
 async function parseViewError(response: Response, fallback: string) {
   const payload = (await response.json().catch(() => null)) as {
     error?: string;

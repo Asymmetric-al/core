@@ -1,8 +1,4 @@
-/**
- * Mock Donations Data
- *
- * Comprehensive mock data for donations, pledges, payment methods, and giving history.
- */
+/** Demo fixtures for donations, pledges, payment methods and projects. */
 
 import type { Donation, Pledge, PaymentMethodRecord, Project } from "./types";
 

@@ -94,7 +94,8 @@ it("links each missing intake field to its own error", () => {
 });
 async function choose(name: string, value: string, label: string) {
   const control = screen.getByRole("combobox", { name, exact: true });
-  // Support the native before-migration baseline for payload/reset tests.
+  // Native <select> fallback from before these controls moved to Base UI
+  // Select; the intake form and ticket filters now take the path below.
   if (control instanceof HTMLSelectElement) {
     fireEvent.change(control, { target: { value } });
     return;

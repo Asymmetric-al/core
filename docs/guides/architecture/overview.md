@@ -1,44 +1,51 @@
 # Architecture Guide
 
-Core is a Bun and Turborepo monorepo with three independent Next.js App Router
+Core is a Bun and Turborepo monorepo with three Next.js App Router product
 applications. The public website is a surface within the donor application.
-This guide describes the current source layout inspected at `7abd2c11` on
-2026-09-16; adopted product contracts separately define the behavior still to
-implement and qualify.
+This guide maps the current source layout; adopted product contracts
+separately define the behavior still to implement and qualify.
 
 ## Project Overview
 
-| Application          | Source                    | Current route examples                                                      | Responsibility                             |
-| -------------------- | ------------------------- | --------------------------------------------------------------------------- | ------------------------------------------ |
-| Mission Control      | `apps/admin`              | `/`, `/crm`, `/contributions`, `/email`, `/web-studio`                      | Staff operations and tenant administration |
-| Donor experience     | `apps/donor`              | `/donor-dashboard`, `/donor-dashboard/history`, `/donor-dashboard/settings` | Authenticated donor self-service           |
-| Missionary workspace | `apps/missionary`         | `/`, `/donors`, `/feed`, `/ministry-updates`, `/tasks`                      | Role-scoped missionary work                |
-| Public website       | `apps/donor/app/(public)` | `/`, `/workers`, `/checkout`, CMS catch-all                                 | Existing public content and giving paths   |
+| Application          | Source                    | Current route examples                                                                                   | Responsibility                             |
+| -------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Mission Control      | `apps/admin`              | `/`, `/crm`, `/contributions`, `/support`, `/reports`, `/email`, `/web-studio`                           | Staff operations and tenant administration |
+| Donor experience     | `apps/donor`              | `/donor-dashboard` and its `history`, `pledges` (recurring gifts), `wallet`, `feed` and `settings` pages | Authenticated donor self-service           |
+| Missionary workspace | `apps/missionary`         | `/`, `/donors`, `/feed`, `/ministry-updates`, `/tasks`                                                   | Role-scoped missionary work                |
+| Public website       | `apps/donor/app/(public)` | `/`, `/workers`, `/checkout`, CMS catch-all                                                              | Existing public content and giving paths   |
 
-The public route examples include prototype and partial implementations. Their
+API routes are listed in [`runtime-map.md`](./runtime-map.md). The public route examples include prototype and partial implementations. Their
 existence does not establish the adopted Phase 22–26 privacy, publication,
 financial or owner-qualification contracts. “Give Hope” in fixtures and default
 screens is a demo tenant, not the platform's organization or authoritative data.
 
 Mission Control's ordinary routes live under `apps/admin/app/(app)`; its
-Payload engine routes live under `apps/admin/app/(payload)`. The old single-app
-`(admin)/mc` and `(donor)` topology is not the current repository layout.
+Payload engine routes live under `apps/admin/app/(payload)`. The donor portal
+lives under `apps/donor/app/(dashboard)/donor-dashboard` and the public site
+under `apps/donor/app/(public)`.
+
+`apps/factory-console` is the private operator console for the software
+factory (`scripts/archon-factory`). It runs only on the factory VM and is not
+a product surface.
 
 ## Directory Structure
 
-| Path                                          | Purpose                                                                               |
-| --------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `apps/admin`, `apps/donor`, `apps/missionary` | Separate app entrypoints, routing, composition and deployment configuration           |
-| `packages/api`                                | Shared business commands, domain authorization, data access and provider boundaries   |
-| `packages/auth`                               | Session/authentication helpers and shared auth middleware                             |
-| `packages/database`                           | Supabase access utilities, approved collections, query keys and hooks                 |
-| `packages/ui`                                 | Shared UI components and the exact base-maia/Base UI design system                    |
-| `packages/env`                                | Typed environment configuration and environment-target helpers                        |
-| `packages/lib`, `packages/email`              | Shared supporting utilities and email adapters; no independent domain authority       |
-| `packages/eve-runtime`                        | Product Eve runtime integration, constrained by its own governance                    |
-| `supabase/migrations`                         | Forward database schema changes                                                       |
-| `openspec/specs`, `openspec/changes`          | Durable contracts and active implementation or reconciliation work                    |
-| `docs/prds/sitestacker-parity`                | Adopted product planning, scoped owner amendments, acceptance and historical evidence |
+| Path                                          | Purpose                                                                                                         |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `apps/admin`, `apps/donor`, `apps/missionary` | Separate app entrypoints, routing, composition and deployment configuration                                     |
+| `packages/api`                                | Shared business commands, domain authorization, data access and provider boundaries                             |
+| `packages/auth`                               | Session/authentication helpers and shared auth middleware                                                       |
+| `packages/database`                           | Supabase access utilities, approved collections, query keys and hooks                                           |
+| `packages/ui`                                 | Shared UI components and the exact base-maia/Base UI design system                                              |
+| `packages/env`                                | Typed environment configuration and environment-target helpers                                                  |
+| `packages/lib`, `packages/email`              | Shared supporting utilities and email adapters; no independent domain authority                                 |
+| `packages/graphql`                            | GraphQL Yoga handler over shared records (see the data-access boundary exceptions)                              |
+| `packages/missionary`                         | Missionary dashboard components and types used by `apps/missionary` (`apps/admin` only declares the dependency) |
+| `packages/config`, `packages/mock-data`       | Shared configuration and demo/test fixture data                                                                 |
+| `packages/eve-runtime`                        | Product Eve runtime integration, constrained by its own governance                                              |
+| `supabase/migrations`                         | Forward database schema changes                                                                                 |
+| `openspec/specs`, `openspec/changes`          | Durable contracts and active implementation or reconciliation work                                              |
+| `docs/prds/sitestacker-parity`                | Adopted product planning, scoped owner amendments, acceptance and historical evidence                           |
 
 Use the actual package manifests for package names, scripts and dependency
 versions. `bun.lock` records resolved dependencies; a copied version table
@@ -140,7 +147,3 @@ during documentation or routine orientation work.
 - [Getting started](../development/getting-started.md)
 - [TanStack integration](../development/tanstack-integration.md)
 - [Current runtime map](./runtime-map.md)
-
-The [former architecture guide](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/guides/architecture/overview.md)
-remains available as immutable history. Its old route tree, commands, sample
-modules and copied dependency values do not describe the current architecture.

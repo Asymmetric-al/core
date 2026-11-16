@@ -71,7 +71,8 @@ const VALUE_COLUMNS: DataGridColumnDef<FundRow>[] = [
       </span>
     ),
     size: 150,
-    // Numbers right-aligned, as in the Contributions grid.
+    // Numbers right-aligned here and in every value column below, as in the
+    // Contributions grid.
     meta: {
       headerTitle: "Giving",
       headerClassName: "text-right [&>div]:justify-end [&>div]:-me-2",
@@ -88,7 +89,6 @@ const VALUE_COLUMNS: DataGridColumnDef<FundRow>[] = [
       </span>
     ),
     size: 100,
-    // Numbers right-aligned, as in the Contributions grid.
     meta: {
       headerTitle: "Share",
       headerClassName: "text-right [&>div]:justify-end [&>div]:-me-2",
@@ -105,7 +105,6 @@ const VALUE_COLUMNS: DataGridColumnDef<FundRow>[] = [
       </span>
     ),
     size: 100,
-    // Numbers right-aligned, as in the Contributions grid.
     meta: {
       headerTitle: "Gifts",
       headerClassName: "text-right [&>div]:justify-end [&>div]:-me-2",
@@ -122,7 +121,6 @@ const VALUE_COLUMNS: DataGridColumnDef<FundRow>[] = [
       </span>
     ),
     size: 100,
-    // Numbers right-aligned, as in the Contributions grid.
     meta: {
       headerTitle: "Donors",
       headerClassName: "text-right [&>div]:justify-end [&>div]:-me-2",

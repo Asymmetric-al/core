@@ -252,7 +252,7 @@ async function GivingWidgetSection({ id }: { id: string }) {
 }
 
 /**
- * Deliberately NOT `export const prefetch = 'allow-runtime'`.
+ * Deliberately sets no `prefetch` segment override and needs no runtime prefetch.
  *
  * The profile is keyed by `params`, so it cannot ride in the App Shell — that
  * payload is shared by every link to this route. It does not need to:
@@ -261,7 +261,7 @@ async function GivingWidgetSection({ id }: { id: string }) {
  * `instant()` only withholds per-request data. The instant-nav rig asserts
  * exactly that (`tests/e2e/instant-navigation.spec.ts`, the worker-card test).
  *
- * `allow-runtime` would buy nothing here and cost one server render per visible
+ * A runtime prefetch would buy nothing here and cost one server render per visible
  * card on the `/workers` grid. Revisit if workers ever outgrow
  * `generateStaticParams` — at that point the content stops being static and the
  * trade flips.

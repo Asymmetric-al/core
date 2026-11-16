@@ -20,8 +20,9 @@ not create or target one.
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
 - [ ] Migrations tested on development first
 - [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
-- [ ] The app-level `vercel.json` files allow only `production` and `develop` Git
-      deployments
+- [ ] The app-level `vercel.json` files enable Git deployments only for
+      `production`; `develop` stays disabled (development hosts refresh only
+      at explicit checkpoints, see `docs/ci.md`)
 - [ ] The app-level `vercel.json` files keep the repo-owned ignored-build
       commands:
   - `apps/admin`: `node ../../scripts/vercel/should-ignore-build.mjs admin`

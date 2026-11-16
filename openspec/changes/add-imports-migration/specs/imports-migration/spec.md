@@ -1,5 +1,12 @@
 # Delta for Imports And Migration
 
+## Purpose
+
+Define the contract for moving an organization's records into Asym from a
+previous system: one planned Switch per Tenant and source installation,
+careful everyday People and Gift-file imports, and one import reversal path,
+without changing any owner's business rule.
+
 ## ADDED Requirements
 
 ### Requirement: One Planned Switch Per Tenant And Source Installation

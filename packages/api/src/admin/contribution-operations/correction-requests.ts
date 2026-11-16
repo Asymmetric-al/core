@@ -257,7 +257,7 @@ export interface DecideCorrectionRequestInput {
     request: ContributionCorrectionRequest;
     decisionReason: string;
   }) => Promise<string | null>;
-  /** Optional outcome follow-through for future task closure/notifications. */
+  /** Outcome follow-through; route binds `recordCorrectionApprovalOutcome`. */
   recordOutcome?: (input: {
     supabaseAdmin: SupabaseAdmin;
     tenantId: string;

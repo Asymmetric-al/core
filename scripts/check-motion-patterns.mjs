@@ -2,7 +2,7 @@
 /**
  * Motion contract guard.
  *
- * Flags two anti-patterns documented in `docs/ai/skills/anim/SKILL.md`
+ * Flags three anti-patterns documented in `docs/ai/skills/anim/SKILL.md`
  * and the Motion section of `docs/ai/rules/frontend.md`:
  *
  *   1. `transition-all` (or `transition: all`) — should be an explicit
@@ -19,12 +19,12 @@
  *      instead.
  *
  * Usage:
- *   node scripts/check-motion-patterns.mjs              # scan the whole repo (apps/**, packages/**)
+ *   node scripts/check-motion-patterns.mjs              # scan tracked and unignored apps/** and packages/** sources
  *   node scripts/check-motion-patterns.mjs file [...]   # scan only the given files
  *
- * Exits non-zero on violations. Skips `vendor/`, `node_modules/`,
- * `.next/`, `.next-docs/`, `.cursor/skills`, `.agents/skills`, the
- * skill source under `docs/`, and lockfiles.
+ * Exits non-zero on violations. The repo scan covers .ts/.tsx/.js/.jsx/.mdx/.css
+ * files; both modes skip IGNORE_PREFIXES and the vendored skill trees named in
+ * `shouldScan`.
  */
 
 import { readFile, stat } from "node:fs/promises";

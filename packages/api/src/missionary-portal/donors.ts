@@ -10,8 +10,8 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 /**
  * Server-side, REDACTED "Partners" (donor relationships) list for the missionary
- * app. Replaces the previous client-side `.select("*")` on `donors` so a missionary
- * client NEVER receives raw identity for a donor who is anonymous to them.
+ * app, built on the server so a missionary client NEVER receives raw identity
+ * for a donor who is anonymous to them.
  * Spec DONOR_ANONYMITY_GUEST_GIVING_SPEC §7.2 / §12.1. Business logic lives here;
  * the app route is a thin re-export.
  */

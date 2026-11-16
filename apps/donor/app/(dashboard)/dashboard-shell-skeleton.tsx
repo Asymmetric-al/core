@@ -2,8 +2,8 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 /**
  * Fallback for the dashboard group boundary. Deliberately not `null`: an empty
- * fallback standing in for real content is exactly the failure this change
- * exists to remove.
+ * fallback would commit a blank page while the nested layout's session read
+ * resolves.
  */
 export function DashboardShellSkeleton() {
   return (

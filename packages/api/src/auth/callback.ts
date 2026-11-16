@@ -23,7 +23,8 @@ function callbackRedirect(url: string) {
  * Security and routing implications:
  * - Exchanges Supabase auth codes server-side (never in the browser).
  * - Sanitizes `next` to prevent open redirects.
- * - Redirects to role-mapped home route when available.
+ * - Redirects to the role-mapped home route when the profile has one; that
+ *   route takes precedence over `next`.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);

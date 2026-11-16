@@ -3,7 +3,7 @@
 ## Overview
 
 This repository uses Bun workspaces for package management and Turborepo for task orchestration and caching.
-The workspace contract is defined in `README.md` and enforced by `bun run verify:workspace-contract`.
+`bun run verify:workspace-contract` (`scripts/verify-workspace-contract.mjs`) enforces the workspace contract described here.
 
 ## Workspace Structure
 
@@ -13,8 +13,7 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  |- admin
 |  |- donor
 |  |- missionary
-|  |- factory-console (private VM 100 operator service, not deployed)
-|  `- contract-test (support folder, not a workspace package)
+|  `- factory-console (private VM 100 operator service, not deployed)
 |- packages/
 |  |- api
 |  |- auth
@@ -30,6 +29,8 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  `- ui
 `- tooling/
    |- eslint-config
+   |- shadcn (review baseline data, not a workspace package)
+   |- shadscan (findings ledger and policy, not a workspace package)
    `- typescript-config
 ```
 
@@ -67,11 +68,9 @@ Example:
 }
 ```
 
-Rationale:
-
-- Ensures local linking behavior is explicit and consistent.
-- Prevents drift from `file:` links and ad-hoc path references.
-- Keeps workspace dependency validation simple and enforceable.
+The only allowed exception is the vendored `@asym/pdf-*` and
+`@asym/docraptor-client` archives, referenced as `file:` paths to versioned
+`.tgz` files in `vendor/react-pdf-packages/`.
 
 ## Placement Rules
 
@@ -197,9 +196,18 @@ What it validates:
 
 - Root workspace globs align with the contract.
 - Workspace package names follow `@asym/*`.
-- Internal workspace dependencies use `workspace:*`.
+- Internal workspace dependencies use `workspace:*` (except the vendored archives above).
+- App Router `route`/`layout`/`page` files do not export route segment config
+  (`runtime`, `dynamic`, `dynamicParams`, `revalidate`, `fetchCache`,
+  `preferredRegion`, `maxDuration`); Cache Components is enabled.
+- Every `apps/*/app/api/**/route.ts` (and `apps/*/src/app/api/**`) has a row in
+  `docs/guides/architecture/runtime-map.md`. Add the row when you add an API route.
+- No page lives under a `__boneyard__` private folder.
 
-Related orchestration comes from `turbo.json` task definitions (`build`, `lint`, `typecheck`, `test`, etc.).
+The same script then runs `scripts/verify/typescript-toolchain.mjs` and
+`bun run verify:pdf-package-provenance`.
+
+Task orchestration comes from the `turbo.json` task definitions (`build`, `lint`, `typecheck`, `dev`, and others).
 
 ## Common Mistakes
 

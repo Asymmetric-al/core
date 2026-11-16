@@ -27,10 +27,9 @@ function cloneContribution(contribution: Contribution): Contribution {
 }
 
 /**
- * Mock-only loader until a real admin contributions API exists.
- * No network I/O — clones fixture rows for an isolated React Query cache entry.
- * TODO(api): replace this scaffold with a real admin contributions endpoint
- * before enabling the non-mock UI path in production.
+ * Fixture loader with no network I/O: clones `mockContributions` so each
+ * caller gets its own rows. Only unit tests call it; the hub reads
+ * `GET /api/admin/contributions` (`readListPage` below).
  */
 export function loadMockAdminContributions(): Contribution[] {
   return mockContributions.map(cloneContribution);

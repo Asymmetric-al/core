@@ -19,8 +19,7 @@ interface SupportEmptySectionProps {
 }
 
 /**
- * Quiet empty state used across the settings + reports surfaces. Relies on
- * tokens + borders (no loud colors) to stay on-brand with the Maia language.
+ * Empty state for the support settings lists.
  */
 export function SupportEmptySection({
   icon,

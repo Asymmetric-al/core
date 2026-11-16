@@ -28,7 +28,8 @@ interface AggregationInput {
 /**
  * Builds a `SupportReportSeries` for the given report request. Filters by
  * range + scope + business-hours, then routes to the metric-specific
- * aggregator. Pure: same inputs always produce the same output.
+ * aggregator. Deterministic when `input.now` is given (otherwise it reads the
+ * clock); periods follow the viewer's time zone.
  */
 export function buildReportSeries(
   request: SupportReportRequest,

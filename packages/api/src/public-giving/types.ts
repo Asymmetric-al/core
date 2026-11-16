@@ -1,7 +1,8 @@
 /**
  * Public giving-flow view types — MVP Item 3a (giving-flow READ wiring).
  *
- * These shapes back the ANONYMOUS donor-facing surfaces:
+ * These shapes are for the ANONYMOUS donor-facing surfaces below, which still
+ * render `@asym/mock-data` (no app imports this module yet):
  *   - /workers                (field-worker directory)
  *   - /workers/[id]           (field-worker profile + updates feed + giving widget)
  *
@@ -16,9 +17,9 @@
 export type Dollars = number;
 
 /**
- * Public view of a field worker (missionary). Drop-in replacement for the former
- * mock `FieldWorker` shape (`@asym/mock-data`), so the existing directory/profile
- * UI consumes it unchanged.
+ * Public view of a field worker (missionary). Mirrors the display fields of
+ * the mock `FieldWorker` shape (`@asym/mock-data`) the directory/profile UI
+ * renders today; unlike it, there is no `givingMissionaryId`.
  */
 export interface PublicWorker {
   id: string;

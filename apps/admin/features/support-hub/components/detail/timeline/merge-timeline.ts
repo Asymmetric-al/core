@@ -9,7 +9,7 @@ interface TimelineEntry {
   message: SupportMessage;
   /** Local-day grouping label ("Today", "Yesterday", or `MMM d, yyyy`). */
   dayLabel: string;
-  /** ISO start-of-day for the entry; used to group consecutive entries. */
+  /** The entry's local calendar day ("YYYY-MM-DD"); groups consecutive entries. */
   dayKey: string;
   /** True for the first entry of each day group. */
   isFirstOfDay: boolean;

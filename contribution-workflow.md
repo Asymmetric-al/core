@@ -68,8 +68,7 @@ rules.
    the issue key alone is not a GitHub closing reference. Document verification,
    request the applicable code owners, and resolve review threads.
 7. **Merge and clean up.** Merge through GitHub after required checks and review
-   pass. Delete the feature branch, then refresh local `develop` from `origin`
-   from `origin`.
+   pass. Delete the feature branch, then refresh local `develop` from `origin`.
 
 ## Handoffs
 

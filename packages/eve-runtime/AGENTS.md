@@ -5,7 +5,10 @@ relevant installed guide under `node_modules/eve/docs/`; installed package docs
 are the API source of truth.
 
 Keep this package isolated from `apps/admin`, `apps/donor`, and
-`apps/missionary` until issue #428 proves and owns the admin mount. Shared
+`apps/missionary` until issue #428 proves and owns the admin mount. (Status:
+#428 closed on 2026-08-01; the admin mount is `withEve` in
+`apps/admin/next.config.ts`, with `eveRoot` set to this package, plus
+`apps/admin/app/eve/`.) Shared
 server boundaries from `@asym/api` are allowed. The runtime must remain
 disabled by default and may not introduce a live model, provider, tool,
 sandbox, or production effect without the applicable accepted OpenSpec change

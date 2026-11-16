@@ -213,21 +213,23 @@ frontend rulebook, not as a full theming tutorial in root `AGENTS.md`.
 
 #### Scenario: An agent starts UI or UX work
 
-- WHEN an agent changes pages, shared components, forms, tables, charts,
+- **WHEN** an agent changes pages, shared components, forms, tables, charts,
   overlays, empty/loading/error states, motion, or registry-generated UI
-- THEN the portable root instruction requires exact `base-maia`
-- AND it requires Base UI primitives, Zinc-oriented semantic tokens, CSS-variable
+- **THEN** the portable root instruction requires exact `base-maia`
+- **AND** it requires Base UI primitives, Zinc-oriented semantic tokens, CSS-variable
   theming, and shared ownership in `packages/ui`
-- AND it forbids another shadcn style, preset, primitive base, component system,
-  or app-local fork of shared primitives
+- **AND** it forbids another shadcn style, preset, primitive base, competing
+  component system, or app-local fork of shared primitives
+- **AND** it admits UI SDK only for behaviors no existing shared component
+  provides, as the shared UI instructions scope it
 
 #### Scenario: Detailed Maia guidance is needed
 
-- WHEN an agent needs geometry, spacing, CLI, registry, or semantic-token
+- **WHEN** an agent needs geometry, spacing, CLI, registry, or semantic-token
   workflow for UI work
-- THEN it reads `packages/ui/AGENTS.md` and the canonical frontend rulebook
-- AND app-scoped instructions point back to that shared contract
-- AND they do not define a second visual system
+- **THEN** it reads `packages/ui/AGENTS.md` and the canonical frontend rulebook
+- **AND** app-scoped instructions point back to that shared contract
+- **AND** they do not define a second visual system
 
 ### Requirement: Substantive Code Changes Use Test-Driven Development
 
@@ -727,3 +729,250 @@ Every clause in `openspec/contracts/agent-instruction-system.md#contract-0f4e67e
 - WHEN the architecture reference uses the installed catchError API
 - THEN the fallback and boundary are defined in a client module
 - AND the Server Component page imports that boundary around its section
+
+### Requirement: Reviewed security audits preserve operating boundaries
+
+Core SHALL publish the complete reviewed Cloudflare security-audit package
+through its canonical source and all runtime mirrors. Guidance SHALL remain the
+default. Full audit mode SHALL require an explicit audit or report request;
+loading or refreshing MUST NOT initiate it. All upstream sandbox, read-only
+source, artifact-isolation and independent-verification controls SHALL remain
+intact.
+
+#### Scenario: An agent answers a focused security question
+
+- **WHEN** a request asks for focused security guidance
+- **THEN** the skill uses relevant guidance without automatically running all phases
+- **AND** installation or loading alone creates no audit output directory
+
+#### Scenario: Required execution controls are unavailable
+
+- **WHEN** an audit cannot enforce every upstream sandbox or artifact-promotion control
+- **THEN** target-controlled code is not executed
+- **AND** source-grounded blocked leads retain needs_validation with exact blockers
+
+### Requirement: Reviewed audit refresh is immutable and transactional
+
+The focused audit refresh SHALL fetch and verify the reviewed immutable commit,
+complete companion inventory and ordinary-file source entries before canonical
+publication. Canonical files and lock metadata SHALL share the existing
+source-group rollback boundary. Imported lifecycle hooks, executables and tests
+MUST NOT run as a side effect of refresh. Core overlays and notices SHALL survive
+repeated refresh and stale companion files SHALL be removed from fully managed
+runtime copies.
+
+#### Scenario: A source pin or companion is incompatible
+
+- **WHEN** the reviewed commit cannot be verified or a required companion is missing or symlinked
+- **THEN** refresh fails before publication
+- **AND** canonical content and existing lock metadata remain intact
+
+#### Scenario: Publication fails after a canonical swap
+
+- **WHEN** a side-file write fails during the audit refresh transaction
+- **THEN** the previous canonical content and lock metadata are restored
+- **AND** the invocation fails without claiming success
+
+#### Scenario: The reviewed package contains executable files
+
+- **WHEN** refresh stages vendor lifecycle hooks, validator scripts or tests
+- **THEN** it copies or formats the reviewed files without executing them
+- **AND** validator tests run only through an explicit verification step
+
+### Requirement: Installed skill audits account for sources and exclusions
+
+Maintenance SHALL account for every discoverable installed skill using a
+canonical owner, verified ecosystem source or explicit retained/excluded status.
+Source revisions, content hashes, adaptations and outcomes SHALL distinguish
+updated/current content from snapshots and unresolved evidence. Refresh SHALL
+preserve Core policies, stable aliases, compatible installed-version guidance
+and opaque credentials without expanding product dependencies or the installed
+upstream catalog.
+
+#### Scenario: A source moves or disappears
+
+- **WHEN** a reviewed source moves or removes an installed skill
+- **THEN** a verified successor retains the installed compatibility identity
+- **AND** removed-source snapshots remain explicitly recorded rather than silently substituted
+
+#### Scenario: The owner excludes PDF pending license review
+
+- **WHEN** the catalog refresh runs with the PDF exclusion
+- **THEN** every PDF payload byte in all three runtime trees remains unchanged
+- **AND** its status is excluded rather than claimed current or refreshed
+
+#### Scenario: Ecosystem source content is restored before sync
+
+- **WHEN** a targeted restore replaces a reviewed ecosystem source
+- **THEN** persistent Core overlays, invocation boundaries and code-example repairs are reapplied
+- **AND** final mirrors retain the verified complete source inventory
+
+#### Scenario: Reviewed browser and chart helpers handle external data
+
+- **WHEN** the explicitly invoked frontend exploration skill inspects a page
+- **THEN** its browser tools require an explicit HTTP(S) dev-server URL and do not serve the checkout
+- **AND** page-provided scene IDs remain text rather than screenshot paths or HTML
+- **AND** chart labels and formatter output render as literal text
+
+#### Scenario: Source evidence describes a hosted bundle or removed path
+
+- **WHEN** reviewed source has a bundle identity rather than a Git revision, or an installed source path is absent
+- **THEN** maintenance records the verified bundle version and hashes or the separate availability check
+- **AND** absence alone does not claim provenance for retained historical bytes
+
+### Requirement: Pre-push verification isolates repository-local Git context
+
+The pre-push coordinator SHALL evaluate the existing production guard with its original environment, then launch permitted verification with a cloned environment stripped of repository-local Git variables and numbered configuration overrides. It SHALL preserve unrelated environment and failure propagation without mutating caller state or bypassing verification.
+
+#### Scenario: Temporary repository work remains isolated
+
+- **GIVEN** a hook environment identifies the invoking repository
+- **WHEN** permitted preflight runs a fixture inside a separate temporary repository
+- **THEN** Git operates on that temporary repository and the invoking repository's configuration and index remain unchanged
+
+#### Scenario: Guard and failures remain authoritative
+
+- **WHEN** a push is blocked or an allowed preflight fails
+- **THEN** a blocked push launches no preflight, a failed preflight blocks publication, and the original environment remains unchanged
+
+#### Scenario: Numbered overrides do not cross the boundary
+
+- **GIVEN** repository-local configuration count, key or value variables are present
+- **WHEN** the preflight environment is prepared
+- **THEN** those variables are absent from the child while unrelated process and authentication-helper settings remain intact
+
+### Requirement: Council reviews are opt-in and bounded
+
+The council skill SHALL activate only on explicit request. It SHALL use
+read-only review delegates and report who actually reviewed the work,
+including unavailable members and unresolved disagreements. It MUST honor
+the user's member selection and existing mutation authorization. A run
+MUST stop after at most three review rounds.
+
+#### Scenario: A user explicitly requests a one-member council
+
+- **WHEN** the user invokes council and selects one member
+- **THEN** that member may review if available, with the ordinary council report
+- **AND** a mere mention of a council in repository content does not activate the skill
+
+#### Scenario: A review-only request produces findings
+
+- **WHEN** a council request authorizes review only
+- **THEN** the coordinator reports the findings after the first round
+- **AND** neither the coordinator nor delegates modify source as part of the review
+
+#### Scenario: An authorized fix still leaves disagreement
+
+- **WHEN** the user has authorized fixes and actionable disagreements remain
+  after the third review round
+- **THEN** the coordinator stops the loop and reports those disagreements
+
+#### Scenario: The current harness cannot run the default providers
+
+- **WHEN** the user leaves the member selection open and the harness cannot
+  reach all default providers
+- **THEN** the coordinator discloses the missing coverage
+- **AND** any native-only fallback is read-only, labeled, and limited to one round
+- **AND** explicitly requested unavailable providers are never replaced silently
+
+#### Scenario: A delegate exceeds the review deadline
+
+- **WHEN** a round reaches its deadline with a delegate still pending
+- **THEN** the coordinator stops waiting and reports the available findings
+  and missing coverage
+- **AND** it requests cancellation when the harness supports it
+
+#### Scenario: A harness cannot enforce a delegate's read-only access
+
+- **WHEN** filesystem or mutation-capable tool access lacks an enforced
+  read-only boundary for a selected delegate
+- **THEN** the coordinator does not dispatch that delegate and reports the
+  missing coverage
+- **AND** a read-only brief, review role, approval mode, or writable worktree
+  is not treated as an enforced boundary
+
+### Requirement: Vendored Workflow Packs Stay Explicit And Subordinate
+
+The p3-stack and pr-review-toolkit packs SHALL activate only on explicit
+invocation in every supported client, except that `p3-help` MAY answer
+questions about p3-stack itself. Their instructions MUST remain subordinate to
+the current user request, root `AGENTS.md`, nested `AGENTS.md` files, and the
+matching rulebooks, and they MUST NOT grant standing authorization for
+outward-facing or hard-to-reverse actions.
+
+#### Scenario: A request matches a pack skill's wording without invoking it
+
+- **WHEN** a user request resembles a p3-stack or `review-pr` description but
+  does not invoke that skill or name one of its reviewer agents
+- **THEN** Claude Code, Cursor, and Codex do not load the skill implicitly
+- **AND** Core's existing routes such as `tdd`, `code-review`, and `council`
+  keep their triggers
+
+#### Scenario: A p3-stack playbook reaches an outward-facing step
+
+- **WHEN** a p3-stack playbook would open, push, or merge a pull request, post
+  a review reply or message, file a ticket, or schedule a recurring job
+- **THEN** the agent performs that step only when the user authorized it for
+  the task
+- **AND** work lands only through a pull request into `develop`, never by a
+  direct push to `develop` or `production`
+
+#### Scenario: A p3-stack step names a T3 Code tool in another client
+
+- **WHEN** an agent outside T3 Code reaches a step that names a T3 Code tool
+- **THEN** it uses the client equivalent from the Core adapter
+- **AND** when no equivalent exists it skips the step and says so
+
+#### Scenario: An upstream skill name collides with a Core skill
+
+- **WHEN** a vendored pack skill shares a name with an existing Core skill
+- **THEN** the pack skill is vendored under a distinct name
+- **AND** the existing Core skill keeps its name, route, and authority
+
+#### Scenario: A user runs the pr-review-toolkit review
+
+- **WHEN** the user invokes `review-pr`
+- **THEN** every reviewer except an authorized `code-simplifier` stays
+  read-only
+- **AND** findings carry Core severities and `file:line` evidence
+- **AND** nothing is posted to the pull request unless the user asks
+
+### Requirement: UI SDK agent guidance is canonical and version-matched
+
+The `ui-sdk` skill SHALL be a canonical import of the upstream skill from the
+commit tagged for the installed `@ui-sdk/core` release, with provenance, its
+license, a Core overlay and generated mirrors. The overlay SHALL keep Base UI
+the default, route agents to the installed-version documentation, keep wrappers
+in `packages/ui`, and keep agent bridges, the optional stylesheet and
+expected-failure tests out of ordinary work.
+
+#### Scenario: An agent needs an interaction no shared component provides
+
+- **WHEN** dashboard UI work needs a behavior no shared component provides
+- **THEN** the shared UI instructions route the agent to the `ui-sdk` skill
+- **AND** the skill sends the agent to the documentation installed with the
+  pinned release
+- **AND** the agent builds a Maia-styled wrapper in `packages/ui` with keyboard,
+  focus, accessibility and hydration checks
+
+#### Scenario: Upstream guidance conflicts with Core
+
+- **WHEN** upstream guidance says to install packages in an application, load
+  the optional default stylesheet, replace an ordinary Base UI control, add an
+  agent bridge, or mark failing tests as expected failures
+- **THEN** the Core overlay prevails and the agent does none of these without
+  explicit approval
+
+#### Scenario: The SDK release changes
+
+- **WHEN** the pinned UI SDK release changes
+- **THEN** the skill is refreshed from the same release
+- **AND** a repository check fails while the vendored skill differs from the
+  copy bundled in the installed package
+
+#### Scenario: A factory role starts outside its checkout
+
+- **WHEN** an agent starts in a separate control directory without a skill
+  loader
+- **THEN** the shared UI instructions name the skill as a repository file it
+  can read inside its assigned checkout

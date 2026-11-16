@@ -5,8 +5,8 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import type { PostWithAuthor } from "../types/database";
 
 /**
- * View shape for the dashboard "Ministry Updates" widget. Structurally matches
- * `RecentUpdate` from `@asym/mock-data` (kept local so this package does not
+ * View shape for the dashboard "Ministry Updates" widget: `RecentUpdate` from
+ * `@asym/mock-data` plus `authorAvatar` (kept local so this package does not
  * depend on the mock-data package).
  */
 interface DonorRecentUpdate {
@@ -23,16 +23,13 @@ interface DonorRecentUpdate {
 /**
  * Donor feed posts.
  *
- * Thin client hook over the SERVER endpoint `GET /api/posts`
- * (`@asym/api/posts`). It is the fetch counterpart to the client-collection
- * `usePostsWithAuthors` hook: the donor portal feed + dashboard "Ministry
- * Updates" widget need the tenant-scoped, auth-gated, server-redacted feed, so
- * they read the HTTP endpoint (which resolves `tenant_id`/`user_*` interactions
- * server-side) rather than the raw client collections.
- *
- * Pattern-matched to `missionary-donors.ts`: `useQuery` + `fetch`, returning a
- * flat `{ data, isLoading, error }` view. The pure mappers below are exported so
- * both surfaces derive their view shapes from the same, tested logic.
+ * Thin client hooks over the SERVER endpoint `GET /api/posts`
+ * (`@asym/api/posts`). The donor portal feed and dashboard "Ministry Updates"
+ * widget need the tenant-scoped, auth-gated, server-redacted feed, so they
+ * read the HTTP endpoint (which resolves `tenant_id`/`user_*` interactions
+ * server-side) rather than raw client collections. The pure mappers below are
+ * exported so both surfaces derive their view shapes from the same, tested
+ * logic.
  */
 
 export const DONOR_FEED_POSTS_QUERY_KEY = "donor-feed-posts";

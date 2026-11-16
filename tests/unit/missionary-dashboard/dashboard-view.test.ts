@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { buildMissionaryDashboardView } from "../../../packages/missionary/components/dashboard-view";
 
 /**
- * TDD — dashboard-home presenter. It selects REAL values from the missionary
- * portal snapshot with NO mock fallbacks and NO hardcoded support figures.
- * An absent snapshot yields empty selections (the component renders honest
- * empty states), never fake numbers.
+ * The dashboard-home presenter selects real values from the missionary portal
+ * snapshot, with no mock fallbacks and no hardcoded support figures. An absent
+ * snapshot yields empty selections (the component renders empty states),
+ * never fake numbers.
  */
 
 function snapshot(overrides: Record<string, unknown> = {}) {

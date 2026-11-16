@@ -32,8 +32,9 @@ function makeTable(
 }
 
 // Serialization goes through the shared `csvSafeCell` (@asym/lib/csv): every
-// field is always double-quoted per RFC 4180, and a leading formula trigger
-// (=, +, -, @, TAB, CR, LF) is neutralized with a single-quote prefix.
+// field is always double-quoted per RFC 4180, and a formula trigger (=, +, -,
+// @, TAB, CR, LF) at the start, after any spaces or no-break spaces, is
+// neutralized with a single-quote prefix.
 describe("exportToCSV — formula injection neutralization", () => {
   it("prefixes a cell value starting with '=' with a single quote", () => {
     const table = makeTable(

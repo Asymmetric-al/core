@@ -1,9 +1,9 @@
 # TanStack Table v9 — Architecture Decision Records
 
-Status legend: **Accepted** decisions are in effect; **Proposed** decisions are
-expected but not yet implemented. Keep this file updated as the v9 rollout
-progresses. Source-of-truth order still applies (`openspec/` > rulebooks >
-this document).
+All decisions below are **Accepted** and in effect. The workspaces now pin the
+stable `@tanstack/react-table` `9.3.1` exactly (`apps/admin`, `apps/donor`,
+`packages/ui`, `packages/database`); the beta-era notes in ADR-1 are history.
+Source-of-truth order still applies (`openspec/` > rulebooks > this document).
 
 ---
 
@@ -42,15 +42,11 @@ in every workspace that consumes it (`apps/admin`, `apps/donor`,
   "TanStack Table v9 (beta) source verification" rule before trusting any
   Table doc.
 
-**Consequences:** stable-release upgrade later should be handled as a
-coordinated boundary migration, not a blind version bump. In particular,
-`9.0.0-beta.10` moved row-model factories out of the standalone `rowModels`
-table option and into `tableFeatures(...)` slots, so any bump past the current
-`9.0.0-beta.9` pin must update `createDataTableRowModels`,
-`dataTableFeatures`, and the `useTable({ rowModels: ... })` call sites in
-`data-table-body.tsx`, `data-table-responsive-inner.tsx`, and `data-grid.tsx`.
-Until then, contributors must verify Table API questions against the installed
-package typings or the beta branch docs.
+**Consequences:** engine upgrades are coordinated boundary migrations, not
+blind version bumps. The move to the stable line already relocated row-model
+factories into `tableFeatures(...)` slots in `dataTableFeatures`; the old
+`createDataTableRowModels` helper and the `useTable({ rowModels })` option are
+gone. Verify Table API questions against the installed package typings.
 
 ---
 
@@ -93,19 +89,23 @@ reviewed act rather than an implicit always-on default.
 **Decision:** `packages/ui/components/shadcn/data-table/tanstack.ts` is the
 only place allowed to import `@tanstack/react-table`. Apps and tests import
 table values/types from `@asym/ui/components/shadcn/data-table/tanstack`;
-shared UI imports it relatively. Two sanctioned exceptions: the four
+shared UI imports it relatively. Sanctioned exceptions: the four
 `packages/database/hooks/*` files import engine-stable state types directly
-(`packages/database` must not depend on `@asym/ui`), and the `ColumnMeta`
+(`packages/database` must not depend on `@asym/ui`); the `ColumnMeta`
 module augmentation in `data-table/types.ts` targets the real package name
-(declaration merging requires it).
+(declaration merging requires it); and grids on the vendored ReUI data-grid
+use `packages/ui/components/data-grid-panel/data-grid-engine.ts` as their
+boundary while the vendored `packages/ui/components/reui/data-grid/*` files
+keep upstream imports (see the exception list in the root `eslint.config.mjs`).
 
 **Why:** the v8→v9 audit found 53 files importing the engine directly; routing
 them through one module reduced the flag-day diff to the boundary plus the
 engine call sites, and keeps future engine churn (v9 stable, v10) contained.
 
-**Consequences:** lint/code review should reject new direct
-`@tanstack/react-table` imports outside the boundary and the sanctioned
-exceptions.
+**Consequences:** the root `eslint.config.mjs` restricts direct
+`@tanstack/react-table` imports in app and shared UI code (that root config is
+not loaded by workspace lint runs, so review must also reject new direct
+imports outside the boundary and the sanctioned exceptions).
 
 ---
 
@@ -115,11 +115,11 @@ exceptions.
 sets via `createTableHook`" proposal.
 
 **Decision:** the shared layer registers a single explicit feature set
-(`dataTableFeatures`, 10 features) and binds it into the v8-named type aliases
-(`ColumnDef<TData, TValue>`, `Table<TData>`, …). Table families differ through
-`createDataTableRowModels({ filtering, sorting, pagination, faceting })` flags
-(which must mirror the table's `manual*` flags) and through component props —
-not through per-family `TFeatures` types. `createTableHook` factories are
+(`dataTableFeatures`, 10 features plus their row-model slots) and binds it into
+the v8-named type aliases (`ColumnDef<TData, TValue>`, `Table<TData>`, …).
+Table families differ through the table's `manual*` flags (which skip the
+corresponding row-model stage) and through component props — not through
+per-family `TFeatures` types. `createTableHook` factories are
 deferred: `DataTable` / `DataTableResponsive` / `DataGrid` already are the
 family entry points, in component form, and app code consumes them rather than
 raw table hooks.
@@ -131,8 +131,9 @@ raw table hooks.
   generic over the feature type, exploding signatures across ~30 files for a
   bundle win that row-model tree-shaking already captures (row models are the
   larger per-table code).
-- v9's silent row-model fallback makes the row-model bundle the safety-critical
-  axis; the flags API keeps it explicit and reviewable per table.
+- v9's silent row-model fallback makes the row-model set the safety-critical
+  axis; registering the row models once, next to their features, keeps it
+  explicit and reviewable.
 - `createTableHook`'s payoff (pre-bound hook + column helper + context
   components) duplicates what the shared components and the boundary aliases
   already provide. Revisit only if a screen genuinely needs a headless table

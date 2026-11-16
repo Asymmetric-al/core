@@ -18,7 +18,7 @@ Shared UI component library for the `@asym` monorepo. It wraps shadcn/ui and enf
 | Color — sidebar       | `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-primary-foreground`, `--sidebar-accent`, `--sidebar-accent-foreground`, `--sidebar-border`, `--sidebar-ring`                                                                              | Sidebar-specific surface tokens                                                                          |
 | Color — charts        | `--chart-1` ... `--chart-5`                                                                                                                                                                                                                                    | 5 distinct OKLCH hues for data viz                                                                       |
 | Border radius         | `--radius` (1rem base), `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`, `--radius-2xl`                                                                                                                                                             | Soft/rounded Maia aesthetic                                                                              |
-| Fonts                 | `--font-sans` (Inter), `--font-display` (Syne), `--font-mono` (Geist Mono); apps load via `next/font` in `app/layout.tsx` (`--font-inter`, `--font-syne`, `--font-geist-mono`)                                                                                 | Mapped via `@theme inline`; use `font-sans`, `font-display`, `font-mono` (or existing `font-syne` alias) |
+| Fonts                 | `--font-sans` (Inter), `--font-display` (Syne), `--font-mono` (Geist Mono); apps apply `fontVariables` from `@asym/ui/fonts` (local files, see `fonts/README.md`), which set `--font-inter`, `--font-syne`, `--font-geist-mono`                                | Mapped via `@theme inline`; use `font-sans`, `font-display`, `font-mono` (or existing `font-syne` alias) |
 | Spacing               | `--space-1` ... `--space-24`                                                                                                                                                                                                                                   | 0.25 rem steps                                                                                           |
 | Gaps                  | `--gap-xs`, `--gap-sm`, `--gap-md`, `--gap-lg`, `--gap-xl`, `--section-gap`, `--card-padding`                                                                                                                                                                  | Responsive - values change at md/lg breakpoints                                                          |
 | Container             | `--container-max-width` (1600px), `--container-padding`                                                                                                                                                                                                        | Responsive padding (1rem -> 1.5rem -> 2.5rem)                                                            |
@@ -49,7 +49,7 @@ Apps import the shared stylesheet as the **first line** of their own `globals.cs
 @import "@asym/ui/styles/globals.css";
 ```
 
-After that import, apps may add `@source` directives for their own file trees. The canonical pattern is in `apps/admin/app/globals.css`, `apps/donor/app/globals.css`, and `apps/missionary/app/globals.css`.
+After that import, apps may add `@source` directives for their own file trees. The canonical pattern is in `apps/admin/app/globals.css` and `apps/donor/app/globals.css`; `apps/missionary/app/globals.css` imports it through `@asym/missionary/styles.css`.
 
 ## Rules (MANDATORY)
 
@@ -155,7 +155,7 @@ cn("px-4 py-2", extra, "px-8");
 ```
 
 Inside this package, use the existing `@/lib/utils` alias. The helper directly
-re-exports `cn` and `ClassValue` from exact `cn@0.3.2`; existing shared barrels
+re-exports `cn` and `ClassValue` from exact `cn@0.5.0`; existing shared barrels
 and consumer imports remain supported. `cn` combines conditional inputs and
 resolves Tailwind v4 conflicts. Keep consumer overrides after base/variant
 classes, and retain the existing Base UI component composition and tokens.
@@ -192,7 +192,7 @@ do not need changing.
 
 ## How to Update shadcn Components
 
-- Current shadcn CLI version in use: `shadcn@3.6.2`.
+- The root `package.json` pins the shadcn CLI (`shadcn@4.22.1`).
 
 1. Run `bunx --bun shadcn@latest add <component> --cwd packages/ui` from the repo root (not inside individual apps).
 2. Review the diff carefully. shadcn components are vendored source code, not npm packages.
