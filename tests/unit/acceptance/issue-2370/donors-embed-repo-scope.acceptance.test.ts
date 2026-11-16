@@ -334,14 +334,14 @@ describe("#2370 scan scope and failure handling", () => {
     },
   );
 
-  it.runIf(scanMode(process.cwd()) === "git")(
-    "C8: the repository gives the same hits with and without Git metadata",
-    () => {
-      const key = (r: ReturnType<typeof checkDonorsEmbed>) =>
-        r.hits.map((h) => `${h.file}:${h.line}`).sort();
-      expect(key(checkDonorsEmbed(process.cwd(), "no-index"))).toEqual(
-        key(checkDonorsEmbed(process.cwd(), "git")),
-      );
-    },
-  );
+  it("C8: equal file sets give the same hits in both scan modes", () => {
+    const root = tree("git", BASE);
+    // Keep ambient global excludes and Git templates out of this parity fixture.
+    const excludes = join(root, ".git/info/exclude");
+    write(root, { ".git/info/exclude": "" });
+    git(root, "config", "--local", "core.excludesFile", excludes);
+    expect(checkDonorsEmbed(root, "no-index")).toEqual(
+      checkDonorsEmbed(root, "git"),
+    );
+  });
 });
