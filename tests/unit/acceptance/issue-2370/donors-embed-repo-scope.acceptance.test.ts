@@ -9,7 +9,13 @@
  */
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -310,6 +316,23 @@ describe("#2370 scan scope and failure handling", () => {
     expect(() =>
       checkDonorsEmbed(join(tmpdir(), `acc2370-missing-${randomUUID()}`)),
     ).toThrow());
+
+  // chmod 000 blocks reads only on POSIX and only for a non-root user.
+  it
+    .skipIf(process.platform === "win32" || process.getuid?.() === 0)
+    .each(["git", "no-index"] as const)(
+    "C8: a file git cannot read makes the %s-mode scan throw instead of passing",
+    (mode) => {
+      const root = tree(mode, { ...BASE, "docs/notes.md": EMBED });
+      const unreadable = join(root, "docs/notes.md");
+      chmodSync(unreadable, 0);
+      try {
+        expect(() => checkDonorsEmbed(root, mode)).toThrow(/reported errors/);
+      } finally {
+        chmodSync(unreadable, 0o644);
+      }
+    },
+  );
 
   it.runIf(scanMode(process.cwd()) === "git")(
     "C8: the repository gives the same hits with and without Git metadata",

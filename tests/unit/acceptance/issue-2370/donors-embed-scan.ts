@@ -14,8 +14,9 @@
  *   untracked ones and nested work trees included.
  * Without Git metadata (e.g. a plain copy) only the second grep can run, and
  * nothing is "tracked", so a file whose path matches .gitignore is never
- * scanned there, even if the original repository commits it. Any grep failure
- * or unparseable output throws, so the check never passes by not running.
+ * scanned there, even if the original repository commits it. Any grep failure,
+ * stderr output (such as an unreadable file) or unparseable output throws, so
+ * the check never passes by not running.
  *
  * Output is read machine-style: `-z -n --no-color --no-column -a`, so user
  * color/column config can't change the record shape, and binary hits use the
@@ -118,9 +119,16 @@ function runGrep(
     { cwd: root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 },
   );
   if (r.error) throw r.error;
+  // A file git cannot read is reported on stderr and skipped, and the grep can
+  // still exit 0 or 1. A clean scan writes nothing to stderr.
+  if (r.stderr !== "") {
+    throw new Error(
+      `git grep reported errors (status ${r.status}): ${r.stderr}`,
+    );
+  }
   if (r.status === 1 && r.stdout === "") return [];
   if (r.status !== 0) {
-    throw new Error(`git grep failed (status ${r.status}): ${r.stderr}`);
+    throw new Error(`git grep failed (status ${r.status})`);
   }
   return parseGrepRecords(r.stdout);
 }
