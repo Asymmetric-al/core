@@ -73,14 +73,15 @@ describe("#2308 static contracts (A)", () => {
   });
   // Re-frozen after develop d99a1fc4 shrank the table-preferences entry,
   // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites),
-  // and in the admin hill-climb round 12, which shrank dashboard-stats.ts from
+  // in the admin hill-climb round 12, which shrank dashboard-stats.ts from
   // 2 sites to 1 (the CRM tags read reuses crm/index.ts's one site; no new
-  // sites).
-  it("C12: frozen service-role allowlist is byte-unchanged since the round 12 dashboard-stats shrink", () => {
+  // sites), and at #2419, which shrank scripts/verify-money-units.ts from 3
+  // sites to 1 (the anon-key fallback was removed).
+  it("C12: frozen service-role allowlist is byte-unchanged since the #2419 verify-money-units shrink", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("6fd5324cfd3ae22c97e7039b53bbcbcaa02545f14aee7a4b1e8c0c83f2926086");
+    ).toBe("2ca1e6c193601bb9c1d6ccf0380b1ccc10833a410a47fea82ecb1f9ec74bc13c");
   });
 });
