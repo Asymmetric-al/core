@@ -19,11 +19,13 @@ processor, an email tool, a website builder and a set of spreadsheets that
 staff reconcile by hand. Small teams are left choosing between expensive legacy
 software and fragile, patched-together tools.
 
-Core is the software behind [Asym](https://asym.app/). It is built around one
-workflow that has to be right every time: a donor gives, a receipt goes out and
-the missionary sees the gift. Organizations are tenants; staff, missionaries
-and donors are users within them, and each sees a role-appropriate view of the
-same records.
+Core is the software behind [Asym](https://asym.app/): one operating system for
+a missions organization's whole operation, from giving, receipts and statements
+to donor and missionary relationships, member care, mobilization, support,
+events, websites, email, documents, automations and reporting. Organizations
+are tenants; staff, missionaries and donors are users within them, and each
+sees a role-appropriate view of the same records, so money and people data
+stay accurate wherever they appear.
 
 ## What is in the repository
 
@@ -47,9 +49,8 @@ same records.
 
 ## Project status
 
-Core is early. Read this before relying on anything here.
+Core is under active development.
 
-- No organization runs on it in production yet.
 - Maturity varies by module. Some flows work end to end, some screens are
   prototypes or partial implementations, and some capabilities exist only as
   accepted plans.
