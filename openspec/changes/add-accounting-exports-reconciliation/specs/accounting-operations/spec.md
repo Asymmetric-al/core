@@ -1,5 +1,12 @@
 # Accounting Operations Capability
 
+## Purpose
+
+Define the contract for the accounting handoff: one Accounting Operations
+boundary and Ready for Accounting workspace that turn gift, settlement, bank,
+and expense facts into immutable balanced accounting releases for QuickBooks
+Online or Xero, without becoming a second general ledger.
+
 ## ADDED Requirements
 
 ### Requirement: D1 One Accounting Doorway Coordinates Bounded Contexts Without Merging Truth

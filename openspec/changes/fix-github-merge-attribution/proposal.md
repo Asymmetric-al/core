@@ -1,3 +1,5 @@
+> Superseded by the 2026-09 owner decision in `../retire-git-attribution/`, which removed the attribution verifier and the shared parser in `scripts/git/trusted-identities.mjs`. This proposed parser hardening is not current authority; do not restore that tooling to finish the open tasks.
+
 ## Why
 
 PR #1428 is now merged into canonical `develop` at

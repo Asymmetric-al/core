@@ -1,3 +1,9 @@
+## Purpose
+
+Provide a reproducible, credential-free audit environment for security scanner
+enrollment, with honest coverage, private triage of findings, and enrollment
+evidence that keeps submission distinct from acceptance and a confirmed scan.
+
 ## ADDED Requirements
 
 ### Requirement: Reproducible Isolated Audit Environment

@@ -31,8 +31,9 @@ human-oriented index. It does not prove that proposed work has shipped.
 
 **Capability specs:** `donation-lifecycle`, `contribution-operations`,
 `crm-core`, `identity-and-access`, `workflow-orchestration`,
-`agent-instruction-system`, `shared-ui-primitives`, `ui-class-merging`,
-`eve-autonomous-operations` and the other `eve-*` specs.
+`agent-instruction-system`, `openspec-contract-maintenance`,
+`shared-ui-primitives`, `ui-class-merging`, `eve-autonomous-operations` and
+the other `eve-*` specs.
 `bun run openspec -- list --specs` prints the current set.
 
 Read every unconditionally referenced `openspec/contracts/` section in full.

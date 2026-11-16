@@ -32,7 +32,7 @@ Use this doc when editing or running:
 ## Agent skill maintenance
 
 - Canonical skills: `docs/ai/skills/*/SKILL.md`.
-- Generated mirrors: `.agents/skills/`, `.cursor/skills/`, `.claude/skills/`. Do not hand-edit mirrors.
+- Runtime trees: `.agents/skills/` holds generated copies of the canonical skills plus ecosystem-origin skills, which are owned there. `.cursor/skills/` and `.claude/skills/` are generated mirrors of that full set. Do not hand-edit a generated copy.
 - Successful `skills:verify` leaves `git status` unchanged. Drift message: run `bun run skills:sync` and commit mirror updates.
 - Overlayfs can reject skill-directory `rename` with `EXDEV`. Both skill scripts fall back to copy then remove only into an unoccupied destination, keep a complete backup before removing a live tree, and retain that backup when restoration fails. Canonical destinations must be real directories. Scanner adaptations must preserve execution, rendered JSX, and literal payloads.
 
