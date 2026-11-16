@@ -1,9 +1,111 @@
 # Asymmetric.al Core
 
-Core is Asymmetric.al: one connected platform for Christian missions sending
-organizations. Organizations are tenants; staff, missionaries and donors are
-users within them. It is a Bun + Turborepo monorepo of Next.js App Router
-applications:
+One connected platform for Christian missions sending organizations: giving,
+donor care, missionary support raising and staff operations in a single system
+instead of a stack of disconnected tools and spreadsheets.
+
+[![CI](https://github.com/Asymmetric-al/core/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Asymmetric-al/core/actions/workflows/ci.yml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
+
+![Mission Control, the staff operations app, showing its dashboard with a sidebar of modules such as CRM, Contributions, Reports, Member Care and Support Hub](docs/assets/readme/mission-control.png)
+
+<sub>Mission Control running locally with the demo tenant "Give Hope".</sub>
+
+## Why Core exists
+
+A missions organization receives gifts, issues receipts, cares for donors and
+keeps missionaries funded. Most do that across a donor database, a payment
+processor, an email tool, a website builder and a set of spreadsheets that
+staff reconcile by hand. Small teams are left choosing between expensive legacy
+software and fragile, patched-together tools.
+
+Core is the software behind [Asym](https://asym.app/). It is built around one
+workflow that has to be right every time: a donor gives, a receipt goes out and
+the missionary sees the gift. Organizations are tenants; staff, missionaries
+and donors are users within them, and each sees a role-appropriate view of the
+same records.
+
+## What is in the repository
+
+- **Mission Control** for staff: CRM, contributions, reports, member care,
+  mobilization, support, events, tasks and automations, plus studios for the
+  website, email, PDF documents and signatures.
+- **Donor portal** for self-service: giving history, recurring gifts, payment
+  methods, receipts and ministry updates.
+- **Public ministry website** for discovery and giving: missionary and project
+  pages and checkout.
+- **Missionary workspace** for support raising: donors, ministry updates,
+  tasks and analytics.
+- **One source of truth.** Asym Postgres owns CRM, giving and operational
+  records. Business logic lives in a shared server package, and tenant
+  isolation is enforced by server-side checks and by Postgres row-level
+  security.
+- **Written-down intent.** Accepted product and platform requirements live in
+  [`openspec/`](openspec/project.md), and architecture decisions in
+  [`docs/adr/`](docs/adr/README.md), so the reasons behind the code are
+  reviewable.
+
+## Project status
+
+Core is early. Read this before relying on anything here.
+
+- No organization runs on it in production yet.
+- Maturity varies by module. Some flows work end to end, some screens are
+  prototypes or partial implementations, and some capabilities exist only as
+  accepted plans.
+- `openspec/specs/` records accepted requirements. `openspec/changes/` records
+  proposed work, which does not prove that behavior has shipped. The code,
+  tests and runtime establish what exists.
+- "Give Hope" in screenshots, fixtures and default screens is a demo tenant
+  with sample data, not a real organization.
+
+## Screens
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/assets/readme/donor-portal.png" alt="Donor portal overview with year-to-date giving, active recurring support and a field update" /></td>
+    <td width="33%"><img src="docs/assets/readme/public-website.png" alt="Public ministry website home page for the demo tenant with a Give Now button" /></td>
+    <td width="33%"><img src="docs/assets/readme/missionary-workspace.png" alt="Missionary workspace task board with To Do, In Progress and Waiting columns" /></td>
+  </tr>
+  <tr>
+    <td align="center">Donor portal</td>
+    <td align="center">Public ministry website</td>
+    <td align="center">Missionary workspace</td>
+  </tr>
+</table>
+
+These are cropped from the browser captures in
+[`docs/qa/core-ui/after/`](docs/qa/core-ui/README.md), taken from a local
+development build in October 2026 with demo data. The figures on the demo
+website are sample content.
+
+## How it fits together
+
+```mermaid
+flowchart LR
+  staff([Staff]) --> admin
+  missionaries([Missionaries]) --> workspace
+  donors([Donors and visitors]) --> donor
+
+  subgraph apps [Next.js apps]
+    admin["Mission Control<br/>apps/admin"]
+    workspace["Missionary workspace<br/>apps/missionary"]
+    donor["Donor portal and public website<br/>apps/donor"]
+  end
+
+  subgraph shared [Shared packages]
+    api["packages/api<br/>business logic and authorization"]
+    auth["packages/auth<br/>sessions"]
+    database["packages/database<br/>approved browser data access"]
+    ui["packages/ui<br/>design system"]
+  end
+
+  apps --> shared
+  shared --> postgres[("Supabase Postgres<br/>row-level security")]
+  shared --> providers["Stripe, Resend, Inngest"]
+```
+
+Core is a Bun + Turborepo monorepo of Next.js App Router applications:
 
 | App                    | Package                 | Dev port | Surface                                                                                     |
 | ---------------------- | ----------------------- | -------: | ------------------------------------------------------------------------------------------- |
@@ -14,15 +116,20 @@ applications:
 
 Shared code lives in `packages/*` (`api`, `auth`, `database`, `env`, `ui` and
 others), lint and TypeScript configuration in `tooling/*`, operational scripts
-in `scripts/*` and the database in `supabase/*`.
+in `scripts/*` and the database in `supabase/*`. App route handlers stay thin
+and call `packages/api`. The
+[architecture overview](docs/guides/architecture/overview.md) maps routes and
+data flow.
 
-Internal dependencies use `workspace:*`.
+**Built with:** Next.js 16 (App Router, Cache Components), React 19,
+TypeScript, Bun, Turborepo, Supabase (Postgres and auth), Stripe, Payload CMS,
+Resend, Inngest, Tailwind CSS 4 with Base UI and shadcn components, TanStack
+Query and DB, Sentry, Vitest and Playwright. `package.json` files and
+`bun.lock` are the source for exact versions.
 
-- Exception: the native PDF Studio migration intentionally consumes the five
-  vendored Phase 47 React PDF tarballs under `vendor/react-pdf-packages/*.tgz`
-  until those packages are published or promoted into this monorepo.
+## Quick start
 
-## Prerequisites
+### Prerequisites
 
 - Node.js `24.22.1` (`.node-version`; `engines.node` is `>=24.22.1 <25`)
 - Bun `1.4.3` (`.bun-version` and `packageManager`)
@@ -31,21 +138,23 @@ Internal dependencies use `workspace:*`.
 `bun run verify:node-version` and `bun run verify:bun-version` check the local
 toolchain. Apps run on Node through Next.js; do not use `bun --bun`.
 
-## Set up and run
-
-### Without Supabase credentials (Mission Control sandbox)
+### Try Mission Control without any credentials
 
 ```bash
+git clone https://github.com/Asymmetric-al/core.git
+cd core
 bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
 Open `http://localhost:3030`. Setup writes gitignored `.env.local` defaults
 (placeholder Supabase URL and key, `E2E_AUTH_BYPASS=true`, CI env defaults),
-installs with the frozen lockfile and runs `bun run skills:verify`. An explicit
-`E2E_AUTH_BYPASS=false` is kept unless you pass `--force-bypass`.
+installs with the frozen lockfile and runs `bun run skills:verify`. Because the
+Supabase credentials are placeholders, this mode shows the interface without
+real data. An explicit `E2E_AUTH_BYPASS=false` is kept unless you pass
+`--force-bypass`.
 
-### With a hosted Supabase project
+### Run against a hosted Supabase project
 
 1. Run setup: `bun run setup` (macOS, Linux, Git Bash) or
    `pwsh -File .\scripts\setup.ps1` (Windows; add `-SkipInstall` to skip the
@@ -57,9 +166,9 @@ installs with the frozen lockfile and runs `bun run skills:verify`. An explicit
 3. Start one app (`bun run dev:donor`, `dev:admin`, `dev:missionary`) or all
    of them (`bun run dev`).
 
-Ask a maintainer for the shared development Supabase URL and anon key. Other
-variables in `.env.example` (Stripe, demo accounts, Payload and others) are
-optional for most work; demo sign-in is described in
+Collaborators can ask a maintainer for the shared development Supabase URL and
+anon key. Other variables in `.env.example` (Stripe, demo accounts, Payload and
+others) are optional for most work; demo sign-in is described in
 [docs/auth/sign-in.md](docs/auth/sign-in.md). Never use the service-role key in
 browser code.
 
@@ -96,10 +205,11 @@ drift, run `bun run skills:sync` and commit the regenerated mirrors.
 seed commands require explicit target variables; read `supabase/AGENTS.md` and
 `scripts/AGENTS.md` first.
 
-## Where guidance lives
+## Documentation
 
 - [`AGENTS.md`](AGENTS.md): repository rules, authority order and routing to
-  scoped `AGENTS.md` files and rulebooks. Start here before changing code.
+  scoped `AGENTS.md` files and rulebooks. Start here before changing code,
+  whether you are a person or a coding agent.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): branch, pull request and review
   workflow.
 - [`docs/README.md`](docs/README.md): documentation index.
@@ -114,10 +224,16 @@ seed commands require explicit target variables; read `supabase/AGENTS.md` and
   `bg-background` rather than `zinc-*` utilities, and shared UI imports from
   `@asym/ui`.
 - `docs/ai/rules/*` and `docs/ai/skills/*`: rulebooks and canonical agent
-  skills. `.agents/skills`, `.claude/skills` and `.cursor/skills` are generated
-  mirrors; do not edit them by hand.
+  skills. `.claude/skills` and `.cursor/skills` are generated mirrors, and
+  `.agents/skills` holds generated copies plus ecosystem skills that are owned
+  there; do not edit a generated copy by hand.
 
-## Product planning
+Internal dependencies use `workspace:*`, with one exception: the native PDF
+Studio migration intentionally consumes the five vendored Phase 47 React PDF
+tarballs under `vendor/react-pdf-packages/*.tgz` until those packages are
+published or promoted into this monorepo.
+
+### Product planning
 
 The [SiteStacker parity program](docs/prds/sitestacker-parity/README.md)
 tracks outcome parity and phase dependencies. The
@@ -125,6 +241,17 @@ tracks outcome parity and phase dependencies. The
 records the ratified donor scope, acceptance criteria, source contracts and
 qualification gates. It is planning authority, not implemented or activated
 behavior; its source-owner amendments remain proposed.
+
+## Contributing and security
+
+Core is public to read and to fork. New issues and pull requests on this
+repository are currently restricted to collaborators; see
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow. If you want to help
+build it, or your organization wants to follow along, start at
+[asym.app](https://asym.app/).
+
+Please report security issues privately through GitHub Security Advisories, as
+described in [`SECURITY.md`](SECURITY.md), and not in a public issue.
 
 ## License
 
