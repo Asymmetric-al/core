@@ -54,6 +54,8 @@ const rpcCalls: Array<[string, Row]> = [];
 let afterFirstGiftRead: (() => void) | null = null;
 /** Runs once when an RPC is called, to simulate a writer between two writes. */
 let duringRpc: (() => void) | null = null;
+/** Runs once before the RPC's own check, to simulate a writer before the call. */
+let beforeRpc: (() => void) | null = null;
 
 function giftRow(overrides: Row = {}): Row {
   return {
@@ -77,6 +79,7 @@ function resetDatabase(gift: Row = giftRow()) {
   rpcCalls.length = 0;
   afterFirstGiftRead = null;
   duringRpc = null;
+  beforeRpc = null;
   tables.set("staged_gifts", [{ ...gift }]);
   tables.set("donors", [
     { id: DONOR, tenant_id: TENANT },
@@ -91,6 +94,9 @@ function resetDatabase(gift: Row = giftRow()) {
     { id: FOREIGN_MISSIONARY, tenant_id: OTHER_TENANT },
   ]);
   tables.set("staged_gift_audit_events", []);
+  tables.set("staged_gift_allocations", [
+    { tenant_id: gift.tenant_id, staged_gift_id: gift.id, amount: gift.amount },
+  ]);
 }
 
 /** A small PostgREST-shaped double over the in-memory tables. */
@@ -160,8 +166,48 @@ function query(table: string) {
 
 const client = {
   from: (table: string) => query(table),
+  /**
+   * replace_staged_gift_allocations as the database defines it: under the
+   * gift's lock it refuses a gift whose status is not the one the caller
+   * checked, and otherwise replaces the split.
+   */
   rpc: async (fn: string, args: Row) => {
     rpcCalls.push([fn, args]);
+    if (beforeRpc) {
+      const hook = beforeRpc;
+      beforeRpc = null;
+      hook();
+    }
+    const gift = tables
+      .get("staged_gifts")
+      ?.find(
+        (row) =>
+          row.id === args.p_staged_gift_id &&
+          row.tenant_id === args.p_tenant_id,
+      );
+    if (!gift) {
+      return {
+        data: null,
+        error: { code: "P0002", message: "Staged gift not found" },
+      };
+    }
+    if (gift.status !== args.p_expected_status) {
+      return {
+        data: null,
+        error: {
+          code: "40001",
+          message: "Staged gift changed since it was checked",
+        },
+      };
+    }
+    tables.set(
+      "staged_gift_allocations",
+      (args.p_allocations as Row[]).map((line) => ({
+        tenant_id: gift.tenant_id,
+        staged_gift_id: gift.id,
+        amount: line.amount,
+      })),
+    );
     if (duringRpc) {
       const hook = duringRpc;
       duringRpc = null;
@@ -433,6 +479,51 @@ describe("legacy edit checks the staged gift's state (NV-03)", () => {
     expect(response.status).toBe(400);
     expect(writes).toEqual([]);
     expect(rpcCalls).toEqual([]);
+  });
+
+  // Council round 2, B5: a refund that lands after the edit's checked write
+  // and before the replacement leaves the split as it was.
+  it("refuses with 409 to replace the split of a gift refunded since the check", async () => {
+    beforeRpc = () => {
+      const gift = tables.get("staged_gifts")?.[0];
+      if (gift) gift.status = "refunded";
+    };
+    const response = await routes.PATCH({
+      allocations: [
+        { fundId: FUND, amount: 6_000 },
+        { missionaryId: MISSIONARY, amount: 4_000 },
+      ],
+    });
+    expect(response.status).toBe(409);
+    expect(rpcCalls).toEqual([
+      [
+        "replace_staged_gift_allocations",
+        expect.objectContaining({ p_expected_status: "needs_review" }),
+      ],
+    ]);
+    expect(tables.get("staged_gift_allocations")).toEqual([
+      { tenant_id: TENANT, staged_gift_id: GIFT, amount: 10_000 },
+    ]);
+    expect(tables.get("staged_gifts")?.[0]).toMatchObject({
+      status: "refunded",
+    });
+    expect(tables.get("staged_gifts")?.[0]).not.toHaveProperty(
+      "allocation_status",
+    );
+    expect(
+      writes.filter((write) => write.table === "staged_gift_audit_events"),
+    ).toEqual([]);
+  });
+
+  it("passes the status the edit left the gift in", async () => {
+    const response = await routes.PATCH({
+      status: "ready_to_post",
+      allocations: [{ fundId: FUND, amount: 10_000 }],
+    });
+    expect(response.status).toBe(200);
+    expect(rpcCalls[0]?.[1]).toMatchObject({
+      p_expected_status: "ready_to_post",
+    });
   });
 
   // Council round 2, B5: the split is recorded only while the gift is still
