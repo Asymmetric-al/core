@@ -63,7 +63,9 @@ async function MissionaryRoleGate() {
     return null;
   }
 
-  const authContext = await getAuthContext();
+  const authContext = await getAuthContext(undefined, {
+    roleClass: "missionary",
+  });
   const authRedirectPath = getProtectedAppRedirectPath(
     authContext,
     `/login?next=${encodeURIComponent(pathname)}`,

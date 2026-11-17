@@ -17,11 +17,12 @@ Role membership is stored in `authz.memberships` with one row per role assignmen
 - `tenant_id`
 - `role` (`donor`, `missionary`, `staff`)
 - `staff_role` (`finance`, `mobilizer`, `development`, `hr`, `member_care`) for staff rows
-- `is_active`
+- `is_active`, `revoked_at` and `granted_by`
+- `is_tenant_admin`, the tenant-administrator flag, on staff rows
 
 ### Multi-dashboard access
 
-A single login can access multiple dashboards by holding multiple memberships in the same tenant:
+A single login can access multiple dashboards by holding multiple memberships in the same tenant. Each request acts under one of them, the one of the surface's class:
 
 - Donor portal access requires a `donor` membership
 - Missionary dashboard access requires a `missionary` membership
@@ -33,9 +34,9 @@ A single login can access multiple dashboards by holding multiple memberships in
 - **Missionary:** own missionary workflows and designation-specific views
 - **Staff:** Mission Control operational workflows
 
-### Staff sub-roles in MVP
+### Staff sub-roles
 
-Sub-roles are modeled now, but all staff sub-roles currently share full admin-dashboard access:
+Every staff sub-role keeps full admin-dashboard access. Since AL-2675 each has its own capability bundle (`packages/auth/capabilities/bundles.ts`), so they differ in what they may do beyond it:
 
 - Finance
 - Mobilizer
@@ -43,13 +44,13 @@ Sub-roles are modeled now, but all staff sub-roles currently share full admin-da
 - HR
 - Member Care
 
-This is intentional for MVP velocity. The capability map is explicit in code so each sub-role can be narrowed later without call-site rewrites.
+Finance holds the finance-staff contribution capabilities, development can publish in Web Studio, member care holds `care.access`; mobilizer and hr hold the shared staff set. The tenant-administrator flag adds the administrator's bundle.
 
 ## Enforcement layers
 
 ## 1) BFF route/handler checks (primary)
 
-- App proxies enforce dashboard-level access by membership-derived roles.
+- App proxies enforce dashboard-level access by the one live membership of the surface's class, which the principal resolver selects.
 - API route handlers use centralized `requireRole(...)` checks built on membership-aware role resolution.
 - Client-side role checks are not treated as security controls.
 
@@ -77,9 +78,9 @@ RLS is necessary but not sufficient as the only control. Production should layer
 2. Gateway-level authorization checks on every sensitive route
 3. Tenant-scoped API keys/credentials where integrations allow it
 
-## Principal and active assignment (preparation, unwired)
+## Principal and active assignment (wired by AL-2675)
 
-`packages/api/src/principal` (`@asym/api/principal`, #2258) is the first slice of Phase 12 T4 (#669). Nothing in a request path imports it yet: `getAuthContext`, middleware, routes, the PDP (#667) and the token are unchanged. It follows #669's caveats C1–C4: preparation only; delivery waits for #667, #668, #670 and #2250; the types are a draft of the agreed interface; and the slice was not Ready until #2250 merged.
+The resolver lives in `packages/auth/principal` (`@asym/auth/principal`), and `packages/api/src/principal` (`@asym/api/principal`, #2258) re-exports it beside the principal union. Since AL-2675 (WP2a of the CRM, CMS and database plan) it is the only way a request learns its tenant and role: `getAuthContext`, the three proxies' role check (`packages/auth/resolve-user-role.ts`) and Web Studio's Payload strategy all resolve through it. No code reads `profiles.role` or `profiles.tenant_id` to authorize. The fire-time re-check (#2259) and the assignment chooser (WP2b) are still to come.
 
 ### Four principal classes
 
@@ -92,42 +93,48 @@ RLS is necessary but not sufficient as the only control. Production should layer
 | `service_account`   | `nhiId`, one `tenantId`, `ownerAssignmentId`           | type only; no table, ceiling or resolution         |
 | `platform_operator` | `operatorId`                                           | type only; no grant, sink or break-glass           |
 
-`ActiveAssignment` is one active `authz.memberships` row owned by the session user: `assignmentId`, `userId`, `tenantId`, `revision`, `membershipRole` and `staffRole` (`null` for donor and missionary rows). The role fields are for display, derivation and default selection only. `revision` is the row's `updated_at`, opaque until #670 supplies an epoch. `toHumanProjectionAssignment` maps it onto the projection resolver's `assignment` input.
+`ActiveAssignment` is one live `authz.memberships` row owned by the session user: `assignmentId`, `userId`, `tenantId`, `revision`, `membershipRole`, `staffRole` (`null` for donor and missionary rows) and `isTenantAdmin`, the tenant-administrator flag, which only a staff row carries. These fields feed the capability registry (`packages/auth/capabilities`), which authorizes; a role name never does. `revision` is the row's `updated_at`, opaque until #670 supplies an epoch. `toHumanProjectionAssignment` maps it onto the projection resolver's `assignment` input.
 
-### Selecting the hat
+### Selecting the assignment
 
-`resolveActiveAssignment({ userId, proposedAssignmentId?, expectedTenantId? }, reader)` reads live rows through an injected `AssignmentReader` on every call and returns `{ ok: true, assignment, selection }` or `{ ok: false, reason }`. It never throws, never caches and never falls back to a default tenant. It reads no profile role or profile tenant, no demo tenant and no login-token claim.
+`resolveActiveAssignment({ userId, roleClass, proposedAssignmentId?, expectedTenantId? }, reader)` reads live rows through an injected `AssignmentReader` on every call and returns `{ ok: true, assignment, selection }` or `{ ok: false, reason }`. It never throws, never caches and never falls back to a default tenant. It reads no profile role or profile tenant, no demo tenant and no login-token claim.
 
-1. A `userId` that is not a canonical UUID is `reader_error`, with no read.
+`roleClass` is the surface's: Mission Control and Web Studio act on staff rows, the missionary workspace on the missionary row, the donor portal on the donor row (plan 5.1). Each app's proxy sets it as the `x-asym-role-class` request header on every request it passes on, overwriting any value the client sent, and `getAuthContext` reads it there unless the caller passes it.
+
+1. A `userId` that is not a canonical UUID is `reader_error`, with no read. A `roleClass` that is not a membership class is `no_assignment`, with no read.
 2. A proposal that is not a canonical UUID is `not_owned_or_inactive`, with no read.
-3. A reader failure, or any malformed row (bad id or tenant, another user's row, unknown role or staff role, a staff/sub-role mismatch, no `updated_at`, a repeated id), is `reader_error` for the whole call. Bad rows are never dropped.
-4. A proposal not among the rows is `not_owned_or_inactive`; one in a tenant other than `expectedTenantId` is `tenant_mismatch`; otherwise it wins with `selection: "proposed"`, even over the staff default.
-5. With no proposal, the candidates are the rows, narrowed (never widened) to `expectedTenantId` when one is given:
+3. A reader failure, or any malformed row (bad id or tenant, another user's row, unknown role or staff role, a staff/sub-role mismatch, a missing or non-boolean flag, the flag on a row that is not staff, no `updated_at`, a repeated id), is `reader_error` for the whole call. Bad rows are never dropped.
+4. A proposal (the person's chosen row, which `getAuthContext` takes from the `x-asym-assignment` header) not among the rows is `not_owned_or_inactive`; one of another class is `role_class_mismatch`; one in a tenant other than `expectedTenantId` is `tenant_mismatch`; otherwise it wins with `selection: "proposed"`.
+5. With no proposal, the candidates are the rows of `roleClass`, narrowed (never widened) to `expectedTenantId` when one is given:
 
-| Candidates                                            | Result                                       |
-| ----------------------------------------------------- | -------------------------------------------- |
-| none                                                  | `no_assignment`                              |
-| one                                                   | `ok`, `selection: "sole"`                    |
-| two or more, spanning more than one tenant            | `ambiguous`                                  |
-| two or more in one tenant, exactly one staff row      | `ok`, that row, `selection: "default_staff"` |
-| two or more in one tenant, zero or several staff rows | `ambiguous`                                  |
+| Candidates of the surface's class | Result                    |
+| --------------------------------- | ------------------------- |
+| none                              | `no_assignment`           |
+| one                               | `ok`, `selection: "sole"` |
+| two or more, in any tenants       | `ambiguous`               |
 
-The default never picks a tenant: a caller that needs one passes `expectedTenantId`. It never ranks staff sub-roles either, because that would choose privileges by role name; a user with two staff rows in one tenant must propose one. Preferring staff over donor and missionary rows is selection, not authorization: it matches the order `derivePrimaryRole` already uses, and the chosen hat still has to pass the PDP and its grants. That one comparison lives in `pickDefaultAssignment` on the single line marked `// authz-exempt: default-selection`, which the names-never-authorize scan allows nowhere else.
+There is no default between classes: a staff row is never preferred over a donor or missionary row, because the surface fixes the class. Nor does the resolver rank staff sub-roles: a person with two staff rows in one tenant is refused until WP2b's chooser proposes one. It never picks a tenant: until WP2b carries the tenant in the page address, a person whose rows of the class span two tenants is refused, and the donor portal therefore refuses a person with donor memberships in two tenants until WP3 resolves the portal host.
 
-`resolveActivePrincipal(session, proposedAssignmentId, reader)` wraps the resolver with #669's signature. It returns a `HumanPrincipal` or throws `PrincipalDeniedError` with the deny `reason`.
+`resolveActivePrincipal(session, roleClass, proposedAssignmentId, reader)` wraps the resolver. It returns a `HumanPrincipal` or throws `PrincipalDeniedError` with the deny `reason`.
 
 ### Reader and RPC
 
 `createRpcAssignmentReader(client)` is the only reader. It takes a user-JWT client, calls `public.current_user_assignments()` with no arguments, and throws on an error or a non-array result. It never uses an admin client or a service-role key.
 
-The RPC (`20261025120700_current_user_assignments_rpc.sql`) is `SECURITY INVOKER`, `STABLE` and `SET search_path = ''`, with no parameters. It returns `id, user_id, tenant_id, role, staff_role, updated_at` for `authz.memberships` rows where `user_id = auth.uid()` and `is_active`, so the existing "select own" policy and grants bound it as well. Its EXECUTE grants are revoked by name from `PUBLIC`, `anon`, `authenticated` and `service_role`, then granted to `authenticated` only (see `docs/security/function-execute-grants.md`). `public.current_user_memberships(uuid)` is unchanged.
+The RPC is `SECURITY INVOKER`, `STABLE` and `SET search_path = ''`, with no parameters. It returns `id, user_id, tenant_id, role, staff_role, is_tenant_admin, updated_at` for `authz.memberships` rows where `user_id = auth.uid()` and `is_active`, so the existing "select own" policy and grants bound it as well. Its EXECUTE grants are revoked by name from `PUBLIC`, `anon`, `authenticated` and `service_role`, then granted to `authenticated` only (see `docs/security/function-execute-grants.md`). It was created by `20261025120700_current_user_assignments_rpc.sql` and gained the flag in `20261117065007_membership_lifecycle_and_tenant_admin_flag.sql`, which also added it to `public.current_user_memberships(uuid)`.
 
-### What this slice does not do
+### The membership row since AL-2675
 
-- **No persisted hat.** No table, column or setting stores the active assignment. It is validated per request.
+- `granted_by` and `revoked_at`. A row is live exactly when it is active and unrevoked: revoking sets `revoked_at` and `is_active = false` together, and granting a role held before revives the same row. A trigger keeps that rule for every writer, and a check constraint pins it.
+- `is_tenant_admin`, the tenant-administrator flag, only on a staff row. It reaches the registry as the `tenant_admin` grant, and `hasRole(…, "admin")` is true only for a staff membership that carries it.
+- `authz.assignment_capabilities(assignment_id)` is the database's copy of the registry's bundle mapping and judges one live row alone. `tenant_guard.begin_human_command(tenant, capability)` refuses a command whose selected row lacks the capability.
+- `public.tenant_member_directory(tenant)` returns display name and role for the live members of a tenant, to a caller whose selected live staff row is there.
+
+### What this does not do yet
+
+- **No persisted assignment.** No table, column or setting stores the active assignment. It is validated per request.
 - **No fire-time re-check.** Re-validating a deferred member action's assignment when it fires is #2259.
-- **No wiring and no tenant plumbing.** A later wired caller passes `ActiveAssignment.tenantId` to #2250's `withTenant(tenantId, fn)`, and `assignmentId` to #2289's assignment-bound grant RPC and to #2287's `current_governance_version(p_assignment_id)` (criterion 23). This slice makes none of those calls.
-- **Slice (b) / #668 item 4 boundary.** Removing the super_admin demo-tenant synthesis in `packages/auth/context.ts` and retiring the `member_care` backfill in `20260226113000_authz_memberships_foundation.sql` belong to #669 slice (b) and #668 item 4, which need their own ruling. This slice touches neither.
+- **No tenant in the address and no chooser.** WP2b carries the tenant in the page address and the assignment header from the browser, and lets a person with several staff rows choose one.
 
 ## Key files
 
@@ -135,4 +142,5 @@ The RPC (`20261025120700_current_user_assignments_rpc.sql`) is `SECURITY INVOKER
 - `packages/auth/permissions.ts`
 - `packages/auth/context.ts`
 - `packages/auth/middleware.ts`
-- `packages/api/src/principal/` (preparation, unwired) and `supabase/migrations/20261025120700_current_user_assignments_rpc.sql`
+- `packages/auth/principal/` (the resolver; `packages/api/src/principal/` re-exports it), `supabase/migrations/20261025120700_current_user_assignments_rpc.sql` and `supabase/migrations/20261117065007_membership_lifecycle_and_tenant_admin_flag.sql`
+- `packages/auth/capabilities/` and `supabase/migrations/20261117065016_assignment_capability_function.sql`

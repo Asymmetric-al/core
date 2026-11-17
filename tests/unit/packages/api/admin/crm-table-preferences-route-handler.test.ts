@@ -77,8 +77,17 @@ vi.mock("@asym/auth/context", () => {
     tenantId: AUTH_TENANT_ID,
     profileId: AUTH_PROFILE_ID,
     role: "admin",
-    profileRole: "admin",
-    memberships: [],
+    profileRole: null,
+    // AL-2675: an administrator is a flagged staff membership.
+    memberships: [
+      {
+        tenantId: AUTH_TENANT_ID,
+        role: "staff",
+        staffRole: "development",
+        isActive: true,
+        isTenantAdmin: true,
+      },
+    ],
   };
   return {
     getAuthContext: async () => auth,

@@ -6,103 +6,96 @@ import {
   hasRole,
   hasStaffSubrole,
   STAFF_SUBROLE_CAPABILITIES,
+  type AuthMembership,
   type RoleSnapshot,
 } from "../../../packages/auth/permissions";
 
-function createSnapshot(overrides: Partial<RoleSnapshot> = {}): RoleSnapshot {
+function membership(overrides: Partial<AuthMembership> = {}): AuthMembership {
   return {
-    profileRole: null,
-    memberships: [],
+    isActive: true,
+    role: "staff",
+    staffRole: "finance",
+    tenantId: "tenant_1",
+    isTenantAdmin: false,
     ...overrides,
   };
 }
 
-describe("auth permissions foundation", () => {
-  it("grants donor role via membership even when profile role is staff", () => {
-    const snapshot = createSnapshot({
-      profileRole: "staff",
-      memberships: [
-        {
-          isActive: true,
-          role: "donor",
-          staffRole: null,
-          tenantId: "tenant_1",
-        },
-      ],
-    });
+function createSnapshot(memberships: AuthMembership[] = []): RoleSnapshot {
+  return { memberships };
+}
+
+describe("auth permissions: membership is the only authority (AL-2675)", () => {
+  it("grants donor role via a donor membership", () => {
+    const snapshot = createSnapshot([
+      membership({ role: "donor", staffRole: null }),
+    ]);
 
     expect(hasRole(snapshot, "donor")).toBe(true);
+    expect(hasRole(snapshot, "staff")).toBe(false);
   });
 
-  it("derives primary role as staff when staff membership exists", () => {
-    const snapshot = createSnapshot({
-      profileRole: "admin",
-      memberships: [
-        {
-          isActive: true,
-          role: "staff",
-          staffRole: "finance",
-          tenantId: "tenant_1",
-        },
-      ],
-    });
+  it("derives primary role as staff for a staff membership without the flag", () => {
+    const snapshot = createSnapshot([membership()]);
 
     expect(derivePrimaryRole(snapshot)).toBe("staff");
+    expect(hasRole(snapshot, "staff")).toBe(true);
+    expect(hasRole(snapshot, "admin")).toBe(false);
   });
 
-  it("falls back to legacy admin profile role when membership data is unavailable", () => {
-    const snapshot = createSnapshot({
-      profileRole: "admin",
-      memberships: [
-        {
-          isActive: false,
-          role: "staff",
-          staffRole: "finance",
-          tenantId: "tenant_1",
-        },
-      ],
-    });
+  it("derives primary role as admin for a staff membership with the tenant-administrator flag (A06)", () => {
+    const snapshot = createSnapshot([membership({ isTenantAdmin: true })]);
 
-    expect(hasRole(snapshot, "staff")).toBe(true);
     expect(hasRole(snapshot, "admin")).toBe(true);
+    expect(hasRole(snapshot, "staff")).toBe(true);
     expect(derivePrimaryRole(snapshot)).toBe("admin");
   });
 
-  it("preserves super admin access without memberships", () => {
-    const snapshot = createSnapshot({
-      profileRole: "super_admin",
-    });
+  // The test that asserted the profile-role fallback ("falls back to legacy
+  // admin profile role when membership data is unavailable"), inverted: an
+  // inactive membership grants nothing, and no profile role exists to fall
+  // back on (A03).
+  it("does not fall back to a profile role: an inactive staff membership grants nothing", () => {
+    const snapshot = {
+      profileRole: "admin",
+      memberships: [membership({ isActive: false, isTenantAdmin: true })],
+    } as RoleSnapshot;
 
-    expect(hasRole(snapshot, "super_admin")).toBe(true);
-    expect(hasRole(snapshot, "admin")).toBe(true);
-    expect(hasRole(snapshot, "staff")).toBe(true);
-    expect(derivePrimaryRole(snapshot)).toBe("super_admin");
+    expect(hasRole(snapshot, "staff")).toBe(false);
+    expect(hasRole(snapshot, "admin")).toBe(false);
+    expect(derivePrimaryRole(snapshot)).toBeNull();
+  });
+
+  it("gives super_admin nothing: platform operators are not a membership role", () => {
+    const snapshot = {
+      profileRole: "super_admin",
+      memberships: [],
+    } as RoleSnapshot;
+
+    expect(hasRole(snapshot, "super_admin")).toBe(false);
+    expect(hasRole(snapshot, "admin")).toBe(false);
+    expect(hasRole(snapshot, "staff")).toBe(false);
+    expect(derivePrimaryRole(snapshot)).toBeNull();
+  });
+
+  it("never treats the flag on an inactive row as administration", () => {
+    expect(
+      hasRole(
+        createSnapshot([
+          membership({ isActive: false, isTenantAdmin: true }),
+          membership({ staffRole: "hr" }),
+        ]),
+        "admin",
+      ),
+    ).toBe(false);
   });
 
   it("supports one-login multi-dashboard access by membership", () => {
-    const snapshot = createSnapshot({
-      profileRole: "donor",
-      memberships: [
-        {
-          isActive: true,
-          role: "donor",
-          staffRole: null,
-          tenantId: "tenant_1",
-        },
-        {
-          isActive: true,
-          role: "missionary",
-          staffRole: null,
-          tenantId: "tenant_1",
-        },
-        {
-          isActive: true,
-          role: "staff",
-          staffRole: "member_care",
-          tenantId: "tenant_1",
-        },
-      ],
-    });
+    const snapshot = createSnapshot([
+      membership({ role: "donor", staffRole: null }),
+      membership({ role: "missionary", staffRole: null }),
+      membership({ staffRole: "member_care" }),
+    ]);
 
     expect(canAccessDashboard(snapshot, "donor_portal")).toBe(true);
     expect(canAccessDashboard(snapshot, "missionary_dashboard")).toBe(true);
@@ -110,18 +103,10 @@ describe("auth permissions foundation", () => {
   });
 
   it("keeps all staff subroles on full admin capabilities for MVP", () => {
-    const snapshot = createSnapshot({
-      memberships: [
-        {
-          isActive: true,
-          role: "staff",
-          staffRole: "mobilizer",
-          tenantId: "tenant_1",
-        },
-      ],
-    });
+    const snapshot = createSnapshot([membership({ staffRole: "mobilizer" })]);
 
     expect(hasStaffSubrole(snapshot, "mobilizer")).toBe(true);
+    expect(hasStaffSubrole(snapshot, "finance")).toBe(false);
     expect(STAFF_SUBROLE_CAPABILITIES.finance).toContain(
       "admin.dashboard.access",
     );

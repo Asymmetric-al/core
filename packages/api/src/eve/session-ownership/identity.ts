@@ -134,10 +134,7 @@ export function createAdminEveSessionIdentity(
   }
 
   if (
-    !hasAnyRole(
-      { profileRole: auth.profileRole, memberships: auth.memberships },
-      ["admin", "super_admin"],
-    )
+    !hasAnyRole({ memberships: auth.memberships }, ["admin", "super_admin"])
   ) {
     return { ok: false, reason: "forbidden" };
   }

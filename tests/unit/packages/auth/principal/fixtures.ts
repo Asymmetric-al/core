@@ -2,7 +2,7 @@ import type {
   ActiveAssignment,
   AssignmentReader,
   AssignmentRow,
-} from "../../../../../packages/api/src/principal/types";
+} from "../../../../../packages/auth/principal/types";
 
 /** Fixed ids so failures read clearly. */
 export const id = (n: number) =>
@@ -19,6 +19,7 @@ export function row(
   role: "donor" | "missionary" | "staff",
   staff: string | null = null,
   user = U1,
+  isTenantAdmin = false,
 ): AssignmentRow {
   next += 1;
   return {
@@ -27,6 +28,7 @@ export function row(
     tenant_id: tenant,
     role,
     staff_role: staff,
+    is_tenant_admin: isTenantAdmin,
     updated_at: `2026-10-26T15:00:00.${String(next).padStart(6, "0")}+00:00`,
   };
 }
@@ -39,6 +41,7 @@ export function asAssignment(r: AssignmentRow): ActiveAssignment {
     revision: r.updated_at,
     membershipRole: r.role as ActiveAssignment["membershipRole"],
     staffRole: r.staff_role as ActiveAssignment["staffRole"],
+    isTenantAdmin: r.is_tenant_admin,
   };
 }
 

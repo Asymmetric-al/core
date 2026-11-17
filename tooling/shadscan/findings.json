@@ -616,7 +616,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "ed37543dec722397e33577c457dbe80048cf64b2a50778f427266592e9938b78"
+          "sha256": "b40b76ae64efc7e5a9428e554be72d279997757393321e90c0ee6662f1b4cc11"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
@@ -653,7 +653,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "ed37543dec722397e33577c457dbe80048cf64b2a50778f427266592e9938b78"
+          "sha256": "b40b76ae64efc7e5a9428e554be72d279997757393321e90c0ee6662f1b4cc11"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
@@ -813,7 +813,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "ed37543dec722397e33577c457dbe80048cf64b2a50778f427266592e9938b78"
+          "sha256": "b40b76ae64efc7e5a9428e554be72d279997757393321e90c0ee6662f1b4cc11"
         },
         {
           "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
@@ -1197,7 +1197,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1237,7 +1237,7 @@
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "cbdd8fde9bc5f40023e4234cb5853f72ff786789f3ce12a77d09a72b8515d951"
+          "sha256": "4547498558c6888eb6404f49002fcffa675cf0b3b243ac8ad1092a304aa79a83"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
@@ -1259,7 +1259,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1299,7 +1299,7 @@
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "cbdd8fde9bc5f40023e4234cb5853f72ff786789f3ce12a77d09a72b8515d951"
+          "sha256": "4547498558c6888eb6404f49002fcffa675cf0b3b243ac8ad1092a304aa79a83"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
@@ -1541,7 +1541,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1559,7 +1559,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         }
       ]
     },
@@ -1572,7 +1572,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1592,7 +1592,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1620,7 +1620,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "1d54e3b303f8da6fc735052231fd0d17c070a22f4f8dbac365d80d98133c8519"
+          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1649,7 +1649,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1666,7 +1666,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1683,7 +1683,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1700,7 +1700,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1717,7 +1717,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1734,7 +1734,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1751,7 +1751,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1768,7 +1768,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },
@@ -1785,7 +1785,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "a93dcf13dced9b1d4241142489cf71b392de20f38ad9816db97e60b275a8340b"
+          "sha256": "b6239d3796bfc93597e535834b58855572823b32a31757ddd87ab78de95a2c5d"
         }
       ]
     },

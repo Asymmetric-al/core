@@ -22,7 +22,9 @@ export const proxy = createAuthMiddleware({
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
   unauthorizedRedirectTo: "/no-access",
-  allowedRoles: ["staff", "admin", "super_admin"],
+  // Mission Control and Web Studio act on staff rows (plan 5.1).
+  roleClass: "staff",
+  allowedRoles: ["staff", "admin"],
   resolveUserRole: resolveUserRoleFromDatabase,
 });
 

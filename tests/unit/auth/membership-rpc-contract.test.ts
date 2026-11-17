@@ -34,16 +34,29 @@ describe("edge membership read stays inside the Data API", () => {
     expect(schemas).not.toContain('"authz"');
   });
 
-  it("keeps the resolver off unexposed schemas", () => {
-    const source = read("packages/auth/resolve-user-role.ts").replace(
-      /\/\*[\s\S]*?\*\//g,
-      "",
+  it("keeps the resolvers off unexposed schemas", () => {
+    // AL-2675: the proxies' role check, the request's auth context and Web
+    // Studio's strategy all resolve through the principal resolver, whose one
+    // reader calls the assignments RPC. `.schema("authz")` in any of them
+    // returns PGRST106, which a resolver turns into "no role": a lockout.
+    for (const file of [
+      "packages/auth/resolve-user-role.ts",
+      "packages/auth/context.ts",
+      "packages/auth/principal/reader.ts",
+      "apps/admin/src/cms/auth/supabase-strategy.ts",
+    ]) {
+      const source = read(file).replace(/\/\*[\s\S]*?\*\//g, "");
+      expect(source, file).not.toMatch(/\.schema\(/);
+    }
+    for (const file of [
+      "packages/auth/resolve-user-role.ts",
+      "packages/auth/context.ts",
+      "apps/admin/src/cms/auth/supabase-strategy.ts",
+    ])
+      expect(read(file), file).toMatch(/createRpcAssignmentReader\(/);
+    expect(read("packages/auth/principal/reader.ts")).toMatch(
+      /\.rpc\("current_user_assignments"\)/,
     );
-
-    // `.schema("authz")` here returns PGRST106, which the resolver turns into
-    // `null` -- indistinguishable from "no role", i.e. a lockout.
-    expect(source).not.toMatch(/\.schema\(/);
-    expect(source).toMatch(/\.rpc\("current_user_memberships"/);
   });
 
   it("ships the RPC the resolver calls, callable by signed-in users", () => {

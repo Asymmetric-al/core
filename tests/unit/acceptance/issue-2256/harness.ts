@@ -54,10 +54,16 @@ export const NEW_ROWS = SEAMS.flatMap(([record_type]) =>
 /**
  * §1.3 / criterion 6 frozen reader set: proname -> prosecdef. 13 readers
  * (9 DEFINER, 4 INVOKER) plus the matched writer `handle_new_user`.
+ *
+ * Amended by AL-2675 (WP2a; plan WP2a paragraph, NR-49): the two contribution
+ * trigger functions test membership instead of `profiles.tenant_id` and leave
+ * the set. The member directory, `tenant_member_directory`, reads profiles
+ * beside `authz.memberships.tenant_id`, not the profile's tenant, and the
+ * lexical scan of criterion 6 matches it. `handle_new_user` now writes NULL
+ * there.
  */
 export const READER_FUNCTIONS: Record<string, boolean> = {
-  enforce_contribution_operation_tenant_refs: true,
-  enforce_contribution_notification_tenant_refs: true,
+  tenant_member_directory: true,
   assert_eve_retention_actor: true,
   assert_eve_admin_memory_owner: true,
   validate_eve_notification_recipient: true,
@@ -81,13 +87,14 @@ export const READER_POLICIES = [
   "storage.objects profiles owner folder insert",
   "storage.objects profiles owner folder update",
 ];
-/** §1.3 app rows (files). */
+/**
+ * §1.3 app rows (files). Amended by AL-2675 (WP2a; NR-20, A08): the auth
+ * context, the proxies' role resolver and the Payload strategy resolve the
+ * caller's membership and no longer read the profile's tenant.
+ */
 export const READER_APPS = [
-  "apps/admin/src/cms/auth/supabase-strategy.ts",
   "packages/api/src/eve/admin-memory/route.ts",
   "packages/api/src/posts/reaction-route-utils.ts",
-  "packages/auth/context.ts",
-  "packages/auth/resolve-user-role.ts",
   "packages/ui/hooks/retained-draft.tsx",
 ];
 

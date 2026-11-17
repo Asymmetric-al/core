@@ -114,21 +114,37 @@ describe("requireAdminAccess", () => {
     expect(await expectRedirect("/")).toBe("/no-access");
   });
 
-  it.each(["staff", "admin", "super_admin"])(
-    "admits a %s user with a tenant",
+  it.each(["staff", "admin"])(
+    "admits a %s user with a tenant, resolving the staff class",
     async (role) => {
       getAuthContextMock.mockResolvedValue({
         isAuthenticated: true,
         userId: "user_1",
         tenantId: "tenant_1",
         role,
-        profileRole: role,
+        profileRole: null,
       });
 
       await expect(requireAdminAccess("/crm")).resolves.toMatchObject({
         tenantId: "tenant_1",
         userId: "user_1",
       });
+      // AL-2675: Mission Control acts on the caller's one staff row.
+      expect(getAuthContextMock).toHaveBeenCalledWith(undefined, {
+        roleClass: "staff",
+      });
     },
   );
+
+  it("refuses a super_admin role name: platform operators are not a membership role (AL-2675)", async () => {
+    getAuthContextMock.mockResolvedValue({
+      isAuthenticated: true,
+      userId: "user_1",
+      tenantId: "tenant_1",
+      role: "super_admin",
+      profileRole: "super_admin",
+    });
+
+    expect(await expectRedirect("/crm")).toBe("/no-access");
+  });
 });
