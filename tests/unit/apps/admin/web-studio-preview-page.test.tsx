@@ -1,14 +1,26 @@
 // @vitest-environment jsdom
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PreviewPage, * as previewPage from "../../../../apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page";
 import { createPageLayoutField } from "../../../../apps/admin/src/cms/collections/page-builders";
-import { PUBLIC_BLOCK_TYPES } from "../../../../packages/ui/components/public/blocks";
+import {
+  PUBLIC_BLOCK_TYPES,
+  renderPublicBlocks,
+} from "../../../../packages/ui/components/public/blocks";
+
+import type * as BlocksModule from "../../../../packages/ui/components/public/blocks";
+
+// The real registry, observed: the page must hand it the stored layout and
+// render nothing of its own for a block (council round 2, B7).
+vi.mock(
+  "../../../../packages/ui/components/public/blocks",
+  async (importOriginal) => {
+    const actual = await importOriginal<typeof BlocksModule>();
+    return { ...actual, renderPublicBlocks: vi.fn(actual.renderPublicBlocks) };
+  },
+);
 
 const fixture = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -123,15 +135,6 @@ const FILLED_BLOCKS: Record<string, { block: object; expectText: string[] }> = {
     expectText: ["“Testimonial quote”", "Testimonial attribution"],
   },
 };
-
-// jsdom gives this module a non-file URL, so resolve from the repository root.
-const previewPageSource = readFileSync(
-  resolve(
-    process.cwd(),
-    "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-  ),
-  "utf8",
-);
 
 beforeEach(() => {
   fixture.auth.mockResolvedValue({ user: fixture.user });
@@ -255,11 +258,43 @@ describe("Web Studio private preview page", () => {
     expect(screen.queryByText(/no previewable rich-text or layout/)).toBeNull();
   });
 
-  it("declares no block type of its own: the registry is the only list", () => {
-    expect(previewPageSource).not.toMatch(/blockType/);
-    for (const type of PUBLIC_BLOCK_TYPES) {
-      expect(previewPageSource).not.toContain(`"${type}"`);
+  it("declares no block type of its own: the registry is the only list", async () => {
+    const layout = [
+      ...Object.values(FILLED_BLOCKS).map(({ block }) => block),
+      { blockType: "carousel", headline: "Unknown type" },
+    ];
+    fixture.findByID.mockResolvedValue({
+      id: "page-1",
+      title: "Every block",
+      _status: "draft",
+      layout,
+    });
+    const registry = vi.mocked(renderPublicBlocks);
+
+    // The page hands the registry every stored block, in order, unknown
+    // types included: it filters and dispatches nothing itself.
+    await renderPreview();
+    expect(registry).toHaveBeenCalledTimes(1);
+    const handed = registry.mock.calls[0]?.[0] as Array<{ blockType: string }>;
+    expect(handed.map((block) => block.blockType)).toEqual(
+      layout.map((block) => (block as { blockType: string }).blockType),
+    );
+    cleanup();
+
+    // With a registry that renders nothing, the page shows no block at all:
+    // no block type has a second renderer in the page.
+    registry.mockReturnValueOnce([]);
+    await renderPreview();
+    for (const { expectText } of Object.values(FILLED_BLOCKS)) {
+      for (const text of expectText) {
+        expect(screen.queryByText(text), text).toBeNull();
+      }
     }
+    expect(
+      screen.getByText(
+        "This draft has no previewable rich-text or layout content yet.",
+      ),
+    ).toBeTruthy();
   });
 
   it("says so when a draft has no previewable content", async () => {
