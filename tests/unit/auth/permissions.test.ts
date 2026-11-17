@@ -56,6 +56,7 @@ describe("auth permissions: membership is the only authority (AL-2675)", () => {
   // inactive membership grants nothing, and no profile role exists to fall
   // back on (A03).
   it("does not fall back to a profile role: an inactive staff membership grants nothing", () => {
+    // A smuggled profile role is ignored: the snapshot type has none.
     const snapshot = {
       profileRole: "admin",
       memberships: [membership({ isActive: false, isTenantAdmin: true })],

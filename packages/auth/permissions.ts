@@ -74,6 +74,38 @@ function liveMemberships(snapshot: RoleSnapshot, role: MembershipRole) {
  * - `super_admin` and every other name: never. Platform operators are not a
  *   membership role; WP2c gives them their own list.
  */
+/**
+ * Whether a live membership of `roleClass` in `tenantId` is among
+ * `memberships` (AL-2675). Pure, so runtimes without a request scope can use
+ * it; `@asym/auth/context` wraps it for a context.
+ */
+export function hasMembershipClass(
+  memberships: readonly AuthMembership[],
+  tenantId: string | null,
+  roleClass: MembershipRole,
+): boolean {
+  return memberships.some(
+    (membership) =>
+      membership.isActive &&
+      membership.tenantId === tenantId &&
+      membership.role === roleClass,
+  );
+}
+
+/** Whether the live staff row of `tenantId` carries the tenant-administrator flag (AL-2675). */
+export function hasTenantAdministratorMembership(
+  memberships: readonly AuthMembership[],
+  tenantId: string | null,
+): boolean {
+  return memberships.some(
+    (membership) =>
+      membership.isActive &&
+      membership.tenantId === tenantId &&
+      membership.role === "staff" &&
+      membership.isTenantAdmin === true,
+  );
+}
+
 export function hasRole(snapshot: RoleSnapshot, role: UserRole): boolean {
   if (role === "admin") {
     return liveMemberships(snapshot, "staff").some(

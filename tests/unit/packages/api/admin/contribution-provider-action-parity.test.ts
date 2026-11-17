@@ -38,7 +38,6 @@ function persona(input: { name: string; role: string; staffRole?: string }): {
       email: "person@example.com",
       tenantId: TENANT_ID,
       role: input.role,
-      profileRole: input.role,
       memberships,
       profileId: "00000000-0000-4000-8000-000000000002",
       isAuthenticated: true,

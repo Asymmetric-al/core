@@ -24,7 +24,6 @@ const verifiedAdmin = {
   email: "admin@example.com",
   tenantId: TENANT_ID,
   role: "admin",
-  profileRole: null,
   // AL-2675: an administrator is a staff membership with the
   // tenant-administrator flag; the profile role carries no authority.
   memberships: [
@@ -213,16 +212,11 @@ describe("Eve admin auth and session ownership", () => {
     ).toBeNull();
   });
 
-  // AL-2675 inverts the old rule: an `admin` or `staff` profile role with a
-  // donor or missionary membership no longer authorizes an admin session.
-  it.each([
-    ["admin", "donor"],
-    ["admin", "missionary"],
-    ["staff", "donor"],
-    ["staff", "missionary"],
-  ] as const)(
-    "refuses a %s profile whose membership is %s",
-    (profileRole, membershipRole) => {
+  // AL-2675: the context carries no profile role, and a primary role name
+  // does not authorize an admin session without the flagged staff row.
+  it.each(["donor", "missionary"] as const)(
+    "refuses a %s membership even when the role name says admin",
+    (membershipRole) => {
       expect(
         createAdminEveSessionIdentity({
           ...verifiedAdmin,
@@ -234,54 +228,48 @@ describe("Eve admin auth and session ownership", () => {
               tenantId: TENANT_ID,
             },
           ],
-          profileRole,
-          role: membershipRole,
+          role: "admin",
         }),
       ).toEqual({ ok: false, reason: "forbidden" });
     },
   );
 
   // AL-2675: administrator means the flag, so a staff row without it is not
-  // an admin session; the same row with it is, whatever the profile says.
-  it.each(["donor", "missionary"] as const)(
-    "admits a staff row for a %s profile only when it carries the flag",
-    (profileRole) => {
-      const staffRow = {
-        isActive: true,
-        role: "staff" as const,
-        staffRole: "mobilizer" as const,
-        tenantId: TENANT_ID,
-      };
-      expect(
-        createAdminEveSessionIdentity({
-          ...verifiedAdmin,
-          memberships: [{ ...staffRow, isTenantAdmin: false }],
-          profileRole,
-          role: "staff",
-        }),
-      ).toEqual({ ok: false, reason: "forbidden" });
-
-      const result = createAdminEveSessionIdentity({
+  // an admin session; the same row with it is.
+  it("admits a staff row only when it carries the flag", () => {
+    const staffRow = {
+      isActive: true,
+      role: "staff" as const,
+      staffRole: "mobilizer" as const,
+      tenantId: TENANT_ID,
+    };
+    expect(
+      createAdminEveSessionIdentity({
         ...verifiedAdmin,
-        memberships: [{ ...staffRow, isTenantAdmin: true }],
-        profileRole,
-        role: "admin",
-      });
-      if (!result.ok) throw new Error("expected flagged staff identity");
+        memberships: [{ ...staffRow, isTenantAdmin: false }],
+        role: "staff",
+      }),
+    ).toEqual({ ok: false, reason: "forbidden" });
 
-      const snapshot = toEveSessionAuthSnapshot(result.identity);
+    const result = createAdminEveSessionIdentity({
+      ...verifiedAdmin,
+      memberships: [{ ...staffRow, isTenantAdmin: true }],
+      role: "admin",
+    });
+    if (!result.ok) throw new Error("expected flagged staff identity");
 
-      expect(snapshot.attributes).toMatchObject({
-        membershipRoles: ["staff"],
-        profileRole,
-        role: "admin",
-        tenantAdmin: "true",
-      });
-      expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
-        result.identity,
-      );
-    },
-  );
+    const snapshot = toEveSessionAuthSnapshot(result.identity);
+
+    expect(snapshot.attributes).toMatchObject({
+      membershipRoles: ["staff"],
+      role: "admin",
+      tenantAdmin: "true",
+    });
+    expect(snapshot.attributes).not.toHaveProperty("profileRole");
+    expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
+      result.identity,
+    );
+  });
 
   it("extracts ownership targets only from Eve session route paths", () => {
     expect(

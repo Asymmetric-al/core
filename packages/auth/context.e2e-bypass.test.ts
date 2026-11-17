@@ -106,8 +106,8 @@ describe("getAuthContext E2E bypass", () => {
     expect(ctx.userId).toBe("e2e-donor-user");
     expect(ctx.role).toBe("donor");
     // AL-2675: a bypass identity acts under a membership built from its
-    // cookie's role; no profile role exists any more.
-    expect(ctx.profileRole).toBeNull();
+    // cookie's role; the context has no profile role at all.
+    expect("profileRole" in ctx).toBe(false);
     expect(ctx.memberships).toEqual([
       {
         tenantId: DEMO_TENANT_ID,

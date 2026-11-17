@@ -83,7 +83,6 @@ function ctxFor(actor: Actor): AuthModule.AuthContext {
     profileId: "33333333-3333-4333-8333-333333333333",
     email: "caller@example.test",
     role,
-    profileRole: null,
     // AL-2675: authority is the membership the request acts under. A
     // super_admin acts under the flagged staff row the backfill gives it in its
     // tenant (the demo tenant when its profile had none).

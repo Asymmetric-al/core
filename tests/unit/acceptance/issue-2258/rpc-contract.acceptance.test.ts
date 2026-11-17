@@ -551,6 +551,9 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
       ),
     ).toEqual([
       "apps/admin/src/cms/auth/supabase-strategy.ts",
+      // The WP2a sweep (AL-2675): the sign-in callback lands a person on the
+      // home of a live membership class, read through the same reader.
+      "packages/api/src/auth/callback.ts",
       "packages/auth/context.ts",
       "packages/auth/middleware.ts",
       "packages/auth/request-headers.ts",

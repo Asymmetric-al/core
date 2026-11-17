@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 
 import { ApiHttpError } from "../../../../../packages/api/src/shared/http-errors";
 
@@ -16,10 +17,15 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireAuth: requireAuthMock,
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -85,8 +91,8 @@ describe("mission control automation POST route", () => {
       email: "admin@example.com",
       tenantId: "tenant_1",
       role: "admin",
-      profileRole: "admin",
-      memberships: [],
+      // AL-2675: an administrator is the flagged staff row.
+      memberships: membershipsForRole("admin", "tenant_1"),
       profileId: "profile_1",
       isAuthenticated: true,
     });

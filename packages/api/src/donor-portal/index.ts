@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { isE2EAuthBypassEnabled } from "@asym/auth/e2e-auth";
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     void request.headers.get("cookie");
 
     const authContext = await getAuthContext(request);
-    requireRole(authContext, ["donor"]);
+    requireRoleClass(authContext, ["donor"]);
     const auth = authContext as AuthenticatedContext;
 
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
@@ -182,5 +182,5 @@ export const PATCH = withOperation(
 
     return NextResponse.json({ portal });
   },
-  { roles: ["donor"] },
+  { roleClasses: ["donor"] },
 );

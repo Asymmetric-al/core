@@ -11,6 +11,11 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: mocks.auth,
   requireRole: mocks.role,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: mocks.role,
+  requireTenantAdministrator: mocks.role,
+  requireRoleClass: mocks.role,
+  requireAuth: () => undefined,
 }));
 import { GET as posts } from "../../../../packages/api/src/admin/posts/index";
 import { GET as comments } from "../../../../packages/api/src/admin/comments/index";

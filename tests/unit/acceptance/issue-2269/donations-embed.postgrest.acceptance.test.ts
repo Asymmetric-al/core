@@ -161,7 +161,6 @@ const as = (profileId: string, role: string): AuthContext =>
     email: null,
     tenantId: TA,
     role,
-    profileRole: null,
     // AL-2675: the role is read from the membership the request acts under.
     memberships: membershipsForRole(role, TA),
     profileId,

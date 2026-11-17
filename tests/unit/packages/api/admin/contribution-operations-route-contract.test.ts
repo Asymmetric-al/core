@@ -189,7 +189,9 @@ describe("admin/contribution-operations route contract", () => {
       '"content-disposition": `attachment; filename="${safeFilename}"`',
     );
     expect(pdfSection).toContain('"content-type": rendered.contentType');
-    expect(pdfSection).toContain('roles: ["staff", "admin", "super_admin"]');
+    // AL-2675: the outer gate is the registry's gifts capability; the
+    // receipt capability is checked inside.
+    expect(pdfSection).toContain('capability: "admin.gifts.manage"');
   });
 });
 

@@ -39,8 +39,13 @@ const USER = {
   created_at: "2026-10-07T00:00:00Z",
 };
 
+/**
+ * AL-2675: the callback lands a person on the home of a live membership
+ * class, read through `current_user_assignments`; it never reads
+ * `profiles.role`, so a profiles request fails the test.
+ */
 function fakeAuthFetch(
-  options: { rejectExchange?: boolean; role?: string } = {},
+  options: { rejectExchange?: boolean; classes?: string[] } = {},
 ) {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = input instanceof Request ? input.url : input.toString();
@@ -59,8 +64,18 @@ function fakeAuthFetch(
       );
     }
     if (url.endsWith("/auth/v1/user")) return Response.json(USER);
-    if (url.includes("/rest/v1/profiles")) {
-      return Response.json({ role: options.role ?? "donor" });
+    if (url.includes("/rest/v1/rpc/current_user_assignments")) {
+      return Response.json(
+        (options.classes ?? ["donor"]).map((role, index) => ({
+          id: `00000000-0000-4000-8000-00000000000${index}`,
+          user_id: USER.id,
+          tenant_id: "00000000-0000-0000-0000-000000000001",
+          role,
+          staff_role: role === "staff" ? "development" : null,
+          is_tenant_admin: false,
+          updated_at: "2026-11-17T00:00:00Z",
+        })),
+      );
     }
     throw new Error(`Unexpected fake auth request: ${url}`);
   });
@@ -115,7 +130,7 @@ describe("Supabase auth callback redirects", () => {
   ])(
     "keeps the fallback destination safe and private for next=%s",
     async (next, destination) => {
-      vi.stubGlobal("fetch", fakeAuthFetch({ role: "unmapped-role" }));
+      vi.stubGlobal("fetch", fakeAuthFetch({ classes: [] }));
 
       const response = await GET(
         new Request(
@@ -130,6 +145,27 @@ describe("Supabase auth callback redirects", () => {
       expect(response.headers.get("pragma")).toBe("no-cache");
     },
   );
+
+  it("lands on the app's own class when the person holds it, else the first by precedence (AL-2675)", async () => {
+    vi.stubGlobal("fetch", fakeAuthFetch({ classes: ["staff", "donor"] }));
+    const own = await GET(
+      new Request("https://donor.example/auth/callback?code=fixture-code", {
+        headers: { "x-asym-role-class": "donor" },
+      }),
+    );
+    expect(own.headers.get("location")).toBe(
+      "https://donor.example/donor-dashboard",
+    );
+
+    fixture.cookies.set(
+      "sb-callback-fixture-auth-token-code-verifier",
+      JSON.stringify("fixture-code-verifier"),
+    );
+    const fallback = await GET(
+      new Request("https://donor.example/auth/callback?code=fixture-code"),
+    );
+    expect(fallback.headers.get("location")).toBe("https://donor.example/");
+  });
 
   it("keeps a rejected exchange private without issuing session cookies", async () => {
     vi.stubGlobal("fetch", fakeAuthFetch({ rejectExchange: true }));

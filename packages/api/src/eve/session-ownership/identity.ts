@@ -1,4 +1,4 @@
-import { hasAnyRole } from "@asym/auth/permissions";
+import { hasTenantAdministratorMembership } from "@asym/auth/permissions";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { z } from "zod";
@@ -36,7 +36,6 @@ function createUnauthenticatedContext(): AuthContext {
     isAuthenticated: false,
     memberships: [],
     profileId: null,
-    profileRole: null,
     role: null,
     tenantId: null,
     userId: null,
@@ -146,9 +145,8 @@ export function createAdminEveSessionIdentity(
     return { ok: false, reason: "unauthenticated" };
   }
 
-  if (
-    !hasAnyRole({ memberships: auth.memberships }, ["admin", "super_admin"])
-  ) {
+  // AL-2675: an admin session is the tenant administrator's.
+  if (!hasTenantAdministratorMembership(auth.memberships, auth.tenantId)) {
     return { ok: false, reason: "forbidden" };
   }
 
@@ -156,17 +154,11 @@ export function createAdminEveSessionIdentity(
     ok: true,
     identity: {
       actorId: auth.userId,
-      actorIsTenantAdmin: auth.memberships.some(
-        (membership) =>
-          membership.isActive &&
-          membership.role === "staff" &&
-          membership.isTenantAdmin === true,
-      ),
+      actorIsTenantAdmin: true,
       actorMembershipRoles: auth.memberships
         .filter((membership) => membership.isActive)
         .map((membership) => membership.role),
       actorProfileId: auth.profileId,
-      actorProfileRole: auth.profileRole,
       actorRole: auth.role,
       identityMode: "admin",
       initiatorId: auth.userId,
@@ -216,9 +208,6 @@ export function toEveSessionAuthSnapshot(
         ? { [TENANT_ADMIN_ATTRIBUTE]: "true" }
         : {}),
       profileId: identity.actorProfileId,
-      ...(identity.actorProfileRole
-        ? { profileRole: identity.actorProfileRole }
-        : {}),
       role: identity.actorRole,
       tenantId: identity.tenantId,
     },
@@ -260,11 +249,6 @@ export function identityFromEveSessionAuthSnapshot(
       : [],
     profileId:
       typeof attributes.profileId === "string" ? attributes.profileId : null,
-    // Recorded for the audit trail only; it carries no authority (AL-2675).
-    profileRole:
-      typeof attributes.profileRole === "string"
-        ? (attributes.profileRole as AuthenticatedContext["profileRole"])
-        : null,
     role:
       typeof attributes.role === "string"
         ? (attributes.role as AuthenticatedContext["role"])

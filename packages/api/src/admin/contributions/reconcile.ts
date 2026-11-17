@@ -25,5 +25,5 @@ export const POST = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );

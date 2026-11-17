@@ -6,8 +6,10 @@ import {
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import {
   getAuthContext,
+  hasContextRoleClass,
   requireAuth,
-  requireRole,
+  requireCapability,
+  requireRoleClass,
   type AuthContext,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -343,7 +345,7 @@ const resolvers = {
       args: { limit?: number; offset?: number },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["donor", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["donor", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
       const limit = args.limit || 20;
       const offset = args.offset || 0;
@@ -374,7 +376,7 @@ const resolvers = {
       args: { limit?: number; offset?: number },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["missionary", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
       const limit = args.limit || 20;
       const offset = args.offset || 0;
@@ -409,7 +411,7 @@ const resolvers = {
       args: { limit?: number; offset?: number },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["admin", "staff", "super_admin"]);
+      requireCapability(ctx.auth, "admin.dashboard.access");
       const auth = ctx.auth as AuthenticatedContext;
       const limit = args.limit || 50;
       const offset = args.offset || 0;
@@ -487,7 +489,7 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary"]);
+      requireRoleClass(ctx.auth, ["missionary"]);
       const auth = ctx.auth as AuthenticatedContext;
 
       const { data: missionary } = await ctx.supabaseAdmin
@@ -535,7 +537,7 @@ const resolvers = {
       args: { id: string },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["missionary", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
 
       const { data: post } = await ctx.supabaseAdmin
@@ -547,9 +549,7 @@ const resolvers = {
 
       if (!post) throw new Error("Post not found");
       if (
-        auth.role !== "admin" &&
-        auth.role !== "staff" &&
-        auth.role !== "super_admin" &&
+        !hasContextRoleClass(auth, "staff") &&
         (post.missionary as { profile_id?: string })?.profile_id !==
           auth.profileId
       ) {
@@ -678,7 +678,7 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["donor", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["donor", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
       const idempotencyKey = parseRequiredIdempotencyKey(ctx.request.headers);
       if (!idempotencyKey) {
@@ -757,7 +757,7 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary"]);
+      requireRoleClass(ctx.auth, ["missionary"]);
       const auth = ctx.auth as AuthenticatedContext;
 
       const updates: Record<string, unknown> = {
@@ -807,7 +807,8 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["admin", "staff", "super_admin"]);
+      // Plan 5.4: changing a member's role needs people.manage_members.
+      requireCapability(ctx.auth, "people.manage_members");
       const auth = ctx.auth as AuthenticatedContext;
 
       const { error: rpcError } = await ctx.supabaseAdmin.rpc(

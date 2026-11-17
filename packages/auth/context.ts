@@ -18,7 +18,9 @@ import {
 import {
   derivePrimaryRole,
   hasAnyRole,
+  hasMembershipClass,
   hasRole,
+  hasTenantAdministratorMembership,
   type AuthMembership,
 } from "./permissions";
 import { resolveActiveAssignment } from "./principal/assignment";
@@ -30,6 +32,9 @@ import {
 } from "./request-headers";
 
 import type { Capability } from "./capabilities/registry";
+
+/** Handlers name capabilities through the auth context, never the registry (#492, AL-2675). */
+export type { Capability, RoleClass };
 import type {
   ActiveAssignment,
   AssignmentDenyReason,
@@ -42,12 +47,6 @@ export interface AuthContext {
   email: string | null;
   tenantId: string | null;
   role: UserRole | null;
-  /**
-   * @deprecated Always `null` since AL-2675: a profile role is no longer
-   * authority, and nothing reads `profiles.role` here. Kept only so the call
-   * sites the WP2a sweep moves onto `role` or a capability still compile.
-   */
-  profileRole: UserRole | null;
   /** The one membership the request acts under, as a role snapshot. */
   memberships: AuthMembership[];
   /**
@@ -66,7 +65,6 @@ export interface AuthenticatedContext extends AuthContext {
   email: string | null;
   tenantId: string;
   role: UserRole;
-  profileRole: UserRole | null;
   memberships: AuthMembership[];
   profileId: string;
   isAuthenticated: true;
@@ -199,7 +197,6 @@ function createUnauthenticatedContext(): AuthContext {
     email: null,
     tenantId: null,
     role: null,
-    profileRole: null,
     memberships: [],
     assignment: null,
     assignmentDenial: null,
@@ -289,7 +286,6 @@ async function getE2EAuthBypassContext(
     email: null,
     tenantId: tenantIdForBypass,
     role: derivePrimaryRole({ memberships }),
-    profileRole: null,
     memberships,
     assignment: null,
     assignmentDenial: null,
@@ -431,7 +427,6 @@ export async function getAuthContext(
     email,
     tenantId: result.assignment.tenantId,
     role: derivePrimaryRole({ memberships }),
-    profileRole: null,
     memberships,
     assignment: result.assignment,
     assignmentDenial: null,
@@ -479,6 +474,75 @@ export function hasContextCapability(
   capability: Capability,
 ): boolean {
   return contextCapabilities(context).includes(capability);
+}
+
+/** The parts of a context that the membership checks read. */
+type MembershipView = Pick<
+  AuthContext,
+  "isAuthenticated" | "memberships" | "tenantId"
+>;
+
+/**
+ * Whether the request acts under a live membership of this class in its
+ * tenant (AL-2675). A class is a membership fact: there is no `admin` or
+ * `super_admin` class, so a handler that asks for a class cannot ask for a
+ * role name.
+ */
+export function hasContextRoleClass(
+  context: MembershipView,
+  roleClass: RoleClass,
+): boolean {
+  return (
+    context.isAuthenticated &&
+    hasMembershipClass(context.memberships, context.tenantId, roleClass)
+  );
+}
+
+/**
+ * Whether the staff row the request acts under carries the
+ * tenant-administrator flag (AL-2675, plan 5.1).
+ */
+export function isTenantAdministrator(context: MembershipView): boolean {
+  return (
+    context.isAuthenticated &&
+    hasTenantAdministratorMembership(context.memberships, context.tenantId)
+  );
+}
+
+/** Refuses unless the request acts under a live membership of one of `roleClasses`. */
+export function requireRoleClass(
+  context: AuthContext,
+  roleClasses: readonly RoleClass[],
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
+  if (
+    !roleClasses.some((roleClass) => hasContextRoleClass(context, roleClass))
+  ) {
+    throw new Error(
+      `Forbidden: requires a ${roleClasses.join(" or ")} membership`,
+    );
+  }
+}
+
+/** Refuses unless the request acts under the flagged staff row of its tenant. */
+export function requireTenantAdministrator(
+  context: AuthContext,
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
+  if (!isTenantAdministrator(context)) {
+    throw new Error("Forbidden: requires the tenant administrator");
+  }
+}
+
+/** Refuses unless the membership the request acts under holds `capability`. */
+export function requireCapability(
+  context: AuthContext,
+  capability: Capability,
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
+  if (!hasContextCapability(context, capability)) {
+    throw new Error(`Forbidden: requires ${capability}`);
+  }
 }
 
 export function hasContextRole(context: AuthContext, role: UserRole) {

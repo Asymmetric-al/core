@@ -1,3 +1,4 @@
+import { isTenantAdministrator } from "@asym/auth/context";
 import {
   resolvePDFStudioNativeFeatureFlagContract,
   type PDFStudioNativeBuilderEnv,
@@ -51,7 +52,12 @@ export type CorePdfTemplateCategory = PdfTemplateCategory;
 export interface CorePdfStudioAdapterOptions {
   auth: Pick<
     AuthenticatedContext,
-    "profileId" | "role" | "tenantId" | "userId"
+    | "isAuthenticated"
+    | "memberships"
+    | "profileId"
+    | "role"
+    | "tenantId"
+    | "userId"
   >;
   env?: PDFStudioNativeBuilderEnv;
 }
@@ -338,7 +344,9 @@ function createLegacyTemplateReference(
 export function createCorePdfSecurityContext(
   auth: CorePdfStudioAdapterOptions["auth"],
 ): PdfSecurityContextInput {
-  const isStaff = auth.role === "admin" || auth.role === "super_admin";
+  // The native PDF studio is the tenant administrator's, as its routes are
+  // (AL-2675).
+  const isStaff = isTenantAdministrator(auth);
 
   return {
     actor: {

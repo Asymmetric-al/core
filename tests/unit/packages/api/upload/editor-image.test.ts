@@ -29,16 +29,15 @@ const TENANT = "11111111-1111-4111-8111-111111111111";
 const USER = "22222222-2222-4222-8222-222222222222";
 const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
-function ctx(profileRole: string, isAuthenticated = true) {
+function ctx(role: string, isAuthenticated = true) {
   return {
     userId: USER,
     tenantId: TENANT,
     profileId: USER,
     email: "u@example.test",
-    role: profileRole,
-    profileRole: null,
+    role,
     // AL-2675: the role is read from the membership the request acts under.
-    memberships: membershipsForRole(profileRole, TENANT),
+    memberships: membershipsForRole(role, TENANT),
     isAuthenticated,
   } as unknown as AuthModule.AuthContext;
 }

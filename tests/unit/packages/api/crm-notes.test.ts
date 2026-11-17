@@ -123,6 +123,7 @@ function staffActor(overrides: Partial<ActorContext> = {}): ActorContext {
     action: "crm.note.read",
     authTenantId: TENANT_A,
     isSuperAdmin: false,
+    isTenantAdministrator: false,
     profileId: STAFF_ID,
     role: "staff",
     tenantId: TENANT_A,
@@ -133,6 +134,8 @@ function staffActor(overrides: Partial<ActorContext> = {}): ActorContext {
 
 function adminActor(overrides: Partial<ActorContext> = {}): ActorContext {
   return staffActor({
+    // AL-2675: restricted notes are the tenant administrator's (plan 5.5).
+    isTenantAdministrator: true,
     profileId: ADMIN_ID,
     role: "admin",
     userId: ADMIN_ID,

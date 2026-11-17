@@ -13,12 +13,8 @@ const getAuthContextMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
-  hasAnyContextRole: (
-    context: { role?: string | null; profileRole?: string | null },
-    roles: string[],
-  ) =>
-    roles.includes(context?.role ?? "") ||
-    roles.includes(context?.profileRole ?? ""),
+  hasAnyContextRole: (context: { role?: string | null }, roles: string[]) =>
+    roles.includes(context?.role ?? ""),
 }));
 
 class RedirectError extends Error {
@@ -84,7 +80,6 @@ describe("requireAdminAccess", () => {
       userId: "user_donor",
       tenantId: "tenant_1",
       role: "donor",
-      profileRole: "donor",
     });
 
     expect(await expectRedirect("/web-studio")).toBe("/no-access");
@@ -96,7 +91,6 @@ describe("requireAdminAccess", () => {
       userId: "user_missionary",
       tenantId: "tenant_1",
       role: "missionary",
-      profileRole: "missionary",
     });
 
     expect(await expectRedirect("/crm")).toBe("/no-access");
@@ -108,7 +102,6 @@ describe("requireAdminAccess", () => {
       userId: "user_staff",
       tenantId: null,
       role: "staff",
-      profileRole: "staff",
     });
 
     expect(await expectRedirect("/")).toBe("/no-access");
@@ -122,7 +115,6 @@ describe("requireAdminAccess", () => {
         userId: "user_1",
         tenantId: "tenant_1",
         role,
-        profileRole: null,
       });
 
       await expect(requireAdminAccess("/crm")).resolves.toMatchObject({
@@ -142,7 +134,6 @@ describe("requireAdminAccess", () => {
       userId: "user_1",
       tenantId: "tenant_1",
       role: "super_admin",
-      profileRole: "super_admin",
     });
 
     expect(await expectRedirect("/crm")).toBe("/no-access");

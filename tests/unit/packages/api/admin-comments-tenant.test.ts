@@ -13,6 +13,11 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireRole: vi.fn(),
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: vi.fn(),
+  requireTenantAdministrator: vi.fn(),
+  requireRoleClass: vi.fn(),
+  requireAuth: () => undefined,
 }));
 
 import { GET } from "../../../../packages/api/src/admin/comments/index";
@@ -26,7 +31,6 @@ function authContext(tenantId: string) {
     userId: "user-1",
     tenantId,
     role: "admin",
-    profileRole: "admin",
     memberships: [],
     profileId: "prof-1",
     isAuthenticated: true as const,

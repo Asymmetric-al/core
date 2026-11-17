@@ -25,7 +25,6 @@ const verifiedAdmin = {
   email: "admin@example.com",
   tenantId: TENANT_ID,
   role: "admin",
-  profileRole: null,
   // AL-2675: an administrator is a staff membership with the flag.
   memberships: [
     {

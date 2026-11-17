@@ -199,7 +199,6 @@ async function send(route: "profile" | "donor", actor: Actor, body: Row) {
     tenantId: A[actor].tenantId,
     profileId: PROFILE[actor],
     role: A[actor].role,
-    profileRole: null,
   };
   const mod =
     route === "profile"

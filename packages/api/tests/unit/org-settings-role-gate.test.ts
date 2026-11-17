@@ -29,7 +29,6 @@ function req(role: string | null, isAuthenticated = true) {
     userId: isAuthenticated ? "user-1" : null,
     tenantId: isAuthenticated ? "tenant-1" : null,
     role,
-    profileRole: null,
     // AL-2675: the role is read from the membership the request acts under.
     memberships:
       isAuthenticated && role

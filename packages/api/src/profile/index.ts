@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  hasContextRole,
+  hasContextRoleClass,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     let profileData = { ...profile };
 
-    if (hasContextRole(ctx, "missionary")) {
+    if (hasContextRoleClass(ctx, "missionary")) {
       const { data: missionary } = await findMissionaryByProfileId(
         supabaseAdmin,
         ctx.profileId,
@@ -183,7 +183,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (Object.keys(missionaryUpdate).length > 0) {
-      if (!hasContextRole(ctx, "missionary")) {
+      if (!hasContextRoleClass(ctx, "missionary")) {
         return NextResponse.json(
           { error: "Missionary profile fields require missionary access" },
           { status: 403 },
@@ -218,7 +218,7 @@ export async function PATCH(request: NextRequest) {
 
     let profileData = { ...profile };
 
-    if (hasContextRole(ctx, "missionary")) {
+    if (hasContextRoleClass(ctx, "missionary")) {
       const { data: missionary } = await findMissionaryByProfileId(
         supabaseAdmin,
         ctx.profileId,

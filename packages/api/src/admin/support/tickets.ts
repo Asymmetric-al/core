@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -11,8 +11,6 @@ import { parseSupportTicketListParams } from "./query";
 import { createSupportTicket, listSupportTickets } from "./service";
 import { toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
-
-const SUPPORT_ADMIN_ROLES = ["staff", "admin", "super_admin"] as const;
 
 const createSupportTicketSchema = z.object({
   contactId: z.string().uuid().optional(),
@@ -36,7 +34,7 @@ function requireAdminSupabase() {
 export async function GET(request: NextRequest) {
   try {
     const auth = await getAuthContext(request);
-    requireRole(auth, [...SUPPORT_ADMIN_ROLES]);
+    requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const searchParams = new URL(request.url).searchParams;
     const params = parseSupportTicketListParams(searchParams);
@@ -78,5 +76,5 @@ export const POST = withOperation(
 
     return NextResponse.json(ticket, { status: 201 });
   },
-  { roles: [...SUPPORT_ADMIN_ROLES] },
+  { capability: "admin.dashboard.access" },
 );

@@ -1,4 +1,8 @@
-import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import {
+  getAuthContext,
+  hasContextCapability,
+  isTenantAdministrator,
+} from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
 
 import { supportHubAdapter } from "./adapter";
@@ -27,8 +31,10 @@ type JsonResult<T = unknown> =
  * so the access-control posture stays identical to the rest of Mission
  * Control's admin surface.
  *
- * Roles allowed: staff, admin, super_admin. The `/support` nav entry already
- * gates on `member_care | admin` so admin demos with a staff role still pass.
+ * Any staff member works the Support Hub (plan 5.4: a live staff membership
+ * of any sub-role), which the registry expresses as `admin.dashboard.access`.
+ * The tenant administrator manages every agent's preferences and views
+ * (AL-2675).
  */
 export async function requireSupportHubAccess(
   request?: Request,
@@ -42,7 +48,7 @@ export async function requireSupportHubAccess(
     };
   }
 
-  if (!hasAnyContextRole(auth, ["staff", "admin", "super_admin"])) {
+  if (!hasContextCapability(auth, "admin.dashboard.access")) {
     return {
       ok: false,
       response: Response.json({ error: "Forbidden" }, { status: 403 }),
@@ -55,9 +61,9 @@ export async function requireSupportHubAccess(
       tenantId: auth.tenantId,
       userId: auth.userId,
       userEmail: auth.email,
-      isSuperAdmin:
-        auth.role === "super_admin" || auth.profileRole === "super_admin",
-      canManageAll: hasAnyContextRole(auth, ["admin", "super_admin"]),
+      // WP2c moves this to the operator list; no membership yields it.
+      isSuperAdmin: auth.role === "super_admin",
+      canManageAll: isTenantAdministrator(auth),
     },
   };
 }

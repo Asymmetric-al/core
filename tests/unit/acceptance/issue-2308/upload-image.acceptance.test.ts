@@ -133,7 +133,6 @@ beforeEach(() => {
     profileId: "33333333-3333-4333-8333-333333333333",
     email: "caller@example.test",
     role: "donor",
-    profileRole: null,
     // AL-2675: the role is read from the membership the request acts under.
     memberships: membershipsForRole("donor", TENANT),
     isAuthenticated: true,

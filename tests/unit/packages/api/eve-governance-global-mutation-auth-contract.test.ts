@@ -3,28 +3,24 @@ import { readFileSync } from "node:fs";
 import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { withOperation } from "../../../../packages/api/src/shared/with-operation";
-import { hasAnyRole } from "../../../../packages/auth/permissions";
+import {
+  withOperation,
+  type OperationOptions,
+} from "../../../../packages/api/src/shared/with-operation";
 
 import type { AuthContext } from "@asym/auth/context";
-import type { UserRole } from "@asym/database/types";
 
-const {
-  createAuditLoggerMock,
-  getAdminClientMock,
-  getAuthContextMock,
-  requireRoleMock,
-} = vi.hoisted(() => ({
-  createAuditLoggerMock: vi.fn(),
-  getAdminClientMock: vi.fn(),
-  getAuthContextMock: vi.fn(),
-  requireRoleMock: vi.fn(),
-}));
+const { createAuditLoggerMock, getAdminClientMock, getAuthContextMock } =
+  vi.hoisted(() => ({
+    createAuditLoggerMock: vi.fn(),
+    getAdminClientMock: vi.fn(),
+    getAuthContextMock: vi.fn(),
+  }));
 
-vi.mock("@asym/auth/context", () => ({
+// AL-2675: the real gates run; only the verified session is stubbed.
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
-  requireAuth: vi.fn(),
-  requireRole: requireRoleMock,
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -60,23 +56,26 @@ function readHandlerSource(
   return routeSource.slice(start, end);
 }
 
-function readAllowedRoles(handlerSource: string): UserRole[] {
-  const match = handlerSource.match(/\{\s*roles:\s*(\[[^\]]*\])\s*\}/);
-  expect(match?.[1]).toBeDefined();
-  return JSON.parse(match?.[1] ?? "[]") as UserRole[];
+/** The wrapper's gate option, read from the route source. */
+function readGate(handlerSource: string): OperationOptions {
+  const admin = /\{\s*tenantAdministrator:\s*true\s*\}/.test(handlerSource);
+  const roles = handlerSource.match(/\{\s*roles:\s*(\[[^\]]*\])\s*\}/);
+  expect(admin || Boolean(roles)).toBe(true);
+  return admin
+    ? { tenantAdministrator: true }
+    : { roles: JSON.parse(roles?.[1] ?? "[]") };
 }
 
-const getRoles = readAllowedRoles(readHandlerSource("GET", "POST"));
-const postRoles = readAllowedRoles(readHandlerSource("POST", "PATCH"));
+const getGate = readGate(readHandlerSource("GET", "POST"));
+const postGate = readGate(readHandlerSource("POST", "PATCH"));
 const patchSource = readHandlerSource("PATCH");
-const patchRoles = readAllowedRoles(patchSource);
+const patchGate = readGate(patchSource);
 
 const activeTenantStaff: AuthContext = {
   userId: "staff-user",
   email: "staff@example.test",
   tenantId: "tenant-1",
   role: "staff",
-  profileRole: null,
   memberships: [
     {
       tenantId: "tenant-1",
@@ -100,7 +99,6 @@ const tenantAdmin: AuthContext = {
   email: "tenant-admin@example.test",
   tenantId: "tenant-1",
   role: "admin",
-  profileRole: null,
   memberships: [
     {
       tenantId: "tenant-1",
@@ -128,37 +126,20 @@ describe("Eve governance global mutation authorization contract", () => {
     vi.clearAllMocks();
     getAdminClientMock.mockReturnValue({ client: {}, error: null });
     createAuditLoggerMock.mockReturnValue({});
-    requireRoleMock.mockImplementation(
-      (context: AuthContext, allowedRoles: UserRole[]) => {
-        const allowed = hasAnyRole(
-          { memberships: context.memberships },
-          allowedRoles,
-        );
-
-        if (!allowed) {
-          throw new Error(
-            `Forbidden: requires one of ${allowedRoles.join(", ")} role`,
-          );
-        }
-      },
-    );
   });
 
-  it("names only super_admin on the PATCH wrapper", () => {
-    expect(patchRoles).toEqual(["super_admin"]);
+  it("names only super_admin on the PATCH wrapper (WP2c's operator gate)", () => {
+    expect(patchGate).toEqual({ roles: ["super_admin"] });
     expect(patchSource).toContain("await setEveKillSwitch({");
   });
 
   it("rejects active tenant staff before the global mutation can execute", async () => {
     getAuthContextMock.mockResolvedValue(activeTenantStaff);
     const setEveKillSwitch = vi.fn();
-    const patch = withOperation(
-      async () => {
-        setEveKillSwitch();
-        return NextResponse.json({ ok: true });
-      },
-      { roles: patchRoles },
-    );
+    const patch = withOperation(async () => {
+      setEveKillSwitch();
+      return NextResponse.json({ ok: true });
+    }, patchGate);
 
     const response = await patch(createRequest("PATCH"));
 
@@ -172,13 +153,10 @@ describe("Eve governance global mutation authorization contract", () => {
   it("refuses the global PATCH to a tenant administrator until WP2c", async () => {
     getAuthContextMock.mockResolvedValue(tenantAdmin);
     const setEveKillSwitch = vi.fn();
-    const patch = withOperation(
-      async () => {
-        setEveKillSwitch();
-        return NextResponse.json({ ok: true });
-      },
-      { roles: patchRoles },
-    );
+    const patch = withOperation(async () => {
+      setEveKillSwitch();
+      return NextResponse.json({ ok: true });
+    }, patchGate);
 
     const response = await patch(createRequest("PATCH"));
 
@@ -187,12 +165,12 @@ describe("Eve governance global mutation authorization contract", () => {
   });
 
   it("admits GET and POST for the flagged staff row only (AL-2675)", async () => {
-    expect(getRoles).toEqual(["admin", "super_admin"]);
-    expect(postRoles).toEqual(["admin", "super_admin"]);
+    expect(getGate).toEqual({ tenantAdministrator: true });
+    expect(postGate).toEqual({ tenantAdministrator: true });
 
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
-    const get = withOperation(handler, { roles: getRoles });
-    const post = withOperation(handler, { roles: postRoles });
+    const get = withOperation(handler, getGate);
+    const post = withOperation(handler, postGate);
 
     getAuthContextMock.mockResolvedValue(activeTenantStaff);
     const staffResponses = await Promise.all([

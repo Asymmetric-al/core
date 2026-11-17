@@ -16,7 +16,6 @@ const { select, profileQuery, tenantQuery, tenantFilter, auth } = vi.hoisted(
       userId: "user-1",
       tenantId: "tenant-1",
       role: "admin",
-      profileRole: null,
     },
   }),
 );
@@ -69,7 +68,7 @@ describe("admin shell identity", () => {
     expect(tenantFilter).toHaveBeenCalledWith("id", "tenant-1");
     expect(state).toMatchObject({
       email: "staff@example.org",
-      profileRole: "admin",
+      role: "admin",
       tenant: { id: "tenant-1", name: "Our tenant", slug: "ours" },
     });
   });

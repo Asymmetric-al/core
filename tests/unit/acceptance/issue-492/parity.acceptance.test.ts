@@ -1,7 +1,12 @@
 /** #492 done criteria 4, 5: parity with the incumbent resolvers (spec r1). Owned by Acceptance.
  * Amended by AL-2675 (WP2a): `platform_admin` is retired with `super_admin`, and
  * the incumbent table gives an administrator the contribution-settings set the
- * registry's `tenant_admin` now holds. The WP2a sweep retires the incumbent. */
+ * registry's `tenant_admin` now holds. The WP2a sweep (AL-2675) retired the
+ * incumbent table: `resolveContributionCapabilities` reads the registry by the
+ * one selected membership. Criterion 4 therefore pins that the contribution
+ * projection of each selected row equals its registry subject's, and the
+ * administrator fixture is the flagged staff row (a role name alone resolves
+ * nothing), so the comparison stays exact per fixture. */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -40,7 +45,6 @@ const auth = (
     tenantId: T,
     profileId: "p",
     role,
-    profileRole: role,
     memberships,
     isAuthenticated: true,
   }) as AuthenticatedContext;
@@ -52,7 +56,11 @@ const FIXTURES: [string, AuthenticatedContext, string][] = [
     auth("staff", m("staff", s)),
     `staff:${s}`,
   ]),
-  ["role admin", auth("admin"), "tenant_admin"],
+  [
+    "tenant administrator (flagged staff row)",
+    auth("admin", { ...m("staff", "development"), isTenantAdmin: true }),
+    "tenant_admin",
+  ],
   ["donor", auth("donor", m("donor")), "member:donor"],
   ["missionary", auth("missionary", m("missionary")), "member:missionary"],
 ];

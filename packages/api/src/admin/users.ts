@@ -37,7 +37,8 @@ export const GET = withOperation(
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ users: data });
   },
-  { roles: ["admin"] },
+  // Plan 5.4: managing members is the tenant administrator's.
+  { capability: "people.manage_members" },
 );
 
 /** Read-only demo: user updates disabled. */

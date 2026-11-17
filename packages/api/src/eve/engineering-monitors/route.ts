@@ -22,5 +22,5 @@ export const GET = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

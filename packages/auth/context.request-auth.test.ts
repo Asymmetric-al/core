@@ -123,7 +123,6 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
       profileId: "profile-one",
       tenantId: TA,
       role: "donor",
-      profileRole: null,
       isAuthenticated: true,
       assignmentDenial: null,
     });

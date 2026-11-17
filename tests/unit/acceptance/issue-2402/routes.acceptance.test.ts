@@ -16,7 +16,6 @@ const m = vi.hoisted(() => ({
     tenantId: "11111111-1111-4111-8111-111111111111",
     profileId: "22222222-2222-4222-8222-222222222222" as string | null,
     role: "admin",
-    profileRole: null,
     memberships: [
       {
         tenantId: "11111111-1111-4111-8111-111111111111",
@@ -39,10 +38,15 @@ vi.mock("@supabase/ssr", () => ({ createServerClient: () => m.session }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ getAll: () => [] }),
 }));
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: async () => m.auth,
   requireAuth: () => {},
   requireRole: () => {},
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: () => {},
+  requireTenantAdministrator: () => {},
+  requireRoleClass: () => {},
 }));
 vi.mock("@asym/lib/audit/logger", () => ({ createAuditLogger: () => ({}) }));
 

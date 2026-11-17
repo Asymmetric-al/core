@@ -55,7 +55,6 @@ function authContext(): AuthContext {
     email: profile.email,
     tenantId: "tenant-a",
     role: "donor",
-    profileRole: null,
     // AL-2675: the role is read from the membership the request acts under.
     memberships: membershipsForRole("donor", "tenant-a"),
     profileId: "profile-a",
@@ -69,7 +68,6 @@ function anonymousContext(): AuthContext {
     email: null,
     tenantId: null,
     role: null,
-    profileRole: null,
     memberships: [],
     profileId: null,
     isAuthenticated: false,

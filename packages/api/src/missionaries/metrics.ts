@@ -1,4 +1,4 @@
-import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getAuthContext, hasContextRoleClass } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
@@ -60,7 +60,6 @@ type PendingCookie = {
   };
 };
 
-const ALLOWED_ROLES = new Set(["staff", "admin", "missionary", "super_admin"]);
 const PERMISSION_STATUS_CODES = new Set([401, 403]);
 const PERMISSION_ERROR_CODES = new Set([
   "42501",
@@ -295,11 +294,13 @@ export async function GET(
       );
     }
 
+    // AL-2675: staff read any missionary's metrics; a missionary reads only
+    // their own (below).
     if (
       !auth.tenantId ||
       !auth.role ||
-      !ALLOWED_ROLES.has(auth.role) ||
-      !hasAnyContextRole(auth, ["staff", "admin", "missionary", "super_admin"])
+      (!hasContextRoleClass(auth, "staff") &&
+        !hasContextRoleClass(auth, "missionary"))
     ) {
       return jsonWithCookies(
         { error: "Forbidden" },
@@ -346,8 +347,8 @@ export async function GET(
     }
 
     if (
-      hasAnyContextRole(auth, ["missionary"]) &&
-      !hasAnyContextRole(auth, ["staff", "admin", "super_admin"]) &&
+      hasContextRoleClass(auth, "missionary") &&
+      !hasContextRoleClass(auth, "staff") &&
       missionary.profile_id !== auth.profileId
     ) {
       return jsonWithCookies(

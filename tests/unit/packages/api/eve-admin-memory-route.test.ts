@@ -22,6 +22,10 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireAuth: vi.fn(),
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -49,7 +53,6 @@ const superAdminAuth = {
   tenantId,
   profileId,
   role: "super_admin",
-  profileRole: "super_admin",
   memberships: [],
   isAuthenticated: true,
 } as AuthenticatedContext;
@@ -214,7 +217,6 @@ describe("Eve admin-memory route tenant binding", () => {
         ...superAdminAuth,
         email: "admin@example.com",
         role: "admin" as const,
-        profileRole: "admin" as const,
       };
       getAuthContextMock.mockResolvedValue(adminAuth);
       const route =

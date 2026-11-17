@@ -28,7 +28,6 @@ const baseAuth = {
     },
   ],
   profileId: "00000000-0000-4000-8000-000000000001",
-  profileRole: null,
   role: "admin",
   tenantId: "00000000-0000-4000-8000-000000000002",
   userId: "verified-operator",
@@ -44,7 +43,6 @@ describe("Eve operations workspace", () => {
       canAccessEveOperationsWorkspace({
         ...baseAuth,
         memberships: [],
-        profileRole: "super_admin",
         role: "super_admin",
       }),
     ).toBe(false);

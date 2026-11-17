@@ -91,7 +91,7 @@ export async function getProtectedShellState(
     firstName: profile?.first_name,
     lastName: profile?.last_name,
     avatarUrl: profile?.avatar_url,
-    profileRole: auth.role,
+    role: auth.role,
     tenantId,
     tenant: normalizeTenant(tenant ?? null, tenantId),
   });
