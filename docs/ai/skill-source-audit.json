@@ -5527,7 +5527,7 @@
       "rawSkillHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "lockHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "entrypointHash": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
-      "treeHash": "915a8619021b9d82eea4070d7bf9210cd22f50ca26eee94675bdf8a4a1055bd6",
+      "treeHash": "2a0aceffd568b7da922c799e5cd2ad39994ab40f59e247b0d92b270dacb3b8f4",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5559,12 +5559,12 @@
             "references/components.md": "b647bd9a76cd2346511dc477a003d486da2d61c7f5756861e3c972ce7a8cebaf",
             "references/example.md": "6ffb1ab6783dc592ceb4be80434afdaeb2ce6c6c9e837413254e5fba38337798",
             "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a",
-            "references/instant-navigation.md": "5d5a40cb032ca3f57a1bc3d34885ebf90aeaecfe2b1ebb3e841ae3df79bf4f55",
+            "references/instant-navigation.md": "84a2a8b553967dc423d5dc11f84c5e5c1fabb2ffa733ca21929decfe2fb4138c",
             "references/pages-suspense.md": "b3220dbfac22be2b242dc352e79b0a80723c86de1ab97a238466ac210e103ac8",
             "references/queries-actions.md": "980c7e7004b49fa8e2d2306da03b564344579e50b8c6b77e8cfd09ea758b9486",
             "references/single-page-applications.md": "4b2a20cd803edcbeeac6f966927458e01d4a21ec8e0fb48902ba207a1b4d042e",
-            "references/testing.md": "375b6107252d45c0d3d9a0700399d38accd1ccbb3b6872aad27975e71c59a370",
-            "references/upstream.md": "8b3ad10181344c8536a388f1d50891f75a469363f021cec78018bfadd64ea2af",
+            "references/testing.md": "39b1ed0aae40679159280c80d1d83d8a10d272643b823b375d36dc981847e8c6",
+            "references/upstream.md": "bd46d4dc6baa83cac5707299d9e4d5eebebb782156520dc2fcb8725c1f2bd2a6",
             "references/ux-patterns.md": "83b8b4a1503c269c9452162348f6f17d81f0228451b1c76063beff13923e553f"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."

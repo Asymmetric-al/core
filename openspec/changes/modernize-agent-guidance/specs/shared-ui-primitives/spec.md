@@ -72,7 +72,7 @@ historical records SHALL NOT be treated as violations.
 
 - **WHEN** a registry item, generated component or tutorial would add a Radix
   dependency
-- **THEN** the Base UI build or equivalent is used instead
+- **THEN** the Base UI build or equivalent is used where one exists
 - **AND** a Radix dependency is added only for a narrow need accepted in review
 
 #### Scenario: Radix arrives through an existing integration

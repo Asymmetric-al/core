@@ -28,7 +28,7 @@ The Optimizing prefetching guide (installed: `node_modules/next/dist/docs/01-app
 | `await prefetch()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/prefetch.md`)     | the App Shell                         | a per-link prefetch, or the navigation |
 | `await navigation()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/navigation.md`) | the App Shell and per-link prefetches | the navigation only                    |
 
-Use `prefetch()` for cacheable content that should stay out of the shared App Shell but may be resolved by `prefetch={true}`; use `navigation()` for cacheable content that should be produced only after navigation. Both are version-sensitive APIs, so read their installed documentation before using them.
+Use `prefetch()` for cacheable content that should stay out of the shared App Shell but may be resolved by `prefetch={true}`; use `navigation()` for cacheable content that should be produced only after navigation. Both gates act during runtime rendering only: a static prerender still includes the gated content, so a static prefetch can contain it, and neither function changes a page's initial load. Both are version-sensitive APIs, so read their installed documentation before using them.
 
 Neither may be awaited inside a cache scope. Await the gate in the async server component, right before it calls its query, and leave the query a plain function:
 
