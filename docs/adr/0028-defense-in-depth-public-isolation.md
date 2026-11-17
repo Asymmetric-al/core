@@ -214,5 +214,5 @@ reader inputs, and no Vercel/provider/money call participates.
   from the verified host, an unresolved host is refused, and only listed read
   functions are reachable by anonymous callers, with no table grants beneath
   them. The Payload public-read policy and the sole-entry lint on raw Payload
-  reads apply to `cms` until the release-backed reader replaces the prototype
-  reader in WP7.
+  reads stay in force for as long as the prototype reader exists: WP6 removes
+  that reader and WP7 ships the release-backed one.

@@ -10,6 +10,19 @@ platform boundaries already warn against.
 
 ## What Changes
 
+- **Amended 2026-11-17 (CRM, CMS and database foundation, AL-2688):** the
+  `identity-and-access` requirement "Phase 3 Sensitive Fields Fail Closed On
+  Every Surface" now binds a new contract section that keeps every earlier
+  clause and adds the two amendments section 14 of the
+  [CRM, CMS and database plan](../../../docs/audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists: the Legal Entity's connected processor account identifier may reach the
+  browser's payment library at checkout and in the donor portal's payment-method
+  change and nowhere else, and the reserved `receipts` family is bound to the
+  repository classification manifest instead of the dated live capture. The
+  owner's instruction of 17 November 2026 to implement that plan ratifies both.
+  The earlier section stays in the contract file as history. The program change
+  `build-crm-cms-database-foundation` records the context; nothing here is
+  implemented.
 - **Amended 2026-10-08 (Phase 6 foundation, AL-551):** externalize the
   **first build** of Mission Control's already-declared **communications**
   capability in the existing outbound-communications delta. Preserve one
