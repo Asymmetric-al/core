@@ -2,6 +2,7 @@ import * as migration_20260515_173042_init_payload_cms from "./20260515_173042_i
 import * as migration_20261022_002409_payload_v4_sizes_to_variants from "./20261022_002409_payload_v4_sizes_to_variants";
 import * as migration_20261022_002412_payload_v4_public_beta_metadata from "./20261022_002412_payload_v4_public_beta_metadata";
 import * as migration_20261117_040437_payload_v4_beta_9_upload_state from "./20261117_040437_payload_v4_beta_9_upload_state";
+import * as migration_20261117_082928_cms_runtime_ledger_read_only from "./20261117_082928_cms_runtime_ledger_read_only";
 
 export const migrations = [
   {
@@ -23,5 +24,10 @@ export const migrations = [
     up: migration_20261117_040437_payload_v4_beta_9_upload_state.up,
     down: migration_20261117_040437_payload_v4_beta_9_upload_state.down,
     name: "20261117_040437_payload_v4_beta_9_upload_state",
+  },
+  {
+    up: migration_20261117_082928_cms_runtime_ledger_read_only.up,
+    down: migration_20261117_082928_cms_runtime_ledger_read_only.down,
+    name: "20261117_082928_cms_runtime_ledger_read_only",
   },
 ];

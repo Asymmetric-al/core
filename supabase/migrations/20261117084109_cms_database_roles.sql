@@ -213,6 +213,124 @@ ALTER DEFAULT PRIVILEGES FOR ROLE cms_owner IN SCHEMA cms
 ALTER DEFAULT PRIVILEGES FOR ROLE cms_owner IN SCHEMA cms
   GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO cms_runtime;
 
+-- Payload's migration ledger is written only by its migrate commands, which
+-- run as cms_owner, and by a development schema push. cms_runtime reads it
+-- and cannot forge or remove a row. On a fresh database the table does not
+-- exist yet; the Payload migration `*_cms_runtime_ledger_read_only` applies
+-- the same revoke once Payload has created it.
+DO $$
+BEGIN
+  IF to_regclass('cms.payload_migrations') IS NOT NULL THEN
+    REVOKE INSERT, UPDATE, DELETE ON cms.payload_migrations FROM cms_runtime;
+    IF pg_get_serial_sequence('cms.payload_migrations', 'id') IS NOT NULL THEN
+      EXECUTE format(
+        'REVOKE USAGE, UPDATE ON SEQUENCE %s FROM cms_runtime',
+        pg_get_serial_sequence('cms.payload_migrations', 'id')
+      );
+    END IF;
+  END IF;
+END
+$$;
+
+-- Close cms to the Data API roles (plan 7.1: no schema usage for anon and
+-- authenticated). 20260223100000_create_cms_schema.sql gave anon,
+-- authenticated and service_role USAGE, gave service_role CREATE, and set
+-- default privileges that grant service_role every table and sequence its
+-- runner creates in cms. Nothing reaches cms through these roles: the Data
+-- API exposes public and graphql_public only, and Payload has its own logins.
+REVOKE ALL ON SCHEMA cms FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON ALL TABLES IN SCHEMA cms
+  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA cms
+  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA cms
+  FROM PUBLIC, anon, authenticated, service_role;
+
+-- Default privileges in cms that grant the API roles anything, whichever
+-- role set them.
+DO $$
+DECLARE
+  entry record;
+BEGIN
+  FOR entry IN
+    SELECT DISTINCT d.defaclrole::regrole AS owner,
+           CASE d.defaclobjtype
+             WHEN 'r' THEN 'TABLES'
+             WHEN 'S' THEN 'SEQUENCES'
+             WHEN 'f' THEN 'FUNCTIONS'
+             WHEN 'T' THEN 'TYPES'
+           END AS kind
+    FROM pg_catalog.pg_default_acl d
+    CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) a
+    WHERE d.defaclnamespace = 'cms'::regnamespace
+      AND d.defaclobjtype IN ('r', 'S', 'f', 'T')
+      AND a.grantee IN (
+        'anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole
+      )
+  LOOP
+    EXECUTE format(
+      'ALTER DEFAULT PRIVILEGES FOR ROLE %s IN SCHEMA cms '
+        'REVOKE ALL ON %s FROM anon, authenticated, service_role',
+      entry.owner,
+      entry.kind
+    );
+  END LOOP;
+END
+$$;
+
+-- The API roles and PUBLIC hold nothing in cms, and no default privilege
+-- in cms, or of cms_owner anywhere, would give them anything later.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_namespace n
+    CROSS JOIN LATERAL pg_catalog.aclexplode(n.nspacl) a
+    WHERE n.nspname = 'cms'
+      AND (
+        a.grantee = 0
+        OR a.grantee IN (
+          'anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole
+        )
+      )
+  ) OR EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_class c
+    CROSS JOIN LATERAL pg_catalog.aclexplode(c.relacl) a
+    WHERE c.relnamespace = 'cms'::regnamespace
+      AND (
+        a.grantee = 0
+        OR a.grantee IN (
+          'anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole
+        )
+      )
+  ) OR EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_default_acl d
+    CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) a
+    WHERE (d.defaclnamespace = 'cms'::regnamespace
+           OR d.defaclrole = 'cms_owner'::regrole)
+      AND (
+        a.grantee = 0
+        OR a.grantee IN (
+          'anon'::regrole, 'authenticated'::regrole, 'service_role'::regrole
+        )
+      )
+  ) THEN
+    RAISE EXCEPTION 'schema cms is still open to PUBLIC or a Data API role';
+  END IF;
+
+  IF to_regclass('cms.payload_migrations') IS NOT NULL
+     AND (
+       has_table_privilege('cms_runtime', 'cms.payload_migrations', 'INSERT')
+       OR has_table_privilege('cms_runtime', 'cms.payload_migrations', 'UPDATE')
+       OR has_table_privilege('cms_runtime', 'cms.payload_migrations', 'DELETE')
+     ) THEN
+    RAISE EXCEPTION 'cms_runtime can still write the Payload migration ledger';
+  END IF;
+END
+$$;
+
 -- Neither role may hold a grant on a table, sequence or schema outside cms.
 -- Fail rather than leave one behind.
 DO $$

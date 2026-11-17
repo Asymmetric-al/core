@@ -149,6 +149,91 @@ describe.skipIf(!ADMIN_URL)("CMS database roles (real stack)", () => {
     expect(strays.rows).toEqual([]);
   });
 
+  it("closes schema cms to anon, authenticated and service_role (plan 7.1)", async () => {
+    const { rows } = await admin.query(
+      `SELECT r.rolname,
+              has_schema_privilege(r.oid, 'cms', 'USAGE') AS usage,
+              has_schema_privilege(r.oid, 'cms', 'CREATE') AS create
+         FROM pg_roles r
+        WHERE r.rolname IN ('anon', 'authenticated', 'service_role')
+        ORDER BY r.rolname`,
+    );
+    expect(rows).toEqual(
+      ["anon", "authenticated", "service_role"].map((rolname) => ({
+        rolname,
+        usage: false,
+        create: false,
+      })),
+    );
+  });
+
+  it("leaves no grant or default privilege in cms for the API roles or PUBLIC", async () => {
+    const { rows } = await admin.query(
+      `WITH api(grantee) AS (
+         SELECT 0::oid
+         UNION ALL SELECT oid FROM pg_roles
+          WHERE rolname IN ('anon', 'authenticated', 'service_role')
+       )
+       SELECT 'schema' AS kind, n.nspname::text AS name
+         FROM pg_namespace n CROSS JOIN LATERAL aclexplode(n.nspacl) a
+        WHERE n.nspname = 'cms' AND a.grantee IN (SELECT grantee FROM api)
+       UNION ALL
+       SELECT 'relation', c.relname::text
+         FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
+        WHERE c.relnamespace = 'cms'::regnamespace
+          AND a.grantee IN (SELECT grantee FROM api)
+       UNION ALL
+       SELECT 'default ' || d.defaclobjtype::text,
+              pg_get_userbyid(d.defaclrole)::text
+         FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+        WHERE (d.defaclnamespace = 'cms'::regnamespace
+               OR d.defaclrole = 'cms_owner'::regrole)
+          AND a.grantee IN (SELECT grantee FROM api)`,
+    );
+    expect(rows).toEqual([]);
+  });
+
+  it("refuses each API role a read of a cms table", async () => {
+    for (const role of ["anon", "authenticated", "service_role"]) {
+      const code = await errorCode(async () => {
+        await admin.query("BEGIN");
+        try {
+          await admin.query(`SET LOCAL ROLE ${role}`);
+          await admin.query(`SELECT 1 FROM cms.${PROBE}`);
+        } finally {
+          await admin.query("ROLLBACK");
+        }
+      });
+      expect(code, role).toBe(INSUFFICIENT_PRIVILEGE);
+    }
+  });
+
+  it("keeps the Payload migration ledger read-only for cms_runtime", async (context) => {
+    const { rows } = await admin.query(
+      "SELECT to_regclass('cms.payload_migrations') IS NOT NULL AS present",
+    );
+    // The ledger exists once Payload's own migrations have run.
+    if (!rows[0].present) context.skip();
+    const privileges = await admin.query(
+      `SELECT p AS privilege,
+              has_table_privilege('cms_runtime', 'cms.payload_migrations', p) AS held
+         FROM unnest(ARRAY['SELECT', 'INSERT', 'UPDATE', 'DELETE']) AS p`,
+    );
+    expect(privileges.rows).toEqual([
+      { privilege: "SELECT", held: true },
+      { privilege: "INSERT", held: false },
+      { privilege: "UPDATE", held: false },
+      { privilege: "DELETE", held: false },
+    ]);
+    expect(
+      await errorCode(() =>
+        runtime.query(
+          "INSERT INTO cms.payload_migrations (name, batch) VALUES ('forged', 99)",
+        ),
+      ),
+    ).toBe(INSUFFICIENT_PRIVILEGE);
+  });
+
   it("connects Payload's runtime as current_user = cms_runtime", async () => {
     const { rows } = await runtime.query(
       "SELECT current_user, session_user, current_setting('is_superuser') AS su",
