@@ -221,7 +221,8 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
       { cwd: ROOT, encoding: "utf8" },
     );
     expect(census.status, census.stderr).toBe(0);
-    expect(census.stdout).toContain("exactly 176 candidate columns");
+    // AL-2674: the census is the manifest gate; its PASS line names the count.
+    expect(census.stdout).toContain("equal the manifest's 176 entries");
     for (const f of [
       "field_policies_foundation.sql",
       "field_policies_rls.sql",

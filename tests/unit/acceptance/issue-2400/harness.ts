@@ -35,17 +35,24 @@ export const ROLLBACK_REST = [
   "DROP TABLE IF EXISTS public.persons",
   "COMMIT",
 ];
-/** Criterion 6: the census PASS lines at a8fbab2f (counts unchanged). */
+/**
+ * Criterion 6: the field-policy gate's PASS lines. AL-2674 (plan 7.1) replaced
+ * the census's dated capture with docs/security/field-policies/manifest.json;
+ * these are the new gate's lines, whose counts it derives from the manifest.
+ * Until then they were the a8fbab2f census lines.
+ */
 export const PASS_LINES = [
-  "immutable live provenance, 171 exact whole columns, same-name floors, five explicit surfaces, reserved receipts and processor locks.",
-  "all 880 database seed rows exactly equal the reviewed census categories and explicit flags.",
-  "exactly 176 candidate columns equal immutable live171 plus the reviewed source-bound supplements.",
-  "supplement base source hash and exact local TEXT[]/NOT NULL/default metadata.",
-  "identity supplement working-tree source hash and exact local generated TEXT/TIMESTAMPTZ metadata.",
-  "person anchor supplement working-tree source hash and exact local nullable UUID metadata.",
+  "field-policy manifest: ${recordTypes} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.",
+  "the migrated columns of the ${recordTypes} classified record types equal the manifest's ${columns.length} entries; canonical receipts are absent.",
+  "all ${columns.length * SURFACES.length} public.field_policies rows equal the manifest's flags and categories.",
 ].map((l) => `PASS: ${l}`);
-/** §1.5 / OQ5. */
-export const MISMATCH = "field-policy census: v3 source_sha256 mismatch for ";
+/**
+ * §1.5 / OQ5: an edited v3 forward file fails the gate with a message that
+ * names it. Since AL-2674 the manifest pins the file and the gate reports
+ * `PINNED <path> changed`; until then the census said "v3 source_sha256
+ * mismatch for <path>".
+ */
+export const MISMATCH = '"PINNED", `${source.path} changed';
 
 /** Statements: comments stripped, split on `;`, whitespace collapsed (literals kept). */
 export const stmts = (sql: string) =>
@@ -129,8 +136,13 @@ type Chain = {
   v3: Buffer;
   census: string;
   foundation: string;
+  manifest: string;
 };
-/** Criterion 6 (M5): forward bytes -> v3 source_sha256 -> v3 bytes -> census-v1, and the SQL literals. */
+/**
+ * Criterion 6 (M5): forward bytes -> v3 source_sha256 -> v3 bytes -> census-v1,
+ * and the SQL literals. AL-2674 adds the link the gate now enforces: the
+ * manifest's pinned SHA-256 for the forward file.
+ */
 export function chainProblems(f: Chain): string[] {
   const fwd = sha(f.forward);
   const census = JSON.parse(f.census) as {
@@ -143,22 +155,26 @@ export function chainProblems(f: Chain): string[] {
     ),
   ].map((m) => m[1]);
   const v3 = JSON.parse(f.v3.toString()) as { source_sha256: string };
+  const pin = (
+    JSON.parse(f.manifest) as {
+      pinned_sources: { path: string; sha256: string }[];
+    }
+  ).pinned_sources.find((x) => x.path === MIGRATION);
   // prettier-ignore
   return failed([
     [v3.source_sha256 === fwd, "v3 source_sha256"],
     [entry?.sha256 === sha(f.v3), "census-v1 v3 sha256"],
     [lits.length === 2 && lits.every((l) => l === fwd), "foundation SQL literals"],
+    [pin?.sha256 === fwd, "manifest pinned_sources v3"],
   ]);
 }
 
-/** Criteria 5/6 (M8): the v3 source-hash assert carries the §1.5 message; PASS lines unchanged. */
+/** Criteria 5/6 (M8): the gate's pinned-source failure names the file; PASS lines pinned. */
 export function censusProblems(mjs: string): string[] {
-  const at = mjs.indexOf("person.source_sha256");
-  const tail = at < 0 ? "" : mjs.slice(at, mjs.indexOf(");", at));
-  const pass = [...mjs.matchAll(/"(PASS: [^"]+)"/g)].map((m) => m[1]);
+  const pass = [...mjs.matchAll(/`(PASS: [^`]+)`/g)].map((m) => m[1]);
   // prettier-ignore
   return failed([
-    [[MIGRATION, "${person.source_path}"].some((f) => tail.includes(`${MISMATCH}${f}`)), "§1.5 message"],
+    [mjs.includes(MISMATCH), "§1.5 message"],
     [JSON.stringify(pass) === JSON.stringify(PASS_LINES), "PASS lines"],
   ]);
 }
