@@ -359,10 +359,12 @@ that exposure is acceptable.
 
 ## 5.7 Production Vercel requirements
 
-Production deploys are currently branch-bound to `production` in all three live Vercel
-projects. Keep `production` enabled in app-level `vercel.json`; `develop`, `main`
-and all other Git branches stay disabled to avoid accidental deployment creation
-(`bun run verify:deployment-discipline` enforces this).
+Production deploys only through the Release workflow (`.github/workflows/release.yml`;
+[runbook](./release-job.md)), which stages, health-checks and promotes each app.
+App-level `vercel.json` disables Git deployments for every branch, `production`
+included (`bun run verify:deployment-discipline` enforces this), and custom
+production domains are not auto-assigned. No application environment holds a
+Postgres connection string (`bun run verify:runtime-connection-strings`).
 
 If the team later migrates Production away from `production`, change the Vercel
 project Production Branch for `admin`, `donor`, and `missionary`, ensure the
