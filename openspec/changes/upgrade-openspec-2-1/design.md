@@ -54,7 +54,10 @@ already contain many, and the overlay's first rule sends every one through
 One replacement is added. 2.1's Apply workflow says to "keep the selected
 store on any follow-up command". Core does not use Stores, and the sentence
 has no `--store` token for the existing guard to catch, so the adapter removes
-it and the refresh test asserts that.
+it and the refresh test asserts that. Descriptive Store prose that upstream
+already carried in 2.0, such as "store-aware `planningHome.root`" in Sync and
+Archive, stays: it says what a field means and does not route an agent to a
+Store.
 
 ### Make the refresh host-independent
 
@@ -64,7 +67,8 @@ repository formatting and wrote different bytes. And it cloned upstream with
 the user's `core.autocrlf`, so the refresh test's fixture arrived with CRLF
 and failed before reaching its assertions. The script now accepts
 either Windows launcher name and checks upstream out with
-`core.autocrlf=false`. With
+`core.autocrlf=false` and `core.eol=lf`. The launcher lookup was exercised by the
+real refresh on Windows; the unit fixture links the POSIX launcher only. With
 both, six of the seven lock hashes equal an independent prediction made from
 the 2.0.0 adapter and the 2.1.0 source; the seventh differs only by the
 removed Store sentence.

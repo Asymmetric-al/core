@@ -9,8 +9,8 @@ Refreshed the seven selected OpenSpec skills from `Fission-AI/OpenSpec` tag
 `scripts/refresh-upstream-skills.mjs --only=Fission-AI/OpenSpec`, alongside the
 CLI pin. Upstream changed all seven raw entrypoints and all seven installed
 skills changed: hand-offs to slash commands became plain-language or CLI
-guidance, and the Update and Apply workflows no longer name the Continue and New
-workflows that Core does not install. The three refresh replacements that
+guidance, and the Update and Apply workflows no longer hand off to the Continue and New
+slash commands, which Core does not install. The three refresh replacements that
 rewrote those references matched nothing in 2.1 and were removed. One was added:
 it drops the new Apply sentence about keeping a selected Store, because Core
 does not use Stores. The upstream licence notice changed its copyright line.
