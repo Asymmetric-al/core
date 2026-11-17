@@ -412,7 +412,9 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
     "/forgot-password/reset",
     "/auth/callback",
   ]) {
-    const prefixed = await page.request.get(tenantPath(DEMO, path), {
+    // Built by hand: the link helpers never put an account path under a
+    // prefix, so this is an address typed or kept from before.
+    const prefixed = await page.request.get(`/${DEMO}${path}`, {
       maxRedirects: 0,
     });
     expect(prefixed.status(), path).toBe(307);
