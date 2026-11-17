@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
+    "./database-url": "./src/database-url.mjs",
     "./target-env": "./src/target-env.ts"
   },
   "scripts": {

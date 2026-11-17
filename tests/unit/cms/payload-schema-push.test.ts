@@ -133,6 +133,23 @@ describe("resolvePayloadSchemaPush", () => {
     },
   );
 
+  // Council round 2, A7b: node-postgres connects to the query's `host`, not
+  // the authority's, so a loopback-looking URL can name a hosted database.
+  it.each([
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?host=db.abcdefghijklmnopqrst.supabase.co",
+    "postgresql://postgres:postgres@localhost:54322/postgres?hostaddr=10.0.0.5",
+    "postgresql://postgres:postgres@[::1]:54322/postgres?sslmode=disable&port=6543",
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?user=postgres.abcdefghijklmnopqrst",
+  ])(
+    "never pushes when a loopback-looking URL carries a routing override: %s",
+    async (url) => {
+      const { resolvePayloadSchemaPush } = await load();
+      expect(resolvePayloadSchemaPush({ connectionString: url, env: {} })).toBe(
+        false,
+      );
+    },
+  );
+
   it.each(LOOPBACK_URLS)(
     "leaves Payload's default in place for %s",
     async (url) => {

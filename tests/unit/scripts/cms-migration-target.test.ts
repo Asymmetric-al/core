@@ -156,11 +156,16 @@ describe("CMS migration target", () => {
   });
 
   it("rejects URI and ambient routing overrides before migration", () => {
+    // The keys of @asym/env/database-url, the one rule this guard shares with
+    // the release target and Payload's run-time configuration (council round
+    // 2, A7b); `port` and `dbname` joined with it.
     for (const option of [
       "hostaddr=127.0.0.1",
       "service=other",
       "host=other",
       "user=postgres.other",
+      "port=6543",
+      "dbname=other",
     ]) {
       expect(() =>
         assertCmsMigrationTarget({
