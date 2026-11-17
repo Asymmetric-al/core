@@ -79,9 +79,10 @@ describe("qa smoke preview deployment workflow", () => {
     ).toHaveLength(3);
     expect(workflow).not.toContain("Install local preview build dependencies");
     expect(workflow).not.toContain("vercel pull");
+    // Three label-gated surfaces, plus the preview-database job's one loop.
     expect(
       workflow.match(/node scripts\/qa\/deploy-hosted-preview\.mjs /g),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     for (const app of ["admin", "donor", "missionary"]) {
       expect(workflow).not.toContain(`--cwd apps/${app} deploy`);
     }
@@ -92,12 +93,12 @@ describe("qa smoke preview deployment workflow", () => {
       workflow.match(
         /QA_TEST_EMAIL: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL && secrets\.QA_PREVIEW_TEST_PASSWORD && secrets\.QA_PREVIEW_TEST_EMAIL \|\| secrets\.QA_TEST_EMAIL \}\}/g,
       ),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       workflow.match(
         /QA_TEST_PASSWORD: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL && secrets\.QA_PREVIEW_TEST_PASSWORD && secrets\.QA_PREVIEW_TEST_PASSWORD \|\| secrets\.QA_TEST_PASSWORD \}\}/g,
       ),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(workflow).toContain("QA_PREVIEW_CREDENTIALS_PARTIAL:");
     expect(workflow).toContain('"${QA_PREVIEW_CREDENTIALS_PARTIAL}" == "true"');
     expect(workflow).toContain(
@@ -177,6 +178,45 @@ describe("qa smoke preview deployment workflow", () => {
       "playwright-report/pr-preview-smoke-*/sanitized/index.html",
       "playwright-report/pr-preview-smoke-*/sanitized/results.json",
     ]);
+  });
+
+  it("keeps the per-pull-request group, which cancels, for pull requests without a migration", () => {
+    const deployJob = workflow.split("\n  preview-database:")[0]!;
+    expect(workflow).not.toMatch(/^concurrency:/m);
+    expect(deployJob).toContain(
+      "group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}",
+    );
+    expect(deployJob).toContain("cancel-in-progress: true");
+    expect(deployJob).toContain(
+      "^(supabase/migrations/|apps/admin/src/migrations/)",
+    );
+    expect(deployJob).not.toContain("release-database.mjs");
+  });
+
+  it("runs a pull request that carries a migration as one never-cancelled, repository-wide job", () => {
+    const job = workflow.split("\n  preview-database:")[1]!;
+    expect(job).toContain(
+      "if: needs.deploy.outputs.carries_migration == 'true'",
+    );
+    expect(job).toMatch(
+      /concurrency:\n\s+group: preview-database\n\s+cancel-in-progress: false\n\s+queue: max/,
+    );
+    expect(job).toContain("environment: release-preview");
+    const order = [
+      "node scripts/verify/supabase-migrations.mjs",
+      "schema-fingerprint.mjs capture",
+      "release-database.mjs preview-rebuild",
+      "release-database.mjs gates",
+      "release-database.mjs record-heads",
+      "node scripts/qa/deploy-hosted-preview.mjs",
+      "vercel-release.mjs check",
+      "playwright.development-smoke.config.ts",
+      "<!-- preview-database-smoke -->",
+    ].map((marker) => job.indexOf(marker));
+    expect(order.every((index) => index > 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(job).toContain("CORE_PREVIEW_CUSTOM_ENVIRONMENT: preview-database");
+    expect(job).not.toContain("SUPABASE_DB_URL");
   });
 
   it("does not use bypass query parameters", () => {

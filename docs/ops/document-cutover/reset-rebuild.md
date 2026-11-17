@@ -1,6 +1,6 @@
 # Fresh reset/rebuild procedure — Phase 18 document cutover
 
-**Procedure version:** 1
+**Procedure version:** 2
 **Owner:** Phase 18 Generated Documents (`docs/prds/sitestacker-parity/phase-18-receipt-pdf-template-system.md`, D17)
 **Consumed by:** `scripts/document-cutover/assess-document-cutover.ts` (presence + digest verified; never executed by the gate)
 
@@ -28,8 +28,10 @@ the document; it never executes it.
    - Local: `supabase db reset` (applies `supabase/migrations` from scratch and
      re-seeds `supabase/seed.sql`).
    - Hosted pre-production: restore the project to a clean snapshot or recreate
-     the branch database, then run `bun run db:migrate:hosted` (see
-     `scripts/db-migrate-hosted.mjs`).
+     the branch database, then migrate it through the release job only
+     (`.github/workflows/release.yml`: its dispatched `release` operation for
+     that environment; see `docs/ops/release-job.md`). `bun run db:migrate:hosted`
+     refuses; the release job is the only holder of migration credentials.
 3. Remove any artifact objects referenced by the removed prototype tables from
    storage. The destructive plan enumerates the exact buckets/paths; delete
    only those.

@@ -161,6 +161,40 @@ describe("hosted Git-source preview delivery", () => {
       ).rejects.toThrow();
     },
   );
+  it("deploys a migration preview into the preview-database custom environment and confirms it", async () => {
+    const custom = {
+      ...env,
+      CORE_PREVIEW_CUSTOM_ENVIRONMENT: "preview-database",
+    };
+    const inCustom = { customEnvironment: { slug: "preview-database" } };
+    const fx = fixture([
+      deployment("BUILDING", inCustom),
+      deployment("READY", inCustom),
+    ]);
+    await expect(
+      deployHostedPreview({ app: "admin", env: custom, ...fx }),
+    ).resolves.toBe("https://admin-fixture.vercel.app");
+    const body = JSON.parse(fx.request.mock.calls[0][1].body);
+    expect(body.customEnvironmentSlugOrId).toBe("preview-database");
+    expect(body).not.toHaveProperty("target");
+  });
+  it("fails closed when a migration preview does not read back in its custom environment", async () => {
+    const custom = {
+      ...env,
+      CORE_PREVIEW_CUSTOM_ENVIRONMENT: "preview-database",
+    };
+    const fx = fixture([deployment(), deployment("READY")]);
+    await expect(
+      deployHostedPreview({ app: "admin", env: custom, ...fx }),
+    ).rejects.toThrow(/identity|ownership/);
+    await expect(
+      deployHostedPreview({
+        app: "admin",
+        env: { ...env, CORE_PREVIEW_CUSTOM_ENVIRONMENT: "production" },
+        ...fixture(),
+      }),
+    ).rejects.toThrow(/custom environment/);
+  });
   it("withholds provider response text and arbitrary error messages", async () => {
     const request = vi.fn(async () => ({
       ok: false,

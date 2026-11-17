@@ -3,6 +3,7 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 import { buildPublicCmsImageRemotePatterns } from "../../scripts/cms/public-media-remote-pattern.mjs";
 import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
+import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -33,6 +34,9 @@ const nextConfig: NextConfig & {
   partialPrefetching: true;
 } = {
   reactStrictMode: true,
+  // Each build carries the migration heads it was built against, for
+  // /api/health/migrations (scripts/release/migration-heads.mjs).
+  env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: {

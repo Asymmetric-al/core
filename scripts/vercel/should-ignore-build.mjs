@@ -197,9 +197,41 @@ function isRequestedQaPreviewBuild(app) {
   return matched;
 }
 
+function headMatches(marker) {
+  try {
+    const head = execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+    return marker === head;
+  } catch {
+    // Missing Git context retains the ordinary ignored-build decision.
+    return false;
+  }
+}
+
+/**
+ * The release job (scripts/release/vercel-release.mjs) decides which apps a
+ * release builds and passes the exact SHA as a build variable. Honoured only
+ * for a production-target build of that SHA, so it cannot force anything else.
+ */
+function isRequestedReleaseBuild(app) {
+  const marker = process.env.CORE_RELEASE_FORCE_BUILD_SHA;
+  if (marker === undefined) return false;
+  const matched =
+    Object.hasOwn(APPS, app) &&
+    process.env.VERCEL_ENV === "production" &&
+    /^[a-f0-9]{40}$/.test(marker) &&
+    marker === process.env.VERCEL_GIT_COMMIT_SHA &&
+    headMatches(marker);
+  if (matched) console.log("[vercel-ignore] release job marker matched");
+  return matched;
+}
+
 function runCli(argv) {
   const [app] = argv;
   if (isRequestedQaPreviewBuild(app)) return 1;
+  if (isRequestedReleaseBuild(app)) return 1;
   let changedFiles;
 
   try {

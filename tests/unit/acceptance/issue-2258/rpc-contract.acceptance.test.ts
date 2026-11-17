@@ -584,6 +584,15 @@ describe("#2258 pins (criteria 12, 13)", () => {
         40426,
         "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
       ],
+      // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
+      // release workflow, the preview database job and the two new migrate
+      // steps, and its field-policy paragraph describes the classification
+      // manifest that replaced the AL-491 census. Pinned on that exact reviewed
+      // whole file.
+      [
+        44177,
+        "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

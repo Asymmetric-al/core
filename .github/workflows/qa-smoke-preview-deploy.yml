@@ -16,10 +16,6 @@ permissions:
   issues: write
   pull-requests: write
 
-concurrency:
-  group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}
-  cancel-in-progress: true
-
 env:
   BUN_VERSION: "1.4.3"
   NODE_VERSION: "24.22.1"
@@ -29,6 +25,20 @@ jobs:
     name: label-gated-preview-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Per pull request, cancelling a superseded run. A pull request that carries
+    # a migration only plans here; preview-database below does the rest.
+    concurrency:
+      group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}
+      cancel-in-progress: true
+    outputs:
+      pr_number: ${{ steps.gate.outputs.pr_number }}
+      head_sha: ${{ steps.gate.outputs.head_sha }}
+      head_ref: ${{ steps.gate.outputs.head_ref }}
+      carries_migration: ${{ steps.scope.outputs.carries_migration }}
+      database_admin: ${{ steps.scope.outputs.database_admin }}
+      database_donor: ${{ steps.scope.outputs.database_donor }}
+      database_missionary: ${{ steps.scope.outputs.database_missionary }}
+      scope: ${{ steps.scope.outputs.scope }}
     steps:
       - name: Gate PR
         id: gate
@@ -137,15 +147,37 @@ jobs:
           files_json="$(printf '%s\n' "${changed_files}" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
           scope_json="$(printf '%s' "${files_json}" | node scripts/qa/preview-smoke-scope.mjs --json)"
 
+          # A migration in the pull request moves the whole preview onto the
+          # disposable preview database (plan 7.4), in the preview-database job.
+          carries_migration=false
+          if grep -qE '^(supabase/migrations/|apps/admin/src/migrations/)' <<<"${changed_files}"; then
+            carries_migration=true
+          fi
+
+          if [[ "${carries_migration}" == "true" ]]; then
+            {
+              echo "admin=false"
+              echo "donor=false"
+              echo "missionary=false"
+              echo "any=false"
+              echo "database_admin=$(jq -r '.admin' <<<"${scope_json}")"
+              echo "database_donor=$(jq -r '.donor' <<<"${scope_json}")"
+              echo "database_missionary=$(jq -r '.missionary' <<<"${scope_json}")"
+            } >>"${GITHUB_OUTPUT}"
+          else
+            {
+              echo "admin=$(jq -r '.admin' <<<"${scope_json}")"
+              echo "donor=$(jq -r '.donor' <<<"${scope_json}")"
+              echo "missionary=$(jq -r '.missionary' <<<"${scope_json}")"
+              echo "any=$(jq -r '.any' <<<"${scope_json}")"
+            } >>"${GITHUB_OUTPUT}"
+          fi
           {
-            echo "admin=$(jq -r '.admin' <<<"${scope_json}")"
-            echo "donor=$(jq -r '.donor' <<<"${scope_json}")"
-            echo "missionary=$(jq -r '.missionary' <<<"${scope_json}")"
-            echo "any=$(jq -r '.any' <<<"${scope_json}")"
+            echo "carries_migration=${carries_migration}"
             echo "scope=$(jq -r '.scope' <<<"${scope_json}")"
           } >>"${GITHUB_OUTPUT}"
 
-          echo "QA smoke preview scope: $(jq -r '.scope' <<<"${scope_json}")"
+          echo "QA smoke preview scope: $(jq -r '.scope' <<<"${scope_json}"); carries a migration: ${carries_migration}"
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         if: steps.scope.outputs.any == 'true'
@@ -285,7 +317,7 @@ jobs:
         run: node scripts/qa/deploy-hosted-preview.mjs missionary
 
       - name: Comment preview URLs
-        if: steps.gate.outputs.should_run == 'true'
+        if: steps.gate.outputs.should_run == 'true' && steps.scope.outputs.carries_migration != 'true'
         env:
           ADMIN_URL: ${{ steps.deploy_admin.outputs.url }}
           DONOR_URL: ${{ steps.deploy_donor.outputs.url }}
@@ -371,7 +403,7 @@ jobs:
           bunx playwright install --with-deps chromium
 
       - name: Run headless preview smoke QA
-        if: steps.gate.outputs.should_run == 'true'
+        if: steps.gate.outputs.should_run == 'true' && steps.scope.outputs.carries_migration != 'true'
         id: smoke
         env:
           ADMIN_URL: ${{ steps.deploy_admin.outputs.url }}
@@ -487,7 +519,7 @@ jobs:
           retention-days: 7
 
       - name: Comment headless smoke QA result
-        if: always() && steps.gate.outputs.should_run == 'true'
+        if: always() && steps.gate.outputs.should_run == 'true' && steps.scope.outputs.carries_migration != 'true'
         env:
           ADMIN_STATUS: ${{ steps.smoke.outputs.admin }}
           ADMIN_URL: ${{ steps.deploy_admin.outputs.url }}
@@ -612,3 +644,224 @@ jobs:
         run: |
           echo "::error::Headless PR preview smoke QA failed."
           exit 1
+
+  # A pull request that carries a migration (plan 7.4): rebuild the disposable
+  # preview Supabase project from this head, deploy into the Vercel custom
+  # environment wired to it, check each deployment reads that project, and
+  # smoke it, as one job in one repository-wide group that never cancels. The
+  # next pull request's rebuild waits until this smoke run ends. Development
+  # is never touched: the job holds only the preview project's credentials,
+  # and the scripts refuse the development and production-named projects.
+  preview-database:
+    name: preview-database-smoke
+    needs: deploy
+    if: needs.deploy.outputs.carries_migration == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: release-preview
+    concurrency:
+      group: preview-database
+      cancel-in-progress: false
+      queue: max
+    env:
+      RELEASE_ENVIRONMENT: preview
+      RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+      REPLAY_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/release_replay
+      PREVIEW_APPS: >-
+        ${{ needs.deploy.outputs.database_admin == 'true' && 'admin' || '' }}
+        ${{ needs.deploy.outputs.database_donor == 'true' && 'donor' || '' }}
+        ${{ needs.deploy.outputs.database_missionary == 'true' && 'missionary' || '' }}
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: release_replay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.deploy.outputs.head_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind checked-out commit to approved PR branch
+        env:
+          PR_HEAD_REF: ${{ needs.deploy.outputs.head_ref }}
+          PR_HEAD_SHA: ${{ needs.deploy.outputs.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git check-ref-format --branch "${PR_HEAD_REF}" >/dev/null
+          test "$(git rev-parse HEAD)" = "${PR_HEAD_SHA}"
+          git switch --create "${PR_HEAD_REF}" "${PR_HEAD_SHA}"
+
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install dependencies
+        run: bun ci --no-cache --backend=copyfile
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+
+      - name: Replay every migration on a fresh database
+        env:
+          DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
+        run: node scripts/verify/supabase-migrations.mjs
+      - name: Replay Payload migrations on the fresh database
+        env:
+          PAYLOAD_DATABASE_URI: ${{ env.REPLAY_DATABASE_URL }}
+          PAYLOAD_SECRET: release-replay-payload-secret # pragma: allowlist secret
+          SKIP_ENV_VALIDATION: "1"
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+        run: bun run cms:migrate
+      - name: Fingerprint the replay
+        run: >-
+          node scripts/release/schema-fingerprint.mjs capture
+          --database-url-env REPLAY_DATABASE_URL
+          --out "$RUNNER_TEMP/replay-fingerprint.json"
+
+      - name: Rebuild the preview database from this head
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
+          RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+        run: node scripts/release/release-database.mjs preview-rebuild
+      - name: Catalog gates and schema fingerprint against the replay
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_REPLAY_FINGERPRINT: ${{ runner.temp }}/replay-fingerprint.json
+        run: node scripts/release/release-database.mjs gates
+      - name: Record the expected migration heads
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+        run: node scripts/release/release-database.mjs record-heads
+
+      - name: Deploy previews on the preview database and check each reads it
+        id: deploy_database
+        env:
+          CORE_PREVIEW_CUSTOM_ENVIRONMENT: preview-database
+          CORE_PREVIEW_GIT_BRANCH: ${{ needs.deploy.outputs.head_ref }}
+          CORE_PREVIEW_GIT_SHA: ${{ needs.deploy.outputs.head_sha }}
+          RELEASE_SHA: ${{ needs.deploy.outputs.head_sha }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ADMIN_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+          VERCEL_DONOR_PROJECT_ID: ${{ secrets.VERCEL_DONOR_PROJECT_ID }}
+          VERCEL_MISSIONARY_PROJECT_ID: ${{ secrets.VERCEL_MISSIONARY_PROJECT_ID }}
+          VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for app in ${PREVIEW_APPS}; do
+            project_var="VERCEL_${app^^}_PROJECT_ID"
+            out="${RUNNER_TEMP}/preview-${app}.out"
+            : >"${out}"
+            GITHUB_OUTPUT="${out}" VERCEL_PROJECT_ID="${!project_var}" \
+              node scripts/qa/deploy-hosted-preview.mjs "${app}"
+            url="$(sed -n 's/^url=//p' "${out}")"
+            # The smoke runs only against a deployment that reads the preview
+            # project at the migrated heads.
+            node scripts/release/vercel-release.mjs check --app "${app}" --url "${url}"
+            echo "${app}=${url}" >>"${GITHUB_OUTPUT}"
+          done
+
+      - name: Install Playwright smoke dependencies
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run headless preview smoke QA on the preview database
+        id: smoke_database
+        env:
+          QA_ADMIN_BASE_URL: ${{ steps.deploy_database.outputs.admin }}
+          QA_DONOR_BASE_URL: ${{ steps.deploy_database.outputs.donor }}
+          QA_MISSIONARY_BASE_URL: ${{ steps.deploy_database.outputs.missionary }}
+          QA_TEST_EMAIL: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_EMAIL || secrets.QA_TEST_EMAIL }}
+          QA_TEST_PASSWORD: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_PASSWORD || secrets.QA_TEST_PASSWORD }}
+          VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="PASS"
+          for app in ${PREVIEW_APPS}; do
+            set +e
+            PLAYWRIGHT_REPORT_DIR="playwright-report/pr-preview-smoke-${app}" \
+              PLAYWRIGHT_OUTPUT_DIR="test-results/pr-preview-smoke-${app}" \
+              E2E_ADMIN_EMAIL="${QA_TEST_EMAIL:-}" E2E_ADMIN_PASSWORD="${QA_TEST_PASSWORD:-}" \
+              E2E_DONOR_EMAIL="${QA_TEST_EMAIL:-}" E2E_DONOR_PASSWORD="${QA_TEST_PASSWORD:-}" \
+              E2E_MISSIONARY_EMAIL="${QA_TEST_EMAIL:-}" E2E_MISSIONARY_PASSWORD="${QA_TEST_PASSWORD:-}" \
+              DEMO_ADMIN_EMAIL="${QA_TEST_EMAIL:-}" DEMO_DONOR_EMAIL="${QA_TEST_EMAIL:-}" \
+              DEMO_MISSIONARY_EMAIL="${QA_TEST_EMAIL:-}" DEMO_PASSWORD="${QA_TEST_PASSWORD:-}" \
+              node node_modules/@playwright/test/cli.js test \
+                -c playwright.development-smoke.config.ts \
+                --project="development-${app}"
+            status="$?"
+            set -e
+            if [[ "${status}" -ne 0 ]]; then
+              result="FAIL"
+            fi
+          done
+          echo "result=${result}" >>"${GITHUB_OUTPUT}"
+          [[ "${result}" == "PASS" ]]
+
+      - name: Comment preview database smoke result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ needs.deploy.outputs.head_sha }}
+          PR_NUMBER: ${{ needs.deploy.outputs.pr_number }}
+          PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+          RESULT: ${{ steps.smoke_database.outputs.result || 'NOT RUN' }}
+          ADMIN_URL: ${{ steps.deploy_database.outputs.admin }}
+          DONOR_URL: ${{ steps.deploy_database.outputs.donor }}
+          MISSIONARY_URL: ${{ steps.deploy_database.outputs.missionary }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body_file="${RUNNER_TEMP}/preview-database-smoke.md"
+          cat >"${body_file}" <<BODY
+          # Preview Database Smoke QA
+
+          This pull request carries a migration, so its preview ran on the
+          disposable preview Supabase project, rebuilt from this head.
+
+          Result: ${RESULT}
+          Commit: ${HEAD_SHA}
+          Preview project: ${PROJECT_REF}
+
+          - Admin: ${ADMIN_URL:-skipped}
+          - Donor: ${DONOR_URL:-skipped}
+          - Missionary: ${MISSIONARY_URL:-skipped}
+
+          No secrets were printed. Development was not touched.
+
+          <!-- preview-database-smoke -->
+          BODY
+          existing="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --jq '.[] | select(.body | contains("<!-- preview-database-smoke -->")) | .id' \
+              | tail -n 1
+          )"
+          if [[ -n "${existing}" ]]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${existing}" \
+              --field "body=$(cat "${body_file}")" >/dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --field "body=$(cat "${body_file}")" >/dev/null
+          fi

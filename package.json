@@ -96,6 +96,7 @@
     "verify:backup-restore": "node scripts/verify/backup-restore-proof.mjs",
     "verify:sentry-release": "node scripts/verify/sentry-release-sourcemaps.mjs",
     "verify:vercel-env-inventory": "node scripts/verify/vercel-env-inventory.mjs",
+    "verify:runtime-connection-strings": "node scripts/verify/runtime-connection-strings.mjs",
     "verify:vercel-affected-projects": "node scripts/vercel/affected-projects.mjs --check",
     "verify:vercel-build-controls": "node scripts/verify/vercel-build-controls.mjs",
     "verify:vercel-production": "node scripts/verify/vercel-production-readiness.mjs",

@@ -138,11 +138,14 @@ const repoRoot = path.resolve(
 
 const RESET_PROCEDURE = {
   reference: "docs/ops/document-cutover/reset-rebuild.md",
-  pinnedVersion: "1",
+  // Version 2 (AL-2674, WP1 slice 1.3, plan 7.4): hosted databases migrate
+  // only through the release job, so step 2 no longer runs
+  // `bun run db:migrate:hosted`, which now refuses.
+  pinnedVersion: "2",
   // Trusted digest of the committed procedure document at this pin. Editing
-  // the markdown while leaving Procedure version: 1 must stop the line.
+  // the markdown while leaving Procedure version: 2 must stop the line.
   expectedDigest:
-    "9a3187dc574be5a004103c479dc04d0e80fb83994a98762f1611115a440bcc53",
+    "5eb61d9a5d22acebd7b602a269a21c34a7e35e2c81e2876d527a36f5572d7934",
 };
 const ROLLBACK_PROCEDURE = {
   reference:

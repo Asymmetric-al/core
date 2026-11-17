@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "3f668b959012a1b6c185f67a249f50e1dbb17e17dd159f736c8adc3bf07d5f9c"
+          "sha256": "ec60e94334bf466d09c01740be9b953b4d81f306145fed20c04b5f77c1482f17"
         }
       ]
     },
@@ -741,7 +741,7 @@
         },
         {
           "path": "apps/donor/next.config.ts",
-          "sha256": "c1519f5f84bc3b859169e51e8fb274e3d5286d5f1a99f1a50ed28b3d3911704b"
+          "sha256": "76dbcb5e18e3ed6038cb17d35a1a094a4a0bd8f9676de794d740feee358486e4"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -1492,7 +1492,7 @@
         },
         {
           "path": "apps/missionary/next.config.ts",
-          "sha256": "dcbc4acbf0c30e2cb5007160a1f307af1d29aa9632603cc9e65da7e9febbc4ed"
+          "sha256": "b9f50d29662528a9012fa69773315b92244350ef7c45c174ee786536230cd6c7"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",

@@ -26,6 +26,20 @@ export async function deployHostedPreview({
   const project = EXPECTED_PROJECTS.find((item) => item.key === app);
   const branch = env.CORE_PREVIEW_GIT_BRANCH;
   const sha = env.CORE_PREVIEW_GIT_SHA;
+  // A pull request that carries a migration deploys into the custom
+  // environment wired to the `preview` Supabase project (plan 7.4).
+  const customEnvironment = env.CORE_PREVIEW_CUSTOM_ENVIRONMENT || null;
+  if (
+    customEnvironment !== null &&
+    (!/^[a-z][a-z0-9-]{1,62}$/.test(customEnvironment) ||
+      ["production", "preview", "development", "core-development"].includes(
+        customEnvironment,
+      ))
+  ) {
+    throw new Error(
+      "Hosted preview custom environment must name a dedicated preview custom environment",
+    );
+  }
   if (
     !project ||
     env.GITHUB_ACTIONS !== "true" ||
@@ -93,7 +107,9 @@ export async function deployHostedPreview({
       String(source?.repoId) !== REPOSITORY_ID ||
       source?.sha !== sha ||
       source?.ref !== branch ||
-      !STATES.has(deployment?.readyState)
+      !STATES.has(deployment?.readyState) ||
+      (customEnvironment !== null &&
+        deployment?.customEnvironment?.slug !== customEnvironment)
     ) {
       throw new Error(
         "Hosted preview identity or state did not match the approved project, branch, SHA and preview target",
@@ -116,6 +132,9 @@ export async function deployHostedPreview({
       // Omitted target means Preview. Confirm null target in the provider readback.
       // Only admin needs the larger machine qualified by its observed 8 GiB OOM.
       ...(app === "admin" ? { buildMachine: "turbo" } : {}),
+      ...(customEnvironment
+        ? { customEnvironmentSlugOrId: customEnvironment }
+        : {}),
     }),
   );
   const id = created?.id;

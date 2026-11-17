@@ -207,8 +207,10 @@ drift, run `bun run skills:sync` and commit the regenerated mirrors.
 `bun run supabase -- <command>` runs the Supabase CLI at the version pinned in
 `scripts/supabase-cli.mjs`, using a global CLI only when its version matches.
 `bun run db:migrate:local` resets the local database from migrations;
-`bun run seed:demo:local` also loads `supabase/seed.sql`. Hosted migration and
-seed commands require explicit target variables; read `supabase/AGENTS.md` and
+`bun run seed:demo:local` also loads `supabase/seed.sql`. Hosted databases
+migrate only through the Release workflow, which also deploys production; see
+[the release job runbook](docs/ops/release-job.md). Hosted seed commands
+require explicit target variables; read `supabase/AGENTS.md` and
 `scripts/AGENTS.md` first.
 
 ## Documentation

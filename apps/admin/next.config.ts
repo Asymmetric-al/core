@@ -5,6 +5,7 @@ import { withEve } from "eve/next";
 import { normalizeEveVercelEnvironment } from "./eve-runtime-environment";
 import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
+import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -29,6 +30,9 @@ export const nextConfig: NextConfig & {
   partialPrefetching: true;
 } = {
   reactStrictMode: true,
+  // Each build carries the migration heads it was built against, for
+  // /api/health/migrations (scripts/release/migration-heads.mjs).
+  env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],
   cacheComponents: true,

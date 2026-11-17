@@ -40,8 +40,10 @@ Use this doc when a task touches:
 - Local migrations + seed:
   - `bun run supabase -- db reset --local`
   - `bash ./scripts/seed-demo.sh local`
-- Hosted migrations (explicit DB URL):
-  - `bun run supabase -- db push --db-url "$SUPABASE_DB_URL"`
+- Hosted migrations: only the release job migrates a hosted database
+  (`.github/workflows/release.yml`; a push to `production`, or its dispatched
+  `release` operation). See `docs/ops/release-job.md`. `bun run db:migrate:hosted`
+  refuses, and no application environment holds a migration connection string.
 - Always go through `bun run supabase --`: `scripts/supabase-cli.mjs` uses a global CLI only when its
   version equals the repository pin and otherwise runs the pinned version.
 - Hosted seed:
