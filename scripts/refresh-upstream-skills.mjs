@@ -1965,6 +1965,12 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
       "If the user means the openspec update CLI command, which refreshes generated files, run that command instead.",
       "Requests for the openspec update CLI must use Core's repository-safe refresh workflow; never run the updater against this customized checkout.",
     );
+    // 2.1 suggests the raw archive command once work is implemented. Core
+    // archives only merged, accepted work, through its archive workflow.
+    content = content.replace(
+      '- Everything done and implemented -> suggest archiving with `openspec archive "<name>"`.',
+      "- Everything done, implemented, merged and accepted -> suggest the `openspec-archive-change` workflow. Do not suggest archiving unmerged work.",
+    );
   }
   if (/--store|openspec store list|run that command instead/.test(content))
     throw new Error(

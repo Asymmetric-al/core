@@ -51,7 +51,10 @@ itself, so the replacements match nothing and are deleted. The bare
 already contain many, and the overlay's first rule sends every one through
 `bun run openspec --`.
 
-One replacement is added. 2.1's Apply workflow says to "keep the selected
+Two replacements are added. 2.1's Update workflow suggests the raw
+`openspec archive` command once work is "done and implemented"; 2.0 pointed at
+the archive workflow. Core archives only merged, accepted work, so the adapter
+restores that condition and the workflow hand-off. And 2.1's Apply workflow says to "keep the selected
 store on any follow-up command". Core does not use Stores, and the sentence
 has no `--store` token for the existing guard to catch, so the adapter removes
 it and the refresh test asserts that. Descriptive Store prose that upstream

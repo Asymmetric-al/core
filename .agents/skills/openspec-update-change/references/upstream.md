@@ -3,7 +3,7 @@ source_name: Fission-AI/OpenSpec (openspec-update-change)
 source_url: https://github.com/Fission-AI/OpenSpec/tree/v2.1.0/skills/openspec-update-change
 source_type: github
 upstream_path: skills/openspec-update-change/
-skills_lock_hash: 071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46
+skills_lock_hash: 9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492
 last_reviewed: 2026-11-17
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/openspec-update-change/` (mirrored 
 - **Commit reviewed:** `8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0`
 - **Upstream path:** `skills/openspec-update-change/`
 - **Lock skillPath:** `skills/openspec-update-change/SKILL.md`
-- **Computed hash:** `071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46`
+- **Computed hash:** `9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492`
 
 ## Refresh from upstream
 
