@@ -174,8 +174,9 @@ export async function PATCH(request: NextRequest) {
       const { error } = await supabaseAdmin
         .from("profiles")
         .update({ ...profileUpdate, updated_at: now })
-        .eq("id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId);
+        // The caller's own profile; the tenant is the resolved assignment's.
+        // A profile's tenant column is no authority (AL-2675, NR-68).
+        .eq("id", ctx.profileId);
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -201,8 +202,8 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Reload by the caller's profile id. ctx.tenantId is the demo tenant for a
-    // tenantless super_admin, so a tenant filter would miss that row.
+    // Reload by the caller's profile id; a profile's tenant column is no
+    // authority (AL-2675).
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("*")

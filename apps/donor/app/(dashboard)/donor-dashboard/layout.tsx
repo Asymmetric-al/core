@@ -2,6 +2,7 @@ import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { siteConfig } from "@asym/config/site-client";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
+import { RetainedDraftPageTenant } from "@asym/ui/hooks";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -101,5 +102,12 @@ async function DonorRoleGate() {
     redirect("/no-access");
   }
 
-  return null;
+  // Retained drafts are scoped by the page's tenant: the resolved donor
+  // assignment's (AL-2675). Renders nothing.
+  return authContext.userId && authContext.tenantId ? (
+    <RetainedDraftPageTenant
+      userId={authContext.userId}
+      tenantId={authContext.tenantId}
+    />
+  ) : null;
 }

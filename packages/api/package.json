@@ -105,6 +105,7 @@
     "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
     "./shared/http-errors": "./src/shared/http-errors.ts",
     "./shared/cache-tags": "./src/shared/cache-tags.ts",
+    "./shared/tenant-members": "./src/shared/tenant-members.ts",
     "./generated-documents/purpose-catalog": "./src/generated-documents/purpose-catalog/index.ts",
     "./generated-documents/renderer-qualification": "./src/generated-documents/renderer-qualification/index.ts",
     "./health/app": "./src/health/app.ts",

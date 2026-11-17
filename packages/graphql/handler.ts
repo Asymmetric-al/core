@@ -4,6 +4,7 @@ import {
   giftMismatches,
 } from "@asym/api/donations/select";
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
+import { listTenantMembers } from "@asym/api/shared/tenant-members";
 import {
   getAuthContext,
   hasContextRoleClass,
@@ -223,19 +224,20 @@ const resolvers = {
         .select("*")
         .eq("id", ctx.auth.profileId)
         .single();
-      return mapProfile(data);
+      return mapProfile(data, ctx.auth);
     },
 
     myProfile: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      // The caller's own profile; the tenant is the resolved assignment's
+      // (AL-2675, NR-68).
       const { data } = await ctx.supabaseAdmin
         .from("profiles")
         .select("*")
         .eq("id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
         .single();
-      return mapProfile(data);
+      return mapProfile(data, auth);
     },
 
     missionaries: async (
@@ -462,16 +464,16 @@ const resolvers = {
         throw new Error(rpcError.message);
       }
 
+      // The caller's own profile (AL-2675, NR-68).
       const { data, error } = await ctx.supabaseAdmin
         .from("profiles")
         .select()
         .eq("id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
         .single();
       if (error || !data)
         throw new Error(error?.message ?? "Profile not found");
 
-      return mapProfile(data);
+      return mapProfile(data, auth);
     },
 
     createPost: async (
@@ -827,26 +829,44 @@ const resolvers = {
         throw new Error(rpcError.message);
       }
 
+      // The member is found by membership in this tenant (AL-2675, NR-68).
+      const [member] = await listTenantMembers(
+        ctx.supabaseAdmin,
+        auth.tenantId,
+        { profileIds: [args.input.userId] },
+      );
+      if (!member) throw new Error("User not found");
       const { data, error } = await ctx.supabaseAdmin
         .from("profiles")
         .select()
-        .eq("id", args.input.userId)
-        .eq("tenant_id", auth.tenantId)
+        .eq("id", member.profileId)
         .single();
       if (error || !data) throw new Error(error?.message ?? "User not found");
 
-      return mapProfile(data);
+      return mapProfile(data, {
+        tenantId: auth.tenantId,
+        role: member.isTenantAdmin ? "admin" : member.role,
+      });
     },
   },
 };
 
-function mapProfile(data: Record<string, unknown> | null) {
+/**
+ * A profile. Given a scope (the caller's own profile, or a member found by
+ * membership), the tenant and role are that membership's, never the
+ * profile's own columns, which are no authority since AL-2675. Nested
+ * display profiles keep the columns.
+ */
+function mapProfile(
+  data: Record<string, unknown> | null,
+  scope?: { tenantId: string | null; role: string | null },
+) {
   if (!data) return null;
   return {
     id: data.id,
-    tenantId: data.tenant_id,
+    tenantId: scope ? scope.tenantId : data.tenant_id,
     userId: data.user_id,
-    role: data.role,
+    role: scope ? scope.role : data.role,
     firstName: data.first_name,
     lastName: data.last_name,
     email: data.email,

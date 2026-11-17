@@ -1,210 +1,102 @@
+/**
+ * Reaction routes resolve their tenant from the membership the request acts
+ * under. Rewritten by the WP2a sweep (AL-2675; plan 12 WP2, the WP2a
+ * paragraph; NR-68): the route read `profiles.tenant_id`, which a person who
+ * belongs to two organizations has for one at most. The old cases (no
+ * profile, no profile tenant, a post of another tenant, the happy path) map
+ * to: no resolved assignment, a post of another tenant than the assignment's,
+ * and the happy path for the assignment's tenant, which for a person in two
+ * tenants is the selected one. Profiles are never read.
+ */
 import { describe, expect, it, vi } from "vitest";
 
-import { ApiHttpError } from "../../packages/api/src/shared/http-errors";
 import { resolveReactionRouteContext } from "../../packages/api/src/posts/reaction-route-utils";
+import { ApiHttpError } from "../../packages/api/src/shared/http-errors";
+import { membershipsForRole } from "../fixtures/auth-memberships";
 
-function createLookupMock(result: {
-  data: { tenant_id: string | null } | null;
-  error: unknown;
-}) {
-  const single = vi.fn().mockResolvedValue(result);
+import type { AuthContext } from "../../packages/auth/context";
+
+function donorIn(tenantId: string): AuthContext {
+  return {
+    userId: "user-1",
+    email: null,
+    tenantId,
+    role: "donor",
+    memberships: membershipsForRole("donor", tenantId),
+    profileId: "profile-1",
+    isAuthenticated: true,
+  };
+}
+
+function client(post: { data: { tenant_id: string } | null; error: unknown }) {
+  const single = vi.fn().mockResolvedValue(post);
   const query = { eq: vi.fn(), single };
   query.eq.mockReturnValue(query);
   const select = vi.fn().mockReturnValue(query);
-  return { select, eq: query.eq, single };
-}
-
-function createReactionContextMock({
-  profile = { data: { tenant_id: "tenant-1" }, error: null },
-  post = { data: { tenant_id: "tenant-1" }, error: null },
-}: {
-  profile?: {
-    data: { tenant_id: string | null } | null;
-    error: unknown;
-  };
-  post?: {
-    data: { tenant_id: string | null } | null;
-    error: unknown;
-  };
-} = {}) {
-  const profileLookup = createLookupMock(profile);
-  const postLookup = createLookupMock(post);
   const from = vi.fn((table: string) => {
-    if (table === "profiles") {
-      return { select: profileLookup.select };
-    }
-    if (table === "posts") {
-      return { select: postLookup.select };
-    }
+    if (table === "posts") return { select };
     throw new Error(`Unexpected table: ${table}`);
   });
-
-  return { from, profileLookup, postLookup };
+  return { supabase: { from } as never, from, eq: query.eq };
 }
 
 describe("reaction route utils", () => {
-  it("throws unauthorized when auth user is missing", async () => {
-    const lookup = createReactionContextMock();
-    const supabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: null,
-        }),
-      },
-      from: lookup.from,
-    };
-
+  it("refuses with 401 when no assignment resolved, before any lookup", async () => {
+    const c = client({ data: { tenant_id: "tenant-1" }, error: null });
     await expect(
       resolveReactionRouteContext(
-        supabase as never,
+        { ...donorIn("tenant-1"), isAuthenticated: false, userId: null },
+        c.supabase,
         Promise.resolve({ postId: crypto.randomUUID() }),
       ),
     ).rejects.toMatchObject<ApiHttpError>({
       status: 401,
       message: "Unauthorized",
     });
-    expect(lookup.from).not.toHaveBeenCalled();
+    expect(c.from).not.toHaveBeenCalled();
   });
 
-  it("validates postId route params", async () => {
-    const lookup = createReactionContextMock();
-    const supabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-1" } },
-          error: null,
-        }),
-      },
-      from: lookup.from,
-    };
-
+  it("validates postId route params before any lookup", async () => {
+    const c = client({ data: { tenant_id: "tenant-1" }, error: null });
     await expect(
       resolveReactionRouteContext(
-        supabase as never,
-        Promise.resolve({ postId: "invalid-post-id" }),
+        donorIn("tenant-1"),
+        c.supabase,
+        Promise.resolve({ postId: "not-a-uuid" }),
       ),
-    ).rejects.toThrow("Invalid post ID");
-    expect(supabase.auth.getUser).not.toHaveBeenCalled();
-    expect(lookup.from).not.toHaveBeenCalled();
+    ).rejects.toBeInstanceOf(Error);
+    expect(c.from).not.toHaveBeenCalled();
   });
 
-  it("fails closed when the authenticated user has no profile", async () => {
-    const lookup = createReactionContextMock({
-      profile: { data: null, error: { code: "PGRST116" } },
-    });
-    const supabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-1" } },
-          error: null,
-        }),
-      },
-      from: lookup.from,
-    };
-
-    await expect(
-      resolveReactionRouteContext(
-        supabase as never,
-        Promise.resolve({ postId: crypto.randomUUID() }),
-      ),
-    ).rejects.toMatchObject<ApiHttpError>({
-      status: 404,
-      message: "Profile not found",
-    });
-    expect(lookup.profileLookup.eq).toHaveBeenCalledWith("user_id", "user-1");
-    expect(lookup.postLookup.select).not.toHaveBeenCalled();
-  });
-
-  it("fails closed when the authenticated profile has no tenant", async () => {
-    const lookup = createReactionContextMock({
-      profile: { data: { tenant_id: null }, error: null },
-    });
-    const supabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-1" } },
-          error: null,
-        }),
-      },
-      from: lookup.from,
-    };
-
-    await expect(
-      resolveReactionRouteContext(
-        supabase as never,
-        Promise.resolve({ postId: crypto.randomUUID() }),
-      ),
-    ).rejects.toMatchObject<ApiHttpError>({
-      status: 404,
-      message: "Profile not found",
-    });
-    expect(lookup.postLookup.select).not.toHaveBeenCalled();
-  });
-
-  it("fails closed when the post does not belong to the profile tenant", async () => {
+  it("fails closed when the post is not in the assignment's tenant", async () => {
     const postId = crypto.randomUUID();
-    const lookup = createReactionContextMock({
-      post: { data: null, error: { code: "PGRST116" } },
-    });
-    const supabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-1" } },
-          error: null,
-        }),
-      },
-      from: lookup.from,
-    };
-
+    const c = client({ data: null, error: { code: "PGRST116" } });
     await expect(
       resolveReactionRouteContext(
-        supabase as never,
+        donorIn("tenant-1"),
+        c.supabase,
         Promise.resolve({ postId }),
       ),
     ).rejects.toMatchObject<ApiHttpError>({
       status: 404,
       message: "Post not found",
     });
-    expect(lookup.postLookup.eq).toHaveBeenNthCalledWith(1, "id", postId);
-    expect(lookup.postLookup.eq).toHaveBeenNthCalledWith(
-      2,
-      "tenant_id",
-      "tenant-1",
-    );
+    expect(c.eq).toHaveBeenNthCalledWith(1, "id", postId);
+    expect(c.eq).toHaveBeenNthCalledWith(2, "tenant_id", "tenant-1");
   });
 
-  it("returns post/user/tenant context when inputs are valid", async () => {
+  it("acts in the selected tenant for a person in two organizations, never reading profiles", async () => {
     const postId = crypto.randomUUID();
-    const lookup = createReactionContextMock();
-    const supabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-1" } },
-          error: null,
-        }),
-      },
-      from: lookup.from,
-    };
-
+    const c = client({ data: { tenant_id: "tenant-2" }, error: null });
     await expect(
       resolveReactionRouteContext(
-        supabase as never,
+        donorIn("tenant-2"),
+        c.supabase,
         Promise.resolve({ postId }),
       ),
-    ).resolves.toEqual({
-      postId,
-      userId: "user-1",
-      tenantId: "tenant-1",
-    });
-    expect(lookup.from).toHaveBeenNthCalledWith(1, "profiles");
-    expect(lookup.profileLookup.eq).toHaveBeenCalledWith("user_id", "user-1");
-    expect(lookup.from).toHaveBeenNthCalledWith(2, "posts");
-    expect(lookup.postLookup.eq).toHaveBeenNthCalledWith(1, "id", postId);
-    expect(lookup.postLookup.eq).toHaveBeenNthCalledWith(
-      2,
-      "tenant_id",
-      "tenant-1",
-    );
+    ).resolves.toEqual({ postId, userId: "user-1", tenantId: "tenant-2" });
+    expect(c.from).toHaveBeenCalledTimes(1);
+    expect(c.from).toHaveBeenCalledWith("posts");
+    expect(c.eq).toHaveBeenNthCalledWith(2, "tenant_id", "tenant-2");
   });
 });

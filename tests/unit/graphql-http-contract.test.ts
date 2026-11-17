@@ -192,7 +192,10 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.rpc).not.toHaveBeenCalled();
   });
 
-  it("passes the original request to auth and scopes the profile query to its tenant", async () => {
+  // Rewritten by the WP2a sweep (AL-2675; NR-68): the profile is the
+  // caller's own, read by id; the tenant is the resolved assignment's, and
+  // the response reports it, never a filter on the profile's tenant column.
+  it("passes the original request to auth and answers in the assignment's tenant", async () => {
     const incoming = request(
       "{ myProfile { id tenantId createdAt } }",
       undefined,
@@ -210,10 +213,7 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.getAuthContext).toHaveBeenCalledWith(incoming);
     expect(queries).toContainEqual({
       table: "profiles",
-      filters: [
-        ["id", "profile-a"],
-        ["tenant_id", "tenant-a"],
-      ],
+      filters: [["id", "profile-a"]],
     });
   });
 

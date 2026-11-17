@@ -1,9 +1,12 @@
+import { membershipHasCapability } from "@asym/auth/context";
+
 import { deliverApprovalEmailNotifications } from "./approval-notification-email";
 import {
   loadContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { asString, isRecord } from "../../shared/json-coerce";
+import { listTenantMembers } from "../../shared/tenant-members";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
 import type { ApprovalEmailDependencies } from "./approval-notification-email";
@@ -210,25 +213,40 @@ async function loadApprovalNotificationSettings(
   );
 }
 
-async function listEligibleApprovers(
+/** The tenant's eligible approvers and their notification preferences. */
+export async function listEligibleApprovers(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
 ): Promise<EligibleApprover[]> {
-  const [approversResult, preferencesResult] = await Promise.all([
-    supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("tenant_id", tenantId)
-      .in("role", ["admin", "super_admin"]),
+  // AL-2675 (NR-68): the eligible approvers are the members of this tenant
+  // whose live row holds contributions.approve_corrections in the registry
+  // (today the tenant administrator); never a profile role filter.
+  const [members, preferencesResult] = await Promise.all([
+    listTenantMembers(supabaseAdmin, tenantId),
     supabaseAdmin
       .from("contribution_approval_notification_preferences")
       .select("profile_id, in_app_enabled, email_enabled")
       .eq("tenant_id", tenantId),
   ]);
+  const approverProfileIds = [
+    ...new Set(
+      members
+        .filter((member) =>
+          membershipHasCapability(
+            {
+              tenantId,
+              role: member.role,
+              staffRole: member.staffRole,
+              isActive: member.isLive,
+              isTenantAdmin: member.isTenantAdmin,
+            },
+            "contributions.approve_corrections",
+          ),
+        )
+        .map((member) => member.profileId),
+    ),
+  ];
 
-  if (approversResult.error) {
-    throw new Error(approversResult.error.message);
-  }
   if (preferencesResult.error) {
     throw new Error(preferencesResult.error.message);
   }
@@ -242,15 +260,12 @@ async function listEligibleApprovers(
     ]),
   );
 
-  return ((approversResult.data ?? []) as JsonRecord[])
-    .map((row) => asString(row.id))
-    .filter((id): id is string => Boolean(id))
-    .map((profileId) => ({
-      profileId,
-      preference:
-        preferencesByProfile.get(profileId) ??
-        resolveApproverNotificationPreference(null),
-    }));
+  return approverProfileIds.map((profileId) => ({
+    profileId,
+    preference:
+      preferencesByProfile.get(profileId) ??
+      resolveApproverNotificationPreference(null),
+  }));
 }
 
 function filterEligibleApproversForRequest(input: {

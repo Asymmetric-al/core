@@ -476,6 +476,31 @@ export function hasContextCapability(
   return contextCapabilities(context).includes(capability);
 }
 
+/**
+ * Whether one live membership row holds `capability` in the registry, for
+ * server code that judges members other than the caller, such as the
+ * approvers a notification goes to (AL-2675). Fails closed like
+ * `contextCapabilities`.
+ */
+export function membershipHasCapability(
+  membership: AuthMembership,
+  capability: Capability,
+): boolean {
+  if (!membership.isActive) return false;
+  try {
+    return resolveAssignmentCapabilities({
+      assignmentId: "member-row",
+      tenantId: membership.tenantId,
+      membershipRole: membership.role,
+      staffRole: membership.staffRole,
+      isTenantAdmin: membership.isTenantAdmin === true,
+    }).includes(capability);
+  } catch (error) {
+    if (error instanceof CapabilityResolutionError) return false;
+    throw error;
+  }
+}
+
 /** The parts of a context that the membership checks read. */
 type MembershipView = Pick<
   AuthContext,

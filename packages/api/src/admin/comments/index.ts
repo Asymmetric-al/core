@@ -7,6 +7,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { toErrorResponse } from "../../shared/http-errors";
+import { listTenantMembers } from "../../shared/tenant-members";
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,19 +67,36 @@ export async function GET(request: NextRequest) {
       }
     >();
     if (authorIds.length > 0) {
-      // Comments reference auth.users, so profiles must be read separately.
-      const { data: profiles, error: profileError } = await supabaseAdmin
-        .from("profiles")
-        .select("id, first_name, last_name, full_name, avatar_url")
-        .eq("tenant_id", ctx.tenantId)
-        .in("id", authorIds);
+      // Comments reference auth.users. An author is shown when their login
+      // holds a membership in this tenant, revoked ones included since their
+      // comments remain (AL-2675, NR-68); profiles are then read by id.
+      let profileToUser: Map<string, string>;
+      try {
+        const members = await listTenantMembers(supabaseAdmin, ctx.tenantId, {
+          userIds: authorIds,
+          includeRevoked: true,
+        });
+        profileToUser = new Map(members.map((m) => [m.profileId, m.userId]));
+      } catch (memberError) {
+        return NextResponse.json(
+          { error: (memberError as Error).message },
+          { status: 500 },
+        );
+      }
+      const { data: profiles, error: profileError } =
+        profileToUser.size > 0
+          ? await supabaseAdmin
+              .from("profiles")
+              .select("id, first_name, last_name, full_name, avatar_url")
+              .in("id", [...profileToUser.keys()])
+          : { data: [], error: null };
       if (profileError)
         return NextResponse.json(
           { error: profileError.message },
           { status: 500 },
         );
       for (const profile of profiles ?? []) {
-        authors.set(profile.id, {
+        authors.set(profileToUser.get(profile.id) ?? profile.id, {
           ...profile,
           full_name:
             profile.full_name?.trim() ||

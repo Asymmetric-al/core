@@ -458,6 +458,77 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
       }));
   });
 
+  /**
+   * The WP2a sweep (NR-68): service-key server code reads a tenant's people
+   * from membership. UDON holds donor rows in TA and TB; a profile holds one
+   * tenant at most, so only membership gives each tenant its own members.
+   */
+  describe("the service-key member reader (sweep, NR-68)", () => {
+    const READER = (tenant: string, args = "") =>
+      `select membership_id, profile_id, role, staff_role, is_tenant_admin, is_live
+         from public.tenant_member_profiles('${id[tenant]}'${args})`;
+    const keys = (r: { rows: Record<string, unknown>[] }) =>
+      r.rows.map((row) => keyOf(row.membership_id)).sort();
+
+    it("gives each tenant its own live members, the two-tenant donor in both", () =>
+      tx(async () => {
+        const a = await as("service_role", {}, READER("TA"));
+        expect(a.code, a.message).toBeNull();
+        expect(keys(a)).toEqual(["mAdm", "mCare", "mDev", "mDonA", "mFin"]);
+        const b = await as("service_role", {}, READER("TB"));
+        expect(keys(b)).toEqual(["mB", "mDonB"]);
+        const profile = await one(
+          "select id from public.profiles where user_id = $1",
+          [id.UDON],
+        );
+        for (const r of [a, b])
+          expect(r.rows.map((row) => row.profile_id)).toContain(profile.id);
+        expect(
+          a.rows.find((row) => keyOf(row.membership_id) === "mAdm"),
+        ).toMatchObject({
+          role: "staff",
+          is_tenant_admin: true,
+          is_live: true,
+        });
+      }));
+
+    it("narrows by profile or login, and keeps revoked rows only on request", () =>
+      tx(async () => {
+        const udon = await one(
+          "select id from public.profiles where user_id = $1",
+          [id.UDON],
+        );
+        const byProfile = await as(
+          "service_role",
+          {},
+          READER("TB", `, array['${udon.id}']::uuid[]`),
+        );
+        expect(keys(byProfile)).toEqual(["mDonB"]);
+        const byLogin = await as(
+          "service_role",
+          {},
+          READER("TA", `, null, array['${id.UREV}', '${id.UB}']::uuid[]`),
+        );
+        expect(keys(byLogin)).toEqual([]);
+        const history = await as(
+          "service_role",
+          {},
+          READER("TA", `, null, array['${id.UREV}']::uuid[], true`),
+        );
+        expect(
+          history.rows.map((row) => [keyOf(row.membership_id), row.is_live]),
+        ).toEqual([["mRev", false]]);
+      }));
+
+    it("is executable by the service role only", () =>
+      tx(async () => {
+        for (const role of ["authenticated", "anon"]) {
+          const r = await as(role, { sub: "UADM" }, READER("TA"));
+          expect(r.code, role).toBe("42501");
+        }
+      }));
+  });
+
   describe("the data step (WP2 'Data', 5.1)", () => {
     // Section 4 of the migration, run again on rows shaped like a hosted
     // database's: the migration itself ran on an empty one.

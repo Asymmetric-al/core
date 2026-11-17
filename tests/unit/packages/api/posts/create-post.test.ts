@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { memberRow } from "../../../../fixtures/fake-service-client";
+
 import { createMissionaryPost } from "../../../../../packages/api/src/posts/create";
 import { postWriteSchema } from "../../../../../packages/api/src/schemas/posts";
 
@@ -17,12 +19,24 @@ const auth = {
   role: "missionary",
 } as never;
 
-/** Just enough of the service-role client for the create path. */
+/**
+ * Just enough of the service-role client for the create path. Since the
+ * WP2a sweep (AL-2675, NR-68) the author's profile is found through their
+ * membership in the tenant (`tenant_member_profiles`), not a filter on the
+ * profile's tenant column; `profile: null` means no membership there.
+ */
 function fakeClient(options: { profile?: { id: string } | null } = {}) {
-  const rpc = vi.fn(async () => ({
-    data: { post_id: "post-1" },
-    error: null,
-  }));
+  const rpc = vi.fn(async (fn: string) =>
+    fn === "tenant_member_profiles"
+      ? {
+          data:
+            options.profile === null
+              ? []
+              : [memberRow({ profileId: "profile-1", userId: "user-1" })],
+          error: null,
+        }
+      : { data: { post_id: "post-1" }, error: null },
+  );
   const created = {
     id: "post-1",
     title: "Clinic opens",
@@ -127,7 +141,13 @@ describe("createMissionaryPost", () => {
       }),
     });
 
-    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(rpc).toHaveBeenNthCalledWith(1, "tenant_member_profiles", {
+      p_tenant_id: "tenant-1",
+      p_profile_ids: null,
+      p_user_ids: ["user-1"],
+      p_include_revoked: false,
+    });
     expect(rpc).toHaveBeenCalledWith("atomic_create_post_with_audit", {
       p_tenant_id: "tenant-1",
       // posts.missionary_id references profiles.id.
@@ -175,6 +195,9 @@ describe("createMissionaryPost", () => {
       status: 404,
       error: "Profile not found",
     });
-    expect(rpc).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalledWith(
+      "atomic_create_post_with_audit",
+      expect.anything(),
+    );
   });
 });

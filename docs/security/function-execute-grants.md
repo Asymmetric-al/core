@@ -245,15 +245,20 @@ Also noted and left unchanged: `authz.is_super_admin()` uses
 
 ## Membership functions added by AL-2675 (WP2a)
 
-| Function                                               | Security | EXECUTE grantees (exact)            |
-| ------------------------------------------------------ | -------- | ----------------------------------- |
-| `public.tenant_member_directory(uuid)`                 | DEFINER  | `postgres` (owner), `authenticated` |
-| `authz.assignment_capabilities(uuid)`                  | INVOKER  | `postgres` (owner), `tenant_guard`  |
-| `tenant_guard.begin_human_command(uuid, text)`         | INVOKER  | `postgres` (owner), `tenant_guard`  |
-| `authz.caller_assignment(uuid, authz.membership_role)` | INVOKER  | `postgres` (owner)                  |
-| `private.profile_in_tenant(uuid, uuid)`                | INVOKER  | `postgres` (owner)                  |
-| `authz.memberships_lifecycle()` (trigger)              | INVOKER  | `postgres` (owner)                  |
+| Function                                                       | Security | EXECUTE grantees (exact)            |
+| -------------------------------------------------------------- | -------- | ----------------------------------- |
+| `public.tenant_member_directory(uuid)`                         | DEFINER  | `postgres` (owner), `authenticated` |
+| `authz.assignment_capabilities(uuid)`                          | INVOKER  | `postgres` (owner), `tenant_guard`  |
+| `tenant_guard.begin_human_command(uuid, text)`                 | INVOKER  | `postgres` (owner), `tenant_guard`  |
+| `authz.caller_assignment(uuid, authz.membership_role)`         | INVOKER  | `postgres` (owner)                  |
+| `private.profile_in_tenant(uuid, uuid)`                        | INVOKER  | `postgres` (owner)                  |
+| `authz.memberships_lifecycle()` (trigger)                      | INVOKER  | `postgres` (owner)                  |
+| `public.tenant_member_profiles(uuid, uuid[], uuid[], boolean)` | DEFINER  | `postgres` (owner), `service_role`  |
 
 Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
-before granting. `begin_human_command` replaces the one-argument function of
+before granting. `tenant_member_profiles`, added by the WP2a sweep, is the
+service-key reader of a tenant's memberships joined to profiles: the server
+code that needs a tenant's members, approvers or notification recipients
+reads them there, never by filtering `profiles` on `tenant_id` or `role`
+(NR-68). Signed-in staff use the member directory instead. `begin_human_command` replaces the one-argument function of
 AL-2674; its second argument, the capability, defaults to NULL.

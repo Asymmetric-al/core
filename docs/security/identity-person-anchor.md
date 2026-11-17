@@ -121,8 +121,16 @@ tests, is:
   `enforce_contribution_notification_tenant_refs` test a live membership in the
   row's tenant instead (`private.profile_in_tenant`) and are no longer readers;
   `tenant_member_directory` reads profiles beside `authz.memberships.tenant_id`
-  and appears in the lexical scan, though it never reads the profile's tenant:
+  and appears in the lexical scan, though it never reads the profile's tenant.
+  Since the WP2a sweep the scan covers the `private` schema too, and two more
+  functions appear in it on the same terms: `tenant_member_profiles`, the
+  service-key reader of a tenant's members, and `private.profile_in_tenant`
+  (INVOKER):
   - `tenant_member_directory`: display names for the member directory.
+  - `tenant_member_profiles`: a tenant's memberships joined to profiles, for
+    service-key server code (AL-2675 sweep, NR-68).
+  - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
+    a live membership in a tenant.
   - `assert_eve_retention_actor`
   - `assert_eve_admin_memory_owner`
   - `validate_eve_notification_recipient`
@@ -136,24 +144,29 @@ tests, is:
   - `expire_eve_retention_records`
   - `handle_new_user`: the writer. Since AL-2675 it writes NULL there and gives
     the new login a donor membership instead (WP2 "Interim rules").
-- App code that uses `profile.tenant_id` to pick or check the tenant. Since
-  AL-2675 `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts` and
-  `apps/admin/src/cms/auth/supabase-strategy.ts` resolve the caller's membership
-  instead:
-  - `packages/api/src/eve/admin-memory/route.ts`
-  - `packages/api/src/posts/reaction-route-utils.ts`
-  - `packages/ui/hooks/retained-draft.tsx`
+- App code that uses `profile.tenant_id` to pick or check the tenant: none.
+  AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
+  and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's
+  membership, and the WP2a sweep moved the last three readers:
+  `packages/api/src/eve/admin-memory/route.ts` tests the caller's live
+  membership in the request's tenant, `packages/api/src/posts/reaction-route-utils.ts`
+  takes the tenant of the request's resolved assignment, and
+  `packages/ui/hooks/retained-draft.tsx` scopes drafts by the page's tenant.
+- App code that filters `profiles` by tenant or role: none. The WP2a sweep
+  moved every such query to membership (`tenant_member_profiles`) or the
+  member directory, because a profile holds one tenant at most and a person
+  may hold memberships in two (NR-68). The reader manifest's filter half
+  (criterion 6b) fails on any query filter of the profile's tenant or role,
+  the generic tenant-row helper's call included.
 
-In `packages/auth/context.ts` and `packages/auth/resolve-user-role.ts` the hint
-selects the tenant whose `authz.memberships` are loaded; the membership, not the
-hint, carries the role. In `packages/ui/hooks/retained-draft.tsx`,
-`SessionRetainedDraftProvider` uses the profile's tenant hint together with the
-user ID and profile ID to scope in-memory drafts. An absent tenant leaves the
-store unowned, and an owner change remounts and clears it. This client-side
-memory boundary grants no permissions; route/API policies retain access
-authority. The remaining readers use the hint as a tenant-binding check. The
-retained-draft reader is included in the exact inventory tracked by #2267;
-future readers must be added to the pinned list and to this doc with #2267.
+In `packages/ui/hooks/retained-draft.tsx`, `SessionRetainedDraftProvider`
+scopes in-memory drafts by the user ID, the profile ID and the page's tenant,
+which the app's server-side role gate publishes with `RetainedDraftPageTenant`
+from the request's resolved assignment (until WP2b carries the tenant in the
+page address). Without a page tenant for this user the store is unowned, and
+an owner change remounts and clears it. This client-side memory boundary grants
+no permissions; route/API policies retain access authority. Future readers of
+the profile's tenant must be added to the pinned list and to this doc.
 
 ## Asym merge-candidate pairs: `donor_merge_candidates`
 

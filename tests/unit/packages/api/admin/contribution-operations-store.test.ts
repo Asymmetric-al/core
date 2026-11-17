@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { memberRow } from "../../../../fixtures/fake-service-client";
+
 import {
   createContributionCorrectionRecord,
   loadContributionDetailFromSupabase,
@@ -95,10 +97,28 @@ class SupabaseQueryStub {
   }
 }
 
+/**
+ * `members` are the profile ids whose logins hold a membership in the tenant,
+ * answered by `tenant_member_profiles` (AL-2675, NR-68).
+ */
 function createSupabaseStub(
   resultsByTable: Record<string, QueryResolver>,
+  members: string[] = [],
 ): AdminSupabaseClient {
   return {
+    async rpc(fn: string, args: { p_profile_ids: string[] | null }) {
+      if (fn !== "tenant_member_profiles") {
+        throw new Error(`Unexpected Supabase rpc: ${fn}`);
+      }
+      return {
+        data: members
+          .filter(
+            (id) => !args.p_profile_ids || args.p_profile_ids.includes(id),
+          )
+          .map((id) => memberRow({ profileId: id })),
+        error: null,
+      };
+    },
     from(table: string) {
       const resolver = resultsByTable[table];
       if (!resolver) {
@@ -204,69 +224,75 @@ describe("contribution operations store", () => {
     const proposedFundId = "00000000-0000-4000-8000-000000000011";
     const requesterId = "00000000-0000-4000-8000-000000000020";
     const queriedProfileIds: unknown[][] = [];
-    const supabaseAdmin = createSupabaseStub({
-      donations: {
-        data: {
-          id: donationId,
-          tenant_id: tenantId,
-          fund_id: currentFundId,
-          amount: 100_000,
-          currency: "usd",
-          status: "completed",
-          donation_type: "one_time",
-          payment_method: "card",
-          is_recurring: false,
-          refund_amount: 0,
-          created_at: "2026-05-01T00:00:00.000Z",
-          updated_at: "2026-05-01T00:00:00.000Z",
+    const supabaseAdmin = createSupabaseStub(
+      {
+        donations: {
+          data: {
+            id: donationId,
+            tenant_id: tenantId,
+            fund_id: currentFundId,
+            amount: 100_000,
+            currency: "usd",
+            status: "completed",
+            donation_type: "one_time",
+            payment_method: "card",
+            is_recurring: false,
+            refund_amount: 0,
+            created_at: "2026-05-01T00:00:00.000Z",
+            updated_at: "2026-05-01T00:00:00.000Z",
+          },
+          error: null,
         },
-        error: null,
-      },
-      contribution_adjustments: emptyRows,
-      funds: (query) => {
-        expectTenantScoped(query, tenantId);
-        expectIncludesIds(query, [currentFundId, proposedFundId]);
-        return {
+        contribution_adjustments: emptyRows,
+        funds: (query) => {
+          expectTenantScoped(query, tenantId);
+          expectIncludesIds(query, [currentFundId, proposedFundId]);
+          return {
+            data: [
+              { id: currentFundId, name: "General Fund" },
+              { id: proposedFundId, name: "Clean Water Initiative" },
+            ],
+            error: null,
+          };
+        },
+        profiles: (query) => {
+          queriedProfileIds.push(query.inFilters.get("id") ?? []);
+          // AL-2675 (WP2a sweep; NR-68): the requester belongs to the tenant
+          // by membership (the stub's members below); profiles are read by id
+          // alone, never filtered on the profile's tenant column.
+          expect(query.eqFilters.has("tenant_id")).toBe(false);
+          return {
+            data: [{ id: requesterId, display_name: "Joel Ramirez" }],
+            error: null,
+          };
+        },
+        ...baseContributionTables(),
+        contribution_correction_requests: {
           data: [
-            { id: currentFundId, name: "General Fund" },
-            { id: proposedFundId, name: "Clean Water Initiative" },
+            {
+              id: "request_amount",
+              action_type: "amount_correction",
+              status: "pending",
+              reason: "Donor sent a larger check",
+              requested_by_profile_id: requesterId,
+              created_at: "2026-05-06T00:00:00.000Z",
+              payload: { amount: 150_000 },
+            },
+            {
+              id: "request_fund",
+              action_type: "fund_correction",
+              status: "pending",
+              reason: "Wrong fund",
+              requested_by_profile_id: requesterId,
+              created_at: "2026-05-07T00:00:00.000Z",
+              payload: { fundId: proposedFundId },
+            },
           ],
           error: null,
-        };
+        },
       },
-      profiles: (query) => {
-        queriedProfileIds.push(query.inFilters.get("id") ?? []);
-        expectTenantScoped(query, tenantId);
-        return {
-          data: [{ id: requesterId, display_name: "Joel Ramirez" }],
-          error: null,
-        };
-      },
-      ...baseContributionTables(),
-      contribution_correction_requests: {
-        data: [
-          {
-            id: "request_amount",
-            action_type: "amount_correction",
-            status: "pending",
-            reason: "Donor sent a larger check",
-            requested_by_profile_id: requesterId,
-            created_at: "2026-05-06T00:00:00.000Z",
-            payload: { amount: 150_000 },
-          },
-          {
-            id: "request_fund",
-            action_type: "fund_correction",
-            status: "pending",
-            reason: "Wrong fund",
-            requested_by_profile_id: requesterId,
-            created_at: "2026-05-07T00:00:00.000Z",
-            payload: { fundId: proposedFundId },
-          },
-        ],
-        error: null,
-      },
-    });
+      [requesterId],
+    );
 
     const detail = await loadContributionDetailFromSupabase({
       supabaseAdmin,

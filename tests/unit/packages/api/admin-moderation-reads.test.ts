@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 import { beforeEach, expect, it, vi } from "vitest";
+
+import { memberRow } from "../../../fixtures/fake-service-client";
 const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   auth: vi.fn(),
@@ -35,6 +37,16 @@ function query(result: object) {
 beforeEach(() => {
   mocks.auth.mockResolvedValue({ tenantId: "tenant-a", role: "admin" });
 });
+/**
+ * AL-2675 (WP2a sweep; NR-68): a comment's author is found through their
+ * login's membership in the tenant (`tenant_member_profiles`); profiles are
+ * then read by id alone, never filtered on the profile's tenant column.
+ */
+const membersOf = (...people: string[]) =>
+  vi.fn(async () => ({
+    data: people.map((p) => memberRow({ profileId: p, userId: p })),
+    error: null,
+  }));
 it("looks up comment authors by profile id within the authenticated tenant", async () => {
   const rows = query({
     data: [
@@ -57,12 +69,19 @@ it("looks up comment authors by profile id within the authenticated tenant", asy
   const from = vi.fn((table: string) =>
     table === "profiles" ? profiles : rows,
   );
-  mocks.admin.mockReturnValue({ client: { from } });
+  const rpc = membersOf("person");
+  mocks.admin.mockReturnValue({ client: { from, rpc } });
   const response = await comments(
     new Request("https://core.test/api/admin/comments?limit=20") as NextRequest,
   );
   expect(response.status).toBe(200);
-  expect(profiles.eq).toHaveBeenCalledWith("tenant_id", "tenant-a");
+  expect(rpc).toHaveBeenCalledWith("tenant_member_profiles", {
+    p_tenant_id: "tenant-a",
+    p_profile_ids: null,
+    p_user_ids: ["person"],
+    p_include_revoked: true,
+  });
+  expect(profiles.eq).not.toHaveBeenCalled();
   expect(profiles.in).toHaveBeenCalledWith("id", ["person"]);
   expect(rows.eq).toHaveBeenCalledWith("post.tenant_id", "tenant-a");
   expect(rows.select.mock.calls[0][0]).not.toContain("profiles!user_id");
@@ -85,6 +104,7 @@ it("reports author lookup errors explicitly", async () => {
   mocks.admin.mockReturnValue({
     client: {
       from: (table: string) => (table === "profiles" ? profiles : rows),
+      rpc: membersOf("person"),
     },
   });
   const response = await comments(
@@ -99,9 +119,12 @@ it("keeps a missing tenant author anonymous", async () => {
     error: null,
   });
   const profiles = query({ data: [], error: null });
+  // No membership in this tenant: the author stays anonymous and no profile
+  // is read at all.
   mocks.admin.mockReturnValue({
     client: {
       from: (table: string) => (table === "profiles" ? profiles : rows),
+      rpc: membersOf(),
     },
   });
   const response = await comments(

@@ -8,7 +8,10 @@ import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
-import { SessionRetainedDraftProvider } from "@asym/ui/hooks";
+import {
+  RetainedDraftPageTenant,
+  SessionRetainedDraftProvider,
+} from "@asym/ui/hooks";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -79,7 +82,14 @@ async function MissionaryRoleGate() {
     redirect("/no-access");
   }
 
-  return null;
+  // Retained drafts are scoped by the page's tenant: the resolved missionary
+  // assignment's (AL-2675). Renders nothing.
+  return authContext.userId && authContext.tenantId ? (
+    <RetainedDraftPageTenant
+      userId={authContext.userId}
+      tenantId={authContext.tenantId}
+    />
+  ) : null;
 }
 
 export const metadata: Metadata = {

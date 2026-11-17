@@ -61,9 +61,16 @@ export const NEW_ROWS = SEAMS.flatMap(([record_type]) =>
  * beside `authz.memberships.tenant_id`, not the profile's tenant, and the
  * lexical scan of criterion 6 matches it. `handle_new_user` now writes NULL
  * there.
+ *
+ * Amended by the WP2a sweep (AL-2675; plan WP2a paragraph): the scan covers
+ * `private` too. `private.profile_in_tenant` and the service-key reader
+ * `tenant_member_profiles` name profiles beside `authz.memberships.tenant_id`
+ * and read no profile's tenant; the lexical scan matches them.
  */
 export const READER_FUNCTIONS: Record<string, boolean> = {
   tenant_member_directory: true,
+  tenant_member_profiles: true,
+  profile_in_tenant: false,
   assert_eve_retention_actor: true,
   assert_eve_admin_memory_owner: true,
   validate_eve_notification_recipient: true,
@@ -91,12 +98,63 @@ export const READER_POLICIES = [
  * §1.3 app rows (files). Amended by AL-2675 (WP2a; NR-20, A08): the auth
  * context, the proxies' role resolver and the Payload strategy resolve the
  * caller's membership and no longer read the profile's tenant.
+ *
+ * Emptied by the WP2a sweep (AL-2675; plan WP2a paragraph, 7.1, NR-68): the
+ * assistant memory route tests the caller's live membership in the request's
+ * tenant, the reaction routes take the resolved assignment's tenant, and
+ * retained drafts are scoped by the page's tenant, so no app code reads a
+ * profile's tenant. Criterion 6 still compares the scan to this list exactly,
+ * and 6b adds the query-filter half.
  */
-export const READER_APPS = [
-  "packages/api/src/eve/admin-memory/route.ts",
-  "packages/api/src/posts/reaction-route-utils.ts",
-  "packages/ui/hooks/retained-draft.tsx",
-];
+export const READER_APPS: string[] = [];
+
+/**
+ * The query-filter half of the reader manifest (AL-2675, the WP2a sweep;
+ * plan WP2a paragraph, NR-68). Criterion 6 finds property reads of
+ * `profile.tenant_id`; this finds code that filters `profiles` by tenant or
+ * role, which the sweep moved to membership:
+ * - a `.from("profiles")` chain (to its statement's end or the next query) that filters
+ *   `tenant_id` or `role` (`eq`, `neq`, `in`, `is`, `filter`, `match`, `or`),
+ * - the same filter applied later to a variable that holds such a chain,
+ * - a generic tenant-row helper called with the `profiles` table.
+ * Returns `file:line text` per finding.
+ */
+export function profileQueryFilterHits(file: string, text: string): string[] {
+  const hits: string[] = [];
+  const lineOf = (index: number) => text.slice(0, index).split("\n").length;
+  const FILTER =
+    /\.(?:eq|neq|in|is|filter|not)\(\s*["'`](?:tenant_id|role)["'`]|\.match\(\s*\{[^}]*\b(?:tenant_id|role)\b|\.or\(\s*["'`][^"'`]*\b(?:tenant_id|role)\./;
+  const report = (index: number, snippet: string) =>
+    hits.push(
+      `${file}:${lineOf(index)} ${snippet.replace(/\s+/g, " ").trim().slice(0, 120)}`,
+    );
+
+  for (const m of text.matchAll(/\.from\(\s*["'`]profiles["'`]\s*\)/g)) {
+    const rest = text.slice(m.index! + m[0].length);
+    // The chain ends at its statement's end or at the next query, whichever
+    // comes first (a Promise.all or a ternary holds several queries).
+    const ends = [rest.indexOf(";"), rest.search(/\.from\(/)].filter(
+      (i) => i >= 0,
+    );
+    const chain = ends.length > 0 ? rest.slice(0, Math.min(...ends)) : rest;
+    if (FILTER.test(chain)) report(m.index!, m[0] + chain);
+    const before = text.slice(0, m.index!);
+    const assigned = /(?:let|const|var)\s+(\w+)\s*=\s*[\w.\s]*$/.exec(before);
+    if (assigned) {
+      const name = assigned[1]!;
+      const later = new RegExp(
+        String.raw`\b${name}\s*(?:=\s*${name}\s*)?\.(?:eq|neq|in|is|filter|not)\(\s*["'\`](?:tenant_id|role)["'\`]`,
+        "g",
+      );
+      for (const l of text.matchAll(later)) report(l.index!, l[0]);
+    }
+  }
+  for (const m of text.matchAll(
+    /\b\w*[Tt]enant\w*\(\s*[^,()]+,\s*["'`]profiles["'`]/g,
+  ))
+    report(m.index!, m[0]);
+  return hits;
+}
 
 export const read = (p: string) =>
   existsSync(p) ? readFileSync(p, "utf8") : "";

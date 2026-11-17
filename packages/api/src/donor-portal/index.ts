@@ -145,8 +145,9 @@ export const PATCH = withOperation(
       const { error } = await supabaseAdmin
         .from("profiles")
         .update({ ...profileUpdate, updated_at: now })
-        .eq("id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId);
+        // The caller's own profile; the tenant is the resolved donor
+        // assignment's. A profile's tenant column is no authority (AL-2675).
+        .eq("id", ctx.profileId);
 
       if (error) {
         console.error("[donor-portal] Profile update failed", error);

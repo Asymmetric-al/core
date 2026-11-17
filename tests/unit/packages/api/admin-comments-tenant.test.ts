@@ -1,6 +1,8 @@
 import { type NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { memberRow } from "../../../fixtures/fake-service-client";
+
 const { getAdminClientMock, getAuthContextMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
   getAuthContextMock: vi.fn(),
@@ -36,6 +38,12 @@ function authContext(tenantId: string) {
     isAuthenticated: true as const,
   };
 }
+
+/** The author's membership in tenant A, by login (AL-2675). */
+const authorMembership = vi.fn(async () => ({
+  data: [memberRow({ profileId: "author", userId: "author" })],
+  error: null,
+}));
 
 describe("admin comments tenant isolation", () => {
   beforeEach(() => {
@@ -85,6 +93,7 @@ describe("admin comments tenant isolation", () => {
           from: vi.fn((table: string) =>
             table === "post_comments" ? comments : profiles,
           ),
+          rpc: authorMembership,
         },
         error: null,
       });
@@ -96,7 +105,17 @@ describe("admin comments tenant isolation", () => {
       expect(profiles.select).toHaveBeenCalledWith(
         "id, first_name, last_name, full_name, avatar_url",
       );
-      expect(profiles.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+      // AL-2675 (WP2a sweep; NR-68): an author is shown when their login
+      // holds a membership in this tenant (revoked ones too: the comment
+      // remains), read through tenant_member_profiles; profiles are read by
+      // id alone, never filtered on the profile's tenant column.
+      expect(authorMembership).toHaveBeenCalledWith("tenant_member_profiles", {
+        p_tenant_id: TENANT_A,
+        p_profile_ids: null,
+        p_user_ids: ["author"],
+        p_include_revoked: true,
+      });
+      expect(profiles.eq).not.toHaveBeenCalled();
       expect(profiles.in).toHaveBeenCalledWith("id", ["author"]);
       const body = await response.json();
       expect(body.comments[0].author.full_name).toBe(expected);
@@ -132,6 +151,7 @@ describe("admin comments tenant isolation", () => {
         from: vi.fn((table: string) =>
           table === "post_comments" ? comments : profiles,
         ),
+        rpc: authorMembership,
       },
       error: null,
     });
@@ -143,7 +163,8 @@ describe("admin comments tenant isolation", () => {
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "Could not load authors" });
     expect(comments.eq).toHaveBeenCalledWith("post.tenant_id", TENANT_A);
-    expect(profiles.eq).toHaveBeenCalledWith("tenant_id", TENANT_A);
+    expect(authorMembership).toHaveBeenCalledOnce();
+    expect(profiles.eq).not.toHaveBeenCalled();
   });
 
   it("PATCH returns 404 when comment belongs to another tenant", async () => {
