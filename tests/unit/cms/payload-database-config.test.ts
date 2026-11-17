@@ -395,3 +395,15 @@ describe("Payload runtime confinement to cms_runtime (plan 7.2)", () => {
     expect(config.issue).toBeNull();
   });
 });
+
+describe("Payload never creates a database (disableCreateDatabase)", () => {
+  it.each([
+    ["local development", { NODE_ENV: "development" }],
+    [
+      "a protected deployment",
+      { PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL, VERCEL_ENV: "production" },
+    ],
+  ])("turns database creation off in %s", (_label, env) => {
+    expect(resolvePayloadDatabaseConfig(env).disableCreateDatabase).toBe(true);
+  });
+});

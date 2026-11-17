@@ -92,3 +92,18 @@ describe("Web Studio display conventions", () => {
     }
   });
 });
+
+describe("Postgres adapter settings", () => {
+  it("never lets Payload create a missing database or schema", () => {
+    // The adapter keeps its options on the instance that init returns; init
+    // only records the Payload reference and opens no connection.
+    const adapter = config.db.init({
+      payload: { config, logger: console },
+    } as unknown as Parameters<typeof config.db.init>[0]) as {
+      disableCreateDatabase?: boolean;
+      schemaName?: string;
+    };
+    expect(adapter.schemaName).toBe("cms");
+    expect(adapter.disableCreateDatabase).toBe(true);
+  });
+});

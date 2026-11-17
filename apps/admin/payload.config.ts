@@ -146,6 +146,7 @@ export default buildConfig({
     push: process.env.PAYLOAD_DISABLE_SCHEMA_PUSH === "1" ? false : undefined,
     schemaName: "cms",
     pool: payloadDatabaseConfig.pool,
+    disableCreateDatabase: payloadDatabaseConfig.disableCreateDatabase,
   }),
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),

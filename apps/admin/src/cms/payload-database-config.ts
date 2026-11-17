@@ -54,6 +54,12 @@ export type PayloadDatabaseConfigIssue = {
 
 type PayloadDatabaseConfig = {
   connectionString: string;
+  /**
+   * Passed to the Postgres adapter. Payload otherwise answers a missing
+   * database by connecting to `postgres` and running CREATE DATABASE and
+   * CREATE SCHEMA, a schema change no runtime may attempt (plan 7.3).
+   */
+  disableCreateDatabase: true;
   host: string | null;
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
@@ -448,6 +454,7 @@ export function resolvePayloadDatabaseConfig(
 
   return {
     connectionString,
+    disableCreateDatabase: true,
     host,
     isDefaultLocal,
     isDirectSupabaseHost,
