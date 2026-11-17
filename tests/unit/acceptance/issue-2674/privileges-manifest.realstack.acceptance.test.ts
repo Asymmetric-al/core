@@ -282,7 +282,9 @@ describe.skipIf(!ADMIN_URL)(
 
     // Council round 1, F3: the #2407 suite stops at its own migration, so the
     // owner-folder write policies of these two buckets are asserted here, at
-    // the head of the chain.
+    // the head of the chain. Council round 2, B7: each expression is compared
+    // whole (whitespace collapsed, as Postgres indents its deparse), so an
+    // added `OR true` or a dropped condition fails.
     describe("D06: owner-folder writes on document-uploads and profiles", () => {
       const FOLDER_IS_CALLER =
         "((string_to_array(name, '/'::text))[3] = (( SELECT auth.uid() AS uid))::text)";
@@ -290,6 +292,14 @@ describe.skipIf(!ADMIN_URL)(
         bucket === "profiles"
           ? "((string_to_array(name, '/'::text))[1] = ANY (ARRAY['avatars'::text, 'covers'::text]))"
           : "((string_to_array(name, '/'::text))[1] = 'editor'::text)";
+      const FOLDER_IS_CALLERS_TENANT =
+        "((string_to_array(name, '/'::text))[2] IN ( SELECT COALESCE((p.tenant_id)::text, " +
+        "CASE WHEN (p.role = 'super_admin'::text) THEN '00000000-0000-0000-0000-000000000001'::text " +
+        'ELSE NULL::text END) AS "coalesce" FROM profiles p ' +
+        "WHERE (p.user_id = ( SELECT auth.uid() AS uid))))";
+      const FILE_IS_NAMED =
+        "((string_to_array(name, '/'::text))[4] <> ''::text)";
+      const collapse = (sql: unknown) => String(sql).replace(/\s+/g, " ");
 
       it.each(KINDS)(
         "%s replay: signed-in users write only their own folder and delete only their own objects",
@@ -317,21 +327,20 @@ describe.skipIf(!ADMIN_URL)(
             const insert = by[`${prefix} insert`]!;
             const update = by[`${prefix} update`]!;
             const remove = by[`Owner delete ${bucket}`]!;
-            for (const part of [
-              bucketIs,
+            const inCallersFolder = [
               PATH_SEGMENT(bucket),
+              FOLDER_IS_CALLERS_TENANT,
               FOLDER_IS_CALLER,
-            ])
-              expect(insert.checks, `${bucket} insert`).toContain(part);
+              FILE_IS_NAMED,
+            ];
+            expect(collapse(insert.checks), `${bucket} insert`).toBe(
+              `(${[bucketIs, ...inCallersFolder].join(" AND ")})`,
+            );
             expect(insert.qual).toBe("");
             expect(update.qual).toBe(`(${bucketIs} AND ${ownerIs})`);
-            for (const part of [
-              bucketIs,
-              ownerIs,
-              PATH_SEGMENT(bucket),
-              FOLDER_IS_CALLER,
-            ])
-              expect(update.checks, `${bucket} update`).toContain(part);
+            expect(collapse(update.checks), `${bucket} update`).toBe(
+              `(${[bucketIs, ownerIs, ...inCallersFolder].join(" AND ")})`,
+            );
             expect(remove.qual).toBe(`(${bucketIs} AND (auth.uid() = owner))`);
           }
         },
