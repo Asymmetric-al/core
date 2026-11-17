@@ -32,8 +32,8 @@ export interface WorkflowDispatchResult {
 
 /**
  * The dispatch adapter hands a validated workflow event envelope to Inngest.
- * It never throws: callers (and later the workflow dispatch ledger) decide
- * how to record and recover failed handoffs.
+ * It never throws: callers (the dispatch ledger in ./ledger.ts and
+ * ./recovery.ts) decide how to record and recover failed handoffs.
  */
 export function createWorkflowDispatcher(
   client: WorkflowSendClient = inngest,

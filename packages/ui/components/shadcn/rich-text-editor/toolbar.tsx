@@ -40,8 +40,6 @@ import {
   TooltipTrigger,
 } from "../tooltip";
 
-/* ---------------------------- Tool definitions ---------------------------- */
-
 export type ToolbarTool =
   | "bold"
   | "italic"
@@ -100,8 +98,6 @@ const SHORTCUTS = {
   redo: "mod+shift+z",
   link: "mod+k",
 } as const;
-
-/* -------------------------------------------------------------------------- */
 
 export interface EditorToolbarProps {
   /** Pass an editor directly, or omit to use context. */

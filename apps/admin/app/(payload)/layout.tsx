@@ -102,9 +102,9 @@ async function PayloadEmbeddedLayout({ children }: Props) {
   // `(payload)` deliberately stays outside `(app)`: Payload's import-map
   // generator only resolves `app/(payload)/<adminRoute>/`, so moving this group
   // breaks `generate:importmap`. That means the `(app)` layout's role gate does
-  // not cover these routes, and `proxy.ts` authenticates without ever checking
-  // role — so the gate has to be explicit here, or any signed-in donor or
-  // missionary reaches the Payload admin.
+  // not cover these routes. `proxy.ts` rejects wrong-role sessions at the edge;
+  // this explicit gate is the same defense in depth (role and tenant) that the
+  // `(app)` layout gives its routes.
   const gatePathname =
     (await nextHeaders()).get("x-asym-pathname") ?? "/web-studio";
   await requireAdminAccess(gatePathname);

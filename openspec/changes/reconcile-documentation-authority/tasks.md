@@ -11,4 +11,4 @@
 - [x] 2.2 Pass strict current/archive OpenSpec and delta applicability verification.
 - [x] 2.3 Pass focused verifier/routing/CI tests and applicable read-only checks; record limits.
 - [x] 2.4 Pass all 17 local `ci:preflight` stages before publication; record outgoing-hook and current-head GitHub results in the PR.
-- [ ] 3.1 Merge accepted reconciliation before archive; no product activation implied.
+- [x] 3.1 Merge accepted reconciliation before archive; no product activation implied. Evidence: PR #1897 merged into `develop` on 2026-09-23 (merge commit `ea8086cf3`).

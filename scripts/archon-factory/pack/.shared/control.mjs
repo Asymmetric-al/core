@@ -208,6 +208,8 @@ export async function nativeEffects({ config, value, readRemoteHead }) {
   if (![value.head, value.pr?.head].filter(Boolean).includes(head))
     return {
       ok: false,
+      // Read, and not recorded: somebody pushed to the branch.
+      unrecorded: head,
       detail: `The remote branch ${value.branch} is at ${head.slice(0, 12)}, a commit the work item never recorded`,
     };
   return { ok: true, remoteHead: head };

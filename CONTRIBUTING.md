@@ -42,7 +42,6 @@ without repairing it. Setup does not start an issue trial.
   stale totals are not coverage. Keep ESM configuration in `vitest.config.mts`
   and preserve importer-aware aliases, isolation and fixture behavior. See the
   [tooling qualification record](docs/maintenance/modernization/development-tools.md).
-- **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
   for raw findings, shared-consumer checks, exceptions, and legacy debt.

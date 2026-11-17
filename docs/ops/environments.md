@@ -8,7 +8,7 @@ This document is the canonical reference for how environments are defined and op
 
 | Property      | Local                                | Preview                  | Development                                                                                                  | Production                                   |
 | ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| Trigger       | `bun run dev:*`                      | Disabled by default      | Push to `develop`                                                                                            | `bun run release:production` to `production` |
+| Trigger       | `bun run dev:*`                      | Disabled by default      | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production` |
 | URL           | `localhost:3000`                     | `*.vercel.app`           | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                            |
 | Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated development project                                                                                | Production project                           |
 | Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                                    | Live-mode                                    |
@@ -154,7 +154,7 @@ Each app also keeps source-controlled Git deployment branch gates in
 `apps/*/vercel.json`:
 
 - `production`: production deployments
-- `develop`: development deployments
+- `develop`: disabled; development hosts refresh only at explicit checkpoints
 - `main`: deny-only legacy name; no canonical branch exists
 - all other branches: no Git deployment creation because `"*": false` closes
   the default auto-deploy path
@@ -273,7 +273,9 @@ Supabase-specific development values must resolve to project ref
 | `SUPABASE_DB_URL`               | Yes   | Yes   | Yes        | Supavisor session-pooler URL for development Postgres    |
 | `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Admin CMS database URL; same development Postgres target |
 
-Trigger development deploys by pushing to `develop`.
+Merges to `develop` do not deploy automatically. Development URLs stay on their
+last successful deployment until an explicit checkpoint refreshes them; see
+`docs/ci.md` (Development deployment checkpoints).
 
 Verify the development Supabase/Vercel map without printing secrets:
 
@@ -345,7 +347,8 @@ that exposure is acceptable.
 
 ### 5.6 Development sync policy and Inngest note
 
-- Development deploy trigger: push to `develop`.
+- Development deploy trigger: an explicit checkpoint; merges to `develop` do
+  not deploy automatically.
 - Production deploy trigger: `bun run release:production` pushes a verified
   commit to `production`, the Vercel Production Branch.
 - The canonical repository has no `main` branch; do not create, sync, merge, or
@@ -357,10 +360,9 @@ that exposure is acceptable.
 ## 5.7 Production Vercel requirements
 
 Production deploys are currently branch-bound to `production` in all three live Vercel
-projects. This matches GitHub's current default branch for this repository. Do
-not disable `production` or `develop` in app-level `vercel.json`; `main` and all
-other Git branches should remain disabled to avoid accidental deployment
-creation.
+projects. Keep `production` enabled in app-level `vercel.json`; `develop`, `main`
+and all other Git branches stay disabled to avoid accidental deployment creation
+(`bun run verify:deployment-discipline` enforces this).
 
 If the team later migrates Production away from `production`, change the Vercel
 project Production Branch for `admin`, `donor`, and `missionary`, ensure the
@@ -522,7 +524,8 @@ exists and whether `bun run verify:sentry-release` passed.
 
 ## 6. Deploy Flows
 
-Non-local environments are branch-triggered and map to deploy targets as follows:
+Production is branch-triggered; preview and development deploys are explicit.
+The flows map to deploy targets as follows:
 
 ```mermaid
 sequenceDiagram
@@ -533,11 +536,11 @@ sequenceDiagram
     participant Vercel as Vercel
 
     Dev->>PR: Open PR (feature branch)
-    PR->>Vercel: Preview deploy or ignored build (*.vercel.app)
+    PR->>Vercel: Label-gated QA preview only (qa-smoke-preview-deploy.yml)
     Note over Vercel: Preview Supabase project
 
     PR->>Develop: Merge/push validated development work
-    Develop->>Vercel: Development deploy or ignored build (development-*.asymmetric.al)
+    Develop-->>Vercel: No automatic deploy; explicit checkpoint refreshes development-*.asymmetric.al
     Note over Vercel: Development Supabase project
 
     PR->>Prod: Merge approved production release to production

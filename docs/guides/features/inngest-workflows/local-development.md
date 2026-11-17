@@ -1,8 +1,10 @@
 # Inngest workflows: local development
 
 How to run the Inngest dev server against this repo without exposing secrets.
-See `openspec/changes/add-inngest-durable-workflow-executor/` for the runtime
-scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
+See the archived change
+`openspec/changes/archive/2026-07-02-add-inngest-durable-workflow-executor/`
+for the original runtime scope and `docs/guides/features/inngest-workflows/*.md`
+for workflow designs.
 
 ## Prerequisites
 
@@ -56,8 +58,9 @@ scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
    remaining risk.
 
 4. Open the dev server UI at `http://127.0.0.1:8288`. The
-   `asym-core-workflows` app should appear under Apps with the
-   `workflow-smoke` function discovered.
+   `asym-core-workflows` app should appear under Apps with its functions
+   (including `workflow-smoke`) discovered. The served function list is in
+   `packages/api/src/workflows/serve.ts`.
 
 ## Smoke check
 

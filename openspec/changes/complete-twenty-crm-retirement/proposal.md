@@ -12,6 +12,10 @@ Before the August replacement, live notes/relationships still called Twenty
 and the durable spec described the retired architecture. That is historical
 context, not the current implementation or a remaining vendor cutover plan.
 
+## What Changes
+
+See Accepted Changes and Remaining Work below.
+
 ## Accepted Changes
 
 - Asym Postgres owns persons, donors, missionaries, households, organizations,

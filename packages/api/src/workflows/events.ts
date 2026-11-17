@@ -2,7 +2,8 @@ import { z } from "zod";
 
 /**
  * Workflow event names use product-domain object/action language, never app
- * route locations. See openspec/changes/add-inngest-durable-workflow-executor.
+ * route locations. See the archived design at
+ * openspec/changes/archive/2026-07-02-add-inngest-durable-workflow-executor/design.md.
  */
 export const WORKFLOW_SMOKE_EVENT = "workflows/smoke.requested";
 

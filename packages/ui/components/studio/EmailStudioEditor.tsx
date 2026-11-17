@@ -22,10 +22,9 @@ export interface EmailStudioEditorProps {
 /**
  * Email Studio editor surface.
  *
- * React Email is the sole Email Studio editor. The Unlayer editor has been
- * fully removed from this path; it is retained only for PDF Studio
- * (`UnlayerDocumentEditor`) and for reading legacy `builder='unlayer'`
- * templates outside the visual editor.
+ * React Email is the only Email Studio editor. Unlayer remains only for PDF
+ * Studio (`LegacyUnlayerDocumentEditor` in `legacy/`) and for reading legacy
+ * `builder='unlayer'` templates outside the visual editor.
  */
 export const EmailStudioEditor = forwardRef<
   EmailStudioEditorHandle,

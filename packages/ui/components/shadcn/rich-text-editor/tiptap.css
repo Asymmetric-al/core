@@ -7,7 +7,7 @@
   height: 0;
 }
 
-/* Headings — tighter spacing within prose */
+/* Headings: tighter spacing within prose. */
 .tiptap h1 {
   font-size: 1.875rem;
   line-height: 2.25rem;
@@ -24,7 +24,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* Links — smooth underline transition */
 .tiptap a {
   color: var(--primary);
   text-decoration: underline;
@@ -39,7 +38,6 @@
   text-decoration-thickness: 2px;
 }
 
-/* Blockquote */
 .tiptap blockquote {
   border-left: 4px solid var(--primary);
   padding-left: 1rem;
@@ -47,7 +45,6 @@
   color: var(--muted-foreground);
 }
 
-/* Code blocks */
 .tiptap pre {
   background: var(--muted);
   border-radius: 0.5rem;
@@ -70,7 +67,6 @@
   padding: 0;
 }
 
-/* Lists — ensure consistent spacing */
 .tiptap ul,
 .tiptap ol {
   padding-left: 1.25rem;
@@ -85,19 +81,17 @@
   margin: 0;
 }
 
-/* Horizontal rule */
 .tiptap hr {
   border: none;
   border-top: 1px solid var(--border);
   margin: 1.5rem 0;
 }
 
-/* Selection highlight */
 .tiptap ::selection {
   background: color-mix(in oklch, var(--primary) 20%, transparent);
 }
 
-/* Images — resizable wrapper */
+/* Wrapper drawn by the image node view (image-node-view.tsx). */
 .image-resizable {
   display: inline-block;
   max-width: 100%;
@@ -118,7 +112,6 @@
   outline: none;
 }
 
-/* Responsive adjustments */
 @media (max-width: 640px) {
   .tiptap h1 {
     font-size: 1.5rem;

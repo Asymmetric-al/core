@@ -1,7 +1,8 @@
 # Stack Registry (AI)
 
-This is the canonical list of languages, frameworks, SDKs, and infrastructure used in this repo.
-Agents MUST use this to build better Nia query preambles and to pick the right docs/rules/skills.
+Languages, frameworks, SDKs, and infrastructure used in this repo. Use it to pick
+stack tags for Nia query preambles ([Nia guide](nia.md)) and the right
+docs/rules/skills. Installed versions live in the `package.json` files and `bun.lock`.
 
 ## Core
 
@@ -68,10 +69,12 @@ Nia keywords:
 
 - TanStack Query
 - TanStack Table
+- TanStack Virtual
+- TanStack Store
 - TanStack DB
 - @supabase-labs/tanstack-db
-- TanStack Forms
-- React Hook Form
+- TanStack Form
+- nuqs (URL search-param state)
 - Zod
 
 Nia keywords:
@@ -80,8 +83,9 @@ Nia keywords:
 - columnDef, row model
 - tanstack db, @supabase-labs/tanstack-db
 - supabaseCollectionOptions, queryOnce, collection registry, useLiveQuery
-- form, schema, validation
-- react-hook-form, zod
+- useVirtualizer, @tanstack/react-store
+- form, schema, validation, @tanstack/react-form, zod
+- nuqs, useQueryState
 
 ## Auth and Data Platform
 
@@ -138,6 +142,14 @@ Use `docs/guides/features/inngest-workflows/local-development.md` for local setu
 and durability limits. Installed runtime code and agent tooling do not establish
 live Cloud qualification.
 
+## Product Agent Runtime
+
+- Eve (`eve` framework) in `packages/eve-runtime`; see `packages/eve-runtime/AGENTS.md`
+
+Nia keywords:
+
+- eve, eve-runtime, agent instructions, schedules, evals
+
 ## Email, Templates, and PDFs
 
 - React Email Editor (`@react-email/editor`) for Email Studio
@@ -163,18 +175,15 @@ Nia keywords:
 ## Engineering Standards
 
 - GitHub Actions
-- GitHub Projects
 - Playwright (e2e)
 - Vitest (unit)
-- i18nexus (translations)
-- Lighthouse CI
+- Lighthouse CI (`@lhci/cli`, `lighthouserc.json`)
 
 Nia keywords:
 
 - actions, workflows
 - playwright
 - vitest
-- i18nexus, translations
 - lhci, lighthouse
 
 ## Planned or Referenced (not yet integrated)
@@ -225,4 +234,5 @@ tracked in [retirement task 4.5](../../openspec/changes/complete-twenty-crm-reti
 
 ## Source
 
-Derived from the current codebase and roadmap notes. Keep in sync when the stack changes.
+Derived from the workspace `package.json` files and roadmap notes. Update it when a
+dependency is added to or removed from the stack.

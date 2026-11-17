@@ -623,6 +623,7 @@ export const ISSUE_ACTIONS = [
   "reopen",
   "reconcile",
   "adopt-policy",
+  "recover-native",
 ] as const;
 
 const issueNumber = z.number().int().positive().max(10_000_000);
@@ -681,6 +682,8 @@ export const DESTRUCTIVE: ReadonlySet<string> = new Set([
   "factory:stop",
   "factory:drain",
   "issue:stop",
+  // It ends the held run when the engine reports it paused or failed.
+  "issue:recover-native",
   "cancel-run",
 ]);
 
@@ -705,6 +708,8 @@ export function describeAction(action: ControlAction): string {
     case "issue":
       if (action.action === "adopt-policy")
         return `Move issue #${action.issue} to the installed release`;
+      if (action.action === "recover-native")
+        return `Clear the provider-fault hold on issue #${action.issue}`;
       return `${
         {
           hold: "Hold",
@@ -921,9 +926,9 @@ export const REFUSAL_MESSAGES: Record<string, string> = {
   "not-active":
     "Only an active, pending or waiting issue can be reconciled; this one has already settled.",
   "lease-live":
-    "The round's lease is live, so its run still owns the issue. Reconcile only settles a run that ended without recording its round; hold or stop the issue, or cancel the run.",
+    "A live run still owns the issue's lease, so nothing was settled. Reconcile settles only a run that ended without recording its round, and a provider-fault hold cannot be cleared while another run owns the issue. Hold or stop the issue, or cancel the run.",
   "run-not-terminal":
-    "The engine reports the run as pending, running, paused or failed (a failed run can resume), so the issue was not settled. Cancel the run first if it should not continue.",
+    "The engine does not report the run as ended, so the issue was not settled. Reconcile needs a completed or cancelled run (a failed or paused run can still resume; cancel it first if it should not continue). Clearing a provider-fault hold ends a failed or paused run itself and is refused only while the run is still working.",
   "run-changed":
     "The engine reports a different run than the one on the work item. Refresh and check the issue before acting.",
   "run-unconfirmed":
@@ -931,7 +936,14 @@ export const REFUSAL_MESSAGES: Record<string, string> = {
   "cleanup-unconfirmed":
     "Cleanup is unconfirmed, so the action was refused. Preserve the run, lease, reservations and evidence until cleanup is independently confirmed; that confirmation does not clear native or identity holds.",
   "native-fault-held":
-    "The owning run has an unresolved native safety hold. Preserve its identity, work, lease, reservations and evidence. A trusted native recovery operation is unavailable; retry, reopen, release and ordinary reconcile cannot clear this hold.",
+    "The issue is held because a round failed on a provider fault, so the action was refused. Its identity, work, lease, reservations and evidence are kept. Retry, reopen, release and ordinary reconcile cannot clear this hold. Deal with the cause, then use Clear the provider-fault hold; a usage limit or an outage is cleared by the intake pass itself after any reset the provider reported.",
+  "no-native-hold": "This issue has no provider-fault hold to clear.",
+  "effects-unreconciled":
+    "What is on GitHub for this issue could not be confirmed: a merge the factory requested is still pending, the branch could not be read, or it holds a commit the factory did not publish and there is no pull request to read. The hold stays.",
+  "containers-unconfirmed":
+    "The held run's check containers are not confirmed gone, so the hold stays. Repeat the action.",
+  "run-not-ended":
+    "The engine did not end the held run, so the hold stays. Its leftover check containers were removed.",
   "policy-unavailable":
     "The installed policy could not be verified, so the action was refused. Preserve the retained assignment and identity binding; restore trusted policy evidence before acting.",
   "policy-transition-required":

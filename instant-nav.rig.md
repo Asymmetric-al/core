@@ -27,18 +27,19 @@ verdict (no prefetching, unreliable lock).
   - `PLAYWRIGHT_INCLUDE_ADMIN=0` — don't also start the admin dev server.
     The `instant-nav` job in `.github/workflows/ci-integration.yml` is the
     canonical invocation.
-- TEST USER: donor public routes run unauthenticated. Authenticated routes use
-  the demo donor session via `installDemoSessionInBrowser(page, "donor")`
-  (POST `/api/auth/demo-account`, zero-config E2E bypass on loopback).
+- TEST USER: the current guards cover donor public routes only and run
+  unauthenticated. An authenticated guard would use the demo donor session via
+  `installDemoSessionInBrowser(page, "donor")` from
+  `tests/e2e/helpers/install-demo-session.ts`.
 - DRIFT: E2E auth bypass vs real Supabase sessions; placeholder Supabase env
   (`run-with-ci-env.mjs`) vs hosted data; seeded demo/mock data on public
   pages; no feature flags on the donor public site today.
 - SCOPE: donor public site only. Admin and missionary run the same
   `cacheComponents` + `partialPrefetching` config but have no `instant()`
   coverage yet — both need an authenticated production rig — so instant
-  regressions there are deliberately not gated by CI today. Note the
-  `instant-nav` job is `continue-on-error` for PRs into `develop`
-  (`.github/workflows/ci-integration.yml:424`).
+  regressions there are deliberately not gated by CI today. The `instant-nav`
+  job runs only on `workflow_dispatch`, same-repository PRs into `production`
+  and pushes to `production`; it does not run for PRs into `develop`.
 - LOOP: local build → start → test (no push needed). Agent limits: none for
   the local rig. Windows walls apply (see WALLS).
 - LIVENESS: n/a — the local rig always serves the freshly built artifact.

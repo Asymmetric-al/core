@@ -22,7 +22,7 @@ Use this doc when editing or running:
 6. Prefer Bun/Node with `node:path`, `node:fs`, argument arrays, and `shell: false` for new or changed maintenance tooling. Avoid Bash-only canonical workflows, hardcoded `/tmp`, `sed -i`, and symlink-only designs.
 7. `bun run skills:sync` **mutates** generated mirrors. `bun run skills:verify` **must not** change the working tree.
 
-## Seed Script Added (2026-02-16)
+## Seed script
 
 - `scripts/seed-demo.sh`
   - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
@@ -32,7 +32,7 @@ Use this doc when editing or running:
 ## Agent skill maintenance
 
 - Canonical skills: `docs/ai/skills/*/SKILL.md`.
-- Generated mirrors: `.agents/skills/`, `.cursor/skills/`, `.claude/skills/`. Do not hand-edit mirrors.
+- Runtime trees: `.agents/skills/` holds generated copies of the canonical skills plus ecosystem-origin skills, which are owned there. `.cursor/skills/` and `.claude/skills/` are generated mirrors of that full set. Do not hand-edit a generated copy.
 - Successful `skills:verify` leaves `git status` unchanged. Drift message: run `bun run skills:sync` and commit mirror updates.
 - Overlayfs can reject skill-directory `rename` with `EXDEV`. Both skill scripts fall back to copy then remove only into an unoccupied destination, keep a complete backup before removing a live tree, and retain that backup when restoration fails. Canonical destinations must be real directories. Scanner adaptations must preserve execution, rendered JSX, and literal payloads.
 
@@ -46,6 +46,6 @@ Use this doc when editing or running:
 
 - [ ] Hosted mode requires explicit env vars and target URL validation
 - [ ] Script output avoids secrets
-- [ ] Commands fail fast (`set -euo pipefail`)
+- [ ] Shell scripts fail fast (`set -euo pipefail`)
 - [ ] Verification mode checks seeded table counts and profile singleton condition
 - [ ] Skill verify is non-mutating; skill sync is the write path

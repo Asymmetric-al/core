@@ -1,3 +1,9 @@
+## Purpose
+
+Keep Core's existing first-party surfaces consistent, accessible and
+responsive on the shared UI system, preserving existing behavior and recording
+evidenced coverage and third-party source rights.
+
 ## ADDED Requirements
 
 ### Requirement: Consistent existing first-party surfaces

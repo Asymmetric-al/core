@@ -1,5 +1,12 @@
 # Multi-Site Management
 
+## Purpose
+
+Define the contract for operating multiple public ministry websites: a
+Tenant-owned Site lifecycle with domains, exact Site Locales, brands, donor
+presentment currencies and translation, giving Tenant staff self-service
+without making providers, caches or browser state authoritative.
+
 ## ADDED Requirements
 
 ### Requirement: Site Is Stable Presentation And Attribution Context

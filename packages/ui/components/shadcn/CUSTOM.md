@@ -48,4 +48,4 @@ Rules:
 
 ## Drift checks
 
-CI runs `bun run verify:shadcn-diff` (wrapper around `bunx shadcn@latest diff` in `packages/ui`). If it fails, refresh components from the registry or reconcile intentional overrides before merging.
+`bun run ci:preflight` runs `bun run verify:shadcn-diff` (`scripts/verify/shadcn-diff.mjs`). It previews each component with the pinned shadcn CLI (`add --dry-run` and `add --diff`) and checks the result against the reviewed hashes in `tooling/shadcn/upstream-review-baseline.json`. If it fails, refresh components from the registry or reconcile intentional overrides before merging.

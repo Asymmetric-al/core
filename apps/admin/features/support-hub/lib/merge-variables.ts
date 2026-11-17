@@ -9,10 +9,13 @@
  * undefined values render as the empty string.
  *
  * Substitution is run twice in the composer flow:
- *   1. At slash-insertion time so the editor JSON contains the resolved text
- *      (and survives further edits without losing the variable).
- *   2. At serialize-time as a defensive pass for callers that bypass the
- *      composer (e.g. macros that go straight through the mutation layer).
+ *   1. When a canned response is inserted (from `/` or a macro), so the
+ *      editor JSON contains the resolved text.
+ *   2. In `serializeReplyPayload`, for any token still in the editor text
+ *      (for example one typed by hand).
+ *
+ * Values are inserted as-is, with no HTML escaping, including into HTML
+ * templates and the reply's `html`.
  */
 
 import type { SupportAssignee, SupportConversation } from "../types";

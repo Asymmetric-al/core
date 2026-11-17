@@ -22,10 +22,9 @@ interface ConversationTimelineProps {
 }
 
 /**
- * Reverse-chronological-friendly timeline. The Phase 2 message hook returns
- * rows already sorted ascending by `postedAt`; we keep that order so the
- * composer at the bottom is always next to the most recent activity, like
- * Chatwoot's email view.
+ * Conversation thread, oldest first (`useSupportMessages` and
+ * `mergeTimeline` sort by `postedAt` ascending), so the newest activity sits
+ * next to the composer below the thread.
  */
 export function ConversationTimeline({
   conversationId,

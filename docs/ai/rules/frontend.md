@@ -5,7 +5,7 @@
 Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 **Applies when:** UI/components/layout/styling changes, client interactions, or frontend data fetching.
-**Do not use when:** The task is strictly backend/data/migration work (use `rules/backend.md`) or testing-only work (use `rules/testing.md`).
+**Do not use when:** The task is strictly backend/data/migration work (use `docs/ai/rules/backend.md`) or testing-only work (use `docs/ai/rules/testing.md`).
 
 ## Rules
 
@@ -59,7 +59,7 @@ checks. Do not widen a contract or exception simply to make a usage pass.
 
 ### Motion rules
 
-Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
+For animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first. The repo timing/CSS contract (tokens, utilities, route view transitions) is `docs/ai/skills/anim/SKILL.md`, summarized below.
 
 When asked where motion would genuinely help, load
 `docs/ai/skills/find-animation-opportunities/SKILL.md` for a read-only scan that
@@ -67,7 +67,7 @@ must also identify what should remain static. It does not replace
 `improve-animations`, `review-animations`, or an explicitly authorized
 implementation task.
 
-- **Use the motion tokens, not literals.** Prefer real `--duration-*` / `--ease-*` variables (e.g. `var(--duration-standard)`, `var(--ease-out-soft)`) or `EASE_OUT_*` / `DURATION_*` from `@asym/lib/motion-presets` (not brace shorthand — the `{a,b,…}` form above is documentation-only). All motion tokens live in `packages/ui/styles/globals.css :root`.
+- **Use the motion tokens, not literals.** Prefer real `--duration-*` / `--ease-*` variables (e.g. `var(--duration-standard)`, `var(--ease-out-soft)`) or `EASE_OUT_*` / `DURATION_*` from `@asym/lib/motion-presets`. All motion tokens live in `packages/ui/styles/globals.css :root`.
 - **No `transition: all` / `transition-all`.** Specify exact properties (e.g. `transition-[transform,box-shadow]` or one of the shared utilities below).
 - **Press feedback is automatic on `<Button>`.** Don't add `active:scale-[0.98]` inline. Native `<button>` elements that don't use the shadcn `Button` should add the `.press-feedback` utility.
 - **Hover-on-touch is a bug.** Any `hover:scale-*`, `hover:-translate-*`, or `hover:shadow-*` lift must be wrapped in `@media (hover: hover) and (pointer: fine)`. Use `.hover-lift` / `.hover-scale-subtle` (already gated) when possible; otherwise `[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[…]`.
@@ -89,9 +89,9 @@ implementation task.
 
 ### shadcn/studio MCP workflows (conditional)
 
-- If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
+- If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `docs/ai/rules/shadcn-studio-mcp.md`.
 - Do not apply shadcn/studio MCP rules for manual UI edits.
-- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `docs/ai/nia.md`).
+- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and build the search preamble as `docs/ai/nia.md` describes (from `docs/ai/stack-registry.md` plus local task context; the tracked `docs/ai/working-set.md` is a historical record).
 
 ### Browser data and state management
 
@@ -114,7 +114,7 @@ implementation task.
 - Use TanStack Form + Zod for complex client forms with multiple fields, reusable sections, array/dynamic inputs, cross-field validation, async validation, or modal/drawer workflows.
 - Prefer native `<form>`, `next/form`, or server-action patterns for simple search bars, URL-sync inputs, one-field filters, and server-only forms.
 
-### Instant Navigation (Next.js 16.3)
+### Instant Navigation
 
 - All apps run `cacheComponents: true` + `partialPrefetching: true`; navigations must stay instant. This section is the detailed repository contract behind the compact root invariant.
 - Every server `await` in a page/layout is an explicit Stream / Cache / Block decision:
@@ -123,23 +123,23 @@ implementation task.
   - Block only deliberately with `export const instant = false` plus a one-line reason comment.
 - Read the labeled fix links from Instant Insights errors (`nextjs.org/docs/messages/...`) before editing; apply the canonical pattern, not an improvised variation.
 - Keep `<Suspense>` boundaries close to the dynamic read; an empty shell (boundary around the whole page body) is a regression, not a fix.
-- Deeper per-link prefetching is opt-in: `<Link prefetch={true}>` + `'use cache'`; `export const prefetch = 'allow-runtime'` requires justification in the PR.
+- Deeper per-link prefetching is opt-in: `<Link prefetch={true}>` + `'use cache'`. The `prefetch` segment export accepts only `'auto'` (default), `'partial'` (redundant here: every app sets `partialPrefetching: true`) and `'force-disabled'`; Next.js 16.4 rejects any other value at build time.
 - Add `instant()` assertions from `@next/playwright` for navigation-critical routes (pattern: `tests/e2e/instant-navigation.spec.ts`).
 
 ### Frontend testing
 
-- Follow `rules/testing.md` for Playwright/a11y/perf expectations.
+- Follow `docs/ai/rules/testing.md` for Playwright/a11y/perf expectations.
 
 ## Workflow
 
-1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant. For page composition, feature-folder UI layout, colocated Suspense skeletons, or leaf-client UX, also load `docs/ai/skills/nextjs-app-architecture/SKILL.md`. Keep business queries and privileged mutations in `packages/api`.
-2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
+1. Identify if the change is Server or Client and apply `docs/ai/skills/nextjs-app-router/SKILL.md` when relevant. For page composition, feature-folder UI layout, colocated Suspense skeletons, or leaf-client UX, also load `docs/ai/skills/nextjs-app-architecture/SKILL.md`. Keep business queries and privileged mutations in `packages/api`.
+2. For Tiptap / rich text editor work, apply `docs/ai/skills/tiptap/SKILL.md`.
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
 5. Use `@asym/database/hooks` for browser-visible Supabase table data.
 6. Use TanStack Query for server read models and non-collection async data; invalidate on mutations when Realtime is not the sync path.
 7. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
-8. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
+8. If shadcn/studio MCP is used, switch to `docs/ai/rules/shadcn-studio-mcp.md`.
 
 ## Checklists
 

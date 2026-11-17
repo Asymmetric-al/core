@@ -1,5 +1,5 @@
 /**
- * Unit tests for the SQL-filter changes in the Supabase Support Hub adapter.
+ * Query-shape tests for the Supabase Support Hub adapter.
  *
  * We mock `@asym/database/supabase/admin` at the module boundary so that
  * `client()` inside supabase.ts returns a chainable query builder mock, and
@@ -8,11 +8,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ---------------------------------------------------------------------------
-// Mock the admin Supabase client before any adapter imports resolve.
-// vi.mock factories are hoisted to the top of the file, so the mock function
-// must be declared via vi.hoisted() to be available inside the factory.
-// ---------------------------------------------------------------------------
+// vi.mock factories are hoisted above the imports, so the mock function must
+// be declared via vi.hoisted() to be available inside the factory.
 
 const { getAdminClientMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
@@ -27,28 +24,18 @@ vi.mock("../../../../packages/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-// ---------------------------------------------------------------------------
-// Imports (after mocks are registered)
-// ---------------------------------------------------------------------------
-
 import { runWithSupportHubTenant } from "../../../../packages/api/src/admin/support-hub/request-context";
 import { supabaseSupportHubAdapter } from "../../../../packages/api/src/admin/support-hub/adapter/supabase";
 import { fetchSupportConversations } from "../../../../packages/database/collections/support-hub";
 import { supportApiGet } from "../../../../apps/admin/features/support-hub/lib/api-client";
 
-// ---------------------------------------------------------------------------
-// Chainable query builder factory
-// ---------------------------------------------------------------------------
-
 /**
- * Creates a minimal chainable mock of the Supabase PostgREST query builder.
- * Each method returns `this` (the same mock) to allow chaining.
- * The terminal `.select()` / implicit await resolves `resolveWith`.
+ * Minimal chainable mock of the Supabase PostgREST query builder: every
+ * method returns the builder itself, and awaiting it resolves `resolveWith`.
  */
 function createQueryMock(resolveWith: { data: unknown; error: null | object }) {
   const mock: Record<string, ReturnType<typeof vi.fn>> = {};
 
-  // Build the object first, then attach methods that reference it.
   const queryBuilder: Record<string, unknown> = {};
   const methods = [
     "select",
@@ -98,10 +85,6 @@ function setClient(fromSpy: ReturnType<typeof vi.fn>) {
 
 const TENANT = "tenant-test-001";
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 describe("supabaseSupportHubAdapter — SQL filters", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -109,10 +92,6 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  // -------------------------------------------------------------------------
-  // listMessages
-  // -------------------------------------------------------------------------
 
   describe("listMessages", () => {
     it("queries support_messages with conversation_id eq filter", async () => {
@@ -124,7 +103,6 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
         supabaseSupportHubAdapter.conversations.listMessages("conv-1"),
       );
 
-      // The adapter must call .eq("conversation_id", "conv-1") on the query.
       expect(qb.eq).toHaveBeenCalledWith("conversation_id", "conv-1");
     });
 
@@ -137,8 +115,6 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
         supabaseSupportHubAdapter.conversations.listMessages("conv-empty"),
       );
 
-      // `from` should only have been called once (for support_messages).
-      // If attachments were fetched, from would be called a second time.
       const tablesCalled = fromSpy.mock.calls.map((c) => c[0]);
       expect(tablesCalled).not.toContain("support_message_attachments");
     });
@@ -239,7 +215,6 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
         callCount++;
         if (table === "support_messages") return qbMessages;
         if (table === "support_message_attachments") return qbAttachments;
-        // Other tables (labels, agents, teams for snapshot) return empty.
         return createQueryMock({ data: [], error: null });
       });
       setClient(fromSpy);
@@ -248,16 +223,11 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
         supabaseSupportHubAdapter.conversations.listMessages("conv-1"),
       );
 
-      // Attachments query must use .in("message_id", ["msg-1"]).
       expect(qbAttachments.in).toHaveBeenCalledWith("message_id", ["msg-1"]);
       // Attachments query must also scope to tenant.
       expect(qbAttachments.eq).toHaveBeenCalledWith("tenant_id", TENANT);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // conversations.list
-  // -------------------------------------------------------------------------
 
   describe("conversations.list", () => {
     /**

@@ -10,19 +10,16 @@ interface FocusReturnOptions {
 }
 
 /**
- * Restores keyboard focus to the element that opened a popover / detail
- * pane / modal once the consumer unmounts. The hook stores the active
- * element on first paint, then on cleanup re-focuses it as long as the
- * node is still in the document and is focusable.
- *
- * Pattern used across the support-hub detail pane + composer chrome:
+ * While `active`, remembers the element that had focus when it became
+ * active; when `active` turns false or the caller unmounts, focuses that
+ * element again if it is still in the document.
  *
  * ```tsx
  * useFocusReturn(isOpen);
  * ```
  *
- * Phase 7 wires this so closing the conversation detail returns focus to
- * the originating row / card. The hook is intentionally tiny — Phase 8 may
+ * `ConversationDetail` uses it so closing a conversation returns focus to
+ * the row or card that opened it. The hook is intentionally tiny — Phase 8 may
  * extend it to manage focus traps for full-screen sheets if the mobile UX
  * grows there.
  */

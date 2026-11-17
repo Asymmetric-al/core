@@ -9,7 +9,11 @@ import path from "node:path";
 
 import { StateConflict } from "../../.shared/archon.mjs";
 import { createGitHub, githubToken } from "../../.shared/github.mjs";
-import { revParse } from "../../.shared/git.mjs";
+import {
+  addsOnlyTarget,
+  refreshIssueRefs,
+  revParse,
+} from "../../.shared/git.mjs";
 import { publishCandidate } from "../../.shared/publication.mjs";
 import {
   FACTORY_MARKER as MARKER,
@@ -31,7 +35,9 @@ import {
 import { checkFactoryStorage } from "../../.shared/storage-policy.mjs";
 import { planCheckpoint } from "../../.shared/workitem.mjs";
 import {
+  adoptBaseUpdate,
   adoptResolution,
+  outsideHeadDecision,
   asRepair,
   baseIntegrationFailure,
   carryForward,
@@ -155,20 +161,60 @@ if (!live.merged) {
     value.pr?.conflict?.head === value.head &&
     liveHead !== value.head &&
     SHA.test(liveHead);
+  // A head the factory neither recorded nor has pending: somebody pushed.
+  const foreign =
+    SHA.test(liveHead) &&
+    liveHead !== value.head &&
+    liveHead !== value.pr?.head &&
+    liveHead !== value.pr?.pending?.head;
+  // The clone's refs are as old as this round's claim, and somebody can
+  // push in between. Fetch before the live head is compared with local
+  // history, so an update pressed during the round is seen for what it is.
+  // A failed fetch leaves the old refs. Nothing is adopted or blocked on
+  // those: the stage waits and the next round, which fetches again, decides.
+  let refreshed: boolean | null = null;
+  if (conflicted || foreign) {
+    try {
+      await refreshIssueRefs({
+        git: round.git,
+        paths: round.paths,
+        issue: round.issue,
+      });
+      refreshed = true;
+    } catch {
+      refreshed = false;
+    }
+  }
   const descends =
-    conflicted &&
+    (conflicted || foreign) &&
     (
       await round.git.git(
         ["merge-base", "--is-ancestor", value.head, liveHead],
         { cwd: round.where.repo },
       )
     ).code === 0;
-  const reconcile = reconcileHead({ value, liveHead, descends });
+  // GitHub's "Update branch": every commit the live head adds to the
+  // candidate is either on the target branch or a merge that joins the two.
+  const baseUpdate =
+    foreign &&
+    descends &&
+    !conflicted &&
+    (await addsOnlyTarget(
+      { git: round.git, repo: round.where.repo },
+      { candidate: value.head, head: liveHead, target },
+    ));
+  const reconcile = reconcileHead({
+    value,
+    liveHead,
+    descends,
+    baseUpdate,
+    refreshed,
+  });
   round.ledger.write("readiness-reconcile", {
     ...reconcile,
     recorded: value.head,
     live: liveHead,
-    ...(conflicted ? { descends } : {}),
+    ...(conflicted || foreign ? { descends, baseUpdate, refreshed } : {}),
   });
   if (reconcile.action === "record")
     await checkpoint({ pr: { ...value.pr, head: liveHead, pending: null } });
@@ -194,20 +240,39 @@ if (!live.merged) {
         fingerprint: `unpublished:${value.head}`,
       },
     );
-  else if (reconcile.action === "resolve") {
+  else if (reconcile.action === "resolve" || reconcile.action === "update") {
     const base = (
       await round.git.ok(["merge-base", liveHead, `origin/${target}`], {
         cwd: round.where.repo,
       })
     ).trim();
-    const adoption = adoptResolution({
-      value,
-      liveHead,
-      base,
-      now: round.now(),
-    });
+    const adoption =
+      reconcile.action === "resolve"
+        ? adoptResolution({ value, liveHead, base, now: round.now() })
+        : adoptBaseUpdate({
+            value,
+            liveHead,
+            base,
+            now: round.now(),
+            target,
+          });
     await checkpoint(adoption.fields);
     finish(adoption.outcome);
+  } else if (
+    reconcile.action === "wait" ||
+    (foreign && reconcile.action === "none")
+  ) {
+    // Stop here: steps 2 and 3 below reply, resolve and record against the
+    // live head, and this one is not the factory's. With a clone that could
+    // not be refreshed the stage waits and the next round decides.
+    const decision = outsideHeadDecision({
+      branch: value.branch,
+      liveHead,
+      head: value.head,
+      published: value.pr?.head,
+      refreshed,
+    });
+    respond(decision.verdict, decision.reason, decision.ledger);
   }
 }
 

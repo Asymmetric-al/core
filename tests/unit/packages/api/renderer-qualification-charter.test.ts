@@ -153,8 +153,9 @@ describe("freezeRendererQualificationCharter", () => {
     const base = freezeRendererQualificationCharter(buildFixtureContestInput());
 
     // The custodian access log is a genuinely order-sensitive record; its
-    // order participates in the digest. (Tie-break order is now pinned to the
-    // protocol, so reordering it is a validation error, not a new version.)
+    // order participates in the digest. (Tie-break order, by contrast, is pinned
+    // to the protocol, so reordering it is a validation error, not a new
+    // version.)
     const digestWithAccessLog = (
       accessLog: RendererQualificationCharterInput["held_back_seal"]["access_log"],
     ) => {
@@ -355,8 +356,7 @@ describe("freezeRendererQualificationCharter", () => {
   it("rejects a candidate operator recorded in the held-back access log", () => {
     // Protocol role table: candidate implementers must not "See held-back
     // expected results before candidate outputs are sealed". An operator in
-    // this log is that leak, recorded in the charter's own evidence - and the
-    // log was previously carried into the digest without ever being read.
+    // this log is that leak, recorded in the charter's own evidence.
     expect(
       issueCodes(
         mutated((input) => {

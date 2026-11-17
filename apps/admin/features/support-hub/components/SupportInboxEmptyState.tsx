@@ -22,9 +22,10 @@ interface SupportInboxEmptyStateProps {
 }
 
 /**
- * Quiet Maia/Zinc empty state shown when filters return no rows. The reset
- * button calls `useSupportInboxState().resetState`, which clears every
- * search-param at once.
+ * Inbox empty state. The default copy is for filters that match nothing;
+ * `SupportInbox` passes `resetState` as `onResetFilters`, which clears every
+ * inbox search param at once. For an inbox with no conversations at all the
+ * caller overrides the copy and links to inbox settings instead.
  */
 export function SupportInboxEmptyState({
   onResetFilters,

@@ -13,7 +13,7 @@ import { getDaysSince } from "../utils";
 
 import type { ActivityType, CarePersonnel, CarePriority } from "../types";
 
-/** Care statuses in sentence case, most urgent last. */
+/** Care statuses in sentence case. */
 export const CARE_STATUS_LABELS: Record<CarePriority, string> = {
   Healthy: "Healthy",
   "Needs Attention": "Needs attention",

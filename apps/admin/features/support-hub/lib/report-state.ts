@@ -142,12 +142,10 @@ export function useSupportReportRouteState(): {
   );
 
   /**
-   * Phase 7 perf: build a stable per-slice request map keyed on the
-   * underlying state hash. The map regenerates only when the state actually
-   * changes, so consumers calling `request("volume")` twice in the same
-   * render tree get the same object reference. Without this, every render
-   * handed `useSupportReport` a fresh object and forced
-   * `buildReportSeries` to re-aggregate on every keystroke.
+   * One request object per slice, rebuilt only when the filter state
+   * changes, so `request(slice)` returns the same reference across renders.
+   * A fresh object each render would make `useSupportReport` re-run
+   * `buildReportSeries` every time.
    */
   const sliceRequests = React.useMemo(() => {
     const cache = new Map<SupportReportSlice, SupportReportRequest>();

@@ -1,5 +1,7 @@
 ## Purpose
 
+Superseded by `../../../retire-git-attribution/specs/repository-contribution-workflow/spec.md`; the parser and attribution requirements below are historical proposed text.
+
 Identify GitHub repository targets without leaking transport credentials or
 changing the accepted team contribution workflow's attribution requirements.
 

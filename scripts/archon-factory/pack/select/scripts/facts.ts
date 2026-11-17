@@ -24,6 +24,7 @@ import {
   announceBlocked,
   observeMerges,
   pruneFinished,
+  readEngineWait,
   recoverNativeFaults,
   releaseStaleReservations,
   scopeDigest,
@@ -89,6 +90,8 @@ try {
         { archon, config },
       ),
     nowMs: now,
+    engineWait: (runId: string) =>
+      readEngineWait({ port: config.archon.port, runId }),
   });
 } catch {}
 

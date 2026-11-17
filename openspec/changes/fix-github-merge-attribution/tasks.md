@@ -1,3 +1,5 @@
+> Superseded by the 2026-09 owner decision in `../retire-git-attribution/`, which removed the attribution verifier and the shared parser in `scripts/git/trusted-identities.mjs`. This proposed parser hardening is not current authority; do not restore that tooling to finish the open tasks.
+
 ## 1. Reconcile accepted upstream authority
 
 - [x] 1.1 Verify PR #1428 is merged at e811fc9f and compare its canonical workflow

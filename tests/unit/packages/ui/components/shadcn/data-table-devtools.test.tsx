@@ -42,7 +42,7 @@ const columns: ColumnDef<Person>[] = [
 ];
 
 beforeAll(() => {
-  // jsdom is missing layout/observer APIs that Radix popovers and motion use.
+  // jsdom is missing layout/observer APIs that popovers and Motion use.
   vi.stubGlobal(
     "ResizeObserver",
     class {

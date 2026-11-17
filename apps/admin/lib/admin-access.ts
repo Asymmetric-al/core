@@ -57,11 +57,14 @@ function normalizeTenant(
 const ADMIN_ALLOWED_ROLES = ["staff", "admin", "super_admin"] as const;
 
 /**
- * The only role gate in this app.
+ * The admin layouts' role gate: a signed-in user with a tenant and a staff,
+ * admin or super_admin role passes; anyone else goes to /login or /no-access.
  *
- * `apps/admin/proxy.ts` rejects wrong-app sessions at the edge. Layouts still
- * call this defense-in-depth gate to establish the tenant-scoped auth context
- * used by admin data reads.
+ * `apps/admin/proxy.ts` rejects wrong-app sessions at the edge. The (app)
+ * and (payload) layouts still call this defense-in-depth gate to establish
+ * the tenant-scoped auth context used by admin data reads. API routes and
+ * narrower areas (for example the admin-only Eve workspace) check access
+ * themselves.
  */
 export async function requireAdminAccess(pathname: string) {
   const auth = await getAuthContext();

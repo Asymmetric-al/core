@@ -1,9 +1,3 @@
-/**
- * Email service exports.
- *
- * Central export point for the Resend integration.
- */
-
 export {
   getFirstBlockingDeliverabilityWarning,
   toTestSendBlockingErrorCode,

@@ -1,5 +1,8 @@
 #!/bin/bash
 # Remove @ts-nocheck comments from moved components
+# One-off cleanup from the January 2026 Turborepo component migration.
+# Kept for history; do not rerun. Its target paths no longer exist, and it uses
+# BSD/macOS `sed -i ''` syntax.
 
 echo "🧹 Removing @ts-nocheck comments..."
 

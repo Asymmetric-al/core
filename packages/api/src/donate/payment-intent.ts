@@ -7,9 +7,10 @@ export type DonationPaymentIntentMethodType = "card" | "us_bank_account";
  * Server-side PaymentIntent leg of the donate flow (money path).
  *
  * Pure over an injected Stripe client — NO database access. The donation saga
- * and the (DB-blocked) guest checkout path both create their PaymentIntent
- * through this one function so the Stripe call is single-sourced, idempotent,
- * and integration-testable against the real Stripe TEST API in isolation.
+ * creates its PaymentIntent through this one function, and the planned
+ * (DB-blocked) guest checkout path is meant to as well, so the Stripe call is
+ * single-sourced, idempotent, and integration-testable against the real Stripe
+ * TEST API in isolation.
  */
 
 export interface DonationPaymentIntentMetadata {

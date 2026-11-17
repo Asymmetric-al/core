@@ -320,7 +320,8 @@ export function LocationTable({
       label="Locations"
       isLoading={isLoading}
       error={error ?? undefined}
-      // Against the size in use, not the default: rows past it need the pager.
+      // Shown once rows pass the smaller of the size in use and the default,
+      // so a larger page size chosen earlier can still be changed back.
       pagination={
         rows.length > Math.min(page.pageSize, PAGE_SIZE)
           ? { sizes: PAGE_SIZES }

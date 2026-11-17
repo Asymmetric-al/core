@@ -1,23 +1,30 @@
 import { z } from "zod";
 
 /**
- * Reply payload contract for the future Tiptap composer. The composer reads
- * its state out of Tiptap and serializes into this shape before calling
- * `useSendSupportReply`. Keeping the contract here lets later phases swap in
- * the real editor without changing the mutation surface.
+ * Reply payload the composer builds from the Tiptap editor
+ * (`serializeReplyPayload`) and sends with `useSendSupportReply`. The server
+ * validates it with `sendReplyPayloadSchema` in
+ * `packages/api/src/admin/support-hub/schemas.ts`.
  */
 export interface SupportAttachmentDraft {
   filename: string;
   contentType: string;
   sizeBytes: number;
-  /** Browser File or upload-token reference, depending on phase. */
+  /**
+   * A `local:` placeholder from `AttachmentChips`. There is no upload
+   * pipeline yet; the server schema drops this field, so no file bytes or
+   * references leave the browser.
+   */
   blobRef: string;
 }
 
 export interface SupportReplyPayload {
-  /** Tiptap document JSON. Null until the composer is wired. */
+  /** Tiptap document JSON. */
   json: unknown | null;
-  /** Sanitized HTML body sent to the donor. */
+  /**
+   * HTML body for the donor. Editor text is escaped; merge-variable values
+   * are inserted unescaped (see `serializeReplyPayload`).
+   */
   html: string;
   /** Plaintext fallback for clients without HTML rendering. */
   text: string;

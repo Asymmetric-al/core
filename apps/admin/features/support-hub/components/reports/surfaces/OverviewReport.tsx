@@ -23,7 +23,7 @@ export function OverviewReport() {
   const resolution = useSupportReport(request("resolution"));
   const customerWaiting = useSupportReport(request("customer-waiting"));
 
-  // The card names the split the overview table used to show.
+  // The "Open or pending" card's detail line splits its total.
   const activeSplit = React.useMemo(() => {
     const count = (key: string) =>
       openCount.data.buckets.find((bucket) => bucket.key === key)?.value ?? 0;

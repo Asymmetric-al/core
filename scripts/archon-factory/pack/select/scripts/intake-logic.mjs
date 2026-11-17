@@ -261,7 +261,53 @@ export async function observeMerges({
 // keeps coming back blocks the issue under the no-progress rule. Any other
 // native hold (sign-in, budget, configuration, unclear effects) stays for a
 // person.
-export async function recoverNativeFaults({ items, recover, nowMs }) {
+//
+// The engine pauses a run that met a usage limit and wakes it itself within
+// seconds of the reported reset. The command ends a run it finds paused, so
+// the pass stays away until the engine has had two minutes to wake it: after
+// that a run still paused was not woken, and ending it is the fallback.
+//
+// A woken run can meet the limit again, and the engine then pauses it for a
+// later reset. The work item may still carry the earlier one. So the pass also
+// asks the engine (`engineWait`) and leaves a paused run alone until two
+// minutes after the time the engine set to wake it, whatever the stored reset
+// says. A run still paused after that was not woken either, and is ended.
+const ENGINE_WAKE_GRACE_MS = 2 * 60_000;
+
+// When the engine itself will wake a paused run: the `resume_at` of its last
+// wait that has not completed, in milliseconds, or null when the run is not
+// paused or has no such wait.
+export function pendingEngineWait(detail) {
+  // An answer that does not describe the run (an error body, a missing event
+  // list) is not "no wake-up pending": the caller must not act on it.
+  if (typeof detail?.run?.status !== "string" || !Array.isArray(detail.events))
+    throw new Error("The engine's answer does not describe the run");
+  if (detail.run.status !== "paused") return null;
+  const waits = detail.events.filter((event) =>
+    ["wait_started", "wait_completed"].includes(event?.event_type),
+  );
+  const last = waits.at(-1);
+  if (last?.event_type !== "wait_started") return null;
+  const at = Date.parse(last.data?.resume_at ?? "");
+  return Number.isFinite(at) ? at : null;
+}
+
+// Ask the engine when it will wake a run. Any answer that is not a good
+// description of that run is an error, never "nothing pending".
+export async function readEngineWait({ port, runId, fetchImpl = fetch }) {
+  const response = await fetchImpl(
+    `http://127.0.0.1:${port}/api/workflows/runs/${runId}`,
+  );
+  if (!response.ok) throw new Error(`engine answered ${response.status}`);
+  return pendingEngineWait(await response.json());
+}
+
+export async function recoverNativeFaults({
+  items,
+  recover,
+  nowMs,
+  engineWait,
+}) {
   const results = [];
   for (const [issue, value] of items) {
     const fault = value?.nativeFaults;
@@ -275,7 +321,31 @@ export async function recoverNativeFaults({ items, recover, nowMs }) {
     const resets = (Array.isArray(fault.faults) ? fault.faults : [])
       .map((entry) => Date.parse(entry?.resetAt ?? ""))
       .filter(Number.isFinite);
-    if (resets.some((at) => at > nowMs)) {
+    if (resets.some((at) => at + ENGINE_WAKE_GRACE_MS > nowMs)) {
+      results.push({
+        issue,
+        action: "recover-native",
+        ok: false,
+        code: "reset-pending",
+      });
+      continue;
+    }
+    let wake = null;
+    if (engineWait)
+      try {
+        wake = await engineWait(runId);
+      } catch {
+        // Without the engine's answer the pass cannot tell whether a wake-up
+        // is pending. It ends nothing on a guess; the next pass asks again.
+        results.push({
+          issue,
+          action: "recover-native",
+          ok: false,
+          code: "engine-unread",
+        });
+        continue;
+      }
+    if (Number.isFinite(wake) && wake + ENGINE_WAKE_GRACE_MS > nowMs) {
       results.push({
         issue,
         action: "recover-native",

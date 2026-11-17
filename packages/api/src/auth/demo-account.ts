@@ -190,7 +190,9 @@ function buildAvailabilityResponse(
     enabled: Object.values(availability).some(Boolean),
     roles: availability,
     ...(reason ? { reason } : {}),
-    // Backward compatibility for existing consumers.
+    // Same value as `roles` under its older name. Readers still use it (the
+    // demo-account hook and LoginScreen as a fallback, .oss-scanner/smoke.mjs
+    // and e2e demo helpers), so keep both until they read only `roles`.
     availableRoles: availability,
   };
 }

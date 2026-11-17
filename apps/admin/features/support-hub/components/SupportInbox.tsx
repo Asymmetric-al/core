@@ -46,11 +46,12 @@ import type { SupportConversation } from "../types";
 
 /**
  * Top-level workspace for the donor-care inbox. Reads URL state via
- * `useSupportInboxState`, feeds the same filtered conversation source into
- * board and table, and reserves a right pane for the Phase 4 detail view.
+ * `useSupportInboxState` and feeds the same filtered conversations to the
+ * board and the table.
  *
- * Mobile: detail opens as a `Sheet` from the right; the right rail is hidden.
- * Desktop (>= lg): the inbox grid splits 7/5 between body and detail rail.
+ * Below lg the open conversation is a `Sheet` from the right. From lg, with
+ * a conversation open, the grid splits 7/5 between the inbox and the detail
+ * pane.
  *
  * `SupportNowProvider` keeps every relative-time render pure under the React
  * Compiler purity rule (no `Date.now()` or `new Date()` in render bodies).

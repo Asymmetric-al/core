@@ -50,9 +50,10 @@ const supabaseOrigin = getSupabaseOrigin();
  *
  * Safe because `apps/missionary/proxy.ts` enforces `protectedRoutePrefixes:
  * ["/"]` with the shared `MISSIONARY_ALLOWED_ROLES` on every request, and page
- * data arrives through client hooks under RLS. Redirect timing is unchanged:
- * the gate was already inside the boundary, so `redirect()` already fired
- * post-flush. The accepted trade-off is that a request which bypassed the proxy
+ * data arrives through client hooks, either under RLS or from API routes that
+ * authorize each request themselves. The gate sits inside the Suspense
+ * boundary, so its `redirect()` streams after the shell flushes. The accepted
+ * trade-off is that a request which bypassed the proxy
  * would briefly paint the static page frame — never data — before the streamed
  * redirect.
  */

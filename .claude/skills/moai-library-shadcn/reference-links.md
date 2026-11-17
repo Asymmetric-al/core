@@ -2,7 +2,7 @@
 
 Source index: [https://ui.shadcn.com/llms.txt](https://ui.shadcn.com/llms.txt)
 
-Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump here when you need exact docs pages.
+Lookup index for shadcn/ui documentation. Unprefixed component URLs currently redirect to the Base UI variant (`/docs/components/base/<name>`); never follow the Radix variant. Core never runs `shadcn init`, so installation guides are omitted.
 
 ## Overview
 
@@ -13,24 +13,10 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 - [Changelog](https://ui.shadcn.com/docs/changelog)
 - [About](https://ui.shadcn.com/docs/about)
 
-## Installation
-
-- [Next.js](https://ui.shadcn.com/docs/installation/next)
-- [Vite](https://ui.shadcn.com/docs/installation/vite)
-- [Remix](https://ui.shadcn.com/docs/installation/remix)
-- [Astro](https://ui.shadcn.com/docs/installation/astro)
-- [Laravel](https://ui.shadcn.com/docs/installation/laravel)
-- [Gatsby](https://ui.shadcn.com/docs/installation/gatsby)
-- [React Router](https://ui.shadcn.com/docs/installation/react-router)
-- [TanStack Router](https://ui.shadcn.com/docs/installation/tanstack-router)
-- [TanStack Start](https://ui.shadcn.com/docs/installation/tanstack)
-- [Manual Installation](https://ui.shadcn.com/docs/installation/manual)
-
 ## Components
 
 ### Form and input
 
-- [Form](https://ui.shadcn.com/docs/components/form)
 - [Field](https://ui.shadcn.com/docs/components/field)
 - [Button](https://ui.shadcn.com/docs/components/button)
 - [Button Group](https://ui.shadcn.com/docs/components/button-group)
@@ -76,7 +62,7 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 ### Feedback and status
 
 - [Alert](https://ui.shadcn.com/docs/components/alert)
-- [Toast](https://ui.shadcn.com/docs/components/toast)
+- [Sonner](https://ui.shadcn.com/docs/components/sonner) — Core's toast component (`packages/ui/components/shadcn/sonner.tsx`)
 - [Progress](https://ui.shadcn.com/docs/components/progress)
 - [Spinner](https://ui.shadcn.com/docs/components/spinner)
 - [Skeleton](https://ui.shadcn.com/docs/components/skeleton)
@@ -107,15 +93,11 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 
 - [Dark Mode](https://ui.shadcn.com/docs/dark-mode)
 - [Dark Mode - Next.js](https://ui.shadcn.com/docs/dark-mode/next)
-- [Dark Mode - Vite](https://ui.shadcn.com/docs/dark-mode/vite)
-- [Dark Mode - Astro](https://ui.shadcn.com/docs/dark-mode/astro)
-- [Dark Mode - Remix](https://ui.shadcn.com/docs/dark-mode/remix)
 
 ## Forms
 
 - [Forms Overview](https://ui.shadcn.com/docs/forms)
-- [React Hook Form](https://ui.shadcn.com/docs/forms/react-hook-form)
-- [TanStack Form](https://ui.shadcn.com/docs/forms/tanstack-form)
+- [TanStack Form](https://ui.shadcn.com/docs/forms/tanstack-form) — Core's form library; reuse `packages/ui/components/primitives/tanstack-form.tsx`
 - [Forms - Next.js](https://ui.shadcn.com/docs/forms/next)
 
 ## Advanced
@@ -123,9 +105,6 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 - [Monorepo](https://ui.shadcn.com/docs/monorepo)
 - [React 19](https://ui.shadcn.com/docs/react-19)
 - [Tailwind CSS v4](https://ui.shadcn.com/docs/tailwind-v4)
-- [JavaScript](https://ui.shadcn.com/docs/javascript)
-- [Figma](https://ui.shadcn.com/docs/figma)
-- [v0](https://ui.shadcn.com/docs/v0)
 
 ## MCP server
 

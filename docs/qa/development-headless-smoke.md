@@ -6,9 +6,9 @@ missionary surfaces.
 
 ## Triggers
 
-Run development headless smoke QA when validating deployed `develop` branch
-behavior, release readiness before a production PR, or a suspected regression in
-the shared development environment.
+Run development headless smoke QA when validating the deployment the
+development hosts currently serve, release readiness before a production
+release, or a suspected regression in the shared development environment.
 
 For label-gated PR previews, use
 [PR Preview Smoke QA](./pr-preview-smoke.md). GitHub Actions is the preferred
@@ -25,12 +25,13 @@ PASS/FAIL for Claude to read.
 
 ## Development vs PR Preview Smoke
 
-Development smoke targets stable branch-bound development URLs. PR preview
-smoke targets ephemeral Vercel preview URLs created only after a PR passes the
+Development smoke targets the stable development URLs. PR preview smoke
+targets ephemeral Vercel preview URLs created only after a PR passes the
 `qa:smoke` GitHub Actions label gate.
 
-Development smoke validates the current `develop` deployment. PR preview smoke
-validates a specific PR head SHA before merge.
+Merges to `develop` do not deploy automatically, so development smoke validates
+the last explicit development checkpoint, which may be behind `develop`. PR
+preview smoke validates a specific PR head SHA before merge.
 
 ## How this differs from Claude in Chrome
 
@@ -44,8 +45,8 @@ validates a specific PR head SHA before merge.
 
 ## Workflow Steps
 
-1. Confirm the `develop` deployment or PR preview deployment is expected to be
-   live for the commit under test.
+1. Confirm the development or PR preview deployment serves the commit under
+   test.
 2. Set Playwright base URLs for the surfaces being tested:
 
 ```bash

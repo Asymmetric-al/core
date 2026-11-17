@@ -44,9 +44,8 @@ const TABS: TabDefinition[] = [
 ];
 
 /**
- * Donor-inspired view switcher. Active state, density, and typography mirror
- * the existing Mission Control nav patterns (`mc-shell.tsx`) so the strip
- * reads as part of the shell rather than a pasted donor block.
+ * Inbox view switcher on the shared Tabs, each view with its count under
+ * the other active filters (`baseFilter`).
  */
 export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
   const currentAgentId = useCurrentSupportAgentId();

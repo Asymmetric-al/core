@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Core repository instructions
 
-This is the always-on Codex entrypoint for `Asymmetric-al/core`. Keep it a compact constitution and router. Detailed procedures belong in the nearest nested `AGENTS.md`, a canonical rulebook, a discovered skill, configuration, or ordinary documentation.
+This is the always-on coding-agent entrypoint for `Asymmetric-al/core` (Codex reads it directly; Claude Code loads it through `CLAUDE.md`). Keep it a compact constitution and router. Detailed procedures belong in the nearest nested `AGENTS.md`, a canonical rulebook, a discovered skill, configuration, or ordinary documentation.
 
 ## Start every task
 
@@ -106,7 +106,7 @@ Use live Next.js diagnostics or browser inspection only when the relevant server
 
 ## Skills
 
-Codex discovers repository skills from `.agents/skills` and loads their full instructions only when invoked or matched. Use clear skill descriptions as the routing layer; do not maintain an individual skill catalog here.
+Codex discovers repository skills from `.agents/skills` (Claude Code and Cursor use the `.claude/skills` and `.cursor/skills` mirrors) and loads their full instructions only when invoked or matched. Use clear skill descriptions as the routing layer; do not maintain an individual skill catalog here.
 
 For canonical skill authoring or ambiguous routing, use `docs/ai/rules/agent-skill-routing.md`. Edit canonical sources rather than generated mirrors, then run the repository sync and verification commands.
 

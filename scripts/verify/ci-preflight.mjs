@@ -27,6 +27,10 @@ const ciSupabasePublicEnv = {
  * -> verify:shadcn-diff -> verify:shadscan
  * -> typecheck -> build -> test-unit
  */
+// Exceptions to the mirror: ci.yml has no step for verify:shadcn-config or
+// verify:shadcn-diff (they run only here), its acceptance-tests job is not
+// mirrored, and getPreflightStages replaces `build` with the selected
+// compilation (none for routine development changes).
 const stages = [
   {
     id: "runtime",

@@ -13,9 +13,10 @@ This package is the single source of truth for lint rules used across:
 The shared base config enforces architecture boundaries and high-signal bug-catching rules.
 
 Web UI additionally composes `designSystemConfig({ workspace })` from
-`@asym/eslint-config/design-system.mjs`. It applies to the three apps,
-`packages/ui`, and `packages/missionary`; ordinary backend/library consumers
-use the base/library rules without web styling policy. Root and workspace
+`@asym/eslint-config/design-system.mjs`. It applies to the three product apps,
+the operator Console (`apps/factory-console`), `packages/ui`, and
+`packages/missionary` (`uiWorkspaces` in `design-system.mjs`); ordinary
+backend/library consumers use the base/library rules without web styling policy. Root and workspace
 scripts run the shared lint adapter. Commands, profiles, exception rationale,
 discovery health, and legacy-debt handling live in the
 [canonical UI lint workflow](../../docs/ai/skills/moai-library-shadcn/references/design-system-lint.md).
@@ -90,16 +91,6 @@ Unacceptable:
 ```ts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ```
-
-## Migration Guide (legacy `.eslintrc.*` -> flat config)
-
-1. Replace legacy config usage with `eslint.config.mjs`.
-2. Import either `nextjsConfig`, `libraryConfig`, or `baseConfig`.
-3. Remove `.eslintrc.*` files once migrated.
-4. Run `bun run lint` from repository root.
-
-The legacy CJS `base.js` has been removed; all consumers use the flat-config
-exports.
 
 ## Import Boundary Rules
 

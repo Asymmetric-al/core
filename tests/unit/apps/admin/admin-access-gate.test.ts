@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * `requireAdminAccess` is the ONLY role gate in the admin app: `apps/admin/proxy.ts`
- * passes `allowedRoles`, but `packages/auth/middleware.ts` consults that list only
- * inside the E2E-bypass branch, so a real Supabase session is authenticated and
- * never role-checked. These cases stand in for the exposure the gate prevents —
- * an authenticated donor or missionary reaching Mission Control or the Payload
- * admin at `/web-studio`.
+ * `requireAdminAccess` is the admin app's in-app role gate. `apps/admin/proxy.ts`
+ * also role-checks at the edge (`allowedRoles` with `resolveUserRole` in
+ * `packages/auth/middleware.ts`); this layer still has to refuse on its own, and
+ * it also requires a tenant. These cases stand in for the exposure the gate
+ * prevents — an authenticated donor or missionary reaching Mission Control or
+ * the Payload admin at `/web-studio`.
  */
 
 const getAuthContextMock = vi.hoisted(() => vi.fn());

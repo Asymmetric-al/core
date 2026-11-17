@@ -28,18 +28,18 @@ export type SupportAgent = SupportAssignee & {
 /**
  * Server-side adapter contract for the Donor Care Support Hub.
  *
- * Phase 7 ships a single in-memory implementation (`./in-memory.ts`).
- * Phase 8 swaps the implementation to a Supabase-backed module (`./supabase.ts`)
- * by changing one re-export in `./index.ts` — every reads/mutations call site
- * stays unchanged.
+ * `./supabase.ts` is the live implementation, selected in `./index.ts`;
+ * `./in-memory.ts` implements the same contract as a test fixture. Reads
+ * and mutations reach it through `supportHubAdapter`, scoped to the tenant
+ * bound by `runWithSupportHubTenant` (`../request-context.ts`).
  *
  * Conventions:
  * - Reads return cloned rows so callers cannot mutate the store by reference.
- * - Mutations are typed against the same shape as the Phase 2-6 store inputs
- *   so the existing UI mutation hooks can be retargeted at the API layer
- *   without rewriting their payloads.
- * - All methods return Promises so the swap to Supabase does not change the
- *   call signatures.
+ * - Mutation inputs mirror the admin client's `supportStore.inputs` shapes,
+ *   so UI payloads reach the API layer without being rewritten; the route
+ *   schemas in `../schemas.ts` validate the same shapes.
+ * - Every method returns a Promise, so both implementations satisfy the
+ *   same signatures.
  */
 export interface SupportConversationFilter {
   inboxId?: string | null;

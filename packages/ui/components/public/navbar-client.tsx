@@ -83,7 +83,7 @@ export function NavbarClient({
 
   useEffect(() => {
     if (!isHeroPage) {
-      // setIsScrolled(true); // Redundant and causes lint error
+      // Solid routes always get the scrolled styles (showScrolledStyles).
       return;
     }
 

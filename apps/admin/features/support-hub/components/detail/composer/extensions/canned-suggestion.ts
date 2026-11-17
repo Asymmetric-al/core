@@ -14,9 +14,9 @@ import type { SuggestionItem } from "./SuggestionList";
 import type { SupportCannedResponse } from "../../../../types";
 
 interface CannedSuggestionOptions {
-  /** Live canned-response collection (typically returned by the live hook). */
+  /** Canned responses to offer when `getContext` is not supplied. */
   cannedResponses: SupportCannedResponse[];
-  /** Context fed to `applyMergeVariables` at insert time. */
+  /** Fed to `applyMergeVariables` at insert time when `getContext` is not supplied. */
   mergeContext: MergeVariableContext;
   getContext?: () => {
     cannedResponses: SupportCannedResponse[];

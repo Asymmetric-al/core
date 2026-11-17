@@ -3,21 +3,14 @@ name: commit
 description: "Create a Conventional Commit message for staged changes and run git commit. Use when changes are staged and you need a commit message in the form type(scope): subject, with a <=100 character imperative header and optional 'ref AL-###' body line. Retained for reference; use only when explicitly asked for this commit workflow."
 ---
 
-# Commit — Skill
+# Commit
 
-Retained for reference only. This skill is not part of the active repo routing and should not be used unless a user explicitly asks for this commit workflow.
-
-**Name:** `commit`
-**Purpose:** Create a Conventional Commit message for staged changes and run `git commit`.
-Use this skill when you are ready to commit work in this repo.
-
-**Applies when:** Changes are staged and you need a commit message.
-**Do not use when:** Nothing is staged or you are not using Git.
+Use only when the user asks for this commit workflow. Write a Conventional Commit message for the staged changes and run `git commit`.
 
 ## Rules
 
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`, `revert`.
-- Header format: `type(scope): subject` (scope optional).
+- Header format: `type(scope): subject` (scope optional). Recent history uses an area (`admin`, `skills`, `openspec`) or an issue key (`AL-1864`) as the scope.
 - Header max length: 100 characters.
 - Subject: imperative, no trailing period, no emojis.
 - Issue refs: include `ref AL-###` in the body only when applicable.

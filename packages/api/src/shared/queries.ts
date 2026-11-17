@@ -14,7 +14,6 @@ export function findProfileByUserId(
     .single();
 }
 
-/** Finds a profile by ID, optionally scoped to a tenant. */
 export function findProfileById(
   supabase: AdminSupabaseClient,
   profileId: string,
@@ -29,7 +28,6 @@ export function findProfileById(
   return query.single();
 }
 
-/** Finds the missionary row associated with a profile. */
 export function findMissionaryByProfileId(
   supabase: AdminSupabaseClient,
   profileId: string,
@@ -41,7 +39,6 @@ export function findMissionaryByProfileId(
     .single();
 }
 
-/** Finds the donor record tied to a profile within a tenant. */
 export function findDonorByProfileId(
   supabase: AdminSupabaseClient,
   profileId: string,

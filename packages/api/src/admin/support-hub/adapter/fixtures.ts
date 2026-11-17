@@ -18,17 +18,17 @@ import type {
 } from "@asym/database/collections/support-hub.schema";
 
 /**
- * Donor-care fixtures used by the Phase 7 in-memory `SupportHubAdapter`.
+ * Donor-care fixtures seeding the in-memory `SupportHubAdapter`, which is a
+ * test fixture; the live adapter (`./supabase.ts`) reads Supabase instead.
  *
  * These intentionally live in their own module (NOT in
  * `packages/database/collections/support-hub.ts` which carries `"use client"`)
  * so the server-side adapter can import them without crossing Next.js's RSC
- * client/server boundary. Phase 8 replaces this file with a Supabase
- * implementation; the fixtures stay around as the test seed.
+ * client/server boundary.
  *
- * The data is intentionally compact — Phase 8 ships the full demo seed via
- * a one-time migration. The shape mirrors the Phase 2-6 store contracts so
- * the in-memory adapter exercises every adapter surface.
+ * The data is intentionally compact but touches every adapter surface.
+ * `SUPPORT_HUB_DEMO_TENANT_ID` is also the in-memory adapter's fallback
+ * tenant when no request scope is bound.
  */
 
 const NOW = "2026-04-15T12:00:00.000Z";

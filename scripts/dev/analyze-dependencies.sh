@@ -1,15 +1,14 @@
 #!/bin/bash
 
 # Analyze which packages use which dependencies
-# Output: JSON mapping of package -> dependencies used
+# Output: one sorted text file of external import specifiers per package/app in
+# .turbo/analysis/<name>-imports.txt, then the 20 most common across all of them.
 
 echo "🔍 Analyzing dependency usage across packages..."
 echo ""
 
-# Create output directory
 mkdir -p .turbo/analysis
 
-# Function to analyze a package
 analyze_package() {
   local package_path=$1
   local package_name=$(basename "$package_path")
@@ -39,14 +38,12 @@ analyze_package() {
   echo "  Found $(wc -l < .turbo/analysis/${package_name}-imports.txt | tr -d ' ') unique imports"
 }
 
-# Analyze all packages
 for pkg in packages/*; do
   if [ -d "$pkg" ]; then
     analyze_package "$pkg"
   fi
 done
 
-# Analyze all apps
 for app in apps/*; do
   if [ -d "$app" ]; then
     analyze_package "$app"
@@ -59,7 +56,6 @@ echo ""
 echo "📊 Summary:"
 echo ""
 
-# Show top dependencies used across all packages
 echo "Most commonly used dependencies:"
 cat .turbo/analysis/*-imports.txt | sort | uniq -c | sort -rn | head -20
 

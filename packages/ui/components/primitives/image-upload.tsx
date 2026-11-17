@@ -379,7 +379,7 @@ export function ImageUpload({
             purpose: bucket,
           });
 
-          // Save metadata to Supabase
+          // No app serves this route (deleted with /signature in 217777eda).
           const metadataResponse = await fetch(
             "/api/upload/cloudinary/metadata",
             {
@@ -388,7 +388,7 @@ export function ImageUpload({
                 cloudinaryData,
                 options: {
                   purpose: bucket,
-                  tenantId: undefined, // Add tenantId here if available in your context
+                  tenantId: undefined,
                 },
               }),
               headers: {
@@ -399,7 +399,7 @@ export function ImageUpload({
 
           if (!metadataResponse.ok) {
             console.error("Failed to save asset metadata");
-            // We still have the URL, so we can continue, but it's better to log
+            // The Cloudinary URL is still usable, so a failed save only logs.
           }
 
           publicUrl = cloudinaryData.secure_url;

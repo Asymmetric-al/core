@@ -11,6 +11,8 @@ import {
   announceBlocked,
   observeMerges,
   pruneFinished,
+  pendingEngineWait,
+  readEngineWait,
   recoverNativeFaults,
   releaseStaleReservations,
   scopeDigest,
@@ -717,7 +719,7 @@ describe("recoverNativeFaults", () => {
 
   it("waits for a quota reset the provider reported", async () => {
     const later = new Date(NOW_MS + 60_000).toISOString();
-    const earlier = new Date(NOW_MS - 60_000).toISOString();
+    const earlier = new Date(NOW_MS - 10 * 60_000).toISOString();
     const { results, asked } = await pass([
       [12, held(12, { faults: [{ resetAt: later }] })],
       [14, held(14, { faults: [{ resetAt: earlier }, { resetAt: null }] })],
@@ -733,6 +735,191 @@ describe("recoverNativeFaults", () => {
         { issue: 14, action: "recover-native", ok: true },
       ],
       asked: [[14, "run-14"]],
+    });
+  });
+
+  // The engine wakes a run it paused for a usage limit within seconds of the
+  // reset. The command would end a run that is still paused, so a pass that
+  // lands in those seconds must not get there first.
+  it("gives the engine two minutes after the reset to wake the paused run itself", async () => {
+    const at = (secondsAgo: number) =>
+      new Date(NOW_MS - secondsAgo * 1000).toISOString();
+    const { results, asked } = await pass([
+      [12, held(12, { faults: [{ resetAt: at(1) }] })],
+      [13, held(13, { faults: [{ resetAt: at(119) }] })],
+      [14, held(14, { faults: [{ resetAt: at(120) }] })],
+    ]);
+    expect({ results, asked }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        {
+          issue: 13,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        { issue: 14, action: "recover-native", ok: true },
+      ],
+      asked: [[14, "run-14"]],
+    });
+  });
+
+  // A woken run can meet the limit again and be paused by the engine for a
+  // later reset. Whatever reset the work item still carries, the pass leaves
+  // that run alone until two minutes after the engine's own wake time. A run
+  // still paused after that was not woken, and is recovered (run-14 below).
+  it("leaves a paused run alone until two minutes after the time the engine set to wake it", async () => {
+    const long = new Date(NOW_MS - 60 * 60_000).toISOString();
+    const recover = vi.fn(async () => ({ ok: true }));
+    const waits: Record<string, number | null> = {
+      "run-12": NOW_MS + 7 * 24 * 60 * 60_000,
+      "run-13": NOW_MS - 60_000,
+      "run-14": NOW_MS - 10 * 60_000,
+      "run-15": null,
+    };
+    const results = await recoverNativeFaults({
+      items: new Map(
+        [12, 13, 14, 15, 16].map((issue) => [
+          issue,
+          held(issue, { faults: [{ resetAt: long }] }),
+        ]),
+      ),
+      recover,
+      nowMs: NOW_MS,
+      engineWait: async (runId: string) => {
+        if (runId === "run-16") throw new Error("engine offline");
+        return waits[runId];
+      },
+    });
+    expect({
+      results,
+      asked: recover.mock.calls.map(([issue]) => issue),
+    }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        {
+          issue: 13,
+          action: "recover-native",
+          ok: false,
+          code: "reset-pending",
+        },
+        { issue: 14, action: "recover-native", ok: true },
+        { issue: 15, action: "recover-native", ok: true },
+        // The engine could not be asked: nothing is ended on a guess, and
+        // the next pass asks again.
+        {
+          issue: 16,
+          action: "recover-native",
+          ok: false,
+          code: "engine-unread",
+        },
+      ],
+      asked: [14, 15],
+    });
+  });
+
+  it("reads the engine's pending wake-up from a paused run's own events", () => {
+    const started = (resume_at: string) => ({
+      event_type: "wait_started",
+      data: { kind: "quota", resume_at },
+    });
+    const completed = { event_type: "wait_completed", data: {} };
+    const at = "2026-11-23T15:00:00.000Z";
+    const detail = (status: string, events: unknown[]) => ({
+      run: { status },
+      events,
+    });
+    expect([
+      pendingEngineWait(
+        detail("paused", [
+          started("2026-11-16T15:00:00.000Z"),
+          completed,
+          started(at),
+        ]),
+      ),
+      pendingEngineWait(detail("paused", [started(at), completed])),
+      pendingEngineWait(detail("running", [started(at)])),
+      pendingEngineWait(
+        detail("paused", [
+          { event_type: "wait_started", data: { kind: "approval" } },
+        ]),
+      ),
+    ]).toEqual([Date.parse(at), null, null, null]);
+    // An answer that does not describe the run is not "no wake-up pending".
+    for (const answer of [
+      null,
+      { error: "not found" },
+      { run: { status: "paused" } },
+    ])
+      expect(() => pendingEngineWait(answer)).toThrow(/does not describe/);
+  });
+
+  // An error from the engine must not read as "nothing pending": the pass
+  // would then end a run the engine is still going to wake.
+  it("defers when the engine answers with an error, even one in JSON", async () => {
+    const at = "2026-11-23T15:00:00.000Z";
+    const paused = {
+      run: { status: "paused" },
+      events: [
+        { event_type: "wait_started", data: { kind: "quota", resume_at: at } },
+      ],
+    };
+    const answer = (ok: boolean, status: number, body: unknown) =>
+      (async () => ({ ok, status, json: async () => body })) as never;
+    await expect(
+      readEngineWait({
+        port: 1,
+        runId: "run-12",
+        fetchImpl: answer(true, 200, paused),
+      }),
+    ).resolves.toBe(Date.parse(at));
+    await expect(
+      readEngineWait({
+        port: 1,
+        runId: "run-12",
+        fetchImpl: answer(false, 500, { error: "database is locked" }),
+      }),
+    ).rejects.toThrow(/engine answered 500/);
+
+    const recover = vi.fn(async () => ({ ok: true }));
+    const results = await recoverNativeFaults({
+      items: new Map([
+        [
+          12,
+          held(12, {
+            faults: [{ resetAt: new Date(NOW_MS - 3_600_000).toISOString() }],
+          }),
+        ],
+      ]),
+      recover,
+      nowMs: NOW_MS,
+      engineWait: (runId: string) =>
+        readEngineWait({
+          port: 1,
+          runId,
+          fetchImpl: answer(false, 500, { error: "database is locked" }),
+        }),
+    });
+    expect({ results, asked: recover.mock.calls.length }).toEqual({
+      results: [
+        {
+          issue: 12,
+          action: "recover-native",
+          ok: false,
+          code: "engine-unread",
+        },
+      ],
+      asked: 0,
     });
   });
 

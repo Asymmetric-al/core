@@ -22,13 +22,13 @@ interface SupportWorkspaceShellProps {
 }
 
 /**
- * Standard page chrome for every `/support/reports/*` and
- * `/support/settings/*` leaf. Wraps `PageShell` and mounts the shared
+ * Page chrome for every Support Hub page (`/support`, `/support/reports/*`,
+ * `/support/settings/*`). Wraps `PageShell` and mounts the shared
  * `SupportSubNav` inside the content area so sub-section navigation is
  * always visible without touching the Mission Control shell.
  *
  * `SupportNowProvider` keeps relative-time renders pure under the React
- * Compiler purity rule — same pattern used by `SupportInbox`.
+ * Compiler purity rule; `SupportInbox` also mounts its own.
  */
 export function SupportWorkspaceShell({
   section,

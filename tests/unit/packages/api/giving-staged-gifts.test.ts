@@ -111,8 +111,6 @@ describe("giving staged gift helpers", () => {
   });
 });
 
-// ---- stageGiftFromStripeDonation resilience tests -------------------------
-
 const baseDonation = {
   id: "donation-abc",
   tenant_id: "tenant-abc",
@@ -159,8 +157,9 @@ const baseStageInput = {
 };
 
 /**
- * Build a minimal chainable Supabase mock that routes calls per table.
- * Each table entry describes what each chainable method returns.
+ * Chainable Supabase mock that routes calls per table. Each table handler
+ * supplies the result of the `single`/`maybeSingle` terminals; every other
+ * method, including `insert`, returns the chain.
  */
 function buildSupabaseMock(
   tableHandlers: Record<
@@ -181,7 +180,6 @@ function buildSupabaseMock(
         throw new Error(`Unexpected table in mock: ${table}`);
       }
 
-      // Track insert/select calls per table
       if (!insertCalls[table]) {
         insertCalls[table] = [];
       }
@@ -189,8 +187,6 @@ function buildSupabaseMock(
         selectCalls[table] = [];
       }
 
-      // Build a fluent chain where every method returns itself until a
-      // terminal like maybeSingle/single/insert is reached.
       const chain: Record<string, unknown> = {};
       const terminal = () => Promise.resolve(handler());
 
@@ -244,7 +240,7 @@ describe("stageGiftFromStripeDonation resilience", () => {
 
         chain.maybeSingle = vi.fn(() => {
           if (table === "staged_gifts") {
-            // Second call: gift already exists
+            // The retry finds the gift the first delivery staged.
             return Promise.resolve({ data: stagedGiftDbRow, error: null });
           }
           if (table === "staged_gift_allocations") {
@@ -394,7 +390,6 @@ describe("stageGiftFromStripeDonation resilience", () => {
 
         chain.maybeSingle = vi.fn(() => {
           if (table === "staged_gifts") {
-            // Return existing gift with amount 0
             return Promise.resolve({
               data: { ...stagedGiftDbRow, amount: 0 },
               error: null,
@@ -435,15 +430,13 @@ describe("stageGiftFromStripeDonation resilience", () => {
         chain.insert = vi.fn(() => {
           if (table === "staged_gift_audit_events") {
             auditInsertAttempted = true;
-            // Return as a thenable for the .insert() direct await path
+            // The audit insert is awaited directly, not chained.
             const failResult = {
               data: null,
               error: { message: "audit write failed" },
             };
-            // Need to return a chain with a then-able for direct destructuring
             return Promise.resolve(failResult);
           }
-          // allocations insert succeeds
           return chain;
         });
 

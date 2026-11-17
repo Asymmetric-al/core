@@ -1,7 +1,7 @@
 # OpenSpec Guardian Workflow
 
 **Name:** `openspec-guardian`
-**Purpose:** Use a Cursor background subagent to keep implementation aligned with the original user prompt, durable OpenSpec intent, active OpenSpec changes, and repo boundaries.
+**Purpose:** Use the read-only `openspec-guardian` background subagent (`.cursor/agents/openspec-guardian.md`, mirrored to `.claude/agents/`) to keep implementation aligned with the original user prompt, durable OpenSpec intent, active OpenSpec changes, and repo boundaries.
 **Applies when:** The user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, a second agent to keep implementation on track, or careful implementation where the main agent must not go off the rails.
 **Do not use when:** The task is a tiny local edit, pure writing task, one-line search, or anything where OpenSpec has no bearing on intent, behavior, or repo boundaries.
 
@@ -33,6 +33,7 @@ Also use it for non-trivial feature work, behavior changes, multi-step project w
 
 OpenSpec is the durable source of truth for product intent, surface boundaries, principles, system boundaries, and active behavior changes.
 The main coding agent can drift when it focuses too much on implementation details. The OpenSpec Guardian exists to catch that drift early.
+`openspec/config.yaml` and `/4-close-project` formerly called this reviewer the Core Guardian. Older plans and dated records that still say Core Guardian mean this reviewer.
 The guardian answers these questions:
 
 1. Is the main agent still solving the user's actual prompt?

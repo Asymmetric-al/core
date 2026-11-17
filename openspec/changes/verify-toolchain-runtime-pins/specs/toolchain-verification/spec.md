@@ -1,3 +1,9 @@
+## Purpose
+
+Verify that each Bun setup step carries its own exact version pin and that
+live app runtime settings match the Node policy, so drift is not reported as
+ready.
+
 ## ADDED Requirements
 
 ### Requirement: Every Bun setup step owns its verified version pin

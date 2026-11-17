@@ -26,13 +26,19 @@ const serviceRoleKey = serverEnv.SUPABASE_SERVICE_ROLE_KEY;
 Always required:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` or the legacy
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` (at least one)
 
 Conditionally required:
 
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `INNGEST_EVENT_KEY`
+- `INNGEST_SIGNING_KEY`
+- `RESEND_API_KEY`
+- `RESEND_WEBHOOK_SECRET`
+- `RESEND_ENCRYPTION_KEY`
 - `SENTRY_DSN`
 
 These become required for protected deployments (`production`, hosted
@@ -50,15 +56,15 @@ through `@asym/api` against tenant-owned Postgres tables.
 
 ## Migration Policy
 
-| Change      | Required updates                                                                      | Notes                                                      |
-| ----------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Add env var | Update `.env.example`, add schema entry, add `runtimeEnv` mapping, update README/docs | Choose `server` vs `client` based on `NEXT_PUBLIC_` prefix |
+| Change                    | Required updates                                                                      | Notes                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Add env var               | Update `.env.example`, add schema entry, add `runtimeEnv` mapping, update README/docs | Choose `server` vs `client` based on `NEXT_PUBLIC_` prefix |
+| Change validation         | Update `packages/env/src/schema.ts` and docs                                          | Keep changes backwards-compatible when possible            |
+| Remove env var            | Remove from `.env.example`, schema, and `runtimeEnv`; document migration              | Coordinate app/package cleanup before removal              |
+| Make optional -> required | Update schema + required list + contributor docs                                      | Treat as breaking for local setup/CI expectations          |
+| Make required -> optional | Update schema + required list + docs                                                  | Confirm fallback behavior in consuming code                |
 
 Optional client flags include `NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED` (experimental React View Transitions; default off).
-| Change validation | Update `packages/env/src/schema.ts` and docs | Keep changes backwards-compatible when possible |
-| Remove env var | Remove from `.env.example`, schema, and `runtimeEnv`; document migration | Coordinate app/package cleanup before removal |
-| Make optional -> required | Update schema + required list + contributor docs | Treat as breaking for local setup/CI expectations |
-| Make required -> optional | Update schema + required list + docs | Confirm fallback behavior in consuming code |
 
 ## Add a New Env Var
 
@@ -70,8 +76,11 @@ Optional client flags include `NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED` (experiment
 
 ## Skip Validation In CI or Tests
 
+Unit tests (`bun run test:unit`) already set it (`vitest.config.mts`,
+`tests/setup/unit-env.ts`). For other commands, prefix them:
+
 ```bash
-SKIP_ENV_VALIDATION=1 bun test
+SKIP_ENV_VALIDATION=1 <command>
 ```
 
 ## Where `process.env` Is Allowed
@@ -84,3 +93,10 @@ SKIP_ENV_VALIDATION=1 bun test
 | `apps/*/app/**`                   | ❌ No                  | Use `clientEnv` / `serverEnv` from `@asym/env` |
 | `packages/*/**` runtime modules   | ❌ No                  | Use `clientEnv` / `serverEnv` from `@asym/env` |
 | `packages/*/**` build-time config | ⚠️ Gradual             | Migrate opportunistically; document exceptions |
+
+Documented runtime exception: `packages/auth/e2e-auth.ts` reads `process.env`
+directly so it stays edge-safe (see its `getE2EAuthSecret` doc). `packages/api/src/stripe/webhooks.ts` also reads its
+platform webhook credentials at request time on purpose (`serverEnv` snapshots at
+import and would freeze overrides). Other package runtime modules that read
+`process.env` directly (for example `packages/api/src/email/crypto.ts` and the
+health routes) are migration debt, not precedent.

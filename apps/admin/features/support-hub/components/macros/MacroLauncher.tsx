@@ -22,8 +22,8 @@ interface MacroLauncherProps {
 }
 
 /**
- * Slot-mountable macro popover. Used by `<ConversationComposer />` (composer
- * chrome slot) and the conversation header dropdown alike.
+ * Macro popover, mounted compact in the composer's editor footer and
+ * full-size in the conversation header (`ConversationMacrosMenu`).
  */
 export function MacroLauncher({
   conversation,

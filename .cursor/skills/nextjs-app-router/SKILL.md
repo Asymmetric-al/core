@@ -3,90 +3,47 @@ name: nextjs-app-router
 description: "Ensure correct Next.js App Router architecture, rendering strategy, and data fetching. Use whenever working under /app — routing, layouts, server/client component boundaries, data fetching, Suspense, and Server Actions. Defaults to Server Components and adds 'use client' only for interactivity. Not for the Pages Router (/pages)."
 ---
 
-# Next.js App Router — Skill
+# Next.js App Router in Core
 
-**Name:** `nextjs-app-router`
-**Purpose:** Ensure correct App Router architecture, rendering strategy, and data fetching in Next.js.
-Use this skill whenever working under `/app`.
-
-**Applies when:** Routing, layouts, server/client boundaries, data fetching, Suspense, Server Actions.
-**Do not use when:** Working in the Pages Router (`/pages`) or non-Next.js projects.
+Core's apps (`apps/admin`, `apps/donor`, `apps/missionary`, `apps/factory-console`) use the App Router with `cacheComponents: true` and `partialPrefetching: true`. Read the installed docs under `node_modules/next/dist/docs/` for API details; this skill covers the Core-specific decisions.
 
 ## Rules
 
-- **Server-first:** Default to Server Components; add `'use client'` only for interactivity or browser APIs.
-- **Routing/layouts:** Use `layout.tsx` for shared UI; keep layouts stable; use route groups `(group)` for organization.
-- **Data fetching:** Fetch in Server Components by default and colocate with usage.
-- **Rendering strategy:** Choose static, cached, or dynamic intentionally; avoid accidental dynamic rendering.
-- **Client components:** Keep them small, prop-driven, and avoid server data fetching inside them.
-- **Suspense/streaming:** Use `<Suspense>` for slow or user-specific UI.
-- **Mutations:** Prefer Server Actions and invalidate caches as needed.
+- **Server-first:** Default to Server Components; add `'use client'` only for interactivity or browser APIs, as a small leaf.
+- **Every server `await` is a decision:** Stream it behind `<Suspense>`, cache it with `'use cache'`, or block deliberately with `export const instant = false` plus a reason comment. A bare top-level `await` in a page or layout blocks the App Shell. Details: `docs/ai/skills/cache-components/SKILL.md` and the Instant Navigation section of `docs/ai/rules/frontend.md`.
+- **Data ownership:** Business queries and privileged mutations live in `packages/api`; pages and route handlers call it and stay thin. Browser-visible table data uses `@asym/database` collections and hooks. See `docs/guides/architecture/data-access-boundary.md`.
+- **Mutations:** Use Server Actions or `packages/api` commands for privileged writes, and invalidate the affected cache tags (`updateTag` in Server Actions).
+- **No removed segment config:** `dynamic`, `revalidate`, `fetchCache`, and `dynamicParams` exports are unavailable with Cache Components.
 - **Errors:** Use `error.tsx` and `not-found.tsx` for route-level handling.
+- **Page composition:** For feature folders, colocated Suspense skeletons, and leaf-client UX, also load `docs/ai/skills/nextjs-app-architecture/SKILL.md`.
 
-## Workflow
+## Checklist
 
-1. Decide server vs client boundaries first.
-2. Choose the rendering strategy (static/cached/dynamic).
-3. Fetch data in the closest Server Component.
-4. Isolate interactivity into small Client Components.
-5. Add Suspense boundaries for dynamic or slow UI.
-6. Use Server Actions for mutations and add error boundaries.
+- [ ] Server Components by default; client components small and justified
+- [ ] Each server `await` streamed, cached, or deliberately blocked with a reason
+- [ ] `<Suspense>` boundaries close to the dynamic read, not around the whole page body
+- [ ] Business data and privileged mutations go through `packages/api`
+- [ ] Mutations invalidate the correct cache tags
+- [ ] Route-level errors handled via `error.tsx` / `not-found.tsx`
 
-## Checklists
-
-### Implementation checklist
-
-- [ ] Server Components used by default
-- [ ] Client Components are small and justified
-- [ ] Data fetching is colocated and not duplicated
-- [ ] Rendering strategy is explicit
-- [ ] Suspense isolates dynamic UI
-- [ ] Server Actions used for mutations
-
-### Review checklist
-
-- [ ] No accidental `'use client'` on large trees
-- [ ] No server data fetching inside client-only components
-- [ ] Errors handled via `error.tsx` / `not-found.tsx`
-
-## Minimal examples
-
-### Server Component (default)
+## Example
 
 ```tsx
-export default async function Page() {
-  const data = await getData();
-  return <View data={data} />;
-}
-```
+import { Suspense } from "react";
 
-### Client Component (isolated)
-
-```tsx
-"use client";
-
-export function Button({ onClick }: { onClick: () => void }) {
-  return <button onClick={onClick}>Click</button>;
-}
-```
-
-### Layout usage
-
-```tsx
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Page() {
   return (
     <>
-      <Header />
-      {children}
+      <PageHeader />
+      <Suspense fallback={<DonorListSkeleton />}>
+        <DonorList />
+      </Suspense>
     </>
   );
 }
+
+async function DonorList() {
+  const donors = await listDonorsForCurrentUser(); // request-time read, streamed
+  return <DonorTable donors={donors} />;
+}
 ```
-
-## Common mistakes / pitfalls
-
-- Marking entire pages as `'use client'`
-- Fetching server data in Client Components
-- Reading request data in shared/cached logic
-- Overusing route segment config instead of code-local controls
-- Mixing routing concerns with component UI logic

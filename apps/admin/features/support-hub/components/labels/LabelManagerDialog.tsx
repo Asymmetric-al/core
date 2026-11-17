@@ -36,10 +36,10 @@ const TONE_DOT_CLASSES: Record<SupportLabelTone, string> = {
 };
 
 /**
- * Dialog reachable from `<LabelFilter />` and the command palette. Lists every
- * label and lets the agent create / rename / re-tone / delete. Deletes also
- * scrub the label off any conversation that still carries it (handled inside
- * `useDeleteSupportLabel`).
+ * Dialog opened from `<LabelFilter />`. Lists every label and lets the agent
+ * create / rename / re-tone / delete. Deleting a label also removes it from
+ * every conversation: `support_conversation_labels` rows cascade on the
+ * label's delete.
  */
 export function LabelManagerDialog({
   open,

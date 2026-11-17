@@ -8,8 +8,9 @@ import {
 } from "./helpers";
 
 /**
- * Headless verification of the admin profile dropdown fix on the
- * development deployment. Mirrors the manual Claude-in-Chrome smoke flow.
+ * Headless check of the Mission Control profile menu on the development
+ * deployment: the old template items stay gone and Administration lands on
+ * /admin.
  *
  * Project: development-admin (see playwright.development-smoke.config.ts).
  */
@@ -29,17 +30,15 @@ test.describe("development-admin profile dropdown", () => {
         p.getByRole("button", { name: /open profile menu/i }),
     });
 
-    // 1. Mission Control shell visible (uses the GiveHope tenant title).
     await expect(page).toHaveTitle(/Mission Control/i);
     await assertNoVisibleLoginPrompt(page);
 
-    // 2. Open the profile dropdown.
     const profileButton = page.getByRole("button", {
       name: /open profile menu/i,
     });
     await profileButton.click();
 
-    // 3. Old template items must be absent.
+    // Items from the original menu template must be absent.
     for (const oldLabel of [
       "My account",
       "Settings",
@@ -51,7 +50,6 @@ test.describe("development-admin profile dropdown", () => {
       ).toHaveCount(0);
     }
 
-    // 4. Expected items present.
     const administration = page.getByRole("menuitem", {
       name: /^administration$/i,
     });
@@ -66,11 +64,9 @@ test.describe("development-admin profile dropdown", () => {
     await expect(about).toBeVisible();
     await expect(logout).toBeVisible();
 
-    // 5. Destination hrefs.
     await expect(administration).toHaveAttribute("href", /\/admin$/);
     await expect(staffDirectory).toHaveAttribute("href", /\/admin\/teams$/);
 
-    // 6. Click Administration and confirm /admin lands.
     await administration.click();
     await page.waitForURL(/\/admin$/);
 

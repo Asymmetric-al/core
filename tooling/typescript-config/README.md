@@ -22,7 +22,7 @@ This package provides shared TypeScript config presets for the monorepo.
   - Transitional preset for packages not yet ready for `isolatedDeclarations`.
   - Extends `base.json` directly.
   - Sets `composite: false`, `declaration: false`, and `declarationMap: false`.
-  - Does not set `isolatedDeclarations` (inherits `false` from `base.json`).
+  - Does not set `isolatedDeclarations`; neither does `base.json`, so it stays off (TypeScript's default).
 - `react.json`
   - React library preset where `isolatedDeclarations` is not required.
   - Extends `base.json` and sets React JSX/library defaults.
@@ -94,8 +94,8 @@ graph TD
     base --> react
 
     apps[Apps: admin, donor, missionary]
-    pkgs_ready[Packages ready:\n— none yet]
-    pkgs_transitional[Packages transitional:\napi, ui, database, lib,\nconfig, graphql, auth]
+    pkgs_ready[Packages ready:\nemail]
+    pkgs_transitional[Packages transitional:\napi, auth, config, database,\nenv, graphql, lib, missionary,\nmock-data, ui]
 
     nextjs --> apps
     library --> pkgs_ready

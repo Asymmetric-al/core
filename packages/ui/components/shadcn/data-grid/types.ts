@@ -59,7 +59,9 @@ export interface DataGridConfig {
 
   virtualization?: VirtualizationConfig;
 
-  // Legacy virtualization fields kept for backward compatibility.
+  // Flat fields from before `virtualization`: virtualizeRows, rowHeight,
+  // virtualOverscan and maxHeight are its fallbacks. headerHeight sizes the
+  // header row; virtualizeColumns is read nowhere.
   virtualizeRows?: boolean;
   virtualizeColumns?: boolean;
   rowHeight?: number;

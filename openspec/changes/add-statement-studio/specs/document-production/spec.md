@@ -1,5 +1,12 @@
 # Delta for Document Production
 
+## Purpose
+
+Define the contract for one governed facts-to-artifact system for official
+receipts, acknowledgments, statements and other generated documents, keeping
+Document Definition Publication, Facts Package, Generation Request, Issuance
+and exact Artifact as distinct durable authorities.
+
 ## ADDED Requirements
 
 ### Requirement: Document Production Preserves Five Durable Authorities

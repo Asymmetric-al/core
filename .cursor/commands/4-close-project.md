@@ -53,7 +53,7 @@
 4. **Verify and review**
    - Run `bun run openspec -- validate <change-id> --strict`.
    - Run OpenSpec Verify (`docs/ai/skills/openspec-verify-change/SKILL.md`).
-   - Invoke the Core Guardian and relevant specialists for material product,
+   - Invoke the OpenSpec Guardian (`docs/ai/rules/openspec-guardian.md`) and relevant specialists for material product,
      data, tenant, authorization, financial, publication, or communication changes.
    - Mark completed items in `tasks.md`. Update design or proposal if realities changed.
 
