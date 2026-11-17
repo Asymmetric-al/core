@@ -55,7 +55,7 @@ The exact live required-check sets are recorded only in § Branch protection.
 ### Bun toolchain
 
 - **Pinned version:** root `package.json` `packageManager` and `.bun-version` (currently `bun@1.4.3`, stable only — never canary).
-- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`; GitHub Actions pins Node `24.22.1`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
+- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`; GitHub Actions pins Node `24.22.3`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
 - **Vercel Functions Bun 1.4 is a separate runtime:** [Vercel's Bun 1.4 changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions) documents opting **Functions and Middleware** onto Bun via `"bunVersion": "1.4.x"`. That is not how you pin the package manager. `"1.x"` still selects Bun 1.3.14 on Functions. Next.js on the Bun runtime also requires `bun run --bun next dev|build` ([runtime docs](https://vercel.com/docs/functions/runtimes/bun)). Core stays on the Node path (`next dev` / `next build` / `next start`) because Payload, Stripe, Supabase SSR, and eve-runtime are validated there; Vercel treats the Bun Functions runtime as an explicit breaking-change opt-in.
 - **Vercel install vs GitHub install:** App `installCommand` is `bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile` (workspace root, pinned package manager, frozen lockfile), following [Vercel's documented build pin](https://vercel.com/kb/guide/how-to-pin-a-specific-bun-version-for-vercel-builds). Preview deployment `dpl_8p7c7tAFVzvdLZY5t4FB8NuTxdCx` proved that the build image's Bun 1.3.14 cannot install the current lockfile without drift. Pinning installation does not opt Functions into the Bun runtime. GitHub Actions keeps `bun ci --no-cache --backend=copyfile` for the portable file-copy backend. Corepack does **not** pin Bun (it is for pnpm/Yarn).
 - **GitHub Actions:** `ci.yml`, `ci-integration.yml`, and `qa-smoke-preview-deploy.yml` set `env.BUN_VERSION` to that exact version; every first-party `oven-sh/setup-bun` step is pinned to the reviewed `v2.2.0` commit and uses `bun-version: ${{ env.BUN_VERSION }}`.
@@ -323,11 +323,11 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `migrate`
 
-- _What it does:_ Spins up a fresh Postgres 17 service container (see § Service container images), runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
+- _What it does:_ Spins up a fresh Postgres 17 service container (see § Service container images), runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Then checks the seeded row counts with `node scripts/verify/seed-counts.mjs`, which reads them from `supabase/seed-expectations.json` (today one row in `public.profiles`) and fails, naming the count it found, on any difference. A change to the seed updates that file; the workflow step does not change.
 - The SQL verifier runs the field-policy classification gate (`scripts/verify/field-policy-census.mjs`) after all forward migrations and before reporting success. Its record is the manifest `docs/security/field-policies/manifest.json` (AL-2674), which lists every column of each classified record type with its type, nullability, category and flags on the five surfaces. It replaced the AL-491 census, a checksummed capture of the hosted schema that let no classified column be added or dropped; the census files stay in that folder as history that no gate reads. The gate fails, naming every problem, when the manifest is malformed, a column of a classified table has no entry, an entry names a column that no longer exists, a column's type, nullability, generation or pinned default differs from its entry, a classified record type has no relation, `public.receipts` exists, or `public.field_policies` does not equal the manifest's rows. A change that adds or drops a column of a classified table updates its manifest entry and its `public.field_policies` rows in the same change (`docs/security/field-policies/README.md`). Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. The gate reads no Git history.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
-- _Real-stack steps:_ after the seed, the job runs real-stack suites against the migrated database, each step pinned in `tests/unit/helpers/workflow-yaml.ts`. The last two are AL-2674's: `Verify AL-2674 command lane and platform schema (real stack)` runs every `tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts` suite (a glob, so a new suite there runs without a workflow change), and `Verify release job database steps and schema fingerprint (real stack)` runs the release job's database steps against a stub of the platform contract and checks that two fresh replays fingerprint identically (`RELEASE_IT_ADMIN_DATABASE_URL`).
+- _Real-stack steps:_ after the seed, the job runs real-stack suites against the migrated database, each step pinned in `tests/unit/helpers/workflow-yaml.ts`. The last three are AL-2674's. `Verify AL-2671 program suites, issues 2670-2689 (real stack)` runs every `tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts` suite (`TENANT_GUARD_IT_ADMIN_DATABASE_URL`): one glob over the AL-2671 program's issue numbers, so a package adds a real-stack suite under its own issue without a workflow change, and the step fails, never passes empty, when the glob matches nothing. `Verify release job database steps, schema fingerprint and CMS roles (real stack)` runs the release job's database steps against a stub of the platform contract, checks that two fresh replays fingerprint identically (`RELEASE_IT_ADMIN_DATABASE_URL`) and runs Payload's database-role suite (`TENANT_GUARD_IT_ADMIN_DATABASE_URL`). `Qualify the pinned Payload release (cms:qualify)` runs the Payload qualification of plan 6.7, fourteen checks on a database of its own on the same server (`PAYLOAD_QUALIFICATION_ADMIN_URL`), and drops that database.
 
 ### `smoke` (needs: `migrate`)
 
@@ -411,7 +411,9 @@ the secrets it needs by name and the owner's steps to switch it on, is
 - _`release-database`:_ replays every migration on an empty Postgres and
   fingerprints it; preflight (target project, environment marker, migration
   order); `supabase db push`; the CMS role passwords; Payload migrations as
-  `cms_owner`; catalog gates and fingerprint equality with the replay; then
+  `cms_owner`, whose login only this step holds, in
+  `PAYLOAD_MIGRATION_DATABASE_URI`; catalog gates and fingerprint equality
+  with the replay; then
   records the expected heads. An out-of-order migration stops the run before
   anything is migrated or deployed.
 - _`release-deploy`:_ stages a production-target deployment of each affected
@@ -421,7 +423,9 @@ the secrets it needs by name and the owner's steps to switch it on, is
   passes.
 - _Credentials:_ the GitHub environments `release-production` and
   `release-preview` are the only holders of a migration connection string. No
-  application environment holds one (`bun run verify:runtime-connection-strings`).
+  application environment holds one (`bun run verify:runtime-connection-strings`),
+  and Web Studio refuses to start on a protected deployment that holds
+  `PAYLOAD_MIGRATION_DATABASE_URI`.
 - _Pull requests that carry a migration:_ `qa-smoke-preview-deploy.yml` runs
   them in its `preview-database` job, in one repository-wide concurrency group
   that never cancels and queues the rest (`queue: max`): rebuild the disposable

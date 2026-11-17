@@ -32,8 +32,10 @@ and none is ever cancelled.
 3. **Migrate.** `supabase db push` (pinned CLI), then the two CMS role
    passwords are set from the job's secrets (plan 7.5: after the role
    migration), then the Payload migrations run as `cms_owner` through
-   `scripts/cms/run-payload-command.mjs`. Both ledgers must then hold every
-   source migration.
+   `scripts/cms/run-payload-command.mjs`, with the `cms_owner` login in
+   `PAYLOAD_MIGRATION_DATABASE_URI`: the only source that runner accepts for a
+   hosted database, set in this step and nowhere else. Both ledgers must then
+   hold every source migration.
 4. **Gates.** The tenant RLS catalog gate, the cross-schema name-collision
    gate (one recorded exception, `cms.tenants`, until WP6) and the schema
    fingerprint, which must equal the replay's exactly.
@@ -63,8 +65,9 @@ made against (`next.config.ts` `env`, from `scripts/release/migration-heads.mjs`
 the route reads the recorded heads through `public.platform_health()` with
 the service key. That key is used at one site, shared with the database
 health probe: the named health-probe entry for `packages/api/src/health/db.ts`
-in `docs/security/service-role-client-allowlist.json`. The allowlist does not
-change: frozen acceptance suites cap it (#2253, #2312) and pin its bytes (#2308).
+in `docs/security/service-role-client-allowlist.json`, whose reason names the
+migration-head check. No site was added: the entry caps (#2253, #2312) and the
+ceiling are unchanged, and #2308 pins the file's bytes.
 
 | Database compared with the build | Answer                     | Effect                                          |
 | -------------------------------- | -------------------------- | ----------------------------------------------- |
@@ -158,8 +161,13 @@ Names only. Values live in GitHub environments and never in the repository.
 
 The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
 `cms_owner.<ref>`), so the job holds one connection string per environment.
-GitHub-hosted runners have no IPv6, so the direct host
-(`db.<ref>.supabase.co`) will not connect; use the session pooler.
+The job hands it to Payload's migrations as `PAYLOAD_MIGRATION_DATABASE_URI`
+with `CMS_HOSTED_MIGRATION_REF` set to the project ref; the runner checks that
+the user is `cms_owner.<ref>` on that project's pooler and that the connection
+is encrypted. No application environment holds that variable: a protected
+deployment that has it refuses to start Web Studio. GitHub-hosted runners have
+no IPv6, so the direct host (`db.<ref>.supabase.co`) will not connect; use the
+session pooler.
 
 ## Database contract
 
@@ -183,6 +191,8 @@ stub of the same shape (`tests/unit/scripts/release/support/test-database.ts`).
 - `requireDisposableDatabase({databaseUrl, action})` and the `bun run supabase`
   wrapper refuse to reset a database not marked `disposable`, with no override.
 - `cms_owner` and `cms_runtime` are login roles that `postgres` can alter.
+  WP1.2's migration `*_cms_database_roles.sql` creates them without a
+  password (connection limits 2 and 10); the job sets both passwords.
 
 ## Switching it on
 
@@ -255,7 +265,13 @@ development database until WP11. The steps below follow those decisions.
    - Replace the admin app's `PAYLOAD_DATABASE_URI` in Production, in
      `core-development` and in its branch-scoped Preview entry with a
      `cms_runtime` login on the session pooler:
-     `postgresql://cms_runtime.<ref>:<RELEASE_CMS_RUNTIME_PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require`.
+     `postgresql://cms_runtime.<ref>:<RELEASE_CMS_RUNTIME_PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=verify-full`,
+     with no other SSL option, and set `PAYLOAD_DATABASE_SSL_CA` beside it to
+     the project's CA certificate (the PEM from its Database settings). A
+     protected deployment refuses a pooler URL without that pair, and refuses
+     to start Web Studio while `PAYLOAD_MIGRATION_DATABASE_URI` is set
+     (`apps/admin/src/cms/payload-database-config.ts`); never add that
+     variable to an application environment.
 
    Check: `bun run verify:runtime-connection-strings` prints
    `Overall: READY`. Undo: restore the previous values (re-adding
@@ -283,7 +299,8 @@ development database until WP11. The steps below follow those decisions.
    the Preview environment's variables but with the preview project's
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY` and (admin) `PAYLOAD_DATABASE_URI` as
-   `cms_runtime`, and no `SUPABASE_DB_URL`.
+   `cms_runtime` with `PAYLOAD_DATABASE_SSL_CA`, as in step 6, and no
+   `SUPABASE_DB_URL`.
    Check: label two pull requests that each carry a migration with
    `qa:smoke`; the second's `preview-database-smoke` job waits until the
    first's smoke run ends, and each posts a _Preview Database Smoke QA_
@@ -306,9 +323,11 @@ Proved locally (unit and real-stack tests against a disposable Postgres):
 the order check, preflight refusals, heads, marker, SCRAM passwords, the
 fingerprint and gates, the health route's answers, the all-or-nothing deploy
 against a fake Vercel API, the first rebuild's direct reset path and the
-marker check after it, and the workflows' structure. CI's `migrate` job runs
-the release job's real-stack suites and the `issue-2674` suites on every pull
-request. Not yet run against a hosted service: Vercel creating a staged production deployment through the
+marker check after it, and the workflows' structure. CI's `migrate` job runs,
+on every pull request, the real-stack suites of every package of the AL-2671
+program (`tests/unit/acceptance/issue-2670` to `issue-2689`), the release
+job's, Payload's database-role suite and the Payload qualification
+(`bun run cms:qualify`). Not yet run against a hosted service: Vercel creating a staged production deployment through the
 API and promoting it; a gitSource deployment into the `preview-database`
 custom environment (the job fails closed if Vercel ignores the environment);
 `supabase db push` and `db reset --db-url` on a hosted project; custom login
