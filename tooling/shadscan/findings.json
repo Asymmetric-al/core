@@ -1193,11 +1193,11 @@
       "rule": "command-menu-hotkey-present",
       "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
       "classification": "scanner-limitation",
-      "rationale": "The root layout reaches MissionaryLayoutShell, AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive installs guarded Ctrl/Meta+K search; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
+      "rationale": "The root layout reaches MissionaryLayoutShell, whose workspace slot renders MissionaryWorkspace and MissionaryWorkspaceChrome, then AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive installs guarded Ctrl/Meta+K search; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
+          "sha256": "b39d39df828e8825b525c9ab37e3dade5341906494117a7f9fbeb0a83ce3efdd"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1205,15 +1205,15 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "2f3c8f952941189599eb25579cbe43aca8355b55a3a801958f19e717b966028d"
+          "sha256": "01caca978659df566199fbf171f68781da75b422688040901a159a3e7a386011"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "f7d333ea45c561fb61d9a5682b7bba9ac9d686947073a20f7eb4dc724ac0686d"
+          "sha256": "7cd9923f1e41063e0ef118fee09c2db4d631866066924b0d9dfe3070fadc2197"
         },
         {
           "path": "apps/missionary/components/navigation-search.tsx",
-          "sha256": "399d3460e62be0152df978cbb3fa83823cf7164d7fd16f6164c240dfb2641c87"
+          "sha256": "d26ee3edf403f207cf84b44b8aa9ee6b9abda138b9dc07b26725848df955811d"
         },
         {
           "path": "apps/missionary/components/navigation-items.ts",
@@ -1225,7 +1225,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
-          "sha256": "b31ffd054dc6f81989cb281aee59e1606c68c8414068ff7453708340f6ca3936"
+          "sha256": "c363accd685f62a2f4ca5a16b073043cf5e93de0c400785d94178a61f5ad8109"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
@@ -1233,15 +1233,15 @@
         },
         {
           "path": "apps/missionary/lib/route-policy.ts",
-          "sha256": "c8b72c57ff82600d8fc952cdbc4eefbd62d8a01a5cfe5ad77c5217c69a0fed8e"
+          "sha256": "afade507c2b12e4fe7078b4b14a3c05f8769cab60ac98271bc9a46ec16abc8da"
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "4547498558c6888eb6404f49002fcffa675cf0b3b243ac8ad1092a304aa79a83"
+          "sha256": "c08f1b64280c0b52e8a6a11f38236b0f656fd68d25e8b937b3abbbb3c25c628b"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
-          "sha256": "c0a101c5196f1a63de2d4c627c5d57e301ffefed5cc2cbbf833aee74a6e33a79"
+          "sha256": "5e9bd8e969bf6d2349f382ce547c8e9ac4a65993535d8a944de29d77b1352fe7"
         }
       ],
       "verificationTests": [
@@ -1255,11 +1255,11 @@
       "rule": "command-menu-present",
       "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
       "classification": "scanner-limitation",
-      "rationale": "The root layout reaches MissionaryLayoutShell, AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive installs guarded Ctrl/Meta+K search; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
+      "rationale": "The root layout reaches MissionaryLayoutShell, whose workspace slot renders MissionaryWorkspace and MissionaryWorkspaceChrome, then AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive installs guarded Ctrl/Meta+K search; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
+          "sha256": "b39d39df828e8825b525c9ab37e3dade5341906494117a7f9fbeb0a83ce3efdd"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1267,15 +1267,15 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "2f3c8f952941189599eb25579cbe43aca8355b55a3a801958f19e717b966028d"
+          "sha256": "01caca978659df566199fbf171f68781da75b422688040901a159a3e7a386011"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "f7d333ea45c561fb61d9a5682b7bba9ac9d686947073a20f7eb4dc724ac0686d"
+          "sha256": "7cd9923f1e41063e0ef118fee09c2db4d631866066924b0d9dfe3070fadc2197"
         },
         {
           "path": "apps/missionary/components/navigation-search.tsx",
-          "sha256": "399d3460e62be0152df978cbb3fa83823cf7164d7fd16f6164c240dfb2641c87"
+          "sha256": "d26ee3edf403f207cf84b44b8aa9ee6b9abda138b9dc07b26725848df955811d"
         },
         {
           "path": "apps/missionary/components/navigation-items.ts",
@@ -1287,7 +1287,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
-          "sha256": "b31ffd054dc6f81989cb281aee59e1606c68c8414068ff7453708340f6ca3936"
+          "sha256": "c363accd685f62a2f4ca5a16b073043cf5e93de0c400785d94178a61f5ad8109"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
@@ -1295,15 +1295,15 @@
         },
         {
           "path": "apps/missionary/lib/route-policy.ts",
-          "sha256": "c8b72c57ff82600d8fc952cdbc4eefbd62d8a01a5cfe5ad77c5217c69a0fed8e"
+          "sha256": "afade507c2b12e4fe7078b4b14a3c05f8769cab60ac98271bc9a46ec16abc8da"
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "4547498558c6888eb6404f49002fcffa675cf0b3b243ac8ad1092a304aa79a83"
+          "sha256": "c08f1b64280c0b52e8a6a11f38236b0f656fd68d25e8b937b3abbbb3c25c628b"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
-          "sha256": "c0a101c5196f1a63de2d4c627c5d57e301ffefed5cc2cbbf833aee74a6e33a79"
+          "sha256": "5e9bd8e969bf6d2349f382ce547c8e9ac4a65993535d8a944de29d77b1352fe7"
         }
       ],
       "verificationTests": [
@@ -1459,11 +1459,11 @@
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "f7d333ea45c561fb61d9a5682b7bba9ac9d686947073a20f7eb4dc724ac0686d"
+          "sha256": "7cd9923f1e41063e0ef118fee09c2db4d631866066924b0d9dfe3070fadc2197"
         },
         {
           "path": "apps/missionary/components/app-sidebar.tsx",
-          "sha256": "036db7f07c6c70975927a4ec8a5ca6b73c1025e5a2554b4ce36ad0e401d69ab6"
+          "sha256": "1ae6088c90c7369d3670c817d265ecdd6c1a7d3fa7add395d44dc677278f062a"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
@@ -1541,25 +1541,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
+          "sha256": "b39d39df828e8825b525c9ab37e3dade5341906494117a7f9fbeb0a83ce3efdd"
         },
         {
           "path": "docs/guides/development/shadscan.md",
           "sha256": "c8413eb45e808b84acdb4289e6b4fe90f58c71ca289ed9ab3add73b824e59e38"
-        }
-      ]
-    },
-    {
-      "project": "apps/missionary",
-      "rule": "suspense-fallback-useful",
-      "classification": "product-decision",
-      "rationale": "The root null Suspense fallback wraps only the redirect-only MissionaryRoleGate. Application children remain a sibling under SessionRetainedDraftProvider, so this fallback does not replace the visible workspace. Keep this intentional redirect-gate behavior; the boneyard task preview and global boundary tests are not evidence for this exact decision.",
-      "verificationTests": [],
-      "evidenceFingerprint": "2e935cd912c85f9fcc2a4babda102e0825b82cd2279944566702476f0f58f485",
-      "proof": [
-        {
-          "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
         }
       ]
     },
@@ -1572,7 +1558,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
+          "sha256": "b39d39df828e8825b525c9ab37e3dade5341906494117a7f9fbeb0a83ce3efdd"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1592,7 +1578,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
+          "sha256": "b39d39df828e8825b525c9ab37e3dade5341906494117a7f9fbeb0a83ce3efdd"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1620,7 +1606,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "fbcabafe98a2bfdaa48142607b2266afb90a429b91bc3c8bab5ba2d4a57ea2e6"
+          "sha256": "b39d39df828e8825b525c9ab37e3dade5341906494117a7f9fbeb0a83ce3efdd"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -2249,7 +2235,7 @@
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "5874dc583435e70719d88de320773ba96ab2fa1f9a7691f0caca76724acac8b5"
+          "sha256": "fa36e81f3ab5919c1743617c3ff67514ba51fa973c61d8984c0931176f36e9ff"
         },
         {
           "path": "packages/ui/components/shadcn/button.ts",
@@ -2289,7 +2275,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "5874dc583435e70719d88de320773ba96ab2fa1f9a7691f0caca76724acac8b5"
+          "sha256": "fa36e81f3ab5919c1743617c3ff67514ba51fa973c61d8984c0931176f36e9ff"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2721,7 +2707,7 @@
       "proof": [
         {
           "path": "apps/missionary/components/sidebar-account-menu.tsx",
-          "sha256": "36af34424282703ad69dd6f5c2fc2da024023a6d067b1ea4d78e9d9f27543854"
+          "sha256": "d4c8f3faf8de738bf38b8fc173565700ffcfea34ac32cb4b4b10b21688d9201b"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2887,7 +2873,7 @@
       "proof": [
         {
           "path": "apps/missionary/components/sidebar-account-menu.tsx",
-          "sha256": "36af34424282703ad69dd6f5c2fc2da024023a6d067b1ea4d78e9d9f27543854"
+          "sha256": "d4c8f3faf8de738bf38b8fc173565700ffcfea34ac32cb4b4b10b21688d9201b"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",

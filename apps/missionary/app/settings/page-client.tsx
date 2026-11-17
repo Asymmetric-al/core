@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useAuth } from "@asym/lib/hooks";
 import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
 import { ChangePasswordForm } from "@asym/ui/components/auth/change-password-form";
@@ -7,7 +8,6 @@ import { SignOutOtherSessions } from "@asym/ui/components/auth/sign-out-other-se
 import { PageHeader } from "@asym/ui/components/page-header";
 import { ReadOnlyField } from "@asym/ui/components/primitives/read-only-field";
 import { SettingsCard } from "@asym/ui/components/settings";
-import Link from "next/link";
 import * as React from "react";
 
 /** Account and sign-in security; the supporter-facing page is edited at /profile. */

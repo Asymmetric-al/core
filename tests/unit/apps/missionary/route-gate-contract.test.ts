@@ -11,12 +11,12 @@ import {
 /**
  * Source-text guards for the missionary app's edge gate.
  *
- * Every route in this app is staff-facing, and `app/layout.tsx` renders
- * `{children}` beside its role gate rather than behind it, so the shell is
- * generated before that gate can redirect. That trade is only safe while the
- * edge turns the wrong visitor away first. The behaviour is covered in
- * `tests/unit/auth/middleware.test.ts`; these assertions cover the config that
- * decides whether the behaviour is reached at all.
+ * Every signed-in route in this app lives under the tenant in the page
+ * address, and the edge decides membership in that tenant before the page
+ * shell; `app/layout.tsx` repeats the gate behind it. The behaviour is
+ * covered in `tests/unit/auth/middleware.test.ts` and
+ * `middleware-tenant-address.test.ts`; these assertions cover the config
+ * that decides whether the behaviour is reached at all.
  */
 const proxySource = readFileSync(
   fileURLToPath(
@@ -53,6 +53,7 @@ describe("missionary edge gate", () => {
     ["/auth/callback", true],
     ["/forgot-password", true],
     ["/no-access", true],
+    ["/choose-organization", true],
     ["/api/example", true],
     ["/boneyard/capture", true],
     ["/", false],
@@ -81,6 +82,7 @@ describe("missionary edge gate", () => {
 
   it("protects every route and enforces a role", () => {
     expect(proxySource).toMatch(/protectedRoutePrefixes:\s*\["\/"\]/);
+    expect(proxySource).toMatch(/tenantAddress:\s*true/);
     expect(proxySource).toMatch(/allowedRoles:\s*MISSIONARY_ALLOWED_ROLES/);
     expect(proxySource).toMatch(
       /resolveUserRole:\s*resolveUserRoleFromDatabase/,

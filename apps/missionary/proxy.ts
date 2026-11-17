@@ -23,6 +23,9 @@ const authProxy = createAuthMiddleware({
   roleClass: "missionary",
   allowedRoles: MISSIONARY_ALLOWED_ROLES,
   resolveUserRole: resolveUserRoleFromDatabase,
+  // Signed-in pages live under `/<tenant>` (plan 5.2): the proxy decides the
+  // person's missionary row in the address's tenant before the page shell.
+  tenantAddress: true,
 });
 
 export function proxy(request: NextRequest) {

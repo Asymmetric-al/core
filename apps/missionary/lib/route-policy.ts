@@ -25,6 +25,9 @@ const MISSIONARY_ROLE_GATE_PUBLIC_PREFIXES = [
   "/auth/callback",
   "/forgot-password",
   "/no-access",
+  // The chooser lists the person's own rows before one is selected, so the
+  // role gate, which needs a selected row, does not apply there (AL-2675).
+  "/choose-organization",
   "/api/",
   "/boneyard/",
 ] as const;

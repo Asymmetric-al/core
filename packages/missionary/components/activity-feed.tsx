@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
@@ -9,7 +10,6 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import { Sparkles, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 interface Activity {
