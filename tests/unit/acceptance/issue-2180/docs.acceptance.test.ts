@@ -176,6 +176,18 @@ const CI_BASES = [
     bytes: 39806,
     sha256: "af12ddc582cf7ac044d5c51d796cd5fbad45f3c3a33d08f969514e30c4e623c2",
   },
+  {
+    // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
+    // release workflow, the preview database job and the two new migrate
+    // steps (an Overview paragraph, the production release guard, the migrate
+    // section, a "Release workflow" section and the development checkpoints
+    // line), and its field-policy paragraph describes the classification
+    // manifest that replaced the AL-491 census. Pinned on that exact reviewed
+    // content. Ends before the EOF runner section, which is unchanged.
+    ref: "AL-2674 release workflow",
+    bytes: 43557,
+    sha256: "8f5298b7a83ab59e59771e07259498838e58a19a9daf3df96b584e7f0fd27b62",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

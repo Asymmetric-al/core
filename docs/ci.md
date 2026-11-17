@@ -45,6 +45,11 @@ Current workflow semantics:
 - The canonical repository has no `main` branch. Legacy deny-only configuration
   may still mention it.
 
+Production deployment is not a Git deployment. A push to `production` starts
+`.github/workflows/release.yml`, which migrates, gates and records the
+migration heads, then stages, health-checks and promotes each affected app; see
+[Release workflow](#release-workflow-releaseyml).
+
 The exact live required-check sets are recorded only in § Branch protection.
 
 ### Bun toolchain
@@ -136,7 +141,9 @@ bun run release:production
 
 The release command checks deployment discipline, full local CI preflight, and that
 `HEAD` is already reachable from fetched `develop`, then summarizes deployment
-impact before pushing to `origin/production`.
+impact before pushing to `origin/production`. The push starts the Release
+workflow, which is the only thing that deploys production; Vercel's Git
+integration deploys no branch (`apps/*/vercel.json`).
 Emergency bypasses require an explicit reason:
 
 ```bash
@@ -317,9 +324,10 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 ### `migrate`
 
 - _What it does:_ Spins up a fresh Postgres 17 service container (see § Service container images), runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
-- The SQL verifier requires the reviewed field-policy census after all forward migrations and before reporting success. Policy-flag drift, uncensused columns and census execution failures block the job. Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. Migration and unit-test jobs fetch full Git history so the census can verify its recorded source revision.
+- The SQL verifier runs the field-policy classification gate (`scripts/verify/field-policy-census.mjs`) after all forward migrations and before reporting success. Its record is the manifest `docs/security/field-policies/manifest.json` (AL-2674), which lists every column of each classified record type with its type, nullability, category and flags on the five surfaces. It replaced the AL-491 census, a checksummed capture of the hosted schema that let no classified column be added or dropped; the census files stay in that folder as history that no gate reads. The gate fails, naming every problem, when the manifest is malformed, a column of a classified table has no entry, an entry names a column that no longer exists, a column's type, nullability, generation or pinned default differs from its entry, a classified record type has no relation, `public.receipts` exists, or `public.field_policies` does not equal the manifest's rows. A change that adds or drops a column of a classified table updates its manifest entry and its `public.field_policies` rows in the same change (`docs/security/field-policies/README.md`). Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. The gate reads no Git history.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
+- _Real-stack steps:_ after the seed, the job runs real-stack suites against the migrated database, each step pinned in `tests/unit/helpers/workflow-yaml.ts`. The last two are AL-2674's: `Verify AL-2674 command lane and platform schema (real stack)` runs every `tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts` suite (a glob, so a new suite there runs without a workflow change), and `Verify release job database steps and schema fingerprint (real stack)` runs the release job's database steps against a stub of the platform contract and checks that two fresh replays fingerprint identically (`RELEASE_IT_ADMIN_DATABASE_URL`).
 
 ### `smoke` (needs: `migrate`)
 
@@ -390,6 +398,35 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`).
 
 ---
+
+## Release workflow (`release.yml`)
+
+The one release job per environment of plan 7.4 and 7.5. The runbook, with
+the secrets it needs by name and the owner's steps to switch it on, is
+[docs/ops/release-job.md](ops/release-job.md).
+
+- _Triggers:_ a push to `production`, and manual dispatch from `production`
+  (`release`, `set-environment-marker`, `first-rebuild`,
+  `set-cms-role-passwords`). One run per database at a time; never cancelled.
+- _`release-database`:_ replays every migration on an empty Postgres and
+  fingerprints it; preflight (target project, environment marker, migration
+  order); `supabase db push`; the CMS role passwords; Payload migrations as
+  `cms_owner`; catalog gates and fingerprint equality with the replay; then
+  records the expected heads. An out-of-order migration stops the run before
+  anything is migrated or deployed.
+- _`release-deploy`:_ stages a production-target deployment of each affected
+  app through Vercel's API (no production domain until promotion), checks each
+  one's `/api/health/migrations`, and promotes them all only when every check
+  passes. A database behind the build blocks promotion; one that is ahead
+  passes.
+- _Credentials:_ the GitHub environments `release-production` and
+  `release-preview` are the only holders of a migration connection string. No
+  application environment holds one (`bun run verify:runtime-connection-strings`).
+- _Pull requests that carry a migration:_ `qa-smoke-preview-deploy.yml` runs
+  them in its `preview-database` job, in one repository-wide concurrency group
+  that never cancels and queues the rest (`queue: max`): rebuild the disposable
+  `preview` Supabase project, deploy into the `preview-database` custom
+  environment, check, smoke. Other pull requests keep the per-PR group.
 
 ## Branch protection
 
@@ -466,7 +503,7 @@ subject to the retired Twenty runtime guard.
 
 ## Development deployment checkpoints (AL-1921)
 
-Automatic Git deployment is enabled only for `production` in all three app configs. Development hosts remain on their last successful deployment until an explicit checkpoint refreshes them. This is deliberate during active development; compile-time integration errors may be discovered at the next QA checkpoint. Dependency and build-configuration PRs still request compilation.
+Vercel's Git integration deploys no branch in any of the three app configs; production deploys only through the Release workflow. Development hosts remain on their last successful deployment until an explicit checkpoint refreshes them. This is deliberate during active development; compile-time integration errors may be discovered at the next QA checkpoint. Dependency and build-configuration PRs still request compilation.
 
 The existing same-repository, non-draft, `qa:smoke` gate is retained. The preview helper pins Vercel CLI, checks the selected Core app/team, pulls preview settings from the monorepo root, builds locally, and uploads prebuilt output. It removes local `.vercel` state before each app and in a finalizer, and suppresses raw CLI output that could contain environment values. Build output and downloaded environment files must never become diagnostic artifacts.
 

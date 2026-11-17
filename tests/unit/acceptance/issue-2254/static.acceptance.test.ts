@@ -49,6 +49,16 @@ const CI_BASES = [
     bytes: 40426,
     sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
   },
+  {
+    // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
+    // release workflow, the preview database job and the two new migrate
+    // steps, and its field-policy paragraph describes the classification
+    // manifest that replaced the AL-491 census. Pinned on that exact reviewed
+    // whole file.
+    ref: "AL-2674 release workflow",
+    bytes: 44177,
+    sha256: "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
