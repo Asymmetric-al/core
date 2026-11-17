@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { resolveCmsMigrationDatabaseUrl } from "../../../../scripts/cms/lib/migration-connection.mjs";
@@ -7,6 +9,7 @@ import {
   RELEASE_ENVIRONMENTS,
   ReleaseStop,
   migrate,
+  payloadMigrate,
   preflight,
   pinnedSupabaseCliVersion,
   readReleaseSettings,
@@ -19,6 +22,7 @@ import {
 const ref = "abcdefghijklmnopqrst";
 const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
 const source = listSourceMigrations({ root: process.cwd() });
+const CA = "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----";
 
 function settings(environment: "production" | "preview" = "production") {
   return readReleaseSettings({
@@ -26,6 +30,7 @@ function settings(environment: "production" | "preview" = "production") {
     RELEASE_SUPABASE_PROJECT_REF: ref,
     RELEASE_DATABASE_URL: databaseUrl,
     RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+    RELEASE_DATABASE_SSL_CA: CA,
   });
 }
 
@@ -35,7 +40,10 @@ describe("release settings", () => {
     expect(url.username).toBe(`cms_owner.${ref}`);
     expect(url.password).toBe("owner-password-fixture");
     expect(url.host).toBe("aws-0-us-east-1.pooler.supabase.com:5432");
-    expect(url.searchParams.get("sslmode")).toBe("require");
+    // Council round 2, A6a: Payload verifies the pooler against the
+    // project's CA (node-postgres reads require as full verification against
+    // Node's own store, which lacks Supabase's CA).
+    expect(url.searchParams.get("sslmode")).toBe("verify-full");
     expect(
       roleDatabaseUrl(
         `postgresql://postgres:pw@db.${ref}.supabase.co:5432/postgres?sslmode=require`,
@@ -461,6 +469,87 @@ describe("release database steps", () => {
       "--yes",
     ]);
     expect(calls[1]).toEqual(["bun", "run", "cms:migrate"]);
+  });
+
+  // Council round 2, A6a and A6b.
+  it("keeps the database password off every command line, and every RELEASE_ variable and ambient PG* setting out of every child", () => {
+    vi.stubEnv("RELEASE_DATABASE_URL", databaseUrl);
+    vi.stubEnv(
+      "RELEASE_CMS_OWNER_PASSWORD",
+      passwords.RELEASE_CMS_OWNER_PASSWORD,
+    );
+    vi.stubEnv(
+      "RELEASE_CMS_RUNTIME_PASSWORD",
+      passwords.RELEASE_CMS_RUNTIME_PASSWORD,
+    );
+    vi.stubEnv("PGHOSTADDR", "10.9.9.9");
+    try {
+      const { query, run } = fakeDatabase({});
+      const children: Array<{
+        command: string;
+        args: string[];
+        env: Record<string, string>;
+        ca?: string;
+      }> = [];
+      migrate({
+        settings: settings(),
+        env: passwords,
+        query,
+        run,
+        runCommand: vi.fn(
+          (
+            command: string,
+            args: string[],
+            options: { env: Record<string, string> },
+          ) => {
+            const ca = options.env.PGSSLROOTCERT
+              ? readFileSync(options.env.PGSSLROOTCERT, "utf8")
+              : undefined;
+            children.push({ command, args, env: options.env, ca });
+            return { status: 0 };
+          },
+        ),
+        log: silent,
+      });
+      const [cli, payload] = children;
+      expect(cli!.args).toContain(
+        `postgresql://postgres.${ref}@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`,
+      );
+      expect(cli!.args.join(" ")).not.toContain(":pw@");
+      expect(cli!.env.PGPASSWORD).toBe("pw");
+      for (const child of children) {
+        expect(
+          Object.keys(child.env).filter(
+            (key) =>
+              key.startsWith("RELEASE_") ||
+              (key.startsWith("PG") &&
+                !["PGPASSWORD", "PGSSLROOTCERT"].includes(key)),
+          ),
+          child.command,
+        ).toEqual([]);
+      }
+      // Payload verifies the pooler against the project's CA, and the
+      // runner's psql check reads the same CA from a file that is gone after.
+      expect(
+        new URL(payload!.env.PAYLOAD_MIGRATION_DATABASE_URI!).searchParams.get(
+          "sslmode",
+        ),
+      ).toBe("verify-full");
+      expect(payload!.env.PAYLOAD_DATABASE_SSL_CA).toBe(CA);
+      expect(payload!.ca).toBe(CA);
+      expect(existsSync(payload!.env.PGSSLROOTCERT!)).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("stops Payload's migration of a TLS target when the release environment holds no CA", () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    const noCa = { ...settings(), databaseCa: undefined };
+    expect(() => payloadMigrate({ settings: noCa, runCommand })).toThrow(
+      /RELEASE_DATABASE_SSL_CA is not set/,
+    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("records the heads the database holds, so an older release never lowers them", () => {

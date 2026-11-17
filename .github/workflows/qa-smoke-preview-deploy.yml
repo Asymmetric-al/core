@@ -739,6 +739,7 @@ jobs:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
         run: node scripts/release/release-database.mjs preview-rebuild
       - name: Catalog gates and schema fingerprint against the replay
         env:

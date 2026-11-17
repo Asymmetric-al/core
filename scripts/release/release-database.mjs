@@ -15,9 +15,17 @@
 //   RELEASE_CMS_OWNER_PASSWORD     cms_owner password (Payload migrations log in
 //                                  as cms_owner on the same host)
 //   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step only)
+//   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); Payload
+//                                  verifies the pooler against it
 //   RELEASE_REPLAY_FINGERPRINT     fingerprint file of CI's fresh replay (gates)
+//
+// Neither the Supabase CLI nor Payload's migrations inherit a RELEASE_*
+// variable, and the Supabase CLI gets the password in PGPASSWORD, never on its
+// command line. The job's own psql queries (lib/postgres.mjs) take the
+// connection from PG* variables and the values they need from named variables.
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -110,6 +118,19 @@ export function roleDatabaseUrl(databaseUrl, role, password) {
   return url.toString();
 }
 
+/**
+ * Payload's cms_owner connection. node-postgres reads `sslmode=require` as
+ * full verification against Node's own CA store, which does not hold
+ * Supabase's CA, so an encrypted connection is verified against the project's
+ * CA instead: `sslmode=verify-full`, with the CA in PAYLOAD_DATABASE_SSL_CA.
+ */
+export function payloadMigrationUrl(databaseUrl, ownerPassword) {
+  const url = new URL(roleDatabaseUrl(databaseUrl, "cms_owner", ownerPassword));
+  if (url.searchParams.has("sslmode"))
+    url.searchParams.set("sslmode", "verify-full");
+  return url.toString();
+}
+
 export function readReleaseSettings(env = process.env) {
   const environment = env.RELEASE_ENVIRONMENT?.trim();
   const policy = RELEASE_ENVIRONMENTS[environment];
@@ -125,12 +146,37 @@ export function readReleaseSettings(env = process.env) {
     // Payload migrates as cms_owner on the same host (plan 7.2), so the job
     // holds one connection string and the two CMS role passwords.
     cmsOwnerDatabaseUrl: ownerPassword
-      ? roleDatabaseUrl(databaseUrl, "cms_owner", ownerPassword)
+      ? payloadMigrationUrl(databaseUrl, ownerPassword)
       : undefined,
+    databaseCa: env.RELEASE_DATABASE_SSL_CA?.trim() || undefined,
     // Tests run the scripts against a loopback database; a hosted target is
     // never loopback, so this cannot widen what a release touches.
     allowLoopback: env.RELEASE_ALLOW_LOOPBACK_DATABASE === "1",
   };
+}
+
+/**
+ * The environment a child process gets: this process's, without any
+ * RELEASE_* variable (the job's connection string and passwords) and without
+ * any ambient PG* setting, then `extra`.
+ */
+export function childEnvironment(extra = {}, base = process.env) {
+  return {
+    ...Object.fromEntries(
+      Object.entries(base).filter(
+        ([key]) => !key.startsWith("RELEASE_") && !key.startsWith("PG"),
+      ),
+    ),
+    ...extra,
+  };
+}
+
+/** A connection string without its password, and the password. */
+export function splitPassword(databaseUrl) {
+  const url = new URL(databaseUrl);
+  const password = decodeURIComponent(url.password);
+  url.password = "";
+  return { url: url.toString(), password };
 }
 
 export function assertTarget(
@@ -251,19 +297,20 @@ function runChecked(runCommand, label, command, args, env) {
   }
 }
 
+/**
+ * The pinned Supabase CLI reads the password of a `--db-url` that carries
+ * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
+ * The repository wrapper's reset guard reads the marker the same way
+ * (scripts/lib/psql.mjs keeps an ambient PGPASSWORD).
+ */
 function supabaseCli(runCommand, label, args, settings) {
+  const { url, password } = splitPassword(settings.databaseUrl);
   runChecked(
     runCommand,
     label,
     process.execPath,
-    [
-      "scripts/supabase-cli.mjs",
-      ...args,
-      "--db-url",
-      settings.databaseUrl,
-      "--yes",
-    ],
-    { ...process.env, SUPABASE_CLI_FORCE_PINNED: "1" },
+    ["scripts/supabase-cli.mjs", ...args, "--db-url", url, "--yes"],
+    childEnvironment({ SUPABASE_CLI_FORCE_PINNED: "1", PGPASSWORD: password }),
   );
 }
 
@@ -290,6 +337,7 @@ export function pinnedSupabaseCliVersion(root = repoRoot) {
  * new project) and the typed confirmation. It uses the same pinned CLI.
  */
 function firstRebuildReset(runCommand, settings) {
+  const { url, password } = splitPassword(settings.databaseUrl);
   runChecked(
     runCommand,
     "Supabase reset (first rebuild)",
@@ -300,10 +348,10 @@ function firstRebuildReset(runCommand, settings) {
       "db",
       "reset",
       "--db-url",
-      settings.databaseUrl,
+      url,
       "--yes",
     ],
-    process.env,
+    childEnvironment({ PGPASSWORD: password }),
   );
 }
 
@@ -311,23 +359,53 @@ function firstRebuildReset(runCommand, settings) {
  * Payload migrations as cms_owner, through the repository's guarded wrapper.
  * WP1.2's runner migrates a hosted CMS schema only from
  * PAYLOAD_MIGRATION_DATABASE_URI (scripts/cms/lib/migration-connection.mjs);
- * the run-time variable is left empty, so no other login is in reach.
+ * the run-time variable is left empty, so no other login is in reach. Over
+ * TLS the connection is verified against the project's CA: Payload reads it
+ * from PAYLOAD_DATABASE_SSL_CA, and the runner's own psql check from the file
+ * PGSSLROOTCERT names.
  */
 export function payloadMigrate({ settings, runCommand = spawnSync }) {
   if (!settings.cmsOwnerDatabaseUrl)
     stop("RELEASE_CMS_OWNER_PASSWORD is not set.");
   assertTarget(settings, "cms_owner", settings.cmsOwnerDatabaseUrl);
-  runChecked(runCommand, "Payload migrations", "bun", ["run", "cms:migrate"], {
-    ...process.env,
-    PAYLOAD_MIGRATION_DATABASE_URI: settings.cmsOwnerDatabaseUrl,
-    PAYLOAD_DATABASE_URI: "",
-    PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
-    CMS_HOSTED_MIGRATION_REF: settings.projectRef,
-    CMS_HOSTED_MIGRATION_ROLE: "cms_owner",
-    NEXT_PUBLIC_SUPABASE_URL: `https://${settings.projectRef}.supabase.co`,
-    SKIP_ENV_VALIDATION: "1",
-    SUPABASE_DB_URL: "",
-  });
+  const verified =
+    new URL(settings.cmsOwnerDatabaseUrl).searchParams.get("sslmode") ===
+    "verify-full";
+  if (verified && !settings.databaseCa)
+    stop(
+      "RELEASE_DATABASE_SSL_CA is not set: Payload verifies the pooler's certificate against the project's CA.",
+    );
+  const dir = verified
+    ? mkdtempSync(path.join(process.env.RUNNER_TEMP || os.tmpdir(), "ca-"))
+    : null;
+  try {
+    const tls = {};
+    if (dir) {
+      const caFile = path.join(dir, "root.crt");
+      writeFileSync(caFile, settings.databaseCa, { mode: 0o600 });
+      tls.PAYLOAD_DATABASE_SSL_CA = settings.databaseCa;
+      tls.PGSSLROOTCERT = caFile;
+    }
+    runChecked(
+      runCommand,
+      "Payload migrations",
+      "bun",
+      ["run", "cms:migrate"],
+      childEnvironment({
+        ...tls,
+        PAYLOAD_MIGRATION_DATABASE_URI: settings.cmsOwnerDatabaseUrl,
+        PAYLOAD_DATABASE_URI: "",
+        PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
+        CMS_HOSTED_MIGRATION_REF: settings.projectRef,
+        CMS_HOSTED_MIGRATION_ROLE: "cms_owner",
+        NEXT_PUBLIC_SUPABASE_URL: `https://${settings.projectRef}.supabase.co`,
+        SKIP_ENV_VALIDATION: "1",
+        SUPABASE_DB_URL: "",
+      }),
+    );
+  } finally {
+    if (dir) rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 export function migrate({
