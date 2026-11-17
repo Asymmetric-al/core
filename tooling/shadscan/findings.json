@@ -437,7 +437,7 @@
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "19ae9f934e430a1ee9fb539ab1bb5265c4feb79c877f37f88694bc297ef0f730"
+          "sha256": "0b3a95e7ceb21588272cacbd28465dec489395d5185712192a209c18a559277f"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -547,7 +547,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -575,7 +575,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -858,7 +858,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -886,7 +886,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1600,7 +1600,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1628,7 +1628,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -2448,7 +2448,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
@@ -2465,7 +2465,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
@@ -2526,7 +2526,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
@@ -2543,7 +2543,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
@@ -2642,7 +2642,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
@@ -2687,7 +2687,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
@@ -2704,7 +2704,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+          "sha256": "2de4edf160638e59ccbddeae6ce3ca48b7fabf3d1b08f70de9ecc3de52dd73ca"
         }
       ]
     },
