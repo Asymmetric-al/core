@@ -459,11 +459,29 @@ describe("getSignedInAssignments", () => {
     });
   });
 
-  it("returns every live row of the signed-in person, validated", async () => {
+  /** Each RPC answers its own function: the rows, and the organizations' names. */
+  function rpcs(
+    assignments: ReturnType<typeof row>[],
+    organizations: { data: unknown; error: unknown } = {
+      data: [
+        { tenant_id: TA, name: "Alpha Mission" },
+        { tenant_id: TB, name: "Bravo Mission" },
+      ],
+      error: null,
+    },
+  ) {
+    mocks.rpc.mockImplementation(async (fn: string) =>
+      fn === "current_user_organizations"
+        ? organizations
+        : { data: assignments, error: null },
+    );
+  }
+
+  it("returns every live row of the signed-in person, validated, with the names of their organizations", async () => {
     const { getSignedInAssignments } = await import("./context");
     const inA = row(TA, "staff", "finance");
     const inB = row(TB, "missionary");
-    rows(inA, inB);
+    rpcs([inA, inB]);
 
     const result = await getSignedInAssignments();
 
@@ -475,11 +493,42 @@ describe("getSignedInAssignments", () => {
         { assignmentId: inB.id, tenantId: TB, membershipRole: "missionary" },
       ],
     });
+    // D-26 as the coordinator's ruling amends it: the names come from the
+    // caller's own organizations, on the caller's token.
+    expect(mocks.rpc).toHaveBeenCalledWith("current_user_organizations");
+    expect(
+      result.kind === "signed_in" && [...result.organizationNames],
+    ).toEqual([
+      [TA, "Alpha Mission"],
+      [TB, "Bravo Mission"],
+    ]);
   });
+
+  it.each([
+    ["a failed read", { data: null, error: { code: "PGRST202" } }],
+    ["a result that is not a list", { data: { tenant_id: TA }, error: null }],
+    [
+      "a row whose tenant is not a UUID",
+      { data: [{ tenant_id: "x", name: "Alpha Mission" }], error: null },
+    ],
+    [
+      "a row with no name",
+      { data: [{ tenant_id: TA, name: null }], error: null },
+    ],
+  ])(
+    "reports %s of the organizations' names as unavailable, never as missing names",
+    async (_label, organizations) => {
+      const { getSignedInAssignments } = await import("./context");
+      rpcs([row(TA, "staff", "finance")], organizations);
+      await expect(getSignedInAssignments()).resolves.toEqual({
+        kind: "unavailable",
+      });
+    },
+  );
 
   it("fails closed on a malformed row and says so for a signed-out visitor", async () => {
     const { getSignedInAssignments } = await import("./context");
-    rows({ ...row(TA, "staff", "finance"), staff_role: null });
+    rpcs([{ ...row(TA, "staff", "finance"), staff_role: null }]);
     await expect(getSignedInAssignments()).resolves.toEqual({
       kind: "unavailable",
     });

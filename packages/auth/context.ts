@@ -17,6 +17,10 @@ import {
   type E2EAuthSession,
 } from "./e2e-auth";
 import {
+  OrganizationNamesReadError,
+  readOrganizationNames,
+} from "./organization-names";
+import {
   derivePrimaryRole,
   hasAnyRole,
   hasMembershipClass,
@@ -459,18 +463,24 @@ export type SignedInAssignments =
       kind: "signed_in";
       userId: string;
       assignments: readonly ActiveAssignment[];
+      /**
+       * The name of each organization the person holds a live row in, by
+       * tenant id. Empty for an E2E bypass identity: no rows stand behind it.
+       */
+      organizationNames: ReadonlyMap<string, string>;
     }
   | { kind: "signed_out" }
-  /** The membership read failed or returned a malformed row. */
+  /** A read failed or returned a malformed row. */
   | { kind: "unavailable" };
 
 /**
  * Every live membership row of the signed-in person, of every class and in
- * every tenant, validated by the resolver's reader (plan 5.2). Only the
- * organization chooser reads this: it must list a person's rows before any
- * one is selected, which `getAuthContext` refuses for a person in two
- * organizations. It authorizes nothing; whatever the person picks goes back
- * through the proxy's membership decision.
+ * every tenant, validated by the resolver's reader, with the names of their
+ * organizations (plan 5.2; D-26). Only the organization chooser reads this:
+ * it must list a person's rows before any one is selected, which
+ * `getAuthContext` refuses for a person in two organizations. Both reads run
+ * on the person's own token. It authorizes nothing; whatever the person picks
+ * goes back through the proxy's membership decision.
  */
 export async function getSignedInAssignments(): Promise<SignedInAssignments> {
   const supabase = await createAuthContextClient();
@@ -482,12 +492,20 @@ export async function getSignedInAssignments(): Promise<SignedInAssignments> {
     : { data: { user: null }, error: null };
 
   if (supabase && user && !error) {
-    const read = await readActiveAssignments(
-      user.id,
-      createRpcAssignmentReader(supabase),
-    );
-    return read.ok
-      ? { kind: "signed_in", userId: user.id, assignments: read.assignments }
+    const [read, organizationNames] = await Promise.all([
+      readActiveAssignments(user.id, createRpcAssignmentReader(supabase)),
+      readOrganizationNames(supabase).catch((cause: unknown) => {
+        if (cause instanceof OrganizationNamesReadError) return null;
+        throw cause;
+      }),
+    ]);
+    return read.ok && organizationNames
+      ? {
+          kind: "signed_in",
+          userId: user.id,
+          assignments: read.assignments,
+          organizationNames,
+        }
       : { kind: "unavailable" };
   }
 
@@ -497,6 +515,7 @@ export async function getSignedInAssignments(): Promise<SignedInAssignments> {
         kind: "signed_in",
         userId: e2eSession.userId,
         assignments: listE2EAuthAssignments(e2eSession),
+        organizationNames: new Map(),
       }
     : { kind: "signed_out" };
 }

@@ -21,6 +21,18 @@ import type { BrowserContext, Page } from "@playwright/test";
  */
 
 export const TENANTS = fixtures.tenants;
+
+/**
+ * How the chooser names a fixture organization: by its name, which a real
+ * session reads from `public.current_user_organizations()` (the stub on a
+ * production build), or by a short form of its id for an E2E bypass identity,
+ * which has no rows behind it to name.
+ */
+export function organizationLabel(tenantId: string): string {
+  return signsInThroughStub
+    ? (fixtures.tenantNames as Record<string, string>)[tenantId]!
+    : `Organization ${tenantId.slice(0, 8)}…${tenantId.slice(-4)}`;
+}
 export const DEMO_TENANT_PREFIX = `/${DEMO_TENANT_ID}`;
 
 /** A signed-in page address in the demo organization, as the app's links build it. */

@@ -100,45 +100,13 @@ export async function getTenantShell(pathname: string): Promise<{
   return { scope, shellState: await loadShellState(auth, tenantId, userId) };
 }
 
-/**
- * The shell's reader: the service-role client where one is configured, else
- * the request's session (which cannot read `tenants`). This is the file's one
- * service-role site on the reviewed allowlist
- * (`docs/security/service-role-client-allowlist.json`); keep it the only one.
- */
-async function createShellReader() {
-  const serverClient = await createClient();
-  return getAdminClient().client ?? serverClient;
-}
-
-/**
- * Organization names for the chooser (plan 5.2), as the shell reads its own
- * tenant's name. Call it only with tenant ids taken from the signed-in
- * person's own live rows: it reads names, nothing else, and authorizes
- * nothing.
- */
-export async function readOrganizationNames(
-  tenantIds: string[],
-): Promise<ReadonlyMap<string, string>> {
-  const shellReader = await createShellReader();
-  const { data, error } = await shellReader
-    .from("tenants")
-    .select("id, name")
-    .in("id", tenantIds);
-  if (error || !data) return new Map();
-  return new Map(
-    (data as Array<{ id: string; name: string | null }>).flatMap((tenant) =>
-      tenant.name?.trim() ? [[tenant.id, tenant.name.trim()] as const] : [],
-    ),
-  );
-}
-
 async function loadShellState(
   auth: AuthContext,
   tenantId: string,
   userId: string,
 ): Promise<MCBootstrapState> {
-  const shellReader = await createShellReader();
+  const serverClient = await createClient();
+  const shellReader = getAdminClient().client ?? serverClient;
   const [{ data: profile }, { data: tenant }] = await Promise.all([
     shellReader
       .from("profiles")

@@ -3,39 +3,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * The organization chooser's options (plan 5.2; AL-2675): every live row of
  * the surface's class, grouped by organization, each linking to the page the
- * person was going to under that row's address.
+ * person was going to under that row's address. Each organization is named
+ * from `public.current_user_organizations()`, which the signed-in read returns
+ * beside the rows (D-26 as the coordinator's ruling amends it).
  */
 
 const TA = "00000000-0000-0000-0000-000000000001";
 const TB = "00000000-0000-0000-0000-000000000002";
+const TC = "00000000-0000-0000-0000-000000000003";
 const state = vi.hoisted(() => ({
   signedIn: null as unknown,
-  tenants: [] as Array<{ id: string; name: string }>,
-  adminAvailable: true,
-  tenantFilter: [] as unknown[],
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@asym/auth/context", () => ({
   getSignedInAssignments: async () => state.signedIn,
 }));
-const { loadOrganizationChoices: load } =
+const { loadOrganizationChoices } =
   await import("../../../../packages/api/src/auth/organization-choices");
-
-/** As Mission Control passes it: names for the person's own tenants. */
-async function readOrganizationNames(ids: string[]) {
-  state.tenantFilter = ids;
-  if (!state.adminAvailable) throw new Error("no reader");
-  return new Map(
-    state.tenants.filter((t) => ids.includes(t.id)).map((t) => [t.id, t.name]),
-  );
-}
-
-function loadOrganizationChoices(
-  input: Omit<Parameters<typeof load>[0], "readOrganizationNames">,
-) {
-  return load({ ...input, readOrganizationNames });
-}
 
 function assignment(
   tenantId: string,
@@ -55,11 +40,6 @@ function assignment(
 }
 
 beforeEach(() => {
-  state.adminAvailable = true;
-  state.tenants = [
-    { id: TA, name: "Demo Mission" },
-    { id: TB, name: "Second Mission" },
-  ];
   state.signedIn = {
     kind: "signed_in",
     userId: "u",
@@ -68,7 +48,13 @@ beforeEach(() => {
       assignment(TA, "staff", "finance", 2),
       assignment(TB, "staff", "development", 3),
       assignment(TB, "donor", null, 4),
+      assignment(TC, "donor", null, 5),
     ],
+    organizationNames: new Map([
+      [TA, "Demo Mission"],
+      [TB, "Second Mission"],
+      [TC, "Third Mission"],
+    ]),
   };
 });
 
@@ -97,7 +83,15 @@ describe("loadOrganizationChoices", () => {
         },
       ],
     });
-    expect(state.tenantFilter).toEqual([TA, TB]);
+  });
+
+  it("names only organizations where the person holds a row of the surface's class", async () => {
+    // TC is named for the person, as a donor; Mission Control lists only staff rows.
+    const result = await loadOrganizationChoices({ roleClass: "staff" });
+    expect(
+      result.kind === "ok" && result.organizations.map((o) => o.name),
+    ).toEqual(["Demo Mission", "Second Mission"]);
+    expect(JSON.stringify(result)).not.toContain("Third Mission");
   });
 
   it("narrows to one organization's rows", async () => {
@@ -145,15 +139,28 @@ describe("loadOrganizationChoices", () => {
     ]);
   });
 
-  it("names an organization it cannot read by a short form of its id", async () => {
-    state.adminAvailable = false;
-    const failed = await loadOrganizationChoices({ roleClass: "staff" });
-    const unread = await load({ roleClass: "staff" });
-    for (const result of [failed, unread]) {
-      expect(
-        result.kind === "ok" && result.organizations.map((o) => o.name),
-      ).toEqual(["Organization 00000000…0001", "Organization 00000000…0002"]);
-    }
+  it("names an organization the name list leaves out, such as an E2E bypass identity's, by a short form of its id", async () => {
+    state.signedIn = {
+      ...(state.signedIn as object),
+      organizationNames: new Map([[TB, "Second Mission"]]),
+    };
+    const result = await loadOrganizationChoices({ roleClass: "staff" });
+    expect(
+      result.kind === "ok" && result.organizations.map((o) => o.name),
+    ).toEqual(["Organization 00000000…0001", "Second Mission"]);
+  });
+
+  it("takes no name reader of its own", async () => {
+    const result = await loadOrganizationChoices({
+      roleClass: "staff",
+      // @ts-expect-error -- names come only from the person's own organizations (D-26)
+      readOrganizationNames: async () => new Map([[TA, "Injected"]]),
+    });
+    expect(
+      result.kind === "ok" && result.organizations.map((o) => o.name),
+    ).toEqual(["Demo Mission", "Second Mission"]);
+    // A failed or malformed read of the names makes the signed-in read
+    // unavailable (packages/auth/context.request-auth.test.ts), passed on below.
   });
 
   it("passes on a signed-out or unreadable session", async () => {

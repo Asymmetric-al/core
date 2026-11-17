@@ -30,16 +30,6 @@ export type OrganizationChoices =
   | { kind: "unavailable" };
 
 /**
- * Display names of the person's organizations, by tenant id. Signed-in users
- * cannot read `tenants`, so a surface that already holds a sanctioned reader
- * (Mission Control's shell) passes one in; without it the chooser names each
- * organization by a short form of its id.
- */
-export type OrganizationNameReader = (
-  tenantIds: string[],
-) => Promise<ReadonlyMap<string, string>>;
-
-/**
  * Where a choice leads: the page in `next`, without any tenant prefix it
  * carried, or the organization's home page for anything that is not a
  * signed-in page address of this app.
@@ -63,12 +53,17 @@ function fallbackName(tenantId: string) {
  * optionally in one tenant, grouped by organization. Choosing one loads its
  * address as a new document, where the proxy makes its membership decision
  * again, so nothing here authorizes.
+ *
+ * Each organization is named from `public.current_user_organizations()`,
+ * which the signed-in read returns on the person's own token and which names
+ * only tenants they hold a live row in (D-26). A failed read of the names
+ * makes the whole read unavailable. An organization the names leave out, as
+ * an E2E bypass identity's are, is named by a short form of its id.
  */
 export async function loadOrganizationChoices(input: {
   roleClass: MembershipRole;
   tenantId?: string | null;
   next?: string | null;
-  readOrganizationNames?: OrganizationNameReader;
 }): Promise<OrganizationChoices> {
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
@@ -79,10 +74,7 @@ export async function loadOrganizationChoices(input: {
     ...(input.tenantId ? { tenantId: input.tenantId } : {}),
   });
   const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
-  const names =
-    input.readOrganizationNames && tenantIds.length > 0
-      ? await input.readOrganizationNames(tenantIds).catch(() => new Map())
-      : new Map<string, string>();
+  const names = signedIn.organizationNames;
   const path = choicePath(input.next);
 
   return {

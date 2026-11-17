@@ -8,6 +8,7 @@ import {
   documentScope,
   fixturePerson,
   signInAs,
+  organizationLabel,
   signsInThroughStub,
   softNavigate,
   TENANTS,
@@ -224,7 +225,9 @@ test("a person with finance and member-care rows chooses one and acts under it, 
 
   await page.goto(tenantPath(DEMO, "/care/directory", "hr"));
   await expect(
-    page.getByRole("heading", { name: /Choose your role in/ }),
+    page.getByRole("heading", {
+      name: `Choose your role in ${organizationLabel(DEMO)}`,
+    }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /HR/ })).toHaveCount(0);
 

@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import http from "node:http";
 
 const PORT = Number(process.env.SUPABASE_STUB_PORT ?? 33998);
-const { people } = JSON.parse(
+const { people, tenantNames } = JSON.parse(
   readFileSync(new URL("./tenant-people.json", import.meta.url), "utf8"),
 );
 const USERS = new Map(
@@ -96,6 +96,20 @@ const server = http.createServer((req, res) => {
     }
     if (url.pathname === "/rest/v1/rpc/current_user_assignments" && person) {
       return send(res, 200, assignmentRows(person));
+    }
+    if (url.pathname === "/rest/v1/rpc/current_user_organizations" && person) {
+      // As the function does: a name only for a tenant the caller holds a row in.
+      const tenantIds = [
+        ...new Set(person.memberships.map((m) => m.tenantId)),
+      ].sort();
+      return send(
+        res,
+        200,
+        tenantIds.map((tenant_id) => ({
+          tenant_id,
+          name: tenantNames[tenant_id],
+        })),
+      );
     }
     if (url.pathname === "/rest/v1/rpc/current_user_memberships" && person) {
       const target = raw ? JSON.parse(raw).target_tenant : null;
