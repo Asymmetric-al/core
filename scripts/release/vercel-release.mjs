@@ -366,10 +366,12 @@ export async function verifyLive({
 }
 
 /**
- * The whole deployment phase, all or nothing: stage every app the release
- * builds, check every staged deployment, and only then promote them all and
- * confirm each production domain. A failed build or health check promotes
- * nothing, so the three apps never mix releases.
+ * The whole deployment phase: stage every app the release builds, check every
+ * staged deployment, and only then promote them and confirm each production
+ * domain. A failed build or health check promotes nothing. Promotion itself
+ * is one API call per app, one after the other, so it is not all or nothing:
+ * if a later promotion fails, the apps serve different commits until the
+ * recovery in docs/ops/release-job.md ("If a promotion fails part way").
  */
 export async function deployRelease({
   apps,
