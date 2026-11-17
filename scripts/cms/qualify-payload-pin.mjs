@@ -4,13 +4,17 @@
 //   1. Supabase migrations from empty, with the catalog and field-policy gates.
 //   2. Payload migrations from empty, as the cms_owner login.
 //   3. Ownership and grants: cms_owner owns all of cms; cms_runtime holds only
-//      row privileges in it.
-//   4. Confinement: as cms_runtime, reading public.donors, creating a table
-//      and dropping a column all fail.
+//      row privileges in it, and only reads Payload's migration ledger; the
+//      Data API roles hold nothing in cms.
+//   4. Confinement: as cms_runtime, reading public.donors, creating a table,
+//      dropping a column and writing the migration ledger all fail.
 //   5. Start-up as cms_runtime with schema push off, with every statement the
-//      adapter sends recorded: no schema change, and the catalog unchanged.
+//      adapter sends recorded: no schema change, no ledger write, and the
+//      catalog unchanged.
 //   6. Local API access defaults and version-read access on the pin.
 //   7. Start-up with schema push left on: it must fail and change nothing.
+//   8. Start-up against a missing database: it must fail without trying to
+//      create the database.
 //
 // Usage:
 //   PAYLOAD_QUALIFICATION_ADMIN_URL=postgresql://postgres:<pw>@127.0.0.1:<port>/postgres \
@@ -326,7 +330,24 @@ async function main() {
            AND relkind IN ('r', 'p')) AS tables,
         (SELECT count(*)::int FROM pg_class WHERE relnamespace = 'cms'::regnamespace
            AND relkind IN ('r', 'p')
-           AND has_table_privilege('cms_runtime', oid, 'SELECT, INSERT, UPDATE, DELETE')) AS runtime_rw_tables,
+           AND oid <> 'cms.payload_migrations'::regclass
+           AND has_table_privilege('cms_runtime', oid, 'SELECT')
+           AND has_table_privilege('cms_runtime', oid, 'INSERT')
+           AND has_table_privilege('cms_runtime', oid, 'UPDATE')
+           AND has_table_privilege('cms_runtime', oid, 'DELETE')) AS runtime_rw_tables,
+        has_table_privilege('cms_runtime', 'cms.payload_migrations', 'SELECT') AS ledger_select,
+        (has_table_privilege('cms_runtime', 'cms.payload_migrations', 'INSERT')
+          OR has_table_privilege('cms_runtime', 'cms.payload_migrations', 'UPDATE')
+          OR has_table_privilege('cms_runtime', 'cms.payload_migrations', 'DELETE')) AS ledger_write,
+        (SELECT json_agg(json_build_object('role', r.rolname,
+             'usage', has_schema_privilege(r.oid, 'cms', 'USAGE'),
+             'create', has_schema_privilege(r.oid, 'cms', 'CREATE')) ORDER BY r.rolname)
+           FROM pg_roles r
+          WHERE r.rolname IN ('anon', 'authenticated', 'service_role')) AS api_roles,
+        (SELECT count(*)::int FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
+          WHERE c.relnamespace = 'cms'::regnamespace
+            AND (a.grantee = 0 OR a.grantee IN ('anon'::regrole,
+                 'authenticated'::regrole, 'service_role'::regrole))) AS api_object_grants,
         (SELECT count(*)::int FROM pg_class WHERE relnamespace = 'cms'::regnamespace
            AND relkind IN ('r', 'p')
            AND has_table_privilege('cms_runtime', oid, 'TRUNCATE, REFERENCES, TRIGGER')) AS runtime_extra_tables,
@@ -343,14 +364,24 @@ async function main() {
       own,
     );
     record(
-      "cms_runtime holds row privileges on every cms table and nothing more",
+      "cms_runtime holds row privileges on every cms table and nothing more; the migration ledger is read-only",
       own.tables > 0 &&
-        own.runtime_rw_tables === own.tables &&
+        // Every table but Payload's migration ledger, which it may only read.
+        own.runtime_rw_tables === own.tables - 1 &&
+        own.ledger_select &&
+        !own.ledger_write &&
         own.runtime_extra_tables === 0 &&
         !own.runtime_create &&
         !own.runtime_create_schema &&
         !own.owner_create_schema,
       own,
+    );
+    record(
+      "Schema cms is closed to anon, authenticated and service_role (plan 7.1)",
+      own.api_roles?.length === 3 &&
+        own.api_roles.every((role) => !role.usage && !role.create) &&
+        own.api_object_grants === 0,
+      { apiRoles: own.api_roles, apiObjectGrants: own.api_object_grants },
     );
 
     // 4. Confinement (plan section 13, "Payload confinement").
@@ -370,8 +401,30 @@ async function main() {
       dropColumn: await errorCode(() =>
         runtime.query("ALTER TABLE cms.pages DROP COLUMN title"),
       ),
+      readLedger: await errorCode(() =>
+        runtime.query("SELECT count(*) FROM cms.payload_migrations"),
+      ),
+      forgeLedgerRow: await errorCode(() =>
+        runtime.query(
+          "INSERT INTO cms.payload_migrations (name, batch) VALUES ('forged', 99)",
+        ),
+      ),
+      editLedger: await errorCode(() =>
+        runtime.query("UPDATE cms.payload_migrations SET batch = batch"),
+      ),
+      clearLedger: await errorCode(() =>
+        runtime.query("DELETE FROM cms.payload_migrations"),
+      ),
     };
     await runtime.end();
+    record(
+      "As cms_runtime: the migration ledger reads, and inserting, updating or deleting a row in it fails",
+      confinement.readLedger === "succeeded" &&
+        ["forgeLedgerRow", "editLedger", "clearLedger"].every(
+          (key) => confinement[key] === "42501",
+        ),
+      confinement,
+    );
     record(
       "As cms_runtime: select from public.donors, create a table and drop a column all fail",
       confinement.currentUser === "cms_runtime" &&
@@ -424,6 +477,7 @@ async function main() {
           proof.sentinelRecorded &&
           proof.schemaChangesAtStartup.length === 0 &&
           proof.schemaChanges.length === 0 &&
+          proof.ledger.writes.length === 0 &&
           before.fingerprint === after.fingerprint &&
           devMarkers === 0,
         {
@@ -432,6 +486,8 @@ async function main() {
           statementCount: proof.statementCount,
           sentinelRecorded: proof.sentinelRecorded,
           schemaChanges: proof.schemaChanges,
+          ledgerStatements: proof.ledger.touching,
+          ledgerWrites: proof.ledger.writes,
           catalogBefore: before,
           catalogAfter: after,
           devMarkers,
@@ -480,7 +536,7 @@ async function main() {
       process.execPath,
       [
         path.join(cmsScriptsDir, "lib", "payload-qualification-runtime.mjs"),
-        "push",
+        "start",
       ],
       {
         cwd: adminAppDir,
@@ -511,6 +567,57 @@ async function main() {
         catalogAfter: afterPush,
         devMarkers: pushMarkers,
         tail: pushResult ? undefined : tail(push.output, 40),
+      },
+    );
+
+    // 8. A missing database: Payload must not try to create it
+    //    (disableCreateDatabase); as cms_runtime that would be a schema
+    //    change attempted from a runtime.
+    const absent = `${options.database}_absent`;
+    const absentCount = async () =>
+      (
+        await maintenance.query(
+          "SELECT count(*)::int AS n FROM pg_database WHERE datname = $1",
+          [absent],
+        )
+      ).rows[0].n;
+    const absentBefore = await absentCount();
+    const missing = await runAsync(
+      process.execPath,
+      [
+        path.join(cmsScriptsDir, "lib", "payload-qualification-runtime.mjs"),
+        "start",
+      ],
+      {
+        cwd: adminAppDir,
+        env: childEnv({
+          NODE_ENV: "production",
+          PAYLOAD_DATABASE_URI: databaseUrl(server, absent, runtimeLogin),
+          PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
+        }),
+      },
+    );
+    const missingResult = parseChildResult(missing.output);
+    const creationAttempted = [
+      missing.output,
+      ...(missingResult?.schemaChanges ?? []),
+    ].some((text) =>
+      /CREATE DATABASE|CREATE SCHEMA|Created database|failed to create/i.test(
+        text,
+      ),
+    );
+    record(
+      "Against a missing database, Payload fails to start and does not try to create it",
+      absentBefore === 0 &&
+        missingResult !== null &&
+        !missingResult.started &&
+        !creationAttempted &&
+        (await absentCount()) === 0,
+      {
+        exit: missing.status,
+        result: missingResult,
+        creationAttempted,
+        tail: missingResult ? undefined : tail(missing.output, 40),
       },
     );
   } finally {

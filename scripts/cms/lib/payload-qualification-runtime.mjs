@@ -10,10 +10,10 @@ import { adminAppDir } from "./paths.mjs";
 const RESULT_PREFIX = "PAYLOAD_QUALIFICATION_RESULT ";
 
 const mode = process.argv[2];
-const modes = { startup: "runStartupProof", push: "runPushAttempt" };
+const modes = { startup: "runStartupProof", start: "runStartAttempt" };
 
 if (!Object.hasOwn(modes, mode)) {
-  console.error("Usage: payload-qualification-runtime.mjs <startup|push>");
+  console.error("Usage: payload-qualification-runtime.mjs <startup|start>");
   process.exit(2);
 }
 

@@ -63,6 +63,15 @@ function schemaChanges(statements) {
   return statements.filter((text) => SCHEMA_CHANGE.test(text));
 }
 
+const LEDGER = /payload_migrations/i;
+const WRITE = /^\s*(?:insert|update|delete|merge|truncate|copy)\b/i;
+
+/** Statements that touch Payload's migration ledger, and those that write it. */
+function ledgerUse(statements) {
+  const touching = statements.filter((text) => LEDGER.test(text));
+  return { touching, writes: touching.filter((text) => WRITE.test(text)) };
+}
+
 async function outcome(run) {
   try {
     const value = await run();
@@ -208,6 +217,7 @@ export async function runStartupProof() {
     ),
     schemaChangesAtStartup: schemaChanges(startupStatements),
     schemaChanges: schemaChanges(allStatements),
+    ledger: ledgerUse(allStatements),
     versions: {
       total: allVersions.totalDocs,
       draftVersionId: draftVersion ? String(draftVersion.id) : null,
@@ -235,10 +245,12 @@ export async function runStartupProof() {
 }
 
 /**
- * Starts Payload with schema push left on. With cms_runtime the push must
- * fail before it changes anything.
+ * Starts Payload as configured and reports whether it started and what it
+ * sent. Used with schema push left on, where cms_runtime must fail before it
+ * changes anything, and against a missing database, which Payload must not
+ * try to create.
  */
-export async function runPushAttempt() {
+export async function runStartAttempt() {
   const { config, getPayload, statements } = await loadPayload();
   const started = await outcome(() => getPayload({ config }));
   if (started.ok) {
