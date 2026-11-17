@@ -5,10 +5,11 @@
 // found.
 //
 // Usage: DATABASE_URL=<seeded database> node scripts/verify/seed-counts.mjs
-import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { runPsqlQuery } from "../lib/psql.mjs";
 
 export const EXPECTATIONS_PATH = "supabase/seed-expectations.json";
 const TABLE = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
@@ -68,34 +69,24 @@ export function countSql(table) {
   return `SELECT count(*) FROM "${schema}"."${name}";`;
 }
 
-/** Counts rows through psql; the result is the trimmed output, as text. */
+/**
+ * Counts rows through the shared psql runner (scripts/lib/psql.mjs), which
+ * keeps the password out of the argument list; the result is the output
+ * without whitespace, as text.
+ */
 export function psqlCount({
   databaseUrl,
   table,
   psqlBin = process.env.PSQL_BIN?.trim() || "psql",
 }) {
-  const result = spawnSync(
-    psqlBin,
-    [
-      "-X",
-      "-t",
-      "-A",
-      "-v",
-      "ON_ERROR_STOP=1",
-      "-d",
-      databaseUrl,
-      "-c",
-      countSql(table),
-    ],
-    { encoding: "utf8", shell: false },
-  );
-  if (result.error)
-    throw new Error(`could not run psql: ${result.error.message}`);
-  if (result.status !== 0)
+  const sql = countSql(table);
+  try {
+    return runPsqlQuery({ databaseUrl, sql, psqlBin }).replace(/\s/g, "");
+  } catch (error) {
     throw new Error(
-      `psql could not count ${table}: ${(result.stderr || "").trim() || `exit ${result.status}`}`,
+      `psql could not count ${table}: ${error instanceof Error ? error.message : error}`,
     );
-  return result.stdout.replace(/\s/g, "");
+  }
 }
 
 /**

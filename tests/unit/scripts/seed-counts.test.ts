@@ -226,10 +226,14 @@ describe.runIf(process.platform !== "win32")(
       const bin = path.join(dir, "psql");
       writeFileSync(
         bin,
-        `#!/usr/bin/env bash\nprintf '%s\\n' "$@" >> "${dir}/args"\n${body}\n`,
+        `#!/usr/bin/env bash\nprintf '%s\\n' "$@" >> "${dir}/args"\nprintf '%s|%s\\n' "\${PGPASSWORD:-}" "\${PGHOSTADDR:-}" >> "${dir}/env"\n${body}\n`,
       );
       chmodSync(bin, 0o755);
-      return { bin, args: () => readFileSync(path.join(dir, "args"), "utf8") };
+      return {
+        bin,
+        args: () => readFileSync(path.join(dir, "args"), "utf8"),
+        env: () => readFileSync(path.join(dir, "env"), "utf8"),
+      };
     }
     const run = (bin: string, env: NodeJS.ProcessEnv = {}) =>
       spawnSync(process.execPath, ["scripts/verify/seed-counts.mjs"], {
@@ -252,17 +256,26 @@ describe.runIf(process.platform !== "win32")(
       const psql = fakePsql(
         `sql="\${@: -1}"\ncase "$sql" in\n${cases}\n  *) exit 3 ;;\nesac`,
       );
-      const result = run(psql.bin);
+      const result = run(psql.bin, { PGHOSTADDR: "10.9.9.9" });
       expect(result.status, result.stderr).toBe(0);
       for (const [table, count] of Object.entries(expectations))
         expect(result.stdout).toContain(
           `Verified ${table} seeded row count: ${count}`,
         );
-      // The URL goes to psql's -d, and nowhere else on the command line.
+      // Council round 2, A8b: through the shared runner (scripts/lib/psql.mjs).
+      // psql gets the URL without its password; the password travels in
+      // PGPASSWORD, and an ambient PGHOSTADDR cannot redirect the connection.
+      const tables = Object.keys(expectations).length;
       const args = psql.args().split("\n");
-      expect(args[args.indexOf("-d") + 1]).toBe(databaseUrl);
-      expect(args.filter((arg) => arg === databaseUrl)).toHaveLength(
-        Object.keys(expectations).length,
+      expect(
+        args.filter(
+          (arg) =>
+            arg === "postgresql://postgres@127.0.0.1:5432/seed_counts_fixture",
+        ),
+      ).toHaveLength(tables);
+      expect(args.join("\n")).not.toContain("postgres:postgres@");
+      expect(psql.env().trim().split("\n")).toEqual(
+        Array.from({ length: tables }, () => "postgres|"),
       );
     });
 
