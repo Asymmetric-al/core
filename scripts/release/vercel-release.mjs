@@ -9,7 +9,7 @@
 //
 //   node scripts/release/vercel-release.mjs <step> [--app <app>] ...
 //
-// Steps: plan, preflight, stage, check, promote, verify-live, register-jobs.
+// Steps: plan, preflight, deploy, check (the preview workflow's), register-jobs.
 import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import path from "node:path";
@@ -441,8 +441,12 @@ function releaseSha(env) {
   return sha;
 }
 
+const STEPS = ["plan", "preflight", "deploy", "check", "register-jobs"];
+
 export async function runCli(argv, env = process.env, log = console.log) {
   const [step, ...rest] = argv;
+  if (!STEPS.includes(step))
+    stop(`Usage: vercel-release.mjs ${STEPS.join("|")}`);
   const app = option(rest, "--app");
   if (step === "plan") {
     const liveCommits = {};
@@ -494,17 +498,6 @@ export async function runCli(argv, env = process.env, log = console.log) {
     );
     return;
   }
-  if (step === "verify-live") {
-    if (!app) stop("verify-live needs --app.");
-    projectFor(app);
-    await verifyLive({
-      app,
-      sha: releaseSha(env),
-      projectRef: env.RELEASE_SUPABASE_PROJECT_REF,
-    });
-    log(`${app}: the production domain serves this release and passes.`);
-    return;
-  }
   const call = createVercelClient({ token: env.VERCEL_TOKEN });
   if (env.VERCEL_ORG_ID && env.VERCEL_ORG_ID !== TEAM) {
     stop("VERCEL_ORG_ID is not the Core team.");
@@ -533,26 +526,7 @@ export async function runCli(argv, env = process.env, log = console.log) {
       env,
       call,
     });
-    return;
   }
-  if (step === "stage") {
-    if (!app) stop("stage needs --app.");
-    await assertStagingEnabled({ call, app });
-    const staged = await stageDeployment({ call, app, sha: releaseSha(env) });
-    output(env, { deployment_id: staged.id, url: staged.url });
-    log(`${app}: staged ${staged.id}, not serving production traffic.`);
-    return;
-  }
-  if (step === "promote") {
-    const deploymentId = option(rest, "--deployment");
-    if (!app) stop("promote needs --app.");
-    await promoteDeployment({ call, app, deploymentId });
-    log(`${app}: promoted ${deploymentId} without a rebuild.`);
-    return;
-  }
-  stop(
-    "Usage: vercel-release.mjs plan|preflight|stage|check|promote|verify-live|register-jobs",
-  );
 }
 
 if (

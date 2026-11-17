@@ -5,6 +5,7 @@ import {
   assertStagingEnabled,
   checkDeploymentHealth,
   deployRelease,
+  runCli,
   selectReleaseApps,
   stageDeployment,
 } from "../../../../scripts/release/vercel-release.mjs";
@@ -189,6 +190,18 @@ describe("release job: Vercel steps", () => {
       "x-vercel-protection-bypass": "bypass",
     });
   });
+
+  // Council round 2, A6g: nothing called the single-app steps.
+  it.each(["stage", "promote", "verify-live", "anything"])(
+    "offers no %s step",
+    async (step) => {
+      await expect(
+        runCli([step, "--app", "admin"], { VERCEL_TOKEN: "token-fixture" }),
+      ).rejects.toThrow(
+        "Usage: vercel-release.mjs plan|preflight|deploy|check|register-jobs",
+      );
+    },
+  );
 
   it("rejects a staged deployment that reads another Supabase project or another commit", async () => {
     await expect(
