@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 
 import nextEnv from "@next/env";
 
+import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import { LOCAL_DATABASE_URL, LOCAL_PAYLOAD_SECRET } from "./lib/local-data.mjs";
 import { assertCmsMigrationTarget } from "./lib/migration-target.mjs";
 import {
@@ -96,6 +97,13 @@ if (
       environment: env,
     });
     if (command === "migrate") assertNoPayloadDevMigrationMarker();
+    // Plan 7.5: rolling migrations back or resetting them runs only on a
+    // database marked disposable.
+    if (command !== "migrate")
+      requireDisposableDatabase({
+        databaseUrl: env.PAYLOAD_DATABASE_URI,
+        action: `run payload ${command} on`,
+      });
   } catch (cause) {
     console.error(
       cause instanceof Error

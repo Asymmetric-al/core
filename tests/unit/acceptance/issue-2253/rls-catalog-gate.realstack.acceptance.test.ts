@@ -5,6 +5,14 @@
  * it fails. Each fixture runs inside the gate's own psql session, wrapped in
  * BEGIN ... ROLLBACK by a psqlBin shim, so nothing persists.
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2674 (WP1 slice 1.1a, plan 5.4): the gate now also asserts a
+ * fixed search path and no PUBLIC or anon EXECUTE on every SECURITY DEFINER
+ * function in the app schemas, tenant_guard's and platform's included. The
+ * DEFINER fixture below creates its functions without SET search_path and with
+ * the default PUBLIC EXECUTE, so each now also reports those codes; the
+ * tenant_guard-owned one stays exempt from the owner rule only. The new
+ * assertions have their own real-stack suite in tests/unit/acceptance/issue-2674.
  */
 import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
@@ -136,10 +144,21 @@ const CASES: [string, string, string[][]][] = [
       alter function public.acc2253_invoker() owner to acc2253_nobypass;
       create function public.acc2253_guard() returns int language sql security definer as 'select 1';
       alter function public.acc2253_guard() owner to tenant_guard;`,
-    ["authz", "document_cutover", "private", "public"].map((s) => [
-      "DEFINER_OWNER_NO_BYPASS",
-      `acc2253_def_${s}`,
-    ]),
+    [
+      ...["authz", "document_cutover", "private", "public"].flatMap((s) =>
+        [
+          "DEFINER_OWNER_NO_BYPASS",
+          "DEFINER_SEARCH_PATH_UNSET",
+          "DEFINER_PUBLIC_EXECUTE",
+          "DEFINER_ANON_EXECUTE",
+        ].map((code) => [code, `acc2253_def_${s}`]),
+      ),
+      ...[
+        "DEFINER_SEARCH_PATH_UNSET",
+        "DEFINER_PUBLIC_EXECUTE",
+        "DEFINER_ANON_EXECUTE",
+      ].map((code) => [code, "acc2253_guard"]),
+    ].sort(),
   ],
 ];
 

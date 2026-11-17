@@ -36,6 +36,30 @@ function toDisplayName(role: DemoRole) {
   return `Demo ${role.charAt(0).toUpperCase()}${role.slice(1)}`;
 }
 
+/**
+ * Plan 7.5: seed only a database whose environment marker is `disposable`.
+ * The marker is read through the release health function, which the service
+ * key may call; a database without the function or the marker is refused.
+ */
+async function requireDisposableEnvironment(adminClient: SupabaseClient) {
+  const { data, error } = await adminClient.rpc("platform_health");
+  const environment =
+    data && typeof data === "object" && "environment" in data
+      ? (data as { environment: unknown }).environment
+      : null;
+  if (error || environment !== "disposable") {
+    throw new Error(
+      `Refusing to seed demo users: the database ${
+        error
+          ? `has no readable environment marker (${error.message})`
+          : environment
+            ? `is marked ${String(environment)}`
+            : "has no environment marker"
+      }. Only a database marked disposable is reseeded (plan 7.5).`,
+    );
+  }
+}
+
 async function resolveTenantId(adminClient: SupabaseClient): Promise<string> {
   const { data, error } = await adminClient
     .from("tenants")
@@ -126,6 +150,7 @@ async function run() {
     },
   });
 
+  await requireDisposableEnvironment(adminClient);
   const tenantId = await resolveTenantId(adminClient);
   const usersByEmail = await listUsersByEmail(adminClient);
   const summary: SeedSummaryRow[] = [];
