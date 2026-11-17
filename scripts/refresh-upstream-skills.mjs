@@ -2290,12 +2290,16 @@ function runGit(args, context, { capture = false } = {}) {
   );
   // Check upstream files out with their committed line endings on every host,
   // so a refresh produces the same bytes and hashes on Windows and Linux.
-  const result = spawnSync("git", ["-c", "core.autocrlf=false", ...args], {
-    cwd: repoRoot,
-    encoding: "utf8",
-    env: gitEnv,
-    stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
-  });
+  const result = spawnSync(
+    "git",
+    ["-c", "core.autocrlf=false", "-c", "core.eol=lf", ...args],
+    {
+      cwd: repoRoot,
+      encoding: "utf8",
+      env: gitEnv,
+      stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
+    },
+  );
 
   if (result.error) {
     throw result.error;
