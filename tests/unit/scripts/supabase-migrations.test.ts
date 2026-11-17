@@ -103,8 +103,11 @@ function runVerifier(
       tenantTable("donors", 2),
     ],
     definers: [],
-    // AL-2674: the gate also reads the command-schema functions.
+    // AL-2674: the gate also reads the command-schema functions, the
+    // wrappers that call into them and the unadmitted table grants.
     commands: [],
+    wrappers: [],
+    grants: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");

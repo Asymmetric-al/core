@@ -13,6 +13,17 @@
  * the default PUBLIC EXECUTE, so each now also reports those codes; the
  * tenant_guard-owned one stays exempt from the owner rule only. The new
  * assertions have their own real-stack suite in tests/unit/acceptance/issue-2674.
+ *
+ * Amended by AL-2674 council round 1 (findings A1 and A5, plan 5.4 and 7.4):
+ * the guard owner's exemption from the owner rule was not bound to its schema,
+ * so a tenant_guard-owned definer in `public` passed and could act as the
+ * guard in any tenant. It now holds only inside the `tenant_guard` schema, and
+ * the gate fails any function tenant_guard owns elsewhere. The DEFINER case's
+ * tenant_guard-owned function in `public` therefore now reports
+ * DEFINER_OWNER_NO_BYPASS and GUARD_OWNED_OUTSIDE_SCHEMA as well: the old
+ * expectation encoded the defect. The gate also gained a standing grants
+ * check; the GRANT_* cases below plant each of its violations and one grant a
+ * policy admits, which passes.
  */
 import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
@@ -135,7 +146,7 @@ const CASES: [string, string, string[][]][] = [
     [["OWNER_NO_BYPASS", "acc2253_owned"]],
   ],
   [
-    "DEFINER_OWNER_NO_BYPASS in public/authz/document_cutover/private only; invoker and tenant_guard-owned exempt (4)",
+    "DEFINER_OWNER_NO_BYPASS in public/authz/document_cutover/private only; invoker exempt; tenant_guard-owned outside its schema fails (4)",
     `${NOBYPASS} create schema acc2253_s; do $$ declare s text; begin
       foreach s in array array['public', 'authz', 'document_cutover', 'private', 'acc2253_s'] loop
         execute format('create function %I.acc2253_def_%s() returns int language sql security definer as ''select 1''', s, s);
@@ -155,11 +166,29 @@ const CASES: [string, string, string[][]][] = [
         ].map((code) => [code, `acc2253_def_${s}`]),
       ),
       ...[
+        "DEFINER_OWNER_NO_BYPASS",
         "DEFINER_SEARCH_PATH_UNSET",
         "DEFINER_PUBLIC_EXECUTE",
         "DEFINER_ANON_EXECUTE",
+        "GUARD_OWNED_OUTSIDE_SCHEMA",
       ].map((code) => [code, "acc2253_guard"]),
     ].sort(),
+  ],
+  [
+    "GRANT_TO_PUBLIC, GRANT_UNSAFE_PRIVILEGE and GRANT_WITHOUT_POLICY on tables in public",
+    "grant select on public.tenants to public; grant truncate on public.funds to authenticated; grant select on public.donors to anon;",
+    [
+      ["GRANT_TO_PUBLIC", "tenants"],
+      ["GRANT_UNSAFE_PRIVILEGE", "funds"],
+      ["GRANT_WITHOUT_POLICY", "donors"],
+    ],
+  ],
+  [
+    "nothing for a table grant that a policy admits for that role and command",
+    `${TENANT("acc2253_read")} alter table public.acc2253_read enable row level security, force row level security;
+     create policy acc2253 on public.acc2253_read for select to anon using (true);
+     grant select on public.acc2253_read to anon;`,
+    [],
   ],
 ];
 
