@@ -308,7 +308,9 @@ function runChecked(runCommand, label, command, args, env) {
  * The pinned Supabase CLI reads the password of a `--db-url` that carries
  * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
  * The repository wrapper's reset guard reads the marker the same way
- * (scripts/lib/psql.mjs keeps an ambient PGPASSWORD).
+ * (scripts/lib/psql.mjs keeps an ambient PGPASSWORD). SUPABASE_CLI_FORCE_PINNED
+ * makes the wrapper run only the CLI the workflow installed, which must report
+ * the pinned version; it never fetches one.
  */
 function supabaseCli(runCommand, label, args, settings) {
   const { url, password } = splitPassword(settings.databaseUrl);
@@ -341,23 +343,31 @@ export function pinnedSupabaseCliVersion(root = repoRoot) {
  * exception of plan 7.5. It runs only here, in the release job's dispatched
  * first-rebuild step, after the checks in rebuild(): the target project, a
  * database with no marker, the owner's census sign-off (or a provably empty
- * new project) and the typed confirmation. It uses the same pinned CLI.
+ * new project) and the typed confirmation. It uses the same pinned CLI: the
+ * one the release workflow installs with supabase/setup-cli, never one fetched
+ * at run time (npx inside the repository stops on the root package.json's
+ * overrides). A CLI on the PATH that reports another version stops the
+ * rebuild before it resets anything.
  */
 function firstRebuildReset(runCommand, settings) {
+  const pinned = pinnedSupabaseCliVersion();
+  const probe = runCommand("supabase", ["--version"], {
+    env: childEnvironment(),
+    encoding: "utf8",
+    shell: false,
+  });
+  const found =
+    !probe.error && probe.status === 0 ? String(probe.stdout ?? "").trim() : "";
+  if (found !== pinned)
+    stop(
+      `The first rebuild needs the Supabase CLI ${pinned} on the PATH (found ${found || "none"}); the release workflow installs it with supabase/setup-cli. Nothing was reset.`,
+    );
   const { url, password } = splitPassword(settings.databaseUrl);
   runChecked(
     runCommand,
     "Supabase reset (first rebuild)",
-    "npx",
-    [
-      "-y",
-      `supabase@${pinnedSupabaseCliVersion()}`,
-      "db",
-      "reset",
-      "--db-url",
-      url,
-      "--yes",
-    ],
+    "supabase",
+    ["db", "reset", "--db-url", url, "--yes"],
     childEnvironment({ PGPASSWORD: password }),
   );
 }

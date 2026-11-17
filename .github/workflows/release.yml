@@ -141,6 +141,18 @@ jobs:
         run: bun ci --no-cache --backend=copyfile
       - name: Install PostgreSQL client
         run: bash scripts/github/install-postgresql-client.sh
+      # One pin for the repository: the version scripts/supabase-cli.mjs pins.
+      # The release steps run only this installed CLI and never fetch one: npx
+      # inside the repository stops on the root package.json's overrides.
+      - name: Read the pinned Supabase CLI version
+        id: supabase-pin
+        run: |
+          version="$(sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: ${{ steps.supabase-pin.outputs.version }}
       - name: Replay every migration on a fresh database
         env:
           DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}

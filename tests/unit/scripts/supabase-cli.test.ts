@@ -69,40 +69,75 @@ describe.skipIf(process.platform === "win32")("Supabase CLI dispatch", () => {
     ]);
   });
 
+  // AL-2674 A10: run from the repository, npx reads the root package.json and
+  // stops on its `overrides` (EOVERRIDE). The fallback gives npm an empty
+  // project outside the repository; the CLI still runs where it was called.
+  const npxFallback = (args: string[], version = "2.121.0") => {
+    expect(args.slice(0, 1)).toEqual(["--prefix"]);
+    const project = args[1]!;
+    expect(path.isAbsolute(project)).toBe(true);
+    expect(path.relative(process.cwd(), project).startsWith("..")).toBe(true);
+    expect(path.basename(project)).toMatch(/^core-supabase-npx-/);
+    // Removed when the wrapper exits.
+    expect(existsSync(project)).toBe(false);
+    expect(args.slice(2)).toEqual([
+      "-y",
+      `supabase@${version}`,
+      "db",
+      "--help",
+    ]);
+  };
+
   it.each(["2.76.12", "2.122.0", "2.121.0-beta.1"])(
     "selects the reviewed version when global CLI reports %s",
     (version) => {
       const { result, commands } = dispatch({ TEST_GLOBAL_VERSION: version });
       expect(result.status).toBe(0);
-      expect(commands[1]).toEqual({
-        command: "npx",
-        args: ["-y", "supabase@2.121.0", "db", "--help"],
-      });
+      expect(commands[1]!.command).toBe("npx");
+      npxFallback(commands[1]!.args);
     },
   );
 
   it("falls back when the global version probe fails", () => {
     const { commands } = dispatch({ TEST_PROBE_STATUS: "1" });
-    expect(commands[1].command).toBe("npx");
+    expect(commands[1]!.command).toBe("npx");
+    npxFallback(commands[1]!.args);
   });
 
-  it("forced pinned dispatch skips the global probe and preserves exit status", () => {
+  it("forced pinned dispatch runs only an installed CLI of the pinned version and preserves exit status", () => {
     const { result, commands } = dispatch({
       SUPABASE_CLI_FORCE_PINNED: "1",
       TEST_DISPATCH_STATUS: "19",
     });
     expect(result.status).toBe(19);
     expect(commands).toEqual([
-      {
-        command: "npx",
-        args: ["-y", "supabase@2.121.0", "db", "--help"],
-      },
+      { command: "supabase", args: ["--version"] },
+      { command: "supabase", args: ["db", "--help"] },
     ]);
   });
 
+  it.each([
+    ["another version", { TEST_GLOBAL_VERSION: "2.119.0" }, "2.119.0"],
+    ["a failed probe", { TEST_PROBE_STATUS: "1" }, "none"],
+  ])(
+    "forced pinned dispatch never fetches a CLI: with %s it stops and says to install the pin",
+    (_name, env, found) => {
+      const { result, commands } = dispatch({
+        SUPABASE_CLI_FORCE_PINNED: "1",
+        ...env,
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        `the Supabase CLI 2.121.0 must be installed on the PATH (found ${found})`,
+      );
+      expect(result.stderr).toContain("supabase/setup-cli");
+      expect(commands).toEqual([{ command: "supabase", args: ["--version"] }]);
+    },
+  );
+
   it("honors an explicit version override without accepting another global version", () => {
     const { commands } = dispatch({ SUPABASE_CLI_VERSION: " 2.119.1 " });
-    expect(commands[1].args[1]).toBe("supabase@2.119.1");
+    npxFallback(commands[1]!.args, "2.119.1");
   });
 });
 

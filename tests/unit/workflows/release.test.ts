@@ -172,4 +172,44 @@ describe("release workflow (plan 7.4)", () => {
       expect(job(name)).toContain("if: github.ref != 'refs/heads/production'");
     }
   });
+
+  // AL-2674 A10: `npx supabase@<pin>` stops inside the repository on the root
+  // package.json's overrides (EOVERRIDE), so the job installs the pinned CLI
+  // and the release steps run only that one.
+  it("installs the wrapper's pinned Supabase CLI before any step that runs it", () => {
+    const database = job("database");
+    expect(supabaseCliInstall(database)).toBe(true);
+    expect(
+      before(database, "supabase/setup-cli@", "release-database.mjs migrate"),
+    ).toBe(true);
+    expect(
+      before(
+        database,
+        "supabase/setup-cli@",
+        "release-database.mjs first-rebuild",
+      ),
+    ).toBe(true);
+  });
 });
+
+/**
+ * Whether a job reads the pin from scripts/supabase-cli.mjs with the sed line
+ * the workflows share, and installs exactly that version with the pinned
+ * supabase/setup-cli action. The sed pattern is checked against the wrapper.
+ */
+function supabaseCliInstall(jobText: string) {
+  const sed = String.raw`sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs`;
+  const wrapper = readFileSync("scripts/supabase-cli.mjs", "utf8");
+  const pinned = /^const PINNED_SUPABASE_CLI_VERSION = "([0-9.]*)";$/m.exec(
+    wrapper,
+  )?.[1];
+  return (
+    /^\d+\.\d+\.\d+$/.test(pinned ?? "") &&
+    jobText.includes(`version="$(${sed})"`) &&
+    jobText.includes('echo "version=$version" >> "$GITHUB_OUTPUT"') &&
+    /- uses: supabase\/setup-cli@[0-9a-f]{40} # v\d+\.\d+\.\d+\n\s+with:\n\s+version: \$\{\{ steps\.supabase-pin\.outputs\.version \}\}/.test(
+      jobText,
+    ) &&
+    !/npx[^\n]*supabase@/.test(jobText)
+  );
+}

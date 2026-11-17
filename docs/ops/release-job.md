@@ -42,7 +42,14 @@ and none is ever cancelled.
    migration. Neither the Supabase CLI nor Payload's migrations inherit a
    `RELEASE_*` variable, and the Supabase CLI gets the database password in
    `PGPASSWORD`, never on its command line (the pinned CLI, 2.121.0, reads it
-   for a `--db-url` that carries none).
+   for a `--db-url` that carries none). The job installs that CLI with
+   `supabase/setup-cli`, the version read from `scripts/supabase-cli.mjs` (the
+   repository's one pin), and runs only it: the wrapper, under
+   `SUPABASE_CLI_FORCE_PINNED=1`, never fetches a CLI and stops if the one on
+   the `PATH` reports another version. `npx supabase@<pin>` run inside the
+   repository stops on the root `package.json`'s `overrides` (npm
+   `EOVERRIDE`); the wrapper's local fallback gives npm an empty project
+   outside the repository instead.
 4. **Gates.** The tenant RLS catalog gate, the cross-schema name-collision
    gate (one recorded exception, `cms.tenants`, until WP6) and the schema
    fingerprint, which must equal the replay's exactly.
@@ -157,8 +164,9 @@ The one-off first rebuild cannot: a hosted database that predates WP1 has no
 marker by definition. It is the one exception plan 7.5 names ("the first
 rebuild of each … is a named one-off step of the job that takes the census
 sign-off as its input"). So `first-rebuild` runs the pinned Supabase CLI
-directly (`npx supabase@<pin> db reset --db-url …`, the version read from
-`scripts/supabase-cli.mjs`), and nothing else does. It exists only in the
+directly (`supabase db reset --db-url …`, the CLI the job installed, after
+checking that it reports the version `scripts/supabase-cli.mjs` pins), and
+nothing else does. It exists only in the
 release job's dispatched `first-rebuild` step, from the `production`
 branch, and runs only after all of these hold:
 

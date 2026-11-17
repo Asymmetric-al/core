@@ -385,13 +385,13 @@ describe("release database steps", () => {
     const fake = fakeDatabase({ environment: null });
     const order: string[] = [];
     const runCommand = vi.fn((command: string, args: string[]) => {
-      if (command === "npx") {
-        expect(args.slice(0, 4)).toEqual([
-          "-y",
-          `supabase@${pinnedSupabaseCliVersion()}`,
-          "db",
-          "reset",
-        ]);
+      // AL-2674 A10: the CLI the workflow installed, never npx, which stops
+      // on the root package.json's overrides inside the repository.
+      expect(command).not.toBe("npx");
+      if (command === "supabase" && args[0] === "--version")
+        return { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` };
+      if (command === "supabase") {
+        expect(args.slice(0, 2)).toEqual(["db", "reset"]);
         expect(args).toContain("--yes");
         // The migrations write the marker on the emptied database.
         fake.db.environment = "disposable";
@@ -423,6 +423,37 @@ describe("release database steps", () => {
     expect(pinnedSupabaseCliVersion()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
+  it.each([
+    ["another version", { status: 0, stdout: "2.119.0\n" }, "2.119.0"],
+    ["no CLI", { status: null, error: new Error("ENOENT") }, "none"],
+  ])(
+    "first rebuild: stops before it resets anything when the PATH has %s instead of the pinned CLI",
+    async (_name, probe, found) => {
+      const fake = fakeDatabase({ environment: null });
+      const runCommand = vi.fn((_command: string, args: string[]) =>
+        args[0] === "--version" ? probe : { status: 0 },
+      );
+      await expect(
+        rebuild({
+          settings: settings(),
+          mode: "first",
+          signoff:
+            "https://github.com/Asymmetric-al/core/issues/2690#issuecomment-1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          log: silent,
+        }),
+      ).rejects.toThrow(
+        `needs the Supabase CLI ${pinnedSupabaseCliVersion()} on the PATH (found ${found})`,
+      );
+      expect(runCommand).toHaveBeenCalledTimes(1);
+      expect(fake.run).not.toHaveBeenCalled();
+    },
+  );
+
   it("stops loudly, before the role passwords and Payload, when the migrations leave no disposable marker", async () => {
     for (const [mode, start, signoff] of [
       ["first", null, "https://github.com/Asymmetric-al/core/issues/1"],
@@ -439,7 +470,10 @@ describe("release database steps", () => {
           env: passwords,
           query: fake.query,
           run: fake.run,
-          runCommand: vi.fn((command: string) => {
+          runCommand: vi.fn((command: string, args: string[]) => {
+            // The first rebuild checks the installed CLI's version first.
+            if (args[0] === "--version")
+              return { status: 0, stdout: pinnedSupabaseCliVersion() };
             commands.push(command);
             // The reset ran, but the marker migration wrote nothing.
             fake.db.environment = null;
