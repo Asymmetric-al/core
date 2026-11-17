@@ -20,6 +20,16 @@ const serviceIdentitySchema = z.object({
 
 const membershipRolesSchema = z.array(z.enum(["donor", "missionary", "staff"]));
 
+/**
+ * Eve admin sessions belong to Mission Control, which acts on staff rows
+ * (AL-2675). The Eve runtime has no proxy in front of it to name the surface's
+ * role class, so it names it here.
+ */
+const EVE_ADMIN_AUTH_OPTIONS = { roleClass: "staff" } as const;
+
+/** Snapshot attribute that keeps the selected staff row's flag (AL-2675). */
+const TENANT_ADMIN_ATTRIBUTE = "tenantAdmin";
+
 function createUnauthenticatedContext(): AuthContext {
   return {
     email: null,
@@ -74,7 +84,7 @@ function parseCookieHeader(cookieHeader: string) {
 async function resolveRequestAuthContext(request: Request) {
   const { getAuthContext } = await import("@asym/auth/context");
   if (getBearerToken(request)) {
-    return getAuthContext(request);
+    return getAuthContext(request, EVE_ADMIN_AUTH_OPTIONS);
   }
 
   const cookieHeader = request.headers.get("cookie");
@@ -111,7 +121,10 @@ async function resolveRequestAuthContext(request: Request) {
   // Supabase getUser(token) before deriving any application identity from it.
   const authHeaders = new Headers(request.headers);
   authHeaders.set("authorization", `Bearer ${accessToken}`);
-  return getAuthContext(new Request(request.url, { headers: authHeaders }));
+  return getAuthContext(
+    new Request(request.url, { headers: authHeaders }),
+    EVE_ADMIN_AUTH_OPTIONS,
+  );
 }
 
 function isCompleteAuthContext(
@@ -143,6 +156,12 @@ export function createAdminEveSessionIdentity(
     ok: true,
     identity: {
       actorId: auth.userId,
+      actorIsTenantAdmin: auth.memberships.some(
+        (membership) =>
+          membership.isActive &&
+          membership.role === "staff" &&
+          membership.isTenantAdmin === true,
+      ),
       actorMembershipRoles: auth.memberships
         .filter((membership) => membership.isActive)
         .map((membership) => membership.role),
@@ -193,6 +212,9 @@ export function toEveSessionAuthSnapshot(
     attributes: {
       identityMode: identity.identityMode,
       membershipRoles: identity.actorMembershipRoles,
+      ...(identity.actorIsTenantAdmin
+        ? { [TENANT_ADMIN_ATTRIBUTE]: "true" }
+        : {}),
       profileId: identity.actorProfileId,
       ...(identity.actorProfileRole
         ? { profileRole: identity.actorProfileRole }
@@ -222,12 +244,15 @@ export function identityFromEveSessionAuthSnapshot(
   );
   const tenantId =
     typeof attributes.tenantId === "string" ? attributes.tenantId : null;
+  // A snapshot written before AL-2675 has no flag and is refused (fails closed).
+  const isTenantAdmin = attributes[TENANT_ADMIN_ATTRIBUTE] === "true";
   const result = createAdminEveSessionIdentity({
     email: null,
     isAuthenticated: true,
     memberships: membershipRolesResult.success
       ? membershipRolesResult.data.map((role) => ({
           isActive: true,
+          isTenantAdmin: role === "staff" && isTenantAdmin,
           role,
           staffRole: null,
           tenantId: tenantId ?? "",
@@ -235,12 +260,11 @@ export function identityFromEveSessionAuthSnapshot(
       : [],
     profileId:
       typeof attributes.profileId === "string" ? attributes.profileId : null,
+    // Recorded for the audit trail only; it carries no authority (AL-2675).
     profileRole:
       typeof attributes.profileRole === "string"
         ? (attributes.profileRole as AuthenticatedContext["profileRole"])
-        : typeof attributes.role === "string"
-          ? (attributes.role as AuthenticatedContext["profileRole"])
-          : null,
+        : null,
     role:
       typeof attributes.role === "string"
         ? (attributes.role as AuthenticatedContext["role"])
