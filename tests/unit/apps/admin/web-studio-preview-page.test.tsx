@@ -1,9 +1,14 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PreviewPage, * as previewPage from "../../../../apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page";
+import { createPageLayoutField } from "../../../../apps/admin/src/cms/collections/page-builders";
+import { PUBLIC_BLOCK_TYPES } from "../../../../packages/ui/components/public/blocks";
 
 const fixture = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -30,9 +35,103 @@ vi.mock("../../../../apps/admin/src/cms/get-payload", () => ({
     findByID: fixture.findByID,
   }),
 }));
-vi.mock("@asym/lib/cms/public-page-renderer", () => ({
-  renderPublicCmsPageContent: () => null,
-}));
+
+function richText(text: string) {
+  return {
+    root: {
+      type: "root",
+      children: [{ type: "paragraph", children: [{ type: "text", text }] }],
+    },
+  };
+}
+
+function media(alt: string) {
+  return {
+    id: `media-${alt}`,
+    alt,
+    url: `https://media.example/${encodeURIComponent(alt)}.jpg`,
+    width: 1200,
+    height: 600,
+  };
+}
+
+/**
+ * One filled block for each layout block type, and text that proves the
+ * preview rendered it. A block type the editor offers with no entry here
+ * fails the coverage test below by name.
+ */
+const FILLED_BLOCKS: Record<string, { block: object; expectText: string[] }> = {
+  hero: {
+    block: {
+      blockType: "hero",
+      headline: "Hero headline",
+      subheading: "Hero subheading",
+      backgroundImage: media("Hero image"),
+    },
+    expectText: ["Hero headline", "Hero subheading"],
+  },
+  "rich-text": {
+    block: {
+      blockType: "rich-text",
+      heading: "Rich text heading",
+      body: richText("Rich text body"),
+    },
+    expectText: ["Rich text heading", "Rich text body"],
+  },
+  "media-feature": {
+    block: {
+      blockType: "media-feature",
+      title: "Feature title",
+      body: "Feature body",
+      media: media("Feature image"),
+      mediaCaption: "Feature caption",
+    },
+    expectText: ["Feature title", "Feature body", "Feature caption"],
+  },
+  "call-to-action": {
+    block: {
+      blockType: "call-to-action",
+      headline: "Call headline",
+      copy: "Call copy",
+      buttonLabel: "Call button",
+      buttonHref: "/call",
+    },
+    expectText: ["Call headline", "Call copy", "Call button"],
+  },
+  faq: {
+    block: {
+      blockType: "faq",
+      heading: "FAQ heading",
+      items: [{ question: "FAQ question", answer: "FAQ answer" }],
+    },
+    expectText: ["FAQ heading", "FAQ question", "FAQ answer"],
+  },
+  "impact-stats": {
+    block: {
+      blockType: "impact-stats",
+      heading: "Stats heading",
+      items: [{ value: "12", label: "Stat label" }],
+    },
+    expectText: ["Stats heading", "12", "Stat label"],
+  },
+  testimonial: {
+    block: {
+      blockType: "testimonial",
+      quote: "Testimonial quote",
+      attribution: "Testimonial attribution",
+    },
+    expectText: ["“Testimonial quote”", "Testimonial attribution"],
+  },
+};
+
+// jsdom gives this module a non-file URL, so resolve from the repository root.
+const previewPageSource = readFileSync(
+  resolve(
+    process.cwd(),
+    "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
+  ),
+  "utf8",
+);
 
 beforeEach(() => {
   fixture.auth.mockResolvedValue({ user: fixture.user });
@@ -123,6 +222,61 @@ describe("Web Studio private preview page", () => {
       expect(screen.queryByText("Draft", { exact: true })).toBeNull();
     },
   );
+
+  it("renders every layout block type the editor offers, from the shared registry", async () => {
+    const editorBlockTypes = (
+      createPageLayoutField() as { blocks: Array<{ slug: string }> }
+    ).blocks.map((block) => block.slug);
+    const missingFixtures = editorBlockTypes.filter(
+      (type) => !FILLED_BLOCKS[type],
+    );
+    expect(missingFixtures).toEqual([]);
+    // Every editor block type has a registry entry, and the registry declares
+    // nothing the editor cannot author.
+    expect([...PUBLIC_BLOCK_TYPES].sort()).toEqual(
+      [...editorBlockTypes].sort(),
+    );
+
+    fixture.findByID.mockResolvedValue({
+      id: "page-1",
+      title: "Every block",
+      _status: "draft",
+      layout: editorBlockTypes.map((type) => FILLED_BLOCKS[type]!.block),
+    });
+    await renderPreview();
+
+    for (const type of editorBlockTypes) {
+      for (const text of FILLED_BLOCKS[type]!.expectText) {
+        expect(screen.getByText(text), `${type}: ${text}`).toBeTruthy();
+      }
+    }
+    expect(screen.getByRole("img", { name: "Hero image" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Feature image" })).toBeTruthy();
+    expect(screen.queryByText(/no previewable rich-text or layout/)).toBeNull();
+  });
+
+  it("declares no block type of its own: the registry is the only list", () => {
+    expect(previewPageSource).not.toMatch(/blockType/);
+    for (const type of PUBLIC_BLOCK_TYPES) {
+      expect(previewPageSource).not.toContain(`"${type}"`);
+    }
+  });
+
+  it("says so when a draft has no previewable content", async () => {
+    fixture.findByID.mockResolvedValue({
+      id: "page-1",
+      title: "Empty",
+      _status: "draft",
+      layout: [{ blockType: "carousel", headline: "Unknown" }],
+    });
+    await renderPreview();
+    expect(screen.queryByText("Unknown")).toBeNull();
+    expect(
+      screen.getByText(
+        "This draft has no previewable rich-text or layout content yet.",
+      ),
+    ).toBeTruthy();
+  });
 
   it("redirects signed-out visitors before reading content", async () => {
     fixture.auth.mockResolvedValue({ user: null });

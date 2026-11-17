@@ -142,8 +142,32 @@ describe("auth form pending submissions", () => {
     });
     expect(button.hasAttribute("disabled")).toBe(false);
     expect(button.getAttribute("aria-disabled")).not.toBe("true");
-    expect(screen.getByText(/check your email for verification/i)).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toContain(
+      "Check your email: we’ve sent a link to fixture@example.test.",
+    );
     expect(auth.replace).not.toHaveBeenCalled();
+  });
+
+  it("asks for the confirmation to return to the host the screen was opened on", async () => {
+    auth.signUp.mockResolvedValueOnce({ data: { session: null }, error: null });
+    const view = renderRegistration();
+    await act(async () => {
+      view.container.querySelector("form")!.requestSubmit();
+    });
+
+    expect(auth.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "fixture@example.test",
+        options: expect.objectContaining({
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }),
+      }),
+    );
+    // Confirmation is required: no session, so no navigation yet.
+    expect(auth.replace).not.toHaveBeenCalled();
+    expect(screen.getByRole("status").textContent).toContain(
+      "Open it in this browser",
+    );
   });
 
   it("blocks repeated signup submissions and allows retry after rejection", async () => {
@@ -171,6 +195,8 @@ describe("auth form pending submissions", () => {
       form.requestSubmit();
     });
     expect(auth.signUp).toHaveBeenCalledTimes(2);
-    expect(screen.getByText(/check your email for verification/i)).toBeTruthy();
+    expect(
+      screen.getByText(/check your email: we’ve sent a link/i),
+    ).toBeTruthy();
   });
 });

@@ -147,7 +147,11 @@ enabled = true
 # in emails.
 site_url = "http://127.0.0.1:3000"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Entries may be globs. Auth also admits any port on site_url's host (127.0.0.1). The localhost
+# entry admits the same local apps under that name, so a recovery or confirmation email returns
+# to the local host and port it was requested from (donor 3000, admin 3030, missionary 4000, and
+# the ports Playwright runs). Local only: each hosted project keeps its own allowlist.
+additional_redirect_urls = ["https://127.0.0.1:3000", "http://localhost:*/**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
@@ -200,12 +204,16 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+# On, as in both hosted projects (WP1): a verified email means a confirmation the person completed.
+# Locally the message goes to the mail catcher (local_smtp); tests confirm through it or through
+# the Auth admin API's generated link, never by switching this off.
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
+# Kept short for local development; the hosted value is in [remotes.*.auth.email] below.
 max_frequency = "1s"
-# Number of characters used in the email OTP.
+# Number of characters used in the email OTP. The hosted value is in [remotes.*.auth.email] below.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
@@ -378,3 +386,25 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# Hosted settings that differ from local development, recorded by the WP1 census of 17 November
+# 2026. The CLI merges a [remotes.<name>] block over this file only when it targets that project
+# (a linked project or --project-ref, for example `supabase config push`); local `supabase start`
+# never reads them. The census found other hosted differences that are not captured here yet:
+# TOTP enrolment and verification are on (WP2c switches them on in this file), and the site URL
+# and redirect allowlist name retired hosts (WP3's allowlist step). Pushing this file to a hosted
+# project as it stands would overwrite those. The custom SMTP sender and the Auth email rate
+# limit are set in each project, not here.
+[remotes.development]
+project_id = "pnmlrbgjiqzzsthsoikm"
+
+[remotes.development.auth.email]
+max_frequency = "1m"
+otp_length = 8
+
+[remotes.production]
+project_id = "btewedpsxwsjczvmegby"
+
+[remotes.production.auth.email]
+max_frequency = "1m"
+otp_length = 8

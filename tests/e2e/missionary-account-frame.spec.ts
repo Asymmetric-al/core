@@ -125,7 +125,7 @@ test.describe("initial server account frame", () => {
   }
 });
 
-test("account links preserve invitation-only registration and unavailable password help", async ({
+test("account links preserve invitation-only registration and reach password reset", async ({
   page,
 }) => {
   const rigActive = process.env.INSTANT_NAV_RIG === "1";
@@ -153,7 +153,7 @@ test("account links preserve invitation-only registration and unavailable passwo
   const openPasswordHelp = async () => {
     await page.getByRole("link", { name: "Forgot password?" }).click();
     await expect(
-      page.getByRole("heading", { name: "Can’t sign in?" }),
+      page.getByRole("heading", { name: "Reset your password" }),
     ).toBeVisible();
     await expectStandaloneAccountFrame(page);
   };
@@ -161,12 +161,10 @@ test("account links preserve invitation-only registration and unavailable passwo
   else await openPasswordHelp();
   await expect(page).toHaveURL(/\/forgot-password$/);
   await expect(
-    page.getByRole("heading", { name: "Can’t sign in?" }),
+    page.getByRole("heading", { name: "Reset your password" }),
   ).toBeVisible();
   await expect(
-    page.getByText("organization’s administrator manages missionary accounts", {
-      exact: false,
-    }),
+    page.getByRole("button", { name: "Send reset link" }),
   ).toBeVisible();
   await expectStandaloneAccountFrame(page);
   await page.getByRole("link", { name: "Back to sign in" }).click();
