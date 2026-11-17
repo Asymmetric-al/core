@@ -223,6 +223,45 @@ const CASES: [string, string, string[], unknown?][] = [
     ["ANON_ALLOWLISTED_UNSAFE public.acc2674_read()"],
     { entries: [{ function: "public.acc2674_read()", reason: "fixture" }] },
   ],
+  // Council round 2, A3: SQL-standard bodies, a command schema on the search
+  // path, a preamble that never runs, and grants on views and columns.
+  [
+    "a definer with a SQL-standard body (BEGIN ATOMIC, and RETURN) that hands the workflow claim to signed-in users",
+    `create function public.acc2674_atomic(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+       begin atomic select tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60); end;
+     ${REVOKE("public.acc2674_atomic(uuid)")} grant execute on function public.acc2674_atomic(uuid) to authenticated;
+     create function public.acc2674_return(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+       return tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60);
+     ${REVOKE("public.acc2674_return(uuid)")} grant execute on function public.acc2674_return(uuid) to authenticated;`,
+    [
+      "WRAPPER_DEFINER public.acc2674_atomic(p_tenant_id uuid)",
+      "WRAPPER_DEFINER public.acc2674_return(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_atomic(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_return(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a definer in public with SET search_path = tenant_guard that calls the worker unqualified",
+    `create function public.acc2674_path(p_tenant_id uuid) returns jsonb language plpgsql security definer set search_path = tenant_guard
+       as $$ begin return acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60); end $$;
+     ${REVOKE("public.acc2674_path(uuid)")} grant execute on function public.acc2674_path(uuid) to authenticated;`,
+    ["COMMAND_SCHEMA_ON_SEARCH_PATH public.acc2674_path(p_tenant_id uuid)"],
+  ],
+  [
+    "a human entry point whose preamble is PERFORM ... WHERE false",
+    `${HUMAN("acc2674_where_false", "perform tenant_guard.begin_human_command(p_tenant_id) where false;")} grant execute on function tenant_guard.acc2674_where_false(uuid) to authenticated;`,
+    [
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.acc2674_where_false(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a view in public readable by signed-in users, and a column grant on a table no policy admits",
+    `create view public.acc2674_view as select 1 as x;
+     grant select on public.acc2674_view to authenticated;
+     create table public.acc2674_cols (id int, note text);
+     grant select (id) on public.acc2674_cols to anon;`,
+    ["GRANT_ON_VIEW acc2674_view", "GRANT_WITHOUT_POLICY acc2674_cols"],
+  ],
   [
     "an allowlist entry for a function that does not exist",
     "",

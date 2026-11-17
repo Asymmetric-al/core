@@ -72,12 +72,13 @@ const wrapper = (
   ...{ search_path: '""', body, authenticated: false, anon: false },
   ...{ public_execute: false, ...over },
 });
-/** A table grant row as the catalog query reports one that no policy admits. */
-const grant = (relation: string, grantee: string, privilege: string) => ({
-  relation,
-  grantee,
-  privilege,
-});
+/** A table or column grant row as the catalog query reports one that no policy admits. */
+const grant = (
+  relation: string,
+  grantee: string,
+  privilege: string,
+  over: { kind?: string; column?: string | null } = {},
+) => ({ relation, column: null, kind: "r", grantee, privilege, ...over });
 const listed = (...tables: string[]) => ({
   entries: tables.map((t) => ({ table: t, outcome: "deny_by_default" })),
 });
@@ -756,7 +757,157 @@ describe("evaluateTenantRlsCatalog: table grants in public (AL-2674 council roun
   });
 });
 
+describe("evaluateTenantRlsCatalog: council round 2 (A3)", () => {
+  const lanes = [
+    human("tenant_guard.resolve(uuid)"),
+    command("tenant_guard.acquire_claim(uuid)"),
+  ];
+  const judge = (wrappers: object[]) =>
+    evaluate([], listed(), [], lanes, allow(), { wrappers });
+
+  it("reads a SQL-standard body as the catalog deparses it: a definer wrapper that hands a worker to signed-in users fails", () => {
+    const result = judge([
+      wrapper(
+        "public.atomic_claim(uuid)",
+        "\nBEGIN ATOMIC\n SELECT tenant_guard.acquire_claim(atomic_claim.p);\nEND",
+        { definer: true, authenticated: true },
+      ),
+    ]);
+    expect(codes(result)).toEqual([
+      "WRAPPER_DEFINER public.atomic_claim(uuid)",
+      "WRAPPER_GRANTS_WORKER public.atomic_claim(uuid)",
+    ]);
+  });
+
+  it.each<[string, string]>([
+    ["the guard schema alone", "tenant_guard"],
+    ["the platform schema quoted, among others", '"platform", public'],
+    ["the guard schema after pg_catalog", "pg_catalog, tenant_guard"],
+  ])(
+    "fails a function outside the command schemas whose search path names %s, whatever its body",
+    (_name, searchPath) => {
+      const result = judge([
+        wrapper("public.unqualified(uuid)", "SELECT acquire_claim(p);", {
+          definer: true,
+          authenticated: true,
+          search_path: searchPath,
+        }),
+      ]);
+      expect(codes(result)).toEqual([
+        "COMMAND_SCHEMA_ON_SEARCH_PATH public.unqualified(uuid)",
+      ]);
+    },
+  );
+
+  it.each<[string, string]>([
+    ["an empty path", '""'],
+    ["a path of ordinary schemas", "pg_catalog, public"],
+    ["a schema whose name only contains a command schema's", "tenant_guard_x"],
+    ["a quoted name that differs in case", '"Platform"'],
+  ])("passes a function whose search path is %s", (_name, searchPath) => {
+    const result = judge([
+      wrapper("public.plain()", "SELECT 1;", { search_path: searchPath }),
+    ]);
+    expect(result.failures).toEqual([]);
+  });
+
+  const humanWith = (body: string) =>
+    evaluate([], listed(), [], [human("tenant_guard.cmd(uuid)", { body })]);
+  const platformWith = (body: string) =>
+    evaluate(
+      [],
+      listed(),
+      [],
+      [platformCommand("platform.cmd(uuid)", { body })],
+    );
+
+  it.each<[string, string]>([
+    [
+      "PERFORM ... WHERE false, which never calls it",
+      "BEGIN PERFORM tenant_guard.begin_human_command(p) WHERE false; RETURN 1; END;",
+    ],
+    [
+      "a call inside a larger expression",
+      "BEGIN v := tenant_guard.begin_human_command(p) IS NULL AND false; RETURN 1; END;",
+    ],
+    [
+      "PERFORM ... FROM an empty set",
+      "BEGIN PERFORM tenant_guard.begin_human_command(p) FROM pg_catalog.generate_series(1, 0); END;",
+    ],
+    [
+      "a call that is never closed",
+      "BEGIN PERFORM tenant_guard.begin_human_command(p; END;",
+    ],
+  ])("fails a human entry point whose first statement is %s", (_n, body) => {
+    expect(codes(humanWith(body))).toEqual([
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.cmd(uuid)",
+    ]);
+  });
+
+  it.each<[string, string]>([
+    [
+      "nested parentheses in its arguments",
+      "BEGIN v := tenant_guard.begin_human_command(coalesce(p, (NULL)::uuid), 'x)'); RETURN v; END;",
+    ],
+    [
+      "a quoted identifier that holds a parenthesis",
+      'BEGIN PERFORM tenant_guard.begin_human_command(p."odd)name" ) ; END;',
+    ],
+  ])("passes a human entry point whose preamble has %s", (_n, body) => {
+    expect(humanWith(body).failures).toEqual([]);
+  });
+
+  it("fails a platform command whose operator check is part of a larger initialiser", () => {
+    expect(
+      codes(
+        platformWith(
+          "DECLARE v boolean := platform.require_operator() IS NULL AND false; BEGIN RETURN v; END;",
+        ),
+      ),
+    ).toEqual(["PLATFORM_COMMAND_NO_OPERATOR_CHECK platform.cmd(uuid)"]);
+  });
+
+  it("fails a grant to a Data API role on a view, a materialized view or a foreign table, and a column grant no policy admits", () => {
+    const result = evaluate([], listed(), [], [], allow(), {
+      grants: [
+        grant("donor_view", "authenticated", "SELECT", { kind: "v" }),
+        grant("donor_totals", "anon", "SELECT", { kind: "m" }),
+        grant("donor_view", "authenticated", "UPDATE", {
+          kind: "v",
+          column: "name",
+        }),
+        grant("donations", "authenticated", "SELECT", { column: "amount" }),
+        grant("donations", "anon", "REFERENCES", { column: "id" }),
+      ],
+    });
+    expect(codes(result)).toEqual([
+      "GRANT_ON_VIEW donor_view",
+      "GRANT_ON_VIEW donor_totals",
+      "GRANT_ON_VIEW donor_view",
+      "GRANT_WITHOUT_POLICY donations",
+      "GRANT_UNSAFE_PRIVILEGE donations",
+    ]);
+    expect(result.failures[3]).toMatchObject({
+      detail: expect.stringContaining(
+        "authenticated holds SELECT on column amount",
+      ),
+    });
+  });
+});
+
 describe("TENANT_RLS_CATALOG_SQL", () => {
+  it("reads SQL-standard bodies and search paths that name a command schema, and checks column grants", () => {
+    // Commands and wrappers both read the deparsed SQL-standard body.
+    expect(
+      TENANT_RLS_CATALOG_SQL.match(/pg_get_function_sqlbody\(p\.oid\)/g),
+    ).toHaveLength(3);
+    expect(TENANT_RLS_CATALOG_SQL).toMatch(
+      /search_path=%' limit 1\) ~\* '\(tenant_guard\|platform\)'/,
+    );
+    expect(TENANT_RLS_CATALOG_SQL).toContain("aclexplode(att.attacl)");
+    expect(TENANT_RLS_CATALOG_SQL).toContain("or c.relkind not in ('r', 'p')");
+  });
+
   it("selects command rows by schema or by the guard owner, the wrappers outside the command schemas, and the unadmitted table grants", () => {
     expect(TENANT_RLS_CATALOG_SQL).toMatch(
       /n\.nspname in \('tenant_guard', 'platform'\)\s+or r\.rolname = 'tenant_guard'/,
