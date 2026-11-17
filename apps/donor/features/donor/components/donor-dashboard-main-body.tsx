@@ -20,7 +20,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardAction,
@@ -46,6 +46,7 @@ import {
   supportedMissionaries,
 } from "./overview/overview-model";
 import { UpdateRailThumbnail } from "./update-rail-thumbnail";
+import { useLoadRetry } from "../focus-recovery";
 
 const LONG_DAY = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -186,8 +187,10 @@ function SupportedCard({ snapshot }: { snapshot: DonorPortalSnapshot }) {
 
 function RecentUpdatesCard({
   feedQuery,
+  retry,
 }: {
   feedQuery: ReturnType<typeof useDonorFeedPosts>;
+  retry: ReturnType<typeof useLoadRetry>;
 }) {
   const titleId = React.useId();
   // The newest update is the featured one; the list shows the next few.
@@ -210,16 +213,28 @@ function RecentUpdatesCard({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {feedQuery.isLoading ? (
+        {feedQuery.isLoading && !retry.retrying ? (
           <div className="flex flex-col gap-4" aria-busy="true">
             {[0, 1, 2].map((row) => (
               <Skeleton key={row} className="h-12 w-full" />
             ))}
           </div>
-        ) : feedQuery.error ? (
-          <p className="text-sm text-muted-foreground">
-            Updates couldn’t load right now.
-          </p>
+        ) : feedQuery.error || retry.retrying ? (
+          // The featured update's alert announces the failure for both.
+          <div className="flex flex-col items-start gap-3">
+            <p className="text-sm text-muted-foreground">
+              Updates couldn’t load right now.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={retry.retrying}
+              focusableWhenDisabled
+              onClick={retry.retry}
+            >
+              {retry.retrying ? "Trying again…" : "Try again"}
+            </Button>
+          </div>
         ) : updates.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             New updates from the missionaries you support will show up here.
@@ -267,9 +282,22 @@ export function DonorDashboardMainBody() {
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
   const giveAgain = lastSupported(portal);
+  // Both retries land on the same page heading.
+  const pageRef = React.useRef<HTMLDivElement>(null);
+  const summaryRetry = useLoadRetry(
+    pageRef,
+    Boolean(portalQuery.error) || !portal,
+    portalQuery.refetch,
+  );
+  const feedRetry = useLoadRetry(
+    pageRef,
+    Boolean(feedQuery.error),
+    feedQuery.refetch,
+  );
 
   return (
     <div
+      ref={pageRef}
       className={cn(
         // Tighter on phones, so the latest update starts within the first
         // screen.
@@ -316,7 +344,9 @@ export function DonorDashboardMainBody() {
         </Alert>
       ))}
 
-      {portalQuery.isLoading ? (
+      {/* With nothing cached, a retry loads afresh; the error view stays so
+          Try again keeps focus. */}
+      {portalQuery.isLoading && !summaryRetry.retrying ? (
         <div
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
           aria-busy="true"
@@ -330,11 +360,23 @@ export function DonorDashboardMainBody() {
         </div>
       ) : portalQuery.error || !portal ? (
         <Card>
-          <CardContent>
-            <p role="alert" className="text-sm text-foreground">
-              We couldn’t load your giving summary. Refresh the page to try
-              again.
+          <CardContent className="flex flex-col items-start gap-3">
+            <p
+              key={summaryRetry.failedRetries}
+              role="alert"
+              className="text-sm text-foreground"
+            >
+              We couldn’t load your giving summary.
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={summaryRetry.retrying}
+              focusableWhenDisabled
+              onClick={summaryRetry.retry}
+            >
+              {summaryRetry.retrying ? "Trying again…" : "Try again"}
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -385,10 +427,11 @@ export function DonorDashboardMainBody() {
             post={feedQuery.data[0] ?? null}
             isLoading={feedQuery.isLoading}
             error={feedQuery.error}
+            retry={feedRetry}
           />
         </section>
         <div className="min-w-0 lg:col-span-4">
-          <RecentUpdatesCard feedQuery={feedQuery} />
+          <RecentUpdatesCard feedQuery={feedQuery} retry={feedRetry} />
         </div>
       </div>
     </div>

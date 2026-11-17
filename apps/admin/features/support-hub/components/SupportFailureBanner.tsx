@@ -19,17 +19,36 @@ import { useSupportFailureRecovery } from "../hooks/use-support-failure-recovery
  * snooze / run-macro mutations; sonner toasts remain in place as the
  * lightweight notification surface.
  */
-export function SupportFailureBanner() {
+export function SupportFailureBanner({
+  returnFocus,
+}: {
+  returnFocus?: () => void;
+} = {}) {
   const { failure, clear } = useSupportFailureRecovery();
   const [retrying, setRetrying] = React.useState(false);
+  const bannerRef = React.useRef<HTMLDivElement | null>(null);
 
   if (!failure) return null;
+
+  // Hand focus on before the banner unmounts, or it drops to the page body.
+  // Focus the agent moved elsewhere during a retry stays where it is.
+  const close = () => {
+    const active = document.activeElement;
+    if (
+      !active ||
+      active === document.body ||
+      bannerRef.current?.contains(active)
+    ) {
+      returnFocus?.();
+    }
+    clear();
+  };
 
   const handleRetry = async () => {
     setRetrying(true);
     try {
       await failure.retry();
-      clear();
+      close();
     } catch {
       return;
     } finally {
@@ -38,7 +57,7 @@ export function SupportFailureBanner() {
   };
 
   return (
-    <Alert variant="warning" role="status" aria-live="polite">
+    <Alert ref={bannerRef} variant="warning" role="status" aria-live="polite">
       <AlertTriangle aria-hidden="true" />
       <AlertTitle>{labelForKind(failure.kind)} failed</AlertTitle>
       <AlertDescription>
@@ -61,7 +80,7 @@ export function SupportFailureBanner() {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={clear}
+            onClick={close}
             disabled={retrying}
           >
             Dismiss

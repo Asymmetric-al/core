@@ -4,7 +4,7 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 import { useSupportReport } from "../../../hooks/use-support-reports";
 import { useSupportReportRouteState } from "../../../lib/report-state";
-import { combineReportStatus } from "../../../lib/report-status";
+import { useReportStatus } from "../../../lib/report-status";
 import { ReportBarChart } from "../ReportBarChart";
 import { ReportExportMenu } from "../ReportExportMenu";
 import { ReportFilters } from "../ReportFilters";
@@ -14,10 +14,10 @@ import { ReportTable } from "../ReportTable";
 export function LabelsReport() {
   const { request } = useSupportReportRouteState();
   const series = useSupportReport(request("label-mix"));
-  const reportStatus = combineReportStatus([series]);
+  const { rootRef, ...reportStatus } = useReportStatus([series]);
   if (reportStatus.isError || reportStatus.isLoading)
     return (
-      <div className="flex flex-col gap-6">
+      <div ref={rootRef} className="flex flex-col gap-6">
         <ReportFilters
           kinds={["all", "inbox", "agent"]}
           hideGroupBy
@@ -37,7 +37,11 @@ export function LabelsReport() {
           }
         />
         {reportStatus.isError ? (
-          <ReportLoadError onRetry={reportStatus.retry} />
+          <ReportLoadError
+            onRetry={reportStatus.retry}
+            isRetrying={reportStatus.isRetrying}
+            failedRetries={reportStatus.failedRetries}
+          />
         ) : (
           <div role="status" aria-label="Loading report">
             <Skeleton className="h-64 w-full" />
@@ -47,7 +51,7 @@ export function LabelsReport() {
       </div>
     );
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       {/* Like the agent mix, the label mix has no periods to group and no
           message times to clip to business hours. */}
       <ReportFilters

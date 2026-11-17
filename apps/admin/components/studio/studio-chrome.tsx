@@ -130,15 +130,18 @@ export function StudioSaveButton({
   onClick,
   disabled,
   isSaving,
+  "aria-keyshortcuts": ariaKeyshortcuts,
 }: {
   onClick: () => void;
   disabled: boolean;
   isSaving: boolean;
+  "aria-keyshortcuts"?: string;
 }) {
   return (
     <Button
       size="sm"
       aria-label={isSaving ? "Saving…" : "Save"}
+      aria-keyshortcuts={ariaKeyshortcuts}
       aria-busy={isSaving || undefined}
       onClick={onClick}
       disabled={disabled}

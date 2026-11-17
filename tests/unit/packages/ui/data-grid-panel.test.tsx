@@ -29,6 +29,12 @@ import {
   DataGridTableRowSelectAll,
 } from "../../../../packages/ui/components/reui/data-grid/data-grid-table";
 import { Checkbox } from "../../../../packages/ui/components/shadcn/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../../../packages/ui/components/shadcn/dropdown-menu";
 
 import type {
   DataGridColumnDef,
@@ -69,6 +75,7 @@ function Grid({
   footer,
   pagination,
   onRowAction,
+  rowMenu = false,
   toolbar,
   isLoading,
   virtual,
@@ -86,6 +93,7 @@ function Grid({
   footer?: React.ReactNode;
   pagination?: boolean;
   onRowAction?: (person: Person) => void;
+  rowMenu?: boolean;
   toolbar?: React.ReactNode;
   isLoading?: boolean;
   virtual?: DataGridPanelProps<Person>["virtual"];
@@ -128,6 +136,24 @@ function Grid({
               <button type="button" onClick={() => onRowAction(row.original)}>
                 {`More for ${row.original.name}`}
               </button>
+            ),
+          } satisfies DataGridColumnDef<Person>,
+        ]
+      : []),
+    ...(rowMenu
+      ? [
+          {
+            id: "menu",
+            header: "Menu",
+            cell: ({ row }) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<button type="button" />}>
+                  {`Actions for ${row.original.name}`}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ),
           } satisfies DataGridColumnDef<Person>,
         ]
@@ -307,6 +333,81 @@ describe("DataGridPanel", () => {
     expect(screen.queryByText(/selected$/)).toBeNull();
   });
 
+  it("leaves Space and the navigation keys to the other controls in a row", () => {
+    const onRowAction = vi.fn();
+    render(<Grid selectable onRowAction={onRowAction} />);
+    const action = screen.getByRole("button", { name: "More for Maya Chen" });
+    action.focus();
+    for (const init of [
+      { key: " " },
+      { key: "ArrowDown" },
+      { key: "ArrowUp" },
+      { key: "PageDown" },
+      { key: "End", ctrlKey: true },
+      { key: "a", ctrlKey: true },
+    ]) {
+      // `false` would mean the grid cancelled the button's own key.
+      expect(fireEvent.keyDown(action, init)).toBe(true);
+      expect(document.activeElement).toBe(action);
+    }
+    expect(screen.queryByText(/selected$/)).toBeNull();
+    for (const box of screen.getAllByRole("checkbox")) {
+      expect(box.getAttribute("aria-checked")).toBe("false");
+    }
+  });
+
+  it("moves between rows from a row's checkbox, which keeps only Space for itself", () => {
+    render(<Grid namedSelection />);
+    const box = screen.getByRole("checkbox", { name: "Select Avery Lopez" });
+    box.focus();
+    fireEvent.keyDown(box, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Maya Chen" }),
+    );
+
+    const last = screen.getByRole("checkbox", { name: "Select Jonah Reyes" });
+    last.focus();
+    fireEvent.keyDown(last, { key: "Home", ctrlKey: true });
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Avery Lopez" }),
+    );
+
+    // Space is the checkbox's own toggle: the grid does not toggle it too,
+    // so one press selects the row once.
+    const middle = screen.getByRole("checkbox", { name: "Select Maya Chen" });
+    middle.focus();
+    fireEvent.keyDown(middle, { key: " " });
+    fireEvent.keyUp(middle, { key: " " });
+    expect(screen.getByText("1 person record selected")).toBeTruthy();
+    const middleAgain = screen.getByRole("checkbox", {
+      name: "Select Maya Chen",
+    });
+    expect(middleAgain.getAttribute("aria-checked")).toBe("true");
+
+    middleAgain.focus();
+    fireEvent.keyDown(middleAgain, { key: "a", ctrlKey: true });
+    expect(screen.getByText("3 person records selected")).toBeTruthy();
+  });
+
+  it("opens a row menu with Space and leaves the row selection unchanged", async () => {
+    render(<Grid selectable rowMenu />);
+    const trigger = screen.getByRole("button", {
+      name: "Actions for Maya Chen",
+    });
+    trigger.focus();
+    // A browser presses a focused button on Space unless keydown was cancelled.
+    if (fireEvent.keyDown(trigger, { key: " " })) {
+      fireEvent.keyUp(trigger, { key: " " });
+      fireEvent.click(trigger);
+    }
+    expect(await screen.findByRole("menu")).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toBeTruthy();
+    expect(screen.queryByText(/selected$/)).toBeNull();
+    for (const box of screen.getAllByRole("checkbox")) {
+      expect(box.getAttribute("aria-checked")).toBe("false");
+    }
+  });
+
   it("announces the count from a live region that is already in the page", () => {
     const { container } = render(<Grid selectable />);
     // A live region mounted already filled is not announced; this one waits,
@@ -339,9 +440,7 @@ describe("DataGridPanel", () => {
     const first = screen.getByRole("button", { name: "Avery Lopez" });
     first.focus();
     fireEvent.keyDown(first, { key: " " });
-    const bar = screen.getByRole("toolbar", {
-      name: "Selected record actions",
-    });
+    const bar = screen.getByRole("group", { name: /selected$/ });
     // Pinned below the 48px app header while the grid scrolls past, on an
     // opaque surface so rows do not show through it.
     expect(bar.className.split(" ")).toContain("sticky");

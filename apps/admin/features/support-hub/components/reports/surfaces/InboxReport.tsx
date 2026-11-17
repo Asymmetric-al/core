@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { useSupportReport } from "../../../hooks/use-support-reports";
 import { useSupportReportRouteState } from "../../../lib/report-state";
-import { combineReportStatus } from "../../../lib/report-status";
+import { useReportStatus } from "../../../lib/report-status";
 import { ReportExportMenu } from "../ReportExportMenu";
 import { ReportFilters } from "../ReportFilters";
 import { ReportLineChart } from "../ReportLineChart";
@@ -57,10 +57,15 @@ export function InboxReport() {
     { label: "Conversations resolved", series: resolved.data },
     { label: "Snoozed", series: snoozed.data },
   ];
-  const reportStatus = combineReportStatus([received, sent, resolved, snoozed]);
+  const { rootRef, ...reportStatus } = useReportStatus([
+    received,
+    sent,
+    resolved,
+    snoozed,
+  ]);
   if (reportStatus.isError || reportStatus.isLoading)
     return (
-      <div className="flex flex-col gap-6">
+      <div ref={rootRef} className="flex flex-col gap-6">
         <ReportFilters
           lockScopeKind="inbox"
           trailing={
@@ -76,7 +81,11 @@ export function InboxReport() {
           }
         />
         {reportStatus.isError ? (
-          <ReportLoadError onRetry={reportStatus.retry} />
+          <ReportLoadError
+            onRetry={reportStatus.retry}
+            isRetrying={reportStatus.isRetrying}
+            failedRetries={reportStatus.failedRetries}
+          />
         ) : (
           <div role="status" aria-label="Loading report">
             <ReportSummaryCards cards={cards} isLoading />
@@ -87,7 +96,7 @@ export function InboxReport() {
       </div>
     );
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       <ReportFilters
         lockScopeKind="inbox"
         trailing={<ReportExportMenu items={exports} />}

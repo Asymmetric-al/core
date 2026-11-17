@@ -66,7 +66,14 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -301,6 +308,31 @@ function CrmNoteComposer({
   const saveHintId = useId();
   const saveHint =
     writeBlocker ?? (hasInput ? null : "Add a title and note to save.");
+  const formRef = useRef<HTMLFormElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const parkedRef = useRef(false);
+  const saveDisabled = !canSubmit || isCreatingNote;
+  // A disabled submit button drops focus to the page, so focus waits on the
+  // busy form, then goes to Save, or to Title once a saved note clears it.
+  // Only parked focus moves on: Safari focuses the form on a button click.
+  useLayoutEffect(() => {
+    const save = saveRef.current;
+    if (saveDisabled && document.activeElement === save) {
+      if (isCreatingNote) {
+        formRef.current?.focus({ preventScroll: true });
+        parkedRef.current = true;
+      } else {
+        // A blocked composer disables Title too.
+        (writeBlocker ? formRef.current : titleRef.current)?.focus();
+      }
+      return;
+    }
+    if (isCreatingNote || !parkedRef.current) return;
+    parkedRef.current = false;
+    if (document.activeElement !== formRef.current) return;
+    (saveDisabled ? titleRef.current : save)?.focus();
+  }, [isCreatingNote, saveDisabled, writeBlocker]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -337,13 +369,20 @@ function CrmNoteComposer({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form
+          ref={formRef}
+          tabIndex={-1}
+          aria-busy={isCreatingNote}
+          className="flex flex-col gap-4 outline-none"
+          onSubmit={handleSubmit}
+        >
           <FieldGroup>
             <Field data-disabled={writeBlocker ? true : undefined}>
               <FieldLabel htmlFor={NOTE_TITLE_FIELD_ID}>
                 Title <RequiredMark />
               </FieldLabel>
               <Input
+                ref={titleRef}
                 id={NOTE_TITLE_FIELD_ID}
                 required
                 disabled={!!writeBlocker}
@@ -379,9 +418,10 @@ function CrmNoteComposer({
           </FieldGroup>
           <div className="flex flex-col gap-2">
             <Button
+              ref={saveRef}
               type="submit"
               className="w-full"
-              disabled={!canSubmit || isCreatingNote}
+              disabled={saveDisabled}
               focusableWhenDisabled={isCreatingNote}
               aria-describedby={saveHint ? saveHintId : undefined}
             >

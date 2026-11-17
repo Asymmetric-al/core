@@ -6,7 +6,7 @@ import * as React from "react";
 import { useSupportReport } from "../../../hooks/use-support-reports";
 import { formatSupportDuration } from "../../../lib/format-duration";
 import { useSupportReportRouteState } from "../../../lib/report-state";
-import { combineReportStatus } from "../../../lib/report-status";
+import { useReportStatus } from "../../../lib/report-status";
 import { ReportBarChart } from "../ReportBarChart";
 import { ReportExportMenu } from "../ReportExportMenu";
 import { ReportFilters } from "../ReportFilters";
@@ -109,7 +109,7 @@ export function OverviewReport() {
     { label: "Resolution", series: resolution.data },
     { label: "Customer waiting (minutes)", series: customerWaiting.data },
   ];
-  const reportStatus = combineReportStatus([
+  const { rootRef, ...reportStatus } = useReportStatus([
     volume,
     openCount,
     firstResponse,
@@ -118,7 +118,7 @@ export function OverviewReport() {
   ]);
   if (reportStatus.isError || reportStatus.isLoading)
     return (
-      <div className="flex flex-col gap-6">
+      <div ref={rootRef} className="flex flex-col gap-6">
         <ReportFilters
           trailing={
             <ReportExportMenu
@@ -133,7 +133,11 @@ export function OverviewReport() {
           }
         />
         {reportStatus.isError ? (
-          <ReportLoadError onRetry={reportStatus.retry} />
+          <ReportLoadError
+            onRetry={reportStatus.retry}
+            isRetrying={reportStatus.isRetrying}
+            failedRetries={reportStatus.failedRetries}
+          />
         ) : (
           <div role="status" aria-label="Loading report">
             <ReportSummaryCards cards={cards} isLoading />
@@ -144,7 +148,7 @@ export function OverviewReport() {
       </div>
     );
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       <ReportFilters trailing={<ReportExportMenu items={exports} />} />
 
       <ReportSummaryCards

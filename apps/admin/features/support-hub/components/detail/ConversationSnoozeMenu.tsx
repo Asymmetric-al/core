@@ -39,6 +39,11 @@ export function ConversationSnoozeMenu({
   const request = useSupportSnoozeMenuRequest();
   const isRequested = request?.requestedId === conversation.id;
   const isSnoozed = conversation.status === "snoozed";
+  const snoozedLabel =
+    isSnoozed && conversation.snoozedUntil
+      ? "Snoozed until " +
+        formatSnoozeTime(conversation.snoozedUntil, new Date(nowIso))
+      : null;
   const failure = (error: unknown) =>
     toast.error(
       error instanceof Error
@@ -59,13 +64,10 @@ export function ConversationSnoozeMenu({
             type="button"
             variant="outline"
             size="sm"
-            aria-label="Snooze conversation"
+            aria-label={snoozedLabel ? undefined : "Snooze conversation"}
           >
             <Clock aria-hidden="true" />
-            {isSnoozed && conversation.snoozedUntil
-              ? "Snoozed until " +
-                formatSnoozeTime(conversation.snoozedUntil, new Date(nowIso))
-              : "Snooze"}
+            {snoozedLabel ?? "Snooze"}
           </Button>
         }
       />

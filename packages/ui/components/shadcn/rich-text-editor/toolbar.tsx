@@ -22,9 +22,13 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { useOptionalEditorContext } from "./editor-context";
 import { getUrlFromString } from "./helpers";
+import {
+  ShortcutHint,
+  useShortcut,
+  useShortcutHint,
+} from "../../primitives/shortcut";
 import { Button } from "../button";
 import { Input } from "../input";
-import { Kbd } from "../kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import { Toggle } from "../toggle";
@@ -82,39 +86,20 @@ const DEFAULT_TOOLBAR_STATE = {
   existingHref: undefined as string | undefined,
 };
 
-/** Keys after the platform modifier, matching StarterKit's own bindings. */
-type Shortcut = readonly string[];
-
+/** Hint keys: StarterKit's bindings, which Tiptap's keymap runs, plus the link key LinkButton registers. */
 const SHORTCUTS = {
-  bold: ["B"],
-  italic: ["I"],
-  underline: ["U"],
-  heading1: ["Alt", "1"],
-  heading2: ["Alt", "2"],
-  blockquote: ["Shift", "B"],
-  bulletList: ["Shift", "8"],
-  orderedList: ["Shift", "7"],
-  undo: ["Z"],
-  redo: ["Shift", "Z"],
-  link: ["K"],
-} satisfies Record<string, Shortcut>;
-
-function isApplePlatform() {
-  return (
-    typeof navigator !== "undefined" &&
-    /Mac|iPhone|iPad/.test(navigator.userAgent)
-  );
-}
-
-function shortcutKeys(shortcut: Shortcut) {
-  const apple = isApplePlatform();
-  return {
-    aria: [apple ? "Meta" : "Control", ...shortcut].join("+"),
-    display: apple
-      ? `⌘${shortcut.map((key) => (key === "Shift" ? "⇧" : key === "Alt" ? "⌥" : key)).join("")}`
-      : ["Ctrl", ...shortcut].join("+"),
-  };
-}
+  bold: "mod+b",
+  italic: "mod+i",
+  underline: "mod+u",
+  heading1: "mod+alt+1",
+  heading2: "mod+alt+2",
+  blockquote: "mod+shift+b",
+  bulletList: "mod+shift+8",
+  orderedList: "mod+shift+7",
+  undo: "mod+z",
+  redo: "mod+shift+z",
+  link: "mod+k",
+} as const;
 
 /* -------------------------------------------------------------------------- */
 
@@ -469,8 +454,10 @@ export function EditorToolbar({
       },
     }) ?? DEFAULT_TOOLBAR_STATE;
 
-  // A read-only editor shows content only: formatting controls would be noise.
-  if (!editor || ctx?.readOnly) return null;
+  // A read-only editor shows content only: formatting controls would be noise,
+  // but the caller's actions row (word count, save state) stays.
+  const readOnly = ctx?.readOnly ?? false;
+  if (!editor || (readOnly && !actions)) return null;
 
   const enabledTools = editorToolbarEnabledTools(
     tools,
@@ -489,16 +476,23 @@ export function EditorToolbar({
             : "border-t",
         )}
       >
-        <EditorToolbarSectionList
-          editor={editor}
-          enabledTools={enabledTools}
-          toolbarState={toolbarState}
-          onImageUpload={onImageUpload}
-          onImageClick={onImageClick}
-        />
+        {readOnly ? null : (
+          <EditorToolbarSectionList
+            editor={editor}
+            enabledTools={enabledTools}
+            toolbarState={toolbarState}
+            onImageUpload={onImageUpload}
+            onImageClick={onImageClick}
+          />
+        )}
 
         {actions && (
-          <div className="border-t border-border px-3 py-3 sm:px-4">
+          <div
+            className={cn(
+              "px-3 py-3 sm:px-4",
+              !readOnly && "border-t border-border",
+            )}
+          >
             {actions}
           </div>
         )}
@@ -512,34 +506,52 @@ function ToolbarTooltipContent({
   shortcut,
 }: {
   label: string;
-  shortcut?: Shortcut;
+  shortcut?: string;
 }) {
   return (
     <TooltipContent side="top">
       <span className="flex items-center gap-2">
         {label}
-        {shortcut && <Kbd>{shortcutKeys(shortcut).display}</Kbd>}
+        {shortcut && <ShortcutHint keys={shortcut} />}
       </span>
     </TooltipContent>
   );
 }
 
-function ToolbarButton({
-  onClick,
-  active,
-  label,
-  shortcut,
-  disabled,
-  children,
-}: {
+type ToolbarButtonProps = {
   onClick: () => void;
   /** Omit for one-off commands; pass a boolean for formats that toggle. */
   active?: boolean;
   label: string;
-  shortcut?: Shortcut;
+  shortcut?: string;
   disabled?: boolean;
   children: React.ReactNode;
-}) {
+};
+
+function ToolbarButton(props: ToolbarButtonProps) {
+  return props.shortcut ? (
+    <ShortcutToolbarButton {...props} shortcut={props.shortcut} />
+  ) : (
+    <ToolbarButtonView {...props} />
+  );
+}
+
+function ShortcutToolbarButton(
+  props: ToolbarButtonProps & { shortcut: string },
+) {
+  const { ariaKeyshortcuts } = useShortcutHint(props.shortcut);
+  return <ToolbarButtonView {...props} ariaKeyshortcuts={ariaKeyshortcuts} />;
+}
+
+function ToolbarButtonView({
+  onClick,
+  active,
+  label,
+  shortcut,
+  ariaKeyshortcuts,
+  disabled,
+  children,
+}: ToolbarButtonProps & { ariaKeyshortcuts?: string }) {
   return (
     <Tooltip>
       <TooltipTrigger
@@ -548,9 +560,7 @@ function ToolbarButton({
             disabled={disabled}
             focusableWhenDisabled={false}
             aria-label={label}
-            aria-keyshortcuts={
-              shortcut ? shortcutKeys(shortcut).aria : undefined
-            }
+            aria-keyshortcuts={ariaKeyshortcuts}
             render={
               active === undefined ? (
                 <Button
@@ -604,24 +614,15 @@ function LinkButton({
     [existingHref],
   );
 
-  // StarterKit has no link shortcut; Mod+K opens this popover from the text.
-  React.useEffect(() => {
-    if (disabled) return;
-    const dom = editor.view.dom;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key.toLowerCase() === "k" &&
-        (event.metaKey || event.ctrlKey) &&
-        !event.altKey &&
-        !event.shiftKey
-      ) {
-        event.preventDefault();
-        openChange(true);
-      }
-    };
-    dom.addEventListener("keydown", onKeyDown);
-    return () => dom.removeEventListener("keydown", onKeyDown);
-  }, [disabled, editor, openChange]);
+  // StarterKit has no link shortcut; Mod+K opens this popover from the text,
+  // and this region claim outranks a page's Mod+K there.
+  useShortcut(disabled ? null : SHORTCUTS.link, () => openChange(true), {
+    allowInInput: true,
+    // Tiptap's view throws until the editor mounts; it reports destroyed then.
+    within: () => (editor.isDestroyed ? null : editor.view.dom),
+    description: "Add or edit link",
+  });
+  const linkShortcut = useShortcutHint(SHORTCUTS.link);
 
   const removeLink = () => {
     editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -675,7 +676,7 @@ function LinkButton({
                       variant={isActive ? "secondary" : "ghost"}
                       size="icon-sm"
                       aria-label={label}
-                      aria-keyshortcuts={shortcutKeys(SHORTCUTS.link).aria}
+                      aria-keyshortcuts={linkShortcut.ariaKeyshortcuts}
                     >
                       <LinkIcon />
                     </Button>

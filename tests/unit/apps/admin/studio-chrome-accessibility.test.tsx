@@ -78,3 +78,19 @@ it("announces unsaved document state without requiring hover", () => {
   expect(screen.getByRole("status").textContent).toContain("Unsaved changes");
   expect(screen.getByText("Quarterly newsletter")).toBeTruthy();
 });
+
+it("advertises the Save shortcut it is given", () => {
+  render(
+    <StudioSaveButton
+      onClick={vi.fn()}
+      disabled={false}
+      isSaving={false}
+      aria-keyshortcuts="Control+S"
+    />,
+  );
+  expect(
+    screen
+      .getByRole("button", { name: "Save", exact: true })
+      .getAttribute("aria-keyshortcuts"),
+  ).toBe("Control+S");
+});

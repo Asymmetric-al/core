@@ -4,6 +4,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { Paperclip, X } from "lucide-react";
 import * as React from "react";
+import { flushSync } from "react-dom";
 
 import type { SupportAttachmentDraft } from "../../../models/editor-payload";
 
@@ -27,6 +28,8 @@ export function AttachmentChips({
   disabled,
 }: AttachmentChipsProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const attachRef = React.useRef<HTMLButtonElement>(null);
+  const chipsRef = React.useRef<HTMLDivElement>(null);
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -42,9 +45,24 @@ export function AttachmentChips({
     }
   };
 
+  // The removed chip takes its focused button with it; the next chip's
+  // Remove (or the previous one, or Attach) takes the focus instead.
+  const removeAt = (index: number, button: HTMLButtonElement) => {
+    if (disabled) return;
+    const hadFocus = document.activeElement === button;
+    flushSync(() => onRemove(index));
+    if (!hadFocus) return;
+    const remaining = chipsRef.current?.querySelectorAll<HTMLButtonElement>(
+      "[data-attachment-remove]",
+    );
+    const next = remaining?.item(Math.min(index, remaining.length - 1));
+    (next ?? attachRef.current)?.focus();
+  };
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div ref={chipsRef} className="flex flex-wrap items-center gap-2">
       <Button
+        ref={attachRef}
         type="button"
         variant="outline"
         size="sm"
@@ -79,8 +97,12 @@ export function AttachmentChips({
           <button
             type="button"
             aria-label={`Remove ${attachment.filename}`}
-            onClick={() => onRemove(index)}
-            className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            // Not natively disabled: a send can start (mod+enter) while this
+            // has focus, and a disabled button would drop it to the page.
+            aria-disabled={disabled || undefined}
+            data-attachment-remove=""
+            onClick={(event) => removeAt(index, event.currentTarget)}
+            className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground aria-disabled:pointer-events-none aria-disabled:opacity-50"
           >
             <X className="size-3" />
           </button>

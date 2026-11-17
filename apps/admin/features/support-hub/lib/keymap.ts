@@ -1,7 +1,7 @@
 /**
  * Support Hub keyboard surface. The table is the single source of truth for
- * the inbox shortcuts; `useInboxShortcuts` consumes it to register
- * `keydown` handlers, and the `<InboxShortcutHints />` footer renders it
+ * the inbox shortcuts; `useInboxShortcuts` registers each entry through the
+ * shared `useShortcut`, and the `<InboxShortcutHints />` footer renders it
  * inside the command palette so the agent can discover the shortcuts
  * without leaving the page.
  *
@@ -14,106 +14,28 @@ export type SupportShortcutAction =
   | "nextConversation"
   | "previousConversation"
   | "resolveConversation"
-  | "openSnoozeMenu"
-  | "closeOverlay";
+  | "openSnoozeMenu";
 
 interface SupportShortcutEntry {
   action: SupportShortcutAction;
   /** Human label rendered in the palette footer. */
   label: string;
-  /** Display text for the `<Kbd />` chip. */
-  chord: string;
-  /** Underlying KeyboardEvent.key the listener matches. */
-  key: string;
-  /** When true, listener requires Cmd (mac) or Ctrl (other). */
-  meta?: boolean;
-  /** When true, listener requires Shift. */
-  shift?: boolean;
-  /** When true, listener requires Alt. */
-  alt?: boolean;
+  /**
+   * Keys in `useShortcut` form: `+`-separated, `mod` is Command on Apple
+   * platforms and Control elsewhere.
+   */
+  keys: string;
 }
 
-export const SUPPORT_INBOX_KEYMAP: SupportShortcutEntry[] = [
+export const SUPPORT_INBOX_KEYMAP = [
   {
     action: "openCommandPalette",
     label: "Open command palette",
-    chord: "Ctrl/Command K",
-    key: "k",
-    meta: true,
+    keys: "mod+k",
   },
-  {
-    action: "nextConversation",
-    label: "Next conversation",
-    chord: "j",
-    key: "j",
-  },
-  {
-    action: "previousConversation",
-    label: "Previous conversation",
-    chord: "k",
-    key: "k",
-  },
-  {
-    action: "resolveConversation",
-    label: "Resolve conversation",
-    chord: "e",
-    key: "e",
-  },
-  {
-    action: "openSnoozeMenu",
-    label: "Snooze",
-    chord: "s",
-    key: "s",
-  },
-  {
-    action: "closeOverlay",
-    label: "Close overlay",
-    chord: "Esc",
-    key: "Escape",
-  },
-];
-
-/**
- * Look up an entry by its keyboard event without scanning the table at every
- * keystroke. The map is built once at module load.
- */
-const ENTRY_BY_KEY: Map<string, SupportShortcutEntry> = new Map(
-  SUPPORT_INBOX_KEYMAP.map((entry) => [shortcutKey(entry), entry] as const),
-);
-
-export function findSupportShortcut(
-  event: Pick<
-    KeyboardEvent,
-    "key" | "metaKey" | "ctrlKey" | "shiftKey" | "altKey"
-  >,
-): SupportShortcutEntry | null {
-  const meta = event.metaKey || event.ctrlKey;
-  return (
-    ENTRY_BY_KEY.get(
-      buildLookupKey(event.key, meta, event.shiftKey, event.altKey),
-    ) ?? null
-  );
-}
-
-function shortcutKey(entry: SupportShortcutEntry): string {
-  return buildLookupKey(
-    entry.key,
-    Boolean(entry.meta),
-    Boolean(entry.shift),
-    Boolean(entry.alt),
-  );
-}
-
-function buildLookupKey(
-  rawKey: string,
-  meta: boolean,
-  shift: boolean,
-  alt: boolean,
-): string {
-  return [
-    meta ? "M" : "",
-    shift ? "S" : "",
-    alt ? "A" : "",
-    rawKey.toLowerCase(),
-  ].join("|");
-}
+  { action: "nextConversation", label: "Next conversation", keys: "j" },
+  { action: "previousConversation", label: "Previous conversation", keys: "k" },
+  { action: "resolveConversation", label: "Resolve conversation", keys: "e" },
+  { action: "openSnoozeMenu", label: "Snooze", keys: "s" },
+  // No Escape entry: the open palette, menu or dialog closes itself on it.
+] as const satisfies readonly SupportShortcutEntry[];

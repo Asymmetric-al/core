@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { setPlatform } from "@ui-sdk/core/testing";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
@@ -25,6 +26,7 @@ const scrollDescriptor = Object.getOwnPropertyDescriptor(
   "scrollIntoView",
 );
 beforeEach(() => {
+  setPlatform("other");
   navigation.pathname = "/";
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
@@ -130,7 +132,7 @@ it.each([
     bubbles: true,
     cancelable: true,
   });
-  fireEvent(window, shortcut);
+  fireEvent(document.body, shortcut);
   expect(shortcut.defaultPrevented).toBe(false);
   expect(view.queryByRole("dialog")).toBeNull();
   expect(navigation.push).not.toHaveBeenCalled();
@@ -157,11 +159,11 @@ it("releases an open workspace palette and its shortcut when returning to login"
   await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
   const shortcut = new KeyboardEvent("keydown", {
     key: "k",
-    metaKey: true,
+    ctrlKey: true,
     bubbles: true,
     cancelable: true,
   });
-  fireEvent(window, shortcut);
+  fireEvent(document.body, shortcut);
   expect(shortcut.defaultPrevented).toBe(false);
   expect(view.queryByRole("dialog")).toBeNull();
   expect(navigation.push).not.toHaveBeenCalled();

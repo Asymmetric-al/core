@@ -52,8 +52,8 @@ import type {
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
- * Inbox-scoped command palette. Opens with `Cmd/Ctrl + K` (wired through
- * `useInboxShortcuts`). Sections:
+ * Inbox-scoped command palette. Opens and closes with `Cmd/Ctrl + K` (wired
+ * through `useInboxShortcuts`). Sections:
  *
  *   1. Navigation       — switch view tabs / layout, jump to inbox
  *   2. This conversation — resolve / pending / snooze / assign / round-robin
@@ -64,7 +64,11 @@ const HOUR_MS = 60 * 60 * 1000;
  * Keeps the global Mission Control dialog untouched — no window listener,
  * no overlap with the global search shortcut.
  */
-export function SupportCommandPalette() {
+export function SupportCommandPalette({
+  searchRef,
+}: {
+  searchRef?: React.Ref<HTMLInputElement>;
+}) {
   const palette = useSupportCommandPalette();
   const { state, setState } = useSupportInboxState();
   const conversations = useSupportConversations();
@@ -209,7 +213,7 @@ export function SupportCommandPalette() {
       description="Run support actions, switch views, or trigger macros without leaving the keyboard."
       showCloseButton
     >
-      <CommandInput placeholder="Search support actions..." />
+      <CommandInput ref={searchRef} placeholder="Search support actions..." />
       <CommandList>
         <CommandEmpty>No actions match.</CommandEmpty>
 

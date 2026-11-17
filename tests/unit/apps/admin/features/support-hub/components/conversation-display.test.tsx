@@ -144,10 +144,10 @@ describe("conversation display", () => {
         }}
       />,
     );
-    expect(screen.getByText(/Snoozed until/)).toBeTruthy();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Snooze conversation" }),
-    );
+    const trigger = screen.getByRole("button", { name: /^Snoozed until / });
+    expect(trigger.textContent).toMatch(/^Snoozed until \S.*\d/);
+    expect(trigger.getAttribute("aria-label")).toBeNull();
+    fireEvent.click(trigger);
     fireEvent.click(
       await screen.findByRole("menuitem", { name: "Wake up now" }),
     );

@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
+import { checkPattern } from "@ui-sdk/core/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) App regression test at the conversation pane's public UI boundary.
@@ -70,7 +72,7 @@ describe("ConversationDetail layouts", () => {
     expect(screen.getByTestId("composer").textContent).toContain("note mode");
 
     fireEvent.click(screen.getByRole("button", { name: "Hide composer" }));
-    expect(screen.getByTestId("composer").closest(".hidden")).not.toBeNull();
+    expect(screen.getByTestId("composer").closest("[hidden]")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Show composer" })).toBeTruthy();
   });
 
@@ -113,8 +115,46 @@ describe("ConversationDetail layouts", () => {
     expect(screen.getByTestId("composer").textContent).toContain("reply mode");
 
     fireEvent.click(screen.getByRole("button", { name: "Hide composer" }));
-    expect(screen.getByTestId("composer").closest(".hidden")).not.toBeNull();
+    expect(screen.getByTestId("composer").closest("[hidden]")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Show composer" })).toBeTruthy();
+  });
+
+  it("hides and shows the composer with one disclosure button that keeps focus and the draft", async () => {
+    render(
+      <ConversationDetail
+        conversationId="c-1"
+        onClose={vi.fn()}
+        layout="inline"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Reply" }));
+    const toggle = screen.getByRole("button", { name: "Hide composer" });
+    const composer = screen.getByTestId("composer");
+    const region = document.getElementById(
+      toggle.getAttribute("aria-controls") ?? "",
+    );
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(region?.contains(composer)).toBe(true);
+
+    toggle.focus();
+    fireEvent.click(toggle);
+    // Same element: focus stays on it instead of dropping to the page.
+    expect(screen.getByRole("button", { name: "Show composer" })).toBe(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(toggle);
+    expect(region?.hidden).toBe(true);
+    expect(screen.getByTestId("composer")).toBe(composer);
+
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Hide composer" })).toBe(toggle);
+    expect(region?.hidden).toBe(false);
+
+    await act(async () => {
+      await checkPattern(
+        toggle.closest('[data-slot="collapsible"]')!,
+        "disclosure",
+      );
+    });
   });
 
   it("lets keyboard users focus the scrolling thread", () => {

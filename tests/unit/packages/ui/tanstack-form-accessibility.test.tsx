@@ -185,6 +185,16 @@ describe("shared form accessible relationships", () => {
     ).toBe("Enter your full name");
   });
 
+  it("names the select and its open listbox after the field label, not the selected value", async () => {
+    render(<FormExample />);
+    const trigger = screen.getByRole("combobox", { name: "Frequency" });
+    const label = screen.getByText("Frequency");
+    expect(trigger.getAttribute("aria-labelledby")).toBe(label.id);
+    fireEvent.click(trigger);
+    const listbox = await screen.findByRole("listbox", { name: "Frequency" });
+    expect(listbox.getAttribute("aria-labelledby")).toBe(label.id);
+  });
+
   it("renders the selected option label before the select first opens", () => {
     render(<FormExample />);
     expect(screen.getByRole("combobox").textContent).toContain("Every month");

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -116,23 +117,36 @@ function setup({
     { id: 3, collectionSlug: "missionary-giving-pages" },
   ],
   failLoad = false,
+  savePin,
 }: {
   pinned?: DashboardDocument[];
   storedPins?: Array<{ id: string | number; collectionSlug: string }>;
   failLoad?: boolean;
+  /** Held open to observe the row while its unpin saves. */
+  savePin?: Promise<void>;
 } = {}) {
   let stored = storedPins;
   fixture.serverFunction.mockImplementation(
     async ({ name, args }: { name: string; args: { tab: string } }) => {
       expect(name).toBe("get-dashboard-documents");
       if (failLoad) throw new Error("offline");
-      const items = args.tab === "pinned" ? pinned : VIEWED;
+      const items =
+        args.tab === "pinned"
+          ? pinned.filter((doc) =>
+              stored.some(
+                (pin) =>
+                  pin.id === doc.id &&
+                  pin.collectionSlug === doc.collectionSlug,
+              ),
+            )
+          : VIEWED;
       return { items, page: 1, totalDocs: items.length };
     },
   );
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     expect(url).toBe("/api/cms/payload-preferences/pinned-documents");
     if (init?.method === "POST") {
+      await savePin;
       stored = (JSON.parse(String(init.body)) as { value: { items: [] } }).value
         .items;
       return Response.json({});
@@ -169,6 +183,12 @@ it("lists pinned documents with Studio names and the lists' status words", async
   });
 });
 
+it("names the tab list after the card heading", async () => {
+  setup();
+  await screen.findByRole("list", { name: "Pinned documents" });
+  expect(screen.getByRole("tablist", { name: "Your documents" })).toBeTruthy();
+});
+
 it("unpins through Payload's pinned-documents preference and refreshes", async () => {
   const { stored } = setup();
   fireEvent.click(
@@ -185,6 +205,48 @@ it("unpins through Payload's pinned-documents preference and refreshes", async (
         ([call]) => (call as { args: { tab: string } }).args.tab === "pinned",
       ).length,
     ).toBeGreaterThan(1),
+  );
+});
+
+it("keeps focus on Unpin while it saves, then hands it to the next row", async () => {
+  const save = Promise.withResolvers<void>();
+  setup({ savePin: save.promise });
+  const unpin = await screen.findByRole("button", {
+    name: "Unpin Year-End Giving",
+  });
+  unpin.focus();
+  fireEvent.click(unpin);
+  await waitFor(() => expect(unpin.getAttribute("aria-disabled")).toBe("true"));
+  expect(unpin.hasAttribute("disabled")).toBe(false);
+  expect(document.activeElement).toBe(unpin);
+
+  await act(async () => save.resolve());
+  const next = screen.getByRole("button", {
+    name: "Unpin Grace Okafor - Give",
+  });
+  await waitFor(() => expect(document.activeElement).toBe(next));
+  expect(unpin.isConnected).toBe(false);
+  expect(screen.getByRole("status").textContent).toBe(
+    "Unpinned Year-End Giving",
+  );
+});
+
+it("hands focus to the previous row, then the tab panel when the list empties", async () => {
+  setup();
+  const last = await screen.findByRole("button", {
+    name: "Unpin Grace Okafor - Give",
+  });
+  last.focus();
+  fireEvent.click(last);
+  const previous = screen.getByRole("button", {
+    name: "Unpin Year-End Giving",
+  });
+  await waitFor(() => expect(document.activeElement).toBe(previous));
+
+  fireEvent.click(previous);
+  await screen.findByText("No pinned documents");
+  expect(document.activeElement).toBe(
+    screen.getByRole("tabpanel", { name: "Pinned" }),
   );
 });
 
@@ -230,6 +292,46 @@ it("shows an inline error with Retry when the lists cannot load", async () => {
   await waitFor(() =>
     expect(fixture.serverFunction.mock.calls.length).toBeGreaterThan(before),
   );
+});
+
+async function pressRetryAfterFailedLoad() {
+  setup({ failLoad: true });
+  const alert = await screen.findByRole("alert");
+  const retry = within(alert).getByRole("button", { name: "Retry" });
+  const retried = Promise.withResolvers<{
+    items: DashboardDocument[];
+    page: number;
+    totalDocs: number;
+  }>();
+  fixture.serverFunction.mockImplementationOnce(() => retried.promise);
+  retry.focus();
+  fireEvent.click(retry);
+  // Busy but still on screen, so focus stays on the button just pressed.
+  await waitFor(() => expect(retry.getAttribute("aria-disabled")).toBe("true"));
+  expect(retry.isConnected).toBe(true);
+  expect(document.activeElement).toBe(retry);
+  return { retry, retried };
+}
+
+it("keeps focus on Retry while a failed load retries, then hands it to the documents", async () => {
+  const { retry, retried } = await pressRetryAfterFailedLoad();
+  await act(async () =>
+    retried.resolve({ items: PINNED, page: 1, totalDocs: PINNED.length }),
+  );
+  const list = await screen.findByRole("list", { name: "Pinned documents" });
+  expect(retry.isConnected).toBe(false);
+  expect(document.activeElement).toBe(within(list).getAllByRole("link")[0]);
+});
+
+it("keeps focus on Retry when the retry fails again", async () => {
+  const { retry, retried } = await pressRetryAfterFailedLoad();
+  await act(async () => retried.reject(new Error("offline")));
+  await waitFor(() =>
+    expect(retry.getAttribute("aria-disabled")).not.toBe("true"),
+  );
+  expect(retry.isConnected).toBe(true);
+  expect(document.activeElement).toBe(retry);
+  expect(screen.getByText("Couldn't load documents")).toBeTruthy();
 });
 
 it("moves back to the last page when unpinning empties the current one", async () => {
@@ -284,7 +386,9 @@ it("moves back to the last page when unpinning empties the current one", async (
 
   await screen.findByText("Page 1 of 2");
   fireEvent.click(screen.getByRole("button", { name: "Next page" }));
-  fireEvent.click(await screen.findByRole("button", { name: "Unpin Doc 6" }));
+  const unpin = await screen.findByRole("button", { name: "Unpin Doc 6" });
+  unpin.focus();
+  fireEvent.click(unpin);
 
   await waitFor(() =>
     expect(
@@ -294,6 +398,12 @@ it("moves back to the last page when unpinning empties the current one", async (
     ).toHaveLength(5),
   );
   expect(screen.getByRole("link", { name: "Doc 1" })).toBeTruthy();
+  // Doc 5 came just before the removed row, on the page now shown.
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Unpin Doc 5" }),
+    ),
+  );
   expect(screen.queryByText("No pinned documents")).toBeNull();
   expect(fixture.serverFunction).toHaveBeenLastCalledWith({
     name: "get-dashboard-documents",
@@ -335,12 +445,125 @@ it("keeps Previous on a page another session emptied", async () => {
   );
   await screen.findByText("Page 1 of 2");
   total = 5;
-  fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+  const next = screen.getByRole("button", { name: "Next page" });
+  next.focus();
+  fireEvent.click(next);
 
   await screen.findByText("No documents on this page.");
   expect(screen.queryByText("No pinned documents")).toBeNull();
+  // The pager stays the same element, so the pressed button keeps focus.
+  expect(document.activeElement).toBe(next);
   const previous = screen.getByRole("button", { name: "Previous page" });
-  expect(previous.hasAttribute("disabled")).toBe(false);
+  expect(previous.getAttribute("aria-disabled")).not.toBe("true");
+  previous.focus();
   fireEvent.click(previous);
   await screen.findByRole("link", { name: "Doc 5" });
+  // One page is left, so the pager goes; focus moves to the list it acted on.
+  await waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Previous page" })).toBeNull(),
+  );
+  expect(document.activeElement).toBe(
+    screen.getByRole("link", { name: "Doc 1" }),
+  );
+});
+
+function renderPages({
+  total,
+  loadPage,
+}: {
+  total: number;
+  /** Awaited before every pinned page after the first and every recents load. */
+  loadPage: () => Promise<void>;
+}) {
+  const docs = Array.from({ length: total }, (_, index) => ({
+    ...PINNED[0]!,
+    id: index + 1,
+    title: `Doc ${index + 1}`,
+    href: `/web-studio/collections/pages/${index + 1}`,
+  }));
+  fixture.serverFunction.mockImplementation(
+    async ({ args }: { args: { tab: string; page: number } }) => {
+      if (args.tab !== "pinned") {
+        await loadPage();
+        return { items: VIEWED, page: 1, totalDocs: VIEWED.length };
+      }
+      if (args.page > 1) await loadPage();
+      const start = (args.page - 1) * 5;
+      return {
+        items: docs.slice(start, start + 5),
+        page: args.page,
+        totalDocs: total,
+      };
+    },
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => Response.json({ value: { items: [] } })),
+  );
+  render(
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
+      <YourDocuments />
+    </QueryClientProvider>,
+  );
+}
+
+it("keeps the page, pager and focus on screen while the next page loads", async () => {
+  const pageTwo = Promise.withResolvers<void>();
+  renderPages({ total: 7, loadPage: () => pageTwo.promise });
+  const status = await screen.findByText("Page 1 of 2");
+  const next = screen.getByRole("button", { name: "Next page" });
+  next.focus();
+  fireEvent.click(next);
+
+  await waitFor(() =>
+    expect(fixture.serverFunction).toHaveBeenCalledWith({
+      name: "get-dashboard-documents",
+      args: { limit: 5, page: 2, tab: "pinned" },
+    }),
+  );
+  expect(screen.getByRole("link", { name: "Doc 1" })).toBeTruthy();
+  expect(document.activeElement).toBe(next);
+  expect(next.getAttribute("aria-disabled")).toBe("true");
+  expect(next.hasAttribute("disabled")).toBe(false);
+
+  await act(async () => pageTwo.resolve());
+  await screen.findByRole("link", { name: "Doc 6" });
+  // The same live region announces the new page.
+  expect(status.isConnected).toBe(true);
+  expect(status.textContent).toBe("Page 2 of 2");
+  expect(status.getAttribute("aria-live")).toBe("polite");
+  // At the end Next is unavailable but keeps focus instead of dropping it.
+  expect(document.activeElement).toBe(next);
+  expect(next.getAttribute("aria-disabled")).toBe("true");
+  expect(next.hasAttribute("disabled")).toBe(false);
+});
+
+it("never shows one tab's documents under the other while it loads", async () => {
+  const recents = Promise.withResolvers<void>();
+  renderPages({ total: 2, loadPage: () => recents.promise });
+  await screen.findByRole("link", { name: "Doc 1" });
+  fireEvent.click(screen.getByRole("tab", { name: "Recently viewed" }));
+  const panel = screen.getByRole("tabpanel", { name: "Recently viewed" });
+  expect(within(panel).queryByRole("link", { name: "Doc 1" })).toBeNull();
+  await act(async () => recents.resolve());
+  await within(panel).findByRole("link", { name: /Clinic photo/ });
+});
+
+it("moves focus to Retry when the next page fails to load", async () => {
+  renderPages({
+    total: 7,
+    loadPage: () => Promise.reject(new Error("offline")),
+  });
+  await screen.findByText("Page 1 of 2");
+  const next = screen.getByRole("button", { name: "Next page" });
+  next.focus();
+  fireEvent.click(next);
+  const alert = await screen.findByRole("alert");
+  expect(document.activeElement).toBe(
+    within(alert).getByRole("button", { name: "Retry" }),
+  );
 });

@@ -88,6 +88,7 @@ function DataTableResponsiveEmptyState() {
 
 function DataTableResponsiveResults<TData extends RowData, TValue>({
   table,
+  label,
   tableColumnsLength,
   keyboard,
   keyboardStyles,
@@ -110,6 +111,7 @@ function DataTableResponsiveResults<TData extends RowData, TValue>({
   getRowActionAriaLabel,
 }: {
   table: Table<TData>;
+  label?: string;
   tableColumnsLength: number;
   keyboard: UseDataTableKeyboardReturn;
   keyboardStyles: ReturnType<typeof getKeyboardNavigationStyles>;
@@ -147,6 +149,7 @@ function DataTableResponsiveResults<TData extends RowData, TValue>({
       {showTable && (
         <DataTableResponsiveTableView
           table={table}
+          label={label}
           tableColumnsLength={tableColumnsLength}
           keyboard={keyboard}
           keyboardStyles={keyboardStyles}
@@ -222,6 +225,7 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
   tableState,
   columns,
   data,
+  label,
   filterFields = EMPTY_RESPONSIVE_FILTER_FIELDS as DataTableFilterField<TData>[],
   advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
   searchKey,
@@ -453,6 +457,7 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
 
       <DataTableResponsiveResults
         table={table}
+        label={label}
         tableColumnsLength={tableColumns.length}
         keyboard={keyboard}
         keyboardStyles={keyboardStyles}

@@ -1,6 +1,12 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { EmailStudioTemplatePickerDialog } from "../../../../../apps/admin/app/(app)/email/email-studio-template-picker-dialog";
@@ -68,6 +74,44 @@ describe("Email Studio dialogs", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(retry).toHaveBeenCalledOnce();
+  });
+
+  it("lists saved templates as list items that each hold their open button", () => {
+    const onSelect = vi.fn();
+    const template = (id: string, name: string, builder: string) => ({
+      id,
+      name,
+      builder,
+      builder_version: "1",
+      version: 2,
+      html_content: null,
+      text_content: null,
+      default_subject: null,
+      default_preheader: null,
+      design_json: null,
+    });
+    const templates = [
+      template("tmpl_news", "Newsletter", "react_email"),
+      template("tmpl_old", "Old receipt", "unlayer"),
+    ];
+    render(
+      <EmailStudioTemplatePickerDialog
+        open
+        onOpenChange={vi.fn()}
+        templates={templates}
+        isLoading={false}
+        isError={false}
+        onRetry={vi.fn()}
+        onSelect={onSelect}
+      />,
+    );
+    const list = screen.getByRole("list");
+    const items = within(list).getAllByRole("listitem");
+    expect(items).toHaveLength(2);
+    expect(Array.from(list.children)).toEqual(items);
+    const open = within(items[1]!).getByRole("button", { name: /Old receipt/ });
+    fireEvent.click(open);
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(templates[1]);
   });
 
   it("labels and focuses the truncated HTML preview without changing the full export", () => {

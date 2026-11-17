@@ -178,6 +178,36 @@ describe("record action menu groups", () => {
     },
   );
 
+  it("names each gift's menu by its amount, donor and date, not the donor alone", () => {
+    render(
+      <>
+        <ActionCell
+          columns={getContributionColumns({ onViewContribution: vi.fn() })}
+          record={contribution}
+        />
+        <ActionCell
+          columns={getContributionColumns({ onViewContribution: vi.fn() })}
+          record={{
+            ...contribution,
+            id: "contribution-2",
+            shared: { ...contribution.shared, amountCents: 2500 },
+            date: "2026-04-15T12:00:00.000Z",
+          }}
+        />
+      </>,
+    );
+    // A recurring donor's gifts must not share one name.
+    const names = screen
+      .getAllByRole("button", { name: /^Contribution actions for/ })
+      .map((button) => button.getAttribute("aria-label"));
+    expect(names).toEqual([
+      expect.stringMatching(
+        /^Contribution actions for \$100\.00 from Ada Lovelace on May \d{1,2}, 2026$/,
+      ),
+      "Contribution actions for $25.00 from Ada Lovelace on Apr 15, 2026",
+    ]);
+  });
+
   it("includes both contribution actions in the labelled group", async () => {
     const onViewContribution = vi.fn();
     render(
@@ -188,7 +218,7 @@ describe("record action menu groups", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Contribution actions for Ada Lovelace",
+        name: /^Contribution actions for \$100\.00 from Ada Lovelace on /,
       }),
     );
     const group = await screen.findByRole("group", { name: "Actions" });
@@ -220,7 +250,7 @@ describe("record action menu groups", () => {
       );
       fireEvent.click(
         screen.getByRole("button", {
-          name: "Contribution actions for Ada Lovelace",
+          name: /^Contribution actions for \$100\.00 from Ada Lovelace on /,
         }),
       );
       fireEvent.click(
@@ -249,7 +279,7 @@ describe("record action menu groups", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Contribution actions for Ada Lovelace",
+        name: /^Contribution actions for \$100\.00 from Ada Lovelace on /,
       }),
     );
     const group = await screen.findByRole("group", { name: "Actions" });
@@ -277,7 +307,7 @@ describe("record action menu groups", () => {
       );
       fireEvent.click(
         screen.getByRole("button", {
-          name: "Contribution actions for Ada Lovelace",
+          name: /^Contribution actions for \$100\.00 from Ada Lovelace on /,
         }),
       );
       fireEvent.click(

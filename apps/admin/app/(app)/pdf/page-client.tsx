@@ -9,6 +9,11 @@ import {
   type DocumentTemplateV1,
   type TemplateCategory,
 } from "@asym/pdf-template-schema";
+import {
+  ShortcutHint,
+  useShortcut,
+  useShortcutHint,
+} from "@asym/ui/components/primitives/shortcut";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   AlertDialog,
@@ -51,7 +56,6 @@ import {
   FieldDescription,
 } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Kbd } from "@asym/ui/components/shadcn/kbd";
 import {
   Select,
   SelectContent,
@@ -118,7 +122,7 @@ import {
   StudioDiscardDialog,
   useStudioDiscardGuard,
 } from "../../../features/studios/studio-discard-guard";
-import { usePlatformModifierLabel } from "../../../features/studios/use-platform-modifier";
+import { useStudioSaveShortcut } from "../../../features/studios/studio-save-shortcut";
 
 import type { PDFTemplateCategory, PDFTemplateEngine } from "@/lib/pdf-studio";
 import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
@@ -139,6 +143,16 @@ import {
 } from "@/lib/pdf-studio";
 
 type PreviewDevice = StudioPreviewDevice;
+
+// One key string per action: the controller registers it and the header
+// prints it.
+const PDF_STUDIO_SHORTCUTS = {
+  save: "mod+s",
+  undo: "mod+z",
+  redo: "mod+shift+z",
+  exportHtml: "mod+e",
+  exitFullscreen: "escape",
+} as const;
 
 interface PDFMetadata {
   id: string | null;
@@ -444,7 +458,13 @@ export function PDFStudioHeaderSection({
   },
 }: PDFStudioHeaderSectionProps) {
   const exportNoteId = useId();
-  const modifier = usePlatformModifierLabel();
+  const saveShortcut = useShortcutHint(PDF_STUDIO_SHORTCUTS.save);
+  const undoShortcut = useShortcutHint(PDF_STUDIO_SHORTCUTS.undo);
+  const redoShortcut = useShortcutHint(PDF_STUDIO_SHORTCUTS.redo);
+  const exportShortcut = useShortcutHint(PDF_STUDIO_SHORTCUTS.exportHtml);
+  const exitFullscreenShortcut = useShortcutHint(
+    PDF_STUDIO_SHORTCUTS.exitFullscreen,
+  );
   return (
     <>
       <header className="h-12 md:h-14 bg-background border-b border-border flex items-center justify-between px-2 md:px-4 shrink-0 z-20">
@@ -473,6 +493,7 @@ export function PDFStudioHeaderSection({
             <Tooltip>
               <TooltipTrigger
                 aria-label="Undo"
+                aria-keyshortcuts={undoShortcut.ariaKeyshortcuts}
                 render={
                   <Button
                     variant="ghost"
@@ -486,12 +507,16 @@ export function PDFStudioHeaderSection({
               />
               <TooltipContent side="bottom">
                 <p>Undo</p>
-                <Kbd className="ml-1.5">{modifier}+Z</Kbd>
+                <ShortcutHint
+                  keys={PDF_STUDIO_SHORTCUTS.undo}
+                  className="ml-1.5"
+                />
               </TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger
                 aria-label="Redo"
+                aria-keyshortcuts={redoShortcut.ariaKeyshortcuts}
                 render={
                   <Button
                     variant="ghost"
@@ -505,7 +530,10 @@ export function PDFStudioHeaderSection({
               />
               <TooltipContent side="bottom">
                 <p>Redo</p>
-                <Kbd className="ml-1.5">{modifier}+Shift+Z</Kbd>
+                <ShortcutHint
+                  keys={PDF_STUDIO_SHORTCUTS.redo}
+                  className="ml-1.5"
+                />
               </TooltipContent>
             </Tooltip>
           </div>
@@ -587,12 +615,17 @@ export function PDFStudioHeaderSection({
                   ? "Test render with sample data"
                   : "Export as PDF"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onExportHtml}>
+              <DropdownMenuItem
+                onClick={onExportHtml}
+                aria-keyshortcuts={exportShortcut.ariaKeyshortcuts}
+              >
                 <FileCode className="size-4 mr-2" />
                 {engine === "asym_pdf_document_builder"
                   ? "Export as JSON"
                   : "Export as HTML"}
-                <DropdownMenuShortcut>{modifier}+E</DropdownMenuShortcut>
+                <DropdownMenuShortcut aria-hidden="true">
+                  {exportShortcut.text}
+                </DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -601,6 +634,7 @@ export function PDFStudioHeaderSection({
             onClick={onSaveClick}
             disabled={!isEditorReady || isSaving}
             isSaving={isSaving}
+            aria-keyshortcuts={saveShortcut.ariaKeyshortcuts}
           />
 
           <DropdownMenu>
@@ -627,14 +661,25 @@ export function PDFStudioHeaderSection({
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onToggleFullscreen}>
+              <DropdownMenuItem
+                onClick={onToggleFullscreen}
+                aria-keyshortcuts={
+                  isFullscreen
+                    ? exitFullscreenShortcut.ariaKeyshortcuts
+                    : undefined
+                }
+              >
                 {isFullscreen ? (
                   <Minimize2 className="size-4 mr-2" />
                 ) : (
                   <Maximize2 className="size-4 mr-2" />
                 )}
                 {isFullscreen ? "Exit full screen" : "Full screen"}
-                <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
+                {isFullscreen ? (
+                  <DropdownMenuShortcut aria-hidden="true">
+                    {exitFullscreenShortcut.text}
+                  </DropdownMenuShortcut>
+                ) : null}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -698,163 +743,176 @@ export function PDFSaveDialogSection({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-130">
-        <DialogHeader>
-          <DialogTitle>
-            <span className="flex items-center gap-2">
-              <span className="p-2 rounded-lg bg-chart-3/10">
-                <Save className="size-4 text-foreground" />
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!isSaving && metadata.name.trim()) onConfirmSave();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              <span className="flex items-center gap-2">
+                <span className="p-2 rounded-lg bg-chart-3/10">
+                  <Save className="size-4 text-foreground" />
+                </span>
+                {metadata.id ? "Update PDF Template" : "Save PDF Template"}
               </span>
-              {metadata.id ? "Update PDF Template" : "Save PDF Template"}
-            </span>
-          </DialogTitle>
-          <DialogDescription>
-            Enter the details for your PDF template. These will help organize
-            your documents.
-          </DialogDescription>
-        </DialogHeader>
-        <FieldGroup className="py-4">
-          <Field>
-            <FieldLabel htmlFor={`${fieldId}-name`}>
-              Template Name <span className="text-destructive">*</span>
-            </FieldLabel>
-            <Input
-              id={`${fieldId}-name`}
-              required
-              aria-required="true"
-              value={metadata.name}
-              onChange={(e) =>
-                setMetadata((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="e.g., Annual Tax Receipt"
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-4">
+            </DialogTitle>
+            <DialogDescription>
+              Enter the details for your PDF template. These will help organize
+              your documents.
+            </DialogDescription>
+          </DialogHeader>
+          <FieldGroup className="py-4">
             <Field>
-              <FieldLabel htmlFor={`${fieldId}-category`}>Category</FieldLabel>
+              <FieldLabel htmlFor={`${fieldId}-name`}>
+                Template Name <span className="text-destructive">*</span>
+              </FieldLabel>
+              <Input
+                id={`${fieldId}-name`}
+                required
+                aria-required="true"
+                value={metadata.name}
+                onChange={(e) =>
+                  setMetadata((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="e.g., Annual Tax Receipt"
+              />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel htmlFor={`${fieldId}-category`}>
+                  Category
+                </FieldLabel>
+                <Select
+                  value={metadata.category}
+                  onValueChange={(value) => {
+                    if (value === null) {
+                      return;
+                    }
+                    setMetadata((prev) => ({
+                      ...prev,
+                      category: value as PDFTemplateCategory,
+                    }));
+                  }}
+                >
+                  <SelectTrigger id={`${fieldId}-category`}>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PDF_TEMPLATE_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor={`${fieldId}-pageSize`}>
+                  Page Size
+                </FieldLabel>
+                <Select
+                  value={metadata.pageSize}
+                  onValueChange={(value) => {
+                    if (value === null) {
+                      return;
+                    }
+                    setMetadata((prev) => ({ ...prev, pageSize: value }));
+                  }}
+                >
+                  <SelectTrigger id={`${fieldId}-pageSize`}>
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZES.map((size) => (
+                      <SelectItem key={size.value} value={size.value}>
+                        {size.label} ({size.dimensions})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-orientation`}>
+                Orientation
+              </FieldLabel>
               <Select
-                value={metadata.category}
+                value={metadata.orientation}
                 onValueChange={(value) => {
                   if (value === null) {
                     return;
                   }
+                  setMetadata((prev) => ({ ...prev, orientation: value }));
+                }}
+              >
+                <SelectTrigger id={`${fieldId}-orientation`}>
+                  <SelectValue placeholder="Select orientation" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORIENTATIONS.map((orientation) => (
+                    <SelectItem
+                      key={orientation.value}
+                      value={orientation.value}
+                    >
+                      {orientation.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-description`}>
+                Description
+              </FieldLabel>
+              <Textarea
+                id={`${fieldId}-description`}
+                aria-describedby={`${fieldId}-description-hint`}
+                value={metadata.description}
+                onChange={(e) =>
                   setMetadata((prev) => ({
                     ...prev,
-                    category: value as PDFTemplateCategory,
-                  }));
-                }}
-              >
-                <SelectTrigger id={`${fieldId}-category`}>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PDF_TEMPLATE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor={`${fieldId}-pageSize`}>Page Size</FieldLabel>
-              <Select
-                value={metadata.pageSize}
-                onValueChange={(value) => {
-                  if (value === null) {
-                    return;
-                  }
-                  setMetadata((prev) => ({ ...prev, pageSize: value }));
-                }}
-              >
-                <SelectTrigger id={`${fieldId}-pageSize`}>
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAGE_SIZES.map((size) => (
-                    <SelectItem key={size.value} value={size.value}>
-                      {size.label} ({size.dimensions})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </div>
-
-          <Field>
-            <FieldLabel htmlFor={`${fieldId}-orientation`}>
-              Orientation
-            </FieldLabel>
-            <Select
-              value={metadata.orientation}
-              onValueChange={(value) => {
-                if (value === null) {
-                  return;
+                    description: e.target.value,
+                  }))
                 }
-                setMetadata((prev) => ({ ...prev, orientation: value }));
-              }}
+                placeholder="Brief description of this template's purpose…"
+              />
+              <FieldDescription id={`${fieldId}-description-hint`}>
+                A brief description helps team members understand when to use
+                this template.
+              </FieldDescription>
+            </Field>
+          </FieldGroup>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSaving}
+              onClick={() => onOpenChange(false)}
             >
-              <SelectTrigger id={`${fieldId}-orientation`}>
-                <SelectValue placeholder="Select orientation" />
-              </SelectTrigger>
-              <SelectContent>
-                {ORIENTATIONS.map((orientation) => (
-                  <SelectItem key={orientation.value} value={orientation.value}>
-                    {orientation.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor={`${fieldId}-description`}>
-              Description
-            </FieldLabel>
-            <Textarea
-              id={`${fieldId}-description`}
-              aria-describedby={`${fieldId}-description-hint`}
-              value={metadata.description}
-              onChange={(e) =>
-                setMetadata((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              placeholder="Brief description of this template's purpose…"
-            />
-            <FieldDescription id={`${fieldId}-description-hint`}>
-              A brief description helps team members understand when to use this
-              template.
-            </FieldDescription>
-          </Field>
-        </FieldGroup>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            disabled={isSaving}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirmSave}
-            disabled={!metadata.name.trim() || isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Spinner data-icon="inline-start" />
-                Saving…
-              </>
-            ) : (
-              <>
-                <Save className="size-4 mr-2" />
-                {metadata.id ? "Update template" : "Save template"}
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!metadata.name.trim() || isSaving}>
+              {isSaving ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  <Save className="size-4 mr-2" />
+                  {metadata.id ? "Update template" : "Save template"}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
@@ -1453,73 +1511,45 @@ export function usePDFStudioController() {
     dispatchUi({ type: "set_exporting", value: false });
   }, [metadata.engine, nativeTemplateText, studioConfig]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+  // The studio's dialogs are Base UI dialogs, so the shared shortcut owner
+  // pauses the other keys while one of them holds focus.
+  useStudioSaveShortcut(PDF_STUDIO_SHORTCUTS.save, {
+    saveDialogOpen: showSaveDialog,
+    otherDialogOpen:
+      showExportDialog ||
+      showDeleteDialog ||
+      showTemplatePicker ||
+      discardGuard.pending,
+    openSaveDialog: () => {
       if (
-        e.defaultPrevented ||
-        e.isComposing ||
-        showSaveDialog ||
-        showExportDialog ||
-        showDeleteDialog ||
-        showTemplatePicker ||
-        discardGuard.pending
-      )
-        return;
-      const key = e.key.toLowerCase();
-      if ((e.metaKey || e.ctrlKey) && key === "s") {
-        e.preventDefault();
-        if (
-          (isEditorReady || metadata.engine === "asym_pdf_document_builder") &&
-          !isSaving &&
-          !isExporting
-        ) {
-          handleSaveClick();
-        }
-        return;
+        (isEditorReady || metadata.engine === "asym_pdf_document_builder") &&
+        !isSaving &&
+        !isExporting
+      ) {
+        handleSaveClick();
       }
-      if (
-        e.target instanceof HTMLElement &&
-        e.target.closest(
-          'input, textarea, select, [contenteditable]:not([contenteditable="false"])',
-        )
-      )
-        return;
-      if ((e.metaKey || e.ctrlKey) && key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && key === "z") {
-        e.preventDefault();
-        handleRedo();
-      }
-      if ((e.metaKey || e.ctrlKey) && key === "e") {
-        e.preventDefault();
-        handleExportHtml();
-      }
-      if (e.key === "Escape" && isFullscreen) {
-        dispatchUi({ type: "set_fullscreen", value: false });
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    isEditorReady,
-    isSaving,
-    isExporting,
-    metadata.engine,
-    showSaveDialog,
-    showExportDialog,
-    showDeleteDialog,
-    showTemplatePicker,
-    discardGuard.pending,
-    isFullscreen,
-    handleSaveClick,
-    handleUndo,
-    handleRedo,
-    handleExportHtml,
-    handleExportPDF,
-  ]);
+    },
+  });
+  useShortcut(PDF_STUDIO_SHORTCUTS.undo, handleUndo, {
+    description: "Undo",
+    repeat: true,
+  });
+  useShortcut(PDF_STUDIO_SHORTCUTS.redo, handleRedo, {
+    description: "Redo",
+    repeat: true,
+  });
+  useShortcut(
+    PDF_STUDIO_SHORTCUTS.exportHtml,
+    () => {
+      void handleExportHtml();
+    },
+    { description: "Export template source" },
+  );
+  useShortcut(
+    isFullscreen ? PDF_STUDIO_SHORTCUTS.exitFullscreen : null,
+    () => dispatchUi({ type: "set_fullscreen", value: false }),
+    { description: "Exit full screen" },
+  );
 
   const handleEditorReady = useCallback(
     (config: PDFStudioFullConfig | EmailStudioFullConfig) => {

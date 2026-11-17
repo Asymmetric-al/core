@@ -39,7 +39,7 @@ import {
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import {
   normalizeVisibility,
@@ -53,6 +53,15 @@ const SHORT_DATE: Intl.DateTimeFormatOptions = {
   day: "numeric",
   year: "numeric",
 };
+
+// Names a card's controls so each one says which update it acts on.
+function usePostName(post: Post) {
+  const { formatDate } = useLocaleFormat();
+  return (
+    post.title?.trim() ||
+    `${postTypeLabel(post.post_type)} from ${formatDate(post.created_at, SHORT_DATE)}`
+  );
+}
 
 function MediaImage({ url, alt }: { url: string; alt: string }) {
   const [failed, setFailed] = useState(false);
@@ -74,7 +83,7 @@ function MediaImage({ url, alt }: { url: string; alt: string }) {
   );
 }
 
-function PostMedia({ post }: { post: Post }) {
+function PostMedia({ post, name }: { post: Post; name: string }) {
   const media = (post.media ?? []).filter((item) => item.type === "image");
   if (media.length === 0) return null;
   const alt = post.title?.trim() || "Photo from this update";
@@ -83,7 +92,7 @@ function PostMedia({ post }: { post: Post }) {
       {media.length === 1 ? (
         <MediaImage url={media[0]!.url} alt={alt} />
       ) : (
-        <Carousel>
+        <Carousel aria-label={`Photos from ${name}`}>
           <CarouselContent>
             {media.map((item, index) => (
               <CarouselItem key={`${item.type}-${item.url}`}>
@@ -103,10 +112,12 @@ function PostMedia({ post }: { post: Post }) {
 }
 
 function PostMenu({
+  name,
   onEdit,
   onDelete,
   editLabel,
 }: {
+  name: string;
   onEdit: () => void;
   onDelete: () => void;
   editLabel: string;
@@ -115,7 +126,11 @@ function PostMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" aria-label="Update actions">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Update actions for ${name}`}
+          >
             <MoreHorizontal aria-hidden />
           </Button>
         }
@@ -156,6 +171,10 @@ export function PublishedPostCard({
     : "Unknown author";
   const visibility = normalizeVisibility(post.visibility);
   const headline = post.title?.trim();
+  const name = usePostName(post);
+  const headlineId = useId();
+  const typeId = useId();
+  const dateId = useId();
 
   return (
     <Card>
@@ -170,27 +189,37 @@ export function PublishedPostCard({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-medium text-foreground">{authorName}</p>
-              <Badge variant="outline">{postTypeLabel(post.post_type)}</Badge>
+              <Badge id={typeId} variant="outline">
+                {postTypeLabel(post.post_type)}
+              </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {formatDate(post.created_at, SHORT_DATE)} ·{" "}
-              {VISIBILITY_LABELS[visibility]}
+              <span id={dateId}>{formatDate(post.created_at, SHORT_DATE)}</span>{" "}
+              · {VISIBILITY_LABELS[visibility]}
             </p>
           </div>
         </div>
         <CardAction>
-          <PostMenu onEdit={onEdit} onDelete={onDelete} editLabel="Edit" />
+          <PostMenu
+            name={name}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            editLabel="Edit"
+          />
         </CardAction>
       </CardHeader>
       {/* Title, photos, then text: the order supporters see in their
           Updates feed, so the author previews the real layout. */}
       <CardContent className="flex flex-col gap-4">
         {headline ? (
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">
+          <h2
+            id={headlineId}
+            className="text-lg font-semibold tracking-tight text-foreground"
+          >
             {headline}
           </h2>
         ) : null}
-        <PostMedia post={post} />
+        <PostMedia post={post} name={name} />
         <PostContent value={post.content} />
         <div className="border-t border-border pt-4">
           <ReactionBar
@@ -198,6 +227,7 @@ export function PublishedPostCard({
             reactions={["love", "prayer"]}
             appearance="quiet"
             comments="read"
+            describedBy={headline ? headlineId : `${typeId} ${dateId}`}
           />
         </div>
       </CardContent>
@@ -217,6 +247,7 @@ export function DraftPostCard({
 }) {
   const { formatDate } = useLocaleFormat();
   const headline = post.title?.trim() || "Untitled draft";
+  const name = usePostName(post);
   return (
     <Card>
       <CardHeader>
@@ -229,6 +260,7 @@ export function DraftPostCard({
         </CardDescription>
         <CardAction>
           <PostMenu
+            name={name}
             onEdit={onEdit}
             onDelete={onDelete}
             editLabel="Keep writing"
@@ -241,7 +273,7 @@ export function DraftPostCard({
         </div>
       </CardContent>
       <CardFooter>
-        <Button size="sm" onClick={onEdit}>
+        <Button size="sm" onClick={onEdit} aria-label={`Keep writing ${name}`}>
           Keep writing
         </Button>
       </CardFooter>

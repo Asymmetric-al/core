@@ -36,6 +36,7 @@ type ProfilePageUiState = {
   previewMode: PreviewMode;
   saveSuccess: boolean;
   validationErrors: ValidationErrors;
+  rejectedSaveCount: number;
 };
 
 type ProfilePageUiAction =
@@ -49,7 +50,8 @@ type ProfilePageUiAction =
       type: "SET_VALIDATION_ERRORS";
       payload:
         ValidationErrors | ((prev: ValidationErrors) => ValidationErrors);
-    };
+    }
+  | { type: "REJECT_SAVE" };
 
 function profilePageUiReducer(
   state: ProfilePageUiState,
@@ -74,6 +76,8 @@ function profilePageUiReducer(
           : action.payload;
       return { ...state, validationErrors: next };
     }
+    case "REJECT_SAVE":
+      return { ...state, rejectedSaveCount: state.rejectedSaveCount + 1 };
     default:
       return state;
   }
@@ -84,17 +88,28 @@ const initialUiState: ProfilePageUiState = {
   previewMode: "mobile",
   saveSuccess: false,
   validationErrors: {},
+  rejectedSaveCount: 0,
 };
 
 type ProfilePageViewModel = {
   isLoading: boolean;
+  /** A request for the saved profile is in flight, including a refetch. */
+  isFetching: boolean;
+  /** The load failed with nothing loaded, so there is nothing to edit. */
   fetchError: string | null;
+  /** A refetch failed over a loaded profile, which stays editable. */
+  refreshError: string | null;
+  /** Requests the saved profile again after a failed load or refetch. */
+  refetch: () => Promise<unknown>;
   profile: ProfileData;
   validationErrors: ValidationErrors;
+  rejectedSaveCount: number;
   bioWordCount: number;
   initials: string;
   hasChanges: boolean;
   canRead: boolean;
+  /** Read access ended in this session; false while no session has loaded. */
+  readRevoked: boolean;
   canWrite: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
@@ -107,7 +122,13 @@ type ProfilePageViewModel = {
 
 export function useProfilePageView(): ProfilePageViewModel {
   const [uiState, dispatch] = useReducer(profilePageUiReducer, initialUiState);
-  const { isSaving, previewMode, saveSuccess, validationErrors } = uiState;
+  const {
+    isSaving,
+    previewMode,
+    saveSuccess,
+    validationErrors,
+    rejectedSaveCount,
+  } = uiState;
 
   const setIsSaving = useCallback((value: boolean) => {
     dispatch({ type: "SET_IS_SAVING", payload: value });
@@ -144,6 +165,11 @@ export function useProfilePageView(): ProfilePageViewModel {
     revokeWrite,
   } = useRetainedDraft<Partial<Omit<ProfileData, "email">>>(
     "missionary-profile",
+  );
+  // A resource nothing revokes is readable exactly while a session owns the
+  // draft store, which tells a revoked read apart from auth still loading.
+  const { canRead: sessionActive } = useRetainedDraft<null>(
+    "missionary-profile:session",
   );
   const profileQuery = useQuery<ProfileData | null>({
     queryKey: ["profile"],
@@ -188,15 +214,17 @@ export function useProfilePageView(): ProfilePageViewModel {
   const bioWordCount = countWords(profile.bio);
   const hasChanges = hasProfileChanges(profile, originalProfile);
 
-  const fetchError = profileQuery.error
+  // The page shows this inline as an alert, its one announcement: a toast
+  // would read the same message out again on every failed load.
+  const loadError = profileQuery.error
     ? profileQuery.error instanceof Error
       ? profileQuery.error.message
       : "Failed to load profile"
     : null;
-
-  useEffect(() => {
-    if (fetchError) toast.error(fetchError);
-  }, [fetchError]);
+  // A failed refetch keeps the loaded data, so the editor can stay.
+  const loaded = profileQuery.data !== undefined;
+  const fetchError = loaded ? null : loadError;
+  const refreshError = loaded ? loadError : null;
 
   useEffect(() => {
     if (!saveSuccess) return;
@@ -311,6 +339,7 @@ export function useProfilePageView(): ProfilePageViewModel {
 
       const initialSnapshot = profileRef.current;
       if (!validateProfile(initialSnapshot)) {
+        dispatch({ type: "REJECT_SAVE" });
         toast.error("Please fix the errors before saving");
         return;
       }
@@ -331,6 +360,7 @@ export function useProfilePageView(): ProfilePageViewModel {
         // can lag behind edits made by the remounted editor.
         const snapshot = { ...profileRef.current, ...save.value };
         if (!validateProfile(snapshot)) {
+          dispatch({ type: "REJECT_SAVE" });
           toast.error("Please fix the errors before saving");
           finishSave(save, false);
           saveFailed = true;
@@ -457,13 +487,18 @@ export function useProfilePageView(): ProfilePageViewModel {
 
   return {
     isLoading,
+    isFetching: profileQuery.isFetching,
     fetchError,
+    refreshError,
+    refetch: profileQuery.refetch,
     profile,
     validationErrors,
+    rejectedSaveCount,
     bioWordCount,
     initials,
     hasChanges,
     canRead,
+    readRevoked: sessionActive && !canRead,
     canWrite,
     isSaving: isSaving || retainedSaving,
     saveSuccess,

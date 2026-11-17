@@ -33,14 +33,19 @@ export function SavedViewItem({
   onDelete,
 }: SavedViewItemProps) {
   return (
-    // One shared button group: apply the view, or open its actions. The
-    // applied view is announced (aria-pressed) and filled, not only outlined.
-    <ButtonGroup aria-label={`Saved view ${view.name}`}>
+    // Apply the view, or open its actions. Applying it again only re-applies
+    // it, so the applied view is current (and filled), not a pressed toggle.
+    // The global coarse-pointer rule sets only min-height; the group widens
+    // each button to the same 44px on touch, since Button takes no sizing.
+    <ButtonGroup
+      aria-label={`Saved view ${view.name}`}
+      className="pointer-coarse:*:min-w-11"
+    >
       <Button
         type="button"
         variant={isActive ? "secondary" : "outline"}
         size="sm"
-        aria-pressed={isActive}
+        aria-current={isActive ? "true" : undefined}
         onClick={onSelect}
       >
         <span className="max-w-40 truncate">{view.name}</span>

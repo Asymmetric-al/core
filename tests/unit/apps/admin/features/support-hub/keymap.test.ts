@@ -1,19 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  findSupportShortcut,
-  SUPPORT_INBOX_KEYMAP,
-} from "../../../../../../apps/admin/features/support-hub/lib/keymap";
-
-function buildEvent(init: Partial<KeyboardEventInit> & { key: string }) {
-  return {
-    key: init.key,
-    metaKey: init.metaKey ?? false,
-    ctrlKey: init.ctrlKey ?? false,
-    shiftKey: init.shiftKey ?? false,
-    altKey: init.altKey ?? false,
-  };
-}
+import { SUPPORT_INBOX_KEYMAP } from "../../../../../../apps/admin/features/support-hub/lib/keymap";
 
 describe("SUPPORT_INBOX_KEYMAP", () => {
   it("contains every action expected by the inbox shell", () => {
@@ -24,31 +11,33 @@ describe("SUPPORT_INBOX_KEYMAP", () => {
       "previousConversation",
       "resolveConversation",
       "openSnoozeMenu",
-      "closeOverlay",
     ] as const) {
       expect(actions).toContain(required);
     }
   });
-});
 
-describe("findSupportShortcut", () => {
-  it("matches Cmd+K to openCommandPalette", () => {
-    const entry = findSupportShortcut(buildEvent({ key: "k", metaKey: true }));
-    expect(entry?.action).toBe("openCommandPalette");
+  it("binds each action to one distinct chord in shared shortcut form", () => {
+    expect(
+      Object.fromEntries(
+        SUPPORT_INBOX_KEYMAP.map((entry) => [entry.action, entry.keys]),
+      ),
+    ).toEqual({
+      openCommandPalette: "mod+k",
+      nextConversation: "j",
+      previousConversation: "k",
+      resolveConversation: "e",
+      openSnoozeMenu: "s",
+    });
+    const chords = SUPPORT_INBOX_KEYMAP.map((entry) => entry.keys);
+    expect(new Set(chords).size).toBe(chords.length);
+    for (const entry of SUPPORT_INBOX_KEYMAP) {
+      expect(entry.label.length).toBeGreaterThan(0);
+    }
   });
 
-  it("matches plain `j` to nextConversation", () => {
-    const entry = findSupportShortcut(buildEvent({ key: "j" }));
-    expect(entry?.action).toBe("nextConversation");
-  });
-
-  it("matches plain `k` to previousConversation (no modifier)", () => {
-    const entry = findSupportShortcut(buildEvent({ key: "k" }));
-    expect(entry?.action).toBe("previousConversation");
-  });
-
-  it("returns null for unknown chords", () => {
-    const entry = findSupportShortcut(buildEvent({ key: "z" }));
-    expect(entry).toBeNull();
+  it("leaves Escape to the open dialog or menu that owns it", () => {
+    expect(SUPPORT_INBOX_KEYMAP.map((entry) => entry.keys)).not.toContain(
+      "escape",
+    );
   });
 });

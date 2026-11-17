@@ -54,6 +54,8 @@ export function BusinessHoursForm({
   const { name, timezone, schedule, holidays, isDefault } = draft;
   const fieldsRef = React.useRef<HTMLDivElement>(null);
   const holidayNameRefs = React.useRef(new Map<string, HTMLInputElement>());
+  const holidayDateRefs = React.useRef(new Map<string, HTMLInputElement>());
+  const addHolidayRef = React.useRef<HTMLButtonElement>(null);
   const [submitted, setSubmitted] = React.useState(false);
   const errors = businessHoursIssues(draft);
 
@@ -233,6 +235,7 @@ export function BusinessHoursForm({
               Holidays
             </span>
             <Button
+              ref={addHolidayRef}
               type="button"
               variant="ghost"
               size="sm"
@@ -277,6 +280,11 @@ export function BusinessHoursForm({
                     </FieldLabel>
                     <Input
                       id={`${holiday.id}-date`}
+                      ref={(element) => {
+                        if (element)
+                          holidayDateRefs.current.set(holiday.id, element);
+                        else holidayDateRefs.current.delete(holiday.id);
+                      }}
                       type="date"
                       value={holiday.date.slice(0, 10)}
                       aria-invalid={
@@ -354,12 +362,24 @@ export function BusinessHoursForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() =>
+                    onClick={(event) => {
+                      // The sheet would send focus back to its top: focus a
+                      // neighbouring holiday instead, or Add once none is left.
+                      const neighbour =
+                        holidays[index + 1] ?? holidays[index - 1];
+                      const row = event.currentTarget.closest("li");
+                      if (row?.contains(document.activeElement)) {
+                        (
+                          (neighbour
+                            ? holidayDateRefs.current.get(neighbour.id)
+                            : undefined) ?? addHolidayRef.current
+                        )?.focus();
+                      }
                       dispatch({
                         type: "holidays",
                         value: (prev) => prev.filter((_, i) => i !== index),
-                      })
-                    }
+                      });
+                    }}
                     aria-label={`Remove holiday ${index + 1}`}
                     className="size-7 text-destructive hover:bg-destructive/10"
                   >

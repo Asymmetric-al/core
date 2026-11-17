@@ -12,6 +12,7 @@ import {
   type EmailStudioEditorHandle,
   type EmailStudioExportOptions,
 } from "@asym/email/email-builder-types";
+import { useShortcut } from "@asym/ui/components/primitives/shortcut";
 import {
   Alert,
   AlertDescription,
@@ -21,14 +22,7 @@ import { EmailStudioEditor } from "@asym/ui/components/studio/EmailStudioEditor"
 import { EmailStudioPreviewDialog } from "@asym/ui/components/studio/EmailStudioPreview";
 import { cn } from "@asym/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  useCallback,
-  useEffect,
-  useEffectEvent,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useReducer, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -37,7 +31,10 @@ import {
   sendTemplateTestEmail,
 } from "./email-studio-api";
 import { EmailStudioExportDialog } from "./email-studio-export-dialog";
-import { EmailStudioHeader } from "./email-studio-header";
+import {
+  EMAIL_STUDIO_SHORTCUTS,
+  EmailStudioHeader,
+} from "./email-studio-header";
 import { EmailStudioSaveDialog } from "./email-studio-save-dialog";
 import { EmailStudioTemplatePickerDialog } from "./email-studio-template-picker-dialog";
 import { EmailStudioTestSendDialog } from "./email-studio-test-send-dialog";
@@ -49,6 +46,7 @@ import {
   StudioDiscardDialog,
   useStudioDiscardGuard,
 } from "../../../features/studios/studio-discard-guard";
+import { useStudioSaveShortcut } from "../../../features/studios/studio-save-shortcut";
 
 import type {
   EmailMetadata,
@@ -86,19 +84,6 @@ function studioExportOptions(
     preheader: metadata.preheader,
     minify: minifyHtml ?? true,
   };
-}
-
-function isEditableKeyboardTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-  const tag = target.tagName;
-  return (
-    tag === "INPUT" ||
-    tag === "TEXTAREA" ||
-    tag === "SELECT" ||
-    target.isContentEditable
-  );
 }
 
 function previewFromTemplate(template: EmailTemplateListEntry): PreviewResult {
@@ -207,6 +192,12 @@ export default function EmailStudio() {
   const { handleCopyHtml, handleDownloadHtml } =
     useEmailStudioExportAndShortcuts({
       ui,
+      otherDialogOpen:
+        previewResult !== null ||
+        showTestSendDialog ||
+        showTemplatePicker ||
+        ui.showExportDialog ||
+        discardGuard.pending,
       dispatch,
       metadata,
       canEditCurrentTemplate,
@@ -245,6 +236,9 @@ export default function EmailStudio() {
         onUndo={handleUndo}
         onRedo={handleRedo}
         onPreview={handlePreview}
+        onPreviewDeviceChange={(device) =>
+          dispatch({ type: "set_preview_device", device })
+        }
         onExportHtml={() => {
           void handleExportHtml();
         }}
@@ -804,6 +798,7 @@ function useEmailStudioTestDelivery({
 function useEmailStudioExportAndShortcuts({
   syncHistory,
   ui,
+  otherDialogOpen,
   dispatch,
   metadata,
   canEditCurrentTemplate,
@@ -814,6 +809,7 @@ function useEmailStudioExportAndShortcuts({
 }: {
   syncHistory: () => void;
   ui: EmailStudioUiState;
+  otherDialogOpen: boolean;
   dispatch: React.Dispatch<EmailStudioUiAction>;
   metadata: EmailMetadata;
   canEditCurrentTemplate: boolean;
@@ -848,10 +844,10 @@ function useEmailStudioExportAndShortcuts({
     URL.revokeObjectURL(url);
   }, [metadata.name, ui.exportedHtml]);
 
-  const onKeyboardShortcut = useEffectEvent((event: KeyboardEvent) => {
-    const isMod = event.metaKey || event.ctrlKey;
-    if (isMod && event.key.toLowerCase() === "s") {
-      event.preventDefault();
+  useStudioSaveShortcut(EMAIL_STUDIO_SHORTCUTS.save, {
+    saveDialogOpen: ui.showSaveDialog,
+    otherDialogOpen,
+    openSaveDialog: () => {
       if (
         canEditCurrentTemplate &&
         !saveInFlightRef.current &&
@@ -859,44 +855,38 @@ function useEmailStudioExportAndShortcuts({
       ) {
         dispatch({ type: "set_show_save_dialog", open: true });
       }
-      return;
-    }
-    if (isEditableKeyboardTarget(event.target)) {
-      return;
-    }
-    if (isMod && event.key.toLowerCase() === "z") {
-      if (!canEditCurrentTemplate) {
-        return;
-      }
-      event.preventDefault();
-      if (event.shiftKey) {
-        editorRef.current?.redo();
-      } else {
-        editorRef.current?.undo();
-      }
-      syncHistory();
-      return;
-    }
-    if (isMod && event.key.toLowerCase() === "e") {
-      if (!canEditCurrentTemplate) {
-        return;
-      }
-      event.preventDefault();
-      void handleExportHtml();
-      return;
-    }
-    if (event.key === "Escape" && ui.isFullscreen) {
-      dispatch({ type: "set_fullscreen", fullscreen: false });
-    }
+    },
   });
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      onKeyboardShortcut(event);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  // A read-only template leaves these keys to the browser.
+  const canEdit = () => canEditCurrentTemplate;
+  useShortcut(
+    EMAIL_STUDIO_SHORTCUTS.undo,
+    () => {
+      editorRef.current?.undo();
+      syncHistory();
+    },
+    { description: "Undo", when: canEdit, repeat: true },
+  );
+  useShortcut(
+    EMAIL_STUDIO_SHORTCUTS.redo,
+    () => {
+      editorRef.current?.redo();
+      syncHistory();
+    },
+    { description: "Redo", when: canEdit, repeat: true },
+  );
+  useShortcut(
+    EMAIL_STUDIO_SHORTCUTS.exportHtml,
+    () => {
+      void handleExportHtml();
+    },
+    { description: "Export as HTML", when: canEdit },
+  );
+  useShortcut(
+    ui.isFullscreen ? EMAIL_STUDIO_SHORTCUTS.exitFullscreen : null,
+    () => dispatch({ type: "set_fullscreen", fullscreen: false }),
+    { description: "Exit fullscreen" },
+  );
 
   return { handleCopyHtml, handleDownloadHtml };
 }

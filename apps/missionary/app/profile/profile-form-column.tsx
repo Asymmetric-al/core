@@ -33,6 +33,7 @@ import {
   Link as LinkIcon,
   Info,
 } from "lucide-react";
+import { useEffect, useId, useRef } from "react";
 
 import {
   BIO_MAX_CHARS,
@@ -46,8 +47,14 @@ import { CoverUploadArea, FormField, MotionCard } from "./profile-primitives";
 import type { ProfileData, ValidationErrors } from "./profile-model";
 
 export type ProfileFormColumnProps = {
+  formId?: string;
   profile: ProfileData;
   validationErrors: ValidationErrors;
+  // Each rise moves focus to the first field with an error.
+  rejectedSaveCount?: number;
+  // Set while the page is read-only: fields stay readable and the uploads
+  // point to this notice for why they are unavailable.
+  readOnlyNoticeId?: string;
   bioWordCount: number;
   initials: string;
   updateProfile: (field: keyof ProfileData, value: string) => void;
@@ -55,15 +62,41 @@ export type ProfileFormColumnProps = {
 };
 
 export function ProfileFormColumn({
+  formId,
   profile,
   validationErrors,
+  rejectedSaveCount = 0,
+  readOnlyNoticeId,
   bioWordCount,
   initials,
   updateProfile,
   onSave,
 }: ProfileFormColumnProps) {
+  const coverLabelId = useId();
+  const coverHintId = useId();
+  const readOnly = readOnlyNoticeId !== undefined;
+  const columnRef = useRef<HTMLFormElement>(null);
+  const focusedRejection = useRef(rejectedSaveCount);
+  useEffect(() => {
+    if (rejectedSaveCount === focusedRejection.current) return;
+    focusedRejection.current = rejectedSaveCount;
+    columnRef.current
+      ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+      ?.focus();
+  }, [rejectedSaveCount]);
   return (
-    <motion.div className="lg:col-span-7 space-y-6" variants={staggerContainer}>
+    <motion.form
+      ref={columnRef}
+      id={formId}
+      noValidate
+      tabIndex={-1}
+      onSubmit={(event) => {
+        event.preventDefault();
+        void onSave();
+      }}
+      className="lg:col-span-7 space-y-6 outline-none"
+      variants={staggerContainer}
+    >
       <MotionCard>
         <CardHeader>
           <CardTitle>
@@ -84,6 +117,7 @@ export function ProfileFormColumn({
               <FormField label="First name" error={validationErrors.firstName}>
                 <Input
                   value={profile.firstName}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("firstName", e.target.value)}
                   placeholder="Your first name"
                 />
@@ -91,6 +125,7 @@ export function ProfileFormColumn({
               <FormField label="Last name" error={validationErrors.lastName}>
                 <Input
                   value={profile.lastName}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("lastName", e.target.value)}
                   placeholder="Your last name"
                 />
@@ -101,6 +136,7 @@ export function ProfileFormColumn({
               <FormField label="Location" icon={MapPin}>
                 <Input
                   value={profile.location}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("location", e.target.value)}
                   placeholder="City, Country"
                 />
@@ -112,6 +148,7 @@ export function ProfileFormColumn({
               >
                 <Input
                   value={profile.phone}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("phone", e.target.value)}
                   placeholder="+1 (555) 000-0000"
                 />
@@ -143,6 +180,7 @@ export function ProfileFormColumn({
             >
               <Input
                 value={profile.ministryFocus}
+                readOnly={readOnly}
                 onChange={(e) => updateProfile("ministryFocus", e.target.value)}
                 placeholder="e.g., Church planting in Southeast Asia"
                 maxLength={TAGLINE_MAX_LENGTH}
@@ -180,6 +218,7 @@ export function ProfileFormColumn({
             >
               <Textarea
                 value={profile.bio}
+                readOnly={readOnly}
                 onChange={(e) => updateProfile("bio", e.target.value)}
                 placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
                 rows={7}
@@ -225,8 +264,17 @@ export function ProfileFormColumn({
                 }}
                 path="avatars"
                 aspect={1}
+                disabled={readOnly}
               >
-                <Button type="button" variant="outline" size="sm">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  // Left unset otherwise, so the uploader keeps focus on it
+                  // while an upload runs.
+                  focusableWhenDisabled={readOnly ? true : undefined}
+                  aria-describedby={readOnlyNoticeId}
+                >
                   <Upload aria-hidden data-icon="inline-start" />
                   {profile.avatarUrl ? "Change photo" : "Upload photo"}
                 </Button>
@@ -235,7 +283,7 @@ export function ProfileFormColumn({
           </motion.div>
 
           <motion.div className="space-y-2" variants={fadeInUp}>
-            <Label>Cover photo</Label>
+            <Label id={coverLabelId}>Cover photo</Label>
             <ImageUpload
               value={profile.coverUrl}
               onChange={(url) => {
@@ -245,10 +293,18 @@ export function ProfileFormColumn({
               path="covers"
               aspect={3 / 1}
               triggerAriaLabel="Upload cover photo"
+              disabled={readOnly}
             >
-              <CoverUploadArea coverUrl={profile.coverUrl} />
+              <CoverUploadArea
+                coverUrl={profile.coverUrl}
+                aria-labelledby={coverLabelId}
+                aria-describedby={
+                  readOnly ? `${coverHintId} ${readOnlyNoticeId}` : coverHintId
+                }
+                tabIndex={readOnly ? 0 : undefined}
+              />
             </ImageUpload>
-            <p className="text-xs text-muted-foreground">
+            <p id={coverHintId} className="text-xs text-muted-foreground">
               Shown across the top of your giving page. Up to 10MB.
             </p>
           </motion.div>
@@ -275,6 +331,7 @@ export function ProfileFormColumn({
               <FormField label="Instagram" icon={Instagram}>
                 <Input
                   value={profile.instagram}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("instagram", e.target.value)}
                   placeholder="@yourhandle"
                 />
@@ -282,6 +339,7 @@ export function ProfileFormColumn({
               <FormField label="Facebook" icon={Facebook}>
                 <Input
                   value={profile.facebook}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("facebook", e.target.value)}
                   placeholder="facebook.com/yourpage"
                 />
@@ -291,6 +349,7 @@ export function ProfileFormColumn({
               <FormField label="Twitter / X" icon={Twitter}>
                 <Input
                   value={profile.twitter}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("twitter", e.target.value)}
                   placeholder="@yourhandle"
                 />
@@ -298,6 +357,7 @@ export function ProfileFormColumn({
               <FormField label="YouTube" icon={Youtube}>
                 <Input
                   value={profile.youtube}
+                  readOnly={readOnly}
                   onChange={(e) => updateProfile("youtube", e.target.value)}
                   placeholder="youtube.com/@channel"
                 />
@@ -310,6 +370,7 @@ export function ProfileFormColumn({
             >
               <Input
                 value={profile.website}
+                readOnly={readOnly}
                 onChange={(e) => updateProfile("website", e.target.value)}
                 placeholder="https://yourwebsite.com"
               />
@@ -317,6 +378,6 @@ export function ProfileFormColumn({
           </motion.div>
         </CardContent>
       </MotionCard>
-    </motion.div>
+    </motion.form>
   );
 }

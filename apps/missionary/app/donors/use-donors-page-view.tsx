@@ -101,7 +101,7 @@ type DonorsPageViewModel = {
     close: () => void;
   };
   actions: {
-    refreshDonors: () => void;
+    refreshDonors: () => Promise<void>;
     copyToClipboard: (text: string, label: string) => void;
     applyStatFilter: (filterType: DonorsStatFilterType) => void;
     formatAddress: (address: Address) => string[];
@@ -147,8 +147,8 @@ function useDonorsPageView(): DonorsPageViewModel {
       : donorsQuery.error
         ? String(donorsQuery.error)
         : null;
-  const handleRefreshDonors = React.useCallback(() => {
-    void Promise.all([
+  const handleRefreshDonors = React.useCallback(async () => {
+    await Promise.all([
       invalidateSupabaseTableQuery(queryClient, "donors"),
       invalidateSupabaseTableQuery(queryClient, "donor_activities"),
       invalidateSupabaseTableQuery(queryClient, "donor_pledges"),
@@ -265,7 +265,7 @@ function useDonorsPageView(): DonorsPageViewModel {
         toast.success("Activity logged successfully");
         setNoteInput("");
         setIsNoteDialogOpen(false);
-        handleRefreshDonors();
+        void handleRefreshDonors();
       } else {
         toast.error("Failed to add activity");
         console.error(outcome.error);
@@ -287,7 +287,7 @@ function useDonorsPageView(): DonorsPageViewModel {
       if (outcome.ok) {
         toast.success("Tags updated successfully");
         setIsTagDialogOpen(false);
-        handleRefreshDonors();
+        void handleRefreshDonors();
       } else {
         toast.error("Failed to update tags");
         console.error(outcome.error);

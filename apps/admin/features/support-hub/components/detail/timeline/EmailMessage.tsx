@@ -10,7 +10,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { RichTextViewer } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import { Paperclip, RotateCcw, Save } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { formatAttachmentSize } from "../../../lib/attachment-size";
 import { RelativeTime } from "../../RelativeTime";
@@ -19,7 +19,7 @@ import type {
   SupportMessage,
   SupportMessageDeliveryState,
 } from "../../../types";
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent } from "react";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
@@ -113,8 +113,10 @@ function EmailMessageHeader({
 
 function EmailMessageAttachmentsFooter({
   message,
+  onRetryRequested,
 }: {
   message: SupportMessage;
+  onRetryRequested: () => void;
 }) {
   if (
     message.attachments.length === 0 &&
@@ -139,7 +141,10 @@ function EmailMessageAttachmentsFooter({
         </span>
       ))}
       {showInboundAttachmentState(message) ? (
-        <InboundAttachmentState message={message} />
+        <InboundAttachmentState
+          message={message}
+          onRetryRequested={onRetryRequested}
+        />
       ) : null}
     </footer>
   );
@@ -152,10 +157,18 @@ function EmailMessageAttachmentsFooter({
  */
 export function EmailMessage({ message }: EmailMessageProps) {
   const chrome = emailMessageChrome(message);
+  const articleRef = useRef<HTMLElement>(null);
 
   return (
+    // Not a tab stop; it takes focus when its Retry goes away (and, as any
+    // tabIndex -1 element does, when a click inside it lands on no control).
     <article
-      className={cn("rounded-2xl border bg-card shadow-sm", chrome.className)}
+      ref={articleRef}
+      tabIndex={-1}
+      className={cn(
+        "rounded-2xl border bg-card shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        chrome.className,
+      )}
       aria-label={chrome.ariaLabel}
     >
       <EmailMessageHeader message={message} isDraft={chrome.isDraft} />
@@ -164,7 +177,12 @@ export function EmailMessage({ message }: EmailMessageProps) {
         <RichTextViewer value={renderableBody(message)} />
       </div>
 
-      <EmailMessageAttachmentsFooter message={message} />
+      <EmailMessageAttachmentsFooter
+        message={message}
+        onRetryRequested={() =>
+          articleRef.current?.focus({ preventScroll: true })
+        }
+      />
     </article>
   );
 }
@@ -197,8 +215,10 @@ function showInboundAttachmentState(
  */
 function InboundAttachmentState({
   message,
+  onRetryRequested,
 }: {
   message: SupportMessage & { inboundEmailId: string };
+  onRetryRequested: () => void;
 }) {
   const retryLabelId = useId();
   const [retryState, setRetryState] = useState<
@@ -210,7 +230,8 @@ function InboundAttachmentState({
 
   if (!config) return null;
 
-  const requestRetry = async () => {
+  const requestRetry = async (event: MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget;
     setRetryState("requesting");
     try {
       const response = await fetch("/api/admin/support-hub/inbound/retry", {
@@ -221,6 +242,8 @@ function InboundAttachmentState({
           kind: "attachments",
         }),
       });
+      // A successful request removes Retry, so focus moves off it first.
+      if (response.ok && document.activeElement === button) onRetryRequested();
       setRetryState(response.ok ? "requested" : "error");
     } catch {
       setRetryState("error");
@@ -229,7 +252,7 @@ function InboundAttachmentState({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Badge variant={config.variant}>
+      <Badge role="status" variant={config.variant}>
         <Paperclip className="size-3" />
         {retryState === "requested" ? "Attachments retrying" : config.label}
       </Badge>

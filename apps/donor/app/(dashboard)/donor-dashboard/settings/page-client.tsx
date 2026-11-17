@@ -27,6 +27,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
@@ -37,7 +38,17 @@ import { TabsContent } from "@asym/ui/components/shadcn/tabs";
 import { useRetainedDraft } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { Loader2, Lock, Mail, UserRound } from "lucide-react";
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+
+import { useFocusHandoff, useLoadRetry } from "@/features/donor/focus-recovery";
 
 type TabId = "profile" | "email" | "security";
 
@@ -57,6 +68,8 @@ type ProfileFormFields = {
 
 type TextField = keyof ProfileFormFields;
 
+type NameError = { field: "firstName" | "lastName"; message: string };
+
 function responseStatus(error: unknown): number | null {
   return error instanceof Error &&
     "status" in error &&
@@ -67,22 +80,85 @@ function responseStatus(error: unknown): number | null {
 
 function TabLoading({ label }: { label: string }) {
   return (
-    <div className="space-y-6" aria-busy="true" aria-label={label}>
+    <div
+      className="space-y-6"
+      role="status"
+      aria-busy="true"
+      aria-label={label}
+    >
       <Skeleton className="h-40 w-full rounded-xl" />
       <Skeleton className="h-80 w-full rounded-xl" />
     </div>
   );
 }
 
-function TabError({ onRetry }: { onRetry: () => void }) {
+type SettingsSnapshot = ReturnType<typeof useDonorPortalSnapshot>;
+
+// Offline, a first load waits for the connection without fetching; it is
+// still loading, not failed or empty.
+function settingsLoading(snapshot: SettingsSnapshot) {
+  return snapshot.isLoading || (snapshot.isPending && snapshot.isPaused);
+}
+
+type SettingsRetry = ReturnType<typeof useLoadRetry>;
+
+const SettingsRetryContext = createContext<SettingsRetry | null>(null);
+
+// Try again for settings that failed to load. The profile and email tabs show
+// the same settings, so they share one retry: a retry pressed in one tab is
+// busy in the other too, and never runs twice. Each tab keeps focus in its
+// panel when the settings recover (focusTabPanel), so the retry has no
+// heading of its own to move focus to.
+function SettingsRetryProvider({ children }: { children: React.ReactNode }) {
+  const snapshot = useDonorPortalSnapshot();
+  const noHeading = useRef<HTMLElement>(null);
+  const retry = useLoadRetry(
+    noHeading,
+    Boolean(snapshot.error) || !snapshot.data,
+    snapshot.refetch,
+  );
+  return <SettingsRetryContext value={retry}>{children}</SettingsRetryContext>;
+}
+
+function useSettingsRetry(): SettingsRetry {
+  const retry = useContext(SettingsRetryContext);
+  if (!retry) throw new Error("Settings tabs need a SettingsRetryProvider.");
+  return retry;
+}
+
+// For useFocusHandoff: when the settings recover, however that happened,
+// focus on the removed TabError stays in its tab panel instead of dropping
+// to the page.
+function focusTabPanel(from: HTMLElement) {
+  from.closest<HTMLElement>('[role="tabpanel"]')?.focus();
+  return true;
+}
+
+function TabError({
+  retry,
+  ref,
+}: {
+  retry: SettingsRetry;
+  ref: React.Ref<HTMLDivElement>;
+}) {
   return (
-    <Card>
+    <Card ref={ref}>
       <CardContent className="space-y-3 p-6">
-        <p role="alert" className="text-sm font-medium text-destructive">
+        <p
+          key={retry.failedRetries}
+          role="alert"
+          className="text-sm font-medium text-destructive"
+        >
           We couldn’t load your settings.
         </p>
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          Try again
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={retry.retrying}
+          focusableWhenDisabled
+          onClick={retry.retry}
+        >
+          {retry.retrying ? "Trying again…" : "Try again"}
         </Button>
       </CardContent>
     </Card>
@@ -91,13 +167,16 @@ function TabError({ onRetry }: { onRetry: () => void }) {
 
 function PhotoCard({
   avatarUrl,
+  disabled,
   initials,
   onAvatarUrlChange,
 }: {
   avatarUrl: string;
+  disabled: boolean;
   initials: string;
   onAvatarUrlChange: (url: string) => void;
 }) {
+  const uploadRef = useRef<HTMLButtonElement>(null);
   return (
     <SettingsCard
       title="Photo"
@@ -118,8 +197,9 @@ function PhotoCard({
               onChange={onAvatarUrlChange}
               path="avatars"
               aspect={1}
+              disabled={disabled}
             >
-              <Button variant="outline" size="sm">
+              <Button ref={uploadRef} variant="outline" size="sm">
                 {avatarUrl ? "Change photo" : "Upload photo"}
               </Button>
             </ImageUpload>
@@ -127,7 +207,12 @@ function PhotoCard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onAvatarUrlChange("")}
+                disabled={disabled}
+                onClick={() => {
+                  onAvatarUrlChange("");
+                  // Remove goes away with the photo; the upload button stays.
+                  uploadRef.current?.focus();
+                }}
               >
                 Remove
               </Button>
@@ -143,98 +228,165 @@ function DetailsCard({
   canWrite,
   errorMessage,
   form,
+  nameError,
   onFieldChange,
   onSave,
-  saving,
+  pending,
   success,
 }: {
   canWrite: boolean;
   errorMessage: string | null;
   form: ProfileFormFields;
+  nameError: NameError | null;
   onFieldChange: (key: TextField, value: string) => void;
   onSave: () => void;
-  saving: boolean;
+  pending: boolean;
   success: boolean;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const saveDisabled = pending || !canWrite;
+  // Each failed save sets a new error, so focus returns to the field at fault.
+  useEffect(() => {
+    if (!nameError) return;
+    (nameError.field === "firstName"
+      ? firstNameRef
+      : lastNameRef
+    ).current?.focus();
+  }, [nameError]);
+  const firstNameError =
+    nameError?.field === "firstName" ? nameError.message : null;
+  const lastNameError =
+    nameError?.field === "lastName" ? nameError.message : null;
+  // A disabled submit button would drop focus to the page, so focus waits on
+  // the form while the save runs and then returns to the button.
+  useLayoutEffect(() => {
+    if (saveDisabled) {
+      if (document.activeElement === saveRef.current)
+        formRef.current?.focus({ preventScroll: true });
+    } else if (document.activeElement === formRef.current) {
+      saveRef.current?.focus();
+    }
+  }, [saveDisabled]);
   return (
-    <SettingsCard
-      title="Your details"
-      description="Your name and contact details on your giving record."
-      footer={
-        <div className="flex w-full flex-col-reverse items-center justify-between gap-3 sm:flex-row">
-          <p role="status" aria-atomic="true" className="sr-only">
-            {saving ? "Saving…" : success ? "Saved." : ""}
-          </p>
-          <p
-            role={errorMessage ? "alert" : undefined}
-            className={cn(
-              "text-sm",
-              errorMessage ? "text-destructive" : "text-muted-foreground",
-            )}
-          >
-            {errorMessage ?? (success ? "Saved." : "")}
-          </p>
-          <Button
-            onClick={onSave}
-            disabled={saving || !canWrite}
-            focusableWhenDisabled={saving || !canWrite}
-          >
-            {saving ? (
-              <Loader2 className="animate-spin" data-icon="inline-start" />
-            ) : null}
-            {saving ? "Saving…" : "Save changes"}
-          </Button>
-        </div>
-      }
+    <form
+      ref={formRef}
+      aria-label="Your details"
+      noValidate
+      tabIndex={-1}
+      className="outline-none"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
     >
-      <FieldGroup>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor="settings-first-name">First name</FieldLabel>
-            <Input
-              id="settings-first-name"
-              autoComplete="given-name"
-              value={form.firstName}
-              onChange={(event) =>
-                onFieldChange("firstName", event.target.value)
-              }
+      <SettingsCard
+        title="Your details"
+        description="Your name and contact details on your giving record."
+        footer={
+          <div className="flex w-full flex-col-reverse items-center justify-between gap-3 sm:flex-row">
+            <p role="status" aria-atomic="true" className="sr-only">
+              {pending ? "Saving…" : success ? "Saved." : ""}
+            </p>
+            <p
+              role={errorMessage ? "alert" : undefined}
+              className={cn(
+                "text-sm",
+                errorMessage ? "text-destructive" : "text-muted-foreground",
+              )}
+            >
+              {errorMessage ?? (success ? "Saved." : "")}
+            </p>
+            <Button ref={saveRef} type="submit" disabled={pending || !canWrite}>
+              {pending ? (
+                <Loader2 className="animate-spin" data-icon="inline-start" />
+              ) : null}
+              {pending ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
+        }
+      >
+        <FieldGroup>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field data-invalid={firstNameError ? true : undefined}>
+              <FieldLabel htmlFor="settings-first-name">First name</FieldLabel>
+              <Input
+                ref={firstNameRef}
+                id="settings-first-name"
+                autoComplete="given-name"
+                required
+                maxLength={120}
+                readOnly={!canWrite}
+                aria-invalid={firstNameError ? true : undefined}
+                aria-describedby={
+                  firstNameError ? "settings-first-name-error" : undefined
+                }
+                value={form.firstName}
+                onChange={(event) =>
+                  onFieldChange("firstName", event.target.value)
+                }
+              />
+              {firstNameError ? (
+                <FieldError id="settings-first-name-error">
+                  {firstNameError}
+                </FieldError>
+              ) : null}
+            </Field>
+            <Field data-invalid={lastNameError ? true : undefined}>
+              <FieldLabel htmlFor="settings-last-name">Last name</FieldLabel>
+              <Input
+                ref={lastNameRef}
+                id="settings-last-name"
+                autoComplete="family-name"
+                required
+                maxLength={120}
+                readOnly={!canWrite}
+                aria-invalid={lastNameError ? true : undefined}
+                aria-describedby={
+                  lastNameError ? "settings-last-name-error" : undefined
+                }
+                value={form.lastName}
+                onChange={(event) =>
+                  onFieldChange("lastName", event.target.value)
+                }
+              />
+              {lastNameError ? (
+                <FieldError id="settings-last-name-error">
+                  {lastNameError}
+                </FieldError>
+              ) : null}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="settings-phone">Phone</FieldLabel>
+              <Input
+                id="settings-phone"
+                type="tel"
+                autoComplete="tel"
+                maxLength={80}
+                readOnly={!canWrite}
+                value={form.phone}
+                onChange={(event) => onFieldChange("phone", event.target.value)}
+              />
+            </Field>
+            <ReadOnlyField
+              label="Sign-in email"
+              value={form.email}
+              description="Receipts go here. Your organization can change it."
             />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="settings-last-name">Last name</FieldLabel>
-            <Input
-              id="settings-last-name"
-              autoComplete="family-name"
-              value={form.lastName}
-              onChange={(event) =>
-                onFieldChange("lastName", event.target.value)
-              }
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="settings-phone">Phone</FieldLabel>
-            <Input
-              id="settings-phone"
-              type="tel"
-              autoComplete="tel"
-              value={form.phone}
-              onChange={(event) => onFieldChange("phone", event.target.value)}
-            />
-          </Field>
-          <ReadOnlyField
-            label="Sign-in email"
-            value={form.email}
-            description="Receipts go here. Your organization can change it."
-          />
-        </div>
-      </FieldGroup>
-    </SettingsCard>
+          </div>
+        </FieldGroup>
+      </SettingsCard>
+    </form>
   );
 }
 
 function ProfileTab() {
   const snapshot = useDonorPortalSnapshot();
   const update = useUpdateDonorPortal();
+  const retry = useSettingsRetry();
+  const errorView = useFocusHandoff(focusTabPanel);
 
   const retained =
     useRetainedDraft<Omit<ProfileFormFields, "email">>("donor-profile");
@@ -247,6 +399,7 @@ function ProfileTab() {
   const form = { ...baseline, ...retained.value };
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<NameError | null>(null);
 
   const setField = (key: TextField, value: string) => {
     if (key === "email" || !retained.canWrite) return;
@@ -266,15 +419,25 @@ function ProfileTab() {
     });
     setSuccess(false);
     setErrorMessage(null);
+    if (nameError?.field === key) setNameError(null);
   };
   const handleSave = async () => {
     if (!retained.canWrite || retained.isSaving || update.isPending) return;
     setErrorMessage(null);
     const savePatch = buildDonorProfileSettingsPatch(form);
     if (!savePatch.ok) {
-      setErrorMessage(savePatch.errorMessage);
+      // The patch checks the names first, in this order; anything else it
+      // rejects stays a form-level message.
+      const field = !form.firstName.trim()
+        ? "firstName"
+        : !form.lastName.trim()
+          ? "lastName"
+          : null;
+      if (field) setNameError({ field, message: savePatch.errorMessage });
+      else setErrorMessage(savePatch.errorMessage);
       return;
     }
+    setNameError(null);
     if (!retained.read())
       retained.update({
         firstName: form.firstName,
@@ -307,8 +470,12 @@ function ProfileTab() {
         </CardContent>
       </Card>
     );
-  if (snapshot.isLoading) return <TabLoading label="Loading profile" />;
-  if (snapshot.error) return <TabError onRetry={() => snapshot.refetch()} />;
+  // With nothing cached, a retry loads afresh; the error view stays so Try
+  // again keeps focus. The form never starts from settings that did not load.
+  if (settingsLoading(snapshot) && !retry.retrying)
+    return <TabLoading label="Loading profile" />;
+  if (snapshot.error || !snapshot.data || retry.retrying)
+    return <TabError retry={retry} ref={errorView} />;
 
   const initials =
     `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase() || "··";
@@ -329,6 +496,7 @@ function ProfileTab() {
       ) : null}
       <PhotoCard
         avatarUrl={form.avatarUrl}
+        disabled={!retained.canWrite}
         initials={initials}
         onAvatarUrlChange={(url) => setField("avatarUrl", url)}
       />
@@ -336,11 +504,12 @@ function ProfileTab() {
         canWrite={retained.canWrite}
         errorMessage={errorMessage}
         form={form}
+        nameError={nameError}
         onFieldChange={setField}
         onSave={() => {
           void handleSave();
         }}
-        saving={update.isPending || retained.isSaving}
+        pending={update.isPending || retained.isSaving}
         success={success}
       />
     </motion.div>
@@ -392,10 +561,13 @@ function EmailPrivacyTab() {
   // could land out of order and restore a value the donor already changed.
   const queue = useRef<Promise<void>>(Promise.resolve());
   const latest = useRef<Partial<Record<"news" | "showName", number>>>({});
+  const retry = useSettingsRetry();
+  const errorView = useFocusHandoff(focusTabPanel);
 
-  if (snapshot.isLoading) return <TabLoading label="Loading email settings" />;
-  if (snapshot.error || !snapshot.data) {
-    return <TabError onRetry={() => snapshot.refetch()} />;
+  if (settingsLoading(snapshot) && !retry.retrying)
+    return <TabLoading label="Loading email settings" />;
+  if (snapshot.error || !snapshot.data || retry.retrying) {
+    return <TabError retry={retry} ref={errorView} />;
   }
 
   const donor = snapshot.data.donor;
@@ -543,17 +715,19 @@ export default function DonorSettingsPage() {
           icon: <tab.icon aria-hidden="true" />,
         }))}
       >
-        {/* Stays mounted while hidden, so unsaved edits survive a look at
-            another tab. */}
-        <TabsContent value="profile" keepMounted>
-          <ProfileTab />
-        </TabsContent>
-        <TabsContent value="email" keepMounted>
-          <EmailPrivacyTab />
-        </TabsContent>
-        <TabsContent value="security">
-          {activeTab === "security" && <SecurityTab />}
-        </TabsContent>
+        <SettingsRetryProvider>
+          {/* Stays mounted while hidden, so unsaved edits survive a look at
+              another tab. */}
+          <TabsContent value="profile" keepMounted>
+            <ProfileTab />
+          </TabsContent>
+          <TabsContent value="email" keepMounted>
+            <EmailPrivacyTab />
+          </TabsContent>
+          <TabsContent value="security">
+            {activeTab === "security" && <SecurityTab />}
+          </TabsContent>
+        </SettingsRetryProvider>
       </SettingsLayout>
     </div>
   );

@@ -1,7 +1,9 @@
 "use client";
 
+import { useIsHydrated } from "@asym/lib/hooks/use-locale-format";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
@@ -42,6 +44,18 @@ interface NavbarClientProps {
   variant: NavbarVariant;
 }
 
+function CurrentPathname({
+  onChange,
+}: {
+  onChange: (pathname: string) => void;
+}) {
+  const pathname = usePathname();
+  useEffect(() => {
+    onChange(pathname);
+  }, [onChange, pathname]);
+  return null;
+}
+
 export function NavbarClient({
   navLinks,
   ctaLabel,
@@ -54,6 +68,18 @@ export function NavbarClient({
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const isHydrated = useIsHydrated();
+  const [pathname, setPathname] = useState<string | null>(null);
+  // "page" only on the page itself; on a sub-page the section link is the
+  // current item of the set, which WAI-ARIA spells "true".
+  const currentPage = (href: string) =>
+    pathname === null
+      ? undefined
+      : pathname === href
+        ? "page"
+        : pathname.startsWith(`${href}/`)
+          ? "true"
+          : undefined;
 
   useEffect(() => {
     if (!isHeroPage) {
@@ -84,6 +110,9 @@ export function NavbarClient({
 
   return (
     <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+      {/* The pathname is read only after hydration, so the prerendered navbar
+        stays free of URL data (see NavbarVariant). */}
+      {isHydrated ? <CurrentPathname onChange={setPathname} /> : null}
       <header>
         {/* The target is a <main id="main-content"> in every live Navbar
           consumer: public (hero)/(solid) layouts and the donor dashboard. */}
@@ -139,6 +168,7 @@ export function NavbarClient({
                 <Link
                   key={link.href}
                   href={link.href}
+                  aria-current={currentPage(link.href)}
                   className={cn(
                     "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
                     showScrolledStyles
@@ -191,6 +221,7 @@ export function NavbarClient({
                   <Link
                     key={link.href}
                     href={link.href}
+                    aria-current={currentPage(link.href)}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="text-xl font-bold text-foreground py-4 border-b border-border touch-target flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                   >

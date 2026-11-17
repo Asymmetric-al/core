@@ -83,6 +83,10 @@ export function AutomationRuleForm({
   );
   const nameError = name.trim() ? null : "Give the rule a name.";
   const actionsError = actions.length === 0 ? "Add at least one action." : null;
+  const conditionListRef = React.useRef<HTMLOListElement>(null);
+  const actionListRef = React.useRef<HTMLOListElement>(null);
+  const addConditionRef = React.useRef<HTMLButtonElement>(null);
+  const addActionRef = React.useRef<HTMLButtonElement>(null);
   const handleAddCondition = () => {
     const row = createDraftRow<SupportAutomationCondition>({
       kind: "subject_contains",
@@ -245,6 +249,7 @@ export function AutomationRuleForm({
             Conditions
           </span>
           <Button
+            ref={addConditionRef}
             type="button"
             variant="ghost"
             size="xs"
@@ -259,7 +264,7 @@ export function AutomationRuleForm({
             No conditions, the rule fires for every event.
           </p>
         ) : (
-          <ol className="flex flex-col gap-2">
+          <ol ref={conditionListRef} className="flex flex-col gap-2">
             {conditionRows.map(({ id, value: condition }, index) => (
               <AutomationConditionRow
                 key={id}
@@ -273,11 +278,16 @@ export function AutomationRuleForm({
                     ),
                   )
                 }
-                onRemove={() =>
+                onRemove={() => {
+                  focusNeighbourRow(
+                    conditionListRef.current,
+                    index,
+                    addConditionRef.current,
+                  );
                   setConditionRows((prev) =>
                     prev.filter((row) => row.id !== id),
-                  )
-                }
+                  );
+                }}
               />
             ))}
           </ol>
@@ -290,6 +300,7 @@ export function AutomationRuleForm({
             Actions
           </span>
           <Button
+            ref={addActionRef}
             type="button"
             variant="ghost"
             size="xs"
@@ -308,7 +319,7 @@ export function AutomationRuleForm({
             </p>
           )
         ) : (
-          <ol className="flex flex-col gap-2">
+          <ol ref={actionListRef} className="flex flex-col gap-2">
             {actionRows.map(({ id, value: action }, index) => (
               <AutomationActionRow
                 key={id}
@@ -322,9 +333,14 @@ export function AutomationRuleForm({
                     ),
                   )
                 }
-                onRemove={() =>
-                  setActionRows((prev) => prev.filter((row) => row.id !== id))
-                }
+                onRemove={() => {
+                  focusNeighbourRow(
+                    actionListRef.current,
+                    index,
+                    addActionRef.current,
+                  );
+                  setActionRows((prev) => prev.filter((row) => row.id !== id));
+                }}
               />
             ))}
           </ol>
@@ -334,6 +350,23 @@ export function AutomationRuleForm({
       <AutomationDryRunPreview rule={previewRule} />
     </SettingsEditorForm>
   );
+}
+
+// Removing a row takes its focused control with it, and the sheet would send
+// focus back to its top: focus a neighbouring row's first control instead.
+function focusNeighbourRow(
+  list: HTMLOListElement | null,
+  index: number,
+  fallback: HTMLButtonElement | null,
+) {
+  const rows = list?.children;
+  if (!rows?.[index]?.contains(document.activeElement)) return;
+  const neighbour = rows[index + 1] ?? rows[index - 1];
+  (
+    neighbour?.querySelector<HTMLElement>(
+      'button:not([tabindex="-1"]), input:not([tabindex="-1"]), textarea',
+    ) ?? fallback
+  )?.focus();
 }
 
 /** A trigger as staff read it, in sentence case. */

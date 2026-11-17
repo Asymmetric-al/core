@@ -87,6 +87,18 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
 
   const editingLabel = editing && editing !== "new" ? editing : null;
   const isFormOpen = editing !== null;
+  const newLabelRef = React.useRef<HTMLButtonElement>(null);
+  const editButtonRefs = React.useRef(new Map<string, HTMLButtonElement>());
+  // The form's Save or Cancel goes with it, and the dialog would send focus
+  // back to its top: return it to what opened the form.
+  const closeForm = () => {
+    (
+      (editingLabel
+        ? editButtonRefs.current.get(editingLabel.id)
+        : undefined) ?? newLabelRef.current
+    )?.focus();
+    setEditing(null);
+  };
 
   return (
     <>
@@ -135,6 +147,11 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
                   <Button
+                    ref={(element) => {
+                      if (element)
+                        editButtonRefs.current.set(label.id, element);
+                      else editButtonRefs.current.delete(label.id);
+                    }}
                     type="button"
                     variant="ghost"
                     size="icon-sm"
@@ -162,13 +179,14 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
           <LabelForm
             key={editingLabel?.id ?? "new-label"}
             label={editingLabel}
-            onSaved={() => setEditing(null)}
-            onCancel={() => setEditing(null)}
+            onSaved={closeForm}
+            onCancel={closeForm}
           />
         ) : null}
       </div>
       <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
         <Button
+          ref={newLabelRef}
           type="button"
           variant="outline"
           size="sm"

@@ -80,7 +80,9 @@ describe("Eve governance confirmation stability", () => {
       />,
     );
 
-    fireEvent.click(view.getAllByRole("button", { name: "Engage" })[0]!);
+    fireEvent.click(
+      view.getByRole("button", { name: "Engage: All automation" }),
+    );
     view.rerender(
       <EveGovernanceView
         data={latestData}
@@ -116,7 +118,9 @@ describe("Eve governance confirmation stability", () => {
       />,
     );
 
-    fireEvent.click(view.getAllByRole("button", { name: "Engage" })[0]!);
+    fireEvent.click(
+      view.getByRole("button", { name: "Engage: All automation" }),
+    );
     view.rerender(
       <EveGovernanceView
         data={latestData}
@@ -156,7 +160,9 @@ describe("Eve governance confirmation stability", () => {
       />,
     );
 
-    fireEvent.click(view.getAllByRole("button", { name: "Engage" })[0]!);
+    fireEvent.click(
+      view.getByRole("button", { name: "Engage: All automation" }),
+    );
     view.rerender(
       <EveGovernanceView
         data={latestData}
@@ -169,7 +175,9 @@ describe("Eve governance confirmation stability", () => {
 
     expect(onConfirmKillSwitch).not.toHaveBeenCalled();
 
-    fireEvent.click(view.getByRole("button", { name: "Clear" }));
+    fireEvent.click(
+      view.getByRole("button", { name: "Clear: All automation" }),
+    );
 
     expect(view.getByText("Clear All automation?")).toBeTruthy();
     fireEvent.click(view.getByRole("button", { name: "Confirm clear" }));

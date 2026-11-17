@@ -82,8 +82,10 @@ export function TaskRow({
       )}
     >
       <div className="mt-1.5 relative z-10">
+        {/* One name in both states: the checked state says it is done, so
+            unchecking is what reopens the task. */}
         <Checkbox
-          aria-label={`Complete ${task.title}`}
+          aria-label={`Mark ${task.title} complete`}
           checked={isCompleted}
           onCheckedChange={onComplete}
           className="size-6 rounded-lg border-[oklch(0.915_0.003_265)] data-checked:bg-[oklch(0.205_0.015_265)] data-checked:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer"
@@ -142,7 +144,7 @@ export function TaskRow({
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Task actions"
+                  aria-label={`Actions for ${task.title}`}
                   className="size-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
                 >
                   <MoreHorizontal className="size-5" />

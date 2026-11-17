@@ -33,6 +33,7 @@ import {
   monthlyPartnerCount,
   recentGifts,
 } from "./home/home-model";
+import { pageHeading, useLoadRetry } from "../hooks/use-load-retry";
 
 import type { DonationMetrics } from "@asym/lib/hooks";
 
@@ -151,8 +152,16 @@ function DashboardHomeContent({
   const name = firstName(snapshot?.profile?.displayName);
   const title = name ? `Welcome back, ${name}` : "Welcome back";
   const description = "Here’s what needs you and how your support is doing.";
+  const portalRetryButton = React.useRef<HTMLButtonElement>(null);
+  const portalRetry = useLoadRetry({
+    retryRef: portalRetryButton,
+    error: portalQuery.error,
+    loading: portalQuery.isLoading,
+    onRetry: portalQuery.refetch,
+    landing: pageHeading,
+  });
 
-  if (portalQuery.isLoading) {
+  if (portalQuery.isLoading && !portalRetry.retrying) {
     return (
       <HomeFrame title={title} description={description}>
         <div className="section-gap">
@@ -173,22 +182,29 @@ function DashboardHomeContent({
     );
   }
 
-  if (portalQuery.error) {
+  if (portalRetry.error) {
     return (
       <HomeFrame title={title} description={description}>
         <div className="section-gap">
           {belowHeaderSlot}
           <Card>
             <CardContent className="flex flex-col items-start gap-3">
-              <p role="alert" className="text-sm font-medium text-foreground">
+              <p
+                key={portalRetry.failedRetries}
+                role="alert"
+                className="text-sm font-medium text-foreground"
+              >
                 We couldn’t load your home page.
               </p>
               <Button
+                ref={portalRetryButton}
                 variant="outline"
                 size="sm"
-                onClick={() => portalQuery.refetch()}
+                disabled={portalRetry.retrying}
+                focusableWhenDisabled
+                onClick={portalRetry.retry}
               >
-                Try again
+                {portalRetry.retrying ? "Trying again…" : "Try again"}
               </Button>
             </CardContent>
           </Card>

@@ -10727,8 +10727,8 @@
       "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
       "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
       "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
-      "entrypointHash": "2cc606a16b8a17bed1865212efe3b30832534546ce36a05acda8ca4e9aac823a",
-      "treeHash": "02903fcd6289f13566a560c35f6b781531bd2b115e9eca913fcb79169ff24a8b",
+      "entrypointHash": "719823c666ea2dc0579b3f7ea8be26d7c02df2c83db77605150773ca0e81aae9",
+      "treeHash": "65b4d7b5a8b5e169aafcd237c5aef5b78115d860b5744245ec1e68d696894f4d",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",

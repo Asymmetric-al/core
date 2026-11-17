@@ -36,7 +36,7 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import { ChevronDown, Download, Search } from "lucide-react";
 import dynamic from "next/dynamic";
-import React, { useMemo, useReducer } from "react";
+import React, { useMemo, useReducer, useRef } from "react";
 
 import { columns, ReceiptLink } from "./columns";
 import { getHistoryYearOptions } from "./history-year-options";
@@ -45,6 +45,7 @@ import { GIFT_TYPE_LABELS, type Transaction } from "./types";
 
 import type { MonthlyGivingPoint } from "./monthly-giving-chart";
 
+import { useLoadRetry } from "@/features/donor/focus-recovery";
 import { makeDisplayDate } from "@/lib/dates";
 
 // Recharts loads only when the summary chart is on screen.
@@ -208,7 +209,12 @@ function FilterMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline">
+          // The visible text switches to the chosen value; the name keeps
+          // saying which filter this is.
+          <Button
+            variant="outline"
+            aria-label={`${label}: ${selected?.label ?? value}`}
+          >
             {value === "All" ? label : selected?.label}
             <ChevronDown data-icon="inline-end" aria-hidden />
           </Button>
@@ -386,61 +392,86 @@ export function HistoryTransactionsCard({
   isLoading,
   filtersActive = true,
   year,
+  filterSummary,
 }: {
   filteredTransactions: Transaction[];
   isLoading?: boolean;
   /** Search, type or status narrows the list (the year alone doesn't). */
   filtersActive?: boolean;
   year?: string;
+  /** The type and status choices, such as "Monthly gift, Paid". */
+  filterSummary?: string;
 }) {
+  const count = filteredTransactions.length;
+  const matchText =
+    count === 0
+      ? "No gifts match"
+      : `${count} ${count === 1 ? "gift matches" : "gifts match"}`;
+  // One live region, present from the first paint, speaks for the list: the
+  // count while filters narrow it, or why it is empty. The year and filter
+  // names change its text when a new choice leaves the same count, so that
+  // count is said again; search text is left out, so typing stays quiet.
+  const announcement = isLoading
+    ? ""
+    : filtersActive
+      ? `${matchText}${year ? ` in ${year}` : ""}${
+          filterSummary ? `: ${filterSummary}` : ""
+        }`
+      : count === 0
+        ? year
+          ? `No gifts in ${year} yet`
+          : "No gifts yet"
+        : "";
   return (
-    <DataTableResponsive
-      columns={columns}
-      data={filteredTransactions}
-      isLoading={isLoading}
-      mobileCardConfig={{ renderCard: renderHistoryTransactionCard }}
-      // "Monthly gift" / "One-time gift" already sits under each name, so
-      // the Type column starts hidden; the Type filter still works.
-      initialState={{ columnVisibility: { type: false } }}
-      config={{
-        enableRowSelection: false,
-        enableColumnVisibility: true,
-        enablePagination: true,
-        enableFilters: false,
-        enableSorting: true,
-        virtualization: {
-          enabled: true,
-          estimateSize: 72,
-          overscan: 8,
-          containerHeight: 640,
-        },
-      }}
-      emptyState={
-        <div
-          role="status"
-          aria-atomic="true"
-          className="flex flex-col items-center justify-center py-12 text-center"
-        >
-          {filtersActive ? (
-            <>
-              <p className="font-medium text-foreground">No gifts match</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Try another search, or clear the filters.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="font-medium text-foreground">
-                {year ? `No gifts in ${year} yet` : "No gifts yet"}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Gifts you make will appear here with their receipts.
-              </p>
-            </>
-          )}
-        </div>
-      }
-    />
+    <>
+      <p role="status" aria-atomic="true" className="sr-only">
+        {announcement}
+      </p>
+      <DataTableResponsive
+        label="Giving history"
+        columns={columns}
+        data={filteredTransactions}
+        isLoading={isLoading}
+        mobileCardConfig={{ renderCard: renderHistoryTransactionCard }}
+        // "Monthly gift" / "One-time gift" already sits under each name, so
+        // the Type column starts hidden; the Type filter still works.
+        initialState={{ columnVisibility: { type: false } }}
+        config={{
+          enableRowSelection: false,
+          enableColumnVisibility: true,
+          enablePagination: true,
+          enableFilters: false,
+          enableSorting: true,
+          virtualization: {
+            enabled: true,
+            estimateSize: 72,
+            overscan: 8,
+            containerHeight: 640,
+          },
+        }}
+        emptyState={
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            {filtersActive ? (
+              <>
+                <p className="font-medium text-foreground">No gifts match</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try another search, or clear the filters.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium text-foreground">
+                  {year ? `No gifts in ${year} yet` : "No gifts yet"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Gifts you make will appear here with their receipts.
+                </p>
+              </>
+            )}
+          </div>
+        }
+      />
+    </>
   );
 }
 
@@ -453,6 +484,11 @@ export default function DonorHistoryPage() {
     createDefaultHistoryFilters,
   );
   const transactionsQuery = useDonorHistoryTransactions();
+  // The collection keeps its error status until a refetch succeeds.
+  const pageRef = useRef<HTMLDivElement>(null);
+  const historyRetry = useLoadRetry(pageRef, transactionsQuery.isError, () =>
+    transactionsQuery.collection.utils.refetch(),
+  );
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
   const currentYear = getHistoryYearOptions()[0]!;
   const transactions = useMemo(
@@ -492,6 +528,7 @@ export default function DonorHistoryPage() {
 
   return (
     <div
+      ref={pageRef}
       data-testid={
         transactionsQuery.isError
           ? "giving-history-unlinked"
@@ -516,11 +553,23 @@ export default function DonorHistoryPage() {
 
       {transactionsQuery.isError ? (
         <Card>
-          <CardContent>
-            <p role="alert" className="text-sm text-foreground">
-              We couldn’t load your giving history. Refresh the page to try
-              again.
+          <CardContent className="flex flex-col items-start gap-3">
+            <p
+              key={historyRetry.failedRetries}
+              role="alert"
+              className="text-sm text-foreground"
+            >
+              We couldn’t load your giving history.
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={historyRetry.retrying}
+              focusableWhenDisabled
+              onClick={historyRetry.retry}
+            >
+              {historyRetry.retrying ? "Trying again…" : "Try again"}
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -583,6 +632,14 @@ export default function DonorHistoryPage() {
               statusFilter !== "All"
             }
             year={yearFilter}
+            filterSummary={[
+              TYPE_OPTIONS.find((option) => option.value === typeFilter),
+              STATUS_OPTIONS.find((option) => option.value === statusFilter),
+            ]
+              .flatMap((option) =>
+                option && option.value !== "All" ? [option.label] : [],
+              )
+              .join(", ")}
           />
         </>
       )}

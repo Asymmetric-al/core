@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -105,7 +106,7 @@ it("exposes the selected view while switching the actual task page content", asy
   expect(list.getAttribute("aria-pressed")).toBe("true");
   expect(board.getAttribute("aria-pressed")).toBe("false");
   expect(
-    await screen.findByRole("checkbox", { name: "Complete Call partner" }),
+    await screen.findByRole("checkbox", { name: "Mark Call partner complete" }),
   ).toBeTruthy();
   await waitFor(() =>
     expect(screen.queryByRole("heading", { name: "To do 1" })).toBeNull(),
@@ -117,9 +118,52 @@ it("exposes the selected view while switching the actual task page content", asy
   expect(await screen.findByRole("heading", { name: "To do 1" })).toBeTruthy();
   await waitFor(() =>
     expect(
-      screen.queryByRole("checkbox", { name: "Complete Call partner" }),
+      screen.queryByRole("checkbox", { name: "Mark Call partner complete" }),
     ).toBeNull(),
   );
+});
+
+it("offers the two views as one named group with a single tab stop and arrow keys", async () => {
+  render(<TasksPage />);
+
+  const group = screen.getByRole("group", { name: "Task view" });
+  const views = within(group).getAllByRole("button");
+  expect(views.map((view) => view.getAttribute("aria-label"))).toEqual([
+    "Board view",
+    "List view",
+  ]);
+  const [board, list] = views as [HTMLElement, HTMLElement];
+  expect(views.filter((view) => view.tabIndex === 0)).toEqual([board]);
+
+  act(() => board.focus());
+  fireEvent.keyDown(board, { key: "ArrowRight" });
+  await waitFor(() => expect(document.activeElement).toBe(list));
+  expect(views.filter((view) => view.tabIndex === 0)).toEqual([list]);
+  // Moving focus does not switch the view; Enter, Space or a click does.
+  expect(board.getAttribute("aria-pressed")).toBe("true");
+
+  fireEvent.keyDown(list, { key: "ArrowLeft" });
+  await waitFor(() => expect(document.activeElement).toBe(board));
+  expect(views.filter((view) => view.tabIndex === 0)).toEqual([board]);
+});
+
+it("keeps the current view selected when its own control is activated again", async () => {
+  render(<TasksPage />);
+  const board = screen.getByRole("button", { name: "Board view" });
+  const list = screen.getByRole("button", { name: "List view" });
+
+  fireEvent.click(board);
+  expect(board.getAttribute("aria-pressed")).toBe("true");
+  expect(list.getAttribute("aria-pressed")).toBe("false");
+  expect(screen.getByRole("heading", { name: "To do 1" })).toBeTruthy();
+
+  fireEvent.click(list);
+  fireEvent.click(list);
+  expect(list.getAttribute("aria-pressed")).toBe("true");
+  expect(board.getAttribute("aria-pressed")).toBe("false");
+  expect(
+    await screen.findByRole("checkbox", { name: "Mark Call partner complete" }),
+  ).toBeTruthy();
 });
 
 it("keeps the named refresh control connected to the existing task refresh", () => {

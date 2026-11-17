@@ -19,6 +19,7 @@ vi.mock("next/link", async () => {
   };
 });
 
+import { DropdownMenuItem } from "../../../../../../packages/ui/components/shadcn/dropdown-menu";
 import ProfileDropdown, {
   initialsOf,
 } from "../../../../../../packages/ui/components/shadcn-studio/blocks/dropdown-profile";
@@ -88,6 +89,17 @@ describe("ProfileDropdown", () => {
     // A bare "Signed in" says nothing about whose menu this is.
     expect(screen.queryByText("Signed in")).toBeNull();
     expect(screen.getAllByText("Administrator · Give Hope")).toHaveLength(1);
+  });
+
+  it("places a caller's own menu items after its links", () => {
+    renderOpenProfileDropdown({
+      menuItems: [{ label: "About", href: "/help/about", icon: TestIcon }],
+      children: <DropdownMenuItem>Keyboard shortcuts</DropdownMenuItem>,
+    });
+
+    expect(
+      screen.getAllByRole("menuitem").map((item) => item.textContent),
+    ).toEqual(["About", "Keyboard shortcuts", "Sign out"]);
   });
 
   it("falls back to Your account with no name, email or detail", () => {

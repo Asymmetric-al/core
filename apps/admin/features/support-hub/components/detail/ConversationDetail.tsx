@@ -7,6 +7,11 @@ import {
 } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@asym/ui/components/shadcn/collapsible";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -41,12 +46,15 @@ interface ConversationDetailProps {
   onClose: () => void;
   /** Mobile = render as Sheet, desktop = render inline as the right rail. */
   layout: "sheet" | "inline";
+  /** Where the sheet returns focus once it has closed. */
+  finalFocus?: () => HTMLElement | null;
 }
 
 export function ConversationDetail({
   conversationId,
   onClose,
   layout,
+  finalFocus,
 }: ConversationDetailProps) {
   const {
     data: conversation,
@@ -57,14 +65,19 @@ export function ConversationDetail({
     refetch,
   } = useSupportConversation(conversationId);
 
-  // Phase 7: when the detail pane closes, restore focus to the row / card
-  // that opened it. The hook reads `document.activeElement` on mount.
-  useFocusReturn(conversationId !== null);
+  // Closing returns focus to the row or card that opened the pane, or to the
+  // one j/k last focused while it stayed open. The sheet uses finalFocus.
+  const paneRef = useRef<HTMLDivElement | null>(null);
+  useFocusReturn(layout === "inline" && conversationId !== null, {
+    key: conversationId,
+    container: paneRef,
+  });
   const threadRef = useRef<HTMLElement | null>(null);
 
   if (layout === "inline") {
     return (
       <aside
+        ref={paneRef}
         aria-label="Conversation detail"
         className={cn(
           "flex h-full min-h-0 flex-col rounded-xl border border-border bg-card shadow-sm",
@@ -105,6 +118,7 @@ export function ConversationDetail({
         side="right"
         showCloseButton={isLoading && !conversation}
         initialFocus={threadRef}
+        finalFocus={finalFocus}
         className="flex w-full max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
       >
         <SheetHeader className="sr-only">
@@ -199,58 +213,68 @@ function DetailBody({
         <ConversationTimeline conversationId={conversation.id} />
       </section>
       <div className="border-t border-border bg-muted/40 p-3">
-        {composerMode === null ? null : (
-          <div className={cn("flex flex-col gap-2", !composerOpen && "hidden")}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="self-end"
-              onClick={() => setComposerOpen(false)}
-            >
-              <ChevronDown aria-hidden="true" />
-              Hide composer
-            </Button>
-            {/* Keyed per conversation so drafts, attachments, and mode start
-                fresh when the agent switches threads instead of being reset in
-                an effect. Hiding keeps it mounted, so a draft survives. */}
-            <ConversationComposer
-              key={conversation.id}
-              conversation={conversation}
-              agent={agent}
-              initialMode={composerMode}
-              active={composerOpen}
-            />
-          </div>
-        )}
-        {composerOpen ? null : (
-          <div
-            className={cn("grid gap-2", composerMode === null && "grid-cols-2")}
-          >
+        {composerMode === null ? (
+          <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               onClick={() => {
-                setComposerMode((mode) => mode ?? "reply");
+                setComposerMode("reply");
                 setComposerOpen(true);
               }}
             >
               <Mail aria-hidden="true" />
-              {composerMode === null ? "Reply" : "Show composer"}
+              Reply
             </Button>
-            {composerMode === null ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setComposerMode("note");
-                  setComposerOpen(true);
-                }}
-              >
-                <StickyNote aria-hidden="true" />
-                Internal note
-              </Button>
-            ) : null}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setComposerMode("note");
+                setComposerOpen(true);
+              }}
+            >
+              <StickyNote aria-hidden="true" />
+              Internal note
+            </Button>
           </div>
+        ) : (
+          <Collapsible
+            open={composerOpen}
+            onOpenChange={setComposerOpen}
+            className="flex flex-col gap-2"
+          >
+            {/* One button for Hide and Show, so focus stays on it when the
+                composer hides instead of dropping to the page. */}
+            <CollapsibleTrigger
+              render={
+                <Button
+                  type="button"
+                  variant={composerOpen ? "ghost" : "default"}
+                  size={composerOpen ? "sm" : "default"}
+                  className={cn(composerOpen && "self-end")}
+                >
+                  {composerOpen ? (
+                    <ChevronDown aria-hidden="true" />
+                  ) : (
+                    <Mail aria-hidden="true" />
+                  )}
+                  {composerOpen ? "Hide composer" : "Show composer"}
+                </Button>
+              }
+            />
+            <CollapsibleContent keepMounted>
+              {/* Keyed per conversation so drafts, attachments, and mode start
+                  fresh when the agent switches threads instead of being reset
+                  in an effect. Hiding keeps it mounted, so a draft survives. */}
+              <ConversationComposer
+                key={conversation.id}
+                conversation={conversation}
+                agent={agent}
+                initialMode={composerMode}
+                active={composerOpen}
+              />
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </div>
     </div>

@@ -40,12 +40,16 @@ async function fixtureState(page: Page) {
 
 async function openFromKeyboard(page: Page) {
   const actions = page.getByRole("button", {
-    name: "Open actions",
+    name: "Actions for Call partner",
     exact: true,
   });
   await actions.press("Enter");
   const item = page.getByRole("menuitem", { name: "Delete task", exact: true });
   await expect(item).toBeVisible();
+  // Enter opens the menu on its first item; only then can End move focus.
+  await expect(
+    page.getByRole("menuitem", { name: "Edit task", exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("End");
   await expect(item).toBeFocused();
   await page.keyboard.press("Enter");
@@ -69,7 +73,7 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await page.goto("/task-toolbar.html");
     await expect(
-      page.getByRole("heading", { name: "Mission Tasks", exact: true }),
+      page.getByRole("heading", { name: "Tasks", exact: true, level: 1 }),
     ).toBeVisible();
     await expect(page.locator("html")).toHaveClass(/light/);
     await page
@@ -77,7 +81,7 @@ for (const viewport of [
       .press("Enter");
 
     const actions = page.getByRole("button", {
-      name: "Open actions",
+      name: "Actions for Call partner",
       exact: true,
     });
     await expect(actions).toBeVisible();
@@ -216,7 +220,7 @@ for (const viewport of [
       .toEqual([]);
     await expect(
       page.getByRole("checkbox", {
-        name: "Complete Call partner",
+        name: "Mark Call partner complete",
         exact: true,
       }),
     ).toHaveCount(0);
@@ -235,7 +239,11 @@ for (const viewport of [
     ({ dialog } = await openFromKeyboard(page));
     await control(page, { command: "complete-from-refresh" });
     await expect(
-      page.getByRole("button", { name: "Open actions", includeHidden: true }),
+      page.getByRole("button", {
+        name: "Actions for Call partner",
+        exact: true,
+        includeHidden: true,
+      }),
     ).toHaveCount(0);
     await expect(dialog).toBeVisible();
     await dialog.getByRole("button", { name: "Cancel" }).press("Enter");

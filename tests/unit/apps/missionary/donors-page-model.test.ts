@@ -9,7 +9,9 @@ import {
   createTagEditorDraft,
   formatDonorAddress,
   getDonorCallHref,
+  getDonorCallUnavailableReason,
   getDonorEmailHref,
+  getDonorEmailUnavailableReason,
   getGivingHistoryRows,
   hasDonorsActiveFilters,
   nextPartnerLinkStep,
@@ -368,6 +370,30 @@ describe("donors page model helpers", () => {
     expect(getDonorEmailHref("")).toBeNull();
     expect(getDonorEmailHref("   ")).toBeNull();
     expect(getDonorEmailHref(undefined)).toBeNull();
+  });
+
+  it("explains why Call or Email can't be used, and only then", () => {
+    expect(
+      getDonorCallUnavailableReason(createDonor({ phone: "555-0100" })),
+    ).toBeNull();
+    expect(
+      getDonorCallUnavailableReason(
+        createDonor({ phone: " ", mobile: undefined }),
+      ),
+    ).toBe("No phone number on file");
+    expect(
+      getDonorCallUnavailableReason(
+        createDonor({ phone: "555-0100", is_anonymous: true }),
+      ),
+    ).toBe("Anonymous partners can’t be called");
+
+    expect(getDonorEmailUnavailableReason("ada@example.com")).toBeNull();
+    expect(getDonorEmailUnavailableReason("  ")).toBe(
+      "No email address on file",
+    );
+    expect(getDonorEmailUnavailableReason("ada@example.com", true)).toBe(
+      "Anonymous partners can’t be emailed",
+    );
   });
 });
 

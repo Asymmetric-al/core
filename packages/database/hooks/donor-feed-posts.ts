@@ -113,6 +113,7 @@ export function useDonorFeedPosts(options: DonorFeedPostsOptions = {}) {
     data: accessDenied(query.error) ? [] : (query.data ?? []),
     isLoading: query.isLoading,
     error: query.error,
+    refetch: query.refetch,
   };
 }
 
@@ -125,6 +126,20 @@ function accessDenied(error: Error | null): boolean {
     "status" in error &&
     (error.status === 401 || error.status === 403)
   );
+}
+
+/**
+ * The loaded pages as one list, each update once. Pages are read by offset
+ * from a newest-first feed, so an update published between page loads pushes
+ * one already shown onto the next page; it stays where it first appeared.
+ */
+function uniqueUpdates(pages: PostWithAuthor[][]): PostWithAuthor[] {
+  const seen = new Set<PostWithAuthor["id"]>();
+  return pages.flat().filter((post) => {
+    if (seen.has(post.id)) return false;
+    seen.add(post.id);
+    return true;
+  });
 }
 
 /**
@@ -161,8 +176,26 @@ export function useDonorFeedPostPages(
   const denied = accessDenied(query.error);
 
   return {
-    data: denied ? [] : (query.data?.pages.flat() ?? []),
+    data: denied ? [] : uniqueUpdates(query.data?.pages ?? []),
     isLoading: query.isLoading,
+    /**
+     * Nothing has loaded and no load has failed. Unlike an empty `data`, it
+     * tells a load that has not answered (running, or offline waiting for
+     * the connection) from a feed that loaded with no updates.
+     */
+    isPending: query.isPending,
+    /**
+     * A fetch is waiting for the connection. Offline, a load or retry with
+     * nothing cached clears the error yet is not loading (`isLoading` needs
+     * a running fetch), so it has not answered.
+     */
+    isPaused: query.isPaused,
+    /**
+     * A fetch is running: a first load, a page load or a refresh. A refresh
+     * over loaded pages is neither `isLoading` nor `isLoadingMore`, so this
+     * is how to tell it has not answered yet.
+     */
+    isFetching: query.isFetching,
     error: query.error,
     hasMore: query.hasNextPage,
     isLoadingMore: query.isFetchingNextPage,

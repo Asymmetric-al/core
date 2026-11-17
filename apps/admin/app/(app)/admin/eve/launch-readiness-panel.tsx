@@ -24,13 +24,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Rocket, ShieldAlert } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState, type RefObject } from "react";
 
 import {
   LAUNCH_PERMISSION_LABELS,
@@ -151,38 +152,66 @@ function LaunchReadinessStatusGrid({
 }
 
 function LaunchManifestImportSection({
+  error,
   isPending,
   manifestJson,
+  manifestRef,
   onManifestJsonChange,
   onSubmit,
 }: {
+  error?: string;
   isPending: boolean;
   manifestJson: string;
+  manifestRef: RefObject<HTMLTextAreaElement | null>;
   onManifestJsonChange: (value: string) => void;
   onSubmit: () => void;
 }) {
   return (
     <section aria-labelledby="eve-launch-manifest-title">
-      <Label id="eve-launch-manifest-title" htmlFor="eve-launch-manifest">
-        Signed-off launch evidence (JSON)
-      </Label>
-      <Textarea
-        id="eve-launch-manifest"
-        className="mt-2"
-        value={manifestJson}
-        placeholder='{"schemaVersion":"eve-launch-manifest-v1", ...}'
-        onChange={(event) => onManifestJsonChange(event.target.value)}
-      />
-      <Button
-        className="mt-2"
-        size="sm"
-        variant="outline"
-        focusableWhenDisabled={isPending}
-        disabled={isPending || manifestJson.trim().length === 0}
-        onClick={onSubmit}
+      <form
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
       >
-        Validate and import
-      </Button>
+        <Label id="eve-launch-manifest-title" htmlFor="eve-launch-manifest">
+          Signed-off launch evidence (JSON)
+        </Label>
+        <Textarea
+          ref={manifestRef}
+          id="eve-launch-manifest"
+          className="mt-2"
+          value={manifestJson}
+          placeholder='{"schemaVersion":"eve-launch-manifest-v1", ...}'
+          onChange={(event) => onManifestJsonChange(event.target.value)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "eve-launch-manifest-error" : undefined}
+        />
+        {error ? (
+          <FieldError id="eve-launch-manifest-error" className="mt-2">
+            {error}
+          </FieldError>
+        ) : null}
+        {/* A disabled submit Button is natively disabled and drops focus, so it
+            is a plain button while pending; both branches keep one DOM node. */}
+        {isPending ? (
+          <Button
+            type="button"
+            className="mt-2"
+            size="sm"
+            variant="outline"
+            focusableWhenDisabled
+            disabled
+          >
+            Validate and import
+          </Button>
+        ) : (
+          <Button type="submit" className="mt-2" size="sm" variant="outline">
+            Validate and import
+          </Button>
+        )}
+      </form>
     </section>
   );
 }
@@ -205,8 +234,12 @@ function LaunchReasonSection({
         value={reason}
         onChange={(event) => onReasonChange(event.target.value)}
         placeholder="A short reason, with no personal or secret details"
+        aria-describedby="eve-launch-reason-hint"
       />
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p
+        id="eve-launch-reason-hint"
+        className="mt-2 text-xs text-muted-foreground"
+      >
         Every button below needs a reason, even before any evidence is imported.
         It is saved with the change in the audit history.
       </p>
@@ -560,7 +593,8 @@ export function EveLaunchReadinessPanel() {
   const [manifestJson, setManifestJson] = useState("");
   const [profileId, setProfileId] = useState("");
   const [reason, setReason] = useState("");
-  const [localError, setLocalError] = useState<string>();
+  const [manifestError, setManifestError] = useState<string>();
+  const manifestRef = useRef<HTMLTextAreaElement>(null);
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: loadReadiness,
@@ -570,7 +604,6 @@ export function EveLaunchReadinessPanel() {
   const mutation = useMutation({
     mutationFn: mutateReadiness,
     async onSuccess(data) {
-      setLocalError(undefined);
       queryClient.setQueryData(QUERY_KEY, data);
       // Activation, safety controls, and canary failures all write
       // eve_governance_state, so the separately cached governance panel must
@@ -585,14 +618,26 @@ export function EveLaunchReadinessPanel() {
   const launch = query.data?.latestLaunch;
   const explanation = reason.trim();
 
+  const rejectManifest = (message: string) => {
+    setManifestError(message);
+    manifestRef.current?.focus();
+  };
+
   const submitManifest = () => {
-    try {
-      const document = JSON.parse(manifestJson) as EveLaunchManifestDocument;
-      setLocalError(undefined);
-      mutation.mutate({ kind: "manifest", document });
-    } catch {
-      setLocalError("The launch evidence must be valid JSON.");
+    if (mutation.isPending) return;
+    if (manifestJson.trim().length === 0) {
+      rejectManifest("Paste the signed-off launch evidence.");
+      return;
     }
+    let document: EveLaunchManifestDocument;
+    try {
+      document = JSON.parse(manifestJson) as EveLaunchManifestDocument;
+    } catch {
+      rejectManifest("The launch evidence must be valid JSON.");
+      return;
+    }
+    setManifestError(undefined);
+    mutation.mutate({ kind: "manifest", document });
   };
 
   const setPermission = (permission: EveLaunchPermission, enabled: boolean) => {
@@ -627,10 +672,10 @@ export function EveLaunchReadinessPanel() {
             Updating launch readiness…
           </p>
         ) : null}
-        {query.isError || mutation.isError || localError ? (
+        {query.isError || mutation.isError ? (
           <Alert variant="destructive">
             <AlertDescription>
-              {localError ?? query.error?.message ?? mutation.error?.message}
+              {query.error?.message ?? mutation.error?.message}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -641,9 +686,14 @@ export function EveLaunchReadinessPanel() {
         />
 
         <LaunchManifestImportSection
+          error={manifestError}
           isPending={mutation.isPending}
           manifestJson={manifestJson}
-          onManifestJsonChange={setManifestJson}
+          manifestRef={manifestRef}
+          onManifestJsonChange={(value) => {
+            setManifestJson(value);
+            setManifestError(undefined);
+          }}
           onSubmit={submitManifest}
         />
 

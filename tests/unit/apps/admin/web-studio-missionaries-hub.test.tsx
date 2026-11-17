@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -378,9 +379,13 @@ it.each([
       const retryButton = screen.getByRole<HTMLButtonElement>("button", {
         name: "Retry publication status",
       });
+      retryButton.focus();
       fireEvent.click(retryButton);
       await waitFor(() => expect(fetchVersions).toHaveBeenCalledTimes(2));
-      expect(retryButton.disabled).toBe(true);
+      // Busy but still focused, so the press is not lost.
+      expect(retryButton.getAttribute("aria-disabled")).toBe("true");
+      expect(retryButton.disabled).toBe(false);
+      expect(document.activeElement).toBe(retryButton);
       expect(within(region).getAllByText("Unavailable")).toHaveLength(2);
       expect(
         within(region)
@@ -400,6 +405,10 @@ it.each([
       expect(within(region).getAllByText("Draft")).toHaveLength(1);
       expect(within(region).queryAllByText("Unavailable")).toHaveLength(0);
       expect(screen.queryByText(/Publication status didn't load/)).toBeNull();
+      // Retry is gone; focus moves to the records it refreshed.
+      expect(retryButton.isConnected).toBe(false);
+      expect(document.activeElement?.getAttribute("tabindex")).toBe("-1");
+      expect(document.activeElement?.contains(region)).toBe(true);
       expect(fetchVersions).toHaveBeenCalledTimes(2);
       expect(
         fetchMock.mock.calls.filter(([url]) =>
@@ -542,12 +551,36 @@ it("says giving page status is unavailable and offers Retry instead of a false C
   expect(view.getAttribute("href")).toContain("missionaryId");
   expect(screen.getByText(/so Create and Edit are hidden/)).toBeTruthy();
   const before = fetchMock.mock.calls.length;
-  fireEvent.click(
-    screen.getByRole("button", { name: "Retry giving page status" }),
+  const retried = Promise.withResolvers<Response>();
+  const originalFetch = fetchMock.getMockImplementation()!;
+  fetchMock.mockImplementation(async (url) =>
+    url.includes("/missionary-giving-pages")
+      ? retried.promise
+      : originalFetch(url),
   );
+  const retry = screen.getByRole("button", {
+    name: "Retry giving page status",
+  });
+  retry.focus();
+  fireEvent.click(retry);
   await waitFor(() =>
     expect(fetchMock.mock.calls.length).toBeGreaterThan(before),
   );
+  // Still unknown while it retries: the notice and its busy Retry stay, and
+  // Retry keeps focus.
+  await waitFor(() => expect(retry.getAttribute("aria-disabled")).toBe("true"));
+  expect(retry.isConnected).toBe(true);
+  expect(document.activeElement).toBe(retry);
+  expect(within(region).queryByText("Checking…")).toBeNull();
+  expect(within(region).queryByText("Not created")).toBeNull();
+
+  await act(async () => retried.resolve(new Response("down", { status: 503 })));
+  await waitFor(() =>
+    expect(retry.getAttribute("aria-disabled")).not.toBe("true"),
+  );
+  // Failed again: the same Retry is still there, still focused.
+  expect(retry.isConnected).toBe(true);
+  expect(document.activeElement).toBe(retry);
   client.clear();
 });
 

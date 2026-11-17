@@ -31,8 +31,12 @@ describe("admin CRM TanStack cache stability contracts", () => {
     expect(source).toMatch(
       /JSON\.stringify\(\{ filters: debouncedFilters, sorting \}\)/,
     );
-    expect(source).toMatch(/id: `crm-loaded-\$\{collectionFingerprint\}`/);
-    expect(source).toMatch(/\[collectionFingerprint\],\s*\)/);
+    // Each staging Collection still gets its own ID: useLiveQuery rejects a
+    // reused ID, which a fingerprint repeats when a filter is cleared.
+    expect(source).toMatch(
+      /id: `crm-loaded-\$\{loadedCollectionCount\}-\$\{collectionFingerprint\}`/,
+    );
+    expect(source).toMatch(/\[collectionFingerprint\]\)/);
   });
 
   it("invalidates the drawer detail query when CRM mutations succeed", () => {

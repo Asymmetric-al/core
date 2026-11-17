@@ -29,7 +29,7 @@ import {
   LoaderCircle,
   Receipt,
 } from "lucide-react";
-import { useId, useEffect, useRef, useState } from "react";
+import { useId, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import {
@@ -42,6 +42,8 @@ import {
   toOfflineContributionRequest,
   type OfflineGiftFormValues,
 } from "./offline-gift-form-model";
+
+import type { RefObject } from "react";
 
 const modeToggleOptions: {
   mode: OfflineGiftFormValues["donorMode"];
@@ -117,6 +119,9 @@ function OfflineGiftEntryForm({
   const [recorded, setRecorded] = useState<OfflineGiftEntryResult | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isActiveRef = useRef(true);
+  const formRef = useRef<HTMLFormElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const focusEntryRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -135,6 +140,14 @@ function OfflineGiftEntryForm({
     abortInFlightSubmit();
     onClose();
   };
+
+  // The entry form and its confirmation replace each other, so focus moves to
+  // the one that appears instead of dropping to the page.
+  useLayoutEffect(() => {
+    if (recorded) closeRef.current?.focus();
+    else if (focusEntryRef.current) formRef.current?.focus();
+    focusEntryRef.current = false;
+  }, [recorded]);
 
   const form = useOfflineGiftForm({
     clearAbortController: (controller) => {
@@ -170,8 +183,10 @@ function OfflineGiftEntryForm({
     return (
       <OfflineGiftEntrySuccess
         result={recorded}
+        closeRef={closeRef}
         onClose={handleClose}
         onAddAnother={() => {
+          focusEntryRef.current = true;
           setRecorded(null);
           setSubmitError(null);
           form.reset();
@@ -182,7 +197,9 @@ function OfflineGiftEntryForm({
 
   return (
     <form
-      className="grid gap-4"
+      ref={formRef}
+      tabIndex={-1}
+      className="grid gap-4 outline-none"
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -289,28 +306,85 @@ function OfflineGiftEntryForm({
           })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button
-              aria-labelledby={`${pendingActionLabelId}-2`}
-              focusableWhenDisabled={isSubmitting}
-              disabled={!canSubmit || isSubmitting}
-              type="submit"
-            >
-              <span id={`${pendingActionLabelId}-2`} className="sr-only">
-                {isSubmitting ? "Recording…" : "Record gift"}
-              </span>
-              {isSubmitting ? (
-                <>
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Recording…
-                </>
-              ) : (
-                "Record gift"
-              )}
-            </Button>
+            <RecordGiftButton
+              canSubmit={canSubmit}
+              formRef={formRef}
+              isSubmitting={isSubmitting}
+              labelId={`${pendingActionLabelId}-2`}
+            />
           )}
         </form.Subscribe>
       </DialogFooter>
     </form>
+  );
+}
+
+function RecordGiftButton({
+  canSubmit,
+  formRef,
+  isSubmitting,
+  labelId,
+}: {
+  canSubmit: boolean;
+  formRef: RefObject<HTMLFormElement | null>;
+  isSubmitting: boolean;
+  labelId: string;
+}) {
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const parkedRef = useRef(false);
+  const disabled = !canSubmit || isSubmitting;
+  // A disabled submit button drops focus to the page, so focus waits on the
+  // busy form until Record gift is usable again, or moves to the first invalid
+  // field when validation stops the save. Only focus parked here moves on:
+  // Safari also focuses the form when a button in it is clicked.
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    if (disabled) {
+      if (document.activeElement === saveRef.current) {
+        form?.focus({ preventScroll: true });
+        parkedRef.current = true;
+      }
+      if (isSubmitting || !parkedRef.current) return;
+      if (document.activeElement !== form) {
+        parkedRef.current = false;
+        return;
+      }
+      const invalid = form?.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (invalid) {
+        parkedRef.current = false;
+        invalid.focus();
+      }
+      return;
+    }
+    if (parkedRef.current && document.activeElement === form)
+      saveRef.current?.focus();
+    parkedRef.current = false;
+  }, [disabled, isSubmitting, formRef]);
+  // The form renders outside this subscription, so its busy state is set here.
+  useLayoutEffect(() => {
+    formRef.current?.setAttribute("aria-busy", String(isSubmitting));
+  }, [isSubmitting, formRef]);
+
+  return (
+    <Button
+      ref={saveRef}
+      aria-labelledby={labelId}
+      focusableWhenDisabled={isSubmitting}
+      disabled={disabled}
+      type="submit"
+    >
+      <span id={labelId} className="sr-only">
+        {isSubmitting ? "Recording…" : "Record gift"}
+      </span>
+      {isSubmitting ? (
+        <>
+          <LoaderCircle className="size-4 animate-spin" />
+          Recording…
+        </>
+      ) : (
+        "Record gift"
+      )}
+    </Button>
   );
 }
 
@@ -664,10 +738,12 @@ function ReceiptStatusPreview({
 
 function OfflineGiftEntrySuccess({
   result,
+  closeRef,
   onClose,
   onAddAnother,
 }: {
   result: OfflineGiftEntryResult;
+  closeRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   onAddAnother: () => void;
 }) {
@@ -697,6 +773,7 @@ function OfflineGiftEntrySuccess({
           Enter another
         </Button>
         <Button
+          ref={closeRef}
           aria-label="Close gift confirmation"
           onClick={onClose}
           type="button"

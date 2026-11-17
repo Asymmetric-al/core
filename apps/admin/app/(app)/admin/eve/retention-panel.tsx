@@ -219,6 +219,7 @@ export function EveRetentionPanel() {
                     <Button
                       size="sm"
                       variant="outline"
+                      aria-label={`Clear hold: ${formatStatusLabel(hold.holdType)} · ${formatStatusLabel(hold.scopeType)}`}
                       focusableWhenDisabled={
                         mutation.isPending &&
                         mutation.variables?.action === "clear_hold" &&

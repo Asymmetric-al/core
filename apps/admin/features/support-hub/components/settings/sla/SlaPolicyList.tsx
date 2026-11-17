@@ -12,6 +12,7 @@ import {
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
 import { Gauge, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import * as React from "react";
 import { toast } from "sonner";
 
 import { SlaPolicyForm } from "./SlaPolicyForm";
@@ -42,6 +43,7 @@ export function SlaPolicyList() {
   const setDefault = useSetDefaultSupportSlaPolicy();
   const editor = useSettingsEditor<SupportSlaPolicy>();
   const editingRow = editor.record;
+  const rowActionsRefs = React.useRef(new Map<string, HTMLDivElement>());
 
   const rows = query.data;
   const listState = {
@@ -73,6 +75,11 @@ export function SlaPolicyList() {
   };
 
   const handleMakeDefault = async (row: SupportSlaPolicy) => {
+    // Make default is disabled while this saves and leaves the row once it
+    // works, so focus moves to the row's Edit button, its first action.
+    const actions = rowActionsRefs.current.get(row.id);
+    if (actions?.contains(document.activeElement))
+      actions.querySelector("button")?.focus();
     try {
       await setDefault.mutateAsync({ id: row.id });
       toast.success(`"${row.name}" is now the default policy.`);
@@ -143,7 +150,12 @@ export function SlaPolicyList() {
                       {formatSupportDuration(row.resolutionMinutes)}
                     </ItemDescription>
                   </ItemContent>
-                  <ItemActions>
+                  <ItemActions
+                    ref={(element) => {
+                      if (element) rowActionsRefs.current.set(row.id, element);
+                      else rowActionsRefs.current.delete(row.id);
+                    }}
+                  >
                     <SettingsIconButton
                       label={`Edit ${row.name}`}
                       tooltip="Edit"
