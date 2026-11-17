@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  TenantLink as Link,
+  useTenantHref,
+} from "@asym/auth/tenant-navigation";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DropdownMenuItem } from "@asym/ui/components/shadcn/dropdown-menu";
@@ -13,7 +17,6 @@ import {
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
 import { Bookmark, Copy, Inbox, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { toast } from "sonner";
 
 import { useSupportAgents } from "../../../hooks/use-support-agents";
@@ -41,6 +44,7 @@ export function SavedViewsList() {
     agents.find((agent) => agent.id === agentId)?.name;
 
   const confirm = useConfirm();
+  const tenantHref = useTenantHref();
   const handleDelete = async (view: SupportSavedView) => {
     await confirm({
       title: `Delete the ${view.name} view?`,
@@ -64,7 +68,10 @@ export function SavedViewsList() {
 
   const copyLink = async (view: SupportSavedView) => {
     try {
-      const url = new URL(savedViewHref(view.filter), window.location.origin);
+      const url = new URL(
+        tenantHref(savedViewHref(view.filter)),
+        window.location.origin,
+      );
       await navigator.clipboard.writeText(url.toString());
       toast.success("Link copied.");
     } catch {

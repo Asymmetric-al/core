@@ -60,6 +60,14 @@
       "types": "./providers/index.ts",
       "default": "./providers/index.ts"
     },
+    "./document-scope": {
+      "types": "./document-scope.tsx",
+      "default": "./document-scope.tsx"
+    },
+    "./document-reload": {
+      "types": "./document-reload.ts",
+      "default": "./document-reload.ts"
+    },
     "./types": {
       "types": "./types/index.ts",
       "default": "./types/index.ts"

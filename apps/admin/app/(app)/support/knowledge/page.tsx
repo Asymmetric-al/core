@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { ButtonLink } from "@asym/ui/components/shadcn/button";
 import {
@@ -7,7 +8,6 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@asym/ui/components/shadcn/empty";
-import Link from "next/link";
 export default function SupportKnowledgePage() {
   return (
     <PageShell

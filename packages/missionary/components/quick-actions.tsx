@@ -1,10 +1,10 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import Link from "next/link";
 import * as React from "react";
 
 import type { LucideIcon } from "lucide-react";

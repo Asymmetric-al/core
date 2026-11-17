@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Alert,
   AlertTitle,
@@ -15,7 +16,6 @@ import {
   CommandList,
 } from "@asym/ui/components/shadcn/command";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
 

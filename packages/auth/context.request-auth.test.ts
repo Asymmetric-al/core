@@ -376,3 +376,117 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * AL-2675 (WP2b; plan 5.2): the tenant in the page address reaches the
+ * resolver as the expected tenant, so a person in two organizations is
+ * resolved in the one the address names, and a person with several staff
+ * rows acts under the row they chose.
+ */
+describe("getAuthContext: the tenant and assignment the request names", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.headers.clear();
+    mocks.headers.set("x-asym-role-class", "staff");
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: USER, email: "staff@example.test" } },
+      error: null,
+    });
+    mocks.profile.mockResolvedValue({
+      data: { id: "profile-one" },
+      error: null,
+    });
+  });
+
+  it("resolves a person in two organizations in the tenant the header names", async () => {
+    const inA = row(TA, "staff", "finance");
+    const inB = row(TB, "staff", "development");
+    rows(inA, inB);
+
+    const unscoped = await getAuthContext();
+    expect(unscoped.assignmentDenial).toBe("ambiguous");
+
+    mocks.headers.set("x-asym-tenant", TB);
+    const inTenantB = await getAuthContext();
+    expect(inTenantB.isAuthenticated).toBe(true);
+    expect(inTenantB.tenantId).toBe(TB);
+    expect(inTenantB.assignment?.assignmentId).toBe(inB.id);
+
+    const onApi = await getAuthContext(
+      new Request("https://example.test/api/admin/x", {
+        headers: { "x-asym-role-class": "staff", "x-asym-tenant": TA },
+      }),
+    );
+    expect(onApi.tenantId).toBe(TA);
+  });
+
+  it("acts under the chosen staff row, and never under a row in another tenant", async () => {
+    const finance = row(TA, "staff", "finance");
+    const care = row(TA, "staff", "member_care");
+    const inB = row(TB, "staff", "development");
+    rows(finance, care, inB);
+    mocks.headers.set("x-asym-tenant", TA);
+
+    expect((await getAuthContext()).assignmentDenial).toBe("ambiguous");
+
+    mocks.headers.set("x-asym-assignment", care.id);
+    const chosen = await getAuthContext();
+    expect(chosen.assignment?.assignmentId).toBe(care.id);
+    expect(hasContextCapability(chosen, "care.access")).toBe(true);
+
+    mocks.headers.set("x-asym-assignment", finance.id);
+    const financeContext = await getAuthContext();
+    expect(financeContext.assignment?.assignmentId).toBe(finance.id);
+    expect(hasContextCapability(financeContext, "care.access")).toBe(false);
+
+    mocks.headers.set("x-asym-assignment", inB.id);
+    expect((await getAuthContext()).assignmentDenial).toBe("tenant_mismatch");
+  });
+});
+
+/**
+ * AL-2675 (WP2b): the organization chooser lists every live row of a
+ * signed-in person before any one is selected, which `getAuthContext`
+ * cannot do for a person in two organizations.
+ */
+describe("getSignedInAssignments", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.headers.clear();
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: USER, email: "staff@example.test" } },
+      error: null,
+    });
+  });
+
+  it("returns every live row of the signed-in person, validated", async () => {
+    const { getSignedInAssignments } = await import("./context");
+    const inA = row(TA, "staff", "finance");
+    const inB = row(TB, "missionary");
+    rows(inA, inB);
+
+    const result = await getSignedInAssignments();
+
+    expect(result).toMatchObject({
+      kind: "signed_in",
+      userId: USER,
+      assignments: [
+        { assignmentId: inA.id, tenantId: TA, staffRole: "finance" },
+        { assignmentId: inB.id, tenantId: TB, membershipRole: "missionary" },
+      ],
+    });
+  });
+
+  it("fails closed on a malformed row and says so for a signed-out visitor", async () => {
+    const { getSignedInAssignments } = await import("./context");
+    rows({ ...row(TA, "staff", "finance"), staff_role: null });
+    await expect(getSignedInAssignments()).resolves.toEqual({
+      kind: "unavailable",
+    });
+
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    await expect(getSignedInAssignments()).resolves.toEqual({
+      kind: "signed_out",
+    });
+  });
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
   DataGridPanel,
@@ -26,7 +27,6 @@ import {
   ItemTitle,
   ItemDescription,
 } from "@asym/ui/components/shadcn/item";
-import Link from "next/link";
 import { useState } from "react";
 
 import type { MissionControlNeedsAttentionItem } from "@asym/database/hooks";

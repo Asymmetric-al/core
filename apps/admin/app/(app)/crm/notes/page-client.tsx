@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useAdminCrmNotesGrid } from "@asym/database/hooks";
 import { useIsMobile } from "@asym/lib/hooks/use-mobile";
 import {
@@ -65,7 +66,6 @@ import {
   ShieldAlert,
   X,
 } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 

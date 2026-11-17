@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  TenantLink as Link,
+  useRoutePathname as usePathname,
+} from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site-client";
 import {
   useMissionaryPortalSnapshot,
@@ -26,8 +30,6 @@ import {
   SidebarRail,
   useSidebar,
 } from "@asym/ui/components/shadcn/sidebar";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { getNavGroups, type UserRole } from "./navigation-items";
 import { SidebarAccountMenu } from "./sidebar-account-menu";

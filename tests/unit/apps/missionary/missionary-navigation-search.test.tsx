@@ -3,6 +3,8 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import type { ReactNode } from "react";
+
 const navigation = vi.hoisted(() => ({ pathname: "/", push: vi.fn() }));
 vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
@@ -18,7 +20,23 @@ vi.mock("@asym/auth/client-session", () => ({
   subscribeToClientAuthState: () => () => {},
 }));
 
-import { MissionaryLayoutShell } from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
+import {
+  MissionaryLayoutShell,
+  MissionaryWorkspaceChrome,
+} from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
+
+/** The shell as `app/layout.tsx` composes it; the gate and scope are not under test here. */
+function Shell({ children }: { children: ReactNode }) {
+  return (
+    <MissionaryLayoutShell
+      workspace={
+        <MissionaryWorkspaceChrome>{children}</MissionaryWorkspaceChrome>
+      }
+    >
+      {children}
+    </MissionaryLayoutShell>
+  );
+}
 
 const scrollDescriptor = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
@@ -61,9 +79,9 @@ afterEach(() => {
 
 it("mounts one missionary palette with the existing sidebar destinations", async () => {
   const view = render(
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Workspace</h1>
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   fireEvent.click(
     view.getByRole("button", { name: "Search missionary pages" }),
@@ -116,9 +134,9 @@ it.each([
 ])("keeps public %s free of workspace search and its shortcut", (pathname) => {
   navigation.pathname = pathname;
   const view = render(
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Sign in</h1>
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   expect(view.getByRole("heading", { name: "Sign in" })).toBeTruthy();
   expect(
@@ -138,9 +156,9 @@ it.each([
 
 it("releases an open workspace palette and its shortcut when returning to login", async () => {
   const content = (
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Current page</h1>
-    </MissionaryLayoutShell>
+    </Shell>
   );
   const view = render(content);
   fireEvent.click(
@@ -150,9 +168,9 @@ it("releases an open workspace palette and its shortcut when returning to login"
 
   navigation.pathname = "/login";
   view.rerender(
-    <MissionaryLayoutShell>
+    <Shell>
       <h1>Sign in</h1>
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
   const shortcut = new KeyboardEvent("keydown", {

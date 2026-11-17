@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
+import {
   MetricCard,
   MetricGrid,
 } from "@asym/ui/components/primitives/metric-card";
@@ -13,7 +17,7 @@ import {
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { AlertTriangle, CircleAlert, RotateCw } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {

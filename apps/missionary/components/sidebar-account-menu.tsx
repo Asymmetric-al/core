@@ -5,6 +5,7 @@
 // shadcn primitives.
 
 import { signOutClientSession } from "@asym/auth/client-session";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { useAuth } from "@asym/lib/hooks";
 import {
   Avatar,
@@ -28,7 +29,6 @@ import {
 } from "@asym/ui/components/shadcn/sidebar";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { ChevronsUpDown, Info, LogOut, Settings } from "lucide-react";
-import Link from "next/link";
 import { useTransition } from "react";
 
 import type { Profile } from "@asym/database/types";

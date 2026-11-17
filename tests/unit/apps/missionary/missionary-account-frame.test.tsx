@@ -32,7 +32,10 @@ vi.mock("@asym/database/supabase", () => ({
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Test actual Missionary account composition rather than a replacement shell.
 import LoginLoading from "../../../../apps/missionary/app/(auth)/login/loading";
 // eslint-disable-next-line no-restricted-imports -- AL-1976: The app selector is the public account/workspace presentation seam.
-import { MissionaryLayoutShell } from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
+import {
+  MissionaryLayoutShell,
+  MissionaryWorkspaceChrome,
+} from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Preserve the app's existing password-help content in composed coverage.
 import ForgotPasswordPage from "../../../../apps/missionary/app/forgot-password/page";
 // eslint-disable-next-line no-restricted-imports -- AL-2673: The reset step's loading state must keep the account frame.
@@ -50,6 +53,19 @@ import {
 } from "../../../../packages/ui/node_modules/@tanstack/react-query/build/modern/index.js";
 
 import type { ReactNode } from "react";
+
+/** The shell as `app/layout.tsx` composes it; the gate and scope are not under test here. */
+function Shell({ children }: { children: ReactNode }) {
+  return (
+    <MissionaryLayoutShell
+      workspace={
+        <MissionaryWorkspaceChrome>{children}</MissionaryWorkspaceChrome>
+      }
+    >
+      {children}
+    </MissionaryLayoutShell>
+  );
+}
 
 const clients: QueryClient[] = [];
 const scrollDescriptor = Object.getOwnPropertyDescriptor(
@@ -103,7 +119,7 @@ function compose(children: ReactNode) {
   clients.push(client);
   return (
     <QueryClientProvider client={client}>
-      <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
+      <Shell>{children}</Shell>
     </QueryClientProvider>
   );
 }
@@ -125,9 +141,9 @@ function expectStandalone(view: ReturnType<typeof render>) {
 
 it("server-renders login loading without any dashboard chrome", () => {
   const markup = renderToString(
-    <MissionaryLayoutShell>
+    <Shell>
       <LoginLoading />
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   const view = render(<div dangerouslySetInnerHTML={{ __html: markup }} />);
   expectStandalone(view);
@@ -138,9 +154,9 @@ it("server-renders login loading without any dashboard chrome", () => {
 it("server-renders registration loading with one full-page content landmark", () => {
   navigation.pathname = "/register";
   const markup = renderToString(
-    <MissionaryLayoutShell>
+    <Shell>
       <RegisterLoading />
-    </MissionaryLayoutShell>,
+    </Shell>,
   );
   const view = render(<div dangerouslySetInnerHTML={{ __html: markup }} />);
   expect(view.getAllByRole("main")).toHaveLength(1);

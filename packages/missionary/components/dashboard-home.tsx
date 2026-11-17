@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   useMissionaryPortalSnapshot,
   usePendingFollowRequestCount,
@@ -17,7 +18,6 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { PenLine, UserPlus } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
 import { buildMissionaryDashboardView } from "./dashboard-view";

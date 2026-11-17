@@ -10,7 +10,6 @@ export const proxy = createAuthMiddleware({
     "/ways-to-give",
     "/workers",
     "/checkout",
-    "/sign",
     "/api/auth/demo-account",
     "/api/cms/public",
     "/sitemap.xml",
@@ -26,6 +25,11 @@ export const proxy = createAuthMiddleware({
   roleClass: "staff",
   allowedRoles: ["staff", "admin"],
   resolveUserRole: resolveUserRoleFromDatabase,
+  // Signed-in pages live under `/<tenant>[~<sub-role>]` (plan 5.2). Sign
+  // Studio (`/sign`) is one of them: it renders in the signed-in layout, so
+  // it is no longer listed as public. Web Studio, the chooser, sign-in and
+  // the API routes stay outside the tenant segment.
+  tenantAddress: true,
 });
 
 export const config = {

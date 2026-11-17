@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
@@ -10,7 +11,6 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { LifeBuoy, RotateCcw } from "lucide-react";
-import Link from "next/link";
 
 interface SupportInboxEmptyStateProps {
   onResetFilters?: () => void;
