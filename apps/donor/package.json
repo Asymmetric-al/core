@@ -27,7 +27,7 @@
     "@asym/lib": "workspace:*",
     "@asym/mock-data": "workspace:*",
     "@asym/ui": "workspace:*",
-    "@next/env": "16.4.2",
+    "@next/env": "16.4.5",
     "@openpolicy/react": "0.0.17",
     "@openpolicy/sdk": "0.0.17",
     "@sentry/nextjs": "11.9.0",
