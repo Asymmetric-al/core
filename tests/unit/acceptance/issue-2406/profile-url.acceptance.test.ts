@@ -14,6 +14,7 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEMO } from "./harness";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import type * as AuthContext from "@asym/auth/context";
 
@@ -192,12 +193,13 @@ async function send(route: "profile" | "donor", actor: Actor, body: Row) {
   m.auth = {
     isAuthenticated: true,
     email: null,
-    memberships: [],
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole(A[actor].role, A[actor].tenantId),
     userId: A[actor].userId,
     tenantId: A[actor].tenantId,
     profileId: PROFILE[actor],
     role: A[actor].role,
-    profileRole: A[actor].role,
+    profileRole: null,
   };
   const mod =
     route === "profile"

@@ -4,6 +4,7 @@ import * as publicApi from "../../packages/graphql";
 
 import type * as AuthModule from "../../packages/auth/context";
 import type { AuthContext } from "../../packages/auth/context";
+import { membershipsForRole } from "../fixtures/auth-memberships";
 
 const seams = vi.hoisted(() => ({
   getAuthContext: vi.fn(),
@@ -54,8 +55,9 @@ function authContext(): AuthContext {
     email: profile.email,
     tenantId: "tenant-a",
     role: "donor",
-    profileRole: "donor",
-    memberships: [],
+    profileRole: null,
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole("donor", "tenant-a"),
     profileId: "profile-a",
     isAuthenticated: true,
   };

@@ -76,27 +76,41 @@ const activeTenantStaff: AuthContext = {
   email: "staff@example.test",
   tenantId: "tenant-1",
   role: "staff",
-  profileRole: "staff",
+  profileRole: null,
   memberships: [
     {
       tenantId: "tenant-1",
       role: "staff",
       staffRole: "finance",
       isActive: true,
+      isTenantAdmin: false,
     },
   ],
   profileId: "staff-profile",
   isAuthenticated: true,
 };
 
-const superAdmin: AuthContext = {
-  userId: "super-admin-user",
-  email: "super-admin@example.test",
+/**
+ * AL-2675: an administrator is a staff membership with the
+ * tenant-administrator flag. A `super_admin` profile holds exactly that in its
+ * own tenant after the backfill; platform reach waits for WP2c's operator list.
+ */
+const tenantAdmin: AuthContext = {
+  userId: "tenant-admin-user",
+  email: "tenant-admin@example.test",
   tenantId: "tenant-1",
-  role: "super_admin",
-  profileRole: "super_admin",
-  memberships: [],
-  profileId: "super-admin-profile",
+  role: "admin",
+  profileRole: null,
+  memberships: [
+    {
+      tenantId: "tenant-1",
+      role: "staff",
+      staffRole: "development",
+      isActive: true,
+      isTenantAdmin: true,
+    },
+  ],
+  profileId: "tenant-admin-profile",
   isAuthenticated: true,
 };
 
@@ -117,10 +131,7 @@ describe("Eve governance global mutation authorization contract", () => {
     requireRoleMock.mockImplementation(
       (context: AuthContext, allowedRoles: UserRole[]) => {
         const allowed = hasAnyRole(
-          {
-            profileRole: context.profileRole,
-            memberships: context.memberships,
-          },
+          { memberships: context.memberships },
           allowedRoles,
         );
 
@@ -155,8 +166,11 @@ describe("Eve governance global mutation authorization contract", () => {
     expect(setEveKillSwitch).not.toHaveBeenCalled();
   });
 
-  it("retains successful PATCH access for super admins", async () => {
-    getAuthContextMock.mockResolvedValue(superAdmin);
+  // AL-2675: the kill switch names only super_admin, which is no membership
+  // role. It has no holder until WP2c's operator list, so it fails closed for
+  // a tenant administrator too.
+  it("refuses the global PATCH to a tenant administrator until WP2c", async () => {
+    getAuthContextMock.mockResolvedValue(tenantAdmin);
     const setEveKillSwitch = vi.fn();
     const patch = withOperation(
       async () => {
@@ -168,26 +182,36 @@ describe("Eve governance global mutation authorization contract", () => {
 
     const response = await patch(createRequest("PATCH"));
 
-    expect(response.status).toBe(200);
-    expect(setEveKillSwitch).toHaveBeenCalledOnce();
+    expect(response.status).toBe(403);
+    expect(setEveKillSwitch).not.toHaveBeenCalled();
   });
 
-  it("preserves the existing admin and super-admin policy for GET and POST", async () => {
+  it("admits GET and POST for the flagged staff row only (AL-2675)", async () => {
     expect(getRoles).toEqual(["admin", "super_admin"]);
     expect(postRoles).toEqual(["admin", "super_admin"]);
 
-    getAuthContextMock.mockResolvedValue(activeTenantStaff);
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
     const get = withOperation(handler, { roles: getRoles });
     const post = withOperation(handler, { roles: postRoles });
 
-    const [getResponse, postResponse] = await Promise.all([
+    getAuthContextMock.mockResolvedValue(activeTenantStaff);
+    const staffResponses = await Promise.all([
       get(createRequest("GET")),
       post(createRequest("POST")),
     ]);
+    expect(staffResponses.map((response) => response.status)).toEqual([
+      403, 403,
+    ]);
+    expect(handler).not.toHaveBeenCalled();
 
-    expect(getResponse.status).toBe(200);
-    expect(postResponse.status).toBe(200);
+    getAuthContextMock.mockResolvedValue(tenantAdmin);
+    const adminResponses = await Promise.all([
+      get(createRequest("GET")),
+      post(createRequest("POST")),
+    ]);
+    expect(adminResponses.map((response) => response.status)).toEqual([
+      200, 200,
+    ]);
     expect(handler).toHaveBeenCalledTimes(2);
   });
 });

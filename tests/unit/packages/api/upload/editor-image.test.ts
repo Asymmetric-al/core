@@ -11,6 +11,7 @@ import {
 } from "../../../../../packages/api/src/upload/editor-image";
 
 import type * as AuthModule from "@asym/auth/context";
+import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 
 const h = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -35,8 +36,9 @@ function ctx(profileRole: string, isAuthenticated = true) {
     profileId: USER,
     email: "u@example.test",
     role: profileRole,
-    profileRole,
-    memberships: [],
+    profileRole: null,
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole(profileRole, TENANT),
     isAuthenticated,
   } as unknown as AuthModule.AuthContext;
 }

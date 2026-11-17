@@ -157,7 +157,7 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
         "authenticated",
         "multi",
         H.call(0, input(0)),
-        s.rows.multiHr,
+        s.assignments.multiHr,
       );
       expect(created.code).toBeNull();
       expect((created.value as { profile_id: string }).profile_id).toBe(
@@ -170,13 +170,13 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
             "authenticated",
             "multi",
             H.call(0, input(0)),
-            s.rows.admin,
+            s.assignments.admin,
           )
         ).code,
       ).toBe("42501");
       await s.db.query(
         "update authz.memberships set is_active = false where id = $1",
-        [s.rows.multiHr],
+        [s.assignments.multiHr],
       );
       expect(
         (
@@ -184,7 +184,7 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
             "authenticated",
             "multi",
             H.call(0, input(0)),
-            s.rows.multiHr,
+            s.assignments.multiHr,
           )
         ).code,
       ).toBe("42501");
@@ -197,7 +197,7 @@ describe.skipIf(!URL)("#2402 real-stack", () => {
       expect((await ok(4, "admin")).updated_by).toBe(s.profiles.admin);
       await s.db.query(
         "update authz.memberships set is_active = false where id = $1",
-        [s.rows.admin],
+        [s.assignments.admin],
       );
       await denied("authenticated", "admin", 4, s.ids.A!);
     },

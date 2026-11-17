@@ -16,6 +16,7 @@ import { createGraphQLHandler } from "../../../packages/graphql/handler";
 
 import type * as AuthModule from "../../../packages/auth/context";
 import type { AuthContext } from "../../../packages/auth/context";
+import { membershipsForRole } from "../../fixtures/auth-memberships";
 
 type Row = Record<string, unknown>;
 const s = vi.hoisted(() => ({
@@ -124,8 +125,9 @@ const as = (profileId: string, role: string): AuthContext => ({
   email: null,
   tenantId: T,
   role: role as AuthContext["role"],
-  profileRole: role as AuthContext["profileRole"],
-  memberships: [],
+  profileRole: null,
+  // AL-2675: the role is read from the membership the request acts under.
+  memberships: membershipsForRole(role, T),
   profileId,
   isAuthenticated: true,
 });

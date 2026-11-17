@@ -71,7 +71,7 @@ export class Stack {
     Object.keys(this.ids).map((k) => [k, randomUUID()]),
   );
   /** Membership row ids the tests name in the assignment header. */
-  readonly rows = {
+  readonly assignments = {
     admin: randomUUID(),
     multiFinance: randomUUID(),
     multiHr: randomUUID(),
@@ -203,12 +203,12 @@ export class Stack {
       `insert into authz.memberships(id,user_id,tenant_id,role,staff_role,is_tenant_admin,is_active) values
       ($1,$2,$5,'staff','development',true,true),($3,$4,$5,'staff','finance',false,true),($6,$4,$5,'staff','hr',false,true)`,
       [
-        this.rows.admin,
+        this.assignments.admin,
         id.admin,
-        this.rows.multiFinance,
+        this.assignments.multiFinance,
         id.multi,
         id.A,
-        this.rows.multiHr,
+        this.assignments.multiHr,
       ],
     );
   }

@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type * as AuthModule from "@asym/auth/context";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 const h = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -132,8 +133,9 @@ beforeEach(() => {
     profileId: "33333333-3333-4333-8333-333333333333",
     email: "caller@example.test",
     role: "donor",
-    profileRole: "donor",
-    memberships: [],
+    profileRole: null,
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole("donor", TENANT),
     isAuthenticated: true,
   };
   h.auth.mockImplementation(async () => context);
@@ -199,7 +201,8 @@ describe("#2308 missionary avatar and cover uploads (A)", () => {
     await stored(request({ bucket: null }));
   });
   it("C6: missionary-role caller may upload a cover", async () => {
-    context.role = context.profileRole = "missionary";
+    context.role = "missionary";
+    context.memberships = membershipsForRole("missionary", TENANT);
     await stored(request({ path: "covers" }), "covers");
   });
   it("C6: a cover upload from a non-missionary gets 403", async () => {

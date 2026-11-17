@@ -250,7 +250,9 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
           expect.arrayContaining([
             "tenant_guard.acquire_workflow_work_claim(uuid,text,text,text,integer)",
             "tenant_guard.release_workflow_work_claim(uuid,uuid,text)",
-            "tenant_guard.begin_human_command(uuid)",
+            // AL-2675: the preamble takes the capability as a defaulted
+            // second argument.
+            "tenant_guard.begin_human_command(uuid,text)",
             "tenant_guard.enter(uuid)",
           ]),
         );

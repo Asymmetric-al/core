@@ -9,7 +9,7 @@ function authContext(overrides: Partial<AuthContext> = {}): AuthContext {
     userId: "user-1",
     tenantId: "tenant-1",
     role: "staff",
-    profileRole: "staff",
+    profileRole: null,
     memberships: [
       {
         tenantId: "tenant-1",
@@ -88,14 +88,25 @@ describe("CRM authorization bridge", () => {
     ).toThrow(/tenant/);
   });
 
-  it("allows super admins to act against an explicit tenant while preserving the auth tenant", () => {
-    expect(
+  // AL-2675: a super_admin profile acts only under the flagged staff row the
+  // backfill gives it in its own tenant. Reach into another tenant waits for
+  // WP2c's operator list, so until then it is refused like any staff member.
+  it("refuses a super_admin profile acting against another tenant", () => {
+    expect(() =>
       requireCrmAccess(
         authContext({
           tenantId: "00000000-0000-0000-0000-000000000001",
-          role: "super_admin",
+          role: "admin",
           profileRole: "super_admin",
-          memberships: [],
+          memberships: [
+            {
+              tenantId: "00000000-0000-0000-0000-000000000001",
+              role: "staff",
+              staffRole: "development",
+              isActive: true,
+              isTenantAdmin: true,
+            },
+          ],
         }),
         {
           action: "crm.record.read",
@@ -103,11 +114,19 @@ describe("CRM authorization bridge", () => {
           resourceTenantId: "tenant-2",
         },
       ),
-    ).toMatchObject({
-      authTenantId: "00000000-0000-0000-0000-000000000001",
-      isSuperAdmin: true,
-      tenantId: "tenant-2",
-      userId: "user-1",
-    });
+    ).toThrow(/tenant/);
+  });
+
+  it("refuses a super_admin profile role with no membership", () => {
+    expect(() =>
+      requireCrmAccess(
+        authContext({
+          role: "super_admin",
+          profileRole: "super_admin",
+          memberships: [],
+        }),
+        { action: "crm.record.read", resourceType: "record" },
+      ),
+    ).toThrow(/Forbidden/);
   });
 });

@@ -29,8 +29,20 @@ function req(role: string | null, isAuthenticated = true) {
     userId: isAuthenticated ? "user-1" : null,
     tenantId: isAuthenticated ? "tenant-1" : null,
     role,
-    profileRole: role,
-    memberships: [],
+    profileRole: null,
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships:
+      isAuthenticated && role
+        ? [
+            {
+              tenantId: "tenant-1",
+              role: role === "admin" ? "staff" : role,
+              staffRole: role === "admin" ? "development" : null,
+              isActive: true,
+              isTenantAdmin: role === "admin",
+            },
+          ]
+        : [],
   });
   return new Request("https://example.com/api/admin/org-settings", {
     method: "PATCH",

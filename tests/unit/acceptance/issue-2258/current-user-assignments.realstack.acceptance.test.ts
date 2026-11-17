@@ -197,10 +197,11 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
   async function rerun() {
     expect(existsSync(H.MIGRATION), `${H.MIGRATION} must exist`).toBe(true);
     const file = readdirSync(H.MIG).find((f) =>
-      /^d{14}_membership_lifecycle_and_tenant_admin_flag.sql$/.test(f),
+      /^\d{14}_membership_lifecycle_and_tenant_admin_flag\.sql$/.test(f),
     );
     expect(file, "the AL-2675 membership migration").toBeDefined();
-    const text = H.read(`${H.MIG}/${file}`);
+    const path = `${H.MIG}/${file}`;
+    const text = H.read(path);
     const start = text.indexOf(
       "DROP FUNCTION IF EXISTS public.current_user_assignments();",
     );
@@ -208,7 +209,8 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
       "GRANT EXECUTE ON FUNCTION public.current_user_assignments() TO authenticated;";
     const end = text.indexOf(endMarker, start);
     expect(start >= 0 && end > start).toBe(true);
-    await db.query(text.slice(start, end + endMarker.length));
+    // A migration replay, on this file's private database (#2400's guard).
+    await db.query(H.read(path).slice(start, end + endMarker.length));
   }
   async function proc() {
     const r = await db.query(
