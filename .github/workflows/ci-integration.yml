@@ -118,6 +118,14 @@ jobs:
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts
+      - name: Verify AL-2674 command lane and platform schema (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts
+      - name: Verify release job database steps and schema fingerprint (real stack)
+        env:
+          RELEASE_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts
 
   smoke:
     needs: migrate

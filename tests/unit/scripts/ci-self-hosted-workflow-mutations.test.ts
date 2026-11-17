@@ -1757,13 +1757,13 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
     ]);
     expect([...MODELLED_JOB_KEYS.reject].sort()).toEqual(reject.job);
     // The role lists are only the fallback for unpinned (fixture) jobs. Real
-    // reject-job steps use the exact per-step tables; the seven real reject-job
+    // reject-job steps use the exact per-step tables; the nine real reject-job
     // step envs (migrate "Verify document-cutover reader role (real stack)",
     // "Verify tenant isolation (real stack)", "Verify authz EXECUTE grants
     // (real stack)", "Verify tenant table RLS posture (real stack)", "Verify
     // claim tables (real stack)", "Verify donor spine composite FKs (real
-    // stack)" and "Verify RLS catalog gate (real stack)", pinned per step) are
-    // deliberately not in the fallback.
+    // stack)", "Verify RLS catalog gate (real stack)" and the two AL-2674
+    // steps, pinned per step) are deliberately not in the fallback.
     expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(
       reject.step.filter((key) => key !== "env"),
     );
@@ -1781,6 +1781,8 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
       "migrate name:Verify claim tables (real stack)",
       "migrate name:Verify donor spine composite FKs (real stack)",
       "migrate name:Verify RLS catalog gate (real stack)",
+      "migrate name:Verify AL-2674 command lane and platform schema (real stack)",
+      "migrate name:Verify release job database steps and schema fingerprint (real stack)",
     ]);
     expect([...MODELLED_JOB_KEYS.gate].sort()).toEqual(gate.job);
     expect([...MODELLED_STEP_KEYS.gate].sort()).toEqual(gate.step);
@@ -2304,6 +2306,8 @@ describe("repair 7: per-job and per-step key allowlists (no union per role)", ()
       "migrate name:Verify claim tables (real stack)",
       "migrate name:Verify donor spine composite FKs (real stack)",
       "migrate name:Verify RLS catalog gate (real stack)",
+      "migrate name:Verify AL-2674 command lane and platform schema (real stack)",
+      "migrate name:Verify release job database steps and schema fingerprint (real stack)",
       "ci-gate name:Validate correctness checks and requested compilation",
     ]);
   });
@@ -2977,7 +2981,9 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
         ),
       )
       .map(({ index }) => index);
-    expect(siblings).toEqual([8, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21]);
+    expect(siblings).toEqual([
+      8, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23,
+    ]);
     expect(job.if).toBeUndefined();
     for (const index of siblings) {
       expect(job.steps![index]!.if, `step ${index}`).toBeUndefined();
@@ -3069,6 +3075,8 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
       `Step 18 (reject) "name:Verify claim tables (real stack)" of job 'migrate' is not modelled (pinned to position 19)`,
       `Step 19 (reject) "name:Verify donor spine composite FKs (real stack)" of job 'migrate' is not modelled (pinned to position 20)`,
       `Step 20 (reject) "name:Verify RLS catalog gate (real stack)" of job 'migrate' is not modelled (pinned to position 21)`,
+      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 18)`,
     ]);
   });
@@ -3147,6 +3155,8 @@ describe("#2255: the migrate 'Verify claim tables (real stack)' step", () => {
       // positions.
       `Step 19 (reject) "name:Verify donor spine composite FKs (real stack)" of job 'migrate' is not modelled (pinned to position 20)`,
       `Step 20 (reject) "name:Verify RLS catalog gate (real stack)" of job 'migrate' is not modelled (pinned to position 21)`,
+      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 19)`,
     ]);
   });
@@ -3223,6 +3233,8 @@ describe("#2252: the migrate 'Verify donor spine composite FKs (real stack)' ste
     expect(modelledKeyProblems(job, "reject")).toEqual([
       // #2253's step moves up into the gap, off its own pinned position.
       `Step 20 (reject) "name:Verify RLS catalog gate (real stack)" of job 'migrate' is not modelled (pinned to position 21)`,
+      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 20)`,
     ]);
   });
@@ -3243,11 +3255,20 @@ describe("#2253: the migrate 'Verify RLS catalog gate (real stack)' step", () =>
       ),
     );
 
-  it("the real step is the last migrate step, pinned exactly: name, position 21, run, env, no if", () => {
+  // Amended by AL-2674 (WP1 slices 1.1a and 1.3, plan 7.1 and 7.4): two
+  // real-stack steps now follow this one, so it is no longer the last migrate
+  // step. Its own pin is unchanged (position 21, run, env, no if), and the
+  // "last" check becomes the stricter one below: exactly those two steps, in
+  // that order, come after it, and nothing else. Their own pins live in the
+  // "AL-2674" describe block after this one.
+  it("the real step is pinned exactly: name, position 21, run, env, no if; only the two AL-2674 steps follow it", () => {
     const job = migrateOf(source(CI_INTEGRATION));
     const index = job.steps!.findIndex((step) => step.name === NAME);
     expect(index).toBe(21);
-    expect(index).toBe(job.steps!.length - 1);
+    expect(job.steps!.slice(index + 1).map((step) => step.name)).toEqual([
+      "Verify AL-2674 command lane and platform schema (real stack)",
+      "Verify release job database steps and schema fingerprint (real stack)",
+    ]);
     const step = job.steps![index]!;
     expect(PINNED_STEP_BODIES.migrate![ID]).toEqual({
       index,
@@ -3298,7 +3319,106 @@ describe("#2253: the migrate 'Verify RLS catalog gate (real stack)' step", () =>
     const job = editStep("");
     expect(job.steps!.some((step) => step.name === NAME)).toBe(false);
     expect(modelledKeyProblems(job, "reject")).toEqual([
+      // The AL-2674 steps move up into the gap, off their pinned positions.
+      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 21)`,
     ]);
   });
 });
+
+// AL-2674 (WP1 slices 1.1a and 1.3): the two real-stack steps after #2253's,
+// pinned as exactly as the steps before them. The command-lane step runs a
+// glob; its pin is the glob text, so it holds whatever number of
+// issue-2674 real-stack suites the glob matches.
+describe.each([
+  {
+    name: "Verify AL-2674 command lane and platform schema (real stack)",
+    position: 22,
+    key: "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    run: "bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts",
+    narrower:
+      "bun x vitest run tests/unit/acceptance/issue-2674/command-lane.realstack.acceptance.test.ts",
+  },
+  {
+    name: "Verify release job database steps and schema fingerprint (real stack)",
+    position: 23,
+    key: "RELEASE_IT_ADMIN_DATABASE_URL",
+    run: "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts",
+    narrower:
+      "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts",
+  },
+])(
+  "AL-2674: the migrate '$name' step",
+  ({ name, position, key, run, narrower }) => {
+    const ID = `name:${name}`;
+    const STEP_TEXT = `      - name: ${name}\n        env:\n          ${key}: \${{ env.DATABASE_URL }}\n        run: ${run}\n`;
+    const migrateOf = (text: string) => jobsOf(text, "AL-2674").migrate!;
+    const editStep = (replacement: string) =>
+      migrateOf(
+        mutateJob(source(CI_INTEGRATION), "migrate", (block) =>
+          mutate(block, STEP_TEXT, replacement, 1),
+        ),
+      );
+
+    it("the real step is pinned exactly: name, position, run, env, no if", () => {
+      const job = migrateOf(source(CI_INTEGRATION));
+      const index = job.steps!.findIndex((step) => step.name === name);
+      expect(index).toBe(position);
+      const step = job.steps![index]!;
+      expect(PINNED_STEP_BODIES.migrate![ID]).toEqual({
+        index,
+        run: step.run!.trim(),
+        env: step.env,
+      });
+      expect(step.run!.trim()).toBe(run);
+      expect(step.env).toEqual({ [key]: "${{ env.DATABASE_URL }}" });
+      expect(step.if).toBeUndefined();
+      expect(MODELLED_ENV_KEYS_BY_JOB.migrate!.steps[ID]).toEqual([key]);
+      expect(modelledKeyProblems(job, "reject")).toEqual([]);
+      expect(envKeyProblems(job)).toEqual([]);
+      expect(pinnedIfProblems(job)).toEqual([]);
+      expect(requiredJobFailsClosedOnFork(job)).toBe(true);
+    });
+
+    it.each([
+      ["a narrower run", narrower],
+      ["a substring filter", "bun x vitest run realstack"],
+    ])("%s instead of the pinned run is not modelled", (_label, other) => {
+      const job = editStep(STEP_TEXT.replace(run, other));
+      expect(modelledKeyProblems(job, "reject").join("\n")).toContain(
+        `Step ${position} (reject) "${ID}" of job 'migrate' is not modelled (run differs from the pinned body`,
+      );
+    });
+
+    it.each([
+      ["a secret", "${{ secrets.ADMIN_DATABASE_URL }}"],
+      ["a literal URL", "postgresql://postgres:postgres@evil:5432/x"],
+    ])("another value (%s) for the key is not allowed", (_label, value) => {
+      const job = editStep(STEP_TEXT.replace("${{ env.DATABASE_URL }}", value));
+      expect(envKeyProblems(job)).toEqual([
+        `env value not allowed: ${key} at step ${position} env of job 'migrate' (pinned to "\${{ env.DATABASE_URL }}")`,
+      ]);
+      expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    });
+
+    it("if: always() on the step fails closed (pinned absent)", () => {
+      const job = editStep(
+        STEP_TEXT.replace("        env:", "        if: always()\n        env:"),
+      );
+      expect(pinnedIfProblems(job)).toEqual([
+        `Job 'migrate' step ${position} if "always()" is not allowed: pinned to "absent"`,
+      ]);
+      expect(requiredJobFailsClosedOnFork(job)).toBe(false);
+    });
+
+    it("removing the step is not modelled", () => {
+      const job = editStep("");
+      expect(job.steps!.some((step) => step.name === name)).toBe(false);
+      const problems = modelledKeyProblems(job, "reject");
+      expect(problems).toContain(
+        `Pinned step "${ID}" of job 'migrate' is missing (pinned to position ${position})`,
+      );
+    });
+  },
+);

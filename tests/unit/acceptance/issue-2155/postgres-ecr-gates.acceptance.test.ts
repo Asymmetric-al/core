@@ -335,6 +335,11 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "CI runner fallback", hash: "ade0c213dc9896db" },
     // Hosted-only amendment: only the five heavy jobs' runs-on changed.
     { ref: "AL-2218 hosted CI baseline", hash: "58e813e659a30660" },
+    // Amended by AL-2674 (WP1 slices 1.1a and 1.3, plan 7.1): migrate steps 22
+    // and 23 run the issue-2674 real-stack suites (a glob) and the release
+    // job's database and fingerprint suites; each step is pinned exactly in
+    // tests/unit/helpers/workflow-yaml.ts.
+    { ref: "AL-2674 migrate steps 22-23", hash: "096b38ee10573583" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

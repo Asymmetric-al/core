@@ -214,6 +214,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
     // Hosted-CI amendment: only the five heavy jobs' runs-on become literal ubuntu-latest.
     { ref: "Hosted CI baseline after #2407a", hash: "e2884b2dac1415b3" },
+    // Amended by AL-2674 (WP1 slices 1.1a and 1.3, plan 7.1): migrate steps 22
+    // and 23 (the issue-2674 real-stack glob and the release job's suites),
+    // each pinned exactly in tests/unit/helpers/workflow-yaml.ts.
+    { ref: "AL-2674 migrate steps 22-23", hash: "14ea3b7522ff3091" },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

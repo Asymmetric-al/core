@@ -159,7 +159,8 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   // isolation (real stack)" (16), "Verify authz EXECUTE grants (real stack)"
   // (17), "Verify tenant table RLS posture (real stack)" (18), "Verify claim
   // tables (real stack)" (19), "Verify donor spine composite FKs (real
-  // stack)" (20) and "Verify RLS catalog gate (real stack)" (21) — is pinned
+  // stack)" (20), "Verify RLS catalog gate (real stack)" (21) and the two
+  // AL-2674 real-stack steps (22, 23) — is pinned
   // to no `if:`, so none can run after the fork reject at step 0 has failed
   // the job.
   allSteps(job).forEach((step, index) =>
@@ -359,6 +360,15 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "run",
       ],
       "name:Verify RLS catalog gate (real stack)": ["name", "env", "run"],
+      // AL-2674 (WP1): the 1.1a command-lane and platform-schema suites, and
+      // the release job's database steps and schema fingerprint (1.3).
+      "name:Verify AL-2674 command lane and platform schema (real stack)": [
+        "name",
+        "env",
+        "run",
+      ],
+      "name:Verify release job database steps and schema fingerprint (real stack)":
+        ["name", "env", "run"],
     },
   },
   smoke: {
@@ -480,6 +490,17 @@ export const PINNED_STEP_BODIES: Record<
       run: "bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     },
+    "name:Verify AL-2674 command lane and platform schema (real stack)": {
+      index: 22,
+      run: "bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts",
+      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+    },
+    "name:Verify release job database steps and schema fingerprint (real stack)":
+      {
+        index: 23,
+        run: "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts",
+        env: { RELEASE_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+      },
   },
 };
 
@@ -765,6 +786,11 @@ export const MODELLED_ENV_KEYS_BY_JOB: Record<
       "name:Verify RLS catalog gate (real stack)": [
         "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
       ],
+      "name:Verify AL-2674 command lane and platform schema (real stack)": [
+        "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+      ],
+      "name:Verify release job database steps and schema fingerprint (real stack)":
+        ["RELEASE_IT_ADMIN_DATABASE_URL"],
     },
   },
   smoke: {
