@@ -3,10 +3,16 @@ import { isProtectedDeployment } from "@asym/env/target-env";
 export const DEFAULT_LOCAL_PAYLOAD_DATABASE_URL =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
-const PAYLOAD_DATABASE_ENV_KEYS = [
-  "PAYLOAD_DATABASE_URI",
-  "SUPABASE_DB_URL",
-] as const;
+// Payload reads only its own run-time connection. The Core migration string
+// (SUPABASE_DB_URL) and the CMS migration string are never a fallback (NA-04).
+const PAYLOAD_DATABASE_ENV_KEYS = ["PAYLOAD_DATABASE_URI"] as const;
+
+/** The only role a protected deployment may connect as (plan 7.2). */
+export const PAYLOAD_RUNTIME_DATABASE_ROLE = "cms_runtime";
+
+/** Held only by the release job's CMS migration step (plan 7.2, 7.4). */
+export const PAYLOAD_MIGRATION_DATABASE_ENV_KEY =
+  "PAYLOAD_MIGRATION_DATABASE_URI";
 
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX = 2;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS = 5_000;
@@ -20,6 +26,7 @@ type PayloadDatabaseEnvKey = (typeof PAYLOAD_DATABASE_ENV_KEYS)[number];
 type PayloadDatabaseEnv = Partial<
   Record<
     | PayloadDatabaseEnvKey
+    | typeof PAYLOAD_MIGRATION_DATABASE_ENV_KEY
     | "NODE_ENV"
     | "PAYLOAD_DATABASE_POOL_MAX"
     | "PAYLOAD_DATABASE_SSL_CA"
@@ -31,8 +38,10 @@ type PayloadDatabaseEnv = Partial<
 >;
 
 export type PayloadDatabaseConfigIssueCode =
+  | "migration-credential-in-runtime"
   | "missing-protected-database-url"
   | "invalid-protected-database-url"
+  | "non-runtime-database-role"
   | "direct-supabase-host"
   | "supavisor-ssl-mode";
 
@@ -52,6 +61,8 @@ type PayloadDatabaseConfig = {
   isSupavisorPoolerHost: boolean;
   isVercelRuntime: boolean;
   issue: PayloadDatabaseConfigIssue | null;
+  /** The database role the connection logs in as, without a pooler's project suffix. */
+  loginRole: string | null;
   pool: PayloadDatabasePoolOptions;
   sslMode: string | null;
   source: PayloadDatabaseSource;
@@ -124,6 +135,31 @@ function getConnectionSslMode(connectionString: string | null) {
 
   try {
     return new URL(connectionString).searchParams.get("sslmode");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The role a connection logs in as. Supavisor pooler usernames carry the
+ * project after a dot (`cms_runtime.<project-ref>`); that suffix is dropped.
+ */
+export function getConnectionLoginRole(connectionString: string | null) {
+  if (!connectionString) {
+    return null;
+  }
+
+  try {
+    const url = new URL(connectionString);
+    const username = decodeURIComponent(url.username);
+
+    if (!username) {
+      return null;
+    }
+
+    return isSupavisorPoolerHost(url.hostname)
+      ? username.replace(/\.[a-z0-9]+$/i, "")
+      : username;
   } catch {
     return null;
   }
@@ -276,6 +312,7 @@ function combineWarnings(...warnings: Array<null | string>) {
 }
 
 function getPayloadDatabaseConfigurationIssue(input: {
+  hasMigrationCredential: boolean;
   host: string | null;
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
@@ -284,16 +321,24 @@ function getPayloadDatabaseConfigurationIssue(input: {
   source: PayloadDatabaseSource;
   sslMode: string | null;
   hasVerifiedCa: boolean;
+  loginRole: string | null;
 }): PayloadDatabaseConfigIssue | null {
   if (!input.isProtectedDeployment) {
     return null;
+  }
+
+  if (input.hasMigrationCredential) {
+    return {
+      code: "migration-credential-in-runtime",
+      message: `${PAYLOAD_MIGRATION_DATABASE_ENV_KEY} is set on this protected deployment. Only the release job's CMS migration step may hold the migration connection; remove it from the application environment before opening Web Studio.`,
+    };
   }
 
   if (input.isDefaultLocal) {
     return {
       code: "missing-protected-database-url",
       message:
-        "Payload database configuration is missing for this protected deployment. Set PAYLOAD_DATABASE_URI on the admin Vercel project to the Supavisor session pooler Postgres URL before opening Web Studio.",
+        "Payload database configuration is missing for this protected deployment. Set PAYLOAD_DATABASE_URI on the admin Vercel project to the cms_runtime Supavisor session pooler Postgres URL before opening Web Studio.",
     };
   }
 
@@ -301,6 +346,13 @@ function getPayloadDatabaseConfigurationIssue(input: {
     return {
       code: "invalid-protected-database-url",
       message: `Payload database configuration from ${input.source} is not a valid Postgres URL. Replace it with the Supavisor session pooler Postgres URL before opening Web Studio.`,
+    };
+  }
+
+  if (input.loginRole !== PAYLOAD_RUNTIME_DATABASE_ROLE) {
+    return {
+      code: "non-runtime-database-role",
+      message: `Payload must connect as ${PAYLOAD_RUNTIME_DATABASE_ROLE} in this protected deployment. Set PAYLOAD_DATABASE_URI to the ${PAYLOAD_RUNTIME_DATABASE_ROLE} Supavisor session pooler URL (user ${PAYLOAD_RUNTIME_DATABASE_ROLE}.<project-ref>) before opening Web Studio.`,
     };
   }
 
@@ -337,7 +389,7 @@ function getPayloadDatabaseConfigurationWarning(input: {
   }
 
   if (input.isDefaultLocal && input.nodeEnv === "development") {
-    return "[payload] No PAYLOAD_DATABASE_URI or SUPABASE_DB_URL found; using default local Postgres at 127.0.0.1:54322. Web Studio needs a reachable DB (supabase start, or set PAYLOAD_DATABASE_URI).";
+    return "[payload] No PAYLOAD_DATABASE_URI found; using default local Postgres at 127.0.0.1:54322. Web Studio needs a reachable DB (supabase start, or set PAYLOAD_DATABASE_URI).";
   }
 
   if (input.isDirectSupabaseHost) {
@@ -361,7 +413,11 @@ export function resolvePayloadDatabaseConfig(
   const isProtectedDeployment = isProtectedPayloadDeployment(env);
   const isSupavisorPoolerDatabaseHost = isSupavisorPoolerHost(host);
   const isVercelRuntime = isVercelPayloadRuntime(env);
+  const loginRole = getConnectionLoginRole(connectionString);
   const issue = getPayloadDatabaseConfigurationIssue({
+    hasMigrationCredential: Boolean(
+      env[PAYLOAD_MIGRATION_DATABASE_ENV_KEY]?.trim(),
+    ),
     host,
     isDefaultLocal,
     isDirectSupabaseHost,
@@ -370,6 +426,7 @@ export function resolvePayloadDatabaseConfig(
     source,
     sslMode,
     hasVerifiedCa: Boolean(env.PAYLOAD_DATABASE_SSL_CA),
+    loginRole,
   });
   const pool = resolvePayloadDatabasePoolOptions({
     connectionString,
@@ -398,6 +455,7 @@ export function resolvePayloadDatabaseConfig(
     isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
     isVercelRuntime,
     issue,
+    loginRole,
     pool,
     sslMode,
     source,

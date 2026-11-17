@@ -9,23 +9,32 @@ import {
 } from "../../../apps/admin/src/cms/payload-database-config";
 
 const DIRECT_SUPABASE_URL =
-  "postgresql://postgres:super-secret@db.btewedpsxwsjczvmegby.supabase.co:5432/postgres";
+  "postgresql://cms_runtime:super-secret@db.btewedpsxwsjczvmegby.supabase.co:5432/postgres";
 
 const SUPAVISOR_POOLER_URL =
-  "postgresql://postgres.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=no-verify";
+  "postgresql://cms_runtime.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=no-verify";
 
 const SUPAVISOR_REQUIRE_SSL_URL =
-  "postgresql://postgres.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+  "postgresql://cms_runtime.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+
+const POSTGRES_POOLER_URL = SUPAVISOR_POOLER_URL.replace(
+  "cms_runtime.",
+  "postgres.",
+);
+
+/** The Core migration string, which Payload must never read (NA-04). */
+const withMigrationString = { SUPABASE_DB_URL: POSTGRES_POOLER_URL };
 
 describe("resolvePayloadDatabaseConfig", () => {
-  it("uses PAYLOAD_DATABASE_URI before SUPABASE_DB_URL", () => {
+  it("reads PAYLOAD_DATABASE_URI and never the migration string", () => {
     const config = resolvePayloadDatabaseConfig({
+      ...withMigrationString,
       PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
-      SUPABASE_DB_URL: "postgresql://postgres:secret@127.0.0.1:54322/postgres",
     });
 
     expect(config.connectionString).toBe(SUPAVISOR_POOLER_URL);
     expect(config.source).toBe("PAYLOAD_DATABASE_URI");
+    expect(config.loginRole).toBe("cms_runtime");
     expect(config.host).toBe("aws-0-us-west-2.pooler.supabase.com");
     expect(config.sslMode).toBe("no-verify");
     expect(config.isSupavisorPoolerHost).toBe(true);
@@ -35,14 +44,25 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue).toBeNull();
   });
 
-  it("treats blank database env values as unset", () => {
+  it("does not fall back to SUPABASE_DB_URL (NA-04)", () => {
     const config = resolvePayloadDatabaseConfig({
+      ...withMigrationString,
+      NODE_ENV: "development",
       PAYLOAD_DATABASE_URI: "   ",
-      SUPABASE_DB_URL: SUPAVISOR_POOLER_URL,
     });
 
-    expect(config.connectionString).toBe(SUPAVISOR_POOLER_URL);
-    expect(config.source).toBe("SUPABASE_DB_URL");
+    expect(config.connectionString).toBe(DEFAULT_LOCAL_PAYLOAD_DATABASE_URL);
+    expect(config.source).toBe("default-local");
+    expect(config.warning).not.toContain("SUPABASE_DB_URL");
+  });
+
+  it("blocks a protected deployment that offers only the migration string", () => {
+    const config = resolvePayloadDatabaseConfig({
+      ...withMigrationString,
+      VERCEL_ENV: "production",
+    });
+
+    expect(config.issue?.code).toBe("missing-protected-database-url");
   });
 
   it("falls back to the local Payload database outside protected deployments", () => {
@@ -296,5 +316,82 @@ describe("verified Payload database CA configuration", () => {
     } catch (error) {
       expect(String(error)).not.toContain("super-secret");
     }
+  });
+});
+
+describe("Payload runtime confinement to cms_runtime (plan 7.2)", () => {
+  it.each([
+    ["postgres pooler login", POSTGRES_POOLER_URL],
+    [
+      "cms_owner pooler login",
+      SUPAVISOR_POOLER_URL.replace("cms_runtime.", "cms_owner."),
+    ],
+    [
+      "look-alike role name",
+      SUPAVISOR_POOLER_URL.replace("cms_runtime.", "cms_runtime_admin."),
+    ],
+    [
+      "postgres direct login",
+      "postgresql://postgres:super-secret@db.btewedpsxwsjczvmegby.supabase.co:5432/postgres",
+    ],
+  ])(
+    "blocks a protected deployment whose connection is a %s",
+    (_label, url) => {
+      const config = resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: url,
+        VERCEL_ENV: "production",
+      });
+
+      expect(config.issue?.code).toBe("non-runtime-database-role");
+      expect(config.issue?.message).toContain("cms_runtime");
+      expect(config.issue?.message).not.toContain("super-secret");
+      expect(() => assertPayloadDatabaseConfiguration(config)).toThrow(
+        PayloadDatabaseConfigurationError,
+      );
+    },
+  );
+
+  it("accepts the cms_runtime login, direct or through the pooler", () => {
+    const pooled = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      VERCEL_TARGET_ENV: "core-development",
+      VERCEL_ENV: "preview",
+    });
+    expect(pooled.loginRole).toBe("cms_runtime");
+    expect(pooled.issue).toBeNull();
+
+    const direct = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI:
+        "postgresql://cms_runtime:super-secret@10.0.0.5:5432/postgres",
+      VERCEL_ENV: "production",
+    });
+    expect(direct.loginRole).toBe("cms_runtime");
+    expect(direct.issue).toBeNull();
+  });
+
+  it("blocks a protected deployment that holds the CMS migration connection", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      PAYLOAD_MIGRATION_DATABASE_URI: SUPAVISOR_POOLER_URL.replace(
+        "cms_runtime.",
+        "cms_owner.",
+      ),
+      VERCEL_ENV: "production",
+    });
+
+    expect(config.issue?.code).toBe("migration-credential-in-runtime");
+    expect(config.issue?.message).toContain("PAYLOAD_MIGRATION_DATABASE_URI");
+    expect(config.issue?.message).not.toContain("super-secret");
+  });
+
+  it("leaves local development free to use the local superuser", () => {
+    const config = resolvePayloadDatabaseConfig({
+      NODE_ENV: "development",
+      PAYLOAD_DATABASE_URI:
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+
+    expect(config.loginRole).toBe("postgres");
+    expect(config.issue).toBeNull();
   });
 });

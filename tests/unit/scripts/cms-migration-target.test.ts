@@ -4,7 +4,7 @@ import { assertCmsMigrationTarget } from "../../../scripts/cms/lib/migration-tar
 
 const hosted = {
   databaseUrl:
-    "postgresql://postgres.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=no-verify",
+    "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=no-verify",
   supabaseUrl: "https://fixture.supabase.co",
   approvedProjectRef: "fixture",
   environment: {},
@@ -52,11 +52,28 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl: hosted.databaseUrl.replace(
-          "postgres.fixture",
+          "cms_owner.fixture",
           "cms_fixture.fixture",
         ),
       }),
     ).toThrow("does not match");
+  });
+
+  it("migrates hosted CMS schema as cms_owner, never as postgres (plan 7.2)", () => {
+    const asPostgres = hosted.databaseUrl.replace(
+      "cms_owner.fixture",
+      "postgres.fixture",
+    );
+    expect(() =>
+      assertCmsMigrationTarget({ ...hosted, databaseUrl: asPostgres }),
+    ).toThrow("does not match");
+    expect(() =>
+      assertCmsMigrationTarget({
+        ...hosted,
+        databaseUrl: asPostgres,
+        environment: { CMS_HOSTED_MIGRATION_ROLE: "postgres" },
+      }),
+    ).toThrow("cms_owner");
   });
 
   it("keeps approved role and project identities exact", () => {
@@ -64,11 +81,15 @@ describe("CMS migration target", () => {
       "other.fixture",
       "cms_fixture.other",
       "postgres.fixture",
+      "cms_owner.fixture",
     ]) {
       expect(() =>
         assertCmsMigrationTarget({
           ...hosted,
-          databaseUrl: hosted.databaseUrl.replace("postgres.fixture", username),
+          databaseUrl: hosted.databaseUrl.replace(
+            "cms_owner.fixture",
+            username,
+          ),
           environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
         }),
       ).toThrow("does not match");
@@ -98,7 +119,7 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl: hosted.databaseUrl
-          .replace("postgres.fixture", "cms_fixture.fixture")
+          .replace("cms_owner.fixture", "cms_fixture.fixture")
           .replace("no-verify", "disable"),
         environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
       }),
@@ -110,8 +131,8 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl: hosted.databaseUrl.replace(
-          "postgres.fixture",
-          "postgres.other",
+          "cms_owner.fixture",
+          "cms_owner.other",
         ),
       }),
     ).toThrow("does not match");
@@ -122,14 +143,14 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl:
-          "postgresql://postgres:fake-password@db.fixture.supabase.co/postgres?sslmode=verify-full",
+          "postgresql://cms_owner:fake-password@db.fixture.supabase.co/postgres?sslmode=verify-full",
       }),
     ).not.toThrow();
     expect(() =>
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl:
-          "postgresql://postgres:fake-password@db.other.supabase.co/postgres?sslmode=require",
+          "postgresql://cms_owner:fake-password@db.other.supabase.co/postgres?sslmode=require",
       }),
     ).toThrow("does not match");
   });
