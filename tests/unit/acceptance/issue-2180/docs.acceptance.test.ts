@@ -188,6 +188,18 @@ const CI_BASES = [
     bytes: 43557,
     sha256: "8f5298b7a83ab59e59771e07259498838e58a19a9daf3df96b584e7f0fd27b62",
   },
+  {
+    // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
+    // .node-version to 24.22.3, its migrate real-stack bullet describes the
+    // three AL-2674 steps (the program-wide suite glob, the release and CMS
+    // role suites, the Payload qualification), its migrate summary names the
+    // seed-count check and supabase/seed-expectations.json, and its release
+    // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
+    // reviewed content. Ends before the EOF runner section, which is unchanged.
+    ref: "AL-2674 Node 24.22.3 and program steps",
+    bytes: 44468,
+    sha256: "2775f6ef1aea46e8033bd70779eded926b40e8b3098c655cb07d94f19ac3a770",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

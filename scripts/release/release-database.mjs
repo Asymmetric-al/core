@@ -307,14 +307,20 @@ function firstRebuildReset(runCommand, settings) {
   );
 }
 
-/** Payload migrations as cms_owner, through the repository's guarded wrapper. */
+/**
+ * Payload migrations as cms_owner, through the repository's guarded wrapper.
+ * WP1.2's runner migrates a hosted CMS schema only from
+ * PAYLOAD_MIGRATION_DATABASE_URI (scripts/cms/lib/migration-connection.mjs);
+ * the run-time variable is left empty, so no other login is in reach.
+ */
 export function payloadMigrate({ settings, runCommand = spawnSync }) {
   if (!settings.cmsOwnerDatabaseUrl)
     stop("RELEASE_CMS_OWNER_PASSWORD is not set.");
   assertTarget(settings, "cms_owner", settings.cmsOwnerDatabaseUrl);
   runChecked(runCommand, "Payload migrations", "bun", ["run", "cms:migrate"], {
     ...process.env,
-    PAYLOAD_DATABASE_URI: settings.cmsOwnerDatabaseUrl,
+    PAYLOAD_MIGRATION_DATABASE_URI: settings.cmsOwnerDatabaseUrl,
+    PAYLOAD_DATABASE_URI: "",
     PAYLOAD_DISABLE_SCHEMA_PUSH: "1",
     CMS_HOSTED_MIGRATION_REF: settings.projectRef,
     CMS_HOSTED_MIGRATION_ROLE: "cms_owner",

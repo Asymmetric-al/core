@@ -11,6 +11,7 @@
  * workflow and reject every mutated copy.
  */
 
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -1757,12 +1758,12 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
     ]);
     expect([...MODELLED_JOB_KEYS.reject].sort()).toEqual(reject.job);
     // The role lists are only the fallback for unpinned (fixture) jobs. Real
-    // reject-job steps use the exact per-step tables; the nine real reject-job
+    // reject-job steps use the exact per-step tables; the ten real reject-job
     // step envs (migrate "Verify document-cutover reader role (real stack)",
     // "Verify tenant isolation (real stack)", "Verify authz EXECUTE grants
     // (real stack)", "Verify tenant table RLS posture (real stack)", "Verify
     // claim tables (real stack)", "Verify donor spine composite FKs (real
-    // stack)", "Verify RLS catalog gate (real stack)" and the two AL-2674
+    // stack)", "Verify RLS catalog gate (real stack)" and the three AL-2674
     // steps, pinned per step) are deliberately not in the fallback.
     expect([...MODELLED_STEP_KEYS.reject].sort()).toEqual(
       reject.step.filter((key) => key !== "env"),
@@ -1781,8 +1782,9 @@ describe("MAJOR-10: defaults.run shell resolution and the workflow key allowlist
       "migrate name:Verify claim tables (real stack)",
       "migrate name:Verify donor spine composite FKs (real stack)",
       "migrate name:Verify RLS catalog gate (real stack)",
-      "migrate name:Verify AL-2674 command lane and platform schema (real stack)",
-      "migrate name:Verify release job database steps and schema fingerprint (real stack)",
+      "migrate name:Verify AL-2671 program suites, issues 2670-2689 (real stack)",
+      "migrate name:Verify release job database steps, schema fingerprint and CMS roles (real stack)",
+      "migrate name:Qualify the pinned Payload release (cms:qualify)",
     ]);
     expect([...MODELLED_JOB_KEYS.gate].sort()).toEqual(gate.job);
     expect([...MODELLED_STEP_KEYS.gate].sort()).toEqual(gate.step);
@@ -2306,8 +2308,9 @@ describe("repair 7: per-job and per-step key allowlists (no union per role)", ()
       "migrate name:Verify claim tables (real stack)",
       "migrate name:Verify donor spine composite FKs (real stack)",
       "migrate name:Verify RLS catalog gate (real stack)",
-      "migrate name:Verify AL-2674 command lane and platform schema (real stack)",
-      "migrate name:Verify release job database steps and schema fingerprint (real stack)",
+      "migrate name:Verify AL-2671 program suites, issues 2670-2689 (real stack)",
+      "migrate name:Verify release job database steps, schema fingerprint and CMS roles (real stack)",
+      "migrate name:Qualify the pinned Payload release (cms:qualify)",
       "ci-gate name:Validate correctness checks and requested compilation",
     ]);
   });
@@ -2973,16 +2976,26 @@ describe("repair 9: the migrate 'Verify document-cutover reader role (real stack
 
   it("the step gets exactly the fork protection of its DATABASE_URL siblings", () => {
     const job = migrateOf(source(CI_INTEGRATION));
+    // Amended by AL-2674: "Verify seed counts" (13) now runs
+    // scripts/verify/seed-counts.mjs, which reads the job's DATABASE_URL
+    // itself, so its run text no longer names the variable. It stays a
+    // sibling: it is recognised by its exact run text, and its script must
+    // read DATABASE_URL.
+    const SEED_COUNTS = "node scripts/verify/seed-counts.mjs";
+    expect(readFileSync("scripts/verify/seed-counts.mjs", "utf8")).toMatch(
+      /env\.DATABASE_URL/,
+    );
     const siblings = job
       .steps!.map((step, index) => ({ step, index }))
-      .filter(({ step }) =>
-        /\$DATABASE_URL|env\.DATABASE_URL/.test(
-          `${step.run ?? ""} ${JSON.stringify(step.env ?? {})}`,
-        ),
+      .filter(
+        ({ step }) =>
+          /\$DATABASE_URL|env\.DATABASE_URL/.test(
+            `${step.run ?? ""} ${JSON.stringify(step.env ?? {})}`,
+          ) || step.run?.trim() === SEED_COUNTS,
       )
       .map(({ index }) => index);
     expect(siblings).toEqual([
-      8, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23,
+      8, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24,
     ]);
     expect(job.if).toBeUndefined();
     for (const index of siblings) {
@@ -3075,8 +3088,9 @@ describe("#2251: the migrate 'Verify tenant table RLS posture (real stack)' step
       `Step 18 (reject) "name:Verify claim tables (real stack)" of job 'migrate' is not modelled (pinned to position 19)`,
       `Step 19 (reject) "name:Verify donor spine composite FKs (real stack)" of job 'migrate' is not modelled (pinned to position 20)`,
       `Step 20 (reject) "name:Verify RLS catalog gate (real stack)" of job 'migrate' is not modelled (pinned to position 21)`,
-      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
-      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 21 (reject) "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 23 (reject) "name:Qualify the pinned Payload release (cms:qualify)" of job 'migrate' is not modelled (pinned to position 24)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 18)`,
     ]);
   });
@@ -3155,8 +3169,9 @@ describe("#2255: the migrate 'Verify claim tables (real stack)' step", () => {
       // positions.
       `Step 19 (reject) "name:Verify donor spine composite FKs (real stack)" of job 'migrate' is not modelled (pinned to position 20)`,
       `Step 20 (reject) "name:Verify RLS catalog gate (real stack)" of job 'migrate' is not modelled (pinned to position 21)`,
-      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
-      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 21 (reject) "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 23 (reject) "name:Qualify the pinned Payload release (cms:qualify)" of job 'migrate' is not modelled (pinned to position 24)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 19)`,
     ]);
   });
@@ -3233,8 +3248,9 @@ describe("#2252: the migrate 'Verify donor spine composite FKs (real stack)' ste
     expect(modelledKeyProblems(job, "reject")).toEqual([
       // #2253's step moves up into the gap, off its own pinned position.
       `Step 20 (reject) "name:Verify RLS catalog gate (real stack)" of job 'migrate' is not modelled (pinned to position 21)`,
-      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
-      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 21 (reject) "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 23 (reject) "name:Qualify the pinned Payload release (cms:qualify)" of job 'migrate' is not modelled (pinned to position 24)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 20)`,
     ]);
   });
@@ -3261,13 +3277,19 @@ describe("#2253: the migrate 'Verify RLS catalog gate (real stack)' step", () =>
   // "last" check becomes the stricter one below: exactly those two steps, in
   // that order, come after it, and nothing else. Their own pins live in the
   // "AL-2674" describe block after this one.
-  it("the real step is pinned exactly: name, position 21, run, env, no if; only the two AL-2674 steps follow it", () => {
+  // Amended again by AL-2674 (WP1.2 joined): the first of those steps now
+  // runs the whole AL-2671 program's real-stack suites, the second also runs
+  // Payload's database-role suite, and a third, the Payload qualification
+  // run, follows them. The check stays exact: these three steps, in this
+  // order, and nothing else.
+  it("the real step is pinned exactly: name, position 21, run, env, no if; only the three AL-2674 steps follow it", () => {
     const job = migrateOf(source(CI_INTEGRATION));
     const index = job.steps!.findIndex((step) => step.name === NAME);
     expect(index).toBe(21);
     expect(job.steps!.slice(index + 1).map((step) => step.name)).toEqual([
-      "Verify AL-2674 command lane and platform schema (real stack)",
-      "Verify release job database steps and schema fingerprint (real stack)",
+      "Verify AL-2671 program suites, issues 2670-2689 (real stack)",
+      "Verify release job database steps, schema fingerprint and CMS roles (real stack)",
+      "Qualify the pinned Payload release (cms:qualify)",
     ]);
     const step = job.steps![index]!;
     expect(PINNED_STEP_BODIES.migrate![ID]).toEqual({
@@ -3320,39 +3342,59 @@ describe("#2253: the migrate 'Verify RLS catalog gate (real stack)' step", () =>
     expect(job.steps!.some((step) => step.name === NAME)).toBe(false);
     expect(modelledKeyProblems(job, "reject")).toEqual([
       // The AL-2674 steps move up into the gap, off their pinned positions.
-      `Step 21 (reject) "name:Verify AL-2674 command lane and platform schema (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
-      `Step 22 (reject) "name:Verify release job database steps and schema fingerprint (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 21 (reject) "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)" of job 'migrate' is not modelled (pinned to position 22)`,
+      `Step 22 (reject) "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)" of job 'migrate' is not modelled (pinned to position 23)`,
+      `Step 23 (reject) "name:Qualify the pinned Payload release (cms:qualify)" of job 'migrate' is not modelled (pinned to position 24)`,
       `Pinned step "${ID}" of job 'migrate' is missing (pinned to position 21)`,
     ]);
   });
 });
 
-// AL-2674 (WP1 slices 1.1a and 1.3): the two real-stack steps after #2253's,
-// pinned as exactly as the steps before them. The command-lane step runs a
-// glob; its pin is the glob text, so it holds whatever number of
-// issue-2674 real-stack suites the glob matches.
+// AL-2674 (WP1): the three steps after #2253's, pinned as exactly as the
+// steps before them. Amended for WP1.2's join: step 22 runs the real-stack
+// suites of every package of the AL-2671 program through one glob over
+// tests/unit/acceptance/issue-2670 to issue-2689 (the program's issues are
+// 2671 to 2688; 2670 is a Dependabot pull request and 2689 a closed,
+// unrelated issue, and neither has suites). Its pin is the glob's text, so it
+// holds whatever number of suites the glob finds, and a package adds a suite
+// without touching the workflow. Step 23 also runs Payload's database-role
+// suite, which needs TENANT_GUARD_IT_ADMIN_DATABASE_URL; step 24 is the
+// Payload qualification run (plan 6.7).
+const AL2674_DATABASE_URL = "${{ env.DATABASE_URL }}";
 describe.each([
   {
-    name: "Verify AL-2674 command lane and platform schema (real stack)",
+    name: "Verify AL-2671 program suites, issues 2670-2689 (real stack)",
     position: 22,
-    key: "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
-    run: "bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts",
+    keys: ["TENANT_GUARD_IT_ADMIN_DATABASE_URL"],
+    run: "bun x vitest run tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts",
     narrower:
-      "bun x vitest run tests/unit/acceptance/issue-2674/command-lane.realstack.acceptance.test.ts",
+      "bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts",
   },
   {
-    name: "Verify release job database steps and schema fingerprint (real stack)",
+    name: "Verify release job database steps, schema fingerprint and CMS roles (real stack)",
     position: 23,
-    key: "RELEASE_IT_ADMIN_DATABASE_URL",
-    run: "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts",
+    keys: [
+      "RELEASE_IT_ADMIN_DATABASE_URL",
+      "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    ],
+    run: "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts tests/unit/cms/cms-database-roles.realstack.test.ts",
     narrower:
-      "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts",
+      "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts",
+  },
+  {
+    name: "Qualify the pinned Payload release (cms:qualify)",
+    position: 24,
+    keys: ["PAYLOAD_QUALIFICATION_ADMIN_URL"],
+    run: "bun run cms:qualify -- --database=payload_qualification",
+    narrower: "bun run cms:qualify -- --database=payload_qualification --keep",
   },
 ])(
   "AL-2674: the migrate '$name' step",
-  ({ name, position, key, run, narrower }) => {
+  ({ name, position, keys, run, narrower }) => {
     const ID = `name:${name}`;
-    const STEP_TEXT = `      - name: ${name}\n        env:\n          ${key}: \${{ env.DATABASE_URL }}\n        run: ${run}\n`;
+    const envLine = (key: string, value = AL2674_DATABASE_URL) =>
+      `          ${key}: ${value}\n`;
+    const STEP_TEXT = `      - name: ${name}\n        env:\n${keys.map((key) => envLine(key)).join("")}        run: ${run}\n`;
     const migrateOf = (text: string) => jobsOf(text, "AL-2674").migrate!;
     const editStep = (replacement: string) =>
       migrateOf(
@@ -3372,9 +3414,11 @@ describe.each([
         env: step.env,
       });
       expect(step.run!.trim()).toBe(run);
-      expect(step.env).toEqual({ [key]: "${{ env.DATABASE_URL }}" });
+      expect(step.env).toEqual(
+        Object.fromEntries(keys.map((key) => [key, AL2674_DATABASE_URL])),
+      );
       expect(step.if).toBeUndefined();
-      expect(MODELLED_ENV_KEYS_BY_JOB.migrate!.steps[ID]).toEqual([key]);
+      expect(MODELLED_ENV_KEYS_BY_JOB.migrate!.steps[ID]).toEqual(keys);
       expect(modelledKeyProblems(job, "reject")).toEqual([]);
       expect(envKeyProblems(job)).toEqual([]);
       expect(pinnedIfProblems(job)).toEqual([]);
@@ -3391,11 +3435,15 @@ describe.each([
       );
     });
 
-    it.each([
-      ["a secret", "${{ secrets.ADMIN_DATABASE_URL }}"],
-      ["a literal URL", "postgresql://postgres:postgres@evil:5432/x"],
-    ])("another value (%s) for the key is not allowed", (_label, value) => {
-      const job = editStep(STEP_TEXT.replace("${{ env.DATABASE_URL }}", value));
+    it.each(
+      keys.flatMap((key) => [
+        [key, "a secret", "${{ secrets.ADMIN_DATABASE_URL }}"],
+        [key, "a literal URL", "postgresql://postgres:postgres@evil:5432/x"],
+      ]),
+    )("another value for %s (%s) is not allowed", (key, _label, value) => {
+      const job = editStep(
+        STEP_TEXT.replace(envLine(key), envLine(key, value)),
+      );
       expect(envKeyProblems(job)).toEqual([
         `env value not allowed: ${key} at step ${position} env of job 'migrate' (pinned to "\${{ env.DATABASE_URL }}")`,
       ]);
@@ -3422,3 +3470,44 @@ describe.each([
     });
   },
 );
+
+describe("AL-2674: step 22 fails, and never passes empty, when its glob matches nothing", () => {
+  const RUN =
+    PINNED_STEP_BODIES.migrate![
+      "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)"
+    ]!.run;
+
+  it("neither the step nor the Vitest config lets an empty run pass", () => {
+    expect(RUN + readFileSync("vitest.config.mts", "utf8")).not.toMatch(
+      /passWithNoTests/i,
+    );
+    expect(RUN).not.toMatch(/shopt|set -o|nullglob|\|\||;/);
+  });
+
+  // The same command shape run as GitHub runs a step (bash --noprofile
+  // --norc -eo pipefail), with the issue range swapped for one that has no
+  // directories: bash passes the unmatched glob through as text, and Vitest
+  // finds no file and exits non-zero.
+  it.runIf(process.platform !== "win32")(
+    "the same command over an empty range exits non-zero with no test files found",
+    () => {
+      const empty = "tests/unit/acceptance/issue-99[78][0-9]/";
+      const command = RUN.replace(
+        "bun x vitest run",
+        `${JSON.stringify(process.execPath)} node_modules/vitest/vitest.mjs run`,
+      ).replace("tests/unit/acceptance/issue-26[78][0-9]/", empty);
+      expect(command).toContain(empty);
+      expect(command).not.toContain("bun x vitest");
+      const env: NodeJS.ProcessEnv = { ...process.env, VITEST: "" };
+      delete env.TENANT_GUARD_IT_ADMIN_DATABASE_URL;
+      const result = spawnSync(
+        "bash",
+        ["--noprofile", "--norc", "-eo", "pipefail", "-c", command],
+        { env, encoding: "utf8", timeout: 120_000 },
+      );
+      expect(result.status, `${result.stdout}\n${result.stderr}`).not.toBe(0);
+      expect(`${result.stdout}${result.stderr}`).toMatch(/No test files found/);
+    },
+    150_000,
+  );
+});

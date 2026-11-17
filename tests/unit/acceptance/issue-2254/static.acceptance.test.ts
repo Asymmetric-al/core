@@ -59,6 +59,18 @@ const CI_BASES = [
     bytes: 44177,
     sha256: "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
   },
+  {
+    // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
+    // .node-version to 24.22.3, its migrate real-stack bullet describes the
+    // three AL-2674 steps (the program-wide suite glob, the release and CMS
+    // role suites, the Payload qualification), its migrate summary names the
+    // seed-count check and supabase/seed-expectations.json, and its release
+    // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
+    // reviewed whole file, so nothing follows it.
+    ref: "AL-2674 Node 24.22.3 and program steps",
+    bytes: 45088,
+    sha256: "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */

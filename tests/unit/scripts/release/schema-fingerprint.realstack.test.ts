@@ -16,6 +16,7 @@ import {
   formatFingerprintDiff,
 } from "../../../../scripts/release/schema-fingerprint.mjs";
 import {
+  IN_MIGRATE_JOB,
   adminDatabaseUrl,
   createDatabase,
   dropDatabase,
@@ -49,6 +50,11 @@ afterAll(() => {
   for (const name of created) dropDatabase(name);
   rmSync(scratch, { recursive: true, force: true });
 });
+
+it.runIf(IN_MIGRATE_JOB && !adminDatabaseUrl)(
+  "the migrate job sets RELEASE_IT_ADMIN_DATABASE_URL (fails, never skips)",
+  () => expect(adminDatabaseUrl).not.toBe(""),
+);
 
 describe.skipIf(!adminDatabaseUrl)(
   "schema fingerprint (real stack)",

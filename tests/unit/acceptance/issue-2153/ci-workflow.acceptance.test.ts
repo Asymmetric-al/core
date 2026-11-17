@@ -196,6 +196,9 @@ describe("#2153 criterion 10: nothing else in ci.yml changes", () => {
     delete (step?.env as Record<string, unknown> | undefined)?.CI_RESULTS;
     const print = createHash("sha256").update(JSON.stringify(d)).digest("hex");
     // Hosted-only amendment: only build/test-unit runner placement changed.
-    expect(print.slice(0, 16)).toBe("4ba5d2d04cd567d3");
+    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only the workflow's
+    // NODE_VERSION moved from 24.22.1 to 24.22.3 (.node-version). With that
+    // line put back, this fingerprint is the reviewed 4ba5d2d04cd567d3.
+    expect(print.slice(0, 16)).toBe("c8bd1a2b9f625673");
   });
 });

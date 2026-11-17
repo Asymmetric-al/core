@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { resolveCmsMigrationDatabaseUrl } from "../../../../scripts/cms/lib/migration-connection.mjs";
+import { assertCmsMigrationTarget } from "../../../../scripts/cms/lib/migration-target.mjs";
 import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
 import {
   RELEASE_ENVIRONMENTS,
@@ -411,10 +413,27 @@ describe("release database steps", () => {
         events.push(command === "bun" ? "payload" : "supabase");
         if (command === "bun") {
           expect(options.env.CMS_HOSTED_MIGRATION_ROLE).toBe("cms_owner");
-          expect(options.env.PAYLOAD_DATABASE_URI).toContain(
-            `cms_owner.${ref}`,
+          // WP1.2's runner migrates a hosted CMS schema only through
+          // PAYLOAD_MIGRATION_DATABASE_URI, and never through the run-time
+          // variable, which holds no cms_owner login here.
+          expect(
+            new URL(options.env.PAYLOAD_MIGRATION_DATABASE_URI!).username,
+          ).toBe(`cms_owner.${ref}`);
+          expect(options.env.PAYLOAD_DATABASE_URI ?? "").not.toContain(
+            "cms_owner",
           );
           expect(options.env.SUPABASE_DB_URL).toBe("");
+          // The runner's own preflight accepts what the release job passes.
+          const chosen = resolveCmsMigrationDatabaseUrl(options.env);
+          expect(chosen.source).toBe("PAYLOAD_MIGRATION_DATABASE_URI");
+          expect(() =>
+            assertCmsMigrationTarget({
+              databaseUrl: chosen.databaseUrl,
+              supabaseUrl: options.env.NEXT_PUBLIC_SUPABASE_URL,
+              approvedProjectRef: options.env.CMS_HOSTED_MIGRATION_REF,
+              environment: options.env,
+            }),
+          ).not.toThrow();
         }
         return { status: 0 };
       },

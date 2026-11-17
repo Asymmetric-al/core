@@ -172,6 +172,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "CI runner fallback", hash: "89fce96b9365d5a9" },
     // Hosted-CI amendment: only build/test-unit runs-on become literal ubuntu-latest.
     { ref: "Hosted CI baseline", hash: "cbe3c295f9dd6832" },
+    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only NODE_VERSION
+    // moved from 24.22.1 to 24.22.3 (.node-version). With that line put back,
+    // the fingerprint is the entry above.
+    { ref: "AL-2674 Node 24.22.3", hash: "ab279b66def51683" },
   ] as const;
   const CII_PRINTS = [
     // develop
@@ -218,6 +222,19 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // and 23 (the issue-2674 real-stack glob and the release job's suites),
     // each pinned exactly in tests/unit/helpers/workflow-yaml.ts.
     { ref: "AL-2674 migrate steps 22-23", hash: "14ea3b7522ff3091" },
+    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only NODE_VERSION
+    // moved from 24.22.1 to 24.22.3 (.node-version). With that line put back,
+    // the fingerprint is the entry above.
+    { ref: "AL-2674 Node 24.22.3", hash: "8558e8eb2cd18964" },
+    // Amended by AL-2674 (WP1.2 joined): migrate step 13 ("Verify seed
+    // counts") runs scripts/verify/seed-counts.mjs, which reads the expected
+    // counts from supabase/seed-expectations.json, so a seed change no longer
+    // changes this file; step 22 runs the AL-2671 program's real-stack suites
+    // (one glob over issue-2670 to issue-2689), step 23 adds Payload's
+    // database-role suite and its URL, and step 24 runs the Payload
+    // qualification (plan 6.7). Only those four steps differ from the entry
+    // above; each is pinned exactly in tests/unit/helpers/workflow-yaml.ts.
+    { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

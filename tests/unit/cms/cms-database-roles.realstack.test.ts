@@ -4,7 +4,8 @@
  *
  * The static checks always run. The real-stack checks run against the migrated
  * disposable database named by TENANT_GUARD_IT_ADMIN_DATABASE_URL (a superuser
- * URL, as in CI's `migrate` job) and skip without it. They set a random
+ * URL, as in CI's `migrate` job, which runs this suite) and skip without it,
+ * except in that job, where a missing URL fails. They set a random
  * password on both roles for the run, as local and CI setups do, and clear it
  * afterwards; the migration itself never sets one.
  */
@@ -16,6 +17,8 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
+const IN_MIGRATE_JOB =
+  process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
 const MIGRATIONS_DIR = path.join(process.cwd(), "supabase", "migrations");
 const ROLE_MIGRATION = readdirSync(MIGRATIONS_DIR).find((name) =>
   /^\d{14}_cms_database_roles\.sql$/.test(name),
@@ -62,6 +65,11 @@ describe("CMS role migration source", () => {
     expect(code).not.toMatch(/\bPASSWORD\b/i);
   });
 });
+
+it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
+  "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
+  () => expect(ADMIN_URL).not.toBe(""),
+);
 
 describe.skipIf(!ADMIN_URL)("CMS database roles (real stack)", () => {
   const admin = new pg.Client({ connectionString: ADMIN_URL });

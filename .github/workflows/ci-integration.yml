@@ -81,13 +81,7 @@ jobs:
       - name: Verify donation fee replay
         run: psql "$DATABASE_URL" -f tests/integration/supabase/donation-fee-replay-verification.sql -v ON_ERROR_STOP=1
       - name: Verify seed counts
-        run: |
-          profile_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.profiles;" | tr -d '[:space:]')
-          if [ "$profile_count" != "1" ]; then
-            echo "Expected public.profiles count to be 1 after seeding, got: $profile_count"
-            exit 1
-          fi
-          echo "Verified public.profiles seeded row count: $profile_count"
+        run: node scripts/verify/seed-counts.mjs
       - name: Verify document-cutover reader role (real stack)
         env:
           DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
@@ -118,14 +112,19 @@ jobs:
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts
-      - name: Verify AL-2674 command lane and platform schema (real stack)
+      - name: Verify AL-2671 program suites, issues 2670-2689 (real stack)
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
-        run: bun x vitest run tests/unit/acceptance/issue-2674/*.realstack.acceptance.test.ts
-      - name: Verify release job database steps and schema fingerprint (real stack)
+        run: bun x vitest run tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts
+      - name: Verify release job database steps, schema fingerprint and CMS roles (real stack)
         env:
           RELEASE_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
-        run: bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts tests/unit/cms/cms-database-roles.realstack.test.ts
+      - name: Qualify the pinned Payload release (cms:qualify)
+        env:
+          PAYLOAD_QUALIFICATION_ADMIN_URL: ${{ env.DATABASE_URL }}
+        run: bun run cms:qualify -- --database=payload_qualification
 
   smoke:
     needs: migrate
