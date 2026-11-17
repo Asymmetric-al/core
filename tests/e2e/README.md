@@ -50,8 +50,8 @@ server from another checkout is not reused. For a stack started from a scratch
 copy with `--workdir` (its own project ID and ports), set
 `AUTH_MAIL_SUPABASE_WORKDIR` to that directory. Pass Playwright arguments after
 `--`, for example `bun run test:e2e:auth-mail -- --project=auth-mail-donor`.
-CI runs the same command in `.github/workflows/auth-email.yml`
-(`docs/ci.md`, "Auth email workflow").
+CI runs the same command in `.github/workflows/local-supabase.yml`
+(`docs/ci.md`, "Local Supabase stack workflow").
 
 ## Running in UI mode
 

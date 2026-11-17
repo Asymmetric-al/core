@@ -1,16 +1,33 @@
-name: Auth Email
+name: Local Supabase Stack
 
-# The Supabase Auth email round trips (WP0b, WP1.4): password recovery in all
-# three apps and sign-up confirmation on two hosts of the donor portal, against
-# a local Supabase stack and its mail catcher. Its own workflow, so that no
-# frozen suite of ci.yml or ci-integration.yml changes (council round 2, B4).
-# Not a required check. docs/ci.md, "Auth email workflow".
+# Starts a local Supabase stack from source, then runs the Supabase Auth email
+# round trips against it. Two guards in one job (docs/ci.md, "Local Supabase
+# stack workflow"):
+#
+# - The migration chain and the seed on the real Supabase image. This is the
+#   only job that applies them there, with Supabase's roles and grants and a
+#   `postgres` that is not a superuser; every other job uses plain Postgres as
+#   a superuser, which hid two stage 1 migrations that the real image refuses
+#   (council round 2). So every pull request that changes the chain, the seed,
+#   the stack's configuration or the CLI pin starts the stack.
+# - The email round trips of WP0b and WP1.4: password recovery in all three
+#   apps and sign-up confirmation on two hosts of the donor portal, through
+#   the stack's Auth server and mail catcher (council round 2, B4).
+#
+# Its own workflow, so that no frozen suite of ci.yml or ci-integration.yml
+# changes. Not a required check.
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - .github/workflows/auth-email.yml
+      - .github/workflows/local-supabase.yml
+      # The chain, the seed, the stack's configuration and the CLI pin.
+      - supabase/migrations/**
+      - supabase/seed.sql
+      - supabase/config.toml
+      - scripts/supabase-cli.mjs
+      # The auth screens, packages, routes and proxies the round trips cover.
       - packages/ui/components/auth/**
       - packages/auth/**
       - packages/api/src/auth/**
@@ -20,7 +37,7 @@ on:
       - apps/*/app/auth/**
       - apps/missionary/app/forgot-password/**
       - apps/missionary/app/register/**
-      - supabase/config.toml
+      # The round trips themselves.
       - playwright.auth-mail.config.ts
       - tests/e2e/auth-password-recovery.spec.ts
       - tests/e2e/auth-signup-confirmation.spec.ts
@@ -35,11 +52,11 @@ env:
   NODE_VERSION: "24.22.3"
 
 concurrency:
-  group: auth-email-${{ github.event.pull_request.number || github.ref }}
+  group: local-supabase-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  auth-email:
+  local-supabase:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -95,6 +112,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: auth-email-results
+          name: local-supabase-results
           path: test-results/auth-mail/
           retention-days: 7

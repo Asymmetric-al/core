@@ -201,15 +201,17 @@ const CI_BASES = [
     sha256: "2775f6ef1aea46e8033bd70779eded926b40e8b3098c655cb07d94f19ac3a770",
   },
   {
-    // Amended by AL-2673 (council round 2, B4): docs/ci.md gains one section,
-    // "Auth email workflow", after the release workflow section. It documents
-    // `.github/workflows/auth-email.yml`, a workflow of its own so that ci.yml
-    // and ci-integration.yml do not change. Nothing else in the file changes.
+    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
+    // gains one section, "Local Supabase stack workflow", after the release
+    // workflow section. It documents `.github/workflows/local-supabase.yml`,
+    // which applies the chain and the seed to the real Supabase image and runs
+    // the auth email round trips, a workflow of its own so that ci.yml and
+    // ci-integration.yml do not change. Nothing else in the file changes.
     // Pinned on that exact reviewed content. Ends before the EOF runner
     // section, which is unchanged.
-    ref: "AL-2673 auth email workflow",
-    bytes: 45550,
-    sha256: "b211ca01cecbed7b89f256712cb98f3f221ea2a6886a51a742db00ce7395469a",
+    ref: "AL-2673 local Supabase stack workflow",
+    bytes: 46168,
+    sha256: "5d02d56a1a354e230b91199c0d9c7831d309414e6db6c8b7e75f8ef191a301e6",
   },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;

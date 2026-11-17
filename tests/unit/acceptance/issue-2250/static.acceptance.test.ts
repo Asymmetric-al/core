@@ -91,14 +91,16 @@ const CI_BASES = [
     sha256: "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
   },
   {
-    // Amended by AL-2673 (council round 2, B4): docs/ci.md gains one section,
-    // "Auth email workflow", after the release workflow section. It documents
-    // `.github/workflows/auth-email.yml`, a workflow of its own so that ci.yml
-    // and ci-integration.yml do not change. Nothing else in the file changes.
+    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
+    // gains one section, "Local Supabase stack workflow", after the release
+    // workflow section. It documents `.github/workflows/local-supabase.yml`,
+    // which applies the chain and the seed to the real Supabase image and runs
+    // the auth email round trips, a workflow of its own so that ci.yml and
+    // ci-integration.yml do not change. Nothing else in the file changes.
     // Pinned on that exact reviewed whole file.
-    ref: "AL-2673 auth email workflow",
-    bytes: 46170,
-    sha256: "ab684a046ca8c755d57552187c805f323f42b734b363ec497c68191897014d7b",
+    ref: "AL-2673 local Supabase stack workflow",
+    bytes: 46788,
+    sha256: "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
   },
 ] as const;
 /** "label :: regex" lines docs/security/tenant-guard.md must match (criteria 7, 11, 12, 14, 15, 17). */
