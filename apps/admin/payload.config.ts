@@ -23,6 +23,7 @@ import {
   createPayloadStorageAdapters,
   resolvePayloadEmailAdapter,
 } from "./src/cms/payload-runtime-integrations";
+import { resolvePayloadSchemaPush } from "./src/cms/payload-schema-push";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -143,7 +144,11 @@ export default buildConfig({
     Media,
   ],
   db: postgresAdapter({
-    push: process.env.PAYLOAD_DISABLE_SCHEMA_PUSH === "1" ? false : undefined,
+    // Never against a non-loopback host (WP0); see payload-schema-push.ts.
+    push: resolvePayloadSchemaPush({
+      connectionString: payloadDatabaseConfig.pool.connectionString,
+      env: process.env,
+    }),
     schemaName: "cms",
     pool: payloadDatabaseConfig.pool,
   }),
