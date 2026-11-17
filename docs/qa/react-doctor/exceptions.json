@@ -1210,14 +1210,15 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/admin/features/mission-control/components/icons.tsx:48; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/admin/features/mission-control/components/icons.tsx:48. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
-        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): bun.lock changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
       "evidenceFileHashes": {
         "apps/admin/features/mission-control/components/icons.tsx": "4a2a1d0e5bd19ea8a1acfb0ddbb801a347b3a2939f75240fa4d292927a8f2f1c",
-        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
+        "bun.lock": "147bd9a0adc71a1196720f012a064d006c1ab85b95621fa3225b1b7d43be3d4b"
       }
     },
     {
@@ -3076,7 +3077,8 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/donor/components/openpolicy/policy-components.tsx:123; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/donor/components/openpolicy/policy-components.tsx:123. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
-        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): bun.lock changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if PolicyText stops being a registered React renderer, registry semantics change, or mixed non-component exports are introduced.",
       "sourceContextHash": "164905a7d106c424068a8044566a0f9256f8cf282781559fa668ad665cb228e8",
@@ -3086,7 +3088,7 @@
         "apps/donor/components/openpolicy/privacy-policy.tsx": "f20bf99cae680cd87f4bc97d7bcb9ee00c249075b5c59be4395fdde155a77d2c",
         "apps/donor/components/openpolicy/cookie-policy.tsx": "2ab88f03fce2ff3fa6552595d2aad7777b026697a463075fe7a9705adea131e1",
         "apps/donor/components/openpolicy/terms-of-service.tsx": "cba04917f74a338eae7005fd056ba4a112b41ddf0cb3e2ab8866e9a8c8a97ac2",
-        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
+        "bun.lock": "147bd9a0adc71a1196720f012a064d006c1ab85b95621fa3225b1b7d43be3d4b"
       }
     },
     {
@@ -4822,7 +4824,8 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/public/about-sections.tsx:89; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/public/about-sections.tsx:89. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
-        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): bun.lock changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if this exact caller stops passing its reduced-motion or transition ownership policy, or the factory shape/policy changes.",
       "sourceContextHash": "bfe1b3c79d542e5fb0707f904ecbd6c296dd36e3e96d86fa0b10eaa328763e7d",
@@ -4831,7 +4834,7 @@
         "packages/ui/components/public/about-sections.tsx": "2eb3c43ba03cfe257f5811d83f6637bfc2900edeca1511260f9e117889d68411",
         "packages/lib/motion-presets.ts": "9607fe74d14544a672a06b5cb5f4a2f8051d16a1c99250d27a502c41da4bebda",
         "packages/lib/motion-provider.tsx": "85660d3c33cc8e062fa167af99cc848571e582dbf9ad2120c2a6194bb26e50ba",
-        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
+        "bun.lock": "147bd9a0adc71a1196720f012a064d006c1ab85b95621fa3225b1b7d43be3d4b"
       }
     },
     {
@@ -5769,13 +5772,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/command.tsx:46; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/command.tsx:46. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/command.tsx:28:7. The reason was rechecked against the current source: Command (command.tsx:17-28) keeps the same typed signature and spread; this branch changed only other parts of the file. Stale at base before this branch: hashes for packages/ui/components/shadcn/command.tsx, packages/ui/package.json no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/command.tsx:28:7. The reason was rechecked against the current source: Command (command.tsx:17-28) keeps the same typed signature and spread; this branch changed only other parts of the file. Stale at base before this branch: hashes for packages/ui/components/shadcn/command.tsx, packages/ui/package.json no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "add6d4f25e461e45cf4c8c25dcd646912c4108dbcdecd2315bc7bbf1fb95d54c",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -6702,13 +6706,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/kbd.tsx:13; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/kbd.tsx:13. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/kbd.tsx:13:7. The reason was rechecked against the current source: Kbd (kbd.tsx:3-13) keeps the same typed signature and spread; this branch changed only its class list. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/kbd.tsx:13:7. The reason was rechecked against the current source: Kbd (kbd.tsx:3-13) keeps the same typed signature and spread; this branch changed only its class list. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "0eec1cbf876b60b107aff2268686357d5d91516ddcfe3fc00e4122adfda78e39",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -7187,13 +7192,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx:161; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx:166. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx:189:7. The reason was rechecked against the current source: EditorContent (rich-text-editor.tsx:181-194) keeps the same typed signature and forwards the remaining props to TipTapEditorContent at :189; this branch only added an aria-describedby prop to EditorRoot, and packages/ui/package.json still pins @tiptap/react 3.32.0. Stale at base before this branch: hashes for packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx, packages/ui/package.json no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx:189:7. The reason was rechecked against the current source: EditorContent (rich-text-editor.tsx:181-194) keeps the same typed signature and forwards the remaining props to TipTapEditorContent at :189; this branch only added an aria-describedby prop to EditorRoot, and packages/ui/package.json still pins @tiptap/react 3.32.0. Stale at base before this branch: hashes for packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx, packages/ui/package.json no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "1ed1aa8674bb4b72554eb0a2a4b7da206876db0cffd14902db98e136e11d4243",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -7287,13 +7293,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/select.tsx:14; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/select.tsx:14. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/select.tsx:21:48. The reason was rechecked against the current source: Select (select.tsx:15-21) keeps the same typed signature and forwards props to SelectPrimitive.Root inside the new trigger context provider. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/select.tsx:21:48. The reason was rechecked against the current source: Select (select.tsx:15-21) keeps the same typed signature and forwards props to SelectPrimitive.Root inside the new trigger context provider. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "2674b29af58694aa1c1045b1fe8e890bee700aca30ed6d494df54e16931f353f",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -7387,13 +7394,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/sidebar.tsx:142; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/sidebar.tsx:153. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/sidebar.tsx:137:9. The reason was rechecked against the current source: SidebarProvider (sidebar.tsx:58-137) keeps the same typed signature and spread. Stale at base before this branch: hashes for packages/ui/components/shadcn/sidebar.tsx, packages/ui/package.json no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/sidebar.tsx:137:9. The reason was rechecked against the current source: SidebarProvider (sidebar.tsx:58-137) keeps the same typed signature and spread. Stale at base before this branch: hashes for packages/ui/components/shadcn/sidebar.tsx, packages/ui/package.json no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "7af59dff583eb8517d40a20944cd61b28eb3a2b026086caa7b31ff767055d74b",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -7422,15 +7430,16 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/sidebar.tsx:266; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/sidebar.tsx:281. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/sidebar.tsx:286:7. The reason was rechecked against the current source: SidebarTrigger still passes mergeProps({ onClick: toggleSidebar }, { onClick }).onClick (sidebar.tsx:286-288); this branch moved the shortcut hint to useShortcutHint. Stale at base before this branch: hashes for packages/ui/components/shadcn/sidebar.tsx, packages/ui/package.json, bun.lock no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/sidebar.tsx:286:7. The reason was rechecked against the current source: SidebarTrigger still passes mergeProps({ onClick: toggleSidebar }, { onClick }).onClick (sidebar.tsx:286-288); this branch moved the shortcut hint to useShortcutHint. Stale at base before this branch: hashes for packages/ui/components/shadcn/sidebar.tsx, packages/ui/package.json, bun.lock no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json and bun.lock changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only those supporting hashes are rebound."
       ],
       "reconsiderWhen": "Reconsider if event composition/cancellation ordering or the underlying Base UI callback API changes.",
       "sourceContextHash": "48d04eea79d32ef86d5819a856bb570c618031257d32bcf3bf09343a9391749b",
       "sourceFileHash": "7af59dff583eb8517d40a20944cd61b28eb3a2b026086caa7b31ff767055d74b",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b",
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a",
         "packages/ui/lib/base-ui.ts": "68b33342c62b74e72389cc1638234d78432801f5c250fa204937fbf4f8e6619a",
-        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
+        "bun.lock": "147bd9a0adc71a1196720f012a064d006c1ab85b95621fa3225b1b7d43be3d4b"
       }
     },
     {
@@ -7794,13 +7803,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/toggle-group.tsx:56; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/toggle-group.tsx:56. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/toggle-group.tsx:120:7. The reason was rechecked against the current source: the wrapper now owns tab-stop placement, so it names the value props and ref it composes; every other ToggleGroupPrimitive prop still reaches the primitive through the spread at :120. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/toggle-group.tsx:120:7. The reason was rechecked against the current source: the wrapper now owns tab-stop placement, so it names the value props and ref it composes; every other ToggleGroupPrimitive prop still reaches the primitive through the spread at :120. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "d968e4d5ba6aa5dd29fd5488f8e352c57339932747bc93944fcb912b4e93f73a",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -7828,13 +7838,14 @@
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/toolbar.tsx:15; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/toolbar.tsx:15. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
-        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/toolbar.tsx:56:7. The reason was rechecked against the current source: this branch added Home/End handling; the caller's onKeyDown is called first and every other Root prop still reaches the primitive through the spread at :56. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/toolbar.tsx:56:7. The reason was rechecked against the current source: this branch added Home/End handling; the caller's onKeyDown is called first and every other Root prop still reaches the primitive through the spread at :56. Stale at base before this branch: hashes for packages/ui/package.json no longer matched base bddbe6a3b (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): packages/ui/package.json changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
       "sourceFileHash": "73868255a9a691ac9682f7cd38286e516d13ebfa33eb143f98f87350b504a62b",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "5bcc67536b2782aa0c469a9df77308d7dfcee63f69a603538b4547ca658e7a5b"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -7964,14 +7975,15 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx:227; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx:227. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "LOCK REQUALIFICATION 2026-10-21: compatible minimatch/brace-expansion-only resolution refresh; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed SDK/prop/cleanup/motion rationale.",
-        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale."
+        "LOCK REQUALIFICATION 2026-11-14: the lockfile only adds the @ui-sdk/core and @ui-sdk/react 0.1.0-beta.2 rows (no transitive packages) and narrows the @asym/ui React peer range to ^19; every other locked package entry and all source/supporting-file hashes remain unchanged, preserving this exact reviewed rationale.",
+        "REQUALIFICATION 2026-11-17 (second merge of develop into AL-2690): bun.lock changed only by develop's Next.js 16.4.2 to 16.4.5 bump (Base UI stays 1.9.0), so this record's reason is unchanged. Only that supporting hash is rebound."
       ],
       "reconsiderWhen": "Reconsider if the Unlayer SDK removal API changes, listener ownership changes, or callback/editor rebinding stops cleaning up.",
       "sourceContextHash": "f3e20d96e2f6b9b187747f96e7349654bde02fb6e1898b0ad9a61e1db660576b",
       "sourceFileHash": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
       "evidenceFileHashes": {
         "packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx": "a20627ed47dae0e2385fdfa2825f0a7108dbbf363271cae866f408e89d680118",
-        "bun.lock": "965e7849f8829127bd11389f9797638cc9bcaedca7df28a01f151df24f543147"
+        "bun.lock": "147bd9a0adc71a1196720f012a064d006c1ab85b95621fa3225b1b7d43be3d4b"
       }
     },
     {
