@@ -350,43 +350,61 @@ export const PATCH = withOperation(
       // The status that write checked and left the gift in.
       const statusAfterEdit: StagedGiftStatus = body.status ?? gift.status;
 
+      // What became of the split, for the audit row. The write above is
+      // saved by now, so an edit whose split is then refused is still audited
+      // and still refreshes the lists before it answers 409 (council round 3).
+      let split: "replaced" | "refused" | "replaced_gift_moved" | null = null;
+      let splitRefusal: ApiHttpError | null = null;
       if (body.allocations) {
-        // The RPC checks that status under the gift's lock, so a refund or
-        // posting that landed since keeps its split and the edit answers 409
-        // (council round 2, B5).
-        await replaceStagedGiftAllocations({
-          supabaseAdmin,
-          gift: {
-            id: gift.id,
-            tenantId: gift.tenantId,
-            status: statusAfterEdit,
-          },
-          allocations: body.allocations,
-        });
-
-        // Recorded only while the gift is still in the state this edit left
-        // it in; a gift posted or refunded meanwhile is reported, not marked.
-        const allocationStatus =
-          body.allocations.length > 1 ? "split" : "corrected";
-        const allocationPatch = await supabaseAdmin
-          .from("staged_gifts")
-          .update({
-            allocation_status: allocationStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", gift.id)
-          .eq("tenant_id", gift.tenantId)
-          .eq("status", statusAfterEdit)
-          .select("id")
-          .maybeSingle();
-        if (allocationPatch.error) {
-          throw new Error(allocationPatch.error.message);
+        try {
+          // The RPC checks that status under the gift's lock, so a refund or
+          // posting that landed since keeps its split and the edit answers
+          // 409 (council round 2, B5).
+          await replaceStagedGiftAllocations({
+            supabaseAdmin,
+            gift: {
+              id: gift.id,
+              tenantId: gift.tenantId,
+              status: statusAfterEdit,
+            },
+            allocations: body.allocations,
+          });
+          split = "replaced";
+        } catch (error) {
+          if (!(error instanceof ApiHttpError) || error.status !== 409) {
+            throw error;
+          }
+          split = "refused";
+          splitRefusal = error;
         }
-        if (!allocationPatch.data) {
-          throw new ApiHttpError(
-            409,
-            "The staged gift changed while its split was being saved. Reload it and check the split.",
-          );
+
+        if (split === "replaced") {
+          // Recorded only while the gift is still in the state this edit
+          // left it in; a gift posted or refunded meanwhile is reported, not
+          // marked.
+          const allocationStatus =
+            body.allocations.length > 1 ? "split" : "corrected";
+          const allocationPatch = await supabaseAdmin
+            .from("staged_gifts")
+            .update({
+              allocation_status: allocationStatus,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", gift.id)
+            .eq("tenant_id", gift.tenantId)
+            .eq("status", statusAfterEdit)
+            .select("id")
+            .maybeSingle();
+          if (allocationPatch.error) {
+            throw new Error(allocationPatch.error.message);
+          }
+          if (!allocationPatch.data) {
+            split = "replaced_gift_moved";
+            splitRefusal = new ApiHttpError(
+              409,
+              "The staged gift changed while its split was being saved. Reload it and check the split.",
+            );
+          }
         }
       }
 
@@ -401,10 +419,15 @@ export const PATCH = withOperation(
           donorCorrected: body.donorId !== undefined,
           allocationCount: body.allocations?.length ?? null,
           status: body.status ?? null,
+          ...(split ? { split } : {}),
         },
       });
 
       revalidateAdminContributionsCache(auth.tenantId);
+
+      if (splitRefusal) {
+        throw splitRefusal;
+      }
 
       return NextResponse.json({ stagedGift: updated.data, requestId });
     } catch (error) {
