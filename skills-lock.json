@@ -261,12 +261,6 @@
       "skillPath": "plugins/cicd-automation/skills/deployment-pipeline-design/SKILL.md",
       "computedHash": "9a56bd9401c1dc8ef5a15758d7234f211193097ddb3895d46d1ddcd730687b18"
     },
-    "design-an-interface": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/deprecated/design-an-interface/SKILL.md",
-      "computedHash": "f3f225914515407b8224e8ec6187db337c5e65bad0703936a0acb3f802947a7d"
-    },
     "design-system-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",
@@ -300,12 +294,6 @@
       "skillPath": "skills/engineering/domain-modeling/SKILL.md",
       "computedHash": "7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3",
       "treeHash": "b4f2ad787e758fdd7669672e90a27e7f5c0c5cded1c93ac32fc22b9d16211b85"
-    },
-    "edit-article": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/personal/edit-article/SKILL.md",
-      "computedHash": "9a96975e2eaf1ce5c69c14429aea7d2039e2f6f5a73938520b653de84841d9e3"
     },
     "email-best-practices": {
       "source": "resend/resend-skills",
@@ -580,12 +568,6 @@
       "skillPath": "skills/npm-deps-cleanup/SKILL.md",
       "computedHash": "bd4be60c837a2d690302d2ef92b2375d63acb15069be78eb8b46610de8ef368f"
     },
-    "obsidian-vault": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/personal/obsidian-vault/SKILL.md",
-      "computedHash": "a5dd44e7af2bfeb2cb2e3f421fdccef62dd334038ad06e18767b0ddcf0e75c13"
-    },
     "openspec-apply-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
@@ -848,12 +830,6 @@
       "computedHash": "714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3",
       "treeHash": "e4c37227b140ce5d5f17cbda571380eb3cf581b700c56b7d2739a0bd94dd9abc"
     },
-    "qa": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/deprecated/qa/SKILL.md",
-      "computedHash": "a608d889794ef7f21a5dd31d96ca502b5e6f27b466ada759a3bf9846a2e6b236"
-    },
     "react-email": {
       "source": "resend/react-email",
       "sourceType": "github",
@@ -883,12 +859,6 @@
       "sourceType": "github",
       "skillPath": "skills/reflect/SKILL.md",
       "computedHash": "56600bd05fd71dccf491d49ca5d1e4a16a5e2090ada8198ccf051109abac2179"
-    },
-    "request-refactor-plan": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/deprecated/request-refactor-plan/SKILL.md",
-      "computedHash": "6811250488d1dafcb111e7ef0dc1124211369c5f6f47ce820b7527c255489178"
     },
     "research": {
       "source": "mattpocock/skills",
@@ -1120,12 +1090,6 @@
       "sourceType": "github",
       "skillPath": "cli-tool/components/skills/development/typescript-expert/SKILL.md",
       "computedHash": "88b62c21b51eae08cd9af282d29d5adb9fa06626af59768cd4e9d739791e5a65"
-    },
-    "ubiquitous-language": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/deprecated/ubiquitous-language/SKILL.md",
-      "computedHash": "4828c4957014e7d9c1fd62d65e92264d6d46808089953e14d1bbba5a92dfff4d"
     },
     "ui-sdk": {
       "source": "vercel-labs/ui",

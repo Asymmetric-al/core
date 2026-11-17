@@ -15,7 +15,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Shared UI primitives live in `packages/ui`. Apps should consume them via `@asym/ui`.
   The detailed `base-maia` implementation contract is `packages/ui/AGENTS.md`.
 - Do not generate shadcn components inside `apps/*`.
-- Shared primitives are Base UI (`@base-ui/react`) via the shadcn `base-maia` style, the only primitive base. UI SDK (`@ui-sdk/react`) is the one approved complementary behavior library, limited to interactions no existing `@asym/ui` component provides and wrapped in `packages/ui` (see "UI SDK" in `packages/ui/AGENTS.md` and `docs/ai/skills/ui-sdk/SKILL.md`).
+- Shared components are built on Base UI (`@base-ui/react`, the shadcn `base-maia` base) or UI SDK (`@ui-sdk/react`); both are approved. Reuse the existing `@asym/ui` component first, choose UI SDK for a concrete benefit, and keep SDK code in `packages/ui` wrappers (see "Choosing a library" and "UI SDK implementation" in `packages/ui/AGENTS.md`, and `docs/ai/skills/ui-sdk/SKILL.md`).
 - For app code, follow the existing feature structure already used in each app.
 
 ### Imports
@@ -27,8 +27,8 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ### Component and primitive policy
 
-- Base UI for every behavior-heavy primitive it provides; UI SDK only for the gaps above, through a `packages/ui` wrapper. Never add `radix-ui` or `@radix-ui/*` imports, dependencies, or `--radix-*` CSS variables.
-- Composition uses Base UI's `render` prop — `asChild` does not exist here. For link-style buttons, prefer `buttonVariants` on the `Link`/`<a>` over rendering `Button` as a link.
+- One library owns a control's internal behavior; UI SDK code stays in a `packages/ui` wrapper. Prefer Base UI over Radix: add no `radix-ui` or `@radix-ui/*` imports, dependencies, or `--radix-*` CSS variables without a narrow Radix-specific need accepted in review.
+- Base UI components compose with the `render` prop — `asChild` does not exist here. For link-style buttons, prefer `buttonVariants` on the `Link`/`<a>` over rendering `Button` as a link.
 - State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated. UI SDK wrappers style that library's own documented `data-slot` and state attributes (for example `data-filled`) with semantic tokens, never its optional `web.css`.
 - Use `'use client'` only when required (hooks, state, browser APIs).
 - Reuse existing shared primitives before creating new ones.
@@ -121,7 +121,7 @@ implementation task.
   - Cache request-reusable data with `'use cache'`.
   - Block only deliberately with `export const instant = false` plus a one-line reason comment.
 - Read the labeled fix links from Instant Insights errors (`nextjs.org/docs/messages/...`) before editing; apply the canonical pattern, not an improvised variation.
-- Keep `<Suspense>` boundaries close to the dynamic read; an empty shell (boundary around the whole page body) is a regression, not a fix.
+- Keep `<Suspense>` boundaries close to the dynamic read; an empty shell (boundary around the whole page body) is a regression, not a fix. A segment `loading.tsx` is right only when the whole segment is the loading unit; otherwise put the boundary inside the page. For skeletons that must match the loaded layout, see `docs/guides/ui-design/boneyard.md`.
 - Deeper per-link prefetching is opt-in: `<Link prefetch={true}>` + `'use cache'`. The `prefetch` segment export accepts only `'auto'` (default), `'partial'` (redundant here: every app sets `partialPrefetching: true`) and `'force-disabled'`; Next.js 16.4 rejects any other value at build time.
 - Add `instant()` assertions from `@next/playwright` for navigation-critical routes (pattern: `tests/e2e/instant-navigation.spec.ts`).
 
@@ -146,8 +146,8 @@ implementation task.
 
 - [ ] `'use client'` only where required
 - [ ] Shared `@asym/ui` primitives reused when possible
-- [ ] New/refactored primitives follow Base UI first policy; any UI SDK use fills a gap no shared component covers, through a `packages/ui` wrapper
-- [ ] No `radix-ui`/`@radix-ui/*` imports anywhere; composition uses Base UI `render`, not `asChild`
+- [ ] Shared controls reuse `@asym/ui` first; any UI SDK use has a stated benefit and lives in a `packages/ui` wrapper
+- [ ] No new `radix-ui`/`@radix-ui/*` imports without a reviewed need; Base UI components compose with `render`, not `asChild`
 - [ ] Tailwind uses tokens (no arbitrary values)
 - [ ] Browser table reads go through `@asym/database/hooks` or collection exports
 - [ ] TanStack Query used for server read models or non-collection async data
@@ -186,6 +186,8 @@ bunx --bun shadcn@latest add button --cwd packages/ui
 ### Complex client form setup
 
 ```tsx
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
+
 const form = useAsymForm({
   defaultValues,
   validators: {
@@ -233,5 +235,5 @@ export function SearchForm() {
 - Using arbitrary Tailwind values instead of tokens
 - Hardcoding colors instead of shared Maia/Zinc tokens
 - Using Zustand or other unapproved state libraries
-- Reaching for UI SDK where Base UI or another existing `@asym/ui` component covers the interaction, importing `@ui-sdk/*` in an app, re-exporting the SDK, or loading its optional `web.css`
+- Replacing a working shared component with UI SDK without a concrete benefit, mixing Base UI and UI SDK parts in one control, importing `@ui-sdk/*` in an app, re-exporting the SDK, or loading its optional `web.css`
 - Forcing TanStack Form onto trivial search/filter or server-only form surfaces

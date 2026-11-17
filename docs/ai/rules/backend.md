@@ -60,6 +60,7 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - For Supabase Auth + Next.js App Router implementation, apply `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
 - For query/index/schema/RLS performance work, apply `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`.
+- For Stripe, donation payment or webhook work, apply `.agents/skills/stripe-best-practices/SKILL.md`; Core's client and API-version pins in `packages/api/src/stripe/` win over its examples.
 
 ### Environment variables
 

@@ -20,6 +20,7 @@
 1. Read this file and `docs/guides/architecture/data-access-boundary.md`.
 2. Follow TDD for substantive behavior (`docs/ai/skills/tdd/SKILL.md`).
 3. Keep RLS and tenant isolation intact.
+4. Tests live in `tests/unit/packages/api/<area>/`; run them with `bunx vitest run tests/unit/packages/api/<area>`, then `bunx turbo run lint typecheck --filter=@asym/api`.
 
 ## Checklist
 
