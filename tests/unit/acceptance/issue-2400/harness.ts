@@ -135,13 +135,14 @@ type Chain = {
   forward: Buffer;
   v3: Buffer;
   census: string;
-  foundation: string;
   manifest: string;
 };
 /**
  * Criterion 6 (M5): forward bytes -> v3 source_sha256 -> v3 bytes -> census-v1,
- * and the SQL literals. AL-2674 adds the link the gate now enforces: the
- * manifest's pinned SHA-256 for the forward file.
+ * and the manifest's pin. AL-2674 (plan 7.1) removed the literal capture,
+ * with its two forward-file hash literals, from
+ * supabase/tests/field_policies_foundation.sql, and added the link the gate
+ * now enforces: the manifest's pinned SHA-256 for the forward file.
  */
 export function chainProblems(f: Chain): string[] {
   const fwd = sha(f.forward);
@@ -149,11 +150,6 @@ export function chainProblems(f: Chain): string[] {
     repository_supplements: { artifact: string; sha256: string }[];
   };
   const entry = census.repository_supplements.find((x) => x.artifact === V3);
-  const lits = [
-    ...f.foundation.matchAll(
-      /'supabase\/migrations\/20261025110000_person_anchor\.sql',\s*'([0-9a-f]{64})'/g,
-    ),
-  ].map((m) => m[1]);
   const v3 = JSON.parse(f.v3.toString()) as { source_sha256: string };
   const pin = (
     JSON.parse(f.manifest) as {
@@ -164,7 +160,6 @@ export function chainProblems(f: Chain): string[] {
   return failed([
     [v3.source_sha256 === fwd, "v3 source_sha256"],
     [entry?.sha256 === sha(f.v3), "census-v1 v3 sha256"],
-    [lits.length === 2 && lits.every((l) => l === fwd), "foundation SQL literals"],
     [pin?.sha256 === fwd, "manifest pinned_sources v3"],
   ]);
 }

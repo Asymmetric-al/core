@@ -192,23 +192,22 @@ describe("#2400 criteria 5-6: doc and census chain", () => {
     forward: Buffer.from(H.read(H.MIGRATION)),
     v3: Buffer.from(H.read(`${H.FP}/${H.V3}`)),
     census: H.read(`${H.FP}/census-v1.json`),
-    foundation: H.read("supabase/tests/field_policies_foundation.sql"),
     manifest: H.read(`${H.FP}/manifest.json`),
   });
-  it("#2400 criterion 6: forward SHA -> v3 source_sha256 -> v3 SHA -> census-v1, and both SQL literals, agree", () =>
+  it("#2400 criterion 6: forward SHA -> v3 source_sha256 -> v3 SHA -> census-v1, and the manifest pin, agree", () =>
     expect(H.chainProblems(chain())).toEqual([]));
 
   it("#2400 criterion 6 (M5): an unrehashed comment edit breaks the chain at each link", () => {
     const c = chain();
     const forward = Buffer.concat([c.forward, Buffer.from("-- edited\n")]);
-    // AL-2674: the manifest's pin is a third link that the edit breaks.
-    expect(H.chainProblems({ ...c, forward })).toHaveLength(3);
+    // AL-2674: the manifest's pin replaces the SQL test's literals as the
+    // second link that the edit breaks.
+    expect(H.chainProblems({ ...c, forward })).toHaveLength(2);
     const v3 = Buffer.from(
       c.v3.toString().replace(H.sha(c.forward), H.sha(forward)),
     );
     expect(H.chainProblems({ ...c, forward, v3 })).toEqual([
       "census-v1 v3 sha256",
-      "foundation SQL literals",
       "manifest pinned_sources v3",
     ]);
   });

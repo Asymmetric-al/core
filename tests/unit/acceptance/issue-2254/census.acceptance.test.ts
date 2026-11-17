@@ -29,8 +29,8 @@ import { pathToFileURL } from "node:url";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { NEW_ROWS as V3_ROWS } from "../issue-2256/harness";
 import { FP, MIGRATIONS, NEW_ROWS, ROOT, migrationFile } from "./harness";
+import { NEW_ROWS as V3_ROWS } from "../issue-2256/harness";
 
 type Row = Record<string, unknown>;
 type Manifest = {

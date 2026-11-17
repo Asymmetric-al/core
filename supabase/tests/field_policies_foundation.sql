@@ -1,212 +1,15 @@
 -- AL-491 acceptance-v2: disposable local database only; every write rolls back.
--- Live capture: pnmlrbgjiqzzsthsoikm, 2026-10-05 04:51:45.072671+00,
--- schema migration 20261001061717, repository ffa812656b0ff920b3fe014a31d2d57ee8679288.
--- Capture SHA256: 0ab1165501bf059ba12c71898cb9597725282be458ab0c71e6280c1064e4736a.
 -- Execute with psql -v ON_ERROR_STOP=1 after applying candidate migrations.
+--
+-- AL-2674 (plan 7.1, audit NR-19): this file no longer carries a literal copy
+-- of the AL-491 capture (171 live columns plus the reviewed supplements) or
+-- requires the schema and the seed to equal it. That copy let no classified
+-- column be added or dropped. Column-by-column parity between the schema, the
+-- classification and public.field_policies is now owned by the manifest gate,
+-- scripts/verify/field-policy-census.mjs over
+-- docs/security/field-policies/manifest.json, which runs before this file in
+-- CI. The checks here are the ones that hold whatever columns are classified.
 BEGIN;
-CREATE TEMP TABLE expected_field_policy_columns(record_type text, field_key text, PRIMARY KEY(record_type,field_key));
-INSERT INTO expected_field_policy_columns VALUES
-  ('donations','id'),
-  ('donations','tenant_id'),
-  ('donations','donor_id'),
-  ('donations','missionary_id'),
-  ('donations','fund_id'),
-  ('donations','amount'),
-  ('donations','currency'),
-  ('donations','status'),
-  ('donations','donation_type'),
-  ('donations','payment_method'),
-  ('donations','is_recurring'),
-  ('donations','recurring_interval'),
-  ('donations','notes'),
-  ('donations','stripe_payment_intent_id'),
-  ('donations','created_at'),
-  ('donations','updated_at'),
-  ('donations','gift_date'),
-  ('donations','campaign_id'),
-  ('donations','pledge_id'),
-  ('donations','processed_at'),
-  ('donations','completed_at'),
-  ('donations','failed_at'),
-  ('donations','error_code'),
-  ('donations','error_message'),
-  ('donations','stripe_charge_id'),
-  ('donations','refunded_at'),
-  ('donations','refund_amount'),
-  ('donations','source'),
-  ('donor_pledges','id'),
-  ('donor_pledges','donor_id'),
-  ('donor_pledges','amount'),
-  ('donor_pledges','frequency'),
-  ('donor_pledges','status'),
-  ('donor_pledges','start_date'),
-  ('donor_pledges','end_date'),
-  ('donor_pledges','next_payment_date'),
-  ('donor_pledges','total_paid'),
-  ('donor_pledges','total_expected'),
-  ('donor_pledges','payments_completed'),
-  ('donor_pledges','payments_remaining'),
-  ('donor_pledges','payment_method'),
-  ('donor_pledges','created_at'),
-  ('donor_pledges','updated_at'),
-  ('donor_pledges','tenant_id'),
-  ('donor_pledges','missionary_id'),
-  ('donor_pledges','fund_id'),
-  ('donor_pledges','currency'),
-  ('donor_pledges','stripe_subscription_id'),
-  ('donor_pledges','retry_count'),
-  ('donor_pledges','last_charge_at'),
-  ('donor_pledges','next_charge_at'),
-  ('donor_pledges','billing_day_of_month'),
-  ('donor_pledges','billing_timezone'),
-  ('donor_pledges','stripe_payment_method_id'),
-  ('donor_pledges','last_charge_attempt'),
-  ('donor_pledges','failed_charge_count'),
-  ('donor_pledges','pause_reason'),
-  ('donor_pledges','paused_at'),
-  ('donors','id'),
-  ('donors','tenant_id'),
-  ('donors','profile_id'),
-  ('donors','missionary_id'),
-  ('donors','name'),
-  ('donors','email'),
-  ('donors','phone'),
-  ('donors','mobile'),
-  ('donors','work_phone'),
-  ('donors','preferred_contact'),
-  ('donors','avatar_url'),
-  ('donors','location'),
-  ('donors','type'),
-  ('donors','status'),
-  ('donors','giving_preferences'),
-  ('donors','total_given'),
-  ('donors','last_gift_date'),
-  ('donors','last_gift_amount'),
-  ('donors','frequency'),
-  ('donors','joined_date'),
-  ('donors','tags'),
-  ('donors','score'),
-  ('donors','address'),
-  ('donors','work_address'),
-  ('donors','website'),
-  ('donors','organization'),
-  ('donors','title'),
-  ('donors','birthday'),
-  ('donors','anniversary'),
-  ('donors','spouse'),
-  ('donors','notes'),
-  ('donors','has_active_pledge'),
-  ('donors','stripe_customer_id'),
-  ('donors','created_at'),
-  ('donors','updated_at'),
-  ('donors','first_gift_date'),
-  ('donors','gift_count'),
-  ('donors','do_not_contact'),
-  ('donors','do_not_email'),
-  ('donors','receipt_email_frequency'),
-  ('donors','default_update_frequency'),
-  ('donors','preferred_language'),
-  ('member_care_activities','id'),
-  ('member_care_activities','tenant_id'),
-  ('member_care_activities','missionary_id'),
-  ('member_care_activities','author_user_id'),
-  ('member_care_activities','author_name_snapshot'),
-  ('member_care_activities','type'),
-  ('member_care_activities','title'),
-  ('member_care_activities','description'),
-  ('member_care_activities','occurred_at'),
-  ('member_care_activities','created_at'),
-  ('member_care_activities','updated_at'),
-  ('member_care_goals','id'),
-  ('member_care_goals','tenant_id'),
-  ('member_care_goals','missionary_id'),
-  ('member_care_goals','title'),
-  ('member_care_goals','status'),
-  ('member_care_goals','target_date'),
-  ('member_care_goals','updated_by'),
-  ('member_care_goals','created_at'),
-  ('member_care_goals','updated_at'),
-  ('member_care_private_notes','id'),
-  ('member_care_private_notes','tenant_id'),
-  ('member_care_private_notes','missionary_id'),
-  ('member_care_private_notes','author_user_id'),
-  ('member_care_private_notes','author_name_snapshot'),
-  ('member_care_private_notes','content'),
-  ('member_care_private_notes','created_at'),
-  ('member_care_private_notes','updated_at'),
-  ('member_care_requirements','id'),
-  ('member_care_requirements','tenant_id'),
-  ('member_care_requirements','missionary_id'),
-  ('member_care_requirements','activity_type'),
-  ('member_care_requirements','interval_days'),
-  ('member_care_requirements','notes'),
-  ('member_care_requirements','updated_by'),
-  ('member_care_requirements','created_at'),
-  ('member_care_requirements','updated_at'),
-  ('missionaries','id'),
-  ('missionaries','tenant_id'),
-  ('missionaries','profile_id'),
-  ('missionaries','bio'),
-  ('missionaries','mission_field'),
-  ('missionaries','funding_goal'),
-  ('missionaries','current_funding'),
-  ('missionaries','tagline'),
-  ('missionaries','location'),
-  ('missionaries','phone'),
-  ('missionaries','cover_url'),
-  ('missionaries','social_links'),
-  ('missionaries','created_at'),
-  ('missionaries','updated_at'),
-  ('missionaries','timezone'),
-  ('missionaries','region'),
-  ('missionaries','health_status'),
-  ('missionaries','last_check_in'),
-  ('missionaries','manual_attention'),
-  ('missionaries','health_signals'),
-  ('missionaries','birth_date'),
-  ('profiles','id'),
-  ('profiles','user_id'),
-  ('profiles','email'),
-  ('profiles','first_name'),
-  ('profiles','last_name'),
-  ('profiles','full_name'),
-  ('profiles','display_name'),
-  ('profiles','phone'),
-  ('profiles','avatar_url'),
-  ('profiles','role'),
-  ('profiles','tenant_id'),
-  ('profiles','created_at'),
-  ('profiles','updated_at');
-
--- Exact repository-source/local-catalog supplement, not a live capture amendment.
--- The 171 rows above remain the original immutable live metadata inventory.
--- Base repository ffa812656b0ff920b3fe014a31d2d57ee8679288 contains this
--- additive migration. The column is absent from the hosted live capture.
-CREATE TEMP TABLE expected_field_policy_supplement(
-  record_type text, field_key text, source_path text, source_sha256 text,
-  repository_base_sha text, PRIMARY KEY(record_type,field_key));
-INSERT INTO expected_field_policy_supplement VALUES
-  ('donations','stripe_refund_ids',
-   'supabase/migrations/20260702090000_donation_stripe_refund_ids.sql',
-   '2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda',
-   'ffa812656b0ff920b3fe014a31d2d57ee8679288'),
-  -- #2254 reviewed supplement v2: bound by working-tree hash, not a base SHA.
-  ('donors','email_normalized',
-   'supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql',
-   '36190ece4a2ad17d24dddbddb0db579f9511c77fda2feed90ce0bf07b16efbfa', NULL),
-  ('donors','email_verified_at',
-   'supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql',
-   '36190ece4a2ad17d24dddbddb0db579f9511c77fda2feed90ce0bf07b16efbfa', NULL),
-  -- #2256 reviewed supplement v3: bound by working-tree hash, not a base SHA.
-  ('missionaries','person_id',
-   'supabase/migrations/20261025110000_person_anchor.sql',
-   'f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558', NULL),
-  ('profiles','person_id',
-   'supabase/migrations/20261025110000_person_anchor.sql',
-   'f97ea5de4d44be60fcdecb64274e0cd749d18c1d17aa81b34e5531becd00c558', NULL);
-INSERT INTO expected_field_policy_columns(record_type,field_key)
-  SELECT record_type,field_key FROM expected_field_policy_supplement;
-
 DO $$
 DECLARE category_type oid; categories text[]; bad text;
 BEGIN
@@ -233,40 +36,43 @@ BEGIN
 
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE tenant_id IS NOT NULL) THEN
     RAISE EXCEPTION 'C4: seed must keep tenant overrides dormant'; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public'
+  -- Supplement column shapes, checked while each column is still classified.
+  IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type='donations' AND field_key='stripe_refund_ids')
+    AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public'
     AND table_name='donations' AND column_name='stripe_refund_ids' AND data_type='ARRAY'
     AND udt_name='_text' AND is_nullable='NO' AND column_default=quote_literal('{}')||'::text[]') THEN
     RAISE EXCEPTION 'C4: exact repository supplement must be required TEXT[] with empty-array default'; END IF;
-  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='donors'
-    AND ((column_name='email_normalized' AND data_type='text' AND is_generated='ALWAYS')
-      OR (column_name='email_verified_at' AND data_type='timestamp with time zone' AND column_default IS NULL))
-    AND is_nullable='YES')<>2 THEN
-    RAISE EXCEPTION 'C4: identity supplement must be generated TEXT email_normalized and nullable TIMESTAMPTZ email_verified_at'; END IF;
-  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema='public'
-    AND table_name IN ('missionaries','profiles') AND column_name='person_id'
-    AND data_type='uuid' AND is_nullable='YES' AND column_default IS NULL)<>2 THEN
-    RAISE EXCEPTION 'C4: person anchor supplement must be nullable UUID person_id on missionaries and profiles'; END IF;
+  IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type='donors' AND field_key='email_normalized')
+    AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='donors'
+    AND column_name='email_normalized' AND data_type='text' AND is_generated='ALWAYS' AND is_nullable='YES') THEN
+    RAISE EXCEPTION 'C4: identity supplement must be generated TEXT email_normalized'; END IF;
+  IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type='donors' AND field_key='email_verified_at')
+    AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='donors'
+    AND column_name='email_verified_at' AND data_type='timestamp with time zone' AND column_default IS NULL
+    AND is_nullable='YES') THEN
+    RAISE EXCEPTION 'C4: identity supplement must be nullable TIMESTAMPTZ email_verified_at'; END IF;
+  SELECT string_agg(p.record_type, ', ') INTO bad FROM (
+    SELECT DISTINCT record_type FROM public.field_policies
+    WHERE record_type IN ('missionaries','profiles') AND field_key='person_id') p
+    WHERE NOT EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema='public'
+      AND c.table_name=p.record_type AND c.column_name='person_id' AND c.data_type='uuid'
+      AND c.is_nullable='YES' AND c.column_default IS NULL);
+  IF bad IS NOT NULL THEN
+    RAISE EXCEPTION 'C4: person anchor supplement must be nullable UUID person_id: %', bad; END IF;
+  -- Every baseline row names a live column, and every classified column has
+  -- exactly one baseline row on each of the five surfaces.
+  SELECT string_agg(DISTINCT p.record_type||'.'||p.field_key, ', ') INTO bad
+    FROM public.field_policies p
+    WHERE NOT EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema='public'
+      AND c.table_name=p.record_type AND c.column_name=p.field_key);
+  IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: baseline rows name missing columns: %',bad; END IF;
   SELECT string_agg(record_type||'.'||field_key, ', ') INTO bad FROM (
-    SELECT record_type,field_key FROM expected_field_policy_columns
-    EXCEPT SELECT c.table_name,c.column_name FROM information_schema.columns c WHERE c.table_schema='public'
-  ) missing;
-  IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: captured columns missing in candidate schema: %',bad; END IF;
-  SELECT string_agg(table_name||'.'||column_name, ', ') INTO bad FROM (
-    SELECT c.table_name,c.column_name FROM information_schema.columns c WHERE c.table_schema='public'
-      AND c.table_name IN (SELECT DISTINCT record_type FROM expected_field_policy_columns)
-    EXCEPT SELECT record_type,field_key FROM expected_field_policy_columns
-  ) extra;
-  IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: candidate schema has uncensused columns: %',bad; END IF;
-  SELECT string_agg(e.record_type||'.'||e.field_key||'@'||s.surface, ', ') INTO bad
-    FROM expected_field_policy_columns e CROSS JOIN (VALUES ('mission_control'),('donor'),('missionary'),('public'),('export')) s(surface)
-    LEFT JOIN public.field_policies p ON p.record_type=e.record_type AND p.field_key=e.field_key AND p.surface=s.surface AND p.tenant_id IS NULL
-    WHERE p.field_key IS NULL;
-  IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: missing baseline policy rows: %',bad; END IF;
-  IF (SELECT count(*) FROM expected_field_policy_columns)<>176 OR
-    (SELECT count(*) FROM public.field_policies)<>880 THEN
-    RAISE EXCEPTION 'C4: expected exactly 171 live columns + five reviewed supplement columns and 880 baseline rows'; END IF;
-  IF EXISTS (SELECT 1 FROM public.field_policies p LEFT JOIN expected_field_policy_columns e USING(record_type,field_key)
-    WHERE e.field_key IS NULL OR p.field_key LIKE '%.%') THEN
+    SELECT record_type, field_key FROM public.field_policies WHERE tenant_id IS NULL
+    GROUP BY record_type, field_key
+    HAVING count(*)<>5 OR count(DISTINCT surface)<>5
+      OR bool_or(surface NOT IN ('mission_control','donor','missionary','public','export'))) odd;
+  IF bad IS NOT NULL THEN RAISE EXCEPTION 'C4: classified columns without exactly five surface rows: %',bad; END IF;
+  IF EXISTS (SELECT 1 FROM public.field_policies WHERE field_key LIKE '%.%') THEN
     RAISE EXCEPTION 'C4: seed contains fabricated columns, record types or dotted fields'; END IF;
   IF EXISTS (SELECT 1 FROM public.field_policies GROUP BY record_type,field_key HAVING count(DISTINCT sensitivity_category)>1) THEN
     RAISE EXCEPTION 'C4: one whole column has conflicting category classifications'; END IF;
@@ -285,13 +91,13 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type='donations'
     AND field_key='stripe_refund_ids' AND sensitivity_category<>'financial') THEN
     RAISE EXCEPTION 'C4: entire refund-identifier array must be financial'; END IF;
-  RAISE NOTICE 'C4: 171 immutable live columns + exact reviewed supplements (v1 one column, v2 two columns, v3 two columns) have 880 baseline rows';
+  RAISE NOTICE 'C4: every classified column is live, has five baseline rows and keeps its category floors (exact parity: manifest gate)';
 
   -- Canonical receipts remain absent. Existing repository prototype tables are
   -- not canonical authority and must stay unseeded/denied; their existence is
   -- not a reason to fabricate census rows or drop unrelated base tables.
   -- Base migrations: 20260704120000_gift_receipt_records.sql and
-  -- 20260611140000_contribution_receipt_delivery.sql, at the base SHA above.
+  -- 20260611140000_contribution_receipt_delivery.sql.
   IF to_regclass('public.receipts') IS NOT NULL THEN
     RAISE EXCEPTION 'C5: absent/reserved canonical receipt premise contradicts candidate schema'; END IF;
   IF EXISTS (SELECT 1 FROM public.field_policies WHERE record_type IN ('receipts','gift_receipt_records','contribution_receipt_snapshots')) THEN

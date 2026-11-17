@@ -263,11 +263,21 @@ describe("#2254 criterion 9: census evidence", () => {
       V2,
     ).toEqual([]);
   });
-  it("supabase/tests/field_policies_foundation.sql expects 176 columns and 880 rows", () => {
+  // AL-2674 (plan 7.1): the SQL test no longer holds a literal copy of the
+  // capture or its counts, which let no classified column be dropped. Exact
+  // parity, including the v2 columns' 10 rows, is the manifest gate's (the
+  // census suite and the real-stack criterion 9 run it); the SQL test keeps
+  // the checks that hold whatever columns are classified.
+  it("supabase/tests/field_policies_foundation.sql defers exact parity to the manifest gate and still checks five rows per classified column", () => {
     const sql = read("supabase/tests/field_policies_foundation.sql");
-    expect(sql).toMatch(/<>\s*176\b/);
-    expect(sql).toMatch(/<>\s*880\b/);
-    expect(sql).not.toMatch(/<>\s*(?:172|860)\b/);
+    expect(sql).not.toMatch(
+      /expected_field_policy_columns|<>\s*(?:172|176|860|880)\b/,
+    );
+    expect(sql).toContain("scripts/verify/field-policy-census.mjs");
+    expect(sql).toContain("HAVING count(*)<>5 OR count(DISTINCT surface)<>5");
+    expect(sql).toContain(
+      "C4: identity supplement must be generated TEXT email_normalized",
+    );
   });
 });
 

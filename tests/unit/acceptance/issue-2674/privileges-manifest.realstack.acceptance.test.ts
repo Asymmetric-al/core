@@ -309,7 +309,10 @@ describe.skipIf(!ADMIN_URL)(
       });
 
       /** The gate from a copy of the repository files it reads, with an edited manifest. */
-      function gate(editManifest?: (m: Record<string, any>) => void) {
+      type ManifestFile = {
+        record_types: Record<string, Record<string, unknown>>;
+      };
+      function gate(editManifest?: (m: ManifestFile) => void) {
         let root = H.ROOT;
         if (editManifest) {
           root = mkdtempSync(path.join(os.tmpdir(), "acc-2674-gate-"));
@@ -359,7 +362,7 @@ describe.skipIf(!ADMIN_URL)(
           );
 
           const classified = gate((m) => {
-            m.record_types.donors.acc2674_probe = {
+            m.record_types.donors!.acc2674_probe = {
               type: "text",
               nullable: true,
               category: "internal",
@@ -385,10 +388,34 @@ describe.skipIf(!ADMIN_URL)(
         expect(stale.stderr).toContain("STALE donors.website");
 
         const dropped = gate((m) => {
-          delete m.record_types.donors.website;
+          delete m.record_types.donors!.website;
         });
         expect(dropped.status, dropped.stderr).toBe(0);
         expect(dropped.stdout).toContain("equal the manifest's 175 entries");
+
+        // The field-policy database tests CI runs accept the drop as well.
+        for (const file of [
+          "field_policies_foundation.sql",
+          "field_policies_rls.sql",
+        ]) {
+          const r = spawnSync(
+            process.env.PSQL_BIN?.trim() || "psql",
+            [
+              copy.url,
+              "-X",
+              "-q",
+              "-v",
+              "ON_ERROR_STOP=1",
+              "-f",
+              path.join(H.ROOT, "supabase/tests", file),
+            ],
+            {
+              encoding: "utf8",
+              env: { ...process.env, PGCLIENTENCODING: "UTF8" },
+            },
+          );
+          expect(r.status, `${file}: ${r.stderr}`).toBe(0);
+        }
       });
 
       it("a column whose type changes must be reclassified", async () => {
