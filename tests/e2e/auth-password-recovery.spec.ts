@@ -119,8 +119,11 @@ test("a recovery email round trip ends signed in with the new password", async (
       const reuse = await fresh.newPage();
       await fresh.clearCookies();
       await reuse.goto(link.toString());
-      // Auth reports the used link in the fragment, which survives the redirect.
-      await expect(reuse).toHaveURL(/\/forgot-password\/reset(#error=.*)?$/);
+      // Auth reports the used link in the fragment, which survives the
+      // redirect. The fragment is required: without it this browser would
+      // reach the same page only because it holds no recovery session, and
+      // the journey would pass with a link that works twice.
+      await expect(reuse).toHaveURL(/\/forgot-password\/reset#error=.*$/);
       await expect(
         reuse.getByRole("heading", { name: "This link has expired" }),
       ).toBeVisible();
