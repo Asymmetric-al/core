@@ -432,6 +432,25 @@ the secrets it needs by name and the owner's steps to switch it on, is
   `preview` Supabase project, deploy into the `preview-database` custom
   environment, check, smoke. Other pull requests keep the per-PR group.
 
+## Auth email workflow (`auth-email.yml`)
+
+The Supabase Auth email round trips of WP0b and WP1.4: a password recovery
+email in each app, and a sign-up confirmation that lands signed in on the host
+it was asked from, on two hosts of the donor portal. A workflow of its own, so
+`ci.yml` and `ci-integration.yml` do not change. Not a required check.
+
+- _Triggers:_ pull requests that change the auth screens
+  (`packages/ui/components/auth/**`, the apps' auth routes), the auth packages
+  (`packages/auth/**`, `packages/api/src/auth/**`), the three proxies, the
+  missionary route policy, `supabase/config.toml`, or the suite itself; and
+  manual dispatch.
+- _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
+  pins, starts the local stack with `bun run supabase -- start` (every
+  migration and the seed, on real Supabase roles, Auth, PostgREST and Mailpit,
+  which the plain Postgres of `ci-integration.yml` lacks), then runs
+  `bun run test:e2e:auth-mail` with Playwright's dev servers.
+- _Run it locally:_ `tests/e2e/README.md`, "Auth email round trips".
+
 ## Branch protection
 
 Workflow YAML is the source of truth for the jobs Core emits. GitHub's

@@ -200,6 +200,17 @@ const CI_BASES = [
     bytes: 44468,
     sha256: "2775f6ef1aea46e8033bd70779eded926b40e8b3098c655cb07d94f19ac3a770",
   },
+  {
+    // Amended by AL-2673 (council round 2, B4): docs/ci.md gains one section,
+    // "Auth email workflow", after the release workflow section. It documents
+    // `.github/workflows/auth-email.yml`, a workflow of its own so that ci.yml
+    // and ci-integration.yml do not change. Nothing else in the file changes.
+    // Pinned on that exact reviewed content. Ends before the EOF runner
+    // section, which is unchanged.
+    ref: "AL-2673 auth email workflow",
+    bytes: 45550,
+    sha256: "b211ca01cecbed7b89f256712cb98f3f221ea2a6886a51a742db00ce7395469a",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

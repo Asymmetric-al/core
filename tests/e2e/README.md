@@ -26,6 +26,33 @@ The donor demo cookie uses seeded demo tenant/profile identifiers so dashboard r
 
 Playwright config sets this automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see root `playwright.config.ts`).
 
+## Auth email round trips
+
+`tests/e2e/auth-password-recovery.spec.ts` (a password recovery email in each
+app) and `tests/e2e/auth-signup-confirmation.spec.ts` (a sign-up confirmed by
+email lands signed in on the host it registered on, shown on two hosts of the
+donor portal) need a real Supabase Auth server and its mail catcher, so they
+run against a local Supabase stack:
+
+```bash
+bun run supabase -- start   # migrations, seed, Auth and Mailpit (Docker)
+bun run test:e2e:auth-mail  # starts donor, admin and missionary dev servers
+```
+
+`scripts/e2e/run-auth-mail.mjs` reads the stack's URL, keys and Mailpit
+address from `supabase status` and fails when it cannot, so the journeys never
+skip silently. They create and delete their own logins with the service-role
+key and refuse any Supabase URL that is not on this machine. The dev servers
+listen on ports 3105 (donor), 3130 (admin) and 4100 (missionary); move them
+with `AUTH_MAIL_DONOR_PORT`, `AUTH_MAIL_ADMIN_PORT` and
+`AUTH_MAIL_MISSIONARY_PORT`, and set `PLAYWRIGHT_REUSE_EXISTING_SERVER=0` so a
+server from another checkout is not reused. For a stack started from a scratch
+copy with `--workdir` (its own project ID and ports), set
+`AUTH_MAIL_SUPABASE_WORKDIR` to that directory. Pass Playwright arguments after
+`--`, for example `bun run test:e2e:auth-mail -- --project=auth-mail-donor`.
+CI runs the same command in `.github/workflows/auth-email.yml`
+(`docs/ci.md`, "Auth email workflow").
+
 ## Running in UI mode
 
 `bun run test:e2e:ui`

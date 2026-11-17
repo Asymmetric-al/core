@@ -71,6 +71,16 @@ const CI_BASES = [
     bytes: 45088,
     sha256: "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
   },
+  {
+    // Amended by AL-2673 (council round 2, B4): docs/ci.md gains one section,
+    // "Auth email workflow", after the release workflow section. It documents
+    // `.github/workflows/auth-email.yml`, a workflow of its own so that ci.yml
+    // and ci-integration.yml do not change. Nothing else in the file changes.
+    // Pinned on that exact reviewed whole file.
+    ref: "AL-2673 auth email workflow",
+    bytes: 46170,
+    sha256: "ab684a046ca8c755d57552187c805f323f42b734b363ec497c68191897014d7b",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
