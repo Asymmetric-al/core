@@ -109,6 +109,16 @@ export function useDonorFeedPosts(options: DonorFeedPostsOptions = {}) {
   return {
     data: accessDenied(query.error) ? [] : (query.data ?? []),
     isLoading: query.isLoading,
+    /**
+     * Nothing has loaded, and the latest attempt has not failed: a refetch
+     * with nothing cached clears an earlier error.
+     */
+    isPending: query.isPending,
+    /**
+     * A fetch is waiting for the connection. Offline, a first load is
+     * pending yet not loading, so this tells it from an empty feed.
+     */
+    isPaused: query.isPaused,
     error: query.error,
     refetch: query.refetch,
   };

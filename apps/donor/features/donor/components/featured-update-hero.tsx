@@ -37,6 +37,7 @@ export function FeaturedUpdateHero({
   isLoading,
   error,
   retry,
+  retryRef,
 }: {
   post: DonorFeedPost | null;
   isLoading: boolean;
@@ -45,6 +46,8 @@ export function FeaturedUpdateHero({
     ReturnType<typeof useLoadRetry>,
     "retry" | "retrying" | "failedRetries"
   >;
+  /** On Try again, so a recovery that removes it can hand focus off. */
+  retryRef?: React.Ref<HTMLButtonElement>;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const retrying = retry?.retrying ?? false;
@@ -88,6 +91,7 @@ export function FeaturedUpdateHero({
               <div className="flex flex-wrap justify-center gap-2">
                 {failed && retry ? (
                   <Button
+                    ref={retryRef}
                     variant="outline"
                     disabled={retrying}
                     focusableWhenDisabled

@@ -12,6 +12,8 @@ import { afterEach, expect, it, vi } from "vitest";
 
 const portal = vi.hoisted(() => ({
   isLoading: false,
+  // Offline, a load waits for the connection without fetching.
+  isPaused: false,
   error: null as Error | null,
   data: undefined as unknown,
   refetch: vi.fn(),
@@ -25,7 +27,12 @@ const snapshot = {
 };
 
 vi.mock("@asym/database/hooks", () => ({
-  useDonorPortalSnapshot: () => ({ ...portal }),
+  // Like TanStack Query: pending while nothing has loaded and the latest
+  // attempt has not failed.
+  useDonorPortalSnapshot: () => ({
+    ...portal,
+    isPending: portal.data === undefined && !portal.error,
+  }),
   useDonorWallet: () => ({ data: { status: "linked", methods: [] } }),
   useDonorFeedPosts: () => ({ data: [], isLoading: false, error: null }),
   mapToRecentUpdate: (post: unknown) => post,
@@ -63,6 +70,7 @@ function deferred<T>() {
 afterEach(() => {
   cleanup();
   portal.isLoading = false;
+  portal.isPaused = false;
   portal.error = null;
   portal.data = undefined;
   portal.refetch.mockReset();
@@ -148,4 +156,45 @@ it("returns to Try again and says so again when the retry fails", async () => {
   expect(document.activeElement).toBe(
     screen.getByRole("heading", { level: 1, name: "Welcome back, Avery" }),
   );
+});
+
+const heading = () => screen.getByRole("heading", { level: 1 });
+
+it("shows the giving summary loading, not a failure, while a first load waits offline for the connection", () => {
+  // Nothing has loaded or failed, and nothing is fetching.
+  portal.isPaused = true;
+  const { container } = render(<DonorDashboardMainBody />);
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(
+    screen.queryByText("We couldn’t load your giving summary."),
+  ).toBeNull();
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  // The summary skeleton is the only thing loading on the page.
+  expect(container.querySelectorAll('[aria-busy="true"]')).toHaveLength(1);
+});
+
+it("moves focus to the heading when the summary recovers on its own while Try again has focus", async () => {
+  const pending = deferred<unknown>();
+  portal.refetch.mockReturnValue(pending.promise);
+  const { view, retry } = failToLoad();
+  fireEvent.click(retry);
+  portal.error = new Error("Still offline");
+  await act(async () =>
+    pending.resolve({ isError: true, error: portal.error }),
+  );
+  expect(document.activeElement).toBe(retry);
+
+  // Later the connection returns and the query refetches by itself. With
+  // nothing cached it loads afresh, removing the button the keyboard is on.
+  portal.error = null;
+  portal.isLoading = true;
+  view.rerender(<DonorDashboardMainBody />);
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(document.activeElement).toBe(heading());
+
+  portal.isLoading = false;
+  portal.data = snapshot;
+  view.rerender(<DonorDashboardMainBody />);
+  expect(screen.getByRole("region", { name: "Next gift" })).toBeTruthy();
+  expect(document.activeElement).toBe(heading());
 });

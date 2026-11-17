@@ -13,6 +13,10 @@ import { afterEach, expect, it, vi } from "vitest";
 
 const feed = vi.hoisted(() => ({
   isLoading: false,
+  // Nothing has loaded or failed yet.
+  isPending: false,
+  // Offline, a load waits for the connection without fetching.
+  isPaused: false,
   error: null as Error | null,
   data: [] as unknown[],
   refetch: vi.fn(),
@@ -84,6 +88,8 @@ function deferred<T>() {
 afterEach(() => {
   cleanup();
   feed.isLoading = false;
+  feed.isPending = false;
+  feed.isPaused = false;
   feed.error = null;
   feed.data = [];
   feed.refetch.mockReset();
@@ -201,4 +207,113 @@ it("leaves focus alone when updates recover on their own after a retry that fail
   const heading = screen.getByRole("heading", { level: 1 });
   expect(document.activeElement).toBe(document.body);
   expect(heading.hasAttribute("tabindex")).toBe(false);
+});
+
+const heading = () => screen.getByRole("heading", { level: 1 });
+
+it("shows updates loading, not an empty feed, while a first load waits offline for the connection", () => {
+  // Nothing has loaded or failed, and nothing is fetching.
+  feed.isPending = true;
+  feed.isPaused = true;
+  render(<DonorDashboardMainBody />);
+  expect(
+    latest().getByRole("status", {
+      name: "Loading the latest ministry update",
+    }),
+  ).toBeTruthy();
+  expect(screen.queryByText("No ministry updates yet")).toBeNull();
+  expect(
+    more().queryByText(
+      "New updates from the missionaries you support will show up here.",
+    ),
+  ).toBeNull();
+  expect(
+    screen
+      .getByRole("region", { name: "More updates" })
+      .querySelector('[aria-busy="true"]'),
+  ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+});
+
+it("moves focus to the heading when updates recover on their own while Try again in the list has focus", async () => {
+  const pending = deferred<unknown>();
+  feed.refetch.mockReturnValue(pending.promise);
+  const view = failToLoad();
+  const retry = more().getByRole("button", { name: "Try again" });
+  act(() => retry.focus());
+  fireEvent.click(retry);
+  feed.error = new Error("Still offline");
+  await act(async () => pending.resolve({ isError: true, error: feed.error }));
+  expect(document.activeElement).toBe(retry);
+
+  // Later the connection returns and the query refetches by itself. With
+  // nothing cached it loads afresh, removing the button the keyboard is on.
+  feed.error = null;
+  feed.isLoading = true;
+  view.rerender(<DonorDashboardMainBody />);
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(document.activeElement).toBe(heading());
+
+  feed.isLoading = false;
+  feed.data = [update, { ...update, id: "post-2", title: "Clinic opened" }];
+  view.rerender(<DonorDashboardMainBody />);
+  expect(more().getByText("Clinic opened")).toBeTruthy();
+  expect(document.activeElement).toBe(heading());
+});
+
+it("moves focus to the heading when updates recover on their own while the latest update's Try again has focus", async () => {
+  const pending = deferred<unknown>();
+  feed.refetch.mockReturnValue(pending.promise);
+  // A refresh failed over a cached update, so the error shows while the
+  // update is kept.
+  feed.error = new Error("Offline fixture");
+  feed.data = [update];
+  const view = render(<DonorDashboardMainBody />);
+  const retry = latest().getByRole("button", { name: "Try again" });
+  act(() => retry.focus());
+  fireEvent.click(retry);
+  await act(async () => pending.resolve({ isError: true, error: feed.error }));
+  expect(document.activeElement).toBe(retry);
+
+  // Later a refetch the donor did not ask for succeeds.
+  feed.error = null;
+  view.rerender(<DonorDashboardMainBody />);
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(
+    latest().getByRole("heading", { name: "Wells completed in Kajiado" }),
+  ).toBeTruthy();
+  expect(document.activeElement).toBe(heading());
+});
+
+it("moves focus to the heading when updates recover on their own to an empty feed while the latest update's Try again has focus", async () => {
+  const pending = deferred<unknown>();
+  feed.refetch.mockReturnValue(pending.promise);
+  // A refresh of a loaded, empty feed failed.
+  feed.error = new Error("Offline fixture");
+  const view = render(<DonorDashboardMainBody />);
+  const retry = latest().getByRole("button", { name: "Try again" });
+  act(() => retry.focus());
+  fireEvent.click(retry);
+  await act(async () => pending.resolve({ isError: true, error: feed.error }));
+  expect(document.activeElement).toBe(retry);
+
+  feed.error = null;
+  view.rerender(<DonorDashboardMainBody />);
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(latest().getByText("No ministry updates yet")).toBeTruthy();
+  expect(document.activeElement).toBe(heading());
+});
+
+it("keeps focus on Go to Updates when a refresh of an empty feed fails on its own", () => {
+  // A loaded, empty feed: the latest update offers only Go to Updates.
+  const view = render(<DonorDashboardMainBody />);
+  const goToUpdates = latest().getByRole("link", { name: "Go to Updates" });
+  act(() => goToUpdates.focus());
+
+  // A refetch the donor did not start fails; the failure view adds Try again
+  // beside the same link, which keeps focus.
+  feed.error = new Error("Offline fixture");
+  view.rerender(<DonorDashboardMainBody />);
+  expect(latest().getByRole("button", { name: "Try again" })).toBeTruthy();
+  expect(document.activeElement).toBe(goToUpdates);
 });

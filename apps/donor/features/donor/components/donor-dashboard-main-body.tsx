@@ -46,7 +46,11 @@ import {
   supportedMissionaries,
 } from "./overview/overview-model";
 import { UpdateRailThumbnail } from "./update-rail-thumbnail";
-import { useLoadRetry } from "../focus-recovery";
+import {
+  focusHeadingIfLost,
+  useFocusHandoff,
+  useLoadRetry,
+} from "../focus-recovery";
 
 const LONG_DAY = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -187,10 +191,14 @@ function SupportedCard({ snapshot }: { snapshot: DonorPortalSnapshot }) {
 
 function RecentUpdatesCard({
   feedQuery,
+  loading,
   retry,
+  errorView,
 }: {
   feedQuery: ReturnType<typeof useDonorFeedPosts>;
+  loading: boolean;
   retry: ReturnType<typeof useLoadRetry>;
+  errorView: React.Ref<HTMLDivElement>;
 }) {
   const titleId = React.useId();
   // The newest update is the featured one; the list shows the next few.
@@ -213,15 +221,21 @@ function RecentUpdatesCard({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {feedQuery.isLoading && !retry.retrying ? (
+        {loading && !retry.retrying ? (
           <div className="flex flex-col gap-4" aria-busy="true">
             {[0, 1, 2].map((row) => (
               <Skeleton key={row} className="h-12 w-full" />
             ))}
           </div>
         ) : feedQuery.error || retry.retrying ? (
-          // The featured update's alert announces the failure for both.
-          <div className="flex flex-col items-start gap-3">
+          // The featured update's alert announces the failure for both. The
+          // key stops the skeleton reusing this view, so a recovery removes
+          // it and the focus hand-off sees focus leave.
+          <div
+            key="failed"
+            ref={errorView}
+            className="flex flex-col items-start gap-3"
+          >
             <p className="text-sm text-muted-foreground">
               Updates couldn’t load right now.
             </p>
@@ -282,7 +296,7 @@ export function DonorDashboardMainBody() {
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
   const giveAgain = lastSupported(portal);
-  // Both retries land on the same page heading.
+  // Both retries, and any recovery, land on the same page heading.
   const pageRef = React.useRef<HTMLDivElement>(null);
   const summaryRetry = useLoadRetry(
     pageRef,
@@ -294,6 +308,14 @@ export function DonorDashboardMainBody() {
     Boolean(feedQuery.error),
     feedQuery.refetch,
   );
+  // However a load recovers, focus on its error view moves to the heading.
+  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
+  // Offline, a first load waits for the connection without fetching; it is
+  // still loading, not failed or empty.
+  const portalLoading =
+    portalQuery.isLoading || (portalQuery.isPending && portalQuery.isPaused);
+  const feedLoading =
+    feedQuery.isLoading || (feedQuery.isPending && feedQuery.isPaused);
 
   return (
     <div
@@ -346,7 +368,7 @@ export function DonorDashboardMainBody() {
 
       {/* With nothing cached, a retry loads afresh; the error view stays so
           Try again keeps focus. */}
-      {portalQuery.isLoading && !summaryRetry.retrying ? (
+      {portalLoading && !summaryRetry.retrying ? (
         <div
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
           aria-busy="true"
@@ -359,7 +381,7 @@ export function DonorDashboardMainBody() {
           ))}
         </div>
       ) : portalQuery.error || !portal ? (
-        <Card>
+        <Card ref={errorView}>
           <CardContent className="flex flex-col items-start gap-3">
             <p
               key={summaryRetry.failedRetries}
@@ -425,13 +447,19 @@ export function DonorDashboardMainBody() {
           <FeaturedUpdateHero
             key={feedQuery.data[0]?.id ?? "none"}
             post={feedQuery.data[0] ?? null}
-            isLoading={feedQuery.isLoading}
+            isLoading={feedLoading}
             error={feedQuery.error}
             retry={feedRetry}
+            retryRef={errorView}
           />
         </section>
         <div className="min-w-0 lg:col-span-4">
-          <RecentUpdatesCard feedQuery={feedQuery} retry={feedRetry} />
+          <RecentUpdatesCard
+            feedQuery={feedQuery}
+            loading={feedLoading}
+            retry={feedRetry}
+            errorView={errorView}
+          />
         </div>
       </div>
     </div>

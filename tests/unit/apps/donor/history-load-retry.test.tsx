@@ -152,3 +152,42 @@ it("returns to Try again and says so again when the retry fails", async () => {
     screen.getByRole("heading", { level: 1, name: "Giving history" }),
   );
 });
+
+it("moves focus to the heading when the gifts recover on their own while Try again has focus", async () => {
+  const pending = deferred<unknown>();
+  history.refetch.mockReturnValue(pending.promise);
+  const { view, retry } = failToLoad();
+  fireEvent.click(retry);
+  await act(async () => pending.reject(new Error("Still offline")));
+  expect(document.activeElement).toBe(retry);
+
+  // Later the connection returns and the collection refetches by itself,
+  // removing the button the keyboard is on.
+  history.isError = false;
+  view.rerender(<DonorHistoryPage />);
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(document.activeElement).toBe(
+    screen.getByRole("heading", { level: 1, name: "Giving history" }),
+  );
+});
+
+it("leaves focus alone when the gifts recover on their own while nothing has focus", async () => {
+  const pending = deferred<unknown>();
+  history.refetch.mockReturnValue(pending.promise);
+  const { view } = failToLoad();
+  // A tap on Safari does not focus the button; nothing holds focus.
+  act(() => (document.activeElement as HTMLElement).blur());
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  await act(async () => pending.reject(new Error("Still offline")));
+  expect(document.activeElement).toBe(document.body);
+
+  history.isError = false;
+  view.rerender(<DonorHistoryPage />);
+  expect(screen.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(document.activeElement).toBe(document.body);
+  expect(
+    screen
+      .getByRole("heading", { level: 1, name: "Giving history" })
+      .hasAttribute("tabindex"),
+  ).toBe(false);
+});

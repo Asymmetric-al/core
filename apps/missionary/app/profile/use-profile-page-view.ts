@@ -157,6 +157,7 @@ export function useProfilePageView(): ProfilePageViewModel {
     discard: discardDraft,
     beginSave,
     finishSave,
+    active,
     canRead,
     canWrite,
     isCurrent,
@@ -165,11 +166,6 @@ export function useProfilePageView(): ProfilePageViewModel {
     revokeWrite,
   } = useRetainedDraft<Partial<Omit<ProfileData, "email">>>(
     "missionary-profile",
-  );
-  // A resource nothing revokes is readable exactly while a session owns the
-  // draft store, which tells a revoked read apart from auth still loading.
-  const { canRead: sessionActive } = useRetainedDraft<null>(
-    "missionary-profile:session",
   );
   const profileQuery = useQuery<ProfileData | null>({
     queryKey: ["profile"],
@@ -498,7 +494,8 @@ export function useProfilePageView(): ProfilePageViewModel {
     initials,
     hasChanges,
     canRead,
-    readRevoked: sessionActive && !canRead,
+    // With no session, nothing can be read yet, but nothing was revoked.
+    readRevoked: active && !canRead,
     canWrite,
     isSaving: isSaving || retainedSaving,
     saveSuccess,

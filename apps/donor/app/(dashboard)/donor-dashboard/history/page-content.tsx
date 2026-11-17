@@ -45,7 +45,11 @@ import { GIFT_TYPE_LABELS, type Transaction } from "./types";
 
 import type { MonthlyGivingPoint } from "./monthly-giving-chart";
 
-import { useLoadRetry } from "@/features/donor/focus-recovery";
+import {
+  focusHeadingIfLost,
+  useFocusHandoff,
+  useLoadRetry,
+} from "@/features/donor/focus-recovery";
 import { makeDisplayDate } from "@/lib/dates";
 
 // Recharts loads only when the summary chart is on screen.
@@ -489,6 +493,8 @@ export default function DonorHistoryPage() {
   const historyRetry = useLoadRetry(pageRef, transactionsQuery.isError, () =>
     transactionsQuery.collection.utils.refetch(),
   );
+  // However the gifts recover, focus on the error view moves to the heading.
+  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
   const currentYear = getHistoryYearOptions()[0]!;
   const transactions = useMemo(
@@ -552,7 +558,7 @@ export default function DonorHistoryPage() {
       </PageHeader>
 
       {transactionsQuery.isError ? (
-        <Card>
+        <Card ref={errorView}>
           <CardContent className="flex flex-col items-start gap-3">
             <p
               key={historyRetry.failedRetries}

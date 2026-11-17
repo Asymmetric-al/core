@@ -267,4 +267,43 @@ describe("useDonorFeedPosts", () => {
     expect(result.current.data).toEqual([post(1)]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("says a first load is pending while it waits for a connection, with nothing loaded or failed", async () => {
+    const fetchMock = respondWith([[post(1)]]);
+    // Offline before anything is cached, the first load waits without
+    // fetching.
+    setOnline(false);
+    const { result } = renderHook(() => useDonorFeedPosts({ limit: 5 }), {
+      wrapper: ({ children }) => <QueryProvider>{children}</QueryProvider>,
+    });
+    await waitFor(() => expect(result.current.isPaused).toBe(true));
+    expect(result.current.isPending).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(result.current.data).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    // The connection returns, so the load runs and answers.
+    setOnline(true);
+    await waitFor(() => expect(result.current.data).toEqual([post(1)]));
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.isPaused).toBe(false);
+  });
+
+  it("does not call a loaded empty feed pending while its refresh waits for a connection", async () => {
+    respondWith([[]]);
+    const { result } = renderHook(() => useDonorFeedPosts({ limit: 5 }), {
+      wrapper: ({ children }) => <QueryProvider>{children}</QueryProvider>,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isPending).toBe(false);
+
+    setOnline(false);
+    act(() => {
+      void result.current.refetch();
+    });
+    await waitFor(() => expect(result.current.isPaused).toBe(true));
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.data).toEqual([]);
+  });
 });
