@@ -29,6 +29,12 @@
  * outside its tables keeps its exact list: that list is the point of
  * criterion 17, and a package that widens it edits it (see "Tests a package
  * still touches" in docs/security/tenant-guard.md).
+ *
+ * Amended by AL-2674 A9 (plan 15.2): on Supabase's own image the migration
+ * role cannot grant anything on `auth`, so the guard holds nothing there. It
+ * reads the caller and the claims from the request's settings through two
+ * more invoker helpers, caller_id and request_claims; criterion 17 drops USAGE
+ * on auth and EXECUTE on auth.uid() and auth.jwt() and gains request_claims().
  */
 import { randomUUID } from "node:crypto";
 
@@ -110,7 +116,7 @@ select string_agg(e, ', ' order by e) v from (
   select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> auth.jwt() EXECUTE, auth.uid() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, schema auth USAGE, schema authz USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE
+=> authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, schema authz USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),

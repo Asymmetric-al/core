@@ -895,6 +895,90 @@ describe("evaluateTenantRlsCatalog: council round 2 (A3)", () => {
   });
 });
 
+// AL-2674 A9 (plan 15.2): on Supabase's own image the guard cannot be granted
+// anything on `auth`, so no function in a command schema may name it.
+describe("evaluateTenantRlsCatalog: command schemas never use auth (A9)", () => {
+  const helper = (fn: string, body: string, language = "sql") =>
+    command(fn, {
+      owner: "postgres",
+      definer: false,
+      service_role: false,
+      language,
+      body,
+    });
+
+  it.each<[string, object]>([
+    [
+      "a guard helper that calls auth.uid()",
+      helper("tenant_guard.caller_id()", "SELECT auth.uid();"),
+    ],
+    [
+      "a platform check that reads auth.jwt()",
+      helper(
+        "platform.require_operator()",
+        "DECLARE v uuid; BEGIN IF auth.jwt() ->> 'aal' <> 'aal2' THEN RAISE EXCEPTION 'x'; END IF; RETURN v; END;",
+        "plpgsql",
+      ),
+    ],
+    [
+      "a quoted schema name with spaces",
+      helper("tenant_guard.who()", 'SELECT "auth" . uid();'),
+    ],
+    [
+      "a SQL-standard body as the catalog deparses it",
+      helper(
+        "tenant_guard.who()",
+        "\nBEGIN ATOMIC\n SELECT auth.uid() AS uid;\nEND",
+      ),
+    ],
+    [
+      "dynamic SQL",
+      helper(
+        "tenant_guard.who()",
+        "BEGIN EXECUTE 'select auth.uid()'; END;",
+        "plpgsql",
+      ),
+    ],
+    [
+      "a human entry point",
+      human("tenant_guard.cmd(uuid)", {
+        body: HUMAN_BODY.replace("RETURN NULL;", "RETURN auth.uid();"),
+      }),
+    ],
+  ])("fails %s", (_name, row) => {
+    const result = evaluate([], listed(), [], [row]);
+    expect(
+      codes(result).filter((code: string) =>
+        code.startsWith("COMMAND_READS_AUTH"),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it.each<[string, string]>([
+    [
+      "the claims settings",
+      "SELECT pg_catalog.current_setting('request.jwt.claims', true)::jsonb ->> 'sub';",
+    ],
+    ["authz", "SELECT m.id FROM authz.memberships AS m;"],
+    [
+      "a comment that names auth.uid()",
+      "-- not auth.uid(): the claims setting\nSELECT tenant_guard.caller_id();",
+    ],
+    [
+      "a name that only ends in auth",
+      "SELECT tenant_guard.request_auth_x(), v_auth.id FROM x AS v_auth;",
+    ],
+  ])("passes a body that reads %s", (_name, body) => {
+    const result = evaluate(
+      [],
+      listed(),
+      [],
+      [helper("tenant_guard.ok()", body)],
+    );
+    expect(result.failures).toEqual([]);
+  });
+});
+
 describe("TENANT_RLS_CATALOG_SQL", () => {
   it("reads SQL-standard bodies and search paths that name a command schema, and checks column grants", () => {
     // Commands and wrappers both read the deparsed SQL-standard body.

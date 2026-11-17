@@ -292,7 +292,10 @@ $$;
 
 -- The first statement of every platform command. Returns the operator's user
 -- id, or refuses (42501): no signed-in caller, a caller not on the operator
--- list, or a session without a second factor (aal2).
+-- list, or a session without a second factor (aal2). It reads the caller and
+-- the assurance level from the request's claims settings through the guard's
+-- helpers, as every command does: nothing in a command schema uses `auth`
+-- (20261117034638_command_lane_human_entry_points.sql, plan 15.2).
 CREATE OR REPLACE FUNCTION platform.require_operator()
 RETURNS UUID
 LANGUAGE plpgsql
@@ -301,7 +304,7 @@ SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
-  v_actor UUID := auth.uid();
+  v_actor UUID := tenant_guard.caller_id();
 BEGIN
   IF v_actor IS NULL THEN
     RAISE EXCEPTION 'platform: a platform command needs a signed-in caller'
@@ -313,7 +316,7 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  IF COALESCE(auth.jwt() ->> 'aal', '') <> 'aal2' THEN
+  IF COALESCE(tenant_guard.request_claims() ->> 'aal', '') <> 'aal2' THEN
     RAISE EXCEPTION 'platform: a platform command needs a session verified with a second factor'
       USING ERRCODE = '42501';
   END IF;

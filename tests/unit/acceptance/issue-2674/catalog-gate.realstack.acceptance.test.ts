@@ -262,6 +262,21 @@ const CASES: [string, string, string[], unknown?][] = [
      grant select (id) on public.acc2674_cols to anon;`,
     ["GRANT_ON_VIEW acc2674_view", "GRANT_WITHOUT_POLICY acc2674_cols"],
   ],
+  // AL-2674 A9 (plan 15.2): the guard holds nothing on auth, so nothing in a
+  // command schema may name it.
+  [
+    "a guard helper that reads the caller through auth.uid(), and a platform check that reads auth.jwt()",
+    `create function tenant_guard.acc2674_auth_caller() returns uuid language sql stable set search_path = ''
+       as $$ select auth.uid() $$;
+     revoke all on function tenant_guard.acc2674_auth_caller() from public, anon, authenticated, service_role;
+     create function platform.acc2674_auth_claims() returns jsonb language sql stable set search_path = ''
+       begin atomic select auth.jwt(); end;
+     revoke all on function platform.acc2674_auth_claims() from public, anon, authenticated, service_role;`,
+    [
+      "COMMAND_READS_AUTH platform.acc2674_auth_claims()",
+      "COMMAND_READS_AUTH tenant_guard.acc2674_auth_caller()",
+    ],
+  ],
   [
     "an allowlist entry for a function that does not exist",
     "",

@@ -17,7 +17,8 @@
 // INVOKER wrapper with a fixed search path, closed to PUBLIC and anon, and
 // open to signed-in users only when it calls human entry points or platform
 // commands; no function outside the command schemas has one on its search
-// path. Function text includes a SQL-standard body. In `public`, no table or
+// path, and no function in them names the auth schema. Function text includes
+// a SQL-standard body. In `public`, no table or
 // column grant goes to PUBLIC, none of TRUNCATE, REFERENCES, TRIGGER or
 // MAINTAIN goes to anon or authenticated, they hold nothing on a view, and
 // their SELECT, INSERT, UPDATE and DELETE grants are each admitted by a policy
@@ -359,6 +360,17 @@ export function callsIntoCommandSchemas(body) {
   return [...calls].sort();
 }
 
+/** `auth.` (or `"auth".`) as a qualifier, not the tail of a longer name. */
+const AUTH_QUALIFIER = /(?<![\w$."])"?auth"?\s*\.\s*"?[A-Za-z_]/i;
+
+/**
+ * Whether a function body names the `auth` schema: comments are ignored,
+ * strings are not, so a call through dynamic SQL counts (AL-2674 A9).
+ */
+export function namesAuthSchema(body) {
+  return AUTH_QUALIFIER.test(stripComments(String(body ?? "")));
+}
+
 /**
  * The schema names of a `search_path` setting as the catalog stores it
  * (`tenant_guard, public`, `"Odd Name", public`, `""`), unquoted.
@@ -564,6 +576,12 @@ export function evaluateTenantRlsCatalog(
         "COMMAND_LANE_MIXED",
         c.function,
         "both authenticated (human lane) and service_role (worker lane) may execute it",
+      );
+    if (namesAuthSchema(c.body))
+      failFn(
+        "COMMAND_READS_AUTH",
+        c.function,
+        `a function in the ${c.schema} schema names the auth schema, which the guard cannot be granted on Supabase's own image; read the caller with tenant_guard.caller_id() and the claims with tenant_guard.request_claims()`,
       );
     if (!c.authenticated) continue;
     if (c.schema === "tenant_guard") {
