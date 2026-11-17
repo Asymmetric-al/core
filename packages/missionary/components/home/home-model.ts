@@ -12,6 +12,8 @@ export type NeedsYouItem = {
   detail?: string;
   href: string;
   action: string;
+  /** The partner the action opens; several rows can share one action. */
+  partnerName?: string;
 };
 
 /** Gifts newer than this count as "recent" and worth a thank-you. */
@@ -119,6 +121,7 @@ export function buildNeedsYou({
         : undefined,
       href: partnerHref(partner.id),
       action: "View partner",
+      partnerName: partner.displayName,
     });
   }
 
@@ -149,6 +152,7 @@ export function buildNeedsYou({
       detail: `Gave on ${formatDay(gift.date)}`,
       href: partnerHref(gift.partnerId),
       action: "View partner",
+      partnerName: gift.name,
     });
   }
 

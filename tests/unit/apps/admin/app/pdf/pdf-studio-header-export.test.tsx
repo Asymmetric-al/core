@@ -1,8 +1,24 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
 import React from "react";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 vi.hoisted(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
@@ -24,10 +40,16 @@ beforeAll(async () => {
     await import("../../../../../../apps/admin/app/(app)/pdf/page-client"));
 }, 60_000);
 
+beforeEach(() => setPlatform("other"));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  setPlatform("other");
 });
+
+/** UI SDK wraps hints in left-to-right isolates so a right-to-left page never reorders them. */
+const plain = (text: string | null | undefined) =>
+  (text ?? "").replace(/[⁦⁩]/g, "");
 
 const noop = () => {};
 const actions = {
@@ -48,6 +70,7 @@ function renderHeader(
   pdfExportBlocked: boolean,
   engine: "unlayer" | "asym_pdf_document_builder" = "unlayer",
   openMenu = true,
+  isFullscreen = false,
 ) {
   render(
     <PDFStudioHeaderSection
@@ -66,7 +89,7 @@ function renderHeader(
         isSaving: false,
         isExporting: false,
         previewDevice: "desktop",
-        isFullscreen: false,
+        isFullscreen,
         engine,
         nativeBuilderEnabled: false,
         pdfExportBlocked,
@@ -89,6 +112,77 @@ describe("PDF Studio export menu", () => {
     renderHeader(false, "unlayer", false);
     expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Redo" })).toBeTruthy();
+  });
+
+  it.each([
+    ["other", "Control", "Ctrl+Z", "Ctrl+E"],
+    ["apple", "Meta", "⌘Z", "⌘E"],
+  ] as const)(
+    "writes each shortcut on its control in the %s platform's keys",
+    async (platform, modifier, undoHint, exportHint) => {
+      setPlatform(platform);
+      renderHeader(false, "unlayer", false);
+      const undo = screen.getByRole("button", { name: "Undo" });
+      await waitFor(() =>
+        expect(undo.getAttribute("aria-keyshortcuts")).toBe(`${modifier}+Z`),
+      );
+      expect(
+        screen
+          .getByRole("button", { name: "Redo" })
+          .getAttribute("aria-keyshortcuts"),
+      ).toBe(`${modifier}+Shift+Z`);
+      expect(
+        screen
+          .getByRole("button", { name: "Save", exact: true })
+          .getAttribute("aria-keyshortcuts"),
+      ).toBe(`${modifier}+S`);
+      // Keyboard focus opens the tooltip, which prints the same keys.
+      act(() => undo.focus());
+      const tooltipHint = await waitFor(() => {
+        const hint = document.querySelector(
+          '[data-slot="tooltip-content"] kbd',
+        );
+        expect(plain(hint?.textContent)).toBe(undoHint);
+        return hint!;
+      });
+      expect(tooltipHint.getAttribute("aria-hidden")).toBe("true");
+      act(() => undo.blur());
+
+      fireEvent.click(screen.getByRole("button", { name: "Export" }));
+      const exportItem = await screen.findByRole("menuitem", {
+        name: /Export as HTML/,
+      });
+      expect(exportItem.getAttribute("aria-keyshortcuts")).toBe(
+        `${modifier}+E`,
+      );
+      expect(plain(exportItem.textContent)).toContain(exportHint);
+    },
+  );
+
+  it("advertises Escape on the fullscreen action only while it exits fullscreen", async () => {
+    const openMore = () =>
+      fireEvent.click(
+        screen.getByRole("button", { name: "More PDF template actions" }),
+      );
+    renderHeader(false, "unlayer", false);
+    openMore();
+    const enter = await screen.findByRole("menuitem", {
+      name: /^Full screen/,
+    });
+    expect(enter.hasAttribute("aria-keyshortcuts")).toBe(false);
+    expect(plain(enter.textContent)).not.toContain("Esc");
+    expect(
+      enter.querySelector('[data-slot="dropdown-menu-shortcut"]'),
+    ).toBeNull();
+    cleanup();
+
+    renderHeader(false, "unlayer", false, true);
+    openMore();
+    const exit = await screen.findByRole("menuitem", {
+      name: /^Exit full screen/,
+    });
+    expect(exit.getAttribute("aria-keyshortcuts")).toBe("Escape");
+    expect(plain(exit.textContent)).toContain("Esc");
   });
 
   it("names native actions as a sample test render and JSON export, not a download", async () => {

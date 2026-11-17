@@ -216,7 +216,7 @@ describe("Eve admin-memory concurrency intents", () => {
     vi.stubGlobal("fetch", fetchMock);
     renderPanel();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Edit: / }));
     currentView = createView(2);
     act(() => getQueryClient().setQueryData(queryKey, currentView));
     fireEvent.click(screen.getByRole("button", { name: "Save new version" }));
@@ -231,11 +231,11 @@ describe("Eve admin-memory concurrency intents", () => {
       );
     });
 
-    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Edit: / }));
     currentView = createView(3);
     act(() => getQueryClient().setQueryData(queryKey, currentView));
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Edit: / }));
     fireEvent.click(screen.getByRole("button", { name: "Save new version" }));
 
     await waitFor(() => {
@@ -258,7 +258,7 @@ describe("Eve admin-memory concurrency intents", () => {
     vi.stubGlobal("fetch", fetchMock);
     renderPanel();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Delete: / }));
     currentView = createView(2);
     act(() => getQueryClient().setQueryData(queryKey, currentView));
     fireEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
@@ -270,11 +270,11 @@ describe("Eve admin-memory concurrency intents", () => {
       });
     });
 
-    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Delete: / }));
     currentView = createView(3);
     act(() => getQueryClient().setQueryData(queryKey, currentView));
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Delete: / }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
 
     await waitFor(() => {
@@ -327,7 +327,7 @@ describe("Eve admin-memory category controls", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
     renderPanel();
-    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Edit: / }));
     const category = screen.getAllByRole("combobox", { name: /Category/ })[1];
     if (!category) throw new Error("An editing category control is required");
     category.focus();
@@ -371,7 +371,7 @@ it.each(["success", "failure"] as const)(
     );
     vi.stubGlobal("fetch", fetchMock);
     renderPanel();
-    await screen.findByRole("button", { name: "Edit" });
+    await screen.findByRole("button", { name: /^Edit: / });
     fireEvent.change(screen.getByLabelText("Title"), {
       target: { value: "Project convention" },
     });
@@ -421,7 +421,7 @@ it("blocks duplicate delete requests while preserving the captured version", asy
   );
   vi.stubGlobal("fetch", fetchMock);
   renderPanel();
-  const trigger = await screen.findByRole("button", { name: "Delete" });
+  const trigger = await screen.findByRole("button", { name: /^Delete: / });
   fireEvent.click(trigger);
   const confirm = screen.getByRole("button", { name: "Confirm delete" });
   fireEvent.click(confirm);
@@ -437,5 +437,5 @@ it("blocks duplicate delete requests while preserving the captured version", asy
     finishDelete(response({ ...createView(2), entries: [] })),
   );
   await screen.findByText("Private memory change saved.");
-  expect(screen.queryByRole("button", { name: "Delete" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /^Delete: / })).toBeNull();
 });

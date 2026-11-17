@@ -34,6 +34,8 @@ interface SupportBoardViewProps {
   conversations: SupportConversation[];
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
+  // A card's Move menu or a drag starts moving a card.
+  onMoveStart?: () => void;
   nowIso: string;
   /**
    * Height of what covers the top of the page (app header and any sticky
@@ -44,6 +46,31 @@ interface SupportBoardViewProps {
 }
 
 const DEFAULT_LANE_SCROLL_OFFSET = 56;
+
+interface SettledMove {
+  conversationId: string;
+  status: SupportConversationStatus;
+  failed: boolean;
+}
+
+function moveFocusTarget(
+  board: HTMLElement | null,
+  lane: HTMLElement | undefined,
+  { conversationId, failed }: SettledMove,
+) {
+  const card = Array.from(
+    board?.querySelectorAll<HTMLElement>("[data-conversation-id]") ?? [],
+  ).find((node) => node.dataset.conversationId === conversationId);
+  // Back to the menu that started a failed move, ready to retry.
+  if (failed) {
+    return (
+      card?.querySelector<HTMLElement>('[data-slot="dropdown-menu-trigger"]') ??
+      undefined
+    );
+  }
+  // A filter or the lane's card cap can keep the moved card off the board.
+  return card?.querySelector<HTMLElement>(":scope > button") ?? lane;
+}
 
 const LANE_DOTS: Record<SupportConversationStatus, string> = {
   open: "bg-warning",
@@ -90,11 +117,18 @@ export function SupportBoardView({
   conversations,
   selectedConversationId,
   onSelectConversation,
+  onMoveStart,
   nowIso,
   laneScrollOffset,
 }: SupportBoardViewProps) {
   const setStatus = useSetSupportConversationStatus();
   const [snoozeId, setSnoozeId] = React.useState<string | null>(null);
+  const boardRef = React.useRef<HTMLDivElement>(null);
+  const [settledMove, setSettledMove] = React.useState<SettledMove | null>(
+    null,
+  );
+  const focusedMove = React.useRef<SettledMove | null>(null);
+  const snoozedMove = React.useRef<SettledMove | null>(null);
   const saveStatus = async (
     conversationId: string,
     status: SupportConversationStatus,
@@ -106,16 +140,24 @@ export function SupportBoardView({
         status,
         ...(snoozedUntil ? { snoozedUntil } : {}),
       });
+      const settled = { conversationId, status, failed: false };
+      if (snoozedUntil) snoozedMove.current = settled;
+      setSettledMove(settled);
       setSnoozeId(null);
     } catch {
       toast.error("Couldn’t move the conversation. Try again.");
+      // A failed snooze keeps its dialog open, and focus, for another try.
+      if (!snoozedUntil)
+        setSettledMove({ conversationId, status, failed: true });
     }
   };
   const moveConversation = (
     conversationId: string,
     status: SupportConversationStatus,
   ) => {
+    onMoveStart?.();
     if (status === "snoozed") {
+      snoozedMove.current = null;
       setSnoozeId(conversationId);
       return;
     }
@@ -124,6 +166,31 @@ export function SupportBoardView({
   const laneRefs = React.useRef(
     new Map<SupportConversationStatus, HTMLElement>(),
   );
+
+  // A moved card remounts in its new lane, taking the focused menu trigger
+  // with it; focus follows the card so the keyboard user is not left on body.
+  React.useEffect(() => {
+    if (!settledMove || focusedMove.current === settledMove) return;
+    const { conversationId, status, failed } = settledMove;
+    const current = conversations.find((row) => row.id === conversationId);
+    // The saved status arrives with the refetch; wait for the card to land.
+    if (!failed && current && current.status !== status) return;
+    focusedMove.current = settledMove;
+    const target = moveFocusTarget(
+      boardRef.current,
+      laneRefs.current.get(status),
+      settledMove,
+    );
+    const active = document.activeElement;
+    // Recover only the focus the move dropped, not focus the user moved since.
+    if (
+      active &&
+      active !== document.body &&
+      !target?.closest("[data-conversation-id]")?.contains(active)
+    )
+      return;
+    target?.focus();
+  }, [conversations, settledMove]);
 
   const jumpToLane = (status: SupportConversationStatus) => {
     const lane = laneRefs.current.get(status);
@@ -165,6 +232,7 @@ export function SupportBoardView({
     // in one row once each lane has room. Every lane stays on screen; a
     // sideways row hid Resolved with nothing to say it was there.
     <div
+      ref={boardRef}
       className="@container"
       role="region"
       aria-label="Donor care board view"
@@ -179,7 +247,21 @@ export function SupportBoardView({
           if (!open) setSnoozeId(null);
         }}
       >
-        <DialogContent>
+        <DialogContent
+          // A saved snooze moves the card out of the lane whose menu opened
+          // this dialog, so focus follows the card instead of that menu.
+          finalFocus={() => {
+            const snoozed = snoozedMove.current;
+            if (!snoozed) return true;
+            return (
+              moveFocusTarget(
+                boardRef.current,
+                laneRefs.current.get(snoozed.status),
+                snoozed,
+              ) ?? true
+            );
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Snooze until</DialogTitle>
             <DialogDescription>

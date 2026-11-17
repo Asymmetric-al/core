@@ -11,7 +11,7 @@ import Link from "next/link";
 
 import { useSupportReport } from "../../../hooks/use-support-reports";
 import { useSupportReportRouteState } from "../../../lib/report-state";
-import { combineReportStatus } from "../../../lib/report-status";
+import { useReportStatus } from "../../../lib/report-status";
 import { ReportBarChart } from "../ReportBarChart";
 import { ReportExportMenu } from "../ReportExportMenu";
 import { ReportFilters } from "../ReportFilters";
@@ -37,10 +37,10 @@ export function AgentsReport() {
       }
     : data;
 
-  const reportStatus = combineReportStatus([series]);
+  const { rootRef, ...reportStatus } = useReportStatus([series]);
   if (reportStatus.isError || reportStatus.isLoading)
     return (
-      <div className="flex flex-col gap-6">
+      <div ref={rootRef} className="flex flex-col gap-6">
         <ReportFilters
           hideScope
           hideGroupBy
@@ -58,7 +58,11 @@ export function AgentsReport() {
           }
         />
         {reportStatus.isError ? (
-          <ReportLoadError onRetry={reportStatus.retry} />
+          <ReportLoadError
+            onRetry={reportStatus.retry}
+            isRetrying={reportStatus.isRetrying}
+            failedRetries={reportStatus.failedRetries}
+          />
         ) : (
           <div role="status" aria-label="Loading report">
             <Skeleton className="h-64 w-full" />
@@ -68,7 +72,7 @@ export function AgentsReport() {
       </div>
     );
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       {/* The agent mix counts the range's conversations per agent: no
           periods to group, no message times to clip to business hours. */}
       <ReportFilters

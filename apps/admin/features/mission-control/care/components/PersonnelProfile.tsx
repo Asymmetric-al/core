@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Meter } from "@asym/ui/components/shadcn/meter";
 import {
@@ -52,7 +53,7 @@ import {
   Lock,
   MessageSquareText,
 } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { ACTIVITY_TYPE_LABELS, CHECK_IN_INTERVAL_DAYS } from "./care-display";
@@ -479,19 +480,28 @@ function CareRhythmForm({
     String(initial?.intervalDays ?? CHECK_IN_INTERVAL_DAYS),
   );
   const [note, setNote] = useState(initial?.notes ?? "");
+  const [daysChecked, setDaysChecked] = useState(false);
+  const daysRef = useRef<HTMLInputElement>(null);
   const existing = requirements.find(
     (requirement) => requirement.activityType === activity,
   );
   const upsertRequirement = useUpsertCareRequirement();
   const interval = Number(days);
   const valid = Number.isInteger(interval) && interval > 0;
+  const showDaysError = daysChecked && !valid;
+  const daysErrorId = `${fieldId}-days-error`;
 
   return (
     <form
       className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault();
-        if (!valid || upsertRequirement.isPending) return;
+        if (upsertRequirement.isPending) return;
+        if (!valid) {
+          setDaysChecked(true);
+          daysRef.current?.focus();
+          return;
+        }
         const trimmed = note.trim();
         const saved = await runCareAction(
           () =>
@@ -562,14 +572,22 @@ function CareRhythmForm({
             Every (days)
           </label>
           <Input
+            ref={daysRef}
             id={`${fieldId}-days`}
             type="number"
             min={1}
             inputMode="numeric"
             value={days}
             onChange={(event) => setDays(event.target.value)}
-            aria-invalid={!valid || undefined}
+            onBlur={() => setDaysChecked(true)}
+            aria-invalid={showDaysError || undefined}
+            aria-describedby={showDaysError ? daysErrorId : undefined}
           />
+          {showDaysError ? (
+            <FieldError id={daysErrorId}>
+              Enter a whole number of days, 1 or more.
+            </FieldError>
+          ) : null}
         </div>
         <div className="flex flex-col gap-1.5">
           <label
@@ -590,7 +608,7 @@ function CareRhythmForm({
         type="submit"
         variant="outline"
         className="self-start"
-        disabled={upsertRequirement.isPending || !valid}
+        disabled={upsertRequirement.isPending}
       >
         {upsertRequirement.isPending
           ? "Saving…"
@@ -657,7 +675,13 @@ function CarePlanTab({
                     <Button
                       size="sm"
                       variant="outline"
+                      aria-label={`${
+                        savedGoal.status === "completed"
+                          ? "Reopen"
+                          : "Mark done"
+                      }: ${savedGoal.title}`}
                       disabled={upsertCareGoal.isPending}
+                      focusableWhenDisabled
                       onClick={() =>
                         void runCareAction(
                           () =>

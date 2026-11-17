@@ -30,6 +30,45 @@ describe("Needs you", () => {
     ).toBe("true");
   });
 
+  it("names each partner link for its partner, starting with the visible action", () => {
+    render(
+      <NeedsYouCard
+        items={[
+          {
+            id: "behind-grace",
+            kind: "behind",
+            tone: "urgent",
+            title: "Grace Community Church’s recurring gift hasn’t arrived",
+            href: "/donors?partner=grace",
+            action: "View partner",
+            partnerName: "Grace Community Church",
+          },
+          {
+            id: "thank-taylor",
+            kind: "thank",
+            tone: "info",
+            title: "Thank Taylor Nguyen for $50.00",
+            href: "/donors?partner=taylor",
+            action: "View partner",
+            partnerName: "Taylor Nguyen",
+          },
+          item(1),
+        ]}
+      />,
+    );
+    const grace = screen.getByRole("link", {
+      name: "View partner: Grace Community Church",
+    });
+    const taylor = screen.getByRole("link", {
+      name: "View partner: Taylor Nguyen",
+    });
+    expect(grace.textContent).toBe("View partner");
+    expect(grace.getAttribute("href")).toBe("/donors?partner=grace");
+    expect(taylor.getAttribute("href")).toBe("/donors?partner=taylor");
+    // Items without a partner keep their visible action as the name.
+    expect(screen.getByRole("link", { name: "Review" })).toBeTruthy();
+  });
+
   it("says when nothing is waiting", () => {
     render(<NeedsYouCard items={[]} />);
     expect(screen.getByText("You’re all caught up.")).toBeTruthy();

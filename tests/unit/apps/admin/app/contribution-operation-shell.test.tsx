@@ -464,6 +464,72 @@ describe("ContributionOperationShell", () => {
     expect(body.idempotencyKey.length).toBeGreaterThan(10);
   });
 
+  it("is a real form, so Enter in a field submits once and only when the submit is enabled", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000b3";
+    const detail = makeReceiptDeliveryDetail(donationId);
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-1",
+        adjustmentId: "adj-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      detail,
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
+    const amountInput = view.getByLabelText("Amount (USD)") as HTMLInputElement;
+    const form = amountInput.form;
+    expect(form).not.toBeNull();
+    const submit = view.getByRole("button", {
+      name: "Correct gift amount",
+    }) as HTMLButtonElement;
+    // The submit is the form's one default button, so Enter in a field
+    // presses it; every other button only does its own job.
+    expect(submit.form).toBe(form);
+    expect(submit.type).toBe("submit");
+    for (const button of form!.querySelectorAll("button")) {
+      if (button !== submit) expect(button.type).toBe("button");
+    }
+    const actionCalls = () =>
+      fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions"))
+        .length;
+
+    // An incomplete draft does not submit.
+    fireEvent.submit(form!);
+    expect(actionCalls()).toBe(0);
+
+    fireEvent.change(amountInput, { target: { value: "200" } });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(
+      view.getByRole("radio", { name: /send updated receipt by email/i }),
+    );
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.submit(form!);
+
+    expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
+    expect(actionCalls()).toBe(1);
+  });
+
   it("keeps a successful operation successful when post-submit refresh fails", async () => {
     const fetchMock = fetchMockForShell({
       auditEventId: "audit-refresh-warning",
@@ -1326,6 +1392,14 @@ describe("ContributionOperationShell", () => {
     expect(
       view.getByRole("button", { name: "Reload latest gift" }),
     ).toBeTruthy();
+    // Enter in the amount field still submits a form whose only text field
+    // it is; the stale draft must not be sent again.
+    const staleAmount = view.getByLabelText("Amount (USD)") as HTMLInputElement;
+    fireEvent.submit(staleAmount.form!);
+    await act(async () => {});
+    expect(
+      fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions")),
+    ).toHaveLength(1);
     fireEvent.click(view.getByRole("button", { name: "Discard draft" }));
     expect(onClose).toHaveBeenCalledOnce();
 

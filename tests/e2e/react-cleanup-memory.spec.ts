@@ -106,8 +106,13 @@ for (const width of [320, 1280])
           };
         });
         await page.addScriptTag({ content: javascript });
+        // Row actions carry the entry title, so each row's buttons are told
+        // apart by name.
         await expect(
-          page.getByRole("button", { name: "Edit", exact: true }),
+          page.getByRole("button", {
+            name: "Edit: Shared conventions",
+            exact: true,
+          }),
         ).toBeVisible();
         await page
           .getByLabel("Title", { exact: true })
@@ -162,7 +167,7 @@ for (const width of [320, 1280])
         ).toBeVisible();
         await expect(page.getByLabel("Title", { exact: true })).toHaveValue("");
         const remove = page.getByRole("button", {
-          name: "Delete",
+          name: "Delete: Shared conventions",
           exact: true,
         });
         await remove.focus();
@@ -175,7 +180,10 @@ for (const width of [320, 1280])
         await confirm.focus();
         await page.keyboard.press("Enter");
         await expect(page.getByRole("alertdialog")).toHaveCount(0);
+        // Closing the dialog returns focus to its trigger, which stays
+        // focusable but disabled while the delete is pending.
         await expect(remove).toBeFocused();
+        await expect(remove).toBeDisabled();
         await page.keyboard.press("Enter");
         await expect(page.getByRole("alertdialog")).toHaveCount(0);
         await expect
@@ -211,6 +219,7 @@ for (const width of [320, 1280])
             .filter({ hasText: "Synthetic delete failure" }),
         ).toBeVisible();
         await expect(remove).toBeFocused();
+        await expect(remove).toBeEnabled();
         expect(errors).toEqual([]);
         expect(requests).toEqual([]);
       });

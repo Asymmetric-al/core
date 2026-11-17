@@ -80,6 +80,12 @@ export interface ReactionBarProps {
    * after a failed (and rolled-back) toggle.
    */
   onError?: (error: unknown, context: EngagementErrorContext) => void;
+  /**
+   * Id (or space-separated ids) of the element that identifies the update,
+   * such as its title. Every button is described by it, so a screen reader
+   * says which update a button acts on; the name keeps the visible count.
+   */
+  describedBy?: string;
   /** Extra classes for the bar container. */
   className?: string;
 }
@@ -175,6 +181,7 @@ interface ReactionButtonProps {
   state: ReactionState;
   reduceMotion: boolean;
   onToggle: () => void;
+  describedBy?: string;
 }
 
 /** Rich chip treatment (missionary feed): burst and semantic active state. */
@@ -183,6 +190,7 @@ function ChipReactionButton({
   state,
   reduceMotion,
   onToggle,
+  describedBy,
 }: ReactionButtonProps): React.JSX.Element {
   const config = REACTION_VISUALS[kind];
   const [particles, setParticles] = React.useState<Particle[]>([]);
@@ -238,6 +246,7 @@ function ChipReactionButton({
       <m.button
         type="button"
         aria-label={`${config.label} ${state.count}`}
+        aria-describedby={describedBy}
         aria-pressed={state.mine}
         data-active={state.mine ? "" : undefined}
         onClick={handleToggleReaction}
@@ -270,6 +279,7 @@ function QuietReactionButton({
   kind,
   state,
   onToggle,
+  describedBy,
 }: ReactionButtonProps): React.JSX.Element {
   const config = REACTION_VISUALS[kind];
   const Icon = config.icon;
@@ -279,6 +289,7 @@ function QuietReactionButton({
     <m.button
       type="button"
       aria-label={`${config.label} ${state.count}`}
+      aria-describedby={describedBy}
       aria-pressed={state.mine}
       data-active={state.mine ? "" : undefined}
       onClick={onToggle}
@@ -310,16 +321,19 @@ function CommentsButton({
   appearance,
   count,
   onOpen,
+  describedBy,
 }: {
   appearance: "chip" | "quiet";
   count: number;
   onOpen: () => void;
+  describedBy?: string;
 }): React.JSX.Element {
   if (appearance === "chip") {
     return (
       <button
         type="button"
         aria-label={`Comments ${count}`}
+        aria-describedby={describedBy}
         onClick={onOpen}
         className="flex h-10 items-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5 text-xs font-semibold text-muted-foreground press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 hover:text-foreground sm:px-4"
       >
@@ -333,6 +347,7 @@ function CommentsButton({
     <button
       type="button"
       aria-label={`Comments ${count}`}
+      aria-describedby={describedBy}
       onClick={onOpen}
       className="group flex items-center gap-2 rounded-full px-3 py-2 text-muted-foreground press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 hover:text-foreground"
     >
@@ -403,7 +418,7 @@ function StaticReactionBar({
 
 type InteractiveReactionBarProps = Pick<
   ReactionBarProps,
-  "update" | "onChange" | "onError" | "className"
+  "update" | "onChange" | "onError" | "describedBy" | "className"
 > & {
   reactions: readonly ReactionKind[];
   comments: CommentsMode;
@@ -419,6 +434,7 @@ function InteractiveReactionBar({
   transport,
   onChange,
   onError,
+  describedBy,
   className,
 }: InteractiveReactionBarProps): React.JSX.Element {
   const { snapshot, toggle } = useEngagement(update, {
@@ -464,6 +480,7 @@ function InteractiveReactionBar({
             state={snapshot[kind]}
             reduceMotion={reduceMotion}
             onToggle={() => toggle(kind)}
+            describedBy={describedBy}
           />
         ))}
         {comments === "read" && snapshot.commentCount === 0 ? (
@@ -480,6 +497,7 @@ function InteractiveReactionBar({
             appearance={appearance}
             count={snapshot.commentCount}
             onOpen={openComments}
+            describedBy={describedBy}
           />
         ) : null}
       </div>
@@ -516,6 +534,7 @@ export function ReactionBar({
   transport = httpEngagementTransport,
   onChange,
   onError,
+  describedBy,
   className,
 }: ReactionBarProps): React.JSX.Element {
   if (readOnly) {
@@ -537,6 +556,7 @@ export function ReactionBar({
       transport={transport}
       onChange={onChange}
       onError={onError}
+      describedBy={describedBy}
       className={className}
     />
   );

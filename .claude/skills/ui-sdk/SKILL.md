@@ -79,11 +79,10 @@ the root of your checkout; resolve them there when you start elsewhere.
 - Shared UI work for Mission Control (`apps/admin`), the missionary workspace
   (`apps/missionary`) or the donor portal (`apps/donor`) is evaluating or
   building a control where UI SDK may be the better implementation. It is the
-  natural choice for what only it ships (a mixed text-and-token input, keyboard
-  shortcuts, drag-and-keyboard reordering, a custom composite such as a
-  stepper), and it may be chosen over a Base UI equivalent for a concrete
-  benefit. A star rating already exists: reuse
-  `@asym/ui/components/primitives/rating`.
+  natural choice for what only it ships (a mixed text-and-token input, a custom
+  composite such as a stepper), and it may be chosen over a Base UI equivalent
+  for a concrete benefit. A star rating, page shortcuts and list reordering
+  already have shared owners, listed below: reuse them.
 - A change touches a file that imports `@ui-sdk/*`, or the user names ui-sdk.
 - Not merely because the SDK is installed, and not for ordinary page
   composition, which uses existing `@asym/ui` components. The upstream "Don't
@@ -141,15 +140,19 @@ the root of your checkout; resolve them there when you start elsewhere.
    wrapper's types require one.
 6. **Keep boundaries.** SDK component entries already carry `"use client"`; a
    wrapper with state, callbacks or render functions needs its own. Ordinary
-   use needs no provider, `Preferences`, agent bridge (`createAgent`), WebMCP
-   or CSP change. Treat "Make it agent-ready" above as guidance on accessible
-   names, not a required step, unless the user asks for agent integration.
-   The SDK's layer stack (modal pausing, dismissal order) only knows SDK
-   popups, so guard shortcuts and outside-press behavior yourself when a Base
-   UI dialog or menu can be open. An SDK control may sit inside a Base UI
-   dialog, popover or form, and the reverse. Test focus order and return,
-   accessible names, Escape and outside-press dismissal, and overlay stacking
-   across that boundary.
+   use needs no provider, `Preferences` or CSP change. Core has one agent
+   bridge owner (below): never call `createAgent` or `registerTools` anywhere
+   else; mount no other bridge unless the user asks for agent integration.
+   Base UI and native controls are operated through their accessible names,
+   roles and states, not the bridge. "Make it agent-ready" above applies to
+   every SDK-backed control: name it, keep its checks in change callbacks, and
+   put `data-agent-confirm` on anything that deletes, pays or sends. The SDK's
+   layer stack (modal pausing, dismissal order) only knows SDK popups; the
+   shared shortcut owner already guards Base UI overlays, so guard
+   outside-press behavior yourself when a Base UI dialog or menu can be open.
+   An SDK control may sit inside a Base UI dialog, popover or form, and the
+   reverse. Test focus order and return, accessible names, Escape and
+   outside-press dismissal, and overlay stacking across that boundary.
 7. **Test first.** Follow `docs/ai/skills/tdd/SKILL.md`. Write a jsdom test
    under `tests/unit/packages/ui/components/primitives/` (names, one tab stop,
    keys, values, server render plus hydration). For layout, focus movement,
@@ -177,6 +180,30 @@ the root of your checkout; resolve them there when you start elsewhere.
 9. **Upgrade deliberately.** UI SDK is beta. Never bump it as a side effect. A
    bump moves both exact pins together, rereads that release's docs, reruns
    the wrapper tests and refreshes this skill from the same release.
+
+Core's shared UI SDK owners, all in `packages/ui/components/primitives/`:
+
+- `shortcut.tsx`: every page or region keyboard shortcut (`useShortcut`,
+  always with a `description`), its hint and `aria-keyshortcuts`
+  (`useShortcutHint`, `ShortcutHint`), and the list behind the help
+  (`listShortcuts`). It decides typing, open Base UI overlays, regions, held
+  keys and hydration-safe hints. Never add a `keydown` listener for a
+  shortcut.
+- `shortcut-help.tsx`: the Shift+? dialog listing the described shortcuts
+  that work where focus is, also from inside a dialog or sheet, mounted once
+  per app shell (a second host stays inert).
+- `sortable-list.tsx`: reordering a list with a drag handle, keyboard
+  pick-up, announcements and an agent `move` action.
+- `agent-bridge.tsx`: the one agent bridge, mounted once per document that
+  renders SDK-backed controls (Mission Control's shell and its Web Studio
+  layout today) with a deny-by-default allowlist pinned to each list's label.
+  It sees only SDK-backed controls; never mirror a Base UI or native control
+  into it.
+- Pattern checks: `@ui-sdk/core/testing` is aliased in `vitest.config.mts`,
+  and `tests/e2e/ui-sdk-pattern-conformance.spec.ts` runs `checkPattern`
+  over Core's retained Base UI wrappers in Chromium, recording each accepted
+  deviation and its reason. Give a new shared interactive wrapper a check
+  there.
 
 The reference implementation is
 `packages/ui/components/primitives/rating.tsx`, with its unit test

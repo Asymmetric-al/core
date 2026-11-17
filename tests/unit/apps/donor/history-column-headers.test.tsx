@@ -76,6 +76,17 @@ it("writes the history column headers in sentence case like the rest of the port
   ).toEqual(["Date", "Gift to", "Fund", "Amount", "Payment", "Status"]);
 });
 
+it("names the gifts table after the page instead of a generic label", async () => {
+  render(<HistoryTransactionsCard filteredTransactions={transactions} />);
+  await screen.findAllByRole("columnheader");
+
+  const region = screen.getByRole("region", { name: "Giving history" });
+  expect(
+    within(region).getByRole("grid", { name: "Giving history" }),
+  ).toBeTruthy();
+  expect(screen.queryByRole("region", { name: "Data table" })).toBeNull();
+});
+
 it("names each sort control by its column and says how it is sorted", async () => {
   render(<HistoryTransactionsCard filteredTransactions={transactions} />);
   await screen.findAllByRole("columnheader");

@@ -123,9 +123,24 @@ describe("ui-sdk agent skill", () => {
     for (const repoPath of repoPaths) {
       expect(existsSync(path.join(repoRoot, repoPath)), repoPath).toBe(true);
     }
+  });
+
+  it("runs every isolated UI SDK browser spec in the CI production gate", () => {
+    // CI runs `test:e2e:production-gate`, never the isolated config, so a
+    // spec listed only in `testMatch` never runs in CI.
     const isolated = read("tests/e2e/playwright-isolated.config.ts");
-    expect(isolated).toContain('"ui-sdk-rating.spec.ts"');
-    expect(read("package.json")).toContain("tests/e2e/ui-sdk-rating.spec.ts");
+    const testMatch = /testMatch:\s*\[([^\]]*)\]/.exec(isolated)?.[1] ?? "";
+    const isolatedSpecs = [
+      ...testMatch.matchAll(/["'](ui-sdk-[^"']+\.spec\.ts)["']/g),
+    ].map((match) => match[1]!);
+    expect(isolatedSpecs).toContain("ui-sdk-rating.spec.ts");
+
+    const gate = JSON.parse(read("package.json")).scripts[
+      "test:e2e:production-gate"
+    ].split(/\s+/);
+    expect(
+      isolatedSpecs.filter((spec) => !gate.includes(`tests/e2e/${spec}`)),
+    ).toEqual([]);
   });
 
   it("resolves every relative link in the skill", () => {

@@ -40,7 +40,7 @@
 
 - [x] 4.1 Skill mirror verification, strict validation, delta compatibility,
       the shadcn diff check and formatting pass.
-- [ ] 4.2 The docs, skill-script and shared UI unit tests pass.
+- [x] 4.2 The docs, skill-script and shared UI unit tests pass.
 - [x] 4.3 An independent review checks the guidance against the five UI cases
       and finds no contradiction between its owners.
 - [ ] 4.4 The pre-push `bun run ci:preflight` and pull-request CI pass.

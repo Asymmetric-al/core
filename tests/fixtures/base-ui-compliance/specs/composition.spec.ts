@@ -7,11 +7,14 @@ test("CRM view actions stay inside a 320px dialog", async ({ page }) => {
   await page
     .getByRole("button", { name: "Open tenant default confirmation" })
     .click();
-  const dialog = page.getByRole("dialog", { name: "Set tenant default" });
+  const dialog = page.getByRole("dialog", {
+    name: "Set organization default",
+    exact: true,
+  });
   await expect(dialog).toBeVisible();
   const dialogBounds = await dialog.boundingBox();
   expect(dialogBounds).not.toBeNull();
-  for (const name of ["Cancel", "Set tenant default"]) {
+  for (const name of ["Cancel", "Set organization default"]) {
     const action = dialog.getByRole("button", { name, exact: true });
     await expect(action).toBeVisible();
     const actionBounds = await action.boundingBox();
@@ -40,13 +43,24 @@ test("CRM view names retain distinct unbroken suffixes", async ({ page }) => {
         .evaluate((element) => element.scrollWidth <= element.clientWidth),
     ).toBe(true);
   }
-  const rename = page
-    .getByRole("menuitem", { name: /^Rename/ })
-    .locator(".max-w-56");
+  const rename = page.getByRole("menuitem", {
+    name: `Rename “${"SharedPrefix".repeat(20)}First”…`,
+    exact: true,
+  });
+  await expect(rename).toBeVisible();
+  // The long name wraps inside the item instead of overflowing the menu.
   expect(
-    await rename.evaluate(
-      (element) => element.scrollWidth <= element.clientWidth,
-    ),
+    await rename.locator("span").evaluate((element) => {
+      const item = element
+        .closest('[role="menuitem"]')!
+        .getBoundingClientRect();
+      const text = element.getBoundingClientRect();
+      return (
+        element.scrollWidth <= element.clientWidth &&
+        text.left >= item.left &&
+        text.right <= item.right
+      );
+    }),
   ).toBe(true);
 });
 
@@ -111,10 +125,12 @@ test("product choice groups support keyboard selection and preserve saved values
   );
   await page.keyboard.press("Space");
   await expect(table).toHaveAttribute("aria-pressed", "true");
-  await scope.getByRole("button", { name: "Use zinc tone" }).focus();
+  await scope
+    .getByRole("button", { name: "Use Neutral tone", exact: true })
+    .focus();
   await page.keyboard.press("ArrowRight");
   await expect(
-    scope.getByRole("button", { name: "Use blue tone" }),
+    scope.getByRole("button", { name: "Use Blue tone", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("Space");
   await scope.getByLabel("Name", { exact: true }).fill("Finance");

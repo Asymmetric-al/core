@@ -8,8 +8,8 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { afterEach, expect, it, vi } from "vitest";
+import { setPlatform } from "@ui-sdk/core/testing";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 vi.mock("@asym/database/hooks", () => ({
   usePublicLocations: () => ({
@@ -42,11 +42,45 @@ vi.mock("@asym/ui/components/primitives/map", () => {
 });
 
 import { WhereWeWorkMap } from "../../../../apps/donor/app/(public)/(solid)/where-we-work/map-wrapper";
+import { listShortcuts } from "../../../../packages/ui/components/primitives/shortcut";
+
+import type { ReactNode } from "react";
+
+beforeEach(() => setPlatform("other"));
 
 afterEach(() => {
   cleanup();
+  setPlatform("other");
   vi.unstubAllGlobals();
 });
+
+function stubSearchDom() {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  const scrollDescriptor = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "scrollIntoView",
+  );
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+    configurable: true,
+    value: vi.fn(),
+  });
+  return () => {
+    if (scrollDescriptor)
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "scrollIntoView",
+        scrollDescriptor,
+      );
+    else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+  };
+}
 
 it.each([390, 1280])(
   "names map links without nesting controls and opens a keyboard-owned dialog at %ipx",
@@ -148,4 +182,70 @@ it("announces location search as a dialog and restores focus after dismissal", a
       scrollDescriptor,
     );
   else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+});
+
+it("toggles location search with the platform's mod+K on the shared shortcut owner", async () => {
+  const restore = stubSearchDom();
+  render(<WhereWeWorkMap />);
+  const search = screen.getByRole("button", { name: "Search locations…" });
+  expect(search.getAttribute("aria-keyshortcuts")).toBe("Control+K");
+  expect(search.textContent?.replace(/[⁦⁩]/g, "")).toContain("Ctrl+K");
+  expect(search.textContent).not.toContain("⌘");
+
+  search.focus();
+  fireEvent.keyDown(search, { key: "k", metaKey: true });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(
+    listShortcuts().find(({ keys }) => keys === "mod+k")?.description,
+  ).toBe("Search locations");
+
+  fireEvent.keyDown(search, { key: "k", ctrlKey: true });
+  const dialog = await screen.findByRole("dialog", {
+    name: "Search Locations",
+  });
+  const input = within(dialog).getByRole("combobox");
+  input.focus();
+  fireEvent.keyDown(input, { key: "k", ctrlKey: true });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(search));
+  restore();
+});
+
+it("leaves mod+K alone while a location detail dialog is open", async () => {
+  const restore = stubSearchDom();
+  vi.stubGlobal("innerWidth", 1280);
+  render(<WhereWeWorkMap />);
+  fireEvent.click(screen.getByRole("button", { name: "View River Ministry" }));
+  const detail = await screen.findByRole("dialog", { name: "River Ministry" });
+  await waitFor(() =>
+    expect(detail.contains(document.activeElement)).toBe(true),
+  );
+
+  const focused = document.activeElement ?? document.body;
+  fireEvent.keyDown(focused, { key: "k", ctrlKey: true });
+
+  expect(screen.queryByRole("dialog", { name: "Search Locations" })).toBeNull();
+  expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  restore();
+});
+
+// The public site has no app shell, so the map that registers the shortcut
+// also mounts the list Shift+? opens.
+it("lists the map's shortcuts on Shift+?", async () => {
+  const restore = stubSearchDom();
+  render(<WhereWeWorkMap />);
+  const search = screen.getByRole("button", { name: "Search locations…" });
+  search.focus();
+
+  fireEvent.keyDown(search, { key: "?", shiftKey: true });
+
+  const help = await screen.findByRole("dialog", {
+    name: "Keyboard shortcuts",
+  });
+  expect(within(help).getByText("Search locations")).toBeTruthy();
+  expect(within(help).getByText("Show keyboard shortcuts")).toBeTruthy();
+  fireEvent.keyDown(help, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(search));
+  restore();
 });

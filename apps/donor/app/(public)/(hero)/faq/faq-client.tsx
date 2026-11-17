@@ -15,6 +15,10 @@ import {
   InputGroupInput,
   InputGroupButton,
 } from "@asym/ui/components/shadcn/input-group";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
   HelpCircle,
@@ -125,28 +129,17 @@ const FAQ_DATA: FAQItem[] = [
   },
 ];
 
-const CategoryButton = ({
-  active,
-  onClick,
-  label,
-  icon: Icon,
-}: {
-  active: boolean;
-  onClick: () => void;
+const CATEGORY_CHIPS: {
+  value: Category | "All";
   label: string;
   icon: LucideIcon;
-}) => (
-  <Button
-    variant={active ? "maia" : "maia-outline"}
-    size="lg"
-    type="button"
-    aria-pressed={active}
-    onClick={onClick}
-  >
-    <Icon data-icon="inline-start" />
-    {label}
-  </Button>
-);
+}[] = [
+  { value: "All", label: "All Questions", icon: Sparkles },
+  { value: "Financials", label: "Financials", icon: DollarSign },
+  { value: "Donations", label: "Donations", icon: Heart },
+  { value: "Partners", label: "Partners", icon: Users },
+  { value: "Account", label: "My Account", icon: ShieldCheck },
+];
 
 const FAQAccordionItem = ({
   item,
@@ -283,38 +276,38 @@ export function FAQPageClient() {
       </section>
 
       <section className="container mx-auto px-6 max-w-4xl -mt-8 relative z-20">
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <CategoryButton
-            active={activeCategory === "All"}
-            onClick={() => setActiveCategory("All")}
-            label="All Questions"
-            icon={Sparkles}
-          />
-          <CategoryButton
-            active={activeCategory === "Financials"}
-            onClick={() => setActiveCategory("Financials")}
-            label="Financials"
-            icon={DollarSign}
-          />
-          <CategoryButton
-            active={activeCategory === "Donations"}
-            onClick={() => setActiveCategory("Donations")}
-            label="Donations"
-            icon={Heart}
-          />
-          <CategoryButton
-            active={activeCategory === "Partners"}
-            onClick={() => setActiveCategory("Partners")}
-            label="Partners"
-            icon={Users}
-          />
-          <CategoryButton
-            active={activeCategory === "Account"}
-            onClick={() => setActiveCategory("Account")}
-            label="My Account"
-            icon={ShieldCheck}
-          />
-        </div>
+        <ToggleGroup
+          aria-label="Question category"
+          spacing={3}
+          value={[activeCategory]}
+          // Pressing the chosen category sends an empty list; one stays on.
+          onValueChange={(next) => {
+            const chosen = CATEGORY_CHIPS.find(
+              (chip) => chip.value === next[0],
+            );
+            if (chosen) setActiveCategory(chosen.value);
+          }}
+          className="w-full flex-wrap justify-center gap-3 mb-12"
+        >
+          {CATEGORY_CHIPS.map(({ value, label, icon: Icon }) => (
+            <ToggleGroupItem
+              key={value}
+              value={value}
+              // The item brings the toggle behavior; Button keeps the chip look.
+              render={(props, state) => (
+                <Button
+                  {...props}
+                  className={undefined}
+                  size="lg"
+                  variant={state.pressed ? "maia" : "maia-outline"}
+                />
+              )}
+            >
+              <Icon data-icon="inline-start" />
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
 
         <h2 className="sr-only">Questions and answers</h2>
         <div className="min-h-100">
@@ -352,6 +345,8 @@ export function FAQPageClient() {
                 onClick={() => {
                   setSearchQuery("");
                   setActiveCategory("All");
+                  // This button leaves with the empty state.
+                  searchInputRef.current?.focus();
                 }}
                 className="mt-2 text-info"
               >

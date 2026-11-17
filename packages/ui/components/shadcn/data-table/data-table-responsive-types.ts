@@ -23,6 +23,8 @@ export type ViewMode = "table" | "card";
 export interface DataTableResponsiveProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  /** Accessible name of the table, e.g. "Giving history". Defaults to "Data table". */
+  label?: string;
   filterFields?: DataTableFilterField<TData>[];
   advancedFilterFields?: FilterFieldDefinition[];
   /**

@@ -81,6 +81,12 @@ export function DonorTasks({
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
   const deletionInFlight = React.useRef(false);
   const deleteActionRefs = React.useRef(new Map<string, HTMLElement>());
+  const checkboxRefs = React.useRef(new Map<string, HTMLElement>());
+  const completionFocus = React.useRef<{
+    taskId: string;
+    fallbackId: string | null;
+  } | null>(null);
+  const [completionFocusRequest, setCompletionFocusRequest] = React.useState(0);
   const deleteReturnFocus = React.useRef<HTMLElement | null>(null);
   const cancelDeleteRef = React.useRef<HTMLButtonElement | null>(null);
   const addTaskRef = React.useRef<HTMLButtonElement | null>(null);
@@ -92,19 +98,52 @@ export function DonorTasks({
     (task) => task.status === "completed",
   );
 
-  const handleComplete = async (task: Task) => {
-    if (task.status === "completed") {
-      await reopenTask(task.id);
-      return;
-    }
+  // The row that held focus unmounts as the task changes lists. Follow the
+  // task to its checkbox in the new list, unless the user has moved on. Use
+  // each request once: Activity re-runs effects when the page is shown again.
+  React.useEffect(() => {
+    const pending = completionFocus.current;
+    if (!pending) return;
+    completionFocus.current = null;
+    const current = document.activeElement;
+    if (current && current !== document.body && current.isConnected) return;
+    const target =
+      checkboxRefs.current.get(pending.taskId) ??
+      (pending.fallbackId
+        ? checkboxRefs.current.get(pending.fallbackId)
+        : undefined) ??
+      addTaskRef.current;
+    target?.focus();
+  }, [completionFocusRequest]);
 
-    await completeTask(task.id);
+  const handleComplete = async (task: Task) => {
+    const index = activeTasks.findIndex(({ id }) => id === task.id);
+    const fallback = activeTasks[index + 1] ?? activeTasks[index - 1] ?? null;
+    const changed =
+      task.status === "completed"
+        ? await reopenTask(task.id)
+        : await completeTask(task.id);
+    if (changed) {
+      completionFocus.current = {
+        taskId: task.id,
+        fallbackId: fallback?.id ?? null,
+      };
+      setCompletionFocusRequest((request) => request + 1);
+    }
   };
 
   const handleTaskSuccess = () => {
     refresh();
     setEditingTask(null);
     setTaskDialogOpen(false);
+  };
+
+  const handleRegisterCheckbox = (
+    taskId: string,
+    element: HTMLElement | null,
+  ) => {
+    if (element) checkboxRefs.current.set(taskId, element);
+    else checkboxRefs.current.delete(taskId);
   };
 
   const handleRegisterDeleteAction = (
@@ -218,6 +257,7 @@ export function DonorTasks({
               setEditingTask={setEditingTask}
               setTaskDialogOpen={setTaskDialogOpen}
               requestDelete={requestDelete}
+              onRegisterCheckbox={handleRegisterCheckbox}
               onRegisterDeleteAction={handleRegisterDeleteAction}
             />
           ) : null}
@@ -227,6 +267,7 @@ export function DonorTasks({
               completedTasks={completedTasks}
               handleComplete={handleComplete}
               requestDelete={requestDelete}
+              onRegisterCheckbox={handleRegisterCheckbox}
             />
           ) : null}
         </div>
@@ -297,6 +338,7 @@ function ActiveDonorTasks({
   setEditingTask,
   setTaskDialogOpen,
   requestDelete,
+  onRegisterCheckbox,
   onRegisterDeleteAction,
 }: {
   activeTasks: Task[];
@@ -304,6 +346,7 @@ function ActiveDonorTasks({
   setEditingTask: React.Dispatch<React.SetStateAction<Task | null>>;
   setTaskDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   requestDelete: (task: Task, trigger?: HTMLElement) => void;
+  onRegisterCheckbox: (taskId: string, element: HTMLElement | null) => void;
   onRegisterDeleteAction: (taskId: string, element: HTMLElement | null) => void;
 }) {
   return (
@@ -336,7 +379,8 @@ function ActiveDonorTasks({
           >
             <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
               <Checkbox
-                aria-label={`Complete ${task.title}`}
+                ref={(element) => onRegisterCheckbox(task.id, element)}
+                aria-label={`Mark ${task.title} complete`}
                 checked={false}
                 onCheckedChange={() => handleComplete(task)}
               />
@@ -387,7 +431,7 @@ function ActiveDonorTasks({
             <div className="transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  aria-label="Open actions"
+                  aria-label={`Actions for ${task.title}`}
                   ref={(element) => onRegisterDeleteAction(task.id, element)}
                   render={
                     <Button variant="ghost" size="icon-sm">
@@ -428,10 +472,12 @@ function CompletedDonorTasks({
   completedTasks,
   handleComplete,
   requestDelete,
+  onRegisterCheckbox,
 }: {
   completedTasks: Task[];
   handleComplete: (task: Task) => Promise<void>;
   requestDelete: (task: Task, trigger?: HTMLElement) => void;
+  onRegisterCheckbox: (taskId: string, element: HTMLElement | null) => void;
 }) {
   return (
     <div className="space-y-2">
@@ -456,8 +502,11 @@ function CompletedDonorTasks({
             className="group flex items-start gap-3 rounded-xl border border-transparent bg-muted/50 p-4"
           >
             <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
+              {/* One name in both states: the checked state says it is done,
+                  so unchecking is what reopens the task. */}
               <Checkbox
-                aria-label={`Complete ${task.title}`}
+                ref={(element) => onRegisterCheckbox(task.id, element)}
+                aria-label={`Mark ${task.title} complete`}
                 checked
                 onCheckedChange={() => handleComplete(task)}
               />

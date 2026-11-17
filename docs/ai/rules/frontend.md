@@ -28,6 +28,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 ### Component and primitive policy
 
 - One library owns a control's internal behavior; UI SDK code stays in a `packages/ui` wrapper. Prefer Base UI over Radix: add no `radix-ui` or `@radix-ui/*` imports, dependencies, or `--radix-*` CSS variables without a narrow Radix-specific need accepted in review.
+- Keyboard shortcuts register through `useShortcut` from `@asym/ui/components/primitives/shortcut`, and their visible hints and `aria-keyshortcuts` come from `useShortcutHint` or `ShortcutHint` with the same key string. Give each one a `description`: the Shift+? help (`ShortcutHelp`, mounted once per app shell) lists it from that. Do not add a `keydown` listener or platform sniffing for a shortcut.
 - Base UI components compose with the `render` prop — `asChild` does not exist here. For link-style buttons, prefer `buttonVariants` on the `Link`/`<a>` over rendering `Button` as a link.
 - State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated. UI SDK wrappers style that library's own documented `data-slot` and state attributes (for example `data-filled`) with semantic tokens, never its optional `web.css`.
 - Use `'use client'` only when required (hooks, state, browser APIs).

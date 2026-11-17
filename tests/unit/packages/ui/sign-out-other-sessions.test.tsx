@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -45,5 +46,39 @@ describe("SignOutOtherSessions", () => {
     expect((await screen.findByRole("alert")).textContent).toContain(
       "Other devices couldn’t be signed out. Try again.",
     );
+  });
+
+  it("keeps focus on the button while it works and ignores repeat presses", async () => {
+    let finish!: (value: { error: null }) => void;
+    auth.signOut.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    render(<SignOutOtherSessions />);
+    const button = screen.getByRole("button", {
+      name: "Sign out other devices",
+    });
+    button.focus();
+    fireEvent.click(button);
+
+    const pending = await screen.findByRole("button", {
+      name: "Signing out…",
+    });
+    expect(pending).toBe(button);
+    expect(document.activeElement).toBe(button);
+    expect(button.hasAttribute("disabled")).toBe(false);
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(button);
+    expect(auth.signOut).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      finish({ error: null });
+    });
+    expect(screen.getByRole("button", { name: "Sign out other devices" })).toBe(
+      button,
+    );
+    expect(button.getAttribute("aria-disabled")).not.toBe("true");
+    expect(document.activeElement).toBe(button);
   });
 });

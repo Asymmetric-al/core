@@ -53,8 +53,11 @@ export function SettingsToolbar({
         )}
         {status}
       </p>
+      {/* Both stay focusable when disabled: Save and Discard disable
+          themselves once the form is clean, and focus would drop to the page. */}
       <div className="flex items-center gap-2">
         <Button
+          focusableWhenDisabled
           type="button"
           variant="ghost"
           size="sm"
@@ -64,7 +67,7 @@ export function SettingsToolbar({
           Discard
         </Button>
         <Button
-          focusableWhenDisabled={isSaving}
+          focusableWhenDisabled
           type="button"
           size="sm"
           disabled={!isDirty || isSaving}

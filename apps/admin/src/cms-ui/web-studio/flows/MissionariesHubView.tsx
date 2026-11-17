@@ -31,7 +31,7 @@ import { useConfig } from "@payloadcms/ui";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, RotateCw, SearchX, UserRound } from "lucide-react";
 import { formatAdminURL } from "payload/shared";
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import {
   studioMissionaryContext,
@@ -162,7 +162,7 @@ function GivingPagesUnavailable({
   versionsOnly = false,
   isRetrying,
 }: {
-  onRetry: () => void;
+  onRetry: (button: HTMLButtonElement) => void;
   versionsOnly?: boolean;
   isRetrying: boolean;
 }) {
@@ -192,7 +192,8 @@ function GivingPagesUnavailable({
           versionsOnly ? "Retry publication status" : "Retry giving page status"
         }
         disabled={isRetrying}
-        onClick={onRetry}
+        focusableWhenDisabled={isRetrying}
+        onClick={(event) => onRetry(event.currentTarget)}
       >
         <RotateCw aria-hidden="true" />
         Retry
@@ -316,11 +317,27 @@ export function MissionariesHubView() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const pagesState: GivingPagesState = givingPagesQuery.isError
-    ? "unavailable"
-    : givingPagesQuery.isPending
-      ? "loading"
-      : "ready";
+  // A retry after a failed first load is pending again; status is still
+  // unknown, and its pressed Retry keeps focus until the retry settles.
+  const pagesState: GivingPagesState =
+    givingPagesQuery.isError ||
+    (givingPagesQuery.isPending && givingPagesQuery.errorUpdateCount > 0)
+      ? "unavailable"
+      : givingPagesQuery.isPending
+        ? "loading"
+        : "ready";
+  const pressedRetry = useRef<HTMLButtonElement | null>(null);
+
+  // Retry leaves once status loads; hand focus to the records it refreshed.
+  useLayoutEffect(() => {
+    const retry = pressedRetry.current;
+    if (!retry || retry.isConnected) return;
+    pressedRetry.current = null;
+    const { activeElement, body } = retry.ownerDocument;
+    if (!activeElement || activeElement === body) {
+      retry.ownerDocument.getElementById(recordsId)?.focus();
+    }
+  });
 
   const needle = search.trim().toLowerCase();
   const visibleRows = needle
@@ -444,7 +461,10 @@ export function MissionariesHubView() {
                   <>
                     <DataGridToolbarSpacer />
                     <GivingPagesUnavailable
-                      onRetry={() => void givingPagesQuery.refetch()}
+                      onRetry={(button) => {
+                        pressedRetry.current = button;
+                        void givingPagesQuery.refetch();
+                      }}
                       versionsOnly={pagesState !== "unavailable"}
                       isRetrying={givingPagesQuery.isFetching}
                     />

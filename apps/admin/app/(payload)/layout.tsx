@@ -1,3 +1,4 @@
+import { AgentBridge } from "@asym/ui/components/primitives/agent-bridge";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -35,6 +36,7 @@ import {
   PayloadDatabaseConfigurationError,
 } from "@/src/cms/payload-database-config";
 import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
+import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
 
 type Props = {
   children: React.ReactNode;
@@ -85,7 +87,15 @@ export const prefetch = "force-disabled";
 export default async function PayloadLayout({ children }: Props) {
   // Web Studio has no static shell; reach request time before rendering Payload.
   await connection();
-  return <PayloadEmbeddedLayout>{children}</PayloadEmbeddedLayout>;
+  return (
+    <>
+      <PayloadEmbeddedLayout>{children}</PayloadEmbeddedLayout>
+      {/* Web Studio renders outside Mission Control's shell, so it mounts
+          its own agent bridge: one per document, granting only a move in the
+          View menu's column order. */}
+      <AgentBridge allow={WEB_STUDIO_AGENT_PERMISSIONS} />
+    </>
+  );
 }
 
 async function PayloadEmbeddedLayout({ children }: Props) {

@@ -21,21 +21,38 @@ import { useSupportInboxState } from "../../lib/route-state";
  * `useSupportInboxState`, so deep links and saved views hydrate the toolbar
  * for free.
  */
-export function InboxToolbar() {
+export function InboxToolbar({
+  searchRef: searchRefProp,
+}: {
+  searchRef?: React.RefObject<HTMLInputElement | null>;
+} = {}) {
   const { state, setState } = useSupportInboxState();
+  const ownSearchRef = React.useRef<HTMLInputElement | null>(null);
+  const searchRef = searchRefProp ?? ownSearchRef;
 
   // Local mirror so typing isn't gated on URL replace latency.
   const [searchDraft, setSearchDraft] = React.useState(state.q);
   const [draftQuery, setDraftQuery] = React.useState(state.q);
+  // Queries this field sent that the URL has not reflected yet, oldest first.
+  const [sentQueries, setSentQueries] = React.useState<readonly string[]>([]);
 
   if (draftQuery !== state.q) {
     setDraftQuery(state.q);
-    setSearchDraft(state.q);
+    const echoIndex = sentQueries.indexOf(state.q);
+    if (echoIndex === -1) {
+      // Back/forward, a saved view or another control changed the search.
+      setSearchDraft(state.q);
+      setSentQueries([]);
+    } else {
+      // A late echo of our own query must not overwrite newer typing.
+      setSentQueries(sentQueries.slice(echoIndex + 1));
+    }
   }
 
   React.useEffect(() => {
     if (searchDraft === state.q) return;
     const handle = window.setTimeout(() => {
+      setSentQueries((sent) => [...sent, searchDraft]);
       setState({ q: searchDraft });
     }, 200);
     return () => window.clearTimeout(handle);
@@ -52,6 +69,7 @@ export function InboxToolbar() {
             <Search aria-hidden="true" />
           </InputGroupAddon>
           <InputGroupInput
+            ref={searchRef}
             value={searchDraft}
             onChange={(event) => setSearchDraft(event.target.value)}
             placeholder="Donor, subject or email…"
@@ -64,7 +82,11 @@ export function InboxToolbar() {
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Clear search"
-                onClick={() => setSearchDraft("")}
+                onClick={() => {
+                  // The button goes with the text; the search box keeps focus.
+                  searchRef.current?.focus();
+                  setSearchDraft("");
+                }}
               >
                 <X aria-hidden="true" />
               </InputGroupButton>
@@ -101,7 +123,9 @@ export function InboxToolbar() {
           variant="ghost"
           size="sm"
           onClick={() => {
+            searchRef.current?.focus();
             setSearchDraft("");
+            setSentQueries((sent) => [...sent, ""]);
             setState({ q: "", status: "all", labelSlugs: [], assignee: "" });
           }}
         >

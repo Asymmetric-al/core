@@ -55,8 +55,9 @@ three guides, the stack registry, one package readme, the skills lock, the
 skill source audit and maintenance log, the shadcn review baseline, and three
 unit tests. No runtime code changes.
 
-The work overlaps the instruction files that
-`integrate-ui-sdk-across-dashboards` (pull request 2694, not merged) edits, and
-the active `complete-base-ui-adoption` change still proposes that ordinary
-controls use Base UI primitives. The design says how each is reconciled.
+`integrate-ui-sdk-across-dashboards` (pull request 2694) merged while this
+change was in review and edited the same instruction files; this change is
+merged with it and keeps its shared-owner guidance. The active
+`complete-base-ui-adoption` change still proposes that ordinary controls use
+Base UI primitives; the design says how that is reconciled.
 Rollback reverts the change as one unit.

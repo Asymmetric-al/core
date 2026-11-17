@@ -14,6 +14,7 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { SelectionBarToolbar } from "../../data-grid-panel/data-grid-selection-bar";
 import { Button } from "../button";
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { ToolbarButton } from "../toolbar";
 import {
   areChromeTablePropsInterchangeable,
   areDataTableChromeActionsEqual,
@@ -99,105 +101,124 @@ function DataTableFloatingBarImpl<TData extends RowData>({
             reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8, scale: 0.98 }
           }
           transition={reduceMotion ? { duration: 0 } : transitionStandard}
-          role="toolbar"
-          aria-label="Selected record actions"
           className={cn(
             "fixed inset-x-4 bottom-4 z-50 mx-auto w-fit max-w-full",
-            "flex flex-wrap items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5",
+            "px-3 py-2 sm:px-4 sm:py-2.5",
             "bg-invert text-invert-foreground",
             "rounded-2xl shadow-2xl",
             className,
           )}
         >
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center justify-center size-6 rounded-full bg-invert-foreground/20">
-              <Check className="size-3.5" />
-            </div>
-            <span className="text-sm font-medium whitespace-nowrap">
-              {selectedCount} selected
-            </span>
-          </div>
-
-          {hasActions && (
-            <>
-              <div className="w-px h-5 bg-invert-foreground/20 mx-1" />
-
-              <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
-                {visibleActions.map((action) => (
-                  <Button
-                    key={action.label}
-                    aria-label={action.label}
-                    variant={
-                      action.variant === "destructive"
-                        ? "ghost-inverse-destructive"
-                        : "ghost-inverse"
-                    }
-                    size="sm"
-                    className="max-w-full"
-                    onClick={() => action.onClick(selectedOriginalRows)}
-                  >
-                    {action.icon && (
-                      <action.icon className="size-4" aria-hidden="true" />
-                    )}
-                    <span
-                      className={cn(
-                        "max-w-40 truncate text-sm",
-                        action.icon && "hidden sm:inline",
-                      )}
-                    >
-                      {action.label}
-                    </span>
-                  </Button>
-                ))}
-
-                {overflowActions.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      aria-label="Open actions"
-                      render={
-                        <Button variant="ghost-inverse" size="icon-sm">
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      }
-                    />
-                    <DropdownMenuContent align="end">
-                      {overflowActions.map((action, index) => (
-                        <React.Fragment key={action.label}>
-                          {action.variant === "destructive" && index > 0 && (
-                            <DropdownMenuSeparator />
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => action.onClick(selectedOriginalRows)}
-                            variant={
-                              action.variant === "destructive"
-                                ? "destructive"
-                                : "default"
-                            }
-                          >
-                            {action.icon && <action.icon className="size-4" />}
-                            <span className="min-w-0 wrap-break-word">
-                              {action.label}
-                            </span>
-                          </DropdownMenuItem>
-                        </React.Fragment>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+          {/* Design-system lint keeps box and layout classes off the shared
+              Toolbar: the animated element draws the bar, the div lays it out. */}
+          <SelectionBarToolbar aria-label="Selected record actions">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center justify-center size-6 rounded-full bg-invert-foreground/20">
+                  <Check className="size-3.5" />
+                </div>
+                <span className="text-sm font-medium whitespace-nowrap">
+                  {selectedCount} selected
+                </span>
               </div>
 
-              <div className="w-px h-5 bg-invert-foreground/20 mx-1" />
-            </>
-          )}
+              {hasActions && (
+                <>
+                  <div className="w-px h-5 bg-invert-foreground/20 mx-1" />
 
-          <Button
-            variant="ghost-inverse"
-            size="icon-sm"
-            onClick={() => table.toggleAllPageRowsSelected(false)}
-          >
-            <X className="size-4" aria-hidden="true" />
-            <span className="sr-only">Clear selection</span>
-          </Button>
+                  <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
+                    {visibleActions.map((action) => (
+                      <ToolbarButton
+                        key={action.label}
+                        render={
+                          <Button
+                            aria-label={action.label}
+                            variant={
+                              action.variant === "destructive"
+                                ? "ghost-inverse-destructive"
+                                : "ghost-inverse"
+                            }
+                            size="sm"
+                            className="max-w-full"
+                            onClick={() => action.onClick(selectedOriginalRows)}
+                          />
+                        }
+                      >
+                        {action.icon && (
+                          <action.icon className="size-4" aria-hidden="true" />
+                        )}
+                        <span
+                          className={cn(
+                            "max-w-40 truncate text-sm",
+                            action.icon && "hidden sm:inline",
+                          )}
+                        >
+                          {action.label}
+                        </span>
+                      </ToolbarButton>
+                    ))}
+
+                    {overflowActions.length > 0 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label="Open actions"
+                          render={
+                            <ToolbarButton
+                              render={
+                                <Button variant="ghost-inverse" size="icon-sm">
+                                  <MoreHorizontal className="size-4" />
+                                </Button>
+                              }
+                            />
+                          }
+                        />
+                        <DropdownMenuContent align="end">
+                          {overflowActions.map((action, index) => (
+                            <React.Fragment key={action.label}>
+                              {action.variant === "destructive" &&
+                                index > 0 && <DropdownMenuSeparator />}
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  action.onClick(selectedOriginalRows)
+                                }
+                                variant={
+                                  action.variant === "destructive"
+                                    ? "destructive"
+                                    : "default"
+                                }
+                              >
+                                {action.icon && (
+                                  <action.icon className="size-4" />
+                                )}
+                                <span className="min-w-0 wrap-break-word">
+                                  {action.label}
+                                </span>
+                              </DropdownMenuItem>
+                            </React.Fragment>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+
+                  <div className="w-px h-5 bg-invert-foreground/20 mx-1" />
+                </>
+              )}
+
+              <ToolbarButton
+                render={
+                  <Button
+                    variant="ghost-inverse"
+                    size="icon-sm"
+                    onClick={() => table.toggleAllPageRowsSelected(false)}
+                  />
+                }
+              >
+                <X className="size-4" aria-hidden="true" />
+                <span className="sr-only">Clear selection</span>
+              </ToolbarButton>
+            </div>
+          </SelectionBarToolbar>
         </m.div>
       </AnimatePresence>
     </LazyMotion>

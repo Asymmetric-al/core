@@ -61,6 +61,11 @@ export default defineConfig({
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
       /** Tests live outside `packages/ui`; pin MapLibre so `vi.mock("maplibre-gl")` patches the same module as the Map primitive. */
       "maplibre-gl": path.join(rootDir, "packages/ui/node_modules/maplibre-gl"),
+      /** Only `packages/ui` installs UI SDK. Tests live outside it, so pin its testing kit (`checkPattern`, `setPlatform`) to that one copy. */
+      "@ui-sdk/core/testing": path.join(
+        rootDir,
+        "packages/ui/node_modules/@ui-sdk/core/dist/testing.js",
+      ),
       /** Tests live outside `packages/database`; pin the Supabase adapter so `vi.mock("@supabase-labs/tanstack-db")` patches the same module as `@asym/database`. */
       "@supabase-labs/tanstack-db": path.join(
         rootDir,

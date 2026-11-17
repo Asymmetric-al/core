@@ -110,12 +110,14 @@ costs about 13,000 tokens in each session and helps one client only.
 
 ## Risks
 
-- **Overlap with `integrate-ui-sdk-across-dashboards` (pull request 2694).**
-  Both edit `packages/ui/AGENTS.md`, the frontend rulebook, the `ui-sdk`
-  overlay, the audit and the shadcn baseline. Its proposal, read on that
-  branch, adds requirements under different names, so the deltas should not
-  collide; that was not re-checked against a merged tree. Whichever merges second
-  reconciles the text and re-binds the two baseline hashes.
+- **`integrate-ui-sdk-across-dashboards` (pull request 2694) merged first.**
+  It edited `packages/ui/AGENTS.md`, the frontend rulebook, the `ui-sdk`
+  overlay, the audit and the shadcn baseline. This change is merged with it:
+  its shared owners (shortcuts, the sortable list, the one agent bridge, the
+  pattern checks) and its shortcut rule are kept, the overlay's triggers now
+  point at those owners, and the two baseline hashes and the audit hashes were
+  recomputed from the merged files. Its requirements are additions under
+  different names, and delta compatibility passes with both changes active.
 - **`complete-base-ui-adoption` is still active.** Its proposed requirement
   "Shared accessible primitive ownership" says ordinary behavior-heavy controls
   use shared Base UI primitives. It is a proposal, not accepted intent, and

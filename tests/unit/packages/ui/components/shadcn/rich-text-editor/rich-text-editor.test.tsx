@@ -300,6 +300,56 @@ describe("rich-text-editor/rich-text-editor", () => {
     expect(root?.className).not.toContain("opacity-50");
   });
 
+  it("describes the editable textbox, not its wrapper, and follows a changed description", async () => {
+    const editor = (describedBy?: string) => (
+      <EditorRoot
+        aria-label="Care note"
+        aria-describedby={describedBy}
+        value="<p>Visited on Tuesday</p>"
+        onChange={vi.fn()}
+      >
+        <EditorContent />
+      </EditorRoot>
+    );
+    const { container, rerender } = render(editor("care-note-help"));
+
+    const textbox = await screen.findByRole("textbox", { name: "Care note" });
+    expect(textbox.getAttribute("aria-describedby")).toBe("care-note-help");
+    expect(
+      container
+        .querySelector('[data-slot="rich-text-editor"]')
+        ?.hasAttribute("aria-describedby"),
+    ).toBe(false);
+
+    rerender(editor());
+    await waitFor(() => {
+      expect(textbox.hasAttribute("aria-describedby")).toBe(false);
+    });
+    rerender(editor("care-note-locked"));
+    await waitFor(() => {
+      expect(textbox.getAttribute("aria-describedby")).toBe("care-note-locked");
+    });
+  });
+
+  it("passes a description through the legacy editor and keeps its read-only text undimmed", async () => {
+    const { container } = render(
+      <LegacyRichTextEditor
+        aria-label="Update"
+        aria-describedby="update-locked"
+        value="<p>Kept draft</p>"
+        onChange={vi.fn()}
+        readOnly
+        variant="feed"
+        toolbarPosition="bottom"
+      />,
+    );
+
+    const textbox = await screen.findByRole("textbox", { name: "Update" });
+    expect(textbox.getAttribute("aria-describedby")).toBe("update-locked");
+    expect(textbox.textContent).toBe("Kept draft");
+    expect(container.querySelector(".opacity-50")).toBeNull();
+  });
+
   it("marks a disabled editor for assistive tech and keeps its prompt readable", async () => {
     render(
       <EditorRoot

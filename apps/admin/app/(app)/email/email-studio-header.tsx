@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ShortcutHint,
+  useShortcutHint,
+} from "@asym/ui/components/primitives/shortcut";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -13,7 +17,6 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Kbd } from "@asym/ui/components/shadcn/kbd";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import {
   ToggleGroup,
@@ -40,9 +43,16 @@ import {
   Plus,
 } from "lucide-react";
 
-import { usePlatformModifierLabel } from "../../../features/studios/use-platform-modifier";
-
 import type { EmailMetadata, PreviewDevice } from "./email-studio-types";
+
+// One key string per action: the page registers it and the header prints it.
+export const EMAIL_STUDIO_SHORTCUTS = {
+  save: "mod+s",
+  undo: "mod+z",
+  redo: "mod+shift+z",
+  exportHtml: "mod+e",
+  exitFullscreen: "escape",
+} as const;
 
 type EmailStudioHeaderProps = {
   metadata: EmailMetadata;
@@ -59,6 +69,7 @@ type EmailStudioHeaderProps = {
   onUndo: () => void;
   onRedo: () => void;
   onPreview: (device: PreviewDevice) => void;
+  onPreviewDeviceChange: (device: PreviewDevice) => void;
   onExportHtml: () => void;
   onTestSend: () => void;
   onInsertMergeTag: (key: string) => void;
@@ -83,6 +94,7 @@ export function EmailStudioHeader({
   onUndo,
   onRedo,
   onPreview,
+  onPreviewDeviceChange,
   onExportHtml,
   onTestSend,
   onInsertMergeTag,
@@ -91,7 +103,13 @@ export function EmailStudioHeader({
   onLoadTemplate,
   onToggleFullscreen,
 }: EmailStudioHeaderProps) {
-  const modifier = usePlatformModifierLabel();
+  const saveShortcut = useShortcutHint(EMAIL_STUDIO_SHORTCUTS.save);
+  const undoShortcut = useShortcutHint(EMAIL_STUDIO_SHORTCUTS.undo);
+  const redoShortcut = useShortcutHint(EMAIL_STUDIO_SHORTCUTS.redo);
+  const exportShortcut = useShortcutHint(EMAIL_STUDIO_SHORTCUTS.exportHtml);
+  const exitFullscreenShortcut = useShortcutHint(
+    EMAIL_STUDIO_SHORTCUTS.exitFullscreen,
+  );
   return (
     <header className="flex flex-wrap items-center gap-3 border-b bg-card px-4 py-2">
       <h1 className="sr-only">Email Studio</h1>
@@ -132,13 +150,14 @@ export function EmailStudioHeader({
                 onClick={onUndo}
                 disabled={!isEditorReady || !canUndo}
                 aria-label="Undo"
+                aria-keyshortcuts={undoShortcut.ariaKeyshortcuts}
               >
                 <Undo2 aria-hidden="true" />
               </Button>
             }
           />
           <TooltipContent>
-            Undo <Kbd>{modifier}+Z</Kbd>
+            Undo <ShortcutHint keys={EMAIL_STUDIO_SHORTCUTS.undo} />
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -150,13 +169,14 @@ export function EmailStudioHeader({
                 onClick={onRedo}
                 disabled={!isEditorReady || !canRedo}
                 aria-label="Redo"
+                aria-keyshortcuts={redoShortcut.ariaKeyshortcuts}
               >
                 <Redo2 aria-hidden="true" />
               </Button>
             }
           />
           <TooltipContent>
-            Redo <Kbd>{modifier}+Shift+Z</Kbd>
+            Redo <ShortcutHint keys={EMAIL_STUDIO_SHORTCUTS.redo} />
           </TooltipContent>
         </Tooltip>
       </div>
@@ -186,7 +206,7 @@ export function EmailStudioHeader({
         onValueChange={(groupValue) => {
           const next = groupValue[0];
           if (next === "desktop" || next === "mobile") {
-            onPreview(next);
+            onPreviewDeviceChange(next);
           }
         }}
         disabled={!canPreview}
@@ -226,6 +246,7 @@ export function EmailStudioHeader({
         size="sm"
         onClick={onSaveClick}
         disabled={!isEditorReady || isSaving || isSendingTest}
+        aria-keyshortcuts={saveShortcut.ariaKeyshortcuts}
       >
         {isSaving ? (
           <Spinner data-icon="inline-start" />
@@ -269,10 +290,16 @@ export function EmailStudioHeader({
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={onExportHtml} disabled={!isEditorReady}>
+            <DropdownMenuItem
+              onClick={onExportHtml}
+              disabled={!isEditorReady}
+              aria-keyshortcuts={exportShortcut.ariaKeyshortcuts}
+            >
               <Download aria-hidden="true" />
               Export as HTML
-              <DropdownMenuShortcut>{modifier}+E</DropdownMenuShortcut>
+              <DropdownMenuShortcut aria-hidden="true">
+                {exportShortcut.text}
+              </DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
@@ -286,6 +313,11 @@ export function EmailStudioHeader({
               size="icon-sm"
               onClick={onToggleFullscreen}
               aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              aria-keyshortcuts={
+                isFullscreen
+                  ? exitFullscreenShortcut.ariaKeyshortcuts
+                  : undefined
+              }
             >
               {isFullscreen ? (
                 <Minimize2 aria-hidden="true" />

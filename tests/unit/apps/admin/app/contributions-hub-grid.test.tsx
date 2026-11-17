@@ -264,12 +264,14 @@ describe("Contributions hub grid", () => {
     });
     firstPrimary.focus();
     fireEvent.keyDown(firstPrimary, { key: " " });
-    const bar = screen.getByRole("toolbar", {
+    const bar = screen.getByRole("group", {
+      name: "1 contribution selected",
+    });
+    const actions = within(bar).getByRole("toolbar", {
       name: "Selected record actions",
     });
-    expect(within(bar).getByText("1 contribution selected")).toBeTruthy();
     expect(
-      within(bar).getByRole("button", { name: "Send receipts…" }),
+      within(actions).getByRole("button", { name: "Send receipts…" }),
     ).toBeTruthy();
     // Bulk delete only toasted "coming soon"; it is not offered.
     expect(within(bar).queryByRole("button", { name: /delete/i })).toBeNull();
@@ -575,7 +577,7 @@ describe("Contributions hub grid", () => {
     const onSelectContribution = vi.fn();
     renderHub(rows, { onSelectContribution });
     const trigger = screen.getByRole("button", {
-      name: "Contribution actions for Kenji Nakamura",
+      name: /^Contribution actions for \$100\.00 from Kenji Nakamura on /,
     });
     // The menu trigger sits inside a clickable row; its click must stay with
     // the menu.
@@ -603,11 +605,10 @@ describe("Contributions hub grid", () => {
 
     search("kenji");
 
-    const bar = screen.getByRole("toolbar", {
-      name: "Selected record actions",
-    });
     // The bar counts what staff can see, and says what the filters hide.
-    expect(within(bar).getByText("1 contribution selected")).toBeTruthy();
+    const bar = screen.getByRole("group", {
+      name: "1 contribution selected",
+    });
     expect(
       within(bar).getByText("1 hidden by filters won't be included"),
     ).toBeTruthy();
@@ -631,8 +632,8 @@ describe("Contributions hub grid", () => {
     const primary = screen.getByRole("button", { name: /^Kenji Nakamura/ });
     primary.focus();
     fireEvent.keyDown(primary, { key: " " });
-    const bar = screen.getByRole("toolbar", {
-      name: "Selected record actions",
+    const bar = screen.getByRole("group", {
+      name: "1 contribution selected",
     });
     expect(within(bar).queryByText(/hidden by filters/)).toBeNull();
   });

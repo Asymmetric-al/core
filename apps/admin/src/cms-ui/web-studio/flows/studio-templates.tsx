@@ -7,7 +7,7 @@ import { useAuth, useConfig } from "@payloadcms/ui";
 import { useQuery } from "@tanstack/react-query";
 import { LayoutTemplate } from "lucide-react";
 import { formatAdminURL } from "payload/shared";
-import { useId } from "react";
+import { useEffect, useId, useLayoutEffect, useRef } from "react";
 
 import { StudioFlowFieldNote, StudioSelectField } from "./studio-flow-frame";
 import { PAGE_TEMPLATES_SLUG } from "../../../cms/constants";
@@ -129,6 +129,35 @@ export function StudioTemplateField({
   // chosen template's name confirms the pick.
   const templates = useStudioTemplates();
   const titleId = useId();
+  const generatedFieldId = useId();
+  const fieldId = id ?? generatedFieldId;
+  const changeRef = useRef<HTMLAnchorElement>(null);
+  const pressedTryAgain = useRef<HTMLButtonElement | null>(null);
+  const deferredFocus = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(deferredFocus.current), []);
+
+  // Try again leaves once templates load; hand focus to the template field.
+  useLayoutEffect(() => {
+    const button = pressedTryAgain.current;
+    if (!button || button.isConnected) return;
+    pressedTryAgain.current = null;
+    const doc = button.ownerDocument;
+    const focusField = (orNote: boolean) => {
+      const note = doc.getElementById(`${fieldId}-note`);
+      const targets = [
+        changeRef.current ?? doc.getElementById(fieldId),
+        ...(orNote ? [note?.querySelector<HTMLElement>("a[href]"), note] : []),
+      ];
+      for (const target of targets) {
+        if (doc.activeElement && doc.activeElement !== doc.body) return;
+        target?.focus();
+      }
+    };
+    focusField(false);
+    // Base UI's select drops `disabled` in its own layout effect, a render
+    // after this one; a select still disabled then has nothing to pick.
+    deferredFocus.current = setTimeout(() => focusField(true));
+  });
   const { permissions } = useAuth();
   const canCreateTemplate = canCreateCollection(
     permissions,
@@ -138,7 +167,12 @@ export function StudioTemplateField({
   const chosen = templates.data?.find(
     (template) => String(template.id) === selectedId,
   );
-  const problem = templates.isError
+  // A retry after a failed first load is pending again: keep the note, so
+  // its pressed Try again keeps focus until the retry settles.
+  const loadFailed =
+    templates.isError ||
+    (templates.isPending && templates.errorUpdateCount > 0);
+  const problem = loadFailed
     ? "Templates didn't load. Check your connection and try again."
     : templates.isPending || !selectedId
       ? null
@@ -163,7 +197,11 @@ export function StudioTemplateField({
             variant="outline"
             size="sm"
             disabled={templates.isFetching}
-            onClick={() => void templates.refetch()}
+            focusableWhenDisabled={templates.isFetching}
+            onClick={(event) => {
+              pressedTryAgain.current = event.currentTarget;
+              void templates.refetch();
+            }}
           >
             Try again
           </Button>
@@ -211,6 +249,7 @@ export function StudioTemplateField({
             )}
           </div>
           <Link
+            ref={changeRef}
             href={galleryHref}
             className={buttonVariants({ variant: "ghost", size: "sm" })}
           >
@@ -231,7 +270,7 @@ export function StudioTemplateField({
 
   return (
     <StudioSelectField
-      id={id}
+      id={fieldId}
       label="Template"
       items={options}
       value={value}

@@ -82,7 +82,9 @@ afterEach(cleanup);
 
 async function openDeleteConfirmation() {
   fireEvent.click(screen.getByRole("button", { name: "List view" }));
-  const trigger = await screen.findByRole("button", { name: "Open actions" });
+  const trigger = await screen.findByRole("button", {
+    name: "Actions for Call partner",
+  });
   trigger.focus();
   fireEvent.click(trigger);
   fireEvent.click(
@@ -204,7 +206,7 @@ it.each(["Cancel", "Escape"])(
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
     expect(tasks.deleteTask).not.toHaveBeenCalled();
     expect(
-      screen.getByRole("checkbox", { name: "Complete Call partner" }),
+      screen.getByRole("checkbox", { name: "Mark Call partner complete" }),
     ).toBeTruthy();
     await waitFor(() => expect(document.activeElement).toBe(trigger));
   },
@@ -234,7 +236,7 @@ it("closes only after successful deletion and focuses Add Task after the row is 
 
   await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
   expect(
-    screen.queryByRole("checkbox", { name: "Complete Call partner" }),
+    screen.queryByRole("checkbox", { name: "Mark Call partner complete" }),
   ).toBeNull();
   await waitFor(() =>
     expect(document.activeElement).toBe(

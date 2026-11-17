@@ -182,7 +182,8 @@ it("announces profile saving and completion while keeping the save action disabl
   view.rerender(<DonorSettingsPage />);
   expect(screen.getByRole("status").textContent).toBe("Saving…");
   const save = screen.getByRole("button", { name: "Saving…" });
-  expect(save.getAttribute("aria-disabled")).toBe("true");
+  // A submit button is natively disabled, so Enter in a field cannot submit.
+  expect(save.hasAttribute("disabled")).toBe(true);
   fireEvent.click(save);
   expect(fixture.mutateAsync).toHaveBeenCalledTimes(1);
   await act(async () => {
@@ -191,6 +192,80 @@ it("announces profile saving and completion while keeping the save action disabl
   fixture.pending = false;
   view.rerender(<DonorSettingsPage />);
   expect(screen.getByRole("status").textContent).toBe("Saved.");
+});
+
+// jsdom has no implicit submission; a browser answers Enter in a text field
+// by clicking the form's first submit button unless that button is disabled.
+function pressEnterIn(field: HTMLInputElement) {
+  fireEvent.keyDown(field, { key: "Enter" });
+  const defaultButton = Array.from(field.form?.elements ?? []).find(
+    (element): element is HTMLButtonElement =>
+      element instanceof HTMLButtonElement && element.type === "submit",
+  );
+  if (defaultButton && !defaultButton.disabled) defaultButton.click();
+}
+
+it("saves profile details once when Enter is pressed in a field", async () => {
+  fixture.mutateAsync.mockResolvedValue(undefined);
+  render(<DonorSettingsPage />);
+  const firstName = screen.getByRole<HTMLInputElement>("textbox", {
+    name: "First name",
+  });
+  fireEvent.change(firstName, { target: { value: "Entered name" } });
+  const save = screen.getByRole<HTMLButtonElement>("button", {
+    name: "Save changes",
+  });
+  expect(save.type).toBe("submit");
+  expect(firstName.form).not.toBeNull();
+  expect(save.form).toBe(firstName.form);
+
+  pressEnterIn(firstName);
+  await waitFor(() => expect(fixture.mutateAsync).toHaveBeenCalledTimes(1));
+  expect(fixture.mutateAsync.mock.calls[0]![0]).toMatchObject({
+    firstName: "Entered name",
+  });
+});
+
+it("keeps focus with the save action while the profile saves", async () => {
+  let complete!: () => void;
+  fixture.mutateAsync.mockImplementation(
+    () =>
+      new Promise<void>((resolve) => {
+        complete = resolve;
+      }),
+  );
+  const view = render(<DonorSettingsPage />);
+  const save = screen.getByRole<HTMLButtonElement>("button", {
+    name: "Save changes",
+  });
+  save.focus();
+  fireEvent.click(save);
+  fixture.pending = true;
+  view.rerender(<DonorSettingsPage />);
+  expect(save.disabled).toBe(true);
+  // Focus parks on the form, so it needs a name to announce.
+  expect(document.activeElement).toBe(
+    screen.getByRole("form", { name: "Your details" }),
+  );
+  await act(async () => {
+    complete();
+  });
+  fixture.pending = false;
+  view.rerender(<DonorSettingsPage />);
+  expect(save.disabled).toBe(false);
+  expect(document.activeElement).toBe(save);
+});
+
+it("does not save from Enter while a profile save is pending", () => {
+  fixture.pending = true;
+  render(<DonorSettingsPage />);
+  const firstName = screen.getByRole<HTMLInputElement>("textbox", {
+    name: "First name",
+  });
+  expect(firstName.form).not.toBeNull();
+  pressEnterIn(firstName);
+  fireEvent.submit(firstName.form!);
+  expect(fixture.mutateAsync).not.toHaveBeenCalled();
 });
 
 it.each([false, true])(

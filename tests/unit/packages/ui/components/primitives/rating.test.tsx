@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import "./ui-sdk-strict";
+
 import { execFileSync } from "node:child_process";
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";

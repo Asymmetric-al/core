@@ -84,6 +84,8 @@ type WorkerFeedPageViewModel = {
   /** The update waiting for delete confirmation, if any. */
   pendingDelete: Post | null;
   isDeleting: boolean;
+  /** Why the last delete failed, shown in the still-open confirmation. */
+  deleteError: string | null;
   requestDeletePost: (postId: string) => void;
   cancelDeletePost: () => void;
   confirmDeletePost: () => Promise<void>;
@@ -301,6 +303,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deletionInFlight = useRef(false);
 
   // Requests go through the never-throwing fetch helpers, so no try/finally
   // is needed (the React Compiler cannot lower those yet). Every state
@@ -549,9 +553,15 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         finishSave(save, false);
         if (result.error.kind === "http" && result.error.status === 401)
           revokeRead();
-        if (result.error.kind === "http" && result.error.status === 403)
+        if (result.error.kind === "http" && result.error.status === 403) {
           revokeWrite();
-        toast.error("Couldn’t save your update. Try again.");
+          // Matches the composer's read-only notice: retrying cannot help.
+          toast.error(
+            "Your updates are read-only, so this wasn’t saved. Your draft is kept.",
+          );
+        } else {
+          toast.error("Couldn’t save your update. Try again.");
+        }
       }
       manualSaving.current = false;
       setIsSaving(false);
@@ -689,18 +699,29 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
   const pendingDelete =
     [...posts, ...drafts].find((post) => post.id === pendingDeleteId) ?? null;
-  const requestDeletePost = (postId: string) => setPendingDeleteId(postId);
-  const cancelDeletePost = () => setPendingDeleteId(null);
+  const requestDeletePost = (postId: string) => {
+    setDeleteError(null);
+    setPendingDeleteId(postId);
+  };
+  // A delete under way can't be abandoned; the confirmation stays until it settles.
+  const cancelDeletePost = () => {
+    if (deletionInFlight.current) return;
+    setDeleteError(null);
+    setPendingDeleteId(null);
+  };
   const confirmDeletePost = async () => {
     const postId = pendingDeleteId;
-    if (!postId) return;
+    if (!postId || deletionInFlight.current) return;
+    deletionInFlight.current = true;
     setIsDeleting(true);
+    setDeleteError(null);
     const result = await fetchResult(`/api/posts/${postId}`, {
       method: "DELETE",
     });
+    deletionInFlight.current = false;
     setIsDeleting(false);
     if (!result.ok) {
-      toast.error("Couldn’t delete that update. Try again.");
+      setDeleteError("Couldn’t delete that update. Try again.");
       return;
     }
     setPendingDeleteId(null);
@@ -773,6 +794,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     cancelEditing,
     pendingDelete,
     isDeleting,
+    deleteError,
     requestDeletePost,
     cancelDeletePost,
     confirmDeletePost,
