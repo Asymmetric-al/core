@@ -20,7 +20,6 @@ import {
   Item,
   ItemContent,
   ItemDescription,
-  ItemGroup,
   ItemMedia,
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
@@ -85,32 +84,33 @@ export function EmailStudioTemplatePickerDialog({
             </EmptyHeader>
           </Empty>
         ) : (
-          <ItemGroup className="max-h-90 overflow-y-auto">
+          <ul className="flex max-h-90 flex-col overflow-y-auto">
             {templates.map((template) => (
-              <Item
-                key={template.id}
-                render={
-                  <button type="button" onClick={() => onSelect(template)} />
-                }
-                size="sm"
-                className="w-full"
-              >
-                <ItemMedia variant="icon">
-                  <FolderOpen />
-                </ItemMedia>
-                <ItemContent className="min-w-0">
-                  <ItemTitle className="truncate">{template.name}</ItemTitle>
-                  <ItemDescription>
-                    {template.builder === "react_email"
-                      ? "Editable template"
-                      : "Older template (read-only)"}{" "}
-                    · Version {template.version}
-                  </ItemDescription>
-                </ItemContent>
-                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-              </Item>
+              <li key={template.id} className="flex">
+                <Item
+                  render={
+                    <button type="button" onClick={() => onSelect(template)} />
+                  }
+                  size="sm"
+                  className="w-full"
+                >
+                  <ItemMedia variant="icon">
+                    <FolderOpen />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0">
+                    <ItemTitle className="truncate">{template.name}</ItemTitle>
+                    <ItemDescription>
+                      {template.builder === "react_email"
+                        ? "Editable template"
+                        : "Older template (read-only)"}{" "}
+                      · Version {template.version}
+                    </ItemDescription>
+                  </ItemContent>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                </Item>
+              </li>
             ))}
-          </ItemGroup>
+          </ul>
         )}
       </DialogContent>
     </Dialog>

@@ -17,6 +17,10 @@ import {
 
 import type { ReactNode } from "react";
 
+export interface SupportEditorHandle {
+  focus: () => void;
+}
+
 interface SupportTipTapEditorProps {
   /** Tiptap document JSON serialized as a string (or empty for blank state). */
   value: string;
@@ -24,6 +28,7 @@ interface SupportTipTapEditorProps {
   placeholder?: string;
   disabled?: boolean;
   active?: boolean;
+  handleRef?: React.Ref<SupportEditorHandle>;
   /**
    * Visual mode tints the editor card so agents can never confuse a public
    * reply with an internal note.
@@ -44,6 +49,7 @@ export function SupportTipTapEditor({
   placeholder,
   disabled,
   active = true,
+  handleRef,
   tone = "reply",
   beforeBody,
   footer,
@@ -69,7 +75,7 @@ export function SupportTipTapEditor({
       // Compact: in the desktop pane the thread needs the height.
       editorClassName="min-h-20 text-sm leading-relaxed text-foreground"
     >
-      <EditorFocus active={active} />
+      <EditorFocus active={active} handleRef={handleRef} />
       {beforeToolbar ? (
         <div className="border-b border-border bg-muted/40 px-3 py-1.5">
           {beforeToolbar}
@@ -88,8 +94,23 @@ export function SupportTipTapEditor({
   );
 }
 
-function EditorFocus({ active }: { active: boolean }) {
+function EditorFocus({
+  active,
+  handleRef,
+}: {
+  active: boolean;
+  handleRef?: React.Ref<SupportEditorHandle>;
+}) {
   const { editor } = useEditorContext();
+  React.useImperativeHandle(
+    handleRef,
+    () => ({
+      focus: () => {
+        if (editor?.isEditable) editor.commands.focus("end");
+      },
+    }),
+    [editor],
+  );
   React.useEffect(() => {
     if (active && editor?.isEditable) editor.commands.focus("end");
   }, [active, editor]);

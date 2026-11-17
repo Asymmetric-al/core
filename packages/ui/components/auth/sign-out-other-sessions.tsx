@@ -31,6 +31,7 @@ export function SignOutOtherSessions() {
           variant="outline"
           onClick={handleClick}
           disabled={state === "working"}
+          focusableWhenDisabled
         >
           {state === "working" ? "Signing out…" : "Sign out other devices"}
         </Button>

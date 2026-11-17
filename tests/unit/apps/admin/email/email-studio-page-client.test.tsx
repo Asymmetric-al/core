@@ -3,12 +3,24 @@
 import React from "react";
 import { getQueryClient, QueryProvider } from "@asym/database/providers";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@asym/ui/components/shadcn/sheet";
+import {
   cleanup,
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
 
@@ -547,8 +559,22 @@ function stubStudioFetch(
   return fetchMock;
 }
 
+/**
+ * A real key press goes to the focused element, or the page when nothing has
+ * focus. Returns whether the studio took the key from the browser.
+ */
+function pressKey(init: KeyboardEventInit) {
+  return !fireEvent.keyDown(document.activeElement ?? document.body, init);
+}
+
+/** UI SDK wraps hints in left-to-right isolates so a right-to-left page never reorders them. */
+const plain = (text: string | null | undefined) =>
+  (text ?? "").replace(/[⁦⁩]/g, "");
+
 describe("EmailStudio page", () => {
   beforeEach(() => {
+    // Control is `mod` unless a test picks Apple.
+    setPlatform("other");
     getQueryClient().clear();
     editorHandle.appliedDesign = {};
     editorHandle.exportEmail.mockClear();
@@ -569,6 +595,7 @@ describe("EmailStudio page", () => {
     cleanup();
     getQueryClient().clear();
     vi.unstubAllGlobals();
+    setPlatform("other");
   });
 
   it("tracks available editor history after changes and after undo", async () => {
@@ -598,6 +625,24 @@ describe("EmailStudio page", () => {
     expect(
       screen.getByRole("button", { name: "Redo", exact: true }),
     ).toHaveProperty("disabled", false);
+  });
+
+  it("keeps undoing and redoing while the keys are held", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(pressKey({ key: "z", ctrlKey: true })).toBe(true);
+    expect(pressKey({ key: "z", ctrlKey: true, repeat: true })).toBe(true);
+    expect(pressKey({ key: "z", ctrlKey: true, repeat: true })).toBe(true);
+    expect(editorHandle.undo).toHaveBeenCalledTimes(3);
+    expect(
+      pressKey({ key: "z", ctrlKey: true, shiftKey: true, repeat: true }),
+    ).toBe(true);
+    expect(editorHandle.redo).toHaveBeenCalledOnce();
   });
 
   it("cancels or confirms a new template without prematurely replacing the draft", async () => {
@@ -664,10 +709,15 @@ describe("EmailStudio page", () => {
     expect((saveButton as HTMLButtonElement).disabled).toBe(true);
     expect((exportButton as HTMLButtonElement).disabled).toBe(true);
 
-    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    // Save keeps the key so the browser's "Save page" stays closed; undo and
+    // export go back to the browser while nothing can be edited.
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(pressKey({ key: "z", ctrlKey: true })).toBe(false);
+    expect(pressKey({ key: "e", ctrlKey: true })).toBe(false);
     await waitFor(() => {
       expect(screen.queryByText("Save email template")).toBeNull();
     });
+    expect(editorHandle.undo).not.toHaveBeenCalled();
     expect(editorHandle.exportEmail).not.toHaveBeenCalled();
     expect(screen.queryByTestId("react-email-editor")).toBeNull();
   });
@@ -807,7 +857,7 @@ describe("EmailStudio page", () => {
     ).toBe(false);
     expect(editorHandle.loadDesign).not.toHaveBeenCalled();
 
-    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
     expect(await screen.findByText("Save email template")).toBeTruthy();
   });
 
@@ -875,7 +925,7 @@ describe("EmailStudio page", () => {
         .disabled,
     ).toBe(true);
 
-    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
     expect(screen.queryByText("Save email template")).toBeNull();
 
     editorReadyControl.fireReady?.();
@@ -927,7 +977,7 @@ describe("EmailStudio page", () => {
         .disabled,
     ).toBe(true);
 
-    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
     expect(screen.queryByText("Save email template")).toBeNull();
 
     editorReadyControl.fireReady?.();
@@ -978,7 +1028,7 @@ describe("EmailStudio page", () => {
       (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
         .disabled,
     ).toBe(true);
-    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
     expect(screen.queryByText("Save email template")).toBeNull();
   });
 
@@ -1155,7 +1205,8 @@ describe("EmailStudio page", () => {
       expect(saveButton.getAttribute("aria-disabled")).toBeNull();
     });
 
-    fireEvent.keyDown(recipient, { key: "s", metaKey: true });
+    recipient.focus();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
     expect(screen.queryByText("Save email template")).toBeNull();
 
     resolveTestSend?.(
@@ -1235,10 +1286,315 @@ describe("EmailStudio page", () => {
     await screen.findByTestId("react-email-editor");
     const nameInput = screen.getByPlaceholderText("Untitled email");
     nameInput.focus();
-    fireEvent.keyDown(nameInput, { key: "z", metaKey: true });
+    expect(pressKey({ key: "z", ctrlKey: true })).toBe(false);
+    expect(pressKey({ key: "Z", ctrlKey: true, shiftKey: true })).toBe(false);
+    expect(pressKey({ key: "e", ctrlKey: true })).toBe(false);
 
     expect(editorHandle.undo).not.toHaveBeenCalled();
+    expect(editorHandle.redo).not.toHaveBeenCalled();
+    expect(editorHandle.exportEmail).not.toHaveBeenCalled();
   });
+
+  it("runs undo, redo and export from the page with this platform's modifier only", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+
+    expect(pressKey({ key: "z", metaKey: true })).toBe(false);
+    expect(editorHandle.undo).not.toHaveBeenCalled();
+
+    editorHandle.canRedo.mockReturnValue(true);
+    expect(pressKey({ key: "z", ctrlKey: true })).toBe(true);
+    expect(editorHandle.undo).toHaveBeenCalledOnce();
+    expect(editorHandle.redo).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("button", { name: "Redo", exact: true }),
+    ).toHaveProperty("disabled", false);
+
+    expect(pressKey({ key: "Z", ctrlKey: true, shiftKey: true })).toBe(true);
+    expect(editorHandle.redo).toHaveBeenCalledOnce();
+    expect(editorHandle.undo).toHaveBeenCalledOnce();
+
+    expect(pressKey({ key: "e", ctrlKey: true })).toBe(true);
+    expect(await screen.findByText("Exported HTML")).toBeTruthy();
+  });
+
+  it("takes Save from the browser while typing in a field and while a dialog holds focus", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+
+    screen.getByPlaceholderText("Untitled email").focus();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(await screen.findByText("Save email template")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /dismiss dialog/i }));
+    expect(screen.queryByText("Save email template")).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Preview", exact: true }),
+    );
+    const preview = await screen.findByRole("dialog", {
+      name: "Email preview",
+    });
+    const closePreview = screen.getByRole("button", { name: "Close preview" });
+    expect(preview.contains(closePreview)).toBe(true);
+    closePreview.focus();
+    // The dialog pauses undo; Save keeps the key but never opens a second
+    // dialog beside it.
+    expect(pressKey({ key: "z", ctrlKey: true })).toBe(false);
+    expect(editorHandle.undo).not.toHaveBeenCalled();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(screen.queryByText("Save email template")).toBeNull();
+  });
+
+  it("never opens Save over a studio dialog or the leave-page alert", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    const expectSaveStaysClosed = (focusTarget: HTMLElement) => {
+      focusTarget.focus();
+      expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+      expect(screen.queryByText("Save email template")).toBeNull();
+    };
+    const dismiss = () =>
+      fireEvent.click(screen.getByRole("button", { name: /dismiss dialog/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+    expectSaveStaysClosed(screen.getByLabelText(/recipient/i));
+    dismiss();
+
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(pressKey({ key: "e", ctrlKey: true })).toBe(true);
+    await screen.findByText("Exported HTML");
+    expectSaveStaysClosed(
+      screen.getByRole("button", { name: /dismiss dialog/i }),
+    );
+    dismiss();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open template", exact: true }),
+    );
+    await screen.findByText(
+      "Choose a saved email template to load into the editor.",
+    );
+    expectSaveStaysClosed(
+      screen.getByRole("button", { name: /dismiss dialog/i }),
+    );
+    dismiss();
+
+    fireEvent.change(screen.getByPlaceholderText("Untitled email"), {
+      target: { value: "Keep this draft" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /more email template actions/i }),
+    );
+    fireEvent.click(screen.getByText("New template", { exact: true }));
+    expectSaveStaysClosed(
+      await screen.findByRole("button", { name: "Keep editing" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Keep editing" })).toBeNull(),
+    );
+
+    // The shell's leave-page alert is a sibling alert dialog, not studio state.
+    const shellAlert = render(
+      <AlertDialog open>
+        <AlertDialogContent>
+          <AlertDialogTitle>Leave this page?</AlertDialogTitle>
+          <AlertDialogCancel>Stay on page</AlertDialogCancel>
+        </AlertDialogContent>
+      </AlertDialog>,
+    );
+    expectSaveStaysClosed(
+      await screen.findByRole("button", { name: "Stay on page" }),
+    );
+    shellAlert.unmount();
+
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(await screen.findByText("Save email template")).toBeTruthy();
+  });
+
+  it("never opens Save over a dialog the studio does not track", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    // The shell's Eve sheet is a real Base UI dialog outside the studio's own
+    // state (this file stubs the shared Dialog).
+    const outsideDialog = render(
+      <Sheet open>
+        <SheetContent>
+          <SheetTitle>Eve</SheetTitle>
+          <input aria-label="Ask Eve" />
+        </SheetContent>
+      </Sheet>,
+    );
+    (await screen.findByRole("textbox", { name: "Ask Eve" })).focus();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(screen.queryByText("Save email template")).toBeNull();
+
+    outsideDialog.unmount();
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(await screen.findByText("Save email template")).toBeTruthy();
+  });
+
+  it("submits the open Save dialog from the keyboard instead of opening another", async () => {
+    const fetchMock = stubStudioFetch();
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    await screen.findByText("Save email template");
+    const name = screen.getByPlaceholderText("e.g., Monthly newsletter");
+    fireEvent.change(name, { target: { value: "April campaign" } });
+    name.focus();
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.filter(
+          ([requestUrl, init]) =>
+            String(requestUrl) === "/api/email/templates" &&
+            String((init as RequestInit | undefined)?.method) === "POST",
+        ),
+      ).toHaveLength(1);
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("Save email template")).toBeNull();
+    });
+  });
+
+  it("chooses the preview device in the header without opening the preview", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+
+    fireEvent.click(screen.getByTestId("toggle-group-change"));
+    expect(screen.queryByRole("dialog", { name: "Email preview" })).toBeNull();
+    expect(editorHandle.exportEmail).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Preview", exact: true }),
+    );
+    expect(
+      await screen.findByRole("dialog", { name: "Email preview" }),
+    ).toBeTruthy();
+  });
+
+  it("keeps Save from the browser while the key is held down", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
+    expect(await screen.findByText("Save email template")).toBeTruthy();
+    expect(pressKey({ key: "s", ctrlKey: true, repeat: true })).toBe(true);
+  });
+
+  it("leaves fullscreen on Escape, and takes Escape only while fullscreen and not typing", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+    await screen.findByTestId("react-email-editor");
+    expect(pressKey({ key: "Escape" })).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: /^fullscreen$/i }));
+    const exitFullscreen = screen.getByRole("button", {
+      name: /^exit fullscreen$/i,
+    });
+    expect(exitFullscreen.getAttribute("aria-keyshortcuts")).toBe("Escape");
+
+    screen.getByPlaceholderText("Untitled email").focus();
+    expect(pressKey({ key: "Escape" })).toBe(false);
+    expect(screen.getByRole("button", { name: /^exit fullscreen$/i })).toBe(
+      exitFullscreen,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Preview", exact: true }),
+    );
+    await screen.findByRole("dialog", { name: "Email preview" });
+    screen.getByRole("button", { name: "Close preview" }).focus();
+    expect(pressKey({ key: "Escape" })).toBe(false);
+    expect(
+      screen.getByRole("button", { name: /^exit fullscreen$/i }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Close preview" }));
+
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(pressKey({ key: "Escape" })).toBe(true);
+    const fullscreen = screen.getByRole("button", { name: /^fullscreen$/i });
+    expect(fullscreen.hasAttribute("aria-keyshortcuts")).toBe(false);
+  });
+
+  it.each([
+    ["other", "ctrlKey", "metaKey", "Control", ["Ctrl+Z", "Ctrl+Shift+Z"]],
+    ["apple", "metaKey", "ctrlKey", "Meta", ["⌘Z", "⌘⇧Z"]],
+  ] as const)(
+    "advertises and runs the same keys on the %s platform",
+    async (platform, modifier, otherModifier, ariaModifier, historyHints) => {
+      setPlatform(platform);
+      render(
+        <QueryProvider>
+          <EmailStudio />
+        </QueryProvider>,
+      );
+      await screen.findByTestId("react-email-editor");
+
+      const save = screen.getByRole("button", { name: /^save$/i });
+      await waitFor(() =>
+        expect(save.getAttribute("aria-keyshortcuts")).toBe(
+          `${ariaModifier}+S`,
+        ),
+      );
+      expect(
+        screen
+          .getByRole("button", { name: "Undo", exact: true })
+          .getAttribute("aria-keyshortcuts"),
+      ).toBe(`${ariaModifier}+Z`);
+      expect(
+        screen
+          .getByRole("button", { name: "Redo", exact: true })
+          .getAttribute("aria-keyshortcuts"),
+      ).toBe(`${ariaModifier}+Shift+Z`);
+      expect(
+        Array.from(document.querySelectorAll("kbd"), (kbd) =>
+          plain(kbd.textContent),
+        ),
+      ).toEqual(historyHints);
+
+      expect(pressKey({ key: "s", [otherModifier]: true })).toBe(false);
+      expect(screen.queryByText("Save email template")).toBeNull();
+      expect(pressKey({ key: "s", [modifier]: true })).toBe(true);
+      expect(await screen.findByText("Save email template")).toBeTruthy();
+    },
+  );
 
   it("exposes accessible names on icon-only toolbar controls", async () => {
     render(
@@ -1369,7 +1725,7 @@ describe("EmailStudio page", () => {
         .disabled,
     ).toBe(true);
 
-    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    expect(pressKey({ key: "s", ctrlKey: true })).toBe(true);
     expect(screen.queryByText("Save email template")).toBeNull();
 
     editorReadyControl.fireReady?.();

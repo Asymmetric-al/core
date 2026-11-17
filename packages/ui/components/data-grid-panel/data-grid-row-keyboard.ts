@@ -11,6 +11,24 @@ export const DATA_GRID_ROW_PRIMARY_ATTRIBUTE = "data-grid-row-primary";
 const PRIMARY_SELECTOR = `[${DATA_GRID_ROW_PRIMARY_ATTRIBUTE}]`;
 const ROW_SELECTOR = '[data-slot="data-grid-panel-row"], tr[data-row-id]';
 const PAGE_STEP = 10;
+// Other controls in a row keep their own keys (Space presses a menu trigger,
+// ArrowDown opens its menu); the row keys come from its primary control.
+const ROW_CONTROL_SELECTOR = [
+  "a[href]",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "summary",
+  '[role="button"]',
+  '[role="checkbox"]',
+  '[role="combobox"]',
+  '[role="link"]',
+  '[role="menuitem"]',
+  '[role="switch"]',
+  "[contenteditable]",
+].join(",");
 
 function primaryTargets(container: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -20,6 +38,16 @@ function primaryTargets(container: HTMLElement): HTMLElement[] {
 
 function rowOf(element: Element): Element | null {
   return element.closest(ROW_SELECTOR);
+}
+
+function isRowKeyTarget(target: Element, row: Element, key: string): boolean {
+  const primary = target.closest(PRIMARY_SELECTOR);
+  if (primary && row.contains(primary)) return true;
+  const control = target.closest(ROW_CONTROL_SELECTOR);
+  if (!control || !row.contains(control)) return true;
+  // The row's selection checkbox has no use for the row keys, so they still
+  // move and select from it; only Space, its own toggle, stays with it.
+  return control.matches('[role="checkbox"]') && key !== " ";
 }
 
 /**
@@ -67,7 +95,9 @@ export interface DataGridRowKeyboardOptions {
  * ArrowUp/ArrowDown move between rows, Ctrl/Cmd+Home/End jump to the first or
  * last row, PageUp/PageDown move ten rows, Space toggles the row's selection
  * checkbox and Ctrl/Cmd+A selects all rows. Enter activates the focused
- * primary control natively (it is a button or link).
+ * primary control natively (it is a button or link). Keys pressed on any other
+ * control in the row (menu trigger, link) stay with that control; the row's
+ * checkbox keeps only Space.
  *
  * Returns `true` when the event was handled.
  */
@@ -86,7 +116,9 @@ export function handleDataGridRowKeyDown(
     return false;
   }
   const currentRow = rowOf(target);
-  if (!currentRow) return false;
+  if (!currentRow || !isRowKeyTarget(target, currentRow, event.key)) {
+    return false;
+  }
 
   const targets = primaryTargets(container);
   if (targets.length === 0) return false;
@@ -138,10 +170,10 @@ export function handleDataGridRowKeyDown(
       break;
     }
     case " ": {
-      // Space on a button would activate it; on rows it means "select".
+      // Space on the primary button would activate it; on rows it means "select".
       const checkbox =
         currentRow.querySelector<HTMLElement>('[role="checkbox"]');
-      if (!checkbox || target === checkbox) return false;
+      if (!checkbox) return false;
       checkbox.click();
       break;
     }

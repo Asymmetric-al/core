@@ -23,13 +23,16 @@ import {
 import { Skeleton } from "./skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { mergeBaseUIClassName } from "../../lib/base-ui";
+import { useShortcut, useShortcutHint } from "../primitives/shortcut";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "13rem";
 const SIDEBAR_WIDTH_MOBILE = "16rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
-const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+const SIDEBAR_KEYBOARD_SHORTCUT = "mod+b";
+const mobileSheet = () =>
+  document.querySelector('[data-sidebar="sidebar"][data-mobile="true"]');
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -92,32 +95,12 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile]);
 
-  // Adds a keyboard shortcut to toggle the sidebar.
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target;
-      const editing =
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target.closest(
-            "input, textarea, select, [contenteditable]:not([contenteditable='false']), [role='textbox']",
-          ) !== null);
-      if (
-        !event.defaultPrevented &&
-        !event.isComposing &&
-        !event.repeat &&
-        !editing &&
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
+  // Typing and open dialogs or menus keep the key (see `useShortcut`).
+  // On phones the sidebar is a modal sheet; its own keys close it again.
+  useShortcut(SIDEBAR_KEYBOARD_SHORTCUT, toggleSidebar, {
+    description: "Toggle sidebar",
+    overlay: mobileSheet,
+  });
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
@@ -287,11 +270,13 @@ function SidebarTrigger({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar();
+  const shortcut = useShortcutHint(SIDEBAR_KEYBOARD_SHORTCUT);
 
   return (
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
+      aria-keyshortcuts={shortcut.ariaKeyshortcuts}
       variant="ghost"
       size={size ?? "icon"}
       className={mergeBaseUIClassName(

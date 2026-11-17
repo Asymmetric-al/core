@@ -89,6 +89,9 @@ export function CommentsDialog({
   canComment = true,
 }: CommentsDialogProps): React.JSX.Element {
   const [content, setContent] = React.useState("");
+  const titleRef = React.useRef<HTMLHeadingElement>(null);
+  const retryRef = React.useRef<HTMLButtonElement>(null);
+  const retrying = React.useRef(false);
   const queryClient = useQueryClient();
   const queryKey = commentsQueryKey(updateId);
 
@@ -104,6 +107,19 @@ export function CommentsDialog({
     enabled: open,
     staleTime: 30_000,
   });
+
+  // A retry removes the focused Try again (at once when nothing is cached):
+  // focus waits on the heading and returns to a new Try again if it fails.
+  React.useLayoutEffect(() => {
+    if (!retrying.current) return;
+    const active = document.activeElement;
+    const parked =
+      !active || active === document.body || active === titleRef.current;
+    if (!isFetching) retrying.current = false;
+    if (!parked) return;
+    if (!isFetching && isError) retryRef.current?.focus();
+    else titleRef.current?.focus();
+  }, [isError, isFetching]);
 
   const addComment = useMutation({
     mutationFn: (text: string) => transport.addComment(updateId, text),
@@ -144,13 +160,34 @@ export function CommentsDialog({
     },
   });
 
-  const handleSubmit = (event: React.FormEvent) => {
+  // Posting disables the input and Send, which would drop focus to the page:
+  // focus waits on the form, then goes to the cleared input, or after a
+  // failure back to where the comment was sent from.
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const sendRef = React.useRef<HTMLButtonElement>(null);
+  const returnFocusTo = React.useRef<HTMLElement | null>(null);
+  React.useLayoutEffect(() => {
+    const target = returnFocusTo.current;
+    if (addComment.isPending || !target) return;
+    returnFocusTo.current = null;
+    if (document.activeElement !== formRef.current) return;
+    (addComment.isError ? target : inputRef.current)?.focus();
+  }, [addComment.isPending, addComment.isError]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (addComment.isPending) return;
     const trimmed = content.trim();
-    if (trimmed) {
-      addComment.mutate(trimmed);
+    if (!trimmed) return;
+    const form = event.currentTarget;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && form.contains(active)) {
+      // Safari focuses the form, not the button, on a click on Send.
+      returnFocusTo.current = active === form ? sendRef.current : active;
+      form.focus({ preventScroll: true });
     }
+    addComment.mutate(trimmed);
   };
 
   return (
@@ -158,7 +195,9 @@ export function CommentsDialog({
       <DialogContent className="sm:max-w-md">
         <div className="flex max-h-[70vh] flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Comments</DialogTitle>
+            <DialogTitle ref={titleRef} tabIndex={-1}>
+              Comments
+            </DialogTitle>
           </DialogHeader>
 
           <ScrollArea className="flex-1 pr-4">
@@ -172,9 +211,14 @@ export function CommentsDialog({
                   Couldn&apos;t load comments. Please try again.
                 </p>
                 <Button
+                  ref={retryRef}
                   variant="outline"
                   disabled={isFetching}
-                  onClick={() => void refetch()}
+                  focusableWhenDisabled
+                  onClick={() => {
+                    retrying.current = true;
+                    void refetch();
+                  }}
                 >
                   Try again
                 </Button>
@@ -219,10 +263,13 @@ export function CommentsDialog({
           {canComment ? (
             <>
               <form
+                ref={formRef}
+                tabIndex={-1}
                 onSubmit={handleSubmit}
-                className="flex gap-2 border-t pt-4"
+                className="flex gap-2 border-t pt-4 outline-none"
               >
                 <Input
+                  ref={inputRef}
                   value={content}
                   onChange={(event) => setContent(event.target.value)}
                   placeholder="Add a comment..."
@@ -231,10 +278,10 @@ export function CommentsDialog({
                   aria-label="Comment text"
                 />
                 <Button
+                  ref={sendRef}
                   type="submit"
                   size="icon"
                   disabled={!content.trim() || addComment.isPending}
-                  focusableWhenDisabled={addComment.isPending}
                   aria-label="Send comment"
                 >
                   {addComment.isPending ? (

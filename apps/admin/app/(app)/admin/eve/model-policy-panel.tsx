@@ -35,6 +35,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@asym/ui/components/shadcn/collapsible";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -55,7 +56,7 @@ import {
   Network,
   ShieldCheck,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { EveUnavailableSections, useEveSectionReady } from "./section-states";
 
@@ -280,6 +281,7 @@ function PolicyLifecycleRow({
             <Button
               size="sm"
               variant="outline"
+              aria-label={`Run policy eval: Policy v${policy.version}`}
               disabled={isPending}
               onClick={() =>
                 onMutate({
@@ -295,7 +297,14 @@ function PolicyLifecycleRow({
             <AlertDialog>
               <AlertDialogTrigger
                 disabled={isPending}
-                render={<Button size="sm">Activate eval-passed policy</Button>}
+                render={
+                  <Button
+                    size="sm"
+                    aria-label={`Activate eval-passed policy: Policy v${policy.version}`}
+                  >
+                    Activate eval-passed policy
+                  </Button>
+                }
               />
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -333,7 +342,11 @@ function PolicyLifecycleRow({
               <AlertDialogTrigger
                 disabled={isPending}
                 render={
-                  <Button size="sm" variant="destructive">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    aria-label={`Roll back: Policy v${policy.version}`}
+                  >
                     Roll back
                   </Button>
                 }
@@ -568,6 +581,26 @@ function EveModelPolicyOverrideCard({
   onOverrideUsdChange: (value: string) => void;
   onSubmit: () => void;
 }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+  const scopeIdRef = useRef<HTMLInputElement>(null);
+  const reasonRef = useRef<HTMLInputElement>(null);
+  const scopeIdMissing = !overrideScopeId.trim();
+  const reasonMissing = !overrideReason.trim();
+  const scopeIdError =
+    showErrors && scopeIdMissing ? "Enter a scope identifier." : undefined;
+  const reasonError =
+    showErrors && reasonMissing ? "Enter a reason." : undefined;
+  const review = () => {
+    if (isPending) return;
+    if (scopeIdMissing || reasonMissing) {
+      setShowErrors(true);
+      (scopeIdMissing ? scopeIdRef : reasonRef).current?.focus();
+      return;
+    }
+    setConfirmOpen(true);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -582,114 +615,152 @@ function EveModelPolicyOverrideCard({
           Every override requires the dedicated permission and is audited.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label id="eve-override-scope-type-label">Scope type</Label>
-          <Select
-            items={{ role: "Role", subagent: "Subagent" }}
-            value={overrideScopeType}
-            onValueChange={(value) => {
-              if (value === "role" || value === "subagent") {
-                onOverrideScopeTypeChange(value);
-              }
-            }}
-          >
-            <SelectTrigger
-              id="eve-override-scope-type"
-              aria-labelledby="eve-override-scope-type-label"
-              className="w-full"
+      <CardContent>
+        <form
+          noValidate
+          className="grid gap-4 md:grid-cols-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            review();
+          }}
+        >
+          <div className="space-y-2">
+            <Label id="eve-override-scope-type-label">Scope type</Label>
+            <Select
+              items={{ role: "Role", subagent: "Subagent" }}
+              value={overrideScopeType}
+              onValueChange={(value) => {
+                if (value === "role" || value === "subagent") {
+                  onOverrideScopeTypeChange(value);
+                }
+              }}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="role">Role</SelectItem>
-              <SelectItem value="subagent">Subagent</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="eve-override-scope-id">Scope identifier</Label>
-          <Input
-            id="eve-override-scope-id"
-            value={overrideScopeId}
-            onChange={(event) => onOverrideScopeIdChange(event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="eve-override-usd">Additional spend (USD)</Label>
-          <Input
-            id="eve-override-usd"
-            max="100"
-            step="0.01"
-            inputMode="decimal"
-            min="0"
-            type="number"
-            value={overrideUsd}
-            onChange={(event) => onOverrideUsdChange(event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="eve-override-requests">
-            Additional requests/minute
-          </Label>
-          <Input
-            id="eve-override-requests"
-            max="1000"
-            min="0"
-            type="number"
-            value={overrideRequests}
-            onChange={(event) => onOverrideRequestsChange(event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="eve-override-minutes">Expiry in minutes</Label>
-          <Input
-            id="eve-override-minutes"
-            max="1440"
-            min="1"
-            type="number"
-            value={overrideMinutes}
-            onChange={(event) => onOverrideMinutesChange(event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="eve-override-reason">Reason</Label>
-          <Input
-            id="eve-override-reason"
-            value={overrideReason}
-            onChange={(event) => onOverrideReasonChange(event.target.value)}
-          />
-        </div>
-        <div className="md:col-span-2">
-          <AlertDialog>
-            <AlertDialogTrigger
-              disabled={
-                isPending || !overrideScopeId.trim() || !overrideReason.trim()
-              }
-              render={
-                <Button variant="destructive">Review emergency override</Button>
+              <SelectTrigger
+                id="eve-override-scope-type"
+                aria-labelledby="eve-override-scope-type-label"
+                className="w-full"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="role">Role</SelectItem>
+                <SelectItem value="subagent">Subagent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eve-override-scope-id">Scope identifier</Label>
+            <Input
+              ref={scopeIdRef}
+              id="eve-override-scope-id"
+              value={overrideScopeId}
+              onChange={(event) => onOverrideScopeIdChange(event.target.value)}
+              aria-invalid={scopeIdError ? true : undefined}
+              aria-describedby={
+                scopeIdError ? "eve-override-scope-id-error" : undefined
               }
             />
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Grant a temporary hard-limit increase?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This applies only to {overrideScopeType} {overrideScopeId},
-                  expires automatically, and creates a permanent accountable
-                  audit record. It does not bypass any other governance gate.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={onSubmit}>
-                  Confirm bounded override
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+            {scopeIdError ? (
+              <FieldError id="eve-override-scope-id-error">
+                {scopeIdError}
+              </FieldError>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eve-override-usd">Additional spend (USD)</Label>
+            <Input
+              id="eve-override-usd"
+              max="100"
+              step="0.01"
+              inputMode="decimal"
+              min="0"
+              type="number"
+              value={overrideUsd}
+              onChange={(event) => onOverrideUsdChange(event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eve-override-requests">
+              Additional requests/minute
+            </Label>
+            <Input
+              id="eve-override-requests"
+              max="1000"
+              min="0"
+              type="number"
+              value={overrideRequests}
+              onChange={(event) => onOverrideRequestsChange(event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eve-override-minutes">Expiry in minutes</Label>
+            <Input
+              id="eve-override-minutes"
+              max="1440"
+              min="1"
+              type="number"
+              value={overrideMinutes}
+              onChange={(event) => onOverrideMinutesChange(event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eve-override-reason">Reason</Label>
+            <Input
+              ref={reasonRef}
+              id="eve-override-reason"
+              value={overrideReason}
+              onChange={(event) => onOverrideReasonChange(event.target.value)}
+              aria-invalid={reasonError ? true : undefined}
+              aria-describedby={
+                reasonError ? "eve-override-reason-error" : undefined
+              }
+            />
+            {reasonError ? (
+              <FieldError id="eve-override-reason-error">
+                {reasonError}
+              </FieldError>
+            ) : null}
+          </div>
+          <div className="md:col-span-2">
+            {/* A disabled submit Button is natively disabled and drops focus,
+                so it is a plain button while pending; both branches keep one
+                DOM node. */}
+            {isPending ? (
+              <Button
+                type="button"
+                variant="destructive"
+                focusableWhenDisabled
+                disabled
+              >
+                Review emergency override
+              </Button>
+            ) : (
+              <Button type="submit" variant="destructive">
+                Review emergency override
+              </Button>
+            )}
+          </div>
+        </form>
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Grant a temporary hard-limit increase?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This applies only to {overrideScopeType} {overrideScopeId},
+                expires automatically, and creates a permanent accountable audit
+                record. It does not bypass any other governance gate.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={onSubmit}>
+                Confirm bounded override
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

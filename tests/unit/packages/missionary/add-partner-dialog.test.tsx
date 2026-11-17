@@ -246,4 +246,62 @@ describe("AddPartnerDialog public form behavior", () => {
     await openDialog();
     expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("");
   });
+
+  it("parks focus on the form while adding, then returns it to Add Partner on failure", async () => {
+    let resolveInsert!: (value: { error: Error }) => void;
+    boundary.insert.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveInsert = resolve;
+        }),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <AddPartnerDialog
+        missionaryId="missionary-fixture"
+        trigger={<Button>Open partner</Button>}
+      />,
+    );
+    const dialog = await openDialog();
+    fillValidFields();
+    const save = screen.getByRole("button", {
+      name: "Add Partner",
+      exact: true,
+    });
+    await waitFor(() => expect(save.hasAttribute("disabled")).toBe(false));
+    save.focus();
+    fireEvent.click(save);
+    await screen.findByRole("button", { name: "Adding partner" });
+    const form = dialog.querySelector("form");
+    expect(document.activeElement).toBe(form);
+    expect(form?.tabIndex).toBe(-1);
+    await act(async () => {
+      resolveInsert({ error: new Error("Fixture rejected insert") });
+    });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Add Partner", exact: true }),
+      ),
+    );
+  });
+
+  it("moves focus to the first invalid field when validation stops the save", async () => {
+    render(
+      <AddPartnerDialog
+        missionaryId="missionary-fixture"
+        trigger={<Button>Open partner</Button>}
+      />,
+    );
+    await openDialog();
+    const save = screen.getByRole("button", {
+      name: "Add Partner",
+      exact: true,
+    });
+    save.focus();
+    fireEvent.click(save);
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByLabelText("Name")),
+    );
+    expect(boundary.insert).not.toHaveBeenCalled();
+  });
 });

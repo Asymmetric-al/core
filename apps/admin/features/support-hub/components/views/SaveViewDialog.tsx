@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -73,11 +74,14 @@ function SaveViewForm({
     editingView?.scope ?? "personal",
   );
 
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const [nameError, setNameError] = React.useState("");
   const trimmed = name.trim();
 
   const handleSave = async () => {
     if (trimmed.length === 0) {
-      toast.info("Give the view a name first.");
+      setNameError("Enter a view name.");
+      nameRef.current?.focus();
       return;
     }
     if (scope === "workspace" && !access.canManageAll) return;
@@ -122,68 +126,89 @@ function SaveViewForm({
           search so the team can return to the same slice with one click.
         </DialogDescription>
       </DialogHeader>
-      <div className="flex flex-col gap-4 py-2">
-        <div className="space-y-2">
-          <Label htmlFor="support-save-view-name">Name</Label>
-          <Input
-            id="support-save-view-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Mine - Open"
-            maxLength={80}
-            autoFocus
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Scope</Label>
-          <RadioGroup
-            aria-label="Scope"
-            value={scope}
-            onValueChange={(next) => setScope(next as "personal" | "workspace")}
-          >
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="personal" id="scope-personal" />
-              <Label htmlFor="scope-personal">Just me</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem
-                value="workspace"
-                id="scope-workspace"
-                disabled={!access.canManageAll}
-                aria-describedby={
-                  !access.canManageAll ? "workspace-scope-reason" : undefined
-                }
-              />
-              <Label htmlFor="scope-workspace">Whole workspace</Label>
-            </div>
-          </RadioGroup>
-          {!access.canManageAll && (
-            <p
-              id="workspace-scope-reason"
-              className="text-xs text-muted-foreground"
+      {/* `contents` keeps the dialog's grid spacing between body and footer. */}
+      <form
+        className="contents"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!saveSavedView.isPending) void handleSave();
+        }}
+      >
+        <div className="flex flex-col gap-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="support-save-view-name">Name</Label>
+            <Input
+              id="support-save-view-name"
+              ref={nameRef}
+              value={name}
+              aria-invalid={nameError ? true : undefined}
+              aria-describedby={
+                nameError ? "support-save-view-name-error" : undefined
+              }
+              onChange={(event) => {
+                setName(event.target.value);
+                setNameError("");
+              }}
+              placeholder="Mine - Open"
+              maxLength={80}
+              autoFocus
+            />
+            <FieldError id="support-save-view-name-error">
+              {nameError}
+            </FieldError>
+          </div>
+          <div className="space-y-2">
+            <Label id="support-save-view-scope">Scope</Label>
+            <RadioGroup
+              aria-labelledby="support-save-view-scope"
+              value={scope}
+              onValueChange={(next) =>
+                setScope(next as "personal" | "workspace")
+              }
             >
-              Only support admins can share a view with the whole workspace.
-            </p>
-          )}
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="personal" id="scope-personal" />
+                <Label htmlFor="scope-personal">Just me</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem
+                  value="workspace"
+                  id="scope-workspace"
+                  disabled={!access.canManageAll}
+                  aria-describedby={
+                    !access.canManageAll ? "workspace-scope-reason" : undefined
+                  }
+                />
+                <Label htmlFor="scope-workspace">Whole workspace</Label>
+              </div>
+            </RadioGroup>
+            {!access.canManageAll && (
+              <p
+                id="workspace-scope-reason"
+                className="text-xs text-muted-foreground"
+              >
+                Only support admins can share a view with the whole workspace.
+              </p>
+            )}
+          </div>
         </div>
-      </div>
-      <DialogFooter>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onOpenChange(false)}
-        >
-          Cancel
-        </Button>
-        <Button
-          focusableWhenDisabled={saveSavedView.isPending}
-          type="button"
-          onClick={handleSave}
-          disabled={saveSavedView.isPending || trimmed.length === 0}
-        >
-          {editingView ? "Save changes" : "Save view"}
-        </Button>
-      </DialogFooter>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            focusableWhenDisabled={saveSavedView.isPending}
+            type="submit"
+            disabled={saveSavedView.isPending}
+          >
+            {editingView ? "Save changes" : "Save view"}
+          </Button>
+        </DialogFooter>
+      </form>
     </>
   );
 }

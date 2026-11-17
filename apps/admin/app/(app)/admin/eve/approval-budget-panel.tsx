@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -39,7 +40,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { Gauge, ShieldCheck } from "lucide-react";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 
 import { EveSectionEmpty } from "./section-states";
 
@@ -136,6 +137,16 @@ async function requestPolicy(body?: MutationBody): Promise<ResponseBody> {
 
 function formatNumber(value: number) {
   return NUMBER_FORMATTER_1.format(value);
+}
+
+const TARGET_KEY_PATTERN = /^[a-zA-Z0-9:_-]+$/;
+
+function targetKeyError(targetKey: string) {
+  if (!targetKey) return "Enter a target key.";
+  if (!TARGET_KEY_PATTERN.test(targetKey)) {
+    return "Use only letters, numbers, colons, underscores and hyphens.";
+  }
+  return undefined;
 }
 
 export function EveApprovalBudgetPanel() {
@@ -252,6 +263,23 @@ function ApprovalPolicySection({
   setTargetKey: Dispatch<SetStateAction<string>>;
   matchingApproval: ResponseBody["approvals"][number] | undefined;
 }) {
+  const [showErrors, setShowErrors] = useState(false);
+  const targetRef = useRef<HTMLInputElement>(null);
+  const targetError = showErrors ? targetKeyError(targetKey) : undefined;
+  const submit = (action: "execute" | "request_approval") => {
+    if (mutation.isPending) return;
+    if (targetKeyError(targetKey)) {
+      setShowErrors(true);
+      targetRef.current?.focus();
+      return;
+    }
+    mutation.mutate(
+      action === "execute"
+        ? { action, actionId, targetKey, approvalId: matchingApproval?.id }
+        : { action, actionId, targetKey },
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -282,77 +310,88 @@ function ApprovalPolicySection({
             </AlertDescription>
           </Alert>
         ) : null}
-        <div className="flex flex-col gap-4 md:flex-row">
-          <div className="min-w-0 md:flex-1">
-            <Select<EvePolicyActionId>
-              items={ACTION_LABELS}
-              value={actionId}
-              onValueChange={(value) => {
-                if (value !== null) setActionId(value);
-              }}
+        <form
+          noValidate
+          className="space-y-5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit("execute");
+          }}
+        >
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div className="min-w-0 md:flex-1">
+              <Select<EvePolicyActionId>
+                items={ACTION_LABELS}
+                value={actionId}
+                onValueChange={(value) => {
+                  if (value !== null) setActionId(value);
+                }}
+              >
+                <SelectControlLabel>Fixed app-owned action</SelectControlLabel>
+                <SelectTrigger id="policy-action" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVE_POLICY_ACTION_IDS.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {ACTION_LABELS[id]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:w-72 md:shrink-0">
+              <Label htmlFor="policy-target">Non-sensitive target key</Label>
+              <Input
+                ref={targetRef}
+                id="policy-target"
+                value={targetKey}
+                onChange={(event) => setTargetKey(event.target.value)}
+                pattern="[a-zA-Z0-9:_-]+"
+                aria-invalid={targetError ? true : undefined}
+                aria-describedby={
+                  targetError ? "policy-target-error" : undefined
+                }
+              />
+              {targetError ? (
+                <FieldError id="policy-target-error" className="mt-2">
+                  {targetError}
+                </FieldError>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {/* A disabled submit Button is natively disabled and drops focus, so
+                it is a plain button while pending; both branches keep one DOM node. */}
+            {mutation.isPending ? (
+              <Button
+                type="button"
+                focusableWhenDisabled={mutation.variables?.action === "execute"}
+                disabled
+              >
+                Consult and execute tracer
+              </Button>
+            ) : (
+              <Button type="submit">Consult and execute tracer</Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.action === "request_approval"
+              }
+              disabled={mutation.isPending}
+              onClick={() => submit("request_approval")}
             >
-              <SelectControlLabel>Fixed app-owned action</SelectControlLabel>
-              <SelectTrigger id="policy-action" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EVE_POLICY_ACTION_IDS.map((id) => (
-                  <SelectItem key={id} value={id}>
-                    {ACTION_LABELS[id]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              Request required approval
+            </Button>
           </div>
-          <div className="md:w-72 md:shrink-0">
-            <Label htmlFor="policy-target">Non-sensitive target key</Label>
-            <Input
-              id="policy-target"
-              value={targetKey}
-              onChange={(event) => setTargetKey(event.target.value)}
-              pattern="[a-zA-Z0-9:_-]+"
-            />
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            focusableWhenDisabled={
-              mutation.isPending && mutation.variables?.action === "execute"
-            }
-            disabled={mutation.isPending || !targetKey}
-            onClick={() =>
-              mutation.mutate({
-                action: "execute",
-                actionId,
-                targetKey,
-                approvalId: matchingApproval?.id,
-              })
-            }
-          >
-            Consult and execute tracer
-          </Button>
-          <Button
-            variant="outline"
-            focusableWhenDisabled={
-              mutation.isPending &&
-              mutation.variables?.action === "request_approval"
-            }
-            disabled={mutation.isPending || !targetKey}
-            onClick={() =>
-              mutation.mutate({
-                action: "request_approval",
-                actionId,
-                targetKey,
-              })
-            }
-          >
-            Request required approval
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          The server resolves zone, write class, domain, and cost from its
-          catalog. The target key cannot contain spaces or payload data.
-        </p>
+          <p className="text-xs text-muted-foreground">
+            The server resolves zone, write class, domain, and cost from its
+            catalog. The target key cannot contain spaces or payload data.
+          </p>
+        </form>
       </CardContent>
     </Card>
   );
@@ -473,6 +512,7 @@ function ApprovalBudgetSummary({
               <Button
                 size="sm"
                 variant="outline"
+                aria-label={`Add one request for 1 hour to ${budget.scopeType}: ${budget.scopeId}`}
                 focusableWhenDisabled={
                   mutation.isPending &&
                   mutation.variables?.action === "override_budget" &&
@@ -549,80 +589,84 @@ function PendingApprovalsSection({
           />
         ) : (
           <ul className="divide-y">
-            {query.data?.approvals.map((approval) => (
-              <li
-                key={approval.id}
-                className="flex flex-wrap items-center justify-between gap-3 py-3"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {ACTION_LABELS[approval.actionId as EvePolicyActionId] ??
-                      approval.actionId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {approval.targetKey} · {approval.trustZone} ·{" "}
-                    {approval.approvalLevel} · expires{" "}
-                    {formatDateTime(approval.expiresAt)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={
-                      approval.status === "denied" ? "destructive" : "outline"
-                    }
-                  >
-                    {approval.status}
-                  </Badge>
-                  {approval.status === "pending" ? (
-                    <>
-                      <Button
-                        size="sm"
-                        focusableWhenDisabled={
-                          mutation.isPending &&
-                          mutation.variables?.action === "decide_approval" &&
-                          mutation.variables.approvalId === approval.id &&
-                          mutation.variables.approved === true
-                        }
-                        disabled={mutation.isPending}
-                        onClick={() =>
-                          mutation.mutate({
-                            action: "decide_approval",
-                            approvalId: approval.id,
-                            approved: true,
-                            reason:
-                              "Verified operator approved this exact tracer action and target.",
-                          })
-                        }
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        focusableWhenDisabled={
-                          mutation.isPending &&
-                          mutation.variables?.action === "decide_approval" &&
-                          mutation.variables.approvalId === approval.id &&
-                          mutation.variables.approved === false
-                        }
-                        disabled={mutation.isPending}
-                        onClick={() =>
-                          mutation.mutate({
-                            action: "decide_approval",
-                            approvalId: approval.id,
-                            approved: false,
-                            reason:
-                              "Verified operator denied this tracer action.",
-                          })
-                        }
-                      >
-                        Deny
-                      </Button>
-                    </>
-                  ) : null}
-                </div>
-              </li>
-            ))}
+            {query.data?.approvals.map((approval) => {
+              const actionLabel =
+                ACTION_LABELS[approval.actionId as EvePolicyActionId] ??
+                approval.actionId;
+              return (
+                <li
+                  key={approval.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{actionLabel}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {approval.targetKey} · {approval.trustZone} ·{" "}
+                      {approval.approvalLevel} · expires{" "}
+                      {formatDateTime(approval.expiresAt)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        approval.status === "denied" ? "destructive" : "outline"
+                      }
+                    >
+                      {approval.status}
+                    </Badge>
+                    {approval.status === "pending" ? (
+                      <>
+                        <Button
+                          size="sm"
+                          aria-label={`Approve: ${actionLabel} on ${approval.targetKey}`}
+                          focusableWhenDisabled={
+                            mutation.isPending &&
+                            mutation.variables?.action === "decide_approval" &&
+                            mutation.variables.approvalId === approval.id &&
+                            mutation.variables.approved === true
+                          }
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({
+                              action: "decide_approval",
+                              approvalId: approval.id,
+                              approved: true,
+                              reason:
+                                "Verified operator approved this exact tracer action and target.",
+                            })
+                          }
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          aria-label={`Deny: ${actionLabel} on ${approval.targetKey}`}
+                          focusableWhenDisabled={
+                            mutation.isPending &&
+                            mutation.variables?.action === "decide_approval" &&
+                            mutation.variables.approvalId === approval.id &&
+                            mutation.variables.approved === false
+                          }
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({
+                              action: "decide_approval",
+                              approvalId: approval.id,
+                              approved: false,
+                              reason:
+                                "Verified operator denied this tracer action.",
+                            })
+                          }
+                        >
+                          Deny
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </CardContent>

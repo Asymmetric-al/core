@@ -29,6 +29,7 @@ import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
+import { useLoadRetry } from "../../hooks/use-load-retry";
 import { formatCents, MONEY_UNAVAILABLE, moneyProgress } from "../money-units";
 import { postTypeLabel } from "./home-model";
 
@@ -151,6 +152,15 @@ export function SupportCard({
   const stillNeeded = progress?.remaining ?? null;
   // No commitments have no currency to show a zero in.
   const noCommitments = monthlyPartners === 0;
+  const totalsRetryButton = React.useRef<HTMLButtonElement>(null);
+  const totalsRetry = useLoadRetry({
+    retryRef: totalsRetryButton,
+    error: metricsFailed && !metricsLoading ? true : null,
+    loading: metricsLoading,
+    onRetry: onRetryMetrics,
+    landing: (button) =>
+      button?.closest('[role="region"]')?.querySelector<HTMLElement>("h2"),
+  });
 
   return (
     <RegionCard
@@ -200,13 +210,24 @@ export function SupportCard({
         {!metricsLoading && !metricsCurrency && !metricsFailed ? (
           <p className="text-sm text-muted-foreground">{MONEY_UNAVAILABLE}</p>
         ) : null}
-        {metricsFailed && !metricsLoading ? (
+        {totalsRetry.error ? (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-            <p role="alert" className="text-sm text-foreground">
+            <p
+              key={totalsRetry.failedRetries}
+              role="alert"
+              className="text-sm text-foreground"
+            >
               We couldn’t load your giving totals.
             </p>
-            <Button variant="outline" size="sm" onClick={onRetryMetrics}>
-              Try again
+            <Button
+              ref={totalsRetryButton}
+              variant="outline"
+              size="sm"
+              disabled={totalsRetry.retrying}
+              focusableWhenDisabled
+              onClick={totalsRetry.retry}
+            >
+              {totalsRetry.retrying ? "Trying again…" : "Try again"}
             </Button>
           </div>
         ) : (
@@ -295,6 +316,11 @@ export function NeedsYouCard({ items }: { items: NeedsYouItem[] }) {
                 </div>
                 <Link
                   href={item.href}
+                  aria-label={
+                    item.partnerName
+                      ? `${item.action}: ${item.partnerName}`
+                      : undefined
+                  }
                   className={buttonVariants({ variant: "outline", size: "sm" })}
                 >
                   {item.action}

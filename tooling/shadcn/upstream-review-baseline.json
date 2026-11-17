@@ -928,14 +928,15 @@
       "path": "components/shadcn/command.tsx",
       "diffComponent": "command",
       "owners": ["command"],
-      "localSha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639",
-      "diffSha256": "f2987636d6e41d5c78f866c1dfb8c7d90d85a2c9acb60a4168709eec1c85fd67",
-      "reason": "Preserve automatic inner Command, commandLabel naming, existing CommandInput props and instant modal motion; upstream changes the composition API and defaults. The existing focus boundary also cancels ring offset inside clipped popovers; the search glyph is the shared Lucide icon.",
+      "localSha256": "add6d4f25e461e45cf4c8c25dcd646912c4108dbcdecd2315bc7bbf1fb95d54c",
+      "diffSha256": "1dac6f59cb56c37e5b952bea39b155d757a3f78dac1bb4f5adfb38466fdab5e2",
+      "reason": "Preserve automatic inner Command, commandLabel naming, existing CommandInput props and instant modal motion; upstream changes the composition API and defaults. The existing focus boundary also cancels ring offset inside clipped popovers; the search glyph is the shared Lucide icon. CommandDialog turns off cmdk vimBindings so Ctrl+K, which opens and closes the palettes through the shared shortcut owner, is not taken as a Ctrl+J/K item key in the search box; the arrow keys still move.",
       "proofs": [
         "packages/ui/components/shadcn/command.tsx",
         "docs/ai/rules/frontend.md",
         "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
-        "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts"
+        "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
+        "tests/unit/packages/ui/navigation-command-palette.test.tsx"
       ],
       "localPath": "components/shadcn/command.tsx"
     },
@@ -1097,12 +1098,13 @@
       "path": "components/shadcn/kbd.tsx",
       "diffComponent": "kbd",
       "owners": ["kbd"],
-      "localSha256": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15",
-      "diffSha256": "a6cc66eaec743292c34bd87df31ea54e35a3bb70b47d81dff1b96a3eaa1d1c0c",
-      "reason": "Preserve shared keyboard hint typography/geometry and helper import seam; upstream changes visual presentation.",
+      "localSha256": "0eec1cbf876b60b107aff2268686357d5d91516ddcfe3fc00e4122adfda78e39",
+      "diffSha256": "b020ad5285d2ecd518a5302a9b495cd52bbc0898b47e71ea9098ca7682f72717",
+      "reason": "Preserve shared keyboard hint typography/geometry and helper import seam; upstream changes visual presentation. Dark mode lifts the hint text to foreground/60 (5.79:1 on muted, up from 4.18:1) and keeps tooltip hints on text-background, so 12px hints meet WCAG 1.4.3 4.5:1; the light look is unchanged.",
       "proofs": [
         "packages/ui/components/shadcn/kbd.tsx",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/components/shadcn/kbd-contrast.test.tsx"
       ],
       "localPath": "components/shadcn/kbd.tsx"
     },
@@ -1234,13 +1236,14 @@
       "path": "components/shadcn/select.tsx",
       "diffComponent": "select",
       "owners": ["select"],
-      "localSha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c",
-      "diffSha256": "865698fc6803376ab29128ac16c0bdb90bb9bbd6faab1515f1c59fb803500e79",
-      "reason": "Preserve typed nullable Select root, SelectControlLabel and below-trigger positioning default; upstream removes those seams and enables overlapping alignItemWithTrigger. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "2674b29af58694aa1c1045b1fe8e890bee700aca30ed6d494df54e16931f353f",
+      "diffSha256": "f6a3472509a36749a731a7a39d1b5d726b03a9807b0286b4d7200277d4ef7445",
+      "reason": "Preserve typed nullable Select root, SelectControlLabel and below-trigger positioning default; upstream removes those seams and enables overlapping alignItemWithTrigger. Core preserves functional className state callbacks through mergeBaseUIClassName. Select shares its trigger through context so the listbox, which Base UI leaves unnamed, takes the trigger's aria-label or aria-labelledby (else the trigger id) unless the caller named it; SelectTrigger still forwards the caller's ref.",
       "proofs": [
         "packages/ui/components/shadcn/select.tsx",
         "docs/ai/rules/frontend.md",
-        "tests/unit/packages/ui/base-ui-select-nullability.test.tsx"
+        "tests/unit/packages/ui/base-ui-select-nullability.test.tsx",
+        "tests/e2e/ui-sdk-pattern-conformance.spec.ts"
       ],
       "localPath": "components/shadcn/select.tsx"
     },
@@ -1275,13 +1278,14 @@
       "path": "components/shadcn/sidebar.tsx",
       "diffComponent": "sidebar",
       "owners": ["sidebar"],
-      "localSha256": "75906b5ff3668ef6e02261914c1f94f0afb84b70c6d956c110ed70a0e4469910",
-      "diffSha256": "936f771ddb560aa9a88faa5ef5b6723d432d7d42c8be947a895fc5cf6dd3eb56",
-      "reason": "Preserve shared responsive hook/rail/button/link semantics and Core drawer ownership; upstream changes helper ownership and Sidebar presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName. Mobile navigation exposes a visible close button; collapsed-only tooltips are disabled on mobile so Escape reaches the owning sheet.",
+      "localSha256": "7af59dff583eb8517d40a20944cd61b28eb3a2b026086caa7b31ff767055d74b",
+      "diffSha256": "e608ccf932fe5086648651e2b42573b5fa964da979bfd9e62f8d4eb39f0c312c",
+      "reason": "Preserve shared responsive hook/rail/button/link semantics and Core drawer ownership; upstream changes helper ownership and Sidebar presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName. Mobile navigation exposes a visible close button; collapsed-only tooltips are disabled on mobile so Escape reaches the owning sheet. The Ctrl/Cmd+B toggle registers through the shared useShortcut owner (described as Toggle sidebar, with the phone sheet as its overlay so the same keys close it) instead of a local keydown listener, and SidebarTrigger exposes aria-keyshortcuts from useShortcutHint.",
       "proofs": [
         "packages/ui/components/shadcn/sidebar.tsx",
         "docs/ai/rules/frontend.md",
-        "tests/unit/packages/ui/base-ui-navigation.test.tsx"
+        "tests/unit/packages/ui/base-ui-navigation.test.tsx",
+        "tests/unit/packages/ui/ui-improvement-sidebar-shortcuts.test.tsx"
       ],
       "localPath": "components/shadcn/sidebar.tsx"
     },
@@ -1398,12 +1402,13 @@
       "path": "components/shadcn/toggle-group.tsx",
       "diffComponent": "toggle-group",
       "owners": ["toggle-group"],
-      "localSha256": "4e016edcb7b35a329e75fadf986698dfe772cd8d20bdb4f9fe8c01d9c1b2232d",
-      "diffSha256": "2fbf7547e5db490a7faec31cffd365318415cb5d11829bed44a88030021af424",
-      "reason": "Preserve current shared ToggleGroup context/value/orientation contract; upstream introduces new orientation defaults and presentation requiring consumer review. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "d968e4d5ba6aa5dd29fd5488f8e352c57339932747bc93944fcb912b4e93f73a",
+      "diffSha256": "88e743bdc93b594fbb6aeec72d8efa4bcd60e6f25a5da6b721fc1e136cdf4d0d",
+      "reason": "Preserve current shared ToggleGroup context/value/orientation contract; upstream introduces new orientation defaults and presentation requiring consumer review. Core preserves functional className state callbacks through mergeBaseUIClassName. A single-select group starts its roving tab stop on the pressed, enabled item through data-composite-item-active, as Base UI Tabs and RadioGroup do, and remounts its items when a value set from outside the group moves while focus is elsewhere, so the tab stop follows it; presses inside the group and multi-select groups keep Base UI's placement.",
       "proofs": [
         "packages/ui/components/shadcn/toggle-group.tsx",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/components/shadcn/toggle-group.test.tsx"
       ],
       "localPath": "components/shadcn/toggle-group.tsx"
     },
@@ -1783,11 +1788,13 @@
     },
     {
       "path": "components/shadcn/toolbar.tsx",
-      "localSha256": "3d8b1a712ab339e11f83e3efcc3e1ef2249f1e65574393c7a3e58086c41b1dd5",
-      "reason": "Base UI Toolbar group/button/separator compound wrapper; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "localSha256": "73868255a9a691ac9682f7cd38286e516d13ebfa33eb143f98f87350b504a62b",
+      "reason": "Base UI Toolbar group/button/separator compound wrapper; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests. The root adds Home and End, which Base UI's toolbar lacks: they focus the first and last enabled control, moving Base UI's tab stop with it, and leave text entry, modified keys and portaled content alone.",
       "proofs": [
         "packages/ui/components/shadcn/toolbar.tsx",
-        "packages/ui/AGENTS.md"
+        "packages/ui/AGENTS.md",
+        "tests/unit/packages/ui/selection-bar-toolbars.test.tsx",
+        "tests/e2e/ui-sdk-pattern-conformance.spec.ts"
       ]
     },
     {
@@ -2162,7 +2169,7 @@
   "proofSources": [
     {
       "path": "docs/ai/rules/frontend.md",
-      "sha256": "c25ce02f8593a8ec85fda04729b5913e42807a907b5994ca6df793adcaf87089"
+      "sha256": "31650bb8ab0f5b587facb22d27e49e9513864e81ce1fec286f859f8c9aeae826"
     },
     {
       "path": "packages/lib/hooks/use-mobile.ts",
@@ -2170,7 +2177,7 @@
     },
     {
       "path": "packages/ui/AGENTS.md",
-      "sha256": "2535f15336edff7319a2ef002aff5606cd84a13d8c1f78703c3f08c70cf5c0be"
+      "sha256": "47569c48058bd047f4d4ed2d4208b2b1d30f98bd08a1badce5bb0a2ee6a56a0d"
     },
     {
       "path": "packages/ui/components/primitives/RichTextEditor.tsx",
@@ -2302,7 +2309,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/command.tsx",
-      "sha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639"
+      "sha256": "add6d4f25e461e45cf4c8c25dcd646912c4108dbcdecd2315bc7bbf1fb95d54c"
     },
     {
       "path": "packages/ui/components/shadcn/context-menu.tsx",
@@ -2386,7 +2393,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/kbd.tsx",
-      "sha256": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15"
+      "sha256": "0eec1cbf876b60b107aff2268686357d5d91516ddcfe3fc00e4122adfda78e39"
     },
     {
       "path": "packages/ui/components/shadcn/label.tsx",
@@ -2462,7 +2469,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/select.tsx",
-      "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+      "sha256": "2674b29af58694aa1c1045b1fe8e890bee700aca30ed6d494df54e16931f353f"
     },
     {
       "path": "packages/ui/components/shadcn/separator.tsx",
@@ -2474,7 +2481,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/sidebar.tsx",
-      "sha256": "75906b5ff3668ef6e02261914c1f94f0afb84b70c6d956c110ed70a0e4469910"
+      "sha256": "7af59dff583eb8517d40a20944cd61b28eb3a2b026086caa7b31ff767055d74b"
     },
     {
       "path": "packages/ui/components/shadcn/skeleton.tsx",
@@ -2522,11 +2529,11 @@
     },
     {
       "path": "packages/ui/components/shadcn/toggle-group.tsx",
-      "sha256": "4e016edcb7b35a329e75fadf986698dfe772cd8d20bdb4f9fe8c01d9c1b2232d"
+      "sha256": "d968e4d5ba6aa5dd29fd5488f8e352c57339932747bc93944fcb912b4e93f73a"
     },
     {
       "path": "packages/ui/components/shadcn/toolbar.tsx",
-      "sha256": "3d8b1a712ab339e11f83e3efcc3e1ef2249f1e65574393c7a3e58086c41b1dd5"
+      "sha256": "73868255a9a691ac9682f7cd38286e516d13ebfa33eb143f98f87350b504a62b"
     },
     {
       "path": "packages/ui/components/shadcn/tooltip.tsx",
@@ -2565,6 +2572,10 @@
       "sha256": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2"
     },
     {
+      "path": "tests/e2e/ui-sdk-pattern-conformance.spec.ts",
+      "sha256": "f5daa8fa3be2bbe29fd74f7535d2df4a7bf3f9398dffa88612bcc97e3d7b5516"
+    },
+    {
       "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
       "sha256": "52a61ba0d1cb17f296badd039dda656c0476a69ea037c5a6d08beed41fb0f21c"
     },
@@ -2582,7 +2593,7 @@
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
-      "sha256": "92d5f572de169b607952958b75b391864143d9f1fc2279e787df59027ca7d0fa"
+      "sha256": "30d3bb2458056097a89ff3ae214fe26f334482dfa0d23d1d01b5e6421461608e"
     },
     {
       "path": "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
@@ -2625,12 +2636,20 @@
       "sha256": "ea99e8891b1a1890d98a716a8be9898906751334deab3ceef90e19a4d4bd9d69"
     },
     {
+      "path": "tests/unit/packages/ui/components/shadcn/kbd-contrast.test.tsx",
+      "sha256": "44fc19c68178125df94eb6734f216b814b79879311a4dda12a20be1cb06879b8"
+    },
+    {
       "path": "tests/unit/packages/ui/components/shadcn/navigation-menu.test.tsx",
       "sha256": "c964c2579a07b3e9eee2cd23359067bc73d82744830ec3500a3b72bf4e80d489"
     },
     {
       "path": "tests/unit/packages/ui/components/shadcn/rich-text-editor/rich-text-editor.test.tsx",
-      "sha256": "2fdf8de6e2f77af9106f8d86978017ec10a98ae5a4cd2aa4840a3115e8c781fd"
+      "sha256": "5d4bcdd491a07edb18422b0ba96a83ed42e0873e542f6f66a1fe6d98c01a4e71"
+    },
+    {
+      "path": "tests/unit/packages/ui/components/shadcn/toggle-group.test.tsx",
+      "sha256": "87b6bb3c4c5e7b1fcbf15342ac25b653b6be4cf0970d0360f4cf241b2680e585"
     },
     {
       "path": "tests/unit/packages/ui/data-grid-search-filtering.test.tsx",
@@ -2643,6 +2662,14 @@
     {
       "path": "tests/unit/packages/ui/modernization-owned-controls.test.tsx",
       "sha256": "1be89854608b2c4b59fa9b1f167cd09c3eb67683e7b8171b9de381a82ca7fb63"
+    },
+    {
+      "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+      "sha256": "824a21b4435496c3609c931873f1954de997d815cf1e1e1e757af8980579f30f"
+    },
+    {
+      "path": "tests/unit/packages/ui/selection-bar-toolbars.test.tsx",
+      "sha256": "d63d4eddfa176b0a86590185e9b12751bfe61c3c0f1950e0cdc5ced874b53aa3"
     },
     {
       "path": "tests/unit/packages/ui/shadscan-toaster-portal.test.tsx",
@@ -2662,7 +2689,11 @@
     },
     {
       "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-      "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
+      "sha256": "115f3ad9156e6ab51100ca43da14fdd676285ef953f68070ce15588193ca1d79"
+    },
+    {
+      "path": "tests/unit/packages/ui/ui-improvement-sidebar-shortcuts.test.tsx",
+      "sha256": "8e898c173acc9f36b909c5c38c96a6862a6ba34edf754fb6ed36136ea44b0e88"
     },
     {
       "path": "tests/unit/scripts/design-system-health.test.ts",

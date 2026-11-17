@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { signOutClientSession } from "@asym/auth/client-session";
 import {
   act,
   cleanup,
@@ -9,12 +10,13 @@ import {
 } from "@testing-library/react";
 import { Activity, StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { signOutClientSession } from "@asym/auth/client-session";
+
 import {
   RetainedDraftProvider,
   SessionRetainedDraftProvider,
   useRetainedDraft,
 } from "../../../../packages/ui/hooks/retained-draft";
+
 import type { RetainedDraftSave } from "../../../../packages/ui/hooks/retained-draft";
 
 vi.mock("@asym/auth/use-auth", () => ({
@@ -177,6 +179,35 @@ describe("provider-owned retained drafts", () => {
     expect(save!.isCurrent()).toBe(false);
     act(() => draft.finishSave(save!, true));
     expect(beforeUnload()).toBe(false);
+  });
+  it("says whether a session owns the store, apart from one resource's read access", async () => {
+    // No owner while auth loads.
+    const view = render(<View user={null} />);
+    expect(draft.active).toBe(false);
+
+    view.rerender(<View />);
+    expect(draft.active).toBe(true);
+    act(() => draft.revokeRead());
+    expect(draft.canRead).toBe(false);
+    expect(draft.active).toBe(true);
+
+    // Auth clears the owner.
+    view.rerender(<View user={null} />);
+    expect(draft.active).toBe(false);
+
+    // Sign-out ends the session in place.
+    view.rerender(<View />);
+    expect(draft.active).toBe(true);
+    await act(async () => {
+      await signOutClientSession({
+        signOutOnServer: async () => ({ ok: true }),
+        createClient: () =>
+          ({ auth: { signOut: async () => ({ error: null }) } }) as never,
+        logger: { warn: vi.fn() },
+        redirect: vi.fn(),
+      });
+    });
+    expect(draft.active).toBe(false);
   });
   it("allows manual publish behind autosave but not duplicate manual saves after eviction", () => {
     const view = render(<View />);

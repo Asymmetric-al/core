@@ -6,6 +6,7 @@
 
 import { signOutClientSession } from "@asym/auth/client-session";
 import { useAuth } from "@asym/lib/hooks";
+import { ShortcutHelpMenuItem } from "@asym/ui/components/primitives/shortcut-help";
 import {
   Avatar,
   AvatarFallback,
@@ -114,6 +115,7 @@ export function SidebarAccountMenu({ roleLabel }: { roleLabel: string }) {
                 <Info aria-hidden />
                 About this app
               </DropdownMenuItem>
+              <ShortcutHelpMenuItem />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>

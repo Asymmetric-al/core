@@ -1,11 +1,16 @@
 "use client";
 
-import * as React from "react";
+import {
+  useShortcut,
+  type ShortcutOptions,
+} from "@asym/ui/components/primitives/shortcut";
 
 import {
-  findSupportShortcut,
+  SUPPORT_INBOX_KEYMAP,
   type SupportShortcutAction,
 } from "../../lib/keymap";
+
+import type * as React from "react";
 
 export type SupportShortcutHandler = (event: KeyboardEvent) => void;
 
@@ -14,51 +19,83 @@ export type SupportShortcutHandlers = Partial<
 >;
 
 interface Options {
-  /** Container the listener attaches to. Defaults to `document` if omitted. */
+  /** Region the shortcuts belong to. Defaults to the whole page if omitted. */
   containerRef?: React.RefObject<HTMLElement | null>;
+  /**
+   * An element inside the command palette, a dialog outside the container:
+   * while it is open, the palette's own key closes it from there.
+   */
+  paletteRef?: React.RefObject<HTMLElement | null>;
+  /**
+   * The open conversation's phone sheet, a modal portaled outside the
+   * container: while it holds focus, the inbox keys work there too.
+   */
+  sheetRef?: React.RefObject<HTMLElement | null>;
   handlers: SupportShortcutHandlers;
-  /** When false, the listener stays detached. Useful while the palette is open. */
+  /** When false, the keys are left alone. */
   enabled?: boolean;
 }
 
-/**
- * Scoped keyboard listener for the support inbox. Attaches to the supplied
- * container ref so the shortcuts only fire while the inbox owns focus —
- * Mission Control's global Cmd+K dialog stays untouched.
- *
- * Inputs and the editor selectively block the listener via
- * `event.target.matches(...)` so an agent typing "j" inside the composer
- * doesn't accidentally walk to the next conversation.
- */
-export function useInboxShortcuts({
+const [
+  OPEN_COMMAND_PALETTE,
+  NEXT_CONVERSATION,
+  PREVIOUS_CONVERSATION,
+  RESOLVE_CONVERSATION,
+  OPEN_SNOOZE_MENU,
+] = SUPPORT_INBOX_KEYMAP;
+
+function inboxRegion({
   containerRef,
-  handlers,
-  enabled = true,
-}: Options) {
-  React.useEffect(() => {
-    if (!enabled) return;
-    const target = containerRef?.current ?? null;
-    const node: EventTarget = target ?? document;
-
-    const listener = (event: Event) => {
-      const keyboardEvent = event as KeyboardEvent;
-      if (shouldIgnore(keyboardEvent.target)) return;
-      const entry = findSupportShortcut(keyboardEvent);
-      if (!entry) return;
-      const handler = handlers[entry.action];
-      if (!handler) return;
-      keyboardEvent.preventDefault();
-      handler(keyboardEvent);
-    };
-
-    node.addEventListener("keydown", listener);
-    return () => node.removeEventListener("keydown", listener);
-  }, [containerRef, enabled, handlers]);
+  sheetRef,
+}: Options): ShortcutOptions["within"] {
+  if (!containerRef || !sheetRef) return containerRef;
+  return () => {
+    const sheet = sheetRef.current;
+    return sheet?.contains(document.activeElement)
+      ? sheet
+      : containerRef.current;
+  };
 }
 
-function shouldIgnore(target: EventTarget | null): boolean {
-  if (!target) return false;
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  return target.matches("input, textarea, select, [contenteditable]");
+function useInboxShortcut(
+  entry: (typeof SUPPORT_INBOX_KEYMAP)[number],
+  options: Options,
+  {
+    within = inboxRegion(options),
+    overlay,
+  }: Pick<ShortcutOptions, "within" | "overlay"> = {},
+) {
+  const { handlers, enabled = true } = options;
+  const handler = handlers[entry.action];
+  useShortcut(handler ? entry.keys : null, (event) => handler?.(event), {
+    description: entry.label,
+    when: () => enabled,
+    within,
+    overlay,
+  });
+}
+
+/**
+ * Keyboard shortcuts for the support inbox. They belong to the supplied
+ * container (and the open conversation's sheet), so they run only while the
+ * inbox owns focus, and there they outrank Mission Control's global Cmd+K.
+ *
+ * Typing is never a shortcut: an agent typing "j" inside the composer
+ * doesn't walk to the next conversation.
+ */
+export function useInboxShortcuts(options: Options) {
+  const { containerRef, paletteRef } = options;
+  useInboxShortcut(OPEN_COMMAND_PALETTE, options, {
+    // The open palette's dialog is this key's region.
+    within:
+      containerRef &&
+      (() =>
+        paletteRef?.current?.closest('[role="dialog"]') ??
+        containerRef.current),
+    overlay: paletteRef,
+  });
+  useInboxShortcut(NEXT_CONVERSATION, options);
+  useInboxShortcut(PREVIOUS_CONVERSATION, options);
+  useInboxShortcut(RESOLVE_CONVERSATION, options);
+  useInboxShortcut(OPEN_SNOOZE_MENU, options);
 }

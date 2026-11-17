@@ -1,6 +1,10 @@
 "use client";
 
 import { useMC } from "@asym/lib/mission-control/context";
+import {
+  useShortcut,
+  useShortcutHint,
+} from "@asym/ui/components/primitives/shortcut";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
@@ -27,11 +31,18 @@ import {
 import { useEveAgent } from "eve/react";
 import { Bot, RotateCcw, Send, Sparkles, Square } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 
 import { buildEvePageContext, prepareEveSend } from "./page-context";
 
 const MAX_MESSAGE_LENGTH = 2_000;
+const SEND_SHORTCUT = "mod+enter";
 
 /**
  * "header" sits beside search in the app header; "floating" is for Web
@@ -47,6 +58,9 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
   const [message, setMessage] = useState("");
   const countId = useId();
   const shortcutId = useId();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const actionRef = useRef<HTMLButtonElement | null>(null);
   const pageContext = buildEvePageContext({
     panelOpen: open,
     pathname,
@@ -56,6 +70,20 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
     prepareSend: prepareEveSend(pageContext),
   });
   const busy = agent.status === "streaming" || agent.status === "submitted";
+  useShortcut(SEND_SHORTCUT, () => formRef.current?.requestSubmit(), {
+    allowInInput: true,
+    within: formRef,
+    description: "Send message to Eve",
+  });
+  const sendShortcut = useShortcutHint(SEND_SHORTCUT);
+
+  // Detach becomes the empty, natively disabled Send in the same DOM node when
+  // the turn ends, and Chromium drops focus from a disabled control to <body>.
+  useLayoutEffect(() => {
+    if (!busy && document.activeElement === actionRef.current) {
+      composerRef.current?.focus();
+    }
+  }, [busy]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,6 +93,7 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
     }
 
     setMessage("");
+    composerRef.current?.focus();
     try {
       await agent.send({ message: nextMessage });
     } catch {
@@ -77,9 +106,9 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
   const handleAgentStop = agent.stop;
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger
-        render={
-          placement === "header" ? (
+      {placement === "header" ? (
+        <SheetTrigger
+          render={
             <Button
               variant="ghost"
               size="icon-sm"
@@ -88,8 +117,14 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
             >
               <Sparkles aria-hidden="true" />
             </Button>
-          ) : (
-            <div className="fixed right-5 bottom-20 z-40">
+          }
+        />
+      ) : (
+        // The button is the trigger, so Tab and the sheet's focus return land
+        // on it rather than on the positioning wrapper.
+        <div className="fixed right-5 bottom-20 z-40">
+          <SheetTrigger
+            render={
               <Button
                 variant="maia"
                 size="icon-touch"
@@ -98,10 +133,10 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
               >
                 <Sparkles aria-hidden="true" className="size-5" />
               </Button>
-            </div>
-          )
-        }
-      />
+            }
+          />
+        </div>
+      )}
       <SheetContent
         aria-describedby="eve-global-description"
         className="w-full sm:max-w-md"
@@ -173,30 +208,21 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
             </div>
           </ScrollArea>
 
-          <form className="border-t p-4" onSubmit={handleSubmit}>
+          <form ref={formRef} className="border-t p-4" onSubmit={handleSubmit}>
             <label className="sr-only" htmlFor="eve-global-message">
               Message Eve
             </label>
+            {/* Read-only rather than disabled while busy: a disabled field
+                loses focus, and with it the send shortcut scoped to this form. */}
             <Textarea
+              ref={composerRef}
               id="eve-global-message"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               aria-describedby={`${countId} ${shortcutId}`}
-              onKeyDown={(event) => {
-                if (
-                  event.nativeEvent.isComposing ||
-                  busy ||
-                  event.defaultPrevented
-                )
-                  return;
-                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-                  event.preventDefault();
-                  event.currentTarget.form?.requestSubmit();
-                }
-              }}
               maxLength={MAX_MESSAGE_LENGTH}
               rows={3}
-              disabled={busy}
+              readOnly={busy}
               placeholder="Ask Eve about this page…"
             />
             <div className="mt-3 flex items-center justify-between gap-2">
@@ -205,7 +231,7 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
                 {MAX_MESSAGE_LENGTH.toLocaleString()} characters
               </p>
               <span id={shortcutId} className="sr-only">
-                Press Ctrl or Command + Enter to send.
+                Press {sendShortcut.text} to send.
               </span>
               <div className="flex gap-2">
                 <Tooltip>
@@ -227,6 +253,7 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
                 </Tooltip>
                 {busy ? (
                   <Button
+                    ref={actionRef}
                     type="button"
                     variant="outline"
                     onClick={handleAgentStop}
@@ -235,7 +262,12 @@ function EveConversation({ placement }: { placement: EveTriggerPlacement }) {
                     Detach
                   </Button>
                 ) : (
-                  <Button type="submit" disabled={!message.trim()}>
+                  <Button
+                    ref={actionRef}
+                    type="submit"
+                    disabled={!message.trim()}
+                    aria-keyshortcuts={sendShortcut.ariaKeyshortcuts}
+                  >
                     <Send aria-hidden="true" className="size-4" />
                     Send
                   </Button>

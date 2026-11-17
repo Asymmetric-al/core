@@ -47,8 +47,14 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import Image from "next/image";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+
+import { updateAnchor, useFeedRecovery } from "./use-feed-recovery";
 
 import type { PostWithAuthor } from "@asym/database/types";
 
@@ -109,7 +115,9 @@ function PostPhotos({ post }: { post: Post }) {
   const alt = post.title?.trim() || "Photo from this update";
   if (photos.length === 1) return <PostPhoto src={photos[0]!} alt={alt} />;
   return (
-    <Carousel aria-label={`${photos.length} photos`}>
+    <Carousel
+      aria-label={`Photos from ${post.title?.trim() || post.workerName}`}
+    >
       <CarouselContent>
         {photos.map((src, index) => (
           <CarouselItem key={src}>
@@ -126,11 +134,6 @@ function PostPhotos({ post }: { post: Post }) {
   );
 }
 
-/** The anchor a link uses to open the feed on one update. */
-export function updateAnchor(id: string | number) {
-  return `update-${id}`;
-}
-
 function initials(name: string) {
   return (
     name
@@ -144,9 +147,13 @@ function initials(name: string) {
 }
 
 function PostCard({ post }: { post: Post }) {
+  const titleId = useId();
+  const authorId = useId();
+  const metaId = useId();
   return (
     <motion.article
       id={updateAnchor(post.id)}
+      aria-labelledby={post.title ? titleId : authorId}
       tabIndex={-1}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -165,7 +172,10 @@ function PostCard({ post }: { post: Post }) {
             </Avatar>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-medium text-foreground">
+                <p
+                  id={authorId}
+                  className="text-sm font-medium text-foreground"
+                >
                   {post.workerName}
                 </p>
                 {post.category ? (
@@ -174,7 +184,7 @@ function PostCard({ post }: { post: Post }) {
                   </Badge>
                 ) : null}
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p id={metaId} className="mt-1 text-sm text-muted-foreground">
                 {[post.readTime, post.time].filter(Boolean).join(" · ")}
               </p>
             </div>
@@ -182,7 +192,10 @@ function PostCard({ post }: { post: Post }) {
 
           <div className="flex flex-col gap-6">
             {post.title ? (
-              <h2 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+              <h2
+                id={titleId}
+                className="text-2xl font-semibold leading-tight tracking-tight text-foreground"
+              >
                 {post.title}
               </h2>
             ) : null}
@@ -205,6 +218,7 @@ function PostCard({ post }: { post: Post }) {
               reactions={["love", "prayer"]}
               appearance="quiet"
               comments="read"
+              describedBy={post.title ? titleId : `${authorId} ${metaId}`}
             />
           </div>
         </CardContent>
@@ -290,23 +304,35 @@ function FeedFilters({
           className="-m-1 min-w-0 sm:flex-1"
           onFocusCapture={revealFocusedChip}
         >
-          <div
-            role="group"
+          <ToggleGroup
             aria-label="Type of update"
+            spacing={2}
+            value={[category]}
+            // Pressing the chosen type sends an empty list; one type stays on.
+            onValueChange={(next) => {
+              const value = next[0];
+              if (value) onCategoryChange(value);
+            }}
             className="flex w-max gap-2 p-1"
           >
             {[ALL, ...categories].map((value) => (
-              <Button
+              <ToggleGroupItem
                 key={value}
-                size="sm"
-                variant={category === value ? "default" : "outline"}
-                aria-pressed={category === value}
-                onClick={() => onCategoryChange(value)}
+                value={value}
+                // The item brings the toggle behavior; Button keeps the chip look.
+                render={(props, state) => (
+                  <Button
+                    {...props}
+                    className={undefined}
+                    size="sm"
+                    variant={state.pressed ? "default" : "outline"}
+                  />
+                )}
               >
                 {value === ALL ? "All" : categoryLabel(value)}
-              </Button>
+              </ToggleGroupItem>
             ))}
-          </div>
+          </ToggleGroup>
         </ScrollArea>
       ) : (
         <span />
@@ -341,39 +367,92 @@ function FeedFilters({
 
 export default function DonorFeedPage() {
   const [category, setCategory] = useState(ALL);
-  const [author, setAuthor] = useState(EVERYONE);
+  // The chosen missionary keeps their name, for when a refresh takes their
+  // updates out of the loaded pages.
+  const [author, setAuthor] = useState<{ id: string; name: string } | null>(
+    null,
+  );
   const feedQuery = useDonorFeedPostPages();
 
   const posts = useMemo<Post[]>(
     () => (feedQuery.data ?? []).map(toFeedPost),
     [feedQuery.data],
   );
-  // Filters come from the updates themselves, so none is ever empty.
+  // Filters come from the updates themselves, so only a choice that a
+  // refresh has emptied can match nothing.
+  // The chosen type stays on offer, so its chip stays pressed after a
+  // refresh takes its updates away.
   const categories = useMemo(
     () =>
       [
-        ...new Set(posts.map((post) => post.category).filter(Boolean)),
+        ...new Set([
+          ...posts.map((post) => post.category).filter(Boolean),
+          ...(category === ALL ? [] : [category]),
+        ]),
       ].sort() as string[],
-    [posts],
+    [posts, category],
   );
   const authors = useMemo(() => {
     const byId = new Map<string, string>();
     for (const post of posts) byId.set(post.workerId, post.workerName);
+    // The chosen missionary stays on offer, so the filter still names them.
+    if (author && !byId.has(author.id)) byId.set(author.id, author.name);
     return [...byId.entries()]
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [posts]);
+  }, [posts, author]);
 
   const filteredPosts = useMemo(
     () =>
       posts.filter(
         (post) =>
           (category === ALL || post.category === category) &&
-          (author === EVERYONE || post.workerId === author),
+          (author === null || post.workerId === author.id),
       ),
     [posts, category, author],
   );
-  const filtered = category !== ALL || author !== EVERYONE;
+  const filtered = category !== ALL || author !== null;
+  // Where focus lands once Load more, Try again or Show all updates is
+  // answered; the recovery hook decides which.
+  const pageRef = useRef<HTMLDivElement>(null);
+  const loadButtonRef = useRef<HTMLButtonElement>(null);
+  const showAllRef = useRef<HTMLButtonElement>(null);
+  const {
+    loading,
+    loadFailed,
+    reloading,
+    accessDenied,
+    failureCount,
+    retryBusy,
+    loadMoreBusy,
+    pressLabel,
+    reload,
+    errorView,
+    retry,
+    loadMore,
+    showAll,
+  } = useFeedRecovery(
+    { feedQuery, posts, filteredPosts },
+    { page: pageRef, loadButton: loadButtonRef, showAll: showAllRef },
+  );
+  const matchCount = filteredPosts.length;
+  // Naming the filters and the loaded total changes the text whenever either
+  // does, so the region speaks for two filters with equal counts and for a
+  // loaded page that brought no new match.
+  const activeFilters = [
+    category === ALL ? null : categoryLabel(category),
+    author?.name,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const matchText =
+    matchCount === 0
+      ? "No updates match"
+      : `${matchCount} ${matchCount === 1 ? "update matches" : "updates match"}`;
+  const filterAnnouncement =
+    !filtered || loading || loadFailed
+      ? ""
+      : `${matchText}: ${activeFilters}, out of ${posts.length} loaded`;
 
   // A link to one update ("#update-…") opens the feed on it once it loads.
   const openedLinkedUpdate = useRef(false);
@@ -389,14 +468,21 @@ export default function DonorFeedPage() {
   }, [posts]);
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-20">
+    <div
+      ref={pageRef}
+      className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-20"
+    >
       <PageHeader
         title="Updates"
         description="News, stories and prayer requests from the missionaries you support."
       />
+      {/* Present from the first paint, so a filter's result is announced. */}
+      <p role="status" aria-atomic="true" className="sr-only">
+        {filterAnnouncement}
+      </p>
 
       <div className="flex w-full flex-col gap-6">
-        {feedQuery.isLoading ? (
+        {loading && !reloading ? (
           <div
             role="status"
             aria-label="Loading updates"
@@ -405,22 +491,27 @@ export default function DonorFeedPage() {
             <Skeleton className="h-96 w-full rounded-xl" />
             <Skeleton className="h-64 w-full rounded-xl" />
           </div>
-        ) : feedQuery.error &&
-          (feedQuery.accessDenied || posts.length === 0) ? (
-          <Empty role="alert">
-            <EmptyHeader>
+        ) : loadFailed || reloading ? (
+          <Empty ref={errorView}>
+            <EmptyHeader key={failureCount} role="alert">
               <EmptyTitle>
                 <h2>Couldn’t load updates</h2>
               </EmptyTitle>
               <EmptyDescription>
-                {feedQuery.accessDenied
+                {accessDenied
                   ? "Your access to these updates could not be confirmed. Sign in again or try again."
                   : "Something went wrong on our side. Please try again."}
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button variant="outline" onClick={feedQuery.retry}>
-                Try again
+              <Button
+                ref={loadButtonRef}
+                variant="outline"
+                disabled={reloading}
+                focusableWhenDisabled
+                onClick={reload}
+              >
+                {pressLabel(reloading, "Try again", "Trying again…")}
               </Button>
             </EmptyContent>
           </Empty>
@@ -431,8 +522,10 @@ export default function DonorFeedPage() {
               category={category}
               onCategoryChange={setCategory}
               authors={authors}
-              author={author}
-              onAuthorChange={setAuthor}
+              author={author?.id ?? EVERYONE}
+              onAuthorChange={(id) =>
+                setAuthor(authors.find((entry) => entry.id === id) ?? null)
+              }
             />
             {filteredPosts.map((post) => (
               <PostCard key={post.id} post={post} />
@@ -452,11 +545,14 @@ export default function DonorFeedPage() {
                 {filtered ? (
                   <EmptyContent>
                     <Button
+                      ref={showAllRef}
                       variant="outline"
-                      onClick={() => {
-                        setCategory(ALL);
-                        setAuthor(EVERYONE);
-                      }}
+                      onClick={() =>
+                        showAll(() => {
+                          setCategory(ALL);
+                          setAuthor(null);
+                        })
+                      }
                     >
                       Show all updates
                     </Button>
@@ -469,30 +565,36 @@ export default function DonorFeedPage() {
             {feedQuery.error ? (
               // Transient failures preserve loaded updates; retry the failed operation.
               <div
-                role="alert"
+                ref={errorView}
                 className="flex flex-col items-center gap-3 py-6 text-sm text-foreground"
               >
-                <p>
+                {/* Only the message is re-keyed, so Try again keeps focus. */}
+                <p key={failureCount} role="alert">
                   {feedQuery.isNextPageError
                     ? "Couldn’t load more updates."
                     : "Couldn’t refresh updates."}
                 </p>
                 <Button
+                  ref={loadButtonRef}
                   variant="outline"
-                  disabled={feedQuery.isLoadingMore}
-                  onClick={feedQuery.retry}
+                  // Another press would restart the fetch.
+                  disabled={retryBusy}
+                  focusableWhenDisabled
+                  onClick={retry}
                 >
-                  Try again
+                  {pressLabel(retryBusy, "Try again", "Trying again…")}
                 </Button>
               </div>
             ) : feedQuery.hasMore ? (
               <div className="flex justify-center py-6">
                 <Button
+                  ref={loadButtonRef}
                   variant="outline"
-                  disabled={feedQuery.isLoadingMore}
-                  onClick={feedQuery.loadMore}
+                  disabled={loadMoreBusy}
+                  focusableWhenDisabled
+                  onClick={loadMore}
                 >
-                  {feedQuery.isLoadingMore ? "Loading…" : "Load more updates"}
+                  {pressLabel(loadMoreBusy, "Load more updates", "Loading…")}
                 </Button>
               </div>
             ) : filteredPosts.length > 0 ? (

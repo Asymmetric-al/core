@@ -59,6 +59,15 @@ Everything else is Prettier and ESLint `--fix` import ordering.
    the search box has an `aria-label` ("Search {title} options") with a
    "Search {title}…" placeholder.
 
+8. **Real filter controls.** `DataGridColumnFilter` rendered each option and
+   Clear as a `div role="button" tabIndex={0}` with its own Enter and Space
+   handler. They are now the shared ghost `Button` (`type="button"`, options
+   with `aria-pressed`), so the browser presses them with Enter and Space.
+   `filterRowClassName` undoes the Button's geometry and ring to keep the
+   menu-row look, and Clear moves focus to the search box before it
+   unmounts. `tests/unit/packages/ui/data-grid-column-filter.test.tsx` covers
+   it.
+
 ### Lint exception
 
 The files keep upstream's class-heavy styling, inline CSS variables and

@@ -237,8 +237,8 @@ function Posts({ data }: { data: ModerationPostsResponse }) {
         Showing the latest {data.posts.length} of {data.total} updates.
       </p>
       <p className="text-xs text-muted-foreground">
-        Search, filters and sorting apply to these loaded updates only.
-        {filtered ? ` ${updates.length} match.` : ""}
+        Search, filters and sorting apply to these loaded updates only.{" "}
+        <span role="status">{filtered ? `${updates.length} match.` : ""}</span>
       </p>
       {updates.length === 0 ? (
         <Empty>
@@ -372,7 +372,7 @@ export default function ContentModerationPage() {
         <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
           <section aria-label="Updates" className="min-w-0 xl:col-span-8">
             <Tabs value={tab} onValueChange={setSelectedTab}>
-              <TabsList>
+              <TabsList aria-label="Moderation lists">
                 <TabsTrigger value="review">Queue</TabsTrigger>
                 <TabsTrigger value="all">All posts</TabsTrigger>
               </TabsList>

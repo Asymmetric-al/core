@@ -2,6 +2,7 @@
 "use no memo";
 
 import { useLocaleFormat } from "@asym/lib/hooks";
+import { useLoadRetry } from "@asym/missionary/hooks/use-load-retry";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
   AlertDialog,
@@ -44,16 +45,22 @@ import {
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { ChevronDown, FileText, Globe, Loader2, Users, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import React, { useId, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 import { FollowerRequestsCard } from "./feed-follow-requests";
 import {
   POST_TYPES,
   postTypeLabel,
   VISIBILITY_LABELS,
+  type Post,
   type PostStatus,
   type Visibility,
 } from "./feed-model";
@@ -86,6 +93,8 @@ type PostComposerActionsProps = {
   setSelectedMedia: (value: React.SetStateAction<MediaItem[]>) => void;
   setPostPrivacy: (value: React.SetStateAction<Visibility>) => void;
   handlePost: (status?: PostStatus) => Promise<void>;
+  // Set while updates are read-only; the controls point to this notice.
+  readOnlyNoticeId?: string;
 };
 
 export function PostComposerActions({
@@ -97,10 +106,14 @@ export function PostComposerActions({
   setSelectedMedia,
   setPostPrivacy,
   handlePost: onPost,
+  readOnlyNoticeId,
 }: PostComposerActionsProps) {
+  const readOnly = readOnlyNoticeId !== undefined;
   const publishLabelId = useId();
   const [pendingAction, setPendingAction] = useState<PostStatus | null>(null);
   const pendingActionRef = useRef<PostStatus | null>(null);
+  const removeButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const audienceTriggerRef = useRef<HTMLButtonElement | null>(null);
   const draftPending = pendingAction === "draft";
   const publishPending = pendingAction === "published";
   const actionsDisabled =
@@ -117,6 +130,15 @@ export function PostComposerActions({
       pendingActionRef.current = null;
       setPendingAction(null);
     }
+  };
+
+  const removeMedia = (idx: number) => {
+    flushSync(() =>
+      setSelectedMedia((prev) => prev.filter((_, i) => i !== idx)),
+    );
+    // The next photo has moved into the removed one's place.
+    const buttons = removeButtonsRef.current;
+    (buttons[idx] ?? buttons[idx - 1] ?? audienceTriggerRef.current)?.focus();
   };
 
   return (
@@ -138,10 +160,14 @@ export function PostComposerActions({
                   type="button"
                   variant="destructive"
                   size="icon-xs"
-                  aria-label="Remove attached media"
-                  onClick={() =>
-                    setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))
-                  }
+                  aria-label={`Remove attached photo ${idx + 1}`}
+                  aria-describedby={readOnlyNoticeId}
+                  disabled={readOnly}
+                  focusableWhenDisabled={readOnly}
+                  ref={(node) => {
+                    removeButtonsRef.current[idx] = node;
+                  }}
+                  onClick={() => removeMedia(idx)}
                 >
                   <X aria-hidden />
                 </Button>
@@ -155,8 +181,15 @@ export function PostComposerActions({
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label={`Who can see this: ${VISIBILITY_LABELS[postPrivacy]}`}
+            aria-describedby={readOnlyNoticeId}
+            disabled={readOnly}
             render={
-              <Button variant="outline" size="sm">
+              <Button
+                ref={audienceTriggerRef}
+                variant="outline"
+                size="sm"
+                focusableWhenDisabled={readOnly}
+              >
                 {postPrivacy === "public" ? (
                   <Globe data-icon="inline-start" aria-hidden />
                 ) : (
@@ -198,10 +231,11 @@ export function PostComposerActions({
           <Button
             onClick={() => void runPostAction("draft")}
             aria-label="Save draft"
+            aria-describedby={readOnlyNoticeId}
             variant="outline"
             size="sm"
             disabled={actionsDisabled}
-            focusableWhenDisabled={draftPending}
+            focusableWhenDisabled={readOnly || draftPending}
           >
             {draftPending ? (
               <Loader2
@@ -216,9 +250,10 @@ export function PostComposerActions({
           <Button
             onClick={() => void runPostAction("published")}
             aria-labelledby={publishLabelId}
+            aria-describedby={readOnlyNoticeId}
             size="sm"
             disabled={actionsDisabled}
-            focusableWhenDisabled={publishPending}
+            focusableWhenDisabled={readOnly || publishPending}
           >
             <span id={publishLabelId} className="sr-only">
               {publishPending ? "Publishing update" : "Publish"}
@@ -237,10 +272,14 @@ export function PostComposerActions({
 
 function PostComposerCard({
   vm,
+  headingRef,
 }: {
   vm: ReturnType<typeof useWorkerFeedPageView>;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
 }) {
   const titleId = useId();
+  const noticeId = useId();
+  const readOnlyNoticeId = vm.canWrite ? undefined : noticeId;
   const editing = vm.editingPostId !== null;
   const isComposerEmpty = isPostContentEmpty(vm.postContent);
   const postActionDisabled =
@@ -248,17 +287,16 @@ function PostComposerCard({
 
   return (
     <Card role="region" aria-labelledby={titleId}>
-      {!vm.canWrite ? (
-        <p role="status">
-          Your updates are read-only.{" "}
-          {vm.hasUnsavedWriting
-            ? "Your readable draft is kept, but cannot be submitted."
-            : "Changes cannot be submitted."}
-        </p>
-      ) : null}
       <CardHeader>
         <CardTitle>
-          <h2 id={titleId}>{editing ? "Edit update" : "Share an update"}</h2>
+          <h2
+            id={titleId}
+            ref={headingRef}
+            tabIndex={-1}
+            className="outline-none"
+          >
+            {editing ? "Edit update" : "Share an update"}
+          </h2>
         </CardTitle>
         <CardDescription>
           {editing
@@ -269,46 +307,87 @@ function PostComposerCard({
         </CardDescription>
         {editing ? (
           <CardAction>
-            <Button variant="ghost" size="sm" onClick={vm.cancelEditing}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                vm.cancelEditing();
+                // This button leaves with the edit; the heading stays.
+                headingRef.current?.focus();
+              }}
+            >
               Cancel editing
             </Button>
           </CardAction>
         ) : null}
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div
-          role="group"
+        {!vm.canWrite ? (
+          <p
+            id={noticeId}
+            role="status"
+            className="text-sm text-muted-foreground"
+          >
+            Your updates are read-only.{" "}
+            {vm.hasUnsavedWriting
+              ? "Your readable draft is kept, but cannot be submitted."
+              : "Changes cannot be submitted."}
+          </p>
+        ) : null}
+        <ToggleGroup
           aria-label="Type of update"
-          className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap"
+          aria-describedby={readOnlyNoticeId}
+          disabled={!vm.canWrite}
+          spacing={2}
+          value={[vm.postType]}
+          // Pressing the chosen type sends an empty list; one type stays on.
+          onValueChange={(next) => {
+            const type = next[0];
+            if (type) vm.setPostType(type);
+          }}
+          className="grid w-auto grid-cols-2 gap-2 sm:flex sm:flex-wrap"
         >
           {POST_TYPES.map((type) => (
-            <Button
+            <ToggleGroupItem
               key={type}
-              size="sm"
-              variant={vm.postType === type ? "default" : "outline"}
-              aria-pressed={vm.postType === type}
-              onClick={() => vm.setPostType(type)}
+              value={type}
+              // The item brings the toggle behavior; Button keeps the chip look.
+              render={(props, state) => (
+                <Button
+                  {...props}
+                  className={undefined}
+                  size="sm"
+                  variant={state.pressed ? "default" : "outline"}
+                />
+              )}
             >
               {postTypeLabel(type)}
-            </Button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
         <Input
           aria-label="Title"
           placeholder="Title (optional)"
           maxLength={TITLE_MAX}
+          readOnly={!vm.canWrite}
+          aria-describedby={readOnlyNoticeId}
           value={vm.postTitle}
           onChange={(event) => vm.setPostTitle(event.target.value)}
         />
         <RichTextEditor
           aria-label="Ministry post content"
+          aria-describedby={readOnlyNoticeId}
           imagePurpose="feed"
           value={vm.postContent}
           onChange={vm.setPostContent}
+          // Not disabled: that dims the kept draft below readable contrast.
+          readOnly={!vm.canWrite}
           placeholder="Write an update for your partners…"
           variant="feed"
           toolbarPosition="bottom"
           proseInvert={false}
+          // A read-only editor keeps this row, word count included, and drops
+          // only its formatting controls.
           actions={
             <PostComposerActions
               selectedMedia={vm.selectedMedia}
@@ -319,6 +398,7 @@ function PostComposerCard({
               setSelectedMedia={vm.setSelectedMedia}
               setPostPrivacy={vm.setPostPrivacy}
               handlePost={vm.handlePost}
+              readOnlyNoticeId={readOnlyNoticeId}
             />
           }
         />
@@ -329,16 +409,31 @@ function PostComposerCard({
 
 function FeedPostsTabsSection({
   vm,
+  publishedPanelRef,
+  draftsPanelRef,
+  requestDelete,
 }: {
   vm: ReturnType<typeof useWorkerFeedPageView>;
+  publishedPanelRef: React.RefObject<HTMLDivElement | null>;
+  draftsPanelRef: React.RefObject<HTMLDivElement | null>;
+  requestDelete: (status: PostStatus, list: Post[], index: number) => void;
 }) {
+  const draftsRetryButton = useRef<HTMLButtonElement>(null);
+  const draftsRetry = useLoadRetry({
+    retryRef: draftsRetryButton,
+    error: vm.draftsError && !vm.isLoadingDrafts ? true : null,
+    loading: vm.isLoadingDrafts,
+    onRetry: vm.reloadDrafts,
+    landing: () => draftsPanelRef.current,
+  });
+
   return (
     <Tabs
       value={vm.activeTab}
       onValueChange={(value) => vm.setActiveTab(value as PostStatus)}
       className="flex flex-col gap-4"
     >
-      <TabsList>
+      <TabsList aria-label="Updates">
         <TabsTrigger value="published">Published</TabsTrigger>
         <TabsTrigger value="draft">
           Drafts
@@ -348,7 +443,11 @@ function FeedPostsTabsSection({
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="published" className="flex flex-col gap-6">
+      <TabsContent
+        ref={publishedPanelRef}
+        value="published"
+        className="flex flex-col gap-6"
+      >
         <PublishedFeedPane
           feedError={vm.feedError}
           hasPosts={vm.posts.length > 0}
@@ -357,19 +456,45 @@ function FeedPostsTabsSection({
             void vm.reloadPosts();
           }}
         >
-          {vm.posts.map((post) => (
+          {vm.posts.map((post, index) => (
             <PublishedPostCard
               key={post.id}
               post={post}
               onEdit={() => vm.requestEditPost(post)}
-              onDelete={() => vm.requestDeletePost(post.id)}
+              onDelete={() => requestDelete("published", vm.posts, index)}
             />
           ))}
         </PublishedFeedPane>
       </TabsContent>
 
-      <TabsContent value="draft" className="flex flex-col gap-4">
-        {vm.isLoadingDrafts ? (
+      <TabsContent
+        ref={draftsPanelRef}
+        value="draft"
+        className="flex flex-col gap-4"
+      >
+        {draftsRetry.error ? (
+          <Card>
+            <CardContent className="flex flex-col items-start gap-3">
+              <p
+                key={draftsRetry.failedRetries}
+                role="alert"
+                className="text-sm text-foreground"
+              >
+                We couldn’t load your drafts.
+              </p>
+              <Button
+                ref={draftsRetryButton}
+                variant="outline"
+                size="sm"
+                disabled={draftsRetry.retrying}
+                focusableWhenDisabled
+                onClick={draftsRetry.retry}
+              >
+                {draftsRetry.retrying ? "Trying again…" : "Try again"}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : vm.isLoadingDrafts ? (
           <div
             role="status"
             aria-label="Loading drafts"
@@ -378,28 +503,13 @@ function FeedPostsTabsSection({
             <Skeleton className="h-32 w-full rounded-xl" />
             <Skeleton className="h-32 w-full rounded-xl" />
           </div>
-        ) : vm.draftsError ? (
-          <Card>
-            <CardContent className="flex flex-col items-start gap-3">
-              <p role="alert" className="text-sm text-foreground">
-                We couldn’t load your drafts.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void vm.reloadDrafts()}
-              >
-                Try again
-              </Button>
-            </CardContent>
-          </Card>
         ) : vm.drafts.length > 0 ? (
-          vm.drafts.map((draft) => (
+          vm.drafts.map((draft, index) => (
             <DraftPostCard
               key={draft.id}
               post={draft}
               onEdit={() => vm.requestEditPost(draft)}
-              onDelete={() => vm.requestDeletePost(draft.id)}
+              onDelete={() => requestDelete("draft", vm.drafts, index)}
             />
           ))
         ) : (
@@ -414,21 +524,74 @@ function FeedPostsTabsSection({
   );
 }
 
+// On close, focus the update's own actions if it is still there, else the
+// next update's, else the previous one's, else the composer heading.
+function useDeleteFocusReturn(vm: ReturnType<typeof useWorkerFeedPageView>) {
+  const composerHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const publishedPanelRef = useRef<HTMLDivElement | null>(null);
+  const draftsPanelRef = useRef<HTMLDivElement | null>(null);
+  const originRef = useRef<{ status: PostStatus; ids: string[] } | null>(null);
+
+  const requestDelete = (status: PostStatus, list: Post[], index: number) => {
+    originRef.current = {
+      status,
+      ids: [index, index + 1, index - 1].flatMap((at) =>
+        list[at] ? [list[at].id] : [],
+      ),
+    };
+    vm.requestDeletePost(list[index]!.id);
+  };
+
+  const finalFocus = () => {
+    const origin = originRef.current;
+    if (!origin) return composerHeadingRef.current;
+    const list = origin.status === "draft" ? vm.drafts : vm.posts;
+    const panel =
+      origin.status === "draft"
+        ? draftsPanelRef.current
+        : publishedPanelRef.current;
+    const at = origin.ids
+      .map((id) => list.findIndex((post) => post.id === id))
+      .find((found) => found >= 0);
+    // Each card has one actions menu, in list order.
+    const trigger =
+      at === undefined
+        ? undefined
+        : panel?.querySelectorAll<HTMLElement>('[aria-haspopup="menu"]')[at];
+    return trigger ?? composerHeadingRef.current;
+  };
+
+  return {
+    composerHeadingRef,
+    publishedPanelRef,
+    draftsPanelRef,
+    requestDelete,
+    finalFocus,
+  };
+}
+
 function DeleteUpdateDialog({
   vm,
+  finalFocus,
 }: {
   vm: ReturnType<typeof useWorkerFeedPageView>;
+  finalFocus: () => HTMLElement | null;
 }) {
   const pending = vm.pendingDelete;
   const name = pending?.title?.trim() || "this update";
   return (
     <AlertDialog
       open={pending !== null}
-      onOpenChange={(open) => {
-        if (!open) vm.cancelDeletePost();
+      onOpenChange={(open, details) => {
+        if (open) return;
+        if (vm.isDeleting) {
+          details.cancel();
+          return;
+        }
+        vm.cancelDeletePost();
       }}
     >
-      <AlertDialogContent>
+      <AlertDialogContent finalFocus={finalFocus}>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {name}?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -437,14 +600,31 @@ function DeleteUpdateDialog({
               : "Partners will no longer see it, and its reactions and comments will be lost."}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <p role="status" aria-atomic="true" className="sr-only">
+          {vm.isDeleting ? `Deleting ${name}…` : ""}
+        </p>
+        {vm.deleteError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {vm.deleteError}
+          </p>
+        ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep it</AlertDialogCancel>
-          <AlertDialogAction
+          <AlertDialogCancel disabled={vm.isDeleting}>
+            Keep it
+          </AlertDialogCancel>
+          {/* Not an AlertDialogAction: that closes the dialog before the delete settles. */}
+          <Button
+            type="button"
             variant="destructive"
-            onClick={() => void vm.confirmDeletePost()}
+            disabled={vm.isDeleting}
+            focusableWhenDisabled={vm.isDeleting}
+            onClick={(event) => {
+              event.currentTarget.focus();
+              void vm.confirmDeletePost();
+            }}
           >
-            Delete
-          </AlertDialogAction>
+            {vm.isDeleting ? "Deleting…" : "Delete"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -484,6 +664,13 @@ function DiscardWritingDialog({
 
 function WorkerFeedPageView() {
   const vm = useWorkerFeedPageView();
+  const {
+    composerHeadingRef,
+    publishedPanelRef,
+    draftsPanelRef,
+    requestDelete,
+    finalFocus,
+  } = useDeleteFocusReturn(vm);
   if (!vm.canRead) {
     return <p role="status">Your updates are unavailable in this account.</p>;
   }
@@ -497,7 +684,7 @@ function WorkerFeedPageView() {
           keep requests in a side column. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-8 lg:row-start-1">
-          <PostComposerCard vm={vm} />
+          <PostComposerCard vm={vm} headingRef={composerHeadingRef} />
         </div>
         <aside className="min-w-0 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1">
           <FollowerRequestsCard
@@ -509,10 +696,15 @@ function WorkerFeedPageView() {
           />
         </aside>
         <div className="min-w-0 lg:col-span-8 lg:row-start-2">
-          <FeedPostsTabsSection vm={vm} />
+          <FeedPostsTabsSection
+            vm={vm}
+            publishedPanelRef={publishedPanelRef}
+            draftsPanelRef={draftsPanelRef}
+            requestDelete={requestDelete}
+          />
         </div>
       </div>
-      <DeleteUpdateDialog vm={vm} />
+      <DeleteUpdateDialog vm={vm} finalFocus={finalFocus} />
       <DiscardWritingDialog vm={vm} />
     </div>
   );

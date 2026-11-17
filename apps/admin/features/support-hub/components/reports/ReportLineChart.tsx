@@ -89,8 +89,11 @@ const LineChartContent = dynamic(
         return (
           <div className="h-70 w-full">
             <ChartContainer layout="fill" className="w-full" config={config}>
+              {/* Names the keyboard layer's tab stop. Recharts' `title`
+                  prop would also add a native hover tooltip. */}
               <BarChart
                 accessibilityLayer
+                aria-label={title}
                 data={data}
                 margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
                 maxBarSize={24}
@@ -117,6 +120,7 @@ const LineChartContent = dynamic(
           <ChartContainer layout="fill" className="w-full" config={config}>
             <AreaChart
               accessibilityLayer
+              aria-label={title}
               data={data}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
             >

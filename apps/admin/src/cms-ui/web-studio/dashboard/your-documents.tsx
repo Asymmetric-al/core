@@ -46,7 +46,7 @@ import {
   RotateCw,
   UsersRound,
 } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import { WEB_STUDIO_COLLECTION_CONFIGS } from "../collections/config";
 import {
@@ -147,6 +147,10 @@ function useDashboardDocuments(tab: DocumentsTab, page: number) {
         name: "get-dashboard-documents",
         args: { limit: PAGE_SIZE, page, tab },
       })) as DashboardDocumentsPage,
+    // Keep this tab's last page on screen while the next one loads, so the
+    // pager keeps focus and its live region; never another tab's documents.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[QUERY_KEY.length] === tab ? previous : undefined,
   });
 }
 
@@ -166,7 +170,13 @@ function DocumentsSkeleton() {
   );
 }
 
-function DocumentsError({ onRetry }: { onRetry: () => void }) {
+function DocumentsError({
+  busy,
+  onRetry,
+}: {
+  busy: boolean;
+  onRetry: () => void;
+}) {
   return (
     <div role="alert" className="rounded-lg border border-dashed">
       <Empty>
@@ -178,7 +188,13 @@ function DocumentsError({ onRetry }: { onRetry: () => void }) {
           <EmptyDescription>Check your connection and retry.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button variant="outline" size="sm" onClick={onRetry}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            focusableWhenDisabled
+            onClick={onRetry}
+          >
             <RotateCw aria-hidden="true" />
             Retry
           </Button>
@@ -220,6 +236,7 @@ function DocumentsPager({
         size="icon-sm"
         aria-label="Previous page"
         disabled={disabled || page <= 1}
+        focusableWhenDisabled
         onClick={() => onPageChange(page - 1)}
       >
         <ChevronLeft aria-hidden="true" />
@@ -229,6 +246,7 @@ function DocumentsPager({
         size="icon-sm"
         aria-label="Next page"
         disabled={disabled || page >= totalPages}
+        focusableWhenDisabled
         onClick={() => onPageChange(page + 1)}
       >
         <ChevronRight aria-hidden="true" />
@@ -273,7 +291,9 @@ function PinnedList({
                 variant="ghost"
                 size="icon-sm"
                 aria-label={`Unpin ${document.title}`}
+                data-unpin=""
                 disabled={disabled}
+                focusableWhenDisabled
                 onClick={() => onUnpin(document)}
               >
                 <PinOff aria-hidden="true" />
@@ -331,30 +351,24 @@ function TabBody({
   onUnpin: (document: DashboardDocument) => void;
   onPageChange: (page: number) => void;
 }) {
-  if (query.isError) {
-    return <DocumentsError onRetry={() => void query.refetch()} />;
+  // A retry after a failed load shows no data of its own: keep the error, so
+  // the pressed Retry keeps focus until the retry settles.
+  const retrying =
+    query.isFetching &&
+    query.errorUpdateCount > 0 &&
+    (query.isPending || query.isPlaceholderData);
+  if (query.isError || retrying) {
+    return (
+      <DocumentsError
+        busy={query.isFetching}
+        onRetry={() => void query.refetch()}
+      />
+    );
   }
   if (!query.data) return <DocumentsSkeleton />;
   const { items, page, totalDocs } = query.data;
-  // A page past the end while earlier pages still have documents (another
-  // session unpinned them): keep the pager so they stay reachable.
-  if (items.length === 0 && totalDocs > 0) {
-    return (
-      <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">
-          No documents on this page.
-        </p>
-        <DocumentsPager
-          page={page}
-          totalDocs={totalDocs}
-          disabled={query.isFetching || saving}
-          onPageChange={onPageChange}
-        />
-      </div>
-    );
-  }
   // One short line: an empty personal list should not push Collections down.
-  if (items.length === 0) {
+  if (items.length === 0 && totalDocs === 0) {
     const Icon = tab === "pinned" ? Pin : History;
     return (
       <div
@@ -378,10 +392,22 @@ function TabBody({
       </div>
     );
   }
+  // The pager keeps its place in every branch, so changing pages never
+  // remounts the button that was pressed.
   return (
     <div aria-busy={query.isFetching} className="flex flex-col gap-3">
-      {tab === "pinned" ? (
-        <PinnedList documents={items} disabled={saving} onUnpin={onUnpin} />
+      {items.length === 0 ? (
+        // A page past the end while earlier pages still have documents
+        // (another session unpinned them): the pager keeps them reachable.
+        <p className="text-sm text-muted-foreground">
+          No documents on this page.
+        </p>
+      ) : tab === "pinned" ? (
+        <PinnedList
+          documents={items}
+          disabled={saving || query.isPlaceholderData}
+          onUnpin={onUnpin}
+        />
       ) : (
         <RecentlyViewedList documents={items} />
       )}
@@ -393,6 +419,32 @@ function TabBody({
       />
     </div>
   );
+}
+
+type FocusedControl = {
+  element: HTMLElement;
+  page: number | undefined;
+  row: number | null;
+};
+
+function focusAfterRemoval(
+  panel: HTMLElement,
+  lost: FocusedControl,
+  page: number | undefined,
+) {
+  const unpins = Array.from(
+    panel.querySelectorAll<HTMLElement>("[data-unpin]"),
+  );
+  let target = panel.querySelector<HTMLElement>('[role="alert"] button');
+  if (!target && lost.row !== null && unpins.length > 0) {
+    const movedBack =
+      page !== undefined && lost.page !== undefined && page < lost.page;
+    target =
+      unpins[
+        movedBack ? unpins.length - 1 : Math.min(lost.row, unpins.length - 1)
+      ] ?? null;
+  }
+  (target ?? panel.querySelector<HTMLElement>("a[href]") ?? panel).focus();
 }
 
 /**
@@ -416,14 +468,31 @@ export function YourDocuments() {
   });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
   const query = useDashboardDocuments(tab, pages[tab]);
+  const shownPage = query.data?.page;
+  const sectionRef = useRef<HTMLElement>(null);
+  const focused = useRef<FocusedControl | null>(null);
+
+  useLayoutEffect(() => {
+    const lost = focused.current;
+    if (!lost || lost.element.isConnected) return;
+    focused.current = null;
+    const { activeElement, body } = lost.element.ownerDocument;
+    if (activeElement && activeElement !== body) return;
+    const panel =
+      sectionRef.current?.querySelector<HTMLElement>('[role="tabpanel"]');
+    if (panel) focusAfterRemoval(panel, lost, shownPage);
+  });
 
   const unpin = async (document: DashboardDocument) => {
     if (saving) return;
     setSaving(true);
     setSaveError(null);
+    setStatus("");
     try {
       await updatePinnedDocument({ document, shouldPin: false, url: pinsURL });
+      setStatus(`Unpinned ${document.title}`);
       // Unpinning the only document on a later page empties that page; show
       // the page before it, which still has pins.
       const shown = query.data;
@@ -457,7 +526,30 @@ export function YourDocuments() {
   );
 
   return (
-    <section aria-labelledby={headingId}>
+    <section
+      ref={sectionRef}
+      aria-labelledby={headingId}
+      onFocus={(event) => {
+        const row = Array.from(
+          event.currentTarget.querySelectorAll("[data-unpin]"),
+        ).indexOf(event.target);
+        focused.current = {
+          element: event.target,
+          page: shownPage,
+          row: row === -1 ? null : row,
+        };
+      }}
+      onBlur={(event) => {
+        const element = event.target;
+        // Removing the focused element can fire blur too; only a real move
+        // away, with the element still on the page, forgets it.
+        queueMicrotask(() => {
+          if (element.isConnected && focused.current?.element === element) {
+            focused.current = null;
+          }
+        });
+      }}
+    >
       <Card>
         <CardHeader>
           <CardTitle>
@@ -472,10 +564,11 @@ export function YourDocuments() {
             value={tab}
             onValueChange={(value) => {
               setSaveError(null);
+              setStatus("");
               setTab(value as DocumentsTab);
             }}
           >
-            <TabsList>
+            <TabsList aria-labelledby={headingId}>
               <TabsTrigger value="pinned">Pinned</TabsTrigger>
               <TabsTrigger value="recents">Recently viewed</TabsTrigger>
             </TabsList>
@@ -487,6 +580,9 @@ export function YourDocuments() {
               {saveError}
             </p>
           ) : null}
+          <p role="status" className="sr-only">
+            {status}
+          </p>
         </CardContent>
       </Card>
     </section>

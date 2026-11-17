@@ -149,10 +149,10 @@ it("tells the user about deferred tasks the board does not show", async () => {
   await waitFor(() => expect(document.activeElement).toBe(listView));
   expect(screen.getByText("Deferred only")).toBeTruthy();
   expect(
-    await screen.findByRole("checkbox", { name: "Complete Paused visit" }),
+    await screen.findByRole("checkbox", { name: "Mark Paused visit complete" }),
   ).toBeTruthy();
   expect(
-    screen.queryByRole("checkbox", { name: "Complete Call partner" }),
+    screen.queryByRole("checkbox", { name: "Mark Call partner complete" }),
   ).toBeNull();
   // Deferred work is left out of the overdue count, so its row does not
   // carry an Overdue badge either (the Overdue filter tab aside).
@@ -209,10 +209,10 @@ it("shows a Due today list that matches the summary count", async () => {
   ).toBe("1");
   showListTab("Today");
   expect(
-    await screen.findByRole("checkbox", { name: "Complete Call today" }),
+    await screen.findByRole("checkbox", { name: "Mark Call today complete" }),
   ).toBeTruthy();
   expect(
-    screen.queryByRole("checkbox", { name: "Complete Deferred today" }),
+    screen.queryByRole("checkbox", { name: "Mark Deferred today complete" }),
   ).toBeNull();
 });
 
@@ -252,11 +252,11 @@ it("filters overdue work from its tab without a duplicate chip", async () => {
   showListTab("Overdue");
 
   expect(
-    await screen.findByRole("checkbox", { name: "Complete Late call" }),
+    await screen.findByRole("checkbox", { name: "Mark Late call complete" }),
   ).toBeTruthy();
   await waitFor(() =>
     expect(
-      screen.queryByRole("checkbox", { name: "Complete Someday call" }),
+      screen.queryByRole("checkbox", { name: "Mark Someday call complete" }),
     ).toBeNull(),
   );
   expect(screen.queryByText("Overdue only")).toBeNull();
@@ -266,7 +266,7 @@ it("filters overdue work from its tab without a duplicate chip", async () => {
     within(screen.getByRole("tablist")).getByRole("tab", { name: "Open" }),
   );
   expect(
-    await screen.findByRole("checkbox", { name: "Complete Someday call" }),
+    await screen.findByRole("checkbox", { name: "Mark Someday call complete" }),
   ).toBeTruthy();
 });
 

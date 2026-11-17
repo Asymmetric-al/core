@@ -9,7 +9,7 @@ import {
   type EffectiveContributionResult,
 } from "./effective-values";
 import { resolveContributionProfileLabel } from "./profile-label";
-import { ApiHttpError } from "../../shared/http-errors";
+import { ApiHttpError } from "../../shared/api-http-error";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { ContributionDesignationSet } from "@asym/database/types";

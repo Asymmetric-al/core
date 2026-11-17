@@ -53,6 +53,23 @@ describe("Inbox refinements", () => {
     });
     expect(mocks.setState).toHaveBeenCalledTimes(1);
   });
+  it("hands focus to the search box when Reset filters or Clear search removes itself", () => {
+    render(<InboxToolbar />);
+    const search = screen.getByRole("textbox", {
+      name: "Search conversations",
+    });
+    const reset = screen.getByRole("button", { name: "Reset filters" });
+    reset.focus();
+    fireEvent.click(reset);
+    expect(document.activeElement).toBe(search);
+
+    fireEvent.change(search, { target: { value: "receipt" } });
+    const clear = screen.getByRole("button", { name: "Clear search" });
+    clear.focus();
+    fireEvent.click(clear);
+    expect(screen.queryByRole("button", { name: "Clear search" })).toBeNull();
+    expect(document.activeElement).toBe(search);
+  });
   it("keeps native time semantics, an exact date tooltip and directional context", () => {
     const { container, rerender } = render(
       <RelativeTime value="2026-11-11T09:00:00.000Z" />,

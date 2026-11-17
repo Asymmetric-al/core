@@ -81,7 +81,10 @@ it("announces selection without replacing the focused card or its stable convers
   const card = screen.getByRole("button", {
     name: /Fixture contact.*Receipt question/,
   });
-  expect(card.getAttribute("aria-pressed")).toBe("false");
+  // Pressing it again does not close the conversation, so it is not a toggle:
+  // the open one is the current item, as on the board.
+  expect(card.hasAttribute("aria-pressed")).toBe(false);
+  expect(card.getAttribute("aria-current")).toBe("false");
   card.focus();
   fireEvent.click(card);
   expect(onSelectConversation).toHaveBeenCalledExactlyOnceWith(
@@ -94,6 +97,7 @@ it("announces selection without replacing the focused card or its stable convers
       onSelectConversation={onSelectConversation}
     />,
   );
-  expect(screen.getByRole("button", { pressed: true })).toBe(card);
+  expect(screen.getByRole("button", { current: true })).toBe(card);
+  expect(card.hasAttribute("aria-pressed")).toBe(false);
   expect(document.activeElement).toBe(card);
 });

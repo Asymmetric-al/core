@@ -11,6 +11,7 @@ import { EditorToolbar } from "./toolbar";
 
 export interface LegacyRichTextEditorProps {
   "aria-label"?: string;
+  "aria-describedby"?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -36,6 +37,7 @@ export type EditorImagePurpose = "feed" | "care-thread" | "care-note";
  */
 export function LegacyRichTextEditor({
   "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedBy,
   value,
   onChange,
   placeholder,
@@ -93,6 +95,7 @@ export function LegacyRichTextEditor({
     >
       <EditorRoot
         aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
         value={value}
         onChange={onChange}
         disabled={disabled}

@@ -5,6 +5,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -40,6 +41,7 @@ import { DonorPortalHeader } from "../../../../apps/donor/features/donor/compone
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   navigation.pathname = "/donor-dashboard/settings";
 });
 
@@ -85,6 +87,38 @@ it("offers Settings once, so there is no unmarked copy in the account menu", asy
   const menu = await screen.findByRole("menu");
   expect(within(menu).queryByRole("menuitem", { name: "Settings" })).toBeNull();
   expect(within(menu).getByRole("menuitem", { name: "Sign out" })).toBeTruthy();
+});
+
+it("opens the keyboard shortcuts from the account menu, showing their Shift+? key", async () => {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  render(<DonorPortalHeader />);
+
+  const trigger = screen.getByRole("button", {
+    name: "Account menu for Avery Lopez",
+  });
+  trigger.focus();
+  fireEvent.click(trigger);
+  const item = await screen.findByRole("menuitem", {
+    name: "Keyboard shortcuts",
+  });
+  expect(item.getAttribute("aria-keyshortcuts")).toBe("Shift+?");
+  expect(item.querySelector("kbd")?.textContent).toContain("Shift+?");
+
+  fireEvent.click(item);
+  const help = await screen.findByRole("dialog", {
+    name: "Keyboard shortcuts",
+  });
+  expect(within(help).getByText("Search donor navigation")).toBeTruthy();
+  fireEvent.keyDown(help, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(trigger));
 });
 
 // Tablets (768 to 1279px) can't fit five two-word tabs beside the brand, Give,

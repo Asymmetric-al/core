@@ -97,6 +97,105 @@ describe("InboxToolbar search", () => {
     expect(hooks.setState).not.toHaveBeenCalled();
   });
 
+  it("keeps a cleared search when the earlier debounced query lands late", () => {
+    const { rerender } = render(<InboxToolbar />);
+    const search = screen.getByRole("textbox", {
+      name: "Search conversations",
+    }) as HTMLInputElement;
+    fireEvent.change(search, { target: { value: "jkes" } });
+    advance(200);
+    expect(hooks.setState).toHaveBeenCalledExactlyOnceWith({ q: "jkes" });
+
+    // Select all + Backspace before the URL reflects "jkes".
+    fireEvent.change(search, { target: { value: "" } });
+    advance(200);
+    hooks.q = "jkes";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("");
+
+    advance(200);
+    expect(hooks.setState).toHaveBeenLastCalledWith({ q: "" });
+    hooks.q = "";
+    rerender(<InboxToolbar />);
+    advance(200);
+    expect(search.value).toBe("");
+    expect(hooks.setState.mock.calls).toEqual([[{ q: "jkes" }], [{ q: "" }]]);
+  });
+
+  it("keeps typing ahead of debounced queries that land one by one", () => {
+    const { rerender } = render(<InboxToolbar />);
+    const search = screen.getByRole("textbox", {
+      name: "Search conversations",
+    }) as HTMLInputElement;
+    fireEvent.change(search, { target: { value: "jk" } });
+    advance(200);
+    fireEvent.change(search, { target: { value: "jkes" } });
+    advance(200);
+    fireEvent.change(search, { target: { value: "jkes r" } });
+
+    hooks.q = "jk";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("jkes r");
+    hooks.q = "jkes";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("jkes r");
+
+    advance(200);
+    expect(hooks.setState.mock.calls).toEqual([
+      [{ q: "jk" }],
+      [{ q: "jkes" }],
+      [{ q: "jkes r" }],
+    ]);
+    hooks.q = "jkes r";
+    rerender(<InboxToolbar />);
+    advance(200);
+    expect(search.value).toBe("jkes r");
+    expect(hooks.setState).toHaveBeenCalledTimes(3);
+  });
+
+  it("keeps typing that follows Reset filters before the reset lands", () => {
+    hooks.q = "receipt";
+    const { rerender } = render(<InboxToolbar />);
+    const search = screen.getByRole("textbox", {
+      name: "Search conversations",
+    }) as HTMLInputElement;
+    fireEvent.click(screen.getByRole("button", { name: "Reset filters" }));
+    expect(hooks.setState).toHaveBeenCalledExactlyOnceWith({
+      q: "",
+      status: "all",
+      labelSlugs: [],
+      assignee: "",
+    });
+    fireEvent.change(search, { target: { value: "urgent" } });
+
+    hooks.q = "";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("urgent");
+    advance(200);
+    expect(hooks.setState).toHaveBeenLastCalledWith({ q: "urgent" });
+  });
+
+  it("follows back and forward navigation after its own query has landed", () => {
+    const { rerender } = render(<InboxToolbar />);
+    const search = screen.getByRole("textbox", {
+      name: "Search conversations",
+    }) as HTMLInputElement;
+    fireEvent.change(search, { target: { value: "receipt" } });
+    advance(200);
+    hooks.q = "receipt";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("receipt");
+
+    hooks.q = "";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("");
+    hooks.q = "receipt";
+    rerender(<InboxToolbar />);
+    expect(search.value).toBe("receipt");
+    advance(200);
+    expect(hooks.setState).toHaveBeenCalledExactlyOnceWith({ q: "receipt" });
+  });
+
   it("cancels a pending URL update when the toolbar unmounts", () => {
     const { unmount } = render(<InboxToolbar />);
     fireEvent.change(

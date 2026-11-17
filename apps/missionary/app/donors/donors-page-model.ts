@@ -198,6 +198,21 @@ export function getDonorEmailHref(
   return `mailto:${value}`;
 }
 
+export function getDonorCallUnavailableReason(
+  donor: Pick<Donor, "phone" | "mobile" | "is_anonymous">,
+): string | null {
+  if (donor.is_anonymous) return "Anonymous partners can’t be called";
+  return getDonorCallHref(donor) ? null : "No phone number on file";
+}
+
+export function getDonorEmailUnavailableReason(
+  email: string | null | undefined,
+  isAnonymous = false,
+): string | null {
+  if (isAnonymous) return "Anonymous partners can’t be emailed";
+  return getDonorEmailHref(email) ? null : "No email address on file";
+}
+
 export function createDonorsPageSummary(donors: Donor[]): DonorsPageSummary {
   return donors.reduce<DonorsPageSummary>(
     (summary, donor) => {

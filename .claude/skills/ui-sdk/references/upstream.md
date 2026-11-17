@@ -76,10 +76,11 @@ otherwise rewrite the upstream code samples.
   the title, and appended the marked Core overlay. The overlay pins the
   installed-docs path under `packages/ui/node_modules/@ui-sdk/`, keeps Base UI
   the default, places wrappers in `packages/ui/components/primitives/`, forbids
-  the optional `web.css`, app-level SDK imports and `test.fails`, makes agent
-  bridges opt-in, names Core's test and verification commands, and points at the
-  reference Rating implementation. Its first paragraph is the Apache-2.0 §4(b)
-  change notice.
+  the optional `web.css`, app-level SDK imports and `test.fails`, names Core's
+  shared UI SDK owners (the shortcut owner, the sortable list, the single agent
+  bridge and the pattern checks), names Core's test and verification commands,
+  and points at the reference Rating implementation. Its first paragraph is the
+  Apache-2.0 §4(b) change notice.
 - `bun run skills:sync` appends the secret scanner's allowlist HTML comment to
   Markdown lines that name credential fields, and
   `node scripts/update-skill-audit-hashes.mjs` requires the canonical copy to

@@ -5,13 +5,13 @@ import {
   DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
-import { Check, Flag } from "lucide-react";
+import { Flag } from "lucide-react";
 
 import { useSetSupportConversationPriority } from "../../hooks/use-support-mutations";
 import {
@@ -64,29 +64,26 @@ export function ConversationPriorityMenu({
           <DropdownMenuLabel>Priority</DropdownMenuLabel>
 
           <DropdownMenuSeparator />
-          {SUPPORT_PRIORITIES.map((priority) => (
-            <DropdownMenuItem
-              key={priority}
-              onClick={() =>
-                setPriority.mutate({
-                  conversationId: conversation.id,
-                  priority,
-                })
-              }
-            >
-              <Check
-                aria-hidden="true"
-                className={cn(
-                  "size-3.5",
-                  priority === conversation.priority
-                    ? "text-foreground"
-                    : "text-transparent",
-                )}
-              />
-              <Flag aria-hidden="true" className={PRIORITY_TONES[priority]} />
-              {PRIORITY_LABELS[priority]}
-            </DropdownMenuItem>
-          ))}
+          <DropdownMenuRadioGroup
+            value={conversation.priority}
+            onValueChange={(priority: SupportPriority) =>
+              setPriority.mutate({
+                conversationId: conversation.id,
+                priority,
+              })
+            }
+          >
+            {SUPPORT_PRIORITIES.map((priority) => (
+              <DropdownMenuRadioItem
+                key={priority}
+                value={priority}
+                closeOnClick
+              >
+                <Flag aria-hidden="true" className={PRIORITY_TONES[priority]} />
+                {PRIORITY_LABELS[priority]}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

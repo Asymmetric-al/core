@@ -340,7 +340,7 @@ it("switches from List to Map to place a pin and clears pick mode on List or the
 it("shows map loading, a retryable failure and the first-location action", async () => {
   queryState.isLoading = true;
   const { rerender } = render(<LocationsPage />);
-  expect(screen.getByRole("status").textContent).toContain("Loading locations");
+  expect(screen.getByRole("status").textContent).toBe("Loading locations…");
   queryState.isLoading = false;
   queryState.isError = true;
   rerender(<LocationsPage />);

@@ -8,7 +8,6 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   ChevronsUpDownIcon,
-  CheckIcon,
   ArrowLeftToLineIcon,
   ArrowRightToLineIcon,
   ArrowLeftIcon,
@@ -216,6 +215,11 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
     (props.tableLayout?.columnsPinnable && canPin) ||
     filter;
 
+  // Plain items step in to the check column of the sort and pin items. React
+  // writes `data-inset="false"`, which still matches, so pass `undefined`.
+  const insetPlainItems =
+    canSort || (props.tableLayout?.columnsPinnable && canPin) || undefined;
+
   const menuItems = (() => {
     const items: ReactNode[] = [];
     let hasPreviousSection = false;
@@ -241,41 +245,40 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
       if (hasPreviousSection) {
         items.push(<DropdownMenuSeparator key="sep-sort" />);
       }
+      // Checkbox items, not radios: choosing the checked one clears it.
       items.push(
-        <DropdownMenuItem
+        <DropdownMenuCheckboxItem
           key="sort-asc"
-          onClick={() => {
-            if (isSorted === "asc") {
-              column.clearSorting();
-            } else {
+          checked={isSorted === "asc"}
+          onCheckedChange={(checked) => {
+            if (checked) {
               column.toggleSorting(false);
-            }
-          }}
-          disabled={!canSort}
-        >
-          <ArrowUpIcon className="size-3.5!" />
-          <span className="grow">{i18n.labels.sortAscending}</span>
-          {isSorted === "asc" && (
-            <CheckIcon className="text-primary size-4 opacity-100!" />
-          )}
-        </DropdownMenuItem>,
-        <DropdownMenuItem
-          key="sort-desc"
-          onClick={() => {
-            if (isSorted === "desc") {
-              column.clearSorting();
             } else {
-              column.toggleSorting(true);
+              column.clearSorting();
             }
           }}
+          closeOnClick
           disabled={!canSort}
         >
-          <ArrowDownIcon className="size-3.5!" />
+          <ArrowUpIcon className="text-muted-foreground size-3.5!" />
+          <span className="grow">{i18n.labels.sortAscending}</span>
+        </DropdownMenuCheckboxItem>,
+        <DropdownMenuCheckboxItem
+          key="sort-desc"
+          checked={isSorted === "desc"}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              column.toggleSorting(true);
+            } else {
+              column.clearSorting();
+            }
+          }}
+          closeOnClick
+          disabled={!canSort}
+        >
+          <ArrowDownIcon className="text-muted-foreground size-3.5!" />
           <span className="grow">{i18n.labels.sortDescending}</span>
-          {isSorted === "desc" && (
-            <CheckIcon className="text-primary size-4 opacity-100!" />
-          )}
-        </DropdownMenuItem>,
+        </DropdownMenuCheckboxItem>,
       );
       hasPreviousSection = true;
     }
@@ -286,26 +289,30 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
         items.push(<DropdownMenuSeparator key="sep-pin" />);
       }
       items.push(
-        <DropdownMenuItem
+        <DropdownMenuCheckboxItem
           key="pin-left"
-          onClick={() => column.pin(isPinned === "start" ? false : "start")}
+          checked={isPinned === "start"}
+          onCheckedChange={(checked) => column.pin(checked ? "start" : false)}
+          closeOnClick
         >
-          <ArrowLeftToLineIcon className="size-3.5!" aria-hidden="true" />
+          <ArrowLeftToLineIcon
+            className="text-muted-foreground size-3.5!"
+            aria-hidden="true"
+          />
           <span className="grow">{i18n.labels.pinColumnStart}</span>
-          {isPinned === "start" && (
-            <CheckIcon className="text-primary size-4 opacity-100!" />
-          )}
-        </DropdownMenuItem>,
-        <DropdownMenuItem
+        </DropdownMenuCheckboxItem>,
+        <DropdownMenuCheckboxItem
           key="pin-right"
-          onClick={() => column.pin(isPinned === "end" ? false : "end")}
+          checked={isPinned === "end"}
+          onCheckedChange={(checked) => column.pin(checked ? "end" : false)}
+          closeOnClick
         >
-          <ArrowRightToLineIcon className="size-3.5!" aria-hidden="true" />
+          <ArrowRightToLineIcon
+            className="text-muted-foreground size-3.5!"
+            aria-hidden="true"
+          />
           <span className="grow">{i18n.labels.pinColumnEnd}</span>
-          {isPinned === "end" && (
-            <CheckIcon className="text-primary size-4 opacity-100!" />
-          )}
-        </DropdownMenuItem>,
+        </DropdownMenuCheckboxItem>,
       );
       hasPreviousSection = true;
     }
@@ -318,6 +325,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
       items.push(
         <DropdownMenuItem
           key="move-left"
+          inset={insetPlainItems}
           onClick={() => {
             if (leftNeighbour) moveBeside(leftNeighbour, "before");
           }}
@@ -328,6 +336,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
         </DropdownMenuItem>,
         <DropdownMenuItem
           key="move-right"
+          inset={insetPlainItems}
           onClick={() => {
             if (rightNeighbour) moveBeside(rightNeighbour, "after");
           }}
@@ -347,7 +356,7 @@ function DataGridColumnHeaderInner<TData extends object, TValue>({
       }
       items.push(
         <DropdownMenuSub key="visibility">
-          <DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger inset={insetPlainItems}>
             <Settings2Icon className="size-3.5!" />
             <span>{i18n.labels.columnsMenu}</span>
           </DropdownMenuSubTrigger>

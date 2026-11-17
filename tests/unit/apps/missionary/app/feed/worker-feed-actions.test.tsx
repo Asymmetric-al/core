@@ -132,6 +132,46 @@ describe("worker feed actions", () => {
     expect(result.current.pendingDelete).toBeNull();
   });
 
+  it("keeps the confirmation open while deleting and reports a failure in it", async () => {
+    let respond = (_response: Response) => {};
+    const deleteCalls = () =>
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE");
+    const { result } = await ready();
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          respond = resolve;
+        }),
+    );
+    act(() => result.current.requestDeletePost("post-1"));
+    let deleting: Promise<void> = Promise.resolve();
+    act(() => {
+      deleting = result.current.confirmDeletePost();
+      void result.current.confirmDeletePost();
+    });
+    expect(result.current.isDeleting).toBe(true);
+    expect(deleteCalls()).toHaveLength(1);
+
+    // A pending delete can't be abandoned halfway.
+    act(() => result.current.cancelDeletePost());
+    expect(result.current.pendingDelete?.id).toBe("post-1");
+
+    await act(async () => {
+      respond(json(500, {}));
+      await deleting;
+    });
+    expect(result.current.isDeleting).toBe(false);
+    expect(result.current.pendingDelete?.id).toBe("post-1");
+    expect(result.current.posts).toHaveLength(1);
+    expect(result.current.deleteError).toBe(
+      "Couldn’t delete that update. Try again.",
+    );
+
+    act(() => result.current.cancelDeletePost());
+    expect(result.current.pendingDelete).toBeNull();
+    expect(result.current.deleteError).toBeNull();
+  });
+
   it("refreshes the follow-request count after accepting someone", async () => {
     const { result } = await ready();
     await act(async () => {

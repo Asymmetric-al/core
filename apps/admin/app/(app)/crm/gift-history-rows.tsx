@@ -283,40 +283,62 @@ export function GiftHistoryRows({
   tablePreferences: CrmTablePreferencesResponse | undefined;
   viewSettings: CrmGiftHistoryViewSettings;
 }) {
-  if (giftRows.length === 0) {
-    return (
-      <p
-        aria-live="polite"
-        className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground"
-      >
-        No gifts match the current view filters.
-      </p>
-    );
-  }
+  const isEmpty = giftRows.length === 0;
 
   return (
     <div className="flex flex-col gap-2">
-      <GiftHistoryPinnedActionNote
-        giftRows={giftRows}
-        onPinRowAction={onPinRowAction}
-        tablePreferences={tablePreferences}
-      />
-      <ul
-        aria-live="polite"
-        className="flex flex-col divide-y rounded-lg border"
+      {/* One status for every state, so a re-sort, filter or empty view is
+        announced once instead of reading the changed rows aloud. */}
+      <p
+        role="status"
+        className={
+          isEmpty
+            ? "rounded-lg border border-dashed p-4 text-sm text-muted-foreground"
+            : "sr-only"
+        }
       >
-        {giftRows.map((gift) => (
-          <GiftHistoryRow
-            key={gift.id}
-            gift={gift}
-            onOpenGift={onOpenGift}
+        {isEmpty
+          ? "No gifts match the current view filters."
+          : giftListSummary(giftRows.length, viewSettings)}
+      </p>
+      {isEmpty ? null : (
+        <>
+          <GiftHistoryPinnedActionNote
+            giftRows={giftRows}
             onPinRowAction={onPinRowAction}
-            onRunOperation={onRunOperation}
             tablePreferences={tablePreferences}
-            viewSettings={viewSettings}
           />
-        ))}
-      </ul>
+          <ul className="flex flex-col divide-y rounded-lg border">
+            {giftRows.map((gift) => (
+              <GiftHistoryRow
+                key={gift.id}
+                gift={gift}
+                onOpenGift={onOpenGift}
+                onPinRowAction={onPinRowAction}
+                onRunOperation={onRunOperation}
+                tablePreferences={tablePreferences}
+                viewSettings={viewSettings}
+              />
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
+}
+
+function giftListSummary(
+  count: number,
+  viewSettings: CrmGiftHistoryViewSettings,
+): string {
+  const { sortField, sortDirection } = viewSettings.filtersSort;
+  const order =
+    sortField === "amountCents"
+      ? sortDirection === "desc"
+        ? "largest amount first"
+        : "smallest amount first"
+      : sortDirection === "desc"
+        ? "newest first"
+        : "oldest first";
+  return `Showing ${count} ${count === 1 ? "gift" : "gifts"}, ${order}`;
 }

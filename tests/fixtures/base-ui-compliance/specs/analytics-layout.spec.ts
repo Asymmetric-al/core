@@ -1,6 +1,6 @@
 import { expect, test } from "./test";
 
-test("actual analytics KPI values and icons remain inside their cards across sidebar breakpoints", async ({
+test("actual analytics stat values and titles remain inside their cards across sidebar breakpoints", async ({
   page,
 }) => {
   for (const width of [
@@ -40,36 +40,46 @@ test("actual analytics KPI values and icons remain inside their cards across sid
         );
         await new Promise((done) => requestAnimationFrame(done));
       });
-      const cards = await page
-        .getByRole("heading", { name: "Unavailable", exact: true })
-        .evaluateAll((headings) =>
-          headings.map((heading) => {
-            const card = heading.closest('[data-slot="card"]');
-            const icon = card?.querySelector("svg");
-            if (!card || !icon)
-              throw new Error("Expected real KPI card and icon");
-            const outer = card.getBoundingClientRect();
-            const iconRect = icon.getBoundingClientRect();
-            const range = document.createRange();
-            range.selectNodeContents(heading);
-            const valueRect = range.getBoundingClientRect();
-            const style = getComputedStyle(card);
-            const left = outer.left + Number.parseFloat(style.borderLeftWidth);
-            const right =
-              outer.right - Number.parseFloat(style.borderRightWidth);
-            return {
-              valueFits:
-                valueRect.left >= left - 0.5 && valueRect.right <= right + 0.5,
-              iconFits:
-                iconRect.left >= left - 0.5 && iconRect.right <= right + 0.5,
-              font: getComputedStyle(heading).fontFamily,
-            };
-          }),
-        );
+      // The page leads with three stat regions, each named by its title.
+      const cards = await Promise.all(
+        [
+          "Given in the last 12 months",
+          "Partners who gave again",
+          "Typical gift",
+        ].map((title) =>
+          page
+            .getByRole("region", { name: title, exact: true })
+            .evaluate((card) => {
+              const heading = card.querySelector("h2");
+              const value = card.querySelector('[data-slot="card-content"] p');
+              if (!heading || !value)
+                throw new Error("Expected real stat card title and value");
+              const outer = card.getBoundingClientRect();
+              const style = getComputedStyle(card);
+              const left =
+                outer.left + Number.parseFloat(style.borderLeftWidth);
+              const right =
+                outer.right - Number.parseFloat(style.borderRightWidth);
+              const fits = (element: Element) => {
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                return [...range.getClientRects()].every(
+                  (rect) =>
+                    rect.left >= left - 0.5 && rect.right <= right + 0.5,
+                );
+              };
+              return {
+                valueFits: fits(value),
+                titleFits: fits(heading),
+                font: getComputedStyle(value).fontFamily,
+              };
+            }),
+        ),
+      );
       expect(
         cards,
-        `${width}px ${state}: all four actual KPI cards`,
-      ).toHaveLength(4);
+        `${width}px ${state}: all three actual stat cards`,
+      ).toHaveLength(3);
       expect(
         cards.every((card) => card.font.includes("Analytics Fixture Inter")),
       ).toBe(true);
@@ -78,8 +88,8 @@ test("actual analytics KPI values and icons remain inside their cards across sid
         `${width}px ${state}: complete values`,
       ).toBe(true);
       expect(
-        cards.every((card) => card.iconFits),
-        `${width}px ${state}: complete icons`,
+        cards.every((card) => card.titleFits),
+        `${width}px ${state}: complete titles`,
       ).toBe(true);
     }
   }
