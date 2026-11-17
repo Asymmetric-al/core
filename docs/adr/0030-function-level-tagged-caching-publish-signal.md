@@ -1,6 +1,6 @@
 # ADR-0030: Function-level tagged caching + cross-app publish signal, no route-segment config
 
-**Status:** Accepted (founder ruling, Phase 5 grill session 2026-07-05 — A9)
+**Status:** Accepted (founder ruling, Phase 5 grill session 2026-07-05 — A9; publish signal amended 2026-11-17 for AL-2688)
 
 > Full record: `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`
 > (ruling A9; wiring details in Section E, verified against the installed
@@ -37,6 +37,12 @@ public app's route handler, propagating globally in roughly 300ms. A
 self-healing backstop for a missed signal. **No route-segment cache config
 exists anywhere in the public app**, and request-specific values (host,
 headers, draft state) are read outside `use cache` and passed as arguments.
+_Amended 2026-11-17 (see Amendments): the cross-app publish signal, its
+`revalidateTag` handler and its `cacheLife` backstop are not built. A public
+page body is an immutable release, cached under its release ID with
+function-level `use cache`, and read only after an admission read on every
+request, so nothing has to expire on publish or withdrawal. The sentences on
+the signal and its backstop are the 2026-07-05 ruling, kept as dated history._
 
 ## Consequences
 
@@ -211,3 +217,38 @@ only authorized staff/editor projections required to reveal the target. It
 emits no public cache purge/tag/generation, Vercel route/deployment mutation, or
 search/sitemap/social effect. Source cache keys and bytes remain unchanged; the
 target enters the ordinary cache contract only after its later D1 release.
+
+## Amendments
+
+### 2026-11-17: Release-keyed caching after admission replaces the publish signal (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record. It records intent, not implementation.
+- **Kept.** Function-level `use cache`, no route-segment cache configuration in
+  the public app, request-specific values read outside `use cache` and passed as
+  arguments, and the structural CI assertion that keeps route-segment
+  configuration out.
+- **Not built.** The HMAC-signed admin→public-runtime invalidation signal,
+  which no code implements today (audit NR-39), and its bounded `cacheLife`
+  backstop. A release body is immutable, is cached under its release ID, and is
+  read only after an admission that names that ID, so a cached body is never
+  stale and nothing is sent to a cache on publish or withdrawal
+  ([ADR-0229](0229-per-page-releases-and-two-publish-commands.md)).
+- **Cache-key isolation.** The release ID is the cache argument. The SQL function
+  that returns a body returns a row only while that release is the live head of
+  an active Site of an active tenant and its subject may be served, so a kept
+  release ID opens nothing.
+- **Not cached across callers.** Admission, directory, index, update,
+  support-progress and map reads return current rows on every request, so a
+  restriction or a withdrawal reaches a list at the same request it reaches the
+  page. Public media responses are not shared-cached
+  ([ADR-0231](0231-core-media-custody-and-derived-live-use.md)).
+- **Sitemap.** The first release ships no sitemap. A later sitemap lists listed
+  heads only, passes the same admission on every request, and replaces the donor
+  app's day-long cache rule for `/sitemap.xml`.
+- **Phase 22 and Phase 24 amendments above.** Where they speak of tag
+  invalidation or generation-keyed cache identity, the first release's
+  equivalent is the admission read plus release-keyed caching. The Phase 24
+  domain and locale behaviours they describe are not part of the first release.

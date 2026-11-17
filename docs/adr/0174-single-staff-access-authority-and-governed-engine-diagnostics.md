@@ -1,6 +1,6 @@
 # ADR-0174: Single staff access authority and governed engine diagnostics
 
-**Status:** Accepted (founder-ratified Phase 23 D30 C-prime-R, 2026-08-24)
+**Status:** Accepted (founder-ratified Phase 23 D30 C-prime-R, 2026-08-24; first-release scope and clause 7 amended 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -83,7 +83,14 @@ remains an independently authorized typed Asym command.
 >    that exact context. Switching clears old-scope client/query/upload state
 >    before rendering the new scope. Two tabs may use different legitimate
 >    contexts without one mutable profile field or browser singleton changing
->    the other's authority.
+>    the other's authority. _Amended 2026-11-17 (see Amendments): Web Studio is
+>    the one stated exception. Its active organization and chosen membership
+>    travel in one signed, HttpOnly cookie scoped to `/web-studio`, so two Web
+>    Studio tabs in different organizations are not supported; each Web Studio
+>    page carries the organization it was rendered for, and a save, upload or
+>    Publish whose organization differs from the cookie is refused with a
+>    prompt to reload. Mission Control and the Missionary Workspace keep the
+>    rule above by carrying the organization in the page address._
 > 8. **Capabilities enforce; labels and visibility only explain.** Phase 12
 >    capabilities—not `staff`, `admin`, `super_admin`, collection membership,
 >    route visibility, record ownership, or possession of an ID—authorize each
@@ -363,3 +370,54 @@ Ratification authorizes documentation only. It does not authorize code, schema,
 RLS, data repair, migration/backfill, dependency or provider adoption, plugin
 installation, issue or specification publication, Git publication, deployment,
 production access, diagnostic activation, D1 activation, or release.
+
+## Amendments
+
+### 2026-11-17: First-release adoption, operators, and how each surface carries the organization (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record. Carrying the organization in the page address is the
+  plan section 15.1 default taken under the implementation record (D-06), not a
+  fresh owner ruling. This amendment records intent, not implementation.
+- **Adopted now.** The authority clauses, 1 to 12, are adopted for the first
+  release: Supabase Auth is the only identity authority, a membership in one
+  organization is the only grant of tenant authority, the Payload Principal
+  Link is attribution only, Tenant and Site linkage is provisioned and never
+  defaulted, one actor port and one narrower service port carry every Payload
+  call, and the override inventory is a CI gate. Clause 15's closure of
+  Payload's GraphQL and broad generated routes is adopted with them. The plan's
+  mechanism is [ADR-0227](0227-one-policy-pattern-and-the-carried-tenant.md).
+  The product-surface clauses 13, 14 and 16 to 21 and the cutover and launch
+  clauses 32 to 34 are unchanged as the target; where a first-release package
+  does not build one of them, that package says so.
+- **`super_admin` is replaced, not carried.** Clause 8 already denies
+  `super_admin` any authority. In its place there is an operator list with one
+  writer, a script, and an expiring support grant that is a record of its own,
+  never a membership, read-only, time-boxed and visible to the tenant's
+  administrators ([ADR-0228](0228-platform-operators-and-support-grants.md)).
+  Its limits (no care records, 15 minutes by default, a 60-minute ceiling) match
+  the limits clause 24 sets for this record's own elevated access.
+- **Deferred, with the target unchanged.** The Engine Diagnostics Session of
+  clauses 22–31, governance epochs and decision digests (clauses 2, 6 and 10)
+  are not built in the first release. Until they are, the support grant is the
+  only operator access to tenant data, an "epoch" reauthorization is the live
+  membership and capability check every request and command already makes, and
+  no Payload provider view is exposed to operators.
+- **Clause 7 exception.** Web Studio carries its organization in a path-scoped
+  signed cookie, as the amended clause 7 states, because Payload's screens and
+  REST calls cannot carry an argument. Payload's REST routes move under
+  `/web-studio/api` so the cookie never reaches Mission Control's own API.
+  Choosing one organization per Web Studio session departs from clause 7's
+  two-tab rule for Web Studio only.
+- **How the other staff surfaces carry the organization.** Mission Control and
+  the Missionary Workspace carry the organization as the first path segment, the
+  tenant's ID, optionally followed by a staff sub-role for a person with several
+  staff rows; every signed-in request also names its one selected membership in
+  a request header. A deep link to an organization the person does not belong to
+  is refused and never switches organization (plan section 5.2).
+- **Clause 29.** Where it speaks of the last valid public D1 generation, the
+  first release reads the live per-page releases of
+  [ADR-0229](0229-per-page-releases-and-two-publish-commands.md) (ADR-0145
+  amendment of 2026-11-17).

@@ -1,6 +1,6 @@
 # ADR-0028: Defense-in-depth public isolation
 
-**Status:** Accepted (founder ruling, Phase 5 grill session 2026-07-05 — A5)
+**Status:** Accepted (founder ruling, Phase 5 grill session 2026-07-05 — A5; context amended 2026-11-17 for AL-2688)
 
 > Full record: `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`
 > (ruling A5; A15 explains why RLS cannot carry this; testing tier in
@@ -24,7 +24,11 @@ schema, because the Payload database role bypasses RLS. The alternatives were:
 keep the hand-written-`where` pattern and add review discipline (no safety
 net), rely on RLS (impossible for `cms`), or make
 isolation structural at the application boundary with independent enforcement
-layers.
+layers. _Amended 2026-11-17 (see Amendments): "there cannot be
+a database-level one" described the privileged connection Payload used then,
+not a property of Postgres. A Payload runtime role without the bypass could use
+row-level security; the plan confines Payload to `cms` with such a role and
+takes the public off `cms` altogether._
 
 ## Decision
 
@@ -181,3 +185,34 @@ the source Page, generation, direct/redirect/not-found effects, D78/D79, and
 donor response remain unchanged. The target cannot cross the public choke point
 until later independent D1 proof. Provenance/transfer receipts are never public
 reader inputs, and no Vercel/provider/money call participates.
+
+## Amendments
+
+### 2026-11-17: Row-level security in `cms` is a choice, and the public no longer reads `cms` (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record. It records intent, not implementation.
+- **Correction.** The context's statement that a database-level guard cannot
+  exist for `cms` described the current privileged connection, under which the
+  Payload role bypasses row-level security. It is not a property of Postgres.
+  The plan connects Payload's runtime as `cms_runtime`, a role confined to `cms`
+  that cannot change schema
+  ([ADR-0225](0225-database-roles-per-runtime.md)).
+- **What the plan still chooses.** Row isolation inside `cms` stays in Payload's
+  access functions, through one `tenantScoped()` factory, an actor port and a
+  service port, with an override inventory and two-tenant tests. That is a stated
+  application-enforced exception, chosen because Payload reads do not always run
+  inside a transaction and the adapter offers no supported hook for per-request
+  settings (plan section 11.3, decision 2). A one-day spike on the exact pin can
+  reopen it.
+- **The public no longer reads `cms`.** The public website reads Core's
+  immutable releases through the `PublishedContentReader` after an admission read
+  ([ADR-0229](0229-per-page-releases-and-two-publish-commands.md)). The
+  choke-point principle of this record holds for that reader: the tenant comes
+  from the verified host, an unresolved host is refused, and only listed read
+  functions are reachable by anonymous callers, with no table grants beneath
+  them. The Payload public-read policy and the sole-entry lint on raw Payload
+  reads apply to `cms` until the release-backed reader replaces the prototype
+  reader in WP7.

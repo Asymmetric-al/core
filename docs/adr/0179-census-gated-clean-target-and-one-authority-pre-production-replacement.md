@@ -1,6 +1,6 @@
 # ADR-0179: Census-gated clean target and one-authority pre-production replacement
 
-**Status:** Accepted (founder-ratified Phase 23 D35 C-prime-R, 2026-08-24)
+**Status:** Accepted (founder-ratified Phase 23 D35 C-prime-R, 2026-08-24; census widened 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -87,3 +87,35 @@ and its
   replacement executes, destructive work stops and the live-cutover posture
   must be decided again. This ADR does not silently authorize production use of
   the pre-production fast path.
+
+## Amendments
+
+### 2026-11-17: The census covers the whole database and the object stores (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record: keep it, and record what follows. This records intent,
+  not implementation; the
+  [implementation record](../audits/core-crm-cms-database-implementation-record.md)
+  says what exists.
+- **Wider census.** The census that gates replacement covers each hosted
+  database as a whole and every object store, not only the CMS namespace: each
+  auth user (is any a real person's login?); development's pages, templates and
+  giving page, exported as JSON regardless; the demo-scale donations and other
+  rows; Vercel Blob contents, which were never inspected; the Stripe sync engine
+  in the production-named project and whether its mirrored payment intents can
+  be reproduced from Stripe; Supabase Auth settings, captured into
+  configuration; and the deployed application revision, Payload's deployed
+  database role and the backup settings (plan WP1).
+- **Kept items need a way back.** For every item the owner marks as kept, the
+  census records its export, a byte inventory of its files, a restoration
+  mapping and reconciliation criteria. Without a tested way to bring it back, the
+  reset does not run
+  ([ADR-0226](0226-one-release-job-environment-marker-and-repair-not-reset.md)).
+- **Rebuild from source, on sign-off.** With the owner's sign-off, development is
+  rebuilt from source through the release job, which this record's
+  environment-wide reset permits once the whole database is proven disposable.
+  Rebuilding the production-named project in place or replacing it is the
+  owner's decision at the census (implementation record, D-01 and D-02). Nothing
+  is reset before that sign-off.
