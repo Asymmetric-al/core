@@ -12,16 +12,16 @@ interface FocusReturnOptions {
 /**
  * While `active`, remembers the element that had focus when it became
  * active; when `active` turns false or the caller unmounts, focuses that
- * element again if it is still in the document.
+ * element again if it is still in the document. When `key` changes while
+ * active, whatever has focus outside `container` becomes the new target.
  *
  * ```tsx
- * useFocusReturn(isOpen);
+ * useFocusReturn(isOpen, { key: recordId, container: paneRef });
  * ```
  *
- * `ConversationDetail` uses it so closing a conversation returns focus to
- * the row or card that opened it. The hook is intentionally tiny — Phase 8 may
- * extend it to manage focus traps for full-screen sheets if the mobile UX
- * grows there.
+ * `ConversationDetail` uses it for the inline pane, so closing returns focus
+ * to the row or card of the conversation being closed, even after j/k moved
+ * on; the phone sheet returns focus through its own `finalFocus`.
  */
 export function useFocusReturn(
   active: boolean,
