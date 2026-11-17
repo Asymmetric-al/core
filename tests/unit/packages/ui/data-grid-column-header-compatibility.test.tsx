@@ -156,9 +156,18 @@ async function openHeader(name = "Person name") {
   return screen.findByRole("menu");
 }
 
-async function clickAction(name: string) {
-  fireEvent.click(await screen.findByRole("menuitem", { name, exact: true }));
+async function clickAction(
+  name: string,
+  role: "menuitem" | "menuitemcheckbox" = "menuitem",
+) {
+  fireEvent.click(await screen.findByRole(role, { name, exact: true }));
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+}
+
+function checkedState(name: string) {
+  return screen
+    .getByRole("menuitemcheckbox", { name, exact: true })
+    .getAttribute("aria-checked");
 }
 
 describe("DataGridColumnHeader builder compatibility", () => {
@@ -166,24 +175,31 @@ describe("DataGridColumnHeader builder compatibility", () => {
     render(<HeaderFixture filter={<input aria-label="Filter people" />} />);
     const menu = await openHeader();
     const filter = screen.getByRole("textbox", { name: "Filter people" });
-    const ascending = screen.getByRole("menuitem", { name: "Asc" });
+    const ascending = screen.getByRole("menuitemcheckbox", { name: "Asc" });
     expect(menu.contains(filter)).toBe(true);
     expect(
       filter.compareDocumentPosition(ascending) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).not.toBe(0);
-    await clickAction("Asc");
+    expect(checkedState("Asc")).toBe("false");
+    expect(checkedState("Desc")).toBe("false");
+    await clickAction("Asc", "menuitemcheckbox");
     expect(screen.getByLabelText("Column sorting").textContent).toBe(
       '[{"id":"name","desc":false}]',
     );
     await openHeader();
-    await clickAction("Asc");
+    expect(checkedState("Asc")).toBe("true");
+    expect(checkedState("Desc")).toBe("false");
+    await clickAction("Asc", "menuitemcheckbox");
     expect(screen.getByLabelText("Column sorting").textContent).toBe("[]");
     await openHeader();
-    await clickAction("Desc");
+    await clickAction("Desc", "menuitemcheckbox");
     expect(screen.getByLabelText("Column sorting").textContent).toBe(
       '[{"id":"name","desc":true}]',
     );
+    await openHeader();
+    expect(checkedState("Asc")).toBe("false");
+    expect(checkedState("Desc")).toBe("true");
   });
 
   it("completes omitted order and moves beside visible unpinned peers without shuffling other columns", async () => {
@@ -239,10 +255,10 @@ describe("DataGridColumnHeader builder compatibility", () => {
       />,
     );
     expect(
-      await screen.findByRole("menuitem", { name: "Ascending now" }),
+      await screen.findByRole("menuitemcheckbox", { name: "Ascending now" }),
     ).toBeTruthy();
     expect(
-      screen.queryByRole("menuitem", { name: "Asc", exact: true }),
+      screen.queryByRole("menuitemcheckbox", { name: "Asc", exact: true }),
     ).toBeNull();
     expect(
       screen.queryByRole("textbox", { name: "Original filter" }),
@@ -277,14 +293,28 @@ describe("DataGridColumnHeader builder compatibility", () => {
     ).toBeTruthy();
   });
 
+  it("lines plain items up with the sort and pin check column", async () => {
+    render(<HeaderFixture />);
+    await openHeader();
+    for (const name of ["Move to left", "Move to right", "Columns"]) {
+      expect(
+        screen.getByRole("menuitem", { name }).getAttribute("data-inset"),
+      ).toBe("true");
+    }
+  });
+
   it("preserves pin actions and hands unpin focus to the remounted header", async () => {
     render(<HeaderFixture />);
     await openHeader();
-    await clickAction("Pin to left");
+    expect(checkedState("Pin to left")).toBe("false");
+    expect(checkedState("Pin to right")).toBe("false");
+    await clickAction("Pin to left", "menuitemcheckbox");
     expect(screen.getByLabelText("Column pinning").textContent).toBe(
       '{"start":["pinned","name"],"end":[]}',
     );
     await openHeader();
+    expect(checkedState("Pin to left")).toBe("true");
+    expect(checkedState("Pin to right")).toBe("false");
     expect(
       screen
         .getByRole("menuitem", { name: "Move to right" })
@@ -303,5 +333,23 @@ describe("DataGridColumnHeader builder compatibility", () => {
         screen.getByRole("button", { name: "Person name", exact: true }),
       ),
     );
+  });
+
+  it("unpins when the checked pin item is chosen again", async () => {
+    render(<HeaderFixture />);
+    const pinning = () => screen.getByLabelText("Column pinning").textContent;
+    await openHeader();
+    await clickAction("Pin to left", "menuitemcheckbox");
+    await openHeader();
+    expect(checkedState("Pin to left")).toBe("true");
+    await clickAction("Pin to left", "menuitemcheckbox");
+    expect(pinning()).toBe('{"start":["pinned"],"end":[]}');
+    await openHeader();
+    await clickAction("Pin to right", "menuitemcheckbox");
+    expect(pinning()).toBe('{"start":["pinned"],"end":["name"]}');
+    await openHeader();
+    expect(checkedState("Pin to right")).toBe("true");
+    await clickAction("Pin to right", "menuitemcheckbox");
+    expect(pinning()).toBe('{"start":["pinned"],"end":[]}');
   });
 });

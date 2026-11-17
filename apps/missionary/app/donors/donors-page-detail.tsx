@@ -74,7 +74,9 @@ import { DonorsPageDetailOverview } from "./donors-page-detail-overview";
 import { DonorsPageDetailRecurring } from "./donors-page-detail-recurring";
 import {
   getDonorCallHref,
+  getDonorCallUnavailableReason,
   getDonorEmailHref,
+  getDonorEmailUnavailableReason,
   getGivingHistoryRows,
 } from "./donors-page-model";
 import {
@@ -246,7 +248,10 @@ export function DonorsPageDetail() {
                 onValueChange={setActiveTab}
                 className="flex-1 flex flex-col min-h-0"
               >
-                <DonorDetailTabRail activeTab={activeTab} />
+                <DonorDetailTabRail
+                  activeTab={activeTab}
+                  label={`${selectedDonor.name} details`}
+                />
 
                 <ScrollArea className="flex-1 min-h-0">
                   <div className="p-4 sm:p-6">
@@ -283,6 +288,7 @@ export function DonorsPageDetail() {
 
                     <TabsContent value="giving" className="mt-0">
                       <DataTableResponsive
+                        label="Giving history"
                         columns={givingHistoryColumns}
                         data={givingHistoryRows}
                         mobileCardConfig={{
@@ -329,7 +335,13 @@ export function DonorsPageDetail() {
  * still has tabs, the chosen tab is scrolled into view when a partner opens,
  * and a keyboard-focused tab is revealed as Base UI moves focus.
  */
-function DonorDetailTabRail({ activeTab }: { activeTab: string }) {
+function DonorDetailTabRail({
+  activeTab,
+  label,
+}: {
+  activeTab: string;
+  label: string;
+}) {
   const frameRef = React.useRef<HTMLDivElement | null>(null);
   React.useLayoutEffect(() => {
     const frame = frameRef.current;
@@ -369,7 +381,7 @@ function DonorDetailTabRail({ activeTab }: { activeTab: string }) {
             the list) so the rail has no 1px vertical overflow and no
             vertical scrollbar. */}
         <div className="min-w-full w-max overflow-y-clip">
-          <TabsList className="w-full">
+          <TabsList aria-label={label} className="w-full">
             {DETAIL_TABS.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
                 {tab.label}
@@ -478,6 +490,8 @@ function DonorDetailActions({
 }) {
   const handleEditDialogOpen = editDialog.open;
   const handleTagEditorOpen = tagEditor.open;
+  const callReasonId = React.useId();
+  const emailReasonId = React.useId();
   return (
     <motion.div
       variants={staggerContainer}
@@ -515,9 +529,21 @@ function DonorDetailActions({
             <Phone data-icon="inline-start" /> Call
           </a>
         ) : (
-          <Button variant="outline" size="sm" disabled className="w-full">
-            <Phone data-icon="inline-start" /> Call
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              focusableWhenDisabled
+              aria-describedby={callReasonId}
+              className="w-full"
+            >
+              <Phone data-icon="inline-start" /> Call
+            </Button>
+            <span id={callReasonId} className="sr-only">
+              {getDonorCallUnavailableReason(selectedDonor)}
+            </span>
+          </>
         )}
       </motion.div>
       <motion.div
@@ -533,9 +559,23 @@ function DonorDetailActions({
             <Mail data-icon="inline-start" /> Email
           </a>
         ) : (
-          <Button size="sm" disabled className="w-full">
-            <Mail data-icon="inline-start" /> Email
-          </Button>
+          <>
+            <Button
+              size="sm"
+              disabled
+              focusableWhenDisabled
+              aria-describedby={emailReasonId}
+              className="w-full"
+            >
+              <Mail data-icon="inline-start" /> Email
+            </Button>
+            <span id={emailReasonId} className="sr-only">
+              {getDonorEmailUnavailableReason(
+                selectedDonor.email,
+                selectedDonor.is_anonymous,
+              )}
+            </span>
+          </>
         )}
       </motion.div>
       <DropdownMenu>
@@ -656,6 +696,7 @@ function DonorDetailTags({
   tagEditor: ReturnType<typeof useDonorsPageViewFields>["tagEditor"];
 }) {
   const handleTagEditorOpen = tagEditor.open;
+  const tagReasonId = React.useId();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -686,9 +727,18 @@ function DonorDetailTags({
           size="sm"
           onClick={handleTagEditorOpen}
           disabled={selectedDonor.is_anonymous}
+          focusableWhenDisabled
+          aria-describedby={
+            selectedDonor.is_anonymous ? tagReasonId : undefined
+          }
         >
           <Plus data-icon="inline-start" /> Add tag
         </Button>
+        {selectedDonor.is_anonymous ? (
+          <span id={tagReasonId} className="sr-only">
+            Anonymous partners can’t be tagged
+          </span>
+        ) : null}
       </motion.div>
     </motion.div>
   );

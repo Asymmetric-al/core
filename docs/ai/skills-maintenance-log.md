@@ -1,6 +1,18 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
+
+## UI SDK skill overlay - 2026-11-17
+
+Core's `ui-sdk` overlay now names the shared UI SDK owners in
+`packages/ui/components/primitives/` (the shortcut owner and its Shift+? list,
+the sortable list, the one agent bridge and the pattern checks) and allows
+no agent bridge outside that owner. The upstream text and the imported
+references are unchanged; Core's own `references/upstream.md` records the new
+overlay scope. Only the `entrypointHash` and `treeHash` of the `ui-sdk` record
+in [skill-source-audit.json](skill-source-audit.json) were recomputed, with
+`node scripts/update-skill-audit-hashes.mjs --skill ui-sdk`; the imported ref,
+raw upstream and lock hashes and the license record are unchanged.
 
 ## UI SDK skill import - 2026-11-14
 

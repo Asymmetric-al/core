@@ -102,6 +102,7 @@ function PartnerRowButton({ donor }: { donor: Donor }) {
   return (
     <button
       type="button"
+      data-partner-id={donor.id}
       aria-current={isSelected ? "true" : undefined}
       onClick={(event) => {
         // The row opens the partner on click too; open it once.
@@ -126,6 +127,7 @@ export function PartnerCard({
   return (
     <button
       type="button"
+      data-partner-id={donor.id}
       onClick={onOpen}
       className="press-feedback flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring [@media(hover:hover)_and_(pointer:fine)]:hover:bg-muted/50"
     >

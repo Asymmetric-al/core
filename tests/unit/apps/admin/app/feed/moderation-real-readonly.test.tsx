@@ -2,12 +2,14 @@
 import { QueryProvider } from "../../../../../../packages/database/providers/query-provider";
 import { getQueryClient } from "../../../../../../packages/database/providers/query-client";
 import {
+  act,
   cleanup,
   render,
   screen,
   waitFor,
   fireEvent,
 } from "@testing-library/react";
+import { checkPattern } from "@ui-sdk/core/testing";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import Moderation from "../../../../../../apps/admin/app/(app)/feed/content-moderation-page-client";
 const identity = vi.hoisted(() => ({
@@ -258,4 +260,44 @@ it("keeps author attribution alongside a titled moderation post", async () => {
     name: "Titled field update",
   });
   expect(title.closest("li")?.textContent).toContain("Lee");
+});
+it("names the moderation tab list and keeps the tabs pattern", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => Response.json(response(url))),
+  );
+  mount();
+  await screen.findByText("Real update");
+  const list = screen.getByRole("tablist", { name: "Moderation lists" });
+  await act(async () => {
+    await checkPattern(list.closest('[data-slot="tabs"]')!, "tabs");
+  });
+});
+it("announces the loaded-update match count from a mounted status", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => Response.json(response(url))),
+  );
+  mount();
+  await screen.findByText("Real update");
+  const scope = screen.getByText(
+    /Search, filters and sorting apply to these loaded updates only/,
+  );
+  const status = scope.querySelector('[role="status"]');
+  expect(status).not.toBeNull();
+  expect(status?.textContent).toBe("");
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "Search loaded updates" }),
+    { target: { value: "real" } },
+  );
+  expect(status?.isConnected).toBe(true);
+  expect(status?.textContent).toBe("1 match.");
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "Search loaded updates" }),
+    { target: { value: "no matching words" } },
+  );
+  expect(status?.textContent).toBe("0 match.");
+  expect(scope.textContent).toBe(
+    "Search, filters and sorting apply to these loaded updates only. 0 match.",
+  );
 });

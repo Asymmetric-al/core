@@ -79,11 +79,34 @@ for (const workspace of ["donor", "missionary"] as const) {
       await expect(
         page.getByRole("button", { name: "Toggle theme" }),
       ).toHaveCount(0);
-      const helpSize = await page
-        .getByRole("button", { name: "Help", exact: true })
-        .boundingBox();
-      expect(helpSize?.width).toBeGreaterThanOrEqual(44);
-      expect(helpSize?.height).toBeGreaterThanOrEqual(44);
+      // Help left the header for the account menu ("About this app"), whose
+      // trigger keeps a full touch target.
+      await expect(
+        page.getByRole("button", { name: "Help", exact: true }),
+      ).toHaveCount(0);
+      const phone = (page.viewportSize()?.width ?? 1280) < 768;
+      if (phone)
+        await page
+          .locator("header")
+          .getByRole("button", { name: "Toggle Sidebar", exact: true })
+          .click();
+      const account = page.getByRole("button", {
+        name: "Account menu for Avery Lopez",
+        exact: true,
+      });
+      const accountSize = await account.boundingBox();
+      expect(accountSize?.width).toBeGreaterThanOrEqual(44);
+      expect(accountSize?.height).toBeGreaterThanOrEqual(44);
+      await account.click();
+      await expect(
+        page.getByRole("menuitem", { name: "About this app", exact: true }),
+      ).toHaveAttribute("href", "/help/about");
+      await page.keyboard.press("Escape");
+      await expect(account).toBeFocused();
+      if (phone) {
+        await page.keyboard.press("Escape");
+        await expect(account).toBeHidden();
+      }
     }
     await trigger.focus();
     await page.keyboard.press("Control+k");

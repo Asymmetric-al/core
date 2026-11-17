@@ -370,3 +370,57 @@ describe("Partners roster safety", () => {
     expect(mocks.updateTags).not.toHaveBeenCalled();
   });
 });
+
+describe("Partner detail header", () => {
+  function renderDetail() {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <DonorsPageViewProvider>
+          <ActionsProbe />
+          <DonorsPageDetail />
+        </DonorsPageViewProvider>
+      </QueryClientProvider>,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select first partner" }),
+    );
+  }
+
+  /** A dimmed action that stays in the tab order and says why. */
+  function expectExplainedDisabled(name: string, reason: string) {
+    const action = screen.getByRole("button", { name, description: reason });
+    expect(action.getAttribute("aria-disabled")).toBe("true");
+    expect(action.hasAttribute("disabled")).toBe(false);
+    expect(action.tabIndex).toBe(0);
+    return action;
+  }
+
+  it("names the detail tab list for the open partner", () => {
+    renderDetail();
+    const tabs = screen.getByRole("tablist", { name: "Partner 01 details" });
+    expect(tabs.querySelectorAll('[role="tab"]')).toHaveLength(5);
+  });
+
+  it("keeps Call focusable and explains it when no phone is on file", () => {
+    renderDetail();
+    expectExplainedDisabled("Call", "No phone number on file");
+    const email = screen.getByRole("link", { name: "Email" });
+    expect(email.getAttribute("href")).toBe("mailto:partner@example.test");
+  });
+
+  it("explains a missing email address", () => {
+    mocks.rows = [{ ...donor(1), phone: "555-0100", email: "" }];
+    renderDetail();
+    expectExplainedDisabled("Email", "No email address on file");
+    expect(
+      screen.getByRole("link", { name: "Call" }).getAttribute("href"),
+    ).toBe("tel:555-0100");
+  });
+
+  it("explains that anonymous partners can't be called or emailed", () => {
+    mocks.rows = [{ ...donor(1, true), phone: "555-0100" }];
+    renderDetail();
+    expectExplainedDisabled("Call", "Anonymous partners can’t be called");
+    expectExplainedDisabled("Email", "Anonymous partners can’t be emailed");
+  });
+});

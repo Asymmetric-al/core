@@ -19,7 +19,7 @@ import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Activity, AlertTriangle, RotateCw } from "lucide-react";
 import Link from "next/link";
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import {
   automationFailureAttribution,
@@ -168,7 +168,7 @@ export function AutomationsPageView({
   errorMessage?: string;
   hasLoadedData?: boolean;
   isError: boolean;
-  onRetry?: () => void;
+  onRetry?: () => Promise<{ isError: boolean }> | undefined;
   isLoading: boolean;
   summary?: MissionControlAutomationSummary;
 }) {
@@ -184,14 +184,44 @@ export function AutomationsPageView({
     return failingOnly ? failingAutomationRules(matching) : matching;
   }, [automationRules, failingOnly, search]);
 
+  const focusRulesHeading = () => {
+    rulesHeadingRef.current?.focus({ preventScroll: true });
+    rulesHeadingRef.current?.scrollIntoView?.({ block: "start" });
+  };
+
   const toggleFailingOnly = () => {
     const next = !failingOnly;
     setFailingOnly(next);
-    if (next) {
-      rulesHeadingRef.current?.focus({ preventScroll: true });
-      rulesHeadingRef.current?.scrollIntoView?.({ block: "start" });
-    }
+    if (next) focusRulesHeading();
   };
+
+  const showAllRules = () => {
+    setFailingOnly(false);
+    focusRulesHeading();
+  };
+
+  // A successful retry unmounts the alert holding Retry; land on the rules
+  // unless the person has already moved focus elsewhere.
+  const focusAfterRetry = useRef(false);
+  const retry = onRetry
+    ? () => {
+        focusAfterRetry.current = true;
+        // A failed refetch leaves isError true, so the effect never clears
+        // the flag; clear it here or a later background load takes focus.
+        const forget = () => {
+          focusAfterRetry.current = false;
+        };
+        void Promise.resolve(onRetry()).then((result) => {
+          if (result?.isError) forget();
+        }, forget);
+      }
+    : undefined;
+  useEffect(() => {
+    if (isError || !focusAfterRetry.current) return;
+    focusAfterRetry.current = false;
+    const active = document.activeElement;
+    if (!active || active === document.body) focusRulesHeading();
+  }, [isError]);
 
   return (
     <PageShell
@@ -224,7 +254,7 @@ export function AutomationsPageView({
         </p>
 
         {isError ? (
-          <AutomationsErrorAlert message={queryError} onRetry={onRetry} />
+          <AutomationsErrorAlert message={queryError} onRetry={retry} />
         ) : null}
 
         {missingSummary ? (
@@ -240,7 +270,7 @@ export function AutomationsPageView({
           isBlocked={isError || Boolean(missingSummary)}
           isLoading={isLoading}
           onSearchChange={setSearch}
-          onShowAllRules={() => setFailingOnly(false)}
+          onShowAllRules={showAllRules}
           search={search}
         />
       </div>
@@ -264,7 +294,7 @@ export default function AutomationsPage() {
       hasLoadedData={Boolean(automationsQuery.data)}
       isError={automationsQuery.isError}
       isLoading={automationsQuery.isPending}
-      onRetry={() => void automationsQuery.refetch()}
+      onRetry={() => automationsQuery.refetch()}
       summary={automationsQuery.data?.summary}
     />
   );

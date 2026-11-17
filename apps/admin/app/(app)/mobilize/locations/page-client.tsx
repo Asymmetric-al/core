@@ -7,6 +7,7 @@ import {
   MapControls,
 } from "@asym/ui/components/primitives/map";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { useShortcut } from "@asym/ui/components/primitives/shortcut";
 import {
   Alert,
   AlertDescription,
@@ -44,7 +45,7 @@ import {
   Plus,
   Table as TableIcon,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 import type { Location } from "@/features/mission-control/locations/hooks/use-locations";
@@ -124,15 +125,12 @@ export default function LocationsPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  // Escape cancels pin placement, as it closes other transient modes.
-  useEffect(() => {
-    if (!isAdding) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsAdding(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [isAdding]);
+  // Escape cancels pin placement, as it closes other transient modes. An
+  // open dialog or menu takes Escape first.
+  useShortcut(isAdding ? "escape" : null, () => setIsAdding(false), {
+    allowInInput: true,
+    description: "Cancel pin placement",
+  });
 
   const handleMapClick = (e: MapClickEvent) => {
     if (isAdding) {
@@ -272,7 +270,7 @@ export default function LocationsPage() {
                   className="absolute inset-0 bg-background/80 p-4"
                 >
                   <Skeleton className="h-full w-full" />
-                  <span className="sr-only">Loading locations�</span>
+                  <span className="sr-only">Loading locations…</span>
                 </div>
               ) : isError ? (
                 <div className="absolute inset-x-4 top-4">

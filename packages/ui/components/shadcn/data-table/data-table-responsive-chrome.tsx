@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "../table";
+import { ToggleGroup, ToggleGroupItem } from "../toggle-group";
 import { getDataTableRowActionKey } from "./data-table-row-action-key";
 import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
 import {
@@ -50,27 +51,25 @@ export function DataTableViewModeToggle({
   onViewModeChange: (mode: ViewMode) => void;
 }) {
   return (
-    <div className="flex items-center border rounded-xl p-0.5">
-      <Button
-        variant={viewMode === "table" ? "secondary" : "ghost"}
-        size="icon"
-        className="size-8 rounded-lg"
-        onClick={() => onViewModeChange("table")}
-        aria-label="Table view"
-        aria-pressed={viewMode === "table"}
+    <div className="flex items-center rounded-xl border p-0.5">
+      <ToggleGroup
+        aria-label="Layout"
+        size="sm"
+        spacing={0.5}
+        value={[viewMode]}
+        // Pressing the active view sends an empty list; one view stays on.
+        onValueChange={(next: unknown[]) => {
+          const [mode] = next;
+          if (mode === "table" || mode === "card") onViewModeChange(mode);
+        }}
       >
-        <LayoutList className="size-4" />
-      </Button>
-      <Button
-        variant={viewMode === "card" ? "secondary" : "ghost"}
-        size="icon"
-        className="size-8 rounded-lg"
-        onClick={() => onViewModeChange("card")}
-        aria-label="Card view"
-        aria-pressed={viewMode === "card"}
-      >
-        <LayoutGrid className="size-4" />
-      </Button>
+        <ToggleGroupItem value="table" aria-label="Table view">
+          <LayoutList className="size-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="card" aria-label="Card view">
+          <LayoutGrid className="size-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
     </div>
   );
 }
@@ -151,6 +150,7 @@ export function DataTableResponsiveToolbar<TData extends RowData>({
 
 export function DataTableResponsiveTableView<TData extends RowData>({
   table,
+  label = "Data table",
   tableColumnsLength,
   keyboard,
   keyboardStyles,
@@ -168,6 +168,7 @@ export function DataTableResponsiveTableView<TData extends RowData>({
   stickyHeader = false,
 }: {
   table: TanStackTable<TData>;
+  label?: string;
   tableColumnsLength: number;
   keyboard: UseDataTableKeyboardReturn;
   keyboardStyles: ReturnType<typeof getKeyboardNavigationStyles>;
@@ -299,9 +300,25 @@ export function DataTableResponsiveTableView<TData extends RowData>({
   }, [infiniteScroll, isVirtualized, rows.length]);
 
   const actionsColumnCount = rowActions && rowActions.length > 0 ? 1 : 0;
+  // A grid promises arrow-key navigation. Without it this is a plain table.
+  const gridRole = keyboard.enabled ? "grid" : undefined;
+  const gridCellRole = keyboard.enabled ? "gridcell" : undefined;
+
+  // A virtualized body can unmount the row that holds the tab stop. The first
+  // mounted row then stands in, so Tab still reaches the rows.
+  const standInTabStopIndex =
+    isVirtualized &&
+    keyboard.tabStopRowIndex !== null &&
+    !virtualRows.some((item) => item.index === keyboard.tabStopRowIndex)
+      ? virtualRows[0]?.index
+      : undefined;
 
   const renderDataRow = (row: Row<TData>, rowIndex: number) => {
-    const rowProps = keyboard.getRowProps(rowIndex);
+    const keyboardRowProps = keyboard.getRowProps(rowIndex);
+    const rowProps =
+      rowIndex === standInTabStopIndex
+        ? { ...keyboardRowProps, tabIndex: 0 }
+        : keyboardRowProps;
     const isSelected = row.getIsSelected();
     const isRowFocused = Boolean(rowProps["data-focused"]);
     return (
@@ -328,7 +345,7 @@ export function DataTableResponsiveTableView<TData extends RowData>({
         tableClassName,
       )}
       role="region"
-      aria-label="Data table"
+      aria-label={label}
     >
       <div
         ref={tableContainerRef}
@@ -339,7 +356,7 @@ export function DataTableResponsiveTableView<TData extends RowData>({
             : undefined
         }
       >
-        <Table role="grid">
+        <Table role={gridRole} aria-label={label}>
           <ResponsiveTableHeader
             table={table}
             stickyHeader={stickyHeader}
@@ -382,7 +399,7 @@ export function DataTableResponsiveTableView<TData extends RowData>({
                 <TableCell
                   colSpan={tableColumnsLength + actionsColumnCount}
                   className="h-64"
-                  role="gridcell"
+                  role={gridCellRole}
                 >
                   {emptyState ?? defaultEmptyState}
                 </TableCell>
@@ -421,6 +438,7 @@ function ResponsiveTableDataRow<TData extends RowData>({
   rowIndex: number;
   rowActions: DataTableInteractiveRowAction<TData>[] | undefined;
 }) {
+  const gridCellRole = keyboard.enabled ? "gridcell" : undefined;
   return (
     <TableRow
       key={row.id}
@@ -467,14 +485,14 @@ function ResponsiveTableDataRow<TData extends RowData>({
               cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
             )}
             tabIndex={cellProps.tabIndex}
-            role="gridcell"
+            role={gridCellRole}
           >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         );
       })}
       {rowActions && rowActions.length > 0 && (
-        <TableCell className="py-3 px-4 text-right" role="gridcell">
+        <TableCell className="py-3 px-4 text-right" role={gridCellRole}>
           <div className="flex justify-end gap-1">
             {rowActions.map((action, actionIndex) => (
               <Button
@@ -526,6 +544,7 @@ function ResponsiveTableHeader<TData extends RowData>({
           {headerGroup.headers.map((header) => {
             const meta = header.column.columnDef.meta;
             const isSticky = meta?.sticky;
+            const sortDirection = header.column.getIsSorted();
             return (
               <TableHead
                 key={header.id}
@@ -545,6 +564,17 @@ function ResponsiveTableHeader<TData extends RowData>({
                     header.getSize() !== 150 ? header.getSize() : undefined,
                 }}
                 role="columnheader"
+                aria-sort={
+                  header.isPlaceholder
+                    ? undefined
+                    : sortDirection === "asc"
+                      ? "ascending"
+                      : sortDirection === "desc"
+                        ? "descending"
+                        : header.column.getCanSort()
+                          ? "none"
+                          : undefined
+                }
               >
                 {header.isPlaceholder
                   ? null

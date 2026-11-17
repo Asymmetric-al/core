@@ -2,6 +2,11 @@
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { LabeledField } from "@asym/ui/components/primitives/labeled-field";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
@@ -11,8 +16,13 @@ import {
   Youtube,
 } from "@asym/ui/components/shadcn/icons";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
+  AlertCircle,
   Camera,
   Save,
   ImageIcon,
@@ -153,14 +163,37 @@ export function SocialIcon({
   );
 }
 
-export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
+// ImageUpload hands its trigger props (role, tabIndex, handlers) to this area.
+type CoverTriggerProps = Pick<
+  React.ComponentProps<"div">,
+  | "className"
+  | "onClick"
+  | "onKeyDown"
+  | "role"
+  | "tabIndex"
+  | "aria-disabled"
+  | "aria-label"
+  | "aria-labelledby"
+  | "aria-describedby"
+>;
+
+export function CoverUploadArea({
+  coverUrl,
+  className,
+  "aria-labelledby": labelledBy,
+  ...triggerProps
+}: { coverUrl: string } & CoverTriggerProps) {
+  const actionId = React.useId();
   return (
     <motion.div
+      {...triggerProps}
+      aria-labelledby={labelledBy ? `${labelledBy} ${actionId}` : actionId}
       className={cn(
-        "w-full aspect-3/1 rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors relative overflow-hidden cursor-pointer",
+        "w-full aspect-3/1 rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors relative overflow-hidden cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
         coverUrl
           ? "border-transparent"
           : "border-border bg-muted hover:bg-muted hover:border-border",
+        className,
       )}
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.995 }}
@@ -181,7 +214,10 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
             initial={false}
           >
             <motion.div className="bg-card rounded-lg px-3 py-1.5 shadow-lg transition-opacity">
-              <span className="text-xs font-medium flex items-center gap-1.5">
+              <span
+                id={actionId}
+                className="text-xs font-medium flex items-center gap-1.5"
+              >
                 <Camera className="size-3.5" />
                 Change cover
               </span>
@@ -198,7 +234,10 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
           <motion.div className="size-10 sm:h-12 sm:w-12 rounded-xl bg-card shadow-sm border border-border flex items-center justify-center mb-2 sm:mb-3">
             <ImageIcon className="size-5 sm:h-6 sm:w-6 text-muted-foreground" />
           </motion.div>
-          <p className="text-xs sm:text-sm font-medium text-foreground">
+          <p
+            id={actionId}
+            className="text-xs sm:text-sm font-medium text-foreground"
+          >
             Click to upload cover photo
           </p>
           <p className="text-xs sm:text-xs text-muted-foreground mt-0.5">
@@ -209,6 +248,26 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
     </motion.div>
   );
 }
+
+// The item brings the toggle behavior; the pill behind it shows the choice,
+// so the item's own toggle colors are left out.
+const previewOption: Extract<
+  React.ComponentProps<typeof ToggleGroupItem>["render"],
+  (...args: never[]) => unknown
+> = (props, state) => {
+  return (
+    <button
+      {...props}
+      type="button"
+      className={cn(
+        "press-feedback relative z-10 rounded-md px-2.5 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        state.pressed
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-muted-foreground",
+      )}
+    />
+  );
+};
 
 export function PreviewToggle({
   value,
@@ -230,34 +289,30 @@ export function PreviewToggle({
           } as React.CSSProperties
         }
       />
-      <button
-        type="button"
-        onClick={() => onChange("mobile")}
-        className={cn(
-          "press-feedback relative z-10 rounded-md px-2.5 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          value === "mobile"
-            ? "text-foreground"
-            : "text-muted-foreground hover:text-muted-foreground",
-        )}
-        aria-label="Mobile preview"
-        aria-pressed={value === "mobile"}
+      <ToggleGroup
+        aria-label="Live preview"
+        value={[value]}
+        // Pressing the shown size sends an empty list; one size stays on.
+        onValueChange={(next) => {
+          const mode = next[0];
+          if (mode === "mobile" || mode === "desktop") onChange(mode);
+        }}
       >
-        <Smartphone className="size-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("desktop")}
-        className={cn(
-          "press-feedback relative z-10 rounded-md px-2.5 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          value === "desktop"
-            ? "text-foreground"
-            : "text-muted-foreground hover:text-muted-foreground",
-        )}
-        aria-label="Desktop preview"
-        aria-pressed={value === "desktop"}
-      >
-        <Monitor className="size-4" />
-      </button>
+        <ToggleGroupItem
+          value="mobile"
+          aria-label="Mobile preview"
+          render={previewOption}
+        >
+          <Smartphone className="size-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="desktop"
+          aria-label="Desktop preview"
+          render={previewOption}
+        >
+          <Monitor className="size-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
     </div>
   );
 }
@@ -377,6 +432,29 @@ export function DesktopPreviewFrame({
 }
 
 /**
+ * If `ref` holds focus when it leaves, focus goes to `returnFocusTo` a frame
+ * later, unless something else has taken it by then.
+ */
+function useReturnFocusOnLeave(
+  ref: React.RefObject<HTMLElement | null>,
+  returnFocusTo: React.RefObject<HTMLElement | null>,
+) {
+  // Layout cleanup runs before the element leaves the DOM, while focus is
+  // still inside it.
+  React.useLayoutEffect(() => {
+    const element = ref.current;
+    const target = returnFocusTo.current;
+    return () => {
+      if (!element?.contains(document.activeElement)) return;
+      requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (!active || active === document.body) target?.focus();
+      });
+    };
+  }, [ref, returnFocusTo]);
+}
+
+/**
  * Keeps save within reach on a long form. It leaves once changes are saved
  * or discarded; if it held focus then, focus goes back to the page.
  */
@@ -388,16 +466,7 @@ export function UnsavedChangesBar({
   children: React.ReactNode;
 }) {
   const barRef = React.useRef<HTMLDivElement>(null);
-  // Layout cleanup runs before the bar leaves the DOM, while focus is still
-  // inside it.
-  React.useLayoutEffect(() => {
-    const bar = barRef.current;
-    const target = returnFocusTo.current;
-    return () => {
-      if (!bar?.contains(document.activeElement)) return;
-      requestAnimationFrame(() => target?.focus());
-    };
-  }, [returnFocusTo]);
+  useReturnFocusOnLeave(barRef, returnFocusTo);
 
   return (
     <div
@@ -410,14 +479,62 @@ export function UnsavedChangesBar({
   );
 }
 
+/**
+ * A refresh that failed over a loaded profile, with its own Try again. If it
+ * leaves while holding focus, focus goes back to the page.
+ */
+export function RefreshFailure({
+  error,
+  failedRetries,
+  retrying,
+  onRetry,
+  retryRef,
+  returnFocusTo,
+}: {
+  error: string;
+  failedRetries: number;
+  retrying: boolean;
+  onRetry: () => void;
+  retryRef: React.RefObject<HTMLButtonElement | null>;
+  returnFocusTo: React.RefObject<HTMLElement | null>;
+}) {
+  const rowRef = React.useRef<HTMLDivElement>(null);
+  useReturnFocusOnLeave(rowRef, returnFocusTo);
+  return (
+    <div
+      ref={rowRef}
+      className="flex flex-col gap-3 sm:flex-row sm:items-start"
+    >
+      {/* Keyed so a repeat failure is a new alert, read out again. */}
+      <Alert key={failedRetries} variant="destructive" className="grow">
+        <AlertCircle aria-hidden />
+        <AlertTitle>We couldn’t refresh your giving page</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+      <Button
+        ref={retryRef}
+        variant="outline"
+        disabled={retrying}
+        focusableWhenDisabled
+        onClick={onRetry}
+      >
+        {retrying ? "Trying again…" : "Try again"}
+      </Button>
+    </div>
+  );
+}
+
 export type ProfileHeaderActionsProps = {
   canWrite?: boolean;
   hasChanges: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
   onDiscard: () => void;
-  onSave: () => void | Promise<void>;
-};
+} & (
+  | { onSave: () => void | Promise<void>; form?: undefined }
+  // Save submits this form, so Enter in one of its fields saves the same way.
+  | { form: string; onSave?: undefined }
+);
 
 export function ProfileHeaderActions({
   canWrite = true,
@@ -426,8 +543,28 @@ export function ProfileHeaderActions({
   saveSuccess,
   onDiscard,
   onSave,
+  form,
 }: ProfileHeaderActionsProps) {
   const pendingActionLabelId = React.useId();
+  const saveRef = React.useRef<HTMLButtonElement>(null);
+  const focusParked = React.useRef(false);
+  const saveDisabled = isSaving || !hasChanges || !canWrite;
+  // A disabled submit button drops focus to the page, so focus waits on the
+  // form until Save is usable again. The page renders Save twice; only the
+  // copy that moved focus brings it back.
+  React.useLayoutEffect(() => {
+    const formElement = form ? document.getElementById(form) : null;
+    const save = saveRef.current;
+    if (!formElement || !save) return;
+    if (saveDisabled) {
+      if (document.activeElement !== save) return;
+      focusParked.current = true;
+      formElement.focus({ preventScroll: true });
+    } else if (focusParked.current) {
+      focusParked.current = false;
+      if (document.activeElement === formElement) save.focus();
+    }
+  }, [form, saveDisabled]);
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -453,10 +590,13 @@ export function ProfileHeaderActions({
         layout
       >
         <Button
+          ref={saveRef}
           aria-labelledby={`${pendingActionLabelId}-28`}
-          focusableWhenDisabled={isSaving}
+          focusableWhenDisabled={!form && isSaving}
+          type={form ? "submit" : "button"}
+          form={form}
           onClick={onSave}
-          disabled={isSaving || !hasChanges || !canWrite}
+          disabled={saveDisabled}
           size="sm"
         >
           <span id={`${pendingActionLabelId}-28`} className="sr-only">

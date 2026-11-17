@@ -20,6 +20,7 @@ import {
   Home,
   Heart,
 } from "lucide-react";
+import * as React from "react";
 
 import { parseDisplayDate } from "./donors-page-dates";
 import {
@@ -101,6 +102,7 @@ function DonorContactHeader({
   >;
 }) {
   const handleEditDialogOpen = editDialog.open;
+  const editReasonId = React.useId();
   return (
     <motion.div
       initial={fadeInUp.initial}
@@ -118,10 +120,19 @@ function DonorContactHeader({
           size="sm"
           onClick={handleEditDialogOpen}
           disabled={selectedDonor.is_anonymous}
+          focusableWhenDisabled
+          aria-describedby={
+            selectedDonor.is_anonymous ? editReasonId : undefined
+          }
           className="h-8 px-3 text-xs rounded-xl border-border"
         >
           <Pencil data-icon="inline-start" /> Edit
         </Button>
+        {selectedDonor.is_anonymous ? (
+          <span id={editReasonId} className="sr-only">
+            Anonymous partners’ details can’t be edited
+          </span>
+        ) : null}
       </motion.div>
     </motion.div>
   );

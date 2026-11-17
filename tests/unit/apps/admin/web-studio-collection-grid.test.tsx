@@ -118,6 +118,11 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
+  // A column move announces through UI SDK's shared live region (an
+  // assertive one is role="alert"), which lives on document.body.
+  for (const region of document.querySelectorAll("[data-ui-sdk-announcer]")) {
+    region.remove();
+  }
   vi.clearAllMocks();
   fixture.selected = new Map();
   fixture.isTransitioning = false;
@@ -360,9 +365,7 @@ describe("NativeCollectionGrid", () => {
     setup({
       bulk: { collection: { slug: "pages" }, hasDeletePermission: true },
     });
-    const bar = screen.getByRole("toolbar", {
-      name: "Selected record actions",
-    });
+    const bar = screen.getByRole("group", { name: "1 page selected" });
     expect(bar.textContent).toContain("1 page selected");
     expect(within(bar).getByRole("button", { name: "Edit 1" })).toBeTruthy();
     expect(within(bar).getByRole("button", { name: "Publish" })).toBeTruthy();
@@ -383,10 +386,10 @@ describe("NativeCollectionGrid", () => {
     const panel = await screen.findByRole("dialog", { name: "Columns" });
     // Title (and the status badge) stay first, so they offer no moves.
     expect(
-      within(panel).queryByRole("button", { name: /^Move Title/ }),
+      within(panel).queryByRole("button", { name: /^(Move|Reorder) Title/ }),
     ).toBeNull();
     const up = within(panel).getByRole("button", { name: "Move Slug up" });
-    expect(up.hasAttribute("disabled")).toBe(true);
+    expect(up.getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(
       within(panel).getByRole("button", { name: "Move Slug down" }),
     );
@@ -398,6 +401,31 @@ describe("NativeCollectionGrid", () => {
       "layout",
       "slug",
       "updatedAt",
+    ]);
+  });
+
+  it("saves the order a column's drag handle sets from the keyboard, hidden columns included", async () => {
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: "View" }));
+    const panel = await screen.findByRole("dialog", { name: "Columns" });
+    const handle = within(panel).getByRole("button", {
+      name: "Reorder Updated at",
+    });
+    handle.focus();
+    fireEvent.keyDown(handle, { key: "Enter" });
+    fireEvent.keyDown(handle, { key: "Home" });
+    expect(fixture.setColumns).not.toHaveBeenCalled();
+    fireEvent.keyDown(handle, { key: "Enter" });
+
+    expect(fixture.setColumns).toHaveBeenCalledTimes(1);
+    const saved = fixture.setColumns.mock.calls[0]?.[0] as Array<{
+      accessor: string;
+    }>;
+    expect(saved.map((column) => column.accessor)).toEqual([
+      "title",
+      "updatedAt",
+      "slug",
+      "layout",
     ]);
   });
 
@@ -455,6 +483,18 @@ describe("NativeCollectionGrid", () => {
     ).toBeTruthy();
     // Columns still apply to Payload's grouped tables.
     expect(screen.getByRole("button", { name: "View" })).toBeTruthy();
+  });
+
+  it("names the grouped list and the trash-off message as regions, so their names are spoken", () => {
+    setup({
+      query: { sort: "title", page: 1, limit: 10, groupBy: "_status" },
+      groupedTable: <div data-testid="payload-grouped">Grouped tables</div>,
+    });
+    expect(screen.getByRole("region", { name: "Pages, grouped" })).toBeTruthy();
+    cleanup();
+
+    setup({ trash: true, trashEnabled: false });
+    expect(screen.getByRole("region", { name: "Pages" })).toBeTruthy();
   });
 
   it("shows each group on Core's grid, under its own heading and count", () => {
@@ -723,9 +763,7 @@ describe("NativeCollectionGrid", () => {
       groupedTable: <div>Grouped tables</div>,
       bulk: { collection: { slug: "pages" }, hasDeletePermission: true },
     });
-    const bar = screen.getByRole("toolbar", {
-      name: "Selected record actions",
-    });
+    const bar = screen.getByRole("group", { name: "1 page selected" });
     expect(bar.textContent).toContain("1 page selected");
     expect(within(bar).getByRole("button", { name: "Delete" })).toBeTruthy();
   });
@@ -1376,9 +1414,7 @@ describe("NativeCollectionGrid", () => {
     setup({
       bulk: { collection: { slug: "pages" }, hasDeletePermission: true },
     });
-    const bar = screen.getByRole("toolbar", {
-      name: "Selected record actions",
-    });
+    const bar = screen.getByRole("group", { name: "1 page selected" });
     // Phones: tighter buttons and gaps, so Edit, Publish, Unpublish, Delete
     // and Clear share one row under the count instead of wrapping.
     const actions = bar.querySelector("[data-web-studio-bulk-actions]")!;
@@ -1429,9 +1465,11 @@ describe("NativeCollectionGrid", () => {
     for (const row of rows) {
       expect(row.className.split(" ")).toContain("min-h-8");
     }
-    const title = rows.find((row) => row.textContent?.startsWith("Title"))!;
+    const row = (label: string) =>
+      rows.find((item) => item.querySelector("label")?.textContent === label)!;
+    const title = row("Title");
     expect(title.textContent).toContain("Always shown");
-    const slug = rows.find((row) => row.textContent?.startsWith("Slug"))!;
+    const slug = row("Slug");
     expect(slug.textContent).not.toContain("Always shown");
   });
 

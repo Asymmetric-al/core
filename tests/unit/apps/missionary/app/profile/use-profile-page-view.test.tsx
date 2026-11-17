@@ -1,16 +1,19 @@
 /** @vitest-environment jsdom */
 
-import { act, cleanup, waitFor } from "@testing-library/react";
-import { renderDraftHook as renderHook } from "../../../../fixtures/retained-drafts";
+import { RetainedDraftProvider } from "@asym/ui/hooks";
+import {
+  act,
+  cleanup,
+  renderHook as renderPlainHook,
+  waitFor,
+} from "@testing-library/react";
 import * as React from "react";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useProfilePageView } from "../../../../../../apps/missionary/app/profile/use-profile-page-view";
 import { getQueryClient } from "../../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../../packages/database/providers/query-provider";
-
-import type { ProfileData } from "../../../../../../apps/missionary/app/profile/profile-model";
+import { renderDraftHook as renderHook } from "../../../../fixtures/retained-drafts";
 
 vi.mock("sonner", () => ({
   toast: {
@@ -19,6 +22,11 @@ vi.mock("sonner", () => ({
     info: vi.fn(),
   },
 }));
+
+// Loaded by path: tests may not import app modules statically.
+const { useProfilePageView } =
+  await import("../../../../../../apps/missionary/app/profile/use-profile-page-view");
+type ProfileData = ReturnType<typeof useProfilePageView>["profile"];
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -752,7 +760,50 @@ describe("useProfilePageView", () => {
     expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
   });
 
-  it("exposes a load failure as fetchError and toasts once", async () => {
+  it("rejects a queued save whose latest snapshot is invalid", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let resolveSave!: (value: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    let pendingSave!: Promise<void>;
+    act(() => {
+      result.current.updateProfile("location", "Paris");
+      pendingSave = result.current.handleSave();
+    });
+
+    // A photo upload queues a follow-up save after an invalid edit.
+    act(() => {
+      result.current.updateProfile("phone", "call me");
+      void result.current.handleSave();
+    });
+    expect(result.current.rejectedSaveCount).toBe(0);
+
+    await act(async () => {
+      resolveSave(jsonResponse(200, { ok: true }));
+      await pendingSave;
+    });
+
+    expect(patchBodies()).toHaveLength(1);
+    expect(result.current.rejectedSaveCount).toBe(1);
+    expect(result.current.validationErrors.phone).toBeTruthy();
+    expect(toast.error).toHaveBeenCalledWith(
+      "Please fix the errors before saving",
+    );
+    expect(result.current.isSaving).toBe(false);
+  });
+
+  it("exposes a load failure as fetchError without a toast", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse(500, { error: "Profile service unavailable" }),
     );
@@ -765,7 +816,90 @@ describe("useProfilePageView", () => {
       expect(result.current.fetchError).toBe("Profile service unavailable"),
     );
     expect(result.current.isLoading).toBe(false);
-    expect(toast.error).toHaveBeenCalledWith("Profile service unavailable");
-    expect(toast.error).toHaveBeenCalledTimes(1);
+    // The page's inline alert is the one announcement; a toast would read the
+    // same message out a second time.
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(result.current.refreshError).toBeNull();
+  });
+
+  it("reports a refetch that fails over a loaded profile as refreshError", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockResolvedValueOnce(
+        jsonResponse(502, { error: "Profile service unavailable" }),
+      );
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const loaded = result.current.profile;
+
+    await act(async () => {
+      await getQueryClient().refetchQueries({ queryKey: ["profile"] });
+    });
+
+    await waitFor(() =>
+      expect(result.current.refreshError).toBe("Profile service unavailable"),
+    );
+    // The loaded profile stays, so this is not a failed load.
+    expect(result.current.fetchError).toBeNull();
+    expect(result.current.profile).toEqual(loaded);
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("tells read access revoked by a 401 apart from a session not yet loaded", async () => {
+    // No session owns drafts while auth loads.
+    const signedOut = renderPlainHook(() => useProfilePageView(), {
+      wrapper: ({ children }) => (
+        <RetainedDraftProvider owner={null}>
+          <QueryProvider>{children}</QueryProvider>
+        </RetainedDraftProvider>
+      ),
+    });
+    expect(signedOut.result.current.canRead).toBe(false);
+    expect(signedOut.result.current.readRevoked).toBe(false);
+    expect(signedOut.result.current.isLoading).toBe(true);
+    signedOut.unmount();
+
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(401, { error: "Unauthorized" }),
+    );
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    expect(result.current.readRevoked).toBe(false);
+    await waitFor(() => expect(result.current.readRevoked).toBe(true));
+    expect(result.current.canRead).toBe(false);
+  });
+
+  it("reports a refetch in flight over a loaded profile", async () => {
+    let answer!: (response: Response) => void;
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, apiProfile))
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            answer = resolve;
+          }),
+      );
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isFetching).toBe(false);
+
+    let refetch!: Promise<void>;
+    act(() => {
+      refetch = getQueryClient().refetchQueries({ queryKey: ["profile"] });
+    });
+    await waitFor(() => expect(result.current.isFetching).toBe(true));
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      answer(jsonResponse(200, apiProfile));
+      await refetch;
+    });
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
   });
 });

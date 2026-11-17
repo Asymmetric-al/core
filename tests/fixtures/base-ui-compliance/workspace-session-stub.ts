@@ -8,3 +8,9 @@ export function signOutClientSession() {
     );
   });
 }
+
+// Retained drafts register their sign-out cleanup; the fixture never signs a
+// session out through them, so the registration is inert.
+export function registerClientSessionCleanup() {
+  return () => {};
+}

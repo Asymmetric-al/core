@@ -60,7 +60,7 @@ it("shows the actual transaction identity, formatted amount/date and status in n
   installMobileMedia();
   render(<HistoryTransactionsCard filteredTransactions={transactions} />);
   await waitFor(() =>
-    expect(screen.queryByRole("region", { name: "Data table" })).toBeNull(),
+    expect(screen.queryByRole("region", { name: "Giving history" })).toBeNull(),
   );
 
   expect(screen.getByText("Field Team 1")).toBeTruthy();

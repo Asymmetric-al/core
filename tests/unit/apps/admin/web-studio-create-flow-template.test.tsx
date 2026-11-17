@@ -373,9 +373,11 @@ it.each([
 
 it("retries a failed gallery template load without clearing entered values", async () => {
   fixture.search = "template=t-standard";
+  const retried = Promise.withResolvers<Response>();
   const load = vi
     .fn()
     .mockResolvedValueOnce(Response.json({}, { status: 503 }))
+    .mockReturnValueOnce(retried.promise)
     .mockResolvedValue(
       Response.json({
         docs: [{ id: "t-standard", name: "Campaign", pageType: "standard" }],
@@ -394,8 +396,28 @@ it("retries a failed gallery template load without clearing entered values", asy
     fireEvent.submit(view.container.querySelector("form")!);
   });
   expect(create).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  const tryAgain = screen.getByRole("button", { name: "Try again" });
+  tryAgain.focus();
+  fireEvent.click(tryAgain);
+  // Busy but still focused while templates load again.
+  await waitFor(() =>
+    expect(tryAgain.getAttribute("aria-disabled")).toBe("true"),
+  );
+  expect(tryAgain.isConnected).toBe(true);
+  expect(document.activeElement).toBe(tryAgain);
+  await act(async () =>
+    retried.resolve(
+      Response.json({
+        docs: [{ id: "t-standard", name: "Campaign", pageType: "standard" }],
+      }),
+    ),
+  );
   expect(await screen.findByText("Campaign")).toBeTruthy();
+  // Try again is gone; focus moves to the template it loaded.
+  expect(tryAgain.isConnected).toBe(false);
+  expect(document.activeElement).toBe(
+    screen.getByRole("link", { name: "Change" }),
+  );
   expect(screen.getByRole("textbox", { name: "Title" })).toHaveProperty(
     "value",
     "Spring Gala",
@@ -422,6 +444,158 @@ it("retries a failed gallery template load without clearing entered values", asy
   expect(screen.getByRole("textbox", { name: "Title" })).toHaveProperty(
     "value",
     "Spring Gala",
+  );
+  client.clear();
+});
+
+it("keeps focus on Try again until a failed template list loads, then moves it to the field", async () => {
+  const retried = Promise.withResolvers<Response>();
+  const load = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json({}, { status: 503 }))
+    .mockReturnValueOnce(retried.promise);
+  const { client } = renderFlow([], load);
+  await screen.findByText(
+    "Templates didn't load. Check your connection and try again.",
+  );
+  const tryAgain = screen.getByRole("button", { name: "Try again" });
+  tryAgain.focus();
+  fireEvent.click(tryAgain);
+  await waitFor(() =>
+    expect(tryAgain.getAttribute("aria-disabled")).toBe("true"),
+  );
+  expect(tryAgain.isConnected).toBe(true);
+  expect(document.activeElement).toBe(tryAgain);
+
+  await act(async () =>
+    retried.resolve(
+      Response.json({
+        docs: [
+          { id: "a", name: "Campaign", pageType: "standard" },
+          { id: "b", name: "Annual report", pageType: "standard" },
+        ],
+      }),
+    ),
+  );
+  const template = screen.getByRole("combobox", { name: "Template" });
+  await waitFor(() => expect(document.activeElement).toBe(template));
+  expect(tryAgain.isConnected).toBe(false);
+  expect(template.hasAttribute("disabled")).toBe(false);
+  client.clear();
+});
+
+it("keeps focus on Try again when the retry fails again", async () => {
+  const retried = Promise.withResolvers<Response>();
+  const load = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json({}, { status: 503 }))
+    .mockReturnValueOnce(retried.promise);
+  const { client } = renderFlow([], load);
+  const tryAgain = await screen.findByRole("button", { name: "Try again" });
+  tryAgain.focus();
+  fireEvent.click(tryAgain);
+  await waitFor(() =>
+    expect(tryAgain.getAttribute("aria-disabled")).toBe("true"),
+  );
+  await act(async () => retried.resolve(Response.json({}, { status: 503 })));
+  await waitFor(() =>
+    expect(tryAgain.getAttribute("aria-disabled")).not.toBe("true"),
+  );
+  expect(tryAgain.isConnected).toBe(true);
+  expect(document.activeElement).toBe(tryAgain);
+  expect(
+    screen.getByText(
+      "Templates didn't load. Check your connection and try again.",
+    ),
+  ).toBeTruthy();
+  client.clear();
+});
+
+async function retryIntoProjectTemplatesOnly() {
+  const retried = Promise.withResolvers<Response>();
+  const load = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json({}, { status: 503 }))
+    .mockReturnValueOnce(retried.promise);
+  const { client } = renderFlow([], load);
+  const tryAgain = await screen.findByRole("button", { name: "Try again" });
+  tryAgain.focus();
+  fireEvent.click(tryAgain);
+  await waitFor(() =>
+    expect(tryAgain.getAttribute("aria-disabled")).toBe("true"),
+  );
+  await act(async () =>
+    retried.resolve(
+      Response.json({
+        docs: [{ id: "p", name: "Project", pageType: "project" }],
+      }),
+    ),
+  );
+  const note = await screen.findByText(/No standard page templates yet/);
+  expect(tryAgain.isConnected).toBe(false);
+  // Nothing to pick, so the select stays disabled and cannot take focus.
+  expect(
+    screen.getByRole("combobox", { name: "Template" }).hasAttribute("disabled"),
+  ).toBe(true);
+  return { client, note };
+}
+
+it("moves focus from Try again to the note's link when no template of the type loads", async () => {
+  const { client } = await retryIntoProjectTemplatesOnly();
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("link", { name: "Create a template" }),
+    ),
+  );
+  client.clear();
+});
+
+it("moves focus from Try again to the note when it has no link", async () => {
+  fixture.canCreateTemplates = false;
+  const { client, note } = await retryIntoProjectTemplatesOnly();
+  const container = note.closest<HTMLElement>('[id$="-note"]');
+  expect(container?.textContent).toContain(
+    "Ask a Web Studio administrator to add one.",
+  );
+  await waitFor(() => expect(document.activeElement).toBe(container));
+  client.clear();
+});
+
+it("keeps focus on Try again while it rechecks a missing template", async () => {
+  fixture.search = "template=t-gone";
+  const recheck = Promise.withResolvers<Response>();
+  const load = vi
+    .fn()
+    .mockResolvedValueOnce(
+      Response.json({
+        docs: [{ id: "t-standard", name: "Campaign", pageType: "standard" }],
+      }),
+    )
+    .mockReturnValueOnce(recheck.promise);
+  const { client } = renderFlow([], load);
+  await screen.findByText("This template no longer exists or is unavailable.");
+  const tryAgain = screen.getByRole("button", { name: "Try again" });
+  tryAgain.focus();
+  fireEvent.click(tryAgain);
+  // Busy but still focused, so the press is not lost.
+  await waitFor(() =>
+    expect(tryAgain.getAttribute("aria-disabled")).toBe("true"),
+  );
+  expect(tryAgain.hasAttribute("disabled")).toBe(false);
+  expect(document.activeElement).toBe(tryAgain);
+
+  await act(async () =>
+    recheck.resolve(
+      Response.json({
+        docs: [{ id: "t-gone", name: "Restored", pageType: "standard" }],
+      }),
+    ),
+  );
+  expect(await screen.findByText("Restored")).toBeTruthy();
+  // Try again is gone; focus moves to the template it found.
+  expect(tryAgain.isConnected).toBe(false);
+  expect(document.activeElement).toBe(
+    screen.getByRole("link", { name: "Change" }),
   );
   client.clear();
 });

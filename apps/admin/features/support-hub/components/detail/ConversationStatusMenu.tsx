@@ -5,13 +5,14 @@ import {
   DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { useSetSupportConversationStatus } from "../../hooks/use-support-mutations";
 import { CONVERSATION_STATUS_LABELS } from "../../lib/status-labels";
@@ -61,29 +62,21 @@ export function ConversationStatusMenu({
           <DropdownMenuLabel>Set status</DropdownMenuLabel>
 
           <DropdownMenuSeparator />
-          {SUPPORT_CONVERSATION_STATUSES.map((status) => {
-            const isActive = status === conversation.status;
-            return (
-              <DropdownMenuItem
-                key={status}
-                onClick={() =>
-                  setStatus.mutate({
-                    conversationId: conversation.id,
-                    status,
-                  })
-                }
-              >
-                <Check
-                  aria-hidden="true"
-                  className={cn(
-                    "size-3.5",
-                    isActive ? "text-foreground" : "text-transparent",
-                  )}
-                />
+          <DropdownMenuRadioGroup
+            value={conversation.status}
+            onValueChange={(status: SupportConversationStatus) =>
+              setStatus.mutate({
+                conversationId: conversation.id,
+                status,
+              })
+            }
+          >
+            {SUPPORT_CONVERSATION_STATUSES.map((status) => (
+              <DropdownMenuRadioItem key={status} value={status} closeOnClick>
                 {STATUS_LABELS[status]}
-              </DropdownMenuItem>
-            );
-          })}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

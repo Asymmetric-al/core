@@ -207,6 +207,11 @@ function ContributionRowActions({
   onViewContribution: (contribution: Contribution) => void;
 }) {
   const donorLabel = contributionDonorLabel(contribution);
+  const amountLabel = formatSharedContributionAmount(
+    contribution.shared.amountCents,
+    contribution.shared.currencyCode,
+  );
+  const dateLabel = useContributionDateLabel(contribution.date);
   // Only a processor reference is a transaction ID; a gift without its own
   // is shared through its link, never by printing the internal id.
   const processorId =
@@ -221,7 +226,7 @@ function ContributionRowActions({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Contribution actions for ${donorLabel}`}
+            aria-label={`Contribution actions for ${amountLabel} from ${donorLabel} on ${dateLabel}`}
             // The row itself opens the gift; a click (or Enter) on the menu
             // trigger must only open the menu. Menu items render in a portal,
             // which the row already ignores.

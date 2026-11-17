@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -194,5 +195,119 @@ describe("Workflow runs page", () => {
     await waitFor(() =>
       expect(screen.queryByText("Couldn't load workflow runs")).toBeNull(),
     );
+  });
+
+  it("moves focus to the status filter when Show urgent runs removes itself", async () => {
+    respond([run("a", "failed", "urgent", "Refund notice")], 1);
+    const view = render(<WorkflowsPageClient />);
+    const show = await screen.findByRole("button", {
+      name: "Show urgent runs",
+    });
+    act(() => show.focus());
+    fireEvent.click(show);
+    const filter = screen.getByRole("combobox", { name: "Filter by status" });
+    // What the filter reads once the task that focused it ends, which is
+    // when assistive technology can first read it.
+    const announced: string[] = [];
+    filter.addEventListener("focus", () =>
+      queueMicrotask(() => announced.push(filter.textContent ?? "")),
+    );
+    // Focus waits for the URL so the filter is announced with its new value.
+    expect(document.activeElement).toBe(show);
+
+    navigation.params = new URLSearchParams("status=urgent");
+    view.rerender(<WorkflowsPageClient />);
+    await Promise.resolve();
+    expect(
+      screen.queryByRole("button", { name: "Show urgent runs" }),
+    ).toBeNull();
+    expect(document.activeElement).toBe(filter);
+    expect(announced).toHaveLength(1);
+    expect(announced[0]).toContain("Urgent");
+  });
+
+  it("keeps focus on the reload from Retry through to the loaded runs", async () => {
+    let finish: (value: unknown) => void = () => {};
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false })
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<WorkflowsPageClient />);
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    act(() => retry.focus());
+    fireEvent.click(retry);
+    const loading = screen.getByRole("status", {
+      name: "Loading workflow summaries",
+    });
+    expect(document.activeElement).toBe(loading);
+
+    await act(async () => {
+      finish({
+        ok: true,
+        json: async () => ({
+          summaries: [run("c", "completed", "visible")],
+          counts: { urgent: 0, visible: 1 },
+        }),
+      });
+    });
+    const summary = await screen.findByText(
+      /Showing the latest 1 run, up to 50/,
+    );
+    expect(document.activeElement).toBe(summary);
+  });
+
+  it("returns focus to Retry when the reload fails again", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<WorkflowsPageClient />);
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    act(() => retry.focus());
+    fireEvent.click(retry);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Retry" }),
+      ),
+    );
+  });
+
+  it("leaves focus alone when the person moved on while the runs reloaded", async () => {
+    let finish: (value: unknown) => void = () => {};
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false })
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <>
+        <button type="button">Elsewhere</button>
+        <WorkflowsPageClient />
+      </>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    const elsewhere = screen.getByRole("button", { name: "Elsewhere" });
+    act(() => elsewhere.focus());
+    await act(async () => {
+      finish({
+        ok: true,
+        json: async () => ({
+          summaries: [],
+          counts: { urgent: 0, visible: 0 },
+        }),
+      });
+    });
+    await screen.findByText(/Showing the latest 0 runs, up to 50/);
+    expect(document.activeElement).toBe(elsewhere);
   });
 });

@@ -188,12 +188,14 @@ describe("buildNeedsYou", () => {
       tone: "urgent",
       title: "Grace Community Church’s recurring gift hasn’t arrived",
       action: "View partner",
+      partnerName: "Grace Community Church",
     });
     expect(items[2]).toMatchObject({
       tone: "info",
       title: "Thank Taylor Nguyen for $50.00",
       detail: "Gave on Nov 5",
       action: "View partner",
+      partnerName: "Taylor Nguyen",
     });
     expect(items[3]).toMatchObject({
       title: "2 people want to follow your updates",

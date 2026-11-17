@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "7482d247b3427611810f4336343e988193e2de50a64b7cf02cd52045f2ff6ade"
+          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
         }
       ]
     },
@@ -150,15 +150,15 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "a8883f23886f8e9a176ddc63bd1b70b4003d50fb30ed8880161c934e00dad549"
+          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "dd4c8ad33b7e4b1c70c8bfdcbb1e86367aaa6ffc0810fbc1cbdb93c5c7e1b14b"
+          "sha256": "fecbf8d90633bfeade92cb50adb49d55a844e806783e771075ee6154fe822091"
         },
         {
           "path": "tests/e2e/react-cleanup-memory.spec.ts",
-          "sha256": "4529cb8ddbb340667084c5a8d11306411da8488b028cbe695f88686b7861890f"
+          "sha256": "1722cf21a9f79657e32d7a72a4558761082e854d8f259bb26a111070af3028d7"
         }
       ]
     },
@@ -166,7 +166,7 @@
       "project": "apps/admin",
       "rule": "command-menu-hotkey-present",
       "classification": "scanner-limitation",
-      "rationale": "Actual window Cmd/Ctrl+K listener guards handled events, composition, repeats, modifiers, editable targets and other popups. Window bubbling preserves Support/Care shortcut ownership; non-editing own popup toggles closed.",
+      "rationale": "MissionControlNavigationSearch registers mod+K (Command on Apple platforms, Control elsewhere) through the shared useShortcut wrapper, which runs on UI SDK's single document keydown listener. The SDK skips handled events, repeats and composition and matches exact modifiers; the wrapper skips text-entry targets (not checkboxes, sliders or buttons) and other Base UI dialogs, menus and listboxes, while the search's own non-editing dialog toggles closed. Support inbox shortcuts are region shortcuts within the inbox container, or the open conversation's sheet while it holds focus, and outrank this page shortcut while focus is there. The caller test verifies the platform's own shortcut, another modal's ownership, the toggle, and that typing, composition, a held-key repeat and a handled shortcut leave the search closed. The scanner does not follow the shared hook.",
       "verificationTests": [
         "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
         "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts"
@@ -175,11 +175,11 @@
       "proof": [
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
-          "sha256": "4201cad394e9875122d2936db4a03e4f0de113781e48ad8e594364dc518ab4b4"
+          "sha256": "24d8ce937c7379427f86f62b56f8d24e50ddfe869533ea86249ab6ff3b5d5293"
         },
         {
           "path": "apps/admin/features/support-hub/components/command/use-inbox-shortcuts.ts",
-          "sha256": "8fab08c84663a9e9a8fde3522db337ca75229fca9ba7add9dd128f22056d2725"
+          "sha256": "4e154710aae4ccc856f5fdda9c51248b6ce3046f0fb2c05bd832348176eca221"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
@@ -187,7 +187,11 @@
         },
         {
           "path": "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
-          "sha256": "db8f009c96bef74512f4a813e511e975a29e566a7eb3e11a569d12893fc3691b"
+          "sha256": "42c837bce70ed85508bd7389d39a98dd9ef1de804f71c119b8d0a6b8f4534f8a"
+        },
+        {
+          "path": "packages/ui/components/primitives/shortcut.tsx",
+          "sha256": "012594b9f11bdf6dbe02ca7ddd974ab028c88202a4cb45c5fa214d3ad5178e58"
         }
       ]
     },
@@ -204,11 +208,11 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "1fb713accc002a8e9de878b21801c64586838eaeea8e53f3b59a793a69bbc14b"
+          "sha256": "b1488afcaa815ebb8d268148dc7e770f802e693b4927bb3b258e0b00d013eb4a"
         },
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
-          "sha256": "4201cad394e9875122d2936db4a03e4f0de113781e48ad8e594364dc518ab4b4"
+          "sha256": "24d8ce937c7379427f86f62b56f8d24e50ddfe869533ea86249ab6ff3b5d5293"
         },
         {
           "path": "packages/config/navigation.ts",
@@ -216,7 +220,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/command.tsx",
-          "sha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639"
+          "sha256": "add6d4f25e461e45cf4c8c25dcd646912c4108dbcdecd2315bc7bbf1fb95d54c"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
@@ -224,7 +228,7 @@
         },
         {
           "path": "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
-          "sha256": "db8f009c96bef74512f4a813e511e975a29e566a7eb3e11a569d12893fc3691b"
+          "sha256": "42c837bce70ed85508bd7389d39a98dd9ef1de804f71c119b8d0a6b8f4534f8a"
         }
       ]
     },
@@ -240,15 +244,15 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "a8883f23886f8e9a176ddc63bd1b70b4003d50fb30ed8880161c934e00dad549"
+          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
-          "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+          "sha256": "2674b29af58694aa1c1045b1fe8e890bee700aca30ed6d494df54e16931f353f"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "dd4c8ad33b7e4b1c70c8bfdcbb1e86367aaa6ffc0810fbc1cbdb93c5c7e1b14b"
+          "sha256": "fecbf8d90633bfeade92cb50adb49d55a844e806783e771075ee6154fe822091"
         }
       ]
     },
@@ -264,7 +268,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
-          "sha256": "8956eacb1d4c265454b41c6bed57961406b2b85a61fca0b2ceb7f31f19b35d66"
+          "sha256": "a18606dd39e038c9861851f308d0eeb9a617187076ea31bed90d483879b64454"
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
@@ -284,11 +288,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "a8883f23886f8e9a176ddc63bd1b70b4003d50fb30ed8880161c934e00dad549"
+          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "dd4c8ad33b7e4b1c70c8bfdcbb1e86367aaa6ffc0810fbc1cbdb93c5c7e1b14b"
+          "sha256": "fecbf8d90633bfeade92cb50adb49d55a844e806783e771075ee6154fe822091"
         },
         {
           "path": "apps/admin/app/(app)/admin/eve/section-states.tsx",
@@ -329,7 +333,7 @@
         },
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-          "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
+          "sha256": "115f3ad9156e6ab51100ca43da14fdd676285ef953f68070ce15588193ca1d79"
         }
       ]
     },
@@ -345,7 +349,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/pdf/page-client.tsx",
-          "sha256": "84bfa6883b0a29db4e3096775a9dda968cca6c53cc081f486215fe89768315b7"
+          "sha256": "04259a0e15191bc3fa27b35624eb694721781d5974c0dd2d0786d53ef50187bc"
         },
         {
           "path": "packages/ui/components/shadcn/tooltip.tsx",
@@ -353,7 +357,7 @@
         },
         {
           "path": "tests/unit/apps/admin/app/pdf/pdf-studio-header-export.test.tsx",
-          "sha256": "3ea2a0c86ed7afa644801135e197b82a1d995c3bce69985c5117419ac064e9d3"
+          "sha256": "9050a1c67ad1921b24bb1751c7596f16faaf9d92d30708747d92d5539ba169b7"
         }
       ]
     },
@@ -413,11 +417,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/email/email-studio-header.tsx",
-          "sha256": "262afab2555d3b8276cf6761ce9421bd7163bf7eea6822fcfb332ccf4b7f094d"
+          "sha256": "9e3231ab03023beca59d17ac2c16393b2d688e620dca620f36584e83dda6aea4"
         },
         {
           "path": "tests/unit/apps/admin/email/email-studio-header.test.tsx",
-          "sha256": "afe7c1337c714d8390e3f8c5767f268ff14d627ac0a7108de7028781ee46960c"
+          "sha256": "4b77b8ab7837383f579af7199e540c8f52fe63273ef5c58c436b35046f7e7179"
         }
       ]
     },
@@ -433,7 +437,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "06dae23ccf80c1084a5cbdabfab73389de5b99929b29bc5fe0f7f4e732f8b908"
+          "sha256": "7deb3b064c081d4540353608e83f4597307747c8d26123154d9bf471bc43f7ed"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
@@ -493,20 +497,24 @@
     {
       "project": "apps/admin",
       "rule": "status-messages-announced",
+      "evidenceFingerprint": "16c78dec973474d34602ec1ec8406882f4dee288ae04ae8ba7b338b09e3ed344",
       "classification": "scanner-limitation",
-      "rationale": "PendingApprovalsSection consumes the same query as the mounted ApprovalBudgetSummary sibling. During loading, that sibling renders a status region saying Loading approval and budget policy. The real panel test verifies that announcement while the approval-request skeleton is pending and no false empty queue is shown. The scanner searches only the extracted queue function.",
+      "rationale": "The flagged line is the Add private memory control, `{mutation.isPending ? <Button type=\"button\" … disabled> : <Button type=\"submit\">}`, which keeps one DOM node (and focus) while the button stops being a submit button during the save; the scanner's isPending-ternary pattern reads that ternary as a status message. MemoryProfileSection renders no status text of its own: its failure renders in the shared destructive Alert (role alert), and the parent EveAdminMemoryPanel renders the polite, atomic Saving private memory change… and Private memory change saved. region for the same mutation. The concurrency suite verifies the pending text in its aria-live polite region, the saved text, and the failure inside role alert. The scanner checks only the extracted section's own scope. No browser run is claimed for this finding.",
       "verificationTests": [
-        "tests/unit/apps/admin/app/eve-approval-loading-feedback.test.tsx"
+        "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx"
       ],
-      "evidenceFingerprint": "96f1686d6942cf802bd2aeebd0761f6dc9d76985beac5fb1450e57c6d7c1d60f",
       "proof": [
         {
-          "path": "apps/admin/app/(app)/admin/eve/approval-budget-panel.tsx",
-          "sha256": "374b6f8c6f87967f441b7d9b53dc1025808682d2e4e6bbee55f420d8a6bfcc0f"
+          "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
+          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
         },
         {
-          "path": "tests/unit/apps/admin/app/eve-approval-loading-feedback.test.tsx",
-          "sha256": "1f3d28fb863b4642e044a08063a62a7d827fb4fd991a4e0d7f1777ef64da1135"
+          "path": "packages/ui/components/shadcn/alert.tsx",
+          "sha256": "3c7c81100885a01ddb37459d1ebf0067015049ba63d63effede37ee98e6a94c7"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
+          "sha256": "fecbf8d90633bfeade92cb50adb49d55a844e806783e771075ee6154fe822091"
         }
       ]
     },
@@ -587,19 +595,19 @@
       "project": "apps/admin",
       "rule": "validation-wired-to-form",
       "classification": "scanner-limitation",
-      "rationale": "The extracted note composer calls onSave; its owning saveNote trims the body and returns before mutation for blank input. The submit control is disabled for empty or whitespace-only bodies and while saving. The actual drawer tests exercise whitespace submission through the form and successful persistence to the captured record. The scanner cannot follow the callback boundary.",
+      "rationale": "The raw launch evidence form (LaunchManifestImportSection) submits through EveLaunchReadinessPanel.submitManifest, which rejects a blank paste and invalid JSON before any request: it sets the field error, which renders as the Textarea's FieldError with aria-invalid and aria-describedby, and moves focus to the field. Only a parsed document reaches the mutation, and the server schema validates it again. The exact panel test submits a blank and an invalid paste and verifies the message, aria-invalid, the description link, focus on the field and that the error clears, then imports valid evidence through the form. The scanner looks only for constraint attributes or a schema resolver on the form itself. Reconsider if the checks leave submitManifest or stop reaching the field.",
       "verificationTests": [
-        "tests/unit/apps/admin/app/crm-record-drawer.test.tsx"
+        "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx"
       ],
-      "evidenceFingerprint": "93fd3df65dbdafaf532d1eed9cbb26eb06922d77f21a7d23548f254fbf6c1781",
+      "evidenceFingerprint": "fa3bf26c91e94156b56d4f2dbd05bddd160939813181744022bf6cf4614d5140",
       "proof": [
         {
-          "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "68fc2808af0a6b68b99b9d56cebc36f76c43886bf256b452731b7828f9c021a1"
+          "path": "apps/admin/app/(app)/admin/eve/launch-readiness-panel.tsx",
+          "sha256": "f763799e7e8029fb1f22307aea99a09cc589cfd750fd9500189f820c761311ee"
         },
         {
-          "path": "tests/unit/apps/admin/app/crm-record-drawer.test.tsx",
-          "sha256": "8db9b25dae1e482a284691825de8f1bc6f8a538b259caf5bcdd2364ac481dca7"
+          "path": "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx",
+          "sha256": "6b7d4c8d7c46083107f5379f82e947d84bd10c83d1abbf63dc3f418b6b9716fd"
         }
       ]
     },
@@ -608,7 +616,7 @@
       "rule": "command-menu-hotkey-present",
       "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
       "classification": "scanner-limitation",
-      "rationale": "The donor dashboard layout renders DonorPortalHeader, which mounts the shared NavigationCommandPalette inside its existing action group. It reuses SECTIONS plus Settings and router.push for the six owned dashboard destinations. The shared primitive composes CommandDialog, input, empty state and actionable items with guarded Ctrl/Meta+K. Shadscan 0.17.0 inspects app-owned source scopes and misses this shared-package implementation. The cited caller and shared-primitive Vitest suites verify route filtering and selection, Ctrl/Meta+K, Escape focus return, and non-interception of editable drafts and the account menu. No browser verification is claimed.",
+      "rationale": "The donor dashboard layout renders DonorPortalHeader, which mounts the shared NavigationCommandPalette inside its existing action group. It reuses SECTIONS plus Settings and router.push for the six owned dashboard destinations. The shared primitive composes CommandDialog, input, empty state and actionable items, and registers mod+K (Command on Apple platforms, Control elsewhere) through the shared useShortcut wrapper, which leaves typing, other dialogs and menus, and handled keys to their owners. Shadscan 0.17.0 inspects app-owned source scopes and misses this shared-package implementation. The cited caller and shared-primitive Vitest suites verify route filtering and selection, each platform's own shortcut, Escape focus return, and non-interception of editable drafts and the account menu. No browser verification is claimed.",
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
@@ -620,19 +628,23 @@
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
-          "sha256": "4f593a4e4e12323f051ad8939b0c6dfba8f61ae67a585b9913bf31d607bab495"
+          "sha256": "4ca6160c8d493ee69fa1b309649a40e2f1c67b07f41acb4239ca51c78cdb7f55"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
-          "sha256": "4a099d1bce96a0d96a2a61047bc735f670ee428a36e702f3ae0fe46540502f58"
+          "sha256": "fee35947662f850c1116c33ea1d5647213f0ed7b53200a4a493fdbfe7bfc3567"
         },
         {
           "path": "tests/unit/apps/donor/donor-navigation-search.test.tsx",
-          "sha256": "a4d5cb559b0fd6a934ba0ae873c0c164386ad98ca837be70cc95bfc2da1c27ab"
+          "sha256": "05e7078c1a7d83086b6dc99a42ac26b35a530856ce9b022f2bb392aee6153acf"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
-          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+          "sha256": "824a21b4435496c3609c931873f1954de997d815cf1e1e1e757af8980579f30f"
+        },
+        {
+          "path": "packages/ui/components/primitives/shortcut.tsx",
+          "sha256": "012594b9f11bdf6dbe02ca7ddd974ab028c88202a4cb45c5fa214d3ad5178e58"
         }
       ],
       "verificationTests": [
@@ -645,7 +657,7 @@
       "rule": "command-menu-present",
       "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
       "classification": "scanner-limitation",
-      "rationale": "The donor dashboard layout renders DonorPortalHeader, which mounts the shared NavigationCommandPalette inside its existing action group. It reuses SECTIONS plus Settings and router.push for the six owned dashboard destinations. The shared primitive composes CommandDialog, input, empty state and actionable items with guarded Ctrl/Meta+K. Shadscan 0.17.0 inspects app-owned source scopes and misses this shared-package implementation. The cited caller and shared-primitive Vitest suites verify route filtering and selection, Ctrl/Meta+K, Escape focus return, and non-interception of editable drafts and the account menu. No browser verification is claimed.",
+      "rationale": "The donor dashboard layout renders DonorPortalHeader, which mounts the shared NavigationCommandPalette inside its existing action group. It reuses SECTIONS plus Settings and router.push for the six owned dashboard destinations. The shared primitive composes CommandDialog, input, empty state and actionable items, and registers mod+K (Command on Apple platforms, Control elsewhere) through the shared useShortcut wrapper, which leaves typing, other dialogs and menus, and handled keys to their owners. Shadscan 0.17.0 inspects app-owned source scopes and misses this shared-package implementation. The cited caller and shared-primitive Vitest suites verify route filtering and selection, each platform's own shortcut, Escape focus return, and non-interception of editable drafts and the account menu. No browser verification is claimed.",
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
@@ -657,19 +669,23 @@
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
-          "sha256": "4f593a4e4e12323f051ad8939b0c6dfba8f61ae67a585b9913bf31d607bab495"
+          "sha256": "4ca6160c8d493ee69fa1b309649a40e2f1c67b07f41acb4239ca51c78cdb7f55"
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
-          "sha256": "4a099d1bce96a0d96a2a61047bc735f670ee428a36e702f3ae0fe46540502f58"
+          "sha256": "fee35947662f850c1116c33ea1d5647213f0ed7b53200a4a493fdbfe7bfc3567"
         },
         {
           "path": "tests/unit/apps/donor/donor-navigation-search.test.tsx",
-          "sha256": "a4d5cb559b0fd6a934ba0ae873c0c164386ad98ca837be70cc95bfc2da1c27ab"
+          "sha256": "05e7078c1a7d83086b6dc99a42ac26b35a530856ce9b022f2bb392aee6153acf"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
-          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+          "sha256": "824a21b4435496c3609c931873f1954de997d815cf1e1e1e757af8980579f30f"
+        },
+        {
+          "path": "packages/ui/components/primitives/shortcut.tsx",
+          "sha256": "012594b9f11bdf6dbe02ca7ddd974ab028c88202a4cb45c5fa214d3ad5178e58"
         }
       ],
       "verificationTests": [
@@ -716,11 +732,11 @@
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
-          "sha256": "0a92bdd3a1029b7f8f84ce437a33e8a55d1d82254a88f924b5ede5cf2607b932"
+          "sha256": "ce74891c263e1bc6e858002b1d9b6c2f110109cfe1eb9229d2d0ddf1b79eb6fe"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
-          "sha256": "a7b43e6652d6ebe7278d50e5ad8e1ff439a1363734dd47ac525e54c1573abf9a"
+          "sha256": "0872f3a42312aa20236dacb5a217c156ceeba820daabb86c116f625fdf62d8a5"
         }
       ]
     },
@@ -793,11 +809,11 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
-          "sha256": "4d98261d6d5ddbbce48be2c436323339cab7988970f3a21f9e7c581c051078e3"
+          "sha256": "5051fae294f52cb0a74ff188fcacb3a2bba3dbc98b5493b64fc7a7c8d5d5a792"
         },
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
-          "sha256": "d2d46e772c5e3b728a44594005efc5adcb9150b7aeead40d2589f9b151734471"
+          "sha256": "d2a8b2a36030d4be851fb19109bf9486f07e51280384980e5cf9230901f47c90"
         }
       ]
     },
@@ -817,7 +833,7 @@
         },
         {
           "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
-          "sha256": "e9bf513ec8e836ff08c27607262c566c0b358dc2c5cec3f6ce028a074056c2ba"
+          "sha256": "304338c490ef8f1edac8a3e843886bc00017a0ec6ccac72393ea67d3789a10b3"
         }
       ]
     },
@@ -968,7 +984,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
-          "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+          "sha256": "2674b29af58694aa1c1045b1fe8e890bee700aca30ed6d494df54e16931f353f"
         },
         {
           "path": "tests/unit/apps/factory-console/shadscan-console-contracts.test.tsx",
@@ -1193,7 +1209,7 @@
       "rule": "command-menu-hotkey-present",
       "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
       "classification": "scanner-limitation",
-      "rationale": "The root layout reaches MissionaryLayoutShell, AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive installs guarded Ctrl/Meta+K search; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
+      "rationale": "The root layout reaches MissionaryLayoutShell, AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive registers guarded mod+K search (Command on Apple platforms, Control elsewhere) through the shared useShortcut wrapper; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
@@ -1205,7 +1221,7 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "2f3c8f952941189599eb25579cbe43aca8355b55a3a801958f19e717b966028d"
+          "sha256": "234b2c633b683948ad9d5f5f284a2994867bb1a1c39fcf718248411e491cfb3e"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
@@ -1221,15 +1237,15 @@
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
-          "sha256": "4a099d1bce96a0d96a2a61047bc735f670ee428a36e702f3ae0fe46540502f58"
+          "sha256": "fee35947662f850c1116c33ea1d5647213f0ed7b53200a4a493fdbfe7bfc3567"
         },
         {
           "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
-          "sha256": "b31ffd054dc6f81989cb281aee59e1606c68c8414068ff7453708340f6ca3936"
+          "sha256": "a0d2e8497822dcbba4ee8ed25a8f712ed61628bb48b5758522218e2b3b94995f"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
-          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+          "sha256": "824a21b4435496c3609c931873f1954de997d815cf1e1e1e757af8980579f30f"
         },
         {
           "path": "apps/missionary/lib/route-policy.ts",
@@ -1242,6 +1258,10 @@
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
           "sha256": "c0a101c5196f1a63de2d4c627c5d57e301ffefed5cc2cbbf833aee74a6e33a79"
+        },
+        {
+          "path": "packages/ui/components/primitives/shortcut.tsx",
+          "sha256": "012594b9f11bdf6dbe02ca7ddd974ab028c88202a4cb45c5fa214d3ad5178e58"
         }
       ],
       "verificationTests": [
@@ -1255,7 +1275,7 @@
       "rule": "command-menu-present",
       "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
       "classification": "scanner-limitation",
-      "rationale": "The root layout reaches MissionaryLayoutShell, AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive installs guarded Ctrl/Meta+K search; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
+      "rationale": "The root layout reaches MissionaryLayoutShell, AppShell and MissionaryNavigationSearch, which renders the shared NavigationCommandPalette. The shared primitive registers guarded mod+K search (Command on Apple platforms, Control elsewhere) through the shared useShortcut wrapper; app caller tests verify current destinations, navigation and exclusion/cleanup on account routes. Shared unit tests cover filtering, selection and editable-target guards. This is source and unit evidence, not a current browser verification; the obsolete Help-menu browser fixture is not proof.",
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
@@ -1267,7 +1287,7 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "2f3c8f952941189599eb25579cbe43aca8355b55a3a801958f19e717b966028d"
+          "sha256": "234b2c633b683948ad9d5f5f284a2994867bb1a1c39fcf718248411e491cfb3e"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
@@ -1283,15 +1303,15 @@
         },
         {
           "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
-          "sha256": "4a099d1bce96a0d96a2a61047bc735f670ee428a36e702f3ae0fe46540502f58"
+          "sha256": "fee35947662f850c1116c33ea1d5647213f0ed7b53200a4a493fdbfe7bfc3567"
         },
         {
           "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
-          "sha256": "b31ffd054dc6f81989cb281aee59e1606c68c8414068ff7453708340f6ca3936"
+          "sha256": "a0d2e8497822dcbba4ee8ed25a8f712ed61628bb48b5758522218e2b3b94995f"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
-          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+          "sha256": "824a21b4435496c3609c931873f1954de997d815cf1e1e1e757af8980579f30f"
         },
         {
           "path": "apps/missionary/lib/route-policy.ts",
@@ -1304,6 +1324,10 @@
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
           "sha256": "c0a101c5196f1a63de2d4c627c5d57e301ffefed5cc2cbbf833aee74a6e33a79"
+        },
+        {
+          "path": "packages/ui/components/primitives/shortcut.tsx",
+          "sha256": "012594b9f11bdf6dbe02ca7ddd974ab028c88202a4cb45c5fa214d3ad5178e58"
         }
       ],
       "verificationTests": [
@@ -1349,15 +1373,15 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "0707a03b488e834727df007e3f3bac00d90da0c5332cdb557faa8ee1a998a9c1"
+          "sha256": "5befc0a93d66d0ef7eca322a6d0b6f0209aa182f1c2dd81c8316455c661d6b53"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "7ae8f9675e3b84721a904a95fe36abe873a8a2a345edfa21a9b03bedb86fa8da"
+          "sha256": "db2801f40b741977781b98996a5fa1778fb5f0ff4969628182950c37c46b2cb5"
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
-          "sha256": "ef2d461f574703d453dbeaf502805aaf8e1f242960a6bef7c238de1541271c4a"
+          "sha256": "b4a338520d3007a970c442739fd8415f50ae17273e031adf6a6c6247384da50e"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1369,7 +1393,7 @@
         },
         {
           "path": "apps/missionary/app/profile/profile-page-client.tsx",
-          "sha256": "7d4b028276938b1548ea6e50ae0b2128a4102aa18dd9720324b33b53c9407e00"
+          "sha256": "3dfaa4ab1cf02cc9bac25cc1eb4b509570f165f2b4d8f3a75e55913ea2c33c07"
         }
       ]
     },
@@ -1377,7 +1401,7 @@
       "project": "apps/missionary",
       "rule": "forms-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "All five raw Input call sites are immediate children of FormField with explicit first-name, last-name, location, phone or tagline labels. FormField delegates to LabeledField and Base UI Field.Control. The missionary wrapper unit test exercises actual Input and native Textarea names and association IDs; it does not render the entire profile page or establish browser behavior.",
+      "rationale": "The five reported raw Input call sites are immediate children of FormField with explicit first-name, last-name, location, phone or tagline labels; read-only mode only adds readOnly to them. FormField delegates to LabeledField and Base UI Field.Control. The missionary wrapper unit test exercises actual Input and native Textarea names and association IDs; it does not render the entire profile page or establish browser behavior.",
       "verificationTests": [
         "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx"
       ],
@@ -1385,11 +1409,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "0707a03b488e834727df007e3f3bac00d90da0c5332cdb557faa8ee1a998a9c1"
+          "sha256": "5befc0a93d66d0ef7eca322a6d0b6f0209aa182f1c2dd81c8316455c661d6b53"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "7ae8f9675e3b84721a904a95fe36abe873a8a2a345edfa21a9b03bedb86fa8da"
+          "sha256": "db2801f40b741977781b98996a5fa1778fb5f0ff4969628182950c37c46b2cb5"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1405,7 +1429,7 @@
       "project": "apps/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "The raw DonorTasks render Button receives aria-label Open actions from DropdownMenuTrigger. Current exact-caller DOM tests find that named trigger, activate Delete, and verify confirmation/focus and deferred duplicate prevention. Shared Trigger/Button tests separately establish Base UI render-prop name propagation. No browser run is claimed.",
+      "rationale": "The raw DonorTasks render Button receives its aria-label, Actions for {task title}, from DropdownMenuTrigger. Current exact-caller DOM tests find that named trigger (Actions for Call Anna), activate Delete, and verify confirmation/focus and deferred duplicate prevention. Shared Trigger/Button tests separately establish Base UI render-prop name propagation. No browser run is claimed.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
         "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
@@ -1415,7 +1439,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "ee8ba6e9a0c018e2702b590d39406ec0cece7003fddad320d279704410489d62"
+          "sha256": "ed4fec25cd3415ce9369385e7638b84199702307d8d9025ccd235fd71b8b20a1"
         },
         {
           "path": "packages/ui/components/shadcn/button.ts",
@@ -1439,7 +1463,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/donor-task-delete-confirmation.test.tsx",
-          "sha256": "5ddc4093b1f35432263c75d2e41ec599723ffdd6e55451b6934c1326b909dfe0"
+          "sha256": "7196017c996c1412f0c12221736f85c6020539210b34b8c7333524133c14e5c1"
         }
       ]
     },
@@ -1467,7 +1491,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "75906b5ff3668ef6e02261914c1f94f0afb84b70c6d956c110ed70a0e4469910"
+          "sha256": "7af59dff583eb8517d40a20944cd61b28eb3a2b026086caa7b31ff767055d74b"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
@@ -1801,7 +1825,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "68fc2808af0a6b68b99b9d56cebc36f76c43886bf256b452731b7828f9c021a1"
+          "sha256": "7bbca8e8697aa660c1b198fc9e1282568859e6c220b76f34c682c1e7770e2c11"
         },
         {
           "path": "packages/database/hooks/admin-crm-detail.ts",
@@ -2165,15 +2189,15 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-dialog.tsx",
-          "sha256": "73d2eb51b9984402f7b12395e68ba3df730cb9a271cf66aa542587f1a0655de6"
+          "sha256": "a536efc61800f02f366e859568f87b77c803d5051d4c599fd537dd84d6658d97"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
-          "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+          "sha256": "2674b29af58694aa1c1045b1fe8e890bee700aca30ed6d494df54e16931f353f"
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "c69187d2dff7ae3438e4408e454a22193c73e3fd7437c01da2663e51489cffe3"
+          "sha256": "755c4fb543f63974407be47dd779b4751d436ded83d67359756d21af88dda6eb"
         }
       ]
     },
@@ -2193,7 +2217,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "c69187d2dff7ae3438e4408e454a22193c73e3fd7437c01da2663e51489cffe3"
+          "sha256": "755c4fb543f63974407be47dd779b4751d436ded83d67359756d21af88dda6eb"
         }
       ]
     },
@@ -2235,9 +2259,10 @@
       "project": "packages/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "The raw TaskRowMenu trigger supplies aria-label Open actions to its Base UI render Button. Current Kanban source also supplies Add task to, Move and Edit names. Exact task-control unit tests render TaskKanbanBoard and assert those names; shared Trigger/Button tests establish render-prop name propagation. No current browser, touch, drag-sensor or qualification run is claimed.",
+      "rationale": "The raw TaskRowMenu trigger supplies aria-label Actions for {task title} to its Base UI render Button; the exact TaskRow test finds Actions for Call Anna and Actions for Email Ben and opens that row's menu. Current Kanban source also supplies Add task to, Move, Edit, and Mark done: or Reopen: names; the task-control unit tests render TaskKanbanBoard and assert those names. Shared Trigger/Button tests establish render-prop name propagation. No current browser, touch, drag-sensor or qualification run is claimed.",
       "verificationTests": [
         "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+        "tests/unit/packages/missionary/task-row-names.test.tsx",
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
         "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
       ],
@@ -2245,11 +2270,11 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "097fe3c9951d5f99129ddb74e49535e0a317498fd4f3cfbc4de842340b3b30e0"
+          "sha256": "f91c55dcfaa75e7225a51f56831763ecb5528271555fe903d8b9cb11bd27eebc"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "5874dc583435e70719d88de320773ba96ab2fa1f9a7691f0caca76724acac8b5"
+          "sha256": "f00a7dfad314d869a43c12f074d3a1f2b32f61def475ddb378ca3c1923ecdb0a"
         },
         {
           "path": "packages/ui/components/shadcn/button.ts",
@@ -2265,7 +2290,11 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "c69187d2dff7ae3438e4408e454a22193c73e3fd7437c01da2663e51489cffe3"
+          "sha256": "755c4fb543f63974407be47dd779b4751d436ded83d67359756d21af88dda6eb"
+        },
+        {
+          "path": "tests/unit/packages/missionary/task-row-names.test.tsx",
+          "sha256": "58e113df7ada608629c64177ff5febabbbb22f6ec3752061b1e1b8739fe992f1"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2289,7 +2318,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "5874dc583435e70719d88de320773ba96ab2fa1f9a7691f0caca76724acac8b5"
+          "sha256": "f00a7dfad314d869a43c12f074d3a1f2b32f61def475ddb378ca3c1923ecdb0a"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2334,7 +2363,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "c69187d2dff7ae3438e4408e454a22193c73e3fd7437c01da2663e51489cffe3"
+          "sha256": "755c4fb543f63974407be47dd779b4751d436ded83d67359756d21af88dda6eb"
         }
       ]
     },
@@ -2584,7 +2613,7 @@
       "proof": [
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
-          "sha256": "0a92bdd3a1029b7f8f84ce437a33e8a55d1d82254a88f924b5ede5cf2607b932"
+          "sha256": "ce74891c263e1bc6e858002b1d9b6c2f110109cfe1eb9229d2d0ddf1b79eb6fe"
         },
         {
           "path": "packages/ui/components/shadcn/sheet.tsx",
@@ -2596,7 +2625,7 @@
         },
         {
           "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
-          "sha256": "a7b43e6652d6ebe7278d50e5ad8e1ff439a1363734dd47ac525e54c1573abf9a"
+          "sha256": "0872f3a42312aa20236dacb5a217c156ceeba820daabb86c116f625fdf62d8a5"
         }
       ]
     },
@@ -2617,7 +2646,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/command.tsx",
-          "sha256": "9a1340cf10f4109bcc34da95cf54d1229b858dc628cd14e79287018bc439e639"
+          "sha256": "add6d4f25e461e45cf4c8c25dcd646912c4108dbcdecd2315bc7bbf1fb95d54c"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/search-delegation.spec.ts",
@@ -2721,7 +2750,7 @@
       "proof": [
         {
           "path": "apps/missionary/components/sidebar-account-menu.tsx",
-          "sha256": "36af34424282703ad69dd6f5c2fc2da024023a6d067b1ea4d78e9d9f27543854"
+          "sha256": "27d2dfd2fb032b7d8dc36d6c5947325aac93eca070ca8423030ea8978dc6d047"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2729,7 +2758,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-header-pending.test.tsx",
-          "sha256": "308e3157ab970ac6dd90711ccabbb26b74021452c8ccc32a7a725db961b229a5"
+          "sha256": "6c3a8e41145be7e1ae6818db09d12afbb6fa2213ee0f95e6434c848fc22a05a9"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2749,11 +2778,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donors-page-roster.tsx",
-          "sha256": "8a1f1ebc087123dd423a0f37f249915276c9272451a121ecc050ab72007ed0b4"
+          "sha256": "398252192c2aef346e7e78df2167f2c1d1a758d2b67ecd537947250b53b883c6"
         },
         {
           "path": "apps/missionary/app/donors/donors-page-states.tsx",
-          "sha256": "c567dab3a5eec796fbe07aac55b20e4a322579556bc19445e99b38f383c87ae1"
+          "sha256": "12fdf78b833a807fb3704024579bc3aaf6715062993f549aa04ce8458b850827"
         },
         {
           "path": "tests/unit/apps/missionary/donors-page-module-shape.test.ts",
@@ -2823,7 +2852,7 @@
         },
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-          "sha256": "5450685e22140de0044ced77ad1679333474790416d380a137fad44bf4e0a02c"
+          "sha256": "115f3ad9156e6ab51100ca43da14fdd676285ef953f68070ce15588193ca1d79"
         }
       ]
     },
@@ -2839,7 +2868,7 @@
       "proof": [
         {
           "path": "packages/ui/components/app-shell/account-menu.tsx",
-          "sha256": "f8dbfb884848b40a0d75ca9f7f85ac4eb2bd4be63c78b287d28affccba9d2470"
+          "sha256": "82c25856fbf27b0e5a55db55a7af6772a8fe9e78f0d0deac74af20fad6127666"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2878,24 +2907,52 @@
     {
       "project": "apps/missionary",
       "rule": "async-action-pending-state",
-      "evidenceFingerprint": "f63845c44e11c55e344d266ca56c76675e8dc1f234ccf94f516d4f85670b7476",
+      "evidenceFingerprint": "ccefd5723edc767298766b31f2e0e97f32f167c6c4edc292ac5284b59f0f4bcc",
       "classification": "scanner-limitation",
-      "rationale": "SidebarAccountMenu awaits signOutClientSession inside useTransition. Its isSigningOut value disables the actual Base UI menu item and changes its visible label to Signing out until the operation settles. The scanner does not recognize that transition-state name. The deferred real-menu test reopens the menu during the request, verifies the visible pending label and aria-disabled, rejects repeat activation, and verifies readiness after settlement. Source review and DOM tests support this exact finding; no browser or successful sign-out operation is claimed.",
+      "rationale": "The flagged Log activity form in DonorsPageActivityDialogs saves through the donors view model, whose pending flag is isSaving. Its Save submit button is disabled while noteComposer.isSaving (and while the note is blank) and shows a Spinner named Saving, and the form's submit handler ignores a submit while saving; Manage tags has the same shape with tagEditor.isSaving. The scanner recognizes only the names isPending, pending, isSubmitting, isLoading and loading, so it does not see isSaving. The dialog suite verifies the disabled Saving button while pending, that a submit in flight sends no second activity, and focus held on the form then returned to Save after a failure.",
       "verificationTests": [
-        "tests/unit/apps/missionary/shadscan-header-pending.test.tsx"
+        "tests/unit/apps/missionary/donors-detail-actions-focus.test.tsx"
       ],
       "proof": [
         {
-          "path": "apps/missionary/components/sidebar-account-menu.tsx",
-          "sha256": "36af34424282703ad69dd6f5c2fc2da024023a6d067b1ea4d78e9d9f27543854"
+          "path": "apps/missionary/app/donors/donors-page-dialogs.tsx",
+          "sha256": "d3afcd045876a5cb9940b7a487021e2d5ac8a657448a825b71b6a427f1eb669f"
         },
         {
-          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
+          "path": "apps/missionary/app/donors/use-donors-page-view.tsx",
+          "sha256": "d333432b6a7fd8262d0dd81c94f6ab190b7402a4a2b149eee80169d9a3754f4a"
         },
         {
-          "path": "tests/unit/apps/missionary/shadscan-header-pending.test.tsx",
-          "sha256": "308e3157ab970ac6dd90711ccabbb26b74021452c8ccc32a7a725db961b229a5"
+          "path": "packages/missionary/hooks/use-parked-submit.ts",
+          "sha256": "eba550989139b7cb45d08a4f9b1567348d9c8ff5fe854e31d9bcd41b1aebaccb"
+        },
+        {
+          "path": "tests/unit/apps/missionary/donors-detail-actions-focus.test.tsx",
+          "sha256": "8d724daac900561e56227d304ba87583158fde1ac4aa7375faed6f21dd6549a9"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "async-action-pending-state",
+      "evidenceFingerprint": "8b0efbe984d6920c5cbd0909e11daf18f717ba3bca644513deaa53788c13ac70",
+      "classification": "scanner-limitation",
+      "rationale": "AddPartnerDialog reads canSubmit and isSubmitting from form.Subscribe and passes them to AddPartnerButton, declared in the same file so it can call useParkedSubmit, which holds focus on the form while pending. That submit button is disabled while isSubmitting or when the form cannot submit, sets aria-busy, and shows Loader2 with the accessible name Adding partner. The scanner follows pending props only into imported components, so it stops at the local AddPartnerButton. The dialog suite verifies the Adding partner name, aria-busy and the disabled trigger while pending, that a click in flight sends no second insert, and focus held on the form then returned to Add Partner after a failure.",
+      "verificationTests": [
+        "tests/unit/packages/missionary/add-partner-dialog.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "packages/missionary/components/add-partner-dialog.tsx",
+          "sha256": "104a13c1ac351d6c8019558355acd0dad6291af4bd70ecdb24d234e42638db24"
+        },
+        {
+          "path": "packages/missionary/hooks/use-parked-submit.ts",
+          "sha256": "eba550989139b7cb45d08a4f9b1567348d9c8ff5fe854e31d9bcd41b1aebaccb"
+        },
+        {
+          "path": "tests/unit/packages/missionary/add-partner-dialog.test.tsx",
+          "sha256": "fef18b58b456027d93708f8a95154c2fe5694ea72719a0d0a006a444c94a2f5e"
         }
       ]
     }

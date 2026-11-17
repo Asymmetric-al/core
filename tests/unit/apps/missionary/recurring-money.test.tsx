@@ -70,7 +70,7 @@ describe("recurring gift currency", () => {
     ).toBeGreaterThan(0);
     expect(
       screen
-        .getByRole("progressbar", { name: "Recurring gift progress" })
+        .getByRole("progressbar", { name: /^Recurring gift progress/ })
         .getAttribute("aria-valuenow"),
     ).toBe("100");
   });

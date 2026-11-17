@@ -8,10 +8,19 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { mergeBaseUIClassName } from "../../lib/base-ui";
 
+// Lets the listbox find the trigger that names it.
+const SelectTriggerContext =
+  React.createContext<React.RefObject<HTMLElement | null> | null>(null);
+
 function Select<Value, Multiple extends boolean | undefined = false>({
   ...props
 }: SelectPrimitive.Root.Props<Value, Multiple>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
+  const trigger = React.useRef<HTMLElement | null>(null);
+  return (
+    <SelectTriggerContext value={trigger}>
+      <SelectPrimitive.Root data-slot="select" {...props} />
+    </SelectTriggerContext>
+  );
 }
 
 function SelectGroup({ ...props }: SelectPrimitive.Group.Props) {
@@ -26,12 +35,19 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  ref,
   ...props
 }: SelectPrimitive.Trigger.Props & {
   size?: "sm" | "default";
 }) {
+  const trigger = React.use(SelectTriggerContext);
   return (
     <SelectPrimitive.Trigger
+      ref={(element) => {
+        if (trigger) trigger.current = element;
+        if (typeof ref === "function") return ref(element);
+        if (ref) ref.current = element;
+      }}
       data-slot="select-trigger"
       data-size={size}
       className={mergeBaseUIClassName(
@@ -48,6 +64,25 @@ function SelectTrigger({
   );
 }
 
+// Base UI names the trigger but not the listbox it opens. Name the listbox
+// the way its trigger is named, unless the caller named it.
+function nameListboxAfterTrigger(
+  list: HTMLElement | null,
+  trigger: HTMLElement | null | undefined,
+) {
+  if (
+    !list ||
+    !trigger ||
+    list.hasAttribute("aria-label") ||
+    list.hasAttribute("aria-labelledby")
+  )
+    return;
+  const label = trigger.getAttribute("aria-label");
+  const labelledBy = trigger.getAttribute("aria-labelledby") || trigger.id;
+  if (label) list.setAttribute("aria-label", label);
+  else if (labelledBy) list.setAttribute("aria-labelledby", labelledBy);
+}
+
 function SelectContent({
   className,
   children,
@@ -62,6 +97,7 @@ function SelectContent({
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >) {
+  const trigger = React.use(SelectTriggerContext);
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Positioner
@@ -84,7 +120,10 @@ function SelectContent({
           {...props}
         >
           <SelectScrollUpButton />
-          <SelectPrimitive.List className="scroll-my-1 p-1">
+          <SelectPrimitive.List
+            ref={(list) => nameListboxAfterTrigger(list, trigger?.current)}
+            className="scroll-my-1 p-1"
+          >
             {children}
           </SelectPrimitive.List>
           <SelectScrollDownButton />

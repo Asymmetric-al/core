@@ -136,7 +136,7 @@ it.each([
     } else {
       fireEvent.click(screen.getByRole("button", { name: "Refine" }));
       fireEvent.click(
-        await screen.findByRole("menuitemcheckbox", {
+        await screen.findByRole("menuitemradio", {
           name: filter === "type" ? "Call" : "High",
           exact: true,
         }),

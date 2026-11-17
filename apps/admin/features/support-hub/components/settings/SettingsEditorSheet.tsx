@@ -95,9 +95,9 @@ interface SettingsEditorFormProps<TDraft> {
 }
 
 /**
- * Body and footer of a settings editor: the fields scroll, and the footer
- * holds the editor's only Cancel and Save. Reports unsaved changes to the
- * sheet so closing it asks first.
+ * Body and footer of a settings editor, as one form: the fields scroll, the
+ * footer holds the editor's only Cancel and Save, and Enter in a field saves.
+ * Reports unsaved changes to the sheet so closing it asks first.
  */
 export function SettingsEditorForm<TDraft>({
   draft,
@@ -113,6 +113,10 @@ export function SettingsEditorForm<TDraft>({
   const serialized = JSON.stringify(draft);
   const [initial] = React.useState(serialized);
   const hasChanges = serialized !== initial;
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const saveRef = React.useRef<HTMLButtonElement>(null);
+  const parkedRef = React.useRef(false);
+  const saveDisabled = !canSave || isSaving;
 
   React.useEffect(() => {
     if (guardRef) guardRef.current = { hasChanges, isSaving };
@@ -123,9 +127,37 @@ export function SettingsEditorForm<TDraft>({
     },
     [guardRef],
   );
+  // A disabled submit button drops focus to the sheet, so focus waits on the
+  // form while the save runs and then returns to Save. Only focus parked here
+  // goes back: Safari also focuses the form when a button in it is clicked.
+  React.useLayoutEffect(() => {
+    if (saveDisabled) {
+      if (document.activeElement === saveRef.current) {
+        formRef.current?.focus({ preventScroll: true });
+        parkedRef.current = true;
+      }
+      return;
+    }
+    if (parkedRef.current && document.activeElement === formRef.current)
+      saveRef.current?.focus();
+    parkedRef.current = false;
+  }, [saveDisabled]);
 
   return (
-    <>
+    <form
+      ref={formRef}
+      tabIndex={-1}
+      // Each editor validates its own fields and says what to fix.
+      noValidate
+      onBlur={(event) => {
+        if (event.target === event.currentTarget) parkedRef.current = false;
+      }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!saveDisabled) onSave();
+      }}
+      className="flex min-h-0 flex-1 flex-col gap-4 outline-none"
+    >
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
         {children}
       </div>
@@ -138,19 +170,14 @@ export function SettingsEditorForm<TDraft>({
         >
           Cancel
         </Button>
-        <Button
-          type="button"
-          disabled={!canSave || isSaving}
-          focusableWhenDisabled={isSaving}
-          onClick={onSave}
-        >
+        <Button ref={saveRef} type="submit" disabled={saveDisabled}>
           {isSaving ? (
             <Spinner aria-hidden="true" data-icon="inline-start" />
           ) : null}
           {isNew ? `Create ${noun}` : "Save changes"}
         </Button>
       </SheetFooter>
-    </>
+    </form>
   );
 }
 

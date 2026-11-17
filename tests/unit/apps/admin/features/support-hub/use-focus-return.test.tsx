@@ -57,3 +57,68 @@ describe("useFocusReturn", () => {
     expect(document.activeElement).toBe(trigger);
   });
 });
+
+function Pane({ recordKey }: { recordKey: string }) {
+  const container = React.useRef<HTMLDivElement | null>(null);
+  useFocusReturn(true, { key: recordKey, container });
+  return (
+    <div ref={container}>
+      <button type="button">Close</button>
+    </div>
+  );
+}
+
+function button(name: string) {
+  const element = document.createElement("button");
+  element.textContent = name;
+  document.body.appendChild(element);
+  return element;
+}
+
+describe("useFocusReturn with a record key", () => {
+  it("returns focus to the element focused when the open record last changed", async () => {
+    const first = button("Card one");
+    const third = button("Card three");
+    first.focus();
+    const { rerender, unmount, getByRole } = render(<Pane recordKey="one" />);
+
+    // j from the board focuses the next card, then the pane shows it.
+    third.focus();
+    rerender(<Pane recordKey="three" />);
+    getByRole("button", { name: "Close" }).focus();
+
+    await act(async () => {
+      unmount();
+    });
+    expect(document.activeElement).toBe(third);
+  });
+
+  it("keeps the earlier element when focus is inside the pane as the record changes", async () => {
+    const first = button("Card one");
+    first.focus();
+    const { rerender, unmount, getByRole } = render(<Pane recordKey="one" />);
+
+    getByRole("button", { name: "Close" }).focus();
+    rerender(<Pane recordKey="two" />);
+
+    await act(async () => {
+      unmount();
+    });
+    expect(document.activeElement).toBe(first);
+  });
+
+  it("keeps the earlier element when nothing has focus as the record changes", async () => {
+    const first = button("Card one");
+    first.focus();
+    const { rerender, unmount } = render(<Pane recordKey="one" />);
+
+    first.blur();
+    rerender(<Pane recordKey="two" />);
+    expect(document.activeElement).toBe(document.body);
+
+    await act(async () => {
+      unmount();
+    });
+    expect(document.activeElement).toBe(first);
+  });
+});

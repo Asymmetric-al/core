@@ -200,3 +200,42 @@ describe("Support conversation table header", () => {
     ).toBeTruthy();
   });
 });
+
+describe("Support conversation table open state", () => {
+  it("marks the open conversation's subject without replacing the focused control", () => {
+    const onSelectConversation = vi.fn();
+    const view = render(
+      <SupportTableView
+        conversations={rows}
+        selectedConversationId={first.id}
+        onSelectConversation={onSelectConversation}
+      />,
+    );
+    const subject = (text: string) =>
+      within(screen.getByRole("table")).getByText(text).closest("button")!;
+    expect(subject("Receipt question").getAttribute("aria-current")).toBe(
+      "true",
+    );
+    const secondSubject = subject("Second receipt question");
+    expect(secondSubject.getAttribute("aria-current")).toBe("false");
+    expect(secondSubject.hasAttribute("aria-pressed")).toBe(false);
+
+    secondSubject.focus();
+    fireEvent.click(secondSubject);
+    expect(onSelectConversation).toHaveBeenCalledExactlyOnceWith(second.id);
+    view.rerender(
+      <SupportTableView
+        conversations={rows}
+        selectedConversationId={second.id}
+        onSelectConversation={onSelectConversation}
+      />,
+    );
+    // Same element, still focused: the open state must not remount the cell.
+    expect(subject("Second receipt question")).toBe(secondSubject);
+    expect(secondSubject.getAttribute("aria-current")).toBe("true");
+    expect(subject("Receipt question").getAttribute("aria-current")).toBe(
+      "false",
+    );
+    expect(document.activeElement).toBe(secondSubject);
+  });
+});

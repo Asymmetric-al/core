@@ -122,7 +122,10 @@ describe("BoardCard a11y", () => {
         dragHandleProps={DRAG_PROPS}
       />,
     );
-    const trigger = screen.getByRole("button", { name: "Move conversation" });
+    // Named for its card: a lane can list fifty of these menus.
+    const trigger = screen.getByRole("button", {
+      name: "Move Receipt question from Anita Gonzalez",
+    });
     expect(trigger.closest("footer")).not.toBeNull();
     expect(
       trigger.closest("button")?.parentElement?.closest("button"),

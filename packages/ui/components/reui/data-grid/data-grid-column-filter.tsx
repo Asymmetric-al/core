@@ -1,7 +1,7 @@
 "use no memo";
 
 import { CirclePlusIcon, CheckIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -14,6 +14,11 @@ import { Separator } from "../../shadcn/separator";
 
 import type { DataGridFeatures } from "./data-grid";
 import type { Column } from "@tanstack/react-table";
+
+// Core: options and Clear are real buttons. These classes undo the shared
+// Button's geometry and ring so the rows keep the registry's menu-row look.
+const filterRowClassName =
+  "relative flex h-auto w-full rounded-xl px-2 py-1.5 font-normal whitespace-normal outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus-visible:ring-0 has-[>svg]:px-2 dark:hover:bg-accent";
 
 interface DataGridColumnFilterProps<TData extends object, TValue> {
   column?: Column<DataGridFeatures, TData, TValue>;
@@ -37,6 +42,7 @@ function DataGridColumnFilter<TData extends object, TValue>({
     Array.isArray(filterValue) ? (filterValue as string[]) : [],
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const filteredOptions = useMemo(() => {
     if (!searchQuery) return options;
@@ -94,6 +100,7 @@ function DataGridColumnFilter<TData extends object, TValue>({
       >
         <div className="p-2">
           <Input
+            ref={searchRef}
             aria-label={title ? `Search ${title} options` : "Search options"}
             placeholder={title ? `Search ${title.toLowerCase()}…` : "Search…"}
             value={searchQuery}
@@ -123,24 +130,18 @@ function DataGridColumnFilter<TData extends object, TValue>({
                   );
                 };
                 return (
-                  <div
+                  <Button
                     key={option.value}
-                    role="button"
-                    tabIndex={0}
+                    type="button"
+                    variant="ghost"
                     aria-pressed={isSelected}
                     onClick={toggleOption}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        toggleOption();
-                      }
-                    }}
                     className={cn(
-                      "rounded-xl relative flex cursor-pointer items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none",
-                      "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                      filterRowClassName,
+                      "justify-start text-start",
                     )}
                   >
-                    <div
+                    <span
                       className={cn(
                         "border-primary rounded-md flex h-4 w-4 items-center justify-center border",
                         isSelected
@@ -149,7 +150,7 @@ function DataGridColumnFilter<TData extends object, TValue>({
                       )}
                     >
                       <CheckIcon className="h-4 w-4" />
-                    </div>
+                    </span>
                     {option.icon && (
                       <option.icon className="text-muted-foreground h-4 w-4" />
                     )}
@@ -159,7 +160,7 @@ function DataGridColumnFilter<TData extends object, TValue>({
                         {facetCount}
                       </span>
                     )}
-                  </div>
+                  </Button>
                 );
               })}
             </div>
@@ -168,20 +169,18 @@ function DataGridColumnFilter<TData extends object, TValue>({
             <>
               <div className="bg-border -mx-1 my-1 h-px" />
               <div className="p-1">
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => column?.setFilterValue(undefined)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      column?.setFilterValue(undefined);
-                    }
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    // Clearing unmounts this button, so focus moves first.
+                    searchRef.current?.focus();
+                    column?.setFilterValue(undefined);
                   }}
-                  className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground rounded-xl relative flex cursor-pointer items-center justify-center px-2 py-1.5 text-sm outline-hidden select-none"
+                  className={filterRowClassName}
                 >
                   {i18n.labels.filterClear}
-                </div>
+                </Button>
               </div>
             </>
           )}

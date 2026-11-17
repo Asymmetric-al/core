@@ -30,6 +30,13 @@ interface KeyDownProps {
   event: KeyboardEvent;
 }
 
+const openListCounts = new WeakMap<Element, number>();
+
+/** Whether a suggestion list is open on this editor, so its keys stay with it. */
+export function hasOpenSuggestionList(editorDom: Element): boolean {
+  return (openListCounts.get(editorDom) ?? 0) > 0;
+}
+
 /**
  * Bridges Tiptap's imperative suggestion `render()` API to a React-rendered
  * popover. Returns a function suitable to assign to `Suggestion.render` on
@@ -48,8 +55,17 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
     let root: Root | null = null;
     let listRef: SuggestionListHandle | null = null;
     let focusOwner: HTMLElement | null = null;
+    let openOn: Element | null = null;
     const previousAttributes = new Map<string, string | null>();
     const ownedAttributes = new Map<string, string | null>();
+
+    const setOpenOn = (editorDom: Element | null) => {
+      if (openOn)
+        openListCounts.set(openOn, (openListCounts.get(openOn) ?? 1) - 1);
+      openOn = editorDom;
+      if (openOn)
+        openListCounts.set(openOn, (openListCounts.get(openOn) ?? 0) + 1);
+    };
 
     const restoreFocusOwner = () => {
       if (focusOwner) {
@@ -121,6 +137,7 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
 
     return {
       onStart: (props: RenderProps<T>) => {
+        setOpenOn(props.editor.view.dom);
         renderInto(props);
       },
       onUpdate: (props: RenderProps<T>) => {
@@ -132,6 +149,7 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
       },
       onExit: () => {
         listRef = null;
+        setOpenOn(null);
         restoreFocusOwner();
         if (root) {
           root.unmount();

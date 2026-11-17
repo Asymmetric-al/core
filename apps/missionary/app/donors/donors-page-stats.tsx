@@ -66,8 +66,12 @@ export function DonorsPageStats() {
     hasMore: hasMoreDonors,
     selected: selectedDonor,
   } = view.donors;
-  const { statusFilter, pledgeFilter } = view.filters;
+  const { statusFilter, pledgeFilter, setStatusFilter, setPledgeFilter } =
+    view.filters;
   const { applyStatFilter } = view.actions;
+  // Each tile is a toggle: pressing it again clears only its own filter.
+  const monthlyActive = pledgeFilter === "Active";
+  const attentionActive = statusFilter === "Needs Attention";
   const {
     activeCount,
     activePledgeCount,
@@ -113,15 +117,23 @@ export function DonorsPageStats() {
             ? "Committed amount unavailable: currencies are mixed or unknown."
             : `${committedAmount} a month committed`
         }
-        onClick={() => applyStatFilter("activePledge")}
-        isActive={pledgeFilter === "Active"}
+        onClick={() =>
+          monthlyActive
+            ? setPledgeFilter("All")
+            : applyStatFilter("activePledge")
+        }
+        isActive={monthlyActive}
       />
       <StatCard
         label="Need attention"
         value={atRiskCount + lapsedCount}
         detail={`${atRiskCount} at risk · ${lapsedCount} lapsed${loaded}`}
-        onClick={() => applyStatFilter("needsAttention")}
-        isActive={statusFilter === "Needs Attention"}
+        onClick={() =>
+          attentionActive
+            ? setStatusFilter("All")
+            : applyStatFilter("needsAttention")
+        }
+        isActive={attentionActive}
       />
     </div>
   );

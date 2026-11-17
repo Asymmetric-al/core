@@ -39,9 +39,11 @@ const BarChartContent = dynamic(
 
     function BarChartInner({
       series,
+      title,
       valueLabel,
     }: {
       series: SupportReportSeries;
+      title: string;
       valueLabel: string;
     }) {
       if (series.buckets.length === 0) {
@@ -62,8 +64,11 @@ const BarChartContent = dynamic(
             className="w-full"
             config={{ value: { label: valueLabel, color: "var(--chart-1)" } }}
           >
+            {/* Names the keyboard layer's tab stop. Recharts' `title` prop
+                would also add a native hover tooltip. */}
             <BarChart
               accessibilityLayer
+              aria-label={title}
               data={data}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
               barSize={24}
@@ -135,7 +140,11 @@ export function ReportBarChart({
       emptyMessage="No activity in this range"
       onRetry={onRetry}
     >
-      <BarChartContent series={series} valueLabel={valueLabel ?? title} />
+      <BarChartContent
+        series={series}
+        title={title}
+        valueLabel={valueLabel ?? title}
+      />
     </ChartCard>
   );
 }

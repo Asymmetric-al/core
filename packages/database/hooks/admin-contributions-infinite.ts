@@ -86,6 +86,10 @@ const CONTRIBUTIONS_SUMMARY_QUERY_KEY = [
 
 type ContributionLoadedRow = ContributionGridRow & { sortPosition: number };
 
+// While useLiveQuery stays mounted, one Collection ID may name only one
+// Collection, so returning to an earlier fingerprint needs a fresh ID.
+let loadedCollectionCount = 0;
+
 function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debouncedValue, setDebouncedValue] = React.useState(value);
 
@@ -306,17 +310,16 @@ export function useAdminContributionsInfiniteGrid() {
     [debouncedFilters, sorting],
   );
 
-  const loadedCollection = React.useMemo(
-    () =>
-      createCollection(
-        localOnlyCollectionOptions<ContributionLoadedRow>({
-          id: `contributions-loaded-${collectionFingerprint}`,
-          getKey: (row) => row.id,
-          initialData: [],
-        }),
-      ),
-    [collectionFingerprint],
-  );
+  const loadedCollection = React.useMemo(() => {
+    loadedCollectionCount += 1;
+    return createCollection(
+      localOnlyCollectionOptions<ContributionLoadedRow, string>({
+        id: `contributions-loaded-${loadedCollectionCount}-${collectionFingerprint}`,
+        getKey: (row) => row.id,
+        initialData: [],
+      }),
+    );
+  }, [collectionFingerprint]);
 
   const loadedRowsQuery = useLiveQuery((q) =>
     q
@@ -366,19 +369,12 @@ export function useAdminContributionsInfiniteGrid() {
     });
   }, [infiniteQuery.data?.pages]);
 
-  const contributionsLoadedCollectionRef = React.useRef(loadedCollection);
   React.useEffect(() => {
-    const collectionSwapped =
-      contributionsLoadedCollectionRef.current !== loadedCollection;
-    contributionsLoadedCollectionRef.current = loadedCollection;
-
-    const rawLiveRows = loadedRowsQuery.data ?? [];
-    const currentRows = collectionSwapped ? [] : rawLiveRows;
-    const currentById = new Map(currentRows.map((row) => [row.id, row]));
+    // Reconcile against the Collection itself, not a rendered snapshot, so a
+    // replayed effect (StrictMode, remount over cached pages) stays harmless.
     const nextIds = new Set(flattenedRows.map((row) => row.id));
-
-    const removedIds = currentRows.flatMap((row) =>
-      nextIds.has(row.id) ? [] : [row.id],
+    const removedIds = [...loadedCollection.keys()].filter(
+      (id) => !nextIds.has(id),
     );
 
     if (removedIds.length > 0) {
@@ -386,8 +382,7 @@ export function useAdminContributionsInfiniteGrid() {
     }
 
     for (const nextRow of flattenedRows) {
-      const existingRow = currentById.get(nextRow.id);
-      if (!existingRow) {
+      if (!loadedCollection.has(nextRow.id)) {
         loadedCollection.insert(nextRow);
         continue;
       }
@@ -396,7 +391,7 @@ export function useAdminContributionsInfiniteGrid() {
         Object.assign(draft, nextRow);
       });
     }
-  }, [flattenedRows, loadedCollection, loadedRowsQuery.data]);
+  }, [flattenedRows, loadedCollection]);
 
   const rows = React.useMemo(
     () =>

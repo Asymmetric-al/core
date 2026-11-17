@@ -17,6 +17,8 @@ import type { Extensions } from "@tiptap/react";
 export interface RichTextEditorProps {
   /** Accessible name forwarded to Tiptap's editable textbox, not its wrapper. */
   "aria-label"?: string;
+  /** Ids of text describing the editable textbox, forwarded like `aria-label`. */
+  "aria-describedby"?: string;
   /** Stored value — JSON string or legacy plain text / HTML. */
   value: string;
   /** Called with a JSON string whenever the content changes. */
@@ -50,6 +52,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
   function EditorRoot(
     {
       "aria-label": ariaLabel,
+      "aria-describedby": ariaDescribedBy,
       value,
       onChange,
       disabled,
@@ -93,6 +96,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           role: "textbox",
           "aria-multiline": "true",
           ...(ariaLabel ? { "aria-label": ariaLabel } : {}),
+          ...(ariaDescribedBy ? { "aria-describedby": ariaDescribedBy } : {}),
           ...(placeholder ? { "aria-placeholder": placeholder } : {}),
           ...(disabled ? { "aria-disabled": "true" } : {}),
           ...(readOnly ? { "aria-readonly": "true" } : {}),

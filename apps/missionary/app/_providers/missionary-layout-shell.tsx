@@ -1,5 +1,6 @@
 "use client";
 
+import { ShortcutHelp } from "@asym/ui/components/primitives/shortcut-help";
 import { usePathname } from "next/navigation";
 
 import type { ReactNode } from "react";
@@ -7,6 +8,13 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { MissionaryNavigationSearch } from "@/components/navigation-search";
 import { isMissionaryWorkspacePath } from "@/lib/route-policy";
+
+const ACCOUNT_ROUTES = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/no-access",
+];
 
 /**
  * Boneyard capture runs on public `/boneyard/*` routes. Skip the full app
@@ -21,10 +29,13 @@ export function MissionaryLayoutShell({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  // Account screens own their full-page frame and main landmark. This is a
-  // presentation boundary only; public access and workspace search stay separate.
+  // Account screens (and their sub-routes) own their full-page frame and main
+  // landmark. This is a presentation boundary only; public access and
+  // workspace search stay separate.
   if (
-    ["/login", "/register", "/forgot-password", "/no-access"].includes(pathname)
+    ACCOUNT_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
   ) {
     return children;
   }
@@ -38,6 +49,7 @@ export function MissionaryLayoutShell({ children }: { children: ReactNode }) {
       }
     >
       {children}
+      <ShortcutHelp />
     </AppShell>
   );
 }

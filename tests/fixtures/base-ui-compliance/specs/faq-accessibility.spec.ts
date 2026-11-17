@@ -210,18 +210,25 @@ for (const viewport of [
 
     await page.keyboard.press("Tab");
     await expect(search).toBeFocused();
+    const categories = page.getByRole("group", { name: "Question category" });
+    const allQuestions = categories.getByRole("button", {
+      name: "All Questions",
+      exact: true,
+    });
+    await page.keyboard.press("Tab");
+    await expect(allQuestions).toBeFocused();
     for (const category of [
-      "All Questions",
       "Financials",
       "Donations",
       "Partners",
       "My Account",
     ]) {
-      await page.keyboard.press("Tab");
+      await page.keyboard.press("ArrowRight");
       await expect(
-        page.getByRole("button", { name: category, exact: true }),
+        categories.getByRole("button", { name: category, exact: true }),
       ).toBeFocused();
     }
+    await expect(allQuestions).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("Tab");
     await expect(first).toBeFocused();
     const focus = await first.evaluate((element) => ({

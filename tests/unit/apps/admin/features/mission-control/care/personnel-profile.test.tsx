@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -17,12 +18,13 @@ import type {
   ActivityLogEntry,
 } from "../../../../../../../apps/admin/features/mission-control/care/types";
 
-const { log, goal, rhythm, post, pending } = vi.hoisted(() => ({
+const { log, goal, rhythm, post, pending, goalPending } = vi.hoisted(() => ({
   log: vi.fn(),
   goal: vi.fn(),
   rhythm: vi.fn(),
   post: vi.fn(),
   pending: { value: false },
+  goalPending: { value: false },
 }));
 vi.mock("@asym/database/hooks", () => ({
   useCreateCareThreadPost: () => ({
@@ -33,7 +35,10 @@ vi.mock("@asym/database/hooks", () => ({
     mutateAsync: post,
     isPending: pending.value,
   }),
-  useCreateOrUpdateCareGoal: () => ({ mutateAsync: goal }),
+  useCreateOrUpdateCareGoal: () => ({
+    mutateAsync: goal,
+    isPending: goalPending.value,
+  }),
   useLogCareActivity: () => ({ mutateAsync: log, isPending: pending.value }),
   useUpsertCareRequirement: () => ({ mutateAsync: rhythm }),
   useSetManualAttentionFlag: () => ({ mutateAsync: vi.fn() }),
@@ -100,6 +105,7 @@ const entry = (
 beforeEach(() => {
   vi.clearAllMocks();
   pending.value = false;
+  goalPending.value = false;
   log.mockResolvedValue({});
   goal.mockResolvedValue({});
   rhythm.mockResolvedValue({});
@@ -429,7 +435,7 @@ it("uses real goal IDs and updates the selected saved cadence", async () => {
     ),
   ).toBeNull();
   expect(screen.getAllByText("Rest")).toHaveLength(2);
-  fireEvent.click(screen.getByRole("button", { name: "Mark done" }));
+  fireEvent.click(screen.getByRole("button", { name: "Mark done: Rest" }));
   await waitFor(() =>
     expect(goal).toHaveBeenCalledWith({
       personnelId: "member",
@@ -439,7 +445,7 @@ it("uses real goal IDs and updates the selected saved cadence", async () => {
       targetDate: "2026-12-01",
     }),
   );
-  fireEvent.click(screen.getByRole("button", { name: "Reopen" }));
+  fireEvent.click(screen.getByRole("button", { name: "Reopen: Rest" }));
   await waitFor(() =>
     expect(goal).toHaveBeenCalledWith(
       expect.objectContaining({ id: "goal-2", status: "active" }),
@@ -458,6 +464,140 @@ it("uses real goal IDs and updates the selected saved cadence", async () => {
     ),
   );
   expect(screen.getByLabelText("Target date (optional)")).toBeTruthy();
+});
+
+it("names each goal button after its goal and keeps the pressed one focusable while saving", () => {
+  const goals = [
+    {
+      id: "goal-1",
+      personnelId: "member",
+      title: "Rest",
+      status: "active" as const,
+    },
+    {
+      id: "goal-2",
+      personnelId: "member",
+      title: "Visit the clinic",
+      status: "completed" as const,
+    },
+  ];
+  const view = render(
+    <PersonnelProfile
+      personnel={person}
+      activities={[]}
+      privateNotes={[]}
+      goals={goals}
+    />,
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Care plan" }));
+  const markDone = screen.getByRole("button", { name: "Mark done: Rest" });
+  expect(markDone.textContent).toBe("Mark done");
+  expect(
+    screen.getByRole("button", { name: "Reopen: Visit the clinic" })
+      .textContent,
+  ).toBe("Reopen");
+
+  act(() => markDone.focus());
+  fireEvent.click(markDone);
+  goalPending.value = true;
+  view.rerender(
+    <PersonnelProfile
+      personnel={person}
+      activities={[]}
+      privateNotes={[]}
+      goals={goals}
+    />,
+  );
+  expect(markDone.hasAttribute("disabled")).toBe(false);
+  expect(markDone.getAttribute("aria-disabled")).toBe("true");
+  expect(document.activeElement).toBe(markDone);
+});
+
+it("keeps focus on a completed goal's button when the list moves it to the end", async () => {
+  const careGoal = (title: string, status: "active" | "completed") => ({
+    id: `goal-${title}`,
+    personnelId: "member",
+    title,
+    status,
+  });
+  const view = render(
+    <PersonnelProfile
+      personnel={person}
+      activities={[]}
+      privateNotes={[]}
+      goals={[careGoal("Rest", "active"), careGoal("Other", "active")]}
+    />,
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Care plan" }));
+  const markDone = screen.getByRole("button", { name: "Mark done: Rest" });
+  act(() => markDone.focus());
+  fireEvent.click(markDone);
+  const moves: number[] = [];
+  new MutationObserver((records) =>
+    records.forEach((record) => moves.push(record.removedNodes.length)),
+  ).observe(markDone.closest("ul")!, { childList: true });
+  view.rerender(
+    <PersonnelProfile
+      personnel={person}
+      activities={[]}
+      privateNotes={[]}
+      goals={[careGoal("Rest", "completed"), careGoal("Other", "active")]}
+    />,
+  );
+  const reopen = screen.getByRole("button", { name: "Reopen: Rest" });
+  await Promise.resolve();
+  // The keyed reorder really detaches the row; React DOM refocuses it after the commit.
+  expect(moves).toContain(1);
+  expect(reopen).toBe(markDone);
+  expect(screen.getAllByRole("listitem").at(-1)?.contains(reopen)).toBe(true);
+  expect(document.activeElement).toBe(reopen);
+});
+
+it("says what is wrong with the contact interval and lets Add schedule show it", async () => {
+  render(
+    <PersonnelProfile personnel={person} activities={[]} privateNotes={[]} />,
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Care plan" }));
+  const days = screen.getByLabelText("Every (days)") as HTMLInputElement;
+  const add = screen.getByRole("button", { name: "Add schedule" });
+  const message = "Enter a whole number of days, 1 or more.";
+
+  fireEvent.change(days, { target: { value: "" } });
+  expect(screen.queryByText(message)).toBeNull();
+  expect(add.hasAttribute("disabled")).toBe(false);
+  fireEvent.click(add);
+  expect(rhythm).not.toHaveBeenCalled();
+  const error = screen.getByText(message);
+  expect(days.getAttribute("aria-invalid")).toBe("true");
+  expect(days.getAttribute("aria-describedby")).toBe(error.id);
+  expect(document.activeElement).toBe(days);
+
+  fireEvent.change(days, { target: { value: "2.5" } });
+  expect(screen.getByText(message)).toBeTruthy();
+  fireEvent.change(days, { target: { value: "7" } });
+  expect(screen.queryByText(message)).toBeNull();
+  expect(days.hasAttribute("aria-invalid")).toBe(false);
+  expect(days.hasAttribute("aria-describedby")).toBe(false);
+  fireEvent.click(add);
+  await waitFor(() =>
+    expect(rhythm).toHaveBeenCalledWith(
+      expect.objectContaining({ intervalDays: 7 }),
+    ),
+  );
+});
+
+it("shows the contact interval error once the field is left invalid", () => {
+  render(
+    <PersonnelProfile personnel={person} activities={[]} privateNotes={[]} />,
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Care plan" }));
+  const days = screen.getByLabelText("Every (days)");
+  fireEvent.change(days, { target: { value: "-3" } });
+  fireEvent.blur(days);
+  expect(
+    screen.getByText("Enter a whole number of days, 1 or more."),
+  ).toBeTruthy();
+  expect(days.getAttribute("aria-invalid")).toBe("true");
 });
 
 it("reads legacy private-note HTML without changing literal angle brackets", () => {
