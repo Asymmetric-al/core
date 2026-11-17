@@ -301,6 +301,45 @@ describe.skipIf(!ADMIN_URL)("CMS database roles (real stack)", () => {
     }
   });
 
+  it("applies to several databases of one cluster at once", async () => {
+    // Roles, their comments and their memberships sit in catalogs that every
+    // database of a cluster shares. The real-stack suites that build their own
+    // database apply the whole chain in parallel on one cluster, so a statement
+    // that rewrites those catalogs when nothing has changed makes concurrent
+    // applications fail with "tuple concurrently updated".
+    const sql = roleMigrationSql();
+    const names = Array.from({ length: 4 }, (_, i) => `${PROBE}_conc_${i}`);
+    const clients: pg.Client[] = [];
+    try {
+      for (const name of names) {
+        await admin.query(`CREATE DATABASE ${name} TEMPLATE template0`);
+        const url = new URL(ADMIN_URL);
+        url.pathname = `/${name}`;
+        const client = new pg.Client({ connectionString: url.toString() });
+        await client.connect();
+        clients.push(client);
+      }
+      for (let round = 0; round < 3; round += 1) {
+        const results = await Promise.allSettled(
+          clients.map((client) => client.query(sql)),
+        );
+        const failures = results.flatMap((result) =>
+          result.status === "rejected"
+            ? [String((result.reason as Error).message)]
+            : [],
+        );
+        expect(failures, `round ${round}`).toEqual([]);
+      }
+    } finally {
+      await Promise.all(
+        clients.map((client) => client.end().catch(() => undefined)),
+      );
+      for (const name of names) {
+        await admin.query(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
+      }
+    }
+  }, 120_000);
+
   it("stops the eleventh cms_runtime connection at the role's limit", async () => {
     const extra: pg.Client[] = [];
     try {

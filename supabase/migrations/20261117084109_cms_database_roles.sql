@@ -54,20 +54,65 @@ BEGIN
 END
 $$;
 
--- Payload 4.0.0-beta.9 migrates on one connection; the second is headroom.
-ALTER ROLE cms_owner LOGIN NOINHERIT CONNECTION LIMIT 2;
--- The total across every Payload instance (plan 9.3).
-ALTER ROLE cms_runtime LOGIN NOINHERIT CONNECTION LIMIT 10;
+-- Roles, their comments and their memberships live in catalogs that every
+-- database of a cluster shares. Writing them again when nothing has changed
+-- makes two databases that apply this file at the same moment collide
+-- ("tuple concurrently updated"). CI's real-stack suites that build their own
+-- database do exactly that. So each statement below runs only when it would
+-- change something.
+DO $$
+BEGIN
+  -- Payload 4.0.0-beta.9 migrates on one connection; the second is headroom.
+  IF EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_roles
+    WHERE rolname = 'cms_owner'
+      AND (NOT rolcanlogin OR rolinherit OR rolconnlimit <> 2)
+  ) THEN
+    ALTER ROLE cms_owner LOGIN NOINHERIT CONNECTION LIMIT 2;
+  END IF;
 
-COMMENT ON ROLE cms_owner IS
-  'Owns schema cms; runs Payload migrations from the release job only.';
-COMMENT ON ROLE cms_runtime IS
-  'Payload run-time login: rows in cms only, no schema changes.';
+  -- The total across every Payload instance (plan 9.3).
+  IF EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_roles
+    WHERE rolname = 'cms_runtime'
+      AND (NOT rolcanlogin OR rolinherit OR rolconnlimit <> 10)
+  ) THEN
+    ALTER ROLE cms_runtime LOGIN NOINHERIT CONNECTION LIMIT 10;
+  END IF;
 
--- The migration runner acts as cms_owner to hand it the schema and to set its
--- default privileges. Membership runs from cms_owner to the runner, never the
--- other way, so cms_owner gains nothing from it.
-GRANT cms_owner TO CURRENT_USER;
+  IF pg_catalog.shobj_description('cms_owner'::regrole, 'pg_authid')
+     IS DISTINCT FROM
+     'Owns schema cms; runs Payload migrations from the release job only.'
+  THEN
+    COMMENT ON ROLE cms_owner IS
+      'Owns schema cms; runs Payload migrations from the release job only.';
+  END IF;
+
+  IF pg_catalog.shobj_description('cms_runtime'::regrole, 'pg_authid')
+     IS DISTINCT FROM
+     'Payload run-time login: rows in cms only, no schema changes.'
+  THEN
+    COMMENT ON ROLE cms_runtime IS
+      'Payload run-time login: rows in cms only, no schema changes.';
+  END IF;
+
+  -- The migration runner acts as cms_owner to hand it the schema and to set
+  -- its default privileges. Membership runs from cms_owner to the runner,
+  -- never the other way, so cms_owner gains nothing from it.
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_auth_members m
+    WHERE m.roleid = 'cms_owner'::regrole
+      AND m.member = (
+        SELECT oid FROM pg_catalog.pg_roles WHERE rolname = CURRENT_USER
+      )
+  ) THEN
+    EXECUTE format('GRANT cms_owner TO %I', CURRENT_USER);
+  END IF;
+END
+$$;
 
 CREATE SCHEMA IF NOT EXISTS cms;
 
