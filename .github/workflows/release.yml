@@ -61,7 +61,7 @@ concurrency:
 
 env:
   BUN_VERSION: "1.4.3"
-  NODE_VERSION: "24.22.1"
+  NODE_VERSION: "24.22.3"
 
 jobs:
   database:
