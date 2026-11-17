@@ -10,7 +10,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Component integration tests exercise the actual admin panel.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Component integration tests exercise the actual admin panel.
 import { EveAdminMemoryPanel } from "../../../../../apps/admin/app/(app)/admin/eve/admin-memory-panel";
 import { getQueryClient } from "../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../packages/database/providers/query-provider";

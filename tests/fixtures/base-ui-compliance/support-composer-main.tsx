@@ -2,11 +2,11 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 import { SUPPORT_COMPOSER_USER } from "./support-composer-identity-stub";
-// eslint-disable-next-line no-restricted-imports -- Browser fixture sends from the actual Support composer with a seeded agent.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Browser fixture sends from the actual Support composer with a seeded agent.
 import { ConversationComposer } from "../../../apps/admin/features/support-hub/components/detail/composer/ConversationComposer";
-// eslint-disable-next-line no-restricted-imports -- The composer reports failed sends through this provider, as in the inbox.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: The composer reports failed sends through this provider, as in the inbox.
 import { SupportFailureRecoveryProvider } from "../../../apps/admin/features/support-hub/hooks/use-support-failure-recovery";
-// eslint-disable-next-line no-restricted-imports -- The cache is seeded under the keys the composer's hooks read.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: The cache is seeded under the keys the composer's hooks read.
 import { supportHubQueryKeys } from "../../../apps/admin/features/support-hub/lib/query-keys";
 import { Toaster } from "../../../packages/ui/components/shadcn/sonner";
 import {

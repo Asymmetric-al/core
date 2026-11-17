@@ -3,15 +3,15 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Component integration tests exercise the actual admin panels.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Component integration tests exercise the actual admin panels.
 import { EveAdminMemoryPanel } from "../../../../../apps/admin/app/(app)/admin/eve/admin-memory-panel";
-// eslint-disable-next-line no-restricted-imports -- Component integration tests exercise the actual admin panels.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Component integration tests exercise the actual admin panels.
 import { EveApprovalBudgetPanel } from "../../../../../apps/admin/app/(app)/admin/eve/approval-budget-panel";
-// eslint-disable-next-line no-restricted-imports -- Component integration tests exercise the actual admin panels.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Component integration tests exercise the actual admin panels.
 import { EveModelPolicyPanel } from "../../../../../apps/admin/app/(app)/admin/eve/model-policy-panel";
-// eslint-disable-next-line no-restricted-imports -- Component integration tests exercise the actual admin panels.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Component integration tests exercise the actual admin panels.
 import { EveNotificationsPanel } from "../../../../../apps/admin/app/(app)/admin/eve/notifications-panel";
-// eslint-disable-next-line no-restricted-imports -- Component integration tests exercise the actual admin panels.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Component integration tests exercise the actual admin panels.
 import { EveRetentionPanel } from "../../../../../apps/admin/app/(app)/admin/eve/retention-panel";
 import { createDefaultEveModelPolicy } from "../../../../../packages/api/src/eve/model-policy";
 import { getQueryClient } from "../../../../../packages/database/providers/query-client";

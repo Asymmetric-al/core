@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- Unit test of the donor app's own focus helper at its app boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-2690: Unit test of the donor app's own focus helper at its app boundary.
 import {
   focusHeadingIfLost,
   focusIsLost,
