@@ -3,7 +3,7 @@ import { routeForProfileRole } from "@asym/auth/roles";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
-function callbackRedirect(url: string) {
+export function callbackRedirect(url: string) {
   // The server cookie store persists the exchange, but cannot apply the SSR
   // SDK's response headers. Keep every callback outcome private, including
   // redirects that carry newly issued or cleared auth cookies.

@@ -35,12 +35,15 @@ import LoginLoading from "../../../../apps/missionary/app/(auth)/login/loading";
 import { MissionaryLayoutShell } from "../../../../apps/missionary/app/_providers/missionary-layout-shell";
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Preserve the app's existing password-help content in composed coverage.
 import ForgotPasswordPage from "../../../../apps/missionary/app/forgot-password/page";
+// eslint-disable-next-line no-restricted-imports -- AL-2673: The reset step's loading state must keep the account frame.
+import ResetPasswordLoading from "../../../../apps/missionary/app/forgot-password/reset/loading";
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Verify the existing no-access page in its account frame.
 import NoAccessPage from "../../../../apps/missionary/app/no-access/page";
 // eslint-disable-next-line no-restricted-imports -- AL-1976: Verify the actual registration loading composition.
 import RegisterLoading from "../../../../apps/missionary/app/register/loading";
 import { LoginScreen } from "../../../../packages/ui/components/auth/LoginScreen";
 import { RegisterScreen } from "../../../../packages/ui/components/auth/RegisterScreen";
+import { ResetPasswordScreen } from "../../../../packages/ui/components/auth/ResetPasswordScreen";
 import {
   QueryClient,
   QueryClientProvider,
@@ -161,6 +164,18 @@ const accountScreens = [
     />,
   ],
   ["/forgot-password", <ForgotPasswordPage />],
+  [
+    "/forgot-password/reset",
+    <ResetPasswordScreen appId="missionary" recovery={null} />,
+  ],
+  [
+    "/forgot-password/reset",
+    <ResetPasswordScreen
+      appId="missionary"
+      recovery={{ email: "missionary@example.com" }}
+    />,
+  ],
+  ["/forgot-password/reset", <ResetPasswordLoading />],
   ["/no-access", <NoAccessPage />],
 ] as const;
 
@@ -187,7 +202,7 @@ it.each(accountScreens)(
     }
     if (pathname === "/forgot-password") {
       expect(
-        view.getByText(/Resetting your password by email isn’t available yet/),
+        view.getByRole("button", { name: "Send reset link" }),
       ).toBeTruthy();
       expect(
         view

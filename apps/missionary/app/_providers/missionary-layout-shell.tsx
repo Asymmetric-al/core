@@ -1,5 +1,6 @@
 "use client";
 
+import { PASSWORD_RECOVERY_PATHS } from "@asym/auth/password-recovery";
 import { usePathname } from "next/navigation";
 
 import type { ReactNode } from "react";
@@ -7,6 +8,17 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { MissionaryNavigationSearch } from "@/components/navigation-search";
 import { isMissionaryWorkspacePath } from "@/lib/route-policy";
+
+const ACCOUNT_SCREEN_PATHS = ["/login", "/register", "/no-access"];
+
+/** Every password recovery step is an account screen too. */
+function isAccountScreenPath(pathname: string) {
+  return (
+    ACCOUNT_SCREEN_PATHS.includes(pathname) ||
+    pathname === PASSWORD_RECOVERY_PATHS.request ||
+    pathname.startsWith(`${PASSWORD_RECOVERY_PATHS.request}/`)
+  );
+}
 
 /**
  * Boneyard capture runs on public `/boneyard/*` routes. Skip the full app
@@ -23,9 +35,7 @@ export function MissionaryLayoutShell({ children }: { children: ReactNode }) {
   }
   // Account screens own their full-page frame and main landmark. This is a
   // presentation boundary only; public access and workspace search stay separate.
-  if (
-    ["/login", "/register", "/forgot-password", "/no-access"].includes(pathname)
-  ) {
+  if (isAccountScreenPath(pathname)) {
     return children;
   }
   return (

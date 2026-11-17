@@ -1,7 +1,9 @@
 import { createClient } from "@asym/database/supabase/server";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 
 import { getDefaultPostLoginPathForApp, safeNextParam } from "./demo-login";
+import { isRecentPasswordRecovery } from "./password-recovery";
 
 import type { AppId } from "./demo-login";
 
@@ -35,4 +37,38 @@ export async function requireAnonymousVisitor(params: {
   }
 
   return { nextPath };
+}
+
+export interface PasswordRecovery {
+  /** The address the recovery email went to, for the screen to show. */
+  email: string | null;
+}
+
+/**
+ * Server-side read for the reset screen: returns the recovery when the
+ * current session was created by a recovery link within the window, and null
+ * for no session, an unverifiable token or an ordinary sign-in. An ordinary
+ * session must change its password with the current one, so it is refused
+ * here rather than given a way around that check.
+ *
+ * Verifies the session token through `auth.getClaims()`, never by decoding
+ * the cookie. Server-only, like `requireAnonymousVisitor`.
+ */
+export async function readPasswordRecovery(): Promise<PasswordRecovery | null> {
+  // The window check reads the clock, so it must run at request time and
+  // never in a prerender, including a runtime prefetch that has cookies.
+  await connection();
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims) {
+    return null;
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (!isRecentPasswordRecovery(data.claims.amr, nowSeconds)) {
+    return null;
+  }
+
+  const { email } = data.claims;
+  return { email: typeof email === "string" && email ? email : null };
 }
