@@ -19,6 +19,7 @@ export const MIG = "supabase/migrations";
 export const COMMAND_LANE_MIGRATION = `${MIG}/20261117034638_command_lane_human_entry_points.sql`;
 export const PLATFORM_MIGRATION = `${MIG}/20261117034650_platform_schema_marker_and_health.sql`;
 export const HYGIENE_MIGRATION = `${MIG}/20261117034708_definer_execute_hygiene.sql`;
+export const DEFAULTS_MIGRATION = `${MIG}/20261117034926_close_default_privileges_and_demo_grants.sql`;
 export const GUARD_CLI = "scripts/db/require-disposable-database.mjs";
 export const CATALOG = "scripts/verify/tenant-rls-catalog.mjs";
 
@@ -37,6 +38,14 @@ export function migrationBody(file: string) {
   const m = /^BEGIN;$([\s\S]*)^COMMIT;$/m.exec(read(file));
   if (!m) throw new Error(`${file} must wrap its body in BEGIN; ... COMMIT;`);
   return m[1]!;
+}
+
+/** A migration's `DO $$` block whose first line is `-- post-assert: <tag>`, verbatim. */
+export function postAssert(file: string, tag: string) {
+  const start = read(file).indexOf(`DO $$\n-- post-assert: ${tag}\n`);
+  if (start < 0) throw new Error(`${file} has no post-assert "${tag}"`);
+  const end = read(file).indexOf("$$;", start + "DO $$".length);
+  return read(file).slice(start, end + "$$;".length);
 }
 
 /**

@@ -21,6 +21,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   ADMIN_URL,
+  COMMAND_LANE_MIGRATION,
   GUARD_CLI,
   HUMAN_ENTRY_POINTS,
   IN_MIGRATE_JOB,
@@ -31,6 +32,7 @@ import {
   fixtureSql,
   migrationBody,
   nullCall,
+  postAssert,
 } from "./harness";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
@@ -517,28 +519,110 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         );
       }));
 
+    /** Removes the marker as only the owner can, past the forward-only trigger. */
+    const dropMarker = () =>
+      db.query(
+        `alter table platform.environment disable trigger environment_marker_forward_only;
+         delete from platform.environment;
+         alter table platform.environment enable always trigger environment_marker_forward_only;`,
+      );
+    /** Empties profiles, donors and donations without cascading (rolled back with the test). */
+    const emptyPeopleAndGifts = () =>
+      db.query(
+        `set local session_replication_role = replica;
+         delete from public.donations; delete from public.donors; delete from public.profiles;
+         set local session_replication_role = origin;`,
+      );
+    const kind = async () =>
+      (await one("select platform.environment_kind() k")).k;
+    const attempt = async (sql: string) => {
+      await db.query("savepoint s");
+      try {
+        await db.query(sql);
+        await db.query("release savepoint s");
+        return null;
+      } catch (e) {
+        await db.query("rollback to savepoint s");
+        return (e as { code?: string }).code ?? "?";
+      }
+    };
+
     it("applied to a database that already holds people, the migration writes no marker, and none can be inserted as disposable", () =>
       tx(async () => {
-        await db.query(
-          `alter table platform.environment disable trigger environment_marker_forward_only;
-           delete from platform.environment;
-           alter table platform.environment enable trigger environment_marker_forward_only;`,
-        );
-        // The fixture inserted auth users, so the database holds people.
+        await dropMarker();
+        // The fixture's auth users got profiles through the sign-up trigger.
         await db.query(migrationBody(PLATFORM_MIGRATION));
+        expect(await kind()).toBeNull();
         expect(
-          (await one("select platform.environment_kind() k")).k,
-        ).toBeNull();
-        await db.query("savepoint s");
-        await expect(
-          db.query(
+          await attempt(
             "insert into platform.environment (kind) values ('disposable')",
           ),
-        ).rejects.toMatchObject({ code: "42501" });
-        await db.query("rollback to savepoint s");
+        ).toBe("42501");
         expect(
           (await one("select platform.advance_environment('shared') k")).k,
         ).toBe("shared");
+      }));
+
+    // Council round 1, C1: a hosted rebuild clears public but keeps auth, so
+    // only what a rebuild clears decides whether a database is disposable.
+    it("a rebuilt database whose logins survived but whose profiles, donors and donations are empty is marked disposable", () =>
+      tx(async () => {
+        await dropMarker();
+        await emptyPeopleAndGifts();
+        expect(
+          (await one("select count(*)::int n from auth.users")).n,
+        ).toBeGreaterThan(0);
+        expect((await one("select platform.holds_people_or_gifts() h")).h).toBe(
+          false,
+        );
+        await db.query(migrationBody(PLATFORM_MIGRATION));
+        expect(await kind()).toBe("disposable");
+      }));
+
+    it.each<[string, string]>([
+      ["a profile", "insert into auth.users (id) values (gen_random_uuid())"],
+      ["a donor", "insert into public.donors default values"],
+      ["a donation", "insert into public.donations default values"],
+    ])(
+      "a database that holds %s is not marked, and an explicit disposable insert is refused",
+      (_what, insert) =>
+        tx(async () => {
+          await dropMarker();
+          await emptyPeopleAndGifts();
+          await db.query(insert);
+          expect(
+            (await one("select platform.holds_people_or_gifts() h")).h,
+          ).toBe(true);
+          await db.query(migrationBody(PLATFORM_MIGRATION));
+          expect(await kind()).toBeNull();
+          expect(
+            await attempt(
+              "insert into platform.environment (kind) values ('disposable')",
+            ),
+          ).toBe("42501");
+        }),
+    );
+
+    // Council round 1, C2: the replica role skips ordinary triggers, and
+    // postgres may set it on hosted Supabase.
+    it("the forward-only triggers fire always, so the replica role cannot move the marker back", () =>
+      tx(async () => {
+        const modes = await db.query(
+          "select tgname, tgenabled from pg_trigger where tgrelid = 'platform.environment'::regclass and not tgisinternal order by 1",
+        );
+        expect(modes.rows).toEqual([
+          { tgname: "environment_marker_forward_only", tgenabled: "A" },
+          { tgname: "environment_marker_no_truncate", tgenabled: "A" },
+        ]);
+        await db.query("select platform.advance_environment('shared')");
+        await db.query("set local session_replication_role = replica");
+        expect(
+          await attempt("update platform.environment set kind = 'disposable'"),
+        ).toBe("42501");
+        expect(await attempt("delete from platform.environment")).toBe("42501");
+        expect(await attempt("truncate platform.environment")).toBe("42501");
+        await db.query("set local session_replication_role = origin");
+        expect(await kind()).toBe("shared");
       }));
 
     it("no role but the owner can read or change the marker or the heads", () =>
@@ -622,6 +706,78 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
           rolinherit: false,
         });
       }));
+  });
+
+  // Council round 1, B1: a GRANT by a role without the grant option only
+  // warns ("no privileges were granted") and the migration would commit.
+  describe("the guard's privileges are asserted in the migration, not assumed", () => {
+    const ASSERT = () =>
+      postAssert(COMMAND_LANE_MIGRATION, "tenant_guard privileges");
+
+    it("the post-assert passes on the migrated database", () =>
+      tx(async () => {
+        await db.query(ASSERT());
+      }));
+
+    it("a refused grant only warns, and the post-assert then fails the migration", () =>
+      tx(async () => {
+        await db.query(
+          `revoke usage on schema auth from tenant_guard;
+           create role acc2674_grantor nologin;
+           grant usage on schema auth to acc2674_grantor;`,
+        );
+        await db.query("set local role acc2674_grantor");
+        // No grant option: Postgres warns and grants nothing.
+        await db.query("grant usage on schema auth to tenant_guard");
+        await db.query("reset role");
+        expect(
+          (
+            await one(
+              "select has_schema_privilege('tenant_guard', 'auth', 'USAGE') u",
+            )
+          ).u,
+        ).toBe(false);
+        await expect(db.query(ASSERT())).rejects.toMatchObject({
+          code: "42501",
+          message: expect.stringContaining("USAGE on schema auth"),
+        });
+      }));
+
+    it.each<[string, string]>([
+      ["USAGE on schema auth", "revoke usage on schema auth from tenant_guard"],
+      [
+        "USAGE on schema authz",
+        "revoke usage on schema authz from tenant_guard",
+      ],
+      [
+        "EXECUTE on auth.uid()",
+        "revoke execute on function auth.uid() from tenant_guard, public",
+      ],
+      [
+        "EXECUTE on auth.jwt()",
+        "revoke execute on function auth.jwt() from tenant_guard, public",
+      ],
+      [
+        "EXECUTE on authz.has_membership(uuid, authz.membership_role[])",
+        "revoke execute on function authz.has_membership(uuid, authz.membership_role[]) from tenant_guard, public",
+      ],
+      [
+        "EXECUTE on authz.has_staff_membership(uuid, authz.staff_role[])",
+        "revoke execute on function authz.has_staff_membership(uuid, authz.staff_role[]) from tenant_guard, public",
+      ],
+      [
+        "SELECT on authz.memberships",
+        "revoke select on authz.memberships from tenant_guard, public",
+      ],
+    ])("raises when tenant_guard lacks %s", (item, revoke) =>
+      tx(async () => {
+        await db.query(revoke);
+        await expect(db.query(ASSERT())).rejects.toMatchObject({
+          code: "42501",
+          message: expect.stringContaining(item),
+        });
+      }),
+    );
   });
 
   describe("definer hygiene", () => {

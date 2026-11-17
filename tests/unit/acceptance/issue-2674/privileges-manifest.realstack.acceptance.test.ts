@@ -29,6 +29,7 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { DEFAULTS_MIGRATION, postAssert } from "./harness";
 import * as H from "./privileges-harness";
 
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
@@ -95,6 +96,33 @@ describe.skipIf(!ADMIN_URL)(
           ).toEqual([]);
         },
       );
+
+      // Council round 1, D1: a global default (no schema) applies in public too.
+      it("the migration's post-assert refuses a global default of postgres that grants to anon or authenticated", async () => {
+        const ASSERT = postAssert(
+          DEFAULTS_MIGRATION,
+          "default privileges and table grants",
+        );
+        const db = await plain.db();
+        await db.query("begin");
+        try {
+          await db.query(ASSERT);
+          for (const role of ["anon", "authenticated"]) {
+            await db.query("savepoint s");
+            await db.query(
+              `alter default privileges for role postgres grant select on tables to ${role}`,
+            );
+            await expect(db.query(ASSERT), role).rejects.toMatchObject({
+              message: expect.stringContaining(
+                `global default privileges of postgres still grant: r ${role}`,
+              ),
+            });
+            await db.query("rollback to savepoint s");
+          }
+        } finally {
+          await db.query("rollback");
+        }
+      });
 
       it("hosted replay: a table, sequence and function created after the chain carry no anon or authenticated grant", async () => {
         const db = await hosted.db();
