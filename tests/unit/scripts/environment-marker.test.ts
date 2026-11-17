@@ -270,10 +270,18 @@ describe("every reset and reseed script checks the marker first", () => {
     );
   });
 
+  // Amended by council round 2 (A7c; plan 7.1): the check read the marker
+  // through PAYLOAD_DATABASE_URI, which on a loopback database carries the
+  // cms_owner session role, and cms_owner cannot read `platform`, so every
+  // rollback was refused, even on a disposable database. It now reads it
+  // through the migration target's marker URL. The behaviour is proved in
+  // tests/unit/scripts/cms-payload-command.test.ts (runs on a disposable
+  // database, refuses one that is not) and on the real stack in
+  // tests/unit/cms/cms-database-roles.realstack.test.ts.
   it("Payload down, reset, fresh and refresh check before they run", () => {
     const src = read("scripts/cms/run-payload-command.mjs");
     expect(src).toMatch(
-      /if \(command !== "migrate"\)\s*requireDisposableDatabase\(\{\s*databaseUrl: env\.PAYLOAD_DATABASE_URI/,
+      /if \(command !== "migrate"\)\s*requireDisposableDatabase\(\{\s*databaseUrl: markerUrl,/,
     );
   });
 

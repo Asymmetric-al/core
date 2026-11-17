@@ -45,6 +45,12 @@ function isLoopback(url) {
  *   the Supabase migration runner.
  * - A read-only status check may use the run-time connection.
  *
+ * `markerUrl` is the connection to read the environment marker through
+ * (plan 7.5) before a rollback or reset: on a loopback database the same
+ * login without the session role, because cms_owner holds nothing outside
+ * cms and cannot read `platform`. A hosted cms_owner login cannot read it
+ * either, so a rollback or reset of a hosted CMS schema is always refused.
+ *
  * The Core migration string (SUPABASE_DB_URL) is never used (NA-04).
  */
 export function resolveCmsMigrationDatabaseUrl(
@@ -56,6 +62,7 @@ export function resolveCmsMigrationDatabaseUrl(
     parsePostgresUrl(migrationUrl, CMS_MIGRATION_DATABASE_ENV_KEY);
     return {
       databaseUrl: migrationUrl,
+      markerUrl: migrationUrl,
       source: CMS_MIGRATION_DATABASE_ENV_KEY,
     };
   }
@@ -64,7 +71,11 @@ export function resolveCmsMigrationDatabaseUrl(
   const runtime = parsePostgresUrl(runtimeUrl, "PAYLOAD_DATABASE_URI");
 
   if (readOnly) {
-    return { databaseUrl: runtimeUrl, source: "PAYLOAD_DATABASE_URI" };
+    return {
+      databaseUrl: runtimeUrl,
+      markerUrl: runtimeUrl,
+      source: "PAYLOAD_DATABASE_URI",
+    };
   }
 
   if (!isLoopback(runtime)) {
@@ -83,5 +94,9 @@ export function resolveCmsMigrationDatabaseUrl(
     "options",
     [options.trim(), `-c role=${CMS_MIGRATION_ROLE}`].filter(Boolean).join(" "),
   );
-  return { databaseUrl: runtime.toString(), source: "loopback-session-role" };
+  return {
+    databaseUrl: runtime.toString(),
+    markerUrl: runtimeUrl,
+    source: "loopback-session-role",
+  };
 }

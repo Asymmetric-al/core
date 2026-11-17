@@ -16,6 +16,9 @@ import path from "node:path";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { resolveCmsMigrationDatabaseUrl } from "../../../scripts/cms/lib/migration-connection.mjs";
+import { requireDisposableDatabase } from "../../../scripts/lib/environment-marker.mjs";
+
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
@@ -490,6 +493,36 @@ describe.skipIf(!ADMIN_URL)("CMS database roles (real stack)", () => {
       );
     }
   }, 120_000);
+
+  // Council round 2, A7c: Payload's rollback and reset commands read the
+  // environment marker first. On a loopback database they migrate as the
+  // run-time login with `-c role=cms_owner`, and cms_owner cannot read
+  // `platform`, so the marker has to be read without that role.
+  it("reads a loopback migration target's marker without the cms_owner session role", async () => {
+    // The cause: as cms_owner the marker cannot be read.
+    const asOwner = await errorCode(async () => {
+      await admin.query("BEGIN");
+      try {
+        await admin.query("SET LOCAL ROLE cms_owner");
+        await admin.query("SELECT platform.environment_kind()");
+      } finally {
+        await admin.query("ROLLBACK");
+      }
+    });
+    expect(asOwner).toBe(INSUFFICIENT_PRIVILEGE);
+    // So the migration URL cannot read it (psql also takes the URL's
+    // `-c+role` literally and fails to connect), and the marker URL can.
+    const { databaseUrl, markerUrl } = resolveCmsMigrationDatabaseUrl({
+      PAYLOAD_DATABASE_URI: ADMIN_URL,
+    });
+    expect(databaseUrl).toContain("role%3Dcms_owner");
+    expect(() =>
+      requireDisposableDatabase({ databaseUrl, action: "probe" }),
+    ).toThrow(/could not read the environment marker/);
+    expect(
+      requireDisposableDatabase({ databaseUrl: markerUrl, action: "probe" }),
+    ).toMatchObject({ ok: true, kind: "disposable" });
+  });
 
   it("stops the eleventh cms_runtime connection at the role's limit", async () => {
     const extra: pg.Client[] = [];

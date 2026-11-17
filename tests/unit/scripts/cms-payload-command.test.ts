@@ -47,7 +47,10 @@ function runCommand(args: string[], env: Record<string, string> = {}) {
     `import childProcess from 'node:child_process';
 import {syncBuiltinESMExports} from 'node:module';
 import {appendFileSync} from 'node:fs';
+const realSpawnSync=childProcess.spawnSync;
 childProcess.spawnSync=(command,args=[],options={})=>{
+  // A test's fake psql runs for real, so the marker it reports is read.
+  if(process.env.PSQL_BIN&&command===process.env.PSQL_BIN)return realSpawnSync(command,args,options);
   const env=options.env??{};
   appendFileSync(process.env.CORE_CLI_SPAWN_MARKER,JSON.stringify({
     command,
@@ -183,6 +186,73 @@ describe("Payload CLI migration preflight", () => {
       "options=-c+role%3Dcms_owner",
     );
   });
+
+  // Council round 2, A7c. The fake psql answers as Postgres would: a session
+  // that runs as cms_owner (`options=-c role=cms_owner`) has no USAGE on
+  // platform, so it cannot read the marker at all.
+  describe.skipIf(process.platform === "win32")(
+    "rollbacks and resets read the marker without the cms_owner session role",
+    () => {
+      function fakePsql(marker: string) {
+        const root = mkdtempSync(path.join(os.tmpdir(), "core-payload-psql-"));
+        temporaryRoots.push(root);
+        const bin = path.join(root, "psql");
+        writeFileSync(
+          bin,
+          `#!${process.execPath}
+const [connection] = process.argv.slice(2);
+const sql = process.argv.at(-1);
+if (/[?&]options=[^&]*role/.test(connection)) {
+  process.stderr.write("ERROR:  permission denied for schema platform\\n");
+  process.exit(1);
+}
+process.stdout.write(sql.includes("to_regprocedure") ? "t\\n" : ${JSON.stringify(marker)} + "\\n");
+`,
+          { mode: 0o755 },
+        );
+        return bin;
+      }
+      const LOOPBACK =
+        "postgresql://postgres:postgres@127.0.0.1:5432/payload_fixture";
+
+      it.each([
+        "migrate:down",
+        "migrate:reset",
+        "migrate:fresh",
+        "migrate:refresh",
+      ])(
+        "%s runs on a loopback database marked disposable, as cms_owner",
+        (command) => {
+          const result = runCommand([command], {
+            PAYLOAD_DATABASE_URI: LOOPBACK,
+            PAYLOAD_MIGRATION_DATABASE_URI: "",
+            PSQL_BIN: fakePsql("disposable"),
+          });
+          expect(result.status, result.stderr).toBe(0);
+          expect(result.payloadSpawn?.args).toContain(command);
+          expect(result.payloadSpawn?.payloadDatabaseUri).toContain(
+            "options=-c+role%3Dcms_owner",
+          );
+        },
+      );
+
+      it.each(["shared", "production"])(
+        "refuses a rollback on a loopback database marked %s",
+        (marker) => {
+          const result = runCommand(["migrate:down"], {
+            PAYLOAD_DATABASE_URI: LOOPBACK,
+            PAYLOAD_MIGRATION_DATABASE_URI: "",
+            PSQL_BIN: fakePsql(marker),
+          });
+          expect(result.status).toBe(1);
+          expect(result.stderr).toContain(
+            `refusing to run payload migrate:down on 127.0.0.1:5432/payload_fixture: it is marked ${marker}`,
+          );
+          expect(result.childSpawned).toBe(false);
+        },
+      );
+    },
+  );
 
   it("never migrates through the Core migration string", () => {
     const result = runCommand(["migrate"], {

@@ -51,13 +51,17 @@ const isMigrationWrite = MIGRATION_WRITE_COMMANDS.includes(command);
 // as PAYLOAD_DATABASE_URI, and never the migration variable itself. Neither
 // path falls back to the Core migration string (NA-04).
 let databaseUrl;
+let markerUrl;
 try {
-  databaseUrl =
+  ({ databaseUrl, markerUrl } =
     isMigrationWrite || command === "migrate:status"
       ? resolveCmsMigrationDatabaseUrl(process.env, {
           readOnly: !isMigrationWrite,
-        }).databaseUrl
-      : process.env.PAYLOAD_DATABASE_URI?.trim() || LOCAL_DATABASE_URL;
+        })
+      : {
+          databaseUrl:
+            process.env.PAYLOAD_DATABASE_URI?.trim() || LOCAL_DATABASE_URL,
+        });
 } catch (cause) {
   console.error(
     cause instanceof Error ? cause.message : "CMS connection preflight failed.",
@@ -124,10 +128,11 @@ if (isMigrationWrite) {
     });
     if (command === "migrate") assertNoPayloadDevMigrationMarker();
     // Plan 7.5: rolling migrations back or resetting them runs only on a
-    // database marked disposable.
+    // database marked disposable. The marker is read without the cms_owner
+    // session role, which cannot read `platform` (council round 2, A7c).
     if (command !== "migrate")
       requireDisposableDatabase({
-        databaseUrl: env.PAYLOAD_DATABASE_URI,
+        databaseUrl: markerUrl,
         action: `run payload ${command} on`,
       });
   } catch (cause) {
