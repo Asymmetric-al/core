@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { publishedLoginPasswords } from "../../../scripts/lib/published-passwords.mjs";
+
 type DemoRole =
   "admin" | "missionary" | "donor" | "delivery" | "ticketing" | "machinery";
 
@@ -31,6 +33,17 @@ const DEMO_EMAIL_ENV: Record<DemoRole, string> = {
 };
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
+
+/** Whether the Supabase URL names this machine. */
+function isLoopbackSupabaseUrl(value: string) {
+  try {
+    return ["127.0.0.1", "localhost", "[::1]"].includes(
+      new URL(value).hostname,
+    );
+  } catch {
+    return false;
+  }
+}
 
 function toDisplayName(role: DemoRole) {
   return `Demo ${role.charAt(0).toUpperCase()}${role.slice(1)}`;
@@ -140,6 +153,17 @@ async function run() {
   if (!supabaseUrl || !serviceRoleKey || !demoPassword) {
     throw new Error(
       "Missing required env vars. Set NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and DEMO_PASSWORD.",
+    );
+  }
+
+  // A hosted project never carries a password published in the repository
+  // (record D-24); a local stack keeps the seed's.
+  if (
+    !isLoopbackSupabaseUrl(supabaseUrl) &&
+    publishedLoginPasswords().includes(demoPassword)
+  ) {
+    throw new Error(
+      "DEMO_PASSWORD is a password published in the repository (supabase/seed.sql), and a hosted project never carries one. Set DEMO_PASSWORD from a secret.",
     );
   }
 

@@ -65,6 +65,25 @@ describe("release workflow (plan 7.4)", () => {
     );
   });
 
+  // Council round 2, A5 and A6a.
+  it("hands the steps that need them the seeded-login password and the project's CA, and no other step", () => {
+    const steps = job("database").split("\n      - ");
+    const step = (name: string) => steps.find((s) => s.includes(name))!;
+    const rebuild = step("release-database.mjs first-rebuild");
+    expect(rebuild).toContain(
+      "RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}",
+    );
+    expect(rebuild).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+    expect(step("release-database.mjs migrate")).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+    expect(workflow.split("RELEASE_SEED_LOGIN_PASSWORD: ${{").length - 1).toBe(
+      1,
+    );
+  });
+
   it("migrates, gates and records heads before any deployment, in that order", () => {
     const database = job("database");
     expect(

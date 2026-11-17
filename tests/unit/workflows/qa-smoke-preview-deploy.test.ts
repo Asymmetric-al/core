@@ -219,6 +219,21 @@ describe("qa smoke preview deployment workflow", () => {
     expect(job).not.toContain("SUPABASE_DB_URL");
   });
 
+  // Council round 2, A5 (record D-24) and A6a: the rebuild replaces the
+  // seed's published login password, and Payload verifies the pooler.
+  it("hands the preview rebuild the seeded-login password and the project's CA", () => {
+    const job = workflow.split("\n  preview-database:")[1]!;
+    const rebuild = job
+      .split("\n      - ")
+      .find((step) => step.includes("release-database.mjs preview-rebuild"))!;
+    expect(rebuild).toContain(
+      "RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}",
+    );
+    expect(rebuild).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+  });
+
   it("does not use bypass query parameters", () => {
     expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
     expect(workflow).not.toContain("?x-vercel-protection-bypass");

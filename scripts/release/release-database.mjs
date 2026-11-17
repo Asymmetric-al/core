@@ -17,6 +17,8 @@
 //   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step only)
 //   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); Payload
 //                                  verifies the pooler against it
+//   RELEASE_SEED_LOGIN_PASSWORD    the password every seeded login gets on a
+//                                  hosted rebuild, in place of the seed's
 //   RELEASE_REPLAY_FINGERPRINT     fingerprint file of CI's fresh replay (gates)
 //
 // Neither the Supabase CLI nor Payload's migrations inherit a RELEASE_*
@@ -35,12 +37,17 @@ import {
   isForwardMarkerChange,
   parseReleaseHealth,
 } from "../../packages/api/src/health/release-contract.mjs";
+import { publishedLoginPasswords } from "../lib/published-passwords.mjs";
 import { runCatalogGates } from "./catalog-gates.mjs";
 import {
   KNOWN_PROJECT_REFS,
   assertDatabaseTarget,
 } from "./lib/database-target.mjs";
 import { readAppliedMigrations } from "./lib/ledgers.mjs";
+import {
+  argon2idVerifier,
+  assertLoginPassword,
+} from "./lib/login-password.mjs";
 import { queryJson, runPsql } from "./lib/postgres.mjs";
 import { assertRolePassword, scramSha256Verifier } from "./lib/scram.mjs";
 import {
@@ -408,6 +415,51 @@ export function payloadMigrate({ settings, runCommand = spawnSync }) {
   }
 }
 
+/**
+ * Gives every login the seed created with a password published in the
+ * repository (scripts/lib/published-passwords.mjs) the password of
+ * RELEASE_SEED_LOGIN_PASSWORD instead (record D-24). Only an Argon2id
+ * verifier computed on the runner reaches the server; a published password
+ * is matched against each bcrypt hash on the server. Stops if any login
+ * still carries a published password afterwards.
+ */
+export function replaceSeededLoginPasswords({
+  settings,
+  password,
+  root = repoRoot,
+  query = queryJson,
+  log = console.log,
+}) {
+  const published = publishedLoginPasswords(root);
+  const matches = `u.encrypted_password LIKE '$2%'
+    AND EXISTS (SELECT 1 FROM pg_catalog.jsonb_array_elements_text(:'published'::jsonb) AS p(value)
+                 WHERE extensions.crypt(p.value, u.encrypted_password) = u.encrypted_password)`;
+  const result = query({
+    databaseUrl: settings.databaseUrl,
+    label: "replace the seeded login passwords",
+    variables: {
+      RELEASE_LOGIN_VERIFIER: argon2idVerifier(password),
+      RELEASE_PUBLISHED_PASSWORDS: JSON.stringify(published),
+    },
+    sql: `\\getenv verifier RELEASE_LOGIN_VERIFIER
+\\getenv published RELEASE_PUBLISHED_PASSWORDS
+UPDATE auth.users AS u SET encrypted_password = :'verifier', updated_at = pg_catalog.now()
+ WHERE ${matches};
+SELECT json_build_object(
+  'seeded_logins', (SELECT count(*) FROM auth.users WHERE encrypted_password = :'verifier'),
+  'published', (SELECT count(*) FROM auth.users AS u WHERE ${matches})
+)::text;`,
+  });
+  if (result.published !== 0)
+    stop(
+      `${result.published} login(s) still carry a password published in the repository; the rebuilt database must not be used.`,
+    );
+  log(
+    `Replaced the published password of ${result.seeded_logins} seeded login(s) with RELEASE_SEED_LOGIN_PASSWORD.`,
+  );
+  return result;
+}
+
 export function migrate({
   settings,
   env = process.env,
@@ -564,8 +616,9 @@ const EMPTY_SQL = `SELECT json_build_object(
 
 /**
  * Rebuilds a database from source: drop what migrations made, apply every
- * migration, seed, then Payload migrations. The gates and the heads follow as
- * the release's next steps.
+ * migration, seed, give the seeded logins the release environment's password,
+ * then Payload migrations. The gates and the heads follow as the release's
+ * next steps.
  *
  * - mode "first": the one-off first rebuild of a database with no marker
  *   (plan 7.5). It takes the owner's census sign-off as its input, or, for a
@@ -633,6 +686,17 @@ export async function rebuild({
   } else {
     stop("The rebuild mode must be first or disposable.");
   }
+  // The reset seeds logins with a password published in the repository, and
+  // a hosted database never keeps one (record D-24): without the replacement
+  // nothing is reset.
+  const seedLoginPassword = env.RELEASE_SEED_LOGIN_PASSWORD;
+  try {
+    assertLoginPassword(seedLoginPassword, "RELEASE_SEED_LOGIN_PASSWORD");
+  } catch (error) {
+    stop(
+      `${error.message} A hosted rebuild gives every seeded login that password in place of the one published in the repository; nothing was reset.`,
+    );
+  }
   log(
     `Rebuilding ${settings.projectRef} from source (${mode}${mode === "first" ? `, sign-off ${signoff}` : ""}).`,
   );
@@ -642,6 +706,13 @@ export async function rebuild({
     // The wrapper applies WP1.1's reset rule again on its own.
     supabaseCli(runCommand, "Supabase reset", ["db", "reset"], settings);
   }
+  // At once, before anything else reads or uses the database.
+  replaceSeededLoginPasswords({
+    settings,
+    password: seedLoginPassword,
+    query,
+    log,
+  });
   // The marker migration writes `disposable` when public.profiles,
   // public.donors and public.donations are empty, as they are right after the
   // reset drops and recreates them. Anything else is a failed rebuild.

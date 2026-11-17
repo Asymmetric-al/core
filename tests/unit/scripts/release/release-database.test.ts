@@ -64,6 +64,7 @@ function fakeDatabase(state: {
   payload?: string[];
   devMarker?: boolean;
   heads?: { supabase: string | null; payload: string | null };
+  publishedLeft?: number;
 }) {
   const db = {
     healthFunction: true,
@@ -71,6 +72,7 @@ function fakeDatabase(state: {
     supabase: [...source.supabase],
     payload: [...source.payload],
     devMarker: false,
+    publishedLeft: 0,
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
       payload: string | null;
@@ -97,6 +99,10 @@ function fakeDatabase(state: {
         return { names: db.payload, devMarker: db.devMarker };
       }
       if (sql.includes("FROM pg_roles")) return ["cms_owner", "cms_runtime"];
+      if (sql.includes("UPDATE auth.users")) {
+        events.push("seeded logins");
+        return { seeded_logins: 1, published: db.publishedLeft ?? 0 };
+      }
       if (sql.includes("current_user")) {
         const user = decodeURIComponent(new URL(databaseUrl).username);
         return { user: user.split(".")[0] };
@@ -123,6 +129,7 @@ function fakeDatabase(state: {
 const passwords = {
   RELEASE_CMS_OWNER_PASSWORD: "o".repeat(40),
   RELEASE_CMS_RUNTIME_PASSWORD: "r".repeat(40),
+  RELEASE_SEED_LOGIN_PASSWORD: "s".repeat(40),
 };
 
 const silent = () => {};
@@ -236,9 +243,9 @@ describe("release database steps", () => {
     expect(runCommand).not.toHaveBeenCalled();
   });
 
-  it("rebuilds a disposable preview database: reset, role passwords, Payload, then checks the marker", async () => {
+  it("rebuilds a disposable preview database: reset, seeded logins, role passwords, Payload, then checks the marker", async () => {
     const fake = fakeDatabase({});
-    const order: string[] = [];
+    const order = fake.events;
     const runCommand = vi.fn((command: string, args: string[]) => {
       order.push(command === "bun" ? "payload" : args.slice(1, 3).join(" "));
       return { status: 0 };
@@ -260,10 +267,92 @@ describe("release database steps", () => {
     });
     expect(order).toEqual([
       "db reset",
+      "seeded logins",
       "role password",
       "role password",
       "payload",
     ]);
+  });
+
+  // Council round 2, A5 (record D-24): a hosted database never carries a
+  // password published in the repository.
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild: stops before it resets anything when RELEASE_SEED_LOGIN_PASSWORD is missing or weak",
+    async (mode) => {
+      for (const seed of [undefined, "", "demo-password", "x".repeat(73)]) {
+        const fake = fakeDatabase({
+          environment: mode === "first" ? null : "disposable",
+        });
+        const runCommand = vi.fn(() => ({ status: 0 }));
+        await expect(
+          rebuild({
+            settings: settings(mode === "first" ? "production" : "preview"),
+            mode,
+            signoff: "https://github.com/Asymmetric-al/core/issues/1",
+            confirmation: `rebuild ${ref}`,
+            env: { ...passwords, RELEASE_SEED_LOGIN_PASSWORD: seed },
+            query: fake.query,
+            run: fake.run,
+            runCommand,
+            requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+            log: silent,
+          }),
+        ).rejects.toThrow(/RELEASE_SEED_LOGIN_PASSWORD .*nothing was reset/);
+        expect(runCommand).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it("replaces every seeded login's published password right after the reset, sending only a verifier", async () => {
+    const fake = fakeDatabase({});
+    const logs: string[] = [];
+    await rebuild({
+      settings: settings("preview"),
+      mode: "disposable",
+      confirmation: `rebuild ${ref}`,
+      env: passwords,
+      query: fake.query,
+      run: fake.run,
+      runCommand: vi.fn(() => ({ status: 0 })),
+      requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+      log: (line: string) => logs.push(line),
+    });
+    const call = fake.query.mock.calls.find(([options]) =>
+      options.sql.includes("UPDATE auth.users"),
+    )![0] as { sql: string; variables: Record<string, string> };
+    expect(call.variables.RELEASE_LOGIN_VERIFIER).toMatch(
+      /^\$argon2id\$v=19\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/,
+    );
+    // The seed's published password is matched on the server; the new one
+    // appears nowhere but inside its verifier.
+    expect(JSON.parse(call.variables.RELEASE_PUBLISHED_PASSWORDS!)).toEqual([
+      "demo-password",
+    ]);
+    const secret = passwords.RELEASE_SEED_LOGIN_PASSWORD;
+    expect(call.sql).not.toContain(secret);
+    expect(JSON.stringify(call.variables)).not.toContain(secret);
+    expect(logs.join("\n")).not.toContain(secret);
+    expect(logs.join("\n")).toContain("seeded login");
+  });
+
+  it("stops, before the role passwords and Payload, when a login still carries a published password", async () => {
+    const fake = fakeDatabase({ publishedLeft: 1 });
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    await expect(
+      rebuild({
+        settings: settings("preview"),
+        mode: "disposable",
+        confirmation: `rebuild ${ref}`,
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+        log: silent,
+      }),
+    ).rejects.toThrow(/still carry a password published in the repository/);
+    expect(runCommand).toHaveBeenCalledTimes(1);
+    expect(fake.run).not.toHaveBeenCalled();
   });
 
   it("resets a disposable preview database through the repository wrapper, never the direct CLI", async () => {

@@ -173,6 +173,7 @@ jobs:
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
           RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
+          RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
           RELEASE_CENSUS_SIGNOFF: ${{ inputs.census_signoff }}
           RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
         run: node scripts/release/release-database.mjs first-rebuild
