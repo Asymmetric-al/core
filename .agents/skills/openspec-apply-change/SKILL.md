@@ -56,7 +56,7 @@ Implement tasks from an OpenSpec change.
 
 **Project check:** Before writing, run `bun run openspec -- list --json` and confirm the root is the Core checkout containing its local `openspec/` tree. A missing root, Store declaration, or external root is a configuration error: stop before writing and report it. Do not initialize a root or select an external Store.
 
-**Input**: Optionally specify a change name (e.g., `/openspec-apply-change add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**Input**: Optionally specify a change name (e.g., `openspec-apply-change add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
@@ -67,7 +67,7 @@ Implement tasks from an OpenSpec change.
    - Auto-select if only one active change exists
    - If ambiguous, run `openspec list --json` to get available changes and ask the user to select one
 
-   Always announce: "Using change: <name>" and how to override (e.g., `/openspec-apply-change <other>`).
+   Always announce: "Using change: <name>" and how to override (e.g., `openspec-apply-change <other>`).
 
 2. **Check status to understand the schema**
 
@@ -97,7 +97,7 @@ Implement tasks from an OpenSpec change.
 
    **Handle states:**
    - If `state: "blocked"`: show the message and pause implementation.
-     - If `missingArtifacts` is non-empty: verify whether `/openspec-continue-change` is installed before suggesting it. Core does not install it; if unavailable, use `bun run openspec -- status --change "<name>" --json` to identify the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` for its template and instructions. Creating the missing artifact is a separate authorized step; keep implementation paused.
+     - If `missingArtifacts` is non-empty: show the missing artifacts and the recovery step from the CLI’s `instruction` field.
      - Otherwise, follow the CLI instruction to create or repair the schema-configured tracking file from existing planning artifacts. Do not assume another artifact is ready or start implementation while blocked.
    - If `state: "all_done"`: report that all tracked tasks are complete and suggest review or verification as appropriate before archiving
    - Otherwise: proceed to implementation
@@ -190,7 +190,7 @@ Working on task 4/7: <task description>
 ...
 
 All tracked tasks are complete. Review or verify the change as appropriate
-before archiving. You can archive this change with `/openspec-archive-change`.
+before archiving. Review the completed work, then ask to archive this change.
 ```
 
 **Output On Pause (Issue Encountered)**

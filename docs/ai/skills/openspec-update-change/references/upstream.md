@@ -1,10 +1,10 @@
 ---
 source_name: Fission-AI/OpenSpec (openspec-update-change)
-source_url: https://github.com/Fission-AI/OpenSpec/tree/v2.0.0/skills/openspec-update-change
+source_url: https://github.com/Fission-AI/OpenSpec/tree/v2.1.0/skills/openspec-update-change
 source_type: github
 upstream_path: skills/openspec-update-change/
-skills_lock_hash: 159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505
-last_reviewed: 2026-11-13
+skills_lock_hash: 071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46
+last_reviewed: 2026-11-17
 ---
 
 # Upstream: openspec-update-change
@@ -12,16 +12,16 @@ last_reviewed: 2026-11-13
 Canonical copy in this repo: `docs/ai/skills/openspec-update-change/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/Fission-AI/OpenSpec
-- **Ref:** `v2.0.0`
-- **Commit reviewed:** `d12c2817776779e06891d68230773b3bb673b106`
+- **Ref:** `v2.1.0`
+- **Commit reviewed:** `8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0`
 - **Upstream path:** `skills/openspec-update-change/`
 - **Lock skillPath:** `skills/openspec-update-change/SKILL.md`
-- **Computed hash:** `159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505`
+- **Computed hash:** `071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46`
 
 ## Refresh from upstream
 
 1. Run `bun run skills:refresh-upstream`.
-2. The script clones `https://github.com/Fission-AI/OpenSpec.git` at `v2.0.0`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/openspec-update-change/`, and updates this metadata.
+2. The script clones `https://github.com/Fission-AI/OpenSpec.git` at `v2.1.0`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/openspec-update-change/`, and updates this metadata.
 3. Run `bun run skills:sync` and `bun run skills:verify` to refresh runtime mirrors.
 
 ## Notes for maintainers

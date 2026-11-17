@@ -590,50 +590,50 @@
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-apply-change/SKILL.md",
-      "computedHash": "62320e7bb1ea01092211b8052cf693403fbfb93b5d356c0522f18581db31494e",
-      "treeHash": "ed0ba8f9ba72710d96c2a946af4b47a764152af6cdde10c34a2bf60ef0c3f262"
+      "computedHash": "70a8a9b8d1d0603e83fb85b939e9d303ba9b864b07690df5cd52c0c0e8b39b1b",
+      "treeHash": "9e10e220eb434f87942d5d64e3bce9e4a97ee8096285822a39f5c35d7b90e350"
     },
     "openspec-archive-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-archive-change/SKILL.md",
-      "computedHash": "87b82c957a502c3b45ac4c88b4f2e09b83e9db96822d3bd0637ece0427da8fbd",
-      "treeHash": "24dffa0f2ed2c8f33c13278e3f47a0da6dfefb198bb6687ccdeb5b4ecb58d03e"
+      "computedHash": "9b8a5d84ca6b28a2993390290a28595d1ec12826b6957f9b5b9a67182c82f0bc",
+      "treeHash": "4447f4f4536071267d9746d6adac0c5485a0ded8bd3c30fdea7933374da850e4"
     },
     "openspec-explore": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-explore/SKILL.md",
-      "computedHash": "c9f39ffa681fee91645927be630fd1a6f630d731c3cb17d4665ad8716901bdac",
-      "treeHash": "981feddb8e51ff3f5e3a76c079e60641f7154396be59433576e08d8e040bc53d"
+      "computedHash": "5dcf11708e042422e76e47e3b930a6e5262ce179dfd231f08e8075c087bf890f",
+      "treeHash": "275ca73e55ff718f2ac2db2c334f9c1ce50d17f98165380e89ed294009ac4432"
     },
     "openspec-propose": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-propose/SKILL.md",
-      "computedHash": "ebca4a6605b7c917297d3d78e82490527c5eb2ef6e9ba700adfff8457d614bdd",
-      "treeHash": "c01cfb38ca50ff13684dae7e387c66d3db49ea3bc1f5a143b90506a5378cf0bb"
+      "computedHash": "d443ecb16e4d964fb9fe4fbca8e5a50320279c81d0539ac50d8edb2304da9bbe",
+      "treeHash": "5d713a9937d78521e6914c367e0f2e6e1b83d03a0e974d150398eb03b33a33c5"
     },
     "openspec-sync-specs": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-sync-specs/SKILL.md",
-      "computedHash": "c628a0f79596e724f678fd0e840ffebe0e88258bbd2d946aff5d3bc39e0dda3a",
-      "treeHash": "62499d9bd9b38731adf03af24b3dbd3d2f7201644ae94900aa27563918fff6ea"
+      "computedHash": "abad850be1b643b3306de032ff352b02cdc138df932653e24bc3251716a49933",
+      "treeHash": "a5776d56eb49a91d3fbe160bbd494bf288fa0d67a6699a89363743a6b1925a96"
     },
     "openspec-update-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-update-change/SKILL.md",
-      "computedHash": "159edbe0b6289c6fcfede028f58de9d4c4c9ad410055ae771fe89b3d37cf5505",
-      "treeHash": "2509d499aa42db7b9419441865626bbb377dd04e984875d4269050b3f489155c"
+      "computedHash": "071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46",
+      "treeHash": "1b1a40ed977044f025bfe4247d9f38f3f7e74677b93d75476d4bba39d2e32728"
     },
     "openspec-verify-change": {
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-verify-change/SKILL.md",
-      "computedHash": "a4ac732435c7ef91066154e74d16e4ba4275cb35f5de0600168799138ac6af24",
-      "treeHash": "3e579c69c469047f6ad3f89d6a7831f01b0574ee635fd53520b65f5a6eef7d74"
+      "computedHash": "6a31216bd1e7d7ffc96c2344de5a95b05b34a8ddfd7a8c59745344e9b58921fa",
+      "treeHash": "e24a381bc34a853261368d835e2f49720cd318a3660dbb90bc726ae3ce30b41b"
     },
     "p3-help": {
       "source": "uzairansaruzi/p3-stack",

@@ -71,5 +71,10 @@ operations:
         applicable Core checks, and no unresolved critical findings.
       - Record accepted warnings and follow-up work honestly.
 
+# Core keeps the OpenSpec skills in this repository (canonical sources under
+# docs/ai/skills). Refresh them with scripts/refresh-upstream-skills.mjs, never
+# with the OpenSpec updater or a per-machine install.
+skillsScope: project
+
 githubCopilot:
   cloudAgent: false

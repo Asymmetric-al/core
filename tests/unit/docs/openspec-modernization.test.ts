@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
-const PINNED_OPENSPEC_VERSION = "2.0.0";
-const PINNED_OPENSPEC_COMMIT = "d12c2817776779e06891d68230773b3bb673b106";
-const PINNED_OPENSPEC_TAG = "v2.0.0";
+const PINNED_OPENSPEC_VERSION = "2.1.0";
+const PINNED_OPENSPEC_COMMIT = "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0";
+const PINNED_OPENSPEC_TAG = "v2.1.0";
 
 const SELECTED_OPENSPEC_SKILLS = [
   "openspec-explore",
@@ -249,6 +249,7 @@ describe("OpenSpec injected context", () => {
     expect(config).toContain("apply:");
     expect(config).toContain("archive:");
     expect(config).not.toContain("Twenty (CRM");
+    expect(config).toMatch(/^skillsScope:\s*project$/m);
     expect(config).not.toContain("store:");
     expect(config).not.toContain("stores:");
   });
