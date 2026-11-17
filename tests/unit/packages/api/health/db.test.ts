@@ -9,7 +9,10 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-import { GET } from "../../../../../packages/api/src/health/db";
+import {
+  GET,
+  createMigrationHealthRoute,
+} from "../../../../../packages/api/src/health/db";
 
 type QueryResult = {
   data: Array<{ id: string }> | null;
@@ -161,5 +164,27 @@ describe("api/health/db", () => {
     process.env.CRON_SECRET = "secret";
     const unauthorizedResponse = await GET(createRequest());
     expect(unauthorizedResponse.headers.get("Cache-Control")).toBe("no-store");
+  });
+});
+
+describe("api/health/migrations", () => {
+  it("reads the release health function through the health module's one service-key client, with no cron secret", async () => {
+    process.env.CRON_SECRET = "secret";
+    const rpc = vi.fn(async () => ({
+      data: { environment: "shared", expected_heads: {} },
+      error: null,
+    }));
+    getAdminClientMock.mockReturnValue({
+      client: { rpc } as never,
+      error: null,
+    });
+    const response = await createMigrationHealthRoute("donor", {
+      connection: async () => {},
+    })();
+    expect(getAdminClientMock).toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith("platform_health");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    const body = (await response.json()) as { surface: string };
+    expect(body.surface).toBe("donor");
   });
 });

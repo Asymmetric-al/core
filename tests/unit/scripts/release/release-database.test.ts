@@ -1,0 +1,392 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
+import {
+  RELEASE_ENVIRONMENTS,
+  ReleaseStop,
+  migrate,
+  preflight,
+  readReleaseSettings,
+  rebuild,
+  recordHeads,
+  roleDatabaseUrl,
+  setEnvironmentMarker,
+} from "../../../../scripts/release/release-database.mjs";
+
+const ref = "abcdefghijklmnopqrst";
+const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
+const source = listSourceMigrations({ root: process.cwd() });
+
+function settings(environment: "production" | "preview" = "production") {
+  return readReleaseSettings({
+    RELEASE_ENVIRONMENT: environment,
+    RELEASE_SUPABASE_PROJECT_REF: ref,
+    RELEASE_DATABASE_URL: databaseUrl,
+    RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+  });
+}
+
+describe("release settings", () => {
+  it("derives the cms_owner login on the same pooler host from the job's connection", () => {
+    const url = new URL(settings().cmsOwnerDatabaseUrl!);
+    expect(url.username).toBe(`cms_owner.${ref}`);
+    expect(url.password).toBe("owner-password-fixture");
+    expect(url.host).toBe("aws-0-us-east-1.pooler.supabase.com:5432");
+    expect(url.searchParams.get("sslmode")).toBe("require");
+    expect(
+      roleDatabaseUrl(
+        `postgresql://postgres:pw@db.${ref}.supabase.co:5432/postgres?sslmode=require`,
+        "cms_runtime",
+        "p@ss/word",
+      ),
+    ).toBe(
+      `postgresql://cms_runtime:p%40ss%2Fword@db.${ref}.supabase.co:5432/postgres?sslmode=require`,
+    );
+  });
+});
+
+/** A fake target database answering the queries the release steps send. */
+function fakeDatabase(state: {
+  healthFunction?: boolean;
+  environment?: string | null;
+  supabase?: string[];
+  payload?: string[];
+  devMarker?: boolean;
+  heads?: { supabase: string | null; payload: string | null };
+}) {
+  const db = {
+    healthFunction: true,
+    environment: "disposable" as string | null,
+    supabase: [...source.supabase],
+    payload: [...source.payload],
+    devMarker: false,
+    heads: { supabase: null, payload: null } as {
+      supabase: string | null;
+      payload: string | null;
+    },
+    ...state,
+  };
+  const events: string[] = [];
+  const query = vi.fn(
+    ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
+      if (sql.includes("to_regprocedure")) return { exists: db.healthFunction };
+      if (sql.includes("public.platform_health()::text")) {
+        return {
+          environment: db.environment,
+          expected_heads: Object.fromEntries(
+            Object.entries(db.heads).filter(([, head]) => head !== null),
+          ),
+        };
+      }
+      if (sql.includes("'supabase', to_regclass"))
+        return { supabase: true, payload: true };
+      if (sql.includes("FROM supabase_migrations.schema_migrations"))
+        return db.supabase;
+      if (sql.includes("FROM cms.payload_migrations")) {
+        return { names: db.payload, devMarker: db.devMarker };
+      }
+      if (sql.includes("FROM pg_roles")) return ["cms_owner", "cms_runtime"];
+      if (sql.includes("current_user")) {
+        const user = decodeURIComponent(new URL(databaseUrl).username);
+        return { user: user.split(".")[0] };
+      }
+      throw new Error(`unexpected query: ${sql.slice(0, 80)}`);
+    },
+  );
+  const run = vi.fn(({ variables }: { variables: Record<string, string> }) => {
+    if ("RELEASE_ROLE_VERIFIER" in variables) events.push("role password");
+    if ("RELEASE_HEAD" in variables) {
+      db.heads = {
+        ...db.heads,
+        [variables.RELEASE_LEDGER as "supabase" | "payload"]:
+          variables.RELEASE_HEAD,
+      };
+    }
+    if ("RELEASE_MARKER" in variables)
+      db.environment = variables.RELEASE_MARKER;
+    return "";
+  });
+  return { db, query, run, events };
+}
+
+const passwords = {
+  RELEASE_CMS_OWNER_PASSWORD: "o".repeat(40),
+  RELEASE_CMS_RUNTIME_PASSWORD: "r".repeat(40),
+};
+
+const silent = () => {};
+
+describe("release database steps", () => {
+  it("stops before migrating, and so before deploying, when a release carries an out-of-order migration", () => {
+    const head = source.supabase.at(-1)!;
+    const { query } = fakeDatabase({
+      // The database already holds a newer migration than one source still lacks.
+      supabase: [
+        ...source.supabase.filter((v) => v !== source.supabase[5]),
+        "29991231000000",
+      ],
+    });
+    const runCommand = vi.fn();
+    expect(() =>
+      migrate({ settings: settings(), query, runCommand, log: silent }),
+    ).toThrow(/out of order/);
+    expect(runCommand).not.toHaveBeenCalled();
+    expect(head).toMatch(/^\d{14}$/);
+  });
+
+  it("refuses a database with no health function, no marker, or the frozen production-named project", () => {
+    expect(() =>
+      preflight({
+        settings: settings(),
+        query: fakeDatabase({ healthFunction: false }).query,
+        log: silent,
+      }),
+    ).toThrow(/predates WP1/);
+    expect(() =>
+      preflight({
+        settings: settings(),
+        query: fakeDatabase({ environment: null }).query,
+        log: silent,
+      }),
+    ).toThrow(/no environment marker/);
+    const frozen = readReleaseSettings({
+      RELEASE_ENVIRONMENT: "production",
+      RELEASE_SUPABASE_PROJECT_REF: "btewedpsxwsjczvmegby",
+      RELEASE_DATABASE_URL: databaseUrl.replace(ref, "btewedpsxwsjczvmegby"),
+    });
+    expect(() =>
+      preflight({
+        settings: frozen,
+        query: fakeDatabase({}).query,
+        log: silent,
+      }),
+    ).toThrow(/must not touch/);
+  });
+
+  it("keeps the preview environment off development whatever its configuration says", async () => {
+    expect(RELEASE_ENVIRONMENTS.preview.forbiddenRefs).toContain(
+      "pnmlrbgjiqzzsthsoikm",
+    );
+    const development = readReleaseSettings({
+      RELEASE_ENVIRONMENT: "preview",
+      RELEASE_SUPABASE_PROJECT_REF: "pnmlrbgjiqzzsthsoikm",
+      RELEASE_DATABASE_URL: databaseUrl.replace(ref, "pnmlrbgjiqzzsthsoikm"),
+    });
+    const runCommand = vi.fn();
+    const requireDisposable = vi.fn();
+    await expect(
+      rebuild({
+        settings: development,
+        mode: "disposable",
+        confirmation: "rebuild pnmlrbgjiqzzsthsoikm",
+        query: fakeDatabase({}).query,
+        runCommand,
+        requireDisposable,
+        log: silent,
+      }),
+    ).rejects.toThrow(/must not touch/);
+    expect(requireDisposable).not.toHaveBeenCalled();
+    expect(runCommand).not.toHaveBeenCalled();
+  });
+
+  it("resets only where WP1.1's shared rule finds the disposable marker, and never in the production environment", async () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    const refuse = vi.fn(() => {
+      throw new Error(
+        "refusing to rebuild the preview database db:5432/postgres: it is marked shared",
+      );
+    });
+    await expect(
+      rebuild({
+        settings: settings("preview"),
+        mode: "disposable",
+        confirmation: `rebuild ${ref}`,
+        query: fakeDatabase({ environment: "shared" }).query,
+        runCommand,
+        requireDisposable: refuse,
+        log: silent,
+      }),
+    ).rejects.toThrow(/is marked shared/);
+    expect(refuse).toHaveBeenCalledWith({
+      databaseUrl: settings("preview").databaseUrl,
+      action: "rebuild the preview database",
+    });
+    await expect(
+      rebuild({
+        settings: settings("production"),
+        mode: "disposable",
+        confirmation: `rebuild ${ref}`,
+        query: fakeDatabase({}).query,
+        runCommand,
+        requireDisposable: vi.fn(),
+        log: silent,
+      }),
+    ).rejects.toThrow(/never resets/);
+    expect(runCommand).not.toHaveBeenCalled();
+  });
+
+  it("rebuilds a disposable preview database: reset, role passwords, Payload, then checks the marker", async () => {
+    const fake = fakeDatabase({});
+    const order: string[] = [];
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      order.push(command === "bun" ? "payload" : args.slice(1, 3).join(" "));
+      return { status: 0 };
+    });
+    await rebuild({
+      settings: settings("preview"),
+      mode: "disposable",
+      confirmation: `rebuild ${ref}`,
+      env: passwords,
+      query: fake.query,
+      run: vi.fn((options: { variables: Record<string, string> }) => {
+        if ("RELEASE_ROLE_VERIFIER" in options.variables)
+          order.push("role password");
+        return "";
+      }),
+      runCommand,
+      requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+      log: silent,
+    });
+    expect(order).toEqual([
+      "db reset",
+      "role password",
+      "role password",
+      "payload",
+    ]);
+  });
+
+  it("runs the one-off first rebuild only on an unmarked database with the census sign-off", async () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    const marked = fakeDatabase({});
+    await expect(
+      rebuild({
+        settings: settings(),
+        mode: "first",
+        signoff: "https://github.com/Asymmetric-al/core/issues/1",
+        confirmation: `rebuild ${ref}`,
+        query: marked.query,
+        runCommand,
+        log: silent,
+      }),
+    ).rejects.toThrow(/already marked/);
+    const unmarked = fakeDatabase({ environment: null });
+    await expect(
+      rebuild({
+        settings: settings(),
+        mode: "first",
+        signoff: "yes please",
+        confirmation: `rebuild ${ref}`,
+        query: unmarked.query,
+        runCommand,
+        log: silent,
+      }),
+    ).rejects.toThrow(/census sign-off/);
+    await expect(
+      rebuild({
+        settings: settings(),
+        mode: "first",
+        signoff: "https://github.com/Asymmetric-al/core/issues/1",
+        confirmation: "rebuild",
+        query: unmarked.query,
+        runCommand,
+        log: silent,
+      }),
+    ).rejects.toThrow(/to confirm/);
+    expect(runCommand).not.toHaveBeenCalled();
+  });
+
+  it("migrates Supabase, sets the CMS role passwords, then runs Payload as cms_owner, and checks nothing is left pending", () => {
+    const { query, run, events } = fakeDatabase({});
+    const calls: string[][] = [];
+    const runCommand = vi.fn(
+      (
+        command: string,
+        args: string[],
+        options: { env: Record<string, string> },
+      ) => {
+        calls.push([
+          command,
+          ...args.filter((a) => !a.startsWith("postgresql://")),
+        ]);
+        events.push(command === "bun" ? "payload" : "supabase");
+        if (command === "bun") {
+          expect(options.env.CMS_HOSTED_MIGRATION_ROLE).toBe("cms_owner");
+          expect(options.env.PAYLOAD_DATABASE_URI).toContain(
+            `cms_owner.${ref}`,
+          );
+          expect(options.env.SUPABASE_DB_URL).toBe("");
+        }
+        return { status: 0 };
+      },
+    );
+    migrate({
+      settings: settings(),
+      env: passwords,
+      query,
+      run,
+      runCommand,
+      log: silent,
+    });
+    expect(events).toEqual([
+      "supabase",
+      "role password",
+      "role password",
+      "payload",
+    ]);
+    expect(calls[0]).toEqual([
+      process.execPath,
+      "scripts/supabase-cli.mjs",
+      "db",
+      "push",
+      "--db-url",
+      "--yes",
+    ]);
+    expect(calls[1]).toEqual(["bun", "run", "cms:migrate"]);
+  });
+
+  it("records the heads the database holds, so an older release never lowers them", () => {
+    const newer = "29991231000000";
+    const fake = fakeDatabase({ supabase: [...source.supabase, newer] });
+    const heads = recordHeads({
+      settings: settings(),
+      query: fake.query,
+      run: fake.run,
+      log: silent,
+    });
+    expect(heads.supabase).toBe(newer);
+    expect(fake.db.heads.supabase).toBe(newer);
+  });
+
+  it("moves the marker forward only, on a typed confirmation", () => {
+    const fake = fakeDatabase({ environment: "shared" });
+    expect(() =>
+      setEnvironmentMarker({
+        settings: settings(),
+        marker: "disposable",
+        confirmation: `${ref}:disposable`,
+        query: fake.query,
+        run: fake.run,
+        log: silent,
+      }),
+    ).toThrow(/forward only/);
+    expect(() =>
+      setEnvironmentMarker({
+        settings: settings(),
+        marker: "production",
+        confirmation: "yes",
+        query: fake.query,
+        run: fake.run,
+        log: silent,
+      }),
+    ).toThrow(ReleaseStop);
+    setEnvironmentMarker({
+      settings: settings(),
+      marker: "production",
+      confirmation: `${ref}:production`,
+      query: fake.query,
+      run: fake.run,
+      log: silent,
+    });
+    expect(fake.db.environment).toBe("production");
+  });
+});
