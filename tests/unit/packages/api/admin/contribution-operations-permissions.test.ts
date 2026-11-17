@@ -219,12 +219,15 @@ describe("contribution operations permissions", () => {
     expect(financeStaff).toContain("contributions.manage_receipts");
     expect(financeStaff).not.toContain("contributions.approve_corrections");
 
-    const approver = resolveContributionCapabilities(
+    // AL-2675: the tenant administrator holds the contribution-settings set
+    // the retired platform_admin grant held (plan 5.1).
+    const admin = resolveContributionCapabilities(
       authContext({ role: "admin", profileRole: "admin" }),
     );
-    expect(approver).toContain("contributions.approve_corrections");
-    expect(approver).toContain("contributions.run_refunds");
-    expect(approver).not.toContain("contributions.manage_settings");
+    expect(admin).toContain("contributions.approve_corrections");
+    expect(admin).toContain("contributions.run_refunds");
+    expect(admin).toContain("contributions.manage_settings");
+    expect(admin).toContain("crm.gift_history.manage_view_defaults");
 
     const superAdmin = resolveContributionCapabilities(
       authContext({ role: "super_admin", profileRole: "super_admin" }),

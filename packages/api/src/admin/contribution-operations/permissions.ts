@@ -258,7 +258,13 @@ const FINANCE_APPROVER_CAPABILITIES: ContributionCapability[] = [
   "contributions.use_provider_actions",
 ];
 
-const SUPER_ADMIN_CAPABILITIES: ContributionCapability[] = [
+/**
+ * The registry's `contribution_admin` bundle. Since AL-2675 the tenant
+ * administrator holds it: the retired `platform_admin` grant's
+ * contribution-settings bundle moved there (plan 5.1). The WP2a sweep retires
+ * this table for the registry.
+ */
+const CONTRIBUTION_ADMIN_CAPABILITIES: ContributionCapability[] = [
   ...FINANCE_APPROVER_CAPABILITIES,
   "contributions.manage_settings",
   "crm.gift_history.manage_view_defaults",
@@ -268,11 +274,11 @@ export function resolveContributionCapabilities(
   auth: AuthenticatedContext,
 ): ContributionCapability[] {
   if (auth.role === "super_admin" || auth.profileRole === "super_admin") {
-    return [...SUPER_ADMIN_CAPABILITIES];
+    return [...CONTRIBUTION_ADMIN_CAPABILITIES];
   }
 
   if (auth.role === "admin" || auth.profileRole === "admin") {
-    return [...FINANCE_APPROVER_CAPABILITIES];
+    return [...CONTRIBUTION_ADMIN_CAPABILITIES];
   }
 
   if (hasFinanceStaffMembership(auth)) {

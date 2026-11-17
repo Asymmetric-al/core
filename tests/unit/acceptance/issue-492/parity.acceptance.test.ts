@@ -1,4 +1,7 @@
-/** #492 done criteria 4, 5: parity with the incumbent resolvers (spec r1). Owned by Acceptance. */
+/** #492 done criteria 4, 5: parity with the incumbent resolvers (spec r1). Owned by Acceptance.
+ * Amended by AL-2675 (WP2a): `platform_admin` is retired with `super_admin`, and
+ * the incumbent table gives an administrator the contribution-settings set the
+ * registry's `tenant_admin` now holds. The WP2a sweep retires the incumbent. */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -20,7 +23,13 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 
 type Membership = AuthenticatedContext["memberships"][number];
 const m = (role: string, staffRole: string | null = null) =>
-  ({ tenantId: T, role, staffRole, isActive: true }) as Membership;
+  ({
+    tenantId: T,
+    role,
+    staffRole,
+    isActive: true,
+    isTenantAdmin: false,
+  }) as Membership;
 const auth = (
   role: AuthenticatedContext["role"],
   ...memberships: Membership[]
@@ -43,8 +52,7 @@ const FIXTURES: [string, AuthenticatedContext, string][] = [
     auth("staff", m("staff", s)),
     `staff:${s}`,
   ]),
-  ["profileRole admin", auth("admin"), "tenant_admin"],
-  ["profileRole super_admin", auth("super_admin"), "platform_admin"],
+  ["role admin", auth("admin"), "tenant_admin"],
   ["donor", auth("donor", m("donor")), "member:donor"],
   ["missionary", auth("missionary", m("missionary")), "member:missionary"],
 ];

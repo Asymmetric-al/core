@@ -64,7 +64,6 @@ const UNSPECIALIZED_ASSIGNMENT_BUNDLES: Readonly<
 const NAMED_SUBJECTS: Readonly<Record<NamedGrantSubject, GrantSubjectKey>> =
   deepFreeze({
     tenant_admin: "tenant_admin",
-    platform_admin: "platform_admin",
   });
 
 /** A source's fields, each read exactly once into a plain object. */
@@ -168,4 +167,48 @@ export function resolveEffectiveCapabilities(
     for (const capability of CAPABILITY_BUNDLES[bundle])
       capabilities.add(capability);
   return Object.freeze([...capabilities].sort());
+}
+
+/** The fields of one selected membership row that decide its capabilities. */
+export type SelectedAssignment = {
+  readonly assignmentId: string;
+  readonly tenantId: string;
+  readonly membershipRole: MembershipRole;
+  readonly staffRole: StaffSubrole | null;
+  /** The tenant-administrator flag on a staff row (plan 5.1). */
+  readonly isTenantAdmin: boolean;
+};
+
+/**
+ * The capabilities one live membership row holds: its sub-role or member
+ * bundles and, when the row carries the flag, the `tenant_admin` grant. No
+ * other row of the person counts. The database judges the same row with
+ * `authz.assignment_capabilities`.
+ */
+export function resolveAssignmentCapabilities(
+  assignment: SelectedAssignment,
+): readonly Capability[] {
+  const sources: GrantSource[] = [
+    {
+      kind: "assignment",
+      assignmentId: assignment.assignmentId,
+      tenantId: assignment.tenantId,
+      role: assignment.membershipRole,
+      staffRole: assignment.staffRole,
+      isActive: true,
+    },
+  ];
+  if (assignment.isTenantAdmin) {
+    sources.push({
+      kind: "named",
+      grantId: assignment.assignmentId,
+      tenantId: assignment.tenantId,
+      subject: "tenant_admin",
+      active: true,
+    });
+  }
+  return resolveEffectiveCapabilities({
+    tenantId: assignment.tenantId,
+    sources,
+  });
 }
