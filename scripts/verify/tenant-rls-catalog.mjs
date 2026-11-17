@@ -22,10 +22,11 @@
 // end state of migration 20261117034926). Run by supabase-migrations.mjs after
 // the field-policy census; #516 reuses this module. See
 // docs/security/tenant-guard.md.
-import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { runPsqlQuery } from "../lib/psql.mjs";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -659,23 +660,13 @@ export function runTenantRlsCatalogGate({
 }) {
   const exceptions = readJson(root, TENANT_RLS_EXCEPTIONS_PATH);
   const anonAllowlist = readJson(root, ANON_DEFINER_ALLOWLIST_PATH);
-  const result = spawnSync(
+  const stdout = runPsqlQuery({
+    databaseUrl,
+    sql: TENANT_RLS_CATALOG_SQL,
     psqlBin,
-    [
-      databaseUrl,
-      "-X",
-      "-v",
-      "ON_ERROR_STOP=1",
-      "-At",
-      "-c",
-      TENANT_RLS_CATALOG_SQL,
-    ],
-    { cwd: root, encoding: "utf8", shell: false },
-  );
-  if (result.error) throw result.error;
-  if (result.status !== 0)
-    throw new Error(result.stderr || "tenant RLS catalog query failed");
-  const line = result.stdout.trim().split("\n").pop() ?? "";
+    cwd: root,
+  });
+  const line = stdout.trim().split("\n").pop() ?? "";
   let snapshot;
   try {
     snapshot = JSON.parse(line);

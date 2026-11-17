@@ -345,7 +345,8 @@ describe.skipIf(!ADMIN_URL)(
         if (editManifest) {
           root = mkdtempSync(path.join(os.tmpdir(), "acc-2674-gate-"));
           temps.push(root);
-          for (const rel of ["scripts/verify", H.FP, H.MIG])
+          // scripts/lib holds the psql runner the gate imports (AL-2674 E3).
+          for (const rel of ["scripts/verify", "scripts/lib", H.FP, H.MIG])
             cpSync(path.join(H.ROOT, rel), path.join(root, rel), {
               recursive: true,
             });
