@@ -71,7 +71,10 @@ env:
   NODE_VERSION: "24.22.3"
 
 jobs:
-  # The owner approves a marker change or a first rebuild here (plan 7.5).
+  # The owner approves a marker change or a first rebuild here (plan 7.5),
+  # for this run attempt only: "Re-run failed jobs", or a re-run of one job,
+  # keeps this job's earlier success, so it records the attempt it approved
+  # and the jobs that change the database run only in that attempt.
   owner-approval:
     name: owner-approval
     if: >-
@@ -81,24 +84,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: release-owner-approval
+    outputs:
+      attempt: ${{ steps.approve.outputs.attempt }}
     steps:
       - name: Record the approval
+        id: approve
         env:
           OPERATION: ${{ inputs.operation }}
           TARGET: ${{ inputs.environment }}
-        run: echo "Approved ${OPERATION} on the ${TARGET} database."
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          echo "Approved ${OPERATION} on the ${TARGET} database for run attempt ${ATTEMPT}."
+          echo "attempt=${ATTEMPT}" >> "$GITHUB_OUTPUT"
 
   database:
     name: release-database
     needs: owner-approval
     # A release (no approval job) runs as before; a first rebuild runs only
-    # once the owner approved it.
+    # once the owner approved it, in this run attempt.
     if: >-
       !cancelled() &&
       (github.event_name == 'push' ||
        inputs.operation == 'release' ||
        (inputs.operation == 'first-rebuild' &&
-        needs.owner-approval.result == 'success'))
+        needs.owner-approval.result == 'success' &&
+        needs.owner-approval.outputs.attempt == github.run_attempt))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
@@ -247,7 +257,12 @@ jobs:
   marker:
     name: set-environment-marker
     needs: owner-approval
-    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'set-environment-marker'
+    # Only once the owner approved it, in this run attempt.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.operation == 'set-environment-marker' &&
+      needs.owner-approval.result == 'success' &&
+      needs.owner-approval.outputs.attempt == github.run_attempt
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}

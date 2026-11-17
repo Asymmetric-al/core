@@ -65,6 +65,32 @@ describe("release workflow (plan 7.4)", () => {
     );
   });
 
+  // Council round 3, lens 2 I1: "Re-run failed jobs" or a re-run of one job
+  // starts the database or marker job again and keeps owner-approval's earlier
+  // success. The approval names the run attempt it was given for, and the
+  // destructive jobs run only in that attempt, so a re-run asks again.
+  it("takes the owner's approval for one run attempt only", () => {
+    const approval = job("owner-approval");
+    expect(approval).toMatch(
+      /outputs:\n\s+attempt: \$\{\{ steps\.approve\.outputs\.attempt \}\}/,
+    );
+    expect(approval).toMatch(/- name: Record the approval\n\s+id: approve\n/);
+    expect(approval).toContain("ATTEMPT: ${{ github.run_attempt }}");
+    expect(approval).toContain('echo "attempt=${ATTEMPT}" >> "$GITHUB_OUTPUT"');
+    const sameAttempt =
+      "needs.owner-approval.result == 'success' &&\\s+needs.owner-approval.outputs.attempt == github.run_attempt";
+    expect(job("database")).toMatch(
+      new RegExp(
+        `\\(inputs\\.operation == 'first-rebuild' &&\\s+${sameAttempt.replaceAll(".", "\\.")}\\)`,
+      ),
+    );
+    expect(job("marker")).toMatch(
+      new RegExp(
+        `inputs\\.operation == 'set-environment-marker' &&\\s+${sameAttempt.replaceAll(".", "\\.")}`,
+      ),
+    );
+  });
+
   // Council round 2, A5 and A6a.
   it("hands the steps that need them the seeded-login password and the project's CA, and no other step", () => {
     const steps = job("database").split("\n      - ");

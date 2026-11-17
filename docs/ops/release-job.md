@@ -130,6 +130,20 @@ the GitHub environment `release-owner-approval` approves the run's
 `owner-approval` job. That environment holds no secret; the job that does the
 work starts only once it is approved, and a rejected approval skips it.
 
+An approval is good for one run attempt. `owner-approval` records the attempt
+it was approved in, and the `database` job's first rebuild and the `marker`
+job run only in that attempt. So **Re-run failed jobs**, or a re-run of one
+job, changes nothing: the work job is skipped, because the approval belongs to
+the earlier attempt. To repeat a first rebuild or a marker change that
+stopped, fix the cause, then choose **Re-run all jobs** on that run (GitHub
+asks the owner again) or dispatch the operation anew.
+
+While an approval is pending, its run holds the workflow's concurrency group:
+`release-production` for the `production` environment, `preview-database`
+for `preview`. Every push to `production` (or every preview rebuild) queues
+behind it until the owner approves or rejects, so answer a pending approval
+promptly, or reject it, before anything else must release.
+
 Only SCRAM-SHA-256 verifiers computed on the runner reach the database for
 the CMS roles, and only an Argon2id verifier for the seeded logins; the plain
 passwords never appear in SQL, argv or logs.
@@ -445,6 +459,8 @@ Added by council round 2, each also still to be seen on a hosted run:
   `VERCEL_AUTOMATION_BYPASS_SECRET` at run time. If it does not, every check
   fails closed with "answered without its detail" and nothing is promoted.
 - The `owner-approval` job: that a dispatched marker change or first rebuild
-  waits for the required reviewer, that a rejection skips the work, and that
-  a push still runs the database and deploy jobs although the approval job
-  is skipped (both carry a status function for that reason).
+  waits for the required reviewer, that a rejection skips the work, that
+  **Re-run failed jobs** skips it too (the approval output names the earlier
+  run attempt), and that a push still runs the database and deploy jobs
+  although the approval job is skipped (both carry a status function for that
+  reason).
