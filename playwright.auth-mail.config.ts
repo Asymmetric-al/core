@@ -56,7 +56,10 @@ const serverEnv = {
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: ["**/auth-password-recovery.spec.ts"],
+  testMatch: [
+    "**/auth-password-recovery.spec.ts",
+    "**/auth-signup-confirmation.spec.ts",
+  ],
   outputDir: "test-results/auth-mail",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

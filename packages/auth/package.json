@@ -18,7 +18,8 @@
     "./roles": "./roles.ts",
     "./demo-login": "./demo-login.ts",
     "./auth-screen": "./auth-screen.ts",
-    "./password-recovery": "./password-recovery.ts"
+    "./password-recovery": "./password-recovery.ts",
+    "./sign-up-confirmation": "./sign-up-confirmation.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

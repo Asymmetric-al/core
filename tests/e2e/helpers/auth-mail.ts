@@ -90,6 +90,20 @@ export async function createConfirmedUser(
   return id;
 }
 
+/** The login behind an address, through the profile the sign-up trigger made. */
+export async function findUserIdByEmail(
+  env: AuthMailEnv,
+  email: string,
+): Promise<string | null> {
+  const response = await fetch(
+    `${env.supabaseUrl}/rest/v1/profiles?select=user_id&email=eq.${encodeURIComponent(email)}`,
+    { headers: serviceHeaders(env) },
+  );
+  expect(response.status, await response.clone().text()).toBe(200);
+  const rows = (await response.json()) as Array<{ user_id: string }>;
+  return rows[0]?.user_id ?? null;
+}
+
 /**
  * Waits until the dev server has stopped sending the page's code, so the form
  * is hydrated. Text typed into a server-rendered field before hydration is

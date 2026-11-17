@@ -4,6 +4,7 @@ import {
   getDefaultPostLoginPathForApp,
   type AppId,
 } from "@asym/auth/demo-login";
+import { signUpConfirmationRedirectUrl } from "@asym/auth/sign-up-confirmation";
 import { createBrowserClient } from "@asym/database/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -75,11 +76,17 @@ export function RegisterScreen({
           throw new Error("Password must be at least 8 characters.");
         }
 
+        const address = email.trim().toLowerCase();
         const supabase = createBrowserClient();
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim().toLowerCase(),
+          email: address,
           password,
           options: {
+            // The confirmation returns to this host, where the person is
+            // then signed in: session cookies belong to one host.
+            emailRedirectTo: signUpConfirmationRedirectUrl(
+              window.location.origin,
+            ),
             data: {
               first_name: firstName.trim(),
               last_name: lastName.trim(),
@@ -89,14 +96,16 @@ export function RegisterScreen({
 
         if (signUpError) throw new Error(signUpError.message);
 
+        // Only a project with confirmation switched off returns a session.
         if (data.session) {
           replace(defaultPostLoginPath);
           refresh();
           return;
         }
 
+        // The same answer whether or not the address already had an account.
         setNotice(
-          "Account created. Check your email for verification before signing in.",
+          `Check your email: we’ve sent a link to ${address}. Open it in this browser to confirm the address and sign in.`,
         );
       } catch (cause) {
         setError(toRegistrationErrorMessage(cause));

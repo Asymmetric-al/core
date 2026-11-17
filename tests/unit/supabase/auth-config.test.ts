@@ -43,4 +43,57 @@ describe("local Auth configuration", () => {
     // Never a wildcard host: only loopback names are admitted locally.
     expect(allowlist).not.toMatch(/"https?:\/\/\*/);
   });
+
+  it("requires sign-up email confirmation, delivered locally to the mail catcher", () => {
+    expect(setting("auth.email", "enable_signup")).toBe("true");
+    expect(setting("auth.email", "enable_confirmations")).toBe("true");
+    // Local development keeps quick resends and short codes; the hosted
+    // values live in the remotes below.
+    expect(setting("auth.email", "max_frequency")).toBe('"1s"');
+    expect(setting("auth.email", "otp_length")).toBe("6");
+    expect(setting("local_smtp", "enabled")).toBe("true");
+  });
+
+  it("leaves TOTP for WP2c to switch on", () => {
+    expect(setting("auth.mfa.totp", "enroll_enabled")).toBe("false");
+    expect(setting("auth.mfa.totp", "verify_enabled")).toBe("false");
+  });
+});
+
+describe("hosted Auth settings captured per project", () => {
+  // Read by the CLI only when it targets that project (`--project-ref` or a
+  // link); local `supabase start` ignores them. Values from the WP1 census.
+  it.each([
+    ["development", '"pnmlrbgjiqzzsthsoikm"'],
+    ["production", '"btewedpsxwsjczvmegby"'],
+  ])(
+    "records the %s project's email frequency and code length",
+    (name, ref) => {
+      expect(setting(`remotes.${name}`, "project_id")).toBe(ref);
+      expect(setting(`remotes.${name}.auth.email`, "max_frequency")).toBe(
+        '"1m"',
+      );
+      expect(setting(`remotes.${name}.auth.email`, "otp_length")).toBe("8");
+    },
+  );
+
+  it("overrides nothing else for a hosted project", () => {
+    const remoteSections = [...readConfigSections().keys()].filter((name) =>
+      name.startsWith("remotes."),
+    );
+    expect(remoteSections.sort()).toEqual([
+      "remotes.development",
+      "remotes.development.auth.email",
+      "remotes.production",
+      "remotes.production.auth.email",
+    ]);
+    for (const name of remoteSections.filter((n) =>
+      n.endsWith(".auth.email"),
+    )) {
+      expect([...readConfigSections().get(name)!.keys()].sort()).toEqual([
+        "max_frequency",
+        "otp_length",
+      ]);
+    }
+  });
 });
