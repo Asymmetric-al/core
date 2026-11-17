@@ -141,11 +141,14 @@ const RESET_PROCEDURE = {
   // Version 2 (AL-2674, WP1 slice 1.3, plan 7.4): hosted databases migrate
   // only through the release job, so step 2 no longer runs
   // `bun run db:migrate:hosted`, which now refuses.
-  pinnedVersion: "2",
+  // Version 3 (AL-2674, council round 2, B8): the local reset goes through
+  // the repository runner, which refuses a database not marked disposable,
+  // and the rebuild no longer offers the retired hosted seed.
+  pinnedVersion: "3",
   // Trusted digest of the committed procedure document at this pin. Editing
-  // the markdown while leaving Procedure version: 2 must stop the line.
+  // the markdown while leaving Procedure version: 3 must stop the line.
   expectedDigest:
-    "5eb61d9a5d22acebd7b602a269a21c34a7e35e2c81e2876d527a36f5572d7934",
+    "83258d8bbb68fe6220347209a7d173d9527e172a60d1cb3a2c57f2ccb9f871a9",
 };
 const ROLLBACK_PROCEDURE = {
   reference:

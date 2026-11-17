@@ -32,8 +32,8 @@ Scripts that run `psql` against a database URL use `scripts/lib/psql.mjs`, which
 
 - `scripts/seed-demo.sh`
   - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
-  - `hosted`: requires `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, and `NEXT_PUBLIC_SUPABASE_URL`; applies migrations then executes `supabase/seed.sql`.
-  - `verify`: runs table row-count and single-profile checks via SQL.
+  - `hosted`: retired (WP0, audit finding NA-03). It always refuses and touches no database: `supabase/seed.sql` deletes every organization's rows before it reseeds. A hosted database is seeded only by the release job's one-off first rebuild (`docs/ops/release-job.md`).
+  - `verify`: runs table row-count and single-profile checks via SQL against a loopback `SUPABASE_DB_URL`.
 
 ## Agent skill maintenance
 
@@ -50,7 +50,7 @@ Scripts that run `psql` against a database URL use `scripts/lib/psql.mjs`, which
 
 ## Checklist
 
-- [ ] Hosted mode requires explicit env vars and target URL validation
+- [ ] No script seeds or resets a hosted database; reset and reseed scripts refuse a database not marked `disposable`
 - [ ] Script output avoids secrets
 - [ ] Shell scripts fail fast (`set -euo pipefail`)
 - [ ] Verification mode checks seeded table counts and profile singleton condition

@@ -207,10 +207,14 @@ drift, run `bun run skills:sync` and commit the regenerated mirrors.
 `bun run supabase -- <command>` runs the Supabase CLI at the version pinned in
 `scripts/supabase-cli.mjs`, using a global CLI only when its version matches.
 `bun run db:migrate:local` resets the local database from migrations;
-`bun run seed:demo:local` also loads `supabase/seed.sql`. Hosted databases
+`bun run seed:demo:local` also loads `supabase/seed.sql`. Registering on a
+local stack needs its mail catcher, which receives every Auth email; see
+[Auth email on a local stack](docs/guides/development/getting-started.md#auth-email-on-a-local-stack).
+Hosted databases
 migrate only through the Release workflow, which also deploys production; see
-[the release job runbook](docs/ops/release-job.md). Hosted seed commands
-require explicit target variables; read `supabase/AGENTS.md` and
+[the release job runbook](docs/ops/release-job.md). No command seeds a
+hosted database: the hosted seed is retired, and only the release job's
+one-off first rebuild seeds one. Read `supabase/AGENTS.md` and
 `scripts/AGENTS.md` first.
 
 ## Documentation

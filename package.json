@@ -152,7 +152,6 @@
     "db:migrate:local": "node scripts/db/require-disposable-database.mjs --local && bun run supabase -- db reset --local --no-seed",
     "db:migrate:hosted": "node scripts/db-migrate-hosted.mjs",
     "seed:demo:local": "bash ./scripts/seed-demo.sh local",
-    "seed:demo:hosted": "bash ./scripts/seed-demo.sh hosted",
     "seed:demo:verify": "bash ./scripts/seed-demo.sh verify",
     "seed:demo:users": "bun run --cwd packages/database seed:demo-users",
     "verify": "node scripts/verify/index.mjs",
