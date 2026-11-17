@@ -83,11 +83,12 @@ jobs:
       - name: Verify seed counts
         run: |
           profile_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.profiles;" | tr -d '[:space:]')
-          if [ "$profile_count" != "1" ]; then
-            echo "Expected public.profiles count to be 1 after seeding, got: $profile_count"
+          tenant_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.tenants;" | tr -d '[:space:]')
+          if [ "$profile_count" != "3" ] || [ "$tenant_count" != "2" ]; then
+            echo "Expected 3 profiles in 2 tenants after seeding, got: $profile_count profiles, $tenant_count tenants"
             exit 1
           fi
-          echo "Verified public.profiles seeded row count: $profile_count"
+          echo "Verified seeded rows: $profile_count profiles, $tenant_count tenants"
       - name: Verify document-cutover reader role (real stack)
         env:
           DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
@@ -118,6 +119,10 @@ jobs:
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts
+      - name: Verify membership core (real stack)
+        env:
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: bun x vitest run tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts
 
   smoke:
     needs: migrate

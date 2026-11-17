@@ -31,7 +31,9 @@ Use this doc when a task touches:
 
 - Seed file: `supabase/seed.sql`
   - Resets and reseeds public app tables deterministically.
-  - Creates exactly one profile identity tied to one auth user.
+  - Creates two tenants: the demo organization, which holds the demo dataset, and a second organization (`00000000-0000-0000-0000-000000000002`) as a fixture with no business data, so every suite and the seeded application have two tenants (AL-2675).
+  - Creates exactly three profile identities, each tied to one auth user: the demo owner, the second organization's administrator, and one donor with a donor membership in both organizations.
+  - Owns every `authz.memberships` row. Memberships, not `profiles.role` or `profiles.tenant_id`, are the only authority; the profile columns keep their pre-WP2a values for comparison only. No staff row has the member-care sub-role unless a fixture needs it.
   - Seeds all public app-facing tables, including `campaigns`, `notification_queue`, and `pledge_charge_attempts`.
 - Historical: `supabase/migrations/20260216153000_demo_readonly_rls.sql` (February 2026) granted public `SELECT` on demo-visible tables and revoked anon/authenticated writes. Later migrations superseded that posture: `20261025120800_close_public_reads_tenant_scope.sql` (#2312) removed the public reads, and some tables now accept authenticated own-row writes. Do not reintroduce public reads.
 
@@ -52,7 +54,7 @@ Use this doc when a task touches:
 ## Checklist
 
 - [ ] `supabase/seed.sql` is deterministic and idempotent
-- [ ] Seed inserts exactly one row in `public.profiles`
+- [ ] Seed inserts exactly three rows in `public.profiles` across two tenants, and owns every `authz.memberships` row
 - [ ] FK graph is valid (no orphaned references)
 - [ ] No `anon`/`PUBLIC` reads on tenant tables; RLS enabled and forced, with a policy or a reviewed deny-by-default entry
 - [ ] Internal tables are not exposed

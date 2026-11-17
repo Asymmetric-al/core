@@ -68,6 +68,7 @@ run_verify() {
       VALUES
         ('tenants', (SELECT COUNT(*)::bigint FROM public.tenants)),
         ('profiles', (SELECT COUNT(*)::bigint FROM public.profiles)),
+        ('memberships', (SELECT COUNT(*)::bigint FROM authz.memberships)),
         ('missionaries', (SELECT COUNT(*)::bigint FROM public.missionaries)),
         ('donors', (SELECT COUNT(*)::bigint FROM public.donors)),
         ('funds', (SELECT COUNT(*)::bigint FROM public.funds)),
@@ -95,11 +96,15 @@ run_verify() {
   "
 
   echo
-  echo "Single-profile check:"
+  echo "Fixture identity check (expected: 3 profiles, 2 tenants, 6 live memberships):"
   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
-    SELECT COUNT(*)::bigint AS profile_rows,
-           COUNT(*) FILTER (WHERE id = '11111111-1111-1111-1111-111111111111')::bigint AS demo_profile_rows
-    FROM public.profiles;
+    SELECT (SELECT COUNT(*)::bigint FROM public.profiles) AS profile_rows,
+           (SELECT COUNT(*)::bigint FROM public.profiles
+             WHERE id IN ('11111111-1111-1111-1111-111111111111',
+                          '33333333-3333-3333-3333-333333333333',
+                          '44444444-4444-4444-4444-444444444444')) AS fixture_profile_rows,
+           (SELECT COUNT(*)::bigint FROM public.tenants) AS tenant_rows,
+           (SELECT COUNT(*)::bigint FROM authz.memberships WHERE is_active) AS live_membership_rows;
   "
 }
 
