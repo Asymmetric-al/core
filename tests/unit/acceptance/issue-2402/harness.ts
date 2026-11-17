@@ -1,5 +1,11 @@
 /** #2402 r1 + addendum: supports c2/2a-12/15 (private DB, identities, ACLs).
  * Copied isolation design from #2258 e6f7f77f; never write to the admin DB.
+ *
+ * Amended by AL-2675 (WP2a; NR-55): the helper behind these functions tests
+ * the caller's selected live staff membership and the view-defaults
+ * capability on it, not the profile's tenant and role or `super_admin`. The
+ * fixture gives "admin" a flagged staff row (the tenant administrator), adds
+ * "multi" with two staff rows, and calls can carry the assignment header.
  */
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -57,13 +63,19 @@ export function call(i: number, values: unknown[], profile?: string) {
 export class Stack {
   readonly database = `acc2402_${randomUUID().replaceAll("-", "")}`;
   readonly ids = Object.fromEntries(
-    "A B staff admin super donor member inactive other missing"
+    "A B staff admin super donor member inactive other missing multi"
       .split(" ")
       .map((k) => [k, randomUUID()]),
   );
   readonly profiles = Object.fromEntries(
     Object.keys(this.ids).map((k) => [k, randomUUID()]),
   );
+  /** Membership row ids the tests name in the assignment header. */
+  readonly rows = {
+    admin: randomUUID(),
+    multiFinance: randomUUID(),
+    multiHr: randomUUID(),
+  };
   readonly admin: pg.Client;
   readonly db: pg.Client;
   readonly url: URL;
@@ -174,6 +186,7 @@ export class Stack {
       member: "donor",
       inactive: "donor",
       other: "staff",
+      multi: "staff",
     };
     for (const [actor, role] of Object.entries(roles)) {
       await this.db.query(
@@ -185,6 +198,18 @@ export class Stack {
       `insert into authz.memberships(user_id,tenant_id,role,staff_role,is_active) values
       ($1,$4,'staff','finance',true),($2,$4,'staff','finance',true),($3,$4,'staff','finance',false)`,
       [id.staff, id.member, id.inactive, id.A],
+    );
+    await this.db.query(
+      `insert into authz.memberships(id,user_id,tenant_id,role,staff_role,is_tenant_admin,is_active) values
+      ($1,$2,$5,'staff','development',true,true),($3,$4,$5,'staff','finance',false,true),($6,$4,$5,'staff','hr',false,true)`,
+      [
+        this.rows.admin,
+        id.admin,
+        this.rows.multiFinance,
+        id.multi,
+        id.A,
+        this.rows.multiHr,
+      ],
     );
   }
   async tx(fn: () => Promise<void>) {
@@ -200,13 +225,16 @@ export class Stack {
     role: "anon" | "authenticated" | "service_role" | "postgres",
     actor: string | null,
     sql: string,
+    assignment?: string,
   ) {
     await this.db.query("savepoint actor");
     try {
       const sub = actor ? this.ids[actor] : "";
+      const headers = assignment ? { "x-asym-assignment": assignment } : "";
       await this.db.query(`set local role ${role};
         select set_config('request.jwt.claim.sub',${literal(sub)},true),
-        set_config('request.jwt.claims',${literal({ sub: sub || null, role })},true)`);
+        set_config('request.jwt.claims',${literal({ sub: sub || null, role })},true),
+        set_config('request.headers',${literal(headers)},true)`);
       const result = await this.db.query(sql);
       await this.db.query("reset role; release savepoint actor");
       return { code: null, value: result.rows[0]?.value as unknown };

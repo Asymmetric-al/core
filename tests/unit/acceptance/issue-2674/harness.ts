@@ -62,8 +62,12 @@ export function fixtureSql(id: Record<string, string>) {
     ["m2d", "U2", "TB", "donor", null, true],
     ["m3", "U3", "TB", "donor", null, true],
   ];
+  // Since AL-2675 the sign-up trigger also gives each new login a donor
+  // membership in the demo tenant; the fixture removes it so each user holds
+  // exactly the rows below.
   return `insert into public.tenants (id, name, slug) values (${q("TA")}, 'acc2674 A', 'acc2674-' || ${q("TA")}), (${q("TB")}, 'acc2674 B', 'acc2674-' || ${q("TB")});
     insert into auth.users (id) values (${q("U1")}), (${q("U2")}), (${q("U3")});
+    delete from authz.memberships where user_id in (${q("U1")}, ${q("U2")}, ${q("U3")});
     insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_active) values ${rows
       .map(
         ([m, u, t, role, staff, live]) =>
