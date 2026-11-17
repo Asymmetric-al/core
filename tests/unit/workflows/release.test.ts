@@ -25,6 +25,21 @@ describe("release workflow (plan 7.4)", () => {
     expect(workflow).not.toContain("cancel-in-progress: true");
   });
 
+  // Council round 2, A6e: by default a newer pending run replaces the one
+  // waiting before it. The preview job's group queues, so this one does too.
+  it("queues waiting runs in the workflow's group, as the preview-database job does in the same group", () => {
+    expect(workflow).toContain(
+      "concurrency:\n  group: ${{ inputs.environment == 'preview' && 'preview-database' || 'release-production' }}\n  cancel-in-progress: false\n  queue: max\n",
+    );
+    const preview = readFileSync(
+      ".github/workflows/qa-smoke-preview-deploy.yml",
+      "utf8",
+    );
+    expect(preview).toContain(
+      "    concurrency:\n      group: preview-database\n      cancel-in-progress: false\n      queue: max\n",
+    );
+  });
+
   it("migrates, gates and records heads before any deployment, in that order", () => {
     const database = job("database");
     expect(

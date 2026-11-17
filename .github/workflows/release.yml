@@ -53,11 +53,14 @@ on:
 permissions:
   contents: read
 
-# One release at a time per database, never cancelled mid-migration. The
-# preview environment shares its group with the preview workflow's rebuild.
+# One release at a time per database, never cancelled mid-migration, and
+# never dropped while pending: as in the preview workflow's preview-database
+# job, which shares the preview group, waiting runs queue instead of the
+# newest replacing the one before it.
 concurrency:
   group: ${{ inputs.environment == 'preview' && 'preview-database' || 'release-production' }}
   cancel-in-progress: false
+  queue: max
 
 env:
   BUN_VERSION: "1.4.3"
