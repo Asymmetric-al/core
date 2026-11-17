@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import {
   createConfirmedUser,
@@ -7,7 +7,9 @@ import {
   readAuthMailEnv,
   uniqueTestEmail,
   waitForAuthEmailLink,
+  waitForHydratedForm,
   warmUpAuthMailer,
+  warmUpRoutes,
 } from "./helpers/auth-mail";
 
 /**
@@ -24,19 +26,17 @@ const SURFACES: Record<string, { profileRole: string; homePath: string }> = {
 
 const env = readAuthMailEnv();
 
-/**
- * Waits until the dev server has stopped sending the page's code, so the form
- * is hydrated. Text typed into a server-rendered field before hydration is
- * dropped when React takes the field over, which on a slow first compile made
- * the reset request go out with no address.
- */
-async function waitForHydratedForm(page: Page) {
-  await page.waitForLoadState("networkidle");
-}
-
 test.beforeAll(async () => {
-  if (env && SURFACES[test.info().project.name]) {
+  const { project } = test.info();
+  const surface = SURFACES[project.name];
+  if (env && surface && project.use.baseURL) {
     await warmUpAuthMailer(env);
+    await warmUpRoutes(project.use.baseURL, [
+      "/login",
+      "/forgot-password",
+      "/forgot-password/reset",
+      surface.homePath,
+    ]);
   }
 });
 

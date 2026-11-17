@@ -16,7 +16,7 @@ import { callbackRedirect } from "./callback";
  * so there is nothing to exchange.
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
 
   if (code) {
@@ -25,5 +25,5 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return callbackRedirect(`${origin}${PASSWORD_RECOVERY_PATHS.reset}`);
+  return callbackRedirect(PASSWORD_RECOVERY_PATHS.reset);
 }

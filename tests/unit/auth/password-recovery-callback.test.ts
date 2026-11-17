@@ -96,9 +96,9 @@ describe("password recovery callback", () => {
     expect(response.status).toBe(307);
     // Never the role home: the person must set a password first, whatever
     // their role, and on the host the email link returned to.
-    expect(response.headers.get("location")).toBe(
-      "http://localhost:3130/forgot-password/reset",
-    );
+    // Relative: the browser stays on the host the email link returned to,
+    // whatever host the server's request URL names.
+    expect(response.headers.get("location")).toBe("/forgot-password/reset");
     expect(fixture.writes).toContainEqual(
       expect.objectContaining({
         name: "sb-recovery-fixture-auth-token",
@@ -118,9 +118,7 @@ describe("password recovery callback", () => {
       ),
     );
 
-    expect(response.headers.get("location")).toBe(
-      "https://give.example.org/forgot-password/reset",
-    );
+    expect(response.headers.get("location")).toBe("/forgot-password/reset");
     expect(
       fixture.writes.filter(
         (write) => write.name === "sb-recovery-fixture-auth-token",
@@ -139,9 +137,7 @@ describe("password recovery callback", () => {
       ),
     );
 
-    expect(response.headers.get("location")).toBe(
-      "http://127.0.0.1:4100/forgot-password/reset",
-    );
+    expect(response.headers.get("location")).toBe("/forgot-password/reset");
     expect(fetch).not.toHaveBeenCalled();
     expect(fixture.writes).toEqual([]);
     expectPrivate(response);

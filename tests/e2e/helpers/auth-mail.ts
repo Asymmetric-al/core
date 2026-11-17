@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 import { isLocalHostname } from "../playwright-shared";
 
@@ -88,6 +88,35 @@ export async function createConfirmedUser(
   expect(profile.status, await profile.clone().text()).toBe(200);
   expect(await profile.json()).toHaveLength(1);
   return id;
+}
+
+/**
+ * Waits until the dev server has stopped sending the page's code, so the form
+ * is hydrated. Text typed into a server-rendered field before hydration is
+ * dropped when React takes the field over, which on a slow first compile sent
+ * a form with an empty field.
+ */
+export async function waitForHydratedForm(page: Page) {
+  await page.waitForLoadState("networkidle");
+}
+
+/**
+ * Requests each route once over HTTP, so a dev server compiles it before a
+ * browser opens it. With the browser already on a page, a cold dev server
+ * that compiled routes on demand reloaded that page every second or so for
+ * minutes; the same journeys on a warm server ran without a reload.
+ */
+export async function warmUpRoutes(baseURL: string, paths: readonly string[]) {
+  // The servers listen on 127.0.0.1; Node may resolve localhost to ::1.
+  const origin = new URL(baseURL);
+  origin.hostname = "127.0.0.1";
+  for (const path of paths) {
+    const response = await fetch(new URL(path, origin), {
+      redirect: "manual",
+      signal: AbortSignal.timeout(300_000),
+    });
+    expect(response.status, `warm-up ${path}`).toBeLessThan(500);
+  }
 }
 
 export async function deleteUser(env: AuthMailEnv, userId: string) {
