@@ -212,7 +212,21 @@ deployments refuse any other run-time role and refuse a run-time environment
 that holds `PAYLOAD_MIGRATION_DATABASE_URI`. Payload no longer falls back to
 `SUPABASE_DB_URL` (NA-04).
 
-`bun run cms:qualify` passed all eleven checks on a new PostgreSQL 17 database
+A follow-up closes the rest of the confinement. The role migration revokes the
+Data API roles' access to `cms` (schema usage, every object grant and the
+default privileges that gave `service_role` each new table); nothing in Core
+reads `cms` through them. `cms_runtime` reads Payload's migration ledger but
+cannot write it: Payload writes `cms.payload_migrations` only from its migrate
+commands and a development push, and the server's own statement log showed no
+statement on that table from Payload at start-up or in Local API use. The
+Payload migration `20261117_082928_cms_runtime_ledger_read_only` applies the
+revoke on a fresh database. The adapter now runs with `disableCreateDatabase`:
+without it, Payload started as `cms_runtime` against a missing database sent
+`CREATE DATABASE`; with it, it sends nothing and fails to start. After the
+follow-up, `bun run cms:qualify` passed its fourteen checks on Linux, under
+Node 24.22.3 on PostgreSQL 17.12.
+
+The first `bun run cms:qualify` run passed all eleven checks on a new PostgreSQL 17 database
 under Node 24.22.3: Supabase and Payload migrations from empty (Payload's as
 the `cms_owner` login, at most one connection), ownership and grants, the
 confinement probes, start-up as `cms_runtime` with push off (the release sends

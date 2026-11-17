@@ -61,6 +61,15 @@ Supabase migration `*_cms_database_roles.sql` without passwords:
 - `cms_runtime` is Payload's run-time login: rows in `cms` only, no schema
   change, at most ten connections. Protected deployments refuse to start Web
   Studio on any other role, or when `PAYLOAD_MIGRATION_DATABASE_URI` is present.
+  It reads Payload's migration ledger (`cms.payload_migrations`) but cannot
+  write it; the Payload migration `20261117_082928_cms_runtime_ledger_read_only`
+  takes that access away once Payload has created the table.
+
+The same Supabase migration closes `cms` to `anon`, `authenticated` and
+`service_role`: no schema usage, no grant on any object and no default
+privilege. Core never reads `cms` through the Data API. Payload is configured
+with `disableCreateDatabase`, so a missing database is a start-up error, never
+a `CREATE DATABASE`.
 
 `cms:migrate` runs on `PAYLOAD_MIGRATION_DATABASE_URI`. On a loopback database
 without it, the runner reuses `PAYLOAD_DATABASE_URI` with the session role set
@@ -99,11 +108,12 @@ PAYLOAD_QUALIFICATION_ADMIN_URL=postgresql://postgres:<password>@127.0.0.1:<port
 ```
 
 It applies every Supabase migration and every Payload migration from empty
-(Payload's as the `cms_owner` login), checks ownership, grants and
-confinement, starts the pinned release as `cms_runtime` with schema push off
-while recording every statement it sends, checks Local API access defaults and
-version-read access, and confirms that a start with push on fails and changes
-nothing. It drops the database unless `--keep` is given.
+(Payload's as the `cms_owner` login), checks ownership, grants, the closed
+Data API roles, the read-only migration ledger and confinement, starts the
+pinned release as `cms_runtime` with schema push off while recording every
+statement it sends, checks Local API access defaults and version-read access,
+and confirms that a start with push on, or against a missing database, fails
+and changes nothing. It drops the database unless `--keep` is given.
 
 1. Verify the actual database/project and migration status using the committed
    runner. Preserve a pre-cutover database backup and media assets; restore the
@@ -120,7 +130,9 @@ nothing. It drops the database unless `--keep` is given.
    `20261022_002412_payload_v4_public_beta_metadata` (nullable media metadata and
    in-place shortening of the one versioned impact-stat items table), then
    `20261117_040437_payload_v4_beta_9_upload_state` (five nullable upload-state
-   columns on `media` that beta.8 and beta.9 add). Do not use
+   columns on `media` that beta.8 and beta.9 add) and
+   `20261117_082928_cms_runtime_ledger_read_only` (no schema change; it makes
+   the migration ledger read-only for `cms_runtime`). Do not use
    schema push, a fresh/reset command, or regenerate the baseline migration.
 4. Confirm the migration ledger, records, relationships, original/variant asset
    hashes, both public serializers, tenant denials and authenticated editor,
