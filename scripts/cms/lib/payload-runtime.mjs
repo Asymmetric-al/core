@@ -5,7 +5,10 @@ import { pathToFileURL } from "node:url";
 
 import { adminAppDir } from "./paths.mjs";
 
-export const PAYLOAD_V4_MIN_NODE_VERSION = "24.15.0";
+// The installed Payload's `engines.node`, which a unit test keeps in step.
+export const PAYLOAD_V4_NODE_RANGE = "^24.22.3 || >=26.13.1";
+export const PAYLOAD_V4_MIN_NODE_VERSION = "24.22.3";
+const PAYLOAD_V4_NODE_26_FLOOR = "26.13.1";
 
 const supportedCommands = new Set([
   "generate:db-schema",
@@ -121,6 +124,20 @@ export function isPayloadV4Version(version) {
   return normalized.startsWith("4.");
 }
 
+function isSupportedPayloadNode(nodeVersion) {
+  const parsed = parseNodeVersion(nodeVersion);
+  if (!parsed) {
+    return false;
+  }
+  if (parsed.major === 24) {
+    return compareNodeVersions(nodeVersion, PAYLOAD_V4_MIN_NODE_VERSION) >= 0;
+  }
+  if (parsed.major === 26) {
+    return compareNodeVersions(nodeVersion, PAYLOAD_V4_NODE_26_FLOOR) >= 0;
+  }
+  return parsed.major > 26;
+}
+
 export function assertPayloadRuntimeRequirements({
   nodeVersion = process.versions.node,
   payloadVersion = getConfiguredPayloadVersion(),
@@ -129,13 +146,13 @@ export function assertPayloadRuntimeRequirements({
     return;
   }
 
-  if (compareNodeVersions(nodeVersion, PAYLOAD_V4_MIN_NODE_VERSION) >= 0) {
+  if (isSupportedPayloadNode(nodeVersion)) {
     return;
   }
 
   throw new Error(
     [
-      `Payload ${payloadVersion} requires Node.js ${PAYLOAD_V4_MIN_NODE_VERSION}+ for CMS CLI commands.`,
+      `Payload ${payloadVersion} requires Node.js ${PAYLOAD_V4_NODE_RANGE} for CMS CLI commands.`,
       `Current Node.js version is ${nodeVersion}.`,
       "Upgrade Node before running cms:migrate, cms:migrate:status, or cms:importmap.",
     ].join(" "),

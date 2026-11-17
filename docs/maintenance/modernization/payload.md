@@ -186,3 +186,47 @@ A failed ownership or cleanup readback remains an explicit unqualified result.
 The earlier prebuilt helper is pending retirement after actual hosted-path
 qualification; its diagnostic evidence remains historical. This local result is
 not a deployed-preview or release completion claim.
+
+### Patched pre-release and database roles (AL-2674)
+
+On 17 November 2026 the registry's newest v4 pre-release on the `beta` tag
+was `4.0.0-beta.9` (published 13 November 2026); `latest` is the v3 line and
+`canary` is older than `beta.0`. The cohort moves from `beta.3` to `beta.9`:
+beta.7 carries the three security fixes that list beta.3 as affected (audit
+C01), and beta.9 adds preserved transaction commit and rollback failures. Its
+breaking changes reach Core in two places. The Node floor is now
+`^24.22.3 || >=26.13.1`, so the repository pin moves to Node 24.22.3 (a
+security release of 10 November 2026) in `.node-version`, `engines`, the four
+CI workflow pins and the CMS runner's guard. Beta.8 and beta.9 add five
+nullable upload-state columns to `media`, which the generated migration
+`20261117_040437_payload_v4_beta_9_upload_state` adds. Beta.8's React 19.3.1
+and Next 16.4.1 peers are already met. The regenerated import map follows two
+renamed dashboard widgets, four new Payload colour tokens are bridged to Core's
+semantic tokens, and one test that imports Payload's upload planner follows
+its move into `uploads/generateFileData/`.
+
+Payload now has its own database roles, from the Supabase migration
+`*_cms_database_roles.sql`: `cms_owner` owns `cms` and runs Payload migrations;
+`cms_runtime` is the run-time login, with row access in `cms` only. Protected
+deployments refuse any other run-time role and refuse a run-time environment
+that holds `PAYLOAD_MIGRATION_DATABASE_URI`. Payload no longer falls back to
+`SUPABASE_DB_URL` (NA-04).
+
+`bun run cms:qualify` passed all eleven checks on a new PostgreSQL 17 database
+under Node 24.22.3: Supabase and Payload migrations from empty (Payload's as
+the `cms_owner` login, at most one connection), ownership and grants, the
+confinement probes, start-up as `cms_runtime` with push off (the release sends
+no statement while starting and none of the 44 it sends changes a schema; the
+catalog fingerprint is unchanged), Local API access defaults, version reads
+(anonymous refused; the public reader sees only the published version; another
+tenant's staff see none), and a start with push on, which fails at its first
+`ALTER TABLE` and changes nothing. That push attempt also shows that
+`pushSchema` would drop and recreate truncated foreign-key names on this
+schema, so a push is never a safe way to sync it.
+
+The same role migration, applied twice as the image's own non-superuser
+`postgres` on Supabase's PostgreSQL image `17.11.0.004`, gave the same roles,
+ownership and grants, including the transfer of objects created in `cms`
+before it. On that image Payload migrated as the `cms_owner` login and started
+as `cms_runtime` with the same access results. These are local results; the
+hosted pooler and deployed-role proofs remain open.

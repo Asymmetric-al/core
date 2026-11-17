@@ -142,6 +142,9 @@ html[data-theme="dark"] {
   --color-border-onbrand-strong: var(--primary-foreground);
   --color-border-component: var(--border);
   --color-border-component-strong: var(--border);
+  --color-border-control: var(--input);
+  --color-border-control-strong: var(--input);
+  --color-border-menu-separator: var(--border);
   --color-border-danger: var(--destructive);
   --color-border-danger-strong: var(--destructive);
   --color-border: var(--border);
@@ -167,6 +170,7 @@ html[data-theme="dark"] {
   --color-icon-component-tertiary: var(--accent-foreground);
   --color-icon-oncomponent: var(--accent-foreground);
   --color-icon-danger: var(--destructive);
+  --color-icon-favorite: var(--warning);
   --color-icon-ondanger: var(--destructive-foreground);
   --color-icon-ondanger-secondary: var(--destructive-foreground);
   --color-icon: var(--foreground);
