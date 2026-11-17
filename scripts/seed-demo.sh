@@ -24,6 +24,9 @@ require_env() {
 
 run_local() {
   require_cmd bun
+  require_cmd node
+  # Plan 7.5: reset only a database marked disposable.
+  node "$ROOT_DIR/scripts/db/require-disposable-database.mjs" --local
   echo "Applying local migrations and seeding via Supabase CLI (repo runner)..."
   bun run supabase -- db reset --local
   echo "Local seed complete."
@@ -35,6 +38,10 @@ run_hosted() {
   require_env SUPABASE_SERVICE_ROLE_KEY
   require_env SUPABASE_DB_URL
   require_env NEXT_PUBLIC_SUPABASE_URL
+  require_cmd node
+
+  # Plan 7.5: reseed only a database marked disposable.
+  node "$ROOT_DIR/scripts/db/require-disposable-database.mjs" --url-env SUPABASE_DB_URL
 
   local normalized_url="${NEXT_PUBLIC_SUPABASE_URL%/}"
   if [[ "$normalized_url" != "$EXPECTED_SUPABASE_URL" ]]; then

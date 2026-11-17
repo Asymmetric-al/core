@@ -146,7 +146,7 @@
     "cms:local:verify": "bun scripts/cms/verify-local.mjs",
     "cms:local:dev": "node scripts/cms/local-dev.mjs",
     "site-studio:walkthrough:cloud": "bash ./scripts/dev/site-studio-cloud-walkthrough.sh",
-    "db:migrate:local": "bun run supabase -- db reset --local --no-seed",
+    "db:migrate:local": "node scripts/db/require-disposable-database.mjs --local && bun run supabase -- db reset --local --no-seed",
     "db:migrate:hosted": "node scripts/db-migrate-hosted.mjs",
     "seed:demo:local": "bash ./scripts/seed-demo.sh local",
     "seed:demo:hosted": "bash ./scripts/seed-demo.sh hosted",
