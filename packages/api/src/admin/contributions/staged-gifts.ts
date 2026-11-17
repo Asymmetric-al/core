@@ -337,12 +337,18 @@ export const PATCH = withOperation(
       }
 
       if (body.allocations) {
+        // The replacement RPC locks the gift and checks its tenant, but not
+        // its state: a gift moved between the write above and this call still
+        // gets the new lines. Closing that needs the RPC to take the expected
+        // state, which is a migration (council round 2, B5).
         await replaceStagedGiftAllocations({
           supabaseAdmin,
           gift: { id: gift.id, tenantId: gift.tenantId },
           allocations: body.allocations,
         });
 
+        // Recorded only while the gift is still in the state this edit left
+        // it in; a gift posted or refunded meanwhile is reported, not marked.
         const allocationStatus =
           body.allocations.length > 1 ? "split" : "corrected";
         const allocationPatch = await supabaseAdmin
@@ -351,9 +357,19 @@ export const PATCH = withOperation(
             allocation_status: allocationStatus,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", gift.id);
+          .eq("id", gift.id)
+          .eq("tenant_id", gift.tenantId)
+          .eq("status", updated.data.status)
+          .select("id")
+          .maybeSingle();
         if (allocationPatch.error) {
           throw new Error(allocationPatch.error.message);
+        }
+        if (!allocationPatch.data) {
+          throw new ApiHttpError(
+            409,
+            "The staged gift changed while its split was being saved. Reload it and check the split.",
+          );
         }
       }
 

@@ -52,6 +52,8 @@ const writes: Write[] = [];
 const rpcCalls: Array<[string, Row]> = [];
 /** Runs once after the first staged-gift read, to simulate a concurrent writer. */
 let afterFirstGiftRead: (() => void) | null = null;
+/** Runs once when an RPC is called, to simulate a writer between two writes. */
+let duringRpc: (() => void) | null = null;
 
 function giftRow(overrides: Row = {}): Row {
   return {
@@ -74,6 +76,7 @@ function resetDatabase(gift: Row = giftRow()) {
   writes.length = 0;
   rpcCalls.length = 0;
   afterFirstGiftRead = null;
+  duringRpc = null;
   tables.set("staged_gifts", [{ ...gift }]);
   tables.set("donors", [
     { id: DONOR, tenant_id: TENANT },
@@ -159,6 +162,11 @@ const client = {
   from: (table: string) => query(table),
   rpc: async (fn: string, args: Row) => {
     rpcCalls.push([fn, args]);
+    if (duringRpc) {
+      const hook = duringRpc;
+      duringRpc = null;
+      hook();
+    }
     return { data: null, error: null };
   },
 };
@@ -301,6 +309,32 @@ describe("legacy approve stays the approve path", () => {
       expect(writes).toEqual([]);
     },
   );
+
+  // Council round 2, B5: a refund applied between the read and the write
+  // must not be overwritten by an approval.
+  it("refuses the approval when the gift was refunded after it was read", async () => {
+    resetDatabase(
+      giftRow({
+        last_error_code: "refund_pending",
+        last_error_message: "Refund in flight",
+      }),
+    );
+    afterFirstGiftRead = () => {
+      const gift = tables.get("staged_gifts")?.[0];
+      if (gift) gift.status = "refunded";
+    };
+    const response = await routes.POST_APPROVE();
+    expect(response.status).toBe(409);
+    expect(tables.get("staged_gifts")?.[0]).toMatchObject({
+      status: "refunded",
+      last_error_code: "refund_pending",
+      last_error_message: "Refund in flight",
+    });
+    expect(tables.get("staged_gifts")?.[0]).not.toHaveProperty(
+      "reviewed_by_profile_id",
+    );
+    expect(tables.get("staged_gift_audit_events")).toEqual([]);
+  });
 });
 
 describe("legacy edit checks the staged gift's state (NV-03)", () => {
@@ -399,6 +433,45 @@ describe("legacy edit checks the staged gift's state (NV-03)", () => {
     expect(response.status).toBe(400);
     expect(writes).toEqual([]);
     expect(rpcCalls).toEqual([]);
+  });
+
+  // Council round 2, B5: the split is recorded only while the gift is still
+  // in the state the edit left it in.
+  it("does not record the split on a gift that moved after the checked write", async () => {
+    duringRpc = () => {
+      const gift = tables.get("staged_gifts")?.[0];
+      if (gift) gift.status = "posted";
+    };
+    const response = await routes.PATCH({
+      allocations: [
+        { fundId: FUND, amount: 6_000 },
+        { missionaryId: MISSIONARY, amount: 4_000 },
+      ],
+    });
+    expect(response.status).toBe(409);
+    expect(tables.get("staged_gifts")?.[0]).toMatchObject({
+      status: "posted",
+    });
+    expect(tables.get("staged_gifts")?.[0]).not.toHaveProperty(
+      "allocation_status",
+    );
+    expect(
+      writes.filter((write) => write.table === "staged_gift_audit_events"),
+    ).toEqual([]);
+  });
+
+  it("records the split with the state check on the gift's tenant", async () => {
+    const response = await routes.PATCH({
+      allocations: [
+        { fundId: FUND, amount: 6_000 },
+        { missionaryId: MISSIONARY, amount: 4_000 },
+      ],
+    });
+    expect(response.status).toBe(200);
+    expect(tables.get("staged_gifts")?.[0]).toMatchObject({
+      status: "needs_review",
+      allocation_status: "split",
+    });
   });
 
   it("refuses the edit when the gift's state changed after it was read", async () => {
