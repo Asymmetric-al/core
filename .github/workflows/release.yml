@@ -12,6 +12,9 @@
 #   set-environment-marker  move the marker forward (owner's approval)
 #   first-rebuild           the one-off rebuild of a database with no marker
 #   set-cms-role-passwords  set cms_owner and cms_runtime from the secrets
+#   replace-seeded-login-passwords
+#                           give seeded logins that still carry a password the
+#                           repository publishes the release secret instead
 #
 # The marker change and the first rebuild wait for the owner's approval in the
 # GitHub environment release-owner-approval (plan 7.5), which has a required
@@ -33,6 +36,7 @@ on:
           - set-environment-marker
           - first-rebuild
           - set-cms-role-passwords
+          - replace-seeded-login-passwords
       environment:
         description: Release environment (preview is the disposable preview project)
         required: true
@@ -317,3 +321,35 @@ jobs:
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
         run: node scripts/release/release-database.mjs cms-role-passwords
+
+  # The repair after a rebuild that stopped between its seed and the
+  # replacement of the seed's published password (record D-24): every release
+  # stops at its preflight until this has run. It resets nothing and changes
+  # only logins that carry a published password.
+  seeded-login-passwords:
+    name: replace-seeded-login-passwords
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'replace-seeded-login-passwords'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
+    steps:
+      - name: Require the production branch
+        if: github.ref != 'refs/heads/production'
+        run: |
+          echo "::error::The release job runs only from the production branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Replace the published password of seeded logins
+        env:
+          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+          RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
+        run: node scripts/release/release-database.mjs replace-seeded-login-passwords

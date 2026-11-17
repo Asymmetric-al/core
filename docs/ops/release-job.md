@@ -118,12 +118,13 @@ has no rollback of its own.
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `release`                | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                         |
-| `set-environment-marker` | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                             |
-| `first-rebuild`          | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords` | `environment`                                                  | Sets `cms_owner` and `cms_runtime` from the secrets and proves each can log in. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                          |
+| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                         |
+| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                             |
+| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords`         | `environment`                                                  | Sets `cms_owner` and `cms_runtime` from the secrets and proves each can log in. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                          |
+| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                      |
 
 The marker change and the first rebuild run only after a required reviewer of
 the GitHub environment `release-owner-approval` approves the run's
@@ -164,6 +165,37 @@ that do not carry a published password are left alone. The step stops if any
 login still carries one. Anyone who signs in as a seeded login on a hosted
 project uses that secret. `bun run seed:demo:users` refuses a published
 password for a hosted project too.
+
+The replacement runs after any reset that was attempted, whatever the reset's
+outcome, because a reset that fails after its seed has already put the
+published password in place. If the replacement itself fails, the step stops
+with "Seeded logins may still carry the password published in the
+repository". From then on every release of that database stops at its
+preflight, which refuses a database where any login still carries a published
+password, until the repair below has run.
+
+### If seeded logins keep a published password
+
+A rebuild that stopped between its seed and the replacement (the step failed,
+or the runner was lost) leaves the demo logins with their published password,
+and anyone who knows it can sign in. The release job's preflight then stops
+with "N login(s) carry a password published in the repository", and a
+rebuild with "Seeded logins may still carry the password published in the
+repository".
+
+1. Do not use the database, and do not promote anything built against it.
+2. Read the failed run's log and fix what stopped it.
+3. Dispatch **Release**, branch `production`, operation
+   `replace-seeded-login-passwords`, with the affected `environment`. It needs
+   no approval: it resets nothing, and it changes only the logins whose stored
+   hash matches a password the repository publishes, giving them
+   `RELEASE_SEED_LOGIN_PASSWORD` as the rebuild would have.
+   Check: the run's log says "Replaced the published password of N seeded
+   login(s)", and signing in as `demo-owner@givehope.test` with
+   `demo-password` fails.
+4. Release again (a push to `production`, or the `release` operation); its
+   preflight passes. A preview database can instead be rebuilt again by the
+   preview workflow, which repeats the replacement.
 
 ### Why the first rebuild alone may reset an unmarked database
 
