@@ -110,6 +110,80 @@ describe("e2e-dev-server.sh", () => {
     },
   );
 
+  describe("the address each app is served on", () => {
+    /**
+     * Starts the script with a `setsid` stub first on PATH, which records the
+     * command it was given and the NODE_OPTIONS it inherited instead of
+     * starting a dev server.
+     */
+    function launchRecord(app: string, args: string[]) {
+      const dir = mkdtempSync(path.join(tmpdir(), "e2e-dev-server-launch-"));
+      try {
+        const record = path.join(dir, "launch.txt");
+        const bin = path.join(dir, "bin");
+        spawnSync("mkdir", [bin]);
+        writeFileSync(
+          path.join(bin, "setsid"),
+          `#!/usr/bin/env bash\nprintf 'NODE_OPTIONS=%s\\n%s\\n' "$NODE_OPTIONS" "$*" > "${record}"\n`,
+          { mode: 0o755 },
+        );
+        const result = runScript([app, "start", ...args], {
+          PATH: `${bin}:${process.env.PATH ?? ""}`,
+          RUNNER_TEMP: dir,
+          NODE_OPTIONS: "--max-http-header-size=16384",
+          ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "",
+        });
+        expect(result.status, result.stderr).toBe(0);
+        // The stub runs in the background; wait for its record (generously:
+        // the script first snapshots the process table, which is slow under load).
+        const deadline = Date.now() + 30_000;
+        while (!existsSync(record) && Date.now() < deadline) {
+          spawnSync("sleep", ["0.05"]);
+        }
+        const [nodeOptions, command] = readFileSync(record, "utf8").split("\n");
+        return { nodeOptions: nodeOptions ?? "", command: command ?? "" };
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    }
+
+    it.each([
+      ["admin", "3030"],
+      ["missionary", "4000"],
+    ])(
+      "binds %s, whose proxy rewrites the tenant address, by the loopback name resolved to IPv4 first (record D-19)",
+      (app, port) => {
+        // Bound to a loopback IP literal, Next compares the proxy's rewrite,
+        // which it has normalized to localhost, with the literal and sends
+        // the rewrite out of the server; the proxy then answers 500.
+        const { nodeOptions, command } = launchRecord(app, [port]);
+        expect(command).toContain(`--port ${port} --hostname localhost`);
+        expect(command).not.toContain("127.0.0.1");
+        // IPv4 first, so it still answers on 127.0.0.1 where the workflow's
+        // probes and Playwright reach it; the inherited options stay.
+        expect(nodeOptions).toBe(
+          "NODE_OPTIONS=--max-http-header-size=16384 --dns-result-order=ipv4first",
+        );
+      },
+      60_000,
+    );
+
+    it("keeps the donor app, which has no tenant address, on the address it is given", () => {
+      const { nodeOptions, command } = launchRecord("donor", ["3005"]);
+      expect(command).toContain("--port 3005 --hostname 127.0.0.1");
+      expect(nodeOptions).toBe("NODE_OPTIONS=--max-http-header-size=16384");
+    }, 60_000);
+
+    it("leaves an address that is not loopback as given", () => {
+      const { nodeOptions, command } = launchRecord("admin", [
+        "3030",
+        "0.0.0.0",
+      ]);
+      expect(command).toContain("--port 3030 --hostname 0.0.0.0");
+      expect(nodeOptions).toBe("NODE_OPTIONS=--max-http-header-size=16384");
+    }, 60_000);
+  });
+
   describe("readiness wait and process files", () => {
     const freePort = () =>
       new Promise<number>((resolve) => {

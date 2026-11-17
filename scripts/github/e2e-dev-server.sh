@@ -121,9 +121,25 @@ start_app() {
   stop_app "$APP"
   log_runner_snapshot "before-start-${APP}-dev"
 
-  echo "==> E2E dev server: ${APP} on ${host}:${port}"
-  setsid nohup node scripts/run-with-ci-env.mjs -- bun run --cwd "$app_dir" dev -- \
-    --port "$port" --hostname "$host" >"$log" 2>&1 &
+  # Mission Control and the missionary workspace serve every signed-in page
+  # through their proxy's rewrite of the tenant address (AL-2675, record
+  # D-19). On a server bound to a loopback IP literal, Next compares that
+  # rewrite, which it has normalized to localhost, with the literal and sends
+  # it out of the server, and the proxy answers 500. Those apps bind the
+  # loopback name instead, resolved IPv4 first so the server still answers on
+  # 127.0.0.1, where the workflow's probes and Playwright reach it.
+  local listen_host="$host"
+  local node_options="${NODE_OPTIONS:-}"
+  if [[ "$APP" == "admin" || "$APP" == "missionary" ]] &&
+    [[ "$host" == "127.0.0.1" || "$host" == "localhost" ]]; then
+    listen_host="localhost"
+    node_options="${node_options:+${node_options} }--dns-result-order=ipv4first"
+  fi
+
+  echo "==> E2E dev server: ${APP} on ${listen_host}:${port}"
+  NODE_OPTIONS="$node_options" setsid nohup node scripts/run-with-ci-env.mjs -- \
+    bun run --cwd "$app_dir" dev -- \
+    --port "$port" --hostname "$listen_host" >"$log" 2>&1 &
   echo $! >"$pidfile"
 }
 
