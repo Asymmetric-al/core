@@ -12,6 +12,10 @@
 #   set-environment-marker  move the marker forward (owner's approval)
 #   first-rebuild           the one-off rebuild of a database with no marker
 #   set-cms-role-passwords  set cms_owner and cms_runtime from the secrets
+#
+# The marker change and the first rebuild wait for the owner's approval in the
+# GitHub environment release-owner-approval (plan 7.5), which has a required
+# reviewer and holds no secret; the job that does the work runs only after it.
 name: Release
 
 on:
@@ -53,23 +57,48 @@ on:
 permissions:
   contents: read
 
-# One release at a time per database, never cancelled mid-migration. The
-# preview environment shares its group with the preview workflow's rebuild.
+# One release at a time per database, never cancelled mid-migration, and
+# never dropped while pending: as in the preview workflow's preview-database
+# job, which shares the preview group, waiting runs queue instead of the
+# newest replacing the one before it.
 concurrency:
   group: ${{ inputs.environment == 'preview' && 'preview-database' || 'release-production' }}
   cancel-in-progress: false
+  queue: max
 
 env:
   BUN_VERSION: "1.4.3"
-  NODE_VERSION: "24.22.1"
+  NODE_VERSION: "24.22.3"
 
 jobs:
+  # The owner approves a marker change or a first rebuild here (plan 7.5).
+  owner-approval:
+    name: owner-approval
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.operation == 'set-environment-marker' ||
+       inputs.operation == 'first-rebuild')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: release-owner-approval
+    steps:
+      - name: Record the approval
+        env:
+          OPERATION: ${{ inputs.operation }}
+          TARGET: ${{ inputs.environment }}
+        run: echo "Approved ${OPERATION} on the ${TARGET} database."
+
   database:
     name: release-database
+    needs: owner-approval
+    # A release (no approval job) runs as before; a first rebuild runs only
+    # once the owner approved it.
     if: >-
-      github.event_name == 'push' ||
-      inputs.operation == 'release' ||
-      inputs.operation == 'first-rebuild'
+      !cancelled() &&
+      (github.event_name == 'push' ||
+       inputs.operation == 'release' ||
+       (inputs.operation == 'first-rebuild' &&
+        needs.owner-approval.result == 'success'))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
@@ -112,6 +141,18 @@ jobs:
         run: bun ci --no-cache --backend=copyfile
       - name: Install PostgreSQL client
         run: bash scripts/github/install-postgresql-client.sh
+      # One pin for the repository: the version scripts/supabase-cli.mjs pins.
+      # The release steps run only this installed CLI and never fetch one: npx
+      # inside the repository stops on the root package.json's overrides.
+      - name: Read the pinned Supabase CLI version
+        id: supabase-pin
+        run: |
+          version="$(sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: ${{ steps.supabase-pin.outputs.version }}
       - name: Replay every migration on a fresh database
         env:
           DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
@@ -135,6 +176,7 @@ jobs:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
         run: node scripts/release/release-database.mjs migrate
       - name: First rebuild (one-off, on the census sign-off)
         if: inputs.operation == 'first-rebuild'
@@ -142,6 +184,8 @@ jobs:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
+          RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
           RELEASE_CENSUS_SIGNOFF: ${{ inputs.census_signoff }}
           RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
         run: node scripts/release/release-database.mjs first-rebuild
@@ -158,7 +202,10 @@ jobs:
   deploy:
     name: release-deploy
     needs: database
+    # A status function, so that the skipped approval job before database
+    # does not skip this one.
     if: >-
+      !cancelled() &&
       needs.database.result == 'success' &&
       (github.event_name == 'push' || inputs.operation == 'release') &&
       (inputs.environment || 'production') == 'production'
@@ -199,6 +246,7 @@ jobs:
 
   marker:
     name: set-environment-marker
+    needs: owner-approval
     if: github.event_name == 'workflow_dispatch' && inputs.operation == 'set-environment-marker'
     runs-on: ubuntu-latest
     timeout-minutes: 10

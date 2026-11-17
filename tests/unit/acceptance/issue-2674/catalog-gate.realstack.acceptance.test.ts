@@ -223,6 +223,60 @@ const CASES: [string, string, string[], unknown?][] = [
     ["ANON_ALLOWLISTED_UNSAFE public.acc2674_read()"],
     { entries: [{ function: "public.acc2674_read()", reason: "fixture" }] },
   ],
+  // Council round 2, A3: SQL-standard bodies, a command schema on the search
+  // path, a preamble that never runs, and grants on views and columns.
+  [
+    "a definer with a SQL-standard body (BEGIN ATOMIC, and RETURN) that hands the workflow claim to signed-in users",
+    `create function public.acc2674_atomic(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+       begin atomic select tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60); end;
+     ${REVOKE("public.acc2674_atomic(uuid)")} grant execute on function public.acc2674_atomic(uuid) to authenticated;
+     create function public.acc2674_return(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+       return tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60);
+     ${REVOKE("public.acc2674_return(uuid)")} grant execute on function public.acc2674_return(uuid) to authenticated;`,
+    [
+      "WRAPPER_DEFINER public.acc2674_atomic(p_tenant_id uuid)",
+      "WRAPPER_DEFINER public.acc2674_return(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_atomic(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_return(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a definer in public with SET search_path = tenant_guard that calls the worker unqualified",
+    `create function public.acc2674_path(p_tenant_id uuid) returns jsonb language plpgsql security definer set search_path = tenant_guard
+       as $$ begin return acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60); end $$;
+     ${REVOKE("public.acc2674_path(uuid)")} grant execute on function public.acc2674_path(uuid) to authenticated;`,
+    ["COMMAND_SCHEMA_ON_SEARCH_PATH public.acc2674_path(p_tenant_id uuid)"],
+  ],
+  [
+    "a human entry point whose preamble is PERFORM ... WHERE false",
+    `${HUMAN("acc2674_where_false", "perform tenant_guard.begin_human_command(p_tenant_id) where false;")} grant execute on function tenant_guard.acc2674_where_false(uuid) to authenticated;`,
+    [
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.acc2674_where_false(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a view in public readable by signed-in users, and a column grant on a table no policy admits",
+    `create view public.acc2674_view as select 1 as x;
+     grant select on public.acc2674_view to authenticated;
+     create table public.acc2674_cols (id int, note text);
+     grant select (id) on public.acc2674_cols to anon;`,
+    ["GRANT_ON_VIEW acc2674_view", "GRANT_WITHOUT_POLICY acc2674_cols"],
+  ],
+  // AL-2674 A9 (plan 15.2): the guard holds nothing on auth, so nothing in a
+  // command schema may name it.
+  [
+    "a guard helper that reads the caller through auth.uid(), and a platform check that reads auth.jwt()",
+    `create function tenant_guard.acc2674_auth_caller() returns uuid language sql stable set search_path = ''
+       as $$ select auth.uid() $$;
+     revoke all on function tenant_guard.acc2674_auth_caller() from public, anon, authenticated, service_role;
+     create function platform.acc2674_auth_claims() returns jsonb language sql stable set search_path = ''
+       begin atomic select auth.jwt(); end;
+     revoke all on function platform.acc2674_auth_claims() from public, anon, authenticated, service_role;`,
+    [
+      "COMMAND_READS_AUTH platform.acc2674_auth_claims()",
+      "COMMAND_READS_AUTH tenant_guard.acc2674_auth_caller()",
+    ],
+  ],
   [
     "an allowlist entry for a function that does not exist",
     "",
@@ -258,18 +312,35 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   }
 
-  it("the migrated database passes the gate's runner: every definer hygienic, one human entry point, no platform command, four wrappers", () => {
+  // Amended by council round 2 (A4; plan 7.1): the counts were pinned to WP1's
+  // inventory (one human entry point, no platform command, four wrappers), so
+  // a later package's first command failed this case. They are now compared
+  // with the catalog, read here by SQL of its own: the functions signed-in
+  // users may execute in each command schema, and the functions elsewhere
+  // whose text calls into one. The clean run passes the missionaries column
+  // grant, which a policy admits.
+  it("the migrated database passes the gate's runner, and its counts match the catalog", async () => {
     const r = runTenantRlsCatalogGate({ databaseUrl: ADMIN_URL });
     expect(r.failures).toEqual([]);
     expect(r.ok).toBe(true);
-    // The wrappers: the two workflow-claim wrappers and the health wrapper
-    // (service key), and the command-assignment wrapper (signed-in users).
+    const { rows } = await db.query(
+      `select count(*) filter (where n.nspname = 'tenant_guard' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int human,
+              count(*) filter (where n.nspname = 'platform' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int platform,
+              count(*) filter (where n.nspname not in ('tenant_guard', 'platform', 'pg_catalog', 'information_schema')
+                and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~* '(tenant_guard|platform)"?\\s*\\.\\s*"?[a-z_][a-z0-9_$]*"?\\s*\\(')::int wrappers
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace`,
+    );
     expect(r.counts).toMatchObject({
-      anonAllowed: 0,
-      humanEntryPoints: 1,
-      platformCommands: 0,
-      wrappers: 4,
+      anonAllowed: (json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] })
+        .entries.length,
+      humanEntryPoints: rows[0].human,
+      platformCommands: rows[0].platform,
+      wrappers: rows[0].wrappers,
     });
+    // WP1 ships the proof command and its wrapper, the claim pair's two
+    // wrappers and the health wrapper, so neither count is vacuous.
+    expect(rows[0].human).toBeGreaterThanOrEqual(1);
+    expect(rows[0].wrappers).toBeGreaterThanOrEqual(4);
   });
 
   it("the anon allowlist ships empty: no SECURITY DEFINER function is open to anon", () => {

@@ -91,6 +91,38 @@ describe("psqlConnection", () => {
     expect(env).toEqual({ KEEP: "1", PGPASSWORD: "p@ss/w0rd" });
   });
 
+  // Council round 2, A8b: the URL is the whole target. An ambient PGHOSTADDR
+  // overrides the host of a URL that names no hostaddr, PGOPTIONS can set a
+  // role, and the others fill in what the URL leaves out.
+  it("clears every ambient PG* setting but the password, so nothing redirects the URL", () => {
+    const ambient = Object.fromEntries(
+      [
+        "PGHOST",
+        "PGHOSTADDR",
+        "PGPORT",
+        "PGDATABASE",
+        "PGUSER",
+        "PGSERVICE",
+        "PGSERVICEFILE",
+        "PGOPTIONS",
+        "PGTARGETSESSIONATTRS",
+        "PGSSLMODE",
+        "PGPASSFILE",
+      ].map((key) => [key, "elsewhere"]),
+    );
+    const { env } = psqlConnection(
+      "postgresql://postgres@127.0.0.1:5432/disposable_test",
+      { ...ambient, PGPASSWORD: "from-the-environment", KEEP: "1" },
+    );
+    expect(env).toEqual({ KEEP: "1", PGPASSWORD: "from-the-environment" });
+    // A password in the URL wins over an ambient one.
+    expect(
+      psqlConnection("postgresql://postgres:from-url@127.0.0.1/d", {
+        PGPASSWORD: "ambient",
+      }).env.PGPASSWORD,
+    ).toBe("from-url");
+  });
+
   it("leaves a URL without a password as it is", () => {
     expect(
       psqlConnection("postgresql://postgres@127.0.0.1:5432/disposable_test", {})

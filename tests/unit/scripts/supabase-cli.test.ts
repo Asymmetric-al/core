@@ -1,11 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  guardConfigPush,
   guardReset,
   parseQueryRows,
   parseResetTarget,
@@ -44,9 +51,10 @@ process.exit(Number(process.env.TEST_DISPATCH_STATUS || 0));
     env: { PATH: root, TEST_COMMAND_LOG: log, ...env },
     encoding: "utf8",
   });
-  const commands = readFileSync(log, "utf8")
+  const commands = (existsSync(log) ? readFileSync(log, "utf8") : "")
     .trim()
     .split("\n")
+    .filter(Boolean)
     .map((line) => JSON.parse(line) as { command: string; args: string[] });
   return { result, commands };
 }
@@ -61,40 +69,75 @@ describe.skipIf(process.platform === "win32")("Supabase CLI dispatch", () => {
     ]);
   });
 
+  // AL-2674 A10: run from the repository, npx reads the root package.json and
+  // stops on its `overrides` (EOVERRIDE). The fallback gives npm an empty
+  // project outside the repository; the CLI still runs where it was called.
+  const npxFallback = (args: string[], version = "2.121.0") => {
+    expect(args.slice(0, 1)).toEqual(["--prefix"]);
+    const project = args[1]!;
+    expect(path.isAbsolute(project)).toBe(true);
+    expect(path.relative(process.cwd(), project).startsWith("..")).toBe(true);
+    expect(path.basename(project)).toMatch(/^core-supabase-npx-/);
+    // Removed when the wrapper exits.
+    expect(existsSync(project)).toBe(false);
+    expect(args.slice(2)).toEqual([
+      "-y",
+      `supabase@${version}`,
+      "db",
+      "--help",
+    ]);
+  };
+
   it.each(["2.76.12", "2.122.0", "2.121.0-beta.1"])(
     "selects the reviewed version when global CLI reports %s",
     (version) => {
       const { result, commands } = dispatch({ TEST_GLOBAL_VERSION: version });
       expect(result.status).toBe(0);
-      expect(commands[1]).toEqual({
-        command: "npx",
-        args: ["-y", "supabase@2.121.0", "db", "--help"],
-      });
+      expect(commands[1]!.command).toBe("npx");
+      npxFallback(commands[1]!.args);
     },
   );
 
   it("falls back when the global version probe fails", () => {
     const { commands } = dispatch({ TEST_PROBE_STATUS: "1" });
-    expect(commands[1].command).toBe("npx");
+    expect(commands[1]!.command).toBe("npx");
+    npxFallback(commands[1]!.args);
   });
 
-  it("forced pinned dispatch skips the global probe and preserves exit status", () => {
+  it("forced pinned dispatch runs only an installed CLI of the pinned version and preserves exit status", () => {
     const { result, commands } = dispatch({
       SUPABASE_CLI_FORCE_PINNED: "1",
       TEST_DISPATCH_STATUS: "19",
     });
     expect(result.status).toBe(19);
     expect(commands).toEqual([
-      {
-        command: "npx",
-        args: ["-y", "supabase@2.121.0", "db", "--help"],
-      },
+      { command: "supabase", args: ["--version"] },
+      { command: "supabase", args: ["db", "--help"] },
     ]);
   });
 
+  it.each([
+    ["another version", { TEST_GLOBAL_VERSION: "2.119.0" }, "2.119.0"],
+    ["a failed probe", { TEST_PROBE_STATUS: "1" }, "none"],
+  ])(
+    "forced pinned dispatch never fetches a CLI: with %s it stops and says to install the pin",
+    (_name, env, found) => {
+      const { result, commands } = dispatch({
+        SUPABASE_CLI_FORCE_PINNED: "1",
+        ...env,
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        `the Supabase CLI 2.121.0 must be installed on the PATH (found ${found})`,
+      );
+      expect(result.stderr).toContain("supabase/setup-cli");
+      expect(commands).toEqual([{ command: "supabase", args: ["--version"] }]);
+    },
+  );
+
   it("honors an explicit version override without accepting another global version", () => {
     const { commands } = dispatch({ SUPABASE_CLI_VERSION: " 2.119.1 " });
-    expect(commands[1].args[1]).toBe("supabase@2.119.1");
+    npxFallback(commands[1]!.args, "2.119.1");
   });
 });
 
@@ -225,6 +268,41 @@ describe("guardReset", () => {
     },
   );
 });
+
+// Council round 2, A8c: `config push` would switch hosted TOTP off and
+// overwrite the hosted site URL and redirect allowlist with local values.
+describe("guardConfigPush", () => {
+  it.each([
+    [["config", "push"]],
+    [["config", "push", "--project-ref", "abcdefghijklmnopqrst"]],
+    [["--workdir", "supabase-copy", "config", "push"]],
+    [["--debug", "config", "push", "--yes"]],
+  ])("refuses %j until WP3 delivers the hosted allowlist", (args) => {
+    expect(() => guardConfigPush(args)).toThrow(
+      /refusing to run config push: .*TOTP.*redirect allowlist.*WP3/s,
+    );
+  });
+
+  it.each([
+    [["config", "--help"]],
+    [["db", "push", "--db-url", "postgresql://x@127.0.0.1/d"]],
+    [["--workdir", "config", "db", "push"]],
+  ])("lets %j through", (args) => {
+    expect(() => guardConfigPush(args)).not.toThrow();
+  });
+});
+
+describe.skipIf(process.platform === "win32")(
+  "the wrapper refuses config push before it runs the CLI",
+  () => {
+    it("exits 1, says why, and never starts the CLI", () => {
+      const { result, commands } = dispatch({}, ["config", "push"]);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(/refusing to run config push/);
+      expect(commands.filter((c) => c.args.includes("push"))).toEqual([]);
+    });
+  },
+);
 
 describe("parseQueryRows", () => {
   it("takes the rows from the CLI's JSON output, ignoring progress lines", () => {

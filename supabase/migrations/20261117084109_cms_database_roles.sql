@@ -27,7 +27,15 @@ BEGIN
     IF NOT EXISTS (
       SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = role_name
     ) THEN
-      EXECUTE format('CREATE ROLE %I LOGIN NOINHERIT', role_name);
+      -- Two databases of a cluster that has no such role yet can both get
+      -- here. The second CREATE waits for the first transaction and then
+      -- fails on the role's name (duplicate_object, or unique_violation from
+      -- the catalog's index), by which time the role exists: treat it so.
+      BEGIN
+        EXECUTE format('CREATE ROLE %I LOGIN NOINHERIT', role_name);
+      EXCEPTION WHEN duplicate_object OR unique_violation THEN
+        NULL;
+      END;
     END IF;
 
     -- A role of the same name that already exists must not hold more than
@@ -49,6 +57,23 @@ BEGIN
       WHERE r.rolname = role_name
     ) THEN
       RAISE EXCEPTION 'role % is a member of another role', role_name;
+    END IF;
+
+    -- Nor may another role be a member of it, which would give that role the
+    -- CMS role's rights. The one member allowed is the migration runner, which
+    -- acts as cms_owner below; on Postgres 16 and later a runner that holds
+    -- CREATEROLE also receives an ADMIN membership in each role it creates.
+    IF EXISTS (
+      SELECT 1
+      FROM pg_catalog.pg_auth_members m
+      JOIN pg_catalog.pg_roles r ON r.oid = m.roleid
+      WHERE r.rolname = role_name
+        AND m.member <> (
+          SELECT oid FROM pg_catalog.pg_roles WHERE rolname = CURRENT_USER
+        )
+    ) THEN
+      RAISE EXCEPTION 'role % has a member other than the migration runner %',
+        role_name, CURRENT_USER;
     END IF;
   END LOOP;
 END
@@ -99,17 +124,21 @@ BEGIN
   END IF;
 
   -- The migration runner acts as cms_owner to hand it the schema and to set
-  -- its default privileges. Membership runs from cms_owner to the runner,
-  -- never the other way, so cms_owner gains nothing from it.
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_catalog.pg_auth_members m
-    WHERE m.roleid = 'cms_owner'::regrole
-      AND m.member = (
-        SELECT oid FROM pg_catalog.pg_roles WHERE rolname = CURRENT_USER
-      )
+  -- its default privileges, which needs both its privileges (USAGE) and SET
+  -- ROLE. Membership runs from cms_owner to the runner, never the other way,
+  -- so cms_owner gains nothing from it. A superuser, or a runner already
+  -- granted both, skips this. A runner that holds CREATEROLE but is not a
+  -- superuser (hosted Supabase's postgres) gets an ADMIN-only membership in
+  -- a role it creates on Postgres 16 and later, without INHERIT or SET, so a
+  -- membership row alone is not enough: it is granted both here.
+  IF NOT (
+    pg_catalog.pg_has_role(CURRENT_USER, 'cms_owner', 'USAGE')
+    AND pg_catalog.pg_has_role(CURRENT_USER, 'cms_owner', 'SET')
   ) THEN
-    EXECUTE format('GRANT cms_owner TO %I', CURRENT_USER);
+    EXECUTE format(
+      'GRANT cms_owner TO %I WITH INHERIT TRUE, SET TRUE',
+      CURRENT_USER
+    );
   END IF;
 END
 $$;

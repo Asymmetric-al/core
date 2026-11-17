@@ -178,9 +178,16 @@ describe("api/health/migrations", () => {
       client: { rpc } as never,
       error: null,
     });
+    // The detail goes only to the release job's bypass header (council
+    // round 2, A6f).
     const response = await createMigrationHealthRoute("donor", {
       connection: async () => {},
-    })();
+      readBypassSecret: () => "bypass-fixture",
+    })(
+      new Request("https://donor-1.vercel.app/api/health/migrations", {
+        headers: { "x-vercel-protection-bypass": "bypass-fixture" },
+      }),
+    );
     expect(getAdminClientMock).toHaveBeenCalled();
     expect(rpc).toHaveBeenCalledWith("platform_health");
     expect(response.headers.get("Cache-Control")).toBe("no-store");

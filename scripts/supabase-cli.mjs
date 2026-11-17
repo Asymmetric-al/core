@@ -1,6 +1,13 @@
 // The repository's Supabase CLI runner (`bun run supabase -- <command>`). It
-// uses a global CLI only when its version equals the pin, and otherwise runs
-// the pinned version through npx.
+// uses a CLI on the PATH only when its version equals the pin, and otherwise
+// runs the pinned version through npx, with npm's project set to an empty
+// directory outside the repository: run from the repository itself, npm reads
+// the root package.json, whose `overrides` clash with a direct dependency
+// (EOVERRIDE). The CLI itself still runs in the caller's directory. With
+// SUPABASE_CLI_FORCE_PINNED=1 (the release job, whose workflow installs the
+// pinned CLI with supabase/setup-cli) it never fetches one: without the pinned
+// CLI on the PATH it stops and says to install it. PINNED_SUPABASE_CLI_VERSION
+// below is the repository's one pin; the workflows read it from this file.
 //
 // Before any `db reset` it reads the environment marker of the database the
 // CLI would reset and refuses anything not marked `disposable` (plan 7.5,
@@ -8,7 +15,7 @@
 // project through the CLI's own `db query --linked`. A marker that cannot be
 // read refuses too. There is no override flag. The one-off first rebuild of a
 // hosted database is a named step of the release job and does not go through
-// this runner.
+// this runner. It refuses `config push` outright until WP3 (guardConfigPush).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -46,12 +53,8 @@ const VALUE_FLAGS = new Set([
   "--completions",
 ]);
 
-/**
- * The database a `db reset` would reset: `{ kind: "local", workdir }`,
- * `{ kind: "db-url", url }` or `{ kind: "linked", projectRef, workdir }`; null
- * for any other command. Throws when the target is ambiguous or incomplete.
- */
-export function parseResetTarget(args) {
+/** The command words of a CLI invocation, and its flags by name with every value given. */
+function splitArgs(args) {
   const words = [];
   const flags = new Map();
   for (let i = 0; i < args.length; i += 1) {
@@ -73,6 +76,33 @@ export function parseResetTarget(args) {
     }
     flags.set(name, [...(flags.get(name) ?? []), value]);
   }
+  return { words, flags };
+}
+
+/**
+ * Refuses (throws) `config push`. It pushes supabase/config.toml's Auth
+ * section to a hosted project: TOTP multi-factor is off there (local stacks
+ * have no use for it), and the site URL and redirect allowlist are local
+ * values, so a push would switch hosted TOTP off and replace the hosted
+ * allowlist. WP3 makes each hosted project's site URL and allowlist source
+ * (implementation record, section 9); until then hosted Auth settings change
+ * only in the Supabase dashboard.
+ */
+export function guardConfigPush(args) {
+  const { words } = splitArgs(args);
+  if (words[0] === "config" && words[1] === "push")
+    throw new Error(
+      "refusing to run config push: supabase/config.toml would switch TOTP multi-factor off on the hosted project and replace its site URL and redirect allowlist with local values. WP3 makes each hosted project's site URL and redirect allowlist source; until then change hosted Auth settings in the Supabase dashboard.",
+    );
+}
+
+/**
+ * The database a `db reset` would reset: `{ kind: "local", workdir }`,
+ * `{ kind: "db-url", url }` or `{ kind: "linked", projectRef, workdir }`; null
+ * for any other command. Throws when the target is ambiguous or incomplete.
+ */
+export function parseResetTarget(args) {
+  const { words, flags } = splitArgs(args);
   if (words[0] !== "db" || words[1] !== "reset") return null;
 
   const refuse = (why) => {
@@ -118,25 +148,34 @@ export function parseQueryRows(output) {
 }
 
 let invocation;
-/** The command and leading arguments that run the pinned CLI, probed once. */
+/**
+ * The command and leading arguments that run the pinned CLI, probed once: the
+ * CLI on the PATH when it reports the pinned version; otherwise npx with an
+ * empty npm project outside the repository (removed when this process exits),
+ * or, under SUPABASE_CLI_FORCE_PINNED=1, an error that says to install it.
+ */
 function cliInvocation() {
   if (invocation) return invocation;
-  if (!forcePinned) {
-    const probe = spawnSync("supabase", ["--version"], {
-      stdio: "pipe",
-      env: process.env,
-      shell: useShell,
-    });
-    if (
-      !probe.error &&
-      probe.status === 0 &&
-      probe.stdout.toString().trim() === pinnedVersion
-    )
-      return (invocation = { command: "supabase", prefix: [], global: true });
-  }
+  const probe = spawnSync("supabase", ["--version"], {
+    stdio: "pipe",
+    env: process.env,
+    shell: useShell,
+  });
+  const found =
+    !probe.error && probe.status === 0 ? probe.stdout.toString().trim() : null;
+  if (found === pinnedVersion)
+    return (invocation = { command: "supabase", prefix: [], global: true });
+  if (forcePinned)
+    throw new Error(
+      `the Supabase CLI ${pinnedVersion} must be installed on the PATH (found ${found || "none"}). The release workflow installs it with supabase/setup-cli; elsewhere install that version (https://supabase.com/docs/guides/local-development/cli/getting-started) and run again.`,
+    );
+  const npmProject = mkdtempSync(path.join(tmpdir(), "core-supabase-npx-"));
+  process.on("exit", () =>
+    rmSync(npmProject, { recursive: true, force: true }),
+  );
   return (invocation = {
     command: "npx",
-    prefix: ["-y", `supabase@${pinnedVersion}`],
+    prefix: ["--prefix", npmProject, "-y", `supabase@${pinnedVersion}`],
     global: false,
   });
 }
@@ -245,17 +284,20 @@ function printGlobalInstallHint() {
   );
 }
 
-/** Runs the CLI with `args` after the reset guard; returns its exit status. */
+/** Runs the CLI with `args` after the config-push and reset guards; returns its exit status. */
 export function main(args = process.argv.slice(2)) {
+  let selected;
   try {
+    guardConfigPush(args);
     guardReset(args);
+    selected = cliInvocation();
   } catch (error) {
     console.error(`error: ${error instanceof Error ? error.message : error}`);
     return 1;
   }
 
-  const { command, prefix, global } = cliInvocation();
-  if (!global && !forcePinned) {
+  const { command, prefix, global } = selected;
+  if (!global) {
     console.warn(
       `==> Global Supabase CLI does not match ${pinnedVersion}; using pinned fallback supabase@${pinnedVersion} via npx.`,
     );
