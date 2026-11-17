@@ -1,4 +1,5 @@
 import { loadSupportContacts } from "@asym/api/admin/support/loaders";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -15,7 +16,6 @@ import {
 } from "@asym/ui/components/shadcn/empty";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import Link from "next/link";
 import { Suspense } from "react";
 type Props = { searchParams?: Promise<{ search?: string | string[] }> };
 export default function SupportContactsPage(props: Props) {

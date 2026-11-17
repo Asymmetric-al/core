@@ -1,6 +1,7 @@
 "use client";
 
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
@@ -51,7 +52,6 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import Link from "next/link";
 import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Alert,
   AlertDescription,
@@ -7,7 +8,6 @@ import {
 } from "@asym/ui/components/shadcn/alert";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { UserRoundX } from "lucide-react";
-import Link from "next/link";
 
 import { useSupportReport } from "../../../hooks/use-support-reports";
 import { useSupportReportRouteState } from "../../../lib/report-state";

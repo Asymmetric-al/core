@@ -1,8 +1,8 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { ExternalLink } from "lucide-react";
-import Link from "next/link";
 
 import { buildCrmLinks } from "./conversation-crm-links";
 

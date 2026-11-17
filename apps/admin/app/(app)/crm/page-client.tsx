@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  TenantLink as Link,
+  useRoutePathname as usePathname,
+  useTenantRouter as useRouter,
+} from "@asym/auth/tenant-navigation";
+import {
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
   useAdminCrmRecordDetail,
   useAdminCrmRecordsInfiniteGrid,
@@ -23,8 +28,7 @@ import {
 } from "@asym/ui/components/shadcn/tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Columns3, List, Network, StickyNote } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import React, {
   useCallback,
   useEffect,

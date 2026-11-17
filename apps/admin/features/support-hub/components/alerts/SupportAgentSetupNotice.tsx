@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Alert,
   AlertDescription,
@@ -7,7 +8,6 @@ import {
 } from "@asym/ui/components/shadcn/alert";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { X } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 
 import { useSupportAgents } from "../../hooks/use-support-agents";

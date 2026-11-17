@@ -204,7 +204,7 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "1fb713accc002a8e9de878b21801c64586838eaeea8e53f3b59a793a69bbc14b"
+          "sha256": "cd72e60bdcf50e23986cb43446a2e303bd121f6d816d11f8b78017ba39e7a594"
         },
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
@@ -369,7 +369,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/page-client.tsx",
-          "sha256": "82c78dd21893553e76d3da8fa6a1863e333890a81078f3fc0d9807142d124cca"
+          "sha256": "6da65bc6ea7c9385f11a0969027873e598d8626c517def4ad3942c13cce7cc7c"
         },
         {
           "path": "packages/ui/components/shadcn/item.tsx",
@@ -595,7 +595,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "68fc2808af0a6b68b99b9d56cebc36f76c43886bf256b452731b7828f9c021a1"
+          "sha256": "5921ea86998e9ad5e083f93f8ba78518e674fcdc6038dd9e89b41ca6f5ca9803"
         },
         {
           "path": "tests/unit/apps/admin/app/crm-record-drawer.test.tsx",
@@ -1801,7 +1801,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "68fc2808af0a6b68b99b9d56cebc36f76c43886bf256b452731b7828f9c021a1"
+          "sha256": "5921ea86998e9ad5e083f93f8ba78518e674fcdc6038dd9e89b41ca6f5ca9803"
         },
         {
           "path": "packages/database/hooks/admin-crm-detail.ts",

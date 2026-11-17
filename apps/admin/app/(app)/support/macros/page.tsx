@@ -1,4 +1,4 @@
-import { permanentRedirect } from "next/navigation";
-export default function SupportMacrosPage() {
-  permanentRedirect("/support/settings/macros");
+import { permanentRedirectInTenant } from "@asym/auth/tenant-server";
+export default async function SupportMacrosPage() {
+  await permanentRedirectInTenant("/support/settings/macros");
 }

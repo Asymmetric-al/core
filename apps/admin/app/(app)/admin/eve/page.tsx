@@ -1,5 +1,5 @@
 import { getAuthContext } from "@asym/auth/context";
-import { redirect } from "next/navigation";
+import { redirectInTenant, tenantHref } from "@asym/auth/tenant-server";
 
 import PageClient from "./page-client";
 import { canAccessEveOperationsWorkspace } from "./workspace-access";
@@ -15,10 +15,12 @@ export const metadata: Metadata = {
 export default async function Page() {
   const auth = await getAuthContext();
   if (!auth.isAuthenticated) {
-    redirect("/login?next=%2Fadmin%2Feve");
+    await redirectInTenant(
+      `/login?next=${encodeURIComponent(await tenantHref("/admin/eve"))}`,
+    );
   }
   if (!canAccessEveOperationsWorkspace(auth)) {
-    redirect("/no-access");
+    await redirectInTenant("/no-access");
   }
 
   return <PageClient />;

@@ -1,4 +1,10 @@
-import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import {
+  getAuthContext,
+  hasAnyContextRole,
+  type AuthContext,
+} from "@asym/auth/context";
+import { CHOOSER_PATH } from "@asym/auth/tenant-address";
+import { readDocumentScope } from "@asym/auth/tenant-server";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createClient } from "@asym/database/supabase/server";
 import {
@@ -6,6 +12,8 @@ import {
   type MCBootstrapState,
 } from "@asym/lib/mission-control/bootstrap";
 import { redirect } from "next/navigation";
+
+import type { DocumentScope } from "@asym/database/document-scope";
 
 type AdminShellProfile = {
   avatar_url: string | null;
@@ -69,7 +77,34 @@ export async function getProtectedShellState(
   pathname: string,
 ): Promise<MCBootstrapState> {
   const { auth, tenantId, userId } = await requireAdminAccess(pathname);
+  return loadShellState(auth, tenantId, userId);
+}
 
+/**
+ * The signed-in pages' gate and shell (plan 5.2): the role gate, the document
+ * scope the proxy decided for the page address, and the shell's bootstrap
+ * state in that scope's tenant. Every signed-in page lives under a tenant
+ * address; the proxy sends an address without one to the person's one
+ * organization or the chooser, so a page that still arrives without a scope
+ * goes to the chooser.
+ */
+export async function getTenantShell(pathname: string): Promise<{
+  scope: DocumentScope;
+  shellState: MCBootstrapState;
+}> {
+  const { auth, tenantId, userId } = await requireAdminAccess(pathname);
+  const scope = await readDocumentScope(auth);
+  if (!scope) {
+    redirect(`${CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`);
+  }
+  return { scope, shellState: await loadShellState(auth, tenantId, userId) };
+}
+
+async function loadShellState(
+  auth: AuthContext,
+  tenantId: string,
+  userId: string,
+): Promise<MCBootstrapState> {
   const serverClient = await createClient();
   const shellReader = getAdminClient().client ?? serverClient;
   const [{ data: profile }, { data: tenant }] = await Promise.all([

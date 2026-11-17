@@ -1,3 +1,4 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,7 +7,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@asym/ui/components/shadcn/breadcrumb";
-import Link from "next/link";
 
 export function SupportTicketBreadcrumbs({ current }: { current?: string }) {
   return (
