@@ -16,7 +16,7 @@ The invariants put static chrome outside boundaries and data-dependent bodies in
 - Inside the callback, assert that the chrome and the cached or prefetched content are visible, and that deferred content is absent (`toHaveCount(0)`).
 - After the callback, assert that the deferred content arrives.
 
-For an initial load, the callback wraps `page.goto()`. For a client navigation, it wraps the click and `waitForURL`; hover the link first when the app prefetches on intent, so the per-link prefetch has a chance to resolve. For a client navigation to a runtime-rendered route, content behind `navigation()` from `next/cache` must be absent inside the callback and present after it. Do not assert absence on an initial load or for a statically prerendered route: the function has no effect on an initial load, and a static prerender includes the content.
+For an initial load, the callback wraps `page.goto()`. For a client navigation, it wraps the click and `waitForURL`; hover the link first when the app prefetches on intent, so the per-link prefetch has a chance to resolve. When the gated subtree is rendered at runtime, content behind `navigation()` from `next/cache` must be absent inside a client navigation's callback and present after it. Do not assert absence on an initial load, or for gated content that is statically prerendered, even on a route that is otherwise rendered at runtime: the function has no effect on an initial load, and a static prerender includes the content.
 
 Do not assert on skeletons. A fallback can be replaced before the assertion runs, and its text or shape is an implementation detail. Assert on the content that replaces it.
 

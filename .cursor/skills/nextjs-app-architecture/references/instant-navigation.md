@@ -23,7 +23,7 @@ Can't enable `partialPrefetching` app-wide yet? Opt in per route with `export co
 
 The Optimizing prefetching guide (installed: `node_modules/next/dist/docs/01-app/02-guides/optimizing-prefetching.md`) distinguishes the shared App Shell, an optional per-link prefetch, and the navigation. Two `next/cache` functions move cacheable work to a later stage without making it request-dependent. Next.js 16.4 renamed them; the `unstable_` names from earlier canaries no longer exist. A `page` or `layout` that also exports the `prefetch` segment config imports the function under another name, such as `import { prefetch as prefetchStage } from "next/cache"`:
 
-| Gate                                                                                                               | Kept out of                           | Rendered by                            |
+| Gate                                                                                                               | Kept out of, during runtime rendering | Rendered by                            |
 | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------- | -------------------------------------- |
 | `await prefetch()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/prefetch.md`)     | the App Shell                         | a per-link prefetch, or the navigation |
 | `await navigation()` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/navigation.md`) | the App Shell and per-link prefetches | the navigation only                    |
