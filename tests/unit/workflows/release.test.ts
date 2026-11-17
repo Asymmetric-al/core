@@ -40,6 +40,31 @@ describe("release workflow (plan 7.4)", () => {
     );
   });
 
+  // Council round 2, A6c (plan 7.5: the marker changes on the owner's
+  // approval): an environment with a required reviewer gates the marker
+  // change and the first rebuild, and holds no secret.
+  it("runs the marker change and the first rebuild only after the owner's approval", () => {
+    const approval = job("owner-approval");
+    expect(approval).toContain("environment: release-owner-approval");
+    expect(approval).toContain("inputs.operation == 'set-environment-marker'");
+    expect(approval).toContain("inputs.operation == 'first-rebuild'");
+    expect(approval).not.toContain("inputs.operation == 'release'");
+    expect(approval).not.toContain("secrets.");
+    expect(job("marker")).toContain("needs: owner-approval");
+    // The marker job has no status function, so it runs only on success.
+    expect(job("marker")).not.toMatch(/always\(\)|!cancelled\(\)/);
+    const database = job("database");
+    expect(database).toContain("needs: owner-approval");
+    expect(database).toMatch(
+      /inputs\.operation == 'first-rebuild' &&\s+needs\.owner-approval\.result == 'success'/,
+    );
+    // The deploy job follows a successful database job even though the
+    // approval job before it was skipped.
+    expect(job("deploy")).toMatch(
+      /!cancelled\(\) &&\s+needs\.database\.result == 'success'/,
+    );
+  });
+
   it("migrates, gates and records heads before any deployment, in that order", () => {
     const database = job("database");
     expect(
