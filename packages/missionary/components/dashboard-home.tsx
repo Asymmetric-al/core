@@ -152,16 +152,20 @@ function DashboardHomeContent({
   const name = firstName(snapshot?.profile?.displayName);
   const title = name ? `Welcome back, ${name}` : "Welcome back";
   const description = "Here’s what needs you and how your support is doing.";
+  // Offline, a load with nothing cached waits for the connection: pending
+  // and paused, not `isLoading`. It has not answered, so it still loads.
+  const portalLoading =
+    portalQuery.isLoading || (portalQuery.isPending && portalQuery.isPaused);
   const portalRetryButton = React.useRef<HTMLButtonElement>(null);
   const portalRetry = useLoadRetry({
     retryRef: portalRetryButton,
     error: portalQuery.error,
-    loading: portalQuery.isLoading,
+    loading: portalLoading,
     onRetry: portalQuery.refetch,
     landing: pageHeading,
   });
 
-  if (portalQuery.isLoading && !portalRetry.retrying) {
+  if (portalLoading && !portalRetry.retrying) {
     return (
       <HomeFrame title={title} description={description}>
         <div className="section-gap">
