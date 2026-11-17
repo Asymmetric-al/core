@@ -222,26 +222,28 @@ describe("require-disposable-database.mjs targets", () => {
 
 describe("every reset and reseed script checks the marker first", () => {
   const guard = "scripts/db/require-disposable-database.mjs";
-  it("seed-demo.sh checks before the local reset and before the hosted push", () => {
+  it("seed-demo.sh resets only through the repository runner, and its hosted mode runs nothing", () => {
+    // AL-2672 (WP0) retired the hosted seed. The repository runner refuses to
+    // reset any database that is not marked disposable (supabase-cli.test.ts),
+    // so the script needs no marker call of its own: its one reset goes through
+    // the runner, and its hosted mode reaches no database at all. This replaces
+    // the earlier assertion that the script called the guard before a local
+    // reset and before a hosted push; the hosted push no longer exists.
     const sh = read("scripts/seed-demo.sh");
     const local = sh.slice(
       sh.indexOf("run_local()"),
       sh.indexOf("run_hosted()"),
     );
-    expect(local.indexOf(`${guard}" --local`)).toBeGreaterThan(-1);
-    expect(local.indexOf(`${guard}" --local`)).toBeLessThan(
-      local.indexOf("db reset --local"),
-    );
+    expect(local).toContain("bun run supabase -- db reset --local");
+    expect(local).not.toMatch(/\bpsql\b/);
     const hosted = sh.slice(
       sh.indexOf("run_hosted()"),
-      sh.indexOf("run_verify()"),
+      sh.indexOf("is_loopback_database_url()"),
     );
-    expect(
-      hosted.indexOf(`${guard}" --url-env SUPABASE_DB_URL`),
-    ).toBeGreaterThan(-1);
-    expect(hosted.indexOf(`${guard}" --url-env SUPABASE_DB_URL`)).toBeLessThan(
-      hosted.indexOf("db push"),
-    );
+    expect(hosted).toContain("exit 1");
+    expect(hosted).not.toContain("db push");
+    expect(hosted).not.toContain("db reset");
+    expect(hosted).not.toMatch(/\bpsql\b/);
   });
 
   it("db:migrate:local checks before the CLI reset", () => {
