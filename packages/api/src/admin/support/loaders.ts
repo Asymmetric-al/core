@@ -1,4 +1,4 @@
-import { getAuthContext, requireRole } from "@asym/auth/context";
+import { getAuthContext, requireCapability } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 
 import { parseSupportTicketListParams } from "./query";
@@ -20,8 +20,6 @@ import type {
 } from "./types";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
-const SUPPORT_ADMIN_ROLES = ["staff", "admin", "super_admin"] as const;
-
 interface SupportLoaderContext {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
@@ -38,7 +36,7 @@ export interface SupportTicketDetailReadModel {
 
 async function getSupportLoaderContext(): Promise<SupportLoaderContext> {
   const auth = await getAuthContext();
-  requireRole(auth, [...SUPPORT_ADMIN_ROLES]);
+  requireCapability(auth, "admin.dashboard.access");
 
   const { client, error } = getAdminClient();
   if (error || !client) {

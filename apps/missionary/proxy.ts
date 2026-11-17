@@ -19,6 +19,8 @@ const authProxy = createAuthMiddleware({
   // re-enters the same failing role check and loops. `/no-access` is public and
   // terminal, matching `apps/admin/proxy.ts`.
   unauthorizedRedirectTo: "/no-access",
+  // The missionary workspace acts on the missionary row (plan 5.1).
+  roleClass: "missionary",
   allowedRoles: MISSIONARY_ALLOWED_ROLES,
   resolveUserRole: resolveUserRoleFromDatabase,
 });

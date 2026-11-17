@@ -15,6 +15,7 @@ import {
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { asString, isRecord } from "../../shared/json-coerce";
+import { tenantMemberProfileIds } from "../../shared/tenant-members";
 import {
   loadStripeRawEventForReplay,
   markStripeRawEventForReplay,
@@ -457,13 +458,20 @@ async function loadContributionOperationDetail(input: {
       asString(request.row.requested_by_profile_id),
     ),
   ).filter(isUuid);
+  // A requester is named when their login holds a membership in this tenant,
+  // revoked ones included: the request is history (AL-2675, NR-68).
+  const requesterMemberIds = await tenantMemberProfileIds(
+    input.supabaseAdmin,
+    input.tenantId,
+    requesterProfileIds,
+    { includeRevoked: true },
+  );
   const requesterProfilesResult =
-    requesterProfileIds.length > 0
+    requesterMemberIds.length > 0
       ? await input.supabaseAdmin
           .from("profiles")
           .select("id, display_name, full_name, first_name, last_name, email")
-          .eq("tenant_id", input.tenantId)
-          .in("id", requesterProfileIds)
+          .in("id", requesterMemberIds)
       : { data: [], error: null };
   assertNoError(
     requesterProfilesResult.error,

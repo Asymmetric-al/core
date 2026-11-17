@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  hasContextRole,
+  hasContextRoleClass,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     let profileData = { ...profile };
 
-    if (hasContextRole(ctx, "missionary")) {
+    if (hasContextRoleClass(ctx, "missionary")) {
       const { data: missionary } = await findMissionaryByProfileId(
         supabaseAdmin,
         ctx.profileId,
@@ -174,8 +174,9 @@ export async function PATCH(request: NextRequest) {
       const { error } = await supabaseAdmin
         .from("profiles")
         .update({ ...profileUpdate, updated_at: now })
-        .eq("id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId);
+        // The caller's own profile; the tenant is the resolved assignment's.
+        // A profile's tenant column is no authority (AL-2675, NR-68).
+        .eq("id", ctx.profileId);
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -183,7 +184,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (Object.keys(missionaryUpdate).length > 0) {
-      if (!hasContextRole(ctx, "missionary")) {
+      if (!hasContextRoleClass(ctx, "missionary")) {
         return NextResponse.json(
           { error: "Missionary profile fields require missionary access" },
           { status: 403 },
@@ -201,8 +202,8 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Reload by the caller's profile id. ctx.tenantId is the demo tenant for a
-    // tenantless super_admin, so a tenant filter would miss that row.
+    // Reload by the caller's profile id; a profile's tenant column is no
+    // authority (AL-2675).
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("*")
@@ -218,7 +219,7 @@ export async function PATCH(request: NextRequest) {
 
     let profileData = { ...profile };
 
-    if (hasContextRole(ctx, "missionary")) {
+    if (hasContextRoleClass(ctx, "missionary")) {
       const { data: missionary } = await findMissionaryByProfileId(
         supabaseAdmin,
         ctx.profileId,

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { memberRow } from "../../../../fixtures/fake-service-client";
+
 import {
   buildApprovalEmailContent,
   deliverApprovalEmailNotifications,
@@ -435,6 +437,20 @@ function createStub(state: StubState): AdminSupabaseClient {
       return new QueryBuilder(table, state);
     },
     rpc(name: string, params: Record<string, unknown>) {
+      // AL-2675 (WP2a sweep; NR-68): approvers and email recipients are
+      // members of the tenant, read through tenant_member_profiles. The
+      // stub's approvers are live tenant administrators there, the holders of
+      // contributions.approve_corrections; profiles are read by id.
+      if (name === "tenant_member_profiles") {
+        const ids = params.p_profile_ids as string[] | null;
+        return Promise.resolve({
+          data: state.approvers
+            .map((row) => String(row.id))
+            .filter((id) => !ids || ids.includes(id))
+            .map((id) => memberRow({ profileId: id, isTenantAdmin: true })),
+          error: null,
+        });
+      }
       if (name === "ensure_contribution_approval_sla_notifications") {
         return Promise.resolve(
           resolveApprovalSlaNotificationsRpc(state, params),

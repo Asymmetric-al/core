@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { memberRow } from "../../../fixtures/fake-service-client";
+
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { NextRequest } from "next/server";
 
@@ -22,6 +24,10 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireAuth: vi.fn(),
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -49,7 +55,6 @@ const superAdminAuth = {
   tenantId,
   profileId,
   role: "super_admin",
-  profileRole: "super_admin",
   memberships: [],
   isAuthenticated: true,
 } as AuthenticatedContext;
@@ -131,22 +136,18 @@ const routeCases: RouteCase[] = [
   },
 ];
 
+/**
+ * AL-2675 (WP2a sweep; NR-68): the route binds private memory to the
+ * caller's live membership in the request's tenant, read through
+ * tenant_member_profiles, not to the profile's tenant column. The old cases
+ * (a tenantless profile, a profile/auth tenant mismatch) are now: no live
+ * membership there, and a membership read that fails; both refuse.
+ */
 function createSupabaseAdmin() {
-  const single = { single: profileSingleMock };
-  const profileQuery = {
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        eq: vi.fn(() => single),
-      })),
-    })),
-  };
-
   return {
+    rpc: profileSingleMock,
     from: vi.fn((table: string) => {
-      if (table !== "profiles") {
-        throw new Error(`Unexpected table: ${table}`);
-      }
-      return profileQuery;
+      throw new Error(`Unexpected table: ${table}`);
     }),
   };
 }
@@ -169,7 +170,7 @@ describe("Eve admin-memory route tenant binding", () => {
     getAuthContextMock.mockResolvedValue(superAdminAuth);
     createAuditLoggerMock.mockReturnValue({});
     profileSingleMock.mockResolvedValue({
-      data: { tenant_id: tenantId },
+      data: [memberRow({ profileId, userId: "user_1", isTenantAdmin: true })],
       error: null,
     });
     loadViewMock.mockResolvedValue({ entries: [], history: [], settings: [] });
@@ -193,6 +194,12 @@ describe("Eve admin-memory route tenant binding", () => {
       const response = await invoke(route);
 
       expect(response.status).toBeLessThan(400);
+      expect(profileSingleMock).toHaveBeenCalledWith("tenant_member_profiles", {
+        p_tenant_id: tenantId,
+        p_profile_ids: [profileId],
+        p_user_ids: ["user_1"],
+        p_include_revoked: false,
+      });
       expect(loadViewMock).toHaveBeenCalledWith(
         expect.objectContaining({
           ownerProfileId: profileId,
@@ -214,7 +221,6 @@ describe("Eve admin-memory route tenant binding", () => {
         ...superAdminAuth,
         email: "admin@example.com",
         role: "admin" as const,
-        profileRole: "admin" as const,
       };
       getAuthContextMock.mockResolvedValue(adminAuth);
       const route =
@@ -233,12 +239,9 @@ describe("Eve admin-memory route tenant binding", () => {
   );
 
   it.each(routeCases)(
-    "denies a tenantless persisted profile before $name memory access",
+    "denies a caller with no live membership in the request's tenant before $name memory access",
     async ({ invoke }) => {
-      profileSingleMock.mockResolvedValue({
-        data: { tenant_id: null },
-        error: null,
-      });
+      profileSingleMock.mockResolvedValue({ data: [], error: null });
       const route =
         await import("../../../../packages/api/src/eve/admin-memory/route");
 
@@ -255,11 +258,11 @@ describe("Eve admin-memory route tenant binding", () => {
   );
 
   it.each(routeCases)(
-    "denies a persisted/auth tenant mismatch before $name memory access",
+    "fails closed when the membership read fails before $name memory access",
     async ({ invoke }) => {
       profileSingleMock.mockResolvedValue({
-        data: { tenant_id: "00000000-0000-4000-8000-000000000004" },
-        error: null,
+        data: null,
+        error: { message: "membership read failed" },
       });
       const route =
         await import("../../../../packages/api/src/eve/admin-memory/route");

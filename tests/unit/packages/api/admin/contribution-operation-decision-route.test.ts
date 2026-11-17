@@ -17,10 +17,15 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireAuth: requireAuthMock,
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -81,7 +86,6 @@ describe("contribution correction decision route", () => {
       email: "finance@example.test",
       tenantId: "tenant-1",
       role: "admin",
-      profileRole: "admin",
       memberships: [],
       profileId: "profile-1",
       isAuthenticated: true,

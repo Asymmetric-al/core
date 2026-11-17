@@ -1,11 +1,11 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { TA, TB, U1, asAssignment, row } from "./fixtures";
 import { toHumanProjectionAssignment } from "../../../../../packages/api/src/principal/projection";
 import {
   AssignmentReaderError,
   createRpcAssignmentReader,
-} from "../../../../../packages/api/src/principal/reader";
+} from "../../../../../packages/auth/principal/reader";
+import { TA, TB, U1, asAssignment, row } from "../../auth/principal/fixtures";
 
 import type { HumanProjectionContext } from "../../../../../packages/api/src/projection/types";
 

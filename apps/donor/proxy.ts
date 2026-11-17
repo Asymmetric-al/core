@@ -26,7 +26,11 @@ export const proxy = createAuthMiddleware({
   loginPath: "/login",
   redirectAuthenticatedTo: "/donor-dashboard",
   unauthorizedRedirectTo: "/",
-  allowedRoles: ["donor", "super_admin"],
+  // The donor portal acts on the donor row (plan 5.1). Until WP3 resolves the
+  // portal host, the tenant is the one of the person's one live donor
+  // membership; a person with donor memberships in two tenants is refused.
+  roleClass: "donor",
+  allowedRoles: ["donor"],
   resolveUserRole: resolveUserRoleFromDatabase,
 });
 

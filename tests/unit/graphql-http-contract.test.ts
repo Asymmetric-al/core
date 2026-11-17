@@ -4,6 +4,7 @@ import * as publicApi from "../../packages/graphql";
 
 import type * as AuthModule from "../../packages/auth/context";
 import type { AuthContext } from "../../packages/auth/context";
+import { membershipsForRole } from "../fixtures/auth-memberships";
 
 const seams = vi.hoisted(() => ({
   getAuthContext: vi.fn(),
@@ -54,8 +55,8 @@ function authContext(): AuthContext {
     email: profile.email,
     tenantId: "tenant-a",
     role: "donor",
-    profileRole: "donor",
-    memberships: [],
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole("donor", "tenant-a"),
     profileId: "profile-a",
     isAuthenticated: true,
   };
@@ -67,7 +68,6 @@ function anonymousContext(): AuthContext {
     email: null,
     tenantId: null,
     role: null,
-    profileRole: null,
     memberships: [],
     profileId: null,
     isAuthenticated: false,
@@ -192,7 +192,10 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.rpc).not.toHaveBeenCalled();
   });
 
-  it("passes the original request to auth and scopes the profile query to its tenant", async () => {
+  // Rewritten by the WP2a sweep (AL-2675; NR-68): the profile is the
+  // caller's own, read by id; the tenant is the resolved assignment's, and
+  // the response reports it, never a filter on the profile's tenant column.
+  it("passes the original request to auth and answers in the assignment's tenant", async () => {
     const incoming = request(
       "{ myProfile { id tenantId createdAt } }",
       undefined,
@@ -210,10 +213,7 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.getAuthContext).toHaveBeenCalledWith(incoming);
     expect(queries).toContainEqual({
       table: "profiles",
-      filters: [
-        ["id", "profile-a"],
-        ["tenant_id", "tenant-a"],
-      ],
+      filters: [["id", "profile-a"]],
     });
   });
 
@@ -239,14 +239,24 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     const roleMutation = (role: string, userId = "profile-b") =>
       `mutation { updateUserRole(input: { userId: "${userId}", role: ${role} }) { id role } }`;
 
+    /**
+     * Rewritten when WP2a joined stage 1 (AL-2675; plan WP0 and WP2a): the
+     * caller was described by a profile role; the resolver now judges the
+     * membership the request acts under (`people.manage_members`, the
+     * tenant-administrator flag), so each caller holds the membership its
+     * role means. A platform operator holds none. The refusals and the
+     * admitted call are asserted as before.
+     */
     function callerWith(
-      profileRole: AuthContext["profileRole"],
-      memberships: AuthContext["memberships"] = [],
+      role: AuthContext["role"],
+      memberships: AuthContext["memberships"] = membershipsForRole(
+        role,
+        "tenant-a",
+      ),
     ): AuthContext {
       return {
         ...authContext(),
-        role: profileRole,
-        profileRole,
+        role,
         memberships,
       };
     }
@@ -272,7 +282,11 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
       ["a staff profile", callerWith("staff")],
       ["a staff membership", callerWith("donor", [staffMembership])],
       ["a missionary", callerWith("missionary")],
-      ["a platform operator", callerWith("super_admin")],
+      ["a platform operator", callerWith("super_admin", [])],
+      [
+        "an admin role name on an unflagged staff row (WP2a)",
+        callerWith("admin", [{ ...staffMembership, isTenantAdmin: false }]),
+      ],
     ])(
       "rejects %s before RPC transport, so no role changes",
       async (_label, caller) => {

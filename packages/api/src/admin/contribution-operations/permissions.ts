@@ -1,27 +1,15 @@
+import { contextCapabilities } from "@asym/auth/context";
+
 import { ApiHttpError } from "../../shared/api-http-error";
 
 import type { ContributionActionType, ContributionPermission } from "./types";
-import type { AuthenticatedContext } from "@asym/auth/context";
+import type { AuthenticatedContext, Capability } from "@asym/auth/context";
 
-function hasFinanceStaffMembership(auth: AuthenticatedContext): boolean {
-  return auth.memberships.some(
-    (membership) =>
-      membership.isActive &&
-      membership.tenantId === auth.tenantId &&
-      membership.role === "staff" &&
-      membership.staffRole === "finance",
-  );
-}
-
-function hasActiveStaffMembership(auth: AuthenticatedContext): boolean {
-  return auth.memberships.some(
-    (membership) =>
-      membership.isActive &&
-      membership.tenantId === auth.tenantId &&
-      membership.role === "staff",
-  );
-}
-
+/**
+ * The legacy `finance:manage_contributions` permission is the registry's
+ * `contributions.apply_corrections`: both are held by finance staff and the
+ * tenant administrator and by no other sub-role (AL-2675).
+ */
 export function hasContributionPermission(
   auth: AuthenticatedContext,
   permission: ContributionPermission,
@@ -30,12 +18,8 @@ export function hasContributionPermission(
     return false;
   }
 
-  return (
-    auth.role === "super_admin" ||
-    auth.role === "admin" ||
-    auth.profileRole === "super_admin" ||
-    auth.profileRole === "admin" ||
-    hasFinanceStaffMembership(auth)
+  return resolveContributionCapabilities(auth).includes(
+    "contributions.apply_corrections",
   );
 }
 
@@ -238,50 +222,35 @@ function formatRequiredCapabilities(
   return capabilities.join(` ${conjunction} `);
 }
 
-const DONOR_CARE_CAPABILITIES: ContributionCapability[] = [
-  "contributions.view_detail",
-  "contributions.request_corrections",
-  "contributions.manage_table_preferences",
-];
+const CONTRIBUTION_CAPABILITIES: ReadonlySet<Capability> =
+  new Set<ContributionCapability>([
+    "contributions.view_detail",
+    "contributions.request_corrections",
+    "contributions.apply_corrections",
+    "contributions.approve_corrections",
+    "contributions.manage_receipts",
+    "contributions.run_refunds",
+    "contributions.retry_crm_post",
+    "contributions.use_provider_actions",
+    "contributions.manage_settings",
+    "contributions.manage_table_preferences",
+    "crm.gift_history.manage_view_defaults",
+  ]);
 
-const FINANCE_STAFF_CAPABILITIES: ContributionCapability[] = [
-  ...DONOR_CARE_CAPABILITIES,
-  "contributions.apply_corrections",
-  "contributions.manage_receipts",
-  "contributions.retry_crm_post",
-];
+function isContributionCapability(
+  capability: Capability,
+): capability is ContributionCapability {
+  return CONTRIBUTION_CAPABILITIES.has(capability);
+}
 
-const FINANCE_APPROVER_CAPABILITIES: ContributionCapability[] = [
-  ...FINANCE_STAFF_CAPABILITIES,
-  "contributions.approve_corrections",
-  "contributions.run_refunds",
-  "contributions.use_provider_actions",
-];
-
-const SUPER_ADMIN_CAPABILITIES: ContributionCapability[] = [
-  ...FINANCE_APPROVER_CAPABILITIES,
-  "contributions.manage_settings",
-  "crm.gift_history.manage_view_defaults",
-];
-
+/**
+ * The contribution capabilities of the one membership the request acts
+ * under, read from the code registry: the sub-role's bundle and, with the
+ * tenant-administrator flag, the tenant administrator's (plan 5.1). This
+ * module's own role-keyed table is retired (AL-2675).
+ */
 export function resolveContributionCapabilities(
   auth: AuthenticatedContext,
 ): ContributionCapability[] {
-  if (auth.role === "super_admin" || auth.profileRole === "super_admin") {
-    return [...SUPER_ADMIN_CAPABILITIES];
-  }
-
-  if (auth.role === "admin" || auth.profileRole === "admin") {
-    return [...FINANCE_APPROVER_CAPABILITIES];
-  }
-
-  if (hasFinanceStaffMembership(auth)) {
-    return [...FINANCE_STAFF_CAPABILITIES];
-  }
-
-  if (hasActiveStaffMembership(auth)) {
-    return [...DONOR_CARE_CAPABILITIES];
-  }
-
-  return [];
+  return contextCapabilities(auth).filter(isContributionCapability);
 }

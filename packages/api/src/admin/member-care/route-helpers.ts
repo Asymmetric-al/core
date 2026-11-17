@@ -1,4 +1,4 @@
-import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getAuthContext, hasContextCapability } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
 
 export type MemberCareContext = {
@@ -25,7 +25,9 @@ export async function requireMemberCareAccess(
     };
   }
 
-  if (!hasAnyContextRole(auth, ["staff", "admin", "super_admin"])) {
+  // Any staff member, as before AL-2675; WP4b narrows care reads to
+  // `care.access` when it builds the care command (plan WP2 acceptance).
+  if (!hasContextCapability(auth, "admin.dashboard.access")) {
     return {
       ok: false,
       response: Response.json({ error: "Forbidden" }, { status: 403 }),
@@ -37,8 +39,8 @@ export async function requireMemberCareAccess(
     context: {
       tenantId: auth.tenantId,
       userId: auth.userId,
-      isSuperAdmin:
-        auth.role === "super_admin" || auth.profileRole === "super_admin",
+      // WP2c moves this to the operator list; no membership yields it.
+      isSuperAdmin: auth.role === "super_admin",
     },
   };
 }

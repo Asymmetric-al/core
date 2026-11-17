@@ -258,17 +258,21 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   }
 
-  it("the migrated database passes the gate's runner: every definer hygienic, one human entry point, no platform command, four wrappers", () => {
+  it("the migrated database passes the gate's runner: every definer hygienic, one human entry point, no platform command, five wrappers", () => {
     const r = runTenantRlsCatalogGate({ databaseUrl: ADMIN_URL });
     expect(r.failures).toEqual([]);
     expect(r.ok).toBe(true);
     // The wrappers: the two workflow-claim wrappers and the health wrapper
     // (service key), and the command-assignment wrapper (signed-in users).
+    // AL-2675 (WP2a) adds the fifth: authz.caller_assignment, an INVOKER
+    // helper executable by its owner only, which reads the request's
+    // assignment header through tenant_guard.request_assignment_id() for the
+    // member directory and the CRM table-preference helper.
     expect(r.counts).toMatchObject({
       anonAllowed: 0,
       humanEntryPoints: 1,
       platformCommands: 0,
-      wrappers: 4,
+      wrappers: 5,
     });
   });
 

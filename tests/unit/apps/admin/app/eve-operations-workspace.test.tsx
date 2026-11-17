@@ -17,9 +17,17 @@ import type { AuthContext } from "@asym/auth/context";
 const baseAuth = {
   email: "operator@example.test",
   isAuthenticated: true,
-  memberships: [],
+  // AL-2675: an administrator is a staff membership with the flag.
+  memberships: [
+    {
+      tenantId: "00000000-0000-4000-8000-000000000002",
+      role: "staff",
+      staffRole: "development",
+      isActive: true,
+      isTenantAdmin: true,
+    },
+  ],
   profileId: "00000000-0000-4000-8000-000000000001",
-  profileRole: "admin",
   role: "admin",
   tenantId: "00000000-0000-4000-8000-000000000002",
   userId: "verified-operator",
@@ -30,17 +38,32 @@ afterEach(cleanup);
 describe("Eve operations workspace", () => {
   it("allows only verified admin roles into the workspace", () => {
     expect(canAccessEveOperationsWorkspace(baseAuth)).toBe(true);
+    // A profile role no longer admits anyone (AL-2675): only the flag does.
     expect(
       canAccessEveOperationsWorkspace({
         ...baseAuth,
-        profileRole: "super_admin",
+        memberships: [],
         role: "super_admin",
       }),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       canAccessEveOperationsWorkspace({
         ...baseAuth,
-        profileRole: "donor",
+        memberships: [{ ...baseAuth.memberships[0]!, isTenantAdmin: false }],
+        role: "staff",
+      }),
+    ).toBe(false);
+    expect(
+      canAccessEveOperationsWorkspace({
+        ...baseAuth,
+        memberships: [
+          {
+            tenantId: baseAuth.tenantId,
+            role: "donor",
+            staffRole: null,
+            isActive: true,
+          },
+        ],
         role: "donor",
       }),
     ).toBe(false);

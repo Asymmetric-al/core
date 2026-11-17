@@ -15,7 +15,7 @@ const rows = (text: string, token: string) =>
     .filter((l) => l.trimStart().startsWith("|") && l.includes(`\`${token}\``));
 
 describe("#492 criterion 16: registry.md", () => {
-  it("criterion 16: atom table lists all 18 registry keys", () => {
+  it("criterion 16: atom table lists every registry key (28 since AL-2675)", () => {
     const text = doc();
     for (const key of ALL)
       expect(rows(text, key).length, key).toBeGreaterThan(0);
@@ -25,7 +25,11 @@ describe("#492 criterion 16: registry.md", () => {
     const text = doc();
     for (const b of Object.keys(BUNDLES)) expect(text, b).toContain(`\`${b}\``);
     for (const s of SUBROLES) expect(text, s).toContain(s);
-    for (const subject of ["staff:finance", "tenant_admin", "platform_admin"]) {
+    for (const subject of [
+      "staff:finance",
+      "staff:member_care",
+      "tenant_admin",
+    ]) {
       const want = DEFAULTS[subject]!;
       const row = rows(text, subject).find((r) =>
         want.every((b) => r.includes(b)),

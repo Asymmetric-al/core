@@ -9,6 +9,7 @@ import {
   type EveNotificationRecipient,
   type EveNotificationRecord,
 } from "./types";
+import { listTenantMembers } from "../../shared/tenant-members";
 import {
   EVE_ENGINEERING_FINDING_SEVERITIES,
   EVE_ENGINEERING_MONITOR_TYPES,
@@ -154,13 +155,22 @@ export async function listEveNotificationRecipients(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<EveNotificationRecipient[]> {
+  // AL-2675 (NR-68): the eligible recipients are the tenant's live
+  // administrators, by membership; the AL-2675 backfill made each
+  // super_admin profile one in its own tenant, so configured recipients keep
+  // receiving. Platform owners as such are WP2c's operator list.
+  const administrators = (
+    await listTenantMembers(input.supabaseAdmin, input.tenantId)
+  ).filter((member) => member.role === "staff" && member.isTenantAdmin);
+  const adminIds = [...new Set(administrators.map((m) => m.profileId))];
   const [profiles, preferences] = await Promise.all([
-    input.supabaseAdmin
-      .from("profiles")
-      .select("id, email, display_name, full_name, role")
-      .eq("tenant_id", input.tenantId)
-      .eq("role", "super_admin")
-      .not("email", "is", null),
+    adminIds.length > 0
+      ? input.supabaseAdmin
+          .from("profiles")
+          .select("id, email, display_name, full_name")
+          .in("id", adminIds)
+          .not("email", "is", null)
+      : Promise.resolve({ data: [], error: null }),
     input.supabaseAdmin
       .from("eve_notification_recipient_configs")
       .select("profile_id, enabled, opted_out")
@@ -187,7 +197,6 @@ export async function listEveNotificationRecipients(input: {
         email: z.string().email(),
         display_name: z.string().nullable(),
         full_name: z.string().nullable(),
-        role: z.literal("super_admin"),
       }),
     )
     .parse(profiles.data ?? [])
@@ -198,7 +207,7 @@ export async function listEveNotificationRecipients(input: {
         profileId: profile.id,
         email: profile.email,
         displayName: profile.display_name ?? profile.full_name ?? undefined,
-        role: profile.role,
+        role: "tenant_admin" as const,
         enabled: preference?.enabled ?? false,
         optedOut: preference?.opted_out ?? true,
       };
@@ -212,17 +221,26 @@ export async function setEveNotificationRecipient(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<void> {
-  const { data: profile, error: profileError } = await input.supabaseAdmin
-    .from("profiles")
-    .select("id")
-    .eq("id", input.profileId)
-    .eq("tenant_id", input.tenantId)
-    .eq("role", "super_admin")
-    .not("email", "is", null)
-    .maybeSingle();
+  // AL-2675 (NR-68): a recipient is a live tenant administrator of this
+  // tenant, by membership, with an email on their profile.
+  const isAdministrator = (
+    await listTenantMembers(input.supabaseAdmin, input.tenantId, {
+      profileIds: [input.profileId],
+    })
+  ).some((member) => member.role === "staff" && member.isTenantAdmin);
+  const { data: profile, error: profileError } = isAdministrator
+    ? await input.supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("id", input.profileId)
+        .not("email", "is", null)
+        .maybeSingle()
+    : { data: null, error: null };
   if (profileError) throw new Error(profileError.message);
   if (!profile)
-    throw new Error("Notification recipient is not a platform owner.");
+    throw new Error(
+      "Notification recipient is not a tenant administrator of this tenant.",
+    );
   const { error } = await input.supabaseAdmin
     .from("eve_notification_recipient_configs")
     .upsert(

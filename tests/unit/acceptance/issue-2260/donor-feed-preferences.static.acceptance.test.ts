@@ -111,9 +111,15 @@ describe("#2260 static (17-20)", () => {
     expect(tables).toEqual([...Object.keys(S), ...D].sort());
     expect(sha256(lines.join("\n")), "other entries changed").toBe(OTHERS_SHA);
   });
-  it(`19: ${H.ROUTE}: no default/literal tenant, email lookup or admin client; tenant from app_metadata`, () => {
+  // Rewritten by the WP2a sweep (AL-2675; plan 5.4 NX-03, WP2 exit "no route
+  // reads the token claim"): the route took its tenant from the token's
+  // app_metadata claim; it now takes the request's resolved donor
+  // assignment's, and reads no claim at all.
+  it(`19: ${H.ROUTE}: no default/literal tenant, email lookup or admin client; tenant from the resolved assignment, no claim`, () => {
     const src = H.read(H.ROUTE);
-    expect(src).toMatch(/app_metadata\W{1,6}tenant_id/);
+    expect(src).toMatch(/\bgetAuthContext\(request\)/);
+    expect(src).toMatch(/auth\.isAuthenticated \? auth\.tenantId : null/);
+    expect(src).not.toMatch(/app_metadata|user_metadata|getClaims\(/);
     expect(src).not.toMatch(
       /DEFAULT_TENANT_ID|00000000-0000-0000-0000-000000000001|\.eq\(\s*["'`]email["'`]|\b(get|create)AdminClient\s*\(/,
     );

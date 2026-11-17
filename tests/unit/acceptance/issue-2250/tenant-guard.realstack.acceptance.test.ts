@@ -14,6 +14,12 @@
  * EXECUTE on auth.uid(), auth.jwt() and the two authz membership helpers, and
  * SELECT on authz.memberships behind a select-own policy. Criteria 4, 14, 15
  * and 17 below pin the widened inventory; everything else is unchanged.
+ *
+ * Amended by AL-2675 (WP2a, plan 5.4 "How a command runs"): the guard role may
+ * execute the SQL capability function authz.assignment_capabilities(uuid),
+ * which begin_human_command calls, and begin_human_command takes the
+ * capability a command requires as a defaulted second argument, so its
+ * signature is (uuid, text). Criterion 17 pins that inventory.
  */
 import { randomUUID } from "node:crypto";
 
@@ -75,7 +81,7 @@ select string_agg(e, ', ' order by e) v from (
   union all select 'schema ' || nspname || ' ' || a.privilege_type from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> auth.jwt() EXECUTE, auth.uid() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, authz.memberships SELECT, public.workflow_work_claims INSERT, public.workflow_work_claims SELECT, public.workflow_work_claims UPDATE, schema auth USAGE, schema authz USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE
+=> auth.jwt() EXECUTE, auth.uid() EXECUTE, authz.assignment_capabilities(uuid) EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, authz.memberships SELECT, public.workflow_work_claims INSERT, public.workflow_work_claims SELECT, public.workflow_work_claims UPDATE, schema auth USAGE, schema authz USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),

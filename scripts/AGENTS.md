@@ -33,7 +33,7 @@ Scripts that run `psql` against a database URL use `scripts/lib/psql.mjs`, which
 - `scripts/seed-demo.sh`
   - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
   - `hosted`: requires `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, and `NEXT_PUBLIC_SUPABASE_URL`; applies migrations then executes `supabase/seed.sql`.
-  - `verify`: runs table row-count and single-profile checks via SQL.
+  - `verify`: runs table row-count checks and the fixture identity check (three profiles, two tenants, their live memberships) via SQL.
 
 ## Agent skill maintenance
 
@@ -53,5 +53,5 @@ Scripts that run `psql` against a database URL use `scripts/lib/psql.mjs`, which
 - [ ] Hosted mode requires explicit env vars and target URL validation
 - [ ] Script output avoids secrets
 - [ ] Shell scripts fail fast (`set -euo pipefail`)
-- [ ] Verification mode checks seeded table counts and profile singleton condition
+- [ ] Verification mode checks seeded table counts and the fixture identity counts
 - [ ] Skill verify is non-mutating; skill sync is the write path

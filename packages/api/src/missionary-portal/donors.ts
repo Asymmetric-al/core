@@ -637,5 +637,5 @@ export const GET = withOperation(
     });
     return NextResponse.json(page);
   },
-  { roles: ["missionary"] },
+  { roleClasses: ["missionary"] },
 );

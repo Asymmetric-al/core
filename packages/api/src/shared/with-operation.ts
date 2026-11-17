@@ -1,8 +1,13 @@
 import {
   getAuthContext,
   requireAuth,
+  requireCapability,
   requireRole,
+  requireRoleClass,
+  requireTenantAdministrator,
   type AuthenticatedContext,
+  type Capability,
+  type RoleClass,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
@@ -31,7 +36,20 @@ export interface OperationContext {
   routeContext?: OperationRouteContext;
 }
 
+/**
+ * Who may run the operation (AL-2675). Each option given must pass. A handler
+ * names the registry capability its action needs (plan 5.4), the tenant
+ * administrator where the plan makes the action theirs, or the membership
+ * classes it serves.
+ */
 export interface OperationOptions {
+  capability?: Capability;
+  tenantAdministrator?: true;
+  roleClasses?: readonly RoleClass[];
+  /**
+   * Role names. Since AL-2675 only the platform gates that WP2c moves to the
+   * operator list pass one (`super_admin`); nothing else may.
+   */
   roles?: UserRole[];
 }
 
@@ -143,10 +161,16 @@ export function withOperation<
       }
 
       const authContext = await getAuthContext(request);
-      if (options?.roles) {
-        requireRole(authContext, options.roles);
-      } else {
-        requireAuth(authContext);
+      requireAuth(authContext);
+      if (options?.roles) requireRole(authContext, options.roles);
+      if (options?.roleClasses) {
+        requireRoleClass(authContext, options.roleClasses);
+      }
+      if (options?.capability) {
+        requireCapability(authContext, options.capability);
+      }
+      if (options?.tenantAdministrator) {
+        requireTenantAdministrator(authContext);
       }
 
       const auth = authContext;

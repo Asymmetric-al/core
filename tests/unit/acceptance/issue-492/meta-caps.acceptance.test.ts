@@ -1,22 +1,25 @@
-/** #492 done criteria 9, 10: four-eyes meta-capabilities and dormant tenantOverrides (spec r1). Owned by Acceptance. */
+/** #492 done criteria 9, 10: four-eyes meta-capabilities and dormant tenantOverrides (spec r1). Owned by Acceptance.
+ * Amended by AL-2675 (WP2a): `platform_admin` is retired; the named-grant
+ * cases use `tenant_admin`, the only named subject left.
+ * Approving a widening has no holder until Phase 12 (plan 5.1). */
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
 
 describe("#492 criterion 9: four-eyes cannot collapse", () => {
-  it.each([
-    ["tenant_admin", [H.VIEW, H.PROPOSE], [H.APPROVE]],
-    ["platform_admin", H.PERMS, []],
-  ])("criterion 9: %s holds %j and not %j", async (s, has, lacks) => {
-    const caps = await H.resolveFor(s);
-    expect(caps).toEqual(expect.arrayContaining(has));
-    for (const c of lacks) expect(caps).not.toContain(c);
-  });
+  it.each([["tenant_admin", [H.VIEW, H.PROPOSE], [H.APPROVE]]])(
+    "criterion 9: %s holds %j and not %j",
+    async (s, has, lacks) => {
+      const caps = await H.resolveFor(s);
+      expect(caps).toEqual(expect.arrayContaining(has));
+      for (const c of lacks) expect(caps).not.toContain(c);
+    },
+  );
 
-  it("criterion 9: no subject holds approve without propose; member:* and staff:* hold no permissions.* atom", async () => {
+  it("criterion 9: no subject holds approve (AL-2675); member:* and staff:* hold no permissions.* atom", async () => {
     for (const s of H.SUBJECTS) {
       const caps = await H.resolveFor(s);
-      if (caps.includes(H.APPROVE)) expect(caps, s).toContain(H.PROPOSE);
+      expect(caps, s).not.toContain(H.APPROVE);
       if (/^(member|staff):/.test(s))
         expect(
           caps.filter((c) => H.PERMS.includes(c)),

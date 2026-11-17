@@ -16,6 +16,11 @@
  * app_metadata (r1 OQ8).
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2675 (WP2a, plan 5.1): rows carry the tenant-administrator
+ * flag; the fixture removes the donor membership the sign-up trigger now gives
+ * each new login in the demo tenant; the resolver takes the surface's role
+ * class and prefers no class over another (criterion 17 restated).
  */
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -72,6 +77,7 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
   const q = (k: string) => `'${id[k]}'`;
   const FIXTURE = `insert into public.tenants (id, name, slug) values (${q("TA")}, 'acc2258 A', 'acc2258-' || ${q("TA")}), (${q("TB")}, 'acc2258 B', 'acc2258-' || ${q("TB")});
     insert into auth.users (id) values ${["U1", "U2", "U3", "U4"].map((u) => `(${q(u)})`).join(", ")};
+    delete from authz.memberships where user_id in (${["U1", "U2", "U3", "U4"].map(q).join(", ")});
     insert into authz.memberships (id, user_id, tenant_id, role, staff_role, is_active) values ${MEMBERSHIPS.map(
       ([m, u, t, role, staff, active]) =>
         `(${q(m)}, ${q(u)}, ${q(t)}, '${role}', ${staff ? `'${staff}'` : "null"}, ${active})`,
@@ -183,9 +189,28 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
       }
     ).resolveActiveAssignment;
   };
+  /**
+   * Re-runs the function's current definition. Since AL-2675 that is the
+   * block in the migration that added the tenant-administrator flag: the
+   * #2258 body can no longer replace a function whose result type changed.
+   */
   async function rerun() {
     expect(existsSync(H.MIGRATION), `${H.MIGRATION} must exist`).toBe(true);
-    await db.query(H.migrationBatch());
+    const file = readdirSync(H.MIG).find((f) =>
+      /^\d{14}_membership_lifecycle_and_tenant_admin_flag\.sql$/.test(f),
+    );
+    expect(file, "the AL-2675 membership migration").toBeDefined();
+    const path = `${H.MIG}/${file}`;
+    const text = H.read(path);
+    const start = text.indexOf(
+      "DROP FUNCTION IF EXISTS public.current_user_assignments();",
+    );
+    const endMarker =
+      "GRANT EXECUTE ON FUNCTION public.current_user_assignments() TO authenticated;";
+    const end = text.indexOf(endMarker, start);
+    expect(start >= 0 && end > start).toBe(true);
+    // A migration replay, on this file's private database (#2400's guard).
+    await db.query(H.read(path).slice(start, end + endMarker.length));
   }
   async function proc() {
     const r = await db.query(
@@ -214,12 +239,14 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
         expect(new Set(r.map((x) => x.user_id))).toEqual(new Set([id.U1]));
         expect(Object.keys(r[0]!).sort()).toEqual([
           "id",
+          "is_tenant_admin",
           "role",
           "staff_role",
           "tenant_id",
           "updated_at",
           "user_id",
         ]);
+        expect(r.map((x) => x.is_tenant_admin)).toEqual([false, false]);
       }));
     it.each([
       ["U2", ["m4"]],
@@ -281,10 +308,16 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
   });
 
   describe("criteria 9 and 17 (R): resolver through the real RPC (claimless JWTs)", () => {
+    type RoleClass = "donor" | "missionary" | "staff";
     const resolve = async (
       sub: string,
+      roleClass: RoleClass,
       extra: { proposedAssignmentId?: string; expectedTenantId?: string } = {},
-    ) => (await resolver())({ userId: id[sub]!, ...extra }, reader(sub));
+    ) =>
+      (await resolver())(
+        { userId: id[sub]!, roleClass, ...extra },
+        reader(sub),
+      );
     const pick = (r: Awaited<ReturnType<typeof resolve>>) =>
       r.ok
         ? [
@@ -296,7 +329,7 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
 
     it("9: U1 proposing its TA row gets tenantId TA and exactly one assignment", () =>
       tx(async () => {
-        const r = await resolve("U1", { proposedAssignmentId: id.m1 });
+        const r = await resolve("U1", "staff", { proposedAssignmentId: id.m1 });
         expect(pick(r)).toEqual(["m1", "TA", "proposed"]);
         expect(Object.values(r).some(Array.isArray)).toBe(false);
       }));
@@ -304,31 +337,65 @@ describe.skipIf(!ADMIN_URL)("#2258 current_user_assignments() (R)", () => {
       tx(async () => {
         for (const m of ["m4", "m3"])
           expect(
-            pick(await resolve("U1", { proposedAssignmentId: id[m] })),
+            pick(
+              await resolve("U1", "missionary", {
+                proposedAssignmentId: id[m],
+              }),
+            ),
           ).toEqual(["not_owned_or_inactive"]);
       }));
     it.each([
       [
-        "17: U3, no proposal → its staff+member_care row, default_staff",
+        "17: U3 on the staff surface → its staff+member_care row, sole",
         "U3",
+        "staff",
         {},
-        ["m5", "TA", "default_staff"],
+        ["m5", "TA", "sole"],
       ],
-      ["17: U4 (two staff roles) → ambiguous", "U4", {}, ["ambiguous"]],
-      ["17: U1, no expectedTenantId → ambiguous (5a)", "U1", {}, ["ambiguous"]],
       [
-        "17: U1, expectedTenantId TA → its staff row, sole",
+        "17: U3 on the donor portal → its donor row, never the staff row",
+        "U3",
+        "donor",
+        {},
+        ["m6", "TA", "sole"],
+      ],
+      [
+        "17: U4 (two staff roles) on the staff surface → ambiguous",
+        "U4",
+        "staff",
+        {},
+        ["ambiguous"],
+      ],
+      [
+        "17: U1 on the staff surface, no expectedTenantId → its one staff row",
         "U1",
-        { expectedTenantId: "TA" },
+        "staff",
+        {},
         ["m1", "TA", "sole"],
       ],
-    ] as const)("%s", (_n, sub, extra, want) =>
+      [
+        "17: U1 on the donor portal narrowed to TA → no_assignment",
+        "U1",
+        "donor",
+        { expectedTenantId: "TA" },
+        ["no_assignment"],
+      ],
+      [
+        "17: U1 proposing its TB donor row on the staff surface → role_class_mismatch",
+        "U1",
+        "staff",
+        { proposedAssignmentId: "m2" },
+        ["role_class_mismatch"],
+      ],
+    ] as const)("%s", (_n, sub, roleClass, extra, want) =>
       tx(async () => {
         const e =
           "expectedTenantId" in extra
             ? { expectedTenantId: id[extra.expectedTenantId] }
-            : {};
-        expect(pick(await resolve(sub, e))).toEqual(want);
+            : "proposedAssignmentId" in extra
+              ? { proposedAssignmentId: id[extra.proposedAssignmentId] }
+              : {};
+        expect(pick(await resolve(sub, roleClass, e))).toEqual(want);
       }),
     );
   });
