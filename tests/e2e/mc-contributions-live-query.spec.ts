@@ -4,6 +4,7 @@ import {
   getDemoRoleMap,
   type DemoAvailabilityPayload,
 } from "./helpers/demo-auth";
+import { demoTenantPath, routePathname } from "./helpers/tenant-address";
 
 test.describe.configure({ timeout: 120_000 });
 
@@ -21,9 +22,13 @@ async function loginAsAdminDemo(page: Page, protectedPath: string) {
 
     if (roles.admin) {
       await page.getByRole("button", { name: "Demo Access" }).click();
-      await page.waitForURL((url) => url.pathname === protectedPath, {
-        timeout: 120_000,
-      });
+      // The demo admin's one organization (plan 5.2).
+      await page.waitForURL(
+        (url) => url.pathname === demoTenantPath(protectedPath),
+        {
+          timeout: 120_000,
+        },
+      );
       return;
     }
   }
@@ -41,7 +46,7 @@ async function loginAsAdminDemo(page: Page, protectedPath: string) {
   await page.getByLabel("Email", { exact: true }).fill(adminEmail);
   await page.getByLabel("Password", { exact: true }).fill(adminPassword);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForURL((url) => url.pathname === protectedPath, {
+  await page.waitForURL((url) => routePathname(url) === protectedPath, {
     timeout: 120_000,
   });
 }
@@ -64,7 +69,10 @@ test.describe("Mission Control contributions live query", () => {
       .getByRole("link", { name: /^Contributions$/ })
       .first();
 
-    await expect(contributionsLink).toHaveAttribute("href", "/contributions");
+    await expect(contributionsLink).toHaveAttribute(
+      "href",
+      demoTenantPath("/contributions"),
+    );
     await contributionsLink.click();
 
     await expect(page).toHaveURL(/\/contributions$/);

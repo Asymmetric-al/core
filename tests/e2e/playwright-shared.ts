@@ -211,15 +211,19 @@ export function defineBoneyardConfig(
     ],
     webServer: startLocalWebServer
       ? {
+          // Serve on the base URL's port, so a checkout beside others can
+          // pick its own.
           command: devServerCommand(
             surface.app,
-            surface.defaultPort,
+            Number(new URL(baseURL).port) || surface.defaultPort,
             surface.serverHostname,
           ),
           url: baseURL,
           env: {
             ...env,
             E2E_AUTH_BYPASS: env.E2E_AUTH_BYPASS || "true",
+            // The E2E cookie is chosen by port for the default ports only.
+            ASYM_E2E_AUTH_SURFACE: surface.app,
           } as Record<string, string>,
           reuseExistingServer: shouldReuseExistingServer(env),
           timeout: DEFAULT_WEB_SERVER_TIMEOUT_MS,

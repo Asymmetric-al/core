@@ -179,6 +179,31 @@ describe("defineBoneyardConfig", () => {
     expect(singleWebServer(config)).toBeDefined();
   });
 
+  it("starts a configured local server on the configured port, bound to localhost", () => {
+    // A rewrite stays internal only on a server bound to localhost (record
+    // D-19), and a checkout running beside others needs its own port.
+    for (const [surface, variable] of [
+      [ADMIN_SURFACE, "PLAYWRIGHT_ADMIN_BASE_URL"],
+      [MISSIONARY_SURFACE, "PLAYWRIGHT_MISSIONARY_BASE_URL"],
+    ] as const) {
+      const webServer = singleWebServer(
+        defineBoneyardConfig(surface, { [variable]: "http://127.0.0.1:4130" }),
+      );
+      expect(webServer?.command).toContain("--port 4130");
+      expect(webServer?.command).toContain("--hostname localhost");
+      expect(webServer?.url).toBe("http://localhost:4130");
+    }
+  });
+
+  it("names the surface whose E2E cookie the dev server honours, whatever its port", () => {
+    for (const surface of [ADMIN_SURFACE, DONOR_SURFACE, MISSIONARY_SURFACE]) {
+      const config = defineBoneyardConfig(surface, {});
+      expect(singleWebServer(config)?.env?.ASYM_E2E_AUTH_SURFACE).toBe(
+        surface.app,
+      );
+    }
+  });
+
   it("applies the admin first-compile timeout only where declared", () => {
     expect(defineBoneyardConfig(ADMIN_SURFACE, {}).timeout).toBe(180_000);
     expect(defineBoneyardConfig(DONOR_SURFACE, {}).timeout).toBeUndefined();

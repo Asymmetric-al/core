@@ -2,6 +2,12 @@ import AxeBuilder from "@axe-core/playwright";
 import { instant } from "@next/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
+import {
+  DEMO_TENANT_PREFIX,
+  demoTenantPath,
+  routePathname,
+} from "./helpers/tenant-address";
+
 /**
  * Run against the Missionary application with playwright.missionary.config.ts.
  * The full suite uses next dev and run-with-ci-env.mjs's non-production demo
@@ -47,7 +53,12 @@ async function enterDemoWorkspace(page: Page, next = "/") {
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await page.getByRole("button", { name: "Demo Access" }).click();
-  await page.waitForURL((url) => `${url.pathname}${url.search}` === next);
+  // Signed-in pages live under the demo organization's address (plan 5.2).
+  await page.waitForURL(
+    (url) =>
+      url.pathname.startsWith(DEMO_TENANT_PREFIX) &&
+      `${routePathname(url)}${url.search}` === next,
+  );
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toBeVisible();
@@ -251,7 +262,7 @@ test("mobile workspace sign-out removes sidebar portals and shortcuts and demo s
   await page.keyboard.press("Control+b");
   await expect(page.locator('[data-slot="sidebar"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Demo Access" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(new RegExp(`${DEMO_TENANT_PREFIX}$`));
   await expect(
     page.getByRole("button", { name: "Search missionary pages" }),
   ).toBeVisible();
@@ -303,9 +314,10 @@ test("no-access preserves the session until a successful explicit switch and exp
     ).toBeEnabled();
     await expect(page).toHaveURL(/\/no-access$/);
     // The failed operation must not invalidate the authorized fixture session.
-    const protectedResponse = await page.request.get("/settings", {
-      maxRedirects: 0,
-    });
+    const protectedResponse = await page.request.get(
+      demoTenantPath("/settings"),
+      { maxRedirects: 0 },
+    );
     expect(protectedResponse.status()).toBe(200);
     await capture(page, testInfo, "no-access-signout-failure");
   } finally {
