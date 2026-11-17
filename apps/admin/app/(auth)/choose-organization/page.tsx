@@ -1,10 +1,12 @@
-import { loadOrganizationChoices } from "@asym/api/principal/organization-choices";
+import { loadOrganizationChoices } from "@asym/api/auth/organization-choices";
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
 import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import type { Metadata } from "next";
+
+import { readOrganizationNames } from "@/lib/admin-access";
 
 export const metadata: Metadata = { title: "Choose an organization" };
 
@@ -40,6 +42,7 @@ async function Choices({ searchParams }: ChooseOrganizationPageProps) {
     roleClass: "staff",
     tenantId: first(params.tenant),
     next: first(params.next),
+    readOrganizationNames,
   });
   if (choices.kind === "signed_out") redirect("/login");
   if (choices.kind === "unavailable") {

@@ -1,3 +1,5 @@
+import { STAFF_SUBROLES } from "../staff-subroles";
+
 import type {
   ActiveAssignment,
   AssignmentDenyReason,
@@ -19,14 +21,6 @@ const STAFF_ROLE_REQUIRED: Readonly<Record<MembershipRole, boolean>> = {
   missionary: false,
   staff: true,
 };
-/** The staff sub-roles, in the order a chooser lists them. */
-export const STAFF_SUBROLES: readonly StaffSubrole[] = [
-  "finance",
-  "mobilizer",
-  "development",
-  "hr",
-  "member_care",
-];
 
 function isCanonicalUuid(value: unknown): value is string {
   return typeof value === "string" && CANONICAL_UUID.test(value);

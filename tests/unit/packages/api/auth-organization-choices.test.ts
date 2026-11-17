@@ -19,28 +19,23 @@ vi.mock("server-only", () => ({}));
 vi.mock("@asym/auth/context", () => ({
   getSignedInAssignments: async () => state.signedIn,
 }));
-vi.mock("@asym/database/supabase/admin", () => ({
-  getAdminClient: () => ({
-    client: state.adminAvailable
-      ? {
-          from: (table: string) => ({
-            select: () => ({
-              in: async (column: string, ids: string[]) => {
-                state.tenantFilter = [table, column, ids];
-                return {
-                  data: state.tenants.filter((t) => ids.includes(t.id)),
-                  error: null,
-                };
-              },
-            }),
-          }),
-        }
-      : null,
-  }),
-}));
+const { loadOrganizationChoices: load } =
+  await import("../../../../packages/api/src/auth/organization-choices");
 
-const { loadOrganizationChoices } =
-  await import("../../../../packages/api/src/principal/organization-choices");
+/** As Mission Control passes it: names for the person's own tenants. */
+async function readOrganizationNames(ids: string[]) {
+  state.tenantFilter = ids;
+  if (!state.adminAvailable) throw new Error("no reader");
+  return new Map(
+    state.tenants.filter((t) => ids.includes(t.id)).map((t) => [t.id, t.name]),
+  );
+}
+
+function loadOrganizationChoices(
+  input: Omit<Parameters<typeof load>[0], "readOrganizationNames">,
+) {
+  return load({ ...input, readOrganizationNames });
+}
 
 function assignment(
   tenantId: string,
@@ -102,7 +97,7 @@ describe("loadOrganizationChoices", () => {
         },
       ],
     });
-    expect(state.tenantFilter).toEqual(["tenants", "id", [TA, TB]]);
+    expect(state.tenantFilter).toEqual([TA, TB]);
   });
 
   it("narrows to one organization's rows", async () => {
@@ -152,10 +147,13 @@ describe("loadOrganizationChoices", () => {
 
   it("names an organization it cannot read by a short form of its id", async () => {
     state.adminAvailable = false;
-    const result = await loadOrganizationChoices({ roleClass: "staff" });
-    expect(
-      result.kind === "ok" && result.organizations.map((o) => o.name),
-    ).toEqual(["Organization 00000000…0001", "Organization 00000000…0002"]);
+    const failed = await loadOrganizationChoices({ roleClass: "staff" });
+    const unread = await load({ roleClass: "staff" });
+    for (const result of [failed, unread]) {
+      expect(
+        result.kind === "ok" && result.organizations.map((o) => o.name),
+      ).toEqual(["Organization 00000000…0001", "Organization 00000000…0002"]);
+    }
   });
 
   it("passes on a signed-out or unreadable session", async () => {

@@ -1,21 +1,31 @@
-import { buildTenantPrefix } from "../tenant-address";
-import { STAFF_SUBROLES } from "./assignment";
+import { STAFF_SUBROLES } from "./staff-subroles";
+import { buildTenantPrefix } from "./tenant-address";
 
-import type { ActiveAssignment, RoleClass } from "./types";
-import type { StaffSubrole } from "@asym/database/types";
+import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
 /**
  * What the proxy does with a page address, given the person's live rows (plan
  * 5.1, 5.2; AL-2675). Pure: the proxy reads and validates the rows first
- * (`readActiveAssignments`), or takes them from an E2E bypass session.
+ * (`readAddressRows` in `./principal`), or takes them from an E2E
+ * bypass session, and the chooser lists the same rows.
  */
 
+/** The fields of a validated live row (`AddressRow`) the decisions read. */
+export interface AddressRow {
+  readonly assignmentId: string;
+  readonly tenantId: string;
+  readonly membershipRole: MembershipRole;
+  readonly staffRole: StaffSubrole | null;
+}
+
+type RoleClass = MembershipRole;
+
 /** The rows of the surface's class in one tenant, sub-roles in registry order. */
-function rowsInTenant(
-  assignments: readonly ActiveAssignment[],
+function rowsInTenant<Row extends AddressRow>(
+  assignments: readonly Row[],
   roleClass: RoleClass,
   tenantId: string,
-): ActiveAssignment[] {
+): Row[] {
   return assignments
     .filter((a) => a.membershipRole === roleClass && a.tenantId === tenantId)
     .sort((a, b) => subRoleRank(a.staffRole) - subRoleRank(b.staffRole));
@@ -26,16 +36,16 @@ function subRoleRank(subRole: StaffSubrole | null): number {
 }
 
 /** The address a row is reached at: a suffix only where the tenant holds several. */
-function prefixFor(row: ActiveAssignment, rowsInItsTenant: number): string {
+function prefixFor(row: AddressRow, rowsInItsTenant: number): string {
   return buildTenantPrefix(
     row.tenantId,
     rowsInItsTenant > 1 ? row.staffRole : null,
   );
 }
 
-export type TenantAddressDecision =
+export type TenantAddressDecision<Row extends AddressRow = AddressRow> =
   /** Render the page under this row; `prefix` is the address's own prefix. */
-  | { kind: "allow"; assignment: ActiveAssignment; prefix: string }
+  | { kind: "allow"; assignment: Row; prefix: string }
   /** Redirect to the same page under this prefix. */
   | { kind: "canonical"; prefix: string }
   /** Send the person to the chooser for this tenant. */
@@ -52,12 +62,12 @@ export type TenantAddressDecision =
  *   chooser when the address names none or one the person does not hold. It
  *   never acts under a row the person does not hold.
  */
-export function decideTenantAddress(input: {
-  assignments: readonly ActiveAssignment[];
+export function decideTenantAddress<Row extends AddressRow>(input: {
+  assignments: readonly Row[];
   roleClass: RoleClass;
   tenantId: string;
   subRole: StaffSubrole | null;
-}): TenantAddressDecision {
+}): TenantAddressDecision<Row> {
   const rows = rowsInTenant(input.assignments, input.roleClass, input.tenantId);
   if (rows.length === 0) return { kind: "refuse", reason: "no_assignment" };
   if (rows.length === 1) {
@@ -97,7 +107,7 @@ export type LandingDecision =
  * chooser; a person with no row is refused.
  */
 export function decideLanding(input: {
-  assignments: readonly ActiveAssignment[];
+  assignments: readonly AddressRow[];
   roleClass: RoleClass;
 }): LandingDecision {
   const rows = input.assignments.filter(
@@ -125,7 +135,7 @@ export interface AddressChoice {
  * opened, so a choice is never trusted on its own.
  */
 export function listAddressChoices(input: {
-  assignments: readonly ActiveAssignment[];
+  assignments: readonly AddressRow[];
   roleClass: RoleClass;
   tenantId?: string;
 }): AddressChoice[] {

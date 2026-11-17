@@ -4,19 +4,9 @@ export {
   resolveActiveAssignment,
   resolveActivePrincipal,
   selectAssignment,
-  STAFF_SUBROLES,
 } from "./assignment";
 export type { ReadAssignmentsResult } from "./assignment";
-export {
-  decideLanding,
-  decideTenantAddress,
-  listAddressChoices,
-} from "./address";
-export type {
-  AddressChoice,
-  LandingDecision,
-  TenantAddressDecision,
-} from "./address";
+export { listE2EAuthAssignments } from "./e2e-assignments";
 export { AssignmentReaderError, createRpcAssignmentReader } from "./reader";
 export type { AssignmentRpcClient } from "./reader";
 export type {

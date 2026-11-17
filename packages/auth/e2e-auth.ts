@@ -1,6 +1,6 @@
 import { DEMO_TENANT_ID } from "./constants";
+import { STAFF_SUBROLES } from "./staff-subroles";
 
-import type { ActiveAssignment } from "./principal/types";
 import type {
   MembershipRole,
   StaffSubrole,
@@ -120,13 +120,6 @@ const MEMBERSHIP_ROLES: readonly MembershipRole[] = [
   "missionary",
   "staff",
 ];
-const BYPASS_STAFF_SUBROLES: readonly StaffSubrole[] = [
-  "finance",
-  "mobilizer",
-  "development",
-  "hr",
-  "member_care",
-];
 
 /** A signed membership entry, or `null` when any field breaks the table's rules. */
 function parseE2EAuthMembership(raw: unknown): E2EAuthMembership | null {
@@ -142,7 +135,7 @@ function parseE2EAuthMembership(raw: unknown): E2EAuthMembership | null {
   if (!MEMBERSHIP_ROLES.includes(role as MembershipRole)) return null;
   if (
     staffRole !== null &&
-    !BYPASS_STAFF_SUBROLES.includes(staffRole as StaffSubrole)
+    !STAFF_SUBROLES.includes(staffRole as StaffSubrole)
   ) {
     return null;
   }
@@ -188,26 +181,19 @@ function impliedE2EAuthMembership(
 }
 
 /**
- * The live rows a bypass identity holds, in the resolver's shape, so the
- * proxy and `getAuthContext` judge it by the same rules as a real session.
+ * The memberships a bypass identity holds: those its signed cookie names, or
+ * the one its role implies. `listE2EAuthAssignments` (`./principal`) gives
+ * them the resolver's shape.
  */
-export function listE2EAuthAssignments(
+export function listE2EAuthMemberships(
   session: E2EAuthSession,
-): ActiveAssignment[] {
-  const memberships =
+): E2EAuthMembership[] {
+  return (
     session.memberships ??
     [impliedE2EAuthMembership(session)].filter(
       (m): m is E2EAuthMembership => m !== null,
-    );
-  return memberships.map((membership) => ({
-    assignmentId: membership.id,
-    userId: session.userId,
-    tenantId: membership.tenantId,
-    revision: "e2e-bypass",
-    membershipRole: membership.role,
-    staffRole: membership.staffRole,
-    isTenantAdmin: membership.isTenantAdmin,
-  }));
+    )
+  );
 }
 
 /** Signed on-the-wire payload: an {@link E2EAuthSession} plus an absolute expiry. */

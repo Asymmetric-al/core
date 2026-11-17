@@ -12,13 +12,12 @@ import {
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
-  listE2EAuthAssignments,
   parseE2EAuthCookieValue,
   type E2EAuthSession,
 } from "./e2e-auth";
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
-import { decideLanding, decideTenantAddress } from "./principal/address";
 import { readActiveAssignments } from "./principal/assignment";
+import { listE2EAuthAssignments } from "./principal/e2e-assignments";
 import { createRpcAssignmentReader } from "./principal/reader";
 import {
   ADDRESS_PREFIX_HEADER,
@@ -38,6 +37,7 @@ import {
   isOutsideTenantSegment,
   parseTenantAddress,
 } from "./tenant-address";
+import { decideLanding, decideTenantAddress } from "./tenant-address-decisions";
 
 import type { AssignmentRpcClient } from "./principal/reader";
 import type { ActiveAssignment, RoleClass } from "./principal/types";

@@ -2,16 +2,14 @@ import "server-only";
 
 import { getSignedInAssignments } from "@asym/auth/context";
 import { safeNextParam } from "@asym/auth/demo-login";
-import { listAddressChoices } from "@asym/auth/principal";
 import {
   isOutsideTenantSegment,
   stripTenantAddress,
   withTenantAddress,
 } from "@asym/auth/tenant-address";
-import { getAdminClient } from "@asym/database/supabase/admin";
+import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
 
-import type { RoleClass } from "@asym/auth/principal";
-import type { StaffSubrole } from "@asym/database/types";
+import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 
 export interface OrganizationOption {
   /** The staff sub-role, or `null` for the person's one row there. */
@@ -32,6 +30,16 @@ export type OrganizationChoices =
   | { kind: "unavailable" };
 
 /**
+ * Display names of the person's organizations, by tenant id. Signed-in users
+ * cannot read `tenants`, so a surface that already holds a sanctioned reader
+ * (Mission Control's shell) passes one in; without it the chooser names each
+ * organization by a short form of its id.
+ */
+export type OrganizationNameReader = (
+  tenantIds: string[],
+) => Promise<ReadonlyMap<string, string>>;
+
+/**
  * Where a choice leads: the page in `next`, without any tenant prefix it
  * carried, or the organization's home page for anything that is not a
  * signed-in page address of this app.
@@ -45,24 +53,6 @@ function choicePath(next: string | null | undefined): string {
   return `${pathname}${url.search}${url.hash}`;
 }
 
-/** Display names of the person's organizations; signed-in users cannot read `tenants`. */
-async function readOrganizationNames(
-  tenantIds: string[],
-): Promise<Map<string, string>> {
-  const admin = getAdminClient().client;
-  if (!admin || tenantIds.length === 0) return new Map();
-  const { data, error } = await admin
-    .from("tenants")
-    .select("id, name")
-    .in("id", tenantIds);
-  if (error || !data) return new Map();
-  return new Map(
-    (data as Array<{ id: string; name: string | null }>).flatMap((tenant) =>
-      tenant.name?.trim() ? [[tenant.id, tenant.name.trim()] as const] : [],
-    ),
-  );
-}
-
 function fallbackName(tenantId: string) {
   return `Organization ${tenantId.slice(0, 8)}…${tenantId.slice(-4)}`;
 }
@@ -72,14 +62,13 @@ function fallbackName(tenantId: string) {
  * each live row of the surface's class the signed-in person holds,
  * optionally in one tenant, grouped by organization. Choosing one loads its
  * address as a new document, where the proxy makes its membership decision
- * again, so nothing here authorizes. Organization names are read with the
- * service role for the person's own tenants only, as the Mission Control
- * shell reads its tenant's name.
+ * again, so nothing here authorizes.
  */
 export async function loadOrganizationChoices(input: {
-  roleClass: RoleClass;
+  roleClass: MembershipRole;
   tenantId?: string | null;
   next?: string | null;
+  readOrganizationNames?: OrganizationNameReader;
 }): Promise<OrganizationChoices> {
   const signedIn = await getSignedInAssignments();
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
@@ -90,7 +79,10 @@ export async function loadOrganizationChoices(input: {
     ...(input.tenantId ? { tenantId: input.tenantId } : {}),
   });
   const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
-  const names = await readOrganizationNames(tenantIds);
+  const names =
+    input.readOrganizationNames && tenantIds.length > 0
+      ? await input.readOrganizationNames(tenantIds).catch(() => new Map())
+      : new Map<string, string>();
   const path = choicePath(input.next);
 
   return {

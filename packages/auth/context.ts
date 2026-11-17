@@ -13,7 +13,6 @@ import {
   getE2EAuthCookieNameForProxyHost,
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
-  listE2EAuthAssignments,
   parseE2EAuthCookieValue,
   type E2EAuthSession,
 } from "./e2e-auth";
@@ -28,6 +27,7 @@ import {
   resolveActiveAssignment,
   selectAssignment,
 } from "./principal/assignment";
+import { listE2EAuthAssignments } from "./principal/e2e-assignments";
 import { createRpcAssignmentReader } from "./principal/reader";
 import {
   ASSIGNMENT_HEADER,

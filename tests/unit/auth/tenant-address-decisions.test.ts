@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  readActiveAssignments,
+  selectAssignment,
+} from "../../../packages/auth/principal/assignment";
+import {
+  decideLanding,
+  decideTenantAddress,
+  listAddressChoices,
+} from "../../../packages/auth/tenant-address-decisions";
+import {
   TA,
   TB,
   U1,
@@ -8,18 +17,9 @@ import {
   failingReader,
   fakeReader,
   row,
-} from "./fixtures";
-import {
-  decideLanding,
-  decideTenantAddress,
-  listAddressChoices,
-} from "../../../../../packages/auth/principal/address";
-import {
-  readActiveAssignments,
-  selectAssignment,
-} from "../../../../../packages/auth/principal/assignment";
+} from "../packages/auth/principal/fixtures";
 
-import type { AssignmentRow } from "../../../../../packages/auth/principal/types";
+import type { AssignmentRow } from "../../../packages/auth/principal/types";
 
 const live = (...rows: AssignmentRow[]) => rows.map(asAssignment);
 

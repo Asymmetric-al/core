@@ -17,6 +17,7 @@
     "./follower-requests/request": "./src/follower-requests/request.ts",
     "./auth/callback": "./src/auth/callback.ts",
     "./auth/demo-account": "./src/auth/demo-account.ts",
+    "./auth/organization-choices": "./src/auth/organization-choices.ts",
     "./auth/signout": "./src/auth/signout.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
     "./document-cutover": "./src/document-cutover/index.ts",
@@ -182,8 +183,7 @@
     "./eve/launch-readiness/route": "./src/eve/launch-readiness/route.ts",
     "./field-policies": "./src/field-policies/index.ts",
     "./projection": "./src/projection/index.ts",
-    "./principal": "./src/principal/index.ts",
-    "./principal/organization-choices": "./src/principal/organization-choices.ts"
+    "./principal": "./src/principal/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

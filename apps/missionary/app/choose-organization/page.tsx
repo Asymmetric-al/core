@@ -1,4 +1,4 @@
-import { loadOrganizationChoices } from "@asym/api/principal/organization-choices";
+import { loadOrganizationChoices } from "@asym/api/auth/organization-choices";
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
 import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
 import { redirect } from "next/navigation";

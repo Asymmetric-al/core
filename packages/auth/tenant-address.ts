@@ -1,4 +1,4 @@
-import { STAFF_SUBROLES } from "./principal/assignment";
+import { STAFF_SUBROLES } from "./staff-subroles";
 
 import type { StaffSubrole } from "@asym/database/types";
 

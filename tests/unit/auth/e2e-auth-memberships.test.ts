@@ -4,10 +4,10 @@ import { DEMO_TENANT_ID } from "../../../packages/auth/constants";
 import {
   createE2EAuthCookieValue,
   E2E_BYPASS_ASSIGNMENT_ID,
-  listE2EAuthAssignments,
   parseE2EAuthCookieValue,
   type E2EAuthMembership,
 } from "../../../packages/auth/e2e-auth";
+import { listE2EAuthAssignments } from "../../../packages/auth/principal/e2e-assignments";
 
 const SECOND_TENANT = "00000000-0000-0000-0000-000000000002";
 const FINANCE: E2EAuthMembership = {
