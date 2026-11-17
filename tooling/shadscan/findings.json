@@ -712,7 +712,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "6b6ed5894850b545afad289c679062f7719c93b0bd0cc1c36353f038906f8850"
+          "sha256": "b68d8fedd76920178f728596df3ff823c2fd2ec44ec734bae94ba288075bad37"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
