@@ -297,18 +297,35 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   }
 
-  it("the migrated database passes the gate's runner: every definer hygienic, one human entry point, no platform command, four wrappers", () => {
+  // Amended by council round 2 (A4; plan 7.1): the counts were pinned to WP1's
+  // inventory (one human entry point, no platform command, four wrappers), so
+  // a later package's first command failed this case. They are now compared
+  // with the catalog, read here by SQL of its own: the functions signed-in
+  // users may execute in each command schema, and the functions elsewhere
+  // whose text calls into one. The clean run passes the missionaries column
+  // grant, which a policy admits.
+  it("the migrated database passes the gate's runner, and its counts match the catalog", async () => {
     const r = runTenantRlsCatalogGate({ databaseUrl: ADMIN_URL });
     expect(r.failures).toEqual([]);
     expect(r.ok).toBe(true);
-    // The wrappers: the two workflow-claim wrappers and the health wrapper
-    // (service key), and the command-assignment wrapper (signed-in users).
+    const { rows } = await db.query(
+      `select count(*) filter (where n.nspname = 'tenant_guard' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int human,
+              count(*) filter (where n.nspname = 'platform' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int platform,
+              count(*) filter (where n.nspname not in ('tenant_guard', 'platform', 'pg_catalog', 'information_schema')
+                and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~* '(tenant_guard|platform)"?\\s*\\.\\s*"?[a-z_][a-z0-9_$]*"?\\s*\\(')::int wrappers
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace`,
+    );
     expect(r.counts).toMatchObject({
-      anonAllowed: 0,
-      humanEntryPoints: 1,
-      platformCommands: 0,
-      wrappers: 4,
+      anonAllowed: (json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] })
+        .entries.length,
+      humanEntryPoints: rows[0].human,
+      platformCommands: rows[0].platform,
+      wrappers: rows[0].wrappers,
     });
+    // WP1 ships the proof command and its wrapper, the claim pair's two
+    // wrappers and the health wrapper, so neither count is vacuous.
+    expect(rows[0].human).toBeGreaterThanOrEqual(1);
+    expect(rows[0].wrappers).toBeGreaterThanOrEqual(4);
   });
 
   it("the anon allowlist ships empty: no SECURITY DEFINER function is open to anon", () => {

@@ -12,6 +12,15 @@
  * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL (see ./harness.ts). The
  * reset-script cases create one throwaway database named after the target
  * database (`<name>_nomarker_<hex>`) and drop it afterwards.
+ *
+ * Amended by council round 2 (A4; plan 7.1): proofs 2 and 3 typed out the
+ * human entry points and the platform commands, so the first command of a
+ * later package failed them. Both lists are now derived from the convention:
+ * what signed-in users may execute in tenant_guard must equal the
+ * guard-owned definers whose first statement is the human preamble, and in
+ * platform the postgres-owned definers that start with the operator check.
+ * Each derived list must be non-empty where WP1 ships an entry, and every
+ * other function in the schema must refuse a signed-in caller, as before.
  */
 import { spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -19,13 +28,12 @@ import { randomBytes, randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { laneCheckProblem } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 import {
   ADMIN_URL,
   COMMAND_LANE_MIGRATION,
   GUARD_CLI,
-  HUMAN_ENTRY_POINTS,
   IN_MIGRATE_JOB,
-  PLATFORM_COMMANDS,
   PLATFORM_MIGRATION,
   asRole,
   fixtureIds,
@@ -34,6 +42,49 @@ import {
   nullCall,
   postAssert,
 } from "./harness";
+
+type LaneRow = {
+  fn: string;
+  owner: string;
+  definer: boolean;
+  language: string;
+  body: string;
+  authenticated: boolean;
+};
+
+/** Every function in a command schema, with what the lane rules read. */
+async function laneRows(db: pg.Client, schema: "tenant_guard" | "platform") {
+  const r = await db.query(
+    `select p.oid::regprocedure::text fn, p.proowner::regrole::text owner, p.prosecdef definer,
+            l.lanname language, p.prosrc body,
+            has_function_privilege('authenticated', p.oid, 'EXECUTE') authenticated
+       from pg_proc p join pg_namespace n on n.oid = p.pronamespace join pg_language l on l.oid = p.prolang
+      where n.nspname = $1 order by 1`,
+    [schema],
+  );
+  return r.rows as LaneRow[];
+}
+
+/**
+ * The entry points the convention defines in a schema: in tenant_guard a
+ * guard-owned definer whose first statement is the human preamble; in
+ * platform a postgres-owned definer that starts with the operator check.
+ */
+function byConvention(rows: LaneRow[], schema: "tenant_guard" | "platform") {
+  const owner = schema === "tenant_guard" ? "tenant_guard" : "postgres";
+  return rows
+    .filter(
+      (row) =>
+        row.owner === owner &&
+        row.definer &&
+        laneCheckProblem({ schema, language: row.language, body: row.body }) ===
+          null,
+    )
+    .map((row) => row.fn);
+}
+
+const signedIn = (rows: LaneRow[]) =>
+  rows.filter((row) => row.authenticated).map((row) => row.fn);
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
@@ -225,13 +276,15 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
   });
 
   describe("proof 2: a signed-in caller can execute nothing else in the command schema", () => {
-    it("authenticated may execute exactly the human entry points in tenant_guard", () =>
+    it("authenticated may execute exactly the human entry points in tenant_guard, derived from the convention", () =>
       tx(async () => {
-        const r = await db.query(
-          `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname = 'tenant_guard' and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1`,
+        const rows = await laneRows(db, "tenant_guard");
+        const humans = byConvention(rows, "tenant_guard");
+        expect(signedIn(rows)).toEqual(humans);
+        // WP1's proof command is one of them, so the comparison is not vacuous.
+        expect(humans).toContain(
+          "tenant_guard.resolve_command_assignment(uuid)",
         );
-        expect(r.rows.map((x) => x.fn)).toEqual(HUMAN_ENTRY_POINTS);
         const usage = await one(
           `select has_schema_privilege('authenticated', 'tenant_guard', 'USAGE') a,
                   has_schema_privilege('anon', 'tenant_guard', 'USAGE') n`,
@@ -241,19 +294,18 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("every other tenant_guard function, the worker entry points included, refuses a signed-in caller", () =>
       tx(async () => {
-        const r = await db.query(
-          `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname = 'tenant_guard' order by 1`,
-        );
-        const others = r.rows
-          .map((x) => x.fn as string)
-          .filter((fn) => !HUMAN_ENTRY_POINTS.includes(fn));
-        expect(others).toEqual(
+        const rows = await laneRows(db, "tenant_guard");
+        const humans = byConvention(rows, "tenant_guard");
+        const others = rows
+          .map((row) => row.fn)
+          .filter((fn) => !humans.includes(fn));
+        // By name: a later package may change a helper's arguments.
+        expect(others.map((fn) => fn.slice(0, fn.indexOf("(")))).toEqual(
           expect.arrayContaining([
-            "tenant_guard.acquire_workflow_work_claim(uuid,text,text,text,integer)",
-            "tenant_guard.release_workflow_work_claim(uuid,uuid,text)",
-            "tenant_guard.begin_human_command(uuid)",
-            "tenant_guard.enter(uuid)",
+            "tenant_guard.acquire_workflow_work_claim",
+            "tenant_guard.release_workflow_work_claim",
+            "tenant_guard.begin_human_command",
+            "tenant_guard.enter",
           ]),
         );
         for (const fn of others) {
@@ -266,10 +318,29 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("the public worker wrappers refuse a signed-in caller too", () =>
       tx(async () => {
-        for (const fn of [
-          "public.acquire_workflow_work_claim(uuid,text,text,text,integer)",
-          "public.release_workflow_work_claim(uuid,uuid,text)",
-        ]) {
+        // Every public function that calls a tenant_guard function signed-in
+        // users may not execute.
+        const humans = byConvention(
+          await laneRows(db, "tenant_guard"),
+          "tenant_guard",
+        ).map((fn) => fn.slice(0, fn.indexOf("(")));
+        const r = await db.query(
+          `select 'public.' || regexp_replace(p.oid::regprocedure::text, '^public\\.', '') fn,
+                  array(select distinct lower(m[1]) from regexp_matches(p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), ''),
+                        '(tenant_guard\\.[a-z_][a-z0-9_$]*)\\s*\\(', 'gi') m) targets
+             from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'public' order by 1`,
+        );
+        const workers = (r.rows as { fn: string; targets: string[] }[])
+          .filter((row) => row.targets.some((t) => !humans.includes(t)))
+          .map((row) => row.fn);
+        expect(workers).toEqual(
+          expect.arrayContaining([
+            "public.acquire_workflow_work_claim(uuid,text,text,text,integer)",
+            "public.release_workflow_work_claim(uuid,uuid,text)",
+          ]),
+        );
+        for (const fn of workers) {
           const out = await as(
             "authenticated",
             { sub: "U1" },
@@ -315,8 +386,14 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("signed-in users may use the schema and execute the platform commands and nothing else (none ship in WP1)", () =>
       tx(async () => {
-        expect(await commands()).toEqual(PLATFORM_COMMANDS);
-        expect(await everyCommandRefuses()).toEqual(PLATFORM_COMMANDS);
+        // The commands are what the convention defines, derived from the
+        // catalog; the probe below makes the loop non-vacuous.
+        const platformCommands = byConvention(
+          await laneRows(db, "platform"),
+          "platform",
+        );
+        expect(await commands()).toEqual(platformCommands);
+        expect(await everyCommandRefuses()).toEqual(platformCommands);
         const usage = await one(
           `select has_schema_privilege('authenticated', 'platform', 'USAGE') a,
                   has_schema_privilege('anon', 'platform', 'USAGE') n,
@@ -328,7 +405,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
             where n.nspname = 'platform' order by 1`,
         );
         for (const { fn } of all.rows as { fn: string }[]) {
-          if (PLATFORM_COMMANDS.includes(fn)) continue;
+          if (platformCommands.includes(fn)) continue;
           const out = await as(
             "authenticated",
             { sub: "U1", aal: "aal2" },
@@ -342,10 +419,11 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
     it("a command that follows the convention refuses every non-operator, so the loop above is not vacuous", () =>
       tx(async () => {
         await db.query(PROBE);
-        expect(await commands()).toEqual([
-          ...PLATFORM_COMMANDS,
-          "platform.acc2674_probe(text)",
-        ]);
+        const withProbe = await commands();
+        expect(withProbe).toContain("platform.acc2674_probe(text)");
+        expect(withProbe).toEqual(
+          byConvention(await laneRows(db, "platform"), "platform"),
+        );
         await everyCommandRefuses();
         const noSession = await as(
           "authenticated",

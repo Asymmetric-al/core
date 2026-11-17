@@ -23,13 +23,6 @@ export const DEFAULTS_MIGRATION = `${MIG}/20261117034926_close_default_privilege
 export const GUARD_CLI = "scripts/db/require-disposable-database.mjs";
 export const CATALOG = "scripts/verify/tenant-rls-catalog.mjs";
 
-/** The human entry points in tenant_guard: exactly what signed-in users may execute there. */
-export const HUMAN_ENTRY_POINTS = [
-  "tenant_guard.resolve_command_assignment(uuid)",
-];
-/** Platform commands signed-in users may execute. None ship in WP1; WP3 adds the first. */
-export const PLATFORM_COMMANDS: string[] = [];
-
 export const read = (file: string) =>
   existsSync(file) ? readFileSync(file, "utf8") : "";
 

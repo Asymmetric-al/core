@@ -150,6 +150,14 @@ The Data API exposes only `public`, so every entry point and platform command is
 - gives no EXECUTE to `PUBLIC` or `anon`;
 - gives EXECUTE to `authenticated` only when every function it calls is a human entry point or a platform command, and otherwise to `service_role` only.
 
+### Tests a package still touches
+
+A package that adds a human entry point, a worker entry point or a platform command by the steps above, with the table privilege and guard policy each needs, edits no existing test. The real-stack suites derive the command inventory from the catalog: `issue-2250` asserts each function in `tenant_guard`, and each `public` wrapper into it, by its lane (owner, definer or invoker, search path, exact grantees for that lane) and each of the guard's table privileges by the policy that admits it; the `issue-2674` command-lane suite requires what signed-in users may execute in `tenant_guard` and `platform` to equal what follows each lane's convention, and calls every other function there as a signed-in user; its catalog-gate suite compares the gate's counts with the catalog. A package still edits:
+
+- criterion 17 of `tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts` ("everything else granted to tenant_guard") when it widens what the guard role may use or execute outside its own functions and its tables: USAGE on another schema, EXECUTE on another helper (an `authz` function, say), or a new signature for a `tenant_guard` helper. That list is the guard's reach outside its tables and stays exact on purpose;
+- the same file's rows for #2250's own four functions, or proof 1 of the command-lane suite, when it changes the workflow claim pair or `tenant_guard.resolve_command_assignment` (WP2b may drop the latter, and then drops proof 1 with it);
+- the inventory table above, which records WP1's functions.
+
 ## Paths that must use the guard later
 
 | #   | Path                                              | Why later                                                               |
