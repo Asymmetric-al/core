@@ -136,7 +136,7 @@ Query and DB, Sentry, Vitest and Playwright. `package.json` files and
 
 ### Prerequisites
 
-- Node.js `24.22.1` (`.node-version`; `engines.node` is `>=24.22.1 <25`)
+- Node.js `24.22.3` (`.node-version`; `engines.node` is `>=24.22.3 <25`)
 - Bun `1.4.3` (`.bun-version` and `packageManager`)
 - Git
 

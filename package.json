@@ -146,6 +146,7 @@
     "cms:local:seed": "bun scripts/cms/seed-local.mjs",
     "cms:local:verify": "bun scripts/cms/verify-local.mjs",
     "cms:local:dev": "node scripts/cms/local-dev.mjs",
+    "cms:qualify": "node scripts/cms/qualify-payload-pin.mjs",
     "site-studio:walkthrough:cloud": "bash ./scripts/dev/site-studio-cloud-walkthrough.sh",
     "db:migrate:local": "node scripts/db/require-disposable-database.mjs --local && bun run supabase -- db reset --local --no-seed",
     "db:migrate:hosted": "node scripts/db-migrate-hosted.mjs",
@@ -281,6 +282,6 @@
     "@shadcn/lint@0.2.3": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch"
   },
   "engines": {
-    "node": ">=24.22.1 <25"
+    "node": ">=24.22.3 <25"
   }
 }

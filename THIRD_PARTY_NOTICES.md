@@ -10,4 +10,5 @@ If we ship bundled third party code, we will include attributions and license no
 - License: MIT
 - Usage in this repository:
   - Runtime packages installed via npm registry in `apps/admin`
-  - Upstream source mirror vendored at `vendor/payload-upstream` via `git subtree`
+  - The upstream source mirror formerly vendored at `vendor/payload-upstream`
+    was removed (AL-2674); it remains in Git history under its MIT license

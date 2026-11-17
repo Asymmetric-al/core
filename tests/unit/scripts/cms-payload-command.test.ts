@@ -1,7 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, existsSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -18,7 +25,19 @@ afterEach(() => {
   }
 });
 
-function runCommand(args: string[]) {
+const HOSTED_RUNTIME_URL =
+  "postgresql://cms_runtime.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
+const HOSTED_MIGRATION_URL =
+  "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
+
+type SpawnRecord = {
+  command: string;
+  args: string[];
+  payloadDatabaseUri: string | null;
+  hasMigrationUri: boolean;
+};
+
+function runCommand(args: string[], env: Record<string, string> = {}) {
   const root = mkdtempSync(path.join(os.tmpdir(), "core-payload-command-"));
   temporaryRoots.push(root);
   const marker = path.join(root, "spawned.txt");
@@ -27,9 +46,15 @@ function runCommand(args: string[]) {
     hook,
     `import childProcess from 'node:child_process';
 import {syncBuiltinESMExports} from 'node:module';
-import {writeFileSync} from 'node:fs';
-childProcess.spawnSync=()=>{
-  writeFileSync(process.env.CORE_CLI_SPAWN_MARKER,'spawned');
+import {appendFileSync} from 'node:fs';
+childProcess.spawnSync=(command,args=[],options={})=>{
+  const env=options.env??{};
+  appendFileSync(process.env.CORE_CLI_SPAWN_MARKER,JSON.stringify({
+    command,
+    args,
+    payloadDatabaseUri:env.PAYLOAD_DATABASE_URI??null,
+    hasMigrationUri:'PAYLOAD_MIGRATION_DATABASE_URI' in env,
+  })+String.fromCharCode(10));
   return {status:0,stdout:'{}',stderr:''};
 };
 syncBuiltinESMExports();
@@ -38,7 +63,12 @@ syncBuiltinESMExports();
 
   const result = spawnSync(
     process.execPath,
-    ["--import", hook, "scripts/cms/run-payload-command.mjs", ...args],
+    [
+      "--import",
+      pathToFileURL(hook).href,
+      "scripts/cms/run-payload-command.mjs",
+      ...args,
+    ],
     {
       cwd: process.cwd(),
       encoding: "utf8",
@@ -46,17 +76,27 @@ syncBuiltinESMExports();
       env: {
         ...process.env,
         NODE_ENV: "test",
-        PAYLOAD_DATABASE_URI:
-          "postgresql://postgres.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+        PAYLOAD_DATABASE_URI: HOSTED_RUNTIME_URL,
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL,
         NEXT_PUBLIC_SUPABASE_URL: "https://fixture.supabase.co",
         CMS_HOSTED_MIGRATION_REF: "",
+        CMS_HOSTED_MIGRATION_ROLE: "",
+        SUPABASE_DB_URL: "",
         PGHOSTADDR: "",
         PGSERVICE: "",
         CORE_CLI_SPAWN_MARKER: marker,
+        ...env,
       },
     },
   );
-  return { ...result, childSpawned: existsSync(marker) };
+  const spawns: SpawnRecord[] = existsSync(marker)
+    ? readFileSync(marker, "utf8")
+        .trim()
+        .split(/\r?\n/)
+        .map((line) => JSON.parse(line) as SpawnRecord)
+    : [];
+  const payloadSpawn = spawns.find((spawn) => spawn.args.includes("payload"));
+  return { ...result, childSpawned: Boolean(payloadSpawn), payloadSpawn };
 }
 
 describe("Payload CLI migration preflight", () => {
@@ -103,5 +143,56 @@ describe("Payload CLI migration preflight", () => {
     const result = runCommand(args);
     expect(result.status, result.stderr).toBe(1);
     expect(result.childSpawned).toBe(false);
+  });
+
+  it("refuses a hosted migration without the cms_owner migration connection", () => {
+    const result = runCommand(["migrate"], {
+      PAYLOAD_MIGRATION_DATABASE_URI: "",
+      CMS_HOSTED_MIGRATION_REF: "fixture",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("PAYLOAD_MIGRATION_DATABASE_URI");
+    expect(result.childSpawned).toBe(false);
+  });
+
+  it("migrates as cms_owner and hands Payload only that connection", () => {
+    const result = runCommand(["migrate"], {
+      CMS_HOSTED_MIGRATION_REF: "fixture",
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_MIGRATION_URL);
+    expect(result.payloadSpawn?.hasMigrationUri).toBe(false);
+  });
+
+  it("reads hosted status through the run-time connection when no migration connection is set", () => {
+    const result = runCommand(["migrate:status"], {
+      PAYLOAD_MIGRATION_DATABASE_URI: "",
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_RUNTIME_URL);
+  });
+
+  it("migrates a loopback database as cms_owner without a password", () => {
+    const result = runCommand(["migrate"], {
+      PAYLOAD_DATABASE_URI:
+        "postgresql://postgres:postgres@127.0.0.1:57432/wp12_fixture",
+      PAYLOAD_MIGRATION_DATABASE_URI: "",
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.payloadSpawn?.payloadDatabaseUri).toContain(
+      "options=-c+role%3Dcms_owner",
+    );
+  });
+
+  it("never migrates through the Core migration string", () => {
+    const result = runCommand(["migrate"], {
+      PAYLOAD_DATABASE_URI: "",
+      PAYLOAD_MIGRATION_DATABASE_URI: "",
+      SUPABASE_DB_URL: HOSTED_MIGRATION_URL.replace("cms_owner.", "postgres."),
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.payloadSpawn?.payloadDatabaseUri).toMatch(
+      /^postgresql:\/\/postgres:postgres@127\.0\.0\.1:54322\/postgres\?/,
+    );
   });
 });
