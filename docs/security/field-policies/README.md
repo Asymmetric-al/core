@@ -1,22 +1,107 @@
-# AL-491 field-policy foundation census
+# Field-policy classification manifest
 
-`census-v1.json` is the immutable baseline seed specification, with every column's
-category and explicit visibility/editability/exportability on all five surfaces.
-The foundation migration contains 855 rows for the 171 live columns plus five rows for the
-separately source-bound repository supplement v1; the #2254 migration adds ten rows for
-the two columns of supplement v2, and the #2256 migration ten rows for the two columns
-of supplement v3: 176 candidate columns / 880 rows. The two
-unaltered read-only metadata responses bind the census to project
-`pnmlrbgjiqzzsthsoikm`, capture `2026-10-05 04:51:45.072671+00`, PostgreSQL 17.6,
-latest live migration `20261001061717`, and base repository revision
-`ffa812656b0ff920b3fe014a31d2d57ee8679288`. Exact queries and SHA-256 digests are
-recorded in the artifact. The candidate migration is
-`20261005050728_field_policy_foundation.sql`; the acceptance record must bind
-these files to the final candidate commit SHA. Metadata is evidence, not executable
-instructions. No business values or credentials were captured.
+`manifest.json` is the classification of record for field policies (AL-2674,
+plan section 7.1). It lists every column of each classified record type, with
+the column's type, nullability and, where it has one, its generation expression
+or pinned default; its category (and its independent semantic category where
+that differs); whether it is a payment-processor identifier; and its flags on the
+five surfaces. The baseline rows of `public.field_policies` are the manifest's
+flags, one row per column and surface.
 
-These implementation choices require independent review; this packet does not
-claim owner ratification, portal enforcement, or whole-phase acceptance.
+It replaces the AL-491 census, which asserted a dated capture of the hosted
+schema by checksum and so let no classified column be added or dropped (audit
+NR-19). The census and its supplements stay in this folder as historical
+evidence (see "History: the AL-491 census" below); no gate reads them.
+
+## Format
+
+```json
+"donors": {
+  "email": {
+    "type": "text",
+    "nullable": true,
+    "category": "contact",
+    "mission_control": "ve-",
+    "donor": "ve-",
+    "missionary": "ve-",
+    "public": "---",
+    "export": "---"
+  }
+}
+```
+
+- Each surface value is three characters, in the order visible, editable,
+  exportable: `v`, `e` or `x` where the surface admits the operation, `-` where
+  it does not. `"ve-"` is visible and editable, not exportable.
+- `type` is `format_type()` of the column; `nullable` is the opposite of
+  `attnotnull`.
+- `generated` is the column's generation expression; a column without it must
+  not be generated. `default` is checked only where it is present.
+- `semantic_category` appears only where it differs from `category`.
+- `processor_identifier: true` appears on exactly the six Stripe fields listed in
+  `processor_identifiers`.
+- `reserved_record_types` lists the receipt record types that receive no rows;
+  `receipts` must not exist as a relation at all.
+- `pinned_sources` binds, by SHA-256, the migrations that define the census
+  supplements' columns, as the census did.
+
+## What the gate checks
+
+`scripts/verify/field-policy-census.mjs` runs inside
+`scripts/verify/supabase-migrations.mjs`, after the whole migration chain, in CI
+and locally. It fails, naming every problem, when:
+
+- the manifest itself is malformed: the five surfaces or six categories differ, a
+  flag is not `[v-][e-][x-]`, a key is unknown, one column name carries two
+  categories across record types (same-name floor), a processor identifier is
+  unflagged, exportable anywhere or admitted off Mission Control, a reserved
+  receipt type is classified, or a pinned migration changed;
+- `UNCLASSIFIED`: a column of a classified table has no manifest entry;
+- `STALE`: a manifest entry names a column that no longer exists;
+- `SHAPE`: a column's type, nullability, generation or pinned default differs
+  from its entry, so it has to be reclassified;
+- `MISSING_TABLE`: a classified record type has no relation;
+- `RESERVED`: `public.receipts` exists;
+- `ROW_MISSING`, `ROW_UNEXPECTED`, `ROW_DRIFT`: `public.field_policies` does not
+  equal the manifest's rows exactly. A tenant override row, or a row for a record
+  type the manifest does not classify, is unexpected.
+
+Run it on a disposable local database after applying the chain:
+`DATABASE_URL=<local URL> node scripts/verify/supabase-migrations.mjs`. It
+refuses any database that is not on `localhost`, `127.0.0.1` or `[::1]`.
+
+## Adding a column
+
+In the change that adds a column to a classified table:
+
+1. classify it: add its entry to `manifest.json`, with every surface explicit;
+2. seed it: in the same migration that adds the column, insert its five rows
+   into `public.field_policies` with `tenant_id` NULL and the same flags and
+   category.
+
+A new record type is added the same way, as a new key under `record_types`. An
+unclassified record family stays hidden on every surface
+(`openspec/contracts/identity-and-access.md`), so a package that wants a new
+table's fields projected classifies them here.
+
+## Dropping a column
+
+In the change that drops a column from a classified table:
+
+1. in the migration, delete its rows from `public.field_policies` and drop the
+   column;
+2. remove its entry from `manifest.json`.
+
+Dropping a whole classified table removes its record type. Until both steps are
+in, the gate reports `STALE` or `ROW_UNEXPECTED`.
+
+## Changing a classification
+
+A change to an existing column's category or flags is a reviewed decision. Make
+it in the manifest and in a migration that updates the column's rows, and record
+it in the fidelity expectation of
+`tests/unit/acceptance/issue-2674/manifest.acceptance.test.ts`, which proves the
+manifest kept every census classification when it was created.
 
 ## Complete conservative taxonomy defaults
 
@@ -105,9 +190,42 @@ still records both as absent there. No alias or donation fallback is provided.
 Canonical facts/eligibility belong to
 Phase 7, artifacts/rendering to Phase 18, and delivery to Phase 17. Later families
 and acknowledgment/notification document classes must ship their own owner
-census and scope qualification; none is fabricated here.
+census and scope qualification; none is fabricated here. The manifest carries
+this disposition in `reserved_record_types`.
 
-## RLS and verification
+## History: the AL-491 census
+
+`census-v1.json` was the immutable baseline seed specification of AL-491. The
+foundation migration `20261005050728_field_policy_foundation.sql` seeded 855
+rows for the 171 live columns plus five rows for the separately source-bound
+repository supplement v1; the #2254 migration added ten rows for the two columns
+of supplement v2, and the #2256 migration ten rows for the two columns of
+supplement v3: 176 candidate columns and 880 rows. The two unaltered read-only metadata
+responses, `live-schema-response.json` and `live-tables-response.json`, bound the
+census to project `pnmlrbgjiqzzsthsoikm`, capture
+`2026-10-05 04:51:45.072671+00`, PostgreSQL 17.6, latest live migration
+`20261001061717`, and base repository revision
+`ffa812656b0ff920b3fe014a31d2d57ee8679288`. Metadata is evidence, not executable
+instructions. No business values or credentials were captured.
+
+The supplements, in order: `repository-supplement-v1.json` adds
+`donations.stripe_refund_ids` (financial, processor proof, from
+`20260702090000_donation_stripe_refund_ids.sql`);
+`repository-supplement-v2-donor-identity.json` adds `donors.email_normalized`
+(generated `normalize_email(email)`) and `donors.email_verified_at`, both contact
+(#2254, approved by Samson on Oct 24, 2026; see
+`docs/security/identity-email-normalization.md`);
+`repository-supplement-v3-person-anchor.json` adds `missionaries.person_id` and
+`profiles.person_id`, both security and denied on every surface (#2256; see
+`docs/security/identity-person-anchor.md`).
+
+AL-2674 generated `manifest.json` from these files, taking each column's type,
+nullability and generation from a fresh replay of the migration chain. The
+October capture and the replay agreed on every column's type and nullability.
+The files above are historical and unchanged; no gate reads them. The fidelity
+test named under "Changing a classification" compares the manifest with them.
+
+## RLS
 
 Baseline reads require a real active membership in the claimed tenant context or
 `authz.is_super_admin()`. Other tenant rows are excluded for ordinary members.
@@ -115,62 +233,7 @@ Claims alone and inactive memberships grant nothing. All policy writes require
 super-admin authority; ordinary Mission Control admins/finance members cannot
 manage baseline. No non-super tenant writer is activated. The reader ignores
 `tenantId` and selects only `tenant_id IS NULL`. RLS permission to inspect policy
-metadata does not grant permission to inspect classified record values.
-
-Run `DATABASE_URL=<disposable localhost URL> PSQL_BIN=<psql or container wrapper>
-node scripts/verify/field-policy-census.mjs` to verify immutable captures and exact
-seed/category/flag parity, plus candidate-schema parity. Apply the full migration
-chain first with `scripts/verify/supabase-migrations.mjs`, then execute both
-`supabase/tests/field_policies*.sql` with `psql -v ON_ERROR_STOP=1`.
-
-**Qualified bounded reconciliation:** the immutable live capture has 171
-columns, while repository migration replay adds `donations.stripe_refund_ids`.
-`repository-supplement-v1.json` binds this sole additional whole column to base
-`ffa812656b0ff920b3fe014a31d2d57ee8679288`, source
-`supabase/migrations/20260702090000_donation_stripe_refund_ids.sql`, SHA-256
-`2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda`, and the
-actual local catalog (`ARRAY`, `_text`, NOT NULL, default `'{}'::text[]`, ordinal
-29). Its five explicit financial-category rows protect the entire array as
-processor proof, without changing `refund_amount` money truth. The census holds
-the supplement artifact digest separately; no live evidence or source schema is
-amended.
-
-**Reviewed supplement v2 (#2254):** `repository-supplement-v2-donor-identity.json`
-adds `donors.email_normalized` (generated `normalize_email(email)`, ordinal 43) and
-`donors.email_verified_at` (nullable `timestamptz`, no default, ordinal 44), both
-category `contact`, approved by Samson on Oct 24, 2026 (#2254 Q11). Neither column
-is editable or exportable on any surface. `email_normalized` is visible on
-mission_control, donor and missionary; `email_verified_at` only on mission_control
-and donor. The source migration
-`supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql`
-postdates the census base SHA, so v2 binds it by working-tree SHA-256 instead of
-`git show`. Its local catalog result is also exact. See
-`docs/security/identity-email-normalization.md`.
-
-**Reviewed supplement v3 (#2256):** `repository-supplement-v3-person-anchor.json`
-adds the inert seams `missionaries.person_id` (ordinal 22) and `profiles.person_id`
-(ordinal 14), both nullable `uuid` with no default, category `security` (#2256 Q11,
-approved by Samson). Each is denied on every surface, Mission Control included:
-`(F,F,F)` everywhere, because nothing reads or writes them in Phase 4. The source
-migration `supabase/migrations/20261025110000_person_anchor.sql` is bound by
-working-tree SHA-256, and its local catalog result is exact. See
-`docs/security/identity-person-anchor.md`.
-
-Supplements are an ordered list (v1, v2, then v3), each pinned by digest in
-`census-v1.json`. The verifier requires exact 171-live-plus-five-supplement column
-parity (176 candidate columns) and exact 880-row flag/category parity; it allows no
-arbitrary drift exemption.
-
-Only canonical `public.receipts` must be physically absent in the candidate.
-The noncanonical prototype source migrations remain unchanged:
-`20260704120000_gift_receipt_records.sql` (SHA-256
-`d5d9c65c7cbdc66df4460e4aab9e0fd3352056f06a3cf80d9d248227b571d56d`) and
-`20260611140000_contribution_receipt_delivery.sql` (SHA-256
-`a8d103822430d8dd9318f1f0abe7991aa7a7e240472b21262cf11ef81f94ec8f`). Their
-physical replay existence grants no policy or canonical receipt authority.
-
-Disposable PostgreSQL 15 execution supports real NULLS NOT DISTINCT uniqueness
-and RLS. The compatibility bootstrap is not full Supabase/PostgREST or the live
-PostgreSQL 17.6 environment. Local tests supplement its missing standard `auth`
-schema usage grants; production auth helpers and membership functions are the
-actual repository implementations. No hosted writes or provider calls occur.
+metadata does not grant permission to inspect classified record values. The
+database tests `supabase/tests/field_policies*.sql` exercise these policies; run
+them with `psql -v ON_ERROR_STOP=1` after applying the chain. WP2 rewrites the
+policies on `public.field_policies` (plan 5.4).

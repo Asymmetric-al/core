@@ -15,12 +15,7 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, expect, it } from "vitest";
 
-import { NEW_ROWS } from "../acceptance/issue-2254/harness";
-import {
-  MIGRATION,
-  SEAMS,
-  NEW_ROWS as V3_ROWS,
-} from "../acceptance/issue-2256/harness";
+import { MIGRATION } from "../acceptance/issue-2256/harness";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const roots: string[] = [];
@@ -37,79 +32,56 @@ function runVerifier(
 ) {
   const temporary = mkdtempSync(path.join(os.tmpdir(), "migration-census-"));
   roots.push(temporary);
-  const census = JSON.parse(
+  // AL-2674 (plan 7.1): the census became the field-policy manifest gate,
+  // which reads one marked catalog snapshot. The fake database answers it from
+  // the committed manifest (the gate's own suites prove the manifest against
+  // the census oracles and a real replay); the modes below mutate that answer.
+  const manifest = JSON.parse(
     readFileSync(
-      path.join(root, "docs/security/field-policies/census-v1.json"),
+      path.join(root, "docs/security/field-policies/manifest.json"),
       "utf8",
     ),
   );
-  const supplement = JSON.parse(
-    readFileSync(
-      path.join(
-        root,
-        "docs/security/field-policies/repository-supplement-v1.json",
-      ),
-      "utf8",
-    ),
+  const surfaces: string[] = manifest.surfaces;
+  const entries = Object.entries(
+    manifest.record_types as Record<
+      string,
+      Record<string, Record<string, unknown>>
+    >,
+  ).flatMap(([recordType, columns]) =>
+    Object.entries(columns).map(([name, entry]) => ({
+      recordType,
+      name,
+      ...entry,
+    })),
   );
-  const columns = [
-    ...census.relations
-      .filter(
-        (relation: { disposition: string }) =>
-          relation.disposition === "present",
-      )
-      .flatMap((relation: { record_type: string; columns: object[] }) =>
-        relation.columns.map((column) => ({
-          recordType: relation.record_type,
-          ...column,
-        })),
-      ),
-    supplement.column,
-  ];
-  const rows = [
-    ...columns.flatMap((column) =>
-      census.surfaces.map((surface: string) => ({
-        record_type: column.recordType,
-        field_key: column.name,
-        surface,
-        tenant_id: null,
-        ...column.policies[surface],
-        sensitivity_category: column.category,
-      })),
-    ),
-    ...NEW_ROWS,
-    ...V3_ROWS,
-  ];
-  const schema = [
-    ...columns.map((column) => ({
+  const catalog = {
+    relations: Object.keys(manifest.record_types).sort(),
+    columns: entries.map((column) => ({
       record_type: column.recordType,
       field_key: column.name,
+      type: column.type,
+      nullable: column.nullable,
+      generated: column.generated ?? null,
+      default: "default" in column ? column.default : null,
     })),
-    { record_type: "donors", field_key: "email_normalized" },
-    { record_type: "donors", field_key: "email_verified_at" },
-    ...SEAMS.map(([record_type]) => ({ record_type, field_key: "person_id" })),
-  ];
-  const catalogs = Object.fromEntries(
-    census.repository_supplements.flatMap((ref: { artifact: string }) => {
-      const found: [string, unknown][] = [];
-      const walk = (value: unknown): void => {
-        if (!value || typeof value !== "object") return;
-        const item = value as { query?: unknown; result?: unknown };
-        if (typeof item.query === "string" && "result" in item)
-          found.push([item.query, item.result]);
-        Object.values(value).forEach(walk);
-      };
-      walk(
-        JSON.parse(
-          readFileSync(
-            path.join(root, "docs/security/field-policies", ref.artifact),
-            "utf8",
-          ),
-        ),
-      );
-      return found;
-    }),
-  );
+    reserved_present: [],
+    rows: entries.flatMap((column) =>
+      surfaces.map((surface) => {
+        const flags = String(column[surface]);
+        return {
+          record_type: column.recordType,
+          field_key: column.name,
+          surface,
+          tenant_id: null,
+          visible: flags[0] === "v",
+          editable: flags[1] === "e",
+          exportable: flags[2] === "x",
+          sensitivity_category: column.category,
+        };
+      }),
+    ),
+  };
   const listed = JSON.parse(
     readFileSync(
       path.join(root, "docs/security/rls-deny-by-default-exceptions.json"),
@@ -143,7 +115,7 @@ const fs = require("node:fs");
 const args = process.argv.slice(2);
 const stdinSql = args.includes("-f") || args.includes("-c") ? null : fs.readFileSync(0, "utf8");
 fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql }) + "\\n");
-const data = ${JSON.stringify({ rows, schema, catalogs, gate })};
+const data = ${JSON.stringify({ catalog, gate })};
 const mode = ${JSON.stringify(mode)};
 if (!args.includes("-c")) process.exit(0);
 const sql = args[args.indexOf("-c") + 1];
@@ -152,18 +124,17 @@ if (mode === "query-failure") {
 }
 if (sql.startsWith("-- tenant-rls-catalog-gate:v1"))
   console.log(mode === "rls-gate-malformed" ? "{" : JSON.stringify(data.gate));
-else if (sql in data.catalogs) console.log(JSON.stringify(data.catalogs[sql]));
-else if (sql.includes("public.field_policies")) {
-  if (mode === "policy-drift") data.rows.find(row => row.record_type === "donations" && row.field_key === "stripe_refund_ids" && row.surface !== "mission_control").exportable = true;
+else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
+  const c = data.catalog;
   const v3 = (row, table, surface) => row.record_type === table && row.field_key === "person_id" && row.surface === surface;
-  if (mode === "v3-row-missing") data.rows = data.rows.filter(row => !v3(row, "profiles", "export"));
-  if (mode === "v3-row-drift") data.rows.find(row => v3(row, "missionaries", "public")).visible = true;
-  console.log(JSON.stringify(data.rows));
-} else if (sql.includes("jsonb_agg(jsonb_build_object")) {
-  if (mode === "column-drift") data.schema.push({ record_type: "donors", field_key: "uncensused_test_column" });
-  if (mode === "v3-third-column") data.schema.push({ record_type: "donors", field_key: "person_id" });
-  if (mode === "v3-column-missing") data.schema = data.schema.filter(column => !(column.record_type === "profiles" && column.field_key === "person_id"));
-  console.log(JSON.stringify(data.schema));
+  const column = (record_type, field_key, type) => ({ record_type, field_key, type, nullable: true, generated: null, default: null });
+  if (mode === "policy-drift") c.rows.find(row => row.record_type === "donations" && row.field_key === "stripe_refund_ids" && row.surface !== "mission_control").exportable = true;
+  if (mode === "v3-row-missing") c.rows = c.rows.filter(row => !v3(row, "profiles", "export"));
+  if (mode === "v3-row-drift") c.rows.find(row => v3(row, "missionaries", "public")).visible = true;
+  if (mode === "column-drift") c.columns.push(column("donors", "uncensused_test_column", "text"));
+  if (mode === "v3-third-column") c.columns.push(column("donors", "person_id", "uuid"));
+  if (mode === "v3-column-missing") c.columns = c.columns.filter(col => !(col.record_type === "profiles" && col.field_key === "person_id"));
+  console.log(JSON.stringify(c));
 }
 `,
   );
@@ -223,15 +194,20 @@ itPosix(
   () => {
     const result = runVerifier("clean");
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("171 exact whole columns");
-    expect(result.stdout).toContain("all 880 database seed rows exactly equal");
-    expect(result.stdout).toContain("exactly 176 candidate columns");
+    expect(result.stdout).toContain(
+      "PASS: field-policy manifest: 9 record types, 176 columns",
+    );
+    expect(result.stdout).toContain(
+      "PASS: all 880 public.field_policies rows equal the manifest",
+    );
+    expect(result.stdout).toContain("equal the manifest's 176 entries");
+    // AL-2674 (D09) removed one exception entry with its dropped table.
     const gateLine = result.stdout.indexOf(
-      "PASS: tenant RLS catalog gate: 86 tenant tables enabled and forced (1 with policies, 85 listed deny-by-default, 0 stale)",
+      "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
     );
-    expect(result.stdout.indexOf("exactly 176 candidate columns")).toBeLessThan(
-      gateLine,
-    );
+    expect(
+      result.stdout.indexOf("equal the manifest's 176 entries"),
+    ).toBeLessThan(gateLine);
     expect(gateLine).toBeLessThan(
       result.stdout.indexOf("forward Supabase migrations"),
     );
@@ -306,9 +282,10 @@ itPosix.each([
   const result = runVerifier(mode);
   expect(result.status).not.toBe(0);
   expect(result.stdout).not.toContain("forward Supabase migrations");
-  // #2400 criterion 7: the failure is the census source-hash check itself.
+  // #2400 criterion 7: the failure is the source-hash check itself, now the
+  // manifest gate's pinned-source check (AL-2674).
   if (mode === "v3-source-edited") {
-    const mismatch = `field-policy census: v3 source_sha256 mismatch for ${MIGRATION}`;
+    const mismatch = `PINNED ${MIGRATION} changed`;
     expect(clean.stderr).not.toContain(mismatch);
     expect(result.stderr).toContain(mismatch);
   }
@@ -334,5 +311,7 @@ itPosix("accepts IPv6 loopback under the same census locality contract", () => {
     "postgresql://postgres@[::1]:5432/disposable_test",
   );
   expect(result.status).toBe(0);
-  expect(result.stdout).toContain("all 880 database seed rows exactly equal");
+  expect(result.stdout).toContain(
+    "PASS: all 880 public.field_policies rows equal the manifest",
+  );
 });

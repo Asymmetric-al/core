@@ -185,7 +185,8 @@ describe.skipIf(!ADMIN_URL)("#2251 tenant table RLS posture (R)", () => {
       tx(async () => {
         const live = new Map((await targets()).map((x) => [x.t, x]));
         const e = exceptions();
-        expect(e.length).toBeGreaterThanOrEqual(85);
+        // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
+        expect(e.length).toBeGreaterThanOrEqual(84);
         const bad = e
           .map((x) => [x.table, live.get(x.table)] as const)
           .filter(([, l]) => !l || !l.rls || !l.force || l.policies !== 0)
