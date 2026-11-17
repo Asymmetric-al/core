@@ -5,6 +5,15 @@
  * emulate PostgREST (BEGIN; SET LOCAL ROLE ...). Skips locally without the URL.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2674 (WP1 slice 1.1a, plan 5.4; NR-13): the command schema
+ * gains its first human entry point (tenant_guard.resolve_command_assignment,
+ * EXECUTE for authenticated) and three postgres-owned invoker helpers that only
+ * tenant_guard may execute (caller_id, request_assignment_id,
+ * begin_human_command), and the guard role gains USAGE on auth and authz,
+ * EXECUTE on auth.uid(), auth.jwt() and the two authz membership helpers, and
+ * SELECT on authz.memberships behind a select-own policy. Criteria 4, 14, 15
+ * and 17 below pin the widened inventory; everything else is unchanged.
  */
 import { randomUUID } from "node:crypto";
 
@@ -23,12 +32,13 @@ const rel = (t: string, id: string) =>
 const ins = (t: string, s: string) =>
   `insert into public.workflow_work_claims (tenant_id, subject_type, subject_id, claimed_by, expires_at) values (${t}, 'acc2250', '${s}', 'acc', pg_catalog.now() + interval '1 hour')`;
 const CLAIMS = "public.workflow_work_claims";
-/** The 6 functions of criteria 14/15 (no overloads allowed). */
+/** The 10 functions of criteria 14/15 (no overloads allowed; 6 before AL-2674). */
 const FN = `select n.nspname || '.' || p.proname f, p.* from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'tenant_guard' or (n.nspname = 'public' and p.proname in ('acquire_workflow_work_claim', 'release_workflow_work_claim'))`;
 const SP_OK = `(proconfig && array['search_path=""', 'search_path=pg_catalog', 'search_path=pg_catalog, public'])`;
 const TG_ACQ = "tenant_guard.acquire_workflow_work_claim";
 const TG_REL = "tenant_guard.release_workflow_work_claim";
+const TG_RES = "tenant_guard.resolve_command_assignment";
 const TG = "'tenant_guard'::regrole";
 
 /**
@@ -40,9 +50,9 @@ const CATALOG = `
 select concat_ws(',', rolcanlogin, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb, rolinherit) v from pg_roles where rolname = 'tenant_guard'
 => f,f,f,f,f,f
 
-4: tenant_guard owns no relation and exactly the 2 guarded functions
+4: tenant_guard owns no relation and exactly the 3 guarded functions (AL-2674 adds the first human entry point)
 select (select count(*) from pg_class where relowner = ${TG}) || ' ' || (select string_agg(oid::regproc::text, ',' order by oid::regproc::text) from pg_proc where proowner = ${TG}) v
-=> 0 ${TG_ACQ},${TG_REL}
+=> 0 ${TG_ACQ},${TG_REL},${TG_RES}
 
 4: tenant_guard has CREATE on no schema
 select coalesce(string_agg(nspname, ','), 'none') v from pg_namespace where has_schema_privilege('tenant_guard', oid, 'CREATE')
@@ -65,7 +75,7 @@ select string_agg(e, ', ' order by e) v from (
   union all select 'schema ' || nspname || ' ' || a.privilege_type from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> public.workflow_work_claims INSERT, public.workflow_work_claims SELECT, public.workflow_work_claims UPDATE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE
+=> auth.jwt() EXECUTE, auth.uid() EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, authz.memberships SELECT, public.workflow_work_claims INSERT, public.workflow_work_claims SELECT, public.workflow_work_claims UPDATE, schema auth USAGE, schema authz USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),
@@ -78,15 +88,15 @@ select concat_ws(' ', coalesce(to_regprocedure('public.release_workflow_work_cla
   pg_get_function_result(to_regprocedure('public.acquire_workflow_work_claim(uuid,text,text,text,integer)'))) v
 => gone jsonb jsonb
 
-14: exactly 2 tenant_guard-owned SECURITY DEFINER functions, each SET search_path = '' (or pg_catalog[, public])
+14: exactly 3 tenant_guard-owned SECURITY DEFINER functions, each SET search_path = '' (or pg_catalog[, public])
 select string_agg(oid::regproc || ' ' || ${SP_OK}, ', ' order by oid::regproc::text) v from pg_proc where proowner = ${TG} and prosecdef
-=> ${TG_ACQ} true, ${TG_REL} true
+=> ${TG_ACQ} true, ${TG_REL} true, ${TG_RES} true
 
-14/15: the 6 functions: owner, DEFINER, search_path pinned, explicit ACL (not NULL), exact EXECUTE grantees besides the owner
+14/15: the 10 functions: owner, DEFINER, search_path pinned, explicit ACL (not NULL), exact EXECUTE grantees besides the owner
 select string_agg(concat_ws(' ', f, pg_get_userbyid(proowner), prosecdef, coalesce(${SP_OK}, false), proacl is not null,
   (select coalesce(string_agg(distinct case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end, '+'), '-')
    from aclexplode(proacl) a where a.privilege_type = 'EXECUTE' and a.grantee <> proowner)), ', ' order by f) v from (${FN}) x
-=> public.acquire_workflow_work_claim postgres f t t service_role, public.release_workflow_work_claim postgres f t t service_role, ${TG_ACQ} tenant_guard t t t service_role, tenant_guard.current_tenant_id postgres f t t tenant_guard, tenant_guard.enter postgres f t t tenant_guard, ${TG_REL} tenant_guard t t t service_role
+=> public.acquire_workflow_work_claim postgres f t t service_role, public.release_workflow_work_claim postgres f t t service_role, ${TG_ACQ} tenant_guard t t t service_role, tenant_guard.begin_human_command postgres f t t tenant_guard, tenant_guard.caller_id postgres f t t tenant_guard, tenant_guard.current_tenant_id postgres f t t tenant_guard, tenant_guard.enter postgres f t t tenant_guard, ${TG_REL} tenant_guard t t t service_role, tenant_guard.request_assignment_id postgres f t t tenant_guard, ${TG_RES} tenant_guard t t t authenticated
 `
   .trim()
   .split("\n\n")
@@ -183,7 +193,7 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
         `select f, prosrc, coalesce(proargnames, '{}') a from (${FN}) x`,
       )
     ).rows;
-    expect(fns.length).toBe(6);
+    expect(fns.length).toBe(10);
     for (const f of fns) {
       expect(bareTargets(f.prosrc, f.a), f.f).toEqual([]);
       expect(f.prosrc, f.f).not.toMatch(
