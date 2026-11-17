@@ -6,6 +6,7 @@ import {
   ReleaseStop,
   migrate,
   preflight,
+  pinnedSupabaseCliVersion,
   readReleaseSettings,
   rebuild,
   recordHeads,
@@ -253,6 +254,105 @@ describe("release database steps", () => {
       "role password",
       "payload",
     ]);
+  });
+
+  it("resets a disposable preview database through the repository wrapper, never the direct CLI", async () => {
+    const fake = fakeDatabase({});
+    const commands: string[][] = [];
+    await rebuild({
+      settings: settings("preview"),
+      mode: "disposable",
+      confirmation: `rebuild ${ref}`,
+      env: passwords,
+      query: fake.query,
+      run: fake.run,
+      runCommand: vi.fn((command: string, args: string[]) => {
+        commands.push([command, ...args.slice(0, 3)]);
+        return { status: 0 };
+      }),
+      requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+      log: silent,
+    });
+    expect(commands[0]).toEqual([
+      process.execPath,
+      "scripts/supabase-cli.mjs",
+      "db",
+      "reset",
+    ]);
+    expect(commands.some(([command]) => command === "npx")).toBe(false);
+  });
+
+  it("first rebuild: resets an unmarked database with the pinned CLI directly, the one exception to the wrapper's reset rule", async () => {
+    const fake = fakeDatabase({ environment: null });
+    const order: string[] = [];
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      if (command === "npx") {
+        expect(args.slice(0, 4)).toEqual([
+          "-y",
+          `supabase@${pinnedSupabaseCliVersion()}`,
+          "db",
+          "reset",
+        ]);
+        expect(args).toContain("--yes");
+        // The migrations write the marker on the emptied database.
+        fake.db.environment = "disposable";
+        order.push("direct reset");
+      } else {
+        expect(args).not.toContain("scripts/supabase-cli.mjs");
+        order.push(command === "bun" ? "payload" : command);
+      }
+      return { status: 0 };
+    });
+    await rebuild({
+      settings: settings(),
+      mode: "first",
+      signoff:
+        "https://github.com/Asymmetric-al/core/issues/2690#issuecomment-1",
+      confirmation: `rebuild ${ref}`,
+      env: passwords,
+      query: fake.query,
+      run: fake.run,
+      runCommand,
+      requireDisposable: vi.fn(() => {
+        throw new Error(
+          "the first rebuild must not ask for the disposable marker",
+        );
+      }),
+      log: silent,
+    });
+    expect(order).toEqual(["direct reset", "payload"]);
+    expect(pinnedSupabaseCliVersion()).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it("stops loudly, before the role passwords and Payload, when the migrations leave no disposable marker", async () => {
+    for (const [mode, start, signoff] of [
+      ["first", null, "https://github.com/Asymmetric-al/core/issues/1"],
+      ["disposable", "disposable", undefined],
+    ] as const) {
+      const fake = fakeDatabase({ environment: start });
+      const commands: string[] = [];
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff,
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand: vi.fn((command: string) => {
+            commands.push(command);
+            // The reset ran, but the marker migration wrote nothing.
+            fake.db.environment = null;
+            return { status: 0 };
+          }),
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        }),
+      ).rejects.toThrow(/not marked disposable after the migrations/);
+      expect(commands).toHaveLength(1);
+      expect(fake.run).not.toHaveBeenCalled();
+    }
   });
 
   it("runs the one-off first rebuild only on an unmarked database with the census sign-off", async () => {

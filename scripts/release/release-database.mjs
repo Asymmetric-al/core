@@ -17,6 +17,7 @@
 //   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step only)
 //   RELEASE_REPLAY_FINGERPRINT     fingerprint file of CI's fresh replay (gates)
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -266,6 +267,46 @@ function supabaseCli(runCommand, label, args, settings) {
   );
 }
 
+/** The Supabase CLI version scripts/supabase-cli.mjs pins: one pin for the repository. */
+export function pinnedSupabaseCliVersion(root = repoRoot) {
+  const wrapper = readFileSync(
+    path.join(root, "scripts", "supabase-cli.mjs"),
+    "utf8",
+  );
+  const version = /PINNED_SUPABASE_CLI_VERSION\s*=\s*"(\d+\.\d+\.\d+)"/.exec(
+    wrapper,
+  )?.[1];
+  if (!version) stop("scripts/supabase-cli.mjs pins no Supabase CLI version.");
+  return version;
+}
+
+/**
+ * The one reset that does not go through `bun run supabase`. That wrapper
+ * refuses to reset a database not marked disposable (WP1.1), and the first
+ * rebuild of a hosted database has no marker by definition: it is the named
+ * exception of plan 7.5. It runs only here, in the release job's dispatched
+ * first-rebuild step, after the checks in rebuild(): the target project, a
+ * database with no marker, the owner's census sign-off (or a provably empty
+ * new project) and the typed confirmation. It uses the same pinned CLI.
+ */
+function firstRebuildReset(runCommand, settings) {
+  runChecked(
+    runCommand,
+    "Supabase reset (first rebuild)",
+    "npx",
+    [
+      "-y",
+      `supabase@${pinnedSupabaseCliVersion()}`,
+      "db",
+      "reset",
+      "--db-url",
+      settings.databaseUrl,
+      "--yes",
+    ],
+    process.env,
+  );
+}
+
 /** Payload migrations as cms_owner, through the repository's guarded wrapper. */
 export function payloadMigrate({ settings, runCommand = spawnSync }) {
   if (!settings.cmsOwnerDatabaseUrl)
@@ -511,15 +552,23 @@ export async function rebuild({
   log(
     `Rebuilding ${settings.projectRef} from source (${mode}${mode === "first" ? `, sign-off ${signoff}` : ""}).`,
   );
-  supabaseCli(runCommand, "Supabase reset", ["db", "reset"], settings);
-  setCmsRolePasswords({ settings, env, query, run, log });
-  payloadMigrate({ settings, runCommand });
+  if (mode === "first") {
+    firstRebuildReset(runCommand, settings);
+  } else {
+    // The wrapper applies WP1.1's reset rule again on its own.
+    supabaseCli(runCommand, "Supabase reset", ["db", "reset"], settings);
+  }
+  // The marker migration writes `disposable` when public.profiles,
+  // public.donors and public.donations are empty, as they are right after the
+  // reset drops and recreates them. Anything else is a failed rebuild.
   const after = readReleaseHealth({ databaseUrl: settings.databaseUrl, query });
   if (after?.environment !== "disposable") {
     stop(
-      "After the rebuild the database is not marked disposable; the marker migration did not run.",
+      `The database is not marked disposable after the migrations (it reads ${after?.environment ?? "no marker"}). The rebuild stopped before the CMS role passwords and Payload's migrations; nothing was deployed.`,
     );
   }
+  setCmsRolePasswords({ settings, env, query, run, log });
+  payloadMigrate({ settings, runCommand });
   checkLedgers({ databaseUrl: settings.databaseUrl, query });
   log("Rebuild complete; the database is marked disposable.");
 }

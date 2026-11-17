@@ -90,6 +90,40 @@ Run from the Actions tab, workflow **Release**, branch `production`:
 Only SCRAM-SHA-256 verifiers computed on the runner reach the database; the
 plain passwords never appear in SQL, argv or logs.
 
+### Why the first rebuild alone may reset an unmarked database
+
+Every reset in the repository goes through WP1.1's reset rule: the
+`bun run supabase` wrapper and `requireDisposableDatabase`
+(`scripts/lib/environment-marker.mjs`) refuse a database not marked
+`disposable`, and a database with no marker counts as not disposable. The
+preview rebuild follows that rule twice: the job calls
+`requireDisposableDatabase`, then resets through the wrapper.
+
+The one-off first rebuild cannot: a hosted database that predates WP1 has no
+marker by definition. It is the one exception plan 7.5 names ("the first
+rebuild of each … is a named one-off step of the job that takes the census
+sign-off as its input"). So `first-rebuild` runs the pinned Supabase CLI
+directly (`npx supabase@<pin> db reset --db-url …`, the version read from
+`scripts/supabase-cli.mjs`), and nothing else does. It exists only in the
+release job's dispatched `first-rebuild` step, from the `production`
+branch, and runs only after all of these hold:
+
+- the connection addresses the environment's configured project, never the
+  production-named one, as `postgres`, over TLS;
+- the database has no marker (a marked database is refused: it is reset, if at
+  all, under the ordinary rule);
+- the input is the owner's census sign-off, a link to the issue or comment in
+  `Asymmetric-al/core`, or `empty-project` for a new project, which the job
+  checks holds no table and no migration ledger;
+- the operator typed `rebuild <ref>`.
+
+Right after the migrations the job reads the marker. The marker migration
+writes `disposable` when `public.profiles`, `public.donors` and
+`public.donations` are empty, as they are after the reset; Auth rows do not
+count. If the marker does not read `disposable`, the step stops there, before
+the CMS role passwords and Payload's migrations, and says what it read. The
+preview rebuild makes the same check.
+
 ### Pull requests that carry a migration
 
 `.github/workflows/qa-smoke-preview-deploy.yml` keeps its per-pull-request
@@ -98,7 +132,8 @@ A pull request that changes `supabase/migrations/` or
 `apps/admin/src/migrations/` instead runs the `preview-database` job, in one
 repository-wide group that never cancels and queues the rest: replay and
 fingerprint, rebuild the `preview` Supabase project from the PR head (only
-where its marker says `disposable`; the scripts refuse the development and
+where its marker says `disposable`, through `requireDisposableDatabase` and
+the `bun run supabase` wrapper; the scripts refuse the development and
 production-named projects whatever the configuration says), gates, heads,
 deploy into the Vercel custom environment `preview-database`, check each
 deployment reads the preview project at the migrated heads, then the smoke
@@ -141,8 +176,12 @@ stub of the same shape (`tests/unit/scripts/release/support/test-database.ts`).
   ledger's head, forward only.
 - `platform.advance_environment(p_kind text)` moves the marker to `shared` or
   `production`; the release code also refuses a database with no marker.
-- The marker migration writes `disposable` only on a database that holds no
-  person and no gift, that is, one being built from source.
+- The marker migration writes `disposable` when `public.profiles`,
+  `public.donors` and `public.donations` are empty, that is, on a database being
+  built from source. Auth rows do not count, so a hosted reset that keeps Auth
+  users still yields the marker.
+- `requireDisposableDatabase({databaseUrl, action})` and the `bun run supabase`
+  wrapper refuse to reset a database not marked `disposable`, with no override.
 - `cms_owner` and `cms_runtime` are login roles that `postgres` can alter.
 
 ## Switching it on
@@ -152,11 +191,12 @@ Do the steps in order. Each says how to check it and how to undo it. Steps
 development and the Vercel variables; step 7 is the first release through the
 job. Nothing here is done by the code.
 
-**Preconditions.** WP1.1 (the health function, marker and CMS roles) and
-WP1.2 (Payload as `cms_runtime`, migrating as `cms_owner`) are merged with
-this change. The census (WP1.5) is signed off (decision D-01), and the owner
-has decided where production-target deployments point until WP11 (D-02; the
-plan's default is the development database).
+**Preconditions.** WP1.1 (the health function, marker, reset rule and CMS
+roles) and WP1.2 (Payload as `cms_runtime`, migrating as `cms_owner`) are
+merged with this change. The owner has decided the census (record D-15): all
+hosted data are fixtures; the production-named project is replaced in WP11,
+not rebuilt in place; and the production deployments point at the
+development database until WP11. The steps below follow those decisions.
 
 1. **Create the GitHub environment `release-production`.** Settings,
    Environments, New environment. Deployment branches and tags: _Selected
@@ -188,13 +228,16 @@ plan's default is the development database).
    no new production deployment for the commit
    (`vercel list admin --scope asymmetric-al`).
    Undo: release a revert of the commit.
-5. **The first rebuild of development** (WP1.7; needs the census sign-off,
-   D-01). Dispatch **Release** with operation `first-rebuild`, environment
-   `production`, `census_signoff` the link to the sign-off, confirmation
-   `rebuild pnmlrbgjiqzzsthsoikm`. It drops what migrations made, applies
-   every migration (which creates the marker as `disposable` and the CMS
-   roles), seeds, sets the CMS role passwords, runs Payload's migrations, the
-   gates and the heads.
+5. **The first rebuild of development** (WP1.7). Its input is the census
+   sign-off, decision D-15 (all hosted data are fixtures). Dispatch
+   **Release** with operation `first-rebuild`, environment `production`,
+   `census_signoff` a link to the issue, pull request or comment in
+   `Asymmetric-al/core` that records D-15 (the job accepts no other link),
+   confirmation `rebuild pnmlrbgjiqzzsthsoikm`. It resets the database with the pinned
+   CLI directly (the named exception above), applies every migration, which
+   creates the marker as `disposable` and the CMS roles, checks the marker,
+   seeds, sets the CMS role passwords, runs Payload's migrations, the gates and
+   the heads.
    Check: the run is green, and its log says the rebuild is complete, the
    database is marked disposable and both role passwords were verified.
    Undo: none after the reset (forward only, plan 7.5); before it, cancel
@@ -203,7 +246,7 @@ plan's default is the development database).
    In each Vercel project (admin, donor, missionary):
    - Production `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
      and `SUPABASE_SERVICE_ROLE_KEY` belong to `RELEASE_SUPABASE_PROJECT_REF`
-     (until WP11 the development project; D-02). The job checks this on every
+     (the development project until WP11; D-15). The job checks this on every
      staged deployment and refuses to promote a mismatch.
    - Delete `SUPABASE_DB_URL` everywhere. Names read on 17 November 2026:
      admin Production, and the `core-development` custom environment of
@@ -227,7 +270,9 @@ plan's default is the development database).
    outside the job.
    Undo: Vercel _Instant Rollback_ to the previous production deployment; it
    stays healthy, because a database that is ahead passes.
-8. **The `preview` Supabase project** (a new billable resource; D-03).
+8. **The `preview` Supabase project.** It is a new billable resource in the
+   owner's organization, so creating it is the owner's go-ahead (D-03; D-15
+   does not decide it).
    Create a project named `preview` in the organization. Create the GitHub
    environment `release-preview` with no branch rule and no required
    reviewer (pull-request runs use it), and give it the four names with the
@@ -260,10 +305,13 @@ reopens D02.
 Proved locally (unit and real-stack tests against a disposable Postgres):
 the order check, preflight refusals, heads, marker, SCRAM passwords, the
 fingerprint and gates, the health route's answers, the all-or-nothing deploy
-against a fake Vercel API, and the workflows' structure. Not yet run against a
-hosted service: Vercel creating a staged production deployment through the
+against a fake Vercel API, the first rebuild's direct reset path and the
+marker check after it, and the workflows' structure. CI's `migrate` job runs
+the release job's real-stack suites and the `issue-2674` suites on every pull
+request. Not yet run against a hosted service: Vercel creating a staged production deployment through the
 API and promoting it; a gitSource deployment into the `preview-database`
 custom environment (the job fails closed if Vercel ignores the environment);
 `supabase db push` and `db reset --db-url` on a hosted project; custom login
 roles through the session pooler; fingerprint equality with development after
-its first rebuild; and GitHub's `queue: max` on the preview group.
+its first rebuild; and the preview group's queueing under GitHub's
+`queue: max` (a documented key of `jobs.<job_id>.concurrency`).
