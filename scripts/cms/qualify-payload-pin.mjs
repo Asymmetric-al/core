@@ -241,12 +241,20 @@ async function main() {
 
     // 2. Payload migrations from empty, as the cms_owner login.
     let ownerConnectionsMax = 0;
+    let sampling = false;
     const sample = async () => {
-      const { rows } = await admin.query(
-        "SELECT count(*)::int AS n FROM pg_stat_activity WHERE usename = 'cms_owner' AND datname = $1",
-        [options.database],
-      );
-      ownerConnectionsMax = Math.max(ownerConnectionsMax, rows[0].n);
+      // One sample at a time: the admin client runs one query at a time.
+      if (sampling) return;
+      sampling = true;
+      try {
+        const { rows } = await admin.query(
+          "SELECT count(*)::int AS n FROM pg_stat_activity WHERE usename = 'cms_owner' AND datname = $1",
+          [options.database],
+        );
+        ownerConnectionsMax = Math.max(ownerConnectionsMax, rows[0].n);
+      } finally {
+        sampling = false;
+      }
     };
     const migrate = await runAsync(
       process.execPath,
