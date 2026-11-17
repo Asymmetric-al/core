@@ -77,11 +77,19 @@ describe("#2308 static contracts (A)", () => {
   // 2 sites to 1 (the CRM tags read reuses crm/index.ts's one site; no new
   // sites), and at #2419, which shrank scripts/verify-money-units.ts from 3
   // sites to 1 (the anon-key fallback was removed).
-  it("C12: frozen service-role allowlist is byte-unchanged since the #2419 verify-money-units shrink", () => {
+  //
+  // Amended by AL-2674 (WP1 slice 1.3, plan 7.1 and 7.4): the health probe's
+  // one site in packages/api/src/health/db.ts now also serves each app's
+  // migration-head check, so that entry's reason names it, and the `lines`
+  // fields of three entries moved with their sources (db.ts 51 to 16, the env
+  // schema 302 to 301, vercel-production-readiness 35 to 66). No site, count
+  // or entry was added; the ceiling is unchanged. The pin stays a whole-file
+  // hash, re-taken on that reviewed content.
+  it("C12: frozen service-role allowlist is byte-unchanged since the AL-2674 health-probe reason", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("2ca1e6c193601bb9c1d6ccf0380b1ccc10833a410a47fea82ecb1f9ec74bc13c");
+    ).toBe("1b5d7059f026d1f52289a39bfd583e082566fbf5a0e32e5541566c1316f83395");
   });
 });
