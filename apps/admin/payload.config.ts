@@ -18,7 +18,10 @@ import { Pages } from "./src/cms/collections/pages";
 import { ProjectPages } from "./src/cms/collections/project-pages";
 import { Tenants } from "./src/cms/collections/tenants";
 import { webStudioCreateFromTemplateEndpoint } from "./src/cms/create-from-template-endpoint";
-import { resolvePayloadDatabaseConfig } from "./src/cms/payload-database-config";
+import {
+  assertPayloadDatabaseConfiguration,
+  resolvePayloadDatabaseConfig,
+} from "./src/cms/payload-database-config";
 import {
   createPayloadStorageAdapters,
   resolvePayloadEmailAdapter,
@@ -33,6 +36,33 @@ const payloadDatabaseConfig = resolvePayloadDatabaseConfig();
 if (payloadDatabaseConfig.warning) {
   console.warn(payloadDatabaseConfig.warning);
 }
+
+const postgresDatabaseAdapter = postgresAdapter({
+  // Never against a non-loopback host (WP0); see payload-schema-push.ts.
+  push: resolvePayloadSchemaPush({
+    connectionString: payloadDatabaseConfig.pool.connectionString,
+    env: process.env,
+  }),
+  schemaName: "cms",
+  pool: payloadDatabaseConfig.pool,
+  disableCreateDatabase: payloadDatabaseConfig.disableCreateDatabase,
+});
+
+/**
+ * The one place that refuses a database configuration a protected deployment
+ * must not use (payload-database-config.ts): the migration connection in the
+ * runtime, a login other than cms_runtime, a routing override, and the rest.
+ * Payload builds its adapter here before it connects, on every path that
+ * starts it: the Local API, the admin, and the REST and GraphQL routes, which
+ * call Payload's handlers directly.
+ */
+const guardedDatabaseAdapter: typeof postgresDatabaseAdapter = {
+  ...postgresDatabaseAdapter,
+  init: (args) => {
+    assertPayloadDatabaseConfiguration(payloadDatabaseConfig);
+    return postgresDatabaseAdapter.init(args);
+  },
+};
 
 function resolvePayloadSecret() {
   if (process.env.PAYLOAD_SECRET) {
@@ -143,16 +173,7 @@ export default buildConfig({
     MinistryUpdates,
     Media,
   ],
-  db: postgresAdapter({
-    // Never against a non-loopback host (WP0); see payload-schema-push.ts.
-    push: resolvePayloadSchemaPush({
-      connectionString: payloadDatabaseConfig.pool.connectionString,
-      env: process.env,
-    }),
-    schemaName: "cms",
-    pool: payloadDatabaseConfig.pool,
-    disableCreateDatabase: payloadDatabaseConfig.disableCreateDatabase,
-  }),
+  db: guardedDatabaseAdapter,
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
   llmInstructions: false,
