@@ -51,7 +51,7 @@ Finance holds the finance-staff contribution capabilities, development can publi
 ## 1) BFF route/handler checks (primary)
 
 - App proxies enforce dashboard-level access by the one live membership of the surface's class, which the principal resolver selects.
-- API route handlers use centralized `requireRole(...)` checks built on membership-aware role resolution.
+- API route handlers ask the one membership the request acts under for what their action needs, never a role name (AL-2675, the WP2a sweep): `requireCapability(auth, capability)` for a registry capability (plan 5.4 names it per command; staff-wide work uses the capabilities every staff bundle holds, such as `admin.dashboard.access`, `admin.crm.manage`, `admin.gifts.manage` and `admin.reports.view`), `requireTenantAdministrator(auth)` where the action is the tenant administrator's, or `requireRoleClass(auth, classes)` for the membership classes an endpoint serves. `withOperation` takes the same as `capability`, `tenantAdministrator` or `roleClasses`. Only WP2c's `super_admin` platform gates still pass role names, until the operator list replaces them.
 - Client-side role checks are not treated as security controls.
 
 ## 2) Database RLS (backup)
@@ -129,6 +129,7 @@ The RPC is `SECURITY INVOKER`, `STABLE` and `SET search_path = ''`, with no para
 - `is_tenant_admin`, the tenant-administrator flag, only on a staff row. It reaches the registry as the `tenant_admin` grant, and `hasRole(…, "admin")` is true only for a staff membership that carries it.
 - `authz.assignment_capabilities(assignment_id)` is the database's copy of the registry's bundle mapping and judges one live row alone. `tenant_guard.begin_human_command(tenant, capability)` refuses a command whose selected row lacks the capability.
 - `public.tenant_member_directory(tenant)` returns display name and role for the live members of a tenant, to a caller whose selected live staff row is there.
+- `public.tenant_member_profiles(tenant, profile_ids, user_ids, include_revoked)` returns a tenant's memberships joined to profiles for service-key server code (`packages/api/src/shared/tenant-members.ts`). Server code that needs a tenant's members, approvers or notification recipients reads them there: no query filters `profiles` on `tenant_id` or `role`, because a profile holds one tenant at most and a person may hold memberships in two (NR-68). The #2256 reader manifest fails on any such filter.
 
 ### What this does not do yet
 
