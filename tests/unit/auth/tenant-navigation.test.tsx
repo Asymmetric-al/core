@@ -68,8 +68,19 @@ async function load() {
   return import("../../../packages/auth/tenant-navigation");
 }
 
+/** The address the browser loaded the document at (navigation timing). */
+function loadDocumentAt(pathname: string) {
+  vi.spyOn(performance, "getEntriesByType").mockImplementation((type) =>
+    type === "navigation"
+      ? ([{ name: `http://localhost:3330${pathname}` }] as PerformanceEntryList)
+      : [],
+  );
+}
+
 beforeEach(() => {
+  vi.restoreAllMocks();
   nav.pathname = `/${TA}~finance/contributions`;
+  loadDocumentAt(nav.pathname);
   nav.push.mockReset();
   nav.replace.mockReset();
   nav.prefetch.mockReset();
@@ -143,6 +154,22 @@ describe("TenantDocument: the guard", () => {
     expect(reloadDocument).toHaveBeenCalledTimes(1);
   });
 
+  it("reloads when a soft navigation lands before the page has hydrated", async () => {
+    const { TenantDocument } = await load();
+    // The document was loaded at tenant A and has fixed no scope yet: the
+    // streamed boundary had not hydrated when the router moved to tenant B.
+    nav.pathname = `/${TB}/contributions`;
+
+    render(
+      <TenantDocument scope={scopeA}>
+        <p>page</p>
+      </TenantDocument>,
+    );
+
+    expect(screen.queryByText("page")).toBeNull();
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
   it("fails loudly when a document is served under one address with another scope", async () => {
     const { TenantDocument } = await load();
     const errors = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -150,6 +177,7 @@ describe("TenantDocument: the guard", () => {
     // Record D-19: the page rendered at a tenant address without its scope,
     // or with another tenant's. Reloading would only repeat it.
     nav.pathname = `/${TB}/contributions`;
+    loadDocumentAt(nav.pathname);
     expect(() =>
       render(
         <TenantDocument scope={scopeA}>

@@ -3,7 +3,6 @@
 import { reloadDocument } from "@asym/database/document-reload";
 import {
   DocumentScopeProvider,
-  getDocumentScope,
   useDocumentScope,
   type DocumentScope,
 } from "@asym/database/document-scope";
@@ -56,12 +55,13 @@ export class TenantScopeMismatchError extends Error {
  * unprefixed address causes, this renders nothing and loads the address as a
  * new document: the client router would otherwise keep showing the first
  * tenant's page under the second tenant's address. That holds whether this
- * guard re-renders or mounts afresh during the navigation.
+ * guard re-renders or mounts afresh during the navigation, and whether or
+ * not the page had hydrated when the navigation began.
  *
- * A mismatch while the document holds no scope yet (the server render, or
- * the first render in the browser) is a server fault, not a navigation: the
- * page was rendered for an address without that address's tenant. It throws
- * instead of reloading into the same fault.
+ * A mismatch at the very address the document was loaded at is a server
+ * fault, not a navigation: the page was rendered for an address without that
+ * address's tenant. It throws, on the server and in the browser, instead of
+ * reloading into the same fault.
  */
 export function TenantDocument({
   scope,
@@ -73,7 +73,7 @@ export function TenantDocument({
   const addressPrefix =
     parseTenantAddress(usePathname() ?? "/")?.prefix ?? null;
   const mismatch = addressPrefix !== scope.addressPrefix;
-  if (mismatch && getDocumentScope() === null) {
+  if (mismatch && isAtLoadedAddress(addressPrefix)) {
     throw new TenantScopeMismatchError(addressPrefix, scope.addressPrefix);
   }
 
@@ -93,6 +93,24 @@ export function TenantDocument({
       {children}
     </DocumentScopeProvider>
   );
+}
+
+/**
+ * Whether the address prefix is the one the document was loaded at: always
+ * on the server, which renders the requested address; in the browser, from
+ * the navigation timing entry. Where the browser cannot say, it answers no,
+ * so the guard reloads rather than throws.
+ */
+function isAtLoadedAddress(addressPrefix: string | null): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const [entry] = performance.getEntriesByType("navigation");
+    if (!entry) return false;
+    const loaded = parseTenantAddress(new URL(entry.name).pathname);
+    return (loaded?.prefix ?? null) === addressPrefix;
+  } catch {
+    return false;
+  }
 }
 
 /** Adds the document's tenant prefix to an internal page address. */
