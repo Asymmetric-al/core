@@ -200,15 +200,20 @@ async function appendReviewAudit(input: {
   }
 }
 
+/** SQLSTATE the replacement RPC raises when the gift's status has moved. */
+const STAGED_GIFT_CHANGED = "40001";
+
 /**
  * Replace a staged gift's allocation split through a tenant-scoped Postgres
- * RPC. The RPC locks the staged gift row, deletes the previous allocation set,
- * and inserts the replacement rows in one transaction so concurrent PATCHes
- * cannot interleave partial allocation state.
+ * RPC. The RPC locks the staged gift row, refuses when its status is no longer
+ * `gift.status` (the status the caller checked), deletes the previous
+ * allocation set and inserts the replacement rows in one transaction, so
+ * concurrent PATCHes cannot interleave partial allocation state and a refund
+ * or posting that lands after the check keeps its split. A refusal is a 409.
  */
 export async function replaceStagedGiftAllocations(input: {
   supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
-  gift: { id: string; tenantId: string };
+  gift: { id: string; tenantId: string; status: StagedGiftStatus };
   allocations: z.infer<typeof allocationSchema>[];
 }): Promise<void> {
   const { supabaseAdmin, gift, allocations } = input;
@@ -223,8 +228,15 @@ export async function replaceStagedGiftAllocations(input: {
   const { error } = await supabaseAdmin.rpc("replace_staged_gift_allocations", {
     p_tenant_id: gift.tenantId,
     p_staged_gift_id: gift.id,
+    p_expected_status: gift.status,
     p_allocations: replacementRows,
   });
+  if (error?.code === STAGED_GIFT_CHANGED) {
+    throw new ApiHttpError(
+      409,
+      "The staged gift changed while its split was being saved. Reload it and check the split.",
+    );
+  }
   if (error) {
     throw new Error(error.message);
   }
@@ -335,14 +347,25 @@ export const PATCH = withOperation(
           "The staged gift changed while it was being edited. Reload it and try again.",
         );
       }
+      // The status that write checked and left the gift in.
+      const statusAfterEdit: StagedGiftStatus = body.status ?? gift.status;
 
       if (body.allocations) {
+        // The RPC checks that status under the gift's lock, so a refund or
+        // posting that landed since keeps its split and the edit answers 409
+        // (council round 2, B5).
         await replaceStagedGiftAllocations({
           supabaseAdmin,
-          gift: { id: gift.id, tenantId: gift.tenantId },
+          gift: {
+            id: gift.id,
+            tenantId: gift.tenantId,
+            status: statusAfterEdit,
+          },
           allocations: body.allocations,
         });
 
+        // Recorded only while the gift is still in the state this edit left
+        // it in; a gift posted or refunded meanwhile is reported, not marked.
         const allocationStatus =
           body.allocations.length > 1 ? "split" : "corrected";
         const allocationPatch = await supabaseAdmin
@@ -351,9 +374,19 @@ export const PATCH = withOperation(
             allocation_status: allocationStatus,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", gift.id);
+          .eq("id", gift.id)
+          .eq("tenant_id", gift.tenantId)
+          .eq("status", statusAfterEdit)
+          .select("id")
+          .maybeSingle();
         if (allocationPatch.error) {
           throw new Error(allocationPatch.error.message);
+        }
+        if (!allocationPatch.data) {
+          throw new ApiHttpError(
+            409,
+            "The staged gift changed while its split was being saved. Reload it and check the split.",
+          );
         }
       }
 

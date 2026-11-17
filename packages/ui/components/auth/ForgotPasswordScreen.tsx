@@ -1,5 +1,6 @@
 "use client";
 
+import { answerReadsAsSent } from "@asym/auth/auth-email-request";
 import { passwordRecoveryRedirectUrl } from "@asym/auth/password-recovery";
 import { createBrowserClient } from "@asym/database/supabase";
 import { KeyRound } from "lucide-react";
@@ -26,18 +27,15 @@ export interface ForgotPasswordScreenProps {
   loginHref?: string;
 }
 
-function toRequestErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
-  return "The reset link couldn’t be sent. Try again.";
-}
+/** Auth's own wording is never shown: it can differ for a known address. */
+const REQUEST_FAILED_MESSAGE =
+  "The reset link couldn’t be sent. Try again in a moment.";
 
 /**
  * Asks Supabase Auth to email a password reset link. The link returns to
- * this app on the host the screen was opened on. The confirmation reads the
- * same whether or not the address has an account, so the screen does not
- * reveal who has one.
+ * this app on the host the screen was opened on. Success, a rate limit and
+ * every other answer that only an address with an account can get read the
+ * same (`answerReadsAsSent`), so the screen does not show who has an account.
  */
 export function ForgotPasswordScreen({
   title = "Reset your password",
@@ -71,10 +69,13 @@ export function ForgotPasswordScreen({
           redirectTo: passwordRecoveryRedirectUrl(window.location.origin),
         },
       );
-      if (requestError) throw requestError;
-      setSentTo(address);
-    } catch (cause) {
-      setError(toRequestErrorMessage(cause));
+      if (answerReadsAsSent(requestError)) {
+        setSentTo(address);
+      } else {
+        setError(REQUEST_FAILED_MESSAGE);
+      }
+    } catch {
+      setError(REQUEST_FAILED_MESSAGE);
     } finally {
       submissionInFlight.current = false;
       setIsSubmitting(false);
@@ -120,7 +121,8 @@ export function ForgotPasswordScreen({
           {sentTo ? (
             <AuthMessage tone="success">
               If an account uses {sentTo}, we’ve sent it a link to reset the
-              password. Open the link in this browser. It works once.
+              password. Open the link in this browser. It works once. If nothing
+              arrives, ask for a new link in a few minutes.
             </AuthMessage>
           ) : null}
 

@@ -32,20 +32,38 @@ const MIN_PASSWORD_LENGTH = 8;
 export interface ResetPasswordScreenProps {
   appId: AppId;
   /**
-   * The recovery the server read from the session, or null when the session
-   * was not created by a recent recovery link.
+   * The recovery the server read from the session (`readPasswordRecovery`),
+   * or null when the session was not created by a recent recovery link.
+   * `secondsLeft` is the time left in the recovery window when the page was
+   * read; the form refuses to save after it.
    */
-  recovery: { email: string | null } | null;
+  recovery: { email: string | null; secondsLeft: number } | null;
   requestHref?: string;
   loginHref?: string;
 }
 
-function validate(password: string, confirmation: string): string | null {
+type Field = "password" | "confirmation";
+
+/** What stops the save, and the field at fault when there is one. */
+type Problem =
+  | { kind: "field"; field: Field; message: string }
+  | { kind: "save"; message: string }
+  | { kind: "expired" };
+
+function validate(password: string, confirmation: string): Problem | null {
   if (password.length < MIN_PASSWORD_LENGTH) {
-    return `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
+    return {
+      kind: "field",
+      field: "password",
+      message: `Use at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
   }
   if (confirmation !== password) {
-    return "The passwords don’t match.";
+    return {
+      kind: "field",
+      field: "confirmation",
+      message: "The passwords don’t match.",
+    };
   }
   return null;
 }
@@ -75,7 +93,14 @@ export function ResetPasswordScreen({
     );
   }
 
-  return <NewPasswordForm appId={appId} email={recovery.email} />;
+  return (
+    <NewPasswordForm
+      appId={appId}
+      email={recovery.email}
+      secondsLeft={recovery.secondsLeft}
+      requestHref={requestHref}
+    />
+  );
 }
 
 function ExpiredRecoveryLink({
@@ -115,16 +140,29 @@ function ExpiredRecoveryLink({
 function NewPasswordForm({
   appId,
   email,
+  secondsLeft,
+  requestHref,
 }: {
   appId: AppId;
   email: string | null;
+  secondsLeft: number;
+  requestHref: string;
 }) {
   const { replace, refresh } = useRouter();
   const [password, setPassword] = React.useState("");
   const [confirmation, setConfirmation] = React.useState("");
-  const [error, setError] = React.useState<string | null>(null);
+  const [problem, setProblem] = React.useState<Problem | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const submissionInFlight = React.useRef(false);
+  const passwordRef = React.useRef<HTMLInputElement>(null);
+  const confirmationRef = React.useRef<HTMLInputElement>(null);
+  // When the recovery window ends, on this browser's clock, counted from the
+  // time left the server gave. The server checks the window only when the
+  // page renders, so a form left open past it stops here.
+  const deadline = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    deadline.current = Date.now() + secondsLeft * 1000;
+  }, [secondsLeft]);
   // Generated ids: a hidden, still-mounted earlier screen may use the same names.
   const passwordId = React.useId();
   const confirmationId = React.useId();
@@ -135,9 +173,19 @@ function NewPasswordForm({
     event.preventDefault();
     if (submissionInFlight.current) return;
 
-    const problem = validate(password, confirmation);
-    setError(problem);
-    if (problem) return;
+    if (deadline.current !== null && Date.now() > deadline.current) {
+      setProblem({ kind: "expired" });
+      return;
+    }
+
+    const invalid = validate(password, confirmation);
+    setProblem(invalid);
+    if (invalid?.kind === "field") {
+      const field =
+        invalid.field === "password" ? passwordRef : confirmationRef;
+      field.current?.focus();
+      return;
+    }
 
     submissionInFlight.current = true;
     setIsSaving(true);
@@ -150,16 +198,18 @@ function NewPasswordForm({
       replace(getDefaultPostLoginPathForApp(appId));
       refresh();
     } catch (cause) {
-      setError(toSaveErrorMessage(cause));
+      setProblem({ kind: "save", message: toSaveErrorMessage(cause) });
     } finally {
       submissionInFlight.current = false;
       setIsSaving(false);
     }
   };
 
-  const describedBy = [hintId, error ? errorId : null]
-    .filter(Boolean)
-    .join(" ");
+  // Only the field at fault is marked invalid and points at the message.
+  const fieldAtFault = problem?.kind === "field" ? problem.field : null;
+  const describedBy = (field: Field, hint?: string) =>
+    [hint, fieldAtFault === field ? errorId : null].filter(Boolean).join(" ") ||
+    undefined;
 
   return (
     <AuthShell>
@@ -178,14 +228,15 @@ function NewPasswordForm({
             <div className="flex flex-col gap-2">
               <AuthLabel htmlFor={passwordId}>New password</AuthLabel>
               <AuthInput
+                ref={passwordRef}
                 id={passwordId}
                 type="password"
                 autoComplete="new-password"
                 minLength={MIN_PASSWORD_LENGTH}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={describedBy}
+                aria-invalid={fieldAtFault === "password" ? true : undefined}
+                aria-describedby={describedBy("password", hintId)}
                 required
               />
               <p id={hintId} className="text-sm text-muted-foreground">
@@ -198,20 +249,34 @@ function NewPasswordForm({
                 Confirm new password
               </AuthLabel>
               <AuthInput
+                ref={confirmationRef}
                 id={confirmationId}
                 type="password"
                 autoComplete="new-password"
                 value={confirmation}
                 onChange={(event) => setConfirmation(event.target.value)}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? errorId : undefined}
+                aria-invalid={
+                  fieldAtFault === "confirmation" ? true : undefined
+                }
+                aria-describedby={describedBy("confirmation")}
                 required
               />
             </div>
 
-            {error ? (
+            {problem?.kind === "expired" ? (
               <AuthMessage id={errorId} tone="error">
-                {error}
+                This link has expired: a new password can be chosen only for a
+                limited time after the link is opened.{" "}
+                <Link
+                  href={requestHref}
+                  className="font-medium underline underline-offset-4"
+                >
+                  Send a new link
+                </Link>
+              </AuthMessage>
+            ) : problem ? (
+              <AuthMessage id={errorId} tone="error">
+                {problem.message}
               </AuthMessage>
             ) : null}
 

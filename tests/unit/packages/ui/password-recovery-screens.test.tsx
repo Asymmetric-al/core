@@ -6,7 +6,9 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
+import { AuthApiError } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const auth = vi.hoisted(() => ({
@@ -63,17 +65,52 @@ describe("asking for a reset link", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("says what went wrong when the request is refused", async () => {
+  // Council round 2, B1: Auth answers an unknown address with success, and a
+  // known one asked again within the email frequency with a rate limit. Both
+  // must read the same, or two requests show who has an account.
+  it("answers a rate-limited request exactly as it answers a sent one", async () => {
+    render(<ForgotPasswordScreen />);
+    type("Email", "ada@example.com");
+    fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
+    const sent = (await screen.findByRole("status")).textContent;
+    cleanup();
+
     auth.resetPasswordForEmail.mockResolvedValue({
       data: null,
-      error: new Error("Email rate limit exceeded"),
+      error: new AuthApiError(
+        "For security purposes, you can only request this after 52 seconds.",
+        429,
+        "over_email_send_rate_limit",
+      ),
     });
     render(<ForgotPasswordScreen />);
     type("Email", "ada@example.com");
     fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
 
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Email rate limit exceeded",
+    expect((await screen.findByRole("status")).textContent).toBe(sent);
+    expect(sent).toContain("ask for a new link in a few minutes");
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByLabelText("Email").hasAttribute("aria-invalid")).toBe(
+      false,
+    );
+  });
+
+  it("gives a general message for any other refusal, without Auth's wording", async () => {
+    auth.resetPasswordForEmail.mockResolvedValue({
+      data: null,
+      error: new AuthApiError(
+        "Database error querying schema",
+        500,
+        "unexpected_failure",
+      ),
+    });
+    render(<ForgotPasswordScreen />);
+    type("Email", "ada@example.com");
+    fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe(
+      "The reset link couldn’t be sent. Try again in a moment.",
     );
     expect(screen.queryByRole("status")).toBeNull();
   });
@@ -162,7 +199,7 @@ describe("choosing a new password", () => {
     render(
       <ResetPasswordScreen
         appId="donor"
-        recovery={{ email: "ada@example.com" }}
+        recovery={{ email: "ada@example.com", secondsLeft: 3600 }}
       />,
     );
     expect(screen.getByText(/ada@example.com/)).toBeTruthy();
@@ -187,7 +224,7 @@ describe("choosing a new password", () => {
     render(
       <ResetPasswordScreen
         appId="admin"
-        recovery={{ email: "ada@example.com" }}
+        recovery={{ email: "ada@example.com", secondsLeft: 3600 }}
       />,
     );
     type("New password", "long enough phrase");
@@ -211,7 +248,7 @@ describe("choosing a new password", () => {
     render(
       <ResetPasswordScreen
         appId="donor"
-        recovery={{ email: "ada@example.com" }}
+        recovery={{ email: "ada@example.com", secondsLeft: 3600 }}
       />,
     );
     type("New password", "long enough phrase");
@@ -222,5 +259,99 @@ describe("choosing a new password", () => {
       "different from the old password",
     );
     expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  // Council round 2, B3: as the change-password form does, an error marks
+  // only the field at fault and focus moves to it.
+  it("marks only the field at fault and moves focus to it", async () => {
+    render(
+      <ResetPasswordScreen
+        appId="donor"
+        recovery={{ email: "ada@example.com", secondsLeft: 3600 }}
+      />,
+    );
+    const password = screen.getByLabelText("New password");
+    const confirmation = screen.getByLabelText("Confirm new password");
+    const save = screen.getByRole("button", { name: "Save new password" });
+
+    type("New password", "short");
+    type("Confirm new password", "short");
+    fireEvent.click(save);
+    let alert = await screen.findByRole("alert");
+    expect(password.getAttribute("aria-invalid")).toBe("true");
+    expect(confirmation.hasAttribute("aria-invalid")).toBe(false);
+    expect(password.getAttribute("aria-describedby")).toContain(alert.id);
+    expect(document.activeElement).toBe(password);
+
+    type("New password", "long enough phrase");
+    type("Confirm new password", "long enough phrasf");
+    fireEvent.click(save);
+    alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("don’t match");
+    expect(confirmation.getAttribute("aria-invalid")).toBe("true");
+    expect(password.hasAttribute("aria-invalid")).toBe(false);
+    expect(confirmation.getAttribute("aria-describedby")).toContain(alert.id);
+    expect(document.activeElement).toBe(confirmation);
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  // Council round 2, B2: the server checks the recovery window when the page
+  // renders; a form left open past it must not save.
+  it("refuses to save once the time to choose a password has run out", async () => {
+    const start = 1_800_000_000_000;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(start);
+    try {
+      render(
+        <ResetPasswordScreen
+          appId="donor"
+          recovery={{ email: "ada@example.com", secondsLeft: 120 }}
+        />,
+      );
+      type("New password", "long enough phrase");
+      type("Confirm new password", "long enough phrase");
+      vi.setSystemTime(start + 121_000);
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save new password" }),
+      );
+
+      const alert = await screen.findByRole("alert");
+      expect(alert.textContent).toContain("This link has expired");
+      expect(
+        within(alert)
+          .getByRole("link", { name: "Send a new link" })
+          .getAttribute("href"),
+      ).toBe("/forgot-password");
+      expect(auth.updateUser).not.toHaveBeenCalled();
+      expect(router.replace).not.toHaveBeenCalled();
+      expect(
+        screen.getByLabelText("New password").hasAttribute("aria-invalid"),
+      ).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("still saves within the time left", async () => {
+    const start = 1_800_000_000_000;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(start);
+    try {
+      render(
+        <ResetPasswordScreen
+          appId="donor"
+          recovery={{ email: "ada@example.com", secondsLeft: 120 }}
+        />,
+      );
+      type("New password", "long enough phrase");
+      type("Confirm new password", "long enough phrase");
+      vi.setSystemTime(start + 119_000);
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save new password" }),
+      );
+      await waitFor(() => expect(auth.updateUser).toHaveBeenCalledTimes(1));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -604,6 +604,17 @@ describe("#2258 pins (criteria 12, 13)", () => {
         45088,
         "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
       ],
+      // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
+      // gains one section, "Local Supabase stack workflow", after the release
+      // workflow section. It documents `.github/workflows/local-supabase.yml`,
+      // which applies the chain and the seed to the real Supabase image and runs
+      // the auth email round trips, a workflow of its own so that ci.yml and
+      // ci-integration.yml do not change. Nothing else in the file changes.
+      // Pinned on that exact reviewed whole file.
+      [
+        46788,
+        "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

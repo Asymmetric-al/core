@@ -172,7 +172,7 @@ const accountScreens = [
     "/forgot-password/reset",
     <ResetPasswordScreen
       appId="missionary"
-      recovery={{ email: "missionary@example.com" }}
+      recovery={{ email: "missionary@example.com", secondsLeft: 3600 }}
     />,
   ],
   ["/forgot-password/reset", <ResetPasswordLoading />],

@@ -80,6 +80,8 @@ describe("giving staged gift helpers", () => {
             error: null,
           }),
         );
+        // The approval's conditional update reads its row with maybeSingle.
+        chain.maybeSingle = chain.single;
         return chain;
       }),
     } as never;
