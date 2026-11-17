@@ -69,13 +69,24 @@ describe("admin Payload schema push (NA-04, NX-05)", () => {
     30_000,
   );
 
-  it("is off when only SUPABASE_DB_URL names a hosted database", async () => {
+  it("never connects to a hosted database named only by SUPABASE_DB_URL", async () => {
+    // AL-2674 (WP1.2) removed Payload's fallback to SUPABASE_DB_URL: the
+    // adapter reads PAYLOAD_DATABASE_URI and nothing else (NA-04). This case
+    // used to assert that push was off for a hosted database reached through
+    // that fallback. The fallback is gone, so the stronger fact is asserted:
+    // the hosted URL is not the connection at all, the connection that is
+    // used is the loopback default, and push keeps Payload's loopback default.
     const config = await loadConfig({
       NODE_ENV: "development",
       PAYLOAD_DATABASE_URI: undefined,
       SUPABASE_DB_URL: NON_LOOPBACK_URLS[0],
     });
-    expect(adapterPush(config)).toBe(false);
+    const { DEFAULT_LOCAL_PAYLOAD_DATABASE_URL, resolvePayloadDatabaseConfig } =
+      await import("../../../apps/admin/src/cms/payload-database-config");
+    const connection = resolvePayloadDatabaseConfig().pool.connectionString;
+    expect(connection).toBe(DEFAULT_LOCAL_PAYLOAD_DATABASE_URL);
+    expect(connection).not.toBe(NON_LOOPBACK_URLS[0]);
+    expect(adapterPush(config)).toBeUndefined();
   }, 30_000);
 
   it.each(LOOPBACK_URLS)(
