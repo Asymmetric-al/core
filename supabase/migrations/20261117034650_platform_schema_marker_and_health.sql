@@ -34,8 +34,12 @@
 -- disposable. The value moves only forward, through
 -- `platform.advance_environment()`, which only the owner (the release job's
 -- dispatched step) can call, and which never writes `disposable`. Its two
--- triggers fire always, so neither `session_replication_role = replica` nor a
--- data-only restore with triggers disabled can move it back.
+-- triggers are ALWAYS triggers, so `session_replication_role = replica`, which
+-- skips ordinary triggers, does not skip them. That is all ALWAYS stops: the
+-- table's owner can still disable them (ALTER TABLE ... DISABLE TRIGGER, as a
+-- data-only restore with --disable-triggers does) and, on re-enabling them
+-- with a plain ENABLE TRIGGER, gets ordinary triggers back. Only the owner
+-- (postgres) or a superuser can do either.
 --
 -- This migration writes `disposable` only on a database whose profiles,
 -- donors and donations are empty, that is, one being built from source. It
