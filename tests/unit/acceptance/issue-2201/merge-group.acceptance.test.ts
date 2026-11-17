@@ -218,22 +218,18 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
     // Hosted-CI amendment: only the five heavy jobs' runs-on become literal ubuntu-latest.
     { ref: "Hosted CI baseline after #2407a", hash: "e2884b2dac1415b3" },
-    // Amended by AL-2674 (WP1 slices 1.1a and 1.3, plan 7.1): migrate steps 22
-    // and 23 (the issue-2674 real-stack glob and the release job's suites),
-    // each pinned exactly in tests/unit/helpers/workflow-yaml.ts.
-    { ref: "AL-2674 migrate steps 22-23", hash: "14ea3b7522ff3091" },
-    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only NODE_VERSION
-    // moved from 24.22.1 to 24.22.3 (.node-version). With that line put back,
-    // the fingerprint is the entry above.
-    { ref: "AL-2674 Node 24.22.3", hash: "8558e8eb2cd18964" },
-    // Amended by AL-2674 (WP1.2 joined): migrate step 13 ("Verify seed
-    // counts") runs scripts/verify/seed-counts.mjs, which reads the expected
-    // counts from supabase/seed-expectations.json, so a seed change no longer
-    // changes this file; step 22 runs the AL-2671 program's real-stack suites
-    // (one glob over issue-2670 to issue-2689), step 23 adds Payload's
-    // database-role suite and its URL, and step 24 runs the Payload
-    // qualification (plan 6.7). Only those four steps differ from the entry
-    // above; each is pinned exactly in tests/unit/helpers/workflow-yaml.ts.
+    // Amended by AL-2674 (stage 1 of the AL-2671 program, plan 7.1), the file
+    // stage 1 ends on. From the entry above: NODE_VERSION moved from 24.22.1
+    // to 24.22.3 (.node-version, Payload 4.0.0-beta.9); migrate step 13
+    // ("Verify seed counts") runs scripts/verify/seed-counts.mjs, which reads
+    // the expected counts from supabase/seed-expectations.json, so a seed
+    // change no longer changes this file; step 22 runs the AL-2671 program's
+    // real-stack suites (one glob over issue-2670 to issue-2689), step 23 the
+    // release job's suites with Payload's database-role suite and its URL, and
+    // step 24 the Payload qualification (plan 6.7). Each step is pinned
+    // exactly in tests/unit/helpers/workflow-yaml.ts. Council round 2 (A8d)
+    // removed the two intermediate states of stage 1's integration, which
+    // develop never held.
     { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
