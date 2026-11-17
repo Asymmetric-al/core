@@ -123,7 +123,7 @@ Revise existing artifacts. If an artifact is missing, identify it and show the n
 6. **Point to the next step (guidance only - NEVER act on it)**
    - Artifacts with empty `existingOutputPaths` and status `ready` or `blocked` -> give the CLI command for the next ready artifact.
    - Change already implemented (tasks checked off / already applied) -> the code may no longer match the revised plan; tell the user which implementation tasks need revisiting.
-   - Everything done and implemented -> suggest archiving with `openspec archive "<name>"`.
+   - Everything done, implemented, merged and accepted -> suggest the `openspec-archive-change` workflow. Do not suggest archiving unmerged work.
 
 **Output**
 

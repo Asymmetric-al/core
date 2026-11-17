@@ -6130,9 +6130,9 @@
       "examinedRef": "8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0",
       "sourcePath": "skills/openspec-update-change/SKILL.md",
       "rawSkillHash": "ca7ef061078b2260be47c2654e7df29b4c81ac1173dc73cbd565c3ea40879e87",
-      "lockHash": "071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46",
-      "entrypointHash": "071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46",
-      "treeHash": "e1c5a7106400cc6ce5a33150bcdc8d922993bf6515bb039e35ab95ff002fc3af",
+      "lockHash": "9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492",
+      "entrypointHash": "9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492",
+      "treeHash": "920c7e9916a253efcdb7656044889e242d9b1b71ab6ca0e69978f56a09adcd23",
       "license": {
         "identifier": null,
         "status": "notice-preserved",

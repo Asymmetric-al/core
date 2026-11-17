@@ -73,7 +73,7 @@ In both branches, never create the root as a side effect: do not run \`openspec 
 
 **Input**: A change name.
 
-${name === "openspec-update-change" ? 'Revise existing artifacts. If an artifact is missing, identify it and show the next ready artifact from `openspec status --change "<name>" --json`.\n\n- If the request changes the change\'s _intent_ rather than refining it, ask for a distinct unused name and recommend `openspec new change "<new-change-name>"`.\n' : ""}
+${name === "openspec-update-change" ? 'Revise existing artifacts. If an artifact is missing, identify it and show the next ready artifact from `openspec status --change "<name>" --json`.\n\n- If the request changes the change\'s _intent_ rather than refining it, ask for a distinct unused name and recommend `openspec new change "<new-change-name>"`.\n- Everything done and implemented -> suggest archiving with `openspec archive "<name>"`.\n' : ""}
 ${name === "openspec-apply-change" ? "- If `missingArtifacts` is non-empty: show the missing artifacts and the recovery step from the CLI’s `instruction` field. Keep the selected store on any follow-up command.\n" : ""}
 
 \`\`\`markdown
@@ -184,6 +184,13 @@ describe("OpenSpec skill refresh", () => {
         expect(content).toContain('openspec status --change "<name>" --json');
         expect(content).toContain(
           'recommend `openspec new change "<new-change-name>"`',
+        );
+        // Core archives only merged, accepted work, through its workflow.
+        expect(content).toContain(
+          "merged and accepted -> suggest the `openspec-archive-change` workflow",
+        );
+        expect(content).not.toContain(
+          "suggest archiving with `openspec archive",
         );
       }
       if (name === "openspec-apply-change") {

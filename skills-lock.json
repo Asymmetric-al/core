@@ -625,8 +625,8 @@
       "source": "Fission-AI/OpenSpec",
       "sourceType": "github",
       "skillPath": "skills/openspec-update-change/SKILL.md",
-      "computedHash": "071d33fbb149ab4c56affacf0767acadd3b93042d6905bd1336cf29f9c42ca46",
-      "treeHash": "1b1a40ed977044f025bfe4247d9f38f3f7e74677b93d75476d4bba39d2e32728"
+      "computedHash": "9a680c674f14417cf4c15eaa256b1f36788f071cace8fb0a2e90e012d34fa492",
+      "treeHash": "8d6502340301c3ec1f54171fbaa25a3bf639e9082d082eb0f8db5bda31a85825"
     },
     "openspec-verify-change": {
       "source": "Fission-AI/OpenSpec",
