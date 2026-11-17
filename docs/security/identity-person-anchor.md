@@ -116,9 +116,13 @@ tests, is:
     and is tracked in #2267; if #2267 removes or moves it, these two policies
     change in the same PR.
 - Functions (SECURITY DEFINER unless marked INVOKER). Most bind an actor or
-  referenced profile to a tenant by requiring `profiles.tenant_id` to match:
-  - `enforce_contribution_operation_tenant_refs`
-  - `enforce_contribution_notification_tenant_refs`
+  referenced profile to a tenant by requiring `profiles.tenant_id` to match.
+  Since AL-2675 (WP2a, NR-49) `enforce_contribution_operation_tenant_refs` and
+  `enforce_contribution_notification_tenant_refs` test a live membership in the
+  row's tenant instead (`private.profile_in_tenant`) and are no longer readers;
+  `tenant_member_directory` reads profiles beside `authz.memberships.tenant_id`
+  and appears in the lexical scan, though it never reads the profile's tenant:
+  - `tenant_member_directory`: display names for the member directory.
   - `assert_eve_retention_actor`
   - `assert_eve_admin_memory_owner`
   - `validate_eve_notification_recipient`
@@ -130,13 +134,14 @@ tests, is:
   - `atomic_update_user_role_with_audit` (INVOKER)
   - `set_eve_retention_hold`
   - `expire_eve_retention_records`
-  - `handle_new_user`: the writer that sets it at sign-up.
-- App code that uses `profile.tenant_id` to pick or check the tenant:
-  - `apps/admin/src/cms/auth/supabase-strategy.ts`
+  - `handle_new_user`: the writer. Since AL-2675 it writes NULL there and gives
+    the new login a donor membership instead (WP2 "Interim rules").
+- App code that uses `profile.tenant_id` to pick or check the tenant. Since
+  AL-2675 `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts` and
+  `apps/admin/src/cms/auth/supabase-strategy.ts` resolve the caller's membership
+  instead:
   - `packages/api/src/eve/admin-memory/route.ts`
   - `packages/api/src/posts/reaction-route-utils.ts`
-  - `packages/auth/context.ts`
-  - `packages/auth/resolve-user-role.ts`
   - `packages/ui/hooks/retained-draft.tsx`
 
 In `packages/auth/context.ts` and `packages/auth/resolve-user-role.ts` the hint
