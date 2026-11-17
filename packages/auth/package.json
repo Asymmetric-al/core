@@ -20,7 +20,10 @@
     "./auth-screen": "./auth-screen.ts",
     "./capabilities": "./capabilities/index.ts",
     "./principal": "./principal/index.ts",
-    "./request-headers": "./request-headers.ts"
+    "./request-headers": "./request-headers.ts",
+    "./tenant-address": "./tenant-address.ts",
+    "./tenant-navigation": "./tenant-navigation.tsx",
+    "./tenant-server": "./tenant-server.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
