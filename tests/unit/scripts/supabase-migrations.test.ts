@@ -18,6 +18,20 @@ import { afterEach, expect, it } from "vitest";
 import { MIGRATION } from "../acceptance/issue-2256/harness";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
+// AL-2674 council round 1 (F1): the totals the gate prints come from the
+// manifest, so a package that adds or drops a classified column touches no test.
+const MANIFEST = JSON.parse(
+  readFileSync(
+    path.join(root, "docs/security/field-policies/manifest.json"),
+    "utf8",
+  ),
+) as { surfaces: string[]; record_types: Record<string, object> };
+const RECORD_TYPES = Object.keys(MANIFEST.record_types).length;
+const COLUMNS = Object.values(MANIFEST.record_types).reduce(
+  (n, columns) => n + Object.keys(columns).length,
+  0,
+);
+const ROWS = COLUMNS * MANIFEST.surfaces.length;
 const roots: string[] = [];
 const itPosix = process.platform === "win32" ? it.skip : it;
 afterEach(() => {
@@ -198,18 +212,18 @@ itPosix(
     const result = runVerifier("clean");
     expect(result.status).toBe(0);
     expect(result.stdout).toContain(
-      "PASS: field-policy manifest: 9 record types, 176 columns",
+      `PASS: field-policy manifest: ${RECORD_TYPES} record types, ${COLUMNS} columns`,
     );
     expect(result.stdout).toContain(
-      "PASS: all 880 public.field_policies rows equal the manifest",
+      `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
     );
-    expect(result.stdout).toContain("equal the manifest's 176 entries");
+    expect(result.stdout).toContain(`equal the manifest's ${COLUMNS} entries`);
     // AL-2674 (D09) removed one exception entry with its dropped table.
     const gateLine = result.stdout.indexOf(
       "PASS: tenant RLS catalog gate: 85 tenant tables enabled and forced (1 with policies, 84 listed deny-by-default, 0 stale)",
     );
     expect(
-      result.stdout.indexOf("equal the manifest's 176 entries"),
+      result.stdout.indexOf(`equal the manifest's ${COLUMNS} entries`),
     ).toBeLessThan(gateLine);
     expect(gateLine).toBeLessThan(
       result.stdout.indexOf("forward Supabase migrations"),
@@ -315,6 +329,6 @@ itPosix("accepts IPv6 loopback under the same census locality contract", () => {
   );
   expect(result.status).toBe(0);
   expect(result.stdout).toContain(
-    "PASS: all 880 public.field_policies rows equal the manifest",
+    `PASS: all ${ROWS} public.field_policies rows equal the manifest`,
   );
 });

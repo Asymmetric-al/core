@@ -18,8 +18,10 @@
 --   service_role; GRANT EXECUTE ... TO authenticated. Reached through a
 --   `public` SECURITY INVOKER wrapper with `SET search_path = ''`, owned by
 --   postgres, EXECUTE for authenticated only. The catalog gate fails a
---   `platform` function that `authenticated` can execute without calling
---   `platform.require_operator(`.
+--   `platform` function that `authenticated` can execute unless its outer
+--   DECLARE section initialises a variable from `platform.require_operator()`,
+--   and any definer here that postgres does not own. The full convention and
+--   the gate codes: docs/security/tenant-guard.md, "Command lane".
 --
 -- The operator list is WP2c's (`authz.platform_operators`). Until it exists,
 -- `platform.caller_on_operator_list()` returns false, so the shared check

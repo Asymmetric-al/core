@@ -22,6 +22,12 @@ Use this doc when editing or running:
 6. Prefer Bun/Node with `node:path`, `node:fs`, argument arrays, and `shell: false` for new or changed maintenance tooling. Avoid Bash-only canonical workflows, hardcoded `/tmp`, `sed -i`, and symlink-only designs.
 7. `bun run skills:sync` **mutates** generated mirrors. `bun run skills:verify` **must not** change the working tree.
 
+## Reset and reseed rule
+
+Every script that resets or reseeds a database reads its environment marker first and refuses anything not marked `disposable` (plan 7.5): `scripts/lib/environment-marker.mjs` (`requireDisposableDatabase`), `node scripts/db/require-disposable-database.mjs --local | --url-env NAME` for shell scripts, and the reset guard inside `scripts/supabase-cli.mjs` for every `bun run supabase -- db reset`. A database with no marker, or whose marker cannot be read, is refused, and there is no override flag. A local stack without a marker is recovered once with `bun run supabase -- stop --no-backup` and `bun run supabase -- start` (see `supabase/AGENTS.md`, "Reset rule").
+
+Scripts that run `psql` against a database URL use `scripts/lib/psql.mjs`, which passes the password in `PGPASSWORD`, never in the argument list, and holds the one list of loopback hosts.
+
 ## Seed script
 
 - `scripts/seed-demo.sh`

@@ -1,6 +1,6 @@
 # ADR-0174: Single staff access authority and governed engine diagnostics
 
-**Status:** Accepted (founder-ratified Phase 23 D30 C-prime-R, 2026-08-24; first-release scope and clause 7 amended 2026-11-17 for AL-2688)
+**Status:** Accepted (founder-ratified Phase 23 D30 C-prime-R, 2026-08-24; first-release scope and clauses 2, 6, 7, 10 and 22 to 31 amended 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -44,6 +44,10 @@ remains an independently authorized typed Asym command.
 >    governance epoch, expiry, decision explanation, and authorization audit.
 >    Payload authenticates or authorizes nothing independently; it adapts and
 >    enforces an Asym decision.
+>    _Amended 2026-11-17 (see Amendments): governance epochs and decision
+>    digests are not built in the first release; until they are, an epoch
+>    reauthorization is the live membership and capability check every
+>    request and command makes._
 > 3. **No second human account lifecycle.** Local Payload password login,
 >    password reset, first-user creation, registration, email verification,
 >    API-key issuance, provider token refresh, and independent account editing
@@ -76,6 +80,10 @@ remains an independently authorized typed Asym command.
 >    browser props, URLs, client storage, logs, or shared caches. Payload's
 >    minimal user shape identifies the actor; a server-only request context
 >    carries the decision and exposes only safe action booleans to UI.
+>    _Amended 2026-11-17 (see Amendments): governance epochs and decision
+>    digests are not built in the first release; until they are, an epoch
+>    reauthorization is the live membership and capability check every
+>    request and command makes._
 > 7. **Multi-organization context is deliberate and request-bound.** A person
 >    with several assignments chooses an exact organization/Site; a deep link
 >    may request but never silently switch it. Every request, tab, autosave,
@@ -121,6 +129,10 @@ remains an independently authorized typed Asym command.
 >     expected D12 revision/lock proof, and commit-time epoch reauthorization.
 >     The call cannot compile without these arguments; ad hoc Local API calls
 >     from product handlers are forbidden.
+>     _Amended 2026-11-17 (see Amendments): governance epochs and decision
+>     digests are not built in the first release; until they are, an epoch
+>     reauthorization is the live membership and capability check every
+>     request and command makes._
 > 11. **A separate, narrower service-command port.** Non-interactive release,
 >     projection, reconciliation, and repair work uses a named Phase 12 service
 >     principal and one registered command, never a staff user or diagnostics
@@ -215,6 +227,10 @@ remains an independently authorized typed Asym command.
 >     field/scope projection, and server-enforced mutation denial. There is no
 >     standing raw-admin role, shared break-glass account, impersonation, or
 >     discoverable tenant navigation entry.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 23. **A diagnostic request is exact and justified.** The requester must hold
 >     a separately registered Phase 12 operator capability and bind an open
 >     incident, immutable actual operator, exact environment/Tenant/Site,
@@ -223,6 +239,10 @@ remains an independently authorized typed Asym command.
 >     tenants,” freehand Tenant IDs, copied grant URLs, vague “debugging,” and
 >     role-name eligibility are rejected. Restricted/safeguarded projections
 >     retain every existing floor and any policy-required independent approval.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 24. **Activation uses the same identity with fresh strong assurance.** The
 >     operator reauthenticates through Supabase Auth and satisfies Phase 12's
 >     current operator-assurance policy; Payload credentials cannot satisfy it.
@@ -237,6 +257,10 @@ remains an independently authorized typed Asym command.
 >     expiry, no automatic renewal, and no client-controlled duration. Standard
 >     read-only activation needs no universal second-person ceremony; higher
 >     sensitivity follows the existing safety policy.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 25. **Diagnostic disclosure is minimum necessary.** Start with health,
 >     configuration identity, schema/adapter version, release linkage, query
 >     shape, counts, digests, and safe metadata. Content fields, historical
@@ -246,6 +270,10 @@ remains an independently authorized typed Asym command.
 >     restricted-worker existence, and unrelated Tenant/Site navigation are
 >     unavailable. Every request revalidates scope; URL possession grants
 >     nothing.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 26. **The elevated mode is impossible to overlook or retain accidentally.**
 >     Before start, the UI summarizes organization, Site, environment,
 >     read-only mode, purpose, incident, and expiry. Every diagnostic route has
@@ -255,6 +283,10 @@ remains an independently authorized typed Asym command.
 >     and remaining hard maximum and writes a new receipt; expiry, exit,
 >     incident closure, capability revocation, or sign-out fences every tab,
 >     stream, poll, cache, and copied URL.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 27. **Diagnostics can never repair by mutation.** UI, REST, GraphQL, Local
 >     API, server functions, hooks, and direct-route tests deny create, update,
 >     delete, restore, unlock, publish, purge, upload, and configuration change
@@ -265,6 +297,10 @@ remains an independently authorized typed Asym command.
 >     compensation, rollback, validation, and receipt. Any future raw-write
 >     emergency lane requires a separate founder decision; D30 does not leave
 >     a hidden toggle for it.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 28. **Audit is durable, attributable, minimized, and visible to the right
 >     people.** The authoritative ledger records authentication/authorization
 >     outcome classes, actual/effective actor separation, diagnostic request,
@@ -276,6 +312,10 @@ remains an independently authorized typed Asym command.
 >     outage may queue from that ledger without losing evidence. Tenant access
 >     administrators receive a quiet current/recent support-access receipt when
 >     policy permits, without operational or protected-content leakage.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 29. **Failure is closed and differentiated.** Invalid identity, missing
 >     mapping, unavailable Phase 12 resolution, stale epoch, database failure,
 >     audit-ledger failure, route-policy mismatch, or diagnostics expiry never
@@ -284,6 +324,11 @@ remains an independently authorized typed Asym command.
 >     denial; operators return to the incident with a correlation receipt. The
 >     last valid public D1 generation remains independently servable, and no
 >     protected mutation claims success without its durable commit/audit proof.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release, so the diagnostics part of this clause
+>     waits for it; where the clause speaks of the last valid public D1
+>     generation, the first release reads the live per-page releases of
+>     ADR-0229._
 > 30. **Observability detects authority drift without collecting content.**
 >     Monitor authorization latency/error/deny classes, cross-Tenant/Site
 >     attempts, stale epochs, duplicate/missing Principal Links and Tenant
@@ -293,6 +338,10 @@ remains an independently authorized typed Asym command.
 >     conformance. Alerts group expected user denials and protect identifiers;
 >     they escalate scope leakage, bypasses, failed revocation, or active grants
 >     without open incidents.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 31. **Performance optimizes computation, never scope.** Resolve and memoize
 >     Phase 12 once per request/context where possible; compile capabilities
 >     into bounded action booleans and exact Payload `Where` constraints; index
@@ -302,6 +351,10 @@ remains an independently authorized typed Asym command.
 >     in browser cookies, per-field network resolver loop, or unrestricted
 >     diagnostic query is permitted. Revocation and context switching evict all
 >     affected product caches.
+>     _Amended 2026-11-17 (see Amendments): the Engine Diagnostics Session is
+>     not built in the first release; until it is, the support grant is the
+>     only operator access to tenant data and no Payload provider view is
+>     exposed to operators._
 > 32. **Cutover removes, rather than synchronizes, the old authority.** Before
 >     enabling D30, inventory every route/call as public, actor, service,
 >     support, or diagnostic; provision stable links; quarantine duplicates and
