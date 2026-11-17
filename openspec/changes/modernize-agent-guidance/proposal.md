@@ -58,6 +58,6 @@ unit tests. No runtime code changes.
 `integrate-ui-sdk-across-dashboards` (pull request 2694) merged while this
 change was in review and edited the same instruction files; this change is
 merged with it and keeps its shared-owner guidance. The active
-`complete-base-ui-adoption` change still proposes that ordinary controls use
-Base UI primitives; the design says how that is reconciled.
+`complete-base-ui-adoption` change proposed that ordinary controls use Base UI
+primitives; one sentence of its delta is edited so it agrees with this policy.
 Rollback reverts the change as one unit.

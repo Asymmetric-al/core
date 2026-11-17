@@ -12,6 +12,9 @@
 - [x] 1.5 Rebind the two shadcn review-baseline hashes after confirming the
       review they support still holds, and regenerate the mirrors and
       installed-payload hashes.
+- [x] 1.6 Edit the one sentence in `complete-base-ui-adoption` that proposed
+      Base UI primitives for every ordinary control, so either archive order
+      leaves one rule.
 
 ## 2. Skill retirement
 

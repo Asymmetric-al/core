@@ -119,11 +119,12 @@ costs about 13,000 tokens in each session and helps one client only.
   recomputed from the merged files. Its requirements are additions under
   different names, and delta compatibility passes with both changes active.
 - **`complete-base-ui-adoption` is still active.** Its proposed requirement
-  "Shared accessible primitive ownership" says ordinary behavior-heavy controls
-  use shared Base UI primitives. It is a proposal, not accepted intent, and
-  this change does not edit it. Before it is archived its sentence needs to
-  read "through shared `@asym/ui` components", so the accepted spec does not
-  hold both rules.
+  "Shared accessible primitive ownership" said ordinary behavior-heavy controls
+  use shared Base UI primitives. Archiving it after this change would have put
+  that rule beside the amended one. This change edits that one sentence to
+  "shared `@asym/ui` components, built on Base UI or on UI SDK where the UI SDK
+  requirement admits it", and leaves its accessibility clauses and scenarios
+  as they were, so either archive order yields one rule.
 - **An agent over-reads "both approved".** The wording says reuse first, that
   availability alone is no reason, and that this is not an SDK-first migration.
 
