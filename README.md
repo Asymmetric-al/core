@@ -7,9 +7,9 @@ instead of a stack of disconnected tools and spreadsheets.
 [![CI](https://github.com/Asymmetric-al/core/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Asymmetric-al/core/actions/workflows/ci.yml)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
-![Mission Control, the staff operations app, showing its dashboard with a sidebar of modules such as CRM, Contributions, Reports, Member Care and Support Hub](docs/assets/readme/mission-control.png)
+![Web Studio in Mission Control, showing page creation tools, recent documents and website content collections](docs/assets/readme/web-studio.png)
 
-<sub>Mission Control running locally with the demo tenant "Give Hope".</sub>
+<sub>Web Studio · Mission Control's workspace for creating and publishing websites.</sub>
 
 ## Why Core exists
 
@@ -66,19 +66,20 @@ Core is under active development.
   <tr>
     <td width="33%"><img src="docs/assets/readme/donor-portal.png" alt="Donor portal overview with year-to-date giving, active recurring support and a field update" /></td>
     <td width="33%"><img src="docs/assets/readme/public-website.png" alt="Public ministry website home page for the demo tenant with a Give Now button" /></td>
-    <td width="33%"><img src="docs/assets/readme/missionary-workspace.png" alt="Missionary workspace task board with To Do, In Progress and Waiting columns" /></td>
+    <td width="33%"><img src="docs/assets/readme/missionary-updates.png" alt="Missionary Updates page with a ministry update composer and published sample updates" /></td>
   </tr>
   <tr>
     <td align="center">Donor portal</td>
     <td align="center">Public ministry website</td>
-    <td align="center">Missionary workspace</td>
+    <td align="center">Missionary Updates</td>
   </tr>
 </table>
 
-These are cropped from the browser captures in
-[`docs/qa/core-ui/after/`](docs/qa/core-ui/README.md), taken from a local
-development build in October 2026 with demo fixtures and placeholder database
-endpoints. The figures on the demo website are sample content.
+Web Studio and Missionary Updates were captured locally in November 2026;
+the updates feed uses demo fixtures. The donor portal and public website images
+are cropped from the October 2026
+[`browser captures`](docs/qa/core-ui/README.md), made with demo fixtures and
+placeholder database endpoints. All screenshots show sample content.
 
 ## How it fits together
 
@@ -240,15 +241,6 @@ Internal dependencies use `workspace:*`, with one exception: the native PDF
 Studio migration intentionally consumes the five vendored Phase 47 React PDF
 tarballs under `vendor/react-pdf-packages/*.tgz` until those packages are
 published or promoted into this monorepo.
-
-### Product planning
-
-The [SiteStacker parity program](docs/prds/sitestacker-parity/README.md)
-tracks outcome parity and phase dependencies. The
-[Phase 25 Donor Dashboard Depth specification](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md)
-records the ratified donor scope, acceptance criteria, source contracts and
-qualification gates. It is planning authority, not implemented or activated
-behavior; its source-owner amendments remain proposed.
 
 ## Contributing and security
 
