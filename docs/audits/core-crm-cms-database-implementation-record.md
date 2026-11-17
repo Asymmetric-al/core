@@ -1,0 +1,149 @@
+# Core CRM, CMS and database — implementation record
+
+**Purpose.** This is the one execution record for building the plan in [`core-crm-cms-database-target-architecture.md`](./core-crm-cms-database-target-architecture.md) ("the plan"). It says what is being built, by whom, in what order, what has been integrated and what has been verified. Another agent can resume the work from this file alone.
+
+**Who edits it.** Only the coordinating agent edits this file. Delegates report in their handoffs, and the coordinator records what it has checked. A delegate's report that work is finished is recorded as _implemented_. It becomes _integrated_ when the coordinator has merged it, and _verified_ only when the coordinator has seen the evidence on the integrated revision.
+
+**Tracking issue:** [#2671](https://github.com/Asymmetric-al/core/issues/2671). Each package has its own issue, listed in section 5.
+
+## 1. Baseline
+
+| Item                                 | Value                                                                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authorization                        | The owner's instruction of 17 November 2026 to implement the whole plan. It covers code, shared packages, database definitions, migrations, tests, configuration and documentation |
+| Plan                                 | `core-crm-cms-database-target-architecture.md` as ratified on 16 November 2026, sha256 `fdd2fd2ddbf9…` (1,497 lines). Section 12 governs each package                              |
+| Factual baseline                     | `core-crm-cms-database-audit.md`, sha256 `4f1be5083583…`                                                                                                                           |
+| Council record                       | `core-crm-cms-database-council-record.md`, sha256 `0d45b269dbbc…`. Section C.8 holds the ratification and its twelve reservations                                                  |
+| Amendments after ratification        | None. The only later edit to the plan is the sentence in its status line that records the authorization                                                                            |
+| Audit code baseline                  | `8ed81f5561c389fa47a576cd4c00d2d03e868fc9`                                                                                                                                         |
+| Implementation code baseline         | `develop` at `7bacf780b` (26 commits later). They change no migration and no workflow the plan relies on. Line numbers the plan cites may have moved by a few lines                |
+| Integration branch                   | `t3/crm-cms-database-architecture-audit`                                                                                                                                           |
+| Owner decisions (plan 15.1)          | The stated default is taken for each, and recorded in section 6. Two have no default that lets work proceed on a hosted database: see D-01 and D-02                                |
+| Deferred by the plan, and not built  | The "Not in this plan" list and the launch table of section 12                                                                                                                     |
+| Superseded material, kept as context | Earlier drafts and rejected alternatives in the council record. None is implemented unless the plan incorporates it                                                                |
+
+## 2. Environments
+
+| Environment                   | State and rule                                                                                                                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hosted `development` project  | Untouched. The WP1 census reads it and exports it. Nothing is reset or migrated there until the owner signs off the census (D-01)                                                                                                 |
+| Hosted `production` project   | Untouched, and read only by the census. Its freeze, rebuild or replacement is the owner's decision (D-02). WP11 is not authorized by this record                                                                                  |
+| Shared test Postgres          | Container `core-crmcms-pg`, Postgres 17, `postgresql://postgres:postgres@127.0.0.1:57432/<database>`. Disposable. Each delegate uses database names that start with its package ID. CI uses the same shape (`ci-integration.yml`) |
+| Full local Supabase stacks    | Only on a slot the coordinator assigns, from a scratch copy of `supabase/` with its own project ID and ports: slot A `573xx`, slot B `583xx`, slot C `593xx`. The default ports and project ID are never used                     |
+| Other containers on this host | Two Supabase stacks and one delivery container belong to other sessions. No one stops, resets or reads them                                                                                                                       |
+| CI                            | GitHub Actions on pull requests. `develop` requires four status checks and no review                                                                                                                                              |
+
+## 3. Working rules for every delegate
+
+1. **Read first.** The root `AGENTS.md`, the nearest nested `AGENTS.md`, the rulebooks that match the work, and the plan sections the brief names. The package's acceptance list in section 12 of the plan is normative. Current source, tests and manifests decide what exists.
+2. **Stay in scope.** Edit only what the brief assigns. A needed change outside it is reported in the handoff, not made. Requirements, acceptance criteria, tests and gates are never weakened to make work pass.
+3. **Test first.** Behaviour changes use red, green, refactor at the nearest stable seam. Each defect or rule gets a test that fails before the change and passes after it.
+4. **Migrations.** Create each file with `bun run supabase -- migration new <name>`. Do not refer to a migration by its timestamp anywhere else. The coordinator settles the final order at integration.
+5. **Databases.** Use the shared test Postgres with your own database names. `DATABASE_URL=<url> node scripts/verify/supabase-migrations.mjs` applies the migration chain and runs the catalog and field-policy gates. Real-stack suites take the same URL as `TENANT_GUARD_IT_ADMIN_DATABASE_URL`. Never point a command at a hosted project.
+6. **Never.** Push, open a pull request, bypass a hook, commit a secret, run `supabase start` or `cms:local:*` on the default ports, stop a container you did not start, or edit this record.
+7. **Commit.** Small Conventional Commits on the branch the brief names, `type(AL-<issue>): subject`.
+8. **Hand off** with: what changed and which plan lines it satisfies; the branch and commit hashes; each check run with its result; environment assumptions; failures, limits and unfinished work; and what the change means for migrations and documentation.
+
+## 4. Stages
+
+The order follows the dependency diagram in section 12 of the plan. Work in one stage runs in parallel where the edit boundaries allow it.
+
+| Stage | Work                                                                                                                     | Starts when                     |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| 0     | Baseline, tracking issues, shared test database, this record                                                             | Done                            |
+| 1     | WP0, WP0b, WP1 in five slices, the tenant-in-address proof, and the documentation track                                  | Now                             |
+| 2     | WP2a, then the first release of WP2b, then the caller-token proof with the policy cost, then the second release and WP2c | WP1 slices 1.1 to 1.4 verified  |
+| 3     | WP3 and WP4a, in parallel                                                                                                | WP2 verified                    |
+| 4     | WP5 and WP6, in parallel. WP6 runs its four proofs before its baseline migration                                         | WP3 verified                    |
+| 5     | WP7, WP8a to WP8c and WP4b                                                                                               | WP4a, WP5 and WP6 verified      |
+| 6     | WP9, the cross-surface journey                                                                                           | WP2 to WP8 verified             |
+| 7     | WP10, WP12, WP13, WP14 and WP5's closing column drop                                                                     | WP9 verified                    |
+| 8     | WP11 preparation only. The production database itself waits for the owner (D-02) and the approvals the plan names        | WP10, WP12, WP13, WP14 verified |
+
+## 5. Work packages
+
+Statuses: **ready**, **active**, **implemented** (the delegate reports it done), **integrated** (merged into the integration branch), **verified** (the coordinator has seen the acceptance evidence on the integrated revision), **blocked**.
+
+| ID    | Issue | Plan reference              | Result                                                                                                                                         | Depends on             | Owner      | Status  | Integrated at | Verified |
+| ----- | ----- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------- | ------- | ------------- | -------- |
+| WP0   | #2672 | 12, WP0                     | The five dangerous defects are closed, each with a test that failed before                                                                     | None                   | Unassigned | ready   |               |          |
+| WP0b  | #2673 | 12, WP0b                    | One block registry for preview; password recovery in all three apps                                                                            | None                   | Unassigned | ready   |               |          |
+| WP1.1 | #2674 | 12, WP1; 5.4; 7.1; 7.2; 7.5 | Database foundation: CMS roles, command and `platform` schemas, privileges and demo policies, buckets, retired tables, marker, gates, manifest | WP0                    | Unassigned | ready   |               |          |
+| WP1.2 | #2674 | 12, WP1; 6.7; 7.2; 7.3      | Payload on the patched pin, connecting as `cms_runtime`, migrating as `cms_owner`; the vendored copy gone                                      | WP0                    | Unassigned | ready   |               |          |
+| WP1.3 | #2674 | 12, WP1; 7.4; 7.5           | The release job, migration-head check, health function, preview project workflow                                                               | WP1.1                  | Unassigned | ready   |               |          |
+| WP1.4 | #2674 | 12, WP1                     | Sign-up email confirmation on; register and recovery screens pass a return address                                                             | WP0b                   | Unassigned | ready   |               |          |
+| WP1.5 | #2674 | 12, WP1 census; 7.5; 15.2   | The census of both hosted projects, with exports, for the owner's sign-off. Read-only                                                          | None                   | Unassigned | ready   |               |          |
+| WP1.6 | #2674 | 12, WP1; 15.2               | The platform proofs that WP1 owes, on a disposable hosted project                                                                              | WP1.1, D-03            | Unassigned | blocked |               |          |
+| WP1.7 | #2674 | 12, WP1 "Then"              | Development rebuilt from source through the release job                                                                                        | WP1.1 to WP1.5, D-01   | Unassigned | blocked |               |          |
+| TP5   | #2675 | 12 thin proofs; 5.2; 15.2   | One Mission Control section under a tenant prefix by proxy rewrite, navigation and prefetching measured                                        | None                   | Unassigned | ready   |               |          |
+| WP2a  | #2675 | 12, WP2a; 5.1; 5.2          | Membership and resolver                                                                                                                        | WP1                    | Unassigned |         |               |          |
+| WP2b  | #2675 | 12, WP2b; 5.2; 5.4          | Tenant selection, then the policy pattern, as two releases                                                                                     | WP2a, TP5, TP1         | Unassigned |         |               |          |
+| WP2c  | #2675 | 12, WP2c; 5.4               | Platform operators with MFA                                                                                                                    | WP2b                   | Unassigned |         |               |          |
+| TP1   | #2677 | 12 thin proofs; 11.4; 15.2  | One caller-token CRM read, with the policy cost measured                                                                                       | WP2a                   | Unassigned |         |               |          |
+| WP3   | #2676 | 12, WP3                     | Tenants, Sites and legal entities                                                                                                              | WP2                    | Unassigned |         |               |          |
+| WP4a  | #2677 | 12, WP4a                    | Server lanes: plumbing and CRM                                                                                                                 | WP2                    | Unassigned |         |               |          |
+| WP4b  | #2677 | 12, WP4b                    | Server lanes: portals, Support Hub, member care, assistant runtime, the rest                                                                   | WP3, WP5, WP6          | Unassigned |         |               |          |
+| WP5   | #2678 | 12, WP5                     | Identity keys. Its closing column drop waits for WP4b                                                                                          | WP3                    | Unassigned |         |               |          |
+| WP6   | #2679 | 12, WP6; 6.1 to 6.6         | CMS clean target                                                                                                                               | WP1, WP2b, WP3         | Unassigned |         |               |          |
+| TP3   | #2680 | 12 thin proofs; 6.6; 15.2   | One release-backed public page with admission, and the burst measurement                                                                       | WP6                    | Unassigned |         |               |          |
+| WP7   | #2680 | 12, WP7; 6.6                | Publishing and the public site                                                                                                                 | WP4a, WP5, WP6, WP0b   | Unassigned |         |               |          |
+| TP2   | #2681 | 12 thin proofs; 8.1; 15.2   | One fully constrained money command                                                                                                            | WP1.1                  | Unassigned |         |               |          |
+| TP4   | #2681 | 12 thin proofs; 8.2; 15.2   | One provider operation recovered after a lost response                                                                                         | TP2                    | Unassigned |         |               |          |
+| WP8a  | #2681 | 12, WP8a; 8.1 to 8.3        | Payment accounts, events and intake                                                                                                            | WP3, WP5, WP4a         | Unassigned |         |               |          |
+| WP8b  | #2681 | 12, WP8b                    | Review, posting and receipts                                                                                                                   | WP8a, WP6              | Unassigned |         |               |          |
+| WP8c  | #2681 | 12, WP8c                    | Corrections, refunds, disputes and reconciliation                                                                                              | WP8b                   | Unassigned |         |               |          |
+| WP9   | #2682 | 12, WP9                     | The ten-step journey in CI                                                                                                                     | WP2 to WP8             | Unassigned |         |               |          |
+| WP10  | #2683 | 12, WP10; 8.5; 9.5          | Operations                                                                                                                                     | WP9                    | Unassigned |         |               |          |
+| WP12  | #2685 | 12, WP12                    | Recurring giving, first slice. Its provider proof comes first                                                                                  | WP5, WP8, WP4b         | Unassigned |         |               |          |
+| WP13  | #2686 | 12, WP13                    | First import                                                                                                                                   | WP5, WP6, WP8b, WP8c   | Unassigned |         |               |          |
+| WP14  | #2687 | 12, WP14                    | Rest of the restricted-worker foundation                                                                                                       | WP4b, WP5, WP7         | Unassigned |         |               |          |
+| WP11  | #2684 | 12, WP11                    | Production database                                                                                                                            | WP10, WP12, WP13, WP14 | Owner      | blocked |               |          |
+| DOCS  | #2688 | 14                          | The OpenSpec change, the amendments and the new decision records                                                                               | Each package's slice   | Unassigned | ready   |               |          |
+
+**Edit boundaries in stage 1.** Later stages get theirs when they become ready.
+
+| Slice | Owns                                                                                                                                                                                                                                                                                                       |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WP0   | `packages/graphql` (the role mutation), one SQL migration for its function, `scripts/seed-demo.sh`, the schema-push setting in `apps/admin/payload.config.ts`, `packages/api/src/admin/contributions/staged-gifts.ts`, the checkout success screen                                                         |
+| WP0b  | The public block components in `packages/ui`, the preview in `apps/admin`, the recovery flow on the three auth screens                                                                                                                                                                                     |
+| WP1.1 | New SQL migrations for roles, the command and `platform` schemas, grants, demo policies, buckets, retired tables and the marker; `scripts/verify/tenant-rls-catalog.mjs`; `scripts/verify/field-policy-census.mjs` with its manifest under `docs/security/field-policies`; the reset scripts' marker check |
+| WP1.2 | The Payload and `@payloadcms/*` versions, the Node pin, `apps/admin/src/cms/payload-database-config.ts`, `scripts/cms/`, `apps/admin/src/migrations/`, `vendor/payload-upstream`. Not the schema-push setting, which WP0 owns                                                                              |
+| WP1.3 | `.github/workflows` (release and preview), `apps/*/vercel.json`, `scripts/db-migrate-hosted.mjs`, `scripts/release/`, each app's health route                                                                                                                                                              |
+| WP1.4 | The Auth section of `supabase/config.toml`, `packages/ui/components/auth/RegisterScreen.tsx`, the return address on the recovery screen, after WP0b                                                                                                                                                        |
+| WP1.5 | Nothing in the repository but its census report under `docs/audits`. Its exports stay outside the repository                                                                                                                                                                                               |
+| TP5   | A throwaway branch. Its result is a written measurement, not merged code                                                                                                                                                                                                                                   |
+| DOCS  | `openspec/changes/<the program's change>`, `docs/adr`, `docs/security/*.md`, `docs/guides/architecture/data-access-boundary.md`                                                                                                                                                                            |
+
+## 6. Decisions and deviations
+
+Owner decisions of plan 15.1 are taken at their stated default unless a row here says otherwise. A deviation from the plan is recorded with its evidence and its consequence before work continues.
+
+| ID   | Date       | Decision or deviation                                                                                                                                                                                                                                                            | Consequence                                                                                                                         |
+| ---- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| D-01 | 2026-11-17 | The census decision (fixtures or kept data) has no default that permits a reset. The plan's default is that nothing is reset                                                                                                                                                     | All work is built and proven on disposable local databases and CI. WP1.7, the rebuild of hosted development, waits for the owner    |
+| D-02 | 2026-11-17 | Rebuilding or replacing the production-named project is the owner's, decided at the census                                                                                                                                                                                       | WP11 stays blocked. The census prepares the evidence                                                                                |
+| D-03 | 2026-11-17 | Several proofs in 15.2 ask for a disposable hosted Supabase project, which is a new billable resource in the owner's organization                                                                                                                                                | Each such proof runs first on a local stack. Its hosted run is prepared as an exact, reviewable step and is recorded as not yet run |
+| D-04 | 2026-11-17 | WP1 is delivered in seven slices (WP1.1 to WP1.7), so that the parts with no hosted dependency are not held behind the census                                                                                                                                                    | None on behaviour. The package's acceptance list still governs the whole                                                            |
+| D-05 | 2026-11-17 | Every other row of 15.1 is taken at its default: care access ends with membership; posts and reactions scoped to the Site's tenant; donor email unique per tenant; the fund ID as the interim page target; no atomic multi-page launch; no purge; no launch gate beyond packages | As the plan states for each default                                                                                                 |
+| D-06 | 2026-11-17 | Also at default: the tenant administrator alone holds the finance-approver bundle; the tenant travels in the page address; operator access is read-only for 15 minutes with a 60-minute ceiling; erasure withdraws one way; donor-class reads stay staff-only until the review   | As the plan states for each default                                                                                                 |
+| D-07 | 2026-11-17 | Also at default: a missionary edits story, photo and display name; the donor GraphQL endpoint is retired; clean online gifts wait in review, with the automatic entry behind a tenant setting; one issuer, country and currency, cards only; monthly by card with no auto-retry  | As the plan states for each default                                                                                                 |
+| D-08 | 2026-11-17 | Also at default: capability names as proposed in 5.4; security levels as in 6.6; partners-only updates for followers; earlier posts start approved; one Party per duplicate row; no Party kind; Cloudflare Turnstile; an unpaid checkout closes after seven days                 | As the plan states for each default                                                                                                 |
+
+## 7. Delegates
+
+Requested configuration for every implementation and review delegate: Claude Code, model `claude-opus-5-5`, effort `xhigh`. The table records what each task was started with.
+
+| Task | Package | Provider instance | Model | Effort | Started | Outcome |
+| ---- | ------- | ----------------- | ----- | ------ | ------- | ------- |
+
+## 8. Checkpoint
+
+**As of 17 November 2026, stage 0 complete.**
+
+- Baseline: as section 1. Integration branch at the commit that adds this record.
+- Active delegates: none yet.
+- Integrated: nothing.
+- Database state: hosted projects untouched. Shared test Postgres running, empty but for a `baseline` database.
+- Verified: nothing.
+- Open findings and blockers: D-01, D-02, D-03.
+- Next actions: start stage 1 (WP0, WP0b, WP1.1, WP1.2, WP1.4 after WP0b, WP1.5, TP5, DOCS). Integrate in the order WP0, WP0b, WP1.1, WP1.2, WP1.4, WP1.3.
