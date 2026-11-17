@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { pageHeading, useLoadRetry } from "@asym/ui/hooks";
 import { PenLine, UserPlus } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
@@ -33,7 +34,6 @@ import {
   monthlyPartnerCount,
   recentGifts,
 } from "./home/home-model";
-import { pageHeading, useLoadRetry } from "../hooks/use-load-retry";
 
 import type { DonationMetrics } from "@asym/lib/hooks";
 
@@ -157,7 +157,7 @@ function DashboardHomeContent({
   const portalLoading =
     portalQuery.isLoading || (portalQuery.isPending && portalQuery.isPaused);
   const portalRetryButton = React.useRef<HTMLButtonElement>(null);
-  const portalRetry = useLoadRetry({
+  const { failureView, ...portalRetry } = useLoadRetry({
     retryRef: portalRetryButton,
     error: portalQuery.error,
     loading: portalLoading,
@@ -191,7 +191,7 @@ function DashboardHomeContent({
       <HomeFrame title={title} description={description}>
         <div className="section-gap">
           {belowHeaderSlot}
-          <Card>
+          <Card ref={failureView}>
             <CardContent className="flex flex-col items-start gap-3">
               <p
                 key={portalRetry.failedRetries}

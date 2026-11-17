@@ -25,15 +25,11 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useLoadRetry } from "@asym/ui/hooks";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 
-import {
-  focusHeadingIfLost,
-  useFocusHandoff,
-  useLoadRetry,
-} from "@/features/donor/focus-recovery";
 import { todayDateInputValue } from "@/lib/dates";
 
 const ACTIVE = new Set(["active", "processing", "trialing"]);
@@ -215,17 +211,17 @@ export default function DonorPledgesPage() {
   const wallet = useDonorWallet();
   const billingPortal = useCreateDonorBillingPortalSession();
   const pageRef = useRef<HTMLDivElement>(null);
-  const giftsRetry = useLoadRetry(
-    pageRef,
-    Boolean(snapshot.error),
-    snapshot.refetch,
-  );
-  // However the gifts recover, focus on the error view moves to the heading.
-  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
   // Offline, a first load waits for the connection without fetching; it is
   // still loading, not empty.
   const loading =
     snapshot.isLoading || (snapshot.isPending && snapshot.isPaused);
+  // However the gifts recover, focus on the error view moves to the heading.
+  const { failureView, ...giftsRetry } = useLoadRetry({
+    error: snapshot.error,
+    loading,
+    onRetry: snapshot.refetch,
+    landing: () => pageRef.current?.querySelector("h1"),
+  });
 
   const openPaymentSettings = async () => {
     try {
@@ -312,7 +308,7 @@ export default function DonorPledgesPage() {
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       ) : snapshot.error || giftsRetry.retrying ? (
-        <Card ref={errorView}>
+        <Card ref={failureView}>
           <CardContent className="flex flex-col items-start gap-3">
             <p
               key={giftsRetry.failedRetries}

@@ -17,6 +17,7 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Meter } from "@asym/ui/components/shadcn/meter";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useLoadRetry } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import {
   CircleAlert,
@@ -29,7 +30,6 @@ import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
-import { useLoadRetry } from "../../hooks/use-load-retry";
 import { formatCents, MONEY_UNAVAILABLE, moneyProgress } from "../money-units";
 import { postTypeLabel } from "./home-model";
 
@@ -153,13 +153,13 @@ export function SupportCard({
   // No commitments have no currency to show a zero in.
   const noCommitments = monthlyPartners === 0;
   const totalsRetryButton = React.useRef<HTMLButtonElement>(null);
-  const totalsRetry = useLoadRetry({
+  const { failureView, ...totalsRetry } = useLoadRetry({
     retryRef: totalsRetryButton,
-    error: metricsFailed && !metricsLoading ? true : null,
+    error: metricsFailed && !metricsLoading,
     loading: metricsLoading,
     onRetry: onRetryMetrics,
-    landing: (button) =>
-      button?.closest('[role="region"]')?.querySelector<HTMLElement>("h2"),
+    landing: (from) =>
+      from?.closest('[role="region"]')?.querySelector<HTMLElement>("h2"),
   });
 
   return (
@@ -211,7 +211,10 @@ export function SupportCard({
           <p className="text-sm text-muted-foreground">{MONEY_UNAVAILABLE}</p>
         ) : null}
         {totalsRetry.error ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          <div
+            ref={failureView}
+            className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4"
+          >
             <p
               key={totalsRetry.failedRetries}
               role="alert"
