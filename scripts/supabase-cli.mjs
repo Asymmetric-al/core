@@ -8,7 +8,7 @@
 // project through the CLI's own `db query --linked`. A marker that cannot be
 // read refuses too. There is no override flag. The one-off first rebuild of a
 // hosted database is a named step of the release job and does not go through
-// this runner.
+// this runner. It refuses `config push` outright until WP3 (guardConfigPush).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -46,12 +46,8 @@ const VALUE_FLAGS = new Set([
   "--completions",
 ]);
 
-/**
- * The database a `db reset` would reset: `{ kind: "local", workdir }`,
- * `{ kind: "db-url", url }` or `{ kind: "linked", projectRef, workdir }`; null
- * for any other command. Throws when the target is ambiguous or incomplete.
- */
-export function parseResetTarget(args) {
+/** The command words of a CLI invocation, and its flags by name with every value given. */
+function splitArgs(args) {
   const words = [];
   const flags = new Map();
   for (let i = 0; i < args.length; i += 1) {
@@ -73,6 +69,33 @@ export function parseResetTarget(args) {
     }
     flags.set(name, [...(flags.get(name) ?? []), value]);
   }
+  return { words, flags };
+}
+
+/**
+ * Refuses (throws) `config push`. It pushes supabase/config.toml's Auth
+ * section to a hosted project: TOTP multi-factor is off there (local stacks
+ * have no use for it), and the site URL and redirect allowlist are local
+ * values, so a push would switch hosted TOTP off and replace the hosted
+ * allowlist. WP3 makes each hosted project's site URL and allowlist source
+ * (implementation record, section 9); until then hosted Auth settings change
+ * only in the Supabase dashboard.
+ */
+export function guardConfigPush(args) {
+  const { words } = splitArgs(args);
+  if (words[0] === "config" && words[1] === "push")
+    throw new Error(
+      "refusing to run config push: supabase/config.toml would switch TOTP multi-factor off on the hosted project and replace its site URL and redirect allowlist with local values. WP3 makes each hosted project's site URL and redirect allowlist source; until then change hosted Auth settings in the Supabase dashboard.",
+    );
+}
+
+/**
+ * The database a `db reset` would reset: `{ kind: "local", workdir }`,
+ * `{ kind: "db-url", url }` or `{ kind: "linked", projectRef, workdir }`; null
+ * for any other command. Throws when the target is ambiguous or incomplete.
+ */
+export function parseResetTarget(args) {
+  const { words, flags } = splitArgs(args);
   if (words[0] !== "db" || words[1] !== "reset") return null;
 
   const refuse = (why) => {
@@ -245,9 +268,10 @@ function printGlobalInstallHint() {
   );
 }
 
-/** Runs the CLI with `args` after the reset guard; returns its exit status. */
+/** Runs the CLI with `args` after the config-push and reset guards; returns its exit status. */
 export function main(args = process.argv.slice(2)) {
   try {
+    guardConfigPush(args);
     guardReset(args);
   } catch (error) {
     console.error(`error: ${error instanceof Error ? error.message : error}`);

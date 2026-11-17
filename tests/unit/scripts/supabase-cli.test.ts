@@ -1,11 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  guardConfigPush,
   guardReset,
   parseQueryRows,
   parseResetTarget,
@@ -44,9 +51,10 @@ process.exit(Number(process.env.TEST_DISPATCH_STATUS || 0));
     env: { PATH: root, TEST_COMMAND_LOG: log, ...env },
     encoding: "utf8",
   });
-  const commands = readFileSync(log, "utf8")
+  const commands = (existsSync(log) ? readFileSync(log, "utf8") : "")
     .trim()
     .split("\n")
+    .filter(Boolean)
     .map((line) => JSON.parse(line) as { command: string; args: string[] });
   return { result, commands };
 }
@@ -225,6 +233,41 @@ describe("guardReset", () => {
     },
   );
 });
+
+// Council round 2, A8c: `config push` would switch hosted TOTP off and
+// overwrite the hosted site URL and redirect allowlist with local values.
+describe("guardConfigPush", () => {
+  it.each([
+    [["config", "push"]],
+    [["config", "push", "--project-ref", "abcdefghijklmnopqrst"]],
+    [["--workdir", "supabase-copy", "config", "push"]],
+    [["--debug", "config", "push", "--yes"]],
+  ])("refuses %j until WP3 delivers the hosted allowlist", (args) => {
+    expect(() => guardConfigPush(args)).toThrow(
+      /refusing to run config push: .*TOTP.*redirect allowlist.*WP3/s,
+    );
+  });
+
+  it.each([
+    [["config", "--help"]],
+    [["db", "push", "--db-url", "postgresql://x@127.0.0.1/d"]],
+    [["--workdir", "config", "db", "push"]],
+  ])("lets %j through", (args) => {
+    expect(() => guardConfigPush(args)).not.toThrow();
+  });
+});
+
+describe.skipIf(process.platform === "win32")(
+  "the wrapper refuses config push before it runs the CLI",
+  () => {
+    it("exits 1, says why, and never starts the CLI", () => {
+      const { result, commands } = dispatch({}, ["config", "push"]);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(/refusing to run config push/);
+      expect(commands.filter((c) => c.args.includes("push"))).toEqual([]);
+    });
+  },
+);
 
 describe("parseQueryRows", () => {
   it("takes the rows from the CLI's JSON output, ignoring progress lines", () => {
