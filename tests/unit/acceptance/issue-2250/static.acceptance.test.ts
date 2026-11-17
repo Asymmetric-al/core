@@ -42,6 +42,8 @@ const STEP_RUN = [
   "tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts",
   "tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts",
   "tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts",
+  "tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts",
+  "tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts",
 ].join(" ");
 const STEP = "Verify tenant isolation (real stack)";
 const REALSTACK =

@@ -369,7 +369,12 @@ describe("#2407a static contract [A]", () => {
       loadWorkflowDocument(".github/workflows/ci-integration.yml"),
     ).migrate!.steps!;
     const i = steps.findIndex((s) => s.name === STEP);
-    expect(String(steps[i]!.run).split(/\s+/).at(-1)).toBe(H.REALSTACK);
+    // AL-2675 appends its two real-stack files after this one.
+    expect(String(steps[i]!.run).split(/\s+/).slice(-3)).toEqual([
+      H.REALSTACK,
+      "tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts",
+    ]);
     const { index, ...body } = PINNED_STEP_BODIES.migrate![`name:${STEP}`]!;
     expect(index).toBe(i);
     expect(steps[i]).toEqual({ name: STEP, ...body });

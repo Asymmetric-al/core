@@ -381,8 +381,9 @@ describe("#2406 static contract", () => {
     const i = steps.findIndex((s) => s.name === STEP);
     const tokens = String(steps[i]!.run).split(/\s+/);
     expect(tokens).toContain(H.REALSTACK);
+    // AL-2675 appends its two real-stack files after #2407's.
     expect(tokens.at(-1)).toBe(
-      "tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts",
+      "tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts",
     );
     const { index, ...rest } = PINNED_STEP_BODIES.migrate![`name:${STEP}`]!;
     expect(index).toBe(i);

@@ -214,6 +214,8 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
     // Hosted-CI amendment: only the five heavy jobs' runs-on become literal ubuntu-latest.
     { ref: "Hosted CI baseline after #2407a", hash: "e2884b2dac1415b3" },
+    // AL-2675 (WP2a): seed count 3, and the issue-2675 real-stack paths appended to tenant isolation.
+    { ref: "AL-2675 WP2a membership core", hash: "3655c5f92de56234" },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

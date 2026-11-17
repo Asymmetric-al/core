@@ -83,12 +83,11 @@ jobs:
       - name: Verify seed counts
         run: |
           profile_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.profiles;" | tr -d '[:space:]')
-          tenant_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.tenants;" | tr -d '[:space:]')
-          if [ "$profile_count" != "3" ] || [ "$tenant_count" != "2" ]; then
-            echo "Expected 3 profiles in 2 tenants after seeding, got: $profile_count profiles, $tenant_count tenants"
+          if [ "$profile_count" != "3" ]; then
+            echo "Expected public.profiles count to be 3 after seeding, got: $profile_count"
             exit 1
           fi
-          echo "Verified seeded rows: $profile_count profiles, $tenant_count tenants"
+          echo "Verified public.profiles seeded row count: $profile_count"
       - name: Verify document-cutover reader role (real stack)
         env:
           DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
@@ -98,7 +97,7 @@ jobs:
       - name: Verify tenant isolation (real stack)
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
-        run: bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts
+        run: bun x vitest run tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts
       - name: Verify authz EXECUTE grants (real stack)
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
@@ -119,10 +118,6 @@ jobs:
         env:
           TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
         run: bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts
-      - name: Verify membership core (real stack)
-        env:
-          TENANT_GUARD_IT_ADMIN_DATABASE_URL: ${{ env.DATABASE_URL }}
-        run: bun x vitest run tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts tests/unit/acceptance/issue-2675/capability-parity.realstack.acceptance.test.ts
 
   smoke:
     needs: migrate

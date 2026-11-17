@@ -335,6 +335,8 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "CI runner fallback", hash: "ade0c213dc9896db" },
     // Hosted-only amendment: only the five heavy jobs' runs-on changed.
     { ref: "AL-2218 hosted CI baseline", hash: "58e813e659a30660" },
+    // AL-2675 (WP2a): seed count 3, and the issue-2675 real-stack paths appended to tenant isolation.
+    { ref: "AL-2675 WP2a membership core", hash: "1b3ccf28ef33e704" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(
