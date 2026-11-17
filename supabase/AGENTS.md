@@ -33,6 +33,7 @@ Use this doc when a task touches:
   - Resets and reseeds public app tables deterministically.
   - Creates exactly one profile identity tied to one auth user.
   - Seeds all public app-facing tables, including `campaigns`, `notification_queue`, and `pledge_charge_attempts`.
+- Seed counts: `supabase/seed-expectations.json` lists the row counts the seed must produce. CI's `migrate` job checks them after seeding (`node scripts/verify/seed-counts.mjs`), which fails and reports the count it found. A change to the seed updates that file in the same change; the workflow does not change.
 - Historical: `supabase/migrations/20260216153000_demo_readonly_rls.sql` (February 2026) granted public `SELECT` on demo-visible tables and revoked anon/authenticated writes. Later migrations superseded that posture: `20261025120800_close_public_reads_tenant_scope.sql` (#2312) removed the public reads, and some tables now accept authenticated own-row writes. Do not reintroduce public reads.
 
 ## Commands
@@ -56,6 +57,7 @@ Use this doc when a task touches:
 - [ ] `supabase/seed.sql` is deterministic and idempotent
 - [ ] Seed inserts exactly one row in `public.profiles`
 - [ ] FK graph is valid (no orphaned references)
+- [ ] `supabase/seed-expectations.json` matches the seed's row counts
 - [ ] No `anon`/`PUBLIC` reads on tenant tables; RLS enabled and forced, with a policy or a reviewed deny-by-default entry
 - [ ] Internal tables are not exposed
 - [ ] No secrets are committed in SQL/docs/scripts

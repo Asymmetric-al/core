@@ -8,6 +8,10 @@ import { spawnSync } from "node:child_process";
 export const adminDatabaseUrl =
   process.env.RELEASE_IT_ADMIN_DATABASE_URL?.trim() || "";
 
+/** CI's `migrate` job, where these suites must run: a missing URL fails there. */
+export const IN_MIGRATE_JOB =
+  process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
+
 export function psql(databaseUrl: string, sql: string) {
   const result = spawnSync(
     "psql",

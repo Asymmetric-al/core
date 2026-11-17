@@ -15,6 +15,7 @@ import {
 } from "../../../../scripts/release/release-database.mjs";
 import {
   CONTRACT_STUB_SQL,
+  IN_MIGRATE_JOB,
   LEDGER_SQL,
   MARK_DISPOSABLE_SQL,
   adminDatabaseUrl,
@@ -73,6 +74,11 @@ function step(name: string, url: string, extra: Record<string, string> = {}) {
 afterAll(() => {
   for (const name of created) dropDatabase(name);
 });
+
+it.runIf(IN_MIGRATE_JOB && !adminDatabaseUrl)(
+  "the migrate job sets RELEASE_IT_ADMIN_DATABASE_URL (fails, never skips)",
+  () => expect(adminDatabaseUrl).not.toBe(""),
+);
 
 describe.skipIf(!adminDatabaseUrl)(
   "release database steps (real stack)",

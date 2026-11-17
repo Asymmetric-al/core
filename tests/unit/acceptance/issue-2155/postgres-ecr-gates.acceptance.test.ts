@@ -340,6 +340,19 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // job's database and fingerprint suites; each step is pinned exactly in
     // tests/unit/helpers/workflow-yaml.ts.
     { ref: "AL-2674 migrate steps 22-23", hash: "096b38ee10573583" },
+    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only the workflow's
+    // NODE_VERSION moved from 24.22.1 to 24.22.3 (.node-version). With that
+    // line put back, the surface is the entry above.
+    { ref: "AL-2674 Node 24.22.3", hash: "f0a1e65b930bee7e" },
+    // Amended by AL-2674 (WP1.2 joined): migrate step 13 ("Verify seed
+    // counts") runs scripts/verify/seed-counts.mjs, which reads the expected
+    // counts from supabase/seed-expectations.json, so a seed change no longer
+    // changes this file; step 22 runs the AL-2671 program's real-stack suites
+    // (one glob over issue-2670 to issue-2689), step 23 adds Payload's
+    // database-role suite and its URL, and step 24 runs the Payload
+    // qualification (plan 6.7). Only those four steps differ from the entry
+    // above; each is pinned exactly in tests/unit/helpers/workflow-yaml.ts.
+    { ref: "AL-2674 seed counts and program steps", hash: "c0e17f294078fd87" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(
