@@ -4,7 +4,7 @@
 // database reads the marker from its target first and refuses anything but
 // `disposable`. A database with no marker, including one that predates the
 // marker migration, counts as not disposable.
-import { spawnSync } from "node:child_process";
+import { isLoopbackDatabaseUrl, runPsqlQuery } from "./psql.mjs";
 
 export const DISPOSABLE = "disposable";
 const MARKER_FUNCTION = "platform.environment_kind()";
@@ -39,40 +39,14 @@ export function describeDatabase(databaseUrl) {
   }
 }
 
-/**
- * psql arguments and environment for a URL, with the password moved out of
- * the process arguments into PGPASSWORD.
- */
-function psqlConnection(databaseUrl) {
-  let url;
-  try {
-    url = new URL(databaseUrl);
-  } catch {
-    throw new Error("the database URL is not a valid Postgres URL");
-  }
-  if (!["postgres:", "postgresql:"].includes(url.protocol))
-    throw new Error("the database URL must use postgres:// or postgresql://");
-  const env = { ...process.env };
-  delete env.PGSERVICE;
-  if (url.password) env.PGPASSWORD = decodeURIComponent(url.password);
-  url.password = "";
-  return { dbname: url.toString(), env };
-}
-
 function query(databaseUrl, sql, psqlBin) {
-  const { dbname, env } = psqlConnection(databaseUrl);
-  const result = spawnSync(
-    psqlBin,
-    ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1", "-d", dbname, "-c", sql],
-    { encoding: "utf8", env, shell: false },
-  );
-  if (result.error)
-    throw new Error(`could not run psql: ${result.error.message}`);
-  if (result.status !== 0)
+  try {
+    return runPsqlQuery({ databaseUrl, sql, psqlBin }).trim();
+  } catch (error) {
     throw new Error(
-      `could not read the environment marker: ${(result.stderr || "").trim() || `psql exited ${result.status}`}`,
+      `could not read the environment marker: ${error instanceof Error ? error.message : error}`,
     );
-  return result.stdout.trim();
+  }
 }
 
 /** The marker of the target database, or null when it has none. */
@@ -95,20 +69,20 @@ export function readEnvironmentMarker({
 }
 
 /**
- * Throws unless the target database is marked `disposable`. A database that
- * cannot be read is refused too. `action` names what the caller was about to
- * do, for the message.
+ * Throws unless `readKind()` returns `disposable`. A target whose marker
+ * cannot be read is refused too. `where` names the target and `action` what
+ * the caller was about to do, for the message; `hint` is appended when the
+ * target has no marker.
  */
-export function requireDisposableDatabase({
-  databaseUrl,
+export function requireDisposableTarget({
+  where,
   action = "reset or reseed",
-  psqlBin,
+  readKind,
+  hint = "",
 }) {
-  if (!databaseUrl) throw new Error(`refusing to ${action}: no database URL`);
-  const where = describeDatabase(databaseUrl);
   let kind;
   try {
-    kind = readEnvironmentMarker({ databaseUrl, psqlBin });
+    kind = readKind();
   } catch (error) {
     throw new Error(
       `refusing to ${action} ${where}: ${error instanceof Error ? error.message : error}`,
@@ -117,21 +91,31 @@ export function requireDisposableDatabase({
   const verdict = assessEnvironmentMarker(kind);
   if (!verdict.ok)
     throw new Error(
-      `refusing to ${action} ${where}: it ${verdict.reason}${
-        verdict.kind === null && isLoopback(databaseUrl) ? LOCAL_HINT : ""
-      }`,
+      `refusing to ${action} ${where}: it ${verdict.reason}${verdict.kind === null ? hint : ""}`,
     );
   return verdict;
 }
 
-const LOOPBACK = new Set(["127.0.0.1", "localhost", "[::1]", "::1"]);
-const LOCAL_HINT =
-  ". A local stack that predates the marker, or that already held data when the marker migration ran, is rebuilt from source and marked disposable by running `bun run supabase -- db reset --local` yourself";
-
-function isLoopback(databaseUrl) {
-  try {
-    return LOOPBACK.has(new URL(databaseUrl).hostname);
-  } catch {
-    return false;
-  }
+/**
+ * Throws unless the database at `databaseUrl` is marked `disposable`. A
+ * database that cannot be read is refused too. `action` names what the caller
+ * was about to do, for the message.
+ */
+export function requireDisposableDatabase({
+  databaseUrl,
+  action = "reset or reseed",
+  psqlBin,
+}) {
+  if (!databaseUrl) throw new Error(`refusing to ${action}: no database URL`);
+  return requireDisposableTarget({
+    where: describeDatabase(databaseUrl),
+    action,
+    readKind: () => readEnvironmentMarker({ databaseUrl, psqlBin }),
+    hint: isLoopbackDatabaseUrl(databaseUrl) ? LOCAL_HINT : "",
+  });
 }
+
+// A reset would mark such a stack, but resets are refused without a marker,
+// so the one-time recovery recreates the stack's volumes instead.
+const LOCAL_HINT =
+  ". A local stack that predates the marker, or that already held data when the marker migration ran, is recovered once by recreating it from source: `bun run supabase -- stop --no-backup` (this deletes the local stack's data), then `bun run supabase -- start`";

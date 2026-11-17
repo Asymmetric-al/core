@@ -2,6 +2,7 @@
 
 **Status:** Accepted on 2026-11-17 by the owner's instruction to implement the
 CRM, CMS and database plan ([AL-2688](https://github.com/Asymmetric-al/core/issues/2688)).
+Decision 5 amended on 2026-11-17 for AL-2674 (see Amendments).
 
 This records target intent. It does not say that anything is built; see the
 [implementation record](../audits/core-crm-cms-database-implementation-record.md).
@@ -37,11 +38,16 @@ plan's decision 6 (section 11.2) is to take a census, then rebuild from source.
    are one job in a repository-wide concurrency group with no cancellation. It
    never touches development.
 5. **A one-row environment marker** records whether a database is `disposable`,
-   `shared` or `production`. The migration creates it as `disposable`. It changes
-   only through a manually dispatched step of the release job, on the owner's
-   approval, and only forward. A database with no marker counts as not
-   disposable. Seed and reset scripts read the marker and refuse anything but
-   `disposable`.
+   `shared` or `production`. The migration creates it as `disposable` only on a
+   database whose profiles, donors and donations are empty, that is, one being
+   built from source; applied forward to a database that holds people or gifts,
+   it writes no marker, and nothing can later mark that database `disposable`.
+   _Amended 2026-11-17 (see Amendments): a forward migration must never mark a
+   database that holds people or gifts as resettable._ The marker changes only
+   through a manually dispatched step of the release job, on the owner's
+   approval, and only forward, to `shared` or `production`. A database with no
+   marker counts as not disposable. Seed and reset scripts read the marker and
+   refuse anything but `disposable`.
 6. **Reset only where the marker says `disposable`; elsewhere, repair.** Repair
    means forward migrations through the release job with both ledgers matching
    source. Before any approved reset, each item the owner marked as kept has an
@@ -66,6 +72,30 @@ plan's decision 6 (section 11.2) is to take a census, then rebuild from source.
   scheduled work, and gives the job no step that registers job functions once
   Git deployment is off (council record C.8, reservation 7). Each is for the
   package that meets it to settle.
+
+## Amendments
+
+### 2026-11-17: the marker is written only on a database built from source (AL-2674)
+
+- **Changed clause.** Decision 5. As accepted it read: "The migration creates it
+  as `disposable`." (plan section 7.5, as ratified on 2026-11-16).
+- **Why.** Both hosted projects hold profiles and donations today. Had the marker
+  migration reached either one as a forward migration, an unconditional
+  `disposable` would have made a database that holds people or gifts resettable
+  by every seed and reset script. A forward migration must never do that. So the
+  migration writes `disposable` only when `public.profiles`, `public.donors` and
+  `public.donations` are empty, which is true only of a database built from
+  source. It does not test `auth.users`: a hosted reset rebuilds `public` but
+  keeps Supabase's `auth` schema, so a login that survives a rebuild must not
+  stop the rebuilt database from being marked.
+- **Consequence.** A database migrated in place, holding people or gifts, has no
+  marker and stays not disposable: an explicit insert of `disposable` is refused,
+  and the release job's dispatched step only moves the marker forward. Only a
+  rebuild from source, the release job's one-off first rebuild of decision 7,
+  gives such a database its marker. The two marker triggers fire always, so the
+  replica role or a data-only restore cannot move a marker back. A local stack
+  that already held data is recovered once by recreating it from source. The
+  implementation record lists this as deviation D-13.
 
 ## Source
 

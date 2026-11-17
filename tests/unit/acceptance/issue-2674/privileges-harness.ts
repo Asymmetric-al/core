@@ -20,6 +20,19 @@ export const ROOT = path.resolve(__dirname, "../../../..");
 export const MIG = "supabase/migrations";
 export const BOOTSTRAP = "scripts/sql/supabase-compat-bootstrap.sql";
 export const MANIFEST = "docs/security/field-policies/manifest.json";
+
+/** The manifest's classified columns, and five field_policies rows for each. */
+export function manifestTotals() {
+  const m = JSON.parse(readFileSync(path.join(ROOT, MANIFEST), "utf8")) as {
+    surfaces: string[];
+    record_types: Record<string, object>;
+  };
+  const columns = Object.values(m.record_types).reduce(
+    (n, cols) => n + Object.keys(cols).length,
+    0,
+  );
+  return { columns, rows: columns * m.surfaces.length };
+}
 export const GATE = "scripts/verify/field-policy-census.mjs";
 export const FP = "docs/security/field-policies";
 

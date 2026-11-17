@@ -95,13 +95,38 @@ In the change that drops a column from a classified table:
 Dropping a whole classified table removes its record type. Until both steps are
 in, the gate reports `STALE` or `ROW_UNEXPECTED`.
 
+A package that adds or drops a classified column this way touches no test: the
+suites derive their totals from this manifest and pick their example columns at
+run time. These are the tests a package is expected to touch, and when:
+
+- it drops a whole classified table that the AL-491 census classified: the census
+  record-type list in `tests/unit/acceptance/issue-2674/manifest.acceptance.test.ts`
+  ("still classifies every record type the AL-491 census classified");
+- it drops or reshapes one of the columns the drift probes name (`donors.email`,
+  `donors.email_normalized`, `donors.email_verified_at`,
+  `donations.stripe_refund_ids`, `member_care_goals.title`, the two `person_id`
+  columns, or the `member_care_goals` table): that probe in the same file, and
+  the #2254 and #2256 suites that pin those columns;
+- it changes a classification: see the next section.
+
+Taking a record type out of the manifest while its table stays is not a way to
+declassify it. The gate stops reading that table, so its columns are unclassified,
+and under `openspec/contracts/identity-and-access.md` an unclassified record family
+stays hidden on every surface: the change fails closed. Its `field_policies` rows
+then fail the gate as `ROW_UNEXPECTED` until a migration deletes them, and the
+manifest suite's census record-type list stops it for the nine record types the
+census classified.
+
 ## Changing a classification
 
 A change to an existing column's category or flags is a reviewed decision. Make
 it in the manifest and in a migration that updates the column's rows, and record
 it in the fidelity expectation of
 `tests/unit/acceptance/issue-2674/manifest.acceptance.test.ts`, which proves the
-manifest kept every census classification when it was created.
+manifest kept every census classification when it was created. For a column the
+AL-491 census classified, `tests/unit/acceptance/issue-2254/census.acceptance.test.ts`
+compares the gate with the census oracle and reports the change too; record it
+there as well.
 
 ## Complete conservative taxonomy defaults
 

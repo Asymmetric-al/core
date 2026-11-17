@@ -57,14 +57,15 @@ current-behaviour documents its code changes, and states its rollback.
 
 ## 3. WP1 — Census, database roles and the release pipeline (#2674)
 
-- [ ] 3.1 WP1.1 database foundation: roles `cms_owner` and `cms_runtime`; the
+- [ ] 3.1 WP1.1 database foundation: the
       command schema (`tenant_guard`) granted use of `auth` and `authz`; the
       `platform` schema; default privileges and the 21 demo policies revoked;
       bucket limits; `backup_*` and retired `crm_*` tables dropped after the
       census, keeping `crm_command_logs`; the environment marker; the catalog
       gate with `platform` and the definer-function rules; the field-policy
       manifest replacing the dated capture; the reset scripts' marker check.
-- [ ] 3.2 WP1.2 Payload on 4.0.0-beta.9 or newer with the Node floor raised,
+- [ ] 3.2 WP1.2 Payload confinement: roles `cms_owner` and `cms_runtime`;
+      Payload on 4.0.0-beta.9 or newer with the Node floor raised,
       connecting as `cms_runtime` and migrating as `cms_owner`; the
       `SUPABASE_DB_URL` fallback deleted; `vendor/payload-upstream` removed or
       relabelled.

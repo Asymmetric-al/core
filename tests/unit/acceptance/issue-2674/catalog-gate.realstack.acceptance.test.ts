@@ -7,6 +7,14 @@
  * that same transaction, the result is judged by the gate's evaluator against
  * the repository's lists, and the transaction is rolled back.
  *
+ * Council round 1 (A1 to A5) added the rules that the guard owner owns
+ * nothing outside its schema and postgres owns every platform definer; that a
+ * function elsewhere calling into a command schema is an invoker wrapper with
+ * a fixed path, closed to PUBLIC and anon, and open to signed-in users only
+ * around their own lanes; that a fixed path is empty in the command schemas
+ * and never names "$user"; that each lane's check is a real first step; and
+ * that no table grant in public goes unadmitted. Each has a plant below.
+ *
  * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL (see ./harness.ts).
  */
 import { readFileSync } from "node:fs";
@@ -42,12 +50,15 @@ const DEF = (schema: string, name: string, extra = "set search_path = ''") =>
   `create function ${schema}.${name}() returns int language sql security definer ${extra} as 'select 1';`;
 const REVOKE = (fn: string) =>
   `revoke all on function ${fn} from public, anon, authenticated, service_role;`;
-const HUMAN = (name: string, body: string) =>
-  `create function tenant_guard.${name}(p_tenant_id uuid) returns jsonb language plpgsql security definer set search_path = '' as $$ begin ${body} return '{}'::jsonb; end $$;
+/** A tenant_guard human entry point with the given PL/pgSQL block, owned by the guard. */
+const HUMAN_BLOCK = (name: string, block: string) =>
+  `create function tenant_guard.${name}(p_tenant_id uuid) returns jsonb language plpgsql security definer set search_path = '' as $$ ${block} $$;
    ${REVOKE(`tenant_guard.${name}(uuid)`)}
    grant create on schema tenant_guard to tenant_guard;
    alter function tenant_guard.${name}(uuid) owner to tenant_guard;
    revoke create on schema tenant_guard from tenant_guard;`;
+const HUMAN = (name: string, body: string) =>
+  HUMAN_BLOCK(name, `begin ${body} return '{}'::jsonb; end`);
 const PREAMBLE = "perform tenant_guard.begin_human_command(p_tenant_id);";
 
 const CASES: [string, string, string[], unknown?][] = [
@@ -86,7 +97,99 @@ const CASES: [string, string, string[], unknown?][] = [
   [
     "a platform definer owned by a role that does not bypass RLS",
     `create role acc2674_nobypass nosuperuser nobypassrls; ${DEF("platform", "acc2674_owner")} ${REVOKE("platform.acc2674_owner()")} alter function platform.acc2674_owner() owner to acc2674_nobypass;`,
-    ["DEFINER_OWNER_NO_BYPASS platform.acc2674_owner()"],
+    [
+      "DEFINER_OWNER_NO_BYPASS platform.acc2674_owner()",
+      "PLATFORM_DEFINER_OWNER platform.acc2674_owner()",
+    ],
+  ],
+  // Council round 1, A1: the guard owner is exempt only in its own schema,
+  // and postgres owns every platform definer.
+  [
+    "the council's case: a guard-owned definer in public, granted to signed-in users, that enters any tenant",
+    `create function public.acc2674_as_guard(p_tenant_id uuid) returns void language plpgsql security definer set search_path = '' as $$ begin perform tenant_guard.enter(p_tenant_id); end $$;
+     ${REVOKE("public.acc2674_as_guard(uuid)")} grant execute on function public.acc2674_as_guard(uuid) to authenticated;
+     alter function public.acc2674_as_guard(uuid) owner to tenant_guard;`,
+    [
+      "DEFINER_OWNER_NO_BYPASS public.acc2674_as_guard(p_tenant_id uuid)",
+      "GUARD_OWNED_OUTSIDE_SCHEMA public.acc2674_as_guard(p_tenant_id uuid)",
+      "WRAPPER_DEFINER public.acc2674_as_guard(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_as_guard(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a guard-owned invoker function in private",
+    `create function private.acc2674_guard_helper() returns int language sql set search_path = '' as 'select 1';
+     ${REVOKE("private.acc2674_guard_helper()")} alter function private.acc2674_guard_helper() owner to tenant_guard;`,
+    ["GUARD_OWNED_OUTSIDE_SCHEMA private.acc2674_guard_helper()"],
+  ],
+  [
+    "a platform definer owned by a role that bypasses RLS but is not postgres",
+    `create role acc2674_bypass nosuperuser bypassrls; ${DEF("platform", "acc2674_bypass_owner")} ${REVOKE("platform.acc2674_bypass_owner()")} alter function platform.acc2674_bypass_owner() owner to acc2674_bypass;`,
+    ["PLATFORM_DEFINER_OWNER platform.acc2674_bypass_owner()"],
+  ],
+  // A2: wrappers of the command lanes.
+  [
+    "the council's case: a postgres-owned definer wrapper that hands the workflow claim to signed-in users",
+    `create function public.acc2674_claim(p_tenant_id uuid) returns jsonb language sql security definer set search_path = '' as $$ select tenant_guard.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;
+     ${REVOKE("public.acc2674_claim(uuid)")} grant execute on function public.acc2674_claim(uuid) to authenticated;`,
+    [
+      "WRAPPER_DEFINER public.acc2674_claim(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_claim(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "an invoker wrapper with no search path, left with PUBLIC EXECUTE, around the health function",
+    "create function public.acc2674_health() returns jsonb language sql as 'select platform.health()';",
+    [
+      "WRAPPER_GRANTS_WORKER public.acc2674_health()",
+      "WRAPPER_PUBLIC_EXECUTE public.acc2674_health()",
+      "WRAPPER_SEARCH_PATH public.acc2674_health()",
+    ],
+  ],
+  // A3: a fixed search path means empty in the command schemas and never "$user".
+  [
+    'a definer whose search path names "$user", and command-schema definers with a non-empty path',
+    `${DEF("public", "acc2674_user_path", `set search_path = "$user", public`)} ${REVOKE("public.acc2674_user_path()")}
+     ${DEF("platform", "acc2674_public_path", "set search_path = public")} ${REVOKE("platform.acc2674_public_path()")}`,
+    [
+      "DEFINER_SEARCH_PATH_UNSAFE platform.acc2674_public_path()",
+      "DEFINER_SEARCH_PATH_UNSAFE public.acc2674_user_path()",
+    ],
+  ],
+  // A4: the preamble must be the real first step.
+  [
+    "a human entry point whose EXCEPTION clause swallows the preamble's refusal",
+    `${HUMAN_BLOCK("acc2674_swallow", `begin ${PREAMBLE} return '{}'::jsonb; exception when others then return null; end`)} grant execute on function tenant_guard.acc2674_swallow(uuid) to authenticated;`,
+    [
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.acc2674_swallow(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a human entry point whose preamble is only a comment",
+    `${HUMAN("acc2674_comment", "-- perform tenant_guard.begin_human_command(p_tenant_id);\n")} grant execute on function tenant_guard.acc2674_comment(uuid) to authenticated;`,
+    [
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.acc2674_comment(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    "a platform command whose operator check sits in a body with an EXCEPTION clause",
+    `create function platform.acc2674_swallow(p uuid) returns jsonb language plpgsql security definer set search_path = '' as $$
+       begin perform platform.require_operator(); return '{}'::jsonb; exception when others then return null; end $$;
+     ${REVOKE("platform.acc2674_swallow(uuid)")} grant execute on function platform.acc2674_swallow(uuid) to authenticated;`,
+    ["PLATFORM_COMMAND_NO_OPERATOR_CHECK platform.acc2674_swallow(p uuid)"],
+  ],
+  // A5: table grants in public.
+  [
+    "a table in public granted to PUBLIC, granted TRUNCATE, and readable by anon with no policy",
+    `create table public.acc2674_t (id int);
+     grant select on public.acc2674_t to public;
+     grant truncate on public.acc2674_t to authenticated;
+     grant select on public.acc2674_t to anon;`,
+    [
+      "GRANT_TO_PUBLIC acc2674_t",
+      "GRANT_UNSAFE_PRIVILEGE acc2674_t",
+      "GRANT_WITHOUT_POLICY acc2674_t",
+    ],
   ],
   [
     "a human entry point the service key may also execute",
@@ -155,14 +258,17 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
     }
   }
 
-  it("the migrated database passes the gate's runner: every definer hygienic, one human entry point, no platform command", () => {
+  it("the migrated database passes the gate's runner: every definer hygienic, one human entry point, no platform command, four wrappers", () => {
     const r = runTenantRlsCatalogGate({ databaseUrl: ADMIN_URL });
     expect(r.failures).toEqual([]);
     expect(r.ok).toBe(true);
+    // The wrappers: the two workflow-claim wrappers and the health wrapper
+    // (service key), and the command-assignment wrapper (signed-in users).
     expect(r.counts).toMatchObject({
       anonAllowed: 0,
       humanEntryPoints: 1,
       platformCommands: 0,
+      wrappers: 4,
     });
   });
 

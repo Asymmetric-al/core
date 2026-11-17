@@ -18,8 +18,10 @@
 --   service_role; GRANT EXECUTE ... TO authenticated. Reached through a
 --   `public` SECURITY INVOKER wrapper with `SET search_path = ''`, owned by
 --   postgres, EXECUTE for authenticated only. The catalog gate fails a
---   `platform` function that `authenticated` can execute without calling
---   `platform.require_operator(`.
+--   `platform` function that `authenticated` can execute unless its outer
+--   DECLARE section initialises a variable from `platform.require_operator()`,
+--   and any definer here that postgres does not own. The full convention and
+--   the gate codes: docs/security/tenant-guard.md, "Command lane".
 --
 -- The operator list is WP2c's (`authz.platform_operators`). Until it exists,
 -- `platform.caller_on_operator_list()` returns false, so the shared check
@@ -31,11 +33,20 @@
 -- anything but `disposable`; a database without the row counts as not
 -- disposable. The value moves only forward, through
 -- `platform.advance_environment()`, which only the owner (the release job's
--- dispatched step) can call. This migration writes `disposable` only on a
--- database that holds no person and no gift, that is, one being built from
--- source. Applied forward to a database that already holds data (a hosted
--- project migrated in place instead of rebuilt), it writes no marker, so that
--- database stays not disposable until the release job marks it.
+-- dispatched step) can call, and which never writes `disposable`. Its two
+-- triggers fire always, so neither `session_replication_role = replica` nor a
+-- data-only restore with triggers disabled can move it back.
+--
+-- This migration writes `disposable` only on a database whose profiles,
+-- donors and donations are empty, that is, one being built from source. It
+-- tests only what a rebuild clears: a hosted reset keeps `auth.users`, so a
+-- login that survives a rebuild must not stop the rebuilt database from being
+-- marked. Applied forward to a database that holds people or gifts (a hosted
+-- project migrated in place instead of rebuilt; both hosted projects hold
+-- profiles and donations today), it writes no marker, and nothing can make
+-- that database `disposable` later: not the release job, and not an explicit
+-- insert. Only a rebuild from source (the release job's one-off first rebuild,
+-- plan 7.5) gives such a database the marker.
 --
 -- Down (run by hand): DROP FUNCTION public.platform_health(); DROP SCHEMA
 --   platform CASCADE.
@@ -66,9 +77,9 @@ COMMENT ON TABLE platform.environment IS
   'Environment marker (plan 7.5). Reset and seed scripts refuse a database '
   'whose marker is missing or is not disposable. Forward only.';
 
--- Whether the database holds a person or a gift: an auth user, a profile, a
--- donor or a donation. A database built from source holds none of them when
--- its migrations run.
+-- Whether the database holds a person or a gift: a profile, a donor or a
+-- donation. These are what a rebuild from source clears; `auth.users` is not
+-- tested, because a hosted reset keeps it (see the header).
 CREATE OR REPLACE FUNCTION platform.holds_people_or_gifts()
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -76,8 +87,7 @@ STABLE
 SECURITY INVOKER
 SET search_path = ''
 AS $$
-  SELECT EXISTS (SELECT 1 FROM auth.users)
-      OR EXISTS (SELECT 1 FROM public.profiles)
+  SELECT EXISTS (SELECT 1 FROM public.profiles)
       OR EXISTS (SELECT 1 FROM public.donors)
       OR EXISTS (SELECT 1 FROM public.donations);
 $$;
@@ -121,6 +131,11 @@ DROP TRIGGER IF EXISTS environment_marker_no_truncate ON platform.environment;
 CREATE TRIGGER environment_marker_no_truncate
   BEFORE TRUNCATE ON platform.environment
   FOR EACH STATEMENT EXECUTE FUNCTION platform.guard_environment_marker();
+
+-- Ordinary triggers do not fire under `session_replication_role = replica`,
+-- which hosted Supabase lets `postgres` set. ALWAYS triggers do.
+ALTER TABLE platform.environment ENABLE ALWAYS TRIGGER environment_marker_forward_only;
+ALTER TABLE platform.environment ENABLE ALWAYS TRIGGER environment_marker_no_truncate;
 
 -- The marker, or NULL when the database has none. Reset scripts call it as
 -- the database owner.

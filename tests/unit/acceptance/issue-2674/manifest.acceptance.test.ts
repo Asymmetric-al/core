@@ -6,9 +6,13 @@
  *
  * The fidelity check proves the conversion: every column the AL-491 census and
  * its three reviewed supplements classified keeps its category and its flags
- * on all five surfaces. A later package may add or drop columns freely; a
- * change to an existing column's classification is a reviewed decision and is
- * recorded by updating that expectation here.
+ * on all five surfaces, or is gone from the manifest, which the gate holds
+ * equal to the migrated schema (so it is gone from the schema too). A later
+ * package may add or drop columns freely and touches no test here; a change
+ * to an existing column's classification is a reviewed decision and is
+ * recorded by updating that expectation here. Council round 1 (F1) replaced
+ * the pinned totals (nine record types, 176 columns, 880 rows) with that
+ * subset check and counts derived from the manifest.
  */
 import {
   cpSync,
@@ -80,6 +84,19 @@ function catalogOf(m: Manifest): Catalog {
 }
 const codes = (problems: string[]) =>
   problems.map((p) => p.split(" ").slice(0, 2).join(" "));
+/**
+ * The donors column the drop cases remove: any classified column will do, so
+ * the last one that no other case names and that is no processor identifier.
+ * Council round 1 (F1): a package that drops a column touches no test here.
+ */
+function droppable(m: Manifest) {
+  const named = new Set(["email", "email_normalized", "email_verified_at"]);
+  const column = Object.keys(m.record_types.donors ?? {})
+    .reverse()
+    .find((n) => !named.has(n) && !m.processor_identifiers.includes(n));
+  if (!column) throw new Error("the manifest classifies no donors column");
+  return column;
+}
 
 describe("AL-2674 manifest: the committed file", () => {
   it("passes every manifest check and matches a catalog built from itself", () => {
@@ -88,9 +105,13 @@ describe("AL-2674 manifest: the committed file", () => {
     expect(gate.catalogProblems(m, catalogOf(m))).toEqual([]);
   });
 
-  it("classifies 176 columns of nine record types on the five surfaces, 880 rows", () => {
+  it("still classifies every record type the AL-491 census classified, with five rows per column", () => {
     const m = manifest();
-    expect(Object.keys(m.record_types).sort()).toEqual([
+    const census = JSON.parse(H.read(`${H.FP}/census-v1.json`));
+    const classified = census.relations
+      .filter((r: { disposition: string }) => r.disposition === "present")
+      .map((r: { record_type: string }) => r.record_type);
+    expect(classified).toEqual([
       "donations",
       "donor_pledges",
       "donors",
@@ -101,8 +122,15 @@ describe("AL-2674 manifest: the committed file", () => {
       "missionaries",
       "profiles",
     ]);
-    expect(gate.manifestColumns(m)).toHaveLength(176);
-    expect(gate.expectedFieldPolicyRows(m)).toHaveLength(880);
+    // A package that drops a whole classified table updates this list
+    // (docs/security/field-policies/README.md, "Dropping a column").
+    expect(Object.keys(m.record_types)).toEqual(
+      expect.arrayContaining(classified),
+    );
+    expect(gate.manifestColumns(m).length).toBeGreaterThan(0);
+    expect(gate.expectedFieldPolicyRows(m)).toHaveLength(
+      gate.manifestColumns(m).length * gate.SURFACES.length,
+    );
     expect(m.surfaces).toEqual(gate.SURFACES);
   });
 
@@ -140,7 +168,9 @@ describe("AL-2674 manifest: the committed file", () => {
     const mismatches: string[] = [];
     for (const c of prior) {
       const entry = now[c.recordType]?.[c.name];
-      if (!entry) continue; // dropped later, with its rows
+      // Dropped later, with its rows: the gate then holds it absent from the
+      // migrated schema too (an unclassified column fails UNCLASSIFIED).
+      if (!entry) continue;
       const flags = Object.fromEntries(
         census.surfaces.map((s: string) => {
           const p = c.policies[s]!;
@@ -192,15 +222,16 @@ describe("AL-2674 manifest: the gate fails on each kind of drift", () => {
     ],
     [
       "a manifest entry with no column",
-      (_m, c) => {
+      (m, c) => {
+        const column = droppable(m);
         c.columns = c.columns.filter(
-          (x) => !(x.record_type === "donors" && x.field_key === "website"),
+          (x) => !(x.record_type === "donors" && x.field_key === column),
         );
         c.rows = c.rows.filter(
-          (x) => !(x.record_type === "donors" && x.field_key === "website"),
+          (x) => !(x.record_type === "donors" && x.field_key === column),
         );
       },
-      "STALE donors.website:",
+      "STALE donors.",
     ],
     [
       "a changed column type",
@@ -327,18 +358,19 @@ describe("AL-2674 manifest: the gate fails on each kind of drift", () => {
   it("dropping a column passes once its entry and its rows are both removed", () => {
     const m = manifest();
     const c = catalogOf(m);
+    const column = droppable(m);
     c.columns = c.columns.filter(
-      (x) => !(x.record_type === "donors" && x.field_key === "website"),
+      (x) => !(x.record_type === "donors" && x.field_key === column),
     );
     c.rows = c.rows.filter(
-      (x) => !(x.record_type === "donors" && x.field_key === "website"),
+      (x) => !(x.record_type === "donors" && x.field_key === column),
     );
     // The entry still names the column and still expects its five rows.
     expect(codes(gate.catalogProblems(m, c))).toEqual([
-      "STALE donors.website:",
-      ...gate.SURFACES.map((s) => `ROW_MISSING donors|website|${s}|`),
+      `STALE donors.${column}:`,
+      ...gate.SURFACES.map((s) => `ROW_MISSING donors|${column}|${s}|`),
     ]);
-    delete m.record_types.donors!.website;
+    delete m.record_types.donors![column];
     expect(gate.catalogProblems(m, c)).toEqual([]);
   });
 

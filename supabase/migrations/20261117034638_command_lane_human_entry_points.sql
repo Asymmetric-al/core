@@ -12,9 +12,13 @@
 --   checks that the row is the caller's and live in that tenant, and only then
 --   enters the tenant for the transaction. EXECUTE goes to `authenticated`
 --   only, on the guard function and on its `public` SECURITY INVOKER wrapper.
--- * A worker entry point is executable by `service_role` only and derives its
---   tenant from stored rows (the existing workflow claim pair is one).
---   Signed-in and anonymous users cannot call it.
+-- * A worker entry point is executable by `service_role` only. Signed-in and
+--   anonymous users cannot call it. Under plan 5.4 a worker derives its
+--   tenant from a stored anchor: a service-key wrapper finds the tenant from
+--   the anchor it is given, and the guard function enters it and reads the
+--   anchor again under the guard's policy. The existing workflow claim pair is
+--   a worker entry point by its grants but predates that rule: it enters the
+--   `p_tenant_id` its caller passes (20261024150000_tenant_guard.sql:126).
 --
 -- Signed-in users get USAGE on `tenant_guard` so that a `public` invoker
 -- wrapper can reach the guard function, and EXECUTE on each human entry point
@@ -22,7 +26,8 @@
 -- (scripts/verify/tenant-rls-catalog.mjs) fails a `tenant_guard` function that
 -- `authenticated` can execute without the preamble, one that both
 -- `authenticated` and `service_role` can execute, and any `PUBLIC` or `anon`
--- EXECUTE there. Contract: docs/security/tenant-guard.md.
+-- EXECUTE there. The convention later packages follow, the guard's grant
+-- matrix and every gate code: docs/security/tenant-guard.md, "Command lane".
 --
 -- The guard gains what the preamble needs and nothing more (NR-13): USAGE on
 -- `auth` and EXECUTE on `auth.uid()` and `auth.jwt()`; USAGE on `authz` and
@@ -31,11 +36,15 @@
 -- `authz.is_super_admin()` is deliberately not granted: commands never take
 -- a platform-role branch (plan 5.4, "No super_admin branch").
 --
--- Hosted Supabase: `auth` belongs to `supabase_auth_admin`. If the hosted
--- project refuses the two `auth` grants below, this migration fails as a whole;
--- the fallback the plan names (15.2) is to change the body of
--- `tenant_guard.caller_id()` to read the request's claims setting and drop
--- those two grants. The WP1 hosted proof settles which applies.
+-- Hosted Supabase: `auth` belongs to `supabase_auth_admin`. A GRANT made by a
+-- role that lacks the grant option does not fail: Postgres warns that no
+-- privileges were granted and the transaction commits, and every human command
+-- would then fail at run time. The post-assert at the end of this migration
+-- therefore checks that `tenant_guard` holds each privilege below and raises
+-- otherwise, so a refused grant fails the migration as a whole. The fallback
+-- the plan names (15.2) is to change the body of `tenant_guard.caller_id()` to
+-- read the request's claims setting and drop the two `auth` grants (and their
+-- rows in the post-assert). The WP1 hosted proof settles which applies.
 --
 -- No tenant has a status column yet (WP3 adds it), and there is no SQL
 -- capability function yet (WP2a). `begin_human_command` therefore checks the
@@ -230,7 +239,10 @@ GRANT EXECUTE ON FUNCTION tenant_guard.begin_human_command(UUID) TO tenant_guard
 -- 4. The first human entry point: resolve the assignment a command would act
 -- under in a tenant. It reads nothing beyond the caller's own membership rows
 -- and writes nothing. Its echo of the guard tenant shows the call ran inside
--- the guard (contract: docs/security/tenant-guard.md).
+-- the guard (contract: docs/security/tenant-guard.md). It exists so that one
+-- human command can be proved on a signed-in token (WP1 platform proof). No
+-- application code calls it; WP2b decides whether the organization chooser
+-- uses it or a later migration drops it.
 CREATE OR REPLACE FUNCTION tenant_guard.resolve_command_assignment(p_tenant_id UUID)
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -278,6 +290,42 @@ COMMENT ON FUNCTION public.resolve_command_assignment(UUID) IS
   'Human entry point (AL-2674): the caller''s live assignment in a tenant, as a '
   'command would resolve it from the session and the x-asym-assignment header. '
   'Runs as tenant_guard; EXECUTE for authenticated only.';
+
+-- 5. Post-assert: the guard holds every privilege step 1 granted. A refused
+-- grant only warns (see the header), so this is what fails the migration.
+DO $$
+-- post-assert: tenant_guard privileges
+DECLARE
+  v_missing TEXT;
+BEGIN
+  SELECT pg_catalog.string_agg(g.item, ', ' ORDER BY g.item)
+    INTO v_missing
+    FROM (VALUES
+      ('USAGE on schema auth',
+        pg_catalog.has_schema_privilege('tenant_guard', 'auth', 'USAGE')),
+      ('USAGE on schema authz',
+        pg_catalog.has_schema_privilege('tenant_guard', 'authz', 'USAGE')),
+      ('EXECUTE on auth.uid()',
+        pg_catalog.has_function_privilege('tenant_guard', 'auth.uid()', 'EXECUTE')),
+      ('EXECUTE on auth.jwt()',
+        pg_catalog.has_function_privilege('tenant_guard', 'auth.jwt()', 'EXECUTE')),
+      ('EXECUTE on authz.has_membership(uuid, authz.membership_role[])',
+        pg_catalog.has_function_privilege('tenant_guard',
+          'authz.has_membership(uuid, authz.membership_role[])', 'EXECUTE')),
+      ('EXECUTE on authz.has_staff_membership(uuid, authz.staff_role[])',
+        pg_catalog.has_function_privilege('tenant_guard',
+          'authz.has_staff_membership(uuid, authz.staff_role[])', 'EXECUTE')),
+      ('SELECT on authz.memberships',
+        pg_catalog.has_table_privilege('tenant_guard', 'authz.memberships', 'SELECT'))
+    ) AS g(item, held)
+   WHERE NOT g.held;
+
+  IF v_missing IS NOT NULL THEN
+    RAISE EXCEPTION 'AL-2674: tenant_guard lacks %: a grant was refused (no grant option), see docs/security/tenant-guard.md', v_missing
+      USING ERRCODE = '42501';
+  END IF;
+END
+$$;
 
 COMMIT;
 

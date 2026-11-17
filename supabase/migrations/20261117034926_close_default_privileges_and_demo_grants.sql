@@ -31,7 +31,11 @@
 --      INSERT, UPDATE or DELETE only where a row-security policy admits that
 --      role for that command; a grant that no policy admits is inert under RLS
 --      and is the residue of the defaults or of the demo posture. Policies are
---      not changed; WP2 rewrites them;
+--      not changed; WP2 rewrites them. One exception to "inert": INSERT ...
+--      ON CONFLICT DO UPDATE needs the UPDATE privilege even when it only
+--      inserts, so revoking an UPDATE grant that no policy admits can refuse
+--      an upsert. No signed-in upsert on the current chain targets a table
+--      without an UPDATE policy; WP2's policy rewrite must keep that true;
 --   5. `anon` and `authenticated` cannot execute
 --      `public.normalize_currency_code(text)`, `public.normalize_money_currency()`
 --      or `public.apply_crm_view_settings_patch(jsonb, jsonb)`. Their migrations
@@ -138,8 +142,11 @@ REVOKE ALL ON FUNCTION public.normalize_money_currency() FROM PUBLIC, anon, auth
 REVOKE ALL ON FUNCTION public.apply_crm_view_settings_patch(jsonb, jsonb)
   FROM PUBLIC, anon, authenticated;
 
--- Post-assert: the end state above holds, or the migration fails.
+-- Post-assert: the end state above holds, or the migration fails. The
+-- catalog gate (scripts/verify/tenant-rls-catalog.mjs) keeps the table-grant
+-- part of it on every later chain.
 DO $$
+-- post-assert: default privileges and table grants
 DECLARE
   problem text;
 BEGIN
@@ -160,6 +167,18 @@ BEGIN
     AND a.grantee IN ('anon'::regrole, 'authenticated'::regrole);
   IF problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2674: default privileges in public still grant: %', problem;
+  END IF;
+
+  -- A global default (no schema) applies in every schema, public included.
+  SELECT string_agg(format('%s %s', d.defaclobjtype, a.grantee::regrole), ', ')
+  INTO problem
+  FROM pg_default_acl d
+  CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+  WHERE d.defaclrole = 'postgres'::regrole
+    AND d.defaclnamespace = 0
+    AND a.grantee IN ('anon'::regrole, 'authenticated'::regrole);
+  IF problem IS NOT NULL THEN
+    RAISE EXCEPTION 'AL-2674: global default privileges of postgres still grant: %', problem;
   END IF;
 
   SELECT string_agg(format('%s %s %s', c.relname,

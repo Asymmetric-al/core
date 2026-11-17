@@ -15,6 +15,13 @@
  * migration bytes fail the manifest's pinned-source check. The gate's
  * functions are driven directly (no fake psql), on a temp copy of the files
  * it reads; the real-stack suites run the script itself.
+ *
+ * Amended by AL-2674 council round 1 (F1): a later package may add or drop a
+ * classified column by the field-policy README, so the gate is run on the
+ * columns the manifest and the oracle both still have (`align`). Today they
+ * are the same 176 columns, so nothing is dropped from either side; the
+ * oracle's own 176 columns and 880 rows stay pinned, and every mutation still
+ * fails. A change to an oracle column's classification still fails here.
  */
 import {
   appendFileSync,
@@ -137,6 +144,33 @@ function oracle(): Catalog {
 }
 
 type Mutate = (dir: string, m: Manifest, db: Catalog) => void;
+
+/** Keeps, on both sides, only the columns both the manifest and the oracle classify. */
+function align(m: Manifest, db: Catalog) {
+  const key = (t: unknown, c: unknown) => `${t}.${c}`;
+  const inOracle = new Set(
+    db.columns.map((c) => key(c.record_type, c.field_key)),
+  );
+  for (const [t, columns] of Object.entries(m.record_types)) {
+    for (const c of Object.keys(columns))
+      if (!inOracle.has(key(t, c))) delete columns[c];
+    if (!Object.keys(columns).length) delete m.record_types[t];
+  }
+  const inManifest = new Set(
+    Object.entries(m.record_types).flatMap(([t, columns]) =>
+      Object.keys(columns).map((c) => key(t, c)),
+    ),
+  );
+  db.columns = db.columns.filter((c) =>
+    inManifest.has(key(c.record_type, c.field_key)),
+  );
+  db.rows = db.rows.filter((r) =>
+    inManifest.has(key(r.record_type, r.field_key)),
+  );
+  db.relations = [
+    ...new Set(db.columns.map((c) => String(c.record_type))),
+  ].sort();
+}
 /** Runs the gate's checks on a temp copy of the files it reads. */
 function runGate(mutate: Mutate = () => {}) {
   const dir = mkdtempSync(path.join(os.tmpdir(), "acc-2254-gate-"));
@@ -145,6 +179,7 @@ function runGate(mutate: Mutate = () => {}) {
     cpSync(path.join(ROOT, rel), path.join(dir, rel), { recursive: true });
   const manifest = structuredClone(gate.loadManifest(ROOT));
   const db = oracle();
+  align(manifest, db);
   mutate(dir, manifest, db);
   return [
     ...gate.manifestProblems(manifest, { root: dir }),

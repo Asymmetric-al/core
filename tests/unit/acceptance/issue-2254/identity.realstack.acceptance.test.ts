@@ -10,9 +10,16 @@
  *   DATABASE_URL=postgresql://postgres@127.0.0.1:5432/<migrated-db> \
  *     bun x vitest run tests/unit/acceptance/issue-2254/
  * Owned by Acceptance; implementers must not edit.
+ *
+ * Amended by AL-2674 council round 1 (F1, plan 7.1): criterion 9 pinned the
+ * totals (880 rows, 176 entries), so a later package that adds or drops a
+ * classified column by the field-policy README failed here. The totals now
+ * come from the manifest, which the gate holds equal to the migrated schema
+ * and to every field_policies row; the ten In 4 rows stay pinned exactly.
  */
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import pg from "pg";
@@ -31,6 +38,18 @@ import {
 import { beginGiftIntake } from "../../../../packages/api/src/donate/begin-gift-intake";
 
 const URL_ = process.env.DATABASE_URL ?? "";
+/** Classified columns, and five field_policies rows for each, from the manifest. */
+const MANIFEST = JSON.parse(
+  readFileSync(
+    path.join(ROOT, "docs/security/field-policies/manifest.json"),
+    "utf8",
+  ),
+) as { surfaces: string[]; record_types: Record<string, object> };
+const CLASSIFIED = Object.values(MANIFEST.record_types).reduce(
+  (n, columns) => n + Object.keys(columns).length,
+  0,
+);
+const POLICY_ROWS = CLASSIFIED * MANIFEST.surfaces.length;
 const local = (() => {
   try {
     return ["localhost", "127.0.0.1", "[::1]"].includes(new URL(URL_).hostname);
@@ -202,7 +221,7 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
       UNION ALL SELECT 1 FROM public.donors WHERE profile_id IS NOT NULL GROUP BY tenant_id, profile_id HAVING count(*) > 1) d;`),
     ).toBe("0");
   });
-  it("criterion 9: the 10 new field_policies rows match In 4 exactly; 880 rows in total", () => {
+  it("criterion 9: the 10 new field_policies rows match In 4 exactly; five rows per classified column in total", () => {
     const rows = JSON.parse(
       q(`SELECT coalesce(json_agg(to_jsonb(p)), '[]') FROM public.field_policies p
       WHERE p.record_type = 'donors' AND p.field_key IN ('email_normalized','email_verified_at');`),
@@ -212,7 +231,10 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
     const sort = <T extends { field_key: string; surface: string }>(rs: T[]) =>
       [...rs].sort((a, b) => (key(a) < key(b) ? -1 : 1));
     expect(sort(rows)).toEqual(sort(NEW_ROWS));
-    expect(q("SELECT count(*) FROM public.field_policies;")).toBe("880");
+    expect(MANIFEST.surfaces).toHaveLength(5);
+    expect(q("SELECT count(*) FROM public.field_policies;")).toBe(
+      String(POLICY_ROWS),
+    );
   });
   it("criterion 9: the census and supabase/tests/field_policies*.sql pass on this database", () => {
     const census = spawnSync(
@@ -222,7 +244,9 @@ describe.skipIf(!local)("#2254 real stack (DATABASE_URL)", () => {
     );
     expect(census.status, census.stderr).toBe(0);
     // AL-2674: the census is the manifest gate; its PASS line names the count.
-    expect(census.stdout).toContain("equal the manifest's 176 entries");
+    expect(census.stdout).toContain(
+      `equal the manifest's ${CLASSIFIED} entries`,
+    );
     for (const f of [
       "field_policies_foundation.sql",
       "field_policies_rls.sql",

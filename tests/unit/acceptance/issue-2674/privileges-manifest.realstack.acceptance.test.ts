@@ -29,6 +29,7 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { DEFAULTS_MIGRATION, postAssert } from "./harness";
 import * as H from "./privileges-harness";
 
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
@@ -95,6 +96,33 @@ describe.skipIf(!ADMIN_URL)(
           ).toEqual([]);
         },
       );
+
+      // Council round 1, D1: a global default (no schema) applies in public too.
+      it("the migration's post-assert refuses a global default of postgres that grants to anon or authenticated", async () => {
+        const ASSERT = postAssert(
+          DEFAULTS_MIGRATION,
+          "default privileges and table grants",
+        );
+        const db = await plain.db();
+        await db.query("begin");
+        try {
+          await db.query(ASSERT);
+          for (const role of ["anon", "authenticated"]) {
+            await db.query("savepoint s");
+            await db.query(
+              `alter default privileges for role postgres grant select on tables to ${role}`,
+            );
+            await expect(db.query(ASSERT), role).rejects.toMatchObject({
+              message: expect.stringContaining(
+                `global default privileges of postgres still grant: r ${role}`,
+              ),
+            });
+            await db.query("rollback to savepoint s");
+          }
+        } finally {
+          await db.query("rollback");
+        }
+      });
 
       it("hosted replay: a table, sequence and function created after the chain carry no anon or authenticated grant", async () => {
         const db = await hosted.db();
@@ -252,6 +280,64 @@ describe.skipIf(!ADMIN_URL)(
       );
     });
 
+    // Council round 1, F3: the #2407 suite stops at its own migration, so the
+    // owner-folder write policies of these two buckets are asserted here, at
+    // the head of the chain.
+    describe("D06: owner-folder writes on document-uploads and profiles", () => {
+      const FOLDER_IS_CALLER =
+        "((string_to_array(name, '/'::text))[3] = (( SELECT auth.uid() AS uid))::text)";
+      const PATH_SEGMENT = (bucket: string) =>
+        bucket === "profiles"
+          ? "((string_to_array(name, '/'::text))[1] = ANY (ARRAY['avatars'::text, 'covers'::text]))"
+          : "((string_to_array(name, '/'::text))[1] = 'editor'::text)";
+
+      it.each(KINDS)(
+        "%s replay: signed-in users write only their own folder and delete only their own objects",
+        async (kind) => {
+          const rows = await replays()[kind].rows(
+            `select policyname, cmd, roles::text[] as roles, coalesce(qual, '') as qual, coalesce(with_check, '') as checks
+         from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd <> 'SELECT'
+         order by policyname`,
+          );
+          expect(rows.map((p) => [p.policyname, p.cmd, p.roles])).toEqual([
+            ["Owner delete document-uploads", "DELETE", ["authenticated"]],
+            ["Owner delete profiles", "DELETE", ["authenticated"]],
+            ["editor images owner folder insert", "INSERT", ["authenticated"]],
+            ["editor images owner folder update", "UPDATE", ["authenticated"]],
+            ["profiles owner folder insert", "INSERT", ["authenticated"]],
+            ["profiles owner folder update", "UPDATE", ["authenticated"]],
+          ]);
+          const by = Object.fromEntries(rows.map((p) => [p.policyname, p]));
+          for (const [bucket, prefix] of [
+            ["document-uploads", "editor images owner folder"],
+            ["profiles", "profiles owner folder"],
+          ] as const) {
+            const bucketIs = `(bucket_id = '${bucket}'::text)`;
+            const ownerIs = "(owner = ( SELECT auth.uid() AS uid))";
+            const insert = by[`${prefix} insert`]!;
+            const update = by[`${prefix} update`]!;
+            const remove = by[`Owner delete ${bucket}`]!;
+            for (const part of [
+              bucketIs,
+              PATH_SEGMENT(bucket),
+              FOLDER_IS_CALLER,
+            ])
+              expect(insert.checks, `${bucket} insert`).toContain(part);
+            expect(insert.qual).toBe("");
+            expect(update.qual).toBe(`(${bucketIs} AND ${ownerIs})`);
+            for (const part of [
+              bucketIs,
+              ownerIs,
+              PATH_SEGMENT(bucket),
+              FOLDER_IS_CALLER,
+            ])
+              expect(update.checks, `${bucket} update`).toContain(part);
+            expect(remove.qual).toBe(`(${bucketIs} AND (auth.uid() = owner))`);
+          }
+        },
+      );
+    });
+
     describe("D09: retired tables", () => {
       it.each(KINDS)(
         "%s replay: no backup_* or retired Twenty-era crm_* table exists; the kept CRM tables do",
@@ -317,7 +403,8 @@ describe.skipIf(!ADMIN_URL)(
         if (editManifest) {
           root = mkdtempSync(path.join(os.tmpdir(), "acc-2674-gate-"));
           temps.push(root);
-          for (const rel of ["scripts/verify", H.FP, H.MIG])
+          // scripts/lib holds the psql runner the gate imports (AL-2674 E3).
+          for (const rel of ["scripts/verify", "scripts/lib", H.FP, H.MIG])
             cpSync(path.join(H.ROOT, rel), path.join(root, rel), {
               recursive: true,
             });
@@ -338,7 +425,7 @@ describe.skipIf(!ADMIN_URL)(
         const r = gate();
         expect(r.status, r.stderr).toBe(0);
         expect(r.stdout).toContain(
-          "PASS: all 880 public.field_policies rows equal the manifest",
+          `PASS: all ${H.manifestTotals().rows} public.field_policies rows equal the manifest`,
         );
       });
 
@@ -381,17 +468,41 @@ describe.skipIf(!ADMIN_URL)(
       });
 
       it("a classified column can be dropped by removing its manifest row and its rows", async () => {
-        await sql(`alter table public.donors drop column website;
-        delete from public.field_policies where record_type = 'donors' and field_key = 'website'`);
+        // Any classified column will do. Council round 1 (F1): the case picks
+        // a donors column nothing depends on, so a package that drops the one
+        // it used to name (website) touches no test.
+        const manifest = JSON.parse(
+          readFileSync(path.join(H.ROOT, H.MANIFEST), "utf8"),
+        ) as {
+          processor_identifiers: string[];
+          record_types: Record<string, Record<string, unknown>>;
+        };
+        const [{ name: column }] = (await copy.rows(
+          `select a.attname as name from pg_attribute a
+            where a.attrelid = 'public.donors'::regclass and a.attnum > 0 and not a.attisdropped
+              and a.attname = any($1)
+              and not exists (select 1 from pg_depend d where d.refobjid = a.attrelid and d.refobjsubid = a.attnum)
+            order by a.attnum desc limit 1`,
+          [
+            Object.keys(manifest.record_types.donors!).filter(
+              (n) => !manifest.processor_identifiers.includes(n),
+            ),
+          ],
+        )) as { name: string }[];
+        expect(column).toBeTruthy();
+        await sql(`alter table public.donors drop column ${column};
+        delete from public.field_policies where record_type = 'donors' and field_key = '${column}'`);
         const stale = gate();
         expect(stale.status).not.toBe(0);
-        expect(stale.stderr).toContain("STALE donors.website");
+        expect(stale.stderr).toContain(`STALE donors.${column}`);
 
         const dropped = gate((m) => {
-          delete m.record_types.donors!.website;
+          delete m.record_types.donors![column!];
         });
         expect(dropped.status, dropped.stderr).toBe(0);
-        expect(dropped.stdout).toContain("equal the manifest's 175 entries");
+        expect(dropped.stdout).toContain(
+          `equal the manifest's ${H.manifestTotals().columns - 1} entries`,
+        );
 
         // The field-policy database tests CI runs accept the drop as well.
         for (const file of [

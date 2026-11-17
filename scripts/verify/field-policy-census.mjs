@@ -17,8 +17,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+
+import { isLoopbackDatabaseUrl, runPsqlQuery } from "../lib/psql.mjs";
 
 export const MANIFEST_PATH = "docs/security/field-policies/manifest.json";
 export const SURFACES = [
@@ -48,7 +49,6 @@ const COLUMN_KEYS = new Set([
   "processor_identifier",
   ...SURFACES,
 ]);
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -343,32 +343,13 @@ export function catalogProblems(manifest, catalog) {
 }
 
 function readCatalog(manifest, { databaseUrl, psqlBin }) {
-  const result = spawnSync(
-    psqlBin,
-    [
-      databaseUrl,
-      "-X",
-      "-v",
-      "ON_ERROR_STOP=1",
-      "-At",
-      "-c",
-      catalogSql(manifest),
-    ],
-    { encoding: "utf8", shell: false },
+  return JSON.parse(
+    runPsqlQuery({ databaseUrl, sql: catalogSql(manifest), psqlBin }).trim(),
   );
-  if (result.error) throw result.error;
-  if (result.status !== 0)
-    throw new Error(result.stderr || "field-policy catalog query failed");
-  return JSON.parse(result.stdout.trim());
 }
 
-export function isLocalDatabaseUrl(databaseUrl) {
-  try {
-    return LOCAL_HOSTS.has(new URL(databaseUrl).hostname);
-  } catch {
-    return false;
-  }
-}
+/** Whether a URL names a database on this machine (the one loopback list). */
+export const isLocalDatabaseUrl = isLoopbackDatabaseUrl;
 
 /** Runs all three checks; returns { ok, problems, lines }. */
 export function runFieldPolicyGate({
