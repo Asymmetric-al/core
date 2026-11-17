@@ -9,6 +9,12 @@ import {
 import { BUILD_MIGRATION_HEADS_ENV } from "../../../../../packages/api/src/health/release-contract.mjs";
 
 const build = { supabase: "20261111164500", payload: "20261022_002412_x" };
+const BYPASS = "bypass-secret-fixture";
+/** A request as the release job sends it, with the deployment-protection bypass header. */
+const fromReleaseJob = () =>
+  new Request("https://admin-1.vercel.app/api/health/migrations", {
+    headers: { "x-vercel-protection-bypass": BYPASS },
+  });
 
 function deps(
   result: { data?: unknown; error?: { code?: string; message: string } | null },
@@ -29,13 +35,17 @@ function deps(
         commit: "a".repeat(40),
         environment: "production",
       }),
+      readBypassSecret: () => BYPASS,
       ...over,
     },
   };
 }
 
-async function call(handler: () => Promise<Response>) {
-  const response = await handler();
+async function call(
+  handler: (request?: Request) => Promise<Response>,
+  request: Request | "none" = fromReleaseJob(),
+) {
+  const response = await handler(request === "none" ? undefined : request);
   return {
     status: response.status,
     body: await response.json(),
@@ -156,6 +166,67 @@ describe("migration health route", () => {
       code: "malformed_release_health",
     });
   });
+
+  // Council round 2, A6f: the route is public and uncached. A caller without
+  // the release job's bypass header learns the status alone.
+  it.each<[string, Request | "none", string | undefined]>([
+    ["no request", "none", BYPASS],
+    ["no bypass header", new Request("https://admin.asymmetric.al/x"), BYPASS],
+    [
+      "a wrong bypass header",
+      new Request("https://admin.asymmetric.al/x", {
+        headers: { "x-vercel-protection-bypass": `${BYPASS}x` },
+      }),
+      BYPASS,
+    ],
+    [
+      "the header, on a deployment with no bypass secret",
+      fromReleaseJob(),
+      undefined,
+    ],
+  ])(
+    "answers %s with the status alone, keeping 200 and 503",
+    async (_name, request, secret) => {
+      const equal = deps(
+        { data: { environment: "shared", expected_heads: build } },
+        { readBypassSecret: () => secret },
+      ).deps;
+      const ok = await call(
+        createMigrationHealthHandler("admin", equal),
+        request,
+      );
+      expect([ok.status, ok.body]).toEqual([200, { status: "ok" }]);
+      expect(ok.headers.get("cache-control")).toBe("no-store");
+
+      const behind = deps(
+        {
+          data: {
+            environment: "shared",
+            expected_heads: {
+              supabase: "20261110120000",
+              payload: build.payload,
+            },
+          },
+        },
+        { readBypassSecret: () => secret },
+      ).deps;
+      const late = await call(
+        createMigrationHealthHandler("admin", behind),
+        request,
+      );
+      expect([late.status, late.body]).toEqual([503, { status: "behind" }]);
+
+      const broken = deps(
+        { error: { code: "PGRST202", message: "missing" } },
+        { readBypassSecret: () => secret },
+      ).deps;
+      const failed = await call(
+        createMigrationHealthHandler("admin", broken),
+        request,
+      );
+      expect([failed.status, failed.body]).toEqual([503, { status: "error" }]);
+    },
+  );
 
   it("reads the build heads through the literal variable Next.js inlines", () => {
     const source = readFileSync(

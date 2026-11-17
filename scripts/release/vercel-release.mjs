@@ -273,6 +273,12 @@ export async function checkDeploymentHealth({
       );
     }
     if (response.status === 200 && status === "ok") {
+      // The route gives its detail only to the bypass header (A6f).
+      if (!body?.release) {
+        stop(
+          "The migration health route answered without its detail: it did not accept the deployment-protection bypass header; not promoted.",
+        );
+      }
       if (sha && body?.release?.commit !== sha) {
         stop("The deployment reports a different commit; not promoted.");
       }
@@ -322,12 +328,14 @@ export async function readLiveCommit({ app, request = fetch }) {
 
 /**
  * After promotion: each promoted app's production domain serves this commit
- * and passes its migration health check.
+ * and passes its migration health check. The route gives the commit and the
+ * project only to the bypass header, so it is sent here too.
  */
 export async function verifyLive({
   app,
   sha,
   projectRef,
+  bypassSecret,
   request = fetch,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   attempts = 18,
@@ -336,6 +344,7 @@ export async function verifyLive({
     try {
       return await checkDeploymentHealth({
         url: `https://${PRODUCTION_HOSTS[app]}`,
+        bypassSecret,
         sha,
         projectRef,
         request,
@@ -344,7 +353,11 @@ export async function verifyLive({
       });
     } catch (error) {
       if (attempt === attempts) throw error;
-      if (/behind|different Supabase|reads Supabase/.test(error.message)) {
+      if (
+        /behind|different Supabase|reads Supabase|without its detail/.test(
+          error.message,
+        )
+      ) {
         throw error;
       }
       await sleep(10_000);
@@ -394,7 +407,14 @@ export async function deployRelease({
     log(`${deployment.app}: promoted ${deployment.id} without a rebuild.`);
   }
   for (const deployment of staged) {
-    await verifyLive({ app: deployment.app, sha, projectRef, request, sleep });
+    await verifyLive({
+      app: deployment.app,
+      sha,
+      projectRef,
+      bypassSecret: env[BYPASS_SECRETS[deployment.app]],
+      request,
+      sleep,
+    });
     log(`${deployment.app}: the production domain serves this release.`);
   }
   return staged;

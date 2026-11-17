@@ -1,3 +1,5 @@
+import { createHash, timingSafeEqual } from "node:crypto";
+
 import { resolveDeploymentEnvironment } from "@asym/env/target-env";
 import { connection } from "next/server";
 
@@ -18,6 +20,11 @@ import {
  * this module holds none.
  * The release job promotes a staged deployment only when this answers 200.
  * A database that is ahead passes, so a rolled-back application stays healthy.
+ *
+ * The route is public. Any caller gets the status and its 200 or 503; the
+ * commit, the Supabase project, the environment marker and the heads go only
+ * to a caller that sends the deployment-protection bypass header the release
+ * job sends, matching the deployment's VERCEL_AUTOMATION_BYPASS_SECRET.
  */
 
 type Surface = "admin" | "donor" | "missionary";
@@ -40,10 +47,26 @@ export interface MigrationHealthDeps {
   readBuildHeads: () => string | undefined;
   readSupabaseUrl: () => string | undefined;
   readRelease: () => { commit: string; environment: string };
+  /** The deployment's Protection Bypass for Automation secret, if any. */
+  readBypassSecret: () => string | undefined;
 }
 
 const NO_STORE = { "Cache-Control": "no-store" } as const;
 const ERROR_CODE = /^[A-Za-z0-9_]{1,40}$/;
+/** The header the release job sends to reach a protected deployment. */
+export const BYPASS_HEADER = "x-vercel-protection-bypass";
+
+const digest = (value: string) => createHash("sha256").update(value).digest();
+
+/** Whether the request carries the deployment's bypass secret; never without one configured. */
+function mayReadDetail(
+  request: Request | undefined,
+  secret: string | undefined,
+) {
+  const offered = request?.headers.get(BYPASS_HEADER);
+  if (!secret || !offered) return false;
+  return timingSafeEqual(digest(offered), digest(secret));
+}
 
 export function supabaseProjectRefOf(value: string | undefined) {
   if (!value) return null;
@@ -70,6 +93,9 @@ const defaultDeps: Omit<MigrationHealthDeps, "getClient"> = {
       VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
     }),
   }),
+  // A Vercel system variable, at build and at run time, once the project has
+  // a Protection Bypass for Automation secret.
+  readBypassSecret: () => process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
 };
 
 export function createMigrationHealthHandler(
@@ -78,20 +104,24 @@ export function createMigrationHealthHandler(
     Partial<MigrationHealthDeps>,
 ) {
   const deps: MigrationHealthDeps = { ...defaultDeps, ...overrides };
-  return async function GET() {
+  return async function GET(request?: Request) {
     // Request time always: a response baked in at build would hide the database.
     await deps.connection();
-    const base = {
-      surface,
-      checkedAt: new Date().toISOString(),
-      release: deps.readRelease(),
-    };
+    const detail = mayReadDetail(request, deps.readBypassSecret());
     const respond = (
       status: "ok" | "behind" | "unknown" | "error",
       extra: Record<string, unknown>,
     ) =>
       Response.json(
-        { status, ...base, ...extra },
+        detail
+          ? {
+              status,
+              surface,
+              checkedAt: new Date().toISOString(),
+              release: deps.readRelease(),
+              ...extra,
+            }
+          : { status },
         { status: status === "ok" ? 200 : 503, headers: NO_STORE },
       );
 
