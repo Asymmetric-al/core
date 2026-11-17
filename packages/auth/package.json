@@ -18,6 +18,7 @@
     "./roles": "./roles.ts",
     "./demo-login": "./demo-login.ts",
     "./auth-screen": "./auth-screen.ts",
+    "./auth-email-request": "./auth-email-request.ts",
     "./password-recovery": "./password-recovery.ts",
     "./sign-up-confirmation": "./sign-up-confirmation.ts"
   },

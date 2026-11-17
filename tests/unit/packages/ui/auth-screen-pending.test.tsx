@@ -6,6 +6,7 @@ import {
   render,
   screen,
 } from "@testing-library/react";
+import { AuthApiError } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LoginScreen } from "../../../../packages/ui/components/auth/LoginScreen";
@@ -190,7 +191,9 @@ describe("auth form pending submissions", () => {
         error: { message: "Signup failed" },
       });
     });
-    expect(screen.getByText("Signup failed")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toBe(
+      "Your account couldn’t be created. Try again in a moment.",
+    );
     await act(async () => {
       form.requestSubmit();
     });
@@ -198,5 +201,80 @@ describe("auth form pending submissions", () => {
     expect(
       screen.getByText(/check your email: we’ve sent a link/i),
     ).toBeTruthy();
+  });
+
+  // Council round 2, B1 (plan 5.4): registration answers the same whether or
+  // not the address already has an account. Auth sends an unconfirmed account
+  // its link again, so a second request within the email frequency gets a
+  // rate limit that a new address never gets.
+  it.each([
+    [
+      "a rate limit",
+      new AuthApiError(
+        "For security purposes, you can only request this after 52 seconds.",
+        429,
+        "over_email_send_rate_limit",
+      ),
+    ],
+    [
+      "an address that already has an account",
+      new AuthApiError("User already registered", 422, "user_already_exists"),
+    ],
+  ])("answers %s exactly as it answers a sent link", async (_label, error) => {
+    auth.signUp.mockResolvedValueOnce({ data: { session: null }, error: null });
+    let view = renderRegistration();
+    await act(async () => {
+      view.container.querySelector("form")!.requestSubmit();
+    });
+    const sent = screen.getByRole("status").textContent;
+    expect(sent).toContain("in a few minutes");
+    cleanup();
+
+    auth.signUp.mockResolvedValueOnce({
+      data: { user: null, session: null },
+      error,
+    });
+    view = renderRegistration();
+    await act(async () => {
+      view.container.querySelector("form")!.requestSubmit();
+    });
+    expect(screen.getByRole("status").textContent).toBe(sent);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("says what is wrong with the password, which is the same for every address", async () => {
+    auth.signUp.mockResolvedValueOnce({
+      data: { user: null, session: null },
+      error: new AuthApiError(
+        "Password is known to be weak and easy to guess, please choose a different one.",
+        422,
+        "weak_password",
+      ),
+    });
+    const view = renderRegistration();
+    await act(async () => {
+      view.container.querySelector("form")!.requestSubmit();
+    });
+    expect(screen.getByRole("alert").textContent).toContain("known to be weak");
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("gives a general message for any other refusal, without Auth's wording", async () => {
+    auth.signUp.mockResolvedValueOnce({
+      data: { user: null, session: null },
+      error: new AuthApiError(
+        "Database error saving new user",
+        500,
+        "unexpected_failure",
+      ),
+    });
+    const view = renderRegistration();
+    await act(async () => {
+      view.container.querySelector("form")!.requestSubmit();
+    });
+    expect(screen.getByRole("alert").textContent).toBe(
+      "Your account couldn’t be created. Try again in a moment.",
+    );
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });

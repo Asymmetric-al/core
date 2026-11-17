@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
 import { getDefaultPostLoginPathForApp, safeNextParam } from "./demo-login";
-import { isRecentPasswordRecovery } from "./password-recovery";
+import { passwordRecoverySecondsLeft } from "./password-recovery";
 
 import type { AppId } from "./demo-login";
 
@@ -42,14 +42,22 @@ export async function requireAnonymousVisitor(params: {
 export interface PasswordRecovery {
   /** The address the recovery email went to, for the screen to show. */
   email: string | null;
+  /**
+   * Seconds left in the recovery window when the page was read. The screen
+   * refuses to save after them, so a form left open past the window does not
+   * save. A duration, not a time, so the browser's clock does not matter.
+   */
+  secondsLeft: number;
 }
 
 /**
  * Server-side read for the reset screen: returns the recovery when the
  * current session was created by a recovery link within the window, and null
- * for no session, an unverifiable token or an ordinary sign-in. An ordinary
- * session must change its password with the current one, so it is refused
- * here rather than given a way around that check.
+ * for no session, an unverifiable token or an ordinary sign-in. The screen
+ * offers the form to a recovery session only; an ordinary session changes its
+ * password through the change-password form, which asks for the current one.
+ * Both are rules of the screens: `secure_password_change` is off, so Supabase
+ * Auth itself accepts a new password from any signed-in session.
  *
  * Verifies the session token through `auth.getClaims()`, never by decoding
  * the cookie. Server-only, like `requireAnonymousVisitor`.
@@ -65,10 +73,14 @@ export async function readPasswordRecovery(): Promise<PasswordRecovery | null> {
   }
 
   const nowSeconds = Math.floor(Date.now() / 1000);
-  if (!isRecentPasswordRecovery(data.claims.amr, nowSeconds)) {
+  const secondsLeft = passwordRecoverySecondsLeft(data.claims.amr, nowSeconds);
+  if (secondsLeft === null) {
     return null;
   }
 
   const { email } = data.claims;
-  return { email: typeof email === "string" && email ? email : null };
+  return {
+    email: typeof email === "string" && email ? email : null,
+    secondsLeft,
+  };
 }
