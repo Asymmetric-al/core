@@ -6,14 +6,16 @@ import { unstable_rethrow } from "next/navigation";
 
 import { resolveAssignmentCapabilities } from "./capabilities/effective-capabilities";
 import { CapabilityResolutionError } from "./capabilities/errors";
-import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
+import { DEMO_PROFILE_ID } from "./constants";
 import {
   assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
+  listE2EAuthAssignments,
   parseE2EAuthCookieValue,
+  type E2EAuthSession,
 } from "./e2e-auth";
 import {
   derivePrimaryRole,
@@ -21,12 +23,17 @@ import {
   hasRole,
   type AuthMembership,
 } from "./permissions";
-import { resolveActiveAssignment } from "./principal/assignment";
+import {
+  readActiveAssignments,
+  resolveActiveAssignment,
+  selectAssignment,
+} from "./principal/assignment";
 import { createRpcAssignmentReader } from "./principal/reader";
 import {
   ASSIGNMENT_HEADER,
   parseRoleClass,
   ROLE_CLASS_HEADER,
+  TENANT_HEADER,
 } from "./request-headers";
 
 import type { Capability } from "./capabilities/registry";
@@ -75,8 +82,11 @@ export interface AuthenticatedContext extends AuthContext {
 /**
  * How a caller narrows the resolution. Each value falls back to the request:
  * the role class to the `x-asym-role-class` header the app's proxy sets, the
- * proposed assignment to the `x-asym-assignment` header. The expected tenant
- * has no header yet: WP2b passes the tenant from the page address.
+ * proposed assignment to the `x-asym-assignment` header and the expected
+ * tenant to the `x-asym-tenant` header. On a page request the proxy sets the
+ * last two from the page address after its membership decision; on an API
+ * request the own-API fetch wrapper sends the page's (plan 5.2). Each only
+ * narrows: the resolver checks them against the caller's live rows.
  */
 export interface AuthContextOptions {
   roleClass?: RoleClass;
@@ -209,44 +219,12 @@ function createUnauthenticatedContext(): AuthContext {
 }
 
 /**
- * The membership an E2E bypass session acts under, built from the role its
- * signed cookie names: there is no membership row behind a bypass identity.
- * An admin (or a legacy super_admin cookie) is a flagged staff member.
+ * The signed E2E bypass session on this request, when the bypass is enabled
+ * against an allowlisted datasource; `null` otherwise.
  */
-function bypassMembership(
-  role: UserRole,
-  tenantId: string,
-): AuthMembership | null {
-  if (role === "donor" || role === "missionary") {
-    return {
-      tenantId,
-      role,
-      staffRole: null,
-      isActive: true,
-      isTenantAdmin: false,
-    };
-  }
-  if (role === "staff" || role === "admin" || role === "super_admin") {
-    return {
-      tenantId,
-      role: "staff",
-      staffRole: "development",
-      isActive: true,
-      isTenantAdmin: role !== "staff",
-    };
-  }
-  return null;
-}
-
-/**
- * E2E bypass identity is only used when there is no valid Supabase session.
- * Otherwise a stale asym_e2e_auth cookie could override the real user in dev
- * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
- */
-async function getE2EAuthBypassContext(
+async function readE2EBypassSession(
   request: Request | undefined,
-  roleClass: RoleClass | null,
-): Promise<AuthContext | null> {
+): Promise<E2EAuthSession | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
@@ -275,23 +253,49 @@ async function getE2EAuthBypassContext(
       getCookieValue(E2E_AUTH_COOKIE_NAME),
     );
   }
+  return e2eSession;
+}
+
+/**
+ * E2E bypass identity is only used when there is no valid Supabase session.
+ * Otherwise a stale asym_e2e_auth cookie could override the real user in dev
+ * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
+ */
+async function getE2EAuthBypassContext(
+  request: Request | undefined,
+  narrowing: AssignmentNarrowing,
+): Promise<AuthContext | null> {
+  const e2eSession = await readE2EBypassSession(request);
   if (!e2eSession) {
     return null;
   }
-  const tenantIdForBypass = e2eSession.tenantId ?? DEMO_TENANT_ID;
-  const membership = bypassMembership(e2eSession.role, tenantIdForBypass);
-  if (!membership || (roleClass !== null && membership.role !== roleClass)) {
+  // The bypass identity holds the memberships its signed cookie names (or the
+  // one its role implies) and is judged by the resolver's own rule, so the
+  // tenant and assignment the request names select among them exactly as
+  // they would among live rows.
+  const assignments = listE2EAuthAssignments(e2eSession);
+  const { roleClass } = narrowing;
+  let selected: ActiveAssignment | null;
+  if (roleClass) {
+    const result = selectAssignment(assignments, { ...narrowing, roleClass });
+    selected = result.ok ? result.assignment : null;
+  } else {
+    // No surface class (a context built outside a proxied request): only an
+    // identity with exactly one membership resolves.
+    selected = assignments.length === 1 ? assignments[0]! : null;
+  }
+  if (!selected) {
     return null;
   }
-  const memberships = [membership];
+  const memberships = [toAuthMembership(selected)];
   return {
     userId: e2eSession.userId,
     email: null,
-    tenantId: tenantIdForBypass,
+    tenantId: selected.tenantId,
     role: derivePrimaryRole({ memberships }),
     profileRole: null,
     memberships,
-    assignment: null,
+    assignment: selected,
     assignmentDenial: null,
     profileId: e2eSession.profileId ?? DEMO_PROFILE_ID,
     isAuthenticated: true,
@@ -301,10 +305,10 @@ async function getE2EAuthBypassContext(
 async function resolveUnauthenticatedOrE2EContext(
   bearerToken: string | null,
   request: Request | undefined,
-  roleClass: RoleClass | null,
+  narrowing: AssignmentNarrowing,
 ): Promise<AuthContext> {
   if (!bearerToken) {
-    const e2e = await getE2EAuthBypassContext(request, roleClass);
+    const e2e = await getE2EAuthBypassContext(request, narrowing);
     if (e2e) {
       return e2e;
     }
@@ -329,6 +333,33 @@ async function readRequestHeader(
     unstable_rethrow(error);
     return null;
   }
+}
+
+interface AssignmentNarrowing {
+  roleClass: RoleClass | null;
+  proposedAssignmentId?: string;
+  expectedTenantId?: string;
+}
+
+/** The options, each falling back to its request header; blank values are absent. */
+async function readAssignmentNarrowing(
+  request: Request | undefined,
+  options: AuthContextOptions,
+): Promise<AssignmentNarrowing> {
+  const roleClass =
+    options.roleClass ??
+    parseRoleClass(await readRequestHeader(request, ROLE_CLASS_HEADER));
+  const proposedAssignmentId =
+    options.proposedAssignmentId ??
+    (await readRequestHeader(request, ASSIGNMENT_HEADER))?.trim();
+  const expectedTenantId =
+    options.expectedTenantId ??
+    (await readRequestHeader(request, TENANT_HEADER))?.trim();
+  return {
+    roleClass,
+    ...(proposedAssignmentId ? { proposedAssignmentId } : {}),
+    ...(expectedTenantId ? { expectedTenantId } : {}),
+  };
 }
 
 function toAuthMembership(assignment: ActiveAssignment): AuthMembership {
@@ -358,14 +389,13 @@ export async function getAuthContext(
   options: AuthContextOptions = {},
 ): Promise<AuthContext> {
   const bearerToken = getBearerToken(request);
-  const roleClass =
-    options.roleClass ??
-    parseRoleClass(await readRequestHeader(request, ROLE_CLASS_HEADER));
+  const narrowing = await readAssignmentNarrowing(request, options);
+  const { roleClass } = narrowing;
 
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken, request, roleClass);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request, narrowing);
   }
 
   const {
@@ -374,7 +404,7 @@ export async function getAuthContext(
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken, request, roleClass);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request, narrowing);
   }
 
   const email = typeof user.email === "string" ? user.email : null;
@@ -405,19 +435,8 @@ export async function getAuthContext(
     return denied(profile.id, "no_role_class");
   }
 
-  const proposedAssignmentId =
-    options.proposedAssignmentId ??
-    (await readRequestHeader(request, ASSIGNMENT_HEADER))?.trim();
-
   const result = await resolveActiveAssignment(
-    {
-      userId: user.id,
-      roleClass,
-      ...(proposedAssignmentId ? { proposedAssignmentId } : {}),
-      ...(options.expectedTenantId
-        ? { expectedTenantId: options.expectedTenantId }
-        : {}),
-    },
+    { ...narrowing, userId: user.id, roleClass },
     createRpcAssignmentReader(supabase),
   );
 
@@ -438,6 +457,53 @@ export async function getAuthContext(
     profileId: profile.id,
     isAuthenticated: true,
   };
+}
+
+export type SignedInAssignments =
+  | {
+      kind: "signed_in";
+      userId: string;
+      assignments: readonly ActiveAssignment[];
+    }
+  | { kind: "signed_out" }
+  /** The membership read failed or returned a malformed row. */
+  | { kind: "unavailable" };
+
+/**
+ * Every live membership row of the signed-in person, of every class and in
+ * every tenant, validated by the resolver's reader (plan 5.2). Only the
+ * organization chooser reads this: it must list a person's rows before any
+ * one is selected, which `getAuthContext` refuses for a person in two
+ * organizations. It authorizes nothing; whatever the person picks goes back
+ * through the proxy's membership decision.
+ */
+export async function getSignedInAssignments(): Promise<SignedInAssignments> {
+  const supabase = await createAuthContextClient();
+  const {
+    data: { user },
+    error,
+  } = supabase
+    ? await supabase.auth.getUser()
+    : { data: { user: null }, error: null };
+
+  if (supabase && user && !error) {
+    const read = await readActiveAssignments(
+      user.id,
+      createRpcAssignmentReader(supabase),
+    );
+    return read.ok
+      ? { kind: "signed_in", userId: user.id, assignments: read.assignments }
+      : { kind: "unavailable" };
+  }
+
+  const e2eSession = await readE2EBypassSession(undefined);
+  return e2eSession
+    ? {
+        kind: "signed_in",
+        userId: e2eSession.userId,
+        assignments: listE2EAuthAssignments(e2eSession),
+      }
+    : { kind: "signed_out" };
 }
 
 /**
