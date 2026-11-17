@@ -172,6 +172,39 @@ test("sign-in returns to the prefixed address", async ({ page }) => {
   );
 });
 
+test("sign-in, the callback's landing and the recovery steps keep the browser's host and the full address", async ({
+  page,
+}) => {
+  // WP1.4 keeps every auth redirect relative, so the browser stays on the
+  // host its session cookies belong to; the tenant address keeps the full
+  // address for sign-in and takes account screens out of the tenant segment.
+  const signIn = await page.request.get(tenantPath(DEMO, "/tasks?view=week"), {
+    maxRedirects: 0,
+  });
+  expect(signIn.status()).toBe(307);
+  expect(signIn.headers()["location"]).toBe(
+    `/login?next=${encodeURIComponent(`/${DEMO}/tasks?view=week`)}`,
+  );
+
+  await signInAs(page, "missionary", "missionary", baseURL());
+  // The sign-in callback sends a person of this app to `/`.
+  const landing = await page.request.get("/", { maxRedirects: 0 });
+  expect(landing.status()).toBe(307);
+  expect(landing.headers()["location"]).toBe(`/${DEMO}`);
+
+  for (const path of [
+    "/forgot-password",
+    "/forgot-password/reset",
+    "/auth/callback",
+  ]) {
+    const prefixed = await page.request.get(tenantPath(DEMO, path), {
+      maxRedirects: 0,
+    });
+    expect(prefixed.status(), path).toBe(307);
+    expect(prefixed.headers()["location"], path).toBe(path);
+  }
+});
+
 test.describe("production build", () => {
   test.skip(!signsInThroughStub, "Measured on a production build only");
 
