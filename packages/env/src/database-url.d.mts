@@ -6,6 +6,19 @@ export declare function databaseUrlRoutingOverrides(
   databaseUrl: string | URL,
 ): string[];
 
+export declare const DATABASE_URL_QUERY_KEYS: Readonly<
+  Record<string, Readonly<{ psql: boolean; reason: string }>>
+>;
+
+export declare function libpqQueryEntries(
+  databaseUrl: string | URL,
+): [string, string][];
+
+export declare function databaseUrlQueryProblem(
+  databaseUrl: string | URL,
+  options?: { forPsql?: boolean },
+): string | null;
+
 export declare function libpqUrlMismatch(
   databaseUrl: string | URL | null | undefined,
 ): string | null;

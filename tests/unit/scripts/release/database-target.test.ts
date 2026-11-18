@@ -46,6 +46,25 @@ describe("release database target", () => {
     }
   });
 
+  // Review K1: the release URL also reaches psql, through the reset wrapper's
+  // marker read, so it carries no query key libpq could read as a target.
+  it.each([
+    "&%20host=evil.example",
+    "&host%20=evil.example",
+    "&HOST=evil.example",
+    "&pgbouncer=true",
+    "&sslmode=disable",
+    "&options=-c%20role%3Dauthenticator",
+  ])("refuses a release URL whose query adds %s", (extra) => {
+    expect(() =>
+      assertDatabaseTarget({
+        databaseUrl: `${pooled}${extra}`,
+        projectRef: ref,
+        role: "postgres",
+      }),
+    ).toThrow(/query/);
+  });
+
   it("never echoes the connection string in an error", () => {
     try {
       assertDatabaseTarget({

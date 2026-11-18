@@ -2,8 +2,10 @@
 // environment names, before anything writes to it. Errors never repeat the
 // connection string.
 import {
+  databaseUrlQueryProblem,
   databaseUrlRoutingOverrides,
   isLoopbackDatabaseUrl,
+  libpqUrlMismatch,
 } from "../../../packages/env/src/database-url.mjs";
 
 /**
@@ -73,6 +75,17 @@ export function assertDatabaseTarget({
   if (databaseUrlRoutingOverrides(url).length > 0) {
     throw new Error(
       "The release database connection carries routing overrides.",
+    );
+  }
+  // Review K1: the URL also reaches psql (the reset wrapper reads the marker
+  // through scripts/lib/psql.mjs), so it must be one libpq reads as `URL` does,
+  // with only the query keys psql may take.
+  const libpqProblem =
+    libpqUrlMismatch(databaseUrl) ??
+    databaseUrlQueryProblem(databaseUrl, { forPsql: true });
+  if (libpqProblem !== null) {
+    throw new Error(
+      `The release database connection's query or shape is refused: ${libpqProblem}.`,
     );
   }
   if (isLoopbackDatabaseUrl(url)) {

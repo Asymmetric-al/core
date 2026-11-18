@@ -17,6 +17,7 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { DATABASE_URL_QUERY_KEYS } from "../../../packages/env/src/database-url.mjs";
 import {
   LOOPBACK_HOSTS,
   isLoopbackDatabaseUrl,
@@ -356,3 +357,145 @@ describe("the three callers use the shared runner", () => {
     expect(source).not.toMatch(/LOOPBACK|LOCAL_HOSTS/);
   });
 });
+
+// Review K1 (blocking): a query key that is not exactly a libpq keyword was
+// copied into the keyword string, and libpq skips the blanks around a keyword
+// and lets a later value replace an earlier one, so `?%20host=` sent psql to
+// another host. Only an allowlisted key now passes, in the loopback decision
+// and in psqlConnection alike, and the query is read as libpq reads it.
+const BAD_QUERIES: [string, string][] = [
+  ["a key with a leading blank", "?%20host=evil.example"],
+  ["a key with a trailing blank", "?host%20=evil.example"],
+  ["an upper-case key", "?HOST=evil.example"],
+  ["a key with a tab", "?%09host=evil.example"],
+  ["a duplicate allowed key", "?sslmode=require&sslmode=disable"],
+  ["an unknown key", "?pgbouncer=true"],
+  ["a second = in a value", "?sslmode=require=x"],
+  ["a key without a value", "?sslmode"],
+];
+
+describe("the query a URL may carry (review K1)", () => {
+  it.each(BAD_QUERIES)(
+    "is not loopback, and psql refuses it, with %s",
+    (_case, query) => {
+      const url = `postgresql://postgres@127.0.0.1:54322/postgres${query}`;
+      expect(isLoopbackDatabaseUrl(url)).toBe(false);
+      expect(() => psqlConnection(url, {})).toThrow(/refused for psql/);
+    },
+  );
+
+  it("never hands options to psql, though the loopback decision accepts it for the CMS session role", () => {
+    const url =
+      "postgresql://postgres@127.0.0.1:54322/postgres?options=-c%20role%3Dcms_owner";
+    expect(isLoopbackDatabaseUrl(url)).toBe(true);
+    expect(() => psqlConnection(url, {})).toThrow(/never handed to psql/);
+  });
+
+  it.each(
+    Object.entries(DATABASE_URL_QUERY_KEYS)
+      .filter(([key, entry]) => entry.psql && key !== "password")
+      .map(([key]) => key),
+  )("passes %s through with its value intact", (key) => {
+    const value = "a b'c\\d=e host=evil";
+    const url = `postgresql://postgres@127.0.0.1:54322/postgres?${key}=${encodeURIComponent(value)}`;
+    expect(isLoopbackDatabaseUrl(url)).toBe(true);
+    const { connection } = psqlConnection(url, {});
+    expect(parseConninfo(connection)).toEqual([
+      ["host", "127.0.0.1"],
+      ["port", "54322"],
+      ["dbname", "postgres"],
+      ["user", "postgres"],
+      [key, value],
+    ]);
+  });
+
+  it("reads + as libpq does, and keeps it in a password", () => {
+    const { connection, env } = psqlConnection(
+      "postgresql://postgres@127.0.0.1:54322/postgres?application_name=a+b&password=p+ss%2Bw",
+      {},
+    );
+    expect(parseConninfo(connection)).toContainEqual([
+      "application_name",
+      "a+b",
+    ]);
+    expect(connection).not.toContain("p+ss");
+    expect(env.PGPASSWORD).toBe("p+ss+w");
+  });
+
+  it("gives every key an explicit reason", () => {
+    for (const [key, entry] of Object.entries(DATABASE_URL_QUERY_KEYS)) {
+      expect(key).toMatch(/^[a-z_]+$/);
+      expect(entry.reason.length, key).toBeGreaterThan(20);
+    }
+    for (const routing of [
+      "host",
+      "hostaddr",
+      "port",
+      "dbname",
+      "user",
+      "service",
+    ])
+      expect(Object.hasOwn(DATABASE_URL_QUERY_KEYS, routing), routing).toBe(
+        false,
+      );
+  });
+
+  itPosix(
+    "starts psql for a hosted-shaped URL with sslmode=verify-full and a CA file",
+    () => {
+      const psql = fakePsql("");
+      spawnPsql({
+        databaseUrl:
+          "postgresql://postgres.abcdefghijklmnopqrst:s3cret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Ftmp%2Fproject-ca.pem",
+        args: ["-c", "select 1"],
+        psqlBin: psql.bin,
+        baseEnv: { PATH: process.env.PATH ?? "" },
+      });
+      const call = psql.call();
+      expect(call.args).toEqual([
+        "host='aws-0-us-west-2.pooler.supabase.com' port='5432' dbname='postgres' user='postgres.abcdefghijklmnopqrst' sslmode='verify-full' sslrootcert='/tmp/project-ca.pem'",
+        "-X",
+        "-c",
+        "select 1",
+      ]);
+      expect(call.password).toBe("s3cret");
+    },
+  );
+});
+
+/**
+ * A libpq keyword string read back as libpq reads it (fe-connect.c,
+ * conninfo_parse): blanks between pairs, a value in single quotes with
+ * backslash escapes. So a test sees exactly which keywords psql would get.
+ */
+function parseConninfo(text: string): [string, string][] {
+  const pairs: [string, string][] = [];
+  let i = 0;
+  while (i < text.length) {
+    while (/\s/.test(text[i] ?? "")) i++;
+    if (i >= text.length) break;
+    let key = "";
+    while (i < text.length && !/[\s=]/.test(text[i]!)) key += text[i++];
+    while (/\s/.test(text[i] ?? "")) i++;
+    if (text[i] !== "=") throw new Error(`no = after ${key}`);
+    i++;
+    while (/\s/.test(text[i] ?? "")) i++;
+    let value = "";
+    if (text[i] === "'") {
+      i++;
+      while (i < text.length && text[i] !== "'") {
+        if (text[i] === "\\") i++;
+        value += text[i++];
+      }
+      if (text[i] !== "'") throw new Error("unterminated quote");
+      i++;
+    } else {
+      while (i < text.length && !/\s/.test(text[i]!)) {
+        if (text[i] === "\\") i++;
+        value += text[i++];
+      }
+    }
+    pairs.push([key, value]);
+  }
+  return pairs;
+}

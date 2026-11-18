@@ -13,8 +13,9 @@ import { spawnSync } from "node:child_process";
 
 import {
   LOOPBACK_DATABASE_HOSTS,
-  databaseUrlRoutingOverrides,
+  databaseUrlQueryProblem,
   isLoopbackDatabaseUrl,
+  libpqQueryEntries,
   libpqUrlMismatch,
 } from "../../packages/env/src/database-url.mjs";
 
@@ -34,8 +35,11 @@ const conninfoValue = (value) =>
  * parsed parts (host, port, dbname, user, then the query's other settings),
  * never the raw URL, so libpq cannot read the URL differently from the code
  * that admitted it (PR #2714 review, H11). A URL whose shape libpq would read
- * as another target (libpqUrlMismatch), or whose query names a routing key, is
- * refused. Every other PG* setting is dropped: the URL is the whole target,
+ * as another target (libpqUrlMismatch) is refused, and so is any query key not
+ * on DATABASE_URL_QUERY_KEYS for psql (review K1: libpq skips blanks around a
+ * keyword and lets a later one win, so `?%20host=` used to route psql). The
+ * query is read as libpq reads it (libpqQueryEntries), and every value is
+ * quoted, so no value can add a keyword. Every other PG* setting is dropped: the URL is the whole target,
  * and an ambient PGHOSTADDR (which overrides the URL's host), PGSERVICE,
  * PGOPTIONS or a default for a part the URL leaves out could otherwise send
  * the connection, or the role it runs as, somewhere else. An ambient
@@ -57,19 +61,18 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
     throw new Error(
       `the database URL is refused because libpq would read it differently: ${mismatch}`,
     );
-  const overrides = databaseUrlRoutingOverrides(url);
-  if (overrides.length > 0)
-    throw new Error(
-      `the database URL names a routing override in its query (${overrides.join(", ")}); name the target in the URL itself`,
-    );
+  const problem = databaseUrlQueryProblem(databaseUrl, { forPsql: true });
+  if (problem !== null)
+    throw new Error(`the database URL is refused for psql: ${problem}`);
   const env = Object.fromEntries(
     Object.entries(baseEnv).filter(
       ([key]) => !key.startsWith("PG") || key === "PGPASSWORD",
     ),
   );
-  const settings = [...url.searchParams].filter(([key]) => key !== "password");
-  const queryPassword = url.searchParams.get("password");
-  if (queryPassword !== null) env.PGPASSWORD = queryPassword;
+  const query = libpqQueryEntries(databaseUrl);
+  const settings = query.filter(([key]) => key !== "password");
+  const queryPassword = query.find(([key]) => key === "password");
+  if (queryPassword) env.PGPASSWORD = queryPassword[1];
   if (url.password) env.PGPASSWORD = decodeURIComponent(url.password);
   const keywords = [
     ["host", url.hostname.replace(/^\[(.*)\]$/, "$1")],
