@@ -27,6 +27,11 @@ const { demo: DEMO, second: SECOND, foreign: FOREIGN } = TENANTS;
 // A first visit compiles the route in `next dev`, which takes more than the
 // default five seconds on a loaded machine.
 const expect = baseExpect.configure({ timeout: 90_000 });
+// And the case limit covers such a wait: Playwright's 30-second default
+// would end a case before one first compile could finish (council round 2,
+// AR12). Mission Control's surface has 180 seconds for the same reason
+// (tests/e2e/playwright-shared.ts).
+test.describe.configure({ timeout: 180_000 });
 
 test.beforeEach(({}, testInfo) => {
   test.skip(
