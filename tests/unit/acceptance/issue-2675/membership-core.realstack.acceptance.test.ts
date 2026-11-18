@@ -680,7 +680,12 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
   });
 
   describe("sign-up for this release (WP2 'Interim rules')", () => {
-    it("creates a profile with no tenant and a donor membership in the demo tenant, or the app-metadata tenant", () =>
+    // Council round 1 on WP2a, F3 (plan 7.4 over WP2's wording, a recorded
+    // deviation): the release already running reads a person's tenant from
+    // profiles.tenant_id, so sign-up keeps writing the membership's tenant
+    // there too until the migration that drops the column (WP5). Nothing in
+    // WP2a reads it as authority; the reader manifest still enforces that.
+    it("creates a donor membership in the demo tenant, or the app-metadata tenant, and the same tenant on the profile", () =>
       tx(async () => {
         const plain = crypto.randomUUID();
         const invited = crypto.randomUUID();
@@ -698,7 +703,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           {
             user_id: plain,
             role: "donor",
-            profile_tenant: null,
+            profile_tenant: DEMO_TENANT,
             tenant_id: DEMO_TENANT,
             membership_role: "donor",
             is_active: true,
@@ -706,7 +711,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           {
             user_id: invited,
             role: "donor",
-            profile_tenant: null,
+            profile_tenant: id.TB,
             tenant_id: id.TB,
             membership_role: "donor",
             is_active: true,

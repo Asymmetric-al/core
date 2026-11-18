@@ -34,8 +34,14 @@
 --    Definer, postgres-owned, executable by signed-in users only.
 -- 6. Sign-up (`public.handle_new_user`): it keeps assigning the demo tenant,
 --    or the tenant in the login's app metadata as before, as a donor
---    membership and no longer as the profile's tenant, until WP5 replaces it.
---    The trigger sees no request, so it cannot use the host.
+--    membership, until WP5 replaces it. It also keeps writing that tenant to
+--    the profile's tenant column: the release already running reads it, and
+--    plan 7.4 makes every migration safe for that release (council round 1 on
+--    WP2a, F3, a deviation from WP2's "no longer as a profile tenant",
+--    recorded by the coordinator). The column carries no authority since
+--    WP2a, and the reader manifest fails on code that filters by it; the
+--    migration that drops it (WP5) ends the write. The trigger sees no
+--    request, so it cannot use the host.
 --
 -- Down (run by hand, in one transaction): restore handle_new_user from
 -- 20260227060000_auth_role_hardening.sql; DROP FUNCTION
@@ -631,7 +637,16 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
+DECLARE
+  v_tenant UUID := COALESCE(
+    (new.raw_app_meta_data->>'tenant_id')::uuid,
+    '00000000-0000-0000-0000-000000000001'::uuid
+  );
 BEGIN
+  -- The release already running reads the person's tenant from
+  -- profiles.tenant_id (plan 7.4), so the membership's tenant goes there too
+  -- until the migration that drops the column (WP5). Nothing reads it as
+  -- authority since WP2a.
   INSERT INTO public.profiles (id, user_id, email, first_name, last_name, full_name, avatar_url, role, tenant_id)
   VALUES (
     new.id,
@@ -645,15 +660,11 @@ BEGIN
     ),
     new.raw_user_meta_data->>'avatar_url',
     'donor',
-    NULL
+    v_tenant
   );
 
   INSERT INTO authz.memberships (user_id, tenant_id, role)
-  VALUES (
-    new.id,
-    COALESCE((new.raw_app_meta_data->>'tenant_id')::uuid, '00000000-0000-0000-0000-000000000001'::uuid),
-    'donor'
-  )
+  VALUES (new.id, v_tenant, 'donor')
   ON CONFLICT DO NOTHING;
 
   RETURN new;
