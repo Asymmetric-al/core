@@ -34,6 +34,12 @@ export async function githubToken({ gh, configDir, run = runProcess }) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// GraphQL error types that mean GitHub rejected the request. Any other error
+// (a rate limit, a server-side failure, one without a type) may follow a
+// mutation that ran. GitHub does not document the types; see the
+// support-factory-merge-queue design for the evidence.
+const REJECTED = new Set(["FORBIDDEN", "NOT_FOUND", "UNPROCESSABLE"]);
+
 export function createGitHub({
   token,
   repo,
@@ -188,9 +194,12 @@ export function createGitHub({
       },
       { write: true },
     );
-    if (result.data?.errors?.length)
-      throw new GitHubError(`GraphQL: ${result.data.errors[0].message}`, {
-        outcome: "refused",
+    const errors = result.data?.errors;
+    if (errors?.length)
+      throw new GitHubError(`GraphQL: ${errors[0].message}`, {
+        outcome: errors.every((error) => REJECTED.has(error?.type))
+          ? "refused"
+          : "unknown",
       });
     const entry = result.data?.data?.enqueuePullRequest?.mergeQueueEntry;
     if (!entry)

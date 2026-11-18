@@ -938,7 +938,13 @@ describe("merge through a required merge queue", () => {
     const { github } = client([
       json({
         data: { enqueuePullRequest: null },
-        errors: [{ message: "Pull request is not mergeable" }],
+        errors: [
+          {
+            type: "UNPROCESSABLE",
+            path: ["enqueuePullRequest"],
+            message: "Pull request is not mergeable",
+          },
+        ],
       }),
     ]);
     const error = await rejection(
@@ -950,6 +956,58 @@ describe("merge through a required merge queue", () => {
       error.message,
     ]).toEqual([true, "refused", "GraphQL: Pull request is not mergeable"]);
   });
+
+  // GitHub does not document its GraphQL error types. FORBIDDEN and NOT_FOUND
+  // were seen on read-only queries; GitHub's own clients treat them, and
+  // UNPROCESSABLE on a mutation, as a rejected request.
+  it.each(["FORBIDDEN", "NOT_FOUND", "UNPROCESSABLE"])(
+    "reports an enqueue whose GraphQL errors are all %s as refused",
+    async (type) => {
+      const { github, fetchImpl } = client([
+        json({
+          data: { enqueuePullRequest: null },
+          errors: [{ type, path: ["enqueuePullRequest"], message: "no" }],
+        }),
+      ]);
+      const error = await rejection(
+        github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+      );
+      expect([error.outcome, fetchImpl.mock.calls.length]).toEqual([
+        "refused",
+        1,
+      ]);
+    },
+  );
+
+  // A rate limit, a server-side failure or an error without a type does not
+  // say the mutation was rejected; it may have run, so it is never refused.
+  it.each([
+    ["a rate limit", [{ type: "RATE_LIMITED", message: "limited" }]],
+    ["an error without a type", [{ message: "Something went wrong" }]],
+    [
+      "a rejection beside another error",
+      [
+        { type: "UNPROCESSABLE", message: "no" },
+        { type: "RATE_LIMITED", message: "limited" },
+      ],
+    ],
+  ])(
+    "reports an enqueue with %s in its GraphQL errors as unknown, never retried",
+    async (_case, errors) => {
+      const { github, fetchImpl } = client([
+        json({ data: { enqueuePullRequest: null }, errors }),
+        enqueued(),
+      ]);
+      const error = await rejection(
+        github.merge(5, { ...queued, mergeQueue: true, nodeId: NODE }),
+      );
+      expect([
+        error instanceof GitHubError,
+        error.outcome,
+        fetchImpl.mock.calls.length,
+      ]).toEqual([true, "unknown", 1]);
+    },
+  );
 
   it("reports an enqueue rejected with a client error as refused", async () => {
     const { github, fetchImpl } = client([

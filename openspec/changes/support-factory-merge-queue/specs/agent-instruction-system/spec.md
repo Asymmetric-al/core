@@ -35,7 +35,8 @@ request SHALL stay exactly as it was.
 
 #### Scenario: The enqueue response is lost
 
-- **WHEN** the enqueue's response is lost or GitHub answers with a server error
+- **WHEN** the enqueue's response is lost, GitHub answers with a server error,
+  or GitHub's errors do not all say that it rejected the request
 - **THEN** its outcome is unknown and is reconciled from GitHub before any retry
 
 #### Scenario: No queue is required
