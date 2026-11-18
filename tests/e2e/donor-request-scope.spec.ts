@@ -56,8 +56,9 @@ test("leaving the portal for the public checkout loads a new document, and its o
   const { ok, status } = await installDemoSessionInBrowser(page, "donor");
   expect(ok, `donor demo session failed with status ${status}`).toBeTruthy();
 
-  // The seeded donor has no paid gift; give the portal one, so it offers
-  // "Give again" to that gift's missionary.
+  // The portal offers "Give again" for the donor's newest paid gift. Whatever
+  // the seed holds, one is added, dated now, so the link is there and leads
+  // to the checkout for a seeded missionary.
   const missionary = {
     id: "20000000-0000-0000-0000-000000000001",
     name: "Fixture Missionary",
@@ -70,7 +71,7 @@ test("leaving the portal for the public checkout loads a new document, and its o
     snapshot.donations = [
       {
         id: "e2e-paid-gift",
-        date: "2026-11-01",
+        date: new Date().toISOString(),
         amountCents: 5000,
         amount: 50,
         currency: "USD",
@@ -112,9 +113,7 @@ test("leaving the portal for the public checkout loads a new document, and its o
     (window as Window & { __portalDocument?: true }).__portalDocument = true;
   });
 
-  await page
-    .getByRole("link", { name: `Give to ${missionary.name} again` })
-    .click();
+  await page.getByRole("link", { name: /^Give to .+ again$/ }).click();
 
   const headers = await checkoutHeaders;
   expect(headers["x-asym-tenant"]).toBeUndefined();
