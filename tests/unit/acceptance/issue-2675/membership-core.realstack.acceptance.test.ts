@@ -677,6 +677,76 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           after.find((r) => r.k === "adminNone")!.caps as string[],
         ).toContain("people.manage_members");
       }));
+
+    // Council round 1 on WP2a, F4. Hosted Supabase's auth.users has
+    // deleted_at (soft delete) and banned_until; the compatibility bootstrap
+    // this cluster runs on has neither, and altering auth.users from a test
+    // would lock it under the suites that run beside this one. So the step
+    // runs with its one auth.users reference pointed at a temporary copy of
+    // the logins that carries both columns.
+    it("skips a profile that names no login and a soft-deleted login, keeps a banned login, and runs twice to the same rows", () =>
+      tx(async () => {
+        const STEP = DATA_STEP.replaceAll("auth.users", "pg_temp.wp2a_logins");
+        expect(STEP).not.toBe(DATA_STEP);
+        const people = ["orphan", "softDeleted", "banned", "plain"];
+        const ids = Object.fromEntries(
+          people.map((p) => [p, crypto.randomUUID()]),
+        );
+        await db.query(
+          "insert into auth.users (id) select unnest($1::uuid[])",
+          [Object.values(ids)],
+        );
+        await db.query(
+          "delete from authz.memberships where user_id = any($1::uuid[])",
+          [Object.values(ids)],
+        );
+        await db.query(
+          "update public.profiles set role = 'donor', tenant_id = $2 where user_id = any($1::uuid[])",
+          [Object.values(ids), id.TA],
+        );
+        // A legacy profile whose user_id names no login: profiles.user_id
+        // has no foreign key, memberships.user_id references auth.users.
+        const dangling = crypto.randomUUID();
+        await db.query(
+          "update public.profiles set user_id = $2 where user_id = $1",
+          [ids.orphan, dangling],
+        );
+        await db.query(
+          `create temporary table wp2a_logins (id uuid primary key, deleted_at timestamptz, banned_until timestamptz) on commit drop;
+           insert into pg_temp.wp2a_logins (id) select id from auth.users`,
+        );
+        await db.query(
+          "update pg_temp.wp2a_logins set deleted_at = now() where id = $1",
+          [ids.softDeleted],
+        );
+        await db.query(
+          "update pg_temp.wp2a_logins set banned_until = now() + interval '30 days' where id = $1",
+          [ids.banned],
+        );
+
+        const membershipsOf = async () =>
+          (
+            await rows(
+              `select u.k, m.tenant_id, m.role::text, m.is_active
+                 from unnest($1::text[], $2::uuid[]) u(k, user_id)
+                 join authz.memberships m on m.user_id = u.user_id
+                order by u.k, m.role`,
+              [
+                [...people, "dangling"],
+                [...people.map((p) => ids[p]), dangling],
+              ],
+            )
+          ).map((r) => [r.k, keyOf(r.tenant_id), r.role, r.is_active]);
+
+        await db.query(STEP);
+        const once = await membershipsOf();
+        expect(once).toEqual([
+          ["banned", "TA", "donor", true],
+          ["plain", "TA", "donor", true],
+        ]);
+        await db.query(STEP);
+        expect(await membershipsOf()).toEqual(once);
+      }));
   });
 
   describe("sign-up for this release (WP2 'Interim rules')", () => {
