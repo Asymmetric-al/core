@@ -488,6 +488,18 @@ host name:
 - Payload's migrations as `cms_owner`: the CA as `PAYLOAD_DATABASE_SSL_CA`, as
   in step 3, and the same CA file as `PGSSLROOTCERT` for the runner's psql.
 
+The same PEM is set twice, under two names, because two holders read it.
+`RELEASE_DATABASE_SSL_CA` lives in the GitHub release environments, and only
+the release job reads it. `PAYLOAD_DATABASE_SSL_CA` lives on the admin app in
+Vercel, where Payload's run-time connection as `cms_runtime` reads it. Neither
+reads the other's settings: the job holds no application environment, and no
+application holds the job's secrets. So the owner sets each once for each
+project. In the migrate step the job turns its secret into what the CMS runner
+needs: `PAYLOAD_DATABASE_SSL_CA` for Payload, and `PGSSLROOTCERT`, a file
+holding the same PEM, for the runner's own psql. The runner refuses a hosted
+migration without both, or whose address does not say `sslmode=verify-full`
+(review L7).
+
 Until review L6 the address said `sslmode=require`. The job's psql and the CLI
 then encrypted the connection without checking the certificate; only Payload
 checked it.
@@ -522,8 +534,9 @@ The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
 string per environment.
 The job hands it to Payload's migrations as `PAYLOAD_MIGRATION_DATABASE_URI`
 with `CMS_HOSTED_MIGRATION_REF` set to the project ref; the runner checks that
-the user is `cms_owner.<ref>` on that project's pooler and that the connection
-is encrypted. No application environment holds that variable: a protected
+the user is `cms_owner.<ref>` on that project's pooler and that the address
+says `sslmode=verify-full`, with the project's CA. No application environment
+holds that variable: a protected
 deployment that has it refuses to start Web Studio. GitHub-hosted runners have
 no IPv6, so the direct host (`db.<ref>.supabase.co`) will not connect; use the
 session pooler.

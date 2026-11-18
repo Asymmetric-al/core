@@ -62,7 +62,7 @@ NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
 # CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
 ```
 
-`PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database. On Vercel and protected deployments, Web Studio bounds Payload's Postgres pool to `2` by default so the Supavisor session pool is not exhausted by node-postgres's default 10-client pool.
+`PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database. Run `cms:migrate` against a database on this machine only: a hosted CMS schema is migrated by the release job ([`docs/ops/release-job.md`](../../ops/release-job.md)). On Vercel and protected deployments, Web Studio bounds Payload's Postgres pool to `2` by default so the Supavisor session pool is not exhausted by node-postgres's default 10-client pool.
 
 ### Form stack note
 

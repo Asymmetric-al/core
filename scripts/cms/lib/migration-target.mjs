@@ -76,16 +76,25 @@ export function assertCmsMigrationTarget({
     );
   }
 
+  // Review L7: the release job's own rule (L6) on the same seam. The address
+  // itself says verify-full, once: no-verify, require and verify-ca do not
+  // check both the certificate and the host name, and PGSSLMODE never reaches
+  // the runner's psql (lib/postgres.mjs drops it) or Payload.
   const sslmodes = database.searchParams.getAll("sslmode");
-  if (sslmodes.length > 1) {
+  if (sslmodes.length !== 1 || sslmodes[0] !== "verify-full") {
     throw new Error(
-      "Hosted CMS migrations require an explicit encrypted database connection.",
+      "A hosted CMS migration address must set sslmode=verify-full, once, in the address itself; PGSSLMODE does not count. no-verify, require and verify-ca are refused: they do not check both the server's certificate and its host name.",
     );
   }
-  const sslmode = sslmodes[0] ?? environment.PGSSLMODE;
-  if (!["require", "verify-ca", "verify-full", "no-verify"].includes(sslmode)) {
+  // No CA, no connection. Payload checks the server against
+  // PAYLOAD_DATABASE_SSL_CA (apps/admin/src/cms/payload-database-config.ts),
+  // and the runner's psql against the file PGSSLROOTCERT names.
+  if (
+    !environment.PAYLOAD_DATABASE_SSL_CA?.trim() ||
+    !environment.PGSSLROOTCERT?.trim()
+  ) {
     throw new Error(
-      "Hosted CMS migrations require an explicit encrypted database connection.",
+      "A hosted CMS migration needs the project's CA: set PAYLOAD_DATABASE_SSL_CA to its PEM, for Payload, and PGSSLROOTCERT to a file holding the same certificate, for the runner's psql. The release job sets both from RELEASE_DATABASE_SSL_CA.",
     );
   }
 }

@@ -2,12 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import { assertCmsMigrationTarget } from "../../../scripts/cms/lib/migration-target.mjs";
 
+/** The project's CA, as the release job hands it to the runner (L6, L7). */
+const CA_ENV = {
+  PAYLOAD_DATABASE_SSL_CA:
+    "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----",
+  PGSSLROOTCERT: "/tmp/fixture-root.crt",
+};
+const pooled =
+  "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres";
+const direct =
+  "postgresql://cms_owner:fake-password@db.fixture.supabase.co:5432/postgres";
 const hosted = {
-  databaseUrl:
-    "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=no-verify",
+  databaseUrl: `${pooled}?sslmode=verify-full`,
   supabaseUrl: "https://fixture.supabase.co",
   approvedProjectRef: "fixture",
-  environment: {},
+  environment: CA_ENV,
 };
 
 describe("CMS migration target", () => {
@@ -41,7 +50,7 @@ describe("CMS migration target", () => {
         assertCmsMigrationTarget({
           ...hosted,
           databaseUrl,
-          environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
+          environment: { ...CA_ENV, CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
         }),
       ).not.toThrow();
     },
@@ -71,7 +80,7 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl: asPostgres,
-        environment: { CMS_HOSTED_MIGRATION_ROLE: "postgres" },
+        environment: { ...CA_ENV, CMS_HOSTED_MIGRATION_ROLE: "postgres" },
       }),
     ).toThrow("cms_owner");
   });
@@ -90,7 +99,7 @@ describe("CMS migration target", () => {
             "cms_owner.fixture",
             username,
           ),
-          environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
+          environment: { ...CA_ENV, CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
         }),
       ).toThrow("does not match");
     }
@@ -108,7 +117,7 @@ describe("CMS migration target", () => {
       expect(() =>
         assertCmsMigrationTarget({
           ...hosted,
-          environment: { CMS_HOSTED_MIGRATION_ROLE: role },
+          environment: { ...CA_ENV, CMS_HOSTED_MIGRATION_ROLE: role },
         }),
       ).toThrow("plain Postgres role name");
     }
@@ -120,10 +129,10 @@ describe("CMS migration target", () => {
         ...hosted,
         databaseUrl: hosted.databaseUrl
           .replace("cms_owner.fixture", "cms_fixture.fixture")
-          .replace("no-verify", "disable"),
-        environment: { CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
+          .replace("verify-full", "disable"),
+        environment: { ...CA_ENV, CMS_HOSTED_MIGRATION_ROLE: "cms_fixture" },
       }),
-    ).toThrow("encrypted");
+    ).toThrow("sslmode=verify-full");
   });
 
   it("rejects a pooler username belonging to another project", () => {
@@ -155,7 +164,7 @@ describe("CMS migration target", () => {
     expect(() =>
       assertCmsMigrationTarget({
         ...hosted,
-        databaseUrl: `postgresql://cms_owner.fixture:fake-password@${host}:5432/postgres?sslmode=require`,
+        databaseUrl: `postgresql://cms_owner.fixture:fake-password@${host}:5432/postgres?sslmode=verify-full`,
       }),
     ).toThrow();
   });
@@ -170,7 +179,7 @@ describe("CMS migration target", () => {
     expect(() =>
       assertCmsMigrationTarget({
         ...hosted,
-        databaseUrl: `postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require${extra}`,
+        databaseUrl: `postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full${extra}`,
       }),
     ).toThrow();
   });
@@ -187,7 +196,7 @@ describe("CMS migration target", () => {
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl:
-          "postgresql://cms_owner:fake-password@db.other.supabase.co/postgres?sslmode=require",
+          "postgresql://cms_owner:fake-password@db.other.supabase.co/postgres?sslmode=verify-full",
       }),
     ).toThrow("does not match");
   });
@@ -221,20 +230,88 @@ describe("CMS migration target", () => {
     }
   });
 
-  it("requires an explicit encrypted hosted connection", () => {
+  it("refuses an unencrypted hosted connection", () => {
     expect(() =>
       assertCmsMigrationTarget({
         ...hosted,
-        databaseUrl: hosted.databaseUrl.replace("no-verify", "disable"),
+        databaseUrl: hosted.databaseUrl.replace("verify-full", "disable"),
       }),
-    ).toThrow("encrypted");
+    ).toThrow("sslmode=verify-full");
     expect(() =>
       assertCmsMigrationTarget({
         ...hosted,
         databaseUrl: hosted.databaseUrl.split("?")[0],
-        environment: { PGSSLMODE: "disable" },
+        environment: { ...CA_ENV, PGSSLMODE: "disable" },
       }),
-    ).toThrow("encrypted");
+    ).toThrow("sslmode=verify-full");
+  });
+
+  // Review L7: the release job's own rule (L6) on the same seam. A hosted
+  // address says verify-full, once, in the address itself; no-verify,
+  // require and verify-ca do not check both the certificate and the host
+  // name, and PGSSLMODE alone does not count. The message says what to set.
+  it.each([
+    ["sslmode=no-verify", "?sslmode=no-verify", {}],
+    ["sslmode=require", "?sslmode=require", {}],
+    ["sslmode=verify-ca", "?sslmode=verify-ca", {}],
+    ["no sslmode", "", {}],
+    ["only PGSSLMODE=verify-full", "", { PGSSLMODE: "verify-full" }],
+  ])(
+    "refuses a hosted address with %s, and says what to set",
+    (_case, query, extra) => {
+      for (const base of [pooled, direct]) {
+        expect(() =>
+          assertCmsMigrationTarget({
+            ...hosted,
+            databaseUrl: `${base}${query}`,
+            environment: { ...CA_ENV, ...extra },
+          }),
+        ).toThrow(
+          /must set sslmode=verify-full, once, in the address itself; PGSSLMODE does not count/,
+        );
+      }
+    },
+  );
+
+  // Review L7: no CA, no connection. Payload reads the CA from
+  // PAYLOAD_DATABASE_SSL_CA and the runner's psql from the file PGSSLROOTCERT
+  // names; the release job sets both from RELEASE_DATABASE_SSL_CA.
+  it.each([
+    ["PAYLOAD_DATABASE_SSL_CA", { PGSSLROOTCERT: CA_ENV.PGSSLROOTCERT }],
+    [
+      "PGSSLROOTCERT",
+      { PAYLOAD_DATABASE_SSL_CA: CA_ENV.PAYLOAD_DATABASE_SSL_CA },
+    ],
+    ["either", {}],
+    [
+      "either, when both are blank",
+      { PAYLOAD_DATABASE_SSL_CA: "  ", PGSSLROOTCERT: "" },
+    ],
+  ])(
+    "stops a hosted migration without %s, and says what to set",
+    (_case, environment) => {
+      expect(() =>
+        assertCmsMigrationTarget({ ...hosted, environment }),
+      ).toThrow(
+        /needs the project's CA: set PAYLOAD_DATABASE_SSL_CA .* and PGSSLROOTCERT .* RELEASE_DATABASE_SSL_CA/,
+      );
+    },
+  );
+
+  it("leaves a loopback address's sslmode and CA as they were", () => {
+    for (const query of [
+      "",
+      "?sslmode=no-verify",
+      "?sslmode=require",
+      "?sslmode=disable",
+    ]) {
+      expect(() =>
+        assertCmsMigrationTarget({
+          databaseUrl: `postgresql://postgres:fake-password@127.0.0.1:54322/postgres${query}`,
+          environment: {},
+        }),
+      ).not.toThrow();
+    }
   });
 
   it("rejects duplicate TLS modes before the driver can choose another value", () => {
@@ -246,7 +323,7 @@ describe("CMS migration target", () => {
         () =>
           assertCmsMigrationTarget({
             ...hosted,
-            databaseUrl: hosted.databaseUrl.replace("no-verify", modes),
+            databaseUrl: hosted.databaseUrl.replace("verify-full", modes),
           }),
         // Review L2: the shared check refuses a key given twice, before the
         // TLS check sees it.

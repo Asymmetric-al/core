@@ -71,30 +71,24 @@ privilege. Core never reads `cms` through the Data API. Payload is configured
 with `disableCreateDatabase`, so a missing database is a start-up error, never
 a `CREATE DATABASE`.
 
-`cms:migrate` runs on `PAYLOAD_MIGRATION_DATABASE_URI`. On a loopback database
-without it, the runner reuses `PAYLOAD_DATABASE_URI` with the session role set
-to `cms_owner`, so local and CI migrations create objects owned by `cms_owner`
-with no stored password; the login must be a member of `cms_owner`, which the
-role migration grants to the Supabase migration runner. A hosted migration
-without it is refused. `migrate:status` may read through the run-time
-connection.
+On a loopback database, `cms:migrate` reuses `PAYLOAD_DATABASE_URI` with the
+session role set to `cms_owner`, so local and CI migrations create objects
+owned by `cms_owner` with no stored password; the login must be a member of
+`cms_owner`, which the role migration grants to the Supabase migration runner.
+`migrate:status` may read through the run-time connection.
 
-For an existing hosted database, set `PAYLOAD_MIGRATION_DATABASE_URI` to the
-`cms_owner` connection and explicitly select the intended Supabase project with
-`CMS_HOSTED_MIGRATION_REF=<project-ref> bun run cms:migrate`. The CLI checks
-that the database host and user match `NEXT_PUBLIC_SUPABASE_URL`, requires an
-encrypted connection, and rejects routing overrides before any migration. Status
-checks do not require this opt-in. The migration role is `cms_owner`; `postgres`
-is refused. For an approved scoped role, also set
-`CMS_HOSTED_MIGRATION_ROLE=<role>`; the exact direct username or
-`<role>.<project-ref>` pooler username must match.
-Use `sslmode=verify-full` with the project's trusted root certificate. The CLI
-accepts a local certificate file via URI `sslrootcert`, which the psql helper
-passes through `PGSSLROOTCERT`; credentials also use the child environment,
-not arguments. Serverless runtime certificate setup is described below. Keep
-schema push disabled; do not use a local reset or demo seed to initialize a
-hosted database. Legacy `no-verify` translation remains for staged environment
-migration only and must be retired before final security qualification.
+A hosted CMS schema is migrated only by the release job
+([`docs/ops/release-job.md`](../../ops/release-job.md); plan 7.4 and 7.5).
+Its migrate step alone sets `PAYLOAD_MIGRATION_DATABASE_URI`, to the
+`cms_owner` login, and `CMS_HOSTED_MIGRATION_REF`, to the project. The runner
+then checks that the host and the user belong to that project and refuses
+routing overrides. It also requires `sslmode=verify-full` in the address and
+the project's CA: `PAYLOAD_DATABASE_SSL_CA` and `PGSSLROOTCERT`, which the job
+sets from `RELEASE_DATABASE_SSL_CA`. There is no hand-run hosted migration.
+This section described one until stage 1 of the CRM and CMS program; those
+instructions are withdrawn. Keep schema push disabled, and never use a local
+reset or demo seed to set up a hosted database. Payload's run-time certificate
+setup is described below.
 
 ### Public-v4 migration and rollback boundary
 
@@ -115,15 +109,18 @@ statement it sends, checks Local API access defaults and version-read access,
 and confirms that a start with push on, or against a missing database, fails
 and changes nothing. It drops the database unless `--keep` is given.
 
-1. Verify the actual database/project and migration status using the committed
-   runner. Preserve a pre-cutover database backup and media assets; restore the
+1. Verify the actual database/project and its migration status
+   (`bun run cms:migrate:status`, which only reads). Preserve a pre-cutover
+   database backup and media assets; restore the
    backup into an isolated database and compare counts and relationships. Inspect
    custom `sizes`/`variants` field collisions, additional media metadata and the
    existing long missionary-giving version-table/index/constraint names.
 2. Pause CMS writes and uploads. Keep public readers available only through the
    existing authorized serializer boundary. Drain in-flight CMS writes before
    capturing the final pre-cutover preservation checks.
-3. Run the committed migration runner. A fresh database first applies
+3. Run the committed migration runner; on a hosted database, that is the
+   release job ([`docs/ops/release-job.md`](../../ops/release-job.md)). A
+   fresh database first applies
    `20260515_173042_init_payload_cms`; an existing database must already record it.
    Then apply `20261022_002409_payload_v4_sizes_to_variants` (the official
    predefined rename) followed by
@@ -139,14 +136,18 @@ and changes nothing. It drops the database unless `--keep` is given.
    upload, draft/publish and preview behavior. Resume writes only after the
    selected application revision and migrated schema pass these checks.
 
-Before new media/storage metadata has been written, the guarded down migration
-can reverse the qualified batch while writes remain paused. It locks media
-before checking compatibility and refuses rollback if new metadata would be
-lost. Inspect the migration batch before `migrate:down`; it reverses that batch.
-Do not clear legitimate metadata to force the guard to pass. After the boundary
-is crossed, use a reviewed forward fix or the verified pre-cutover restore with
-an explicit reconciliation of writes after that backup. Changing a UI feature
-flag does not roll back this schema. No production application is part of the
+On a database marked `disposable`, before new media/storage metadata has been
+written, the guarded down migration can reverse the qualified batch while writes
+remain paused. It locks media before checking compatibility and refuses rollback
+if new metadata would be lost. Inspect the migration batch before
+`migrate:down`; it reverses that batch. Do not clear legitimate metadata to
+force the guard to pass. A hosted CMS schema is never rolled back this way: the
+runner runs `migrate:down` only on a database marked `disposable`, and on a
+hosted database it reads the marker as `cms_owner`, which holds nothing outside
+`cms`, so it refuses. After the boundary is crossed, use a reviewed forward fix,
+shipped through the release job, or the verified pre-cutover restore with an
+explicit reconciliation of writes after that backup. Changing a UI feature flag
+does not roll back this schema. No production application is part of the
 modernization rehearsal.
 
 Core authenticates the CMS through Supabase cookie sessions with Payload's local

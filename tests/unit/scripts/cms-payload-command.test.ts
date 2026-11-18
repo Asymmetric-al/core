@@ -28,7 +28,13 @@ afterEach(() => {
 const HOSTED_RUNTIME_URL =
   "postgresql://cms_runtime.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
 const HOSTED_MIGRATION_URL =
-  "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
+  "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full";
+/** The project's CA, as the release job hands it to the runner (L6, L7). */
+const CA_ENV = {
+  PAYLOAD_DATABASE_SSL_CA:
+    "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----",
+  PGSSLROOTCERT: "/tmp/fixture-root.crt",
+};
 
 type SpawnRecord = {
   command: string;
@@ -160,12 +166,56 @@ describe("Payload CLI migration preflight", () => {
 
   it("migrates as cms_owner and hands Payload only that connection", () => {
     const result = runCommand(["migrate"], {
+      ...CA_ENV,
       CMS_HOSTED_MIGRATION_REF: "fixture",
     });
     expect(result.status, result.stderr).toBe(0);
     expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_MIGRATION_URL);
     expect(result.payloadSpawn?.hasMigrationUri).toBe(false);
   });
+
+  // Review L7: the runner refuses a hosted migration that would not check the
+  // server's certificate and host name, before Payload starts.
+  it.each([
+    [
+      "sslmode=require",
+      {
+        ...CA_ENV,
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL.replace(
+          "verify-full",
+          "require",
+        ),
+      },
+      "sslmode=verify-full",
+    ],
+    [
+      "sslmode=no-verify",
+      {
+        ...CA_ENV,
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL.replace(
+          "verify-full",
+          "no-verify",
+        ),
+      },
+      "sslmode=verify-full",
+    ],
+    [
+      "no CA",
+      { PAYLOAD_DATABASE_SSL_CA: "", PGSSLROOTCERT: "" },
+      "PAYLOAD_DATABASE_SSL_CA",
+    ],
+  ])(
+    "refuses a hosted migration with %s, and never starts Payload",
+    (_case, env, words) => {
+      const result = runCommand(["migrate"], {
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        ...env,
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(words);
+      expect(result.childSpawned).toBe(false);
+    },
+  );
 
   it("reads hosted status through the run-time connection when no migration connection is set", () => {
     const result = runCommand(["migrate:status"], {
