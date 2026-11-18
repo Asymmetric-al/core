@@ -263,10 +263,6 @@ describe("Workflow runs page", () => {
   });
 
   it("keeps focus on the reload when Retry is pressed before the alert's effects have run", async () => {
-    // A busy main thread: React yields after every task, so the effects of
-    // the render that showed the alert run in a later task than its commit.
-    let clock = performance.now();
-    vi.spyOn(performance, "now").mockImplementation(() => (clock += 10));
     vi.stubGlobal(
       "fetch",
       vi
@@ -274,24 +270,41 @@ describe("Workflow runs page", () => {
         .mockResolvedValueOnce({ ok: false })
         .mockReturnValueOnce(new Promise(() => {})),
     );
-    // Retry is pressed in the task that shows it, before those effects run.
+    // React commits the alert in one task and runs its effects in a later
+    // one: the commit asks for a paint, so the scheduler yields first. Press
+    // Retry between the two, from the microtask that follows the commit.
+    let pressed: (active: Element | null) => void = () => {};
     const focusAfterPress = new Promise<Element | null>((resolve) => {
-      const observer = new MutationObserver(() => {
-        const retry = screen.queryByRole("button", { name: "Retry" });
-        if (!retry) return;
-        observer.disconnect();
-        retry.focus();
-        fireEvent.click(retry);
-        resolve(document.activeElement);
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
+      pressed = resolve;
     });
-
-    render(<WorkflowsPageClient />);
-
-    expect(await focusAfterPress).toBe(
-      screen.getByRole("status", { name: "Loading workflow summaries" }),
-    );
+    const observer = new MutationObserver(() => {
+      const retry = screen.queryByRole("button", { name: "Retry" });
+      if (!retry) return;
+      observer.disconnect();
+      retry.focus();
+      fireEvent.click(retry);
+      pressed(document.activeElement);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      render(<WorkflowsPageClient />);
+      const active = await Promise.race([
+        focusAfterPress,
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error("Retry did not appear within 5 s")),
+            5_000,
+          );
+        }),
+      ]);
+      expect(active).toBe(
+        screen.getByRole("status", { name: "Loading workflow summaries" }),
+      );
+    } finally {
+      clearTimeout(timer);
+      observer.disconnect();
+    }
   });
 
   it("returns focus to Retry when the reload fails again", async () => {
