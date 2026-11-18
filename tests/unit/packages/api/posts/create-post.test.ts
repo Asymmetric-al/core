@@ -20,10 +20,10 @@ const auth = {
 } as never;
 
 /**
- * Just enough of the service-role client for the create path. Since the
- * WP2a sweep (AL-2675, NR-68) the author's profile is found through their
- * membership in the tenant (`tenant_member_profiles`), not a filter on the
- * profile's tenant column; `profile: null` means no membership there.
+ * Just enough of the service-role client for the create path. The author's
+ * profile is read by their login (never by the profile's tenant column,
+ * AL-2675, NR-68); the resolver has already checked their membership in the
+ * tenant (council round 1 on WP2a, F12). `profile: null` means no profile.
  */
 function fakeClient(options: { profile?: { id: string } | null } = {}) {
   const rpc = vi.fn(async (fn: string) =>
@@ -141,13 +141,13 @@ describe("createMissionaryPost", () => {
       }),
     });
 
-    expect(rpc).toHaveBeenCalledTimes(2);
-    expect(rpc).toHaveBeenNthCalledWith(1, "tenant_member_profiles", {
-      p_tenant_id: "tenant-1",
-      p_profile_ids: null,
-      p_user_ids: ["user-1"],
-      p_include_revoked: false,
-    });
+    // Council round 1 on WP2a, F12: the author's profile is read by login
+    // alone; the resolver has checked their membership, so no second read.
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).not.toHaveBeenCalledWith(
+      "tenant_member_profiles",
+      expect.anything(),
+    );
     expect(rpc).toHaveBeenCalledWith("atomic_create_post_with_audit", {
       p_tenant_id: "tenant-1",
       // posts.missionary_id references profiles.id.
@@ -182,7 +182,7 @@ describe("createMissionaryPost", () => {
     );
   });
 
-  it("refuses when the signed-in user has no profile in this tenant", async () => {
+  it("refuses when the signed-in user has no profile", async () => {
     const { client, rpc } = fakeClient({ profile: null });
     const result = await createMissionaryPost({
       supabaseAdmin: client,

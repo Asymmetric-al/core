@@ -6,7 +6,9 @@ import type { RoleClass } from "./principal/types";
  * - `x-asym-role-class`: the surface's role class. Each app's proxy sets it on
  *   every request it passes on, overwriting any value the client sent, from
  *   its own configuration: staff for Mission Control and Web Studio,
- *   missionary for the missionary workspace, donor for the donor portal.
+ *   missionary for the missionary workspace, donor for the donor portal. The
+ *   proxies run on every `/api` path whatever its extension, so no API route
+ *   reads a class the client chose.
  * - `x-asym-tenant`: the tenant the request acts in. On a page request the
  *   proxy sets it from the page address after its membership decision; on an
  *   API request the shared own-API fetch wrapper sends the page's tenant.

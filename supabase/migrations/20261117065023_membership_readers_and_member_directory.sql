@@ -28,14 +28,25 @@
 --    `actor_is_super_admin` to `actor_can_manage_defaults`, and the
 --    tenant-default wrapper reads the new name. A delegated manager is still
 --    decided by the original body.
--- 5. `public.tenant_member_directory(tenant)`: display name and role of every
---    live member of the tenant, for a caller whose selected live staff row is
---    in that tenant (1). Staff screens and tenant administrators use it.
---    Definer, postgres-owned, executable by signed-in users only.
+-- 5. `public.tenant_member_directory(tenant)`: display name, email and role
+--    of every live member of the tenant, for a caller whose selected live
+--    staff row is in that tenant (1). Staff screens and tenant administrators
+--    use it on their own token; the Mission Control users list reads it there
+--    (council round 1 on WP2a, F8). It returns named columns only, each one
+--    the field-policy manifest lets Mission Control see (`profiles.email` is
+--    visible there), and nothing of a member's profile that names another
+--    tenant beyond those. Definer, postgres-owned, executable by signed-in
+--    users only.
 -- 6. Sign-up (`public.handle_new_user`): it keeps assigning the demo tenant,
 --    or the tenant in the login's app metadata as before, as a donor
---    membership and no longer as the profile's tenant, until WP5 replaces it.
---    The trigger sees no request, so it cannot use the host.
+--    membership, until WP5 replaces it. It also keeps writing that tenant to
+--    the profile's tenant column: the release already running reads it, and
+--    plan 7.4 makes every migration safe for that release (council round 1 on
+--    WP2a, F3, a deviation from WP2's "no longer as a profile tenant",
+--    recorded by the coordinator). The column carries no authority since
+--    WP2a, and the reader manifest fails on code that filters by it; the
+--    migration that drops it (WP5) ends the write. The trigger sees no
+--    request, so it cannot use the host.
 --
 -- Down (run by hand, in one transaction): restore handle_new_user from
 -- 20260227060000_auth_role_hardening.sql; DROP FUNCTION
@@ -579,6 +590,7 @@ RETURNS TABLE (
   user_id UUID,
   profile_id UUID,
   display_name TEXT,
+  email TEXT,
   role TEXT,
   staff_role TEXT,
   is_tenant_admin BOOLEAN
@@ -604,6 +616,7 @@ BEGIN
         NULLIF(pg_catalog.btrim(p.full_name), ''),
         NULLIF(pg_catalog.btrim(pg_catalog.concat_ws(' ', p.first_name, p.last_name)), '')
       ),
+      p.email,
       m.role::TEXT,
       m.staff_role::TEXT,
       m.is_tenant_admin
@@ -617,7 +630,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.tenant_member_directory(UUID) IS
-  'Display name and role of every live member of a tenant, for a caller whose '
+  'Display name, email and role of every live member of a tenant, for a caller whose '
   'selected live staff row is in that tenant (plan 5.1, AL-2675).';
 
 ALTER FUNCTION public.tenant_member_directory(UUID) OWNER TO postgres;
@@ -631,7 +644,16 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
+DECLARE
+  v_tenant UUID := COALESCE(
+    (new.raw_app_meta_data->>'tenant_id')::uuid,
+    '00000000-0000-0000-0000-000000000001'::uuid
+  );
 BEGIN
+  -- The release already running reads the person's tenant from
+  -- profiles.tenant_id (plan 7.4), so the membership's tenant goes there too
+  -- until the migration that drops the column (WP5). Nothing reads it as
+  -- authority since WP2a.
   INSERT INTO public.profiles (id, user_id, email, first_name, last_name, full_name, avatar_url, role, tenant_id)
   VALUES (
     new.id,
@@ -645,15 +667,11 @@ BEGIN
     ),
     new.raw_user_meta_data->>'avatar_url',
     'donor',
-    NULL
+    v_tenant
   );
 
   INSERT INTO authz.memberships (user_id, tenant_id, role)
-  VALUES (
-    new.id,
-    COALESCE((new.raw_app_meta_data->>'tenant_id')::uuid, '00000000-0000-0000-0000-000000000001'::uuid),
-    'donor'
-  )
+  VALUES (new.id, v_tenant, 'donor')
   ON CONFLICT DO NOTHING;
 
   RETURN new;
