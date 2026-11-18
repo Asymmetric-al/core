@@ -1,0 +1,122 @@
+import { getDocumentScope } from "./document-scope-store";
+import { applyRequestScopeHeaders } from "./request-scope-headers";
+
+/**
+ * The one way page code calls the app's own API routes (plan 5.2, "Calls from
+ * a page to the app's own API carry the tenant too"; WP2b, AL-2675).
+ *
+ * It sends the document's tenant and assignment as the `x-asym-tenant` and
+ * `x-asym-assignment` request headers, taken from the document scope and
+ * never from the live address, and `getAuthContext` passes them to the
+ * resolver as the expected tenant and the proposed assignment. Without them
+ * the resolver refuses a person who belongs to two organizations, or holds
+ * two staff rows in one, because it never guesses. A page with no document
+ * scope (sign-in, the chooser, the public website) sends neither, and a value
+ * the caller set for either header is always replaced.
+ *
+ * It lives in `@asym/database`, beside the document scope it reads, because
+ * this is the lowest workspace package and every caller (the three apps,
+ * `@asym/ui`, `@asym/lib`, `@asym/missionary`, `@asym/auth` and this
+ * package's own collections and hooks) already depends on it. A lint rule in
+ * `@asym/eslint-config` refuses a direct call to an own-API path anywhere
+ * else.
+ */
+
+const OWN_API_PATH = /^\/api(?:[/?#]|$)/;
+
+/** A path that is not one of the app's own API routes. */
+export class OwnApiPathError extends TypeError {
+  constructor(path: string) {
+    super(
+      `ownApiFetch calls only the app's own API, a path that starts with /api/; got "${path}".`,
+    );
+    this.name = "OwnApiPathError";
+  }
+}
+
+function assertOwnApiPath(path: string): void {
+  if (typeof path !== "string" || !OWN_API_PATH.test(path)) {
+    throw new OwnApiPathError(String(path));
+  }
+}
+
+/**
+ * `fetch` for an own-API path (`/api/...`, relative to the document), with
+ * the document's scope. The tenant headers never leave the app's origin: any
+ * other address is refused before a request is made.
+ *
+ * Responses are never taken from the HTTP cache. The browser keys that cache
+ * by address alone, while the same address answers for whichever tenant the
+ * headers name.
+ */
+export function ownApiFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  assertOwnApiPath(path);
+  const headers = applyRequestScopeHeaders(
+    new Headers(init.headers),
+    getDocumentScope(),
+  );
+  return fetch(path, {
+    credentials: "same-origin",
+    ...init,
+    headers,
+    cache: "no-store",
+  });
+}
+
+function fileNameFrom(response: Response, fallback: string): string {
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded);
+    } catch {
+      // Fall through to the plain form.
+    }
+  }
+  return /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? fallback;
+}
+
+/**
+ * Downloads a file an own-API route serves, through `ownApiFetch`. A link or
+ * `window.open` to the route would be a page load, which carries no tenant
+ * header, so a person in two organizations would be refused.
+ *
+ * Resolves once the browser has been handed the file; rejects with the
+ * route's error message when it refuses.
+ */
+export async function ownApiDownload(
+  path: string,
+  options: { fileName?: string; signal?: AbortSignal } = {},
+): Promise<void> {
+  const response = await ownApiFetch(path, {
+    signal: options.signal,
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as {
+      error?: unknown;
+    } | null;
+    throw new Error(
+      typeof payload?.error === "string" && payload.error
+        ? payload.error
+        : `Download failed with status ${response.status}`,
+    );
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  try {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileNameFrom(response, options.fileName ?? "download");
+    link.rel = "noopener";
+    link.style.display = "none";
+    document.body.append(link);
+    link.click();
+    link.remove();
+  } finally {
+    // Let the click start the download before the address goes.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+}
