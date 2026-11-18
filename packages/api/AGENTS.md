@@ -20,7 +20,7 @@
 1. Read this file and `docs/guides/architecture/data-access-boundary.md`.
 2. Follow TDD for substantive behavior (`docs/ai/skills/tdd/SKILL.md`).
 3. Keep RLS and tenant isolation intact.
-4. Tests live in `tests/unit/packages/api/<area>/`; run them with `bunx vitest run tests/unit/packages/api/<area>`, then `bunx turbo run lint typecheck --filter=@asym/api`.
+4. Tests live in two places: `tests/unit/packages/api/` (an `<area>/` folder or flat `<area>-*.test.ts` files) and `packages/api/tests/unit/`, which holds many of the Stripe, donation and money tests. Run the ones for your area from both with `bunx vitest run <paths>`, then `bunx turbo run lint typecheck --filter=@asym/api`.
 
 ## Checklist
 
