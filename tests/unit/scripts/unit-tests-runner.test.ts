@@ -6,11 +6,16 @@ import { pathToFileURL } from "node:url";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { ACCEPTANCE_DIR } from "../../../scripts/verify/acceptance-tests.mjs";
 import {
+  ACCEPTANCE_EXCLUDE,
   buildVitestInvocation,
   runBunVersionGuard,
   runUnitTests,
 } from "../../../scripts/verify/unit-tests.mjs";
+
+// No CI event: the input-scoped selection always runs every group.
+const LOCAL = { env: {} };
 
 describe("unit test runner", () => {
   it("uses the cross-platform Bun version guard on Windows", () => {
@@ -45,7 +50,7 @@ describe("unit test runner", () => {
   it("stops on Windows when the Bun version guard fails", () => {
     const spawn = vi.fn(() => ({ status: 7 }));
 
-    expect(runUnitTests("win32", spawn)).toBe(7);
+    expect(runUnitTests("win32", spawn, [], LOCAL)).toBe(7);
     expect(spawn).toHaveBeenCalledOnce();
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
@@ -60,11 +65,17 @@ describe("unit test runner", () => {
   it("skips the Bun version guard on non-Windows platforms", () => {
     const spawn = vi.fn(() => ({ status: 0 }));
 
-    expect(runUnitTests("linux", spawn)).toBe(0);
+    expect(runUnitTests("linux", spawn, [], LOCAL)).toBe(0);
     expect(spawn).toHaveBeenCalledOnce();
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
-      [path.resolve("node_modules/vitest/vitest.mjs"), "run", "--coverage"],
+      [
+        path.resolve("node_modules/vitest/vitest.mjs"),
+        "run",
+        "--coverage",
+        "--exclude",
+        "tests/unit/acceptance/**",
+      ],
       {
         shell: false,
         stdio: "inherit",
@@ -78,7 +89,7 @@ describe("unit test runner", () => {
       .mockReturnValueOnce({ status: 0 })
       .mockReturnValueOnce({ status: 0 });
 
-    expect(runUnitTests("win32", spawn)).toBe(0);
+    expect(runUnitTests("win32", spawn, [], LOCAL)).toBe(0);
     expect(spawn).toHaveBeenCalledTimes(2);
     expect(spawn).toHaveBeenNthCalledWith(
       2,
@@ -93,6 +104,8 @@ describe("unit test runner", () => {
         "--no-file-parallelism",
         "--exclude",
         "tests/unit/scripts/bun-version.test.ts",
+        "--exclude",
+        "tests/unit/acceptance/**",
       ],
       {
         shell: false,
@@ -112,10 +125,12 @@ describe("unit runner argument forwarding", () => {
         }),
       );
       expect(
-        runUnitTests(platform, spawn, [
-          "tests/unit/scripts/setup-verify.test.ts",
-          "--maxWorkers=2",
-        ]),
+        runUnitTests(
+          platform,
+          spawn,
+          ["tests/unit/scripts/setup-verify.test.ts", "--maxWorkers=2"],
+          LOCAL,
+        ),
       ).toBe(0);
       const invocation = spawn.mock.calls.at(-1);
       expect(invocation?.[1]).toContain("--coverage");
@@ -128,38 +143,81 @@ describe("unit runner argument forwarding", () => {
 
   it("retains unspecified defaults and repeatable exclusions on Windows", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    runUnitTests("win32", spawn, [
-      "--max-workers",
-      "2",
-      "--exclude",
-      "custom/**",
-    ]);
+    runUnitTests(
+      "win32",
+      spawn,
+      ["--max-workers", "2", "--exclude", "custom/**"],
+      LOCAL,
+    );
     const args = spawn.mock.calls.at(-1)?.[1];
     expect(args).not.toContain("--maxWorkers=50%");
     expect(args).toContain("--coverage");
     expect(args).toContain("--testTimeout=120000");
-    expect(args?.filter((arg: string) => arg === "--exclude")).toHaveLength(2);
+    expect(args?.filter((arg: string) => arg === "--exclude")).toHaveLength(3);
     expect(args).toContain("tests/unit/scripts/bun-version.test.ts");
+    expect(args).toContain("tests/unit/acceptance/**");
     expect(args).toContain("custom/**");
   });
 
   it("keeps default coverage when only its provider is explicit", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    runUnitTests("linux", spawn, ["--coverage.provider=v8"]);
+    runUnitTests("linux", spawn, ["--coverage.provider=v8"], LOCAL);
     expect(spawn.mock.calls.at(-1)?.[1]).toContain("--coverage");
   });
 
   it("does not interpret filters after the option terminator as overrides", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    runUnitTests("linux", spawn, ["--", "--coverage=false"]);
+    runUnitTests("linux", spawn, ["--", "--coverage=false"], LOCAL);
     expect(spawn.mock.calls.at(-1)?.[1]).toEqual([
       path.resolve("node_modules/vitest/vitest.mjs"),
       "run",
       "--coverage",
+      "--exclude",
+      "tests/unit/acceptance/**",
       "--",
       "--coverage=false",
     ]);
   });
+});
+
+describe("acceptance tests run once", () => {
+  it("excludes exactly the directory the acceptance job runs", () => {
+    expect(ACCEPTANCE_EXCLUDE).toBe(`${ACCEPTANCE_DIR}/**`);
+  });
+
+  it.each(["linux", "win32"])(
+    "leaves the acceptance directory to its own job by default on %s",
+    (platform) => {
+      const spawn = vi.fn((_command: string, _args: string[]) => ({
+        status: 0,
+      }));
+      runUnitTests(platform, spawn, [], LOCAL);
+      const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+      const index = args.indexOf(ACCEPTANCE_EXCLUDE);
+      expect(index).toBeGreaterThan(0);
+      expect(args[index - 1]).toBe("--exclude");
+    },
+  );
+
+  it.each([
+    [
+      "linux",
+      "tests/unit/acceptance/issue-2153/ci-workflow.acceptance.test.ts",
+    ],
+    ["win32", "tests\\unit\\acceptance\\issue-2153"],
+    ["linux", "acceptance"],
+  ])(
+    "still runs acceptance files an argument names on %s (%s)",
+    (platform, filter) => {
+      const spawn = vi.fn((_command: string, _args: string[]) => ({
+        status: 0,
+      }));
+      runUnitTests(platform, spawn, ["--", filter], LOCAL);
+      const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+      expect(args).not.toContain(ACCEPTANCE_EXCLUDE);
+      expect(args).toContain(filter);
+    },
+  );
 });
 
 describe("installed Vitest dispatch", () => {
@@ -216,15 +274,20 @@ describe("installed Vitest dispatch", () => {
           results.push(result);
           return result;
         };
-        const status = runUnitTests(platform, spawn, [
-          "--config",
-          config,
-          coverageOption,
-          "--maxWorkers=1",
-          "--testTimeout=10000",
-          "--hookTimeout=10000",
-          "--file-parallelism",
-        ]);
+        const status = runUnitTests(
+          platform,
+          spawn,
+          [
+            "--config",
+            config,
+            coverageOption,
+            "--maxWorkers=1",
+            "--testTimeout=10000",
+            "--hookTimeout=10000",
+            "--file-parallelism",
+          ],
+          LOCAL,
+        );
         expect(results).toHaveLength(1);
         expect(results[0]?.error).toBeUndefined();
         expect(String(results[0]?.stderr ?? "")).not.toContain(

@@ -8,6 +8,21 @@ const bunVersionScript = fileURLToPath(
   new URL("./bun-version.mjs", import.meta.url),
 );
 
+// The acceptance directory runs once, in the dedicated acceptance-tests CI job
+// (scripts/verify/acceptance-tests.mjs), not again inside test:unit.
+export const ACCEPTANCE_EXCLUDE = "tests/unit/acceptance/**";
+
+/**
+ * Excludes the acceptance directory unless an argument names it: a filter
+ * such as `bun run test:unit -- tests/unit/acceptance/<file>` must still run
+ * that file. Over-inclusion on an unrelated filter is harmless.
+ */
+export function acceptanceExclusion(args) {
+  return args.some((argument) => /acceptance/i.test(argument))
+    ? []
+    : ["--exclude", ACCEPTANCE_EXCLUDE];
+}
+
 export function buildVitestInvocation(args, _platform = process.platform) {
   return {
     command: process.execPath,
@@ -59,6 +74,7 @@ export function runUnitTests(
   platform = process.platform,
   spawn = spawnSync,
   args = [],
+  _options = {},
 ) {
   if (platform === "win32") {
     const status = runBunVersionGuard(spawn);
@@ -90,7 +106,11 @@ export function runUnitTests(
   const retained = defaults.filter(
     (argument) => !explicit.has(defaultOptionName(argument)),
   );
-  return runVitest([...retained, ...args], spawn, platform);
+  return runVitest(
+    [...retained, ...acceptanceExclusion(args), ...args],
+    spawn,
+    platform,
+  );
 }
 
 const isMain =
