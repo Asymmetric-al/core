@@ -1027,11 +1027,17 @@ export const ROLE_LOGIN_VERIFICATION = Object.freeze({
  *   wrong password (`lib/supavisor/errors/wrong_password_error.ex`), or one
  *   changed since the pooler cached the role's salt
  *   (`lib/supavisor/errors/password_changed_error.ex`, which keeps Postgres's
- *   own wording). Postgres says the same. Seen on the preview project at
- *   11:08 UTC on 18 November 2026.
+ *   own wording). Postgres says the same.
  * - `(EAUTHQUERY) unsupported or invalid secret format`: the stored secret is
  *   neither a SCRAM verifier nor MD5, as for a role made without a password
  *   (`lib/supavisor/auth_query.ex`, `parse_secret/2`).
+ *
+ * Both seen word for word on the preview project's pooler on 18 November
+ * 2026 (review K4; report, section 19), naming the bare role, not
+ * `<role>.<ref>`: `FATAL:  password authentication failed for user
+ * "cms_owner"` at 17:00:02 UTC for a wrong password, and `FATAL:  (EAUTHQUERY)
+ * unsupported or invalid secret format` (SQLSTATE XX000) at 17:01:07 UTC for
+ * a login role with no password.
  *
  * Every other refusal is "other", other EAUTHQUERY reasons included: a failed
  * or timed-out auth query, an unknown user, an MD5 secret. So is a refusal

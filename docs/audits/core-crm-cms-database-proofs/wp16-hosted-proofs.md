@@ -387,7 +387,7 @@ Other settings: `max_connections` 60, `password_encryption` `scram-sha-256`, Pos
 
 **Why it ran.** #2714's review fix edits `20261117040237_role_change_requires_tenant_admin.sql` in place. At `51f30dfa2`, `preflight` found 0 pending migrations on both ledgers (10:58:44 UTC). Then `gates` found the edit: `public.atomic_update_user_role_with_audit` is defined differently (10:59:19). The coordinator called a second rebuild.
 
-**What happened.** `preview-rebuild` at `51f30dfa2` ran the reset, the chain and the seed, and replaced the seeded login's password. It then set the `cms_owner` password and logged in as `cms_owner` at once. The pooler refused: "password authentication failed for user cms_owner". The step stopped at 11:08:31, before Payload's migrations; `preflight` at 11:10:23 found Payload's five pending. A read-only login as each role at 11:09:51, about 80 seconds after the refusal, worked with the same secrets.
+**What happened.** `preview-rebuild` at `51f30dfa2` ran the reset, the chain and the seed, and replaced the seeded login's password. It then set the `cms_owner` password and logged in as `cms_owner` at once. The pooler refused: `FATAL:  password authentication failed for user "cms_owner"`. The step stopped at 11:08:31, before Payload's migrations; `preflight` at 11:10:23 found Payload's five pending. A read-only login as each role at 11:09:51, about 80 seconds after the refusal, worked with the same secrets.
 
 **The cause.** The pooler (Supavisor) caches each role's credentials. Each `ALTER ROLE ... PASSWORD` writes a new verifier with a new salt, even for the same password. A login right after it can be refused until the pooler fetches the new one (Supabase, "Supavisor error: password authentication failed after rotating database password"). Repeated refusals trip its circuit breaker. In Supavisor v2.10.1 (commit `83ca93e1`, its newest tag on 18 November 2026), 10 refused logins in 150 seconds block the client address for 120 seconds (`lib/supavisor/circuit_breaker.ex`, `:auth_error`). Supabase does not publish which version its pooler runs, so for hosted that bound is an estimate. The step set the same passwords on every release, so every release risked this.
 
@@ -644,3 +644,19 @@ Two reviewers read the branch at `e1d3233f2` (7/10 and 7/10, "accept after fixes
 - `preview-rebuild`, 16:04:51-16:11:47: the pinned CLI checked; "Put back the platform's default privileges in public", which commits only after the pre-reset check of H5 passed; the reset, 109 migrations (14 rollback files skipped), the seed; one seeded login replaced; both CMS secrets already logged in; Payload's five migrations in 20 seconds.
 - `gates`, 16:11:47-16:11:58: "Schema fingerprints match", 0 differing, the default-privilege rows included.
 - `record-heads`, to 16:12:15; `preflight`, to 16:12:32: 0 pending on both ledgers, marked `disposable`.
+
+## 19. The pooler's own words (review K4)
+
+H3 accepts two forms of refusal. Neither had been seen on hosted at the revision it cites, so they were observed on the preview project on 18 November 2026, with three refused logins in all, a minute apart, well under the breaker's estimate. A throwaway login role, `wp16_probe_nopw`, was created with no password and no privileges at 16:59:55 UTC and dropped at 17:02:15. None remains. Each refusal is quoted after the job's own redaction (`scripts/release/lib/postgres.mjs`):
+
+| UTC      | Login                              | Path                        | Refusal                                                                                                                                                                                                             | SQLSTATE                                         |
+| -------- | ---------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 17:00:02 | `cms_owner`, a wrong password      | psql, the job's `queryJson` | `log in as cms_owner: psql exited 2. psql: error: connection to server at "aws-0-us-west-2.pooler.supabase.com" (35.160.209.8), port 5432 failed: FATAL:  password authentication failed for user "cms_owner"`      | not printed by psql; 28P01 in Supavisor's source |
+| 17:01:07 | `wp16_probe_nopw`, no password set | psql, the job's `queryJson` | `log in as wp16_probe_nopw: psql exited 2. psql: error: connection to server at "aws-0-us-west-2.pooler.supabase.com" (44.238.118.41), port 5432 failed: FATAL:  (EAUTHQUERY) unsupported or invalid secret format` | not printed by psql                              |
+| 17:02:12 | `wp16_probe_nopw`, no password set | node-postgres 8.20.0        | `(EAUTHQUERY) unsupported or invalid secret format`, severity FATAL                                                                                                                                                 | XX000                                            |
+
+**What this means.**
+
+- Both forms are exactly what `classifyLoginRefusal` matches. The pooler names the bare role (`"cms_owner"`), not `cms_owner.<ref>`, as the code and its fakes assume. So `set-cms-role-passwords` recognises a wrong password, and a role without a password gets one through the job.
+- The fakes in `tests/unit/scripts/release/release-database.test.ts` now say these words exactly, and a case reads each as a refusal for the password.
+- A direct, non-pooler connection could not be tried. The project's direct host resolves only to an IPv6 address (`2600:1f13:…`), and this machine has no IPv6 route.

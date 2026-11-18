@@ -10,6 +10,7 @@ import {
   RELEASE_ENVIRONMENTS,
   ROLE_LOGIN_VERIFICATION,
   ReleaseStop,
+  classifyLoginRefusal,
   migrate,
   payloadMigrate,
   preflight,
@@ -1185,10 +1186,36 @@ describe("release database steps", () => {
 // leaves a password alone when its secret already logs in, and after a real
 // change waits, within a bound, for the pooler to take the new one.
 describe("CMS role passwords through a hosted pooler", () => {
+  // Review K4: the preview project's pooler, word for word, after the job's
+  // own redaction, on 18 November 2026 (report, section 19). It names the
+  // bare role, not `<role>.<ref>`. The fakes below say exactly the same.
+  const OBSERVED = {
+    wrongPassword:
+      'log in as cms_owner: psql exited 2. psql: error: connection to server at "aws-0-us-west-2.pooler.supabase.com" (35.160.209.8), port 5432 failed: FATAL:  password authentication failed for user "cms_owner"',
+    noSecret:
+      'log in as wp16_probe_nopw: psql exited 2. psql: error: connection to server at "aws-0-us-west-2.pooler.supabase.com" (44.238.118.41), port 5432 failed: FATAL:  (EAUTHQUERY) unsupported or invalid secret format',
+    noSecretNodePostgres: "(EAUTHQUERY) unsupported or invalid secret format",
+  };
   const PASSWORD_REFUSED = (role: string) =>
-    `log in as ${role}: psql exited 2. psql: error: connection to server at "aws-0-us-east-1.pooler.supabase.com" (192.0.2.1), port 5432 failed: FATAL:  password authentication failed for user "${role}"`;
+    OBSERVED.wrongPassword.replaceAll("cms_owner", role);
   const NO_SECRET = (role: string) =>
-    `log in as ${role}: psql exited 2. psql: error: connection to server at "aws-0-us-east-1.pooler.supabase.com" (192.0.2.1), port 5432 failed: FATAL:  (EAUTHQUERY) unsupported or invalid secret format`;
+    OBSERVED.noSecret.replaceAll("wp16_probe_nopw", role);
+
+  it("reads the pooler's own refusals as refusals for the password", () => {
+    expect(classifyLoginRefusal(OBSERVED.wrongPassword, "cms_owner")).toBe(
+      "password",
+    );
+    expect(classifyLoginRefusal(OBSERVED.noSecret, "wp16_probe_nopw")).toBe(
+      "password",
+    );
+    expect(
+      classifyLoginRefusal(OBSERVED.noSecretNodePostgres, "wp16_probe_nopw"),
+    ).toBe("password");
+    // The pooler names the bare role; a refusal naming another stays "other".
+    expect(classifyLoginRefusal(OBSERVED.wrongPassword, "cms_runtime")).toBe(
+      "other",
+    );
+  });
 
   /** Each role answers its logins, in order, from its script: "ok" or an error. */
   function hosted(script: Record<string, string[]>) {

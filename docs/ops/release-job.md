@@ -201,7 +201,8 @@ So the step first logs in as each role with its secret.
 - The login works: the password is already right, and nothing changes. This
   is every ordinary release.
 - The login is refused for the password, in one of two forms only, as
-  Supavisor v2.10.1 words them: "password authentication failed for user"
+  Supavisor v2.10.1 words them, and as the preview project's pooler answered
+  on 18 November 2026: "password authentication failed for user"
   naming that role, or "(EAUTHQUERY) unsupported or invalid secret format"
   for a role with no usable password. The step sets the password once, from a verifier
   computed on the runner, then logs in again at once, after 30 seconds and
