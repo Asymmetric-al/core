@@ -71,6 +71,23 @@
       design.md, and correct the merge attribution and `mergeRequest` fields
       in `pack/README.md`.
 
+## 7. Bot review follow-up (19 November)
+
+- [x] 7.1 Write failing caller tests in
+      `tests/unit/scripts/archon-readiness-callers.test.ts`: an enqueue that
+      throws `outcome: "unknown"` on an open pull request blocks
+      `merge-unconfirmed` once, sends no second request, and a later round
+      stays blocked, each with a recovery that names the queue page and
+      Merge when ready; the queued WAIT says to re-add with Merge when ready.
+      Then make both `merge-unconfirmed` recoveries in
+      `pack/deliver/scripts/readiness.ts` queue-aware when the decision
+      carries `mergeQueue`, and correct the WAIT text. Red on 19 November:
+      2 failures (the recovery was "Inspect the PR before any retry"; the WAIT
+      said "re-adds or merges it"). Green: 37 tests in that file.
+- [x] 7.2 Add the unknown-enqueue recovery to the runbook section "Merge
+      queue on develop" and to design.md, and the queue to the spec scenario
+      "The enqueue response is lost".
+
 ## Workflow follow-up
 
 - Archive the change after the implementation has merged and the first queued

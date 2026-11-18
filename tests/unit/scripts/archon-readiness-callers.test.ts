@@ -534,9 +534,47 @@ describe("readiness callers at local GitHub and Archon boundaries", () => {
       verdict: "WAIT",
       reason: expect.stringContaining("merge queue"),
     });
+    // GitHub refuses a direct merge while the queue is required.
+    expect(output.reason).toContain("re-adds it with Merge when ready");
+    expect(output.reason).not.toMatch(/or merges it/);
     expect(entries.readiness.blocked).toBeUndefined();
     expect(state.github.merge).toHaveBeenCalledOnce();
     expect(state.document.value.pr.mergeRequest.status).toBe("queued");
+    expect(documents.get("core/merge-lane").value.issue).toBeNull();
+  });
+
+  it("blocks an unknown enqueue once with queue recovery, never enqueuing again (merge queue)", async () => {
+    authorizeMerge();
+    requireMergeQueue();
+    // GitHub's answer had no queue entry, or errors not all meaning rejected:
+    // the enqueue may or may not have happened.
+    state.github.merge.mockRejectedValue(
+      Object.assign(new Error("GraphQL: Something went wrong"), {
+        outcome: "unknown",
+      }),
+    );
+    const expectQueueRecovery = () => {
+      const { recovery } = entries.readiness.blocked;
+      expect(recovery).toContain("develop merge queue page");
+      expect(recovery).toContain("leave pr.mergeRequest as it is");
+      expect(recovery).toContain("add it with Merge when ready");
+      expect(recovery).toContain("only after GitHub reports it merged");
+    };
+    await runScript("feedback-facts");
+    expect(await runScript("readiness")).toMatchObject({ verdict: "BLOCKED" });
+    expect(entries.readiness.blocked.code).toBe("merge-unconfirmed");
+    expectQueueRecovery();
+    expect(state.document.value.pr.mergeRequest).toMatchObject({
+      head: HEAD,
+      status: "unknown",
+    });
+    // A later round on the same open, unmerged pull request stays blocked.
+    await runScript("feedback-facts");
+    expect(await runScript("readiness")).toMatchObject({ verdict: "BLOCKED" });
+    expect(entries.readiness.blocked.code).toBe("merge-unconfirmed");
+    expectQueueRecovery();
+    expect(state.github.merge).toHaveBeenCalledOnce();
+    expect(state.document.value.pr.mergeRequest.status).toBe("unknown");
     expect(documents.get("core/merge-lane").value.issue).toBeNull();
   });
 

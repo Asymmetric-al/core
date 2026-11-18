@@ -38,6 +38,8 @@ request SHALL stay exactly as it was.
 - **WHEN** the enqueue's response is lost, GitHub answers with a server error,
   or GitHub's errors do not all say that it rejected the request
 - **THEN** its outcome is unknown and is reconciled from GitHub before any retry
+- **AND** the factory does not add the pull request to the queue again, and the
+  recovery it gives names the queue, not a direct merge
 
 #### Scenario: No queue is required
 

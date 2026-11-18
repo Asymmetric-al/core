@@ -606,6 +606,22 @@ enqueueing. None of them takes a pull request out of the queue, and GitHub
 still merges one that is queued. To stop a queued merge, remove its entry on
 the `develop` queue page.
 
+If the enqueue's outcome is unknown (GitHub's answer had no queue entry, its
+errors did not all say that it rejected the request, or the response was
+lost), the issue blocks `merge-unconfirmed` with `pr.mergeRequest.status`
+`unknown`. The pull request may be queued, so do not clear that record and do
+not merge it directly (GitHub refuses that while the queue is required). Look
+at the `develop` queue page:
+
+- the pull request is there: leave `pr.mergeRequest` as it is, and run
+  `issue <n> retry` only after GitHub reports it merged. That round records
+  MERGED;
+- it is not there: add it with **Merge when ready**, then run
+  `issue <n> retry` only after GitHub reports it merged.
+
+A retry before GitHub reports the merge blocks `merge-unconfirmed` again; the
+factory never enqueues a head whose request is unknown.
+
 If the issue stops at `PR_READY` instead of being enqueued, with "Required
 human review pending (0/0)", and the round's `readiness-observation` shows
 `state: blocked`, GitHub reports queued-base pull requests as blocked and

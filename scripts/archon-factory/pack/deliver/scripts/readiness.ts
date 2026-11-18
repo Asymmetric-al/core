@@ -693,8 +693,11 @@ if (decision.verdict === "MERGE")
         if (pending?.head === value.head && pending.status === "queued")
           return {
             verdict: "WAIT",
-            reason: `Still in the ${target} merge queue at ${value.head.slice(0, 12)}; if GitHub removed it, a person re-adds or merges it`,
+            reason: `Still in the ${target} merge queue at ${value.head.slice(0, 12)}; if GitHub removed it, a person re-adds it with Merge when ready (a direct merge is refused)`,
           };
+        // An enqueue whose outcome is unknown may have queued the pull request;
+        // GitHub refuses a direct merge while the queue is required.
+        const queueRecovery = `Look at the ${target} merge queue page. If the PR is there, leave pr.mergeRequest as it is; if not, add it with Merge when ready. Either way, retry the issue only after GitHub reports it merged`;
         if (pending?.head === value.head && pending.status !== "refused")
           return {
             verdict: "BLOCKED",
@@ -704,7 +707,9 @@ if (decision.verdict === "MERGE")
                 code: "merge-unconfirmed",
                 detail: `Request for ${pending.head} is ${pending.status ?? "unconfirmed"}`,
                 recovery:
-                  "Inspect the PR and reconcile the recorded merge request before any retry",
+                  decision.mergeQueue === true
+                    ? queueRecovery
+                    : "Inspect the PR and reconcile the recorded merge request before any retry",
               },
             },
           };
@@ -807,7 +812,10 @@ if (decision.verdict === "MERGE")
               blocked: {
                 code: "merge-unconfirmed",
                 detail: JSON.stringify(merged ?? {}).slice(0, 400),
-                recovery: "Inspect the PR before any retry",
+                recovery:
+                  decision.mergeQueue === true
+                    ? queueRecovery
+                    : "Inspect the PR before any retry",
               },
             },
           };

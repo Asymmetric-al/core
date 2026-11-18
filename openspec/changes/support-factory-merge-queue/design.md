@@ -161,6 +161,13 @@ state; supporting a queue configured only in classic branch protection.
   same 2026-11-18 ruling: it is a label only (the merge, close-out and issue
   close are correct), and the work item still records that the factory queued
   that head.
+- [An enqueue whose outcome is unknown may have queued the pull request] →
+  The request is recorded `unknown` and the issue blocks `merge-unconfirmed`;
+  later rounds at that head block again and send nothing. Because a direct
+  merge is refused while the queue is required, the blocker's recovery (and
+  the runbook) says to look at the queue page: leave the record if the pull
+  request is there, add it with Merge when ready if it is not, and retry
+  only after GitHub reports it merged.
 - [A release without this change sends a direct merge while the queue is on]
   → GitHub refuses it and the issue blocks `merge-refused`; it is never
   reported merged. The runbook holds merging until the release is installed.
