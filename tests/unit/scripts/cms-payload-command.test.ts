@@ -183,7 +183,7 @@ describe("Payload CLI migration preflight", () => {
     });
     expect(result.status, result.stderr).toBe(0);
     expect(result.payloadSpawn?.payloadDatabaseUri).toContain(
-      "options=-c+role%3Dcms_owner",
+      "options=-c%20role%3Dcms_owner",
     );
   });
 
@@ -231,7 +231,7 @@ process.stdout.write(sql.includes("to_regprocedure") ? "t\\n" : ${JSON.stringify
           expect(result.status, result.stderr).toBe(0);
           expect(result.payloadSpawn?.args).toContain(command);
           expect(result.payloadSpawn?.payloadDatabaseUri).toContain(
-            "options=-c+role%3Dcms_owner",
+            "options=-c%20role%3Dcms_owner",
           );
         },
       );

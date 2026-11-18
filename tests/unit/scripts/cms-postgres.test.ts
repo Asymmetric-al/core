@@ -55,33 +55,66 @@ describe("CMS PostgreSQL command connection", () => {
     expect(spawnSync.mock.calls.at(-1)![2].env.PGSSLMODE).toBe("verify-full");
   });
 
-  it("preserves libpq defaults when the URL omits connection fields", () => {
-    vi.stubEnv("PGPORT", "6543");
-    vi.stubEnv("PGSSLMODE", "verify-full");
+  // Review L2: the address is the whole target. Of the ambient PG*
+  // settings only the CA file (the release job hands it to the runner as
+  // PGSSLROOTCERT) and the password (a caller may keep it out of the address)
+  // survive; any other could fill in or change the target or the login.
+  it("drops every ambient PG* setting but the CA file and the password", () => {
+    for (const [key, value] of Object.entries({
+      PGHOST: "elsewhere.example",
+      PGHOSTADDR: "203.0.113.9",
+      PGPORT: "6543",
+      PGUSER: "postgres",
+      PGDATABASE: "other",
+      PGOPTIONS: "-c role=postgres",
+      PGSSLMODE: "disable",
+      PGTARGETSESSIONATTRS: "read-write",
+      PGSSLROOTCERT: "/run/ca.pem",
+      PGPASSWORD: "ambient-password",
+    }))
+      vi.stubEnv(key, value);
     spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", { databaseUrl: "postgresql://db.example/postgres" });
-
-    expect(spawnSync.mock.calls.at(-1)![2].env).toMatchObject({
-      PGHOST: "db.example",
-      PGPORT: "6543",
-      PGSSLMODE: "verify-full",
-    });
+    const env = spawnSync.mock.calls.at(-1)![2].env;
+    expect(env.PGHOST).toBe("db.example");
+    expect(env.PGDATABASE).toBe("postgres");
+    for (const key of [
+      "PGHOSTADDR",
+      "PGPORT",
+      "PGUSER",
+      "PGOPTIONS",
+      "PGSSLMODE",
+      "PGTARGETSESSIONATTRS",
+    ])
+      expect(env[key], key).toBeUndefined();
+    expect(env.PGSSLROOTCERT).toBe("/run/ca.pem");
+    expect(env.PGPASSWORD).toBe("ambient-password");
   });
 
-  it("preserves libpq URI options without exposing URL credentials", () => {
+  // Review L2: only the shared allowlist of query keys; nothing passes
+  // through to libpq unread, and a query host is never a target.
+  it.each([
+    ["an unknown key", "&keepalives_idle=30"],
+    ["a query host", "&host=evil.example"],
+    ["a key with a blank", "&%20host=evil.example"],
+    ["options on a hosted address", "&options=-c%20role%3Dpostgres"],
+  ])("refuses %s before starting psql", (_case, extra) => {
+    const priorCalls = spawnSync.mock.calls.length;
+    expect(() =>
+      runPsql("SELECT 1;", { databaseUrl: `${databaseUrl}${extra}` }),
+    ).toThrow(/refused/);
+    expect(spawnSync.mock.calls).toHaveLength(priorCalls);
+  });
+
+  it("hands the local CMS session role to psql as PGOPTIONS, for a loopback address only", () => {
     spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
-      databaseUrl: `${databaseUrl}&keepalives_idle=30&ssl=true`,
+      databaseUrl:
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?options=-c%20role%3Dcms_owner",
     });
-    const [, args, options] = spawnSync.mock.calls.at(-1)!;
-    const connection = new URL(args[args.indexOf("--dbname") + 1]);
-
-    expect(connection.searchParams.get("keepalives_idle")).toBe("30");
-    expect(connection.searchParams.get("ssl")).toBe("true");
-    expect(connection.username).toBe("");
-    expect(connection.password).toBe("");
-    expect(JSON.stringify(args)).not.toContain("password");
-    expect(options.env.PGPASSWORD).toBe("fake:password");
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGOPTIONS).toBe(
+      "-c role=cms_owner",
+    );
   });
 
   it("reports malformed credential encoding without leaking the URL", () => {
@@ -122,16 +155,15 @@ describe("CMS PostgreSQL command connection", () => {
     expect(spawnSync.mock.calls).toHaveLength(priorCalls);
   });
 
-  it("preserves spaces in libpq URI options", () => {
+  // Review L2: the query is read as libpq reads it: %XX decoded, + kept.
+  it("reads the query as libpq does", () => {
     spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
-      databaseUrl: `${databaseUrl}&fallback_application_name=core%20local`,
+      databaseUrl: `${databaseUrl}&application_name=core%20local+cms`,
     });
-    const args = spawnSync.mock.calls.at(-1)![1];
-    const forwarded = new URL(args[args.indexOf("--dbname") + 1]);
-    const value = forwarded.search.slice(1).split("=")[1];
-    // libpq percent-decodes URI values; it does not use form '+' decoding.
-    expect(decodeURIComponent(value)).toBe("core local");
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGAPPNAME).toBe(
+      "core local+cms",
+    );
   });
 
   // Review L1: the builder never decodes the host, and requires SCRAM for a

@@ -694,7 +694,7 @@ The query is read as libpq's URI parser reads it: `%XX` decoded, `+` kept as `+`
 
 **K1, the other paths.**
 
-- `scripts/release/lib/postgres.mjs` takes the host from the parsed URL only: for a URL with `?%20host=evil.example` it sets `PGHOST` to the URL's host.
+- `scripts/release/lib/postgres.mjs` took the host from the parsed URL only: for a URL with `?%20host=evil.example` it set `PGHOST` to the URL's host. It read no other key, though, and a third review found that it decoded the host (section 21); it now refuses what the one check refuses.
 - `scripts/cms/lib/postgres.mjs` hands keys it does not map to libpq's URI parser, which psql 17.11 refuses: `invalid URI query parameter: " host"`, and the same for `HOST` and `host `.
 - node-postgres (`pg-connection-string` 2.12.0) keeps the URL's host for all three and carries the odd keys as unknown settings, which `pg` ignores. It reads `+` in a query password as a space, where psql now keeps `+`; that changes a password, never a target.
 

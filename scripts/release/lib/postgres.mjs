@@ -4,8 +4,11 @@
 import { spawnSync } from "node:child_process";
 
 import {
+  DATABASE_URL_QUERY_ENV,
   HOSTED_LIBPQ_ENV,
+  databaseUrlProblem,
   isLoopbackDatabaseUrl,
+  libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
 
 const URL_FIELDS = {
@@ -15,7 +18,6 @@ const URL_FIELDS = {
   PGDATABASE: (url) => decodeURIComponent(url.pathname.slice(1)),
   PGUSER: (url) => decodeURIComponent(url.username),
   PGPASSWORD: (url) => decodeURIComponent(url.password),
-  PGSSLMODE: (url) => url.searchParams.get("sslmode") ?? "",
 };
 // Ambient libpq settings that could redirect the connection.
 const AMBIENT = [
@@ -45,12 +47,22 @@ export function connectionEnvironment(databaseUrl, base = process.env) {
   if (!["postgres:", "postgresql:"].includes(url.protocol)) {
     throw new Error("The database connection is not a Postgres URL.");
   }
+  // Review L2: the one check judges the address, and the query is read as
+  // libpq reads it, through the same map as the CMS runner.
+  const problem = databaseUrlProblem(databaseUrl, { forPsql: true });
+  if (problem !== null)
+    throw new Error(`The database connection is refused: ${problem}.`);
   const env = { ...base };
   for (const key of AMBIENT) delete env[key];
   for (const key of Object.keys(URL_FIELDS)) delete env[key];
+  for (const key of Object.values(DATABASE_URL_QUERY_ENV)) delete env[key];
   for (const [key, read] of Object.entries(URL_FIELDS)) {
     const value = read(url);
     if (value) env[key] = value;
+  }
+  for (const [key, value] of libpqQueryEntries(databaseUrl)) {
+    if (key === "password" && env.PGPASSWORD) continue;
+    env[DATABASE_URL_QUERY_ENV[key]] = value;
   }
   // Review L1: a hosted server may never ask for the password in clear text.
   delete env.PGREQUIREAUTH;

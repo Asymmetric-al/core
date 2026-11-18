@@ -27,6 +27,13 @@ export declare function databaseUrlHostProblem(
   databaseUrl: string | URL,
 ): string | null;
 
+export declare const DATABASE_URL_QUERY_ENV: Readonly<Record<string, string>>;
+
+export declare function databaseUrlProblem(
+  databaseUrl: string | URL,
+  options?: { forPsql?: boolean },
+): string | null;
+
 export declare function libpqUrlMismatch(
   databaseUrl: string | URL | null | undefined,
 ): string | null;

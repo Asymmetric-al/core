@@ -151,6 +151,51 @@ export function databaseUrlQueryProblem(databaseUrl, { forPsql = false } = {}) {
 }
 
 /**
+ * The libpq variable each allowed query key becomes, for a builder that
+ * hands libpq the address as PG* variables (review L2): the release job's
+ * own psql and the CMS runner read the same keys the same way.
+ */
+export const DATABASE_URL_QUERY_ENV = Object.freeze({
+  sslmode: "PGSSLMODE",
+  sslrootcert: "PGSSLROOTCERT",
+  application_name: "PGAPPNAME",
+  connect_timeout: "PGCONNECT_TIMEOUT",
+  password: "PGPASSWORD",
+  options: "PGOPTIONS",
+});
+
+/**
+ * Why a Postgres address may not be used, or null: the one check that every
+ * builder and every target check calls and refuses on (review L2). In turn:
+ * the scheme, the shape libpq would read otherwise (libpqUrlMismatch), the
+ * host (databaseUrlHostProblem) and the query (databaseUrlQueryProblem;
+ * `forPsql` also refuses the keys psql is never handed). `options` is
+ * accepted only on a loopback address, where the local CMS migration session
+ * sets its role.
+ */
+export function databaseUrlProblem(databaseUrl, { forPsql = false } = {}) {
+  let url;
+  try {
+    url = databaseUrl instanceof URL ? databaseUrl : new URL(databaseUrl);
+  } catch {
+    return "it is not a URL";
+  }
+  if (!["postgres:", "postgresql:"].includes(url.protocol))
+    return "it is not a postgres:// or postgresql:// URL";
+  const problem =
+    libpqUrlMismatch(databaseUrl) ??
+    databaseUrlHostProblem(url) ??
+    databaseUrlQueryProblem(databaseUrl, { forPsql });
+  if (problem !== null) return problem;
+  const hasOptions = libpqQueryEntries(databaseUrl).some(
+    ([key]) => key === "options",
+  );
+  if (hasOptions && !LOOPBACK_DATABASE_HOSTS.includes(url.hostname))
+    return 'the query key "options" is accepted only for a loopback address';
+  return null;
+}
+
+/**
  * The routing keys a Postgres URL carries in its query, in the order of
  * DATABASE_URL_ROUTING_KEYS. Throws when `databaseUrl` is not a URL.
  */
@@ -260,10 +305,8 @@ export function isLoopbackDatabaseUrl(databaseUrl) {
   } catch {
     return false;
   }
-  if (libpqUrlMismatch(databaseUrl) !== null) return false;
   return (
-    ["postgres:", "postgresql:"].includes(url.protocol) &&
     LOOPBACK_DATABASE_HOSTS.includes(url.hostname) &&
-    databaseUrlQueryProblem(databaseUrl) === null
+    databaseUrlProblem(databaseUrl) === null
   );
 }

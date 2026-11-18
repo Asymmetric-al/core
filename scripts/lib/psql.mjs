@@ -1,21 +1,23 @@
-// The one seam for database tooling (AL-2674, PR #2714 review): only
-// isLoopbackDatabaseUrl, re-exported here from packages/env/src/database-url.mjs,
-// decides that a URL names a database on this machine (a Postgres URL on
-// 127.0.0.1, localhost or [::1] whose query carries no routing override), and
-// psql starts only through this file (runPsqlQuery, spawnPsql, or
-// psqlConnection for a caller's own spawn), with the URL as the whole target,
-// handed to libpq as its parsed parts and never as the raw string, psql's
-// startup file skipped (-X), every ambient PG* setting dropped and the
-// password in PGPASSWORD, never in the argument list. The catalog gate, the field-policy gate, the environment
-// marker, the migration verifier and seed verify run through it, and the
-// release job runs the gates against hosted databases.
+// The seam for local database tooling (AL-2674; PR #2714 review; review L2).
+// One check judges every database address: databaseUrlProblem in
+// packages/env/src/database-url.mjs (shape, host, routing override, query
+// allowlist). isLoopbackDatabaseUrl, re-exported here, is the only test that
+// an address names this machine (127.0.0.1, localhost or [::1]), and it calls
+// that check. Three files start psql, and each refuses what the check
+// refuses: this one (runPsqlQuery, spawnPsql, or psqlConnection for a caller's
+// own spawn: the parsed parts as libpq keywords, never the raw string, -X,
+// every ambient PG* setting dropped, the password in PGPASSWORD);
+// scripts/release/lib/postgres.mjs, the release job's own SQL, through PG*
+// variables built from the parsed address; and scripts/cms/lib/postgres.mjs,
+// the CMS runner, the same way. The catalog gate, the field-policy gate, the
+// environment marker, the migration verifier and seed verify run through this
+// file.
 import { spawnSync } from "node:child_process";
 
 import {
   LOOPBACK_DATABASE_HOSTS,
   HOSTED_LIBPQ_ENV,
-  databaseUrlHostProblem,
-  databaseUrlQueryProblem,
+  databaseUrlProblem,
   isLoopbackDatabaseUrl,
   libpqQueryEntries,
   libpqUrlMismatch,
@@ -63,10 +65,7 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
     throw new Error(
       `the database URL is refused because libpq would read it differently: ${mismatch}`,
     );
-  const hostProblem = databaseUrlHostProblem(url);
-  if (hostProblem !== null)
-    throw new Error(`the database URL is refused for psql: ${hostProblem}`);
-  const problem = databaseUrlQueryProblem(databaseUrl, { forPsql: true });
+  const problem = databaseUrlProblem(databaseUrl, { forPsql: true });
   if (problem !== null)
     throw new Error(`the database URL is refused for psql: ${problem}`);
   const env = Object.fromEntries(

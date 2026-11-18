@@ -160,6 +160,21 @@ describe("CMS migration target", () => {
     ).toThrow();
   });
 
+  // Review L2: the CMS target check uses the one check, not routing keys only.
+  it.each([
+    ["a key with a blank", "&%20host=evil.example"],
+    ["an upper-case key", "&HOST=evil.example"],
+    ["an unknown key", "&pgbouncer=true"],
+    ["options on a hosted address", "&options=-c%20role%3Dpostgres"],
+  ])("refuses a hosted address whose query has %s", (_case, extra) => {
+    expect(() =>
+      assertCmsMigrationTarget({
+        ...hosted,
+        databaseUrl: `postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require${extra}`,
+      }),
+    ).toThrow();
+  });
+
   it("validates direct Supabase database hosts", () => {
     expect(() =>
       assertCmsMigrationTarget({
@@ -227,12 +242,15 @@ describe("CMS migration target", () => {
       "require&sslmode=disable",
       "require&sslmode=require",
     ]) {
-      expect(() =>
-        assertCmsMigrationTarget({
-          ...hosted,
-          databaseUrl: hosted.databaseUrl.replace("no-verify", modes),
-        }),
-      ).toThrow("encrypted");
+      expect(
+        () =>
+          assertCmsMigrationTarget({
+            ...hosted,
+            databaseUrl: hosted.databaseUrl.replace("no-verify", modes),
+          }),
+        // Review L2: the shared check refuses a key given twice, before the
+        // TLS check sees it.
+      ).toThrow(/"sslmode" appears twice/);
     }
   });
 });

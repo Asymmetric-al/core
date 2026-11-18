@@ -1,7 +1,6 @@
 import {
   SUPABASE_POOLER_HOST,
-  databaseUrlHostProblem,
-  databaseUrlRoutingOverrides,
+  databaseUrlProblem,
   isLoopbackDatabaseUrl,
 } from "../../../packages/env/src/database-url.mjs";
 import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
@@ -24,19 +23,15 @@ export function assertCmsMigrationTarget({
     throw new Error("CMS migration requires a Postgres database URL.");
   }
 
-  if (
-    databaseUrlRoutingOverrides(database).length > 0 ||
-    environment.PGHOSTADDR ||
-    environment.PGSERVICE
-  ) {
-    throw new Error("CMS migration does not allow database routing overrides.");
+  // Review L2: the one check, not routing keys only.
+  const problem = databaseUrlProblem(databaseUrl);
+  if (problem !== null || environment.PGHOSTADDR || environment.PGSERVICE) {
+    throw new Error(
+      `CMS migration does not allow database routing overrides or an address the shared check refuses${problem ? ` (${problem})` : ""}.`,
+    );
   }
 
   if (isLoopbackDatabaseUrl(database)) return;
-  // Review L1: one host rule, then Supabase's pooler pattern, not a suffix.
-  if (databaseUrlHostProblem(database) !== null) {
-    throw new Error("CMS migration refuses this database host.");
-  }
   const hostname = database.hostname.replace(/^\[|\]$/g, "");
 
   let ref;

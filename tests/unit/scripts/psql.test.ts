@@ -21,6 +21,7 @@ import {
   DATABASE_URL_QUERY_KEYS,
   SUPABASE_POOLER_HOST,
   databaseUrlHostProblem,
+  databaseUrlProblem,
 } from "../../../packages/env/src/database-url.mjs";
 import {
   LOOPBACK_HOSTS,
@@ -576,5 +577,47 @@ describe("the host an address may name (review L1)", () => {
       psqlConnection("postgresql://postgres@127.0.0.1:54322/postgres", {}).env
         .PGREQUIREAUTH,
     ).toBeUndefined();
+  });
+});
+
+// Review L2: one check judges every address, shape, host and query, and
+// every builder and target check refuses on any problem it names.
+describe("the one check for an address (review L2)", () => {
+  it.each([
+    [
+      "a key with a leading blank",
+      "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&%20host=evil.example",
+    ],
+    [
+      "a host list",
+      "postgresql://postgres.abcdefghijklmnopqrst@evil.example,aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require",
+    ],
+    [
+      "options",
+      "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&options=-c%20role%3Dauthenticator",
+    ],
+    [
+      "an unknown key",
+      "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&pgbouncer=true",
+    ],
+    [
+      "a shape libpq reads otherwise",
+      "postgres://localhost?x=@evil.example/db",
+    ],
+  ])("names a problem for %s", (_case, url) => {
+    expect(databaseUrlProblem(url, { forPsql: true })).not.toBeNull();
+  });
+
+  it("passes a hosted address and a loopback address, and keeps options for loopback use only", () => {
+    expect(
+      databaseUrlProblem(
+        "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require",
+        { forPsql: true },
+      ),
+    ).toBeNull();
+    const session =
+      "postgresql://postgres@127.0.0.1:54322/postgres?options=-c%20role%3Dcms_owner";
+    expect(databaseUrlProblem(session)).toBeNull();
+    expect(databaseUrlProblem(session, { forPsql: true })).not.toBeNull();
   });
 });

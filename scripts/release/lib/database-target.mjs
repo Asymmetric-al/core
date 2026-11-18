@@ -3,11 +3,9 @@
 // connection string.
 import {
   SUPABASE_POOLER_HOST,
-  databaseUrlHostProblem,
-  databaseUrlQueryProblem,
+  databaseUrlProblem,
   databaseUrlRoutingOverrides,
   isLoopbackDatabaseUrl,
-  libpqUrlMismatch,
 } from "../../../packages/env/src/database-url.mjs";
 
 /**
@@ -82,10 +80,7 @@ export function assertDatabaseTarget({
   // Review K1: the URL also reaches psql (the reset wrapper reads the marker
   // through scripts/lib/psql.mjs), so it must be one libpq reads as `URL` does,
   // with only the query keys psql may take.
-  const libpqProblem =
-    libpqUrlMismatch(databaseUrl) ??
-    databaseUrlHostProblem(url) ??
-    databaseUrlQueryProblem(databaseUrl, { forPsql: true });
+  const libpqProblem = databaseUrlProblem(databaseUrl, { forPsql: true });
   if (libpqProblem !== null) {
     throw new Error(
       `The release database connection's query or shape is refused: ${libpqProblem}.`,
