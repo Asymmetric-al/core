@@ -5,6 +5,11 @@ import {
 } from "@asym/auth/web-studio";
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
 import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -54,7 +59,19 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
     redirect(`/login?next=${encodeURIComponent(WEB_STUDIO_CHOOSER_PATH)}`);
   }
   if (choices.kind === "unavailable") {
-    throw new Error("Your organizations could not be read. Try again.");
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
+        <div className="w-full max-w-md">
+          <Alert variant="destructive">
+            <AlertTitle>Your organizations didn’t load</AlertTitle>
+            <AlertDescription>
+              Reload the page to try again. Web Studio opens once it knows which
+              organization you work in.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </main>
+    );
   }
   if (choices.organizations.length === 0) redirect("/no-access");
   // Shown even with one option: a person whose earlier choice no longer

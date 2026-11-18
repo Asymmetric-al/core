@@ -134,6 +134,10 @@ describe("choosing an organization inside Web Studio", () => {
     for (const next of [
       "https://evil.example/web-studio",
       "//evil.example/web-studio",
+      "/\\evil.example/web-studio",
+      "/\\/evil.example/web-studio",
+      "\\\\evil.example/web-studio",
+      "/%2F%2Fevil.example/web-studio",
       "/",
       "/api/admin/missionaries",
       "/web-studio/api/pages",

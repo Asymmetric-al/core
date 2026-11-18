@@ -188,6 +188,27 @@ describe("the organization a Web Studio request acts in", () => {
     expect(readWebStudioRefusal(request)).toBe("no_selection");
   });
 
+  it("is never what a client's tenant or assignment headers name, so a path the proxy skips selects nothing either", async () => {
+    const b = row(TB);
+    const { strategy, payload } = fakes({ rows: [row(TA), b] });
+
+    for (const method of ["GET", "PATCH"]) {
+      const request = req(method);
+      const { user } = await strategy.authenticate({
+        headers: new Headers({
+          cookie: "sb=1",
+          "x-asym-tenant": TB,
+          "x-asym-assignment": b.id,
+          "x-asym-role-class": "staff",
+        }),
+        payload,
+        req: request,
+      });
+      expect(user, method).toBeNull();
+      expect(readWebStudioRefusal(request)).toBe("no_selection");
+    }
+  });
+
   it("is the one staff row of a person who needs no choice", async () => {
     const { strategy, payload } = fakes({ rows: [row(TA), row(TB, "donor")] });
 

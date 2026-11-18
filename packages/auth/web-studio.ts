@@ -81,7 +81,13 @@ export function isWebStudioApiPath(pathname: string): boolean {
  * Web Studio, one of its REST routes or the chooser itself.
  */
 export function safeWebStudioNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+  // Protocol-relative forms, `//host` and `/\host`, name another origin.
+  if (
+    !next ||
+    !next.startsWith("/") ||
+    next.startsWith("//") ||
+    next.startsWith("/\\")
+  ) {
     return WEB_STUDIO_PATH;
   }
   let url: URL;
