@@ -11,6 +11,7 @@
     "./base.mjs": "./base.mjs",
     "./nextjs.mjs": "./nextjs.mjs",
     "./library.mjs": "./library.mjs",
+    "./own-api.mjs": "./own-api.mjs",
     "./restricted-imports.mjs": "./restricted-imports.mjs",
     "./reui-data-grid-exceptions.mjs": "./reui-data-grid-exceptions.mjs"
   },
@@ -27,6 +28,7 @@
     "base.mjs",
     "nextjs.mjs",
     "library.mjs",
+    "own-api.mjs",
     "restricted-imports.mjs"
   ],
   "peerDependencies": {
