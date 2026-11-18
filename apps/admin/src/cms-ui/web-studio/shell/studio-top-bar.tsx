@@ -35,6 +35,7 @@ import { formatAdminURL } from "payload/shared";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { Link } from "../routing";
+import { MissionControlLink } from "./mission-control-link";
 import { useWebStudioOrganization } from "./web-studio-document";
 
 type StudioTopBarProps = {
@@ -107,7 +108,7 @@ function StudioUserMenu() {
             <UserRoundCog aria-hidden="true" />
             Account
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/" />}>
+          <DropdownMenuItem render={<MissionControlLink />}>
             <ChevronLeft aria-hidden="true" />
             Mission Control
           </DropdownMenuItem>
@@ -146,8 +147,7 @@ export function StudioTopBar({
         className,
       )}
     >
-      <Link
-        href="/"
+      <MissionControlLink
         className={cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
           "hidden sm:inline-flex",
@@ -155,7 +155,7 @@ export function StudioTopBar({
       >
         <ChevronLeft aria-hidden="true" />
         Mission Control
-      </Link>
+      </MissionControlLink>
       <Separator orientation="vertical" className="hidden h-4 sm:flex" />
 
       <div className="min-w-0 flex-1 overflow-hidden px-1">

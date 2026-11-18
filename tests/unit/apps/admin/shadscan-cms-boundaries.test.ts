@@ -168,8 +168,10 @@ describe("Shadscan CMS boundary evidence", () => {
     expect(view.text).toMatch(
       /<Link href="\/web-studio"[^>]*>\s*Back to Web Studio\s*<\/Link>/,
     );
+    // Mission Control's is a full document load (AL-2675, council C12;
+    // web-studio-mission-control-links.test.tsx clicks it).
     expect(view.text).toMatch(
-      /<Link href="\/"[^>]*>\s*Back to Mission Control\s*<\/Link>/,
+      /<MissionControlLink\b[^>]*>\s*Back to Mission Control\s*<\/MissionControlLink>/,
     );
     // Everyone else gets Payload's installed NotFoundClient, checked below.
     expect(view.text).toMatch(

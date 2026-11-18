@@ -437,7 +437,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "5addb8de6cc75b73737c3f9ca8572cce4d8ae4a203335f76637e07177fec315e"
+          "sha256": "d3e9ec01e96a66978f0646c682ee037f7027ef94321115de0a23ff4f21fda56c"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
@@ -445,7 +445,7 @@
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
-          "sha256": "29d73e54d732d7ff214c9fceb112bef69934658a04570311f46525a57ef7f0a1"
+          "sha256": "f2ce4e380ea243ac86a6db91ec1238d87d47a16963bdefbeb671365231f1f523"
         }
       ]
     },

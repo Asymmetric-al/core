@@ -38,6 +38,7 @@ import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
 import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
 import { webStudioServerFunctions } from "@/src/cms/web-studio-server-functions";
 import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
+import { MissionControlLink } from "@/src/cms-ui/web-studio/shell/mission-control-link";
 import { WebStudioDocument } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
 type Props = {
@@ -206,9 +207,11 @@ function WebStudioDatabaseConfigurationError() {
           <Link className={buttonVariants()} href="/web-studio">
             Try again
           </Link>
-          <Link className={buttonVariants({ variant: "outline" })} href="/">
+          <MissionControlLink
+            className={buttonVariants({ variant: "outline" })}
+          >
             Back to Mission Control
-          </Link>
+          </MissionControlLink>
         </CardContent>
       </Card>
     </main>
