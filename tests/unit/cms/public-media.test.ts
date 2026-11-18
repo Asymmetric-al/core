@@ -38,15 +38,22 @@ describe("resolvePublicCmsMediaUrl", () => {
     ).toBe("http://127.0.0.1:3030/web-studio/api/media/file/x.jpg");
   });
 
-  it("rejects Payload's old media route: nothing of Payload's answers under /api since AL-2675", () => {
+  it("accepts both media routes for this release, so either app can be promoted first (plan 7.4)", () => {
+    // Payload's media route moved under /web-studio/api (AL-2675). The old
+    // route is admitted until the next release, which removes it.
     expect(
       resolvePublicCmsMediaUrl("/api/media/file/jane.jpg", CMS_BASE_URL),
-    ).toBeNull();
+    ).toBe("http://127.0.0.1:3030/api/media/file/jane.jpg");
     expect(
       resolvePublicCmsMediaUrl(
         "http://127.0.0.1:3030/api/media/file/jane.jpg",
         CMS_BASE_URL,
       ),
+    ).toBe("http://127.0.0.1:3030/api/media/file/jane.jpg");
+    // Nothing else under /api or /web-studio/api is an image.
+    expect(resolvePublicCmsMediaUrl("/api/pages", CMS_BASE_URL)).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl("/web-studio/api/pages", CMS_BASE_URL),
     ).toBeNull();
   });
 

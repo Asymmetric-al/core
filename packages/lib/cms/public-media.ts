@@ -11,8 +11,8 @@
  *   missing URL, or missing intrinsic dimensions — resolves to `null` and is
  *   simply not rendered. Silence, never a broken or leaking image.
  * - Serialized URLs resolve only against allowed public media origins:
- *   admin-relative paths (`/web-studio/api/media/file/...`) join the CMS
- *   base, absolute
+ *   admin-relative paths (`/web-studio/api/media/file/...`, and for this
+ *   release the old `/api/media/file/...`) join the CMS base, absolute
  *   URLs on that CMS origin pass through, and absolute URLs on the configured
  *   Vercel Blob public host (`*.public.blob.vercel-storage.com`) pass when
  *   production storage is Blob-backed. A foreign-host or non-http(s) URL
@@ -24,12 +24,17 @@
 const SAFE_IMAGE_PROTOCOLS = new Set(["http:", "https:"]);
 
 /**
- * The only CMS-origin route admitted by the donor `next/image` config:
+ * The only CMS-origin routes admitted by the donor `next/image` config:
  * Payload's media file route, under `/web-studio/api` with the rest of its
- * REST routes since AL-2675 (WP2b slice C). Nothing of Payload's answers
- * under `/api` any more.
+ * REST routes since AL-2675 (WP2b slice C). The release job promotes the
+ * apps one after another, so for this release the old route is admitted too
+ * (plan 7.4: every release is safe beside the one already running); the next
+ * release removes `/api/media/file/`.
  */
-const CMS_MEDIA_FILE_PATH_PREFIX = "/web-studio/api/media/file/";
+const CMS_MEDIA_FILE_PATH_PREFIXES = [
+  "/web-studio/api/media/file/",
+  "/api/media/file/",
+] as const;
 
 /**
  * Host suffix for Payload's Vercel Blob adapter when `access: "public"`
@@ -205,7 +210,9 @@ function isCmsMediaFileUrl(url: string, cmsBaseUrl: string): boolean {
 
   return (
     parsed.origin === base.origin &&
-    parsed.pathname.startsWith(CMS_MEDIA_FILE_PATH_PREFIX)
+    CMS_MEDIA_FILE_PATH_PREFIXES.some((prefix) =>
+      parsed.pathname.startsWith(prefix),
+    )
   );
 }
 
