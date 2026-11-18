@@ -68,7 +68,7 @@
     "test:e2e:cms:local": "node scripts/cms/run-local-e2e.mjs",
     "test:e2e:auth-mail": "node scripts/e2e/run-auth-mail.mjs",
     "test:e2e:ui": "node node_modules/@playwright/test/cli.js test --ui",
-    "test:e2e:auth:donor": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/auth-demo-donor.spec.ts --project=chromium",
+    "test:e2e:auth:donor": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/auth-demo-donor.spec.ts tests/e2e/donor-request-scope.spec.ts --project=chromium",
     "test:e2e:auth:admin": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.admin.config.ts tests/e2e/auth-demo-admin.spec.ts tests/e2e/admin-table-pages-smoke.spec.ts tests/e2e/admin-tenant-address.spec.ts tests/e2e/admin-request-scope.spec.ts --project=admin-boneyard",
     "test:e2e:auth:missionary": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.missionary.config.ts tests/e2e/auth-demo-missionary.spec.ts tests/e2e/missionary-tenant-address.spec.ts tests/e2e/missionary-request-scope.spec.ts --project=missionary-boneyard",
     "test:e2e:development-smoke": "node node_modules/@playwright/test/cli.js test -c playwright.development-smoke.config.ts",
