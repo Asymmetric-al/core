@@ -28,6 +28,7 @@ import {
   TENANT_A,
   type TenantFixture,
 } from "./fixtures";
+import { isRefusalOf } from "./isolation-probe";
 import {
   adminDatabase,
   anonClient,
@@ -63,7 +64,7 @@ async function foreignRows(
   if (tenantId) query = query.neq("tenant_id", tenantId);
   const { data, error, count } = await query.limit(3);
   if (error) {
-    const refused = error.code === "42501";
+    const refused = isRefusalOf(error, { schema, table });
     return {
       table,
       rows: 0,
