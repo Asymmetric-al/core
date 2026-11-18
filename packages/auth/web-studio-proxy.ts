@@ -9,8 +9,6 @@ import {
 } from "./request-headers";
 import { WEB_STUDIO_CHOOSER_PATH } from "./web-studio";
 
-import type { RoleClass } from "./principal/types";
-
 /**
  * Web Studio's two rules in the admin proxy (plan 5.2, "One stated exception:
  * Web Studio"; AL-2675, WP2b slice C), kept out of `middleware.ts` so that
@@ -34,7 +32,8 @@ import type { RoleClass } from "./principal/types";
 export async function refreshWebStudioApiSession(
   request: NextRequest,
   pathname: string,
-  roleClass: RoleClass | null,
+  /** The surface's role class, as the proxy sets it on every request. */
+  roleClass: string | null,
 ): Promise<NextResponse> {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);

@@ -47,7 +47,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const { requireWebStudioAccess } =
-  await import("../../../../apps/admin/lib/web-studio-access");
+  await import("../../../../apps/admin/src/cms/web-studio-access");
 
 function staff(id: string, tenantId: string, membershipRole = "staff") {
   return {

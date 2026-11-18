@@ -30,12 +30,12 @@ import { importMap } from "./web-studio/importMap";
 
 import type { PayloadRequest, ServerFunctionClient } from "payload";
 
-import { requireWebStudioAccess } from "@/lib/web-studio-access";
 import {
   assertPayloadDatabaseConfiguration,
   PayloadDatabaseConfigurationError,
 } from "@/src/cms/payload-database-config";
 import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
+import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
 import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
 import { WebStudioDocument } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 

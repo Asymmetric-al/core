@@ -558,6 +558,10 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
       "packages/auth/middleware.ts",
       "packages/auth/request-headers.ts",
       "packages/auth/resolve-user-role.ts",
+      // WP2b slice C (AL-2675): Web Studio decides its organization with the
+      // resolver's own rule (selectAssignment) over the person's live rows,
+      // for the admin proxy, the Web Studio layout and Payload's strategy.
+      "packages/auth/web-studio.ts",
     ]);
   });
 });

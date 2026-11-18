@@ -8,9 +8,9 @@ import {
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import type { DocumentScope } from "@asym/database/document-scope";
+import { readWebStudioTenantCookie } from "./web-studio-tenant-cookie";
 
-import { readWebStudioTenantCookie } from "@/src/cms/web-studio-tenant-cookie";
+import type { DocumentScope } from "@asym/database/document-scope";
 
 export interface WebStudioOrganization {
   /** The organization's name, as its own members see it (D-26). */
