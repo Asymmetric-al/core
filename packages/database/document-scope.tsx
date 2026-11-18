@@ -25,8 +25,9 @@ const DocumentScopeContext = createContext<DocumentScope | null>(null);
  * same document, which a soft navigation between two organizations or a
  * change of signed-in person could cause, it renders nothing and reloads.
  *
- * Rendered by `TenantDocument` and `PortalDocument` in
- * `@asym/auth/tenant-navigation`; apps do not render it directly.
+ * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation` and
+ * `PortalDocument` in `@asym/auth/portal-document`; apps do not render it
+ * directly.
  */
 export function DocumentScopeProvider({
   scope,

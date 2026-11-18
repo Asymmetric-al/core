@@ -53,6 +53,35 @@ export async function readDocumentScope(
   };
 }
 
+/**
+ * The donor portal's document scope (plan 12, WP2, "Interim rules until
+ * WP3"; WP2b, AL-2675): the person's one live donor membership, which the
+ * resolver selected for the request. The portal's address carries no tenant
+ * until WP3 resolves its host, so the address prefix is empty. `null` when no
+ * donor assignment resolved, which includes a person with donor memberships
+ * in two tenants: the resolver refuses them until WP3.
+ */
+export function readPortalDocumentScope(
+  auth: AuthContext,
+): DocumentScope | null {
+  const { assignment } = auth;
+  if (
+    !auth.isAuthenticated ||
+    !auth.userId ||
+    !assignment ||
+    assignment.membershipRole !== "donor" ||
+    assignment.tenantId !== auth.tenantId
+  ) {
+    return null;
+  }
+  return {
+    userId: auth.userId,
+    tenantId: assignment.tenantId,
+    assignmentId: assignment.assignmentId,
+    addressPrefix: "",
+  };
+}
+
 /** An internal page address with this request's tenant prefix, for server code. */
 export async function tenantHref(path: string): Promise<string> {
   return withTenantAddress(await readAddressPrefix(), path);

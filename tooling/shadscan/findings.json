@@ -624,7 +624,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "b05d8b1388a298690ec0cc6cebcac3db2325210879e03c80bc76b85d3fc32f71"
+          "sha256": "b6e4ff761c9f96a61492c1ff8a724e17861bf4647ef3b39602dd3d33b57b9714"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
@@ -665,7 +665,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "b05d8b1388a298690ec0cc6cebcac3db2325210879e03c80bc76b85d3fc32f71"
+          "sha256": "b6e4ff761c9f96a61492c1ff8a724e17861bf4647ef3b39602dd3d33b57b9714"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
@@ -814,26 +814,6 @@
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
           "sha256": "d2a8b2a36030d4be851fb19109bf9486f07e51280384980e5cf9230901f47c90"
-        }
-      ]
-    },
-    {
-      "project": "apps/donor",
-      "rule": "suspense-fallback-useful",
-      "classification": "product-decision",
-      "rationale": "The flagged null fallback surrounds only the redirect-only DonorRoleGate; dashboard children render beside that boundary inside main rather than beneath its fallback. The edge proxy remains the primary authenticated role gate. A full-page placeholder on this sibling would not represent loading dashboard content. Current layout source establishes this composition; the cited static-shell suite verifies the retained role redirect, primary edge protection, parent Suspense boundary and main landmark. No rendered loading or browser verification is claimed.",
-      "verificationTests": [
-        "tests/unit/apps/donor/static-shell-contract.test.ts"
-      ],
-      "evidenceFingerprint": "1436abbfa54d053c6146b950b34ac88126e0ba310eda8fb6acada39d3eb3b3d7",
-      "proof": [
-        {
-          "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "b05d8b1388a298690ec0cc6cebcac3db2325210879e03c80bc76b85d3fc32f71"
-        },
-        {
-          "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
-          "sha256": "304338c490ef8f1edac8a3e843886bc00017a0ec6ccac72393ea67d3789a10b3"
         }
       ]
     },
@@ -1659,7 +1639,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1676,7 +1656,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1693,7 +1673,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1710,7 +1690,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1727,7 +1707,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1744,7 +1724,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1761,7 +1741,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1778,7 +1758,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -1795,7 +1775,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+          "sha256": "6664d831e10cd229092c9845867ad8a3515d748bb4705db6065a012bb4cf1301"
         }
       ]
     },
@@ -2952,6 +2932,23 @@
         {
           "path": "tests/unit/packages/missionary/add-partner-dialog.test.tsx",
           "sha256": "fef18b58b456027d93708f8a95154c2fe5694ea72719a0d0a006a444c94a2f5e"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "suspense-fallback-useful",
+      "evidenceFingerprint": "89c8ae7af3e72088aa2ac0521e7482797fad3e4dd5edc310893817ba590a18c4",
+      "classification": "product-decision",
+      "rationale": "The flagged null fallback wraps only LatestMinistryUpdates on the public home page, the route's one request-time read, below the fold. That section itself renders nothing on an empty result, so a placeholder would show a loading state for content that may never appear; everything above it stays in the static shell. The page source records this choice; the cited static-shell suite pins the boundary around the section and the absence of request reads above it. The scanner reports only the first null fallback per rule: this site surfaced when the donor portal layout's null fallback was replaced by a skeleton (WP2b, AL-2675). No rendered loading or browser verification is claimed.",
+      "proof": [
+        {
+          "path": "apps/donor/app/(public)/(hero)/page.tsx",
+          "sha256": "45e61093946040c8e5d7f0600204262f50e7aefd80bd3f8973bf3c11540a3757"
+        },
+        {
+          "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
+          "sha256": "304338c490ef8f1edac8a3e843886bc00017a0ec6ccac72393ea67d3789a10b3"
         }
       ]
     }
