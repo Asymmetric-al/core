@@ -175,7 +175,10 @@ test("@cms revoking a membership denies Web Studio at the next request, pages an
   // falls back to the organization that is left.
   await page.goto(`${base}/web-studio/collections/pages`);
   await expect(page).toHaveURL(/\/web-studio\/organization\?next=/);
-  await expect(page.getByRole("button", { name: /Open/ })).toHaveCount(1);
+  // Only the organizations' options, not the development tools' buttons.
+  await expect(
+    page.getByRole("button", { name: /^[^:]+:\s+Open / }),
+  ).toHaveCount(1);
 });
 
 test("@cms an ended session on a Web Studio REST call gets JSON 401 and no redirect, and a live one is refreshed", async ({
