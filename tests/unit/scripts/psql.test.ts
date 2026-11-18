@@ -11,6 +11,7 @@ import {
   readFileSync,
   rmSync,
   writeFileSync,
+  readdirSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -734,4 +735,71 @@ describe("the ambient libpq settings a builder may keep (review M3)", () => {
     // The address's CA file is a keyword, which wins over the ambient one.
     expect(connection).toContain("sslrootcert='/job/root.crt'");
   });
+});
+
+// Review M4: the texts name every file under scripts/ that starts psql and say
+// which of them use the shared check; the code decides what is true.
+const PSQL_STARTERS = [
+  // The three builders of a psql connection from an address: the shared
+  // check (databaseUrlProblem) and the shared list (keptAmbientLibpqEnv).
+  "scripts/lib/psql.mjs",
+  "scripts/release/lib/postgres.mjs",
+  "scripts/cms/lib/postgres.mjs",
+  // psql --version only, for the floor of review M3.
+  "scripts/release/release-database.mjs",
+  // psql, pg_dump and pg_restore inside a Docker container it starts.
+  "scripts/verify/backup-restore-proof.mjs",
+  // A check and a builder of its own, left as they are (review M4).
+  "scripts/verify/stripe-data-pipeline.mjs",
+];
+const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
+
+function scriptsFiles(dir = "scripts"): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const file = `${dir}/${entry.name}`;
+    if (entry.isDirectory())
+      return entry.name === "node_modules" ? [] : scriptsFiles(file);
+    return /\.(?:mjs|cjs|js|ts|sh)$/.test(entry.name) ? [file] : [];
+  });
+}
+
+describe("the files under scripts/ that start psql (review M4)", () => {
+  it("every file that names psql is a listed starter or goes through a shared builder", () => {
+    for (const file of scriptsFiles()) {
+      const source = readFileSync(file, "utf8");
+      const namesPsql = file.endsWith(".sh")
+        ? /^\s*(?:sudo\s+)?psql\s/m.test(source)
+        : /["'`]psql["'`]|PSQL_BIN/.test(source);
+      if (!namesPsql || PSQL_STARTERS.includes(file)) continue;
+      expect(
+        /(?:lib\/psql|\.\/psql)\.mjs/.test(source),
+        `${file} names psql but is neither listed nor a user of scripts/lib/psql.mjs`,
+      ).toBe(true);
+    }
+  });
+
+  it("the three shared builders call the one check and keep the one list", () => {
+    for (const file of SHARED_BUILDERS) {
+      const source = readFileSync(file, "utf8");
+      expect(source, file).toMatch(/\bdatabaseUrlProblem\(/);
+      expect(source, file).toMatch(/\bkeptAmbientLibpqEnv\(/);
+    }
+    expect(
+      readFileSync("scripts/verify/stripe-data-pipeline.mjs", "utf8"),
+    ).not.toMatch(/databaseUrlProblem|keptAmbientLibpqEnv/);
+  });
+
+  it.each(["scripts/AGENTS.md", "scripts/lib/psql.mjs"])(
+    "%s names every starter, and the document gate that starts none",
+    (file) => {
+      const text = readFileSync(file, "utf8");
+      for (const starter of PSQL_STARTERS)
+        expect(text, starter).toContain(starter);
+      expect(text).toContain(
+        "scripts/document-cutover/assess-document-cutover.ts",
+      );
+      expect(text).toContain("KEPT_AMBIENT_LIBPQ_ENV");
+      expect(text).not.toMatch(/\bthree files start `?psql/i);
+    },
+  );
 });

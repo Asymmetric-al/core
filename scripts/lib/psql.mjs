@@ -1,18 +1,33 @@
-// The seam for local database tooling (AL-2674; PR #2714 review; review L2).
-// One check judges every database address: databaseUrlProblem in
-// packages/env/src/database-url.mjs (shape, host, routing override, query
-// allowlist). isLoopbackDatabaseUrl, re-exported here, is the only test that
-// an address names this machine (127.0.0.1, localhost or [::1]), and it calls
-// that check. Three files start psql, and each refuses what the check
-// refuses: this one (runPsqlQuery, spawnPsql, or psqlConnection for a caller's
-// own spawn: the parsed parts as libpq keywords, never the raw string, -X,
-// every ambient PG* setting dropped but the shared list KEPT_AMBIENT_LIBPQ_ENV,
-// the password in PGPASSWORD);
-// scripts/release/lib/postgres.mjs, the release job's own SQL, through PG*
-// variables built from the parsed address; and scripts/cms/lib/postgres.mjs,
-// the CMS runner, the same way. The catalog gate, the field-policy gate, the
-// environment marker, the migration verifier and seed verify run through this
-// file.
+// The seam for local database tooling (AL-2674; PR #2714 review; reviews L2,
+// M3 and M4). One check judges every address the shared psql builders take:
+// databaseUrlProblem in packages/env/src/database-url.mjs (shape, host,
+// routing override, query allowlist). isLoopbackDatabaseUrl, re-exported
+// here, is the only test that an address names this machine (127.0.0.1,
+// localhost or [::1]), and it calls that check.
+//
+// Six files under scripts/ start psql. Three build the connection from an
+// address, refuse what the check refuses, and keep no ambient PG* setting but
+// the shared list KEPT_AMBIENT_LIBPQ_ENV (PGPASSWORD, PGSSLROOTCERT):
+// - scripts/lib/psql.mjs, this file (runPsqlQuery, spawnPsql, or
+//   psqlConnection for a caller's own spawn: the parsed parts as libpq
+//   keywords, never the raw string, -X, the password in PGPASSWORD). The
+//   catalog gate, the field-policy gate, the environment marker, the
+//   local-database helper, the migration verifier and seed verify run
+//   through it;
+// - scripts/release/lib/postgres.mjs, the release job's own SQL, through PG*
+//   variables built from the parsed address;
+// - scripts/cms/lib/postgres.mjs, the CMS runner, the same way.
+// The other three are outside this seam:
+// - scripts/release/release-database.mjs runs psql --version only, to require
+//   16 or later (review M3);
+// - scripts/verify/backup-restore-proof.mjs runs psql, pg_dump and pg_restore
+//   inside a Docker container it starts, with no address;
+// - scripts/verify/stripe-data-pipeline.mjs runs psql on a hosted
+//   SUPABASE_DB_URL with a check and a builder of its own (left as it is by
+//   review M4).
+// scripts/document-cutover/assess-document-cutover.ts starts no psql: it
+// judges its address with a check of its own and connects through
+// node-postgres.
 import { spawnSync } from "node:child_process";
 
 import {
