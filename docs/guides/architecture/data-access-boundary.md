@@ -91,10 +91,20 @@ document has no scope. A file an own-API route serves is downloaded with
 or opened as a page, because a page load carries no header.
 
 The server treats both headers as proposals: `getAuthContext` passes them to
-the resolver, which checks them against the caller's own live rows. Nothing
-else on the server reads them. The server's session clients send the result,
-not the proposal: `createClient(scope)` from `@asym/database/supabase/server`
-and `createRequestSessionClient(request, scope)` from `packages/api` take
+the resolver, which checks them against the caller's own live rows. The
+database already reads `x-asym-assignment` in one place,
+`tenant_guard.request_assignment_id()`. The human command lane
+(`tenant_guard.begin_human_command`, `public.resolve_command_assignment`) and
+`authz.caller_assignment`, which the member directory
+(`public.tenant_member_directory`) uses, call it. Each of them accepts only a
+live membership row the caller holds, and refuses a value that is not a UUID.
+The value the browser client sends reaches these functions, as the session
+clients' value does. The rest of the database ignores both headers until the
+second release of WP2b repoints its helper to them.
+
+The server's session clients send the result, not the proposal:
+`createClient(scope)` from `@asym/database/supabase/server` and
+`createRequestSessionClient(request, scope)` from `packages/api` take
 `requestScopeOf(auth)`, the tenant and membership row the resolver selected.
 Pass `null` only for a client that reads no tenant table (sign-in, the
 callback, recovery, the health probe).
@@ -110,7 +120,9 @@ source, request object, XMLHttpRequest or navigation to an own-API path in
 the three product apps and in `@asym/auth`, `@asym/database`, `@asym/lib`,
 `@asym/missionary` and `@asym/ui`, through each workspace's own lint config,
 so `bun run lint` runs it. It has no exemption: a call that cannot move onto
-the wrapper is a finding to raise, not a rule to switch off.
+the wrapper is a finding to raise, not a rule to switch off. It reads one
+module at a time: it follows an address through that module's own constants
+and calls, but not an address built in another module and passed in.
 
 ## Missionaries reads
 

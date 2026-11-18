@@ -16,10 +16,13 @@ export type { RequestScope };
  * the resolver selected (`requestScopeOf` in `@asym/auth/context`), never a
  * header the caller sent. Its Data API requests carry both as the
  * `x-asym-tenant` and `x-asym-assignment` headers (plan 5.4; AL-2675). The
- * database reads them from the second release of WP2b, after which a read on
- * the caller's token that names no tenant returns nothing, so `null` is only
- * for a client that reads no tenant table: sign-in, the callback, recovery
- * and the health probe.
+ * database already reads `x-asym-assignment` through
+ * `tenant_guard.request_assignment_id()`, in the human command lane and in
+ * `authz.caller_assignment` (the member directory), which accept only a live
+ * membership the caller holds. The rest of the database reads them from the
+ * second release of WP2b, after which a read on the caller's token that names
+ * no tenant returns nothing, so `null` is only for a client that reads no
+ * tenant table: sign-in, the callback, recovery and the health probe.
  *
  * Cookie/session implication: Supabase may refresh auth cookies while handling
  * server-side auth APIs. The `setAll` bridge ensures those cookies are written
