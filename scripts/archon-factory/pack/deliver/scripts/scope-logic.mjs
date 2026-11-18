@@ -26,6 +26,11 @@ export const PROTECTED_GLOBS = [
   "scripts/archon-factory/**",
   ".archon/**",
   ".claude/**",
+  // The edit hook that agent settings run on every edit, and the Codex and
+  // Cursor files that run it.
+  "scripts/agent-hooks/**",
+  ".codex/hooks.json",
+  ".cursor/hooks.json",
   "bunfig.toml",
   ".npmrc",
   "package.json",

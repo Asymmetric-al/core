@@ -195,7 +195,8 @@ An older `{kind, items}` repair maps `acceptance` and `context-change` to Ezra,
 **Scope.** `after-scope` validates Samson's scope: source and test paths are
 disjoint repository-relative globs, and none may reach a protected path
 (`.github/**`, `.husky/**`, `scripts/git/**`, `scripts/archon-factory/**`,
-`.archon/**`, `.claude/**`, `bunfig.toml`, `.npmrc`, the root `package.json`,
+`.archon/**`, `.claude/**`, `scripts/agent-hooks/**`, `.codex/hooks.json`,
+`.cursor/hooks.json`, `bunfig.toml`, `.npmrc`, the root `package.json`,
 `scripts/verify/ci-*.mjs`) unless `core/scope.allowProtected[<n>]` is `true` or
 lists that protected glob (`control.mjs allow-protected`). Otherwise the issue
 is BLOCKED `protected-path`; later rounds re-check the recorded scope against

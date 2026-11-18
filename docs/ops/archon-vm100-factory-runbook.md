@@ -195,8 +195,10 @@ delivery run unless the run's owner is verifiably gone; it can delete files.
   or waiting item it only records the request, re-arming the next round start.
 - `allow-protected` accepts only issues in the current scope and only the exact
   protected globs: `.github/**`, `.husky/**`, `scripts/git/**`,
-  `scripts/archon-factory/**`, `.archon/**`, `.claude/**`, `bunfig.toml`,
-  `.npmrc`, `package.json` (the root one) and `scripts/verify/ci-*.mjs`. It
+  `scripts/archon-factory/**`, `.archon/**`, `.claude/**`,
+  `scripts/agent-hooks/**`, `.codex/hooks.json`, `.cursor/hooks.json`,
+  `bunfig.toml`, `.npmrc`, `package.json` (the root one) and
+  `scripts/verify/ci-*.mjs`. It
   writes `core/scope.allowProtected[<n>]`; approving a new scope keeps grants
   only for issues still in it.
 - `cancel-run` holds the issue, asks the engine to cancel, removes the run's
