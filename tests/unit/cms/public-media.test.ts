@@ -38,9 +38,11 @@ describe("resolvePublicCmsMediaUrl", () => {
     ).toBe("http://127.0.0.1:3030/web-studio/api/media/file/x.jpg");
   });
 
-  it("accepts both media routes for this release, so either app can be promoted first (plan 7.4)", () => {
+  it("admits the old media route for this release, for a donor ahead of an admin that still serves it (plan 7.4)", () => {
     // Payload's media route moved under /web-studio/api (AL-2675). The old
-    // route is admitted until the next release, which removes it.
+    // route covers a donor promoted ahead of its admin, as after an admin
+    // rollback; links that hold the old route reach a new admin through its
+    // temporary redirect (council r2 CR3). The next release removes both.
     expect(
       resolvePublicCmsMediaUrl("/api/media/file/jane.jpg", CMS_BASE_URL),
     ).toBe("http://127.0.0.1:3030/api/media/file/jane.jpg");

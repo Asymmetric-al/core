@@ -786,16 +786,28 @@ test("@cms two editors of one organization on a document with no versions: the s
   }
 });
 
-test("@cms nothing of Payload's answers under /api, and Mission Control's /api answers as before", async ({
+test("@cms nothing of Payload's answers under /api, old media links are sent to the new route for this release, and Mission Control's /api answers as before", async ({
   page,
+  request,
 }) => {
   await signIn(page);
   await enter(page, DEMO);
 
+  // A media link that still holds the old address is sent on, temporarily,
+  // signed out, as the donor's image optimizer asks (council r2 CR3).
+  // Playwright's own request context carries no cookie.
+  const media = await request.fetch(
+    `${base}/api/media/file/anything.png?width=640`,
+    { maxRedirects: 0 },
+  );
+  expect(media.status()).toBe(307);
+  expect(media.headers()["location"]).toBe(
+    "/web-studio/api/media/file/anything.png?width=640",
+  );
+
   for (const [method, path] of [
     ["GET", "/api/pages?limit=1"],
     ["GET", "/api/cms-users/me"],
-    ["GET", "/api/media/file/anything.png"],
     ["POST", "/api/graphql"],
   ] as const) {
     const response = await page.request.fetch(`${base}${path}`, {
