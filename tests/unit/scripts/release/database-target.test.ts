@@ -7,8 +7,8 @@ import {
 } from "../../../../scripts/release/lib/database-target.mjs";
 
 const ref = "abcdefghijklmnopqrst";
-const pooled = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
-const direct = `postgresql://postgres:pw@db.${ref}.supabase.co:5432/postgres?sslmode=require`;
+const pooled = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full`;
+const direct = `postgresql://postgres:pw@db.${ref}.supabase.co:5432/postgres?sslmode=verify-full`;
 
 describe("release database target", () => {
   it("accepts the approved project through the session pooler or the direct host", () => {
@@ -35,7 +35,7 @@ describe("release database target", () => {
     for (const [databaseUrl, role] of [
       [other, "postgres"],
       [pooled, "cms_owner"],
-      [pooled.replace("?sslmode=require", ""), "postgres"],
+      [pooled.replace("?sslmode=verify-full", ""), "postgres"],
       [`${pooled}&host=evil.example`, "postgres"],
       ["not a url", "postgres"],
       ["mysql://x@db.abcdefghijklmnopqrst.supabase.co/x", "postgres"],
@@ -82,7 +82,7 @@ describe("release database target", () => {
   ])("refuses a pooled address with %s as its host", (_case, host) => {
     expect(() =>
       assertDatabaseTarget({
-        databaseUrl: `postgresql://postgres.${ref}@${host}:6543/postgres?sslmode=require`,
+        databaseUrl: `postgresql://postgres.${ref}@${host}:6543/postgres?sslmode=verify-full`,
         projectRef: ref,
         role: "postgres",
       }),
@@ -96,7 +96,7 @@ describe("release database target", () => {
     ])
       expect(() =>
         assertDatabaseTarget({
-          databaseUrl: `postgresql://postgres.${ref}@${host}:5432/postgres?sslmode=require`,
+          databaseUrl: `postgresql://postgres.${ref}@${host}:5432/postgres?sslmode=verify-full`,
           projectRef: ref,
           role: "postgres",
         }),
@@ -126,6 +126,44 @@ describe("release database target", () => {
         forbiddenRefs: [ref],
       }),
     ).toThrow(/must not/);
+  });
+
+  // Review L6: a hosted address verifies the server's certificate and its
+  // host name. require verifies nothing without a CA file and verify-ca never
+  // checks the name, so both are refused, as is an address that names no
+  // mode; the message says what to set.
+  it.each([
+    ["sslmode=require", "?sslmode=require"],
+    ["sslmode=verify-ca", "?sslmode=verify-ca"],
+    ["no sslmode", ""],
+  ])(
+    "refuses a hosted address with %s, and says what to set",
+    (_case, query) => {
+      for (const base of [pooled, direct]) {
+        expect(() =>
+          assertDatabaseTarget({
+            databaseUrl: base.replace("?sslmode=verify-full", query),
+            projectRef: ref,
+            role: "postgres",
+          }),
+        ).toThrow(
+          /must set sslmode=verify-full.*RELEASE_DATABASE_SSL_CA.*require and verify-ca do not check the server's host name/,
+        );
+      }
+    },
+  );
+
+  it("leaves a loopback address's sslmode as it was", () => {
+    for (const query of ["", "?sslmode=require", "?sslmode=verify-ca"]) {
+      expect(() =>
+        assertDatabaseTarget({
+          databaseUrl: `postgresql://postgres:postgres@127.0.0.1:57432/wp13r_x${query}`,
+          projectRef: ref,
+          role: "postgres",
+          allowLoopback: true,
+        }),
+      ).not.toThrow();
+    }
   });
 
   it("allows a loopback database only when asked, for tests", () => {

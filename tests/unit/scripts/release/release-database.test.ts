@@ -1,4 +1,13 @@
-import { existsSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -18,14 +27,16 @@ import {
   readReleaseSettings,
   rebuild,
   recordHeads,
+  runStep,
   repairSeededLoginPasswords,
   roleDatabaseUrl,
   setCmsRolePasswords,
   setEnvironmentMarker,
+  withDatabaseCaFile,
 } from "../../../../scripts/release/release-database.mjs";
 
 const ref = "abcdefghijklmnopqrst";
-const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
+const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full`;
 const source = listSourceMigrations({ root: process.cwd() });
 const CA = "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----";
 // The platform's default privileges, read from their one file (WP1.6).
@@ -1237,7 +1248,7 @@ describe("release database steps", () => {
       });
       const [cli, payload] = children;
       expect(cli!.args).toContain(
-        `postgresql://postgres.${ref}@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`,
+        `postgresql://postgres.${ref}@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full`,
       );
       expect(cli!.args.join(" ")).not.toContain(":pw@");
       expect(cli!.env.PGPASSWORD).toBe("pw");
@@ -1547,5 +1558,115 @@ describe("CMS role passwords through a hosted pooler", () => {
     expect(at.at(-1)).toBeLessThan(150);
     const refusalsPerRole = 1 + at.length;
     expect(2 * refusalsPerRole).toBeLessThan(10);
+  });
+});
+
+// Review L6: every hosted connection the job opens verifies the server's
+// certificate and host name against the project's CA. The job writes
+// RELEASE_DATABASE_SSL_CA to a file of its own and names it in the address
+// its psql, the reset guard and the Supabase CLI read; Payload has its own
+// variable.
+describe("the CA file of a hosted release", () => {
+  const tempRoot = () => mkdtempSync(path.join(os.tmpdir(), "l6-ca-"));
+
+  it("names a file holding the CA, readable by the job only, in the address, and leaves the rest of it as it was", () => {
+    const root = tempRoot();
+    try {
+      const withQuery = `${databaseUrl}&application_name=release%20job`;
+      const base = readReleaseSettings({
+        RELEASE_ENVIRONMENT: "production",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_DATABASE_URL: withQuery,
+        RELEASE_DATABASE_SSL_CA: CA,
+      });
+      const ca = withDatabaseCaFile(base, { tempRoot: root });
+      const [before, added] = ca.settings.databaseUrl.split("&sslrootcert=");
+      expect(before).toBe(withQuery);
+      const file = decodeURIComponent(added!);
+      expect(path.dirname(path.dirname(file))).toBe(root);
+      expect(readFileSync(file, "utf8")).toBe(CA);
+      expect(statSync(file).mode & 0o777).toBe(0o600);
+      expect(ca.settings.cmsOwnerDatabaseUrl).toBe(base.cmsOwnerDatabaseUrl);
+      ca.remove();
+      expect(readdirSync(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    [
+      "without RELEASE_DATABASE_SSL_CA",
+      { RELEASE_DATABASE_URL: databaseUrl },
+      /RELEASE_DATABASE_SSL_CA is not set/,
+    ],
+    [
+      "whose address names its own CA file",
+      {
+        RELEASE_DATABASE_URL: `${databaseUrl}&sslrootcert=%2Ftmp%2Fother.crt`,
+        RELEASE_DATABASE_SSL_CA: CA,
+      },
+      /names its own CA file \(sslrootcert\)/,
+    ],
+  ])("stops a hosted release %s, and writes nothing", (_case, env, message) => {
+    const root = tempRoot();
+    try {
+      const base = readReleaseSettings({
+        RELEASE_ENVIRONMENT: "production",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        ...env,
+      });
+      expect(() => withDatabaseCaFile(base, { tempRoot: root })).toThrow(
+        message,
+      );
+      expect(readdirSync(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("leaves a loopback address as it was, and writes nothing", () => {
+    const root = tempRoot();
+    try {
+      const base = readReleaseSettings({
+        RELEASE_ENVIRONMENT: "production",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_DATABASE_URL:
+          "postgresql://postgres:postgres@127.0.0.1:57432/wp13r_x",
+        RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+      });
+      const ca = withDatabaseCaFile(base, { tempRoot: root });
+      expect(ca.settings).toBe(base);
+      expect(readdirSync(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("runs each step with the file, and removes it when the step fails", async () => {
+    const root = tempRoot();
+    vi.stubEnv("RUNNER_TEMP", root);
+    // No psql: the step's first query fails, after the file was written.
+    vi.stubEnv("PSQL_BIN", path.join(root, "no-psql"));
+    try {
+      const env = {
+        RELEASE_ENVIRONMENT: "production",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_DATABASE_URL: databaseUrl,
+        RELEASE_DATABASE_SSL_CA: CA,
+      };
+      await expect(runStep("preflight", env)).rejects.toThrow(
+        /could not run psql \(ENOENT\)/,
+      );
+      expect(readdirSync(root)).toEqual([]);
+      const { RELEASE_DATABASE_SSL_CA: _ca, ...noCa } = env;
+      await expect(runStep("preflight", noCa)).rejects.toThrow(
+        /RELEASE_DATABASE_SSL_CA is not set/,
+      );
+      expect(readdirSync(root)).toEqual([]);
+    } finally {
+      vi.unstubAllEnvs();
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

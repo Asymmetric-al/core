@@ -12,12 +12,14 @@
 // Inputs are environment variables (names only; values never print):
 //   RELEASE_ENVIRONMENT            production | preview
 //   RELEASE_SUPABASE_PROJECT_REF   the project this environment migrates
-//   RELEASE_DATABASE_URL           postgres login, session pooler, sslmode=require
+//   RELEASE_DATABASE_URL           postgres login, session pooler,
+//                                  sslmode=verify-full
 //   RELEASE_CMS_OWNER_PASSWORD     cms_owner password (Payload migrations log in
 //                                  as cms_owner on the same host)
 //   RELEASE_CMS_RUNTIME_PASSWORD   cms_runtime password (the password step only)
-//   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); Payload
-//                                  verifies the pooler against it
+//   RELEASE_DATABASE_SSL_CA        the project's CA certificate (PEM); every
+//                                  connection to a hosted database verifies
+//                                  the pooler against it
 //   RELEASE_SEED_LOGIN_PASSWORD    the password every seeded login gets on a
 //                                  hosted rebuild, in place of the seed's
 //   RELEASE_REPLAY_FINGERPRINT     fingerprint file of CI's fresh replay (gates)
@@ -38,6 +40,7 @@ import {
   isForwardMarkerChange,
   parseReleaseHealth,
 } from "../../packages/api/src/health/release-contract.mjs";
+import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
 import { publishedLoginPasswords } from "../lib/published-passwords.mjs";
 import { runCatalogGates } from "./catalog-gates.mjs";
 import {
@@ -158,6 +161,51 @@ export function readReleaseSettings(env = process.env) {
     // Tests run the scripts against a loopback database; a hosted target is
     // never loopback, so this cannot widen what a release touches.
     allowLoopback: env.RELEASE_ALLOW_LOOPBACK_DATABASE === "1",
+  };
+}
+
+/**
+ * Review L6: every connection the job opens to a hosted database verifies the
+ * server's certificate and its host name against the project's CA. The CA is
+ * written from RELEASE_DATABASE_SSL_CA to a file only the job can read, and
+ * the address names it as `sslrootcert`, which the job's own psql
+ * (lib/postgres.mjs), the reset guard (scripts/lib/psql.mjs) and the Supabase
+ * CLI (its TypeScript connection layer on node-postgres, checked on 2.121.0)
+ * all read; with sslmode=verify-full, which the target check requires, each
+ * verifies the chain to that CA and the host name. Payload gets the same CA as PAYLOAD_DATABASE_SSL_CA
+ * (payloadMigrate). The rest of the address is left as it was, byte for byte.
+ * A loopback address is left alone. `remove` deletes the file.
+ */
+export function withDatabaseCaFile(
+  settings,
+  { tempRoot = process.env.RUNNER_TEMP || os.tmpdir() } = {},
+) {
+  const unchanged = { settings, remove() {} };
+  let url;
+  try {
+    url = new URL(settings.databaseUrl);
+  } catch {
+    return unchanged; // assertTarget refuses it, with its own words.
+  }
+  if (isLoopbackDatabaseUrl(settings.databaseUrl)) return unchanged;
+  if (url.searchParams.has("sslrootcert"))
+    stop(
+      "RELEASE_DATABASE_URL names its own CA file (sslrootcert). Leave it out: the job verifies every connection against RELEASE_DATABASE_SSL_CA.",
+    );
+  if (!settings.databaseCa)
+    stop(
+      "RELEASE_DATABASE_SSL_CA is not set. A hosted release verifies the database's certificate and host name against the project's CA: set it to the PEM of the CA certificate in the project's Database settings.",
+    );
+  const dir = mkdtempSync(path.join(tempRoot, "release-ca-"));
+  const file = path.join(dir, "root.crt");
+  writeFileSync(file, settings.databaseCa, { mode: 0o600 });
+  const separator = settings.databaseUrl.includes("?") ? "&" : "?";
+  return {
+    settings: {
+      ...settings,
+      databaseUrl: `${settings.databaseUrl}${separator}sslrootcert=${encodeURIComponent(file)}`,
+    },
+    remove: () => rmSync(dir, { recursive: true, force: true }),
   };
 }
 
@@ -349,6 +397,9 @@ function runChecked(runCommand, label, command, args, env) {
 /**
  * The pinned Supabase CLI reads the password of a `--db-url` that carries
  * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
+ * It reads the CA file the address names (withDatabaseCaFile) and, under
+ * sslmode=verify-full, verifies the chain to it and the host name (its
+ * TypeScript connection layer on node-postgres; checked on 2.121.0).
  * The repository wrapper's reset guard reads the marker the same way
  * (scripts/lib/psql.mjs keeps an ambient PGPASSWORD). SUPABASE_CLI_FORCE_PINNED
  * makes the wrapper run only the CLI the workflow installed, which must report
@@ -1311,7 +1362,12 @@ export async function runStep(step, env = process.env) {
   const handler = STEPS[step];
   if (!handler)
     stop(`Unknown step ${step}. Steps: ${Object.keys(STEPS).join(", ")}.`);
-  return await handler({ settings: readReleaseSettings(env), env });
+  const ca = withDatabaseCaFile(readReleaseSettings(env));
+  try {
+    return await handler({ settings: ca.settings, env });
+  } finally {
+    ca.remove();
+  }
 }
 
 if (

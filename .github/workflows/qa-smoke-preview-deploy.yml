@@ -761,11 +761,13 @@ jobs:
       - name: Catalog gates and schema fingerprint against the replay
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_REPLAY_FINGERPRINT: ${{ runner.temp }}/replay-fingerprint.json
         run: node scripts/release/release-database.mjs gates
       - name: Record the expected migration heads
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
         run: node scripts/release/release-database.mjs record-heads
 
       - name: Deploy previews on the preview database and check each reads it

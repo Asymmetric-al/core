@@ -131,7 +131,10 @@ describe("release workflow (plan 7.4)", () => {
     expect(repair).toContain(
       "run: node scripts/release/release-database.mjs replace-seeded-login-passwords",
     );
+    // Review L6: the repair connects to the database too, so it verifies the
+    // project's CA like every other step.
     expect(repair.match(/secrets\.[A-Z_]+/g)?.sort()).toEqual([
+      "secrets.RELEASE_DATABASE_SSL_CA",
       "secrets.RELEASE_DATABASE_URL",
       "secrets.RELEASE_SEED_LOGIN_PASSWORD",
     ]);
@@ -291,3 +294,19 @@ function supabaseCliInstall(jobText: string) {
     !/npx[^\n]*supabase@/.test(jobText)
   );
 }
+
+// Review L6: a hosted release verifies every connection against the
+// project's CA, so every step that runs the release script holds it.
+describe("the project's CA in release.yml", () => {
+  it("goes to every step that runs the release script", () => {
+    const text = readFileSync(".github/workflows/release.yml", "utf8");
+    const steps = text
+      .split("\n      - ")
+      .filter((step) => step.includes("scripts/release/release-database.mjs"));
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps)
+      expect(step, step.split("\n")[0]).toContain(
+        "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+      );
+  });
+});

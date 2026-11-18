@@ -210,11 +210,13 @@ jobs:
       - name: Catalog gates and schema fingerprint against the replay
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_REPLAY_FINGERPRINT: ${{ runner.temp }}/replay-fingerprint.json
         run: node scripts/release/release-database.mjs gates
       - name: Record the expected migration heads
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
         run: node scripts/release/release-database.mjs record-heads
 
   deploy:
@@ -293,6 +295,7 @@ jobs:
           RELEASE_ENVIRONMENT: ${{ inputs.environment }}
           RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_MARKER: ${{ inputs.marker }}
           RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
         run: node scripts/release/release-database.mjs set-marker
@@ -322,6 +325,7 @@ jobs:
           RELEASE_ENVIRONMENT: ${{ inputs.environment }}
           RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
         run: node scripts/release/release-database.mjs cms-role-passwords
@@ -355,5 +359,6 @@ jobs:
           RELEASE_ENVIRONMENT: ${{ inputs.environment }}
           RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
         run: node scripts/release/release-database.mjs replace-seeded-login-passwords

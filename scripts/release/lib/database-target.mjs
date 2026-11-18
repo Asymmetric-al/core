@@ -20,7 +20,6 @@ export const KNOWN_PROJECT_REFS = Object.freeze({
 
 const REF = /^[a-z0-9]{20}$/;
 const ROLE = /^[a-z_][a-z0-9_]{0,62}$/;
-const ENCRYPTED = new Set(["require", "verify-ca", "verify-full"]);
 
 function parse(databaseUrl) {
   let url;
@@ -100,10 +99,14 @@ export function assertDatabaseTarget({
       `The release database connection does not address project ${projectRef} as ${role}.`,
     );
   }
+  // Review L6: the job verifies the server's certificate and its host name
+  // against the project's CA, which it writes from RELEASE_DATABASE_SSL_CA
+  // (release-database.mjs, withDatabaseCaFile). sslmode=require verifies
+  // nothing without a CA file, and verify-ca never checks the name.
   const sslmodes = url.searchParams.getAll("sslmode");
-  if (sslmodes.length !== 1 || !ENCRYPTED.has(sslmodes[0])) {
+  if (sslmodes.length !== 1 || sslmodes[0] !== "verify-full") {
     throw new Error(
-      "The release database connection must set sslmode=require (or verify-ca, verify-full).",
+      "A hosted release database connection must set sslmode=verify-full in RELEASE_DATABASE_URL; the job verifies it against the project's CA in RELEASE_DATABASE_SSL_CA. sslmode=require and verify-ca do not check the server's host name.",
     );
   }
 }

@@ -267,3 +267,22 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).not.toContain("?x-vercel-protection-bypass");
   });
 });
+
+// Review L6: a hosted release verifies every connection against the
+// project's CA, so every step that runs the release script holds it.
+describe("the project's CA in qa-smoke-preview-deploy.yml", () => {
+  it("goes to every step that runs the release script", () => {
+    const text = readFileSync(
+      ".github/workflows/qa-smoke-preview-deploy.yml",
+      "utf8",
+    );
+    const steps = text
+      .split("\n      - ")
+      .filter((step) => step.includes("scripts/release/release-database.mjs"));
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps)
+      expect(step, step.split("\n")[0]).toContain(
+        "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+      );
+  });
+});

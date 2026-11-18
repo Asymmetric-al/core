@@ -63,9 +63,12 @@ and none is ever cancelled.
    `sslmode=verify-full` against the project's CA (`RELEASE_DATABASE_SSL_CA`,
    handed to Payload as `PAYLOAD_DATABASE_SSL_CA`): node-postgres reads
    `sslmode=require` as full verification against Node's own CA store, which
-   does not hold Supabase's CA. Both ledgers must then hold every source
-   migration. Neither the Supabase CLI nor Payload's migrations inherit a
-   `RELEASE_*` variable, and the Supabase CLI gets the database password in
+   does not hold Supabase's CA. Every other connection the job opens checks
+   the database's certificate against the same CA (see
+   [The database's certificate](#the-databases-certificate)). Both ledgers
+   must then hold every source migration. Neither the Supabase CLI nor
+   Payload's migrations inherit a `RELEASE_*` variable, and the Supabase CLI
+   gets the database password in
    `PGPASSWORD`, never on its command line (the pinned CLI, 2.121.0, reads it
    for a `--db-url` that carries none). The job installs that CLI with
    `supabase/setup-cli`, the version read from `scripts/supabase-cli.mjs` (the
@@ -459,24 +462,60 @@ deployment reads the preview project at the migrated heads, then the smoke
 run. The next such pull request starts its rebuild only after this smoke run
 ends. The job holds only the preview project's credentials.
 
+### The database's certificate
+
+Every connection the job opens to a hosted database checks the server's
+certificate and its host name against the project's CA (review L6). The
+target check refuses a hosted `RELEASE_DATABASE_URL` unless it says
+`sslmode=verify-full`, once. `require` checks nothing without a CA file, and
+`verify-ca` never checks the host name. A loopback address, which only the
+tests use, is not affected.
+
+At the start of each step the job writes `RELEASE_DATABASE_SSL_CA` to a file
+in the runner's temporary directory that only the job can read. It adds the
+file to the address as `sslrootcert`, and removes it when the step ends,
+whether the step passed or failed. A step stops before it connects if a
+hosted release has no `RELEASE_DATABASE_SSL_CA`, or if `RELEASE_DATABASE_URL`
+names a CA file of its own. Each client checks the chain to that CA and the
+host name:
+
+- The job's own psql and the reset guard's marker read: libpq, with the file
+  as `sslrootcert`.
+- The Supabase CLI's `db push` and `db reset` (2.121.0): the file as
+  `sslrootcert` in `--db-url`. That version runs both commands in its
+  TypeScript code on node-postgres, which reads `verify-full` as
+  `rejectUnauthorized` with the CA and the host name.
+- Payload's migrations as `cms_owner`: the CA as `PAYLOAD_DATABASE_SSL_CA`, as
+  in step 3, and the same CA file as `PGSSLROOTCERT` for the runner's psql.
+
+Until review L6 the address said `sslmode=require`. The job's psql and the CLI
+then encrypted the connection without checking the certificate; only Payload
+checked it.
+
+The pooler's certificate names `*.pooler.supabase.com` and
+`*.pooler.supabase.co`, and chains through Supabase Intermediate 2021 CA to
+Supabase Root 2021 CA. That is true on both projects' pooler hosts (TLS
+handshakes on 18 November 2026). The direct host was not checked: it has an
+IPv6 address only.
+
 ## Secrets and variables
 
 Names only. Values live in GitHub environments and never in the repository.
 
-| Where                                | Name                                                       | Kind     | Value                                                                                                                                                                                                                                                                                           |
-| ------------------------------------ | ---------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Environment `release-production`     | `RELEASE_SUPABASE_PROJECT_REF`                             | variable | The project production-target deployments use. Until WP11: development, `pnmlrbgjiqzzsthsoikm`                                                                                                                                                                                                  |
-|                                      | `RELEASE_DATABASE_URL`                                     | secret   | `postgres` on that project's **session pooler** (`postgres.<ref>@<pooler host>:5432`), `?sslmode=require`. The pooler host is the one the project's Database settings name: development's is `aws-1-us-east-1.pooler.supabase.com`, the preview project's `aws-0-us-west-2.pooler.supabase.com` |
-|                                      | `RELEASE_CMS_OWNER_PASSWORD`                               | secret   | 32 to 256 printable ASCII characters, no spaces                                                                                                                                                                                                                                                 |
-|                                      | `RELEASE_CMS_RUNTIME_PASSWORD`                             | secret   | As above, different from the owner's; the same value goes into the admin app's `PAYLOAD_DATABASE_URI`                                                                                                                                                                                           |
-|                                      | `RELEASE_DATABASE_SSL_CA`                                  | secret   | The project's CA certificate, the PEM from its Database settings (the same value as the admin app's `PAYLOAD_DATABASE_SSL_CA`)                                                                                                                                                                  |
-|                                      | `RELEASE_SEED_LOGIN_PASSWORD`                              | secret   | 32 to 72 printable ASCII characters, no spaces: the password every seeded login gets on a hosted rebuild                                                                                                                                                                                        |
-| Environment `release-preview`        | the same six names                                         |          | The preview project's values: `RELEASE_SUPABASE_PROJECT_REF` is `btewedpsxwsjczvmegby`, the production-named project, which is the disposable preview project until WP11. `RELEASE_SEED_LOGIN_PASSWORD` takes the same value as in `release-production`                                         |
-| Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                                                                                                                                                                                           |
-| Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                                                                                                                                                                                       |
-|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                                                                                                                                                                                       |
-|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                                                                                                                                                                                             |
-| Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                                                                                                                                                                                                |
+| Where                                | Name                                                       | Kind     | Value                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | ---------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment `release-production`     | `RELEASE_SUPABASE_PROJECT_REF`                             | variable | The project production-target deployments use. Until WP11: development, `pnmlrbgjiqzzsthsoikm`                                                                                                                                                                                                                              |
+|                                      | `RELEASE_DATABASE_URL`                                     | secret   | `postgres` on that project's **session pooler** (`postgres.<ref>@<pooler host>:5432`), `?sslmode=verify-full` and no other SSL option. The pooler host is the one the project's Database settings name: development's is `aws-1-us-east-1.pooler.supabase.com`, the preview project's `aws-0-us-west-2.pooler.supabase.com` |
+|                                      | `RELEASE_CMS_OWNER_PASSWORD`                               | secret   | 32 to 256 printable ASCII characters, no spaces                                                                                                                                                                                                                                                                             |
+|                                      | `RELEASE_CMS_RUNTIME_PASSWORD`                             | secret   | As above, different from the owner's; the same value goes into the admin app's `PAYLOAD_DATABASE_URI`                                                                                                                                                                                                                       |
+|                                      | `RELEASE_DATABASE_SSL_CA`                                  | secret   | The project's CA certificate, the PEM from its Database settings (the same value as the admin app's `PAYLOAD_DATABASE_SSL_CA`). Every step checks the database's certificate and host name against it                                                                                                                       |
+|                                      | `RELEASE_SEED_LOGIN_PASSWORD`                              | secret   | 32 to 72 printable ASCII characters, no spaces: the password every seeded login gets on a hosted rebuild                                                                                                                                                                                                                    |
+| Environment `release-preview`        | the same six names                                         |          | The preview project's values: `RELEASE_SUPABASE_PROJECT_REF` is `btewedpsxwsjczvmegby`, the production-named project, which is the disposable preview project until WP11. `RELEASE_SEED_LOGIN_PASSWORD` takes the same value as in `release-production`                                                                     |
+| Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                                                                                                                                                                                                                       |
+| Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                                                                                                                                                                                                                   |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                                                                                                                                                                                                                   |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                                                                                                                                                                                                                         |
+| Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                                                                                                                                                                                                                            |
 
 The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
 `cms_owner.<ref>`, `sslmode=verify-full`), so the job holds one connection
@@ -547,8 +586,15 @@ below follow those decisions.
    Undo: delete the environments.
 2. **Add the secrets and the variable of `release-production`** from the
    table above. Generate the two CMS passwords and the seeded-login password;
-   they are new and used nowhere yet. `RELEASE_DATABASE_SSL_CA` is the PEM of
-   the project's CA certificate (Database settings, SSL configuration).
+   they are new and used nowhere yet. `RELEASE_DATABASE_URL` ends in
+   `?sslmode=verify-full` and names no other SSL option. `RELEASE_DATABASE_SSL_CA`
+   is the PEM of the project's CA certificate: the file the project's Database
+   settings offer under SSL configuration, which Supabase's guide calls
+   `prod-ca-2021.crt`. Before you add it, run
+   `openssl x509 -noout -subject -fingerprint -sha256 -in prod-ca-2021.crt`.
+   It must print `CN = Supabase Root 2021 CA` and the fingerprint
+   `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`.
+   That is the CA both projects' poolers chain to.
    Check: `gh secret list --env release-production` shows the five secrets and
    `gh variable list --env release-production` the variable.
    Undo: delete them.
