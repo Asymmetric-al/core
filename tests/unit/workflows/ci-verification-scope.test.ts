@@ -1,8 +1,10 @@
 /**
- * Workflow structure for openspec/changes/rebalance-ci-test-scope: where the
- * unit selection gets its change set, the design-system verifier in lint,
- * the failure-only debug-prerender rebuild, the parallel browser smoke and
- * the instant-nav trigger. It reads parsed workflow structure, never bytes.
+ * Workflow structure for openspec/changes/rebalance-ci-test-scope: the
+ * sharded unit-test job, the design-system verifier in lint, the
+ * failure-only debug-prerender rebuild, the parallel browser smoke and the
+ * instant-nav trigger. It reads parsed workflow structure, never bytes.
+ * tests/unit/scripts/unit-test-shards.test.ts checks which files the shards
+ * run.
  */
 import { describe, expect, it } from "vitest";
 
@@ -37,16 +39,42 @@ const PR_SHAS = {
   CI_HEAD_SHA: "${{ github.event.pull_request.head.sha }}",
 };
 
-describe("test-unit gives the selection the pull request's change set", () => {
-  const job = CI["test-unit"];
+describe("test-unit runs every unit test as shards", () => {
+  const job = CI["test-unit"]!;
+  const strategy = (job.strategy ?? {}) as Record<string, unknown>;
+  const steps = stepsOf(job);
+  const tests = steps.find((s) => s.name === "Run unit tests");
 
-  it("runs the unit suite with the pull request base and head", () => {
-    const step = stepsOf(job).find((s) => s.run === "bun run test:unit");
-    expect(step?.env).toMatchObject(PR_SHAS);
+  it("lets every shard finish when another fails, so no failure hides another", () => {
+    expect(strategy["fail-fast"]).toBe(false);
+    expect(strategy["max-parallel"]).toBeUndefined();
   });
 
-  it("checks out full history so the diff never comes from a shallow clone", () => {
-    expect(checkoutOf(job)?.with?.["fetch-depth"]).toBe(0);
+  it("hands each shard its index and the shard count, and nothing else", () => {
+    expect(tests?.run).toBe(
+      "bun run test:unit --shard=${{ matrix.shard }}/${{ strategy.job-total }}",
+    );
+    expect(tests?.env).toBeUndefined();
+    expect(tests?.if).toBeUndefined();
+    expect(tests?.["continue-on-error"]).toBeUndefined();
+  });
+
+  it("uploads each shard's coverage under its own name", () => {
+    const upload = steps.find((s) =>
+      s.uses?.startsWith("actions/upload-artifact@"),
+    );
+    expect(upload?.if).toBe("always()");
+    expect(String(upload?.with?.name)).toBe(
+      "unit-test-coverage-${{ matrix.shard }}",
+    );
+  });
+
+  it("is still needed and read by ci-gate, which accepts only success", () => {
+    const gate = CI["ci-gate"]!;
+    expect(needsList(gate)).toContain("test-unit");
+    expect(JSON.stringify(gate.steps)).toContain(
+      '\\"unit\\":\\"${{ needs.test-unit.result }}\\"',
+    );
   });
 });
 
