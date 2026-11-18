@@ -38,13 +38,11 @@
     "council",
     "create-agent",
     "create-verification-skill",
-    "design-an-interface",
     "design-taste-frontend",
     "deslop",
     "diagnosing-bugs",
     "domain-model",
     "domain-modeling",
-    "edit-article",
     "emil-design-eng",
     "emil-design-engineering",
     "emil-prototype",
@@ -97,7 +95,6 @@
     "nextjs-supabase-auth",
     "no-comments",
     "npm-deps-cleanup",
-    "obsidian-vault",
     "openspec-apply-change",
     "openspec-archive-change",
     "openspec-explore",
@@ -140,7 +137,6 @@
     "principle-test-behavior-not-implementation",
     "principle-type-system-discipline",
     "prototype",
-    "qa",
     "react-component-dev",
     "react-doctor",
     "recall",
@@ -148,7 +144,6 @@
     "redesign-existing-projects",
     "reflect",
     "repo-entry",
-    "request-refactor-plan",
     "research",
     "resend-cli",
     "resolving-merge-conflicts",
@@ -175,7 +170,6 @@
     "to-tickets",
     "triage",
     "typescript-best-practices",
-    "ubiquitous-language",
     "ui-sdk",
     "unslop",
     "vercel-react-best-practices",
@@ -443,11 +437,6 @@
       "references/feature-map-example/search.md",
       "references/upstream.md"
     ],
-    "design-an-interface": [
-      "SKILL.md",
-      "references/UPSTREAM-LICENSE",
-      "references/upstream.md"
-    ],
     "design-taste-frontend": [
       "README.md",
       "SKILL.md",
@@ -513,12 +502,6 @@
       "SKILL.md",
       "agents/openai.yaml",
       "references/LICENSE.md",
-      "references/upstream.md"
-    ],
-    "edit-article": [
-      "SKILL.md",
-      "agents/openai.yaml",
-      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "emil-design-eng": [
@@ -923,11 +906,6 @@
       "SKILL.md",
       "references/upstream.md"
     ],
-    "obsidian-vault": [
-      "SKILL.md",
-      "references/UPSTREAM-LICENSE",
-      "references/upstream.md"
-    ],
     "openspec-apply-change": [
       "SKILL.md",
       "references/LICENSE.md",
@@ -1255,11 +1233,6 @@
       "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
-    "qa": [
-      "SKILL.md",
-      "references/UPSTREAM-LICENSE",
-      "references/upstream.md"
-    ],
     "react-component-dev": [
       "SKILL.md"
     ],
@@ -1293,11 +1266,6 @@
     ],
     "repo-entry": [
       "SKILL.md"
-    ],
-    "request-refactor-plan": [
-      "SKILL.md",
-      "references/UPSTREAM-LICENSE",
-      "references/upstream.md"
     ],
     "research": [
       "SKILL.md",
@@ -1555,12 +1523,6 @@
       "SKILL.md",
       "agents/openai.yaml",
       "references/patterns.md",
-      "references/upstream.md"
-    ],
-    "ubiquitous-language": [
-      "SKILL.md",
-      "agents/openai.yaml",
-      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "ui-sdk": [
