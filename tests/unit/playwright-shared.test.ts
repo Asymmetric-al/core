@@ -194,10 +194,15 @@ describe("defineBoneyardConfig", () => {
 });
 
 describe("devServerCommand", () => {
-  it("clears the stale Next dev lock before starting the app", () => {
+  // Next.js 16.4 holds .next/dev/lock as an operating-system lock that is
+  // released when its process dies, so a crashed run cannot block the next
+  // start; deleting it only lets a second server start over a live one.
+  it("starts the app without deleting a running dev server's lock", () => {
     const command = devServerCommand("missionary", 4000, "localhost");
-    expect(command).toContain("apps/missionary/.next/dev/lock");
-    expect(command).toContain("bun run --cwd apps/missionary dev:playwright");
-    expect(command).toContain("--port 4000");
+    expect(command).not.toContain(".next/dev/lock");
+    expect(command).not.toContain("rmSync");
+    expect(command).toBe(
+      "bun run --cwd apps/missionary dev:playwright -- --port 4000 --hostname localhost",
+    );
   });
 });

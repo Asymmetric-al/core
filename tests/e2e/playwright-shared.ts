@@ -138,15 +138,17 @@ export function shouldReuseExistingServer(
 }
 
 /**
- * Dev-server launch command: clears a stale Next dev lock (crashed runs leave
- * it behind and block the next start), then runs the app's dev:playwright.
+ * Dev-server launch command: the app's dev:playwright. It never deletes
+ * `.next/dev/lock`: Next.js holds it as an operating-system lock released
+ * when its process dies, so a crashed run does not block the next start, and
+ * a live lock means a dev server is already running there.
  */
 export function devServerCommand(
   app: string,
   port: number,
   hostname: string,
 ): string {
-  return `node -e "try{require('fs').rmSync('apps/${app}/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/${app} dev:playwright -- --port ${port} --hostname ${hostname}`;
+  return `bun run --cwd apps/${app} dev:playwright -- --port ${port} --hostname ${hostname}`;
 }
 
 function firstConfiguredEnvValue(
