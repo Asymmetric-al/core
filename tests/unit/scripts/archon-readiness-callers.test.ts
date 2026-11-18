@@ -293,6 +293,19 @@ function mergedPull() {
   });
 }
 
+// The target branch's active rules require a merge queue, and GitHub accepts
+// the enqueue (the shape github.merge returns for one).
+function requireMergeQueue() {
+  pr.node_id = "PR_kwDOnode42";
+  state.github.branchRules.mockResolvedValue([
+    { type: "merge_queue", parameters: { merge_method: "MERGE" } },
+  ]);
+  state.github.merge.mockResolvedValue({
+    queued: true,
+    mergeQueueEntry: { id: "MQE_1", state: "QUEUED", position: 1 },
+  });
+}
+
 describe("readiness callers at local GitHub and Archon boundaries", () => {
   it.each(["throw", "false-response"])(
     "does not claim a later human merge after a known %s refusal (F3)",
@@ -455,6 +468,101 @@ describe("readiness callers at local GitHub and Archon boundaries", () => {
       expect(state.document.value.pr.mergeRequest.status).toBe("unknown");
     },
   );
+
+  it("sends the same direct merge request when no merge queue is required (merge queue)", async () => {
+    authorizeMerge();
+    state.github.merge.mockImplementation(async () => {
+      mergedPull();
+      return { merged: true, sha: MERGE };
+    });
+    await runScript("feedback-facts");
+    expect(await runScript("readiness")).toMatchObject({
+      verdict: "MERGED",
+      merged_by: "factory",
+    });
+    expect(state.github.merge.mock.calls).toStrictEqual([
+      [42, { sha: HEAD, method: "squash", title: "Candidate (#42)" }],
+    ]);
+  });
+
+  it("enqueues at the reviewed head with the node id and waits, never merged (merge queue)", async () => {
+    authorizeMerge();
+    requireMergeQueue();
+    await runScript("feedback-facts");
+    state.github.pull.mockClear();
+    const output = await runScript("readiness");
+    expect(output).toStrictEqual({
+      verdict: "WAIT",
+      reason: expect.stringContaining("merge queue"),
+    });
+    expect(state.github.merge.mock.calls).toStrictEqual([
+      [
+        42,
+        {
+          sha: HEAD,
+          method: "squash",
+          title: "Candidate (#42)",
+          mergeQueue: true,
+          nodeId: "PR_kwDOnode42",
+        },
+      ],
+    ]);
+    expect(state.document.value.pr.mergeRequest).toStrictEqual({
+      head: HEAD,
+      at: "2026-11-12T10:00:00Z",
+      run: "round-1",
+      status: "queued",
+    });
+    expect(entries.readiness.blocked).toBeUndefined();
+    expect(state.document.value.pr.mergedAt).toBeUndefined();
+    // Queued is not an unconfirmed merge: no read-back of the merge outcome.
+    // Reads: step 1, the step 4 observation and the merge lane's re-check.
+    expect(state.github.pull).toHaveBeenCalledTimes(3);
+    expect(documents.get("core/merge-lane").value.issue).toBeNull();
+  });
+
+  it("keeps waiting on a queued request without enqueuing again (merge queue)", async () => {
+    authorizeMerge();
+    requireMergeQueue();
+    await runScript("feedback-facts");
+    expect(await runScript("readiness")).toMatchObject({ verdict: "WAIT" });
+    // Next round: GitHub has not merged it (still queued, or the queue
+    // removed it; the pull request looks the same either way).
+    await runScript("feedback-facts");
+    const output = await runScript("readiness");
+    expect(output).toStrictEqual({
+      verdict: "WAIT",
+      reason: expect.stringContaining("merge queue"),
+    });
+    expect(entries.readiness.blocked).toBeUndefined();
+    expect(state.github.merge).toHaveBeenCalledOnce();
+    expect(state.document.value.pr.mergeRequest.status).toBe("queued");
+    expect(documents.get("core/merge-lane").value.issue).toBeNull();
+  });
+
+  it("closes out a pull request the queue merged through the existing MERGED path (merge queue)", async () => {
+    authorizeMerge();
+    requireMergeQueue();
+    await runScript("feedback-facts");
+    expect(await runScript("readiness")).toMatchObject({ verdict: "WAIT" });
+    mergedPull();
+    pr.merged_by = { login: "github-merge-queue[bot]" };
+    await runScript("feedback-facts");
+    // Factory attribution needs a confirmed receipt for the exact merge
+    // commit (F3); GitHub's queue made this one, so it is external.
+    expect(await runScript("readiness")).toStrictEqual({
+      verdict: "MERGED",
+      reason: expect.stringContaining(`Merged as ${MERGE} on develop`),
+      merged_by: "external",
+    });
+    expect(state.github.merge).toHaveBeenCalledOnce();
+    expect(state.document.value.pr).toMatchObject({
+      mergeRequest: { head: HEAD, status: "queued" },
+      mergeCommit: MERGE,
+      onTarget: true,
+      issueClosed: true,
+    });
+  });
 
   it("does not attribute a different actual merge commit to a confirmed request (F3)", async () => {
     authorizeMerge();

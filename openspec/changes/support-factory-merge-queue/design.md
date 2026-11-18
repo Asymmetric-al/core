@@ -95,14 +95,34 @@ state; supporting a queue configured only in classic branch protection.
    conflict (`dirty` or not mergeable) still integrates the base, because the
    queue cannot merge a conflicting change.
 
+5. **The merge lane passes the flag and treats queued as waiting.** With
+   `mergeQueue` on the decision, the lane passes `mergeQueue: true` and the
+   pull request's node id from its fresh re-check; without it, the request
+   is today's, byte for byte. A `{ queued: true }` result is recorded as a
+   merge request with status `queued` and answered WAIT, not read back as an
+   unconfirmed merge. Each later round reads the pull request first: merged
+   goes to the existing MERGED closeout; not merged, with a same-head request
+   still `queued`, answers WAIT and sends nothing. Alternative: keep the
+   existing guard, which blocks every recorded same-head request as
+   `merge-unconfirmed`. A feedback round runs every 10 minutes
+   (`checkWaitMs`) and a `merge_group` run takes longer, so nearly every
+   queued merge would stop for a person although GitHub then merges it.
+
 ## Risks / Trade-offs
 
-- [The merge lane is not wired yet] → Until task 3.1 lands, the lane never
-  asks for an enqueue: with a queue on, its direct merge is refused and the
-  issue blocks `merge-refused`. If the flag were passed without the result
-  handling, a queued result would be read as unconfirmed and block
-  `merge-unconfirmed`. Neither reports MERGED early. The runbook holds
-  merging until both are installed.
+- [The queue removes the pull request (a failed `merge_group` check, or a
+  person); it then looks the same as a queued one, and the factory does not
+  read the queue] → The lane keeps answering WAIT and never enqueues again;
+  the issue's feedback-round budget ends the wait as BLOCKED
+  `feedback-limit`. A person re-adds the pull request or merges it, then
+  retries the issue; the next round records MERGED. Nothing is reported
+  merged early.
+- [A queue merge has no receipt for its merge commit] → It closes out as
+  MERGED with `merged_by: external`, since factory attribution needs a
+  confirmed receipt for the exact merge commit.
+- [A release without this change sends a direct merge while the queue is on]
+  → GitHub refuses it and the issue blocks `merge-refused`; it is never
+  reported merged. The runbook holds merging until the release is installed.
 - [GitHub may report `mergeable_state: blocked` for a pull request whose base
   requires a queue; not documented and not observed here] → Readiness would
   answer PR_READY ("Required human review pending (0/0)") and not enqueue. The
@@ -115,8 +135,8 @@ state; supporting a queue configured only in classic branch protection.
 
 ## Migration Plan
 
-1. Merge this change and install it as a new pack release (runbook, Updates).
-2. Wire the merge lane (task 3.1) and install that release.
-3. The owner turns the queue on with the runbook steps and watches the first
+1. Merge this change, merge-lane wiring (task 3.1) included, and install it
+   as a new pack release (runbook, Updates).
+2. The owner turns the queue on with the runbook steps and watches the first
    factory merge. Rollback: the runbook's turn-off steps; with no
    `merge_queue` rule the factory runs today's code paths.

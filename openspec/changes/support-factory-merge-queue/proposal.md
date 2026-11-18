@@ -21,9 +21,10 @@ the queue already tests against the latest base.
   queue.
 - With a queue required, the factory's merge request adds the pull request to
   the queue at its reviewed head through GraphQL `enqueuePullRequest`. Queued
-  is never reported as merged. A rejected enqueue is refused, and a lost or
-  failed response is unknown and reconciled before any retry, as for every
-  factory write today.
+  is never reported as merged: the factory waits, and does not enqueue the
+  pull request again, until GitHub reports it merged. A rejected enqueue is
+  refused, and a lost or failed response is unknown and reconciled before any
+  retry, as for every factory write today.
 - Without a queue, the direct merge request and the strict up-to-date
   behaviour stay exactly as they are.
 - A short runbook entry gives the owner the exact steps to turn the queue on
@@ -70,9 +71,9 @@ None.
 - `scripts/archon-factory/pack/.shared/github.mjs`: the merge request enqueues
   when told the base branch requires a queue.
 - `scripts/archon-factory/pack/deliver/scripts/readiness.ts`: the merge lane
-  must pass the decision's queue flag and the pull request's node id, and treat
-  a queued result as waiting for GitHub. This caller wiring is outside the
-  first implementation slice's file fence and is listed as an open task.
+  passes the decision's queue flag and the pull request's node id, records a
+  queued result as queued, and waits on a queued request without sending
+  another (task 3.1, delivered as a second slice).
 - `docs/ops/archon-vm100-factory-runbook.md`: the merge-queue entry.
 - A changed pack reaches VM 100 only as a new release through
   `installation/install.mjs`.

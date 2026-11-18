@@ -19,6 +19,14 @@ request SHALL stay exactly as it was.
 - **AND** the issue is reported MERGED only after GitHub reports the pull
   request merged on the target branch
 
+#### Scenario: A queued pull request has not merged yet
+
+- **WHEN** the factory has added the pull request to the queue at its reviewed
+  head and GitHub does not report it merged, because it is still queued or
+  because the queue removed it
+- **THEN** the factory waits and does not add it to the queue again
+- **AND** the issue is not reported MERGED
+
 #### Scenario: GitHub rejects the enqueue
 
 - **WHEN** GitHub refuses to add the pull request to the queue

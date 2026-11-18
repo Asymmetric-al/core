@@ -688,6 +688,13 @@ if (decision.verdict === "MERGE")
               ),
           };
         const pending = value.pr?.mergeRequest;
+        // GitHub's queue merges it; step 4 reads MERGED once it has. A pull
+        // request the queue removed looks the same and is never enqueued again.
+        if (pending?.head === value.head && pending.status === "queued")
+          return {
+            verdict: "WAIT",
+            reason: `Still in the ${target} merge queue at ${value.head.slice(0, 12)}; if GitHub removed it, a person re-adds or merges it`,
+          };
         if (pending?.head === value.head && pending.status !== "refused")
           return {
             verdict: "BLOCKED",
@@ -725,6 +732,7 @@ if (decision.verdict === "MERGE")
           merged?: boolean;
           sha?: string;
           message?: string;
+          queued?: boolean;
         } | null = null;
         let refusal: string | null = null;
         try {
@@ -732,6 +740,10 @@ if (decision.verdict === "MERGE")
             sha: value.head,
             method: round.config.repository.mergeMethod,
             title: `${pr.title} (#${prNumber})`,
+            // The target branch requires a merge queue: enqueue, not merge.
+            ...(decision.mergeQueue === true
+              ? { mergeQueue: true, nodeId: pr.node_id }
+              : {}),
           });
         } catch (error) {
           if ((error as { outcome?: string })?.outcome === "refused")
@@ -755,6 +767,19 @@ if (decision.verdict === "MERGE")
                 detail: refusal.slice(0, 1000),
               },
             },
+          };
+        }
+        // Queued is not merged; the next round reads the pull request.
+        if (merged?.queued === true) {
+          await checkpoint({
+            pr: {
+              ...value.pr,
+              mergeRequest: { ...request, status: "queued" },
+            },
+          });
+          return {
+            verdict: "WAIT",
+            reason: `Added to the ${target} merge queue at ${value.head.slice(0, 12)}; waiting for GitHub to merge it`,
           };
         }
         const mergeCommit =

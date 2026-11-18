@@ -550,10 +550,10 @@ adds the pull request to the queue instead of merging it (OpenSpec change
 
 Check first:
 
-1. The installed release contains that change **and** the merge-lane wiring
-   (its task 3.1). Until both are installed, set `factory hold-merge`
-   while the queue is on; otherwise the factory's direct merge is refused and
-   the issue blocks `merge-refused` (it is never reported merged).
+1. The installed release contains that change, merge-lane wiring (its task
+   3.1) included. Until it is installed, set `factory hold-merge` while the
+   queue is on; otherwise the factory's direct merge is refused and the issue
+   blocks `merge-refused` (it is never reported merged).
 2. Every required check reports on `merge_group`. `ci.yml` and
    `ci-integration.yml` both trigger on it, and the #2201 acceptance test
    (`tests/unit/acceptance/issue-2201/merge-group.acceptance.test.ts`) expects
@@ -580,11 +580,19 @@ Turn it on (repository admin, in this order so `develop` is never unprotected):
    prints `false`.
 
 Watch the first factory merge: the pull request appears on the `develop` queue
-page and `merge_group` runs of both workflows start. If instead the issue stops
-at `PR_READY` with "Required human review pending (0/0)" and the round's
-`readiness-observation` shows `state: blocked`, GitHub reports queued-base pull
-requests as blocked and readiness cannot tell; turn the queue off and report
-it. People merge by hand with **Merge when ready**.
+page and `merge_group` runs of both workflows start. The round answers WAIT
+("Added to the develop merge queue"), the work item's `pr.mergeRequest.status`
+is `queued`, and each later round answers WAIT ("Still in the develop merge
+queue") until GitHub merges it; the round after that records MERGED with
+`merged_by: external`, because the queue, not a factory request, made the
+merge commit. The factory never enqueues the same head twice. If the queue
+removes the pull request (a failed `merge_group` check), the factory keeps
+waiting until the issue blocks `feedback-limit`: re-add the pull request with
+**Merge when ready** or merge it by hand, then `issue <n> retry`. If instead
+the issue stops at `PR_READY` with "Required human review pending (0/0)" and
+the round's `readiness-observation` shows `state: blocked`, GitHub reports
+queued-base pull requests as blocked and readiness cannot tell; turn the
+queue off and report it. People merge by hand with **Merge when ready**.
 
 Turn it off (restore the rule first, again so `develop` is never unprotected):
 
@@ -598,8 +606,9 @@ Turn it off (restore the rule first, again so `develop` is never unprotected):
    `merge_queue`, `strict` is `true`.
 
 The factory needs no release change to turn the queue off: without the rule
-it merges directly again. An issue it had queued may block for reconciliation;
-inspect the pull request, then `issue <n> retry`.
+it merges directly again. An issue it had queued keeps waiting and is not
+merged directly; if the queue did not merge its pull request, merge it by
+hand, then `issue <n> retry` if the issue has blocked.
 
 ## Backups, restore and updates
 

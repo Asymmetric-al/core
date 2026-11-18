@@ -28,12 +28,18 @@
 
 ## 3. Merge lane wiring
 
-- [ ] 3.1 In `pack/deliver/scripts/readiness.ts`, pass
-      `mergeQueue: decision.mergeQueue === true` and `nodeId: pr.node_id` to
-      `github.merge`, and record a `{ queued: true }` result as a queued merge
-      request answered with WAIT instead of `merge-unconfirmed`; verify with a
-      caller test in `tests/unit/scripts/archon-readiness-callers.test.ts`.
-      Not part of workstream G's file fence; left for the integrator.
+- [x] 3.1 In `pack/deliver/scripts/readiness.ts`, pass
+      `mergeQueue: true` and `nodeId: pr.node_id` to `github.merge` when the
+      decision carries `mergeQueue`, record a `{ queued: true }` result as a
+      merge request with status `queued` answered with WAIT instead of
+      `merge-unconfirmed`, and answer WAIT without a new request on a later
+      round while that same-head request is queued; verify with caller tests
+      in `tests/unit/scripts/archon-readiness-callers.test.ts`, written first.
+      Red on 18 November: 3 failures (a queued result fell through to "Merge
+      outcome could not be confirmed" and blocked `merge-unconfirmed`); the
+      test pinning today's exact direct request without a queue passed before
+      and after. Green: 36 tests in that file, and 469 across the 11 test
+      files that import the lane or either `.shared` module (2 workers).
 
 ## 4. Operations
 
