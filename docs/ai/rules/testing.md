@@ -275,9 +275,14 @@ npx playwright show-report
 
 - `tests/unit/workflows/required-ci-checks.test.ts` fails when a required
   check on `develop` (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) or a job
-  it needs becomes non-blocking (`continue-on-error`, a run line ending in
-  `|| true`), when a gate stops needing or reading a job it gates or can be
-  skipped, or when a required job id disappears.
+  it needs becomes non-blocking (`continue-on-error`, a run line that swallows
+  failure such as `|| true`, `|| echo`, `; true` or `set +e`, a step that never
+  runs, or a call to a reusable workflow), when a required job's own `if` can
+  skip it on `develop`, when a gate stops needing or reading a job it gates or
+  can be skipped, or when a required job id disappears. It is a heuristic that
+  reads run scripts as text and evaluates conditions only for the modelled
+  events, so the exact `migrate` pins in `tests/unit/helpers/workflow-yaml.ts`
+  (`PINNED_STEP_BODIES`, `PINNED_JOB_IFS`) remain the backstop.
 - `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage
   order against `docs/ci.md` and ensures deployment discipline stays out of
   preflight.

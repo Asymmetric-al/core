@@ -26,6 +26,12 @@ jobs:
   lint:
     steps:
       - run: bun run lint
+      - name: Affected lint on pull requests
+        if: github.event_name == 'pull_request'
+        run: bun run lint:affected
+      - name: Full lint on pushes
+        if: github.event_name != 'pull_request'
+        run: bun run lint:full
   test-unit:
     steps:
       - run: bun run test:unit
@@ -51,11 +57,23 @@ const CII_FIXTURE = `
 jobs:
   migrate:
     steps:
+      - name: Reject fork pull requests
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "fork PRs need a maintainer to run CI"
+          exit 1
       - run: psql -f migrations.sql
       - name: Verify tenant isolation (real stack)
         run: bun x vitest run tests/unit/a.realstack.test.ts
   smoke:
     needs: migrate
+    if: >-
+      always() &&
+      (needs.migrate.result == 'success' ||
+        (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository))
     steps:
       - run: bun run start
   test-e2e-smoke:
@@ -139,7 +157,7 @@ describe("requiredCheckProblems (fixtures)", () => {
     it("continue-on-error: false is allowed", () => {
       const problems = problemsAfter((w) => {
         jobOf(w, CII, "migrate")["continue-on-error"] = false;
-        jobOf(w, CII, "migrate").steps![1]!["continue-on-error"] = false;
+        jobOf(w, CII, "migrate").steps![2]!["continue-on-error"] = false;
       });
       expect(problems).toEqual([]);
     });
@@ -160,7 +178,7 @@ describe("requiredCheckProblems (fixtures)", () => {
 
     it("a swallowed line inside a multi-line real-stack step", () => {
       const problems = problemsAfter((w) => {
-        jobOf(w, CII, "migrate").steps![1]!.run =
+        jobOf(w, CII, "migrate").steps![2]!.run =
           "set -e\nbun x vitest run tests/unit/a.realstack.test.ts || true\necho done";
       });
       expect(problems).toEqual([
@@ -168,10 +186,122 @@ describe("requiredCheckProblems (fixtures)", () => {
       ]);
     });
 
+    // #2706 review: each of these passed the end-of-line pattern.
+    it.each([
+      "bun run start || true # flaky",
+      "(bun run start || true)",
+      "bun run start || echo failed",
+      "bun run start || printf 'start failed\\n'",
+      "bun run start || /bin/true",
+      "bun run start; true",
+      "bun run start || true; echo ok",
+      "set +e\nbun run start",
+      "set +o errexit\nbun run start",
+      "bun run start || { echo failed; }",
+      "bun run start ||\n  true",
+      "bun run start \\\n  || true",
+      "bun run start 2>&1 || true",
+    ])("a smoke step running %j", (run) => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "smoke").steps![0]!.run = run;
+      });
+      expect(problems).toEqual([
+        expect.stringMatching(/smoke.*swallows failure/),
+      ]);
+    });
+
+    it.each([
+      "bun run start || exit 1",
+      "bun run start || exit",
+      'bun run start || { echo "start failed"; exit 1; }',
+      "bun run start || {\n  echo start failed\n  exit 1\n}",
+      "bun run start || (echo failed; false)",
+      'echo "a || true" && bun run start',
+      "bun run start # || true",
+      'if [ "$a" = b ] || [ "$c" = d ]; then exit 1; fi',
+      "[[ $a == b || $c == d ]] && bun run start",
+      "echo \"${{ needs.migrate.result || 'none' }}\"\nbun run start",
+      "bun run start\nexit 0",
+    ])("a smoke step running %j is allowed", (run) => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "smoke").steps![0]!.run = run;
+      });
+      expect(problems).toEqual([]);
+    });
+
     it("`|| exit 1` and a failure()-only diagnostic step are allowed", () => {
       // The fixture's e2e-smoke-gate uses `|| exit 1`, and its
       // test-e2e-smoke log step (if: failure()) ends in `|| true`.
       expect(requiredCheckProblems(fixture())).toEqual([]);
+    });
+  });
+
+  describe("a step or a required job can be skipped", () => {
+    it.each<[string, unknown]>([
+      ["if: false", false],
+      ["if: ${{ false }}", "${{ false }}"],
+      ["a condition no modelled event meets", "github.event_name == 'release'"],
+      ["!always()", "${{ !always() }}"],
+    ])("a real-stack step with %s never runs", (_label, condition) => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "migrate").steps![2]!.if = condition as string;
+      });
+      expect(problems).toEqual([
+        expect.stringMatching(/migrate.*Verify tenant isolation.*never runs/),
+      ]);
+    });
+
+    it("a step that never runs in a job ci-gate needs", () => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CI, "test-unit").steps![0]!.if = false;
+      });
+      expect(problems).toEqual([
+        expect.stringMatching(/test-unit.*never runs/),
+      ]);
+    });
+
+    it("event-scoped, always() and fork-reject steps are allowed", () => {
+      // The fixture's lint pair runs on pull requests or on pushes, and the
+      // migrate reject step runs only on fork pull requests.
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "smoke").steps![0]!.if = "always()";
+      });
+      expect(problems).toEqual([]);
+    });
+
+    it.each<[string, unknown]>([
+      ["if: false", false],
+      ["pull requests only", "github.event_name == 'pull_request'"],
+      ["no merge queue", "github.event_name != 'merge_group'"],
+      ["an unmodelled context", "vars.RUN_MIGRATE == 'true'"],
+    ])("a job-level %s on migrate", (_label, condition) => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "migrate").if = condition as string;
+      });
+      expect(problems).toEqual([expect.stringMatching(/migrate.*job if/)]);
+    });
+
+    it("a job-level condition that skips smoke on pushes", () => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "smoke").if =
+          "always() && needs.migrate.result == 'success' && github.event_name != 'push'";
+      });
+      expect(problems).toEqual([expect.stringMatching(/smoke.*job if/)]);
+    });
+
+    it.each([
+      [CII, "migrate"],
+      [CII, "test-e2e-smoke"],
+      [CI, "lint"],
+    ])("%s %s turned into a reusable-workflow call", (file, id) => {
+      const problems = problemsAfter((w) => {
+        const job = jobOf(w, file, id);
+        delete job.steps;
+        job.uses = `./.github/workflows/${id}.yml`;
+      });
+      expect(problems).toEqual([
+        expect.stringMatching(new RegExp(`\\b${id}\\b.*reusable workflow`)),
+      ]);
     });
   });
 
