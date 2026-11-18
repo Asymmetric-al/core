@@ -32,13 +32,17 @@ changes; other hashed ledgers; exact job inventories (semantic, kept).
 2. **Semantic replacement for CI steps.** A real-stack verification step is
    asserted to exist once in `migrate`, to set no `continue-on-error` and no
    `if:`, to run after `Apply migrations`, and to run `bun x vitest run`
-   with the issue's own files. Every word after the command must be a plain
-   test path that exists, so no operator, comment, flag or variable can make
-   the step pass while its tests fail, and a mistyped path cannot be skipped
-   silently. Its position and which other files share the `run:` line are
-   not asserted. A shared test names all real-database acceptance files,
-   checks the list against the files on disk, and asserts that one such step
-   runs each file with the database URL variable the file reads.
+   with the issue's own files. The run is one line, and every word after the
+   command must be a plain test path that exists, so no operator, comment,
+   flag or variable can make the step pass while its tests fail, and a
+   mistyped path cannot be skipped silently. The step carries no key but
+   `name`, `env` and `run` (a `shell` or `working-directory` would change how
+   the line runs), and it does not override the job's `DATABASE_URL` unless
+   the caller expects that value. Its position and which other files share
+   the `run:` line are not asserted. A shared test names all real-database
+   acceptance files, checks the list against the files on disk, and asserts
+   that one such step runs each file with the database URL variable the file
+   reads.
 3. **Structural guard lives outside issue folders.**
    `tests/unit/workflows/required-ci-checks.test.ts` with a pure helper in
    `tests/unit/helpers/required-ci-checks.ts`. The required set is develop's
@@ -57,13 +61,32 @@ changes; other hashed ledgers; exact job inventories (semantic, kept).
    `ci-gate` must need and read the result of every other `ci.yml` job except
    jobs downstream of it and the explicit advisory `shadscan-report`;
    `e2e-smoke-gate` must need and read `migrate`, `smoke` and
-   `test-e2e-smoke`; both gates must run `if: always()`. Production-only
-   contexts (`e2e-gate`, `release-source-gate`) are out of scope because
-   `e2e-gate` depends on jobs that are advisory on `develop`.
+   `test-e2e-smoke`; both gates must run `if: always()`. Because a result
+   read only in a log line gates nothing, the guard also runs
+   `e2e-smoke-gate`'s script under bash, through the existing
+   `gateEnforcementProblems` model, once per outcome of the jobs it gates: it
+   must pass when they all succeeded and fail when any one failed, was
+   cancelled or was skipped. `ci-gate` is not run there: its policy script
+   allows planned skips, and the issue-2153 and ci-build-policy tests run it.
+   A fallback group's bare `exit` counts as failing only as the group's
+   first command, since later it returns the status of the command before
+   it. Production-only contexts (`e2e-gate`, `release-source-gate`) are out
+   of scope because `e2e-gate` depends on jobs that are advisory on
+   `develop`.
 4. **Guidance.** The repository testing rulebook gains the rule. The factory
    Ezra role, which designs acceptance tests, gains a "byte-pinned"
-   anti-pattern; its LF-normalized hashes in the pack role manifest are
-   regenerated with `scripts/archon-factory/build-pack.mjs`.
+   anti-pattern with the same hash exception as the spec; its LF-normalized
+   hashes in the pack role manifest are regenerated with
+   `scripts/archon-factory/build-pack.mjs`.
+5. **Base-relative rules keep their rule, not their merge base.** Removing
+   a merge-base comparison must not remove a rule that holds between a pull
+   request and its base. The one such rule found is forward-migration
+   order (#2406 criterion 1, and the same check in #2258, #2260, #2312 and
+   #2407a): it now covers every forward migration a pull request adds and
+   reads the base commit from the CI event (`pull_request.base.sha` or
+   `merge_group.base_sha`), skipping with a stated reason when there is
+   none (`tests/unit/acceptance/shared/migration-order.ts`). A migration
+   verifier under `scripts/verify/` is its better home.
 
 ## Risks / Trade-offs
 

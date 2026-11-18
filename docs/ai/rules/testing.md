@@ -277,11 +277,17 @@ npx playwright show-report
   check on `develop` (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) or a job
   it needs becomes non-blocking (`continue-on-error`, a run line that swallows
   failure such as `|| true`, `|| echo`, `; true` or `set +e`, a step that never
-  runs, or a call to a reusable workflow), when a required job's own `if` can
-  skip it on `develop`, when a gate stops needing or reading a job it gates or
-  can be skipped, or when a required job id disappears. It is a heuristic that
-  reads run scripts as text and evaluates conditions only for the modelled
-  events, so the exact `migrate` pins in `tests/unit/helpers/workflow-yaml.ts`
+  runs, or a call to a reusable workflow), when `migrate` or `smoke` has a job
+  `if` that can skip it on a `develop` pull request, push or merge-queue run,
+  when a gate stops needing or reading a job it gates or is not `if: always()`,
+  when `e2e-smoke-gate`'s script, run once per outcome, passes although a job
+  it gates did not succeed, or when a required job id disappears. It is a
+  heuristic with known limits. It reads other run scripts as text. It reports
+  a step condition only when no modelled event meets it, so a step that runs
+  on pull requests but is skipped on pushes passes. It checks job conditions
+  only on `migrate` and `smoke`; the gates have the `always()` rule instead.
+  A workflow that needs more than this gets its own assertion, and the exact
+  `migrate` pins in `tests/unit/helpers/workflow-yaml.ts`
   (`PINNED_STEP_BODIES`, `PINNED_JOB_IFS`) remain the backstop.
 - `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage
   order against `docs/ci.md` and ensures deployment discipline stays out of

@@ -57,3 +57,20 @@
 - [ ] 6.5 Owner confirms on the pull request that #2706 covers the
       diff-scope, step-position and blob-pin removals as well as the
       fingerprint comparisons.
+
+## 7. Bot review of #2716
+
+- [x] 7.1 Real-stack steps: reject other step keys, a run over several
+      lines and an unexpected step-level `DATABASE_URL`; use the shared
+      check in #2258 and #2312 (fixture cases and a scratch edit red first).
+- [x] 7.2 Guard: run `e2e-smoke-gate`'s script per outcome; a late bare
+      `exit` in a fallback group does not fail (fixture cases red first).
+- [x] 7.3 Keep the forward-migration order rule against the CI base commit
+      (fixtures red first).
+- [x] 7.4 Tighten the #2180, #2201/#2221, #2221 table, #2257 and #2308
+      checks (scratch edits red first, restored byte-identical).
+- [x] 7.5 State the guard's limits, the gate and base scenarios, and the
+      Ezra hash exception; turn the retired #2068 and #2154 checklist
+      commands into review steps.
+- [ ] 7.6 Move the forward-migration order rule into a migration verifier
+      under `scripts/verify/` (outside this change's fence).

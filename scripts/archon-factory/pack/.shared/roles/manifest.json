@@ -3,7 +3,7 @@
   "note": "Adapted Claude/Archon roles for the VM 100 factory lane. Hashes are over LF-normalized bytes.",
   "sources": {
     ".codex/agents/samson.toml": "57ed06ff9187194d06d9c29eadfa509adccbc21614f09c3782587787bd7773a0",
-    ".codex/agents/ezra.toml": "9b43c3e98fe3ae15d6b0832f66b98c8910f897deac3febb3dac80e13e504b959",
+    ".codex/agents/ezra.toml": "b70b1e8fd6f03bc8d44f86497af15985fccf99acbdf0dbdfc1b2428aff7a6324",
     ".codex/agents/bezalel.toml": "c6101091c87fd63d3fc8899a3e9364458690fe3a4fdd5133f7ae0f418330c8a2",
     ".codex/agents/micaiah.toml": "8207dfa26757b086d0f4028110e4d368bed1d194b75b07283d6d9ed6ee22b568",
     ".codex/agents/luke.toml": "7fc68c3740a8c0e23de248ae5ebc55844073a7d5350932d54b014d87a12246c6",
@@ -13,7 +13,7 @@
   },
   "roles": {
     "samson": "82d95fb8bfc8ea875446e60ea2e16c06aa46752c20eb333807ecc8c7ecd46e88",
-    "ezra": "a1378e24028d68dcaa92c4fd92b5f606ea687afa3d9e65cfe4f5cb1eb44cca23",
+    "ezra": "e7d25702ecb37be00749b125e210cbdaaf5ca23e2c1c58a0c0ff8664a06dd250",
     "bezalel": "4cf8052c3934f163293c4e230f09830dab80f0d8eea25b8406412cce3ea28cfa",
     "micaiah": "2d0d63fd15ac3dc36e4abb22198b2532fd53bb104b9f3f0c72d02dd1806e4191",
     "luke": "a5a9cef91d6477a5d4cce59441f34d3abf8f1a958265b6bbe2f914673103f365",
@@ -34,11 +34,11 @@
     },
     "deliver/commands/define.md": {
       "role": "ezra",
-      "sha256": "66976f92faf320890f20ba82e6f77579b32f7a91cdd9ad4e81a13d12255b6156"
+      "sha256": "f51c2511358c18cc088e7d9bc755a93ba373125d0037dcf5dcce36e6a64ad873"
     },
     "deliver/commands/final.md": {
       "role": "ezra",
-      "sha256": "0e8aff2443fcdb3735303619648677d1168c77cba24236f25cd869af901485dc"
+      "sha256": "49fcee7e26e2ca0766080618cfd9ff8a6cbaecac62f9961ab078102642c581d0"
     },
     "deliver/commands/build.md": {
       "role": "bezalel",

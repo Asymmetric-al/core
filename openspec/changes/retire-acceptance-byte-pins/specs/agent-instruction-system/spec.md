@@ -30,15 +30,26 @@ is checked in review.
 - **WHEN** an acceptance criterion requires a CI verification step
 - **THEN** the test asserts that the step exists in the right job, is not
   `continue-on-error` or conditional, and runs the named command or files
-- **AND** the step's run line holds nothing but that command and its plain
-  file arguments, so nothing on it can swallow a failure
+- **AND** the step's run line is one line holding nothing but that command
+  and its plain file arguments, so nothing on it can swallow a failure
+- **AND** the step sets nothing that changes how that line runs, such as a
+  shell or a working directory
 - **AND** it does not pin the step's position or the workflow's bytes
 
 #### Scenario: An acceptance author wants to limit a change's scope
 
 - **WHEN** an acceptance criterion says a change may touch only certain paths
 - **THEN** that limit is checked in review of the pull request
-- **AND** no permanent test compares the repository with a merge base
+- **AND** no permanent test compares the repository with a merge base to
+  limit which paths a change touches
+
+#### Scenario: A rule is about what a pull request adds to its base
+
+- **WHEN** a rule holds between a pull request's additions and what is
+  already on its base, such as every new forward migration sorting above
+  every migration on the base
+- **THEN** the test reads the base commit that CI names for the run
+- **AND** it skips, saying why, when the run names no base commit
 
 ### Requirement: Required CI Checks Stay Blocking
 
@@ -75,8 +86,12 @@ be asserted directly by acceptance tests.
 #### Scenario: A gate stops gating
 
 - **WHEN** `ci-gate` does not need, or does not read the result of, a
-  `ci.yml` job that is not explicitly advisory
-- **OR** `e2e-smoke-gate` stops needing `migrate`, `smoke` or `test-e2e-smoke`
+  `ci.yml` job it gates, which is every job except one that is explicitly
+  advisory or runs after `ci-gate`
+- **OR** `e2e-smoke-gate` does not need, or does not read the result of,
+  `migrate`, `smoke` or `test-e2e-smoke`
+- **OR** `e2e-smoke-gate`'s script passes when one of those jobs failed, was
+  cancelled or was skipped
 - **OR** a gate job can be skipped because its condition is not `always()`
 - **THEN** the structural test fails and names the gate and the job
 
