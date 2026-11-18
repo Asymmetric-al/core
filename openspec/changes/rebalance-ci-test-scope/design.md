@@ -123,31 +123,64 @@ Narrowness proof, recorded by inspection on 2026-11-18:
 
 The proof is re-checked on every skip, with no list of files to maintain.
 Before excluding anything, `analyzeGroupTests` follows each group test's
-relative imports transitively and flags workspace-package imports, `new
-URL(..., import.meta.url)` targets outside the inputs, and, in any file that
-reaches the real repository root (`import.meta.dirname`, `__dirname`,
-`process.cwd()`, `fileURLToPath(import.meta.url)` other than an entry-point
-check), every path literal below a top-level repository entry, or naming a
-top-level file, that lies outside the inputs. A test with any flag stays in
-the run, and the log names it and the paths. Reading a full-run trigger is
-allowed, since changing one runs everything. A failure inside the analysis
-runs every test. An earlier draft made this a guard test that failed CI; it
+relative imports transitively. In every module of that closure it flags:
+
+- an import of a workspace package (`@asym/*`), or of a bare specifier that is
+  neither a Node built-in nor present in the root `node_modules` (a `@/` alias,
+  a `#` subpath import, an unresolvable name);
+- a relative import, or a `new URL("…", import.meta.url)` target, outside the
+  inputs, including the Prettier-wrapped form with a trailing comma;
+- a dynamic `import()`, `require()`, `vi.mock()` family call or
+  `new URL(..., import.meta.url)` whose specifier is not a plain literal (it
+  cannot be followed, so the test is treated as reaching outside);
+- a literal first argument to a file-system call (`readFileSync`,
+  `existsSync`, `readdirSync`, `globSync` and similar) or to `path.resolve`
+  that names a repository entry outside the inputs, since those resolve
+  against the working directory, which is the repository root under Vitest;
+  and the same for any literal argument, word by word, of a child-process call
+  (`spawnSync`, `execFileSync` and similar), which also starts there;
+- in a module that reaches the real repository root (`import.meta.dirname`,
+  `__dirname`, `process.cwd()`, `fileURLToPath(import.meta.url)` other than an
+  entry-point check, or a URL that resolves to the root) itself or through any
+  module it imports (a helper that exports `repoRoot`): every string literal
+  below a top-level repository entry, or naming a top-level file, and the
+  joined literal arguments of each `join` or `resolve` call
+  (`path.join(root, "docs", "ci.md")` names `docs/ci.md`), that lie outside
+  the inputs.
+
+A test with any flag stays in the run, and the log names it and the paths.
+Reading a full-run trigger is allowed, since changing one runs everything. A
+failure inside the analysis runs every test.
+
+What the analysis cannot see: a path built at run time from variables, string
+concatenation or interpolation; a path read from another file's contents; and
+literal arguments passed through calls nested more than one level deep. The
+first analysis (review round 6, finding c1.1) also missed the wrapped URL, a
+root imported from a helper, working-directory reads, bare segments and
+non-relative aliases; each of those now has a fixture test in
+`tests/unit/scripts/ci-test-scope-inputs.test.ts` that failed before the fix.
+
+An earlier draft made this a guard test that failed CI; it
 flagged code paths no factory test executes (diff-classification patterns in
 `ci-build-policy.mjs`), which would have forced either an `apps/**` input or a
 hand list of exceptions. Keeping a flagged test in the run is always safe and
 needs no fix-up. `tests/unit/scripts/ci-test-scope-inputs.test.ts` tests the
-analysis on fixtures and on the real group. Its limit: a read through a
-computed path is invisible to it; the develop-push and merge-group full runs
-are the backstop for that case.
+analysis on fixtures and on the real group. For the reads it cannot see, the
+develop-push and merge-group full runs are the backstop.
 
-On 2026-11-18 the analysis clears 71 of the 74 files (35.9 s of test time)
-and keeps three: `archon-flow-routes` and `archon-ops-record` (they import
-`tests/unit/helpers/workflow-yaml.ts`, which imports `ci-build-policy.mjs`,
-whose path patterns name `apps`, `turbo.json` and others), and
-`factory-hosted-startup` (fixture paths beside a `process.cwd()` temporary
-directory). The analysis takes about 0.4 s.
+On 2026-11-18, after the review fixes, the analysis clears 70 of the 74 files
+(34.0 s of test time) and keeps four: `archon-flow-routes` and
+`archon-ops-record` (they import `tests/unit/helpers/workflow-yaml.ts`, which
+imports `ci-build-policy.mjs`, whose path patterns name `apps`, `turbo.json`
+and others), `factory-hosted-startup` (fixture paths beside a
+`process.cwd()` temporary directory), and `factory-native-install` (fixture
+paths under a temporary home, scanned because it imports
+`scripts/factory/install-native.mjs`, which resolves the repository root).
+The last is a false positive the closure rule accepts: keeping a test costs
+1.9 s, missing one costs a regression found only after merge. The analysis
+takes about 0.6 s.
 
-Measured saving: about 36 s of test time, roughly 25-35 s of wall time, on
+Measured saving: about 34 s of test time, roughly 25-35 s of wall time, on
 pull requests that do not touch the factory. That is small; it is the honest
 result of the narrow-input rule.
 
@@ -288,9 +321,10 @@ waiting for running builds, as before.
 
 ## Risks and trade-offs
 
-- A factory test that starts reading outside its inputs through a computed
-  path would be skipped on unrelated pull requests until the develop push or
-  merge-group run catches it. The guard covers imports and literal paths.
+- A factory test that starts reading outside its inputs through a path built
+  at run time would be skipped on unrelated pull requests until the develop
+  push or merge-group run catches it. Decision 2 lists exactly which forms
+  the analysis recognises.
 - `test-e2e-smoke` runs even when `migrate` fails, spending free runner time
   for the same red gate.
 - `instant-nav` adds about 2.5 runner-minutes to qualifying develop pull

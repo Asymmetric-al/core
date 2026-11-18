@@ -34,14 +34,15 @@ explicitly target acceptance files SHALL still run them.
 
 On a pull request the unit-test job SHALL skip a scoped group's tests only
 when the change set is known and touches none of the group's inputs, and
-SHALL skip only the tests whose imports and repository reads it can show stay
-inside those inputs. The job SHALL log what it skipped, what it kept and why.
+SHALL skip only the tests the narrow-input analysis clears. The job SHALL log
+what it skipped, what it kept and why.
 
 #### Scenario: A pull request does not touch the factory
 
 - **WHEN** a same-repository pull request changes only files outside the
   factory group's inputs and outside the full-run triggers
-- **THEN** the unit-test job skips the factory group and runs every other test
+- **THEN** the unit-test job skips the factory group's cleared tests and runs
+  every other test
 - **AND** the job log names the skipped group and why it was skipped
 
 #### Scenario: A pull request touches a group input
@@ -50,12 +51,52 @@ inside those inputs. The job SHALL log what it skipped, what it kept and why.
   test files
 - **THEN** that group runs
 
-#### Scenario: A test in a scoped group reaches outside the group's inputs
+### Requirement: The narrow-input analysis keeps every test it cannot clear
 
-- **WHEN** a test in a scoped group, or a module it imports, imports a module
-  or reads a repository path outside the group's declared inputs
+The analysis SHALL follow each scoped test's relative imports transitively
+and SHALL keep the test in the run when any module in that closure reaches
+outside the group's inputs in a form the analysis recognises, or loads a
+module or URL it cannot follow. The job log SHALL name each kept test and the
+path or form that kept it.
+
+#### Scenario: A module imports outside the inputs
+
+- **WHEN** a module in a scoped test's closure imports a relative module
+  outside the inputs, a workspace package, or a bare specifier that is
+  neither a Node built-in nor an installed package
 - **THEN** that test runs on every pull request
-- **AND** the job log names the test and the path that kept it in the run
+
+#### Scenario: A module names a repository path in a call
+
+- **WHEN** a module in the closure names a repository path outside the
+  inputs in a `new URL(..., import.meta.url)` literal, including the wrapped
+  form with a trailing comma, in the literal first argument of a file-system
+  call or `path.resolve`, or in a literal argument of a child-process call
+- **THEN** that test runs on every pull request
+
+#### Scenario: A module that reaches the repository root names a path
+
+- **WHEN** a module in the closure reaches the repository root, itself or
+  through a module it imports, and names a repository path outside the inputs
+  in a string literal or in the joined literal arguments of a `join` or
+  `resolve` call
+- **THEN** that test runs on every pull request
+
+#### Scenario: A module loads through a computed specifier
+
+- **WHEN** a module in the closure imports, mocks or opens a URL through a
+  specifier that is not a plain literal
+- **THEN** that test runs on every pull request
+
+#### Scenario: A test builds a repository path at run time
+
+- **WHEN** a scoped test reads a repository path it builds at run time (from
+  variables, concatenation or interpolation, from another file's contents, or
+  through calls nested more than one level deep) and none of the recognised
+  forms appears
+- **THEN** a pull request into `develop` that changes only that path may skip
+  the test
+- **AND** the next push to `develop` and every `merge_group` run still run it
 
 ### Requirement: Test selection fails safe
 

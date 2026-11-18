@@ -108,3 +108,8 @@
       CLI test runs the scope script as the job does with a temporary
       `GITHUB_OUTPUT`. Then make the production guards independent of the
       script and run on `develop` unless the output is exactly `false`.
+- [x] 10.2 Red first: one fixture test per shape the analysis cleared (wrapped
+      URL, root imported from a helper, working-directory read, bare
+      segments, non-relative alias), plus computed imports and child-process
+      paths. Then extend `analyzeGroupTests` and make `design.md` §2 and the
+      spec say exactly what it covers and what it cannot see.

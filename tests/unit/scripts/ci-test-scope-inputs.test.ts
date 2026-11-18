@@ -64,6 +64,9 @@ describe("the analysis keeps escaping tests in the run", () => {
     "docs/other.md": "# other\n",
     "package.json": "{}\n",
     "README.md": "# readme\n",
+    // An installed package: bare imports of it change only with the
+    // manifests or the lockfile, which are full-run triggers.
+    "node_modules/vitest/package.json": '{ "name": "vitest" }\n',
   };
   const reasonsOf = (root: string, test: string) =>
     analyzeGroupTests(group, { root }).unscoped.find(
@@ -164,6 +167,122 @@ describe("the analysis keeps escaping tests in the run", () => {
     });
     expect(reasonsOf(root, "tests/unit/scripts/tool-f.test.ts")).toEqual([
       "scripts/tool/main.mjs reads docs/other.md",
+    ]);
+  });
+
+  // Review round 6 (c1.1): five ordinary shapes the first analysis cleared.
+  it("keeps a test whose Prettier-wrapped URL, with a trailing comma, leaves the inputs", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/scripts/tool-g.test.ts": [
+        "const u = new URL(",
+        '  "../../../docs/other.md",',
+        "  import.meta.url,",
+        ");",
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-g.test.ts")).toEqual([
+      "tests/unit/scripts/tool-g.test.ts reads docs/other.md",
+    ]);
+  });
+
+  it("keeps a test that joins a repository root imported from a helper", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/helpers/root.ts": [
+        'import path from "node:path";',
+        'export const repoRoot = path.resolve(import.meta.dirname, "../../..");',
+      ].join("\n"),
+      "tests/unit/scripts/tool-h.test.ts": [
+        'import path from "node:path";',
+        'import { repoRoot } from "../helpers/root";',
+        'read(path.join(repoRoot, "docs/other.md"));',
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-h.test.ts")).toEqual([
+      "tests/unit/scripts/tool-h.test.ts reads docs/other.md",
+    ]);
+  });
+
+  it("keeps a test that reads a path relative to the working directory", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/scripts/tool-i.test.ts": [
+        'import { readFileSync, readdirSync } from "node:fs";',
+        'readFileSync("docs/other.md", "utf8");',
+        'readdirSync("scripts");',
+        'readFileSync("docs/tool.md", "utf8");',
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-i.test.ts")).toEqual([
+      "tests/unit/scripts/tool-i.test.ts reads docs/other.md",
+      "tests/unit/scripts/tool-i.test.ts reads scripts",
+    ]);
+  });
+
+  it("keeps a test that names a repository path in separate segments", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/scripts/tool-j.test.ts": [
+        'const root = path.resolve(import.meta.dirname, "../../..");',
+        'read(path.join(root, "docs", "other.md"));',
+        "read(",
+        "  path.join(",
+        "    root,",
+        '    "docs",',
+        '    "tool.md",',
+        "  ),",
+        ");",
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-j.test.ts")).toEqual([
+      "tests/unit/scripts/tool-j.test.ts reads docs/other.md",
+    ]);
+  });
+
+  it("keeps a test whose bare import is neither built in nor installed", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/scripts/tool-k.test.ts": [
+        'import { t } from "@/lib/thing";',
+        'import { it } from "vitest";',
+        'import path from "node:path";',
+        'import fs from "fs";',
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-k.test.ts")).toEqual([
+      "tests/unit/scripts/tool-k.test.ts imports @/lib/thing, which is not a relative path, a Node built-in or an installed package",
+    ]);
+  });
+
+  // Shapes the analysis cannot follow: a test that uses one runs every time.
+  it("keeps a test that imports, mocks or reads through a computed path", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/scripts/tool-l.test.ts": [
+        "const name = pick();",
+        "await import(name);",
+        'await import(`../../../scripts/${"tool"}/main.mjs`);',
+        "const u = new URL(`../${name}`, import.meta.url);",
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-l.test.ts")).toEqual([
+      "tests/unit/scripts/tool-l.test.ts imports a computed specifier",
+      "tests/unit/scripts/tool-l.test.ts reads a computed URL",
+    ]);
+  });
+
+  it("keeps a test that runs a repository file by a working-directory path", () => {
+    const root = fixture({
+      ...base,
+      "tests/unit/scripts/tool-m.test.ts": [
+        'import { spawnSync } from "node:child_process";',
+        'spawnSync(process.execPath, ["scripts/other/lib.mjs"]);',
+        'spawnSync(process.execPath, ["scripts/tool/main.mjs"]);',
+      ].join("\n"),
+    });
+    expect(reasonsOf(root, "tests/unit/scripts/tool-m.test.ts")).toEqual([
+      "tests/unit/scripts/tool-m.test.ts reads scripts/other/lib.mjs",
     ]);
   });
 

@@ -13,6 +13,7 @@ import {
   readdirSync,
   statSync,
 } from "node:fs";
+import { isBuiltin } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -204,32 +205,74 @@ const RESOLVE_SUFFIXES = [
   "/index.mjs",
   "/index.js",
 ];
+// One string with no interpolation: "x", 'x' or `x`. Its value is in the
+// first defined of three groups.
+const LITERAL = String.raw`(?:"([^"\n]*)"|'([^'\n]*)'|` + "`([^`$\\n]*)`)";
+const literalValue = (match, first = 1) =>
+  match[first] ?? match[first + 1] ?? match[first + 2];
+const WHOLE_LITERAL = new RegExp(String.raw`^\s*${LITERAL}\s*$`);
+// Static imports and re-exports, and side-effect imports.
 const SPECIFIER_PATTERNS = [
-  /\bfrom\s*["']([^"']+)["']/g,
-  /\bimport\s*["']([^"']+)["']/g,
-  /\bimport\(\s*["']([^"']+)["']\s*\)/g,
-  /\brequire\(\s*["']([^"']+)["']\s*\)/g,
-  /\bvi\.(?:mock|doMock|importActual)\(\s*["']([^"']+)["']/g,
+  new RegExp(String.raw`\bfrom\s*${LITERAL}`, "g"),
+  new RegExp(String.raw`(?<![.\w$])import\s*${LITERAL}`, "g"),
 ];
-const URL_READ = /new URL\(\s*["']([^"']+)["']\s*,\s*import\.meta\.url\s*\)/g;
+// Calls that load or mock a module by specifier. A literal first argument is
+// followed; anything else is a computed specifier the analysis cannot see.
+const MODULE_CALL =
+  /(?<![.\w$])(?:import|require)\(|\brequire\.resolve\(|\bimport\.meta\.resolve\(|\bvi\.(?:mock|doMock|unmock|doUnmock|importActual|importMock)\(/g;
+const CALL_LITERAL_ARGUMENT = new RegExp(String.raw`^\s*${LITERAL}\s*[,)]`);
+// `new URL(<first>, import.meta.url)`, also wrapped with a trailing comma.
+const URL_READ = new RegExp(
+  String.raw`\bnew URL\(\s*((?:[^()]|\([^()]*\))*?)\s*,\s*import\.meta\.url\s*,?\s*\)`,
+  "g",
+);
 // Ways a file reaches the real repository root instead of a fixture root.
 const ROOT_ACCESS =
   /import\.meta\.(?:dirname|filename)|__dirname|__filename|process\.cwd\(\)|fileURLToPath\(\s*import\.meta\.url\s*\)/;
 const STRING_LITERAL = /"([^"\n]*)"|'([^'\n]*)'|`([^`$]*)(?:`|\$\{)/g;
+// path.join / path.resolve arguments, with one level of nested calls.
+const PATH_CALL = /\b(?:join|resolve)\(((?:[^()]|\([^()]*\))*)\)/g;
+// File-system calls whose literal first argument is resolved against the
+// working directory, which is the repository root under Vitest.
+const WORKING_DIRECTORY_CALL = new RegExp(
+  String.raw`\b(?:readFileSync|readFile|existsSync|statSync|lstatSync|readdirSync|readdir|createReadStream|accessSync|access|opendirSync|opendir|realpathSync|realpath|globSync|glob|resolve)\(\s*${LITERAL}`,
+  "g",
+);
+// Child processes start in the working directory unless told otherwise, so a
+// literal argument can name a repository file they run or read.
+const CHILD_PROCESS_CALL =
+  /\b(?:spawn|spawnSync|execFile|execFileSync|fork|exec|execSync)\(((?:[^()]|\([^()]*\))*)\)/g;
+const PACKAGE_NAME = /^(?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*/i;
 
 const toPosix = (file) => file.split(path.sep).join("/");
 const trimPath = (literal) => literal.replace(/^\.\//, "").replace(/\/+$/, "");
+const literalsIn = (text) =>
+  [...text.matchAll(STRING_LITERAL)].map((match) => literalValue(match) ?? "");
 
 /**
  * Splits a group's test files into those whose imports and repository reads
  * provably stay inside the group's inputs ("scoped", safe to skip when the
  * inputs did not change) and those that must stay in every run, with the
- * reasons. It follows relative imports transitively; flags workspace-package
- * imports and `new URL(..., import.meta.url)` targets outside the inputs; and,
- * in files that resolve the real repository root, flags every path literal
- * that names a top-level repository entry outside the inputs. A read through
- * a computed path is invisible to it; the full runs on develop pushes and
- * merge_group are the backstop for that.
+ * reasons. It follows relative imports transitively, and in every module of a
+ * test's import closure it keeps the test in the run for:
+ * - an import of a workspace package, or of a bare specifier that is neither
+ *   a Node built-in nor installed in the root `node_modules` (such as a `@/`
+ *   alias);
+ * - a relative import, or a `new URL("…", import.meta.url)` target (wrapped or
+ *   not), outside the inputs;
+ * - an import, mock or URL whose specifier is computed rather than a literal;
+ * - a literal first argument to a file-system call or `path.resolve` (resolved
+ *   against the working directory, the repository root) that names a
+ *   repository path outside the inputs, and the same for any literal argument
+ *   to a child-process call;
+ * - in a module that reaches the real repository root itself or through any
+ *   module it imports: a path literal that names a repository path outside the
+ *   inputs, and the joined literal arguments of a `join`/`resolve` call
+ *   ("docs", "ci.md") that do.
+ * What it cannot see: a path built at run time from variables, string
+ * concatenation or interpolation, read from another file, or passed through
+ * calls nested more than one level deep. The full runs on develop pushes and
+ * merge_group are the backstop for those.
  */
 export function analyzeGroupTests(group, { root = REPO_ROOT } = {}) {
   // A full-run trigger changing runs every test, so reading one is safe.
@@ -256,6 +299,16 @@ export function analyzeGroupTests(group, { root = REPO_ROOT } = {}) {
       ? topLevel.has(clean.split("/")[0])
       : topLevelFiles.has(clean);
   };
+  // Where a literal is known to be a path (a file-system call, a join of
+  // segments), a bare top-level directory name counts too.
+  const namesRepositoryEntry = (literal) => {
+    const clean = trimPath(literal);
+    return clean !== "" && topLevel.has(clean.split("/")[0]);
+  };
+  const installed = (specifier) => {
+    const name = PACKAGE_NAME.exec(specifier)?.[0];
+    return Boolean(name) && existsSync(path.join(root, "node_modules", name));
+  };
   const relativeTarget = (from, specifier) =>
     toPosix(
       path.relative(
@@ -281,57 +334,110 @@ export function analyzeGroupTests(group, { root = REPO_ROOT } = {}) {
   const modules = new Map();
   const analyzeModule = (file) => {
     if (modules.has(file)) return modules.get(file);
-    const result = { problems: [], imports: [] };
+    // `problems` always apply; `rootProblems` apply when the module reaches
+    // the repository root itself or through a module it imports.
+    const result = {
+      problems: [],
+      rootProblems: [],
+      imports: [],
+      readsRoot: false,
+    };
     modules.set(file, result);
     const source = readFileSync(path.join(root, file), "utf8");
-    for (const pattern of SPECIFIER_PATTERNS)
-      for (const [, specifier] of source.matchAll(pattern)) {
-        if (specifier.startsWith("@asym/")) {
-          result.problems.push(
-            `${file} imports workspace package ${specifier}`,
-          );
-          continue;
-        }
-        if (!specifier.startsWith(".")) continue;
-        const target = resolveImport(file, specifier);
-        if (!inside(target)) result.problems.push(`${file} imports ${target}`);
-        else if (CODE_FILE.test(target) && existsSync(path.join(root, target)))
-          result.imports.push(target);
+    const reads = (target, into = result.problems) => {
+      if (!inside(target)) into.push(`${file} reads ${trimPath(target)}`);
+    };
+    const followSpecifier = (specifier) => {
+      if (specifier.startsWith("@asym/")) {
+        result.problems.push(`${file} imports workspace package ${specifier}`);
+        return;
       }
+      if (!specifier.startsWith(".")) {
+        if (!isBuiltin(specifier) && !installed(specifier))
+          result.problems.push(
+            `${file} imports ${specifier}, which is not a relative path, a Node built-in or an installed package`,
+          );
+        return;
+      }
+      const target = resolveImport(file, specifier);
+      if (!inside(target)) result.problems.push(`${file} imports ${target}`);
+      else if (CODE_FILE.test(target) && existsSync(path.join(root, target)))
+        result.imports.push(target);
+    };
+    for (const pattern of SPECIFIER_PATTERNS)
+      for (const match of source.matchAll(pattern))
+        followSpecifier(literalValue(match) ?? "");
+    for (const match of source.matchAll(MODULE_CALL)) {
+      const argument = CALL_LITERAL_ARGUMENT.exec(
+        source.slice(match.index + match[0].length),
+      );
+      if (argument) followSpecifier(literalValue(argument) ?? "");
+      else result.problems.push(`${file} imports a computed specifier`);
+    }
     // `fileURLToPath(import.meta.url)` compared with process.argv[1] only
     // asks "am I the entry point?"; it reads nothing.
-    let readsRoot = ROOT_ACCESS.test(
+    result.readsRoot = ROOT_ACCESS.test(
       source
         .split("\n")
         .filter((line) => !line.includes("process.argv[1]"))
         .join("\n"),
     );
-    for (const [, relative] of source.matchAll(URL_READ)) {
-      const target = relativeTarget(file, relative);
-      if (target === "" || target.startsWith("..")) readsRoot = true;
-      else if (!inside(target)) result.problems.push(`${file} reads ${target}`);
-    }
-    if (readsRoot)
-      for (const match of source.matchAll(STRING_LITERAL)) {
-        const literal = match[1] ?? match[2] ?? match[3] ?? "";
-        if (namesRepositoryPath(literal) && !inside(literal))
-          result.problems.push(`${file} reads ${trimPath(literal)}`);
+    for (const [, first] of source.matchAll(URL_READ)) {
+      const literal = WHOLE_LITERAL.exec(first);
+      if (!literal) {
+        result.problems.push(`${file} reads a computed URL`);
+        continue;
       }
+      const target = relativeTarget(file, literalValue(literal) ?? "");
+      if (target === "" || target.startsWith("..")) result.readsRoot = true;
+      else reads(target);
+    }
+    for (const match of source.matchAll(WORKING_DIRECTORY_CALL)) {
+      const literal = literalValue(match) ?? "";
+      if (namesRepositoryEntry(literal)) reads(literal);
+    }
+    for (const [, argumentsText] of source.matchAll(CHILD_PROCESS_CALL))
+      for (const literal of literalsIn(argumentsText))
+        for (const word of literal.split(/\s+/))
+          if (namesRepositoryEntry(word)) reads(word);
+    for (const literal of literalsIn(source))
+      if (namesRepositoryPath(literal)) reads(literal, result.rootProblems);
+    for (const [, argumentsText] of source.matchAll(PATH_CALL)) {
+      const joined = literalsIn(argumentsText)
+        .map(trimPath)
+        .filter(Boolean)
+        .join("/");
+      if (namesRepositoryEntry(joined)) reads(joined, result.rootProblems);
+    }
     return result;
   };
-  const closureProblems = (test) => {
-    const problems = new Set();
+  const closureOf = (test) => {
     const seen = new Set();
     const pending = [test];
     while (pending.length > 0) {
       const file = pending.pop();
       if (seen.has(file)) continue;
       seen.add(file);
-      const result = analyzeModule(file);
-      for (const problem of result.problems) problems.add(problem);
-      pending.push(...result.imports);
+      pending.push(...analyzeModule(file).imports);
     }
-    return [...problems].sort();
+    return seen;
+  };
+  // A module reaches the root when it resolves the root itself or imports a
+  // module that does (a helper exporting `repoRoot`). Fixed point, so import
+  // cycles cannot hide a reach.
+  const reachesRoot = () => {
+    const reach = new Map(
+      [...modules].map(([file, result]) => [file, result.readsRoot]),
+    );
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const [file, result] of modules)
+        if (!reach.get(file) && result.imports.some((dep) => reach.get(dep))) {
+          reach.set(file, true);
+          changed = true;
+        }
+    }
+    return reach;
   };
 
   const tests = [
@@ -341,10 +447,19 @@ export function analyzeGroupTests(group, { root = REPO_ROOT } = {}) {
       ),
     ),
   ].sort();
+  const closures = new Map(tests.map((test) => [test, closureOf(test)]));
+  const reach = reachesRoot();
   const scoped = [];
   const unscoped = [];
   for (const test of tests) {
-    const reasons = closureProblems(test);
+    const problems = new Set();
+    for (const file of closures.get(test)) {
+      const result = modules.get(file);
+      for (const problem of result.problems) problems.add(problem);
+      if (reach.get(file))
+        for (const problem of result.rootProblems) problems.add(problem);
+    }
+    const reasons = [...problems].sort();
     if (reasons.length === 0) scoped.push(test);
     else unscoped.push({ file: test, reasons });
   }

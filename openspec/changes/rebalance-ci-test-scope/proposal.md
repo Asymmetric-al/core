@@ -51,7 +51,9 @@ assigned by the program's gap check (issue #2711).
   `merge_group` and manual runs always run the full suite. Membership needs no
   list: before skipping, the selection follows each factory test's imports and
   repository reads and keeps any test that reaches outside the group's inputs
-  in the run. The log names what was skipped, what was kept and why.
+  in a form it recognises, or through an import it cannot follow, in the run
+  (`design.md` §2 lists the forms, and the run-time-built paths it cannot
+  see). The log names what was skipped, what was kept and why.
 - **Shorter required integration path.** `test-e2e-smoke` stops waiting for
   `smoke`; it applies its own migrations and seed and starts its own servers.
   `smoke` keeps waiting for `migrate`. No required check is renamed or
