@@ -326,9 +326,97 @@ const noPrefixlessNavigation = {
   },
 };
 
+/** Whether a function parameter names the tenant: `tenantId`, `{ tenantId }`. */
+function paramNamesTenant(param) {
+  switch (param.type) {
+    case "Identifier":
+      return /tenant/i.test(param.name);
+    case "AssignmentPattern":
+      return paramNamesTenant(param.left);
+    case "TSParameterProperty":
+      return paramNamesTenant(param.parameter);
+    case "ObjectPattern":
+      return param.properties.some(
+        (property) =>
+          property.type === "Property" &&
+          property.key.type === "Identifier" &&
+          /tenant/i.test(property.key.name),
+      );
+    default:
+      return false;
+  }
+}
+
+function cacheDirectiveIn(statements) {
+  return statements.find(
+    (statement) =>
+      statement.type === "ExpressionStatement" &&
+      typeof statement.directive === "string" &&
+      /^use cache(?::|$)/.test(statement.directive),
+  );
+}
+
+// The tenant reaches a cached read only as an argument (council round 1,
+// A21). Under the rewrite a page's params hold the route's parameters and no
+// tenant, so a cache in page code would be shared by every tenant; a cached
+// read in packages/api takes the tenant, which then keys its cache.
+const noTenantlessCache = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Cache only in reads that take the tenant as an argument; signed-in page code caches nothing itself.",
+    },
+    schema: [
+      {
+        type: "object",
+        properties: { readsTakeTenant: { type: "boolean" } },
+        additionalProperties: false,
+      },
+    ],
+    messages: {
+      page: 'Page code caches nothing itself ("use cache"): under the tenant address a cache keyed on the route\'s params is shared by every tenant. Read through a function in packages/api that takes the tenant as an argument.',
+      noTenant:
+        'A cached read ("use cache") takes the tenant as an argument, so that the tenant keys its cache: add a tenantId parameter.',
+      fileLevel:
+        'A file-level "use cache" caches every export whatever its arguments: put it in each read that takes the tenant.',
+    },
+  },
+  create(context) {
+    const readsTakeTenant = context.options[0]?.readsTakeTenant === true;
+    function checkFunction(node) {
+      if (node.body?.type !== "BlockStatement") return;
+      const directive = cacheDirectiveIn(node.body.body);
+      if (!directive) return;
+      if (!readsTakeTenant) {
+        context.report({ node: directive, messageId: "page" });
+      } else if (!node.params.some(paramNamesTenant)) {
+        context.report({ node: directive, messageId: "noTenant" });
+      }
+    }
+    return {
+      Program(node) {
+        const directive = cacheDirectiveIn(node.body);
+        if (directive) {
+          context.report({
+            node: directive,
+            messageId: readsTakeTenant ? "fileLevel" : "page",
+          });
+        }
+      },
+      FunctionDeclaration: checkFunction,
+      FunctionExpression: checkFunction,
+      ArrowFunctionExpression: checkFunction,
+    };
+  },
+};
+
 export const tenantNavigationPlugin = {
   meta: { name: "core-tenant-navigation" },
-  rules: { "no-prefixless-navigation": noPrefixlessNavigation },
+  rules: {
+    "no-prefixless-navigation": noPrefixlessNavigation,
+    "no-tenantless-cache": noTenantlessCache,
+  },
 };
 
 /**
@@ -359,6 +447,16 @@ export function tenantNavigationConfig({
           "error",
           ...(adapterLinks.length > 0 ? [{ adapterLinks }] : []),
         ],
+        // The reads in packages/api take the tenant; the apps and the shared
+        // UI cache nothing themselves. Auth and database hold no reads.
+        ...(scope === "packages/auth" || scope === "packages/database"
+          ? {}
+          : {
+              "tenant-navigation/no-tenantless-cache": [
+                "error",
+                { readsTakeTenant: scope === "packages/api" },
+              ],
+            }),
       },
     };
   });
