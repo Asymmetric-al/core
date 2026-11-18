@@ -186,12 +186,53 @@ describe.skipIf(!adminDatabaseUrl)(
           log: (line: string) => log.push(line),
         });
         expect(log).toHaveLength(2);
-        const stored = psql(
-          adminDatabaseUrl,
-          `SELECT rolpassword FROM pg_authid WHERE rolname = '${owner}';`,
-        );
+        const verifier = (role: string) =>
+          psql(
+            adminDatabaseUrl,
+            `SELECT rolpassword FROM pg_authid WHERE rolname = '${role}';`,
+          );
+        const stored = verifier(owner);
         expect(stored.startsWith("SCRAM-SHA-256$4096:")).toBe(true);
         expect(stored).not.toContain(env.WP13R_OWNER_PASSWORD);
+
+        // WP1.6: a secret that already logs in changes nothing, so a hosted
+        // pooler never holds a stale verifier; a rotated secret is set once.
+        const roles = {
+          [owner]: "WP13R_OWNER_PASSWORD",
+          [runtime]: "WP13R_RUNTIME_PASSWORD",
+        };
+        const runtimeStored = verifier(runtime);
+        const again: string[] = [];
+        setCmsRolePasswords({
+          settings,
+          env,
+          roles,
+          log: (line: string) => again.push(line),
+        });
+        expect(again).toEqual([
+          `The ${owner} password already logs in; nothing changed.`,
+          `The ${runtime} password already logs in; nothing changed.`,
+        ]);
+        expect(verifier(owner)).toBe(stored);
+        expect(verifier(runtime)).toBe(runtimeStored);
+
+        const rotated = {
+          ...env,
+          WP13R_OWNER_PASSWORD: randomBytes(24).toString("base64url"),
+        };
+        const rotation: string[] = [];
+        setCmsRolePasswords({
+          settings,
+          env: rotated,
+          roles,
+          log: (line: string) => rotation.push(line),
+        });
+        expect(rotation).toEqual([
+          `Set the ${owner} password; it logged in on attempt 1, 0 s after the change.`,
+          `The ${runtime} password already logs in; nothing changed.`,
+        ]);
+        expect(verifier(owner)).not.toBe(stored);
+        expect(verifier(runtime)).toBe(runtimeStored);
       } finally {
         psql(
           adminDatabaseUrl,

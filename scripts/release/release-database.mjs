@@ -831,9 +831,69 @@ export async function rebuild({
 }
 
 /**
- * Sets the two CMS login roles' passwords from the job's secrets (plan 7.5,
- * 8.5). Only SCRAM verifiers reach the server, then each role logs in with its
- * new password to prove it.
+ * When the step tries each login after it has set a password, in seconds
+ * after the change. The shared pooler (Supavisor) caches a role's credentials
+ * for a while, so a login right after `ALTER ROLE ... PASSWORD` can be refused
+ * although the new password is right; a new login attempt is what makes the
+ * pooler fetch the new one (Supabase, "Supavisor error: password
+ * authentication failed after rotating database password"). On the preview
+ * project the pooler refused the first login after a change and accepted one
+ * about 80 seconds later (WP1.6 report). So the last attempt comes after 90
+ * seconds. Supavisor blocks a client IP for 120 seconds after 10 refused
+ * logins in 150 seconds for one project (`lib/supavisor/circuit_breaker.ex`,
+ * `:auth_error`); with the first login before the change, one role costs at
+ * most four refusals and the two roles of one run at most eight.
+ */
+export const ROLE_LOGIN_VERIFICATION = Object.freeze({
+  attemptsAtSeconds: Object.freeze([0, 30, 90]),
+});
+
+/**
+ * Whether a refused login means the secret is not the role's stored password
+ * ("password") or something else ("other"). A role that was made without a
+ * password has no secret the pooler can use, which it reports as EAUTHQUERY
+ * "unsupported or invalid secret format"; that is the first rebuild of a new
+ * project, so it counts as a password to set. Anything else (no route, TLS,
+ * the role's connection limit, the pooler's circuit breaker) does not.
+ */
+export function classifyLoginRefusal(message) {
+  const text = String(message ?? "");
+  if (/password authentication failed/i.test(text)) return "password";
+  if (/EAUTHQUERY|invalid secret format/i.test(text)) return "password";
+  return "other";
+}
+
+function sleepSync(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
+/** One login as `role` with `password`; refusals come back, never thrown. */
+function tryRoleLogin({ settings, role, password, query }) {
+  let who;
+  try {
+    who = query({
+      databaseUrl: roleDatabaseUrl(settings.databaseUrl, role, password),
+      label: `log in as ${role}`,
+      sql: "SELECT json_build_object('user', current_user)::text;",
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, kind: classifyLoginRefusal(message), message };
+  }
+  if (who?.user !== role)
+    stop(`Logging in as ${role} did not yield that role.`);
+  return { ok: true };
+}
+
+/**
+ * Makes the two CMS login roles' passwords those of the job's secrets (plan
+ * 7.5, 8.5). Each role first logs in with its secret: when that works the
+ * password is already right and nothing changes, so the pooler has nothing
+ * stale to hold. Only a login refused for the password (a rotation, a restore
+ * from backup, a role just made) sets it, from a SCRAM verifier computed here,
+ * and then the step logs in again within ROLE_LOGIN_VERIFICATION's bound. A
+ * login refused for any other reason stops the step and changes nothing. No
+ * password or verifier reaches an argument list, a log line or an error.
  */
 export function setCmsRolePasswords({
   settings,
@@ -842,6 +902,8 @@ export function setCmsRolePasswords({
   query = queryJson,
   run = runPsql,
   log = console.log,
+  sleep = sleepSync,
+  now = Date.now,
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
@@ -874,7 +936,21 @@ export function setCmsRolePasswords({
         `Login role ${role} does not exist; the CMS role migration has not run.`,
       );
   }
+  const { attemptsAtSeconds } = ROLE_LOGIN_VERIFICATION;
+  const boundSeconds = attemptsAtSeconds.at(-1);
+  const outcomes = [];
   for (const { role, password } of passwords) {
+    const first = tryRoleLogin({ settings, role, password, query });
+    if (first.ok) {
+      log(`The ${role} password already logs in; nothing changed.`);
+      outcomes.push({ role, changed: false });
+      continue;
+    }
+    if (first.kind !== "password") {
+      stop(
+        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message}`,
+      );
+    }
     run({
       databaseUrl: settings.databaseUrl,
       label: `set ${role} password`,
@@ -882,15 +958,33 @@ export function setCmsRolePasswords({
       sql: `\\getenv verifier RELEASE_ROLE_VERIFIER
 ALTER ROLE ${role} WITH PASSWORD :'verifier';`,
     });
-    const who = query({
-      databaseUrl: roleDatabaseUrl(settings.databaseUrl, role, password),
-      label: `log in as ${role}`,
-      sql: "SELECT json_build_object('user', current_user)::text;",
-    });
-    if (who.user !== role)
-      stop(`Logging in as ${role} did not yield that role.`);
-    log(`Set and verified the ${role} password.`);
+    const changedAt = now();
+    let attempts = 0;
+    let last = first;
+    for (const seconds of attemptsAtSeconds) {
+      const wait = changedAt + seconds * 1000 - now();
+      if (wait > 0) sleep(wait);
+      attempts += 1;
+      last = tryRoleLogin({ settings, role, password, query });
+      if (last.ok) break;
+      if (last.kind !== "password") {
+        stop(
+          `The ${role} password was set, but logging in as ${role} was then refused for another reason: ${last.message}`,
+        );
+      }
+    }
+    if (!last.ok) {
+      stop(
+        `The ${role} password was set, but logging in as ${role} was still refused after ${attempts} attempts over ${boundSeconds} seconds. The pooler may hold the old credentials longer; wait two minutes, then dispatch set-cms-role-passwords.`,
+      );
+    }
+    const waited = Math.round((now() - changedAt) / 1000);
+    log(
+      `Set the ${role} password; it logged in on attempt ${attempts}, ${waited} s after the change.`,
+    );
+    outcomes.push({ role, changed: true, attempts, waitedSeconds: waited });
   }
+  return outcomes;
 }
 
 const STEPS = {

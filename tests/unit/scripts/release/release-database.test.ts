@@ -7,6 +7,7 @@ import { assertCmsMigrationTarget } from "../../../../scripts/cms/lib/migration-
 import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
 import {
   RELEASE_ENVIRONMENTS,
+  ROLE_LOGIN_VERIFICATION,
   ReleaseStop,
   migrate,
   payloadMigrate,
@@ -17,6 +18,7 @@ import {
   recordHeads,
   repairSeededLoginPasswords,
   roleDatabaseUrl,
+  setCmsRolePasswords,
   setEnvironmentMarker,
 } from "../../../../scripts/release/release-database.mjs";
 
@@ -71,6 +73,12 @@ function fakeDatabase(state: {
   publishedLogins?: number;
   /** The replacement's query fails with this message. */
   replacementFails?: string;
+  /**
+   * CMS roles whose secret already logs in. By default none does, as on a
+   * database the role migration has just made: the roles have no password,
+   * so the step refuses the first login and sets one (WP1.6).
+   */
+  cmsLogins?: string[];
 }) {
   const db = {
     healthFunction: true,
@@ -81,6 +89,7 @@ function fakeDatabase(state: {
     publishedLeft: 0,
     publishedLogins: 0,
     replacementFails: undefined as string | undefined,
+    cmsLogins: [] as string[],
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
       payload: string | null;
@@ -116,25 +125,44 @@ function fakeDatabase(state: {
       if (sql.includes("'published_logins'"))
         return { published_logins: db.publishedLogins };
       if (sql.includes("current_user")) {
-        const user = decodeURIComponent(new URL(databaseUrl).username);
-        return { user: user.split(".")[0] };
+        const user = decodeURIComponent(new URL(databaseUrl).username).split(
+          ".",
+        )[0]!;
+        if (user.startsWith("cms_") && !db.cmsLogins.includes(user)) {
+          throw new Error(
+            `log in as ${user}: psql exited 2. psql: error: FATAL:  password authentication failed for user "${user}"`,
+          );
+        }
+        return { user };
       }
       throw new Error(`unexpected query: ${sql.slice(0, 80)}`);
     },
   );
-  const run = vi.fn(({ variables }: { variables: Record<string, string> }) => {
-    if ("RELEASE_ROLE_VERIFIER" in variables) events.push("role password");
-    if ("RELEASE_HEAD" in variables) {
-      db.heads = {
-        ...db.heads,
-        [variables.RELEASE_LEDGER as "supabase" | "payload"]:
-          variables.RELEASE_HEAD,
-      };
-    }
-    if ("RELEASE_MARKER" in variables)
-      db.environment = variables.RELEASE_MARKER;
-    return "";
-  });
+  const run = vi.fn(
+    ({
+      variables,
+      sql,
+    }: {
+      variables: Record<string, string>;
+      sql?: string;
+    }) => {
+      if ("RELEASE_ROLE_VERIFIER" in variables) {
+        events.push("role password");
+        const role = /ALTER ROLE (\w+)/.exec(sql ?? "")?.[1];
+        if (role) db.cmsLogins.push(role);
+      }
+      if ("RELEASE_HEAD" in variables) {
+        db.heads = {
+          ...db.heads,
+          [variables.RELEASE_LEDGER as "supabase" | "payload"]:
+            variables.RELEASE_HEAD,
+        };
+      }
+      if ("RELEASE_MARKER" in variables)
+        db.environment = variables.RELEASE_MARKER;
+      return "";
+    },
+  );
   return { db, query, run, events };
 }
 
@@ -338,11 +366,9 @@ describe("release database steps", () => {
       confirmation: `rebuild ${ref}`,
       env: passwords,
       query: fake.query,
-      run: vi.fn((options: { variables: Record<string, string> }) => {
-        if ("RELEASE_ROLE_VERIFIER" in options.variables)
-          order.push("role password");
-        return "";
-      }),
+      // The fake's run records "role password" in the same order and lets the
+      // fresh role's login succeed once its password is set (WP1.6).
+      run: fake.run,
       runCommand,
       requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
       log: silent,
@@ -922,5 +948,171 @@ describe("release database steps", () => {
       log: silent,
     });
     expect(fake.db.environment).toBe("production");
+  });
+});
+
+// WP1.6's second hosted rebuild: the step set both CMS passwords anew (same
+// values, new SCRAM salts) and logged in through the shared pooler at once,
+// which still held the old credentials and refused the login. The step now
+// leaves a password alone when its secret already logs in, and after a real
+// change waits, within a bound, for the pooler to take the new one.
+describe("CMS role passwords through a hosted pooler", () => {
+  const PASSWORD_REFUSED = (role: string) =>
+    `log in as ${role}: psql exited 2. psql: error: connection to server at "aws-0-us-east-1.pooler.supabase.com" (192.0.2.1), port 5432 failed: FATAL:  password authentication failed for user "${role}"`;
+  const NO_SECRET = (role: string) =>
+    `log in as ${role}: psql exited 2. psql: error: connection to server at "aws-0-us-east-1.pooler.supabase.com" (192.0.2.1), port 5432 failed: FATAL:  (EAUTHQUERY) unsupported or invalid secret format`;
+
+  /** Each role answers its logins, in order, from its script: "ok" or an error. */
+  function hosted(script: Record<string, string[]>) {
+    const clock = { now: 0 };
+    const sleeps: number[] = [];
+    const query = vi.fn(
+      ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
+        if (sql.includes("FROM pg_roles")) return ["cms_owner", "cms_runtime"];
+        if (!sql.includes("current_user"))
+          throw new Error(`unexpected query: ${sql.slice(0, 60)}`);
+        const role = decodeURIComponent(new URL(databaseUrl).username).split(
+          ".",
+        )[0]!;
+        const next = script[role]!.shift();
+        if (next === undefined) throw new Error(`no more logins for ${role}`);
+        if (next !== "ok") throw new Error(next);
+        return { user: role };
+      },
+    );
+    const run = vi.fn();
+    const lines: string[] = [];
+    return {
+      query,
+      run,
+      lines,
+      sleeps,
+      sleep: (ms: number) => {
+        sleeps.push(ms);
+        clock.now += ms;
+      },
+      now: () => clock.now,
+      log: (line: string) => lines.push(line),
+    };
+  }
+  const call = (h: ReturnType<typeof hosted>) =>
+    setCmsRolePasswords({
+      settings: settings(),
+      env: passwords,
+      query: h.query,
+      run: h.run,
+      sleep: h.sleep,
+      now: h.now,
+      log: h.log,
+    });
+
+  it("changes nothing when each secret already logs in", () => {
+    const h = hosted({ cms_owner: ["ok"], cms_runtime: ["ok"] });
+    call(h);
+    expect(h.run).not.toHaveBeenCalled();
+    expect(h.sleeps).toEqual([]);
+    expect(h.lines).toEqual([
+      "The cms_owner password already logs in; nothing changed.",
+      "The cms_runtime password already logs in; nothing changed.",
+    ]);
+  });
+
+  it.each([
+    ["a wrong password", PASSWORD_REFUSED("cms_owner")],
+    [
+      "no usable secret (a role made without a password)",
+      NO_SECRET("cms_owner"),
+    ],
+  ])(
+    "sets a password refused for %s once, then waits inside the bound until the pooler accepts it",
+    (_case, refusal) => {
+      const h = hosted({
+        cms_owner: [refusal, PASSWORD_REFUSED("cms_owner"), "ok"],
+        cms_runtime: ["ok"],
+      });
+      call(h);
+      expect(h.run).toHaveBeenCalledTimes(1);
+      const set = h.run.mock.calls[0]![0] as {
+        label: string;
+        sql: string;
+        variables: Record<string, string>;
+      };
+      expect(set.label).toBe("set cms_owner password");
+      expect(set.variables.RELEASE_ROLE_VERIFIER).toMatch(/^SCRAM-SHA-256\$/);
+      expect(set.sql).not.toContain(passwords.RELEASE_CMS_OWNER_PASSWORD);
+      expect(h.sleeps).toEqual([30_000]);
+      expect(h.lines).toEqual([
+        "Set the cms_owner password; it logged in on attempt 2, 30 s after the change.",
+        "The cms_runtime password already logs in; nothing changed.",
+      ]);
+    },
+  );
+
+  it("fails, naming the role and the bound and nothing secret, when the new password never logs in", () => {
+    const refused = PASSWORD_REFUSED("cms_owner");
+    const h = hosted({
+      cms_owner: [refused, refused, refused, refused],
+      cms_runtime: ["ok"],
+    });
+    let message = "";
+    try {
+      call(h);
+    } catch (error) {
+      expect(error).toBeInstanceOf(ReleaseStop);
+      message = (error as Error).message;
+    }
+    expect(message).toContain("cms_owner");
+    expect(message).toContain("3 attempts over 90 seconds");
+    expect(message).not.toContain(passwords.RELEASE_CMS_OWNER_PASSWORD);
+    expect(message).not.toContain("SCRAM-SHA-256");
+    expect(h.run).toHaveBeenCalledTimes(1);
+    expect(h.sleeps).toEqual([30_000, 60_000]);
+  });
+
+  it.each([
+    [
+      "the role's connection limit",
+      'FATAL:  too many connections for role "cms_owner"',
+    ],
+    ["no route", "connection to server failed: Connection refused"],
+    ["TLS", "SSL error: certificate verify failed"],
+    [
+      "the pooler's circuit breaker",
+      "FATAL:  Circuit breaker open: too many authentication failures, new connections are temporarily blocked",
+    ],
+  ])(
+    "sets nothing and stops at once when the login is refused for %s",
+    (_case, refusal) => {
+      const h = hosted({ cms_owner: [refusal], cms_runtime: ["ok"] });
+      expect(() => call(h)).toThrow(ReleaseStop);
+      expect(h.run).not.toHaveBeenCalled();
+      expect(h.sleeps).toEqual([]);
+    },
+  );
+
+  it("stops at once when a verification after the change is refused for another reason", () => {
+    const h = hosted({
+      cms_owner: [
+        PASSWORD_REFUSED("cms_owner"),
+        "FATAL:  Circuit breaker open: too many authentication failures, new connections are temporarily blocked",
+      ],
+      cms_runtime: ["ok"],
+    });
+    expect(() => call(h)).toThrow(/Circuit breaker open/);
+    expect(h.run).toHaveBeenCalledTimes(1);
+    expect(h.sleeps).toEqual([]);
+  });
+
+  // Supavisor blocks a client after 10 refused logins in 150 seconds for one
+  // project and client IP (lib/supavisor/circuit_breaker.ex, :auth_error); the
+  // pooler took the new password within about 80 seconds on the preview
+  // project. Both roles share one client IP in one run.
+  it("waits longer than the measured cache, and stays under the pooler's circuit breaker for both roles", () => {
+    const at = ROLE_LOGIN_VERIFICATION.attemptsAtSeconds;
+    expect(at[0]).toBe(0);
+    expect(at.at(-1)).toBeGreaterThanOrEqual(80);
+    expect(at.at(-1)).toBeLessThan(150);
+    const refusalsPerRole = 1 + at.length;
+    expect(2 * refusalsPerRole).toBeLessThan(10);
   });
 });
