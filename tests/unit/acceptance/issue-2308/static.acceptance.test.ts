@@ -85,11 +85,17 @@ describe("#2308 static contracts (A)", () => {
   // schema 302 to 301, vercel-production-readiness 35 to 66). No site, count
   // or entry was added; the ceiling is unchanged. The pin stays a whole-file
   // hash, re-taken on that reviewed content.
-  it("C12: frozen service-role allowlist is byte-unchanged since the AL-2674 health-probe reason", () => {
+  //
+  // Re-frozen at AL-2675 (council round 1 on WP2a, F8): Mission Control's
+  // users list reads the member directory on the caller's token and no
+  // longer uses the service-key client, so the packages/api/src/admin/users.ts
+  // entry (operation_admin_context, 1 site) is deleted, as the shrink-only
+  // rule asks. Nothing else changed; no site, count or entry was added.
+  it("C12: frozen service-role allowlist is byte-unchanged since the AL-2675 users-list shrink", () => {
     expect(
       createHash("sha256")
         .update(read("docs/security/service-role-client-allowlist.json"))
         .digest("hex"),
-    ).toBe("1b5d7059f026d1f52289a39bfd583e082566fbf5a0e32e5541566c1316f83395");
+    ).toBe("4b2faf9f7bf2871e65c2cde725b8935b1ad149b63be51b0fd311805ed66704f0");
   });
 });
