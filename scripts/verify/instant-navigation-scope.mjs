@@ -39,7 +39,8 @@ function globToRegExp(pattern) {
   for (let index = 0; index < pattern.length; index += 1) {
     const character = pattern[index];
     if (character === "*" && pattern[index + 1] === "*") {
-      source += ".*";
+      // [\s\S], not ".": a name may hold a newline, which "." never matches.
+      source += "[\\s\\S]*";
       index += 1;
     } else if (character === "*") source += "[^/]*";
     else source += character.replace(/[.+?^${}()|[\]\\]/g, "\\$&");

@@ -42,7 +42,12 @@ describe("glob matching", () => {
     ["packages/ui/package.json", "package.json", false],
     ["scripts\\factory\\setup-cloud.mjs", "scripts/factory/**", true],
     ["docs/a+b(c).md", "docs/a+b(c).md", true],
-  ])("%s against %s is %s", (file, pattern, expected) => {
+    // Review round 8 (c2a.7): the reader keeps a newline in a name (-z), so
+    // `**` and `*` must span it too.
+    ["apps/donor/app/a\nb.tsx", "apps/donor/**", true],
+    ["playwright\n.config.ts", "playwright*.config.ts", true],
+    ["apps/donor\n/x.tsx", "apps/donor/**", false],
+  ])("%j against %s is %s", (file, pattern, expected) => {
     expect(matchesGlob(file, pattern)).toBe(expected);
   });
 });
@@ -149,6 +154,15 @@ describe("instant-navigation selection", () => {
     });
     expect(selection.run).toBe(true);
     expect(selection.reason).toContain(file);
+  });
+
+  it("runs the guards when a changed donor file has a newline in its name", () => {
+    expect(
+      selectInstantNavigation({
+        ...PR,
+        changedFiles: ["docs/ci.md", "apps/donor/app/(public)/a\nb/page.tsx"],
+      }).run,
+    ).toBe(true);
   });
 
   it("skips the guards when nothing they depend on changes", () => {
