@@ -802,6 +802,10 @@ Added by council round 2. The first four are now seen on hosted Supabase
   `RELEASE_DATABASE_SSL_CA` through the session pooler. The pooler's
   certificate names `*.pooler.supabase.com` and chains through Supabase
   Intermediate 2021 CA to Supabase Root 2021 CA.
+- Seen: `preflight`, `gates` and `record-heads` with `RELEASE_DATABASE_URL` at
+  `sslmode=verify-full` and the CA from `RELEASE_DATABASE_SSL_CA` (review L6).
+  `db push` and `db reset` under `verify-full` were seen only on the
+  operator's own Postgres with TLS (`wp16-hosted-proofs.md`, section 22).
 - Seen: the pinned CLI reading the password from `PGPASSWORD` against the
   hosted pooler.
 - Seen: signing in as a seeded login with `RELEASE_SEED_LOGIN_PASSWORD` after a

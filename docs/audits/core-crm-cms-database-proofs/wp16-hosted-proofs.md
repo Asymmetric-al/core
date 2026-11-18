@@ -751,3 +751,74 @@ The round 3 reviewer read phase 8 (6/10, accept after fixes). K1 held: every que
 - Read-only version 3 captures of the schema, compared with the replay.
 - At `8a675aac8`, against a fresh flagged replay on the operator's own Postgres 17.11 (`4f39a019…`, 5,898 objects): `gates` 21:08:28-21:08:39, "Schema fingerprints match", 0 differing; `record-heads` to 21:08:58; `preflight` to 21:09:17. These ran with SCRAM required by the code.
 - No rebuild.
+
+## 22. The certificate on a hosted connection (phase 10)
+
+Section 21 reported that the preview project's release address used `sslmode=require`. The coordinator ruled that a hosted release must check the certificate, before the owner sets development's release secrets. One commit:
+
+| Item | Commit      | What changed                                                                                                                                                                                                          | What failed first |
+| ---- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| L6   | `596a59003` | A hosted release address must say `sslmode=verify-full`. Every step writes `RELEASE_DATABASE_SSL_CA` to a file of its own and names it as `sslrootcert`. Every workflow step that runs the release script gets the CA | 10 cases          |
+
+**Evidence first.** At `7cc4117d3`, `preflight` ran on the preview project with the release address at `sslmode=verify-full` and the held CA as `sslrootcert`. It passed, 21:20:07-21:20:25 UTC on 18 November 2026, so `verify-ca` was not tried. Two TLS handshakes, with no login and no project named, read the pooler's certificate: the preview project's pooler host at 21:19:53 UTC and development's, `aws-1-us-east-1.pooler.supabase.com`, at 21:34:35 UTC.
+
+- Both present `*.pooler.supabase.com`, which also names `*.pooler.supabase.co`.
+- It is issued by Supabase Intermediate 2021 CA, which chains to Supabase Root 2021 CA.
+- Both handshakes passed verification against the held CA, with the host name checked.
+- The CA's SHA-256 fingerprint is `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`.
+
+**The change.**
+
+- **The target check.** `scripts/release/lib/database-target.mjs` refuses a hosted address unless it says `sslmode=verify-full`, once. The message says what to set. A loopback address is not affected.
+- **The CA file.** `withDatabaseCaFile`, which `runStep` calls for every step, writes the CA to a file in the runner's temporary directory, readable by the job only. It appends the file to the address as `sslrootcert` and leaves the rest of the address byte for byte. The file is removed when the step ends, whether it passed or failed.
+- **The stops.** A hosted step without `RELEASE_DATABASE_SSL_CA`, or whose address names its own `sslrootcert`, stops before it connects.
+- **The workflows.** Seven workflow steps gained the secret: `gates`, `record-heads`, `set-marker`, `cms-role-passwords` and `replace-seeded-login-passwords` in `release.yml`, and `gates` and `record-heads` in `qa-smoke-preview-deploy.yml`.
+- **The runbook.** It gains a section on the database's certificate. The secrets table and the owner's step say `verify-full`. The owner's step names the CA file (Supabase's guide calls it `prod-ca-2021.crt`) and the fingerprint above.
+
+**What the Supabase CLI does.** The installed 2.121.0 is Supabase's TypeScript CLI, compiled with Bun. It carries the Go CLI as a sidecar for commands not yet ported. Against a remote `--db-url`, `db push` and `db reset` run in TypeScript; the reset's `SIDE_EFFECTS.md` says "No subprocess delegation remains". Read from the `v2.121.0` tag, `apps/cli/src/command-internal/db-connection.sql-pg.layer.ts` (`sslOptionFor`, `sslConfigsFor`) shows what each mode does:
+
+- `verify-full` becomes node-postgres's `ssl: { rejectUnauthorized: true, ca, servername }`, with the CA from the `sslrootcert` file. Node checks the chain to that CA and the host name.
+- `verify-full` without `sslrootcert` checks against Node's own store. That store lacks Supabase's CA, so the CLI refuses the connection.
+- `require` without a CA is `rejectUnauthorized: false`: encrypted, with nothing checked. That is what `db push` did in every release, and `db reset` in every rebuild, until L6.
+- `require` with a CA acts as `verify-ca`.
+- The CLI would also read `PGSSLROOTCERT`. The job gives it no `PG*` variable but `PGPASSWORD`.
+
+**What Payload's node-postgres does.** The versions are pg 8.20.0 and pg-connection-string 2.12.0, the pg that `@payloadcms/db-postgres` 4.0.0-beta.9 loads.
+
+- `resolvePayloadDatabaseConfig` accepts `PAYLOAD_DATABASE_SSL_CA` only with exactly one `sslmode=verify-full`.
+- It removes `sslmode` from the address, because pg's parse of the address would replace the `ssl` object. It then passes `ssl: { ca, rejectUnauthorized: true }`.
+- pg sets `servername` to the host name, and Node's default `checkServerIdentity` checks it.
+- So Payload checks the chain against the project's CA alone, and the host name. Without the CA, `verify-full` checks against Node's own store, and the connection is refused.
+
+**Seen on the operator's own Postgres.** Postgres 17.11 with TLS, 21:32:50-21:33:24 UTC. The certificate names `localhost` only and comes from a CA of the probe's own. The CLI ran `migration list`, which uses the same connection layer as `db push` and `db reset`. Payload's connection was built by `resolvePayloadDatabaseConfig`.
+
+| Client                  | `verify-full`, its CA | `verify-full`, host `127.0.0.1`     | `verify-full`, another CA                       | `verify-full`, no CA | `require`, no CA                      |
+| ----------------------- | --------------------- | ----------------------------------- | ----------------------------------------------- | -------------------- | ------------------------------------- |
+| libpq (psql 17.11)      | connects              | refused: does not match host name   | refused: certificate verify failed              | not run              | connects, nothing checked             |
+| Supabase CLI 2.121.0    | connects              | refused: Hostname/IP does not match | refused: unable to verify the first certificate | refused              | connects, nothing checked             |
+| Payload's node-postgres | connects              | refused: Hostname/IP does not match | refused: unable to verify the first certificate | refused              | not run: the configuration refuses it |
+
+libpq's `verify-ca` connected to `127.0.0.1` with its CA, so it checked the chain and not the name. The CLI's `require` with another CA was refused, as `verify-ca` would be.
+
+**Checks at `596a59003`.**
+
+- Prettier and ESLint on the 9 changed files: clean, 0 errors.
+- `typecheck`: 16 of 16, not cached.
+- `tests/unit/scripts`, `tests/unit/workflows` and `tests/unit/docs`: 266 files passed and 1 skipped; 6,630 tests passed and 27 skipped.
+- CI's `migrate` job, run on the operator's own Postgres: every step passed. The release, fingerprint and CMS roles step: 43 passed, 4 skipped.
+- The release job's replay, on another fresh Postgres 17.11: `4f39a0198b87…`, 5,898 objects, the same as at `8a675aac8`.
+
+**On the preview project, at `596a59003`.** These runs used the address as the job will use it: `sslmode=verify-full`, with the CA from `RELEASE_DATABASE_SSL_CA`.
+
+- `gates`, 21:49:50-21:50:01 UTC: "Schema fingerprints match".
+- `record-heads`, to 21:50:18.
+- `preflight`, to 21:50:37.
+- No CA file was left behind.
+- The same address with `require` stopped at the target check before any connection was attempted.
+- No rebuild ran.
+
+**Not done.**
+
+- `db push` and `db reset` under `verify-full` on hosted: this phase approved no migrate and no rebuild. They were seen on the operator's own Postgres only, through the same connection layer.
+- The direct host: not checked, because it has an IPv6 address only.
+- The CMS runner's own hosted check, `scripts/cms/lib/migration-target.mjs`, still accepts `require`, `verify-ca` and `no-verify`. The release job always hands it `verify-full` with the CA. It was not changed, because the ruling named the release target check.
