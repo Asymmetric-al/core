@@ -64,6 +64,7 @@ describe("release settings", () => {
 
 /** A fake target database answering the queries the release steps send. */
 function fakeDatabase(state: {
+  cmsNeverAccept?: boolean;
   defaultsFail?: string;
   healthFunction?: boolean;
   environment?: string | null;
@@ -95,6 +96,7 @@ function fakeDatabase(state: {
     replacementFails: undefined as string | undefined,
     defaultsFail: undefined as string | undefined,
     cmsLogins: [] as string[],
+    cmsNeverAccept: false,
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
       payload: string | null;
@@ -159,7 +161,7 @@ function fakeDatabase(state: {
       if ("RELEASE_ROLE_VERIFIER" in variables) {
         events.push("role password");
         const role = /ALTER ROLE (\w+)/.exec(sql ?? "")?.[1];
-        if (role) db.cmsLogins.push(role);
+        if (role && !db.cmsNeverAccept) db.cmsLogins.push(role);
       }
       if ("RELEASE_HEAD" in variables) {
         db.heads = {
@@ -557,6 +559,75 @@ describe("release database steps", () => {
     command === "supabase" && args[0] === "--version"
       ? { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` }
       : null;
+
+  // Review H4: when a new CMS role password never logs in, the stop says what
+  // the run skipped and what to run next. A first rebuild cannot run again:
+  // the migrations have already marked the database disposable.
+  it.each([
+    [
+      "first",
+      /password was set.*first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads.*marked the database disposable, so first-rebuild cannot run again.*dispatch set-cms-role-passwords, then the release/s,
+    ],
+    [
+      "disposable",
+      /password was set.*rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads.*rebuild again/s,
+    ],
+  ] as const)(
+    "%s rebuild: when a new CMS role password never logs in, says what was skipped and what to run next",
+    async (mode, expected) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+        cmsNeverAccept: true,
+      });
+      const runCommand = vi.fn((command: string, args: string[]) => {
+        const probe = pinnedCli(command, args);
+        if (probe) return probe;
+        if (args.includes("reset")) fake.db.environment = "disposable";
+        return { status: 0 };
+      });
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          sleep: () => {},
+          log: silent,
+        }),
+      ).rejects.toThrow(expected);
+      expect(runCommand.mock.calls.some(([command]) => command === "bun")).toBe(
+        false,
+      );
+    },
+  );
+
+  it("migrate: when a new CMS role password never logs in, says nothing was deployed and to re-run the release", () => {
+    const fake = fakeDatabase({ cmsNeverAccept: true });
+    const runCommand = vi.fn((_command: string, _args: string[]) => ({
+      status: 0,
+    }));
+    expect(() =>
+      migrate({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        sleep: () => {},
+        log: silent,
+      }),
+    ).toThrow(
+      /password was set.*release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed.*re-run the release/s,
+    );
+    expect(runCommand.mock.calls.some(([command]) => command === "bun")).toBe(
+      false,
+    );
+  });
 
   it.each(["first", "disposable"] as const)(
     "%s rebuild: a reset that fails after seeding still replaces the seeded logins' password, then fails",

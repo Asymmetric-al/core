@@ -211,9 +211,27 @@ is the only mitigation. Newer Supavisor marks such a refusal with the hint
 "The password for this user was recently changed"; the preview project's
 pooler showed none on 18 November 2026.
 
-If the new password is still refused after 90 seconds, the step stops and
-says so. Wait two minutes, then dispatch `set-cms-role-passwords`; do not
-retry in a loop.
+### If the CMS role passwords stop a run
+
+If a new password is still refused after 90 seconds, or a login after the
+change is refused for another reason, the step stops. The password is set in
+the database either way. The stop says what the run skipped and what to run
+next. In every case, wait two minutes first, and never retry in a loop.
+
+- **`set-cms-role-passwords`:** dispatch it again.
+- **A release (`migrate`):** it stopped before Payload's migrations, the
+  gates, the heads and the deployment, so nothing was deployed. Re-run the
+  release.
+- **The preview rebuild:** it stopped after the reset and the seed, before
+  Payload's migrations, the gates and the heads. Rebuild again.
+- **`first-rebuild`:** it stopped at the same point, and the migrations have
+  already marked the database `disposable`, so `first-rebuild` refuses to run
+  again. Dispatch `set-cms-role-passwords`, then continue with
+  [Switching it on](#switching-it-on): step 6, then step 7's release. Its
+  migrate step runs the skipped Payload migrations, and the gates and the
+  heads follow, before anything is promoted.
+
+A password that logs in by then is left alone, so none of these sets it again.
 
 ### Seeded logins on a hosted rebuild
 

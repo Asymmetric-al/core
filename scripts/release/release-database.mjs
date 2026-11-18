@@ -555,6 +555,8 @@ export function migrate({
   run = runPsql,
   runCommand = spawnSync,
   log = console.log,
+  sleep,
+  now,
 }) {
   preflight({ settings, root, query, log });
   supabaseCli(runCommand, "Supabase migrations", ["db", "push"], settings);
@@ -563,7 +565,16 @@ export function migrate({
   // custom role passwords, plan 8.5) is repaired by the next release too.
   // Default privileges stay as the chain left them: only a rebuild, which
   // resets, puts the platform's back.
-  setCmsRolePasswords({ settings, env, query, run, log });
+  setCmsRolePasswords({
+    settings,
+    env,
+    query,
+    run,
+    log,
+    sleep,
+    now,
+    next: "This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Wait two minutes, then re-run the release; a password that then logs in is left alone.",
+  });
   payloadMigrate({ settings, runCommand });
   const { checks } = checkLedgers({
     databaseUrl: settings.databaseUrl,
@@ -773,6 +784,8 @@ export async function rebuild({
   runCommand = spawnSync,
   requireDisposable = requireDisposableDatabaseShared,
   log = console.log,
+  sleep,
+  now,
 }) {
   assertTarget(settings);
   if (confirmation !== `rebuild ${settings.projectRef}`) {
@@ -874,7 +887,19 @@ export async function rebuild({
       `The database is not marked disposable after the migrations (it reads ${after?.environment ?? "no marker"}). The rebuild stopped before the CMS role passwords and Payload's migrations; nothing was deployed.`,
     );
   }
-  setCmsRolePasswords({ settings, env, query, run, log });
+  setCmsRolePasswords({
+    settings,
+    env,
+    query,
+    run,
+    log,
+    sleep,
+    now,
+    next:
+      mode === "first"
+        ? "This first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads, and the migrations have already marked the database disposable, so first-rebuild cannot run again. Wait two minutes, dispatch set-cms-role-passwords, then the release: its migrate step runs Payload's migrations, and the gates and the heads follow (docs/ops/release-job.md, \"If the CMS role passwords stop a run\")."
+        : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Wait two minutes, then rebuild again; a password that then logs in is left alone.",
+  });
   payloadMigrate({ settings, runCommand });
   checkLedgers({ databaseUrl: settings.databaseUrl, query });
   log("Rebuild complete; the database is marked disposable.");
@@ -972,6 +997,10 @@ export function setCmsRolePasswords({
   log = console.log,
   sleep = sleepSync,
   now = Date.now,
+  // What the run skipped, and what to run next, when a password was set but
+  // never verified (review H4). The default suits the dispatched
+  // set-cms-role-passwords operation; migrate and the rebuilds say their own.
+  next = "Wait two minutes, then dispatch set-cms-role-passwords again; a password that then logs in is left alone.",
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
@@ -1037,13 +1066,13 @@ ALTER ROLE ${role} WITH PASSWORD :'verifier';`,
       if (last.ok) break;
       if (last.kind !== "password") {
         stop(
-          `The ${role} password was set, but logging in as ${role} was then refused for another reason: ${last.message}`,
+          `The ${role} password was set, but logging in as ${role} was then refused for another reason: ${last.message} ${next}`,
         );
       }
     }
     if (!last.ok) {
       stop(
-        `The ${role} password was set, but logging in as ${role} was still refused after ${attempts} attempts over ${boundSeconds} seconds. The pooler may hold the old credentials longer; wait two minutes, then dispatch set-cms-role-passwords.`,
+        `The ${role} password was set, but logging in as ${role} was still refused after ${attempts} attempts over ${boundSeconds} seconds; the pooler may hold the old credentials longer. ${next}`,
       );
     }
     const waited = Math.round((now() - changedAt) / 1000);
