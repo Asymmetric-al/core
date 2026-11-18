@@ -12,6 +12,7 @@ import {
   parsePreflightArgs,
   rerunCommand,
   selectStages,
+  stagePassLine,
 } from "../../../scripts/verify/ci-preflight.mjs";
 
 const PREFLIGHT_PATH = "scripts/verify/ci-preflight.mjs";
@@ -413,6 +414,11 @@ describe("preflight arguments and output", () => {
     expect(lines).toContain("line 20");
     expect(lines).not.toContain("line 19");
     expect(lines.join("\n")).not.toContain(FULL_PASS_LINE);
+  });
+
+  it("names each passed stage with its duration", () => {
+    expect(stagePassLine("lint", 12_345)).toBe("==> PASS lint (12.3s)");
+    expect(stagePassLine("runtime", 40)).toBe("==> PASS runtime (0.0s)");
   });
 
   it("prints the factory's full-preflight line only for a complete full profile", () => {

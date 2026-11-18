@@ -339,6 +339,10 @@ export function completionLines({ profile, stages: count, seconds, only }) {
   ];
 }
 
+export function stagePassLine(id, milliseconds) {
+  return `==> PASS ${id} (${(milliseconds / 1000).toFixed(1)}s)`;
+}
+
 function runTeed(args, env) {
   return new Promise((resolve) => {
     let tail = "";
@@ -378,6 +382,7 @@ async function runStage(stage, { profile, full }) {
     console.log(`==> SKIP ${stage.id} (${stage.skip})`);
     return true;
   }
+  const started = Date.now();
   const runs = stage.runs ?? [{ args: ["run", stage.script] }];
   for (const run of runs) {
     const env = { ...process.env, ...(stage.env ?? {}), ...(run.env ?? {}) };
@@ -395,7 +400,7 @@ async function runStage(stage, { profile, full }) {
       return false;
     }
   }
-  console.log(`==> PASS ${stage.id}`);
+  console.log(stagePassLine(stage.id, Date.now() - started));
   return true;
 }
 
