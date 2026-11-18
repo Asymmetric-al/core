@@ -2923,7 +2923,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/add-partner-dialog.tsx",
-          "sha256": "104a13c1ac351d6c8019558355acd0dad6291af4bd70ecdb24d234e42638db24"
+          "sha256": "73fe10863d24008e803e298765888236280f97816203f3662f6d3bb4692972ab"
         },
         {
           "path": "packages/missionary/hooks/use-parked-submit.ts",
@@ -2931,7 +2931,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/add-partner-dialog.test.tsx",
-          "sha256": "fef18b58b456027d93708f8a95154c2fe5694ea72719a0d0a006a444c94a2f5e"
+          "sha256": "eb1aabdc9192e9d6e047515da2c51916d433bdc08161903b17616222816dfb8f"
         }
       ]
     },
