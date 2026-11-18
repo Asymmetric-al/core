@@ -575,3 +575,36 @@ Later, on the operator's own Postgres (`postgres:17.11-alpine`):
 - At `ae09da272`: `tests/unit/scripts` and `tests/unit/workflows`, 244 files passed and 2 skipped, 6,301 tests passed and 17 skipped; the release, fingerprint and CMS roles real-stack step, 32 passed and 4 skipped.
 - At `3fb11620c`: the same unit suites, 6,306 passed and 18 skipped; the real-stack step, 33 passed and 4 skipped; `tests/unit/docs`, 184 passed. The four skipped real-stack cases are the guards that fail in CI when an admin URL is missing.
 - Both tips: `format:check` clean; `lint` and `typecheck` pass, from Turbo's cache, which does not cover the root `scripts` and `tests`; ESLint on the changed files, no error.
+
+## 17. Development, read on 18 November 2026
+
+Review H5 approved these reads of the development project (`pnmlrbgjiqzzsthsoikm`), and nothing else there. They ran at 15:06 UTC through the Management API's query endpoint with the management token, each query a SELECT sent with `read_only`. Nothing was changed and no password was reset.
+
+**Default privileges** (`pg_default_acl`):
+
+- `postgres` in `public`: the platform's own defaults. `postgres`, `anon`, `authenticated` and `service_role` hold all privileges on tables and sequences and EXECUTE on functions.
+- `postgres` in `cms`: `service_role` on tables (`arwdxt`) and on sequences (`rwU`), from the chain development carries now.
+- `postgres` in `storage`: the platform's defaults, as in `public`.
+- `postgres` holds no default for every schema.
+- `supabase_admin` (in `public`, `extensions`, `graphql`, `graphql_public` and `realtime`) and `supabase_auth_admin` (in `auth`): the platform's.
+
+**The two checks WP2a's delegate asked for:**
+
+- PostgREST `max_rows`: 1000.
+- `has_table_privilege('postgres', 'auth.users', 'SELECT')`: true. `auth.users` holds 8 rows.
+
+**What a reset would leave behind**, by the pinned CLI's `drop.sql`:
+
+- Schemas kept: `auth`, `extensions`, `graphql`, `graphql_public`, `pgbouncer`, `public` (emptied of its 87 tables and 42 functions), `realtime`, `storage`, `supabase_migrations` (its ledger truncated) and `vault`. Dropped: `authz`, `cms` and `private`.
+- Extensions: `pg_graphql`, `pg_stat_statements`, `pgcrypto`, `plpgsql`, `supabase_vault` and `uuid-ossp`, all on the keep list. `pg_net`, `pgmq` and `pg_cron` are not installed, so there are no `net`, `pgmq` or `cron` rows.
+- `vault.secrets`: no rows.
+- Storage: three public buckets, `document-uploads`, `email-assets` and `profiles`, each with no objects.
+- Edge Functions: none. Function secrets: `SUPABASE_DB_URL` only, the platform's own.
+
+**What this means for WP1.7, the first rebuild of development.**
+
+- The pre-reset check of section 9 passes there. After the restore, the defaults of `postgres` in `public` are exactly what a replay starts from, and it holds none for every schema. Its `cms` rows go with the `cms` schema, which the reset drops.
+- Nothing of the legacy engine is left to remove: no Edge Function, custom secret, vault row, `net` row, queue or cron job. The runbook's step 5 needs no removal before the gates.
+- The three buckets survive the reset as rows, which the fingerprint does not read. The chain's bucket migrations ran over the buckets of the previous run in the third and fourth rebuilds of the preview project.
+- `pg_net` is installed on the preview project but not on development. The fingerprint leaves extensions out, so this is no difference at the gates.
+- The reset truncates `auth`, so the 8 users go, and the seed makes its own.

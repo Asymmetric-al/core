@@ -729,7 +729,66 @@ export const HOSTED_DEFAULT_PRIVILEGES =
  * Only the two rebuilds call this; `migrate` never resets, so it keeps the
  * chain's own defaults. The file runs in one transaction, so a failure part
  * way applies nothing (review H1.2).
+ *
+ * The file only grants, so any other default privilege of `postgres` would
+ * survive it and the reset: a grant to another role in `public`, or any entry
+ * for every schema, such as a revoke from PUBLIC. The gates would then fail
+ * only after the reset, which cannot be undone. So the restore first works
+ * out, from the file itself and in a transaction it rolls back, what a replay
+ * starts from: the file applied to no default privileges of `postgres` in
+ * `public`. It then puts the platform's defaults back and commits only if
+ * `postgres`'s default privileges are exactly that and it holds none for
+ * every schema; otherwise it names each entry that differs and changes
+ * nothing (review H5).
  */
+const POSTGRES_DEFAULT_ENTRIES = (
+  where,
+) => `(SELECT coalesce(string_agg(entry, ' ' ORDER BY entry), '') FROM (
+  SELECT CASE d.defaclobjtype WHEN 'r' THEN 'tables' WHEN 'S' THEN 'sequences'
+              WHEN 'f' THEN 'functions' WHEN 'T' THEN 'types' WHEN 'n' THEN 'schemas'
+              ELSE d.defaclobjtype::text END || ':' || item::text AS entry
+  FROM pg_default_acl d CROSS JOIN LATERAL unnest(d.defaclacl) AS item
+  WHERE d.defaclrole = 'postgres'::regrole AND ${where}) AS entries)`;
+
+const CLEAR_PUBLIC_DEFAULTS_SQL = `DO $clear$
+DECLARE
+  entry record;
+BEGIN
+  FOR entry IN
+    SELECT DISTINCT d.defaclobjtype AS kind,
+           CASE WHEN a.grantee = 0 THEN 'PUBLIC'
+                ELSE quote_ident(pg_get_userbyid(a.grantee)) END AS grantee
+    FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
+    WHERE d.defaclrole = 'postgres'::regrole
+      AND d.defaclnamespace = 'public'::regnamespace
+  LOOP
+    EXECUTE format(
+      'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON %s FROM %s',
+      CASE entry.kind WHEN 'r' THEN 'TABLES' WHEN 'S' THEN 'SEQUENCES'
+                      WHEN 'f' THEN 'FUNCTIONS' ELSE 'TYPES' END,
+      entry.grantee);
+  END LOOP;
+END
+$clear$;`;
+
+const CHECK_RESTORED_DEFAULTS_SQL = `SELECT format('DO %L', format('BEGIN RAISE EXCEPTION ''%%'', %L; END',
+  'postgres holds default privileges a replay does not start from, after the platform''s were put back: '
+  || found.diff || '. Remove each, or record why it stays, then rebuild.'))
+FROM (
+  SELECT string_agg(x, '; ' ORDER BY x) AS diff FROM (
+    (SELECT 'unexpected in public ' || e FROM unnest(string_to_array(:'release_actual_defaults', ' ')) AS e
+     EXCEPT
+     SELECT 'unexpected in public ' || e FROM unnest(string_to_array(:'release_expected_defaults', ' ')) AS e)
+    UNION ALL
+    (SELECT 'missing in public ' || e FROM unnest(string_to_array(:'release_expected_defaults', ' ')) AS e
+     EXCEPT
+     SELECT 'missing in public ' || e FROM unnest(string_to_array(:'release_actual_defaults', ' ')) AS e)
+    UNION ALL
+    SELECT 'in every schema ' || e FROM unnest(string_to_array(:'release_global_defaults', ' ')) AS e
+  ) AS differences(x)
+) AS found
+WHERE found.diff IS NOT NULL \\gexec`;
+
 export function restoreHostedDefaultPrivileges({
   settings,
   root = repoRoot,
@@ -737,13 +796,31 @@ export function restoreHostedDefaultPrivileges({
   log = console.log,
 }) {
   try {
-    const defaults = readFileSync(
+    const file = readFileSync(
       path.join(root, HOSTED_DEFAULT_PRIVILEGES),
       "utf8",
     );
+    const defaults = file.endsWith("\n") ? file : `${file}\n`;
+    const publicEntries = POSTGRES_DEFAULT_ENTRIES(
+      "d.defaclnamespace = 'public'::regnamespace",
+    );
     run({
       databaseUrl: settings.databaseUrl,
-      sql: `BEGIN;\n${defaults.endsWith("\n") ? defaults : `${defaults}\n`}COMMIT;\n`,
+      sql: [
+        // What a replay starts from, worked out from the file; never committed.
+        "BEGIN;",
+        CLEAR_PUBLIC_DEFAULTS_SQL,
+        defaults,
+        `SELECT ${publicEntries} AS release_expected_defaults \\gset`,
+        "ROLLBACK;",
+        // The restore itself, committed only when the result is exactly that.
+        "BEGIN;",
+        defaults,
+        `SELECT ${publicEntries} AS release_actual_defaults, ${POSTGRES_DEFAULT_ENTRIES("d.defaclnamespace = 0")} AS release_global_defaults \\gset`,
+        CHECK_RESTORED_DEFAULTS_SQL,
+        "COMMIT;",
+        "",
+      ].join("\n"),
       label: "put back the platform's default privileges",
     });
   } catch (error) {

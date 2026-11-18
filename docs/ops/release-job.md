@@ -389,7 +389,16 @@ the reset, from `scripts/sql/hosted-default-privileges.sql`, the file the
 replay applies before the chain. Every statement in it runs as `postgres`,
 which owns those defaults and owns the database, so it may grant on `public`.
 The file runs in one transaction: if it fails part way, nothing of it
-applies, the rebuild stops and nothing is reset. Both rebuilds check the
+applies, the rebuild stops and nothing is reset. The file only grants, so
+any other default privilege of `postgres` would survive it and the reset: a
+grant to another role in `public`, or an entry for every schema such as a
+revoke from PUBLIC. The gates would then fail only after the reset. So the
+step works out from the file, in a transaction it rolls back, what a replay
+starts from, and commits the restore only when `postgres`'s default
+privileges are exactly that and it holds none for every schema. Otherwise
+the rebuild stops before the reset, naming each entry ("unexpected in
+public tables:…", "in every schema functions:…"). Remove each, or record why
+it stays, then rebuild. Both rebuilds check the
 pinned CLI before this step, so a wrong CLI stops them before they touch the
 database. `migrate` never resets and never touches default privileges: the
 chain's own changes to them stand. The release real-stack suite proves the rebuild against a model of
@@ -548,9 +557,23 @@ below follow those decisions.
    creates the marker as `disposable` and the CMS roles, seeds, gives the
    seeded logins `RELEASE_SEED_LOGIN_PASSWORD`, checks the marker, sets the
    CMS role passwords, runs Payload's migrations, the gates and the heads.
-   Take a logical backup first, and before the gates remove what the reset
-   leaves behind
+   Before the reset it puts the platform's default privileges back and stops,
+   naming the entry and resetting nothing, if `postgres` then holds any
+   default privilege a replay does not start from
+   ([What a reset keeps of the default privileges](#what-a-reset-keeps-of-the-default-privileges)).
+   Take a logical backup first. The job runs the rebuild, the gates and the
+   heads with no pause, so there is no moment to remove what the reset leaves
+   behind before the gates: list it first
    ([What the first rebuild does not remove](#what-the-first-rebuild-does-not-remove)).
+   On 18 November 2026 development held nothing the gates read that the reset
+   would leave: no Edge Function, no custom function secret, no `vault`,
+   `net`, `pgmq` or cron rows (report, section 17). If a leftover the gates
+   read remains anyway, the gates fail after the reset, which cannot be
+   undone. The database is then rebuilt, seeded and marked `disposable`, with
+   no heads recorded, and `first-rebuild` refuses to run again. Recover in
+   this order: remove the leftovers as that section lists them; then continue
+   with step 6 and step 7's release, whose gates run again and record the
+   heads before anything is promoted.
    Check: the run is green, and its log says the rebuild is complete, the
    seeded logins' password was replaced, the database is marked disposable
    and each role password was either already right or set and verified.

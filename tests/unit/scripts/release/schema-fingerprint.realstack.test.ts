@@ -414,5 +414,63 @@ describe.skipIf(!adminDatabaseUrl)(
       }
       expect(psql(db.url, PUBLIC_DEFAULTS_SQL)).toBe(before);
     });
+
+    // Review H5: the restore only grants, so any other default privilege of
+    // postgres in public, or one in every schema, would survive it and the
+    // reset, and the gates would fail only after the reset. The rebuild stops
+    // before the reset instead, naming each entry, and changes nothing.
+    it.each([
+      [
+        "a grant to another role in public",
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO pg_monitor;",
+        /unexpected in public tables:pg_monitor=r\/postgres/,
+      ],
+      [
+        "a revoke from PUBLIC in every schema",
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;",
+        /in every schema functions:postgres=X\/postgres/,
+      ],
+    ])(
+      "stops before the reset, naming it, when postgres holds %s",
+      (_case, plant, named) => {
+        const db = createDatabase("defaults_extra");
+        created.push(db.name);
+        psql(
+          db.url,
+          readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+        );
+        psql(db.url, plant);
+        const before = psql(db.url, POSTGRES_DEFAULTS_SQL);
+        expect(() =>
+          restoreHostedDefaultPrivileges({
+            settings: loopbackSettings(db.url),
+            log: () => {},
+          }),
+        ).toThrow(named);
+        expect(psql(db.url, POSTGRES_DEFAULTS_SQL)).toBe(before);
+      },
+    );
+
+    it("passes, and leaves exactly the platform's defaults, on a database that holds only the bootstrap's", () => {
+      const db = createDatabase("defaults_plain");
+      created.push(db.name);
+      psql(
+        db.url,
+        readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+      );
+      restoreHostedDefaultPrivileges({
+        settings: loopbackSettings(db.url),
+        log: () => {},
+      });
+      expect(psql(db.url, POSTGRES_DEFAULTS_SQL)).toMatch(
+        /^public\/S=\{.*\};public\/f=\{.*\};public\/r=\{.*\}$/,
+      );
+    });
   },
 );
+
+/** Every default privilege postgres holds, in one schema or in all of them. */
+const POSTGRES_DEFAULTS_SQL = `SELECT coalesce(string_agg(entry, ';' ORDER BY entry), '') FROM (
+  SELECT CASE WHEN defaclnamespace = 0 THEN '*' ELSE defaclnamespace::regnamespace::text END
+         || '/' || defaclobjtype::text || '=' || defaclacl::text AS entry
+  FROM pg_default_acl WHERE defaclrole = 'postgres'::regrole) AS entries;`;
