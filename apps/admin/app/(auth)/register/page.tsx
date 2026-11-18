@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Registration unavailable" };
 
 export default async function RegisterPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(null); // Auth only: reads no tenant table.
   const {
     data: { user },
   } = await supabase.auth.getUser();

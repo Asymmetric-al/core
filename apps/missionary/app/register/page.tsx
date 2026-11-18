@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RegisterPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(null); // Auth only: reads no tenant table.
   const {
     data: { user },
   } = await supabase.auth.getUser();

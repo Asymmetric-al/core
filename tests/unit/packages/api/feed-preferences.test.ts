@@ -56,6 +56,7 @@ function createQuery<T>(
 }
 
 const TENANT_ID = "3f6c1d2e-8a4b-4c5d-9e6f-7a8b9c0d1e2f";
+const DONOR_ASSIGNMENT_ID = "3f6c1d2e-8a4b-4c5d-9e6f-7a8b9c0d1e30";
 
 function createGetRequest() {
   return new Request("http://localhost/api/donor/feed-preferences");
@@ -93,6 +94,19 @@ function mockFeedPreferencesRoute(options?: {
             },
           ]
         : [],
+    // The donor row the resolver selected (WP2b, AL-2675).
+    assignment:
+      session === "donor"
+        ? {
+            assignmentId: DONOR_ASSIGNMENT_ID,
+            userId: "user-1",
+            tenantId: TENANT_ID,
+            revision: "1",
+            membershipRole: "donor",
+            staffRole: null,
+            isTenantAdmin: false,
+          }
+        : null,
     profileId: session === "signed-out" ? null : "profile-1",
     isAuthenticated: session === "donor",
   });
@@ -183,6 +197,21 @@ describe("feed preferences route", () => {
       });
     }
     expect(from).not.toHaveBeenCalledWith("donor_feed_preferences");
+  });
+
+  it("reads and writes on a session client that sends the resolved donor assignment (WP2b, AL-2675)", async () => {
+    mockFeedPreferencesRoute();
+
+    await GET(createGetRequest());
+    await POST(createJsonRequest({ followOrg: true }));
+
+    expect(createClientMock).toHaveBeenCalledTimes(2);
+    for (const [scope] of createClientMock.mock.calls) {
+      expect(scope).toEqual({
+        tenantId: TENANT_ID,
+        assignmentId: DONOR_ASSIGNMENT_ID,
+      });
+    }
   });
 
   it("finds the donor by profile ownership in the assignment's tenant, never by email or claim", async () => {

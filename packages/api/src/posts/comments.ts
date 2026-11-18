@@ -1,19 +1,20 @@
+import { getAuthContext, requestScopeOf } from "@asym/auth/context";
 import { createClient } from "@asym/database/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
-  const supabase = await createClient();
-
   // Explicit auth check — do not rely on RLS alone. (finding 06 Gap 3)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
+  const auth = await getAuthContext(request);
+  if (!auth.userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // The caller's own token, sending the tenant and assignment the resolver
+  // selected for this request (plan 5.4; AL-2675).
+  const supabase = await createClient(requestScopeOf(auth));
 
   const { postId } = await params;
 

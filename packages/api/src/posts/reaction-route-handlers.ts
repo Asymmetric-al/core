@@ -1,4 +1,4 @@
-import { getAuthContext } from "@asym/auth/context";
+import { getAuthContext, requestScopeOf } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
@@ -39,9 +39,12 @@ function createReactionMutationHandler(
 ): ReactionRouteHandler {
   return async (request, { params }) => {
     try {
-      const supabase = await createClient();
+      const auth = await getAuthContext(request);
+      // The caller's token, sending the resolved tenant and assignment
+      // (plan 5.4; WP2b, AL-2675).
+      const supabase = await createClient(requestScopeOf(auth));
       const { postId, userId, tenantId } = await resolveReactionRouteContext(
-        await getAuthContext(request),
+        auth,
         supabase,
         params,
       );

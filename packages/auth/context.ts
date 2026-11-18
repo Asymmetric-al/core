@@ -51,6 +51,7 @@ import type {
   AssignmentDenyReason,
   RoleClass,
 } from "./principal/types";
+import type { RequestScope } from "@asym/database/request-scope-headers";
 import type { UserRole } from "@asym/database/types";
 
 export interface AuthContext {
@@ -455,6 +456,28 @@ export async function getAuthContext(
     assignmentDenial: null,
     profileId: profile.id,
     isAuthenticated: true,
+  };
+}
+
+/**
+ * What the request acts under, for the server's session clients to send to
+ * the database (plan 5.4; AL-2675): the tenant and the membership row the
+ * resolver selected. `null` when no assignment resolved. It is never the
+ * tenant or assignment header the caller sent: those are only proposals,
+ * which the resolver has already checked against the caller's live rows.
+ */
+export function requestScopeOf(context: AuthContext): RequestScope | null {
+  const { assignment } = context;
+  if (
+    !context.isAuthenticated ||
+    !assignment ||
+    assignment.tenantId !== context.tenantId
+  ) {
+    return null;
+  }
+  return {
+    tenantId: assignment.tenantId,
+    assignmentId: assignment.assignmentId,
   };
 }
 

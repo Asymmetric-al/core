@@ -1,6 +1,7 @@
 import {
   getAuthContext,
   hasAnyContextRole,
+  requestScopeOf,
   type AuthContext,
 } from "@asym/auth/context";
 import { CHOOSER_PATH } from "@asym/auth/tenant-address";
@@ -105,7 +106,7 @@ async function loadShellState(
   tenantId: string,
   userId: string,
 ): Promise<MCBootstrapState> {
-  const serverClient = await createClient();
+  const serverClient = await createClient(requestScopeOf(auth));
   const shellReader = getAdminClient().client ?? serverClient;
   const [{ data: profile }, { data: tenant }] = await Promise.all([
     shellReader
