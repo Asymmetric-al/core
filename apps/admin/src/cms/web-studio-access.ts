@@ -7,6 +7,7 @@ import {
 } from "@asym/auth/web-studio";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { readWebStudioTenantCookie } from "./web-studio-tenant-cookie";
 
@@ -30,8 +31,27 @@ function fallbackName(tenantId: string) {
 }
 
 /**
- * The Web Studio layout's gate (plan 5.2, "One stated exception: Web Studio";
- * AL-2675). The organization is the one the signed Web Studio cookie selects,
+ * The person's live rows and the cookie's decision, read once per request:
+ * the layout and the page both ask (council C1), and they must agree.
+ */
+const decideWebStudioRequest = cache(async () => {
+  const signedIn = await getSignedInAssignments();
+  if (signedIn.kind !== "signed_in") return { signedIn, decision: null };
+  const cookie = await readWebStudioTenantCookie(
+    (await cookies()).get(WEB_STUDIO_TENANT_COOKIE)?.value,
+  );
+  const decision = decideWebStudioAccess({
+    assignments: signedIn.assignments,
+    cookie,
+  });
+  return { signedIn, decision };
+});
+
+/**
+ * The gate of every Web Studio render (plan 5.2, "One stated exception: Web
+ * Studio"; AL-2675): the Payload layout on a document load, and each page on
+ * every render, a client navigation included, since a layout does not render
+ * again then (council C1). The organization is the one the signed Web Studio cookie selects,
  * judged by the principal resolver's rule against the person's live staff
  * rows, read on their own token: a person with one staff row needs no choice,
  * a person with several and no usable selection goes to the Web Studio
@@ -46,21 +66,14 @@ function fallbackName(tenantId: string) {
 export async function requireWebStudioAccess(
   pathname: string,
 ): Promise<WebStudioAccess> {
-  const signedIn = await getSignedInAssignments();
+  const { signedIn, decision } = await decideWebStudioRequest();
   if (signedIn.kind === "signed_out") {
     redirect(`/login?next=${encodeURIComponent(pathname)}`);
   }
-  if (signedIn.kind === "unavailable") {
+  if (signedIn.kind === "unavailable" || decision === null) {
     redirect("/no-access");
   }
 
-  const cookie = await readWebStudioTenantCookie(
-    (await cookies()).get(WEB_STUDIO_TENANT_COOKIE)?.value,
-  );
-  const decision = decideWebStudioAccess({
-    assignments: signedIn.assignments,
-    cookie,
-  });
   if (decision.kind === "choose") {
     redirect(`${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`);
   }

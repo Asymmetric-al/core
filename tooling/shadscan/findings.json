@@ -441,7 +441,7 @@
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "0b3a95e7ceb21588272cacbd28465dec489395d5185712192a209c18a559277f"
+          "sha256": "a56003fb9e35a9c9a588ae91f8319ba127bcfa5b4b25c0f8ba6b2ac420f2c48d"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",

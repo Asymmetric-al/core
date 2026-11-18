@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  isWebStudioApiPath,
+  isWebStudioPath,
+  WEB_STUDIO_CHOOSER_PATH,
+} from "@asym/auth/web-studio";
 import { RouterAdapterContext } from "@payloadcms/ui";
 import Link from "next/link";
 import {
@@ -10,10 +15,35 @@ import {
 } from "next/navigation";
 import React from "react";
 
+import { loadDocument } from "./web-studio-document-load";
 import { StudioFlowLoading } from "../cms-ui/web-studio/flows/studio-flow-loading";
 
 import type { RouterAdapterContextValue } from "@payloadcms/ui";
 import type { LinkAdapterProps } from "payload";
+
+/**
+ * Whether Payload may reach `href` by a client navigation: only a Web Studio
+ * page of this origin. The organization chooser, Mission Control and every
+ * other address load a new document, so switching organization or leaving
+ * Web Studio never keeps the old organization's page, even when Payload's
+ * leave-without-saving dialog turns a link click into a push (AL-2675,
+ * council C1 and C12).
+ */
+export function isWebStudioPageAddress(href: string, origin: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(href, origin);
+  } catch {
+    return false;
+  }
+  return (
+    url.origin === origin &&
+    isWebStudioPath(url.pathname) &&
+    !isWebStudioApiPath(url.pathname) &&
+    url.pathname !== WEB_STUDIO_CHOOSER_PATH &&
+    !url.pathname.startsWith(`${WEB_STUDIO_CHOOSER_PATH}/`)
+  );
+}
 
 const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
   children,
@@ -61,9 +91,15 @@ function NextRouterAdapterProvider({
   const router = React.useMemo<RouterAdapterContextValue["router"]>(
     () => ({
       back: nextRouter.back,
-      push: nextRouter.push,
+      push: (href, options) =>
+        isWebStudioPageAddress(href, window.location.origin)
+          ? nextRouter.push(href, options)
+          : loadDocument(href, { replace: false }),
       refresh: nextRouter.refresh,
-      replace: nextRouter.replace,
+      replace: (href, options) =>
+        isWebStudioPageAddress(href, window.location.origin)
+          ? nextRouter.replace(href, options)
+          : loadDocument(href, { replace: true }),
     }),
     [nextRouter],
   );
