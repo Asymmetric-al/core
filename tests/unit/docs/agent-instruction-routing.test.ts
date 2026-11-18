@@ -8,6 +8,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -239,6 +240,7 @@ describe("agent instruction routing fixtures", () => {
       "apps/admin/AGENTS.md",
       "apps/donor/AGENTS.md",
       "apps/missionary/AGENTS.md",
+      "apps/factory-console/AGENTS.md",
     ]);
 
     for (const relativePath of NESTED_AGENTS_PATHS) {
@@ -267,6 +269,50 @@ describe("agent instruction routing fixtures", () => {
     expect(readRepoFile("apps/donor/AGENTS.md")).toContain("3000");
     expect(readRepoFile("apps/missionary/AGENTS.md")).toContain("4000");
   });
+
+  // `next dev` appends the managed block to an app's AGENTS.md whenever the
+  // installed generator's text is missing or differs, so every committed copy
+  // must equal it. A Next.js upgrade that changes the text fails here, in the
+  // upgrade pull request.
+  it.each([
+    ".",
+    "apps/admin",
+    "apps/donor",
+    "apps/missionary",
+    "apps/factory-console",
+  ])(
+    "keeps the Next.js managed block in %s identical to the installed generator's",
+    (directory) => {
+      const appRequire = createRequire(
+        join(REPO_ROOT, directory, "package.json"),
+      );
+      const { hasCurrentAgentRules } = appRequire(
+        "next/dist/server/lib/generate-agent-files.js",
+      ) as { hasCurrentAgentRules: (dir: string) => boolean };
+      expect(hasCurrentAgentRules(join(REPO_ROOT, directory))).toBe(true);
+    },
+  );
+
+  it.each(["apps/admin", "apps/donor", "apps/missionary"])(
+    "tells %s agents to verify route and UI changes against the running dev server",
+    (app) => {
+      const content = readRepoFile(`${app}/AGENTS.md`);
+      const workflow = content.slice(
+        content.indexOf("## Workflow"),
+        content.indexOf("## Checklist"),
+      );
+      for (const required of [
+        "`next-dev-loop`",
+        `\`${app}/.next/dev/lock\``,
+        "`get_compilation_issues`",
+        "`compile_route`",
+        "`get_errors`",
+        "`agent-browser`",
+        "Don't run `next build` to check compilation while editing",
+      ])
+        expect(workflow, `${app}: ${required}`).toContain(required);
+    },
+  );
 
   it("imports every scoped AGENTS.md through a sibling CLAUDE.md", () => {
     // Claude Code loads CLAUDE.md, not AGENTS.md. Without the sibling import a
