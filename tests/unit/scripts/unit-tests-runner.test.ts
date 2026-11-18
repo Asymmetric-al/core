@@ -4,8 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
+import {
+  filesVitestRuns,
+  unitRunnerVitestArgs,
+} from "./support/vitest-selection";
 import { ACCEPTANCE_DIR } from "../../../scripts/verify/acceptance-tests.mjs";
 import {
   ACCEPTANCE_EXCLUDE,
@@ -194,46 +198,86 @@ describe("acceptance tests run once", () => {
     },
   );
 
-  it.each([
-    [
-      "linux",
-      "tests/unit/acceptance/issue-2153/ci-workflow.acceptance.test.ts",
-    ],
-    ["win32", "tests\\unit\\acceptance\\issue-2153"],
-    ["linux", "./tests/unit/acceptance/"],
-    ["linux", "tests/unit/acceptance"],
-    ["linux", path.resolve("tests/unit/acceptance/issue-2153")],
-  ])(
-    "still runs acceptance files an argument names on %s (%s)",
-    (platform, filter) => {
-      const spawn = vi.fn((_command: string, _args: string[]) => ({
-        status: 0,
-      }));
-      runUnitTests(platform, spawn, ["--", filter]);
-      const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-      expect(args).not.toContain(ACCEPTANCE_EXCLUDE);
-      expect(args).toContain(filter);
-    },
-  );
+  // What Vitest itself selects, not which arguments the runner passes: a
+  // filter Vitest reads as a path inside the acceptance directory must run
+  // those files in every form Vitest accepts (review round 8, c2a.10: a
+  // fragment such as `issue-2153` selected nothing), and options must not
+  // bring the directory back (review round 6, c1.5: `-t acceptance` did).
+  describe("as Vitest selects files", () => {
+    const FILE = `${ACCEPTANCE_DIR}/issue-2153/ci-workflow.acceptance.test.ts`;
+    const NAMES_ACCEPTANCE: [string, string[]][] = [
+      ["a root-relative file", [FILE]],
+      ["a file and line", [`${FILE}:20`]],
+      [
+        "the directory with ./ and a trailing slash",
+        ["./tests/unit/acceptance/"],
+      ],
+      ["Windows separators", ["tests\\unit\\acceptance\\issue-2153"]],
+      ["an absolute path", [path.resolve(`${ACCEPTANCE_DIR}/issue-2153`)]],
+      ["a path fragment", ["acceptance/issue-2153"]],
+      ["a directory name", ["issue-2153"]],
+      ["a bare file name", ["ci-workflow.acceptance.test.ts"]],
+    ];
+    const KEEPS_IT_OUT: [string, string[]][] = [
+      ["no arguments", []],
+      ["a test-name pattern", ["-t", "acceptance"]],
+      ["a long test-name pattern", ["--testNamePattern=acceptance criteria"]],
+      ["a shard", ["--shard=1/3"]],
+      [
+        "a filter after the option terminator, which Vitest ignores",
+        ["--", `${ACCEPTANCE_DIR}/issue-2153`],
+      ],
+      [
+        "a filter outside the directory",
+        ["tests/unit/scripts/acceptance-tests.test.ts"],
+      ],
+    ];
+    const inAcceptance = (file: string) =>
+      file.startsWith(`${ACCEPTANCE_DIR}/`);
+    let selected = new Map<string, { runner: string[]; vitest?: string[] }>();
 
-  // Review round 6 (c1.5): only a path inside the acceptance directory turns
-  // the exclusion off, not any argument that contains the word.
-  it.each([
-    [["acceptance"]],
-    [["issue-2153"]],
-    [["tests/unit/scripts/acceptance-tests.test.ts"]],
-    [["tests/unit/acceptance-helpers/x.test.ts"]],
-    [["-t", "acceptance"]],
-    [["--testNamePattern=acceptance criteria"]],
-  ])("keeps the acceptance directory excluded for %j", (filters) => {
-    const spawn = vi.fn((_command: string, _args: string[]) => ({
-      status: 0,
-    }));
-    runUnitTests("linux", spawn, ["--", ...filters]);
-    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-    const index = args.indexOf(ACCEPTANCE_EXCLUDE);
-    expect(index).toBeGreaterThan(0);
-    expect(args[index - 1]).toBe("--exclude");
+    beforeAll(async () => {
+      const lists = [
+        ...NAMES_ACCEPTANCE.flatMap(([, args]) => [
+          unitRunnerVitestArgs(args),
+          ["run", ...args],
+        ]),
+        ...KEEPS_IT_OUT.map(([, args]) => unitRunnerVitestArgs(args)),
+      ];
+      const files = await filesVitestRuns(lists);
+      selected = new Map([
+        ...NAMES_ACCEPTANCE.map(([label], index) => [
+          label,
+          { runner: files[2 * index]!, vitest: files[2 * index + 1]! },
+        ]),
+        ...KEEPS_IT_OUT.map(([label], index) => [
+          label,
+          { runner: files[2 * NAMES_ACCEPTANCE.length + index]! },
+        ]),
+      ] as [string, { runner: string[]; vitest?: string[] }][]);
+    }, 300_000);
+
+    it.each(NAMES_ACCEPTANCE)(
+      "runs the acceptance files plain Vitest runs for %s",
+      (label) => {
+        const { runner, vitest } = selected.get(label)!;
+        expect(runner.length).toBeGreaterThan(0);
+        expect(runner.every(inAcceptance)).toBe(true);
+        expect(runner).toEqual(vitest);
+      },
+    );
+
+    it.each(KEEPS_IT_OUT)("runs no acceptance file for %s", (label) => {
+      const { runner } = selected.get(label)!;
+      expect(runner.length).toBeGreaterThan(0);
+      expect(runner.filter(inAcceptance)).toEqual([]);
+    });
+
+    it("runs exactly the named file for a filter outside the directory", () => {
+      expect(selected.get("a filter outside the directory")?.runner).toEqual([
+        "tests/unit/scripts/acceptance-tests.test.ts",
+      ]);
+    });
   });
 });
 
