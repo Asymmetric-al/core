@@ -413,7 +413,17 @@ describe.skipIf(!ADMIN_URL)(
           root = mkdtempSync(path.join(os.tmpdir(), "acc-2674-gate-"));
           temps.push(root);
           // scripts/lib holds the psql runner the gate imports (AL-2674 E3).
-          for (const rel of ["scripts/verify", "scripts/lib", H.FP, H.MIG])
+          // PR #2714 review (record D-18): that runner now imports the one
+          // local-database decision from the routing rule it shares with the
+          // admin app, so the copy carries that file too; nothing else in
+          // what the gate reads changes.
+          for (const rel of [
+            "scripts/verify",
+            "scripts/lib",
+            "packages/env/src/database-url.mjs",
+            H.FP,
+            H.MIG,
+          ])
             cpSync(path.join(H.ROOT, rel), path.join(root, rel), {
               recursive: true,
             });

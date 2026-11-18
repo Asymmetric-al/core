@@ -1,7 +1,10 @@
 // Ties a migration connection string to the Supabase project the release
 // environment names, before anything writes to it. Errors never repeat the
 // connection string.
-import { databaseUrlRoutingOverrides } from "../../../packages/env/src/database-url.mjs";
+import {
+  databaseUrlRoutingOverrides,
+  isLoopbackDatabaseUrl,
+} from "../../../packages/env/src/database-url.mjs";
 
 /**
  * Hosted projects named in docs/ops/environments.md. There are two and no
@@ -15,7 +18,6 @@ export const KNOWN_PROJECT_REFS = Object.freeze({
 
 const REF = /^[a-z0-9]{20}$/;
 const ROLE = /^[a-z_][a-z0-9_]{0,62}$/;
-const LOOPBACK = new Set(["localhost", "127.0.0.1", "::1"]);
 const ENCRYPTED = new Set(["require", "verify-ca", "verify-full"]);
 
 function parse(databaseUrl) {
@@ -73,11 +75,11 @@ export function assertDatabaseTarget({
       "The release database connection carries routing overrides.",
     );
   }
-  const host = url.hostname.replace(/^\[|\]$/g, "");
-  if (LOOPBACK.has(host)) {
+  if (isLoopbackDatabaseUrl(url)) {
     if (allowLoopback) return;
     throw new Error("A hosted release refuses a loopback database.");
   }
+  const host = url.hostname.replace(/^\[|\]$/g, "");
   const user = decodeURIComponent(url.username);
   const direct = host === `db.${projectRef}.supabase.co` && user === role;
   const pooled =

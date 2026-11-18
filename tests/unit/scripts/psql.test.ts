@@ -77,6 +77,41 @@ describe("isLoopbackDatabaseUrl", () => {
   ])("%s -> %s", (url, loopback) => {
     expect(isLoopbackDatabaseUrl(url)).toBe(loopback);
   });
+
+  // PR #2714 review (local database admission): libpq and node-postgres follow
+  // a routing key in the query over the authority, so a URL that shows
+  // 127.0.0.1 can still name another server, port, database, login or service
+  // (packages/env/src/database-url.mjs). Such a URL is never local.
+  it.each([
+    "postgresql://postgres@127.0.0.1:5432/postgres?host=db.example.supabase.co",
+    "postgresql://postgres@127.0.0.1:5432/postgres?hostaddr=203.0.113.9",
+    "postgresql://postgres@127.0.0.1:5432/postgres?user=postgres.abcdefghijklmnopqrst",
+    "postgresql://postgres@127.0.0.1:5432/postgres?port=6543",
+    "postgresql://postgres@localhost:5432/postgres?dbname=production",
+    "postgres://postgres@[::1]:5432/postgres?service=hosted",
+    "postgresql://postgres@127.0.0.1:5432/postgres?sslmode=disable&ho%73t=db.example.supabase.co",
+  ])(
+    "is false for a loopback-looking URL with a routing override: %s",
+    (url) => {
+      expect(isLoopbackDatabaseUrl(url)).toBe(false);
+    },
+  );
+
+  it.each([
+    "http://127.0.0.1:5432/postgres",
+    "mysql://root@localhost/postgres",
+    "127.0.0.1:5432",
+  ])("is false for %s, which is not a Postgres URL", (url) => {
+    expect(isLoopbackDatabaseUrl(url)).toBe(false);
+  });
+
+  it("keeps a loopback URL whose query only sets other connection options", () => {
+    expect(
+      isLoopbackDatabaseUrl(
+        "postgresql://postgres@127.0.0.1:54322/postgres?sslmode=disable&options=-c%20statement_timeout%3D0",
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("psqlConnection", () => {
@@ -182,6 +217,54 @@ describe("runPsqlQuery", () => {
         psqlBin: "definitely-not-a-psql-binary",
       }),
     ).toThrow(/could not run psql/);
+  });
+});
+
+// PR #2714 review: one decision says that a database is on this machine.
+// Every other place that decides it calls that decision, and none keeps a
+// host list or a host pattern of its own.
+describe("every local-database decision calls the one helper", () => {
+  it.each([
+    "apps/admin/src/cms/payload-schema-push.ts",
+    "scripts/cms/lib/migration-connection.mjs",
+    "scripts/cms/lib/migration-target.mjs",
+    "scripts/cms/qualify-payload-pin.mjs",
+    "scripts/release/lib/database-target.mjs",
+  ])("%s calls isLoopbackDatabaseUrl and lists no host", (file) => {
+    const source = readFileSync(file, "utf8");
+    expect(source).toMatch(/\bisLoopbackDatabaseUrl\(/);
+    expect(source).not.toMatch(/["'](?:localhost|127\.0\.0\.1|\[?::1\]?)["']/);
+    expect(source).not.toMatch(/127\\\./);
+  });
+
+  it("scripts/seed-demo.sh asks the JavaScript decision instead of parsing the URL", () => {
+    const source = readFileSync("scripts/seed-demo.sh", "utf8");
+    expect(source).toMatch(/node "[^"]*lib\/local-database\.mjs" admit /);
+    expect(source).not.toMatch(/127\\\.|BASH_REMATCH/);
+  });
+
+  it("scripts/seed-demo.sh starts psql only through the shared runner", () => {
+    const source = readFileSync("scripts/seed-demo.sh", "utf8");
+    expect(source).toMatch(
+      /node "[^"]*lib\/local-database\.mjs" psql SUPABASE_DB_URL /,
+    );
+    expect(source).not.toMatch(/^\s*psql\s/m);
+  });
+
+  it("scripts/AGENTS.md and the helper's header name the seam", () => {
+    for (const file of ["scripts/AGENTS.md", "scripts/lib/psql.mjs"]) {
+      const text = readFileSync(file, "utf8");
+      expect(text).toContain("isLoopbackDatabaseUrl");
+      expect(text).toContain("packages/env/src/database-url.mjs");
+      expect(text).toContain("spawnPsql");
+      expect(text).toMatch(/routing override/);
+    }
+  });
+
+  it("the helper is the routing rule's own function", async () => {
+    const shared = await import("../../../packages/env/src/database-url.mjs");
+    expect(isLoopbackDatabaseUrl).toBe(shared.isLoopbackDatabaseUrl);
+    expect([...LOOPBACK_HOSTS]).toEqual([...shared.LOOPBACK_DATABASE_HOSTS]);
   });
 });
 

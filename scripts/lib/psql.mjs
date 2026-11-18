@@ -1,21 +1,25 @@
-// One way to run psql against a Postgres URL (AL-2674). The password travels
-// in PGPASSWORD, never in the argument list, so it does not show in process
-// listings; and one list says which hosts are loopback. The catalog gate, the
-// field-policy gate and the environment marker run through it, and the release
-// job runs those against hosted databases.
+// The one seam for database tooling (AL-2674, PR #2714 review): only
+// isLoopbackDatabaseUrl, re-exported here from packages/env/src/database-url.mjs,
+// decides that a URL names a database on this machine (a Postgres URL on
+// 127.0.0.1, localhost or [::1] whose query carries no routing override), and
+// psql starts only through this file (runPsqlQuery, spawnPsql, or
+// psqlConnection for a caller's own spawn), with the URL as the whole target,
+// every ambient PG* setting dropped and the password in PGPASSWORD, never in
+// the argument list. The catalog gate, the field-policy gate, the environment
+// marker, the migration verifier and seed verify run through it, and the
+// release job runs the gates against hosted databases.
 import { spawnSync } from "node:child_process";
 
-/** Hostnames, as `URL#hostname` reports them, that name this machine. */
-export const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
+import {
+  LOOPBACK_DATABASE_HOSTS,
+  isLoopbackDatabaseUrl,
+} from "../../packages/env/src/database-url.mjs";
 
-/** Whether a Postgres URL names a database on this machine. */
-export function isLoopbackDatabaseUrl(databaseUrl) {
-  try {
-    return LOOPBACK_HOSTS.has(new URL(databaseUrl).hostname);
-  } catch {
-    return false;
-  }
-}
+/** Whether a Postgres URL names a database on this machine (packages/env/src/database-url.mjs). */
+export { isLoopbackDatabaseUrl };
+
+/** Hostnames, as `URL#hostname` reports them, that name this machine. */
+export const LOOPBACK_HOSTS = new Set(LOOPBACK_DATABASE_HOSTS);
 
 /**
  * psql's connection argument (the URL without its password) and an
@@ -45,6 +49,29 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
     url.password = "";
   }
   return { connection: url.toString(), env };
+}
+
+/**
+ * Starts psql on `databaseUrl` through psqlConnection, with `args` after the
+ * connection argument and this process's standard output and error. `input`,
+ * when given, is written to psql's standard input. Returns spawnSync's result.
+ */
+export function spawnPsql({
+  databaseUrl,
+  args,
+  input,
+  psqlBin = "psql",
+  cwd,
+  baseEnv = process.env,
+}) {
+  const { connection, env } = psqlConnection(databaseUrl, baseEnv);
+  return spawnSync(psqlBin, [connection, ...args], {
+    cwd,
+    env,
+    shell: false,
+    stdio: input === undefined ? "inherit" : ["pipe", "inherit", "inherit"],
+    ...(input === undefined ? {} : { input }),
+  });
 }
 
 /**
