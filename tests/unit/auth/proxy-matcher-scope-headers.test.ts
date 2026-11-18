@@ -67,6 +67,12 @@ const ROUTE_PATHS_WITH_EXTENSIONS: Record<keyof typeof PROXIES, string[]> = {
     "/crm/x.xml",
     `/${TA}/support/tickets/x.json`,
     `/${TA}~finance/contributions/x.png`,
+    // Web Studio's API: the proxy refreshes the session there too, whatever
+    // the path ends in (slice C's review; WP2a's "/api/:path*" entry did not
+    // cover these paths).
+    "/web-studio/api/collections/pages",
+    "/web-studio/api/media/file/x.png",
+    "/web-studio/api/globals/site.json",
   ],
   missionary: [
     "/donors/x.json",
