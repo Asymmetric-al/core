@@ -5329,8 +5329,8 @@
       "sourcePath": "skills/next-bundle-optimizer",
       "rawSkillHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
       "lockHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
-      "entrypointHash": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
-      "treeHash": "6e9e68967211c913f10ade996faaeab692bd78bd5e64cd2c52752c1e8408a1ce",
+      "entrypointHash": "0b749818aad2953eeeccf0225bbef3936a201b51c830647d5233faa4134cbf97",
+      "treeHash": "0660ab9331e6abe0c830df0d4d8e87f31ecc17dc2c6edb4094830814a3094254",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5342,7 +5342,8 @@
         ]
       },
       "adaptations": [
-        "Marked Core overlay after the frontmatter: Turbopack apps only (not apps/factory-console, which builds with webpack), Bun commands for next analyze and bun why, analyzer output kept outside the repository, sandbox escapes only through the client's permission request, and fix-mode dependency and UI changes routed through Core skills and rulebooks. Upstream text unchanged."
+        "Marked Core overlay after the frontmatter: Turbopack apps only (not apps/factory-console, which builds with webpack), Bun commands for next analyze and bun why, analyzer output kept outside the repository, sandbox escapes only through the client's permission request, and fix-mode dependency and UI changes routed through Core skills and rulebooks. Upstream text unchanged.",
+        "AL-2715 review fixes: the overlay says the capture commands are unexercised in Core and must be confirmed on first use, and that a capture missing environment is stopped and reported rather than run through the untried build environment wrapper. Restored by ecosystem-core-overlays.json at every skills:sync."
       ],
       "evidence": ".agents/skills/next-bundle-optimizer/references/upstream.md",
       "reviewEvidence": [
@@ -5359,11 +5360,11 @@
             "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
+            "SKILL.md": "0b749818aad2953eeeccf0225bbef3936a201b51c830647d5233faa4134cbf97",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
             "references/fix-patterns.md": "c805ff1f56678dcc906bd66990c553c9087f13215d1c426d387ca1d96ff4d0aa",
             "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242",
-            "references/upstream.md": "8cb6fb0b272be821f58edb7b9a2c6dbc30ad7e1026605fafff8e9adba372e6aa"
+            "references/upstream.md": "3633ce5f72735f011b513c827acf0265d5dc43ee20ceb4617a062f3a4823c3a3"
           },
           "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
         }
@@ -5380,8 +5381,8 @@
       "sourcePath": "skills/next-cache-components-adoption",
       "rawSkillHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
       "lockHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
-      "entrypointHash": "eabeb717deecedc5e31a21c2d00a4c845e6392d86d20a83c9e06cf994eb3e5f3",
-      "treeHash": "3777b1e87e9fc3ef2bbd5b0dbb6a9acda54892332916647669abec53c207d0ac",
+      "entrypointHash": "5a4ec79547d8f13a5910a5b5e9e5e0657d6e7a939ffb4badc03e152ee2eb2b13",
+      "treeHash": "7cca540bf1cf1e1323dc617eefb29bc7ff92874483b40c55559a72805bd362fa",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5394,7 +5395,8 @@
       },
       "adaptations": [
         "Reviewed immutable source with existing Core compatibility preserved.",
-        "Core overlay: Cache Components is already on in every app; no unpinned codemods, `npx skills add`, `--force` or `git stash`. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
+        "Core overlay: Cache Components is already on in every app; no unpinned codemods, `npx skills add`, `--force` or `git stash`. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715).",
+        "AL-2715 review fix: the overlay says root AGENTS.md opens with the Next.js block that next dev writes; the rest is hand-maintained."
       ],
       "evidence": ".agents/skills/next-cache-components-adoption/references/upstream.md",
       "reviewEvidence": [
@@ -5405,7 +5407,7 @@
           "rawSkillHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
+            "SKILL.md": "5a4ec79547d8f13a5910a5b5e9e5e0657d6e7a939ffb4badc03e152ee2eb2b13",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
             "references/dev-only-validations.md": "57383f4216cf0409041cf0129f97bad0f489246f7c4fa9e7308576b6b843817f",
             "references/per-page-decisions.md": "5064a7efdfe073bb644883edfa00ae919b60b8c76bf12d25b2e1e83b49913c83",
@@ -5516,8 +5518,8 @@
       "sourcePath": "skills/next-partial-prefetching-adoption",
       "rawSkillHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
       "lockHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
-      "entrypointHash": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
-      "treeHash": "78dec92c19c2184204a07420cb13b77c197619b985a5cf4278a6461520f3b700",
+      "entrypointHash": "51f2eea0b25c84ed966a54872f610dd877d9a379b099df864c6b9bcb1b5719ea",
+      "treeHash": "05a8d087271f3f69e23016f531153feb84dc0a70c1cac8c2bee624d78db56f1e",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5529,7 +5531,8 @@
         ]
       },
       "adaptations": [
-        "Marked Core overlay after the frontmatter: Partial Prefetching already adopted in every app, installed skills instead of canary links and npx skills add, no unpinned @next/codemod commands, --force or git stash, reuse of the root instant-nav.rig.md, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged."
+        "Marked Core overlay after the frontmatter: Partial Prefetching already adopted in every app, installed skills instead of canary links and npx skills add, no unpinned @next/codemod commands, --force or git stash, reuse of the root instant-nav.rig.md, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged.",
+        "AL-2715 review fixes: the overlay also limits the step 5 sweep to the routes or features the request names, and says root AGENTS.md opens with the Next.js block that next dev writes. Restored by ecosystem-core-overlays.json at every skills:sync."
       ],
       "evidence": ".agents/skills/next-partial-prefetching-adoption/references/upstream.md",
       "reviewEvidence": [
@@ -5545,9 +5548,9 @@
             "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
+            "SKILL.md": "51f2eea0b25c84ed966a54872f610dd877d9a379b099df864c6b9bcb1b5719ea",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
-            "references/upstream.md": "6435ff6f84fc699a99018ea8ae648d7765bd982b78b1b77857b46e91d4f36ad1",
+            "references/upstream.md": "aed05da751005cdf6b21a540cdcc030b67b7a7910fe12de0c75d0e418d37082f",
             "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
           },
           "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
@@ -5565,8 +5568,8 @@
       "sourcePath": "skills/next-partial-prefetching-optimizer",
       "rawSkillHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
       "lockHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
-      "entrypointHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
-      "treeHash": "2daef65e50d36e2e872a9aa0d9185db39c9afcf4e28fa9977ce796197681e054",
+      "entrypointHash": "37f72bafbb8e24dd13e615714f96afca322b8cd36d0c978ddacbec85c5583217",
+      "treeHash": "6421500d53db6672b551daa8b062376924c0f9d1e2686f7fd8a18d1dcdecd1df",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5578,7 +5581,7 @@
         ]
       },
       "adaptations": [
-        "None. Complete upstream subtree imported unchanged; provenance and the licence notice added under references/."
+        "Marked Core overlay after the frontmatter (AL-2715): reuse the root instant-nav.rig.md and its Bun commands instead of the pnpm examples in rig-template.md, the local loop instead of the remote push loop, only the navigations the user named, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged; provenance and the licence notice added under references/. Restored by ecosystem-core-overlays.json at every skills:sync."
       ],
       "evidence": ".agents/skills/next-partial-prefetching-optimizer/references/upstream.md",
       "reviewEvidence": [
@@ -5595,10 +5598,10 @@
             "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
           },
           "adaptedFileHashes": {
-            "SKILL.md": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+            "SKILL.md": "37f72bafbb8e24dd13e615714f96afca322b8cd36d0c978ddacbec85c5583217",
             "reference/red-test-robustness.md": "dd70265f32a5ecf1b798d98fa047420ca71f1897ae1399fb2e4a4805f49a9f1d",
             "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
-            "references/upstream.md": "bb89e001fbf01171324b23bcf7e7be2ad3a7d7e332d1465fe1a66d4ee90994a6",
+            "references/upstream.md": "08029e321f978dc433b74bc8a1c4d95bedaab92c5c392070c67fcf58014cfabb",
             "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
           },
           "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."

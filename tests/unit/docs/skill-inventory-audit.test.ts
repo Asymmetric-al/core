@@ -550,6 +550,42 @@ const reviewedEcosystemSkills = [
         "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
     },
   },
+  {
+    name: "next-bundle-optimizer",
+    source: "vercel/next.js",
+    skillPath: "skills/next-bundle-optimizer/SKILL.md",
+    reviewedCommit: "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    computedHash:
+      "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
+  {
+    name: "next-partial-prefetching-adoption",
+    source: "vercel/next.js",
+    skillPath: "skills/next-partial-prefetching-adoption/SKILL.md",
+    reviewedCommit: "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    computedHash:
+      "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
+  {
+    name: "next-partial-prefetching-optimizer",
+    source: "vercel/next.js",
+    skillPath: "skills/next-partial-prefetching-optimizer/SKILL.md",
+    reviewedCommit: "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    computedHash:
+      "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
 ] as const;
 
 // Hashes retain the excluded PDF payload without reproducing its contents.

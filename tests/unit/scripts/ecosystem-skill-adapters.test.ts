@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -9,6 +10,13 @@ const repoRoot = process.cwd();
 const temporaryRoots: string[] = [];
 const guidancePath = "scripts/refresh-overlays/ecosystem-core-guidance.json";
 const overlaysPath = "scripts/refresh-overlays/ecosystem-core-overlays.json";
+// The vercel/next.js skills whose Core overlay sync restores after a reinstall.
+const nextOverlaySkills = [
+  "next-bundle-optimizer",
+  "next-cache-components-adoption",
+  "next-partial-prefetching-adoption",
+  "next-partial-prefetching-optimizer",
+] as const;
 
 async function put(root: string, relativePath: string, content: string) {
   const target = path.join(root, relativePath);
@@ -373,6 +381,48 @@ describe("ecosystem Core adapters through skills:sync", () => {
     expect(again.status, again.stdout + again.stderr).toBe(0);
     expect(await read("use-dom/SKILL.md")).toBe(first);
     expect(existsSync(path.join(root, "IMPORTED_CODE_RAN"))).toBe(false);
+  });
+
+  it("restores each vercel/next.js Core overlay byte for byte over the raw upstream entrypoint", async () => {
+    const { root } = await fixture();
+    const lock = JSON.parse(
+      await readFile(path.join(repoRoot, "skills-lock.json"), "utf8"),
+    ) as { skills: Record<string, { computedHash: string }> };
+    const start = "<!-- CORE-OVERLAY-START -->";
+    const end = "<!-- CORE-OVERLAY-END -->";
+    const installed = new Map<string, string>();
+    for (const name of nextOverlaySkills) {
+      const current = await readFile(
+        path.join(repoRoot, ".agents/skills", name, "SKILL.md"),
+        "utf8",
+      );
+      installed.set(name, current);
+      // The overlay sits between the frontmatter and the untouched upstream
+      // body, so removing it must give back the raw upstream the lock records.
+      const from = current.indexOf(start);
+      const to = current.indexOf(end) + end.length;
+      expect(from, name).toBeGreaterThan(0);
+      expect(current.slice(to, to + 2), name).toBe("\n\n");
+      const upstream = current.slice(0, from) + current.slice(to + 2);
+      expect(createHash("sha256").update(upstream).digest("hex"), name).toBe(
+        lock.skills[name]?.computedHash,
+      );
+      await put(root, ".agents/skills/" + name + "/SKILL.md", upstream);
+    }
+
+    const result = run(root);
+    expect(result.status, result.stdout + result.stderr).toBe(0);
+    for (const name of nextOverlaySkills) {
+      for (const runtime of [".agents", ".cursor", ".claude"]) {
+        expect(
+          await readFile(
+            path.join(root, runtime, "skills", name, "SKILL.md"),
+            "utf8",
+          ),
+          runtime + "/" + name,
+        ).toBe(installed.get(name));
+      }
+    }
   });
 
   it("rejects malformed markers before publishing any planned adapter changes", async () => {

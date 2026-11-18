@@ -250,6 +250,34 @@ describe("skill-quality repairs", () => {
       expect(adoption).toContain("git stash");
       expect(adoption).toContain("--force");
       expect(adoption).toContain("@next/codemod@latest");
+
+      // Root AGENTS.md opens with a block `next dev` writes and re-adds.
+      for (const name of [
+        "next-cache-components-adoption",
+        "next-partial-prefetching-adoption",
+      ]) {
+        const core = overlay(skill(name));
+        expect(core, name).not.toContain("`AGENTS.md` is hand-maintained");
+        expect(core, name).toContain(
+          "root `AGENTS.md` already carries the Next.js block that `next dev` writes and re-adds; the rest of that file is hand-maintained",
+        );
+      }
+      expect(overlay(skill("next-partial-prefetching-adoption"))).toContain(
+        "work only on the routes or features the request names, and report the rest as candidates",
+      );
+
+      const optimizer = overlay(skill("next-partial-prefetching-optimizer"));
+      expect(optimizer).toContain("`instant-nav.rig.md`");
+      expect(optimizer).toContain(
+        "not the `pnpm` examples in `rig-template.md`",
+      );
+      expect(optimizer).toContain("Do not use the remote loop");
+      expect(optimizer).toContain("docs/ai/rules/general.md");
+
+      const bundle = overlay(skill("next-bundle-optimizer"));
+      expect(bundle).toContain("unexercised in Core");
+      expect(bundle).toContain("confirm the exact form on first use");
+      expect(bundle).not.toContain("scripts/run-with-ci-env.mjs --` wrapper");
     },
   );
 });

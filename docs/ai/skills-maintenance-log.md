@@ -156,6 +156,14 @@ defects. Each was checked against the files before it was fixed.
   `last_reviewed: 2026-11-18`, but they were written from the commit the
   2026-10-22 audit (AL-2186) examined, with no fresh upstream comparison. They
   now give 2026-10-22 and say so.
+- The `next-cache-components-adoption` overlay said root `AGENTS.md` is
+  hand-maintained. Its first block is written and re-added by `next dev`; the
+  overlay now says so. The AL-2713 entry below lists the matching fixes to the
+  three imported Next.js skills.
+- The upstream refresh's replacement round trip in
+  `tests/unit/docs/skill-quality-repairs.test.ts` stays a string simulation:
+  `scripts/refresh-upstream-skills.mjs` exports nothing and starts a refresh
+  when imported, so the test cannot call its replacement function.
 
 ## Next.js skill import - 2026-11-18 (AL-2713)
 
@@ -195,6 +203,34 @@ hash. The lock instead records the GitHub source, upstream path and raw
 `SKILL.md` hash, the same form as the other `vercel/next.js` entries. Counts
 moved from 237 to 240 runtime skills per client and from 197 to 200 lock
 entries.
+
+### Review fixes
+
+An independent review of this import found the provenance and records sound
+and listed four small defects in the overlays. Each was checked against the
+files before it was fixed.
+
+- The overlays lived only in each `SKILL.md`, so a reinstall would drop them.
+  All three are now registered in
+  `scripts/refresh-overlays/ecosystem-core-overlays.json` and the inventory
+  test's reviewed list, as `next-cache-components-adoption` is, and every
+  `bun run skills:sync` restores them. The ecosystem adapter test rebuilds each
+  raw upstream `SKILL.md` by removing the overlay, checks it against the lock's
+  raw hash, reinstalls it and expects sync to restore the committed bytes.
+- `next-partial-prefetching-optimizer` had no overlay, though its
+  `rig-template.md` carries the same `pnpm` commands and remote push loop that
+  the adoption overlay overrides. It now has a short overlay: the root
+  `instant-nav.rig.md` and its Bun commands, the local loop only, and the
+  navigations the user named.
+- The adoption overlay said root `AGENTS.md` is hand-maintained. Its first
+  block is written and re-added by `next dev`; the overlay now says so. It also
+  bounds step 5, which sweeps every route without checking in: work only on
+  the routes or features the request names, and report the rest as candidates.
+- The bundle overlay's capture commands were checked only against `--help`.
+  The overlay now says they are unexercised in Core and must be confirmed on
+  first use. Its advice to wrap a capture in `scripts/run-with-ci-env.mjs` did
+  not hold from the app directory, so it is replaced: a capture missing
+  environment stops and reports.
 
 ## Agent guidance modernization - 2026-11-17 (AL-2695)
 
