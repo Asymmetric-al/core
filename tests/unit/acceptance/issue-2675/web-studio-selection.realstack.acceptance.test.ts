@@ -4,8 +4,10 @@
  * narrows. What it names is proposed to the principal resolver, which reads
  * the caller's live rows through `public.current_user_assignments()` on the
  * caller's own token on every request. Here that function runs on the real
- * catalog, as PostgREST runs it, under the same code Payload's strategy, the
- * admin proxy and the Web Studio layout use.
+ * catalog, as PostgREST runs it, under Payload's strategy itself
+ * (`createSupabaseAuthStrategy`, its Supabase client a double that executes
+ * the function as the person) and under the decision the admin proxy and
+ * the Web Studio layout share (council C8).
  *
  * - A person with staff rows in two tenants acts in the one the cookie
  *   selects, and in neither without a choice.
@@ -23,7 +25,7 @@
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   ADMIN_URL,
@@ -32,16 +34,14 @@ import {
   fixtureIds,
   fixtureSql,
 } from "./harness";
-import {
-  readActiveAssignments,
-  resolveActiveAssignment,
-} from "../../../../packages/auth/principal/assignment";
+import { createSupabaseAuthStrategy } from "../../../../apps/admin/src/cms/auth/supabase-strategy";
+import { readWebStudioRefusal } from "../../../../apps/admin/src/cms/auth/web-studio-refusal";
+import { readActiveAssignments } from "../../../../packages/auth/principal/assignment";
 import {
   decideWebStudioAccess,
   readWebStudioCookie,
   signWebStudioSelection,
-  webStudioResolveInput,
-  type WebStudioCookieState,
+  WEB_STUDIO_TENANT_COOKIE,
 } from "../../../../packages/auth/web-studio";
 
 import type { AssignmentReader } from "../../../../packages/auth/principal/types";
@@ -63,8 +63,17 @@ describe.skipIf(!ADMIN_URL)(
     for (const key of ["UWS", "wsA", "wsB", "wsDon"]) id[key] = randomUUID();
     const as = asRole(db, id);
 
-    beforeAll(() => db.connect());
-    afterAll(() => db.end());
+    beforeAll(async () => {
+      // The strategy reads a session only where Supabase is configured.
+      vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+      vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "example-anon-key");
+      vi.stubEnv("E2E_AUTH_BYPASS", "");
+      await db.connect();
+    });
+    afterAll(async () => {
+      vi.unstubAllEnvs();
+      await db.end();
+    });
 
     async function tx(fn: () => Promise<void>) {
       await db.query("begin");
@@ -97,37 +106,126 @@ describe.skipIf(!ADMIN_URL)(
       },
     };
 
-    async function cookie(tenant: string, row: string, secret = SECRET) {
-      return readWebStudioCookie(
-        await signWebStudioSelection(
-          { tenantId: id[tenant]!, assignmentId: id[row]! },
-          secret,
-        ),
-        SECRET,
+    /** A signed Web Studio cookie value naming a fixture tenant and row. */
+    function cookie(tenant: string, row: string, secret = SECRET) {
+      return signWebStudioSelection(
+        { tenantId: id[tenant]!, assignmentId: id[row]! },
+        secret,
       );
     }
 
-    /** What Payload's strategy resolves for this cookie. */
-    async function resolve(state: WebStudioCookieState) {
-      const input = webStudioResolveInput(state);
-      if (!input.ok) return "unusable";
-      const { ok: _ok, ...narrowing } = input;
-      const result = await resolveActiveAssignment(
-        { ...narrowing, userId: id.UWS! },
-        reader,
-      );
-      return result.ok
-        ? Object.keys(id).find((k) => id[k] === result.assignment.assignmentId)
-        : result.reason;
+    const keyOf = (value: unknown) =>
+      Object.keys(id).find((k) => id[k] === value) ?? String(value);
+
+    /**
+     * Payload's strategy itself. Its Supabase client is a double: the session
+     * names the person, `current_user_assignments` runs on the real catalog
+     * as the person, and the tenant read reads the real `public.tenants`. The
+     * Payload store is in memory: the CMS mirror is not under test here.
+     */
+    const strategy = createSupabaseAuthStrategy({
+      createSupabaseClient: (() => ({
+        auth: {
+          getUser: async () => ({
+            data: { user: { id: id.UWS, email: "uws@example.org" } },
+          }),
+        },
+        rpc: async (fn: string) => {
+          if (fn !== "current_user_assignments") throw new Error(fn);
+          try {
+            return { data: await reader.listActiveAssignments(), error: null };
+          } catch (error) {
+            return { data: null, error };
+          }
+        },
+      })) as never,
+      createSupabaseDataClient: (() => ({
+        from: (table: string) => {
+          if (table !== "tenants") throw new Error(table);
+          let tenantId = "";
+          const chain = {
+            select: () => chain,
+            eq: (_column: string, value: string) => {
+              tenantId = value;
+              return chain;
+            },
+            maybeSingle: async () => ({
+              data:
+                (
+                  await db.query(
+                    "select id::text, name, slug from public.tenants where id = $1",
+                    [tenantId],
+                  )
+                ).rows[0] ?? null,
+            }),
+          };
+          return chain;
+        },
+      })) as never,
+      readWebStudioCookie: (value: string | null) =>
+        readWebStudioCookie(value, SECRET),
+    });
+
+    const store = new Map<string, Record<string, unknown>>();
+    const payload = {
+      find: async (options: {
+        collection: string;
+        where?: Record<string, { equals?: unknown }>;
+      }) => {
+        const [[field, condition]] = Object.entries(options.where ?? {}) as [
+          [string, { equals?: unknown }],
+        ];
+        return {
+          docs: [...store.values()].filter(
+            (doc) =>
+              doc.collection === options.collection &&
+              doc[field] === condition?.equals,
+          ),
+        };
+      },
+      create: async (options: { collection: string; data: object }) => {
+        const doc = {
+          id: store.size + 1,
+          collection: options.collection,
+          ...options.data,
+        };
+        store.set(`${options.collection}:${doc.id}`, doc);
+        return doc;
+      },
+      update: async (options: {
+        collection: string;
+        id: unknown;
+        data: object;
+      }) => {
+        const key = `${options.collection}:${options.id}`;
+        const doc = { ...store.get(key), ...options.data };
+        store.set(key, doc);
+        return doc;
+      },
+    };
+
+    /** Who Payload's strategy signs in for this cookie, or why it refuses. */
+    async function signIn(value: string | null) {
+      const req = { method: "GET", context: {} as Record<string, unknown> };
+      const { user } = await strategy.authenticate({
+        headers: new Headers({
+          cookie: value ? `sb=1; ${WEB_STUDIO_TENANT_COOKIE}=${value}` : "sb=1",
+        }),
+        payload,
+        req,
+      } as never);
+      return user
+        ? keyOf((user as { publicTenantId?: string }).publicTenantId)
+        : `refused: ${readWebStudioRefusal(req)}`;
     }
 
     /** What the admin proxy and the Web Studio layout decide for this cookie. */
-    async function decide(state: WebStudioCookieState) {
+    async function decide(value: string | null) {
       const read = await readActiveAssignments(id.UWS!, reader);
       if (!read.ok) throw new Error("rows unreadable");
       const decision = decideWebStudioAccess({
         assignments: read.assignments,
-        cookie: state,
+        cookie: await readWebStudioCookie(value, SECRET),
       });
       return decision.kind === "allow"
         ? Object.keys(id).find(
@@ -138,24 +236,24 @@ describe.skipIf(!ADMIN_URL)(
 
     it("acts in the tenant the cookie selects, and in neither without a choice", () =>
       tx(async () => {
-        expect(await resolve(await cookie("TA", "wsA"))).toBe("wsA");
-        expect(await resolve(await cookie("TB", "wsB"))).toBe("wsB");
-        expect(await resolve({ kind: "absent" })).toBe("ambiguous");
-        expect(await decide({ kind: "absent" })).toBe("choose");
+        expect(await signIn(await cookie("TA", "wsA"))).toBe("TA");
+        expect(await signIn(await cookie("TB", "wsB"))).toBe("TB");
+        expect(await signIn(null)).toBe("refused: no_selection");
+        expect(await decide(null)).toBe("choose");
         expect(await decide(await cookie("TB", "wsB"))).toBe("wsB");
       }));
 
     it("denies the revoked row at the next resolution, and falls back to nothing", () =>
       tx(async () => {
         const selected = await cookie("TB", "wsB");
-        expect(await resolve(selected)).toBe("wsB");
+        expect(await signIn(selected)).toBe("TB");
 
         await db.query(
           "update authz.memberships set is_active = false, revoked_at = now() where id = $1",
           [id.wsB],
         );
 
-        expect(await resolve(selected)).toBe("not_owned_or_inactive");
+        expect(await signIn(selected)).toBe("refused: no_selection");
         // The person still holds wsA; the stale cookie selects nothing, and
         // they choose again.
         expect(await decide(selected)).toBe("choose");
@@ -165,31 +263,28 @@ describe.skipIf(!ADMIN_URL)(
           [id.wsA],
         );
         expect(await decide(selected)).toBe("refuse");
-        expect(await decide({ kind: "absent" })).toBe("refuse");
+        expect(await decide(null)).toBe("refuse");
+        expect(await signIn(null)).toBe("refused: no_selection");
       }));
 
     it("selects nothing with a cookie naming another person's row, the person's donor row, the wrong tenant, or another key", () =>
       tx(async () => {
         // Correctly signed, so only the live rows can refuse them.
-        expect(await resolve(await cookie("TB", "mB"))).toBe(
-          "not_owned_or_inactive",
-        );
-        expect(await resolve(await cookie("TB", "wsDon"))).toBe(
-          "role_class_mismatch",
-        );
-        expect(await resolve(await cookie("TB", "wsA"))).toBe(
-          "tenant_mismatch",
-        );
-        expect(await resolve(await cookie("TB", "wsB", "another-key"))).toBe(
-          "unusable",
-        );
-        for (const state of [
+        for (const value of [
           await cookie("TB", "mB"),
           await cookie("TB", "wsDon"),
           await cookie("TB", "wsA"),
           await cookie("TB", "wsB", "another-key"),
         ]) {
-          expect(await decide(state)).toBe("choose");
+          expect(await signIn(value)).toBe("refused: no_selection");
+        }
+        for (const value of [
+          await cookie("TB", "mB"),
+          await cookie("TB", "wsDon"),
+          await cookie("TB", "wsA"),
+          await cookie("TB", "wsB", "another-key"),
+        ]) {
+          expect(await decide(value)).toBe("choose");
         }
       }));
   },
