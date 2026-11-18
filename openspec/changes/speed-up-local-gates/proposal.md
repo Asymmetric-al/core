@@ -33,13 +33,16 @@ guide.
 
 - **BREAKING (workflow):** a push that does not target `production` runs a
   fast profile instead of the full preflight. The fast profile is
-  deterministic and needs no network: the runtime check, Prettier on the
-  files the branch changed, the phase projection checks, strict OpenSpec
-  validation and delta checks, lint and typecheck of the affected workspaces
-  (the same `turbo --affected` selection CI uses), and the repository
-  verifiers that take seconds. It runs no unit, acceptance or build stage,
-  and leaves `skills:verify` and `verify:eslint` to the full profile because
-  they took 183 s and 54 s on the loaded Windows host.
+  deterministic: the runtime check, Prettier on the files the branch changed,
+  lint and typecheck of the affected workspaces (the same `turbo --affected`
+  selection CI uses), the two verifiers that take under a second, and each
+  other repository verifier only when the push changes its inputs (the phase
+  projection checks, strict OpenSpec validation and delta checks, the data
+  boundary, CMS sole-entry and workspace contract checks, and the shadcn
+  upstream review). It runs no unit, acceptance or build stage, and leaves
+  `skills:verify` and `verify:eslint` to the full profile because they took
+  183 s and 54 s on the loaded Windows host. It needs the network only when a
+  push changes an input of the shadcn upstream review.
 - `bun run ci:preflight` keeps running the full profile, now with the
   acceptance suite as its own stage. `bun run ci:preflight -- --full` keeps
   its meaning (full profile plus compilation of every app).
@@ -51,10 +54,13 @@ guide.
   `==> PASS ci:preflight`; the fast profile's pass line cannot match it.
 - A failed stage prints its name, the exact command that re-runs it alone,
   and the last lines of its output, then stops. A pass names the profile.
-- One shared edit hook (`scripts/agent-hooks/after-edit.mjs`) runs ESLint
-  (fix) and then Prettier (write) on the one file an agent edited, with the
-  same configuration the pre-commit hook uses, and reports remaining lint errors
-  in a few lines. It is wired as one hook per harness: Claude Code
+- One shared edit hook (`scripts/agent-hooks/after-edit.mjs`) runs Prettier
+  (write) on the files of one agent edit and then ESLint on the source files
+  among them, one run each, with the root configuration the pre-commit hook
+  uses. It applies no ESLint fixes, because each fix in that configuration
+  can remove, move or rewrite code mid-task; it reports lint errors and
+  fixable problems in a few lines, stops within a 100 s budget, and acts only
+  inside its own checkout. It is wired as one hook per harness: Claude Code
   (`.claude/settings.json`, `PostToolUse`), Codex (`.codex/hooks.json`,
   `PostToolUse`) and Cursor (`.cursor/hooks.json`, `afterFileEdit`).
 - The three product apps' `AGENTS.md` gain a runtime-verification step
@@ -105,8 +111,11 @@ None.
   `docs/ai/rules/testing.md`, `docs/ai/protected-paths.md`,
   `docs/ai/repo-groundtruth.md`, `docs/ops/production-release.md`, and the
   app `AGENTS.md` files named above.
-- Required CI still covers everything the fast profile leaves out except
-  `verify:shadcn-diff` (network), which no CI job runs today; it remains in
-  the full profile.
+- Required CI still covers everything the fast profile leaves out or scopes,
+  except `verify:shadcn-diff` (network), which no CI job runs today; the fast
+  profile now runs it when a push changes one of its inputs, and the full
+  profile always runs it.
+- The factory's scope validator protects `scripts/agent-hooks/**`,
+  `.codex/hooks.json` and `.cursor/hooks.json` beside `.claude/**`.
 - Rollback: revert the change's commits. The hook returns to running the full
   preflight on every push; the factory selector is then ignored.

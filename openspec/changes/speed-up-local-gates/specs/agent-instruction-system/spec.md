@@ -6,32 +6,54 @@
 
 A push that does not target `production` and is not selected for the full
 profile SHALL run a fast profile of deterministic checks, scoped to what the
-branch changed where the tool supports it. The fast profile MUST NOT need the
-network and MUST NOT run unit, acceptance or build stages, which required CI
-runs on every pull request.
+branch changed. The fast profile MUST NOT run unit, acceptance or build
+stages, which required CI runs on every pull request, and MUST NOT need the
+network unless the push changes an input of the shadcn upstream review.
 
 #### Scenario: A developer or agent pushes a feature branch
 
 - **WHEN** a push updates only non-production branches and no profile is
   selected
 - **THEN** the hook runs the fast profile: runtime, formatting of the changed
-  files, the phase projection checks, strict OpenSpec validation and delta
-  checks, lint and typecheck of the affected workspaces, and the repository
-  verifiers that take seconds
+  files, lint and typecheck of the affected workspaces, the repository
+  verifiers whose inputs the push changed, and the verifiers that take under
+  a second
 - **AND** a failed check blocks the push
 
 #### Scenario: The branch diff cannot be read
 
 - **WHEN** the fast profile cannot compute the changed files against the
   development base
-- **THEN** it checks formatting of the whole repository instead of skipping
-  the check
+- **THEN** it checks formatting of the whole repository and runs every
+  verifier instead of skipping them
 
 #### Scenario: The fast profile runs on native Windows
 
 - **WHEN** the fast profile runs on a native Windows checkout with installed
   dependencies and no local changes
 - **THEN** it passes
+
+### Requirement: Fast-Profile Verifiers Run Only For Changes To Their Inputs
+
+In the fast profile, a repository verifier whose inputs can be named SHALL run
+only when the push changes one of them, and SHALL print a line saying it was
+skipped otherwise. Every such verifier except the shadcn upstream review MUST
+also run in a required CI job. The shadcn upstream review, which no CI job
+runs, SHALL take its inputs from its own verifier and review baseline.
+
+#### Scenario: A push changes no input of a verifier
+
+- **WHEN** a push changes only product code, and no OpenSpec, PRD or shared
+  input
+- **THEN** the phase projection checks, strict OpenSpec validation and the
+  delta checks print that they were skipped
+- **AND** the required CI `integrity` job still runs them on the pull request
+
+#### Scenario: A push changes a shared shadcn primitive
+
+- **WHEN** a push changes a file the shadcn upstream review hashes or its
+  review baseline, as the verifier derives them
+- **THEN** the fast profile runs the shadcn upstream review
 
 ### Requirement: The Full Preflight Stays One Explicit Command
 
@@ -96,16 +118,19 @@ output. A passing run SHALL print which profile ran.
 ### Requirement: Agent Harnesses Format And Lint Each Edited File
 
 Each supported agent harness (Claude Code, Codex and Cursor) SHALL run one
-shared edit hook after an agent edits a file. The hook SHALL fix lint and
-format that one file with the configuration the pre-commit hook uses, and report
-remaining lint errors to the agent in a few lines. It MUST never block or
-fail an edit because a tool is missing.
+shared edit hook after an agent edits files. It SHALL format the edited files,
+lint the source files among them with the pre-commit root configuration (one
+run per tool), and report lint findings in a few lines: as hook context in
+Claude Code and Codex, and to its own output in Cursor, whose edit hook has no
+channel to the agent. It MUST never block or fail an edit because a tool is
+missing.
 
 #### Scenario: An agent edits a source file
 
 - **WHEN** an agent edits a TypeScript file inside an application or package
-- **THEN** the hook applies lint fixes and formatting to that file
-- **AND** remaining lint errors are reported to the agent in a few lines
+- **THEN** the hook formats that file
+- **AND** in Claude Code and Codex, lint errors and fixable problems are
+  reported to the agent in a few lines
 
 #### Scenario: An agent edits a protected or generated path
 
@@ -126,6 +151,38 @@ fail an edit because a tool is missing.
 - **THEN** it makes no network call, does not invoke the `next` CLI or the
   Next.js MCP compile tools, and runs no typecheck, build or test
 
+### Requirement: The Edit Hook Never Removes Or Moves Code An Agent Wrote
+
+The edit hook MUST NOT apply a lint fix that can remove, move or rewrite code.
+It SHALL report the lint errors and the fixable problems it left in place, and
+pre-commit's lint fix SHALL remain the step that applies those fixes.
+
+#### Scenario: An agent adds an import before using it
+
+- **WHEN** an edit adds an import that a later edit will use
+- **THEN** the hook leaves the import in place and reports it as unused and
+  fixable
+- **AND** misordered imports are reported, not reordered
+
+### Requirement: The Edit Hook Stays Inside Its Checkout And Its Time Budget
+
+The edit hook SHALL act only on files inside the checkout that holds it, and
+SHALL stop within a time budget below the harness timeout, naming what it did
+not check and still exiting successfully.
+
+#### Scenario: A multi-file patch outruns the time budget
+
+- **WHEN** formatting and linting the files of one edit would take longer
+  than the hook's budget
+- **THEN** the hook stops, names the files it did not check, and exits
+  successfully before the harness timeout
+
+#### Scenario: An edited file lies in another checkout
+
+- **WHEN** the edited file is outside the checkout that holds the hook, even
+  inside another tree with its own lint runner and tools
+- **THEN** the hook runs no tool for it
+
 ### Requirement: Next.js App Instructions Require Runtime Verification
 
 Each product Next.js app's scoped instructions SHALL tell agents to verify
@@ -145,3 +202,27 @@ instructions SHALL carry the managed Next.js block as generated.
 
 - **WHEN** `next dev` checks the Console's instructions for the managed block
 - **THEN** the block is already present and current, so nothing is appended
+
+## MODIFIED Requirements
+
+### Requirement: OpenSpec Validation Is Strict For Current Specs And Active Changes
+
+Current specs and active changes SHALL pass `openspec validate --all --strict`.
+CI SHALL run that check after skill-mirror verification and before expensive
+lint, build, and test stages. Historical archives SHALL be audited honestly
+without a blanket allow-failure.
+
+#### Scenario: CI preflight runs
+
+- WHEN the full `ci-preflight` profile executes
+- THEN `openspec-validate` runs after `skills-verify` and the Phase 25 and
+  Phase 27 projection gates, before lint, build, and test stages
+- AND it uses the locally pinned package after `bun install --frozen-lockfile`
+
+#### Scenario: The fast pre-push profile runs
+
+- WHEN the fast `ci-preflight` profile executes and the push changes an
+  OpenSpec input
+- THEN `openspec-validate` runs after the Phase 25, 27 and 28 projection
+  gates and before lint, without `skills-verify`, which the required CI
+  `integrity` job runs before it

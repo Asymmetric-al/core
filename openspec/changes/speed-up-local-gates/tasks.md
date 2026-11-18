@@ -66,6 +66,29 @@
 - [x] 6.3 `bun run openspec -- validate speed-up-local-gates --strict` and
       `bun run verify:openspec-deltas` pass.
 
+## 7. Review fixes (review round 6, 2026-11-18)
+
+- [x] 7.1 Run `verify:shadcn-diff` in the fast profile when the push changes
+      an input that `shadcnDiffInputs` derives from the verifier and its
+      review baseline, and when the change set is unknown; test first.
+- [x] 7.2 Run the traced verifiers (phase 25/27/28, `openspec:validate`,
+      `verify:openspec-deltas`, data boundary, CMS sole entry, workspace
+      contract) only for changes to their inputs or the shared inputs, with a
+      printed skip line; test that each runs in a required CI job.
+- [x] 7.3 Read changed paths NUL-separated and drop Prettier's
+      `--no-error-on-unmatched-pattern`; test with a non-ASCII path.
+- [x] 7.4 Edit hook: apply no ESLint fixes and report fixable problems; one
+      Prettier run, then one ESLint run, within a 100 s budget; match
+      `apply_patch` headers at line start; act only inside the hook's own
+      checkout; pin only the hook entries in the harness configuration tests.
+- [x] 7.5 Protect `scripts/agent-hooks/**`, `.codex/hooks.json` and
+      `.cursor/hooks.json` in the factory scope validator.
+- [x] 7.6 Scope the accepted preflight-ordering scenario to the full profile
+      with a MODIFIED requirement; correct the format-gate test wording, the
+      re-run command in `docs/ci.md` and what each harness shows the agent.
+- [ ] 7.7 Run the fast profile on this Windows host and record per-stage
+      timings and machine state.
+
 ## Workflow follow-up
 
 - Archive the change after the pull request merges.
