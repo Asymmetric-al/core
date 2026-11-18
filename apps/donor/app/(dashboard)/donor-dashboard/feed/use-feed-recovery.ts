@@ -1,14 +1,13 @@
 "use client";
 
-import { type RefObject, useEffect, useRef, useState } from "react";
-
-import type { useDonorFeedPostPages } from "@asym/database/hooks";
-
 import {
   focusHeadingIfLost,
   focusIsLost,
   useFocusHandoff,
-} from "@/features/donor/focus-recovery";
+} from "@asym/ui/hooks";
+import { type RefObject, useEffect, useRef, useState } from "react";
+
+import type { useDonorFeedPostPages } from "@asym/database/hooks";
 
 type FeedPages = ReturnType<typeof useDonorFeedPostPages>;
 

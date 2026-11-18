@@ -103,7 +103,9 @@ export function ShortcutHelp() {
   if (!owner) return null;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent scrollable>
+      {/* data-shortcut-help (SHORTCUT_HELP_ATTRIBUTE): a popover under the help
+          stays open for a press in it. */}
+      <DialogContent scrollable data-shortcut-help="">
         <DialogHeader>
           <DialogTitle>Keyboard shortcuts</DialogTitle>
           <DialogDescription>

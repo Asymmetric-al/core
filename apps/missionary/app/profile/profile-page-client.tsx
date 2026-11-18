@@ -5,12 +5,9 @@ import {
   MISSIONARY_SETTINGS_HEADER_VT_NAME,
   useWithinViewTransitionRouteLayer,
 } from "@asym/lib/view-transitions";
-import {
-  pageHeading,
-  useLoadRetry,
-} from "@asym/missionary/hooks/use-load-retry";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { pageHeading, useLoadRetry } from "@asym/ui/hooks";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 
@@ -59,7 +56,7 @@ export function ProfilePageClient() {
     }
   }, [vm.readRevoked]);
   const loadRetryButton = useRef<HTMLButtonElement>(null);
-  const loadRetry = useLoadRetry({
+  const { failureView, ...loadRetry } = useLoadRetry({
     retryRef: loadRetryButton,
     error: vm.fetchError,
     loading: vm.isLoading,
@@ -151,6 +148,7 @@ export function ProfilePageClient() {
           </p>
         ) : loadFailed ? (
           <motion.div
+            ref={failureView}
             className="flex flex-col items-center justify-center py-20 gap-y-4"
             variants={fadeInUp}
             transition={gentleTransition}
