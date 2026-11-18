@@ -15,6 +15,9 @@
 //   7. Start-up with schema push left on: it must fail and change nothing.
 //   8. Start-up against a missing database: it must fail without trying to
 //      create the database.
+//   9. Payload's REST routes answer under `/web-studio/api` and not under
+//      `/api` (plan 5.2; AL-2675, WP2b slice C): Payload's own router on the
+//      pin, and the Next.js route files that hand requests to it.
 //
 // Usage:
 //   PAYLOAD_QUALIFICATION_ADMIN_URL=postgresql://postgres:<pw>@127.0.0.1:<port>/postgres \
@@ -25,7 +28,7 @@
 // roles get a random password for the run and lose it afterwards.
 import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import pg from "pg";
@@ -180,6 +183,44 @@ const FINGERPRINT_SQL = `
     SELECT 'type:' || typname || ':' || pg_get_userbyid(typowner)
     FROM pg_type WHERE typnamespace = 'cms'::regnamespace
   ) items`;
+
+/** Every source file under `dir`, recursively. */
+function sourceFiles(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return sourceFiles(full);
+    return /\.[cm]?[jt]sx?$/.test(entry.name) ? [full] : [];
+  });
+}
+
+/**
+ * Where the admin app mounts Payload's route handlers: the REST route under
+ * `/web-studio/api`, nothing left at the old `/api` folder of the Payload
+ * route group, and no Mission Control `/api` route that hands requests to
+ * Payload's REST handlers.
+ */
+function payloadRouteFiles() {
+  const app = path.join(adminAppDir, "app");
+  const restRoute = path.join(
+    app,
+    "(payload)",
+    "web-studio",
+    "api",
+    "[...slug]",
+    "route.ts",
+  );
+  const missionControlApiOnPayload = sourceFiles(path.join(app, "api"))
+    .filter((file) =>
+      readFileSync(file, "utf8").includes("@payloadcms/next/routes"),
+    )
+    .map((file) => path.relative(repoRoot, file));
+  return {
+    restRouteUnderWebStudio: existsSync(restRoute),
+    oldPayloadApiFolder: existsSync(path.join(app, "(payload)", "api")),
+    missionControlApiOnPayload,
+  };
+}
 
 async function errorCode(run) {
   try {
@@ -521,6 +562,20 @@ async function main() {
           checks.sameTenantStaffFindVersions.ok &&
           checks.sameTenantStaffFindVersions.totalDocs === proof.versions.total,
         { versions: proof.versions, checks },
+      );
+      const routes = proof.restRoutes;
+      const files = payloadRouteFiles();
+      record(
+        "Payload's REST routes answer under /web-studio/api and not under /api",
+        routes?.configured === "/web-studio/api" &&
+          [401, 403].includes(routes.underWebStudio.status) &&
+          routes.underWebStudio.contentType?.includes("application/json") &&
+          routes.underWebStudio.errors > 0 &&
+          routes.underApi.status === 404 &&
+          files.restRouteUnderWebStudio &&
+          !files.oldPayloadApiFolder &&
+          files.missionControlApiOnPayload.length === 0,
+        { routes, files },
       );
     }
 
