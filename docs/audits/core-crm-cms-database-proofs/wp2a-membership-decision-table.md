@@ -114,6 +114,15 @@ Nothing here runs on a hosted project: both stay untouched until the owner answe
    - **A concurrent grant.** The check takes no lock against a membership that commits in another tenant at the same moment.
    - **The rule that follows:** the restricted-note policies move off `profiles.role` (WP2b's second release) before any command can grant a staff row (WP2c).
 
+10. WP2a's migrations are dated after stage 1's (council round 2, R7). The release job stops on a pending migration dated at or before the database's head, and stage 1 merges first, so the order of dates is the order of merge. Five were re-dated with `git mv`; their contents are unchanged:
+    - `20261117160000_membership_lifecycle_and_tenant_admin_flag.sql`, formerly `20261117065007_…`
+    - `20261117160100_assignment_capability_function.sql`, formerly `20261117065016_…`
+    - `20261117160200_membership_readers_and_member_directory.sql`, formerly `20261117065023_…`
+    - `20261117160300_tenant_member_profiles_service_reader.sql`, formerly `20261117123828_…`
+    - `20261117160400_role_change_reads_tenant_admin_membership.sql`, formerly `20261117140014_…`
+
+    They now follow stage 1's head, `20261117153112_staged_gift_allocations_expected_status.sql`, and precede `20261118093000_eve_actor_checks_read_membership.sql`. Neither of stage 1's migrations they moved past reads an object of theirs: `20261117084109_cms_database_roles.sql` grants and sets default privileges in schema `cms` and on the database only, and `20261117153112` creates one new function over the staged-gift tables. `tests/unit/scripts/migration-order-against-develop.test.ts` now fails on a migration that `origin/develop` lacks and that is dated before develop's newest.
+
 ## 7. SQL that checks an actor against the profile (council round 2, R1)
 
 The application resolves a person's authority from a live membership row since WP2a. SQL that takes an actor from the application and judged it by `profiles.role` or `profiles.tenant_id` therefore disagreed with it. The list below is every function and trigger in the chain's final state that decides an actor's authority that way. It was found by listing each function whose body names `profiles` (17 in `public`, `private`, `authz` and `tenant_guard`, one in `platform`), then each one's callers in SQL and in the application. Row-level policies are not in it: they keep today's helpers until WP2b's second release. "A live row" is a membership row of the profile's login in that tenant, active and not revoked. `20261118093000_eve_actor_checks_read_membership.sql` makes the changes; `tests/unit/acceptance/issue-2675/eve-actor-membership.realstack.acceptance.test.ts` proves them.

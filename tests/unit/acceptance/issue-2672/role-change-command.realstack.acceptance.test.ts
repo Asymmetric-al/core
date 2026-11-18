@@ -7,7 +7,7 @@
  * of the target tenant. Until WP2 that check reads `profiles.role`.
  *
  * Rewritten when WP2a joined stage 1 (AL-2675; plan WP0 and WP2a,
- * 20261117140014_role_change_reads_tenant_admin_membership.sql): the check now
+ * 20261117160400_role_change_reads_tenant_admin_membership.sql): the check now
  * reads the caller's live staff membership in the tenant and its
  * `people.manage_members` capability (the tenant-administrator flag), and the
  * target is found by membership in the tenant, not by `profiles.tenant_id`.
@@ -25,7 +25,7 @@
  * member of another tenant is refused. Stage 1's cases (a) to (d) prove it;
  * WP2a's three cases of the same rule were folded into them when WP2a joined
  * stage 1 at 7a9fc5b39. They run on both versions of the function: the
- * chain's final one (WP2a's 20261117140014) and stage 1's 20261117040237,
+ * chain's final one (WP2a's 20261117160400) and stage 1's 20261117040237,
  * re-created inside the rolled-back transaction.
  *
  * Runs against the migrated database named by
@@ -320,12 +320,12 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
   // there.
   /**
    * Stage 1's version of the command (20261117040237), re-created inside the
-   * check's rolled-back transaction. WP2a's 20261117140014 replaces it in the
+   * check's rolled-back transaction. WP2a's 20261117160400 replaces it in the
    * chain, so the cases below run once on each version: both refuse the same
    * targets with the same error and the same words.
    */
   const VERSIONS = [
-    ["WP2a's function (20261117140014, the chain's final state)", null],
+    ["WP2a's function (20261117160400, the chain's final state)", null],
     [
       "stage 1's function (20261117040237)",
       body(
