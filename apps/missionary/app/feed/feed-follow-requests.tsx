@@ -1,6 +1,7 @@
 "use client";
 
 import { TimeAgo } from "@asym/lib/hooks";
+import { useLoadRetry } from "@asym/missionary/hooks/use-load-retry";
 import {
   Avatar,
   AvatarFallback,
@@ -120,6 +121,14 @@ export function FollowerRequestsCard({
   // the list on request; wide screens always show it in the side column,
   // so the toggle and the collapse are phone-only CSS.
   const [expanded, setExpanded] = useState(false);
+  const loadRetryButton = useRef<HTMLButtonElement>(null);
+  const loadRetry = useLoadRetry({
+    retryRef: loadRetryButton,
+    error: loadFailed && !isLoadingRequests ? true : null,
+    loading: isLoadingRequests,
+    onRetry,
+    landing: () => headingRef.current,
+  });
   const count = pendingRequests.length;
   const hasRequests = !isLoadingRequests && !loadFailed && count > 0;
   const isEmpty = !isLoadingRequests && !loadFailed && count === 0;
@@ -185,26 +194,38 @@ export function FollowerRequestsCard({
           // Phones keep loading to the one-line summary too, so the feed
           // below doesn't jump when the requests arrive.
           className={cn(
-            ((hasRequests && !expanded) || isLoadingRequests) &&
+            ((hasRequests && !expanded) ||
+              (isLoadingRequests && !loadRetry.retrying)) &&
               "hidden lg:block",
           )}
         >
           <CardContent>
-            {isLoadingRequests ? (
-              <div className="flex flex-col gap-3" aria-busy="true">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : loadFailed ? (
+            {loadRetry.error ? (
               <div className="flex flex-col items-start gap-3">
-                <p role="alert" className="text-sm text-foreground">
+                <p
+                  key={loadRetry.failedRetries}
+                  role="alert"
+                  className="text-sm text-foreground"
+                >
                   We couldn’t load follow requests.
                 </p>
                 {onRetry ? (
-                  <Button variant="outline" size="sm" onClick={onRetry}>
-                    Try again
+                  <Button
+                    ref={loadRetryButton}
+                    variant="outline"
+                    size="sm"
+                    disabled={loadRetry.retrying}
+                    focusableWhenDisabled
+                    onClick={loadRetry.retry}
+                  >
+                    {loadRetry.retrying ? "Trying again…" : "Try again"}
                   </Button>
                 ) : null}
+              </div>
+            ) : isLoadingRequests ? (
+              <div className="flex flex-col gap-3" aria-busy="true">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
               </div>
             ) : (
               <ul

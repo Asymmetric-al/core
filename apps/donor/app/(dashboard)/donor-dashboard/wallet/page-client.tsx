@@ -31,7 +31,13 @@ import {
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+import {
+  focusHeadingIfLost,
+  useFocusHandoff,
+  useLoadRetry,
+} from "@/features/donor/focus-recovery";
 
 const FREQUENCY_WORDS: Record<string, string> = {
   weekly: "a week",
@@ -166,6 +172,18 @@ export default function WalletPage() {
   const data = wallet.data;
   const linked = data?.status === "linked";
 
+  const pageRef = useRef<HTMLDivElement>(null);
+  const walletRetry = useLoadRetry(
+    pageRef,
+    Boolean(wallet.error) || !data,
+    wallet.refetch,
+  );
+  // However the methods recover, focus on the error view moves to the heading.
+  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
+  // Offline, a first load waits for the connection without fetching; it is
+  // still loading, not failed.
+  const loading = wallet.isLoading || (wallet.isPending && wallet.isPaused);
+
   const openPortal = async () => {
     setPortalError(false);
     try {
@@ -178,6 +196,7 @@ export default function WalletPage() {
 
   return (
     <div
+      ref={pageRef}
       className={cn(
         "mx-auto flex w-full max-w-6xl flex-col gap-6 pb-20",
         !withinRouteVt && "animate-in fade-in duration-300",
@@ -213,9 +232,12 @@ export default function WalletPage() {
         </p>
       ) : null}
 
-      {wallet.isLoading ? (
+      {/* With nothing cached, a retry loads afresh; the error view stays so
+          Try again keeps focus. */}
+      {loading && !walletRetry.retrying ? (
         <div
           className="space-y-3"
+          role="status"
           aria-busy="true"
           aria-label="Loading payment methods"
         >
@@ -223,18 +245,24 @@ export default function WalletPage() {
             <Skeleton key={key} className="h-24 w-full rounded-xl" />
           ))}
         </div>
-      ) : wallet.error || !data ? (
-        <Card>
+      ) : wallet.error || !data || walletRetry.retrying ? (
+        <Card ref={errorView}>
           <CardContent className="space-y-3 p-6">
-            <p role="alert" className="text-sm font-medium text-destructive">
+            <p
+              key={walletRetry.failedRetries}
+              role="alert"
+              className="text-sm font-medium text-destructive"
+            >
               We couldn’t load your payment methods.
             </p>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => wallet.refetch()}
+              disabled={walletRetry.retrying}
+              focusableWhenDisabled
+              onClick={walletRetry.retry}
             >
-              Try again
+              {walletRetry.retrying ? "Trying again…" : "Try again"}
             </Button>
           </CardContent>
         </Card>
@@ -255,7 +283,15 @@ export default function WalletPage() {
           </EmptyHeader>
           <EmptyContent>
             {linked ? (
-              <Button variant="outline" onClick={() => void openPortal()}>
+              <Button
+                variant="outline"
+                onClick={() => void openPortal()}
+                disabled={portal.isPending}
+                focusableWhenDisabled={portal.isPending}
+              >
+                {portal.isPending ? (
+                  <Loader2 className="animate-spin" data-icon="inline-start" />
+                ) : null}
                 View payment methods in Stripe
               </Button>
             ) : (

@@ -14,22 +14,57 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await page.goto("/task-toolbar.html");
     await expect(
-      page.getByRole("heading", { name: "Mission Tasks", exact: true }),
+      page.getByRole("heading", { name: "Tasks", exact: true, level: 1 }),
     ).toBeVisible();
     await expect(page.locator("html")).toHaveClass(/light/);
 
-    const board = page.getByRole("button", { name: "Board view", exact: true });
-    const list = page.getByRole("button", { name: "List view", exact: true });
+    const viewSwitch = page.getByRole("group", {
+      name: "Task view",
+      exact: true,
+    });
+    const board = viewSwitch.getByRole("button", {
+      name: "Board view",
+      exact: true,
+    });
+    const list = viewSwitch.getByRole("button", {
+      name: "List view",
+      exact: true,
+    });
     const refresh = page.getByRole("button", {
       name: "Refresh tasks",
       exact: true,
     });
     const toolbarSelector =
-      '#task-toolbar-contracts div:has(> div > button[aria-label="Board view"])';
+      '#task-toolbar-contracts div:has(> div > div > button[aria-label="Board view"])';
     const toolbar = page.locator(toolbarSelector);
     await expect(toolbar).toHaveCount(1);
-    await expect(board).toHaveAttribute("aria-pressed", "true");
-    await expect(list).toHaveAttribute("aria-pressed", "false");
+    // Phones (below 768px) open on the list; wider screens open on the board.
+    const phone = viewport.width < 768;
+    const [initial, other] = phone ? [list, board] : [board, list];
+    // Board comes first in the group, so the arrow toward it is ArrowLeft.
+    const [toOther, toInitial] = phone
+      ? ["ArrowLeft", "ArrowRight"]
+      : ["ArrowRight", "ArrowLeft"];
+    const boardHeading = page.getByRole("heading", {
+      name: /^To do\s*1$/,
+      exact: true,
+    });
+    const listCheckbox = page.getByRole("checkbox", {
+      name: "Mark Call partner complete",
+      exact: true,
+    });
+    const expectShowing = async (view: typeof board) => {
+      if (view === board) {
+        await expect(boardHeading).toBeVisible();
+        await expect(listCheckbox).toHaveCount(0);
+      } else {
+        await expect(listCheckbox).toBeVisible();
+        await expect(boardHeading).toHaveCount(0);
+      }
+    };
+    await expect(initial).toHaveAttribute("aria-pressed", "true");
+    await expect(other).toHaveAttribute("aria-pressed", "false");
+    await expectShowing(initial);
     await expect
       .poll(() =>
         toolbar.evaluate(
@@ -49,51 +84,39 @@ for (const viewport of [
       };
     });
 
+    // The group is one tab stop that starts on the pressed view.
     await page.keyboard.press("Tab");
-    await expect(board).toBeFocused();
-    const focusIndicator = await board.evaluate((element) => ({
+    await expect(initial).toBeFocused();
+    const focusIndicator = await initial.evaluate((element) => ({
       focusVisible: element.matches(":focus-visible"),
       boxShadow: getComputedStyle(element).boxShadow,
     }));
     expect(focusIndicator.focusVisible).toBe(true);
     expect(focusIndicator.boxShadow).not.toBe("none");
-    await page.keyboard.press("Tab");
-    await expect(list).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(board).toBeFocused();
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(toOther);
+    await expect(other).toBeFocused();
+    await expect(initial).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press(toInitial);
+    await expect(initial).toBeFocused();
+    await page.keyboard.press(toOther);
     await page.keyboard.press("Enter");
-    await expect(list).toBeFocused();
-    await expect(list).toHaveAttribute("aria-pressed", "true");
-    await expect(board).toHaveAttribute("aria-pressed", "false");
-    await expect(
-      page.getByRole("checkbox", {
-        name: "Complete Call partner",
-        exact: true,
-      }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: /^To Do\s*1$/, exact: true }),
-    ).toHaveCount(0);
+    await expect(other).toBeFocused();
+    await expect(other).toHaveAttribute("aria-pressed", "true");
+    await expect(initial).toHaveAttribute("aria-pressed", "false");
+    await expectShowing(other);
 
-    await page.keyboard.press("Shift+Tab");
-    await expect(board).toBeFocused();
+    await page.keyboard.press(toInitial);
+    await expect(initial).toBeFocused();
     await page.keyboard.press("Space");
-    await expect(board).toBeFocused();
-    await expect(board).toHaveAttribute("aria-pressed", "true");
-    await expect(list).toHaveAttribute("aria-pressed", "false");
-    await expect(
-      page.getByRole("heading", { name: /^To Do\s*1$/, exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("checkbox", {
-        name: "Complete Call partner",
-        exact: true,
-      }),
-    ).toHaveCount(0);
+    await expect(initial).toBeFocused();
+    await expect(initial).toHaveAttribute("aria-pressed", "true");
+    await expect(other).toHaveAttribute("aria-pressed", "false");
+    await expectShowing(initial);
 
     await page.keyboard.press("Tab");
-    await expect(list).toBeFocused();
+    await expect(refresh).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(initial).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(refresh).toBeFocused();
     await page.keyboard.press("Enter");

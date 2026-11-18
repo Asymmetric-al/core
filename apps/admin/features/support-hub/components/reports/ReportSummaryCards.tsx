@@ -5,7 +5,6 @@ import {
   MetricGrid,
   type MetricTone,
 } from "@asym/ui/components/primitives/metric-card";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 interface SummaryCard {
   label: string;
@@ -32,6 +31,7 @@ export function ReportSummaryCards({
   label = "Report summary",
 }: ReportSummaryCardsProps) {
   if (cards.length === 0) return null;
+  const state = isError ? "unavailable" : isLoading ? "loading" : "ready";
   return (
     <section className="space-y-3">
       {heading && <h2 className="text-sm font-semibold">{heading}</h2>}
@@ -41,23 +41,16 @@ export function ReportSummaryCards({
             key={card.label}
             label={card.label}
             value={
-              isLoading ? (
-                <>
-                  <Skeleton className="h-7 w-16" />
-                  <span className="sr-only">Loading…</span>
-                </>
-              ) : isError ? (
-                "—"
-              ) : typeof card.value === "number" ? (
-                card.value.toLocaleString("en-US")
-              ) : (
-                card.value
-              )
+              typeof card.value === "number"
+                ? card.value.toLocaleString("en-US")
+                : card.value
             }
-            detail={
-              isLoading ? "Loading…" : isError ? "Couldn’t load" : card.helper
-            }
-            tone={isLoading || isError ? "default" : card.tone}
+            // Helpers are computed from the cards' data, which is still empty
+            // placeholder data while the report loads.
+            detail={state === "ready" ? card.helper : undefined}
+            tone={card.tone}
+            state={state}
+            unavailableReason="Couldn't load this report total."
           />
         ))}
       </MetricGrid>

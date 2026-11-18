@@ -7,7 +7,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: regression test at the label editor's public UI boundary.
 import { LabelForm } from "../../../../../../../apps/admin/features/support-hub/components/labels/LabelForm";
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: regression test at the label manager's public UI boundary.
 import { LabelManagerDialog } from "../../../../../../../apps/admin/features/support-hub/components/labels/LabelManagerDialog";
 const { save } = vi.hoisted(() => ({ save: vi.fn().mockResolvedValue({}) }));
 vi.mock(
@@ -80,5 +83,37 @@ it("resets the editor when switching labels without closing the dialog", async (
         description: "Care requests",
       }),
     ),
+  );
+});
+it("returns focus to the edited label's Edit button, or to New label, when the inline form closes", async () => {
+  render(<LabelManagerDialog open onOpenChange={vi.fn()} />);
+  fireEvent.click(screen.getByRole("button", { name: "Edit Care" }));
+  const cancel = screen.getByRole("button", { name: "Cancel" });
+  cancel.focus();
+  fireEvent.click(cancel);
+  expect(screen.queryByLabelText("Name")).toBeNull();
+  expect(document.activeElement).toBe(
+    screen.getByRole("button", { name: "Edit Care" }),
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Edit Receipts" }));
+  const saveChanges = screen.getByRole("button", { name: "Save changes" });
+  saveChanges.focus();
+  fireEvent.click(saveChanges);
+  await waitFor(() => expect(screen.queryByLabelText("Name")).toBeNull());
+  expect(document.activeElement).toBe(
+    screen.getByRole("button", { name: "Edit Receipts" }),
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "New label" }));
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Urgent" },
+  });
+  const create = screen.getByRole("button", { name: "Create label" });
+  create.focus();
+  fireEvent.click(create);
+  await waitFor(() => expect(screen.queryByLabelText("Name")).toBeNull());
+  expect(document.activeElement).toBe(
+    screen.getByRole("button", { name: "New label" }),
   );
 });

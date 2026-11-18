@@ -78,7 +78,7 @@ describe("Mission Control composed navigation names", () => {
     );
     expect(html).toContain("Open Mission Control search");
     expect(html).toContain("Open profile menu");
-    expect(html).toContain("Ctrl K");
+    expect(html).toContain("Ctrl+K");
   });
 
   it("removes shell controls and their portals during fullscreen editing", async () => {
@@ -267,11 +267,46 @@ describe("Mission Control composed navigation names", () => {
       await view.findByRole("menuitem", { name: "About" });
       const names = view
         .getAllByRole("menuitem")
-        .map((item) => item.textContent?.trim())
-        .filter((name) => name !== "Sign out");
+        .filter((item) => item.hasAttribute("href"))
+        .map((item) => item.textContent?.trim());
       expect(names).toEqual(expected);
     },
   );
+
+  it("opens the keyboard shortcuts from the profile menu, after About", async () => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    const view = render(
+      <MCShell>
+        <h1>Content</h1>
+      </MCShell>,
+    );
+    const trigger = view.getByRole("button", { name: "Open profile menu" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const item = await view.findByRole("menuitem", {
+      name: "Keyboard shortcuts",
+    });
+    const items = view.getAllByRole("menuitem");
+    expect(items[items.indexOf(item) - 1]?.textContent).toBe("About");
+    expect(item.getAttribute("aria-keyshortcuts")).toBe("Shift+?");
+    expect(item.querySelector("kbd")?.textContent).toContain("Shift+?");
+
+    fireEvent.click(item);
+    const help = await view.findByRole("dialog", {
+      name: "Keyboard shortcuts",
+    });
+    expect(within(help).getByText("Show keyboard shortcuts")).toBeTruthy();
+    fireEvent.keyDown(help, { key: "Escape" });
+    await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
 
   it("shows where the page sits with breadcrumbs", () => {
     shellState.pathname = "/crm/notes";

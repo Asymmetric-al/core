@@ -329,3 +329,64 @@ describe("Analytics currency containment", () => {
     },
   );
 });
+
+// The browser suite measures the fit; jsdom has no layout, so these pin the
+// class chain it depends on (see the comments in page-client.tsx).
+describe("Analytics stat cards fit their figures", () => {
+  const STAT_TITLES = [
+    "Given in the last 12 months",
+    "Partners who gave again",
+    "Typical gift",
+  ];
+
+  it("goes three across from the cards' own column width, not the viewport alone", () => {
+    render(<AnalyticsPage />);
+    const grids = new Set(
+      STAT_TITLES.map(
+        (name) => screen.getByRole("region", { name }).parentElement,
+      ),
+    );
+    expect(grids.size).toBe(1);
+    const [grid] = [...grids];
+    expect(grid?.classList.contains("md:@2xl/stats:grid-cols-3")).toBe(true);
+    expect(grid?.classList.contains("md:grid-cols-3")).toBe(false);
+    expect(grid?.parentElement?.classList.contains("@container/stats")).toBe(
+      true,
+    );
+  });
+
+  it("steps a value down one size in a card too narrow for six figures, never truncating it", () => {
+    render(<AnalyticsPage />);
+    for (const name of STAT_TITLES) {
+      const card = screen.getByRole("region", { name });
+      const content = card.querySelector('[data-slot="card-content"]');
+      const value = content?.querySelector("p");
+      // The repository lint rejects restyling CardContent from the app
+      // (shadcn/no-restyle), so a plain wrapper the width of the content box
+      // is the query container.
+      const valueBox = value?.parentElement;
+      expect(valueBox?.parentElement).toBe(content);
+      expect(valueBox?.classList.contains("@container/stat")).toBe(true);
+      expect(value?.classList.contains("text-2xl")).toBe(true);
+      expect(value?.classList.contains("@min-[11.5rem]/stat:text-3xl")).toBe(
+        true,
+      );
+      expect(value?.classList.contains("text-3xl")).toBe(false);
+      for (const element of [card, content, valueBox, value]) {
+        expect(element?.className).not.toMatch(
+          /\b(truncate|text-ellipsis|line-clamp-\d|overflow-hidden|overflow-clip)\b/,
+        );
+      }
+    }
+  });
+
+  it("lays the loading placeholders out on the same rule", () => {
+    mocks.metrics.mockReturnValue({ gifts: [], isLoading: true, error: null });
+    render(<AnalyticsPage />);
+    const status = screen.getByRole("status", { name: "Loading analytics" });
+    const grid = status.firstElementChild;
+    expect(status.classList.contains("@container/stats")).toBe(true);
+    expect(grid?.classList.contains("md:@2xl/stats:grid-cols-3")).toBe(true);
+    expect(grid?.classList.contains("md:grid-cols-3")).toBe(false);
+  });
+});

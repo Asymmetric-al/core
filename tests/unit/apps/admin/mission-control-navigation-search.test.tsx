@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { setPlatform } from "@ui-sdk/core/testing";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -33,6 +34,7 @@ const scrollDescriptor = Object.getOwnPropertyDescriptor(
   "scrollIntoView",
 );
 beforeEach(() => {
+  setPlatform("other");
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
     value: vi.fn(),
@@ -133,6 +135,26 @@ describe("Mission Control navigation search", () => {
     );
   });
 
+  it("advertises and runs this platform's own shortcut", async () => {
+    setPlatform("apple");
+    const view = render(
+      <MissionControlNavigationSearch role="admin" onNavigate={vi.fn()} />,
+    );
+    const trigger = view.getAllByRole("button", {
+      name: "Open Mission Control search",
+    })[0]!;
+    await waitFor(() =>
+      expect(trigger.getAttribute("aria-keyshortcuts")).toBe("Meta+K"),
+    );
+    expect(trigger.textContent).toContain("⌘K");
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: "k", ctrlKey: true });
+    expect(view.queryByRole("dialog")).toBeNull();
+    fireEvent.keyDown(trigger, { key: "k", metaKey: true });
+    await view.findByRole("dialog", { name: "Mission Control navigation" });
+    setPlatform("other");
+  });
+
   it("opens advertised keyboard search with only the role's permitted routes", async () => {
     const view = render(
       <MissionControlNavigationSearch role="staff" onNavigate={vi.fn()} />,
@@ -191,12 +213,17 @@ describe("Mission Control navigation search", () => {
         <MissionControlNavigationSearch role="admin" onNavigate={vi.fn()} />
       </>,
     );
-    fireEvent.keyDown(view.getByRole("textbox", { name: "Message" }), {
+    // A real key press goes to the focused element.
+    const message = view.getByRole("textbox", { name: "Message" });
+    message.focus();
+    fireEvent.keyDown(message, { key: "k", ctrlKey: true });
+    message.blur();
+    fireEvent.keyDown(document.body, {
       key: "k",
       ctrlKey: true,
+      isComposing: true,
     });
-    fireEvent.keyDown(window, { key: "k", ctrlKey: true, isComposing: true });
-    fireEvent.keyDown(window, { key: "k", ctrlKey: true, repeat: true });
+    fireEvent.keyDown(document.body, { key: "k", ctrlKey: true, repeat: true });
     const handled = new KeyboardEvent("keydown", {
       key: "k",
       ctrlKey: true,
@@ -204,7 +231,7 @@ describe("Mission Control navigation search", () => {
       cancelable: true,
     });
     handled.preventDefault();
-    window.dispatchEvent(handled);
+    document.body.dispatchEvent(handled);
     expect(view.queryByRole("dialog")).toBeNull();
   });
 });

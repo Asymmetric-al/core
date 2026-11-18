@@ -76,6 +76,7 @@ export function DocumentPinToggle({
             aria-label="Pin to Studio home"
             aria-pressed={pinned}
             disabled={pins.isPending || pins.isError || toggle.isPending}
+            focusableWhenDisabled={toggle.isPending}
             onClick={() => toggle.mutate(!pinned)}
           >
             <Pin aria-hidden="true" />

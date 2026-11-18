@@ -586,7 +586,7 @@
   },
   "packages/ui/components/shadcn/data-table/data-table-responsive-chrome.tsx": {
     "shadcn/no-restyle": {
-      "count": 52
+      "count": 48
     },
     "shadcn/require-static-classes": {
       "count": 4

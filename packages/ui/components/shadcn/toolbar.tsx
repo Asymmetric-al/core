@@ -4,7 +4,44 @@ import { Toolbar as ToolbarPrimitive } from "@base-ui/react/toolbar";
 
 import { mergeBaseUIClassName } from "../../lib/base-ui";
 
-function Toolbar({ className, ...props }: ToolbarPrimitive.Root.Props) {
+import type { KeyboardEvent } from "react";
+
+const TEXT_ENTRY =
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]';
+
+// Base UI's toolbar moves with the arrow keys only. Home and End jump to the
+// first and last control; focusing one moves Base UI's tab stop with it.
+// React bubbles keys from portaled content too, which is not the toolbar's.
+function focusToolbarEdge(event: KeyboardEvent<HTMLElement>) {
+  const target = event.target as Element;
+  if (
+    (event.key !== "Home" && event.key !== "End") ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.shiftKey ||
+    !event.currentTarget.contains(target) ||
+    target.closest(TEXT_ENTRY)
+  )
+    return;
+  const controls = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>("[tabindex]"),
+  ).filter(
+    (control) =>
+      !control.matches(":disabled, [data-base-ui-focus-guard]") &&
+      !control.closest('[aria-hidden="true"]'),
+  );
+  const edge = event.key === "Home" ? controls[0] : controls.at(-1);
+  if (!edge) return;
+  event.preventDefault();
+  edge.focus();
+}
+
+function Toolbar({
+  className,
+  onKeyDown,
+  ...props
+}: ToolbarPrimitive.Root.Props) {
   return (
     <ToolbarPrimitive.Root
       data-slot="toolbar"
@@ -12,6 +49,10 @@ function Toolbar({ className, ...props }: ToolbarPrimitive.Root.Props) {
         "flex items-center gap-1 data-[orientation=vertical]:flex-col",
         className,
       )}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (!event.defaultPrevented) focusToolbarEdge(event);
+      }}
       {...props}
     />
   );

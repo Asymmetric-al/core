@@ -34,7 +34,7 @@ import {
 } from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Info, Loader2, Trash2 } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -42,6 +42,7 @@ import { useLinkedEntities, useUpsertLocation } from "../hooks/use-locations";
 import { LOCATION_TYPE_OPTIONS } from "../location-labels";
 
 import type { Location } from "../hooks/use-locations";
+import type { ReactNode, RefObject } from "react";
 
 const locationSchema = z.object({
   id: z.string().optional(),
@@ -122,6 +123,7 @@ export function LocationEditor({
   onDelete,
 }: LocationEditorProps) {
   const publishedId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { mutateAsync: upsertLocation, isPending: isSaving } =
     useUpsertLocation();
@@ -156,7 +158,9 @@ export function LocationEditor({
             </Alert>
           ) : null}
           <form
-            className="space-y-6 px-4"
+            ref={formRef}
+            tabIndex={-1}
+            className="space-y-6 px-4 outline-none"
             onSubmit={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -269,16 +273,12 @@ export function LocationEditor({
                 {({ isSubmitting }) => (
                   // Stays enabled while fields are incomplete, so a press
                   // shows what is missing instead of doing nothing.
-                  <Button
-                    focusableWhenDisabled={isSaving || isSubmitting}
-                    disabled={isSaving || isSubmitting}
-                    type="submit"
+                  <SaveLocationButton
+                    formRef={formRef}
+                    pending={isSaving || isSubmitting}
                   >
-                    {(isSaving || isSubmitting) && (
-                      <Loader2 aria-hidden="true" className="animate-spin" />
-                    )}
                     {location?.id ? "Save changes" : "Save location"}
-                  </Button>
+                  </SaveLocationButton>
                 )}
               </form.Subscribe>
             </SheetFooter>
@@ -286,6 +286,50 @@ export function LocationEditor({
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function SaveLocationButton({
+  children,
+  formRef,
+  pending,
+}: {
+  children: ReactNode;
+  formRef: RefObject<HTMLFormElement | null>;
+  pending: boolean;
+}) {
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const parkedRef = useRef(false);
+  // A disabled submit button drops focus to the page, so focus waits on the
+  // busy form until Save is usable again. Only focus parked here goes back:
+  // Safari also focuses the form when a button in it is clicked.
+  useLayoutEffect(() => {
+    if (pending) {
+      if (document.activeElement === saveRef.current) {
+        formRef.current?.focus({ preventScroll: true });
+        parkedRef.current = true;
+      }
+      return;
+    }
+    if (parkedRef.current && document.activeElement === formRef.current)
+      saveRef.current?.focus();
+    parkedRef.current = false;
+  }, [formRef, pending]);
+  // The form renders outside this subscription, so its busy state is set here.
+  useLayoutEffect(() => {
+    formRef.current?.setAttribute("aria-busy", String(pending));
+  }, [formRef, pending]);
+
+  return (
+    <Button
+      ref={saveRef}
+      focusableWhenDisabled={pending}
+      disabled={pending}
+      type="submit"
+    >
+      {pending && <Loader2 aria-hidden="true" className="animate-spin" />}
+      {children}
+    </Button>
   );
 }
 

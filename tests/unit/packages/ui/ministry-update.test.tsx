@@ -801,4 +801,47 @@ describe("ReactionBar interactive", () => {
     const loveButton = screen.getByRole("button", { name: /love/i });
     expect(loveButton.getAttribute("aria-pressed")).toBe("true");
   });
+
+  it.each(["chip", "quiet"] as const)(
+    "ties every %s button to its update while keeping the visible count in the name",
+    (appearance) => {
+      render(
+        <>
+          <h2 id="update-title">Field update</h2>
+          <ReactionBar
+            update={{
+              id: nextUpdateId(),
+              like_count: 2,
+              prayer_count: 1,
+              fires_count: 0,
+              comment_count: 4,
+            }}
+            appearance={appearance}
+            describedBy="update-title"
+            transport={createMemoryEngagementTransport()}
+          />
+        </>,
+      );
+      const buttons = screen.getAllByRole("button");
+      expect(buttons).toHaveLength(4);
+      for (const name of ["Love 2", "Pray 1", "Fire 0", "Comments 4"]) {
+        expect(
+          screen.getByRole("button", { name, description: "Field update" }),
+        ).toBeTruthy();
+      }
+    },
+  );
+
+  it("adds no description when the caller gives none", () => {
+    render(
+      <ReactionBar
+        update={{ id: nextUpdateId(), comment_count: 1 }}
+        comments="read"
+        transport={createMemoryEngagementTransport()}
+      />,
+    );
+    for (const button of screen.getAllByRole("button")) {
+      expect(button.hasAttribute("aria-describedby")).toBe(false);
+    }
+  });
 });

@@ -1,4 +1,5 @@
 import { createClearedEveKillSwitchState } from "@asym/api/eve/governance/types";
+import { ShortcutHelp } from "@asym/ui/components/primitives/shortcut-help";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
@@ -78,6 +79,10 @@ createRoot(document.getElementById("root")!).render(
       />
     </main>
   ) : (
-    <EveGlobalPanel />
+    // Mission Control's shell mounts the Shift+? help beside the Eve panel.
+    <>
+      <EveGlobalPanel />
+      <ShortcutHelp />
+    </>
   ),
 );

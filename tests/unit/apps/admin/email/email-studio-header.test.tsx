@@ -1,7 +1,15 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1894: Exercise the actual header with the real shared Button behavior.
 import { EmailStudioHeader } from "../../../../../apps/admin/app/(app)/email/email-studio-header";
@@ -9,7 +17,15 @@ import { TooltipProvider } from "../../../../../packages/ui/components/shadcn/to
 
 import type { ComponentProps } from "react";
 
-afterEach(cleanup);
+beforeEach(() => setPlatform("other"));
+afterEach(() => {
+  cleanup();
+  setPlatform("other");
+});
+
+/** UI SDK wraps hints in left-to-right isolates so a right-to-left page never reorders them. */
+const plain = (text: string | null | undefined) =>
+  (text ?? "").replace(/[⁦⁩]/g, "");
 
 function headerProps(): ComponentProps<typeof EmailStudioHeader> {
   return {
@@ -27,6 +43,7 @@ function headerProps(): ComponentProps<typeof EmailStudioHeader> {
     onUndo: vi.fn(),
     onRedo: vi.fn(),
     onPreview: vi.fn(),
+    onPreviewDeviceChange: vi.fn(),
     onExportHtml: vi.fn(),
     onTestSend: vi.fn(),
     onInsertMergeTag: vi.fn(),
@@ -61,6 +78,24 @@ describe("Email Studio header pending focus", () => {
     expect(props.onLoadTemplate).toHaveBeenCalledOnce();
     expect(props.onPreview).toHaveBeenCalledWith("desktop");
     expect(props.onTestSend).toHaveBeenCalledOnce();
+  });
+
+  it("chooses the preview device without opening the preview", () => {
+    const props = headerProps();
+    const view = render(<Header {...props} />);
+    const mobile = screen.getByRole("button", { name: "Mobile preview" });
+    fireEvent.click(mobile);
+    expect(props.onPreviewDeviceChange).toHaveBeenCalledExactlyOnceWith(
+      "mobile",
+    );
+    expect(props.onPreview).not.toHaveBeenCalled();
+
+    view.rerender(<Header {...props} previewDevice="mobile" />);
+    expect(mobile.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Preview", exact: true }),
+    );
+    expect(props.onPreview).toHaveBeenCalledExactlyOnceWith("mobile");
   });
 
   it("does not change template metadata in read-only mode", () => {
@@ -124,6 +159,66 @@ describe("Email Studio header pending focus", () => {
     expect(save.getAttribute("aria-disabled")).not.toBe("true");
     fireEvent.click(save);
     expect(props.onSaveClick).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["other", "Control", "Ctrl+Z", "Ctrl+E"],
+    ["apple", "Meta", "⌘Z", "⌘E"],
+  ] as const)(
+    "writes each shortcut on its control in the %s platform's keys",
+    async (platform, modifier, undoHint, exportHint) => {
+      setPlatform(platform);
+      render(<Header {...headerProps()} />);
+      const save = screen.getByRole("button", { name: "Save", exact: true });
+      await waitFor(() =>
+        expect(save.getAttribute("aria-keyshortcuts")).toBe(`${modifier}+S`),
+      );
+      const undo = screen.getByRole("button", { name: "Undo", exact: true });
+      expect(undo.getAttribute("aria-keyshortcuts")).toBe(`${modifier}+Z`);
+      expect(
+        screen
+          .getByRole("button", { name: "Redo", exact: true })
+          .getAttribute("aria-keyshortcuts"),
+      ).toBe(`${modifier}+Shift+Z`);
+      // Keyboard focus opens the tooltip, which prints the same keys.
+      act(() => undo.focus());
+      const tooltipHint = await waitFor(() => {
+        const hint = document.querySelector(
+          '[data-slot="tooltip-content"] kbd',
+        );
+        expect(plain(hint?.textContent)).toBe(undoHint);
+        return hint!;
+      });
+      expect(tooltipHint.getAttribute("aria-hidden")).toBe("true");
+      act(() => undo.blur());
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "More email template actions" }),
+      );
+      const exportItem = await screen.findByRole("menuitem", {
+        name: /Export as HTML/,
+      });
+      expect(exportItem.getAttribute("aria-keyshortcuts")).toBe(
+        `${modifier}+E`,
+      );
+      expect(plain(exportItem.textContent)).toContain(exportHint);
+    },
+  );
+
+  it("advertises Escape on the fullscreen button only while it exits fullscreen", () => {
+    const props = headerProps();
+    const view = render(<Header {...props} />);
+    expect(
+      screen
+        .getByRole("button", { name: "Fullscreen", exact: true })
+        .hasAttribute("aria-keyshortcuts"),
+    ).toBe(false);
+    view.rerender(<Header {...props} isFullscreen />);
+    expect(
+      screen
+        .getByRole("button", { name: "Exit fullscreen", exact: true })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Escape");
   });
 
   it("keeps Save natively disabled while a separate test send is pending", () => {

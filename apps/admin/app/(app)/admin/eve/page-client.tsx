@@ -291,7 +291,15 @@ function KillSwitchControl({
         <AlertDialogTrigger
           disabled={disabled}
           render={
-            <Button size="sm" variant={enabled ? "destructive" : "outline"}>
+            <Button
+              size="sm"
+              variant={enabled ? "destructive" : "outline"}
+              aria-label={
+                isPending
+                  ? `Updating… ${copy.label}`
+                  : `${enabled ? "Clear" : "Engage"}: ${copy.label}`
+              }
+            >
               {isPending ? "Updating…" : enabled ? "Clear" : "Engage"}
             </Button>
           }

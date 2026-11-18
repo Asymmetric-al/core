@@ -31,6 +31,9 @@ describe("@asym/ui EmailStudioPreviewDialog", () => {
 
     expect(screen.getByRole("tab", { name: /html/i })).toBeTruthy();
     expect(screen.getByRole("tab", { name: /text/i })).toBeTruthy();
+    expect(screen.getByRole("tablist", { name: "Preview format" })).toBe(
+      screen.getByRole("tab", { name: /html/i }).closest('[role="tablist"]'),
+    );
   });
 
   it("shows merge-tag validation warnings for unresolved unknown tags", () => {

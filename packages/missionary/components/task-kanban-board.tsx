@@ -12,7 +12,11 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import { CollisionPriority } from "@dnd-kit/abstract";
-import { Feedback, PointerActivationConstraints } from "@dnd-kit/dom";
+import {
+  Accessibility,
+  Feedback,
+  PointerActivationConstraints,
+} from "@dnd-kit/dom";
 import { OptimisticSortingPlugin } from "@dnd-kit/dom/sortable";
 import { move } from "@dnd-kit/helpers";
 import {
@@ -39,7 +43,11 @@ import { toast } from "sonner";
 import type { Task, TaskStatus } from "../types";
 import type { Plugins } from "@dnd-kit/abstract";
 import type { SortableTransition } from "@dnd-kit/dom/sortable";
-import type { DragEndEvent, DragOverEvent } from "@dnd-kit/react";
+import type {
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+} from "@dnd-kit/react";
 
 const DRAG_TRANSITION: SortableTransition = {
   duration: DURATION_STANDARD * 1000,
@@ -54,12 +62,93 @@ const DRAG_SENSORS = [
   KeyboardSensor,
 ];
 
-const boardPlugins = (defaults: Plugins): Plugins =>
-  defaults.map((plugin) =>
-    plugin === Feedback
-      ? Feedback.configure({ keyboardTransition: null })
-      : plugin,
-  );
+type Columns = Record<TaskStatus, Task[]>;
+type BoardAnnouncements = {
+  dragstart: (event: DragStartEvent) => string | undefined;
+  dragover: (event: DragOverEvent) => string | undefined;
+  dragend: (event: DragEndEvent) => string | undefined;
+};
+
+const SCREEN_READER_INSTRUCTIONS = {
+  draggable:
+    "To pick up a task, press Space or Enter. While dragging, use the up and down arrow keys to change its position in a column and the left and right arrow keys to move it to another column. Press Space or Enter again to drop it, or press Escape to cancel.",
+};
+
+// The plugin announces before the board's own dragover handler runs; both
+// apply the same move once, whichever runs first.
+const movedByEvent = new WeakMap<DragOverEvent, Columns>();
+function moveOnce(columns: Columns, event: DragOverEvent): Columns {
+  let next = movedByEvent.get(event);
+  if (!next) {
+    next = move(columns, event);
+    movedByEvent.set(event, next);
+  }
+  return next;
+}
+
+function boardAnnouncements(
+  view: () => { tasks: Task[]; committed: Columns; draft: Columns | null },
+): BoardAnnouncements {
+  const titleOf = (id: unknown) =>
+    view().tasks.find((task) => task.id === id)?.title;
+  const placeOf = (columns: Columns, id: unknown) => {
+    for (const column of COLUMNS) {
+      const list = columns[column.id];
+      const index = list.findIndex((task) => task.id === id);
+      if (index !== -1) {
+        return `${column.label}, position ${index + 1} of ${list.length}`;
+      }
+    }
+    return undefined;
+  };
+  return {
+    dragstart({ operation: { source } }) {
+      const { committed, draft } = view();
+      const title = titleOf(source?.id);
+      const place = placeOf(draft ?? committed, source?.id);
+      return title && place ? `Picked up ${title}. ${place}.` : undefined;
+    },
+    dragover(event) {
+      const { source, target } = event.operation;
+      const { draft } = view();
+      if (!source || !target || source.id === target.id || !draft) return;
+      const title = titleOf(source.id);
+      const place = placeOf(moveOnce(draft, event), source.id);
+      return title && place ? `${title} is in ${place}.` : undefined;
+    },
+    dragend({ operation: { source, target }, canceled }) {
+      const { committed, draft } = view();
+      const title = titleOf(source?.id);
+      if (canceled || !target) {
+        const place = placeOf(committed, source?.id);
+        return title && place
+          ? `Move cancelled. ${title} returned to ${place}.`
+          : undefined;
+      }
+      const place = placeOf(draft ?? committed, source?.id);
+      return title && place ? `Dropped ${title} in ${place}.` : undefined;
+    },
+  };
+}
+
+// dnd-kit's default announcements read out raw ids; these name the task,
+// its column and its position. Options must keep one identity per board, or
+// the provider rebuilds the plugin (and its live region) on every render.
+const boardPlugins =
+  (announcements: BoardAnnouncements) =>
+  (defaults: Plugins): Plugins =>
+    defaults.map((plugin) => {
+      if (plugin === Feedback) {
+        return Feedback.configure({ keyboardTransition: null });
+      }
+      if (plugin === Accessibility) {
+        return Accessibility.configure({
+          announcements,
+          screenReaderInstructions: SCREEN_READER_INSTRUCTIONS,
+        });
+      }
+      return plugin;
+    });
 
 // React owns these controlled lists; the default plugin also reparents DOM nodes.
 const controlledSortablePlugins = (defaults: Plugins): Plugins =>
@@ -131,7 +220,7 @@ interface TaskKanbanBoardProps {
     newIndex: number,
   ) => Promise<boolean>;
   onEditTask: (task: Task) => void;
-  onCompleteTask: (task: Task) => void;
+  onCompleteTask: (task: Task) => void | Promise<boolean>;
   onDeleteTask: (task: Task) => void;
   onCreateTask?: (status: TaskStatus) => void;
 }
@@ -155,10 +244,26 @@ export function TaskKanbanBoard({
   const dragHandles = React.useRef(new Map<string, HTMLButtonElement>());
   const keyboardSourceId = React.useRef<string | null>(null);
   const restoreFocusId = React.useRef<string | null>(null);
+  const movedFocus = React.useRef<{
+    taskId: string;
+    status: TaskStatus;
+  } | null>(null);
+  const completeButtons = React.useRef(new Map<string, HTMLButtonElement>());
+  const completionFocus = React.useRef<{
+    taskId: string;
+    status: TaskStatus;
+  } | null>(null);
   const registerHandle = React.useCallback(
     (taskId: string, element: HTMLButtonElement | null) => {
       if (element) dragHandles.current.set(taskId, element);
       else dragHandles.current.delete(taskId);
+    },
+    [],
+  );
+  const registerCompleteButton = React.useCallback(
+    (taskId: string, element: HTMLButtonElement | null) => {
+      if (element) completeButtons.current.set(taskId, element);
+      else completeButtons.current.delete(taskId);
     },
     [],
   );
@@ -186,6 +291,64 @@ export function TaskKanbanBoard({
 
     return grouped;
   }, [tasks]);
+
+  const latest = React.useRef({ tasks, committed: tasksByStatus });
+  React.useLayoutEffect(() => {
+    latest.current = { tasks, committed: tasksByStatus };
+  });
+  const [plugins] = React.useState(() =>
+    boardPlugins(
+      boardAnnouncements(() => ({
+        ...latest.current,
+        draft: draftRef.current,
+      })),
+    ),
+  );
+
+  // Done and reopened cards change column, so React remounts them and the
+  // focused button goes with them; focus the same button on the moved card.
+  React.useLayoutEffect(() => {
+    const pending = completionFocus.current;
+    if (!pending) return;
+    const task = tasks.find((candidate) => candidate.id === pending.taskId);
+    if (task?.status === pending.status) return;
+    completionFocus.current = null;
+    const active = document.activeElement;
+    if (active && active !== document.body && active.isConnected) return;
+    (
+      completeButtons.current.get(pending.taskId) ??
+      dragHandles.current.get(pending.taskId)
+    )?.focus();
+  }, [tasks]);
+
+  // dnd-kit runs onDragEnd in a transition, so a saved move can reach `tasks`
+  // after the preview is cleared and remount the card in its new column once
+  // more; focus its handle there if that took focus away.
+  React.useLayoutEffect(() => {
+    const pending = movedFocus.current;
+    if (!pending) return;
+    const task = tasks.find((candidate) => candidate.id === pending.taskId);
+    if (task && task.status !== pending.status) return;
+    movedFocus.current = null;
+    const active = document.activeElement;
+    if (active && active !== document.body && active.isConnected) return;
+    dragHandles.current.get(pending.taskId)?.focus();
+  }, [tasks]);
+
+  async function completeTask(task: Task) {
+    completionFocus.current = { taskId: task.id, status: task.status };
+    const forget = () => {
+      if (completionFocus.current?.taskId === task.id) {
+        completionFocus.current = null;
+      }
+    };
+    try {
+      if ((await onCompleteTask(task)) === false) forget();
+    } catch (error) {
+      forget();
+      throw error;
+    }
+  }
 
   const getTasksForStatus = React.useCallback(
     (status: TaskStatus) => (draftTasks ?? tasksByStatus)[status] ?? [],
@@ -221,7 +384,7 @@ export function TaskKanbanBoard({
   function handleDragOver(event: DragOverEvent) {
     if (!draftRef.current || !event.operation.source || !event.operation.target)
       return;
-    const next = move(draftRef.current, event);
+    const next = moveOnce(draftRef.current, event);
     draftRef.current = next;
     setDraftTasks(next);
   }
@@ -262,6 +425,12 @@ export function TaskKanbanBoard({
     const pending = event.suspend();
     try {
       if (!(await onMoveTask(activeId, status, index))) reportMoveError();
+      else if (
+        keyboardSourceId.current === activeId &&
+        latest.current.tasks.find((task) => task.id === activeId)?.status !==
+          status
+      )
+        movedFocus.current = { taskId: activeId, status };
     } catch {
       reportMoveError();
     } finally {
@@ -273,11 +442,12 @@ export function TaskKanbanBoard({
   return (
     <DragDropProvider
       sensors={DRAG_SENSORS}
-      plugins={boardPlugins}
+      plugins={plugins}
       onDragStart={(event) => {
         if (moveErrorToastId.current !== undefined)
           toast.dismiss(moveErrorToastId.current);
         const keyboard = event.nativeEvent instanceof KeyboardEvent;
+        movedFocus.current = null;
         setKeyboardInteraction(keyboard);
         keyboardSourceId.current =
           keyboard && typeof event.operation.source?.id === "string"
@@ -300,8 +470,9 @@ export function TaskKanbanBoard({
             tasks={getTasksForStatus(column.id)}
             transition={transition}
             registerHandle={registerHandle}
+            registerCompleteButton={registerCompleteButton}
             onEditTask={onEditTask}
-            onCompleteTask={onCompleteTask}
+            onCompleteTask={completeTask}
             onDeleteTask={onDeleteTask}
             onCreateTask={onCreateTask}
           />
@@ -340,6 +511,10 @@ interface KanbanColumnProps {
   tasks: Task[];
   transition: SortableTransition | null;
   registerHandle: (taskId: string, element: HTMLButtonElement | null) => void;
+  registerCompleteButton: (
+    taskId: string,
+    element: HTMLButtonElement | null,
+  ) => void;
   onEditTask: (task: Task) => void;
   onCompleteTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
@@ -354,6 +529,7 @@ function KanbanColumn({
   tasks,
   transition,
   registerHandle,
+  registerCompleteButton,
   onEditTask,
   onCompleteTask,
   onDeleteTask,
@@ -408,6 +584,7 @@ function KanbanColumn({
             group={id}
             transition={transition}
             registerHandle={registerHandle}
+            registerCompleteButton={registerCompleteButton}
             onEdit={onEditTask}
             onComplete={onCompleteTask}
             onDelete={onDeleteTask}
@@ -427,6 +604,7 @@ interface KanbanCardProps {
   task: Task;
   isOverlay?: boolean;
   handleRef?: React.Ref<HTMLButtonElement>;
+  completeRef?: React.Ref<HTMLButtonElement>;
   onEdit: (task: Task) => void;
   onComplete: (task: Task) => void;
   onDelete: (task: Task) => void;
@@ -438,6 +616,7 @@ function SortableKanbanCard({
   group,
   transition,
   registerHandle,
+  registerCompleteButton,
   onEdit,
   onComplete,
   onDelete,
@@ -446,6 +625,10 @@ function SortableKanbanCard({
   group: TaskStatus;
   transition: SortableTransition | null;
   registerHandle: (taskId: string, element: HTMLButtonElement | null) => void;
+  registerCompleteButton: (
+    taskId: string,
+    element: HTMLButtonElement | null,
+  ) => void;
 }) {
   const { ref, handleRef, isDragging } = useSortable({
     id: task.id,
@@ -463,6 +646,11 @@ function SortableKanbanCard({
     },
     [handleRef, registerHandle, task.id],
   );
+  const setCompleteButton = React.useCallback(
+    (element: HTMLButtonElement | null) =>
+      registerCompleteButton(task.id, element),
+    [registerCompleteButton, task.id],
+  );
   return (
     <div
       ref={ref}
@@ -471,6 +659,7 @@ function SortableKanbanCard({
       <KanbanCard
         task={task}
         handleRef={setHandle}
+        completeRef={setCompleteButton}
         onEdit={onEdit}
         onComplete={onComplete}
         onDelete={onDelete}
@@ -493,6 +682,7 @@ function KanbanCard({
   task,
   isOverlay,
   handleRef,
+  completeRef,
   onEdit,
   onComplete,
 }: KanbanCardProps) {
@@ -573,13 +763,14 @@ function KanbanCard({
 
             {/* Completing a finished task reopens it, so it says so. */}
             <Button
+              ref={completeRef}
               variant="ghost"
               size="xs"
               onClick={() => onComplete(task)}
               aria-label={
                 task.status === "completed"
-                  ? `Reopen ${task.title}`
-                  : `Mark ${task.title} done`
+                  ? `Reopen: ${task.title}`
+                  : `Mark done: ${task.title}`
               }
             >
               {task.status === "completed" ? "Reopen" : "Mark done"}

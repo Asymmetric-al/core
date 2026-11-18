@@ -20,7 +20,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardAction,
@@ -46,6 +46,11 @@ import {
   supportedMissionaries,
 } from "./overview/overview-model";
 import { UpdateRailThumbnail } from "./update-rail-thumbnail";
+import {
+  focusHeadingIfLost,
+  useFocusHandoff,
+  useLoadRetry,
+} from "../focus-recovery";
 
 const LONG_DAY = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -186,8 +191,14 @@ function SupportedCard({ snapshot }: { snapshot: DonorPortalSnapshot }) {
 
 function RecentUpdatesCard({
   feedQuery,
+  loading,
+  retry,
+  errorView,
 }: {
   feedQuery: ReturnType<typeof useDonorFeedPosts>;
+  loading: boolean;
+  retry: ReturnType<typeof useLoadRetry>;
+  errorView: React.Ref<HTMLDivElement>;
 }) {
   const titleId = React.useId();
   // The newest update is the featured one; the list shows the next few.
@@ -210,16 +221,34 @@ function RecentUpdatesCard({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {feedQuery.isLoading ? (
+        {loading && !retry.retrying ? (
           <div className="flex flex-col gap-4" aria-busy="true">
             {[0, 1, 2].map((row) => (
               <Skeleton key={row} className="h-12 w-full" />
             ))}
           </div>
-        ) : feedQuery.error ? (
-          <p className="text-sm text-muted-foreground">
-            Updates couldn’t load right now.
-          </p>
+        ) : feedQuery.error || retry.retrying ? (
+          // The featured update's alert announces the failure for both. The
+          // key stops the skeleton reusing this view, so a recovery removes
+          // it and the focus hand-off sees focus leave.
+          <div
+            key="failed"
+            ref={errorView}
+            className="flex flex-col items-start gap-3"
+          >
+            <p className="text-sm text-muted-foreground">
+              Updates couldn’t load right now.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={retry.retrying}
+              focusableWhenDisabled
+              onClick={retry.retry}
+            >
+              {retry.retrying ? "Trying again…" : "Try again"}
+            </Button>
+          </div>
         ) : updates.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             New updates from the missionaries you support will show up here.
@@ -267,9 +296,30 @@ export function DonorDashboardMainBody() {
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
   const giveAgain = lastSupported(portal);
+  // Both retries, and any recovery, land on the same page heading.
+  const pageRef = React.useRef<HTMLDivElement>(null);
+  const summaryRetry = useLoadRetry(
+    pageRef,
+    Boolean(portalQuery.error) || !portal,
+    portalQuery.refetch,
+  );
+  const feedRetry = useLoadRetry(
+    pageRef,
+    Boolean(feedQuery.error),
+    feedQuery.refetch,
+  );
+  // However a load recovers, focus on its error view moves to the heading.
+  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
+  // Offline, a first load waits for the connection without fetching; it is
+  // still loading, not failed or empty.
+  const portalLoading =
+    portalQuery.isLoading || (portalQuery.isPending && portalQuery.isPaused);
+  const feedLoading =
+    feedQuery.isLoading || (feedQuery.isPending && feedQuery.isPaused);
 
   return (
     <div
+      ref={pageRef}
       className={cn(
         // Tighter on phones, so the latest update starts within the first
         // screen.
@@ -316,7 +366,9 @@ export function DonorDashboardMainBody() {
         </Alert>
       ))}
 
-      {portalQuery.isLoading ? (
+      {/* With nothing cached, a retry loads afresh; the error view stays so
+          Try again keeps focus. */}
+      {portalLoading && !summaryRetry.retrying ? (
         <div
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
           aria-busy="true"
@@ -329,12 +381,24 @@ export function DonorDashboardMainBody() {
           ))}
         </div>
       ) : portalQuery.error || !portal ? (
-        <Card>
-          <CardContent>
-            <p role="alert" className="text-sm text-foreground">
-              We couldn’t load your giving summary. Refresh the page to try
-              again.
+        <Card ref={errorView}>
+          <CardContent className="flex flex-col items-start gap-3">
+            <p
+              key={summaryRetry.failedRetries}
+              role="alert"
+              className="text-sm text-foreground"
+            >
+              We couldn’t load your giving summary.
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={summaryRetry.retrying}
+              focusableWhenDisabled
+              onClick={summaryRetry.retry}
+            >
+              {summaryRetry.retrying ? "Trying again…" : "Try again"}
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -383,12 +447,19 @@ export function DonorDashboardMainBody() {
           <FeaturedUpdateHero
             key={feedQuery.data[0]?.id ?? "none"}
             post={feedQuery.data[0] ?? null}
-            isLoading={feedQuery.isLoading}
+            isLoading={feedLoading}
             error={feedQuery.error}
+            retry={feedRetry}
+            retryRef={errorView}
           />
         </section>
         <div className="min-w-0 lg:col-span-4">
-          <RecentUpdatesCard feedQuery={feedQuery} />
+          <RecentUpdatesCard
+            feedQuery={feedQuery}
+            loading={feedLoading}
+            retry={feedRetry}
+            errorView={errorView}
+          />
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import { Phone, MessageSquare, Send, Calendar, Briefcase } from "lucide-react";
+import * as React from "react";
 
 import {
   formatCurrency,
@@ -41,6 +42,17 @@ export function DonorsPageDetailOverview() {
   const view = useDonorsPageViewFields();
   const { selected: selectedDonor } = view.donors;
   const { noteComposer } = view;
+  const noteRef = React.useRef<HTMLTextAreaElement>(null);
+  const postRef = React.useRef<HTMLButtonElement>(null);
+  const postDisabled = !noteComposer.noteInput.trim() || noteComposer.isSaving;
+  // Post stays focusable while saving; a saved note empties the box and
+  // disables Post, so focus goes back to the note field.
+  React.useLayoutEffect(() => {
+    const saved = postDisabled && !noteComposer.isSaving;
+    if (saved && document.activeElement === postRef.current) {
+      noteRef.current?.focus();
+    }
+  }, [postDisabled, noteComposer.isSaving]);
 
   if (!selectedDonor) {
     return null;
@@ -62,6 +74,7 @@ export function DonorsPageDetailOverview() {
               Activity note
             </FieldLabel>
             <Textarea
+              ref={noteRef}
               id="overview-activity-note"
               placeholder="Log a call, meeting notes, or observation..."
               className="min-h-[80px] border-none bg-card focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
@@ -98,13 +111,15 @@ export function DonorsPageDetailOverview() {
           </ToggleGroup>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
+              ref={postRef}
               size="sm"
               className="h-8 rounded-xl px-4 font-semibold uppercase tracking-widest"
               onClick={handleNoteComposerSave}
-              disabled={!noteComposer.noteInput.trim() || noteComposer.isSaving}
+              disabled={postDisabled}
+              focusableWhenDisabled={noteComposer.isSaving}
             >
               {noteComposer.isSaving ? (
-                <Spinner data-icon="inline-start" />
+                <Spinner data-icon="inline-start" aria-label="Posting" />
               ) : (
                 <>
                   Post <Send data-icon="inline-end" />

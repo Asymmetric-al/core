@@ -12,11 +12,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
-import { Check, UserCheck, UserMinus, UserRound, Shuffle } from "lucide-react";
+import { UserCheck, UserMinus, UserRound, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSupportAgents } from "../../hooks/use-support-agents";
@@ -121,36 +122,27 @@ export function ConversationAssigneeMenu({
             <Shuffle className="size-3.5 text-muted-foreground" />
             Round-robin assign
           </DropdownMenuItem>
-          {agents.map((agent) => {
-            const isActive = assignee?.id === agent.id;
-            return (
-              <DropdownMenuItem
-                key={agent.id}
-                onClick={() =>
-                  assign.mutate({
-                    conversationId: conversation.id,
-                    assigneeAgentId: agent.id,
-                  })
-                }
-              >
-                <Check
-                  className={cn(
-                    "size-3.5",
-                    isActive ? "text-foreground" : "text-transparent",
-                  )}
-                />
-                <Avatar className="size-5">
-                  <AvatarImage
-                    src={agent.avatarUrl ?? undefined}
-                    alt={agent.name}
-                  />
-                  <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="max-w-36 truncate">{agent.name}</span>
-              </DropdownMenuItem>
-            );
-          })}
         </DropdownMenuGroup>
+        <DropdownMenuRadioGroup
+          aria-label="Agents"
+          value={assignee?.id ?? null}
+          onValueChange={(assigneeAgentId: string) =>
+            assign.mutate({
+              conversationId: conversation.id,
+              assigneeAgentId,
+            })
+          }
+        >
+          {agents.map((agent) => (
+            <DropdownMenuRadioItem key={agent.id} value={agent.id} closeOnClick>
+              <Avatar aria-hidden="true" className="size-5">
+                <AvatarImage src={agent.avatarUrl ?? undefined} alt="" />
+                <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span className="max-w-36 truncate">{agent.name}</span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

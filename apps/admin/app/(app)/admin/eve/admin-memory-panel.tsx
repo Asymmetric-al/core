@@ -31,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import {
   InputGroup,
@@ -56,7 +57,13 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { Brain, History, Search, ShieldBan } from "lucide-react";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import { EveSectionEmpty } from "./section-states";
 
@@ -145,6 +152,25 @@ const TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
   timeStyle: "short",
 };
 
+function deletedEntryFocusTarget(entryId: string) {
+  return (
+    document.getElementById(`memory-entry-${entryId}-title`) ??
+    document.getElementById("memory-search")
+  );
+}
+
+interface MemoryFieldErrors {
+  title?: string;
+  content?: string;
+}
+
+function memoryFieldErrors(title: string, content: string): MemoryFieldErrors {
+  return {
+    title: title.trim() ? undefined : "Enter a title.",
+    content: content.trim() ? undefined : "Enter the advisory context.",
+  };
+}
+
 function EntryEditor({
   entry,
   pending,
@@ -165,16 +191,52 @@ function EntryEditor({
   const [title, setTitle] = useState(entry.title);
   const [content, setContent] = useState(entry.content);
   const [category, setCategory] = useState(entry.category);
+  const [showErrors, setShowErrors] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const titleId = `memory-title-${entry.id}`;
+  const contentId = `memory-content-${entry.id}`;
+  const errors: MemoryFieldErrors = showErrors
+    ? memoryFieldErrors(title, content)
+    : {};
+
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
+
   return (
-    <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+    <form
+      noValidate
+      className="space-y-3 rounded-lg border border-border bg-muted/30 p-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (pending) return;
+        const missing = memoryFieldErrors(title, content);
+        if (missing.title || missing.content) {
+          setShowErrors(true);
+          (missing.title ? titleRef : contentRef).current?.focus();
+          return;
+        }
+        onSave({ category, title, content });
+      }}
+    >
       <div className="flex flex-col gap-3 md:flex-row">
         <div className="min-w-0 md:flex-1">
-          <Label htmlFor={`memory-title-${entry.id}`}>Title</Label>
+          <Label htmlFor={titleId}>Title</Label>
           <Input
-            id={`memory-title-${entry.id}`}
+            ref={titleRef}
+            id={titleId}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
+            maxLength={120}
+            aria-invalid={errors.title ? true : undefined}
+            aria-describedby={errors.title ? `${titleId}-error` : undefined}
           />
+          {errors.title ? (
+            <FieldError id={`${titleId}-error`} className="mt-2">
+              {errors.title}
+            </FieldError>
+          ) : null}
         </div>
         <div className="md:w-56 md:shrink-0">
           <Select<EveAdminMemoryCategory>
@@ -202,28 +264,45 @@ function EntryEditor({
         </div>
       </div>
       <div>
-        <Label htmlFor={`memory-content-${entry.id}`}>Advisory context</Label>
+        <Label htmlFor={contentId}>Advisory context</Label>
         <Textarea
-          id={`memory-content-${entry.id}`}
+          ref={contentRef}
+          id={contentId}
           value={content}
           onChange={(event) => setContent(event.target.value)}
           rows={4}
+          maxLength={4000}
+          aria-invalid={errors.content ? true : undefined}
+          aria-describedby={errors.content ? `${contentId}-error` : undefined}
         />
+        {errors.content ? (
+          <FieldError id={`${contentId}-error`} className="mt-2">
+            {errors.content}
+          </FieldError>
+        ) : null}
       </div>
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          focusableWhenDisabled={saving}
-          disabled={pending || !title.trim() || !content.trim()}
-          onClick={() => onSave({ category, title, content })}
-        >
-          Save new version
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
+        {/* A disabled submit Button is natively disabled and drops focus, so it
+            is a plain button while pending; both branches keep one DOM node. */}
+        {pending ? (
+          <Button
+            type="button"
+            size="sm"
+            focusableWhenDisabled={saving}
+            disabled
+          >
+            Save new version
+          </Button>
+        ) : (
+          <Button type="submit" size="sm">
+            Save new version
+          </Button>
+        )}
+        <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -345,6 +424,14 @@ function MemoryProfileSection({
   content: string;
   setContent: Dispatch<SetStateAction<string>>;
 }) {
+  const [showErrors, setShowErrors] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const errors: MemoryFieldErrors = showErrors
+    ? memoryFieldErrors(title, content)
+    : {};
+  const adding = mutation.isPending && mutation.variables?.method === "POST";
+
   return (
     <Card>
       <CardHeader>
@@ -376,62 +463,97 @@ function MemoryProfileSection({
             <AlertDescription>{mutation.error.message}</AlertDescription>
           </Alert>
         ) : null}
-        <div className="flex flex-col gap-4 md:flex-row">
-          <div className="min-w-0 md:flex-1">
-            <Label htmlFor="new-memory-title">Title</Label>
-            <Input
-              id="new-memory-title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              maxLength={120}
-            />
-          </div>
-          <div className="md:w-56 md:shrink-0">
-            <Select<EveAdminMemoryCategory>
-              items={LABELS}
-              value={category}
-              onValueChange={(value) => {
-                if (value !== null) setCategory(value);
-              }}
-            >
-              <SelectControlLabel>Category</SelectControlLabel>
-              <SelectTrigger id="new-memory-category" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {LABELS[value]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div>
-          <Label htmlFor="new-memory-content">Advisory context</Label>
-          <Textarea
-            id="new-memory-content"
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            maxLength={4000}
-            rows={4}
-          />
-        </div>
-        <Button
-          focusableWhenDisabled={
-            mutation.isPending && mutation.variables?.method === "POST"
-          }
-          disabled={mutation.isPending || !title.trim() || !content.trim()}
-          onClick={() =>
+        <form
+          noValidate
+          className="space-y-5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (mutation.isPending) return;
+            const missing = memoryFieldErrors(title, content);
+            if (missing.title || missing.content) {
+              setShowErrors(true);
+              (missing.title ? titleRef : contentRef).current?.focus();
+              return;
+            }
+            setShowErrors(false);
             mutation.mutate({
               method: "POST",
               body: { title, content, category },
-            })
-          }
+            });
+          }}
         >
-          Add private memory
-        </Button>
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div className="min-w-0 md:flex-1">
+              <Label htmlFor="new-memory-title">Title</Label>
+              <Input
+                ref={titleRef}
+                id="new-memory-title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                maxLength={120}
+                aria-invalid={errors.title ? true : undefined}
+                aria-describedby={
+                  errors.title ? "new-memory-title-error" : undefined
+                }
+              />
+              {errors.title ? (
+                <FieldError id="new-memory-title-error" className="mt-2">
+                  {errors.title}
+                </FieldError>
+              ) : null}
+            </div>
+            <div className="md:w-56 md:shrink-0">
+              <Select<EveAdminMemoryCategory>
+                items={LABELS}
+                value={category}
+                onValueChange={(value) => {
+                  if (value !== null) setCategory(value);
+                }}
+              >
+                <SelectControlLabel>Category</SelectControlLabel>
+                <SelectTrigger id="new-memory-category" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="new-memory-content">Advisory context</Label>
+            <Textarea
+              ref={contentRef}
+              id="new-memory-content"
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              maxLength={4000}
+              rows={4}
+              aria-invalid={errors.content ? true : undefined}
+              aria-describedby={
+                errors.content ? "new-memory-content-error" : undefined
+              }
+            />
+            {errors.content ? (
+              <FieldError id="new-memory-content-error" className="mt-2">
+                {errors.content}
+              </FieldError>
+            ) : null}
+          </div>
+          {/* A disabled submit Button is natively disabled and drops focus, so
+              it is a plain button while pending; both branches keep one DOM node. */}
+          {mutation.isPending ? (
+            <Button type="button" focusableWhenDisabled={adding} disabled>
+              Add private memory
+            </Button>
+          ) : (
+            <Button type="submit">Add private memory</Button>
+          )}
+        </form>
       </CardContent>
     </Card>
   );
@@ -478,6 +600,7 @@ function MemoryCategorySettings({
             <Button
               size="sm"
               variant={setting.autoSaveEnabled ? "outline" : "secondary"}
+              aria-label={`${setting.autoSaveEnabled ? "Disable" : "Enable"} automatic save: ${LABELS[setting.category]}`}
               focusableWhenDisabled={
                 mutation.isPending &&
                 mutation.variables?.method === "PATCH" &&
@@ -540,6 +663,30 @@ function MemoryEntriesSection({
   setDeleteIntent: Dispatch<SetStateAction<EntryMutationIntent | undefined>>;
   deleteIntent: EntryMutationIntent | undefined;
 }) {
+  const editFocusRef = useRef<string | undefined>(undefined);
+  const deleteFocusRef = useRef<string | undefined>(undefined);
+
+  // The editor and the deleted row's buttons unmount with focus inside them; restore it only when it fell to <body>.
+  useEffect(() => {
+    const focusIsLost =
+      !document.activeElement || document.activeElement === document.body;
+    const editEntryId = editFocusRef.current;
+    if (editEntryId && editingIntent?.entryId !== editEntryId) {
+      editFocusRef.current = undefined;
+      if (focusIsLost) {
+        document.getElementById(`memory-entry-${editEntryId}-edit`)?.focus();
+      }
+    }
+    const deleteEntryId = deleteFocusRef.current;
+    if (!deleteEntryId) return;
+    const deleted = query.data?.entries.find(
+      (entry) => entry.id === deleteEntryId,
+    );
+    if (deleted && !deleted.isDeleted) return;
+    deleteFocusRef.current = undefined;
+    if (focusIsLost) deletedEntryFocusTarget(deleteEntryId)?.focus();
+  }, [editingIntent, query.data]);
+
   return (
     <Card>
       <CardHeader>
@@ -608,23 +755,38 @@ function MemoryEntriesSection({
                     mutation.variables.body.action === "edit" &&
                     mutation.variables.body.entryId === entry.id
                   }
-                  onCancel={() => setEditingIntent(undefined)}
-                  onSave={(values) =>
-                    mutation.mutate({
-                      method: "PATCH",
-                      body: {
-                        action: "edit",
-                        entryId: editingIntent.entryId,
-                        expectedVersion: editingIntent.expectedVersion,
-                        ...values,
+                  onCancel={() => {
+                    editFocusRef.current = entry.id;
+                    setEditingIntent(undefined);
+                  }}
+                  onSave={(values) => {
+                    editFocusRef.current = entry.id;
+                    mutation.mutate(
+                      {
+                        method: "PATCH",
+                        body: {
+                          action: "edit",
+                          entryId: editingIntent.entryId,
+                          expectedVersion: editingIntent.expectedVersion,
+                          ...values,
+                        },
                       },
-                    })
-                  }
+                      {
+                        onError: () => {
+                          editFocusRef.current = undefined;
+                        },
+                      },
+                    );
+                  }}
                 />
               ) : (
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div
+                      id={`memory-entry-${entry.id}-title`}
+                      tabIndex={-1}
+                      className="flex items-center gap-2 outline-none"
+                    >
                       <p className="font-medium">{entry.title}</p>
                       <Badge variant="outline">{LABELS[entry.category]}</Badge>
                       {entry.isDeleted ? (
@@ -642,8 +804,10 @@ function MemoryEntriesSection({
                   {!entry.isDeleted ? (
                     <div className="flex gap-2">
                       <Button
+                        id={`memory-entry-${entry.id}-edit`}
                         size="sm"
                         variant="outline"
+                        aria-label={`Edit: ${entry.title}`}
                         onClick={() =>
                           setEditingIntent({
                             entryId: entry.id,
@@ -664,8 +828,10 @@ function MemoryEntriesSection({
                           }
                           render={
                             <Button
+                              id={`memory-entry-${entry.id}-delete`}
                               size="sm"
                               variant="destructive"
+                              aria-label={`Delete: ${entry.title}`}
                               focusableWhenDisabled={
                                 mutation.isPending &&
                                 mutation.variables?.method === "DELETE" &&
@@ -676,7 +842,15 @@ function MemoryEntriesSection({
                             </Button>
                           }
                         />
-                        <AlertDialogContent>
+                        <AlertDialogContent
+                          finalFocus={() =>
+                            document.getElementById(
+                              `memory-entry-${entry.id}-delete`,
+                            )
+                              ? true
+                              : (deletedEntryFocusTarget(entry.id) ?? true)
+                          }
+                        >
                           <AlertDialogHeader>
                             <AlertDialogTitle>
                               Delete “{entry.title}”?
@@ -704,14 +878,22 @@ function MemoryEntriesSection({
                                 ) {
                                   return;
                                 }
-                                mutation.mutate({
-                                  method: "DELETE",
-                                  body: {
-                                    entryId: deleteIntent.entryId,
-                                    expectedVersion:
-                                      deleteIntent.expectedVersion,
+                                deleteFocusRef.current = entry.id;
+                                mutation.mutate(
+                                  {
+                                    method: "DELETE",
+                                    body: {
+                                      entryId: deleteIntent.entryId,
+                                      expectedVersion:
+                                        deleteIntent.expectedVersion,
+                                    },
                                   },
-                                });
+                                  {
+                                    onError: () => {
+                                      deleteFocusRef.current = undefined;
+                                    },
+                                  },
+                                );
                               }}
                             >
                               Confirm delete

@@ -409,3 +409,76 @@ describe("Eve launch readiness panel", () => {
     expect(tone("Latest manifest")).toBe("outline");
   });
 });
+
+describe("Eve launch evidence import form", () => {
+  it("ties the reason hint to the reason field", async () => {
+    stubReadinessFetch(CLEARED_GOVERNANCE);
+    const view = renderPanel();
+    await view.findByText("Latest manifest");
+    const reason = view.getByRole("textbox", {
+      name: "Reason for this change",
+    });
+    expect(
+      document.getElementById(reason.getAttribute("aria-describedby") ?? "")
+        ?.textContent,
+    ).toContain("Every button below needs a reason");
+  });
+
+  it.each([
+    ["", "Paste the signed-off launch evidence."],
+    ["{not json", "The launch evidence must be valid JSON."],
+  ])(
+    "reports evidence %j on the field instead of importing it",
+    async (value, message) => {
+      const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE);
+      const view = renderPanel();
+      await view.findByText("Latest manifest");
+      const evidence = view.getByRole("textbox", {
+        name: "Signed-off launch evidence (JSON)",
+      });
+      fireEvent.change(evidence, { target: { value } });
+      const submit = view.getByRole("button", { name: "Validate and import" });
+      expect(submit.hasAttribute("disabled")).toBe(false);
+      expect(submit.getAttribute("type")).toBe("submit");
+
+      await act(async () => {
+        fireEvent.click(submit);
+      });
+
+      expect(evidence.getAttribute("aria-invalid")).toBe("true");
+      expect(
+        document.getElementById(evidence.getAttribute("aria-describedby") ?? "")
+          ?.textContent,
+      ).toBe(message);
+      expect(document.activeElement).toBe(evidence);
+      expect(
+        fetchMock.mock.calls.filter(([, init]) => init?.method === "POST"),
+      ).toHaveLength(0);
+
+      fireEvent.change(evidence, { target: { value: "{}" } });
+      expect(evidence.hasAttribute("aria-invalid")).toBe(false);
+    },
+  );
+
+  it("imports valid evidence through the form", async () => {
+    const fetchMock = stubReadinessFetch(CLEARED_GOVERNANCE);
+    const view = renderPanel();
+    await view.findByText("Latest manifest");
+    const evidence = view.getByRole("textbox", {
+      name: "Signed-off launch evidence (JSON)",
+    });
+    fireEvent.change(evidence, {
+      target: { value: '{"schemaVersion":"eve-launch-manifest-v1"}' },
+    });
+    fireEvent.submit(evidence);
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(
+        ([, init]) => init?.method === "POST",
+      );
+      expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({
+        kind: "manifest",
+        document: { schemaVersion: "eve-launch-manifest-v1" },
+      });
+    });
+  });
+});

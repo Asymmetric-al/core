@@ -816,20 +816,18 @@ export function NativeCollectionGrid({
     [baseColumns, selectable, useAsTitle],
   );
   // Column order is Payload's (saved with its column preferences). The
-  // selection, title and status columns stay first; the others move from
-  // the View panel, one step at a time.
+  // selection, title and status columns stay first; the others are reordered
+  // in the View panel's sortable list.
   const isFixedColumn = (id: string) =>
     id === "select" || id === primaryAccessor || id === "_status";
   const movableIds = gridColumns
     .map((column) => column.id ?? "")
     .filter((id) => id && !isFixedColumn(id));
-  const moveColumn = (id: string, direction: "up" | "down") => {
-    const from = movableIds.indexOf(id);
-    const to = direction === "up" ? from - 1 : from + 1;
-    if (from === -1 || to < 0 || to >= movableIds.length) return;
-    const order = [...movableIds];
-    [order[from], order[to]] = [order[to]!, order[from]!];
-    const movable = new Set(order);
+  const reorderColumns = (order: string[]) => {
+    const movable = new Set(movableIds);
+    // Never save an order that drops or adds a column.
+    if (order.length !== movable.size || !order.every((id) => movable.has(id)))
+      return;
     const byAccessor = new Map(
       columns.map((column) => [column.accessor, column]),
     );
@@ -1008,7 +1006,7 @@ export function NativeCollectionGrid({
         onToggle={(id, visible) =>
           table.getColumn(id)?.toggleVisibility(visible)
         }
-        onMove={moveColumn}
+        onReorder={reorderColumns}
       />
       {filtersOpen ? (
         <div
@@ -1050,7 +1048,7 @@ export function NativeCollectionGrid({
   // grouping and pagination would only be dead controls around the message.
   if (trash && !trashEnabled) {
     return (
-      <Card className="min-w-0" aria-label={title}>
+      <Card className="min-w-0" role="region" aria-label={title}>
         <CardContent>
           <GridEmptyState
             trash
@@ -1147,7 +1145,7 @@ export function NativeCollectionGrid({
 
   if (grouped) {
     return (
-      <Card className="min-w-0" aria-label={`${title}, grouped`}>
+      <Card className="min-w-0" role="region" aria-label={`${title}, grouped`}>
         {/* Phones: Payload's tables get the card's full width. */}
         <CardContent className="flex flex-col gap-4 px-2 sm:px-4">
           {selectionBar}

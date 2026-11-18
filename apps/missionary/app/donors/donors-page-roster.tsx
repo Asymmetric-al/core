@@ -2,6 +2,7 @@
 
 import { useMediaQuery } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { useLoadRetry } from "@asym/missionary/hooks/use-load-retry";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
@@ -13,6 +14,8 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
@@ -56,6 +59,7 @@ export function DonorsPageRoster() {
   const view = useDonorsPageViewFields();
   const { isLoading, error } = view.status;
   const {
+    all: allDonors,
     filtered: filteredDonors,
     selected: selectedDonor,
     selectById,
@@ -84,6 +88,7 @@ export function DonorsPageRoster() {
   const isStacked = useMediaQuery("(max-width: 1023px)");
   const selectedId = selectedDonor?.id ?? null;
   const openedFromRef = React.useRef<HTMLElement | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const previousSelectedIdRef = React.useRef<string | null>(null);
   React.useEffect(() => {
     const previous = previousSelectedIdRef.current;
@@ -112,8 +117,24 @@ export function DonorsPageRoster() {
     }),
     [selectedId],
   );
+  const rosterRef = React.useRef<HTMLDivElement>(null);
+  const loadMoreRef = React.useRef<HTMLButtonElement>(null);
+  // The error view's Try again: its own retry and a failed Load more both
+  // hand focus to it.
+  const loadRetryRef = React.useRef<HTMLButtonElement>(null);
+  const loadMore = useLoadMoreFocus({
+    allDonors,
+    filteredDonors,
+    isLoadingMoreDonors,
+    loadMoreDonors,
+    error,
+    rosterRef,
+    loadMoreRef,
+    loadRetryRef,
+  });
   return (
     <motion.div
+      ref={rosterRef}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ ...smoothTransition, delay: 0.2 }}
@@ -155,8 +176,10 @@ export function DonorsPageRoster() {
           <DonorRosterSearch
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
+            inputRef={searchInputRef}
           />
           <DonorRosterActiveFilters
+            searchInputRef={searchInputRef}
             hasActiveFilters={hasActiveFilters}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
@@ -176,16 +199,19 @@ export function DonorsPageRoster() {
             filteredDonors={filteredDonors}
             hasActiveFilters={hasActiveFilters}
             clearAllFilters={clearAllFilters}
+            searchInputRef={searchInputRef}
             tableState={tableState}
             selectById={selectFromRow}
+            retryRef={loadRetryRef}
           />
         </RosterOpenPartnerContext.Provider>
         <DonorRosterLoadMore
           hasMoreDonors={hasMoreDonors}
           error={error}
           isLoading={isLoading}
-          loadMoreDonors={loadMoreDonors}
+          loadMoreDonors={loadMore}
           isLoadingMoreDonors={isLoadingMoreDonors}
+          buttonRef={loadMoreRef}
         />
       </Card>
     </motion.div>
@@ -218,20 +244,21 @@ function DonorRosterSorting({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Sort by</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {[
-            { value: "last_gift", label: "Last gift" },
-            { value: "total_given", label: "Total given" },
-            { value: "name", label: "Name" },
-            { value: "joined_date", label: "Partner since" },
-          ].map((opt) => (
-            <DropdownMenuCheckboxItem
-              key={opt.value}
-              checked={sortBy === opt.value}
-              onCheckedChange={() => setSortBy(opt.value as SortOption)}
-            >
-              {opt.label}
-            </DropdownMenuCheckboxItem>
-          ))}
+          <DropdownMenuRadioGroup
+            value={sortBy}
+            onValueChange={(value: SortOption) => setSortBy(value)}
+          >
+            {[
+              { value: "last_gift", label: "Last gift" },
+              { value: "total_given", label: "Total given" },
+              { value: "name", label: "Name" },
+              { value: "joined_date", label: "Partner since" },
+            ].map((opt) => (
+              <DropdownMenuRadioItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuCheckboxItem
             checked={sortAsc}
@@ -295,35 +322,42 @@ function DonorRosterFilterMenu({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Status</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {["All", "Active", "New", "Lapsed", "At Risk", "Needs Attention"].map(
-            (s) => (
-              <DropdownMenuCheckboxItem
-                key={s}
-                checked={statusFilter === s}
-                onCheckedChange={() => setStatusFilter(s)}
-              >
+          <DropdownMenuRadioGroup
+            value={statusFilter}
+            onValueChange={(value: string) => setStatusFilter(value)}
+          >
+            {[
+              "All",
+              "Active",
+              "New",
+              "Lapsed",
+              "At Risk",
+              "Needs Attention",
+            ].map((s) => (
+              <DropdownMenuRadioItem key={s} value={s}>
                 {s}
-              </DropdownMenuCheckboxItem>
-            ),
-          )}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuLabel>Monthly giving</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {["All", "Active", "Inactive"].map((p) => (
-            <DropdownMenuCheckboxItem
-              key={p}
-              checked={pledgeFilter === p}
-              onCheckedChange={() => setPledgeFilter(p)}
-            >
-              {p === "Active"
-                ? "Gives monthly"
-                : p === "Inactive"
-                  ? "Doesn’t give monthly"
-                  : "All"}
-            </DropdownMenuCheckboxItem>
-          ))}
+          <DropdownMenuRadioGroup
+            value={pledgeFilter}
+            onValueChange={(value: string) => setPledgeFilter(value)}
+          >
+            {["All", "Active", "Inactive"].map((p) => (
+              <DropdownMenuRadioItem key={p} value={p}>
+                {p === "Active"
+                  ? "Gives monthly"
+                  : p === "Inactive"
+                    ? "Doesn’t give monthly"
+                    : "All"}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -357,6 +391,7 @@ function DonorRosterFilterMenu({
 function DonorRosterSearch({
   searchTerm,
   setSearchTerm,
+  inputRef,
 }: {
   searchTerm: ReturnType<
     typeof useDonorsPageViewFields
@@ -364,6 +399,7 @@ function DonorRosterSearch({
   setSearchTerm: ReturnType<
     typeof useDonorsPageViewFields
   >["filters"]["setSearchTerm"];
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
     <Field>
@@ -372,6 +408,7 @@ function DonorRosterSearch({
       </FieldLabel>
       <InputGroup>
         <InputGroupInput
+          ref={inputRef}
           id="partners-search"
           placeholder="Search partners..."
           value={searchTerm}
@@ -386,6 +423,7 @@ function DonorRosterSearch({
 }
 
 function DonorRosterActiveFilters({
+  searchInputRef,
   hasActiveFilters,
   statusFilter,
   setStatusFilter,
@@ -395,6 +433,7 @@ function DonorRosterActiveFilters({
   removeFilterTag,
   clearAllFilters,
 }: {
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
   hasActiveFilters: ReturnType<
     typeof useDonorsPageViewFields
   >["filters"]["hasActiveFilters"];
@@ -418,6 +457,34 @@ function DonorRosterActiveFilters({
     typeof useDonorsPageViewFields
   >["filters"]["clearAll"];
 }) {
+  const chipKeys = React.useMemo(
+    () => [
+      ...(statusFilter !== "All" ? ["status"] : []),
+      ...(pledgeFilter !== "All" ? ["pledge"] : []),
+      ...tagFilter.map((tag) => `tag:${tag}`),
+    ],
+    [statusFilter, pledgeFilter, tagFilter],
+  );
+  const removeButtonRefs = React.useRef(new Map<string, HTMLElement>());
+  const registerRemoveButton = (key: string, element: HTMLElement | null) => {
+    if (element) removeButtonRefs.current.set(key, element);
+    else removeButtonRefs.current.delete(key);
+  };
+  // Removing a chip (or Clear all) unmounts the focused button. As in the
+  // shared FilterBar, focus the chip now in its place, else the search box.
+  const pendingFocusIndex = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    const index = pendingFocusIndex.current;
+    if (index === null) return;
+    pendingFocusIndex.current = null;
+    const key = chipKeys[Math.min(index, chipKeys.length - 1)];
+    const next = key ? removeButtonRefs.current.get(key) : undefined;
+    (next ?? searchInputRef.current)?.focus();
+  }, [chipKeys, hasActiveFilters, searchInputRef]);
+  const removeChip = (key: string, remove: () => void) => {
+    pendingFocusIndex.current = chipKeys.indexOf(key);
+    remove();
+  };
   return (
     <AnimatePresence mode="popLayout">
       {hasActiveFilters && (
@@ -442,7 +509,10 @@ function DonorRosterActiveFilters({
                   variant="ghost"
                   size="icon-xs"
                   aria-label={`Clear ${statusFilter} status filter`}
-                  onClick={() => setStatusFilter("All")}
+                  ref={(element) => registerRemoveButton("status", element)}
+                  onClick={() =>
+                    removeChip("status", () => setStatusFilter("All"))
+                  }
                   className="ml-1"
                 >
                   <X aria-hidden />
@@ -467,7 +537,10 @@ function DonorRosterActiveFilters({
                   variant="ghost"
                   size="icon-xs"
                   aria-label="Clear recurring filter"
-                  onClick={() => setPledgeFilter("All")}
+                  ref={(element) => registerRemoveButton("pledge", element)}
+                  onClick={() =>
+                    removeChip("pledge", () => setPledgeFilter("All"))
+                  }
                   className="ml-1"
                 >
                   <X aria-hidden />
@@ -491,7 +564,10 @@ function DonorRosterActiveFilters({
                   variant="ghost"
                   size="icon-xs"
                   aria-label={`Clear ${getTagLabel(tag)} tag filter`}
-                  onClick={() => removeFilterTag(tag)}
+                  ref={(element) => registerRemoveButton(`tag:${tag}`, element)}
+                  onClick={() =>
+                    removeChip(`tag:${tag}`, () => removeFilterTag(tag))
+                  }
                   className="ml-1"
                 >
                   <X aria-hidden />
@@ -504,7 +580,7 @@ function DonorRosterActiveFilters({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={clearAllFilters}
+              onClick={() => removeChip("all", clearAllFilters)}
             >
               Clear all
             </Button>
@@ -525,8 +601,10 @@ function DonorRosterResults({
   filteredDonors,
   hasActiveFilters,
   clearAllFilters,
+  searchInputRef,
   tableState,
   selectById,
+  retryRef,
 }: {
   error: ReturnType<typeof useDonorsPageViewFields>["status"]["error"];
   refreshDonors: ReturnType<
@@ -542,15 +620,34 @@ function DonorRosterResults({
   clearAllFilters: ReturnType<
     typeof useDonorsPageViewFields
   >["filters"]["clearAll"];
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
   tableState: { rowSelection: RowSelectionState };
   selectById: ReturnType<
     typeof useDonorsPageViewFields
   >["donors"]["selectById"];
+  /** The error view's Try again; the roster owns it for Load more too. */
+  retryRef: React.RefObject<HTMLButtonElement | null>;
 }) {
+  const loadRetry = useLoadRetry({
+    retryRef,
+    error,
+    loading: isLoading,
+    onRetry: refreshDonors,
+    landing: (button) =>
+      button
+        ?.closest('[data-slot="card"]')
+        ?.querySelector<HTMLElement>('[role="heading"]'),
+  });
   return (
     <div className="flex-1 min-h-0">
-      {error ? (
-        <ErrorState message={error} onRetry={refreshDonors} />
+      {loadRetry.error ? (
+        <ErrorState
+          message={loadRetry.error}
+          onRetry={loadRetry.retry}
+          retrying={loadRetry.retrying}
+          retryRef={retryRef}
+          failedRetries={loadRetry.failedRetries}
+        />
       ) : isLoading ? (
         <DonorListSkeleton />
       ) : filteredDonors.length === 0 ? (
@@ -568,7 +665,16 @@ function DonorRosterResults({
           </EmptyHeader>
           {hasActiveFilters ? (
             <EmptyContent>
-              <Button variant="outline" size="sm" onClick={clearAllFilters}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // This button leaves with the empty state; keep focus on the
+                  // search box it cleared.
+                  searchInputRef.current?.focus();
+                  clearAllFilters();
+                }}
+              >
                 Clear filters
               </Button>
             </EmptyContent>
@@ -620,24 +726,124 @@ function DonorRosterResults({
   );
 }
 
+function focusIsLost() {
+  const active = document.activeElement;
+  return !active || active === document.body;
+}
+
+/**
+ * Load more stays focused while the page loads, then hands focus to the first
+ * partner it added that is rendered, in roster order (sorting can place them
+ * anywhere, and the virtualized table renders only rows near the scroll
+ * position). When none is rendered (all filtered out, or outside the table's
+ * window) focus stays on Load more, or lands on the list heading if the last
+ * page took the button away. A page that fails to load puts the list in error,
+ * whose view replaces Load more: focus moves to its Try again.
+ */
+function useLoadMoreFocus({
+  allDonors,
+  filteredDonors,
+  isLoadingMoreDonors,
+  loadMoreDonors,
+  error,
+  rosterRef,
+  loadMoreRef,
+  loadRetryRef,
+}: {
+  allDonors: ReturnType<typeof useDonorsPageViewFields>["donors"]["all"];
+  filteredDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["filtered"];
+  isLoadingMoreDonors: boolean;
+  loadMoreDonors: () => unknown;
+  error: ReturnType<typeof useDonorsPageViewFields>["status"]["error"];
+  /** The roster card's container: holds the partners and the list heading. */
+  rosterRef: React.RefObject<HTMLElement | null>;
+  loadMoreRef: React.RefObject<HTMLButtonElement | null>;
+  /** The error view's Try again. */
+  loadRetryRef: React.RefObject<HTMLButtonElement | null>;
+}) {
+  // Every partner loaded so far, filtered out or not: only the next page's
+  // partners count as new.
+  const pending = React.useRef<{
+    loaded: ReadonlySet<string>;
+    started: boolean;
+  } | null>(null);
+  const loadMore = React.useCallback(() => {
+    pending.current = {
+      loaded: new Set(allDonors.map((donor) => donor.id)),
+      started: false,
+    };
+    void loadMoreDonors();
+  }, [allDonors, loadMoreDonors]);
+  React.useEffect(() => {
+    const load = pending.current;
+    if (!load) return;
+    if (isLoadingMoreDonors) {
+      load.started = true;
+      return;
+    }
+    if (!load.started) return;
+    pending.current = null;
+    const lost = focusIsLost();
+    if (!lost && document.activeElement !== loadMoreRef.current) return;
+    const retry = error ? loadRetryRef.current : null;
+    if (retry?.isConnected) {
+      retry.focus();
+      return;
+    }
+    // The virtualized table renders only rows near the scroll position, so
+    // take the first new partner that is in the DOM.
+    const rendered = new Map<string, HTMLElement>();
+    rosterRef.current
+      ?.querySelectorAll<HTMLElement>("[data-partner-id]")
+      .forEach((element) => {
+        const id = element.dataset.partnerId;
+        if (id && !rendered.has(id)) rendered.set(id, element);
+      });
+    for (const donor of filteredDonors) {
+      if (load.loaded.has(donor.id)) continue;
+      const target = rendered.get(donor.id);
+      if (target) {
+        target.focus();
+        return;
+      }
+    }
+    if (!lost) return;
+    const heading =
+      rosterRef.current?.querySelector<HTMLElement>('[role="heading"]');
+    if (!heading) return;
+    if (!heading.hasAttribute("tabindex")) heading.tabIndex = -1;
+    heading.focus();
+  }, [
+    error,
+    filteredDonors,
+    isLoadingMoreDonors,
+    loadMoreRef,
+    loadRetryRef,
+    rosterRef,
+  ]);
+  return loadMore;
+}
+
 function DonorRosterLoadMore({
   hasMoreDonors,
   error,
   isLoading,
   loadMoreDonors,
   isLoadingMoreDonors,
+  buttonRef,
 }: {
   hasMoreDonors: ReturnType<
     typeof useDonorsPageViewFields
   >["donors"]["hasMore"];
   error: ReturnType<typeof useDonorsPageViewFields>["status"]["error"];
   isLoading: ReturnType<typeof useDonorsPageViewFields>["status"]["isLoading"];
-  loadMoreDonors: ReturnType<
-    typeof useDonorsPageViewFields
-  >["donors"]["loadMore"];
+  loadMoreDonors: () => void;
   isLoadingMoreDonors: ReturnType<
     typeof useDonorsPageViewFields
   >["donors"]["isLoadingMore"];
+  buttonRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   return (
     hasMoreDonors &&
@@ -645,10 +851,12 @@ function DonorRosterLoadMore({
     !isLoading && (
       <div className="border-t border-border p-3 shrink-0">
         <Button
+          ref={buttonRef}
           variant="outline"
           size="sm"
           onClick={loadMoreDonors}
           disabled={isLoadingMoreDonors}
+          focusableWhenDisabled
           className="w-full"
         >
           {isLoadingMoreDonors ? (

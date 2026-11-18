@@ -251,8 +251,8 @@ describe("Support Hub settings drafts", () => {
     expect(
       screen
         .getByRole("button", { name: "Save changes" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
   });
 
   it("names the inbox once and promises only the settings it has", () => {
@@ -389,8 +389,8 @@ describe("Support Hub settings drafts", () => {
     expect(
       screen
         .getByRole("button", { name: "Save changes" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
   });
 
   it("selects a newly loaded first agent when there is no current agent", () => {
@@ -455,8 +455,8 @@ describe("Support Hub settings drafts", () => {
     expect(
       screen
         .getByRole("button", { name: "Save changes" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
     fireEvent.click(sla);
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(hooks.savePreferences).toHaveBeenCalledWith(
@@ -474,8 +474,8 @@ describe("Support Hub settings drafts", () => {
     expect(
       screen
         .getByRole("button", { name: "Save changes" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
   });
 
   it.each([

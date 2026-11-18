@@ -6,6 +6,7 @@ import {
   type DataGridColumnDef,
 } from "@asym/ui/components/data-grid-panel";
 import { DataGridColumnHeader } from "@asym/ui/components/reui/data-grid/data-grid-column-header";
+import * as React from "react";
 
 import {
   AssigneeCell,
@@ -22,6 +23,30 @@ import {
 import type { SupportConversation } from "../../types";
 
 const PRIORITY_ORDER = { urgent: 0, high: 1, normal: 2, low: 3 } as const;
+
+// Context, not a column argument: new column definitions remount every cell,
+// which would drop focus from the subject that was just pressed.
+const OpenConversationContext = React.createContext<string | null>(null);
+
+export const SupportOpenConversationProvider = OpenConversationContext.Provider;
+
+function SubjectPrimary({
+  row,
+  onOpen,
+}: {
+  row: SupportConversation;
+  onOpen: (id: string) => void;
+}) {
+  const openId = React.use(OpenConversationContext);
+  return (
+    <DataGridRowPrimary
+      aria-current={row.id === openId}
+      onClick={() => onOpen(row.id)}
+    >
+      <SubjectCell row={row} />
+    </DataGridRowPrimary>
+  );
+}
 
 /**
  * Conversation columns on Core's shared ReUI grid. The subject is the row's
@@ -41,11 +66,7 @@ export function createSupportConversationColumns(
       header: ({ column }) => (
         <DataGridColumnHeader column={column} title="Subject" />
       ),
-      cell: ({ row }) => (
-        <DataGridRowPrimary onClick={() => onOpen(row.original.id)}>
-          <SubjectCell row={row.original} />
-        </DataGridRowPrimary>
-      ),
+      cell: ({ row }) => <SubjectPrimary row={row.original} onOpen={onOpen} />,
       enableHiding: false,
       size: 240,
       meta: { headerTitle: "Subject" },

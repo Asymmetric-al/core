@@ -10,16 +10,36 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: the settings list is exercised at its public UI boundary.
+import { SignatureList } from "../../../../../../../apps/admin/features/support-hub/components/settings/signatures/SignatureList";
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: the settings list is exercised at its public UI boundary.
 import { SlaPolicyList } from "../../../../../../../apps/admin/features/support-hub/components/settings/sla/SlaPolicyList";
 
 // eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: fixtures use the app's public wire-format types.
-import type { SupportSlaPolicy } from "../../../../../../../apps/admin/features/support-hub/types";
+import type {
+  SupportSignature,
+  SupportSlaPolicy,
+} from "../../../../../../../apps/admin/features/support-hub/types";
 
 const hooks = vi.hoisted(() => ({
   setDefault: vi.fn(),
   setDefaultPending: false,
+  setDefaultSignature: vi.fn(),
   confirm: vi.fn(),
 }));
+
+function signature(id: string, name: string, isDefault: boolean) {
+  return {
+    id,
+    tenantId: "tenant-1",
+    name,
+    bodyText: "Thanks",
+    bodyHtml: "<p>Thanks</p>",
+    ownerAgentId: null,
+    isDefault,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  } as unknown as SupportSignature;
+}
 
 function policy(id: string, name: string, isDefault: boolean) {
   return {
@@ -64,7 +84,37 @@ vi.mock(
       isPending: hooks.setDefaultPending,
     }),
     useSaveSupportSlaPolicy: () => ({ mutateAsync: vi.fn(), isPending: false }),
+    useDeleteSupportSignature: () => ({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    }),
+    useSetDefaultSupportSignature: () => ({
+      mutateAsync: hooks.setDefaultSignature,
+      isPending: false,
+    }),
+    useSaveSupportSignature: () => ({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    }),
   }),
+);
+vi.mock(
+  "../../../../../../../apps/admin/features/support-hub/hooks/use-support-signatures",
+  () => ({
+    useSupportSignatures: () => ({
+      data: [
+        signature("sig-team", "Team", true),
+        signature("sig-short", "Short", false),
+      ],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    }),
+  }),
+);
+vi.mock(
+  "../../../../../../../apps/admin/features/support-hub/hooks/use-support-agents",
+  () => ({ useSupportAgents: () => ({ data: [] }) }),
 );
 vi.mock(
   "../../../../../../../apps/admin/features/support-hub/components/workspace/confirm-provider",
@@ -77,6 +127,7 @@ vi.mock("sonner", () => ({
 beforeEach(() => {
   hooks.setDefault.mockReset().mockResolvedValue(undefined);
   hooks.setDefaultPending = false;
+  hooks.setDefaultSignature.mockReset().mockResolvedValue(undefined);
   hooks.confirm.mockReset().mockResolvedValue(false);
 });
 afterEach(cleanup);
@@ -111,6 +162,22 @@ describe("SLA policy row actions", () => {
     ).toBe(true);
   });
 
+  it("moves focus to the policy's Edit button when Make default is chosen", async () => {
+    render(<SlaPolicyList />);
+    const makeDefault = screen.getByRole("button", {
+      name: "Make Urgent default",
+    });
+    makeDefault.focus();
+    fireEvent.click(makeDefault);
+    // Make default is disabled while it saves and then leaves the row.
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Edit Urgent" }),
+    );
+    await waitFor(() =>
+      expect(hooks.setDefault).toHaveBeenCalledWith({ id: "sla-urgent" }),
+    );
+  });
+
   it("keeps Delete visible and behind the confirmation", async () => {
     render(<SlaPolicyList />);
     const remove = screen.getByRole("button", { name: "Delete Urgent" });
@@ -119,5 +186,24 @@ describe("SLA policy row actions", () => {
     expect(hooks.confirm.mock.calls[0]?.[0]).toMatchObject({
       title: "Delete the Urgent SLA policy?",
     });
+  });
+});
+
+describe("Signature row actions", () => {
+  it("moves focus to the signature's Edit button when Make default is chosen", async () => {
+    render(<SignatureList />);
+    const makeDefault = screen.getByRole("button", {
+      name: "Make Short default",
+    });
+    makeDefault.focus();
+    fireEvent.click(makeDefault);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Edit Short" }),
+    );
+    await waitFor(() =>
+      expect(hooks.setDefaultSignature).toHaveBeenCalledWith({
+        id: "sig-short",
+      }),
+    );
   });
 });

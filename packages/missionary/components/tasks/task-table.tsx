@@ -281,7 +281,7 @@ export function TaskTable({
                     <td className="p-4" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger
-                          aria-label="Open actions"
+                          aria-label={`Actions for ${task.title}`}
                           render={
                             <Button
                               variant="ghost"

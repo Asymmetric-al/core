@@ -127,9 +127,10 @@ describe("UI route cleanup contracts", () => {
     );
 
     // Bookmarks were local-only (lost on reload), so they were removed; the
-    // type filter chips expose their state instead.
+    // type filter is a single-choice toggle group that exposes its state.
     expect(source).not.toContain("Save this post");
-    expect(source).toContain("aria-pressed={category === value}");
+    expect(source).toContain("<ToggleGroup");
+    expect(source).toContain("value={[category]}");
     expect(source).toContain("<ReactionBar");
     expect(source).not.toMatch(/aria-label="Open post actions"/);
     expect(source).not.toMatch(/aria-label="Share post"/);

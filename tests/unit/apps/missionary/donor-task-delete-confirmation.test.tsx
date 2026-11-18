@@ -160,7 +160,7 @@ it("confirms menu deletion and restores focus to the still-mounted actions trigg
     },
   ];
   render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
-  const trigger = screen.getByRole("button", { name: "Open actions" });
+  const trigger = screen.getByRole("button", { name: "Actions for Call Anna" });
   trigger.focus();
   fireEvent.click(trigger);
   fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));

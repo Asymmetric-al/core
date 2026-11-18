@@ -23,7 +23,10 @@ import * as React from "react";
 import { RelativeTime } from "../RelativeTime";
 import { useSupportBulkActions } from "./bulk-actions";
 import { PRIORITY_LABELS, StatusCell } from "./cells";
-import { createSupportConversationColumns } from "./columns";
+import {
+  createSupportConversationColumns,
+  SupportOpenConversationProvider,
+} from "./columns";
 import { SupportEmptySection } from "../workspace/SupportEmptySection";
 
 import type { SupportConversation } from "../../types";
@@ -93,7 +96,7 @@ export function SupportTableView({
   const selectedRows = conversations.filter((row) => rowSelection[row.id]);
 
   return (
-    <>
+    <SupportOpenConversationProvider value={selectedConversationId}>
       <DataGridPanel
         // Cards when the columns would not fit, not a sideways scroll.
         view="auto"
@@ -159,7 +162,7 @@ export function SupportTableView({
         }
       />
       {overlays}
-    </>
+    </SupportOpenConversationProvider>
   );
 }
 
@@ -178,7 +181,10 @@ function SupportConversationMobileRow({
     conversation.externalContactName ?? conversation.externalContactEmail;
   return (
     // The subject control stretches over the card, so the whole card opens it.
-    <div className="relative rounded-md transition-colors hover:bg-accent/40 has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+    <div
+      data-conversation-id={conversation.id}
+      className="relative rounded-md transition-colors hover:bg-accent/40 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
+    >
       <Item variant="outline" size="sm" render={<div />}>
         {/* Above the stretched subject control, so it stays clickable. */}
         <span className="relative z-10 flex pt-0.5">
@@ -191,7 +197,7 @@ function SupportConversationMobileRow({
         <ItemContent className="min-w-0 gap-1">
           <DataGridRowPrimary
             className="flex-col items-start gap-0.5 text-left after:absolute after:inset-0"
-            aria-pressed={isOpen}
+            aria-current={isOpen}
             onClick={() => onOpen(conversation.id)}
           >
             <span className="truncate text-xs text-muted-foreground">

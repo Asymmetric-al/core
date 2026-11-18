@@ -149,6 +149,48 @@ describe("UI SDK integration in @asym/ui", () => {
     }
   });
 
+  it("loads the agent bridge's SDK entry only on demand, and mounts it once per Mission Control document", () => {
+    const bridge = readFileSync(
+      path.join(repoRoot, "packages/ui/components/primitives/agent-bridge.tsx"),
+      "utf8",
+    );
+    // A static value import would put the agent entry in every shell bundle.
+    const staticImports = [
+      ...bridge.matchAll(
+        /^import\s+(?!type\b)[^;]*?from\s+["'](@ui-sdk\/[^"']+)["']/gms,
+      ),
+    ].map((match) => match[1]);
+    expect(staticImports).toEqual([]);
+    expect(bridge).toMatch(/import\(\s*["']@ui-sdk\/react\/agent["']\s*\)/);
+
+    // Only Mission Control renders UI SDK-backed controls, so only it mounts
+    // the bridge; a bridge elsewhere would offer agents tools that see nothing.
+    // Each of its documents mounts one: the shell for the (app) routes, and
+    // the Payload layout for Web Studio, which renders outside that shell.
+    const mounts = trackedFiles("apps")
+      .filter((file) => /\.(?:[cm]?[jt]sx?)$/.test(file))
+      .filter((file) =>
+        /<AgentBridge\b/.test(readFileSync(path.join(repoRoot, file), "utf8")),
+      );
+    expect(mounts).toEqual([
+      "apps/admin/app/(payload)/layout.tsx",
+      "apps/admin/app/mc-shell.tsx",
+    ]);
+    // Web Studio's bridge sits in the layout every Web Studio page renders,
+    // not in a branch that depends on its database.
+    const payloadLayout = readFileSync(
+      path.join(repoRoot, "apps/admin/app/(payload)/layout.tsx"),
+      "utf8",
+    );
+    const layoutBody = payloadLayout.slice(
+      payloadLayout.indexOf("export default async function PayloadLayout"),
+      payloadLayout.indexOf("async function PayloadEmbeddedLayout"),
+    );
+    expect(layoutBody).toContain(
+      "<AgentBridge allow={WEB_STUDIO_AGENT_PERMISSIONS} />",
+    );
+  });
+
   it("keeps SDK imports inside packages/ui and never loads the optional stylesheet", () => {
     const sourceFiles = trackedFiles("apps", "packages").filter((file) =>
       /\.(?:[cm]?[jt]sx?|css)$/.test(file),

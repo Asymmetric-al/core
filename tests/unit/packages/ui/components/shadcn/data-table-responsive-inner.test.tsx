@@ -1,7 +1,14 @@
 /** @vitest-environment jsdom */
 
 import type { ColumnDef } from "../../../../../../packages/ui/components/shadcn/data-table/tanstack";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DataTableResponsive } from "../../../../../../packages/ui/components/shadcn/data-table/data-table-responsive";
@@ -82,6 +89,46 @@ const data: Person[] = [{ id: "person-1", name: "Ada Lovelace" }];
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+describe("DataTableResponsive accessible name", () => {
+  const config = {
+    enableFilters: false,
+    enablePagination: false,
+    enableRowSelection: false,
+  };
+
+  it("names the table region and the table from the label", () => {
+    installMatchMedia(false);
+
+    render(
+      <DataTableResponsive
+        columns={columns}
+        data={data}
+        label="Giving history"
+        config={config}
+      />,
+    );
+
+    const region = screen.getByRole("region", { name: "Giving history" });
+    expect(
+      within(region).getByRole("grid", { name: "Giving history" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Data table" })).toBeNull();
+  });
+
+  it('falls back to "Data table" when no label is given', () => {
+    installMatchMedia(false);
+
+    render(
+      <DataTableResponsive columns={columns} data={data} config={config} />,
+    );
+
+    const region = screen.getByRole("region", { name: "Data table" });
+    expect(
+      within(region).getByRole("grid", { name: "Data table" }),
+    ).toBeTruthy();
+  });
 });
 
 describe("DataTableResponsive mobile mode", () => {

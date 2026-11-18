@@ -1,5 +1,6 @@
 "use client";
 
+import { useShortcut } from "@asym/ui/components/primitives/shortcut";
 import * as React from "react";
 
 interface HotkeyMap {
@@ -8,31 +9,27 @@ interface HotkeyMap {
   disabled?: boolean;
 }
 
+export const COMPOSER_PRIMARY_SHORTCUT = "mod+enter";
+
 export function useComposerHotkeys({
   onPrimaryAction,
   disabled = false,
 }: HotkeyMap) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useEffect(() => {
-    const node = containerRef.current;
-    if (!node) return;
-
-    const handler = (event: KeyboardEvent) => {
-      const isPrimaryShortcut =
-        (event.metaKey || event.ctrlKey) && event.key === "Enter";
-      if (!isPrimaryShortcut || event.defaultPrevented || event.isComposing)
-        return;
-      event.preventDefault();
-      if (disabled || event.repeat) return;
-      onPrimaryAction();
-    };
-
-    node.addEventListener("keydown", handler);
-    return () => {
-      node.removeEventListener("keydown", handler);
-    };
-  }, [onPrimaryAction, disabled]);
+  // The shortcut keeps the key while sending, so it never falls through to
+  // the editor as a line break.
+  useShortcut(
+    COMPOSER_PRIMARY_SHORTCUT,
+    () => {
+      if (!disabled) onPrimaryAction();
+    },
+    {
+      allowInInput: true,
+      description: "Send the reply or add the note",
+      within: containerRef,
+    },
+  );
 
   return containerRef;
 }

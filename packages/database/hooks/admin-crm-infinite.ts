@@ -15,6 +15,10 @@ const CRM_QUERY_KEY = ["admin", "crm", "records", "infinite"] as const;
 
 type CrmLoadedRow = CrmGridRow & { sortPosition: number };
 
+// While useLiveQuery stays mounted, one Collection ID may name only one
+// Collection, so clearing back to an earlier fingerprint needs a fresh ID.
+let loadedCollectionCount = 0;
+
 function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debouncedValue, setDebouncedValue] = React.useState(value);
 
@@ -176,17 +180,16 @@ export function useAdminCrmRecordsInfiniteGrid(
     [debouncedFilters, sorting],
   );
 
-  const loadedCollection = React.useMemo(
-    () =>
-      createCollection(
-        localOnlyCollectionOptions<CrmLoadedRow>({
-          id: `crm-loaded-${collectionFingerprint}`,
-          getKey: (row) => row.id,
-          initialData: [],
-        }),
-      ),
-    [collectionFingerprint],
-  );
+  const loadedCollection = React.useMemo(() => {
+    loadedCollectionCount += 1;
+    return createCollection(
+      localOnlyCollectionOptions<CrmLoadedRow, string>({
+        id: `crm-loaded-${loadedCollectionCount}-${collectionFingerprint}`,
+        getKey: (row) => row.id,
+        initialData: [],
+      }),
+    );
+  }, [collectionFingerprint]);
 
   const loadedRowsQuery = useLiveQuery((q) =>
     q
@@ -225,22 +228,12 @@ export function useAdminCrmRecordsInfiniteGrid(
     });
   }, [infiniteQuery.data?.pages]);
 
-  const crmLoadedCollectionRef = React.useRef(loadedCollection);
   React.useEffect(() => {
-    const collectionSwapped =
-      crmLoadedCollectionRef.current !== loadedCollection;
-    crmLoadedCollectionRef.current = loadedCollection;
-
-    const rawLiveRows = loadedRowsQuery.data ?? [];
-    // After fingerprint changes, `loadedCollection` is a new instance but
-    // `useLiveQuery` can still return the previous collection's rows briefly;
-    // treating the snapshot as empty forces insert-only for that pass.
-    const currentRows = collectionSwapped ? [] : rawLiveRows;
-    const currentById = new Map(currentRows.map((row) => [row.id, row]));
+    // Reconcile against the Collection itself, not a rendered snapshot, so a
+    // replayed effect (StrictMode, remount over cached pages) stays harmless.
     const nextIds = new Set(flattenedRows.map((row) => row.id));
-
-    const removedIds = currentRows.flatMap((row) =>
-      nextIds.has(row.id) ? [] : [row.id],
+    const removedIds = [...loadedCollection.keys()].filter(
+      (id) => !nextIds.has(id),
     );
 
     if (removedIds.length > 0) {
@@ -248,8 +241,7 @@ export function useAdminCrmRecordsInfiniteGrid(
     }
 
     for (const nextRow of flattenedRows) {
-      const existingRow = currentById.get(nextRow.id);
-      if (!existingRow) {
+      if (!loadedCollection.has(nextRow.id)) {
         loadedCollection.insert(nextRow);
         continue;
       }
@@ -258,7 +250,7 @@ export function useAdminCrmRecordsInfiniteGrid(
         Object.assign(draft, nextRow);
       });
     }
-  }, [flattenedRows, loadedCollection, loadedRowsQuery.data]);
+  }, [flattenedRows, loadedCollection]);
 
   const rows = React.useMemo(
     () =>

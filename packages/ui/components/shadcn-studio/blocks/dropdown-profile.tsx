@@ -19,7 +19,7 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 
 import type { LucideIcon } from "lucide-react";
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 export type ProfileDropdownMenuItem = {
   label: string;
@@ -39,6 +39,8 @@ type Props = {
   /** A short line under the email, such as the role and organization. */
   detail?: string;
   menuItems?: readonly ProfileDropdownMenuItem[];
+  /** Menu items that act rather than link, after `menuItems`. */
+  children?: ReactNode;
   onSignOut?: () => void;
 };
 
@@ -62,6 +64,7 @@ const ProfileDropdown = ({
   user,
   detail,
   menuItems = [],
+  children,
   onSignOut,
 }: Props) => {
   // With no name or email, the role and organisation say whose menu this is.
@@ -100,7 +103,7 @@ const ProfileDropdown = ({
             </div>
           </DropdownMenuLabel>
 
-          {menuItems.length > 0 && (
+          {(menuItems.length > 0 || children) && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
@@ -119,6 +122,7 @@ const ProfileDropdown = ({
                     </DropdownMenuItem>
                   );
                 })}
+                {children}
               </DropdownMenuGroup>
             </>
           )}

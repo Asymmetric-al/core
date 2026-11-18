@@ -195,6 +195,27 @@ it.each([1440, 390])(
   },
 );
 
+it("names the partner's gift table instead of leaving a generic label", async () => {
+  vi.stubGlobal("innerWidth", 1440);
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <DonorsPageViewProvider>
+        <SelectPartner />
+        <DonorsPageDetail />
+      </DonorsPageViewProvider>
+    </QueryClientProvider>,
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Select giving fixture partner" }),
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Giving" }));
+
+  const giving = within(screen.getByRole("tabpanel", { name: "Giving" }));
+  const table = await giving.findByRole("grid", { name: "Giving history" });
+  expect(within(table).getByText("Bank gift fixture")).toBeTruthy();
+  expect(giving.queryByRole("region", { name: "Data table" })).toBeNull();
+});
+
 it("reveals keyboard-focused detail tabs within their horizontal rail without moving the page", async () => {
   vi.stubGlobal("innerWidth", 390);
   vi.stubGlobal("scrollY", 240);

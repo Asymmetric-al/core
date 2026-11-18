@@ -7,6 +7,8 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+
+// eslint-disable-next-line no-restricted-imports -- TODO(admin-ui-boundary-regression) Round 12: regression test at the business hours editor's public UI boundary.
 import { BusinessHoursForm } from "../../../../../../../apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursForm";
 const mocks = vi.hoisted(() => ({
   save: vi.fn().mockResolvedValue("schedule-1"),
@@ -93,4 +95,45 @@ it("labels holiday removal and blocks missing names and enabled opening times", 
   expect(opening.getAttribute("aria-invalid")).toBe("true");
   await waitFor(() => expect(document.activeElement).toBe(opening));
   expect(mocks.save).not.toHaveBeenCalled();
+});
+it("moves focus to the next holiday, the previous one, then Add as holidays are removed", () => {
+  const holiday = (id: string, label: string, day: string) => ({
+    id,
+    label,
+    date: `2026-12-${day}T00:00:00.000Z`,
+  });
+  render(
+    <BusinessHoursForm
+      hours={
+        {
+          id: "schedule-1",
+          name: "Office",
+          timezone: "UTC",
+          isDefault: false,
+          holidays: [
+            holiday("holiday-a", "Christmas Eve", "24"),
+            holiday("holiday-b", "Christmas Day", "25"),
+            holiday("holiday-c", "Boxing Day", "26"),
+          ],
+        } as unknown as Parameters<typeof BusinessHoursForm>[0]["hours"]
+      }
+    />,
+  );
+  const remove = (name: string) => {
+    const button = screen.getByRole("button", { name });
+    button.focus();
+    fireEvent.click(button);
+  };
+  const firstDate = screen.getByLabelText("Holiday 1 date");
+  const thirdDate = screen.getByLabelText("Holiday 3 date");
+
+  remove("Remove holiday 2");
+  expect(document.activeElement).toBe(thirdDate);
+  remove("Remove holiday 2");
+  expect(document.activeElement).toBe(firstDate);
+  remove("Remove holiday 1");
+  expect(screen.queryByLabelText("Holiday 1 date")).toBeNull();
+  expect(document.activeElement).toBe(
+    screen.getByRole("button", { name: "Add" }),
+  );
 });
