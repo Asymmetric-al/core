@@ -211,6 +211,14 @@ describe("skill-quality repairs", () => {
       expect(shadcn).toContain(
         "1. **Get project context** — nothing is injected when this skill loads: run the pinned `bunx shadcn info --json` from `packages/ui` first",
       );
+      // The body prescribes the pinned `bunx shadcn`; its allow-list must
+      // cover it and must not pre-approve the floating `@latest` runners.
+      expect(frontmatter(shadcn)).toMatch(
+        /^allowed-tools: .*Bash\(bunx shadcn \*\)/m,
+      );
+      expect(frontmatter(shadcn)).not.toMatch(
+        /^allowed-tools: .*shadcn@latest/m,
+      );
 
       const devLoop = skill("next-dev-loop");
       const browser = skill("agent-browser");

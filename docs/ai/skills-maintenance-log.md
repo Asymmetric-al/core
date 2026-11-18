@@ -147,6 +147,9 @@ defects. Each was checked against the files before it was fixed.
   instead of `bunx shadcn@latest info --json`.
 - `agent-browser` told agents to run `bunx agent-browser`, which its
   `allowed-tools` did not cover. A replacement adds `Bash(bunx agent-browser:*)`.
+- `shadcn` had the same gap: its `allowed-tools` pre-approved only the
+  upstream `@latest` runners, not the pinned `bunx shadcn` its body prescribes.
+  A replacement sets it to `Bash(bunx shadcn *)`.
 - `create-agent/reference.md` still pointed at a repository-root
   `node_modules/eve/docs/` in three places, one of them the comment template
   agents copy into generated code. All three now name

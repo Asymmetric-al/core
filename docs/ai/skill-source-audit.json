@@ -9127,8 +9127,8 @@
       "sourcePath": "skills/shadcn",
       "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
       "lockHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
-      "entrypointHash": "4cd72f1b92dcf23d0fa99b5eb79fb5f1955f1f5e6cbef8fee94cced951a561b0",
-      "treeHash": "122361545a64553c200db10830a0b17a78ea82d7c442afd50f0d08da1d305d4e",
+      "entrypointHash": "b7122cfd1186d85cf679497b35543e5c501a27d1190ffd4c798ee00f90ded02c",
+      "treeHash": "a4e86a12f2846101d7c742c7d21475425358d93d1c78e5e68d3b7d5b8fe53fcb",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9141,7 +9141,7 @@
       },
       "adaptations": [
         "Preserve existing shared Sonner host and Base UI/base-maia boundaries",
-        "Remove the load-time `npx shadcn@latest info --json` injection and route shadcn commands through `bunx shadcn` from packages/ui; the Key Fields and Workflow lines that said the context was injected now tell the agent to run `bunx shadcn info --json` from packages/ui. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
+        "Remove the load-time `npx shadcn@latest info --json` injection and route shadcn commands through `bunx shadcn` from packages/ui; the Key Fields and Workflow lines that said the context was injected now tell the agent to run `bunx shadcn info --json` from packages/ui; `allowed-tools` pre-approves only `Bash(bunx shadcn *)`, not the upstream `@latest` runners. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/shadcn/references/upstream.md",
       "reviewEvidence": [
@@ -9152,7 +9152,7 @@
           "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "4cd72f1b92dcf23d0fa99b5eb79fb5f1955f1f5e6cbef8fee94cced951a561b0",
+            "SKILL.md": "b7122cfd1186d85cf679497b35543e5c501a27d1190ffd4c798ee00f90ded02c",
             "agents/openai.yml": "35db91b1eef58b2abe01da9b88577de5a44e233b740cd93d692ddeeadd2afe4d",
             "assets/shadcn-small.png": "0ecc62d682727f68fc4937eed19960c706714fa084d44f63028d611ae02bf3d7",
             "assets/shadcn.png": "7d60ad6fec4d89a0d44ba5a3c9283d2fea0047af5467f9227040e20d927d39b7",
@@ -9166,7 +9166,7 @@
             "evals/evals.json": "e82c747326a5c21e37a1c962274d36b1bfebb3e6602ee368b98e2dba5db18369",
             "mcp.md": "8d696b4e45b7d0e337367248513bd9acebe8f3bcfd7b748c775e5a337c8f38c8",
             "references/UPSTREAM-LICENSE.md": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
-            "references/upstream.md": "81a936574fda5a48e8ba26b4b3bb35a7978fb272a4c4748985925156ee7eebd9",
+            "references/upstream.md": "41fe2f32eccba2d90054d7726156205040d111732a5785eca632d5c22a619d57",
             "registry.md": "4f239be36bd2b58e17047db1ca80ab7da00e15a8b73242e5e4d50d113c4caa05",
             "rules/base-vs-radix.md": "2b2deb47d004285220c1fc6b38bb2edc2d0ccbcdafd031b0b189d5d8ed0d1ba8",
             "rules/chat.md": "4b4610d487ddc9751f3cfe0c554a06560ac723fcc2460abad77a1d3c7c9a4b95",
