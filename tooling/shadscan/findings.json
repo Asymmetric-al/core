@@ -1516,7 +1516,7 @@
         },
         {
           "path": "apps/missionary/next.config.ts",
-          "sha256": "b9f50d29662528a9012fa69773315b92244350ef7c45c174ee786536230cd6c7"
+          "sha256": "1fd755a013dd68a3b175180927deb794563dafe7b69e29dc3259cead61e0e0ed"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",

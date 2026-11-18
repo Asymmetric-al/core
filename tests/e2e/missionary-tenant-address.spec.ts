@@ -243,6 +243,29 @@ test("the chooser's way in for a person with one row enters the workspace with i
   });
 });
 
+// Council round 1, A11: under the tenant address the two retired pages had
+// become redirects streamed with status 200. They answer a real 308 again,
+// keeping the tenant in the address.
+test("the retired update pages answer a real permanent redirect to the feed", async ({
+  page,
+}) => {
+  await signInAs(page, "missionary", "missionary", baseURL());
+
+  for (const [from, to] of [
+    [tenantPath(DEMO, "/ministry-updates"), tenantPath(DEMO, "/feed")],
+    [tenantPath(DEMO, "/email-studio"), tenantPath(DEMO, "/feed")],
+    ["/ministry-updates", "/feed"],
+    ["/email-studio", "/feed"],
+  ] as const) {
+    const response = await page.request.get(from, { maxRedirects: 0 });
+    expect(response.status(), from).toBe(308);
+    expect(
+      new URL(response.headers()["location"]!, baseURL()).pathname,
+      from,
+    ).toBe(to);
+  }
+});
+
 test.describe("production build", () => {
   test.skip(!signsInThroughStub, "Measured on a production build only");
 
