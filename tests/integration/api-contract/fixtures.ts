@@ -41,7 +41,12 @@ export type TenantFixture = {
   fundId: string;
 };
 
-/** `label` names the fixture's rows ("Tenant B", tenant-b.test). */
+/**
+ * Writes a tenant fixture; `label` names its rows ("Tenant B",
+ * tenant-b.test). If a write fails part-way, the rows already written are
+ * removed before the error is rethrown, so a failed run leaves nothing
+ * behind; if that removal fails too, the error says what is left.
+ */
 export async function createTenantFixture(
   db: pg.Client,
   label = "B",
@@ -58,6 +63,24 @@ export async function createTenantFixture(
     draftLocationId: randomUUID(),
     fundId: randomUUID(),
   };
+  try {
+    await writeTenantFixture(db, fixture, label);
+    return fixture;
+  } catch (error) {
+    const problems = await removeTenantFixture(db, fixture);
+    if (problems.length === 0) throw error;
+    throw new Error(
+      `creating tenant fixture ${label} failed (${error instanceof Error ? error.message : String(error)}), and removing what it wrote left: ${problems.join("; ")}`,
+      { cause: error },
+    );
+  }
+}
+
+async function writeTenantFixture(
+  db: pg.Client,
+  fixture: TenantFixture,
+  label: string,
+): Promise<void> {
   const short = fixture.tenantId.slice(0, 8);
   const email = `api-contract-${short}@tenant-${label.toLowerCase()}.test`;
 
@@ -175,7 +198,6 @@ export async function createTenantFixture(
     tenant_id: fixture.tenantId,
     name: `Tenant ${label} fund`,
   });
-  return fixture;
 }
 
 /** Removes the fixture's rows; returns what it could not remove. */
