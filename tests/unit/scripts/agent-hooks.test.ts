@@ -1,9 +1,12 @@
 import { spawnSync } from "node:child_process";
 import {
+  copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import os from "node:os";
@@ -12,9 +15,11 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  HOOK_BUDGET_MS,
+  HOOK_ROOT,
+  afterEdit,
   buildCommands,
   classifyEdit,
-  findCheckoutRoot,
   hookResponse,
   parsePayload,
   summarizeEslint,
@@ -27,7 +32,10 @@ const at = (relative: string) => path.join(ROOT, ...relative.split("/"));
 const always = () => true;
 
 const created: string[] = [];
+// Links into this checkout; removed on their own, never recursed into.
+const linked: string[] = [];
 afterEach(() => {
+  for (const link of linked.splice(0)) rmSync(link, { force: true });
   for (const dir of created.splice(0))
     rmSync(dir, { recursive: true, force: true });
 });
@@ -101,6 +109,31 @@ describe("edit hook payloads", () => {
     ).toEqual([]);
   });
 
+  it("matches apply_patch file headers only at the start of a line", () => {
+    // A patch to a document that shows a patch: its content and context
+    // lines carry a "+", "-" or " " prefix, so they never start a header.
+    const patch = [
+      "*** Begin Patch",
+      "*** Update File: docs/patch-format.md",
+      "@@",
+      " *** Update File: apps/admin/lib/context.ts",
+      "-  *** Add File: apps/admin/lib/removed.ts",
+      "+*** Add File: apps/admin/lib/added.ts",
+      "+\t*** Update File: apps/admin/lib/tabbed.ts",
+      "*** End Patch",
+    ].join("\n");
+    expect(
+      parsePayload(
+        "codex",
+        JSON.stringify({
+          cwd: ROOT,
+          tool_name: "apply_patch",
+          tool_input: { command: patch },
+        }),
+      ),
+    ).toEqual([at("docs/patch-format.md")]);
+  });
+
   it("reads the edited file from a Cursor afterFileEdit payload", () => {
     expect(
       parsePayload(
@@ -127,13 +160,21 @@ describe("edit hook payloads", () => {
 });
 
 describe("edit hook path decisions", () => {
-  it("finds the Core checkout that contains the edited file", () => {
-    const marker = at("tooling/eslint-config/lint.mjs");
-    const exists = (candidate: string) => candidate === marker;
-    expect(findCheckoutRoot(at("apps/donor/app/page.tsx"), exists)).toBe(ROOT);
-    expect(findCheckoutRoot(path.resolve("/elsewhere/file.ts"), exists)).toBe(
-      null,
-    );
+  it("acts only inside the checkout that holds the hook script", () => {
+    expect(HOOK_ROOT).toBe(path.resolve("."));
+    // Another tree that looks like a checkout (it has the lint runner) is
+    // still outside: the hook never runs that tree's tools.
+    for (const outside of [
+      path.resolve("..", "other-core", "apps", "donor", "app", "page.tsx"),
+      path.resolve(os.tmpdir(), "planted", "apps", "x", "page.tsx"),
+    ])
+      expect(classifyEdit(HOOK_ROOT, outside, always)).toEqual({
+        action: "skip",
+        reason: "outside the checkout",
+      });
+    expect(
+      classifyEdit(HOOK_ROOT, path.resolve("apps/donor/app/page.tsx"), always),
+    ).toEqual({ action: "lint-and-format" });
   });
 
   it.each([
@@ -186,30 +227,48 @@ describe("edit hook path decisions", () => {
 describe("edit hook commands", () => {
   const node = "/usr/bin/node";
   const tools = { eslint: true, prettier: true };
+  const edit = (relative: string, action = "lint-and-format") => ({
+    file: at(relative),
+    action,
+  });
+  const tool = (command: { tool: string }) => command.tool;
 
-  it("lints with the pre-commit lint configuration, then formats", () => {
-    const file = at("apps/donor/app/page.tsx");
-    const commands = buildCommands({
-      root: ROOT,
-      file,
-      action: "lint-and-format",
-      node,
-      tools,
+  it("formats every edited file in one run, then lints the source files in one run without fixing", () => {
+    const edits = [
+      edit("apps/donor/app/page.tsx"),
+      edit("docs/ci.md", "format"),
+      edit("packages/api/src/donations.ts"),
+    ];
+    const commands = buildCommands({ root: ROOT, edits, node, tools });
+    expect(commands.map(tool)).toEqual(["prettier", "eslint"]);
+    const [prettier, eslint] = commands;
+    expect(prettier).toEqual({
+      tool: "prettier",
+      files: edits.map((entry) => entry.file),
+      command: node,
+      args: [
+        path.join(ROOT, "node_modules", "prettier", "bin", "prettier.cjs"),
+        "--ignore-unknown",
+        "--write",
+        ...edits.map((entry) => entry.file),
+      ],
+      cwd: ROOT,
     });
-    expect(commands.map((command: { tool: string }) => command.tool)).toEqual([
-      "eslint",
-      "prettier",
-    ]);
-    const [eslint, prettier] = commands;
-    // The same ESLint arguments tooling/eslint-config/lint.mjs builds for a
-    // root-relative file, which is what lint-staged runs at commit time.
+    // The ESLint arguments tooling/eslint-config/lint.mjs builds from the
+    // root (what lint-staged runs at commit time), without --fix: every
+    // autofix in that configuration removes, moves or rewrites code.
+    const linted = [
+      at("apps/donor/app/page.tsx"),
+      at("packages/api/src/donations.ts"),
+    ];
     const invocation = lintInvocation({
-      args: ["--fix", "--format", "json", file],
+      args: ["--format", "json", ...linted],
       cwd: ROOT,
       rootDir: ROOT,
     });
     expect(eslint).toEqual({
       tool: "eslint",
+      files: linted,
       command: node,
       args: [
         path.join(ROOT, "node_modules", "eslint", "bin", "eslint.js"),
@@ -217,39 +276,28 @@ describe("edit hook commands", () => {
       ],
       cwd: ROOT,
     });
-    expect(prettier).toEqual({
-      tool: "prettier",
-      command: node,
-      args: [
-        path.join(ROOT, "node_modules", "prettier", "bin", "prettier.cjs"),
-        "--ignore-unknown",
-        "--write",
-        file,
-      ],
-      cwd: ROOT,
-    });
+    for (const command of commands)
+      expect(command.args.filter((arg: string) => /^--fix/.test(arg))).toEqual(
+        [],
+      );
   });
 
   it("formats files outside the lint scope without linting them", () => {
     const commands = buildCommands({
       root: ROOT,
-      file: at("docs/ci.md"),
-      action: "format",
+      edits: [edit("docs/ci.md", "format")],
       node,
       tools,
     });
-    expect(commands.map((command: { tool: string }) => command.tool)).toEqual([
-      "prettier",
-    ]);
+    expect(commands.map(tool)).toEqual(["prettier"]);
   });
 
   it("does nothing when the tools are not installed", () => {
-    const file = at("apps/donor/app/page.tsx");
+    const edits = [edit("apps/donor/app/page.tsx")];
     expect(
       buildCommands({
         root: ROOT,
-        file,
-        action: "lint-and-format",
+        edits,
         node,
         tools: { eslint: false, prettier: false },
       }),
@@ -257,11 +305,10 @@ describe("edit hook commands", () => {
     expect(
       buildCommands({
         root: ROOT,
-        file,
-        action: "lint-and-format",
+        edits,
         node,
         tools: { eslint: false, prettier: true },
-      }).map((command: { tool: string }) => command.tool),
+      }).map(tool),
     ).toEqual(["prettier"]);
   });
 
@@ -269,20 +316,18 @@ describe("edit hook commands", () => {
     expect(
       buildCommands({
         root: ROOT,
-        file: at("apps/donor/app/page.tsx"),
-        action: "lint-and-format",
+        edits: [edit("apps/donor/app/page.tsx")],
         node,
         tools,
         lint: false,
-      }).map((command: { tool: string }) => command.tool),
+      }).map(tool),
     ).toEqual(["prettier"]);
   });
 
   it("never calls the next CLI, a build, a typecheck, a test runner or the network", () => {
     const commands = buildCommands({
       root: ROOT,
-      file: at("apps/admin/app/(app)/page.tsx"),
-      action: "lint-and-format",
+      edits: [edit("apps/admin/app/(app)/page.tsx")],
       node,
       tools,
     });
@@ -334,11 +379,50 @@ describe("edit hook reports", () => {
     },
   ]);
 
-  it("summarizes remaining lint errors in a few lines", () => {
+  it("summarizes lint errors in a few lines", () => {
     expect(summarizeEslint(report, ROOT)).toEqual([
-      "apps/donor/app/page.tsx: 2 ESLint errors remain after --fix:",
+      "apps/donor/app/page.tsx: 2 ESLint errors:",
       "  3:7 no-undef 'x' is not defined.",
       "  9:2 Parsing error: ';' expected.",
+    ]);
+  });
+
+  it("reports fixable problems it left in place, warnings included", () => {
+    const fix = { range: [0, 10], text: "" };
+    const fixable = JSON.stringify([
+      {
+        filePath: at("packages/api/src/a.ts"),
+        messages: [
+          {
+            line: 1,
+            column: 1,
+            severity: 1,
+            ruleId: "unused-imports/no-unused-imports",
+            message: "'path' is defined but never used.",
+            fix,
+          },
+          {
+            line: 2,
+            column: 1,
+            severity: 1,
+            ruleId: "import-x/order",
+            message: "`node:fs` import should occur before import of `zod`",
+            fix,
+          },
+          {
+            line: 5,
+            column: 3,
+            severity: 1,
+            ruleId: "@typescript-eslint/no-explicit-any",
+            message: "Unexpected any. Specify a different type.",
+          },
+        ],
+      },
+    ]);
+    expect(summarizeEslint(fixable, ROOT)).toEqual([
+      "packages/api/src/a.ts: 2 fixable problems not fixed (pre-commit's eslint --fix applies them):",
+      "  1:1 unused-imports/no-unused-imports 'path' is defined but never used. [fixable, not fixed]",
+      "  2:1 import-x/order `node:fs` import should occur before import of `zod` [fixable, not fixed]",
     ]);
   });
 
@@ -369,10 +453,7 @@ describe("edit hook reports", () => {
   });
 
   it("sends the summary to the agent the way each harness documents", () => {
-    const lines = [
-      "a.ts: 1 ESLint error remains after --fix:",
-      "  1:1 no-undef x",
-    ];
+    const lines = ["a.ts: 1 ESLint error:", "  1:1 no-undef x"];
     for (const harness of ["claude", "codex"]) {
       const response = hookResponse(harness, lines);
       expect(response.exit).toBe(0);
@@ -397,6 +478,143 @@ describe("edit hook reports", () => {
   });
 });
 
+describe("edit hook runs and time budget", () => {
+  type Command = { tool: string; files: string[] };
+  const fivePatch = [
+    "*** Begin Patch",
+    ...["a", "b", "c", "d", "e"].map(
+      (name) => `*** Update File: packages/api/src/${name}.ts`,
+    ),
+    "*** Update File: docs/notes.md",
+    "*** End Patch",
+  ].join("\n");
+  const payload = JSON.stringify({
+    cwd: ROOT,
+    tool_name: "apply_patch",
+    tool_input: { command: fivePatch },
+  });
+  const installed = () => ({ eslint: true, prettier: true });
+  const ok = { status: 0, stdout: "[]", stderr: "" };
+
+  function hook(
+    run: (command: Command, timeout: number) => object,
+    clock = () => 0,
+  ) {
+    return afterEdit({
+      harness: "codex",
+      input: payload,
+      env: {},
+      root: ROOT,
+      exists: always,
+      tools: installed,
+      run,
+      clock,
+    });
+  }
+
+  it("starts one Prettier and one ESLint process for a five-file patch", () => {
+    const calls: Command[] = [];
+    const response = hook((command) => {
+      calls.push(command);
+      return ok;
+    });
+    expect(response).toEqual({ exit: 0, stdout: "", stderr: "" });
+    expect(calls.map((command) => command.tool)).toEqual([
+      "prettier",
+      "eslint",
+    ]);
+    expect(calls[0].files).toHaveLength(6);
+    expect(calls[1].files).toHaveLength(5);
+  });
+
+  it("gives each tool only the time left in a budget below the harness timeout", () => {
+    expect(HOOK_BUDGET_MS).toBeLessThan(120_000);
+    let now = 0;
+    const timeouts: number[] = [];
+    hook(
+      (_command, timeout) => {
+        timeouts.push(timeout);
+        now += 30_000;
+        return ok;
+      },
+      () => now,
+    );
+    expect(timeouts).toEqual([HOOK_BUDGET_MS, HOOK_BUDGET_MS - 30_000]);
+  });
+
+  it("stops at the budget, says what it did not check, and still exits 0", () => {
+    const timedOut = hook((command) =>
+      command.tool === "eslint"
+        ? {
+            status: null,
+            signal: "SIGTERM",
+            error: Object.assign(new Error("spawnSync node ETIMEDOUT"), {
+              code: "ETIMEDOUT",
+            }),
+          }
+        : ok,
+    );
+    expect(timedOut.exit).toBe(0);
+    const context = JSON.parse(timedOut.stdout).hookSpecificOutput
+      .additionalContext as string;
+    expect(context).toMatch(/did not lint packages\/api\/src\/a\.ts, .*e\.ts/);
+    expect(context).toMatch(/budget/);
+
+    // Prettier used up the budget: ESLint is not started at all.
+    let now = 0;
+    const started: string[] = [];
+    const late = hook(
+      (command) => {
+        started.push(command.tool);
+        now = HOOK_BUDGET_MS - 1_000;
+        return ok;
+      },
+      () => now,
+    );
+    expect(started).toEqual(["prettier"]);
+    expect(late.exit).toBe(0);
+    expect(
+      JSON.parse(late.stdout).hookSpecificOutput.additionalContext,
+    ).toMatch(/did not lint .*budget ran out/);
+  });
+
+  it("says so when ESLint itself fails instead of reporting a clean file", () => {
+    const failed = hook((command) =>
+      command.tool === "eslint"
+        ? {
+            status: 2,
+            stdout: "",
+            stderr: "\nOops! Something went wrong! :(\n\nESLint: 10.13.0\n",
+          }
+        : ok,
+    );
+    expect(failed.exit).toBe(0);
+    expect(
+      JSON.parse(failed.stdout).hookSpecificOutput.additionalContext,
+    ).toMatch(/did not lint .*ESLint failed \(Oops! Something went wrong/);
+  });
+
+  it("starts no tool for files outside its own checkout", () => {
+    const calls: Command[] = [];
+    const response = afterEdit({
+      harness: "claude",
+      input: JSON.stringify({
+        tool_input: { file_path: path.resolve("/elsewhere/core/apps/x/a.ts") },
+      }),
+      env: {},
+      root: ROOT,
+      exists: always,
+      tools: installed,
+      run: (command: Command) => {
+        calls.push(command);
+        return ok;
+      },
+    });
+    expect(calls).toEqual([]);
+    expect(response.stdout).toBe("");
+  });
+});
+
 describe("edit hook process", () => {
   function runHook(harness: string, input: string, env = {}) {
     return spawnSync(process.execPath, [HOOK, harness], {
@@ -406,6 +624,43 @@ describe("edit hook process", () => {
       timeout: 60_000,
     });
   }
+
+  it("never runs the tools of another tree that looks like a checkout", () => {
+    const planted = mkdtempSync(path.join(os.tmpdir(), "core-edit-hook-"));
+    created.push(planted);
+    const sentinel = path.join(planted, "ran.txt");
+    for (const [relative, text] of [
+      ["tooling/eslint-config/lint.mjs", ""],
+      ["eslint.config.mjs", "export default [];\n"],
+      [
+        "node_modules/prettier/bin/prettier.cjs",
+        `require("node:fs").writeFileSync(${JSON.stringify(sentinel)}, "prettier");\n`,
+      ],
+      [
+        "node_modules/eslint/bin/eslint.js",
+        `require("node:fs").writeFileSync(${JSON.stringify(sentinel)}, "eslint");\n`,
+      ],
+      ["apps/x/page.tsx", "export   const a=1\n"],
+    ]) {
+      mkdirSync(path.dirname(path.join(planted, relative)), {
+        recursive: true,
+      });
+      writeFileSync(path.join(planted, relative), text);
+    }
+    const file = path.join(planted, "apps", "x", "page.tsx");
+    const result = runHook(
+      "claude",
+      JSON.stringify({
+        cwd: planted,
+        tool_name: "Write",
+        tool_input: { file_path: file },
+      }),
+    );
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe("");
+    expect(existsSync(sentinel)).toBe(false);
+    expect(readFileSync(file, "utf8")).toBe("export   const a=1\n");
+  });
 
   it("exits quietly in a checkout without installed tools", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "core-edit-hook-"));
@@ -439,6 +694,88 @@ describe("edit hook process", () => {
     },
   );
 
+  // A copy of the hook in a scratch checkout that uses this checkout's
+  // installed tools and root lint configuration. One Codex patch edits two
+  // files; ESLint runs once over both.
+  it("keeps an import added before its use and reports import order instead of rewriting it", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "core-edit-hook-lint-"));
+    created.push(root);
+    for (const relative of [HOOK, "eslint.config.mjs"]) {
+      mkdirSync(path.dirname(path.join(root, relative)), { recursive: true });
+      copyFileSync(relative, path.join(root, relative));
+    }
+    // Workspace packages are relative links inside node_modules, so the
+    // shared lint configuration must sit at the same place in the copy.
+    mkdirSync(path.join(root, "tooling"));
+    for (const relative of ["node_modules", "tooling/eslint-config"]) {
+      symlinkSync(
+        path.resolve(relative),
+        path.join(root, relative),
+        "junction",
+      );
+      linked.push(path.join(root, relative));
+    }
+    // First edit of a two-step change: the import comes before its use.
+    const unused = [
+      'import { readFileSync } from "node:fs";',
+      'import path from "node:path";',
+      "",
+      'export const probe = (): string => readFileSync("x", "utf8");',
+      "",
+    ].join("\n");
+    const misordered = [
+      'import { z } from "zod";',
+      "",
+      'import { readFileSync } from "node:fs";',
+      "",
+      "export const schema = z.string();",
+      'export const text = (): string => readFileSync("x", "utf8");',
+      "",
+    ].join("\n");
+    const write = (relative: string, text: string) => {
+      mkdirSync(path.dirname(path.join(root, relative)), {
+        recursive: true,
+      });
+      writeFileSync(path.join(root, relative), text);
+    };
+    write("packages/api/src/hook-unused.ts", unused);
+    write("packages/api/src/hook-order.ts", misordered);
+    const result = spawnSync(
+      process.execPath,
+      [path.join(root, HOOK), "codex"],
+      {
+        input: JSON.stringify({
+          cwd: root,
+          tool_name: "apply_patch",
+          tool_input: {
+            command: [
+              "*** Begin Patch",
+              "*** Update File: packages/api/src/hook-unused.ts",
+              "*** Update File: packages/api/src/hook-order.ts",
+              "*** End Patch",
+            ].join("\n"),
+          },
+        }),
+        encoding: "utf8",
+        env: { ...process.env, ASYM_EDIT_HOOK: "" },
+        timeout: 170_000,
+      },
+    );
+    expect(result.status).toBe(0);
+    const read = (relative: string) =>
+      readFileSync(path.join(root, relative), "utf8");
+    expect(read("packages/api/src/hook-unused.ts")).toBe(unused);
+    expect(read("packages/api/src/hook-order.ts")).toBe(misordered);
+    const context = JSON.parse(result.stdout).hookSpecificOutput
+      .additionalContext as string;
+    expect(context).toMatch(
+      /hook-unused\.ts:[^\n]*\n(?:[^\n]*\n)*?\s+2:\d+ \S*no-unused-\S+ [^\n]*'path'[^\n]*\[fixable, not fixed\]/,
+    );
+    expect(context).toMatch(
+      /hook-order\.ts:[^\n]*\n(?:[^\n]*\n)*?\s+\d+:\d+ import-x\/order [^\n]*\[fixable, not fixed\]/,
+    );
+  }, 180_000);
+
   it("does nothing when switched off", () => {
     const result = runHook(
       "claude",
@@ -450,65 +787,68 @@ describe("edit hook process", () => {
   });
 });
 
+// These pin the edit hook's own entries, not the whole files: other settings
+// and other hooks may be added beside them.
 describe("harness hook configuration", () => {
   const readJson = (file: string) => JSON.parse(readFileSync(file, "utf8"));
+  type Entry = { matcher?: string; hooks: Array<Record<string, unknown>> };
+  const editHooks = (groups: Entry[] = []) =>
+    groups.flatMap((group) =>
+      group.hooks
+        .filter((hook) =>
+          JSON.stringify(hook).includes("scripts/agent-hooks/after-edit.mjs"),
+        )
+        .map((hook) => ({ matcher: group.matcher, hook })),
+    );
+  // The hook stops itself before the harness would kill it.
+  const outlastsBudget = (seconds: unknown) =>
+    expect(Number(seconds) * 1000).toBeGreaterThan(HOOK_BUDGET_MS);
 
-  it("wires Claude Code's one PostToolUse edit hook in exec form", () => {
+  it("wires Claude Code's PostToolUse edit hook in exec form", () => {
     const settings = readJson(".claude/settings.json");
-    expect(settings.env).toEqual({ MCP_TIMEOUT: "120000" });
-    expect(Object.keys(settings.hooks)).toEqual(["PostToolUse"]);
-    expect(settings.hooks.PostToolUse).toEqual([
-      {
-        matcher: "Edit|Write",
-        hooks: [
-          {
-            type: "command",
-            command: "node",
-            args: [
-              "${CLAUDE_PROJECT_DIR}/scripts/agent-hooks/after-edit.mjs",
-              "claude",
-            ],
-            timeout: 120,
-          },
-        ],
-      },
-    ]);
+    expect(settings.env).toMatchObject({ MCP_TIMEOUT: "120000" });
+    const found = editHooks(settings.hooks?.PostToolUse);
+    expect(found).toHaveLength(1);
+    expect(found[0].matcher).toBe("Edit|Write");
+    expect(found[0].hook).toMatchObject({
+      type: "command",
+      command: "node",
+      args: [
+        "${CLAUDE_PROJECT_DIR}/scripts/agent-hooks/after-edit.mjs",
+        "claude",
+      ],
+    });
+    outlastsBudget(found[0].hook.timeout);
   });
 
-  it("wires Codex's one PostToolUse edit hook for apply_patch", () => {
+  it("wires Codex's PostToolUse edit hook for apply_patch", () => {
     const hooks = readJson(".codex/hooks.json");
-    expect(Object.keys(hooks.hooks)).toEqual(["PostToolUse"]);
-    expect(hooks.hooks.PostToolUse).toEqual([
-      {
-        matcher: "^apply_patch$",
-        hooks: [
-          {
-            type: "command",
-            command:
-              'node "$(git rev-parse --show-toplevel)/scripts/agent-hooks/after-edit.mjs" codex',
-            timeout: 120,
-            statusMessage: "Formatting and linting the edited file",
-          },
-        ],
-      },
-    ]);
+    const found = editHooks(hooks.hooks?.PostToolUse);
+    expect(found).toHaveLength(1);
+    expect(found[0].matcher).toBe("^apply_patch$");
+    expect(found[0].hook).toMatchObject({
+      type: "command",
+      command:
+        'node "$(git rev-parse --show-toplevel)/scripts/agent-hooks/after-edit.mjs" codex',
+    });
+    outlastsBudget(found[0].hook.timeout);
     // One representation per layer: no inline [hooks] in config.toml.
     expect(readFileSync(".codex/config.toml", "utf8")).not.toMatch(
       /^\[\[?hooks/m,
     );
   });
 
-  it("wires Cursor's one afterFileEdit hook", () => {
-    expect(readJson(".cursor/hooks.json")).toEqual({
-      version: 1,
-      hooks: {
-        afterFileEdit: [
-          {
-            command: "node scripts/agent-hooks/after-edit.mjs cursor",
-            timeout: 120,
-          },
-        ],
-      },
-    });
+  it("wires Cursor's afterFileEdit edit hook", () => {
+    const hooks = readJson(".cursor/hooks.json");
+    expect(hooks.version).toBe(1);
+    const found = (hooks.hooks?.afterFileEdit ?? []).filter(
+      (hook: { command?: string }) =>
+        hook.command?.includes("scripts/agent-hooks/after-edit.mjs"),
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0].command).toBe(
+      "node scripts/agent-hooks/after-edit.mjs cursor",
+    );
+    outlastsBudget(found[0].timeout);
   });
 });
