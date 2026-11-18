@@ -1,12 +1,13 @@
 import type { ContributionActionType } from "./types";
-import type { Capability } from "@asym/auth/capabilities";
 
 /**
  * What each contribution action requires, as data: no request, no session,
  * nothing server-only. Client code (the CRM row actions, the viewer
  * availability projection) reads this module; the server checks in
  * `./permissions` read it too and add the caller's capabilities from the
- * request (AL-2675). Keep server-only imports out of this file.
+ * request (AL-2675). Keep server-only imports out of this file, and keep it
+ * off `@asym/auth/capabilities`, which only the auth context imports (#492
+ * criterion 13): the filter below takes any capability name.
  */
 
 /**
@@ -165,7 +166,7 @@ export function formatRequiredCapabilities(
   return capabilities.join(` ${conjunction} `);
 }
 
-const CONTRIBUTION_CAPABILITIES: ReadonlySet<Capability> =
+const CONTRIBUTION_CAPABILITIES: ReadonlySet<string> =
   new Set<ContributionCapability>([
     "contributions.view_detail",
     "contributions.request_corrections",
@@ -181,7 +182,7 @@ const CONTRIBUTION_CAPABILITIES: ReadonlySet<Capability> =
   ]);
 
 export function isContributionCapability(
-  capability: Capability,
+  capability: string,
 ): capability is ContributionCapability {
   return CONTRIBUTION_CAPABILITIES.has(capability);
 }
