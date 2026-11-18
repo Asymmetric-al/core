@@ -166,6 +166,10 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
       "supabase/migrations",
       // #2400: the PG17 readiness probe runs before the census.
       "tests/integration/supabase/postgres17-upgrade-readiness-verification.sql",
+      // PR #2714 review (record D-18): the verifier's locality decision now
+      // lives in the routing rule it shares with the admin app, so the copy
+      // carries that file too. The case still fails only on the edited source.
+      "packages/env/src/database-url.mjs",
     ])
       cpSync(path.join(root, rel), path.join(repo, rel), { recursive: true });
     appendFileSync(path.join(repo, MIGRATION), "-");
@@ -315,6 +319,21 @@ itPosix(
       "clean",
       "postgresql://postgres@disposable.invalid/test",
       true,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.calls).toEqual([]);
+    expect(result.stdout).not.toContain("bootstrap Supabase");
+  },
+);
+
+// PR #2714 review: a query key such as `host` wins over the authority, so this
+// URL names the hosted server however local its authority looks.
+itPosix(
+  "refuses a loopback-looking URL with a routing override before any SQL",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres@127.0.0.1:5432/disposable_test?host=db.example.supabase.co",
     );
     expect(result.status).not.toBe(0);
     expect(result.calls).toEqual([]);

@@ -77,6 +77,41 @@ describe("isLoopbackDatabaseUrl", () => {
   ])("%s -> %s", (url, loopback) => {
     expect(isLoopbackDatabaseUrl(url)).toBe(loopback);
   });
+
+  // PR #2714 review (local database admission): libpq and node-postgres follow
+  // a routing key in the query over the authority, so a URL that shows
+  // 127.0.0.1 can still name another server, port, database, login or service
+  // (packages/env/src/database-url.mjs). Such a URL is never local.
+  it.each([
+    "postgresql://postgres@127.0.0.1:5432/postgres?host=db.example.supabase.co",
+    "postgresql://postgres@127.0.0.1:5432/postgres?hostaddr=203.0.113.9",
+    "postgresql://postgres@127.0.0.1:5432/postgres?user=postgres.abcdefghijklmnopqrst",
+    "postgresql://postgres@127.0.0.1:5432/postgres?port=6543",
+    "postgresql://postgres@localhost:5432/postgres?dbname=production",
+    "postgres://postgres@[::1]:5432/postgres?service=hosted",
+    "postgresql://postgres@127.0.0.1:5432/postgres?sslmode=disable&ho%73t=db.example.supabase.co",
+  ])(
+    "is false for a loopback-looking URL with a routing override: %s",
+    (url) => {
+      expect(isLoopbackDatabaseUrl(url)).toBe(false);
+    },
+  );
+
+  it.each([
+    "http://127.0.0.1:5432/postgres",
+    "mysql://root@localhost/postgres",
+    "127.0.0.1:5432",
+  ])("is false for %s, which is not a Postgres URL", (url) => {
+    expect(isLoopbackDatabaseUrl(url)).toBe(false);
+  });
+
+  it("keeps a loopback URL whose query only sets other connection options", () => {
+    expect(
+      isLoopbackDatabaseUrl(
+        "postgresql://postgres@127.0.0.1:54322/postgres?sslmode=disable&options=-c%20statement_timeout%3D0",
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("psqlConnection", () => {

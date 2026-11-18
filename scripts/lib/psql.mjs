@@ -5,17 +5,16 @@
 // job runs those against hosted databases.
 import { spawnSync } from "node:child_process";
 
-/** Hostnames, as `URL#hostname` reports them, that name this machine. */
-export const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
+import {
+  LOOPBACK_DATABASE_HOSTS,
+  isLoopbackDatabaseUrl,
+} from "../../packages/env/src/database-url.mjs";
 
-/** Whether a Postgres URL names a database on this machine. */
-export function isLoopbackDatabaseUrl(databaseUrl) {
-  try {
-    return LOOPBACK_HOSTS.has(new URL(databaseUrl).hostname);
-  } catch {
-    return false;
-  }
-}
+/** Whether a Postgres URL names a database on this machine (packages/env/src/database-url.mjs). */
+export { isLoopbackDatabaseUrl };
+
+/** Hostnames, as `URL#hostname` reports them, that name this machine. */
+export const LOOPBACK_HOSTS = new Set(LOOPBACK_DATABASE_HOSTS);
 
 /**
  * psql's connection argument (the URL without its password) and an
