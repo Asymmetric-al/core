@@ -115,7 +115,8 @@ It drops `--staged`, `--report-only`, policy and ledger review, floors and
 the 120-second limit. The policy file's engine, ruleset and schema pins
 retire with it: the declared dependency is the version pin, and the
 installed scanner's own `AuditReportSchema` is the report contract. The
-scanner's spawn limit is 10 minutes, matching the CI step. Exit codes:
+scanner's spawn limit is 9 minutes, so the script reports a timeout itself
+inside the CI step's 10-minute limit. Exit codes:
 
 - **0** when a valid report is written, whatever the score.
 - **Non-zero** only when no valid report exists. That covers a spawn failure,

@@ -1,57 +1,67 @@
+// Publishes the advisory Shadscan report to the job summary, to one marker
+// comment on a same-repository pull request, and to the develop tracking issue.
+// It uses Node built-ins only, so unavailable mode still runs after a failed
+// dependency installation.
 import { appendFileSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { renderSummary } from "./shadscan-summary.mjs";
+import {
+  COMMENT_MARKER,
+  EXPECTED_APPLICATIONS,
+  renderSummary,
+  renderUnavailable,
+} from "./shadscan-summary.mjs";
 
-const COMMENT_MARKER = "<!-- shadscan-report -->";
 const ISSUE_MARKER = "<!-- shadscan-tracking -->";
+const DEFAULT_UNAVAILABLE_REASON = "The audit did not produce a valid report";
+
+function isScore(value) {
+  return Number.isInteger(value) && value >= 0 && value <= 100;
+}
+
+function isScoreOrUnassessed(value) {
+  return value === null || isScore(value);
+}
 
 export function validateSummary(summary) {
+  const applications = summary?.applications;
   if (
-    !Array.isArray(summary?.applications) ||
+    summary?.status !== "available" ||
+    !Array.isArray(applications) ||
     !Array.isArray(summary.libraries) ||
-    !Array.isArray(summary.findings) ||
-    !Array.isArray(summary.errors) ||
-    typeof summary.passed !== "boolean"
+    !isScoreOrUnassessed(summary.score) ||
+    JSON.stringify(
+      applications
+        .slice(0, EXPECTED_APPLICATIONS.length)
+        .map((app) => app?.packageDir),
+    ) !== JSON.stringify(EXPECTED_APPLICATIONS) ||
+    applications.some(
+      (app) =>
+        typeof app?.packageDir !== "string" ||
+        (app.discovered &&
+          (!isScoreOrUnassessed(app.score) ||
+            !Array.isArray(app.categories) ||
+            !app.categories.every(
+              (category) =>
+                category.percentage === null || isScore(category.percentage),
+            ) ||
+            !Array.isArray(app.failingRules))),
+    )
   )
     throw new Error(
-      "The audit summary is missing or incomplete; no score will be published",
-    );
-  if (
-    summary.passed &&
-    (summary.errors.length !== 0 ||
-      summary.coverage?.source !== "complete" ||
-      !Number.isInteger(summary.score) ||
-      summary.score < 0 ||
-      summary.score > 100 ||
-      summary.findings.some((finding) =>
-        ["unclassified", "confirmed-defect"].includes(finding.classification),
-      ) ||
-      JSON.stringify(
-        summary.applications.map((app) => app.packageDir).sort(),
-      ) !==
-        JSON.stringify([
-          "apps/admin",
-          "apps/donor",
-          "apps/factory-console",
-          "apps/missionary",
-        ]) ||
-      summary.applications.some(
-        (app) =>
-          !Number.isInteger(app.score) ||
-          !Number.isInteger(app.floor) ||
-          app.score < 0 ||
-          app.score > 100 ||
-          app.floor < 0 ||
-          app.floor > 100 ||
-          app.score < app.floor,
-      ))
-  )
-    throw new Error(
-      "Refusing a passing report with contradictory or incomplete evidence",
+      "The audit summary is missing, incomplete or out of range; no score will be published",
     );
   return summary;
+}
+
+function headShaFrom(context) {
+  return (
+    context.headSha ??
+    context.event?.pull_request?.head?.sha ??
+    context.event?.after ??
+    null
+  );
 }
 
 async function paginate(request, pathname) {
@@ -69,8 +79,7 @@ async function paginate(request, pathname) {
   throw new Error("GitHub reporting inventory exceeded its pagination bound");
 }
 
-export async function publishSummary(summary, context, request) {
-  validateSummary(summary);
+async function publishBody(markdown, context, request) {
   const { event, eventName, repository, ref, runUrl } = context;
   if (
     !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) ||
@@ -79,16 +88,16 @@ export async function publishSummary(summary, context, request) {
     throw new Error(
       "GitHub report target does not match the triggering repository",
     );
-  const body =
-    `${renderSummary(summary)}\n[Raw report and audit evidence](${runUrl}).\n`.slice(
-      0,
-      60_000,
-    );
+  const body = `${markdown}\n[Workflow run and raw report](${runUrl}).\n`.slice(
+    0,
+    60_000,
+  );
   if (eventName === "pull_request") {
     if (event.pull_request?.head?.repo?.full_name !== repository)
       return {
         published: false,
-        reason: "Fork pull requests retain read-only artifact reporting",
+        reason:
+          "Fork pull requests keep job-summary-only reporting: their token is read-only",
       };
     const number = event.pull_request.number;
     if (!Number.isInteger(number) || number <= 0)
@@ -170,6 +179,25 @@ export async function publishSummary(summary, context, request) {
   return { published: true, url: result.html_url };
 }
 
+export async function publishSummary(summary, context, request) {
+  validateSummary(summary);
+  return publishBody(
+    renderSummary(summary, { headSha: headShaFrom(context) }),
+    context,
+    request,
+  );
+}
+
+// Replaces any earlier scores with an explicit statement, so a failed or
+// missing scan never leaves an older head's scores reading as current.
+export async function publishUnavailable(context, request, reason) {
+  return publishBody(
+    renderUnavailable({ headSha: headShaFrom(context), reason }),
+    context,
+    request,
+  );
+}
+
 async function githubRequest(method, pathname, body) {
   if (!process.env.GH_TOKEN)
     throw new Error("GitHub reporting token is unavailable");
@@ -194,31 +222,55 @@ async function githubRequest(method, pathname, body) {
   return response.json();
 }
 
-async function main() {
-  const directory = process.argv[2];
-  if (!directory || process.argv.length !== 3)
-    throw new Error("Usage: shadscan-publish.mjs report-directory");
-  const summary = JSON.parse(
-    readFileSync(path.join(directory, "shadscan.summary.json"), "utf8"),
-  );
-  validateSummary(summary);
-  if (process.env.GITHUB_STEP_SUMMARY)
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, renderSummary(summary));
+function workflowContext() {
   const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
-  const result = await publishSummary(
-    summary,
-    {
-      event,
-      eventName: process.env.GITHUB_EVENT_NAME,
-      repository: process.env.GITHUB_REPOSITORY,
-      ref: process.env.GITHUB_REF,
-      runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
-    },
-    githubRequest,
-  );
+  return {
+    event,
+    eventName: process.env.GITHUB_EVENT_NAME,
+    repository: process.env.GITHUB_REPOSITORY,
+    ref: process.env.GITHUB_REF,
+    headSha:
+      process.env.SHADSCAN_HEAD_SHA ||
+      event.pull_request?.head?.sha ||
+      process.env.GITHUB_SHA ||
+      null,
+    runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+  };
+}
+
+async function main() {
+  const [mode, value, ...extra] = process.argv.slice(2);
+  if (!mode || extra.length)
+    throw new Error(
+      "Usage: shadscan-publish.mjs report-directory | --unavailable [reason]",
+    );
+  const context = workflowContext();
+  let markdown;
+  let publish;
+  if (mode === "--unavailable") {
+    const reason =
+      value ||
+      process.env.SHADSCAN_UNAVAILABLE_REASON ||
+      DEFAULT_UNAVAILABLE_REASON;
+    markdown = renderUnavailable({ headSha: context.headSha, reason });
+    publish = () => publishUnavailable(context, githubRequest, reason);
+  } else {
+    if (value !== undefined)
+      throw new Error("Usage: shadscan-publish.mjs report-directory");
+    const summary = validateSummary(
+      JSON.parse(
+        readFileSync(path.join(mode, "shadscan.summary.json"), "utf8"),
+      ),
+    );
+    markdown = renderSummary(summary, { headSha: context.headSha });
+    publish = () => publishSummary(summary, context, githubRequest);
+  }
+  if (process.env.GITHUB_STEP_SUMMARY)
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown);
+  const result = await publish();
   console.log(
     result.published
-      ? `Published Shadscan evidence: ${result.url}`
+      ? `Published Shadscan report: ${result.url}`
       : result.reason,
   );
 }

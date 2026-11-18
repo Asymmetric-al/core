@@ -24,7 +24,7 @@ const ciSupabasePublicEnv = {
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
  * -> verify:eslint -> verify:shadcn-config
- * -> verify:shadcn-diff -> verify:shadscan
+ * -> verify:shadcn-diff
  * -> typecheck -> build -> test-unit
  */
 // Exceptions to the mirror: ci.yml has no step for verify:shadcn-config or
@@ -95,10 +95,6 @@ const stages = [
   {
     id: "verify-shadcn-diff",
     script: "verify:shadcn-diff",
-  },
-  {
-    id: "verify-shadscan",
-    script: "verify:shadscan",
   },
   {
     id: "typecheck",
