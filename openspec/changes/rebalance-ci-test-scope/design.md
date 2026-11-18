@@ -71,8 +71,10 @@ Selection lives in `scripts/verify/ci-test-scope.mjs`, imported by the unit
 runner. `selectUnitTests({ event, baseRef, changedFiles })` is pure: it
 returns the overall reason and, per group, whether it runs and why. A separate
 impure reader computes the changed files with
-`git diff --no-renames --name-only <base>...<head>` and returns `null` on any
-failure, an invalid SHA or a shallow checkout. For a skipped group the runner
+`git diff --no-renames --name-only -z <base>...<head>` and returns `null` on
+any failure, an invalid SHA or a shallow checkout. `-z` keeps every name
+exactly as stored; without it git quotes and escapes non-ASCII and special
+names, which then match no input (review round 6, c1.3). For a skipped group the runner
 excludes, file by file, only the tests the analysis below clears, and prints
 one line per decision. Any exception in selection runs every test.
 

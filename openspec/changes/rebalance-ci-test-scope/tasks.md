@@ -116,3 +116,5 @@
 - [x] 10.3 Red first: a change to `scripts/git/environment.mjs`, which the
       setup file imports, must run everything. Derive the full-run triggers'
       import closure on each selection instead of listing it.
+- [x] 10.4 Red first: a non-ASCII donor path through real git, and
+      NUL-separated reader output. Then read the diff with `-z`.

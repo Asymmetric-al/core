@@ -566,11 +566,19 @@ export function readChangedFiles({ base, head, git = runGit } = {}) {
   try {
     if (git(["rev-parse", "--is-shallow-repository"]).trim() !== "false")
       return null;
+    // -z: NUL-separated names exactly as stored. Without it git quotes and
+    // escapes unusual names ("caf\303\251"), which then match no pattern.
     return [
       ...new Set(
-        git(["diff", "--no-renames", "--name-only", `${base}...${head}`, "--"])
-          .split(/\r?\n/)
-          .map((line) => line.trim())
+        git([
+          "diff",
+          "--no-renames",
+          "--name-only",
+          "-z",
+          `${base}...${head}`,
+          "--",
+        ])
+          .split("\0")
           .filter(Boolean),
       ),
     ];

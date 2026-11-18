@@ -330,7 +330,7 @@ describe("changed-file reader", () => {
   it("lists both sides of a rename from the three-dot diff", () => {
     const run = git({
       "rev-parse": "false\n",
-      diff: "docs/a.md\nscripts/old.mjs\nscripts/new.mjs\n",
+      diff: "docs/a.md\0scripts/old.mjs\0scripts/new.mjs\0",
     });
     expect(readChangedFiles({ base: BASE, head: HEAD, git: run })).toEqual([
       "docs/a.md",
@@ -341,8 +341,22 @@ describe("changed-file reader", () => {
       "diff",
       "--no-renames",
       "--name-only",
+      "-z",
       `${BASE}...${HEAD}`,
       "--",
+    ]);
+  });
+
+  // Review round 6 (c1.3): without -z git quotes and escapes unusual names.
+  it("keeps names with spaces, quotes or newlines exactly as git stores them", () => {
+    const run = git({
+      "rev-parse": "false\n",
+      diff: ' docs/lead space.md\0docs/"quoted".md\0docs/two\nlines.md\0',
+    });
+    expect(readChangedFiles({ base: BASE, head: HEAD, git: run })).toEqual([
+      " docs/lead space.md",
+      'docs/"quoted".md',
+      "docs/two\nlines.md",
     ]);
   });
 
@@ -500,10 +514,14 @@ describe("the instant-nav scope CLI as the workflow runs it", () => {
   let root = "";
   let docsOnly: ReturnType<typeof repositoryWithChange>;
   let donor: ReturnType<typeof repositoryWithChange>;
+  let donorUnicode: ReturnType<typeof repositoryWithChange>;
   beforeAll(() => {
     root = mkdtempSync(path.join(os.tmpdir(), "ci-test-scope-cli-"));
     docsOnly = repositoryWithChange(root, ["docs/notes.md"]);
     donor = repositoryWithChange(root, ["apps/donor/app/page.tsx"]);
+    donorUnicode = repositoryWithChange(root, [
+      "apps/donor/app/(public)/café/page.tsx",
+    ]);
   });
   afterAll(() => rmSync(root, { recursive: true, force: true }));
 
@@ -553,6 +571,25 @@ describe("the instant-nav scope CLI as the workflow runs it", () => {
     );
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toMatch(/^instant-nav scope: /);
+    expect(written).toBe("run=true\n");
+  });
+
+  it("matches a changed donor path with a non-ASCII name (review round 6, c1.3)", () => {
+    const { result, written } = runInstantNavigationCli(
+      root,
+      donorUnicode.repo,
+      path.join(REPO_ROOT, SCOPE_SCRIPT),
+      {
+        ...pullRequest("develop", donorUnicode),
+        // Git's default, set explicitly so the host's configuration cannot
+        // hide the quoting: "apps/donor/app/(public)/caf\303\251/page.tsx".
+        GIT_CONFIG_COUNT: "1",
+        GIT_CONFIG_KEY_0: "core.quotePath",
+        GIT_CONFIG_VALUE_0: "true",
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain("café/page.tsx changed");
     expect(written).toBe("run=true\n");
   });
 
