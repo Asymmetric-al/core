@@ -474,9 +474,33 @@ describe("fast profile stages scoped to their inputs", () => {
   it("runs every scoped stage when a shared input changes", () => {
     for (const file of SHARED_INPUT_SAMPLES) {
       const stages = fastStages([file]);
-      for (const id of SCOPED_STAGE_IDS)
+      for (const id of SCOPED_STAGE_IDS.filter(
+        (scoped) => scoped !== "verify-shadcn-diff",
+      ))
         expect(stage(stages, id).skip, `${id} for ${file}`).toBeUndefined();
     }
+  });
+
+  // verify:shadcn-diff calls the public registry for every component (889 s
+  // on the loaded Windows host), so it runs for its derived inputs only: the
+  // root manifest and lock are among them, another workspace's manifest is
+  // not.
+  it("runs the shadcn review only for the inputs its verifier derives", () => {
+    for (const file of ["package.json", "bun.lock", "packages/ui/package.json"])
+      expect(
+        stage(fastStages([file]), "verify-shadcn-diff").skip,
+        file,
+      ).toBeUndefined();
+    for (const file of [
+      "apps/admin/package.json",
+      "docs/.prettierrc.json",
+      ".node-version",
+      "scripts/verify/ci-preflight.mjs",
+    ])
+      expect(
+        stage(fastStages([file]), "verify-shadcn-diff").skip,
+        file,
+      ).toMatch(/no change to its inputs/);
   });
 
   it("derives the shadcn review's inputs from its verifier and baseline", () => {

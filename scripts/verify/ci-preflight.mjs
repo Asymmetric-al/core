@@ -157,7 +157,7 @@ const FAST_EXCLUDED = new Set([
 // other push skips them with a printed line. An unknown change set runs them
 // all. A string ending in "/" stands for everything under it.
 //
-// Inputs every scoped stage shares: the lock and runtime pin, any package
+// Inputs every traced stage shares: the lock and runtime pin, any package
 // manifest (workspaces, scripts, dependency versions, and Prettier's option
 // lookup), Prettier configuration, and this selection code.
 const SHARED_INPUTS = [
@@ -255,17 +255,22 @@ function readShadcnBaseline() {
 }
 
 /**
- * Inputs per scoped stage, shared inputs included. verify:shadcn-diff's come
- * from the verifier and its review baseline; null means they cannot be told
- * (the baseline is unreadable), so the stage runs.
+ * Inputs per scoped stage. The traced stages also take the shared inputs.
+ * verify:shadcn-diff takes exactly what its verifier derives from itself and
+ * its review baseline (it calls the public registry, so it runs no more often
+ * than that); null means they cannot be told (the baseline is unreadable), so
+ * the stage runs.
  */
 function scopedStageInputs(shadcnBaseline) {
-  const shadcn = shadcnDiffInputs(shadcnBaseline);
-  return Object.fromEntries(
-    Object.entries({ ...STAGE_INPUTS, "verify-shadcn-diff": shadcn }).map(
-      ([id, inputs]) => [id, inputs && [...inputs, ...SHARED_INPUTS]],
+  return {
+    ...Object.fromEntries(
+      Object.entries(STAGE_INPUTS).map(([id, inputs]) => [
+        id,
+        [...inputs, ...SHARED_INPUTS],
+      ]),
     ),
-  );
+    "verify-shadcn-diff": shadcnDiffInputs(shadcnBaseline),
+  };
 }
 
 function isExistingFile(file) {
