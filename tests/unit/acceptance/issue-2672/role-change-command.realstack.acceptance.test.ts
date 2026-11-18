@@ -435,6 +435,31 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
       }));
   });
 
+  // WP2a's own case, restored (council round 2 on WP2a, R8b; it was folded
+  // away when WP2a joined stage 1 at 7a9fc5b39). The target is another
+  // tenant's administrator whose profile names that tenant, with a donor row
+  // here. It runs on the chain's final function only: stage 1's
+  // 20261117040237 finds the target by `profiles.tenant_id`, so for this
+  // target it answers "not found" (P0002) before the cross-organization
+  // rule, and the case cannot join the two-version block above.
+  it("refuses to strip another tenant's administrator who is also a member of the tenant, and changes nothing", () =>
+    tx(async () => {
+      await db.query(
+        "insert into authz.memberships (user_id, tenant_id, role, is_active) values ($1, $2, 'donor', true)",
+        [people.adminB, tenantA],
+      );
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.adminB,
+        tenant: tenantA,
+        role: "donor",
+      });
+      expect(outcome.code).toBe("42501");
+      expect(outcome.message).toBe(OTHER_ORGANIZATION);
+      expect(await roleOf(people.adminB)).toBe("admin");
+      expect(await roleChangeAudits(people.adminB)).toEqual([]);
+    }));
+
   it("lets an admin demote another admin of the same tenant", () =>
     tx(async () => {
       const outcome = await changeRole({

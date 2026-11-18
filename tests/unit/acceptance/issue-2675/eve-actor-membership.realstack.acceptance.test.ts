@@ -239,15 +239,20 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
       }),
     );
 
-    it("refuses a call that names no actor role", () =>
+    // Council round 2 on WP2a, R8a: the person's profile names this tenant,
+    // so the old test (`NULL NOT IN (...) OR NOT EXISTS (profile in the
+    // tenant)` is `NULL OR false`, which raises nothing) let the call
+    // through; only the refusal of a missing role stops it now.
+    it("refuses a call that names no actor role, even for a member whose profile names the tenant", () =>
       tx(async () => {
         expect(
           await asService(
             `select public.set_eve_retention_hold($1::uuid, $2::uuid, null,
                'incident', 'category', 'audit_record', 'incident drill')`,
-            [TA, people.otherTenantProfileFlagged],
+            [TA, people.staffProfileFlagged],
           ),
         ).toMatch(/eve_retention_actor_tenant_mismatch/);
+        expect(await holds("staffProfileFlagged")).toBe(0);
       }));
 
     it("still judges the super_admin actor role by the profile, until WP2c", () =>
@@ -336,6 +341,18 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
       tx(async () => {
         expect(await edit("adminOfB", TA)).toMatch(/Profile not found/);
         expect(await firstName("adminOfB")).not.toBe("Edited");
+      }));
+
+    // Council round 2 on WP2a, R8c: the profile still names the tenant, so
+    // the old test (the profile's tenant column) let a revoked member edit.
+    it("refuses a person whose membership in the tenant is revoked", () =>
+      tx(async () => {
+        await db.query(
+          "update authz.memberships set is_active = false where user_id = $1",
+          [people.revoked],
+        );
+        expect(await edit("revoked", TA)).toMatch(/Profile not found/);
+        expect(await firstName("revoked")).not.toBe("Edited");
       }));
   });
 });
