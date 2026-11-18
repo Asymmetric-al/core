@@ -15,10 +15,7 @@ import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { fontVariables } from "@asym/ui/fonts";
-import {
-  RetainedDraftPageTenant,
-  SessionRetainedDraftProvider,
-} from "@asym/ui/hooks";
+import { SessionRetainedDraftProvider } from "@asym/ui/hooks";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { headers } from "next/headers";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -106,15 +103,10 @@ async function MissionaryWorkspace({
     );
   }
 
-  // Retained drafts are scoped by the page's tenant: the tenant of the
-  // document's scope, which is the resolved missionary assignment's
-  // (AL-2675). `RetainedDraftPageTenant` renders nothing.
+  // Retained drafts read the page's tenant from the document scope this
+  // fixes (AL-2675; council round 1, A13).
   return (
     <TenantDocument scope={scope}>
-      <RetainedDraftPageTenant
-        userId={scope.userId}
-        tenantId={scope.tenantId}
-      />
       <MissionaryWorkspaceChrome>{children}</MissionaryWorkspaceChrome>
     </TenantDocument>
   );

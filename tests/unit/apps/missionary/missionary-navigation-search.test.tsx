@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { setPlatform } from "@ui-sdk/core/testing";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import type { ReactNode } from "react";
@@ -117,22 +117,13 @@ it.each([
   "/forgot-password",
   "/no-access",
   "/auth/callback",
-  "/about",
-  "/faq",
-  "/financials",
-  "/ways-to-give",
-  "/workers",
-  "/checkout",
-  "/sign",
+  // The public site pages the workspace never had left its public routes
+  // (council round 1, A13).
   "/api/auth/demo-account",
-  "/sitemap.xml",
-  "/robots.txt",
   "/boneyard",
   "/boneyard/capture",
   "/api/example",
   "/login/recovery",
-  "/checkout/success",
-  "/workers/example",
 ])("keeps public %s free of workspace search and its shortcut", (pathname) => {
   navigation.pathname = pathname;
   const view = render(

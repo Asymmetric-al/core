@@ -348,6 +348,28 @@ describe("TenantDocument: the guard", () => {
 });
 
 describe("one way to build an address", () => {
+  // Council round 1, A13: a URL object used to pass through without the
+  // prefix. Its origin cannot be judged on the server, so it is refused, by
+  // the type and at run time; an internal link takes a path.
+  it("refuses a URL object", async () => {
+    const { TenantDocument, TenantLink } = await load();
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() =>
+      render(
+        <TenantDocument scope={scopeA}>
+          <TenantLink href={new URL("http://localhost:3330/crm") as never}>
+            CRM
+          </TenantLink>
+        </TenantDocument>,
+      ),
+    ).toThrow(/URL object/);
+    errors.mockRestore();
+    // The type refuses it too: TenantLinkHref has no `href` member, which a
+    // URL instance has (`Type 'URL' is not assignable to type
+    // 'TenantLinkHref'`). Unit tests are not type-checked, so that is
+    // checked where TenantLink is used, by each app's typecheck.
+  });
+
   it("prefixes links, router calls and hrefs with the document's prefix", async () => {
     const { TenantDocument, TenantLink, useTenantHref, useTenantRouter } =
       await load();

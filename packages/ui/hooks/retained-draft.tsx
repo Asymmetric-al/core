@@ -2,6 +2,7 @@
 
 import { registerClientSessionCleanup } from "@asym/auth/client-session";
 import { useAuth } from "@asym/auth/use-auth";
+import { useFixedDocumentScope } from "@asym/database/document-scope";
 import {
   createContext,
   useCallback,
@@ -271,11 +272,13 @@ export function RetainedDraftProvider({
 }
 
 /**
- * The page's tenant: the tenant of the membership the request acts under,
- * which the app's server-side role gate resolves and publishes with
- * `RetainedDraftPageTenant` (AL-2675, the WP2a sweep). Until WP2b puts the
- * tenant in the page address, this is how a client page learns it. The
- * profile's tenant column is no authority and does not scope drafts.
+ * The page's tenant for drafts: in Mission Control and the missionary
+ * workspace, the document scope (`useFixedDocumentScope`), which the tenant
+ * in the page address fixed (AL-2675). The donor portal has no document
+ * scope; its server-side role gate publishes the tenant of the request's
+ * resolved membership with `RetainedDraftPageTenant` until WP3 resolves its
+ * host. The profile's tenant column is no authority and does not scope
+ * drafts.
  */
 type PageTenant = { userId: string; tenantId: string };
 let pageTenant: PageTenant | null = null;
@@ -321,11 +324,15 @@ export function SessionRetainedDraftProvider({
   children: ReactNode;
 }) {
   const { user, profile, loading } = useAuth();
-  const page = useSyncExternalStore(
+  const documentScope = useFixedDocumentScope();
+  const published = useSyncExternalStore(
     subscribePageTenant,
     readPageTenant,
     readNoPageTenant,
   );
+  const page = documentScope
+    ? { userId: documentScope.userId, tenantId: documentScope.tenantId }
+    : published;
   // Identity scopes memory; route/API policies own access. The page's tenant,
   // published for this same user, scopes it to one organization (AL-2675).
   const owner =

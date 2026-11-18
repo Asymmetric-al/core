@@ -2,18 +2,17 @@ import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 
 export const proxy = createAuthMiddleware({
+  // Each lies outside the tenant segment (OUTSIDE_TENANT_SEGMENT_ROOTS, the
+  // one list; the proxy refuses to build otherwise). Mission Control has no
+  // giving, worker or checkout pages, and the matcher never runs on a root
+  // file such as /robots.txt, so those entries went (council round 1, A13).
   publicRoutes: [
     "/auth/callback",
     "/login",
     "/register",
     "/forgot-password",
-    "/ways-to-give",
-    "/workers",
-    "/checkout",
     "/api/auth/demo-account",
     "/api/cms/public",
-    "/sitemap.xml",
-    "/robots.txt",
     "/no-access",
     "/boneyard",
   ],

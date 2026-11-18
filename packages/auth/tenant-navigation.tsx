@@ -241,7 +241,11 @@ export function TenantDocument({
   if (reload) return null;
   return (
     <DocumentScopeProvider scope={scope}>
-      {/* What the end-to-end suites read; it renders nothing visible. */}
+      {/* What the end-to-end suites read; it renders nothing visible. It
+          ships in production builds on purpose: the production specs read
+          it, and it tells the browser nothing new: the same scope is a prop of
+          this client component, so it is already in the page's own payload
+          (council round 1, A13). */}
       <span
         hidden
         data-tenant-scope={scope.addressPrefix}
@@ -338,12 +342,26 @@ export function useTenantHref(): (href: string) => string {
 
 type LinkHref = ComponentProps<typeof Link>["href"];
 
+/**
+ * What `TenantLink` takes as `href`: a path, or a URL object without an
+ * origin (`{ pathname, query, hash }`). A `URL` instance is refused, by the
+ * type (it has `href`) and at run time: its origin cannot be judged on the
+ * server, so it could reach this site without the prefix (council round 1,
+ * A13). A link to another site is a plain `<a>`.
+ */
+export type TenantLinkHref =
+  string | (Exclude<LinkHref, string> & { href?: never });
+
 function prefixLinkHref(
   href: LinkHref,
   toHref: (href: string) => string,
 ): LinkHref {
   if (typeof href === "string") return toHref(href);
-  if (href instanceof URL) return href;
+  if (href instanceof URL) {
+    throw new TypeError(
+      "TenantLink does not take a URL object: pass the path of a page on this site, or use <a> for another site.",
+    );
+  }
   if (typeof href.pathname !== "string") return href;
   return { ...href, pathname: toHref(href.pathname) };
 }
@@ -380,7 +398,7 @@ export function TenantLink({
   prefetch,
   replace,
   ...props
-}: ComponentProps<typeof Link>) {
+}: Omit<ComponentProps<typeof Link>, "href"> & { href: TenantLinkHref }) {
   const toHref = useTenantHref();
   const crosses = useCrossesSegment();
   const prefixed = prefixLinkHref(href, toHref);

@@ -46,9 +46,19 @@ vi.mock("@asym/database/supabase/server", () => ({
 vi.mock("@asym/lib/mission-control/bootstrap", () => ({
   createMCBootstrapState: (input: unknown) => input,
 }));
-vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+// The signed-in layout's gate reads the document scope the proxy decided
+// (council round 1, A13: the dead getProtectedShellState is gone).
+vi.mock("@asym/auth/tenant-server", () => ({
+  readDocumentScope: async () => ({
+    userId: "user-1",
+    tenantId: "tenant-1",
+    assignmentId: "assignment-1",
+    addressPrefix: "/tenant-1",
+  }),
+  redirectInTenant: vi.fn(),
+}));
 
-import { getProtectedShellState } from "../../../../apps/admin/lib/admin-access";
+import { getTenantShell } from "../../../../apps/admin/lib/admin-access";
 
 describe("admin shell identity", () => {
   beforeEach(() => {
@@ -59,7 +69,7 @@ describe("admin shell identity", () => {
     tenantQuery.mockResolvedValue({
       data: { id: "tenant-1", name: "Our tenant", slug: "ours" },
     });
-    const state = await getProtectedShellState("/");
+    const { shellState: state } = await getTenantShell("/");
     expect(select).toHaveBeenCalledWith(
       "profiles",
       "email, first_name, last_name, avatar_url",
@@ -75,7 +85,7 @@ describe("admin shell identity", () => {
   it("keeps only the authenticated tenant identity if the tenant row is absent", async () => {
     profileQuery.mockResolvedValue({ data: null });
     tenantQuery.mockResolvedValue({ data: null });
-    expect(await getProtectedShellState("/")).toMatchObject({
+    expect((await getTenantShell("/")).shellState).toMatchObject({
       tenant: { id: "tenant-1", name: "", slug: "" },
     });
   });

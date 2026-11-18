@@ -72,13 +72,6 @@ export async function requireAdminAccess(pathname: string) {
   return { auth, tenantId: auth.tenantId, userId: auth.userId };
 }
 
-export async function getProtectedShellState(
-  pathname: string,
-): Promise<MCBootstrapState> {
-  const { auth, tenantId, userId } = await requireAdminAccess(pathname);
-  return loadShellState(auth, tenantId, userId);
-}
-
 /**
  * The signed-in pages' gate and shell (plan 5.2): the role gate, the document
  * scope the proxy decided for the page address, and the shell's bootstrap

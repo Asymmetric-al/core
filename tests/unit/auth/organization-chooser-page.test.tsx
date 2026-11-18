@@ -67,6 +67,40 @@ afterEach(() => {
 
 // Council round 1, A9: a failed read used to throw, and with no error
 // boundary on the route the person got the global error page.
+// Council round 1, A13: the accessible name of each choice reads once,
+// "Open Acme", not "Acme: Open Acme"; a role names its organization.
+describe("the chooser's choices", () => {
+  it("are named once, with the organization where a role alone would not say it", async () => {
+    const { OrganizationChooser } =
+      await import("../../../packages/ui/components/auth/organization-chooser");
+    render(
+      <OrganizationChooser
+        organizations={[
+          {
+            tenantId: DEMO,
+            name: "Acme",
+            options: [{ subRole: null, href: `/${DEMO}` }],
+          },
+          {
+            tenantId: "00000000-0000-0000-0000-000000000002",
+            name: "Beta",
+            options: [
+              { subRole: "finance", href: "/b~finance" },
+              { subRole: "hr", href: "/b~hr" },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen
+        .getAllByRole("link")
+        .map((link) => link.textContent?.replace(/\s+/g, " ").trim()),
+    ).toEqual(["Open Acme", "Beta: Finance", "Beta: HR"]);
+  });
+});
+
 describe("when the person's organizations cannot be read", () => {
   it.each(PAGES)(
     "%s shows an alert with a way to try again, not an error page",

@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createE2EAuthCookieValue,
@@ -186,6 +186,41 @@ describe("a tenant address: the membership decision before the page shell", () =
       expect(rewriteTarget(response)).toBeNull();
       expect(forwarded(response, "x-asym-tenant")).toBeNull();
     }
+  });
+
+  // Council round 1, A13: one list of the addresses outside the tenant
+  // segment. A public route that list does not cover would get a prefix from
+  // the helpers and a redirect back from the proxy, so a proxy with one is
+  // refused when it is built.
+  it("refuses a public route that the one list of outside addresses does not cover", () => {
+    expect(() =>
+      createAuthMiddleware({
+        publicRoutes: ["/login", "/ways-to-give"],
+        protectedRoutePrefixes: ["/"],
+        loginPath: "/login",
+        unauthorizedRedirectTo: "/no-access",
+        roleClass: "staff",
+        allowedRoles: ["staff"],
+        resolveUserRole: resolveUserRoleFromDatabase,
+        tenantAddress: true,
+      }),
+    ).toThrow(/\/ways-to-give.*OUTSIDE_TENANT_SEGMENT_ROOTS/);
+    // Without a tenant address (the donor portal) there is no segment.
+    expect(() =>
+      createAuthMiddleware({
+        publicRoutes: ["/", "/ways-to-give"],
+        roleClass: "donor",
+        allowedRoles: ["donor"],
+        resolveUserRole: resolveUserRoleFromDatabase,
+      }),
+    ).not.toThrow();
+  });
+
+  it("builds both apps' proxies, whose public routes are all outside the segment", async () => {
+    await expect(import("../../../apps/admin/proxy")).resolves.toBeTruthy();
+    await expect(
+      import("../../../apps/missionary/proxy"),
+    ).resolves.toBeTruthy();
   });
 
   it("refuses when the membership read fails", async () => {

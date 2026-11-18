@@ -370,6 +370,20 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         "from every protected route. Pass a `resolveUserRole` implementation.",
     );
   }
+  // One list of the addresses outside the tenant segment (council round 1,
+  // A13): a public route it does not cover would get a prefix from the
+  // helpers and a redirect back from the proxy.
+  const publicInside = tenantAddress
+    ? publicRoutes.filter((route) => !isOutsideTenantSegment(route))
+    : [];
+  if (publicInside.length > 0) {
+    throw new Error(
+      `createAuthMiddleware: public route(s) ${publicInside.join(", ")} lie ` +
+        "inside the tenant segment. Add each page outside it to " +
+        "OUTSIDE_TENANT_SEGMENT_ROOTS (packages/auth/tenant-address.ts), the " +
+        "one list of addresses outside the segment, or drop the route.",
+    );
+  }
   if (tenantAddress && !roleClass) {
     throw new Error(
       "createAuthMiddleware: `tenantAddress` needs the surface's `roleClass`, " +

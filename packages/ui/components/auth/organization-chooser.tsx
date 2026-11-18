@@ -62,10 +62,17 @@ export function OrganizationChooser({
                     variant="outline"
                     className="w-full"
                   >
-                    <span className="sr-only">{organization.name}: </span>
-                    {option.subRole
-                      ? SUB_ROLE_LABELS[option.subRole]
-                      : `Open ${organization.name}`}
+                    {/* Named once: "Open Acme", or "Acme: Finance", where
+                        the role alone would not say which organization
+                        (council round 1, A13). */}
+                    {option.subRole ? (
+                      <>
+                        <span className="sr-only">{organization.name}: </span>
+                        {SUB_ROLE_LABELS[option.subRole]}
+                      </>
+                    ) : (
+                      `Open ${organization.name}`
+                    )}
                   </ButtonLink>
                 </li>
               ))}

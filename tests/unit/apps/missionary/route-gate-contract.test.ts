@@ -26,21 +26,16 @@ const proxySource = readFileSync(
 ).replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("missionary edge gate", () => {
-  it("retains the proxy's existing public routes exactly", () => {
+  // Council round 1, A13: the entries the workspace has no page for went
+  // (public site pages, a signing page, root files the matcher never runs
+  // on); each one left lies outside the tenant segment. Only narrower: a
+  // removed path now needs a signed-in person.
+  it("keeps the proxy's public routes exactly", () => {
     expect(MISSIONARY_PUBLIC_ROUTES).toEqual([
-      "/about",
       "/auth/callback",
-      "/faq",
-      "/financials",
       "/register",
       "/forgot-password",
-      "/ways-to-give",
-      "/workers",
-      "/checkout",
-      "/sign",
       "/api/auth/demo-account",
-      "/sitemap.xml",
-      "/robots.txt",
       "/no-access",
       "/boneyard",
     ]);

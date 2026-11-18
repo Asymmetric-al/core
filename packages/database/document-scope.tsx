@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useSyncExternalStore,
+} from "react";
 
 import { reloadDocument } from "./document-reload";
 
@@ -104,6 +110,10 @@ export function DocumentScopeProvider({
   useEffect(() => {
     if (!fixed) reloadDocument();
   }, [fixed]);
+  // Tell readers above this provider (retained drafts) the scope is fixed.
+  useLayoutEffect(() => {
+    if (fixed) fixedScopeListeners.forEach((listener) => listener());
+  }, [fixed]);
 
   if (!fixed) return null;
   return (
@@ -144,4 +154,26 @@ export function getDocumentScope(): DocumentScope | null {
  */
 export function isDocumentScopeFixed(): boolean {
   return typeof window !== "undefined" && fixedScope !== null;
+}
+
+const fixedScopeListeners = new Set<() => void>();
+
+function subscribeFixedScope(listener: () => void) {
+  fixedScopeListeners.add(listener);
+  return () => {
+    fixedScopeListeners.delete(listener);
+  };
+}
+
+const readFixedScope = () =>
+  typeof window === "undefined" ? null : fixedScope;
+const readNoScope = () => null;
+
+/**
+ * The scope this document fixed, for React code above the provider that
+ * fixed it, such as retained drafts in the root layout (council round 1,
+ * A13); `null` on the server and until a signed-in page has rendered.
+ */
+export function useFixedDocumentScope(): DocumentScope | null {
+  return useSyncExternalStore(subscribeFixedScope, readFixedScope, readNoScope);
 }

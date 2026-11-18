@@ -249,27 +249,25 @@ it.each([
   expect(view.container.firstElementChild).toBe(view.getByRole("main"));
 });
 
-it.each([
-  "/",
-  "/tasks",
-  "/workers",
-  "/checkout",
-  "/auth/callback",
-  "/login-history",
-])("preserves the existing shell on %s", (pathname) => {
-  navigation.pathname = pathname;
-  const view = render(compose(<h1>Existing page</h1>));
-  expect(view.getByRole("banner")).toBeTruthy();
-  // The workspace has no footer, and sign-out lives in the account menu.
-  expect(view.queryByRole("contentinfo")).toBeNull();
-  expect(view.queryByRole("button", { name: "Sign out" })).toBeNull();
-  expect(
-    view.getAllByRole("button", { name: "Toggle Sidebar" }).length,
-  ).toBeGreaterThan(0);
-  expect(
-    Boolean(view.queryByRole("button", { name: "Search missionary pages" })),
-  ).toBe(["/", "/tasks", "/login-history"].includes(pathname));
-});
+// /workers and /checkout left this list with the public routes the workspace
+// never had pages for (council round 1, A13).
+it.each(["/", "/tasks", "/auth/callback", "/login-history"])(
+  "preserves the existing shell on %s",
+  (pathname) => {
+    navigation.pathname = pathname;
+    const view = render(compose(<h1>Existing page</h1>));
+    expect(view.getByRole("banner")).toBeTruthy();
+    // The workspace has no footer, and sign-out lives in the account menu.
+    expect(view.queryByRole("contentinfo")).toBeNull();
+    expect(view.queryByRole("button", { name: "Sign out" })).toBeNull();
+    expect(
+      view.getAllByRole("button", { name: "Toggle Sidebar" }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      Boolean(view.queryByRole("button", { name: "Search missionary pages" })),
+    ).toBe(["/", "/tasks", "/login-history"].includes(pathname));
+  },
+);
 
 it.each(["/boneyard", "/boneyard/capture"])(
   "preserves the special capture frame on %s",
