@@ -1,5 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
+import { afterEach, describe, expect, it } from "vitest";
+
+import {
+  checkDevServerLock,
+  devServerConflictMessage,
+  devServerLockPath,
+  readDevServerLock,
+  runningDevServer,
+} from "../../tests/e2e/dev-server-lock.mjs";
 import {
   ADMIN_SURFACE,
   DONOR_SURFACE,
@@ -198,11 +210,143 @@ describe("devServerCommand", () => {
   // released when its process dies, so a crashed run cannot block the next
   // start; deleting it only lets a second server start over a live one.
   it("starts the app without deleting a running dev server's lock", () => {
-    const command = devServerCommand("missionary", 4000, "localhost");
-    expect(command).not.toContain(".next/dev/lock");
-    expect(command).not.toContain("rmSync");
-    expect(command).toBe(
+    for (const env of [{ CI: "true" }, {}]) {
+      const command = devServerCommand("missionary", 4000, "localhost", env);
+      expect(command).not.toContain(".next/dev/lock");
+      expect(command).not.toContain("rmSync");
+    }
+  });
+
+  it("leaves the CI command exactly as it was", () => {
+    expect(
+      devServerCommand("missionary", 4000, "localhost", { CI: "true" }),
+    ).toBe(
       "bun run --cwd apps/missionary dev:playwright -- --port 4000 --hostname localhost",
     );
+  });
+
+  // Review round 6 (c2.5): locally, a next dev already running for the same
+  // app holds its lock, and the second server would exit with a generic
+  // error. The check names that server first.
+  it("checks for a running dev server first when run locally", () => {
+    expect(devServerCommand("missionary", 4000, "localhost", {})).toBe(
+      "node tests/e2e/dev-server-lock.mjs missionary 4000 localhost && bun run --cwd apps/missionary dev:playwright -- --port 4000 --hostname localhost",
+    );
+  });
+
+  it("passes the boneyard environment through to the command", () => {
+    const local = singleWebServer(defineBoneyardConfig(MISSIONARY_SURFACE, {}));
+    expect(local?.command).toMatch(/^node tests\/e2e\/dev-server-lock\.mjs /);
+    const ci = singleWebServer(
+      defineBoneyardConfig(MISSIONARY_SURFACE, { CI: "true" }),
+    );
+    expect(ci?.command).toMatch(/^bun run --cwd apps\/missionary /);
+  });
+});
+
+describe("the running dev-server check", () => {
+  const roots: string[] = [];
+  afterEach(() => {
+    for (const root of roots.splice(0))
+      rmSync(root, { recursive: true, force: true });
+  });
+  function rootWithLock(app: string, content: string | undefined) {
+    const root = mkdtempSync(path.join(os.tmpdir(), "dev-server-lock-"));
+    roots.push(root);
+    if (content !== undefined) {
+      const lock = devServerLockPath(app, root);
+      mkdirSync(path.dirname(lock), { recursive: true });
+      writeFileSync(lock, content);
+    }
+    return root;
+  }
+  const server = {
+    pid: 4242,
+    port: 3000,
+    hostname: "localhost",
+    appUrl: "http://localhost:3000",
+    startedAt: 1,
+  };
+
+  it("reads the server Next.js records in its lock", () => {
+    const root = rootWithLock("donor", JSON.stringify(server));
+    expect(readDevServerLock(devServerLockPath("donor", root))).toEqual(server);
+  });
+
+  it.each([
+    ["no lock", undefined],
+    ["an empty lock", ""],
+    ["a lock that is not JSON", "locked"],
+    ["a lock without a pid", JSON.stringify({ port: 3000 })],
+  ])("reads nothing from %s", (_label, content) => {
+    const root = rootWithLock("donor", content);
+    expect(readDevServerLock(devServerLockPath("donor", root))).toBeNull();
+  });
+
+  it.each([
+    ["a live server that is listening", true, true, true],
+    ["a dead process (a stale lock)", false, true, false],
+    ["a live process that is not listening", true, false, false],
+  ])("reports %s", async (_label, alive, listening, reported) => {
+    const root = rootWithLock("donor", JSON.stringify(server));
+    const found = await runningDevServer({
+      app: "donor",
+      root,
+      isAlive: () => alive,
+      isListening: async () => listening,
+    });
+    expect(found).toEqual(reported ? server : null);
+  });
+
+  it("names the running server and what to do", () => {
+    const message = devServerConflictMessage({
+      app: "donor",
+      port: 3005,
+      hostname: "127.0.0.1",
+      server,
+      platform: "win32",
+    });
+    expect(message).toContain("apps/donor");
+    expect(message).toContain("http://localhost:3000");
+    expect(message).toContain("PID 4242");
+    expect(message).toContain("taskkill /PID 4242 /T /F");
+    expect(message).toContain("apps/donor/.next/dev/lock");
+    expect(message).toContain("--port 3005 --hostname 127.0.0.1");
+    expect(
+      devServerConflictMessage({
+        app: "donor",
+        port: 3005,
+        hostname: "127.0.0.1",
+        server,
+        platform: "linux",
+      }),
+    ).toContain("kill 4242");
+  });
+
+  it("fails with the message when a server holds the lock, and passes otherwise", async () => {
+    const root = rootWithLock("donor", JSON.stringify(server));
+    const errors: string[] = [];
+    const options = {
+      root,
+      isAlive: () => true,
+      isListening: async () => true,
+      error: (line: string) => errors.push(line),
+    };
+    expect(
+      await checkDevServerLock(["donor", "3005", "127.0.0.1"], options),
+    ).toBe(1);
+    expect(errors.join("\n")).toContain("PID 4242");
+    expect(
+      await checkDevServerLock(["missionary", "4000", "localhost"], options),
+    ).toBe(0);
+  });
+
+  it("lets the start go ahead from the command line when no server holds the lock", () => {
+    const result = spawnSync(
+      process.execPath,
+      ["tests/e2e/dev-server-lock.mjs", "no-such-app", "4000", "localhost"],
+      { encoding: "utf8", shell: false },
+    );
+    expect(result.status, result.stderr).toBe(0);
   });
 });

@@ -365,6 +365,23 @@ exists to prevent. Decision: `devServerCommand` runs only the app's
 under `.next/dev`; it still clears build locks elsewhere under `.next` after
 waiting for running builds, as before.
 
+Consequence for local runs (review round 6, c2.5): a `next dev` already
+running for the same app on another port (`bun run dev:donor` on 3000 while
+Playwright wants 3005) holds the lock, so Playwright's own server would exit.
+Outside CI, `devServerCommand` therefore first runs
+`tests/e2e/dev-server-lock.mjs <app> <port> <hostname>`. It reads the server
+Next.js records in the lock (URL and PID) without touching the lock, and when
+that process is alive and listening on its port it exits 1 with a message
+naming the server, the command to stop it, and how to restart it on
+Playwright's port so Playwright reuses it. A stale lock from a dead process,
+or a process not listening, lets the start go ahead and leaves the decision to
+Next.js. CI keeps the plain command: its jobs start each server once and set
+`PLAYWRIGHT_REUSE_EXISTING_SERVER=1`. Checked on this Windows host on
+2026-11-18 against a lock taken through Next's own native binding: the
+recorded server is readable while the lock is held, a second acquire fails,
+the check exits 1 with the message, and after the holder exits the lock file
+is gone and the check exits 0.
+
 ## Risks and trade-offs
 
 - A factory test that starts reading outside its inputs through a path built

@@ -141,14 +141,21 @@ export function shouldReuseExistingServer(
  * Dev-server launch command: the app's dev:playwright. It never deletes
  * `.next/dev/lock`: Next.js holds it as an operating-system lock released
  * when its process dies, so a crashed run does not block the next start, and
- * a live lock means a dev server is already running there.
+ * a live lock means a dev server is already running there. Outside CI the
+ * command first runs ./dev-server-lock.mjs, which names such a server and
+ * says what to do instead of letting a second `next dev` exit. CI keeps the
+ * plain command: its jobs start each server once and reuse it.
  */
 export function devServerCommand(
   app: string,
   port: number,
   hostname: string,
+  env: NodeJS.ProcessEnv = process.env,
 ): string {
-  return `bun run --cwd apps/${app} dev:playwright -- --port ${port} --hostname ${hostname}`;
+  const start = `bun run --cwd apps/${app} dev:playwright -- --port ${port} --hostname ${hostname}`;
+  return env.CI
+    ? start
+    : `node tests/e2e/dev-server-lock.mjs ${app} ${port} ${hostname} && ${start}`;
 }
 
 function firstConfiguredEnvValue(
@@ -217,6 +224,7 @@ export function defineBoneyardConfig(
             surface.app,
             surface.defaultPort,
             surface.serverHostname,
+            env,
           ),
           url: baseURL,
           env: {

@@ -135,3 +135,7 @@
       the unit-test job (real-database files also run in `migrate`); record
       the explicit supersession of one `reduce-development-builds` clause and
       the archive order.
+- [x] 10.10 Red first: outside CI the dev-server command checks the app's
+      dev lock first, and a live server holding it fails the start with a
+      message naming it and what to do; CI keeps the plain command. Then add
+      `tests/e2e/dev-server-lock.mjs`.

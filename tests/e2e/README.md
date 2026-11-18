@@ -11,6 +11,7 @@
    On Linux CI, prefer `bunx playwright install chromium --with-deps` so system libraries are present.
 
 2. **Port conflicts:** The default donor dev server for Playwright uses port **3005** (`playwright.config.ts`). If a run aborts mid-flight, free the port before the next suite (or stop the stray `next dev` process).
+3. **One dev server per app:** Next.js lets one `next dev` run per app directory; it holds `apps/<app>/.next/dev/lock` while it runs and the operating system releases it when the process dies, so nothing deletes that lock. If a `next dev` for the same app is already running on another port (for example `bun run dev:donor` on 3000), a local Playwright run stops before starting its own server and prints that server's URL, its PID, the command to stop it, and how to restart it on Playwright's port so it is reused (`tests/e2e/dev-server-lock.mjs`). CI never runs this check.
 
 ## Running E2E tests locally
 
