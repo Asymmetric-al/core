@@ -3,6 +3,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 import { baseConfig } from "@asym/eslint-config/base.mjs";
 import { designSystemConfig } from "@asym/eslint-config/design-system.mjs";
+import { ownApiConfig } from "@asym/eslint-config/own-api.mjs";
 import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
 import { reuiDataGridFiles } from "@asym/eslint-config/reui-data-grid-exceptions.mjs";
 
@@ -41,6 +42,16 @@ const eslintConfig = defineConfig([
       }),
     },
   },
+  // Page code calls the app's own API only through ownApiFetch (plan 5.2).
+  // `bun run lint` runs it from each product workspace's own config; this
+  // block gives editors that use the root config the same answer.
+  ...ownApiConfig.map((block) => ({
+    ...block,
+    files: [
+      "apps/{admin,donor,missionary}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+      "packages/{auth,database,lib,missionary,ui}/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+    ],
+  })),
   {
     files: [
       "apps/*/components/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
