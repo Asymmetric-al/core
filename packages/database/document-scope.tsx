@@ -18,8 +18,10 @@ import type { ReactNode } from "react";
  * storage carry the person and the tenant.
  *
  * Signed-in pages of Mission Control and the missionary workspace always have
- * one. Everything else (sign-in, the chooser, Web Studio, the donor portal)
- * has none: `useDocumentScope()` and `getDocumentScope()` return `null`.
+ * one, and so does every Web Studio page, from the Web Studio tenant cookie
+ * (AL-2675, WP2b slice C). Everything else (sign-in, the choosers, the donor
+ * portal) has none: `useDocumentScope()` and `getDocumentScope()` return
+ * `null`.
  */
 export interface DocumentScope {
   /** The signed-in person: their Supabase user id. */
@@ -31,7 +33,11 @@ export interface DocumentScope {
    * `x-asym-assignment` header carries it.
    */
   readonly assignmentId: string;
-  /** The page address prefix: `/<tenant>` or `/<tenant>~<sub-role>`. */
+  /**
+   * The page address prefix: `/<tenant>` or `/<tenant>~<sub-role>`. Empty in
+   * Web Studio, whose pages stay outside the tenant segment, so nothing there
+   * is prefixed.
+   */
   readonly addressPrefix: string;
 }
 
@@ -71,7 +77,9 @@ function fixDocumentScope(scope: DocumentScope): boolean {
  * change of signed-in person could cause, it renders nothing and reloads.
  *
  * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation`, which also
- * guards the page address; apps do not render it directly.
+ * guards the page address, and by Web Studio's document
+ * (`apps/admin/src/cms-ui/web-studio/shell/web-studio-document.tsx`), whose
+ * address names no tenant to guard.
  */
 export function DocumentScopeProvider({
   scope,

@@ -1,5 +1,6 @@
 "use client";
 
+import { WEB_STUDIO_CHOOSER_PATH } from "@asym/auth/web-studio";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Breadcrumb,
@@ -22,11 +23,19 @@ import {
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
-import { ChevronLeft, LogOut, UserRound, UserRoundCog } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ChevronLeft,
+  LogOut,
+  UserRound,
+  UserRoundCog,
+} from "lucide-react";
+import { usePathname } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { Link } from "../routing";
+import { useWebStudioOrganization } from "./web-studio-document";
 
 type StudioTopBarProps = {
   sectionLabel?: string;
@@ -54,6 +63,11 @@ function StudioUserMenu() {
     },
   } = useConfig();
   const label = resolveUserLabel(user);
+  // The organization this document works in (plan 5.2): one for the whole of
+  // Web Studio, switched through the Web Studio chooser.
+  const organization = useWebStudioOrganization();
+  const pathname = usePathname() ?? "/web-studio";
+  const switchHref = `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`;
   const accountHref = formatAdminURL({ adminRoute, path: routes.account });
   const logoutHref = formatAdminURL({ adminRoute, path: routes.logout });
 
@@ -75,7 +89,20 @@ function StudioUserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuLabel>
             <span className="block truncate">{label ?? "Your account"}</span>
+            {organization ? (
+              <span className="block truncate font-normal text-muted-foreground">
+                {organization.name}
+              </span>
+            ) : null}
           </DropdownMenuLabel>
+          {organization?.canSwitch ? (
+            // A full document load: nothing of this organization's page
+            // stays behind.
+            <DropdownMenuItem render={<a href={switchHref} />}>
+              <ArrowLeftRight aria-hidden="true" />
+              Switch organization
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem render={<Link href={accountHref} />}>
             <UserRoundCog aria-hidden="true" />
             Account

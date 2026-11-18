@@ -30,13 +30,14 @@ import { importMap } from "./web-studio/importMap";
 
 import type { PayloadRequest, ServerFunctionClient } from "payload";
 
-import { requireAdminAccess } from "@/lib/admin-access";
+import { requireWebStudioAccess } from "@/lib/web-studio-access";
 import {
   assertPayloadDatabaseConfiguration,
   PayloadDatabaseConfigurationError,
 } from "@/src/cms/payload-database-config";
 import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
 import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
+import { WebStudioDocument } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
 type Props = {
   children: React.ReactNode;
@@ -101,13 +102,14 @@ export default async function PayloadLayout({ children }: Props) {
 async function PayloadEmbeddedLayout({ children }: Props) {
   // `(payload)` deliberately stays outside `(app)`: Payload's import-map
   // generator only resolves `app/(payload)/<adminRoute>/`, so moving this group
-  // breaks `generate:importmap`. That means the `(app)` layout's role gate does
-  // not cover these routes. `proxy.ts` rejects wrong-role sessions at the edge;
-  // this explicit gate is the same defense in depth (role and tenant) that the
-  // `(app)` layout gives its routes.
+  // breaks `generate:importmap`. That means the `(app)` layout's gate does not
+  // cover these routes. Web Studio works in the organization its signed
+  // cookie selects (plan 5.2): `proxy.ts` decides that before the page shell,
+  // and this gate decides it again, from the person's live staff rows, and
+  // gives the document the tenant and row it is rendered for.
   const gatePathname =
     (await nextHeaders()).get("x-asym-pathname") ?? "/web-studio";
-  await requireAdminAccess(gatePathname);
+  const access = await requireWebStudioAccess(gatePathname);
 
   try {
     assertPayloadDatabaseConfiguration();
@@ -167,11 +169,16 @@ async function PayloadEmbeddedLayout({ children }: Props) {
     >
       {/* eslint-disable-next-line shadcn/no-inline-styles -- TODO(integrate-design-system-lint): Payload requires this CSS layer order before its providers render. */}
       <style>@layer payload-default, payload;</style>
-      {renderPayloadProviders({
-        children,
-        permissions,
-        req,
-      })}
+      <WebStudioDocument
+        scope={access.scope}
+        organization={access.organization}
+      >
+        {renderPayloadProviders({
+          children,
+          permissions,
+          req,
+        })}
+      </WebStudioDocument>
     </RootProviders>
   );
 }

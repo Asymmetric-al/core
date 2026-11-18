@@ -60,6 +60,52 @@ function fallbackName(tenantId: string) {
  * makes the whole read unavailable. An organization the names leave out, as
  * an E2E bypass identity's are, is named by a short form of its id.
  */
+export interface WebStudioOrganizationChoice {
+  tenantId: string;
+  name: string;
+  /** The staff rows there; `subRole` only where the person holds several. */
+  options: Array<{ subRole: StaffSubrole | null; assignmentId: string }>;
+}
+
+export type WebStudioOrganizationChoices =
+  | { kind: "ok"; organizations: WebStudioOrganizationChoice[] }
+  | { kind: "signed_out" }
+  | { kind: "unavailable" };
+
+/**
+ * The options of the organization choice inside Web Studio (plan 5.2;
+ * AL-2675, WP2b slice C): each live staff row the signed-in person holds,
+ * grouped by organization and named as `loadOrganizationChoices` names them.
+ * Web Studio keeps its organization in a signed cookie rather than the page
+ * address, so an option names the membership row; the server action that
+ * sets the cookie checks it against the person's live rows again.
+ */
+export async function loadWebStudioOrganizationChoices(): Promise<WebStudioOrganizationChoices> {
+  const signedIn = await getSignedInAssignments();
+  if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
+
+  const choices = listAddressChoices({
+    assignments: signedIn.assignments,
+    roleClass: "staff",
+  });
+  const tenantIds = [...new Set(choices.map((choice) => choice.tenantId))];
+  return {
+    kind: "ok",
+    organizations: tenantIds.map((tenantId) => {
+      const rows = choices.filter((choice) => choice.tenantId === tenantId);
+      return {
+        tenantId,
+        name:
+          signedIn.organizationNames.get(tenantId) ?? fallbackName(tenantId),
+        options: rows.map((choice) => ({
+          subRole: rows.length > 1 ? choice.subRole : null,
+          assignmentId: choice.assignmentId,
+        })),
+      };
+    }),
+  };
+}
+
 export async function loadOrganizationChoices(input: {
   roleClass: MembershipRole;
   tenantId?: string | null;

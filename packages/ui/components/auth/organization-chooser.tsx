@@ -1,4 +1,4 @@
-import { ButtonLink } from "../shadcn/button";
+import { Button, ButtonLink } from "../shadcn/button";
 import {
   Card,
   CardContent,
@@ -17,30 +17,66 @@ const SUB_ROLE_LABELS: Record<StaffSubrole, string> = {
   member_care: "Member care",
 };
 
-export interface OrganizationChooserOrganization {
+/** An option that opens the organization at its own address. */
+interface LinkOption {
+  subRole: StaffSubrole | null;
+  href: string;
+}
+
+/** An option Web Studio posts: the membership row the person chooses. */
+interface FormOption {
+  subRole: StaffSubrole | null;
+  assignmentId: string;
+}
+
+export interface OrganizationChooserOrganization<Option = LinkOption> {
   tenantId: string;
   name: string;
-  options: ReadonlyArray<{ subRole: StaffSubrole | null; href: string }>;
+  options: ReadonlyArray<Option>;
+}
+
+type OrganizationChooserProps =
+  | {
+      organizations: ReadonlyArray<OrganizationChooserOrganization>;
+      choose?: undefined;
+    }
+  | {
+      organizations: ReadonlyArray<OrganizationChooserOrganization<FormOption>>;
+      /**
+       * Web Studio (plan 5.2): its organization is one signed cookie for the
+       * whole of Web Studio, so each option posts the choice to `action`,
+       * which checks it and sets the cookie, then returns to `next`.
+       */
+      choose: {
+        action: (formData: FormData) => void | Promise<void>;
+        next: string;
+      };
+    };
+
+function optionLabel(name: string, subRole: StaffSubrole | null) {
+  return subRole ? SUB_ROLE_LABELS[subRole] : `Open ${name}`;
 }
 
 /**
  * The organization and assignment chooser (plan 5.2): a person who belongs
  * to several organizations, or holds several staff roles in one, picks where
- * to work. Each option is a plain link, so choosing loads a new document:
- * nothing from the previous organization or role stays in the page.
+ * to work. In Mission Control and the missionary workspace each option is a
+ * plain link to the organization's own address, so choosing loads a new
+ * document: nothing from the previous organization or role stays in the
+ * page. In Web Studio each option is a form that sets Web Studio's
+ * organization for every Web Studio tab.
  */
-export function OrganizationChooser({
-  organizations,
-}: {
-  organizations: ReadonlyArray<OrganizationChooserOrganization>;
-}) {
+export function OrganizationChooser(props: OrganizationChooserProps) {
+  const { organizations } = props;
   const only = organizations.length === 1 ? organizations[0]! : null;
   const title = only
     ? `Choose your role in ${only.name}`
     : "Choose an organization";
-  const description = only
-    ? "You have more than one role here. Pick the one to work in now; you can come back here to switch."
-    : "You belong to more than one organization. Each one opens at its own address, so you can keep them in separate tabs.";
+  const description = props.choose
+    ? "Web Studio works in one organization at a time. Your choice applies to every Web Studio tab; pages already open for another organization ask you to reload before they save."
+    : only
+      ? "You have more than one role here. Pick the one to work in now; you can come back here to switch."
+      : "You belong to more than one organization. Each one opens at its own address, so you can keep them in separate tabs.";
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
@@ -59,20 +95,56 @@ export function OrganizationChooser({
                   <h2 className="text-sm font-medium">{organization.name}</h2>
                 )}
                 <ul className="flex flex-col gap-2">
-                  {organization.options.map((option) => (
-                    <li key={option.href}>
-                      <ButtonLink
-                        href={option.href}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <span className="sr-only">{organization.name}: </span>
-                        {option.subRole
-                          ? SUB_ROLE_LABELS[option.subRole]
-                          : `Open ${organization.name}`}
-                      </ButtonLink>
-                    </li>
-                  ))}
+                  {props.choose
+                    ? (
+                        organization as OrganizationChooserOrganization<FormOption>
+                      ).options.map((option) => (
+                        <li key={option.assignmentId}>
+                          <form action={props.choose.action}>
+                            <input
+                              type="hidden"
+                              name="tenant"
+                              value={organization.tenantId}
+                            />
+                            <input
+                              type="hidden"
+                              name="assignment"
+                              value={option.assignmentId}
+                            />
+                            <input
+                              type="hidden"
+                              name="next"
+                              value={props.choose.next}
+                            />
+                            <Button
+                              type="submit"
+                              variant="outline"
+                              className="w-full"
+                            >
+                              <span className="sr-only">
+                                {organization.name}:
+                              </span>{" "}
+                              {optionLabel(organization.name, option.subRole)}
+                            </Button>
+                          </form>
+                        </li>
+                      ))
+                    : (
+                        organization as OrganizationChooserOrganization
+                      ).options.map((option) => (
+                        <li key={option.href}>
+                          <ButtonLink
+                            href={option.href}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <span className="sr-only">
+                              {organization.name}:{" "}
+                            </span>
+                            {optionLabel(organization.name, option.subRole)}
+                          </ButtonLink>
+                        </li>
+                      ))}
                 </ul>
               </li>
             ))}
