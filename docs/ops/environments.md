@@ -6,15 +6,15 @@ This document is the canonical reference for how environments are defined and op
 
 ## 2. Four-Environment Matrix
 
-| Property      | Local                                | Preview                  | Development                                                                                                  | Production                                   |
-| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| Trigger       | `bun run dev:*`                      | Disabled by default      | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production` |
-| URL           | `localhost:3000`                     | `*.vercel.app`           | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                            |
-| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated development project                                                                                | Production project                           |
-| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                                    | Live-mode                                    |
-| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                                   | Configured                                   |
-| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                                         | **No - real donors, real money**             |
-| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                                           | Real data                                    |
+| Property      | Local                                | Preview                                                               | Development                                                                                                  | Production                                   |
+| ------------- | ------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| Trigger       | `bun run dev:*`                      | Disabled by default                                                   | Explicit checkpoint; merges to `develop` do not deploy                                                       | `bun run release:production` to `production` |
+| URL           | `localhost:3000`                     | `*.vercel.app`                                                        | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                            |
+| Supabase      | `bun run supabase -- start` (Docker) | Development; the disposable preview project for a PR with a migration | Dedicated development project                                                                                | Production project                           |
+| Stripe        | Test-mode                            | Test-mode                                                             | Test-mode                                                                                                    | Live-mode                                    |
+| Sentry        | Optional (DSN may be unset)          | Optional                                                              | Configured                                                                                                   | Configured                                   |
+| Safe to break | Yes - fully disposable               | Yes - isolated test data                                              | Mostly - recoverable                                                                                         | **No - real donors, real money**             |
+| Seed data     | Local seed script                    | Shared test data                                                      | Demo data (periodically refreshed)                                                                           | Real data                                    |
 
 ## 3. Local Development Setup
 
@@ -35,10 +35,10 @@ All other `.env.example` entries (Stripe, Sentry, Cloudinary, Email, PDF, etc.) 
 
 ## 4. Preview Environment Setup
 
-Preview deploys for `admin`, `donor`, and `missionary` share one Supabase preview project. Keep it isolated to test-only data.
+Preview deploys for `admin`, `donor`, and `missionary`, created by the label-gated QA smoke workflow, read the development project. A pull request that carries a migration instead rebuilds and reads the disposable `preview` project, `btewedpsxwsjczvmegby` (the production-named project until WP11; [release job](./release-job.md), step 8). Keep both to test-only data.
 
-- Shared preview Supabase URL pattern: `https://<preview-project-ref>.supabase.co` (redacted)
-- Data policy: all PR preview environments write to this shared preview database; never use production data
+- Preview project URL: `https://btewedpsxwsjczvmegby.supabase.co`
+- Data policy: PR preview environments write to development or to the preview project; never use production data
 
 ### 4.1 Preview env vars (scope: Preview only)
 
@@ -200,11 +200,11 @@ Asymmetrical Supabase organization. Its dashboard display name should be
 `development`; if the Supabase dashboard still shows `develop`, rename only the
 display name and keep the project ref unchanged.
 
-| Environment | Supabase project | Project ref            | Project URL                                | Policy                                           |
-| ----------- | ---------------- | ---------------------- | ------------------------------------------ | ------------------------------------------------ |
-| Development | `development`    | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                              |
-| Production  | `production`     | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Fixtures only (census); frozen, replaced in WP11 |
-| Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted               |
+| Environment | Supabase project | Project ref            | Project URL                                | Policy                                                                                                                                                                                         |
+| ----------- | ---------------- | ---------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Development | `development`    | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                                                                                                                                                                            |
+| Preview     | `production`     | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Fixtures only (census). The production-named project, rebuilt from source as the disposable `preview` project and the project of WP1.6's hosted proofs; WP11 decides production's own database |
+| Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted                                                                                                                                                             |
 
 Do not point development at the Vercel-managed Supabase project ref
 `uarazyactrqlxzmeygmr`. It was created by the Vercel/Supabase integration and
@@ -285,7 +285,9 @@ bun run verify:vercel-env-inventory -- --environments production,development
 
 Expected refs:
 
-- Production remains `btewedpsxwsjczvmegby`.
+- Production reads `btewedpsxwsjczvmegby` until the release job's switch-on
+  points it at development ([release job](./release-job.md), step 6); that
+  ref is otherwise the disposable preview project.
 - Development is `pnmlrbgjiqzzsthsoikm`.
 - No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 

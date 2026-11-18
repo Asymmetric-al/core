@@ -23,8 +23,10 @@ and none is ever cancelled.
    (`scripts/release/schema-fingerprint.mjs`).
 2. **Preflight** (`scripts/release/release-database.mjs`, first part of
    `migrate`). The connection must address the configured Supabase project as
-   `postgres`, over TLS, and never the frozen production-named project
-   (`btewedpsxwsjczvmegby`, until WP11). The database must have the release
+   `postgres`, over TLS, and never a project its environment refuses: the
+   production environment refuses the preview project
+   (`btewedpsxwsjczvmegby`, the production-named project, until WP11), and
+   the preview environment refuses development. The database must have the release
    health function and an environment marker. Both migration ledgers are
    compared with source: a pending migration older than the database head is
    out of order, and an applied migration that source does not have is drift.
@@ -216,8 +218,8 @@ nothing else does. It exists only in the
 release job's dispatched `first-rebuild` step, from the `production`
 branch, and runs only after all of these hold:
 
-- the connection addresses the environment's configured project, never the
-  production-named one, as `postgres`, over TLS;
+- the connection addresses the environment's configured project, never one
+  its environment refuses, as `postgres`, over TLS;
 - the database has no marker (a marked database is refused: it is reset, if at
   all, under the ordinary rule);
 - the input is the owner's census sign-off, a link to the issue or comment in
@@ -244,8 +246,8 @@ A pull request that changes `supabase/migrations/` or
 repository-wide group that never cancels and queues the rest: replay and
 fingerprint, rebuild the `preview` Supabase project from the PR head (only
 where its marker says `disposable`, through `requireDisposableDatabase` and
-the `bun run supabase` wrapper; the scripts refuse the development and
-production-named projects whatever the configuration says), gates, heads,
+the `bun run supabase` wrapper; the scripts refuse the development project
+whatever the configuration says), gates, heads,
 deploy into the Vercel custom environment `preview-database`, check each
 deployment reads the preview project at the migrated heads, then the smoke
 run. The next such pull request starts its rebuild only after this smoke run
@@ -255,20 +257,20 @@ ends. The job holds only the preview project's credentials.
 
 Names only. Values live in GitHub environments and never in the repository.
 
-| Where                                | Name                                                       | Kind     | Value                                                                                                                          |
-| ------------------------------------ | ---------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Environment `release-production`     | `RELEASE_SUPABASE_PROJECT_REF`                             | variable | The project production-target deployments use. Until WP11: development, `pnmlrbgjiqzzsthsoikm`                                 |
-|                                      | `RELEASE_DATABASE_URL`                                     | secret   | `postgres` on that project's **session pooler** (`postgres.<ref>@aws-0-<region>.pooler.supabase.com:5432`), `?sslmode=require` |
-|                                      | `RELEASE_CMS_OWNER_PASSWORD`                               | secret   | 32 to 256 printable ASCII characters, no spaces                                                                                |
-|                                      | `RELEASE_CMS_RUNTIME_PASSWORD`                             | secret   | As above, different from the owner's; the same value goes into the admin app's `PAYLOAD_DATABASE_URI`                          |
-|                                      | `RELEASE_DATABASE_SSL_CA`                                  | secret   | The project's CA certificate, the PEM from its Database settings (the same value as the admin app's `PAYLOAD_DATABASE_SSL_CA`) |
-|                                      | `RELEASE_SEED_LOGIN_PASSWORD`                              | secret   | 32 to 72 printable ASCII characters, no spaces: the password every seeded login gets on a hosted rebuild                       |
-| Environment `release-preview`        | the same six names                                         |          | The `preview` project's values                                                                                                 |
-| Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                          |
-| Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                      |
-|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                      |
-|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                            |
-| Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                               |
+| Where                                | Name                                                       | Kind     | Value                                                                                                                                                                                                                                                                                           |
+| ------------------------------------ | ---------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment `release-production`     | `RELEASE_SUPABASE_PROJECT_REF`                             | variable | The project production-target deployments use. Until WP11: development, `pnmlrbgjiqzzsthsoikm`                                                                                                                                                                                                  |
+|                                      | `RELEASE_DATABASE_URL`                                     | secret   | `postgres` on that project's **session pooler** (`postgres.<ref>@<pooler host>:5432`), `?sslmode=require`. The pooler host is the one the project's Database settings name: development's is `aws-1-us-east-1.pooler.supabase.com`, the preview project's `aws-0-us-west-2.pooler.supabase.com` |
+|                                      | `RELEASE_CMS_OWNER_PASSWORD`                               | secret   | 32 to 256 printable ASCII characters, no spaces                                                                                                                                                                                                                                                 |
+|                                      | `RELEASE_CMS_RUNTIME_PASSWORD`                             | secret   | As above, different from the owner's; the same value goes into the admin app's `PAYLOAD_DATABASE_URI`                                                                                                                                                                                           |
+|                                      | `RELEASE_DATABASE_SSL_CA`                                  | secret   | The project's CA certificate, the PEM from its Database settings (the same value as the admin app's `PAYLOAD_DATABASE_SSL_CA`)                                                                                                                                                                  |
+|                                      | `RELEASE_SEED_LOGIN_PASSWORD`                              | secret   | 32 to 72 printable ASCII characters, no spaces: the password every seeded login gets on a hosted rebuild                                                                                                                                                                                        |
+| Environment `release-preview`        | the same six names                                         |          | The preview project's values: `RELEASE_SUPABASE_PROJECT_REF` is `btewedpsxwsjczvmegby`, the production-named project, which is the disposable preview project until WP11. `RELEASE_SEED_LOGIN_PASSWORD` takes the same value as in `release-production`                                         |
+| Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                                                                                                                                                                                           |
+| Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                                                                                                                                                                                       |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                                                                                                                                                                                       |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                                                                                                                                                                                             |
+| Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                                                                                                                                                                                                |
 
 The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
 `cms_owner.<ref>`, `sslmode=verify-full`), so the job holds one connection
@@ -316,9 +318,13 @@ job. Nothing here is done by the code.
 **Preconditions.** WP1.1 (the health function, marker, reset rule and CMS
 roles) and WP1.2 (Payload as `cms_runtime`, migrating as `cms_owner`) are
 merged with this change. The owner has decided the census (record D-15): all
-hosted data are fixtures; the production-named project is replaced in WP11,
-not rebuilt in place; and the production deployments point at the
-development database until WP11. The steps below follow those decisions.
+hosted data are fixtures, and the production deployments point at the
+development database until WP11. There are two hosted projects and no third,
+because nothing may raise the Supabase bill: development is the shared
+database, and the production-named project (`btewedpsxwsjczvmegby`) is
+rebuilt from source as the disposable `preview` project and the project of
+WP1.6's hosted proofs. WP11 decides production's own database. The steps
+below follow those decisions.
 
 1. **Create the GitHub environments `release-production` and
    `release-owner-approval`.** Settings, Environments, New environment. For
@@ -411,24 +417,35 @@ development database until WP11. The steps below follow those decisions.
    outside the job.
    Undo: Vercel _Instant Rollback_ to the previous production deployment; it
    stays healthy, because a database that is ahead passes.
-8. **The `preview` Supabase project.** It is a new billable resource in the
-   owner's organization, so creating it is the owner's go-ahead (D-03; D-15
-   does not decide it).
-   Create a project named `preview` in the organization. Create the GitHub
-   environment `release-preview` with no branch rule and no required
-   reviewer (pull-request runs use it), and give it the six names with the
-   preview project's values, except `RELEASE_SEED_LOGIN_PASSWORD`, which
-   takes the same value as in `release-production`. Set the repository
-   secrets `QA_PREVIEW_TEST_EMAIL` to `demo-owner@givehope.test` and
-   `QA_PREVIEW_TEST_PASSWORD` to that value: the preview smoke runs, on the
-   development database and on the preview database alike, sign in with that
-   pair, and a rebuilt database holds only the seeded logins, with that
-   password. Dispatch **Release** with operation
-   `first-rebuild`, environment `preview`, `census_signoff: empty-project`,
-   confirmation `rebuild <preview ref>`, and approve its `owner-approval`
-   job. In each Vercel project create the
-   custom environment `preview-database` with no branch tracking, holding
-   the Preview environment's variables but with the preview project's
+8. **The `preview` Supabase project.** No project is created: a third
+   project would raise the Supabase bill. The preview project is the
+   production-named project, `btewedpsxwsjczvmegby` (us-west-2, pooler host
+   `aws-0-us-west-2.pooler.supabase.com`).
+   Create the GitHub environment `release-preview` with no branch rule and
+   no required reviewer (pull-request runs use it), and give it the six
+   names with the preview project's values, except
+   `RELEASE_SEED_LOGIN_PASSWORD`, which takes the same value as in
+   `release-production`. Set the repository secrets `QA_PREVIEW_TEST_EMAIL`
+   to `demo-owner@givehope.test` and `QA_PREVIEW_TEST_PASSWORD` to that
+   value: the preview smoke runs, on the development database and on the
+   preview database alike, sign in with that pair, and a rebuilt database
+   holds only the seeded logins, with that password. The project predates
+   WP1 and holds the census's fixtures, so its first rebuild takes the
+   census sign-off (D-15), not `empty-project`: dispatch **Release** with
+   operation `first-rebuild`, environment `preview`, `census_signoff` the
+   sign-off link, confirmation `rebuild btewedpsxwsjczvmegby`, and approve
+   its `owner-approval` job; or run that rebuild directly with
+   `scripts/release/release-database.mjs first-rebuild` and the same
+   inputs, as the owner allowed on 18 November 2026. Take a logical backup
+   of the project first.
+   The Vercel side has a cost limit. Vercel Pro includes one custom
+   environment per project, and `core-development` already holds it in
+   `admin`, `donor` and `missionary`; a second costs a pack of five at $50
+   a month per project. So `preview-database` is created only in a slot
+   that is free, never by buying a pack, and the choice of how to free one
+   is made before this step. In each Vercel project the custom environment
+   `preview-database` has no branch tracking and holds the Preview
+   environment's variables but with the preview project's
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY` and (admin) `PAYLOAD_DATABASE_URI` as
    `cms_runtime` with `PAYLOAD_DATABASE_SSL_CA`, as in step 6, and no
@@ -438,8 +455,8 @@ development database until WP11. The steps below follow those decisions.
    first's smoke run ends, and each posts a _Preview Database Smoke QA_
    comment naming the preview project. Development's recorded heads
    (`platform_health()`) are unchanged.
-   Undo: delete the custom environments, the GitHub environment and the
-   project.
+   Undo: delete the custom environments and the GitHub environment. The
+   rebuild of the project has no undo.
 9. **Optional.** Set `RELEASE_REGISTER_JOB_FUNCTIONS=true` once Inngest is
    configured for production.
 

@@ -651,7 +651,7 @@ jobs:
   # smoke it, as one job in one repository-wide group that never cancels. The
   # next pull request's rebuild waits until this smoke run ends. Development
   # is never touched: the job holds only the preview project's credentials,
-  # and the scripts refuse the development and production-named projects.
+  # and the scripts refuse the development project.
   preview-database:
     name: preview-database-smoke
     needs: deploy
