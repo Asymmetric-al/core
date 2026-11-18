@@ -111,6 +111,8 @@ Numbers follow section 6 of the hosted plan.
 | Read-only reads of development                        | 15:06             | Section 17                                                                      |
 | `preview-rebuild` at `e65d6b87f` (fifth)              | 16:04:51-16:11:47 | Exit 0: the defaults put back and checked first; both secrets already logged in |
 | `gates` (fingerprint v2), `record-heads`, `preflight` | 16:11:47-16:12:32 | Exit 0: 0 differing, the default-privilege rows included                        |
+| Three refused logins, a minute apart (K4)             | 17:00:02-17:02:12 | Section 19                                                                      |
+| `gates`, `record-heads`, `preflight` at `bc77cca0c`   | 19:38:34-19:39:33 | Exit 0: 0 differing (section 20)                                                |
 
 **Pre-checks before the first rebuild.**
 
@@ -660,3 +662,53 @@ H3 accepts two forms of refusal. Neither had been seen on hosted at the revision
 - Both forms are exactly what `classifyLoginRefusal` matches. The pooler names the bare role (`"cms_owner"`), not `cms_owner.<ref>`, as the code and its fakes assume. So `set-cms-role-passwords` recognises a wrong password, and a role without a password gets one through the job.
 - The fakes in `tests/unit/scripts/release/release-database.test.ts` now say these words exactly, and a case reads each as a refusal for the password.
 - A direct, non-pooler connection could not be tried. The project's direct host resolves only to an IPv6 address (`2600:1f13:…`), and this machine has no IPv6 route.
+
+## 20. The third review's fixes (phase 8)
+
+A fresh reviewer read the eleven fixes (`e1d3233f2..53e930b23`): 6/10, accept after fixes, with one blocking finding in H11 and three important ones. One commit each:
+
+| Item         | Commit      | What changed                                                                                                                                                                           | What failed first                                                            |
+| ------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| K1, blocking | `5752c6afb` | Only allowlisted query keys reach psql, read as libpq reads them; the loopback decision, `psqlConnection` and the release job's target check use one list                              | 10 cases of `psql.test.ts` and 6 of `database-target.test.ts`                |
+| K2           | `53955073d` | The fingerprint holds the default privileges of `postgres` for every schema                                                                                                            | A real-stack case: two databases differing only in such a row compared equal |
+| K3           | `6b0382473` | A failed reset reads the marker and the defaults and names the case and what to run next; `preflight` refuses open defaults in `public`; an unrecognised refusal says what to run next | 8 unit cases; 2 real-stack cases prove the SQL                               |
+| K4           | `b0b4613b1` | The pooler's own refusals recorded (section 19); the fakes say them word for word                                                                                                      | None: the words matched the code                                             |
+| K5           | `bc77cca0c` | The fifth run's replay: Postgres 17.11, the image `release.yml` uses                                                                                                                   | Documents only                                                               |
+
+**K1, the cause.** `psqlConnection` copied every query key but `password` into the libpq keyword string, and the routing check matched exact names. libpq's keyword parser skips the blanks around a keyword and lets a later value replace an earlier one, so `postgresql://postgres@127.0.0.1:54322/postgres?%20host=evil.example` was local to the loopback decision while psql would connect to `evil.example`. Before H11, libpq's URI parser refused such a key; H11 had opened the gap.
+
+**K1, the allowlist** (`DATABASE_URL_QUERY_KEYS` in `packages/env/src/database-url.mjs`). A key must match `^[a-z_]+$`, be on the list, and appear once:
+
+| Key                   | psql | Why it cannot route the connection or change its login                                                                                                                                                                                                                                                  |
+| --------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sslmode`             | yes  | TLS policy only; the release job's hosted URL and the repository's local URLs set it                                                                                                                                                                                                                    |
+| `sslrootcert`         | yes  | The CA file the release job verifies the pooler against; a local file, not a target                                                                                                                                                                                                                     |
+| `sslcert`, `sslkey`   | yes  | A TLS client certificate and its key; local files, never a server or a login                                                                                                                                                                                                                            |
+| `sslcrl`, `sslcrldir` | yes  | TLS revocation lists; they can only refuse a server certificate                                                                                                                                                                                                                                         |
+| `application_name`    | yes  | A label in `pg_stat_activity`; the repository's tests set it                                                                                                                                                                                                                                            |
+| `connect_timeout`     | yes  | How long to wait; the repository's tests set it                                                                                                                                                                                                                                                         |
+| `password`            | yes  | Moved to `PGPASSWORD`, never into psql's arguments                                                                                                                                                                                                                                                      |
+| `options`             | no   | It can set the session's role or search path, so psql is never handed it. The loopback decision accepts it because the local CMS migration session sets `-c role=cms_owner` this way, on the same local database, and `scripts/cms/lib/migration-connection.mjs` refuses a URL that already sets a role |
+
+The query is read as libpq's URI parser reads it: `%XX` decoded, `+` kept as `+`, and a pair without `=` or with a second `=` refused. So a password with `+` reaches `PGPASSWORD` unchanged. Every value stays quoted, and a test reads the keyword string back as libpq does: a value with a quote, a backslash, a space and `=` stays one value.
+
+**K1, the other paths.**
+
+- `scripts/release/lib/postgres.mjs` takes the host from the parsed URL only: for a URL with `?%20host=evil.example` it sets `PGHOST` to the URL's host.
+- `scripts/cms/lib/postgres.mjs` hands keys it does not map to libpq's URI parser, which psql 17.11 refuses: `invalid URI query parameter: " host"`, and the same for `HOST` and `host `.
+- node-postgres (`pg-connection-string` 2.12.0) keeps the URL's host for all three and carries the odd keys as unknown settings, which `pg` ignores. It reads `+` in a query password as a space, where psql now keeps `+`; that changes a password, never a target.
+
+**A defect of K3, caught by H2's test.** K3's real-stack case plants a default privilege in `public` in `release-database.realstack.test.ts`, a file the single-source test of H2 did not name. The full unit run failed on that test; alone it failed the same way. The file is now a named exception with its reason, folded into the K3 commit, and the run passes.
+
+**Checks.**
+
+- At `26fd4257e`: `lint` and `typecheck` 16 of 16, not cached; ESLint on the changed files, no error; `format:check` clean; CI's `migrate` job, its whole sequence on the operator's own Postgres, every step passing, the release, fingerprint and CMS roles step 41 passed and 4 skipped. `tests/unit/scripts`, `tests/unit/workflows` and `tests/unit/docs`: one failure, the single-source test above.
+- At `bc77cca0c`, which differs from `26fd4257e` in that test only: the same unit suites, 265 files passed and 1 skipped, 6,552 tests passed and 25 skipped; the test file formatted.
+
+**On the preview project**, at `bc77cca0c`, against a fresh flagged replay made on the operator's own Postgres 17.11 (`bb5b8f68d4febab499b5df1f40284268c66f9cbbcc779529041c1d0979e6180f`, 5,896 objects; no default for every schema on either side):
+
+- `gates`, 19:38:34-19:38:50 UTC: "Schema fingerprints match", 0 differing, the default-privilege rows included.
+- `record-heads`, to 19:39:11.
+- `preflight`, to 19:39:33, with the new refusal of open defaults in `public` passing: 0 pending on both ledgers, marked `disposable`.
+
+No rebuild was run in this phase.
