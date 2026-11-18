@@ -14,11 +14,19 @@ const GUARD = Symbol.for("asym.webStudio.leaveGuard");
 
 type GuardedWindow = Window & { [GUARD]?: true };
 
-/** Set once the person chose to leave; the document is going away. */
+/**
+ * Set once the person chose to leave; the document is going away. A page the
+ * browser restores from its back/forward cache is the same document coming
+ * back, so it asks again (council r2, minor).
+ */
 let leaving = false;
 
 function stopSecondPrompt(event: Event) {
   if (leaving) event.stopImmediatePropagation();
+}
+
+function askAgainWhenRestored(event: Event) {
+  if ((event as PageTransitionEvent).persisted) leaving = false;
 }
 
 /**
@@ -33,6 +41,7 @@ export function installWebStudioLeaveGuard(
 ): void {
   if (target[GUARD]) return;
   target.addEventListener("beforeunload", stopSecondPrompt, { capture: true });
+  target.addEventListener("pageshow", askAgainWhenRestored);
   target[GUARD] = true;
 }
 

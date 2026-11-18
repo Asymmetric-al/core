@@ -104,3 +104,15 @@ it("lets the document unload without Payload's second prompt once the person cho
   expect(payloadPrompt).not.toHaveBeenCalled();
   expect(event.defaultPrevented).toBe(false);
 });
+
+it("asks again in a page the browser restores from its back/forward cache", () => {
+  // The load left the page, then the person came back to the same page.
+  const restored = new Event("pageshow");
+  Object.defineProperty(restored, "persisted", { value: true });
+  window.dispatchEvent(restored);
+  payloadPrompt.mockClear();
+
+  const event = unload();
+  expect(payloadPrompt).toHaveBeenCalledTimes(1);
+  expect(event.defaultPrevented).toBe(true);
+});
