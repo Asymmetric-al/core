@@ -1,0 +1,104 @@
+name: API Contract
+
+# Advisory real-backend check (#2708, openspec/changes/add-api-contract-verification).
+#
+# Builds the database the way ci-integration.yml's migrate job does (plain
+# Postgres 17, compat bootstrap, every migration, the demo seed), starts
+# PostgREST on it with the schemas and row cap supabase/config.toml declares,
+# and runs tests/integration/api-contract with tokens minted for this run:
+#
+# - every resolvable packages/api select runs through the Data API, so a
+#   phantom column, embed or unexposed schema fails by file and line;
+# - the real missionary-portal reads run for two tenants;
+# - every tenant table is read as a user of each tenant and as anon.
+#
+# Its own workflow, so no file of ci.yml or ci-integration.yml changes. Not a
+# required check. It uses no repository secrets: the JWT secret and database
+# passwords are random per run.
+#
+# Local run: node scripts/api-contract/stack.mjs up && node
+# scripts/api-contract/stack.mjs test; node scripts/api-contract/stack.mjs down
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/api-contract.yml
+      - scripts/api-contract/**
+      - tests/integration/api-contract/**
+      - packages/api/**
+      - packages/database/**
+      - supabase/migrations/**
+      - supabase/seed.sql
+      - supabase/config.toml
+      - scripts/sql/supabase-compat-bootstrap.sql
+      - scripts/verify/supabase-migrations.mjs
+      - package.json
+      - bun.lock
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: "1.4.3"
+  NODE_VERSION: "24.22.1"
+
+concurrency:
+  group: api-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  api-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
+      SKIP_ENV_VALIDATION: "1"
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: asymmetrical_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install dependencies
+        run: bun ci --no-cache --backend=copyfile
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Apply migrations
+        run: node scripts/verify/supabase-migrations.mjs
+      - name: Apply demo seed
+        run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Start PostgREST on the migrated database
+        run: node scripts/api-contract/stack.mjs prepare
+      - name: Run the API contract tests
+        run: node scripts/api-contract/stack.mjs test --reporter=default
+      - name: Show PostgREST logs on failure
+        if: failure()
+        run: docker logs --tail 100 core-api-contract-rest 2>&1 | sed -E 's#(authenticator:)[^@]*@#\1***@#g' || true
+      - name: Stop PostgREST
+        if: always()
+        run: node scripts/api-contract/stack.mjs down

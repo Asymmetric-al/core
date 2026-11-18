@@ -7,24 +7,25 @@
 
 ## 2. Select inventory
 
-- [ ] 2.1 Write failing unit tests for the select inventory (literals, templates, same-file constants, `.schema()`, unresolved selects) and verify they fail before the inventory exists.
-- [ ] 2.2 Implement the inventory and verify its unit tests pass and that it finds the missionary-portal task select.
+- [x] 2.1 Write failing unit tests for the select inventory (literals, templates, same-file constants, `.schema()`, unresolved selects) and verify they fail before the inventory exists.
+- [x] 2.2 Implement the inventory and verify its unit tests pass and that it finds the missionary-portal task select.
 
 ## 3. Harness and stack
 
-- [ ] 3.1 Add the harness script that prepares the migrated database (local-only setup SQL) and starts PostgREST with settings read from `supabase/config.toml`; verify with unit tests for config parsing and a local run in `al2708-` containers.
-- [ ] 3.2 Add token minting and two-tenant fixtures; verify a minted token resolves to its user through PostgREST.
+- [x] 3.1 Add the harness script that prepares the migrated database (local-only setup SQL) and starts PostgREST with settings read from `supabase/config.toml`; verify with unit tests for config parsing and a local run in `al2708-` containers.
+- [x] 3.2 Add token minting and two-tenant fixtures; verify a minted token resolves to its user through PostgREST.
 
 ## 4. Contract tests
 
-- [ ] 4.1 Select sweep: verify it passes on the current tree and fails with file, line, table, select and error when the 23f2bd454 column is re-introduced (scratch, restored exactly).
-- [ ] 4.2 Missionary-portal two-tenant reads: verify rows are asserted per tenant.
-- [ ] 4.3 Tenant isolation sweep (signed-in both ways, anonymous with the ruled list): verify it passes, and fails when a policy is weakened in the scratch database only.
+- [x] 4.1 Select sweep: verify it passes on the current tree and fails with file, line, table, select and error when the 23f2bd454 column is re-introduced (scratch, restored exactly).
+- [x] 4.2 Missionary-portal two-tenant reads: verify rows are asserted per tenant.
+- [x] 4.3 Tenant isolation sweep (signed-in both ways, anonymous with the ruled list): verify it passes, and fails when a policy is weakened in the scratch database only.
 
 ## 5. CI wiring
 
-- [ ] 5.1 Add `.github/workflows/api-contract.yml` (advisory, hosted, read-only, SHA-pinned, no secrets); verify the existing workflow-convention tests pass with it present.
-- [ ] 5.2 Record the CI-minute estimate, the run command and any product defects found in the workstream report.
+- [x] 5.1 Add `.github/workflows/api-contract.yml` (advisory, hosted, read-only, SHA-pinned, no secrets); verify the existing workflow-convention tests pass with it present.
+- [x] 5.2 Record the CI-minute estimate, the run command and any product defects found in the workstream report.
+- [ ] 5.3 Observe the first pull-request run of the workflow on GitHub and record its duration (needs the branch pushed by the integrator).
 
 ## Workflow follow-up
 

@@ -58,9 +58,11 @@ from the branches without checking them out:
    check with it.
 3. **Harness setup SQL is local-only.** It gives `authenticator` a login with a
    random per-run password (Supabase's login role for PostgREST), defines
-   `auth.uid()` exactly as Supabase Auth does (the definition AL-2674 also puts
-   in the bootstrap, so it becomes a no-op there), and reloads the schema
-   cache. It grants nothing to `anon` or `authenticated` and changes no policy.
+   `auth.uid()` and `auth.role()` exactly as Supabase Auth does (AL-2674 puts
+   the same `auth.uid()` in the bootstrap, so that part becomes a no-op), and
+   creates the empty `graphql_public` schema that Supabase's image provides
+   (PostgREST refuses to load a schema cache when an exposed schema is
+   missing). It grants nothing on product tables and changes no policy.
 4. **Tokens are minted per run, from `auth.users`.** HS256 with a random
    per-run secret; claims copy what GoTrue issues for that row (`sub`, `role`,
    `aud`, `email`, `app_metadata`, `user_metadata`). No secret is stored or
@@ -76,18 +78,35 @@ from the branches without checking them out:
    `service_role` with `limit=0`: PostgreSQL still plans the column list and
    PostgREST still resolves embeds, so no data is needed.
 7. **Isolation sweep discovers tables from the catalog.** Every table or view in
-   the exposed schemas with a `tenant_id` column. A vacuity guard requires the
-   probe identity check to pass and records which tables had rows of the other
-   tenant to leak; tables with none are reported as not evidenced.
-8. **Separate workflow, advisory.** `.github/workflows/api-contract.yml`, hosted
+   the exposed schemas with a `tenant_id` column. A leak is a row naming another
+   tenant beyond what `anon` may read from the ruled public reads (a public row
+   is public to everyone); NULL-tenant rows such as platform-default
+   `field_policies` belong to no tenant. Vacuity guards: each signed-in caller
+   must see some row of its own tenant, and at least one readable table must
+   hold other tenants' rows; the run prints how many tables were refused for
+   lack of privilege and which held rows to leak.
+8. **Known defects are explicit and two-way.** A select that fails today
+   because of a product defect the check found is listed in
+   `known-defects.ts` (file, table, PostgREST code), so the advisory run stays
+   useful: any other failure fails it, and an entry that stops failing fails it
+   too, so the fixing change deletes its entry. Alternative: leave the job red
+   until the defects are fixed; rejected because a permanently red advisory job
+   hides new regressions.
+9. **Separate workflow, advisory.** `.github/workflows/api-contract.yml`, hosted
    runner, `contents: read`, actions pinned by SHA, no secrets, not in
-   `ci-gate`. It does not edit `ci-integration.yml`, so no fingerprint changes.
+   `ci-gate`. Pull requests run it when the API layer, the schema chain, the
+   harness or dependencies change; every `develop` push runs it as a backstop.
+   It does not edit `ci-integration.yml`, so no fingerprint changes.
 
 ## Risks / Trade-offs
 
 - [In-flight migrations change grants or policies] → The sweep asserts only
   floors (no foreign-tenant rows, no anonymous rows outside the ruled list) and
   treats a privilege refusal as no rows, so a correct rewrite stays green.
+- [The plain-Postgres replay has narrower grants than hosted projects until
+  AL-2674's default-privilege migration lands] → A permissive policy on a
+  table `authenticated` cannot select is latent here (88 of 146 tenant tables
+  are refused today); the run prints that count so the gap stays visible.
 - [The plain-Postgres path hides real-stack differences] → Out of scope by
   design; the AL-2673 `local-supabase.yml` job guards the chain on the real
   image. The tests take their endpoint from environment variables so they can
