@@ -822,3 +822,53 @@ libpq's `verify-ca` connected to `127.0.0.1` with its CA, so it checked the chai
 - `db push` and `db reset` under `verify-full` on hosted: this phase approved no migrate and no rebuild. They were seen on the operator's own Postgres only, through the same connection layer.
 - The direct host: not checked, because it has an IPv6 address only.
 - The CMS runner's own hosted check, `scripts/cms/lib/migration-target.mjs`, still accepts `require`, `verify-ca` and `no-verify`. The release job always hands it `verify-full` with the CA. It was not changed, because the ruling named the release target check.
+
+## 23. The CMS runner's own check (phase 11)
+
+Section 22 left the CMS runner's own hosted check accepting `require`, `verify-ca` and `no-verify`. The coordinator ruled two things. The check follows the release job's rule. A hosted CMS migration runs only through the release job. One commit:
+
+| Item | Commit      | What changed                                                                                                                             | What failed first |
+| ---- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| L7   | `ec42e036a` | A hosted CMS migration address must say `sslmode=verify-full` with the project's CA. The manual hosted path is withdrawn from the guides | 14 cases          |
+
+**Who hands the check a hosted address.** In code, only the release job does: `payloadMigrate` in `release-database.mjs`. It always sends `verify-full`, `PAYLOAD_DATABASE_SSL_CA` and `PGSSLROOTCERT`. The rest cannot:
+
+- `cms:qualify` refuses any address not on this machine.
+- The local scripts, CI's integration jobs and the release and preview replays use loopback databases, and never set `PAYLOAD_MIGRATION_DATABASE_URI`.
+- `migrate:status` is not a write, so it never reaches the check.
+
+Section 3 of the Web Studio runbook also told a person to run `cms:migrate` against a hosted project by hand. It dated from October (AL-1928). The coordinator ruled it superseded by stage 1, and it is withdrawn.
+
+**The change.**
+
+- **The address.** The check refuses a hosted address unless the address itself says `sslmode=verify-full`, once. `no-verify`, `require` and `verify-ca` are refused, and `PGSSLMODE` does not count: the runner's psql drops it.
+- **The CA.** A hosted migration stops unless both `PAYLOAD_DATABASE_SSL_CA` (for Payload) and `PGSSLROOTCERT` (for the runner's psql) are set. The message names both, and says the release job sets them from `RELEASE_DATABASE_SSL_CA`.
+- **Loopback.** A loopback address is not affected.
+- **No new mechanism.** Nothing else refuses a person in code.
+
+**Documents changed.**
+
+- `docs/guides/development/web-studio-runbook.md`, section 3:
+  - A hosted CMS schema is migrated only by the release job. The hand-run command, the scoped-role note and the `no-verify` sentence are gone.
+  - The cutover steps read status with `cms:migrate:status` and run a hosted migration through the release job.
+  - The down migration runs only on a database marked `disposable`, as the runner already enforces.
+- `docs/guides/development/site-studio-payload.md`: run `cms:migrate` against a database on this machine only.
+- `docs/ops/release-job.md`:
+  - The certificate section explains the two CA names. The same PEM is set twice, because the release job and the admin app read different settings. The section also says what the job turns its secret into.
+  - The `cms_owner` paragraph says what the runner now checks.
+
+**Left as they were.**
+
+- `docs/guides/architecture/cms-runtime.md`, `web-studio-living-spec.md`, `web-studio-phase3.md` and `site-studio-local.md` name `cms:migrate` with no hosted target.
+- `supabase/AGENTS.md` and `scripts/AGENTS.md` say nothing about it.
+- The dated assessments and evidence under `docs/ops/` are records of other efforts. So are `docs/maintenance/modernization/payload.md` and `payload-qualification.json`.
+- Payload's run-time `no-verify` path for `cms_runtime` (`payload-database-config.ts`) is not a migration, and is unchanged.
+
+**Checks at `ec42e036a`.**
+
+- Prettier and ESLint on the 6 changed files: clean, 0 errors.
+- `typecheck`: 16 of 16, not cached.
+- `tests/unit/scripts`, `tests/unit/workflows` and `tests/unit/docs`: 266 files passed and 1 skipped; 6,643 tests passed and 27 skipped.
+- CI's `migrate` job, on the operator's own Postgres: every step passed. That includes Payload's migrations through the runner, `cms:qualify`, and the release real-stack step (43 passed, 4 skipped).
+
+**On the preview project.** Nothing ran. The release path does not change: the job already sent what the check now requires. The release test that checks the runner accepts what the job passes still passes.
