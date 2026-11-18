@@ -569,9 +569,15 @@ publishing`, `Page appearance and discovery`, `Optional features`, and
       by-successor procedures before production authorization.
 - [ ] 9.6 Re-run strict OpenSpec validation and the repository-required lint,
       type, unit, integration, browser, accessibility, and build gates. For every
-      implementation slice that changes `packages/ui`, run
-      `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
-      after the slice, record both scores and the configured floor in the release
-      evidence manifest, and reject unassessed or below-floor output. Retain the
-      manifest and owner sign-offs for every D1-D27 production gate; Shadscan is
-      supplementary and never substitutes for accessibility or browser proof.
+      implementation slice that changes `packages/ui`, review the advisory
+      Shadscan report on that slice's pull request (the `shadscan-report` job's
+      comment or job summary) and triage each new failing rule under
+      `docs/guides/development/shadscan.md`: repair a confirmed defect with a
+      behavior test or track it as an issue. Retain the release evidence
+      manifest and owner sign-offs for every D1-D27 production gate; Shadscan
+      is supplementary and never substitutes for accessibility or browser
+      proof. (Amended 2026-11-18 by `make-shadscan-advisory`: the former
+      before-and-after `bunx @shadscan/cli@0.1.1 ./packages/ui` runs, the
+      recording of scores and the configured floor, and the rejection of
+      unassessed or below-floor output are withdrawn with the retired score
+      gate.)
