@@ -365,6 +365,28 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
       expect(body.data).toBeNull();
       expect(seams.from).not.toHaveBeenCalled();
     });
+
+    // PR #2714 review: the command refuses (42501) a person who also holds an
+    // active membership in another organization, because profiles.role is
+    // that person's one role everywhere. The caller reports that refusal as
+    // an error, returns no profile and reads none. (The endpoint masks a
+    // resolver's own message, so the reason is not asserted here.)
+    it("reports the refusal for a person who also belongs to another organization", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      seams.rpc.mockResolvedValue({
+        data: null,
+        error: {
+          code: "42501",
+          message:
+            "This person also belongs to another organization; their role cannot be changed here",
+        },
+      });
+      const { body } = await execute(roleMutation("admin"));
+      expect(body.data).toBeNull();
+      expect(body.errors).toHaveLength(1);
+      expect(seams.rpc).toHaveBeenCalledTimes(1);
+      expect(seams.from).not.toHaveBeenCalled();
+    });
   });
 
   it("returns no foreign missionary and filters lists by the authenticated tenant", async () => {

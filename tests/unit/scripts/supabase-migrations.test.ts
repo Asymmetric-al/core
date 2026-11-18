@@ -43,6 +43,7 @@ function runVerifier(
   mode: string,
   databaseUrl = "postgresql://postgres@127.0.0.1:5432/disposable_test",
   allowNonlocal = false,
+  ambient: Record<string, string> = {},
 ) {
   const temporary = mkdtempSync(path.join(os.tmpdir(), "migration-census-"));
   roots.push(temporary);
@@ -131,7 +132,8 @@ function runVerifier(
 const fs = require("node:fs");
 const args = process.argv.slice(2);
 const stdinSql = args.includes("-f") || args.includes("-c") ? null : fs.readFileSync(0, "utf8");
-fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql }) + "\\n");
+const pg = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith("PG")));
+fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql, pg }) + "\\n");
 const data = ${JSON.stringify({ catalog, gate })};
 const mode = ${JSON.stringify(mode)};
 if (!args.includes("-c")) process.exit(0);
@@ -166,6 +168,10 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
       "supabase/migrations",
       // #2400: the PG17 readiness probe runs before the census.
       "tests/integration/supabase/postgres17-upgrade-readiness-verification.sql",
+      // PR #2714 review (record D-18): the verifier's locality decision now
+      // lives in the routing rule it shares with the admin app, so the copy
+      // carries that file too. The case still fails only on the edited source.
+      "packages/env/src/database-url.mjs",
     ])
       cpSync(path.join(root, rel), path.join(repo, rel), { recursive: true });
     appendFileSync(path.join(repo, MIGRATION), "-");
@@ -186,23 +192,28 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
                 encoding: "utf8",
               }).stdout.trim(),
             }),
+        ...ambient,
         DATABASE_URL: databaseUrl,
         ALLOW_NONLOCAL_MIGRATION_VERIFY: allowNonlocal ? "1" : "",
         PSQL_BIN: psql,
       },
     },
   );
-  const capturedCalls: Array<{ args: string[]; stdinSql: string | null }> =
-    existsSync(calls)
-      ? readFileSync(calls, "utf8")
-          .trim()
-          .split("\n")
-          .map((line) => JSON.parse(line))
-      : [];
+  const capturedCalls: Array<{
+    args: string[];
+    stdinSql: string | null;
+    pg: Record<string, string>;
+  }> = existsSync(calls)
+    ? readFileSync(calls, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line))
+    : [];
   return {
     ...result,
     calls: capturedCalls.map(({ args }) => args),
     inputs: capturedCalls.map(({ stdinSql }) => stdinSql),
+    environments: capturedCalls.map(({ pg }) => pg),
   };
 }
 
@@ -319,6 +330,54 @@ itPosix(
     expect(result.status).not.toBe(0);
     expect(result.calls).toEqual([]);
     expect(result.stdout).not.toContain("bootstrap Supabase");
+  },
+);
+
+// PR #2714 review: a query key such as `host` wins over the authority, so this
+// URL names the hosted server however local its authority looks.
+itPosix(
+  "refuses a loopback-looking URL with a routing override before any SQL",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres@127.0.0.1:5432/disposable_test?host=db.example.supabase.co",
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.calls).toEqual([]);
+    expect(result.stdout).not.toContain("bootstrap Supabase");
+  },
+);
+
+// PR #2714 review: every psql the verifier starts goes through psqlConnection.
+// An ambient PGHOSTADDR overrides the URL's host, PGSERVICE and PGHOST fill in
+// a target and PGOPTIONS can choose a role, so none may reach psql; and the
+// password travels in PGPASSWORD, never in the argument list.
+itPosix(
+  "starts every psql with the URL alone: no ambient PG* setting and no password in its arguments",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres:s3cret-verify@127.0.0.1:5432/disposable_test",
+      false,
+      {
+        PGHOSTADDR: "203.0.113.9",
+        PGHOST: "db.example.supabase.co",
+        PGPORT: "6543",
+        PGSERVICE: "hosted",
+        PGOPTIONS: "-c role=postgres",
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.calls.length).toBeGreaterThan(3);
+    for (const [index, args] of result.calls.entries()) {
+      expect(result.environments[index]).toEqual({
+        PGPASSWORD: "s3cret-verify",
+      });
+      expect(args[0]).toBe(
+        "postgresql://postgres@127.0.0.1:5432/disposable_test",
+      );
+      expect(JSON.stringify(args)).not.toContain("s3cret-verify");
+    }
   },
 );
 

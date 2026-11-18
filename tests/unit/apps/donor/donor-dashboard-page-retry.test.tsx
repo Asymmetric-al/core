@@ -188,6 +188,26 @@ it("returns to Try again and says so again when the retry fails", async () => {
   );
 });
 
+it("moves focus to the dashboard heading once a tapped Try again loads it", async () => {
+  const pending = deferred<unknown>();
+  mocks.refetch.mockReturnValue(pending.promise);
+  const view = render(<DonorDashboardPage />);
+  // A tap on Safari does not focus the button; nothing holds focus.
+  fireEvent.click(view.getByRole("button", { name: "Try again" }));
+  expect(document.activeElement).toBe(document.body);
+
+  // The heading arrives with the dashboard, after the error view has gone.
+  mocks.isError = false;
+  mocks.isPending = true;
+  view.rerender(<DonorDashboardPage />);
+  mocks.isPending = false;
+  await act(async () => pending.resolve({ isError: false }));
+  expect(view.queryByRole("button", { name: /Try/ })).toBeNull();
+  expect(document.activeElement).toBe(
+    view.getByRole("heading", { level: 1, name: "Welcome back" }),
+  );
+});
+
 it("leaves focus alone when the dashboard recovers on its own after a retry that failed again", async () => {
   const pending = deferred<unknown>();
   mocks.refetch.mockReturnValue(pending.promise);

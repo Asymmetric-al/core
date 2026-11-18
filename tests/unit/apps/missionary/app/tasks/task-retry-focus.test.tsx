@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+// eslint-disable-next-line no-restricted-imports -- AL-2698: The real missionary Tasks page at its app boundary.
 import TasksPage from "../../../../../../apps/missionary/app/tasks/page-client";
 
 import type { Task } from "@asym/lib/hooks/use-tasks";
@@ -119,6 +120,22 @@ it("leaves focus on Try again when the tasks still can't load", () => {
   expect(document.activeElement).toBe(button);
   expect(button.getAttribute("aria-disabled")).not.toBe("true");
   expect(screen.getByRole("alert").textContent).toContain("Still failing");
+});
+
+it("lands on the page heading when the tasks recover on their own while Try again has focus", () => {
+  const view = render(<TasksPage />);
+  const button = screen.getByRole("button", { name: "Try again" });
+  button.focus();
+
+  // A refetch the missionary did not ask for (on reconnect, say) loads the
+  // tasks, removing the button the keyboard is on.
+  state.error = null;
+  state.tasks = [task];
+  view.rerender(<TasksPage />);
+  expect(button.isConnected).toBe(false);
+  expect(document.activeElement).toBe(
+    screen.getByRole("heading", { level: 1, name: "Tasks" }),
+  );
 });
 
 it("announces again when the tasks fail with the same message", () => {

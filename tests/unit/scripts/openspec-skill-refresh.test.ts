@@ -73,8 +73,8 @@ In both branches, never create the root as a side effect: do not run \`openspec 
 
 **Input**: A change name.
 
-${name === "openspec-update-change" ? 'This workflow revises artifacts that already exist; `/openspec-continue-change` is what creates the ones that do not.\n\n- If the request changes the change\'s _intent_ rather than refining it, recommend starting fresh with `/openspec-new-change` (the "Update vs. Start Fresh" heuristic).\n' : ""}
-${name === "openspec-apply-change" ? "- If `missingArtifacts` is non-empty: suggest using `/openspec-continue-change` to create them.\n" : ""}
+${name === "openspec-update-change" ? 'Revise existing artifacts. If an artifact is missing, identify it and show the next ready artifact from `openspec status --change "<name>" --json`.\n\n- If the request changes the change\'s _intent_ rather than refining it, ask for a distinct unused name and recommend `openspec new change "<new-change-name>"`.\n- Everything done and implemented -> suggest archiving with `openspec archive "<name>"`.\n' : ""}
+${name === "openspec-apply-change" ? "- If `missingArtifacts` is non-empty: show the missing artifacts and the recovery step from the CLI’s `instruction` field. Keep the selected store on any follow-up command.\n" : ""}
 
 \`\`\`markdown
 # Example spec title
@@ -180,31 +180,26 @@ describe("OpenSpec skill refresh", () => {
         const description = content.match(/^description: (.+)$/m)?.[1];
         expect(description).not.toContain("run that command instead");
         expect(description).toContain("repository-safe");
-        expect(content).toContain("Before suggesting it anywhere below");
+        // 2.1 gives the recovery commands itself, so Core keeps them as is.
+        expect(content).toContain('openspec status --change "<name>" --json');
         expect(content).toContain(
-          'bun run openspec -- status --change "<name>" --json',
+          'recommend `openspec new change "<new-change-name>"`',
         );
+        // Core archives only merged, accepted work, through its workflow.
         expect(content).toContain(
-          'bun run openspec -- instructions "<artifact-id>" --change "<name>" --json',
+          "merged and accepted -> suggest the `openspec-archive-change` workflow",
         );
-        expect(content).toContain(
-          "first verify whether the optional `/openspec-new-change` workflow is available",
-        );
-        expect(content).toContain(
-          'bun run openspec -- new change "<new-change-name>"',
+        expect(content).not.toContain(
+          "suggest archiving with `openspec archive",
         );
       }
       if (name === "openspec-apply-change") {
         expect(content).toContain(
-          "verify whether `/openspec-continue-change` is installed",
+          "show the missing artifacts and the recovery step from the CLI’s `instruction` field.",
         );
-        expect(content).toContain(
-          'bun run openspec -- status --change "<name>" --json',
-        );
-        expect(content).toContain(
-          'bun run openspec -- instructions "<artifact-id>" --change "<name>" --json',
-        );
+        expect(content).not.toContain("selected store");
       }
+      expect(content).not.toMatch(/\/openspec-(?:continue|new)-change/);
       const endOfFrontmatter = content.indexOf("\n---\n", 4) + 5;
       expect(content.indexOf("<!-- CORE-OVERLAY-START -->")).toBeLessThan(
         content.indexOf("Upstream workflow prose"),

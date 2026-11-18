@@ -22,13 +22,17 @@ const NON_LOOPBACK_URLS = [
   "postgresql://postgres:test-placeholder@[2001:db8::1]:5432/postgres",
   "postgresql://postgres:test-placeholder@127.0.0.1.example.com:5432/postgres",
   "postgresql://postgres:test-placeholder@localhost.example.com:5432/postgres",
+  // PR #2714 review (record D-18): this address sat in LOOPBACK_URLS while
+  // schema push kept its own 127.0.0.0/8 rule. Push now asks the repository's
+  // one local-database decision, which admits only 127.0.0.1, localhost and
+  // [::1], so the address moved here and is asserted to never push.
+  "postgresql://postgres:postgres@127.0.0.2:54322/postgres",
 ];
 
 const LOOPBACK_URLS = [
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
   "postgresql://postgres:postgres@localhost:54322/postgres",
   "postgresql://postgres:postgres@[::1]:54322/postgres",
-  "postgresql://postgres:postgres@127.0.0.2:54322/postgres",
 ];
 
 afterEach(() => {
@@ -159,6 +163,26 @@ describe("resolvePayloadSchemaPush", () => {
       ).toBeUndefined();
     },
   );
+
+  // PR #2714 review: push is allowed exactly where the repository's one
+  // local-database decision admits the URL, and nowhere else.
+  it.each([
+    ...LOOPBACK_URLS,
+    ...NON_LOOPBACK_URLS,
+    "postgresql://postgres:postgres@127.0.0.3:54322/postgres",
+    "postgresql://postgres:postgres@LOCALHOST:54322/postgres",
+    "http://localhost:54322/postgres",
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?dbname=elsewhere",
+    "postgresql://postgres:postgres@[::1]:54322/postgres?service=hosted",
+  ])("decides %s exactly as isLoopbackDatabaseUrl does", async (url) => {
+    const { resolvePayloadSchemaPush } = await load();
+    const { isLoopbackDatabaseUrl } =
+      await import("../../../packages/env/src/database-url.mjs");
+    expect(
+      resolvePayloadSchemaPush({ connectionString: url, env: {} }) ===
+        undefined,
+    ).toBe(isLoopbackDatabaseUrl(url));
+  });
 
   it.each(["1"])(
     "returns false on loopback when PAYLOAD_DISABLE_SCHEMA_PUSH=%s",

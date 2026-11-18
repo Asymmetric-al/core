@@ -124,7 +124,7 @@ bun run shadcn:uikit:add button1
 
 - `packages/ui/components.json` is intentionally used for registry configuration in this repo.
 - `style` is pinned to **`base-maia`** (shadcn v4 Base UI Maia variant — see [schema](https://ui.shadcn.com/schema.json)) with **`tailwind.baseColor: zinc`**; Maia surfaces and Zinc tokens are enforced by `packages/ui/styles/globals.css`, not by app-local styling.
-- All primitives under `components/shadcn/*` are **Base UI-backed** (`@base-ui/react`) following this pin. Base UI is the only primitive base: never add `radix-ui`/`@radix-ui/*` imports or dependencies, and compose with Base UI's `render` prop (not `asChild`). UI SDK (`@ui-sdk/react`) supplies only behaviors no existing `@asym/ui` component provides, through wrappers in `components/primitives/` (see "UI SDK" in `AGENTS.md`).
+- All primitives under `components/shadcn/*` are **Base UI-backed** (`@base-ui/react`) following this pin; compose them with Base UI's `render` prop (not `asChild`). Prefer Base UI over Radix: no new `radix-ui`/`@radix-ui/*` dependency without a reviewed need. UI SDK (`@ui-sdk/react`) is also approved for shared components, through wrappers in `components/primitives/` (see "Choosing a library" in `AGENTS.md`).
 - Preserve existing registry entries when adding/updating components.
 - Do not manually edit `components.json`; use shadcn CLI commands from the repo root with `--cwd packages/ui`.
 

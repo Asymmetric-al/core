@@ -2,7 +2,6 @@
 "use no memo";
 
 import { useLocaleFormat } from "@asym/lib/hooks";
-import { useLoadRetry } from "@asym/missionary/hooks/use-load-retry";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
   AlertDialog,
@@ -49,6 +48,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@asym/ui/components/shadcn/toggle-group";
+import { useLoadRetry } from "@asym/ui/hooks";
 import { ChevronDown, FileText, Globe, Loader2, Users, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -419,9 +419,9 @@ function FeedPostsTabsSection({
   requestDelete: (status: PostStatus, list: Post[], index: number) => void;
 }) {
   const draftsRetryButton = useRef<HTMLButtonElement>(null);
-  const draftsRetry = useLoadRetry({
+  const { failureView, ...draftsRetry } = useLoadRetry({
     retryRef: draftsRetryButton,
-    error: vm.draftsError && !vm.isLoadingDrafts ? true : null,
+    error: vm.draftsError && !vm.isLoadingDrafts,
     loading: vm.isLoadingDrafts,
     onRetry: vm.reloadDrafts,
     landing: () => draftsPanelRef.current,
@@ -473,7 +473,7 @@ function FeedPostsTabsSection({
         className="flex flex-col gap-4"
       >
         {draftsRetry.error ? (
-          <Card>
+          <Card ref={failureView}>
             <CardContent className="flex flex-col items-start gap-3">
               <p
                 key={draftsRetry.failedRetries}

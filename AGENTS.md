@@ -18,7 +18,7 @@ This is the always-on coding-agent entrypoint for `Asymmetric-al/core` (Codex re
 2. Read the nearest applicable `AGENTS.md` before editing that subtree.
 3. Inspect current source, tests, manifests, and configuration relevant to the requested change before choosing a workflow.
 4. For non-trivial behavior, workflow, or durable-convention changes, read `openspec/project.md`, the relevant `openspec/specs/**`, and matching active changes under `openspec/changes/**`.
-5. Load explicitly requested skills and discovered skills whose descriptions match the task's workflow. Respect explicit-only invocation settings. Read supporting references only as needed; skills do not replace repository context.
+5. Load explicitly requested skills, the skills the scoped instructions and rulebooks name for the task, and any discovered skill that clearly matches. Respect explicit-only invocation settings. Read supporting references only as needed; skills do not replace repository context.
 6. Preserve user-owned changes and keep the diff focused on the requested outcome.
 
 ## Repository map
@@ -93,10 +93,10 @@ Read the rulebooks for the work in scope; a small edit does not require loading 
 - **Product safety:** tenant and permission correctness outrank convenience. Preserve financial and operational truth, keep secrets and privileged effects server-side, and never weaken auth, payment, webhook, or data boundaries for a shortcut. Relevant durable intent lives in `openspec/specs/platform-principles/spec.md` and `openspec/specs/platform-boundaries/spec.md`.
 - **CRM retirement:** Asym Postgres owns all CRM truth. Twenty CRM is retired; do not restore its clients, credentials, vendor store, sync, cutover or rollback paths. Dated records and compatibility identifiers do not authorize a live integration.
 - **Data ownership:** business database logic belongs in `packages/api`; app API route handlers stay thin. Browser-visible table access uses approved `packages/database` collections and hooks. Follow the data-access boundary guide and its enforced exceptions.
-- **UI system:** every UI or UX change must preserve exact `base-maia`, Base UI primitives, Zinc-oriented semantic CSS-variable tokens, shared ownership in `packages/ui`, and the existing Core design language. Do not introduce another style, preset, primitive base, competing component system, or app-local fork. UI SDK may supply only behaviors no existing `@asym/ui` component provides, as `packages/ui/AGENTS.md` scopes it.
+- **UI system:** every UI or UX change must preserve exact `base-maia`, Zinc-oriented semantic CSS-variable tokens, shared ownership in `packages/ui`, and the existing Core design language. Base UI and UI SDK are both approved for shared components; reuse existing `@asym/ui` components first and prefer Base UI over Radix. Do not introduce another style, preset, competing component system, or app-local fork. `packages/ui/AGENTS.md` holds the details.
 - **TDD:** substantive features, bug fixes, and behavior-changing refactors use red-green-refactor at the nearest stable seam. Documentation-only, formatting-only, exact generated mirrors, and provenance-only changes use deterministic structural verification instead of artificial failing tests.
 - **Next.js navigation:** all apps use Cache Components and partial prefetching. For route work, inspect the app config and treat each server await as an intentional Stream, Cache, or Block decision. Detailed rules and tests live in the frontend rulebook and matching Next.js skills.
-- **Generated and mirrored content:** consult `docs/ai/protected-paths.md` before editing generated, mirrored, or vendored trees. Canonical skill sources live in `docs/ai/skills`; use `bun run skills:sync` to write mirrors and `bun run skills:verify` to check them without mutation.
+- **Generated and mirrored content:** consult `docs/ai/protected-paths.md` before editing generated, mirrored, or vendored trees. Canonical skill sources live in `docs/ai/skills` and ecosystem-origin skills in `.agents/skills`; use `bun run skills:sync` to write mirrors and `bun run skills:verify` to check them without mutation.
 
 ## Next.js and runtime truth
 
@@ -106,7 +106,7 @@ Use live Next.js diagnostics or browser inspection only when the relevant server
 
 ## Skills
 
-Codex discovers repository skills from `.agents/skills` (Claude Code and Cursor use the `.claude/skills` and `.cursor/skills` mirrors) and loads their full instructions only when invoked or matched. Use clear skill descriptions as the routing layer; do not maintain an individual skill catalog here.
+Codex discovers repository skills from `.agents/skills` (Claude Code and Cursor use the `.claude/skills` and `.cursor/skills` mirrors) and loads their full instructions only when invoked or matched. Clients cap the skill listing, so many skills appear by name only; a listed name still loads. Do not maintain an individual skill catalog here.
 
 For canonical skill authoring or ambiguous routing, use `docs/ai/rules/agent-skill-routing.md`. Edit canonical sources rather than generated mirrors, then run the repository sync and verification commands.
 
@@ -114,10 +114,12 @@ For canonical skill authoring or ambiguous routing, use `docs/ai/rules/agent-ski
 
 Use Bun and the scripts declared in the current root `package.json`.
 
+- Fresh checkout or worktree: `bun install --frozen-lockfile`; `README.md` has the credential-free setup.
 - Dev: `bun run dev:admin`, `bun run dev:donor`, `bun run dev:missionary`
 - Standard code gate: `bun run check`
 - Individual gates: `bun run lint`, `bun run typecheck`, `bun run test:unit`, `bun run format:check`
 - Workspace contract: `bun run verify:workspace-contract`
+- Docs, skills and specs: `bun run skills:verify`, `bun run openspec:validate`, `bun run verify:openspec-deltas`, then `bunx vitest run tests/unit/docs`
 - PR/push readiness: `bun run ci:preflight`
 
 Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Avoid repeating passed checks unless new edits, failures, unresolved risk, or required workflow gates justify it. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.

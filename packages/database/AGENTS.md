@@ -16,6 +16,7 @@
 
 1. Read this file and `docs/guides/architecture/data-access-boundary.md`.
 2. Follow TDD for generated-type and hook changes.
+3. Tests live in `tests/unit/packages/database/`; run them with `bunx vitest run tests/unit/packages/database`, then `bunx turbo run lint typecheck --filter=@asym/database`.
 
 ## Checklist
 

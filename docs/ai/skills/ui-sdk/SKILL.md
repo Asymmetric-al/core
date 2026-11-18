@@ -1,11 +1,11 @@
 ---
 name: ui-sdk
-description: Builds Core UI behavior that no existing @asym/ui component provides with UI SDK (@ui-sdk/react and @ui-sdk/core), such as a star rating, a mixed text-and-token input, keyboard shortcuts, reordering or a custom primitive like a stepper, as a Maia-styled wrapper in packages/ui with keyboard, focus, ARIA, server-rendering and hydration tests. Use when Mission Control, missionary or donor UI work needs such an interaction, when changing a file that imports @ui-sdk/*, or when the user mentions ui-sdk. Ordinary controls keep the existing @asym/ui components, built on Base UI and other shared integrations.
+description: Builds and maintains Core's UI SDK (@ui-sdk/react and @ui-sdk/core) components as Maia-styled wrappers in packages/ui, with keyboard, focus, ARIA, server-rendering and hydration tests. Use when evaluating or implementing a shared control where UI SDK may give better interaction, accessibility, simplicity, maintainability or measured performance than the current option (Base UI and UI SDK are both approved), when changing or improving a file that imports @ui-sdk/*, or when the user asks for ui-sdk. Not needed merely because the SDK is installed, for ordinary page composition with existing @asym/ui components, or for Base UI component work.
 ---
 
 # Build with ui-sdk
 
-> **Core:** in Asymmetric-al/core, read [This repository](#this-repository-asymmetric-alcore) at the end first. It replaces the install, docs-path, styling and testing steps below where they differ, and the existing `@asym/ui` components stay the default for ordinary controls.
+> **Core:** in Asymmetric-al/core, read [This repository](#this-repository-asymmetric-alcore) at the end first. It replaces the install, docs-path, styling and testing steps below where they differ. Reuse existing `@asym/ui` components first; the import, part, attribute and testing rules below apply to UI SDK code only.
 
 ui-sdk is a library of UI behaviors: keyboard navigation, focus, selection, dismissal, popups, drag and drop and the ARIA they need. Its components are built from those behaviors and render no styles of their own, in React, Vue, Svelte, Solid and web components. `@ui-sdk/core/web.css` gives them an optional default look. When a component is missing, you build it from the same behaviors in `@ui-sdk/core`, and it gets the same keyboard, focus, server rendering and right to left support.
 
@@ -63,38 +63,45 @@ Every path ends the same way:
 
 Adapted from vercel-labs/ui `packages/core/skills/ui-sdk` at commit `8ff6bcf`
 (the `@ui-sdk/core@0.1.0-beta.2` release, Apache-2.0). Modified by
-Asymmetric-al/core: the description is narrowed, the Core note at the top and
+Asymmetric-al/core: the description is rewritten, the Core note at the top and
 this overlay were added, and three references carry marked secret-scanner
 comments. The upstream text above is otherwise unchanged. Provenance is in
 `references/upstream.md`, and `LICENSE` is the upstream Apache-2.0 text.
 
 On conflict, follow the current user request, root `AGENTS.md`,
-`packages/ui/AGENTS.md` (§ UI SDK) and `docs/ai/rules/frontend.md`. They win
+`packages/ui/AGENTS.md` (Choosing a library, UI SDK implementation) and
+`docs/ai/rules/frontend.md`. They win
 over the upstream text above. Repository paths in this section are relative to
 the root of your checkout; resolve them there when you start elsewhere.
 
 ### Triggers
 
-- UI work in Mission Control (`apps/admin`), the missionary workspace
-  (`apps/missionary`) or the donor portal (`apps/donor`) needs an interaction
-  that no existing `@asym/ui` component provides. Examples: a star rating, a
-  mixed text-and-token input, keyboard shortcuts, drag-and-keyboard
-  reordering, or a custom composite such as a stepper.
+- Shared UI work for Mission Control (`apps/admin`), the missionary workspace
+  (`apps/missionary`) or the donor portal (`apps/donor`) is evaluating or
+  building a control where UI SDK may be the better implementation. It is the
+  natural choice for what only it ships (a mixed text-and-token input, a custom
+  composite such as a stepper), and it may be chosen over a Base UI equivalent
+  for a concrete benefit. A star rating, page shortcuts and list reordering
+  already have shared owners, listed below: reuse them.
 - A change touches a file that imports `@ui-sdk/*`, or the user names ui-sdk.
-- Not for anything `@asym/ui` already covers, even where UI SDK ships an
-  equivalent. Base UI owns Select, Combobox (including multi-select tag chips),
-  Dialog, Menu, Tabs, Popover, Tooltip, Switch, Checkbox, Radio Group (labelled
-  choices), Slider, Number and OTP fields. Other shared integrations own dates
-  (Calendar), command palettes (Command), toasts (Sonner), carousels,
-  resizable panels, image cropping, data tables and grids. The upstream "Don't
-  hand-roll what we ship" rule does not override these components.
+- Not merely because the SDK is installed, and not for ordinary page
+  composition, which uses existing `@asym/ui` components. The upstream "Don't
+  hand-roll what we ship" rule does not require replacing existing shared
+  components such as Select, Combobox, Dialog, Menu, Tabs, Calendar, Command
+  or Sonner.
 
 ### Workflow
 
-1. **Reuse first.** Search `packages/ui/components/shadcn` and
-   `packages/ui/components/primitives`. Use UI SDK only for a gap no shared
-   component fills, and keep one owner per interaction: never mix Base UI and
-   UI SDK parts in one control.
+1. **Reuse first, then choose.** Search `packages/ui/components/shadcn` and
+   `packages/ui/components/primitives`, and improve the existing component
+   when it serves. Choose UI SDK for a concrete benefit (interaction,
+   accessibility, simpler or more maintainable code, demonstrated performance)
+   and say so in the change description; no decision document is needed. An
+   existing Base UI equivalent does not rule it out, and SDK availability alone
+   is no reason to replace a working component. One library owns a control's
+   internals: do not mix Base UI and UI SDK parts in one control. When the SDK
+   version supersedes a shared component, migrate its consumers and remove the
+   old one.
 2. **Read the installed docs.** Bun's isolated linker installs the SDK for
    `packages/ui` only, so the upstream `node_modules/@ui-sdk/...` paths are
    `packages/ui/node_modules/@ui-sdk/...` in this repo:
@@ -143,6 +150,9 @@ the root of your checkout; resolve them there when you start elsewhere.
    layer stack (modal pausing, dismissal order) only knows SDK popups; the
    shared shortcut owner already guards Base UI overlays, so guard
    outside-press behavior yourself when a Base UI dialog or menu can be open.
+   An SDK control may sit inside a Base UI dialog, popover or form, and the
+   reverse. Test focus order and return, accessible names, Escape and
+   outside-press dismissal, and overlay stacking across that boundary.
 7. **Test first.** Follow `docs/ai/skills/tdd/SKILL.md`. Write a jsdom test
    under `tests/unit/packages/ui/components/primitives/` (names, one tab stop,
    keys, values, server render plus hydration). For layout, focus movement,
@@ -203,14 +213,15 @@ proof `tests/e2e/ui-sdk-rating.spec.ts` (fixture
 
 ### Checklist
 
-- [ ] No existing `@asym/ui` component covered the interaction, and the gap is
-      named in the change
+- [ ] An existing `@asym/ui` component was reused or improved where it served,
+      and the change description says why UI SDK was chosen
 - [ ] The wrapper lives in `packages/ui/components/primitives/` and imports
       per-component SDK entries; apps import only the wrapper
 - [ ] Only Maia semantic tokens and SDK data attributes style it; no
       `web.css`, raw colors, inline styles or new theme
 - [ ] Every control is named; keyboard, focus ring, hydration, contrast, touch
-      targets and axe were checked in a real browser spec that CI runs
+      targets and axe were checked, in a real browser spec that CI runs when
+      the change affects layout, focus movement, touch or popups
 - [ ] Failing tests were fixed or reported, never hidden with `test.fails`
 - [ ] Skill edits change `docs/ai/skills/ui-sdk/` (never a generated mirror)
       and update `references/upstream.md`
