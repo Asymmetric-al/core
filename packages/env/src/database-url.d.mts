@@ -19,6 +19,14 @@ export declare function databaseUrlQueryProblem(
   options?: { forPsql?: boolean },
 ): string | null;
 
+export declare const SUPABASE_POOLER_HOST: RegExp;
+
+export declare const HOSTED_LIBPQ_ENV: Readonly<{ PGREQUIREAUTH: string }>;
+
+export declare function databaseUrlHostProblem(
+  databaseUrl: string | URL,
+): string | null;
+
 export declare function libpqUrlMismatch(
   databaseUrl: string | URL | null | undefined,
 ): string | null;

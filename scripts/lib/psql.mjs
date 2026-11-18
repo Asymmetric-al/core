@@ -13,6 +13,8 @@ import { spawnSync } from "node:child_process";
 
 import {
   LOOPBACK_DATABASE_HOSTS,
+  HOSTED_LIBPQ_ENV,
+  databaseUrlHostProblem,
   databaseUrlQueryProblem,
   isLoopbackDatabaseUrl,
   libpqQueryEntries,
@@ -61,6 +63,9 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
     throw new Error(
       `the database URL is refused because libpq would read it differently: ${mismatch}`,
     );
+  const hostProblem = databaseUrlHostProblem(url);
+  if (hostProblem !== null)
+    throw new Error(`the database URL is refused for psql: ${hostProblem}`);
   const problem = databaseUrlQueryProblem(databaseUrl, { forPsql: true });
   if (problem !== null)
     throw new Error(`the database URL is refused for psql: ${problem}`);
@@ -74,6 +79,7 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   const queryPassword = query.find(([key]) => key === "password");
   if (queryPassword) env.PGPASSWORD = queryPassword[1];
   if (url.password) env.PGPASSWORD = decodeURIComponent(url.password);
+  if (!isLoopbackDatabaseUrl(url)) Object.assign(env, HOSTED_LIBPQ_ENV);
   const keywords = [
     ["host", url.hostname.replace(/^\[(.*)\]$/, "$1")],
     ["port", url.port],

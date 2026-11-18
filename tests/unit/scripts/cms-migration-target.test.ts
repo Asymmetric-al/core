@@ -138,6 +138,28 @@ describe("CMS migration target", () => {
     ).toThrow("does not match");
   });
 
+  // Review L1: the same host rule and pooler pattern as the release target.
+  it.each([
+    ["a host list", "evil.example,aws-0-us-east-1.pooler.supabase.com"],
+    ["an escaped comma", "evil.example%2Caws-0-us-east-1.pooler.supabase.com"],
+    ["an escaped slash", "%2Ftmp%2Fx.pooler.supabase.com"],
+    ["upper case", "AWS-0-US-EAST-1.pooler.supabase.com"],
+    ["a trailing dot", "aws-0-us-east-1.pooler.supabase.com."],
+    ["a bare pooler subdomain", "x.pooler.supabase.com"],
+    ["a look-alike domain", "evilpooler.supabase.com"],
+    [
+      "the pooler's name under another domain",
+      "aws-0-x.pooler.supabase.com.evil.example",
+    ],
+  ])("refuses a pooled address with %s as its host", (_case, host) => {
+    expect(() =>
+      assertCmsMigrationTarget({
+        ...hosted,
+        databaseUrl: `postgresql://cms_owner.fixture:fake-password@${host}:5432/postgres?sslmode=require`,
+      }),
+    ).toThrow();
+  });
+
   it("validates direct Supabase database hosts", () => {
     expect(() =>
       assertCmsMigrationTarget({

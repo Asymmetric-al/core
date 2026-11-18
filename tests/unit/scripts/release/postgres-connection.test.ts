@@ -1,0 +1,35 @@
+// The release job's own psql connection (scripts/release/lib/postgres.mjs):
+// libpq takes the target from PG* variables built from the parsed address.
+import { describe, expect, it } from "vitest";
+
+import { connectionEnvironment } from "../../../../scripts/release/lib/postgres.mjs";
+
+const hosted =
+  "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
+
+describe("the release job's psql connection", () => {
+  // Review L1: the builder never decodes the host, so an escaped comma or
+  // slash can never become a host list or a socket directory.
+  it("never decodes the host", () => {
+    const env = connectionEnvironment(
+      "postgresql://postgres.abcdefghijklmnopqrst@evil.example%2Caws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+      {},
+    );
+    expect(env.PGHOST ?? "").not.toMatch(/[,/]/);
+  });
+
+  // Review L1: the pooler authenticated with SCRAM on the preview project on
+  // 18 November 2026, so a hosted server may never ask for the password in
+  // clear text.
+  it("requires SCRAM for a hosted address and leaves a loopback one alone", () => {
+    expect(connectionEnvironment(hosted, {}).PGREQUIREAUTH).toBe(
+      "scram-sha-256",
+    );
+    expect(
+      connectionEnvironment(
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        {},
+      ).PGREQUIREAUTH,
+    ).toBeUndefined();
+  });
+});

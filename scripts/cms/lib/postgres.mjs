@@ -1,5 +1,10 @@
 import { spawnSync } from "node:child_process";
 
+import {
+  HOSTED_LIBPQ_ENV,
+  databaseUrlHostProblem,
+  isLoopbackDatabaseUrl,
+} from "../../../packages/env/src/database-url.mjs";
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
 
 const CONNECTION_ENV_KEYS = {
@@ -31,7 +36,8 @@ function getPsqlConnection(databaseUrl) {
   try {
     connection = new URL(databaseUrl);
     fields = {
-      PGHOST: decodeURIComponent(connection.hostname).replace(/^\[|\]$/g, ""),
+      // Never decoded (review L1).
+      PGHOST: connection.hostname.replace(/^\[|\]$/g, ""),
       PGPORT: connection.port,
       PGDATABASE: decodeURIComponent(connection.pathname.slice(1)),
       PGUSER: decodeURIComponent(connection.username),
@@ -42,6 +48,10 @@ function getPsqlConnection(databaseUrl) {
   }
   if (!["postgres:", "postgresql:"].includes(connection.protocol)) {
     throw new Error("CMS database connection must use Postgres.");
+  }
+  // Review L1: one host rule judges every address.
+  if (databaseUrlHostProblem(connection) !== null) {
+    throw new Error("CMS database connection names a host that is refused.");
   }
   if (connection.searchParams.has("service")) {
     throw new Error(
@@ -57,6 +67,9 @@ function getPsqlConnection(databaseUrl) {
   for (const [key, value] of Object.entries(fields)) {
     if (value) env[key] = value;
   }
+  // Review L1: a hosted server may never ask for the password in clear text.
+  delete env.PGREQUIREAUTH;
+  if (!isLoopbackDatabaseUrl(connection)) Object.assign(env, HOSTED_LIBPQ_ENV);
 
   const remaining = new URLSearchParams();
 

@@ -65,6 +65,44 @@ describe("release database target", () => {
     ).toThrow(/query/);
   });
 
+  // Review L1: the pooled host is Supabase's pattern, not a suffix, and one
+  // host rule refuses a list, an escape, upper case and a trailing dot.
+  it.each([
+    ["a host list", "evil.example,aws-0-us-east-1.pooler.supabase.com"],
+    ["an escaped comma", "evil.example%2Caws-0-us-east-1.pooler.supabase.com"],
+    ["an escaped slash", "%2Ftmp%2Fx.pooler.supabase.com"],
+    ["upper case", "AWS-0-US-EAST-1.pooler.supabase.com"],
+    ["a trailing dot", "aws-0-us-east-1.pooler.supabase.com."],
+    ["a bare pooler subdomain", "x.pooler.supabase.com"],
+    ["a look-alike domain", "evilpooler.supabase.com"],
+    [
+      "the pooler's name under another domain",
+      "aws-0-x.pooler.supabase.com.evil.example",
+    ],
+  ])("refuses a pooled address with %s as its host", (_case, host) => {
+    expect(() =>
+      assertDatabaseTarget({
+        databaseUrl: `postgresql://postgres.${ref}@${host}:6543/postgres?sslmode=require`,
+        projectRef: ref,
+        role: "postgres",
+      }),
+    ).toThrow();
+  });
+
+  it("accepts both pooler clusters the projects use", () => {
+    for (const host of [
+      "aws-0-us-west-2.pooler.supabase.com",
+      "aws-1-us-east-1.pooler.supabase.com",
+    ])
+      expect(() =>
+        assertDatabaseTarget({
+          databaseUrl: `postgresql://postgres.${ref}@${host}:5432/postgres?sslmode=require`,
+          projectRef: ref,
+          role: "postgres",
+        }),
+      ).not.toThrow();
+  });
+
   it("never echoes the connection string in an error", () => {
     try {
       assertDatabaseTarget({

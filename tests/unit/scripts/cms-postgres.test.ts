@@ -133,4 +133,23 @@ describe("CMS PostgreSQL command connection", () => {
     // libpq percent-decodes URI values; it does not use form '+' decoding.
     expect(decodeURIComponent(value)).toBe("core local");
   });
+
+  // Review L1: the builder never decodes the host, and requires SCRAM for a
+  // hosted address.
+  it("never decodes the host, and requires SCRAM for a hosted address", () => {
+    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl:
+        "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+    });
+    const env = spawnSync.mock.calls.at(-1)![2].env;
+    expect(env.PGHOST).toBe("aws-0-us-east-1.pooler.supabase.com");
+    expect(env.PGREQUIREAUTH).toBe("scram-sha-256");
+    expect(() =>
+      runPsql("SELECT 1;", {
+        databaseUrl:
+          "postgresql://cms_owner.fixture:fake-password@evil.example%2Caws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+      }),
+    ).toThrow(/host/);
+  });
 });

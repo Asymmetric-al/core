@@ -1,4 +1,6 @@
 import {
+  SUPABASE_POOLER_HOST,
+  databaseUrlHostProblem,
   databaseUrlRoutingOverrides,
   isLoopbackDatabaseUrl,
 } from "../../../packages/env/src/database-url.mjs";
@@ -31,6 +33,10 @@ export function assertCmsMigrationTarget({
   }
 
   if (isLoopbackDatabaseUrl(database)) return;
+  // Review L1: one host rule, then Supabase's pooler pattern, not a suffix.
+  if (databaseUrlHostProblem(database) !== null) {
+    throw new Error("CMS migration refuses this database host.");
+  }
   const hostname = database.hostname.replace(/^\[|\]$/g, "");
 
   let ref;
@@ -68,7 +74,7 @@ export function assertCmsMigrationTarget({
 
   const direct = hostname === `db.${ref}.supabase.co` && username === role;
   const pooled =
-    hostname.endsWith(".pooler.supabase.com") && username === `${role}.${ref}`;
+    SUPABASE_POOLER_HOST.test(hostname) && username === `${role}.${ref}`;
   if (!direct && !pooled) {
     throw new Error(
       "The CMS database target does not match the approved Supabase project.",

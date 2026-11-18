@@ -17,7 +17,11 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { DATABASE_URL_QUERY_KEYS } from "../../../packages/env/src/database-url.mjs";
+import {
+  DATABASE_URL_QUERY_KEYS,
+  SUPABASE_POOLER_HOST,
+  databaseUrlHostProblem,
+} from "../../../packages/env/src/database-url.mjs";
 import {
   LOOPBACK_HOSTS,
   isLoopbackDatabaseUrl,
@@ -141,7 +145,12 @@ describe("psqlConnection", () => {
     expect(connection).toBe(
       "host='db.example' port='6543' dbname='postgres' user='postgres' sslmode='require'",
     );
-    expect(env).toEqual({ KEEP: "1", PGPASSWORD: "p@ss/w0rd" });
+    // A hosted address also requires SCRAM (review L1).
+    expect(env).toEqual({
+      KEEP: "1",
+      PGPASSWORD: "p@ss/w0rd",
+      PGREQUIREAUTH: "scram-sha-256",
+    });
   });
 
   // Council round 2, A8b: the URL is the whole target. An ambient PGHOSTADDR
@@ -499,3 +508,73 @@ function parseConninfo(text: string): [string, string][] {
   }
   return pairs;
 }
+
+// Review L1 (blocking): WHATWG URL keeps a comma, a percent-escape and upper
+// case in a postgres:// host, and libpq reads a comma as a list of hosts and
+// a slash as a socket directory. One host rule now judges every address.
+describe("the host an address may name (review L1)", () => {
+  it.each([
+    ["a host list", "evil.example,aws-0-us-east-1.pooler.supabase.com"],
+    ["an escaped comma", "evil.example%2Caws-0-us-east-1.pooler.supabase.com"],
+    ["an escaped slash", "%2Ftmp%2Fx.pooler.supabase.com"],
+    ["upper case", "AWS-0-US-EAST-1.pooler.supabase.com"],
+    ["a trailing dot", "aws-0-us-east-1.pooler.supabase.com."],
+    ["an empty label", "db..supabase.co"],
+  ])("refuses %s", (_case, host) => {
+    const url = `postgresql://postgres.abcdefghijklmnopqrst@${host}:6543/postgres?sslmode=require`;
+    expect(databaseUrlHostProblem(url)).not.toBeNull();
+    expect(isLoopbackDatabaseUrl(url)).toBe(false);
+    expect(() => psqlConnection(url, {})).toThrow(/host/);
+  });
+
+  it("refuses an address that names no host", () => {
+    expect(databaseUrlHostProblem("postgresql:///postgres")).not.toBeNull();
+    expect(() => psqlConnection("postgresql:///postgres", {})).toThrow(/host/);
+  });
+
+  it.each([
+    "aws-0-us-west-2.pooler.supabase.com",
+    "aws-1-us-east-1.pooler.supabase.com",
+    "db.abcdefghijklmnopqrst.supabase.co",
+    "127.0.0.1",
+    "localhost",
+    "[::1]",
+  ])("accepts %s", (host) => {
+    expect(
+      databaseUrlHostProblem(`postgresql://u@${host}:5432/postgres`),
+    ).toBeNull();
+  });
+
+  it("pins the pooler host to Supabase's shape, aws-<index>-<region>.pooler.supabase.com", () => {
+    for (const host of [
+      "aws-0-us-west-2.pooler.supabase.com",
+      "aws-1-us-east-1.pooler.supabase.com",
+    ])
+      expect(SUPABASE_POOLER_HOST.test(host), host).toBe(true);
+    for (const [, host] of [
+      ["a bare pooler subdomain", "x.pooler.supabase.com"],
+      ["a look-alike domain", "evilpooler.supabase.com"],
+      [
+        "the pooler's name under another domain",
+        "aws-0-x.pooler.supabase.com.evil.example",
+      ],
+    ])
+      expect(SUPABASE_POOLER_HOST.test(host), host).toBe(false);
+  });
+
+  // Review L1: the pooler authenticated with SCRAM on the preview project
+  // (preflight with PGREQUIREAUTH=scram-sha-256, 18 November 2026, 20:03 UTC),
+  // so no hosted server may ask psql for the password in clear text.
+  it("requires SCRAM for a hosted address and leaves a loopback one alone", () => {
+    expect(
+      psqlConnection(
+        "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require",
+        {},
+      ).env.PGREQUIREAUTH,
+    ).toBe("scram-sha-256");
+    expect(
+      psqlConnection("postgresql://postgres@127.0.0.1:54322/postgres", {}).env
+        .PGREQUIREAUTH,
+    ).toBeUndefined();
+  });
+});

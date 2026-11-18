@@ -185,6 +185,60 @@ export function libpqUrlMismatch(databaseUrl) {
   return null;
 }
 
+/**
+ * The shared pooler host of a hosted Supabase project, a pattern and not a
+ * suffix (review L1). Its shape is Supabase's own: "aws-[INDEX]-[REGION].
+ * pooler.supabase.com", where INDEX is the pooler cluster (Supabase,
+ * "Connect to your database", the shared pooler's endpoints, read on 18
+ * November 2026). The two projects' hosts fit it: aws-0-us-west-2 (preview)
+ * and aws-1-us-east-1 (development). The direct host stays the exact
+ * db.<ref>.supabase.co in each check.
+ */
+export const SUPABASE_POOLER_HOST =
+  /^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$/;
+
+/**
+ * The libpq setting every hosted connection takes (review L1): the client
+ * accepts only SCRAM, so no server can ask for the password in clear text.
+ * The preview project's pooler authenticated a preflight run with it on 18
+ * November 2026 (20:03 UTC). A loopback address does not take it.
+ */
+export const HOSTED_LIBPQ_ENV = Object.freeze({
+  PGREQUIREAUTH: "scram-sha-256",
+});
+
+const HOST_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+
+/**
+ * Why a Postgres address's host may not be used, or null (review L1): it is
+ * one of the exact loopback forms, or lower-case labels of letters, digits
+ * and hyphens joined by dots. WHATWG URL keeps a comma, a percent-escape and
+ * upper case in a postgres:// host, and libpq reads a comma as a list of
+ * hosts and a leading slash as a socket directory: so
+ * evil.example,aws-0-us-east-1.pooler.supabase.com passed a suffix check while
+ * libpq tried evil.example first.
+ */
+export function databaseUrlHostProblem(databaseUrl) {
+  let url;
+  try {
+    url = databaseUrl instanceof URL ? databaseUrl : new URL(databaseUrl);
+  } catch {
+    return "it is not a URL";
+  }
+  const host = url.hostname;
+  if (LOOPBACK_DATABASE_HOSTS.includes(host)) return null;
+  if (host === "") return "it names no host";
+  if (/[,%/\\]/.test(host))
+    return "its host holds a comma, a percent sign or a slash";
+  if (host !== host.toLowerCase()) return "its host is not lower case";
+  const labels = host.split(".");
+  if (labels.some((label) => label === ""))
+    return "its host has an empty label";
+  if (!labels.every((label) => HOST_LABEL.test(label)))
+    return "its host is not letters, digits and hyphens joined by dots";
+  return null;
+}
+
 /** Hostnames, as `new URL(...).hostname` reports them for a Postgres URL, that name this machine. */
 export const LOOPBACK_DATABASE_HOSTS = Object.freeze([
   "127.0.0.1",

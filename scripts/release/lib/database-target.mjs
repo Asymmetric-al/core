@@ -2,6 +2,8 @@
 // environment names, before anything writes to it. Errors never repeat the
 // connection string.
 import {
+  SUPABASE_POOLER_HOST,
+  databaseUrlHostProblem,
   databaseUrlQueryProblem,
   databaseUrlRoutingOverrides,
   isLoopbackDatabaseUrl,
@@ -82,6 +84,7 @@ export function assertDatabaseTarget({
   // with only the query keys psql may take.
   const libpqProblem =
     libpqUrlMismatch(databaseUrl) ??
+    databaseUrlHostProblem(url) ??
     databaseUrlQueryProblem(databaseUrl, { forPsql: true });
   if (libpqProblem !== null) {
     throw new Error(
@@ -96,7 +99,7 @@ export function assertDatabaseTarget({
   const user = decodeURIComponent(url.username);
   const direct = host === `db.${projectRef}.supabase.co` && user === role;
   const pooled =
-    host.endsWith(".pooler.supabase.com") && user === `${role}.${projectRef}`;
+    SUPABASE_POOLER_HOST.test(host) && user === `${role}.${projectRef}`;
   if (!direct && !pooled) {
     throw new Error(
       `The release database connection does not address project ${projectRef} as ${role}.`,

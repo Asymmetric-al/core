@@ -3,8 +3,14 @@
 // status and a redacted message, never the connection string.
 import { spawnSync } from "node:child_process";
 
+import {
+  HOSTED_LIBPQ_ENV,
+  isLoopbackDatabaseUrl,
+} from "../../../packages/env/src/database-url.mjs";
+
 const URL_FIELDS = {
-  PGHOST: (url) => decodeURIComponent(url.hostname).replace(/^\[|\]$/g, ""),
+  // Never decoded (review L1): an escaped comma or slash stays inert.
+  PGHOST: (url) => url.hostname.replace(/^\[|\]$/g, ""),
   PGPORT: (url) => url.port,
   PGDATABASE: (url) => decodeURIComponent(url.pathname.slice(1)),
   PGUSER: (url) => decodeURIComponent(url.username),
@@ -46,6 +52,9 @@ export function connectionEnvironment(databaseUrl, base = process.env) {
     const value = read(url);
     if (value) env[key] = value;
   }
+  // Review L1: a hosted server may never ask for the password in clear text.
+  delete env.PGREQUIREAUTH;
+  if (!isLoopbackDatabaseUrl(url)) Object.assign(env, HOSTED_LIBPQ_ENV);
   return env;
 }
 
