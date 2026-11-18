@@ -319,7 +319,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/Fission-AI/OpenSpec.git",
     source: "Fission-AI/OpenSpec",
     sourceUrl: "https://github.com/Fission-AI/OpenSpec",
-    ref: "v2.0.0",
+    ref: "v2.1.0",
     sourceRoot: "skills",
     skillNames: openspecSkillNames,
     lockSkillPath(skillName) {
@@ -329,7 +329,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/Fission-AI/OpenSpec/tree/v2.0.0/skills/${skillName}`;
+      return `https://github.com/Fission-AI/OpenSpec/tree/v2.1.0/skills/${skillName}`;
     },
     skillExtraCopies: Object.fromEntries(
       openspecSkillNames.map((skillName) => [
@@ -1947,6 +1947,7 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
       " Keep the selected `--store <id>` on every applicable follow-up `status` and `instructions` command.",
       "",
     )
+    .replaceAll(" Keep the selected store on any follow-up command.", "")
     .replace(
       /^   Run `openspec context --json`[^\n]+$/m,
       "   Run `bun run openspec -- context --json` from the Core checkout and confirm `root.path` identifies that checkout containing `openspec/`. Stop before writing on a missing, external, or Store-backed root or any context error; report the error without initializing or selecting another root.",
@@ -1964,21 +1965,13 @@ async function ensureOpenSpecRepositoryScope(skillName, targetRoot) {
       "If the user means the openspec update CLI command, which refreshes generated files, run that command instead.",
       "Requests for the openspec update CLI must use Core's repository-safe refresh workflow; never run the updater against this customized checkout.",
     );
-    content = content
-      .replace(
-        "This workflow revises artifacts that already exist; `/openspec-continue-change` is what creates the ones that do not.",
-        '`/openspec-continue-change` is an optional workflow that Core does not install. Before suggesting it anywhere below, verify that it is available. If unavailable, `bun run openspec -- status --change "<name>" --json` shows the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` supplies its template and instructions. Creating that artifact is a separate authorized step; this Update workflow does not silently advance it.',
-      )
-      .replace(
-        '- If the request changes the change\'s _intent_ rather than refining it, recommend starting fresh with `/openspec-new-change` (the "Update vs. Start Fresh" heuristic).',
-        '- If the request changes the change\'s _intent_ rather than refining it, first verify whether the optional `/openspec-new-change` workflow is available. If it is, recommend starting fresh with it (the "Update vs. Start Fresh" heuristic). Core does not install that workflow; if unavailable, ask for a distinct unused change name and recommend `bun run openspec -- new change "<new-change-name>"` instead.',
-      );
-  }
-  if (skillName === "openspec-apply-change")
+    // 2.1 suggests the raw archive command once work is implemented. Core
+    // archives only merged, accepted work, through its archive workflow.
     content = content.replace(
-      "- If `missingArtifacts` is non-empty: suggest using `/openspec-continue-change` to create them.",
-      '- If `missingArtifacts` is non-empty: verify whether `/openspec-continue-change` is installed before suggesting it. Core does not install it; if unavailable, use `bun run openspec -- status --change "<name>" --json` to identify the next artifact and `bun run openspec -- instructions "<artifact-id>" --change "<name>" --json` for its template and instructions. Creating the missing artifact is a separate authorized step; keep implementation paused.',
+      '- Everything done and implemented -> suggest archiving with `openspec archive "<name>"`.',
+      "- Everything done, implemented, merged and accepted -> suggest the `openspec-archive-change` workflow. Do not suggest archiving unmerged work.",
     );
+  }
   if (/--store|openspec store list|run that command instead/.test(content))
     throw new Error(
       `Unsupported OpenSpec routing in ${skillName}; reconcile Core's local-only workflow before refreshing.`,
@@ -2301,12 +2294,18 @@ function runGit(args, context, { capture = false } = {}) {
   const gitEnv = Object.fromEntries(
     Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
   );
-  const result = spawnSync("git", args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    env: gitEnv,
-    stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
-  });
+  // Check upstream files out with their committed line endings on every host,
+  // so a refresh produces the same bytes and hashes on Windows and Linux.
+  const result = spawnSync(
+    "git",
+    ["-c", "core.autocrlf=false", "-c", "core.eol=lf", ...args],
+    {
+      cwd: repoRoot,
+      encoding: "utf8",
+      env: gitEnv,
+      stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
+    },
+  );
 
   if (result.error) {
     throw result.error;
@@ -2423,16 +2422,20 @@ async function computeVendoredTreeHash(targetRoot) {
 }
 
 async function formatSkillTarget(targetRoot) {
-  const prettierBin = path.join(
-    repoRoot,
-    "node_modules",
-    ".bin",
-    process.platform === "win32" ? "prettier.cmd" : "prettier",
+  // The launcher's presence gates formatting. On Windows its name depends on
+  // the package manager: npm writes `prettier.cmd`, Bun writes `prettier.exe`.
+  const binRoot = path.join(repoRoot, "node_modules", ".bin");
+  const launchers =
+    process.platform === "win32"
+      ? ["prettier.cmd", "prettier.exe"]
+      : ["prettier"];
+  const found = await Promise.all(
+    launchers.map((name) => fileExists(path.join(binRoot, name))),
   );
 
-  if (!(await fileExists(prettierBin))) {
+  if (!found.includes(true)) {
     console.warn(
-      `[warn] prettier not found at ${path.relative(repoRoot, prettierBin)}; copied ${path.relative(repoRoot, targetRoot)} without repo formatting`,
+      `[warn] prettier not found in ${path.relative(repoRoot, binRoot)}; copied ${path.relative(repoRoot, targetRoot)} without repo formatting`,
     );
     return;
   }
