@@ -45,6 +45,17 @@ import type { ReactNode } from "react";
  * Neither ever returns a scope other than the one the document was loaded
  * with.
  *
+ * A scope whose address names no tenant (the donor portal's; Web Studio's,
+ * slice C) has an empty `addressPrefix` and a `segment` given by its provider.
+ * The empty prefix is part of the contract, not an accident: the shared links
+ * built with `useTenantHref` and `TenantLink` (`@asym/auth/tenant-navigation`,
+ * including the auth and public links of `@asym/ui`) add the scope's prefix,
+ * and an empty one adds nothing, so they keep their plain addresses. The
+ * `segment` bounds the scope instead: outside it both functions return
+ * nothing. A provider given an empty prefix and no segment holds a scope
+ * valid on every path of its document, so such a document passes its
+ * segment.
+ *
  * Crossing a segment's boundary is always a document load: into it from
  * outside, out of it, and from one tenant or sub-role to another. The helpers
  * in `@asym/auth/tenant-navigation` load a document for such a navigation;

@@ -188,6 +188,52 @@ describe("PortalDocument", () => {
     expect(reload.reloadDocument).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps shared links plain under a scope with a segment and no address prefix (the scope contract)", async () => {
+    // Council round 2 (the coordinator's note on the joined tree, point 3):
+    // the portal's scope has a segment and an empty address prefix, so links
+    // built with `useTenantHref`, as the shared auth, public and shell links
+    // are, keep their plain addresses; outside the segment both scope
+    // functions return nothing (the case above).
+    window.history.replaceState(null, "", "/donor-dashboard");
+    vi.resetModules();
+    const { PortalDocument } =
+      await import("../../../packages/auth/portal-document");
+    const { useTenantHref } =
+      await import("../../../packages/auth/tenant-navigation");
+    function SharedLinks() {
+      const toHref = useTenantHref();
+      return (
+        <>
+          <a href={toHref("/donor-dashboard/settings")}>settings</a>
+          <a href={toHref("/login?next=/donor-dashboard")}>sign in</a>
+          <a href={toHref("/checkout?amount=50")}>give</a>
+          <a href={toHref("/")}>home</a>
+        </>
+      );
+    }
+    render(
+      <PortalDocument
+        scope={{
+          userId: USER,
+          tenantId: TENANT,
+          assignmentId: ASSIGNMENT,
+          addressPrefix: "",
+        }}
+      >
+        <SharedLinks />
+      </PortalDocument>,
+    );
+
+    for (const [name, href] of [
+      ["settings", "/donor-dashboard/settings"],
+      ["sign in", "/login?next=/donor-dashboard"],
+      ["give", "/checkout?amount=50"],
+      ["home", "/"],
+    ] as const) {
+      expect(screen.getByText(name).getAttribute("href")).toBe(href);
+    }
+  });
+
   it("does not reload while the address is still in the portal", async () => {
     const { view } = await renderPortalAt("/donor-dashboard/history");
 
