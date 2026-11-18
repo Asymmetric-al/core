@@ -1,0 +1,341 @@
+/**
+ * AL-2675 real-stack acceptance (council round 2 on WP2a, R1; plan 5.1, 5.5,
+ * 7.4): the SQL that re-checks an actor the application hands it reads
+ * membership, as the application has since WP2a
+ * (20261118093000_eve_actor_checks_read_membership.sql).
+ *
+ * The application sends the actor role `admin` for a live staff row with the
+ * tenant-administrator flag, whatever the profile says. Each case is called
+ * as the service role, exactly as the application calls the command, with the
+ * actor role the application would send. CI's `migrate` job runs this file
+ * (tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts).
+ *
+ * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL; without it the block
+ * skips, except in the CI `migrate` job, where it fails. Every check runs in
+ * its own transaction, rolled back.
+ */
+import { randomUUID } from "node:crypto";
+
+import pg from "pg";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import { ADMIN_URL, IN_MIGRATE_JOB } from "./harness";
+
+it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
+  "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
+  () => expect(ADMIN_URL).not.toBe(""),
+);
+
+describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
+  const db = new pg.Client({ connectionString: ADMIN_URL });
+  const TA = randomUUID();
+  const TB = randomUUID();
+  /** Profile ids equal login ids: the sign-up trigger creates them that way. */
+  const people = {
+    superAdminFlagged: randomUUID(),
+    staffProfileFlagged: randomUUID(),
+    otherTenantProfileFlagged: randomUUID(),
+    unflagged: randomUUID(),
+    adminOfB: randomUUID(),
+    revoked: randomUUID(),
+    platformOwner: randomUUID(),
+    platformOwnerNoTenant: randomUUID(),
+  };
+  type Person = keyof typeof people;
+  /**
+   * [profile role, profile tenant column, staff row: tenant, flagged, live].
+   * Every login also gets the donor row the sign-up trigger writes in its
+   * profile's tenant, except platformOwnerNoTenant, which holds no row.
+   */
+  const fixture: Record<
+    Person,
+    [string, string | null, [string, boolean, boolean] | null]
+  > = {
+    superAdminFlagged: ["super_admin", TA, [TA, true, true]],
+    staffProfileFlagged: ["staff", TA, [TA, true, true]],
+    otherTenantProfileFlagged: ["admin", TB, [TA, true, true]],
+    unflagged: ["admin", TA, [TA, false, true]],
+    adminOfB: ["admin", TB, [TB, true, true]],
+    revoked: ["admin", TA, [TA, true, false]],
+    platformOwner: ["super_admin", TA, null],
+    platformOwnerNoTenant: ["super_admin", null, null],
+  };
+
+  beforeAll(() => db.connect());
+  afterAll(() => db.end());
+
+  async function tx(fn: () => Promise<void>) {
+    await db.query("begin");
+    try {
+      // Hosted Supabase's default privileges give service_role write access
+      // to public tables; the compat bootstrap mirrors only SELECT.
+      await db.query(
+        "grant update on public.profiles to service_role; grant insert on public.audit_logs to service_role",
+      );
+      await db.query(
+        "insert into public.tenants (id, name, slug) values ($1::uuid, 'r1 A', 'r1-' || $1::text), ($2::uuid, 'r1 B', 'r1-' || $2::text)",
+        [TA, TB],
+      );
+      for (const [key, [role, tenant, staff]] of Object.entries(fixture)) {
+        const id = people[key as Person];
+        await db.query(
+          "insert into auth.users (id, email, raw_app_meta_data) values ($1, $2, jsonb_build_object('tenant_id', $3::text))",
+          [id, `${key}-${id}@example.invalid`, tenant ?? TA],
+        );
+        await db.query(
+          "update public.profiles set role = $2, tenant_id = $3 where id = $1",
+          [id, role, tenant],
+        );
+        if (tenant === null)
+          await db.query("delete from authz.memberships where user_id = $1", [
+            id,
+          ]);
+        if (staff) {
+          const [staffTenant, flagged, live] = staff;
+          await db.query(
+            "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active) values ($1, $2, 'staff', 'development', $3, true)",
+            [id, staffTenant, flagged],
+          );
+          if (!live)
+            await db.query(
+              "update authz.memberships set is_active = false where user_id = $1 and role = 'staff'",
+              [id],
+            );
+        }
+      }
+      await fn();
+    } finally {
+      await db.query("rollback");
+    }
+  }
+
+  /** Runs `sql` as the service role, as the application does; returns the error, if any. */
+  async function asService(sql: string, params: unknown[]) {
+    await db.query("savepoint call");
+    try {
+      await db.query("set local role service_role");
+      await db.query(
+        `select set_config('request.jwt.claims', '{"role":"service_role"}', true),
+                set_config('request.jwt.claim.role', 'service_role', true)`,
+      );
+      await db.query(sql, params);
+      await db.query("reset role");
+      await db.query("release savepoint call");
+      return null;
+    } catch (error) {
+      await db.query("rollback to savepoint call");
+      await db.query("reset role");
+      return (error as { message?: string }).message ?? String(error);
+    }
+  }
+
+  async function emergencyOff(person: Person, tenant: string, role = "admin") {
+    const state = await db.query(
+      "select state_version from public.eve_governance_state where id = 'global'",
+    );
+    return asService(
+      `select public.set_eve_release_safety_control($1::uuid, 'emergency_off', $2::bigint,
+         'incident drill', gen_random_uuid(), $3::text, $4::uuid, $5::text,
+         'authenticated_admin', $3::text)`,
+      [
+        tenant,
+        state.rows[0]!.state_version,
+        people[person],
+        people[person],
+        role,
+      ],
+    );
+  }
+  const emergencyIsOff = async () =>
+    (
+      await db.query(
+        "select emergency_off from public.eve_governance_state where id = 'global'",
+      )
+    ).rows[0]!.emergency_off as boolean;
+
+  const hold = (person: Person, tenant: string, role = "admin") =>
+    asService(
+      `select public.set_eve_retention_hold($1::uuid, $2::uuid, $3::text,
+         'incident', 'category', 'audit_record', 'incident drill')`,
+      [tenant, people[person], role],
+    );
+  const holds = async (person: Person) =>
+    (
+      await db.query(
+        "select count(*)::int as n from public.eve_retention_holds where set_by_profile_id = $1",
+        [people[person]],
+      )
+    ).rows[0]!.n as number;
+
+  describe("emergency off (set_eve_release_safety_control)", () => {
+    it.each([
+      ["a person whose profile role is super_admin", "superAdminFlagged"],
+      ["an administrator whose profile role is staff", "staffProfileFlagged"],
+      [
+        "an administrator whose profile names another tenant",
+        "otherTenantProfileFlagged",
+      ],
+    ] as const)(
+      "is engaged by %s who holds a live flagged staff row",
+      (_who, person) =>
+        tx(async () => {
+          expect(await emergencyIsOff()).toBe(false);
+          expect(await emergencyOff(person, TA)).toBeNull();
+          expect(await emergencyIsOff()).toBe(true);
+        }),
+    );
+
+    it.each([
+      ["a staff row without the flag", "unflagged", TA],
+      ["an administrator of another tenant", "adminOfB", TA],
+      ["a revoked row", "revoked", TA],
+    ] as const)(
+      "is refused to %s, and nothing changes",
+      (_who, person, tenant) =>
+        tx(async () => {
+          expect(await emergencyOff(person, tenant)).toMatch(
+            /eve_launch_profile_tenant_mismatch/,
+          );
+          expect(await emergencyIsOff()).toBe(false);
+        }),
+    );
+
+    it("still judges the super_admin actor role by the profile, until WP2c", () =>
+      tx(async () => {
+        expect(
+          await emergencyOff("platformOwner", TA, "super_admin"),
+        ).toBeNull();
+        expect(await emergencyIsOff()).toBe(true);
+      }));
+  });
+
+  describe("a retention hold (set_eve_retention_hold)", () => {
+    it.each([
+      ["a person whose profile role is super_admin", "superAdminFlagged"],
+      ["an administrator whose profile role is staff", "staffProfileFlagged"],
+      [
+        "an administrator whose profile names another tenant",
+        "otherTenantProfileFlagged",
+      ],
+    ] as const)(
+      "is placed by %s who holds a live flagged staff row",
+      (_who, person) =>
+        tx(async () => {
+          expect(await hold(person, TA)).toBeNull();
+          expect(await holds(person)).toBe(1);
+        }),
+    );
+
+    it.each([
+      ["a staff row without the flag", "unflagged"],
+      ["an administrator of another tenant", "adminOfB"],
+      ["a revoked row", "revoked"],
+    ] as const)("is refused to %s, and nothing changes", (_who, person) =>
+      tx(async () => {
+        expect(await hold(person, TA)).toMatch(
+          /eve_retention_actor_tenant_mismatch/,
+        );
+        expect(await holds(person)).toBe(0);
+      }),
+    );
+
+    it("refuses a call that names no actor role", () =>
+      tx(async () => {
+        expect(
+          await asService(
+            `select public.set_eve_retention_hold($1::uuid, $2::uuid, null,
+               'incident', 'category', 'audit_record', 'incident drill')`,
+            [TA, people.otherTenantProfileFlagged],
+          ),
+        ).toMatch(/eve_retention_actor_tenant_mismatch/);
+      }));
+
+    it("still judges the super_admin actor role by the profile, until WP2c", () =>
+      tx(async () => {
+        expect(await hold("platformOwner", TA, "super_admin")).toBeNull();
+      }));
+  });
+
+  describe("the policy actor and the assistant-memory owner", () => {
+    // Both are executable by their owner only: the commands that reach them
+    // (policy approvals, the budget override, the assistant-memory commands)
+    // are definers owned by postgres. Call them as the owner.
+    async function check(fn: string, person: Person, tenant: string) {
+      await db.query("savepoint own");
+      try {
+        await db.query(`select public.${fn}($1::uuid, $2::uuid)`, [
+          tenant,
+          people[person],
+        ]);
+        await db.query("release savepoint own");
+        return null;
+      } catch (e) {
+        await db.query("rollback to savepoint own");
+        return (e as { message?: string }).message ?? String(e);
+      }
+    }
+
+    it.each([
+      "assert_eve_policy_actor_tenant",
+      "assert_eve_admin_memory_owner",
+    ])(
+      "%s admits a live member whose profile names another tenant, and refuses a revoked row and a stranger",
+      (fn) =>
+        tx(async () => {
+          expect(await check(fn, "otherTenantProfileFlagged", TA)).toBeNull();
+          expect(await check(fn, "unflagged", TA)).toBeNull();
+          expect(await check(fn, "adminOfB", TA)).toMatch(/_mismatch/);
+          await db.query(
+            "update authz.memberships set is_active = false where user_id = $1",
+            [people.revoked],
+          );
+          expect(await check(fn, "revoked", TA)).toMatch(/_mismatch/);
+        }),
+    );
+
+    it("keeps the platform super_admin with no tenant for the policy actor, until WP2c", () =>
+      tx(async () => {
+        expect(
+          await check(
+            "assert_eve_policy_actor_tenant",
+            "platformOwnerNoTenant",
+            TA,
+          ),
+        ).toBeNull();
+        expect(
+          await check(
+            "assert_eve_admin_memory_owner",
+            "platformOwnerNoTenant",
+            TA,
+          ),
+        ).toMatch(/eve_admin_memory_owner_tenant_mismatch/);
+      }));
+  });
+
+  describe("a person's own profile edit (atomic_update_profile_with_audit)", () => {
+    const edit = (person: Person, tenant: string) =>
+      asService(
+        `select public.atomic_update_profile_with_audit($1::uuid, $2::uuid, $1::uuid,
+           '{"first_name": "Edited"}'::jsonb)`,
+        [people[person], tenant],
+      );
+    const firstName = async (person: Person) =>
+      (
+        await db.query("select first_name from public.profiles where id = $1", [
+          people[person],
+        ])
+      ).rows[0]!.first_name as string | null;
+
+    it("edits the profile of a live member whose profile names another tenant", () =>
+      tx(async () => {
+        expect(await edit("otherTenantProfileFlagged", TA)).toBeNull();
+        expect(await firstName("otherTenantProfileFlagged")).toBe("Edited");
+      }));
+
+    it("reports the profile of someone with no live row in the tenant as not found", () =>
+      tx(async () => {
+        expect(await edit("adminOfB", TA)).toMatch(/Profile not found/);
+        expect(await firstName("adminOfB")).not.toBe("Edited");
+      }));
+  });
+});

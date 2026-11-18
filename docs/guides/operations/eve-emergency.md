@@ -17,9 +17,19 @@ Since WP2a (AL-2675) no request carries the `super_admin` role: a person acts
 under a membership row, and a flagged staff row is a tenant administrator.
 The platform owner's controls come back with WP2c's operator list. Until then:
 
-- **A tenant administrator** engages **Emergency off**, places retention holds,
-  and reads the governance state, notification settings and their own
-  tenant's audit history.
+- **A tenant administrator** engages **Emergency off**, places and clears
+  retention holds, and reads the governance state, notification settings and
+  their own tenant's audit history. A tenant administrator is a person with a
+  live staff row carrying the administrator flag in that tenant, whatever
+  their profile's role or tenant column says: the SQL behind these controls
+  checks that row, as the application does (council round 2 on WP2a, R1;
+  `20261118093000_eve_actor_checks_read_membership.sql`). A staff row without
+  the flag, a revoked row, or a row in another tenant is refused.
+- **Notification recipients** are the people with a stored, enabled setting
+  for the tenant who now hold such a row there. Every stored setting was
+  written for a `super_admin` profile, the only kind the recipient trigger
+  admits. Nobody can be added until WP2c: the recipient change is closed, and
+  the trigger still admits only a `super_admin` profile.
 - **Nobody** clears emergency-off, selects **Disable release (no emergency)**,
   changes a kill switch, pauses or re-points a notification channel, changes a
   recipient, grants a launch permission or runs global retention expiry. The
@@ -27,7 +37,7 @@ The platform owner's controls come back with WP2c's operator list. Until then:
 
 So an emergency-off engaged now stays engaged, with release off and the
 `all_automation` and `active_runs` switches on, until WP2c. Every gate is
-listed in section 6, item 2 of
+listed in section 6, item 2, and every SQL check of an actor in section 7 of
 `docs/audits/core-crm-cms-database-proofs/wp2a-membership-decision-table.md`.
 
 ## Immediate response
