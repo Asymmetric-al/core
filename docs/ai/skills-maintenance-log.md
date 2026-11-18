@@ -1058,9 +1058,17 @@ bun run skills:sync
 bun run skills:verify
 ```
 
-For a failed upstream refresh, revert the changed canonical skill directories,
-`skills-lock.json`, `AGENTS.md`, `README.md`, and `docs/AI_AGENT_PLAYBOOK.md`,
-then rerun `bun run skills:sync`.
+For a failed upstream refresh, restore every changed source and its records
+together from the commit before the refresh: canonical skill directories under
+`docs/ai/skills/`, ecosystem skill directories under `.agents/skills/` (never
+the generated `.claude/skills/` or `.cursor/skills/` mirrors),
+`skills-lock.json`, `docs/ai/skill-source-audit.json`, `AGENTS.md`,
+`README.md`, and `docs/AI_AGENT_PLAYBOOK.md`. Only then rerun
+`bun run skills:sync` and `bun run skills:verify`: a sync run before an
+ecosystem source and its audit record are restored republishes the failed copy
+to every mirror. See
+[Recovery and future refresh](#recovery-and-future-refresh) for the
+transactional rule.
 
 ## 2026-10-22 — Payload public-v4 adapters
 
