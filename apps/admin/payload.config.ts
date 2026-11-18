@@ -19,7 +19,7 @@ import { Pages } from "./src/cms/collections/pages";
 import { ProjectPages } from "./src/cms/collections/project-pages";
 import { Tenants } from "./src/cms/collections/tenants";
 import { webStudioCreateFromTemplateEndpoint } from "./src/cms/create-from-template-endpoint";
-import { closeLockedDocumentsApi } from "./src/cms/document-locks";
+import { keepDocumentLocksInOrganization } from "./src/cms/document-locks";
 import {
   assertPayloadDatabaseConfiguration,
   resolvePayloadDatabaseConfig,
@@ -67,6 +67,11 @@ const guardedDatabaseAdapter: typeof postgresDatabaseAdapter = {
   },
 };
 
+// Payload's lock collection, which Payload adds while building, keeps locks
+// inside the selected organization: its default access let any signed-in user
+// lock another organization's document (AL-2675, council C3 and round 2 CR2;
+// src/cms/document-locks.ts). Set on the built configuration, so a development
+// server's hot reload keeps it.
 export default buildConfig({
   admin: {
     theme: "light",
@@ -165,10 +170,6 @@ export default buildConfig({
     MinistryUpdates,
     Media,
   ],
-  // Payload's lock collection admits no API write and shows no lock: its
-  // default access let any signed-in user lock another organization's
-  // document (AL-2675, council C3; src/cms/document-locks.ts).
-  onInit: closeLockedDocumentsApi,
   db: guardedDatabaseAdapter,
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
@@ -200,4 +201,4 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
-});
+}).then(keepDocumentLocksInOrganization);

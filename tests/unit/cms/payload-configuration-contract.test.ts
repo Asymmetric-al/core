@@ -108,22 +108,33 @@ describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
   });
 });
 
-describe("Payload's server functions stay inside the organization (AL-2675, council C3)", () => {
-  it("closes the lock collection on start: no write through the API, and no row shown", async () => {
-    // Payload's lock collection grants every signed-in user create, read,
-    // update and delete (payload/dist/locked-documents/config.js).
-    const locks = { config: { access: {} as Record<string, unknown> } };
-    await config.onInit?.({
-      collections: { "payload-locked-documents": locks },
-    } as never);
-    const { access } = locks.config;
-    for (const operation of ["create", "update", "delete"]) {
-      expect((access[operation] as () => unknown)(), operation).toBe(false);
+describe("Payload's document locks stay inside the organization (AL-2675, council C3 and round 2 CR2)", () => {
+  it("the built configuration admits no lock create, and only the selected organization's locks to read, take over or release", async () => {
+    // Payload builds the lock collection with every signed-in user allowed
+    // every operation (payload/dist/locked-documents/config.js). The access is
+    // set on the configuration Payload is built from, so a development
+    // server's hot reload, which rebuilds the collections from a fresh
+    // configuration without running onInit again, keeps it (CR2, lens 1 I2).
+    const { lockAccessInOrganization, lockHeldByCaller } =
+      await import("../../../apps/admin/src/cms/document-locks");
+    const locks = config.collections.find(
+      (collection) => collection.slug === "payload-locked-documents",
+    );
+    expect(locks).toBeDefined();
+    const access = locks!.access as Record<string, unknown>;
+    expect(
+      await (access.create as (args: unknown) => unknown)({
+        req: { user: { id: 1, collection: "cms-users" } },
+      }),
+    ).toBe(false);
+    for (const operation of ["read", "update", "delete"]) {
+      expect(access[operation], operation).toBe(lockAccessInOrganization);
     }
-    expect((access.read as () => unknown)()).toEqual({ id: { exists: false } });
+    expect(locks!.hooks?.beforeChange).toContain(lockHeldByCaller);
+    expect(config.onInit).toBeUndefined();
   });
 
-  it("dispatches form-state without lock status from the Payload layout", async () => {
+  it("dispatches form-state through Web Studio's lock rule from the Payload layout", async () => {
     const { readFileSync } = await import("node:fs");
     const layout = readFileSync("apps/admin/app/(payload)/layout.tsx", "utf8");
     expect(layout).toContain("serverFunctions: webStudioServerFunctions");

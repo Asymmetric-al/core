@@ -705,6 +705,87 @@ test("@cms Switch organization with unsaved changes asks once, then loads the ch
   }
 });
 
+test("@cms two editors of one organization on a document with no versions: the second meets the lock instead of overwriting, and leaving releases it", async ({
+  page,
+  browser,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const stamp = `wslock-${Date.now()}`;
+  // Navigation keeps no versions: an overwrite there could not be undone.
+  const created = await page.request.post(`${base}/web-studio/api/navigation`, {
+    headers: await writeHeaders(page, base),
+    data: { label: `Lock ${stamp}`, items: [{ label: "Home", href: "/" }] },
+  });
+  expect(created.status()).toBe(201);
+  const id = String((await created.json()).doc.id);
+  const locks = async () =>
+    (
+      (await (
+        await page.request.get(
+          `${base}/web-studio/api/payload-locked-documents?where[document.value][equals]=${id}&where[document.relationTo][equals]=navigation`,
+        )
+      ).json()) as { docs: unknown[] }
+    ).docs.length;
+  const second = await browser.newContext();
+
+  try {
+    // The first editor changes the document; Payload locks it for them.
+    await page.goto(`${base}/web-studio/collections/navigation/${id}`);
+    const label = page.getByRole("textbox", { name: /^Label/ }).first();
+    await expect(label).toHaveValue(`Lock ${stamp}`);
+    await label.fill(`First editor ${stamp}`);
+    await expect.poll(locks).toBe(1);
+
+    // The second editor, in the same organization, meets the lock.
+    const other = await second.newPage();
+    await signInAs(other, "admin", "demoAdmin", base);
+    await other.goto(`${base}/web-studio/collections/navigation/${id}`);
+    await expect(
+      other.getByRole("heading", { name: "Document locked" }),
+    ).toBeVisible();
+    await expect(
+      other.getByRole("button", { name: "Take over" }),
+    ).toBeVisible();
+    // A save from the second editor's page is refused, as Payload refuses it.
+    const save = await other.evaluate(async (doc) => {
+      const response = await fetch(`/web-studio/api/navigation/${doc}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ label: "Second editor" }),
+      });
+      return response.status;
+    }, id);
+    expect(save).toBeGreaterThanOrEqual(400);
+    const stored = await (
+      await page.request.get(`${base}/web-studio/api/navigation/${id}`)
+    ).json();
+    expect(stored.label).toBe(`Lock ${stamp}`);
+
+    // The first editor leaves (Payload asks about the unsaved change); the
+    // edit view releases the lock, and the second editor can open it freely.
+    await page
+      .getByRole("navigation", { name: "breadcrumb" })
+      .getByRole("link", { name: "Navigation" })
+      .click();
+    await page.getByRole("button", { name: "Leave anyway" }).click();
+    await page.waitForURL((url) =>
+      url.pathname.endsWith("/web-studio/collections/navigation"),
+    );
+    await expect.poll(locks).toBe(0);
+    await other.reload();
+    await expect(
+      other.getByRole("textbox", { name: /^Label/ }).first(),
+    ).toHaveValue(`Lock ${stamp}`);
+    await expect(
+      other.getByRole("heading", { name: "Document locked" }),
+    ).toHaveCount(0);
+  } finally {
+    await second.close();
+    await cleanUp(page, "navigation", id);
+  }
+});
+
 test("@cms nothing of Payload's answers under /api, and Mission Control's /api answers as before", async ({
   page,
 }) => {
