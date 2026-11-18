@@ -12,9 +12,14 @@ import { toErrorResponse } from "../shared/http-errors";
 import type { OrgPostVisibility } from "@asym/database/types";
 
 /**
- * The organization's post-visibility setting, read and written in the tenant
- * the request acts under, on the caller's own token. The session client sends
- * that tenant and assignment (plan 5.4; WP2b, AL-2675).
+ * The organization's post-visibility setting, on the caller's own token. Each
+ * call names the resolved tenant (`auth.tenantId`), and the session client
+ * sends that tenant and assignment (plan 5.4; WP2b, AL-2675).
+ *
+ * The database still refuses both calls. `authenticated` holds no privilege on
+ * `public.tenants`, so the read and the write answer 42501, and have done
+ * since 25 June 2026, before WP2b and after it. No page calls this route. It
+ * is owed by WP3 (tenants), which makes it a server command or removes it.
  */
 export async function GET(request: Request) {
   try {
