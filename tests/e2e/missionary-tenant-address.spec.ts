@@ -207,6 +207,42 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
   }
 });
 
+/**
+ * Council round 1, A7: a document loaded outside the tenant segment never
+ * shows a workspace page without its document scope. Both ways in start at
+ * an account screen, whose document rendered the layout's public branch.
+ */
+test("a refused deep link's way home enters the workspace with its one document scope", async ({
+  page,
+}) => {
+  const [row] = fixturePerson("missionary").memberships;
+  await signInAs(page, "missionary", "missionary", baseURL());
+  await page.goto(tenantPath(FOREIGN, "/tasks"));
+  await page.waitForURL(/\/no-access$/);
+
+  await page.getByRole("link", { name: "Go to home" }).click();
+  await page.waitForURL(new RegExp(`/${DEMO}$`));
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+  expect(await documentScope(page)).toEqual({
+    prefix: `/${DEMO}`,
+    assignment: row!.id,
+  });
+});
+
+test("the chooser's way in for a person with one row enters the workspace with its one document scope", async ({
+  page,
+}) => {
+  const [row] = fixturePerson("missionary").memberships;
+  await signInAs(page, "missionary", "missionary", baseURL());
+  await page.goto("/choose-organization");
+  await page.waitForURL(new RegExp(`/${DEMO}$`));
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+  expect(await documentScope(page)).toEqual({
+    prefix: `/${DEMO}`,
+    assignment: row!.id,
+  });
+});
+
 test.describe("production build", () => {
   test.skip(!signsInThroughStub, "Measured on a production build only");
 

@@ -486,7 +486,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
+          "sha256": "b5c5158ef9dde00ff2e7119067aba3c3b68c2b0a9d8fedd857e171650ca36add"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -527,7 +527,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
+          "sha256": "b5c5158ef9dde00ff2e7119067aba3c3b68c2b0a9d8fedd857e171650ca36add"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -547,7 +547,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
+          "sha256": "b5c5158ef9dde00ff2e7119067aba3c3b68c2b0a9d8fedd857e171650ca36add"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -575,7 +575,7 @@
       "proof": [
         {
           "path": "apps/admin/app/layout.tsx",
-          "sha256": "8d6f609fa0844d14ea8273eebabafac4afc5a87d0775afdbbf5ac49a82f37973"
+          "sha256": "b5c5158ef9dde00ff2e7119067aba3c3b68c2b0a9d8fedd857e171650ca36add"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1213,7 +1213,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "2d06abbaefbc9ea6d8ca110a5efed18a42814f9ea2933acc572f1695e539c125"
+          "sha256": "deabbc87737bbcd2fd952d013d696b7795e2e321dd233fc7f277ac841d38cdf2"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1279,7 +1279,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "2d06abbaefbc9ea6d8ca110a5efed18a42814f9ea2933acc572f1695e539c125"
+          "sha256": "deabbc87737bbcd2fd952d013d696b7795e2e321dd233fc7f277ac841d38cdf2"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1565,7 +1565,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "2d06abbaefbc9ea6d8ca110a5efed18a42814f9ea2933acc572f1695e539c125"
+          "sha256": "deabbc87737bbcd2fd952d013d696b7795e2e321dd233fc7f277ac841d38cdf2"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1582,7 +1582,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "2d06abbaefbc9ea6d8ca110a5efed18a42814f9ea2933acc572f1695e539c125"
+          "sha256": "deabbc87737bbcd2fd952d013d696b7795e2e321dd233fc7f277ac841d38cdf2"
         },
         {
           "path": "docs/guides/development/shadscan.md",
@@ -1602,7 +1602,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "2d06abbaefbc9ea6d8ca110a5efed18a42814f9ea2933acc572f1695e539c125"
+          "sha256": "deabbc87737bbcd2fd952d013d696b7795e2e321dd233fc7f277ac841d38cdf2"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1630,7 +1630,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "2d06abbaefbc9ea6d8ca110a5efed18a42814f9ea2933acc572f1695e539c125"
+          "sha256": "deabbc87737bbcd2fd952d013d696b7795e2e321dd233fc7f277ac841d38cdf2"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1796,6 +1796,24 @@
         {
           "path": "packages/auth/package.json",
           "sha256": "1a1336ce4b9aad40b12702ea58063a12ad64b52086475c63b33e5589139a3d60"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "suspense-fallback-useful",
+      "classification": "product-decision",
+      "rationale": "The flagged null fallback surrounds only SegmentCrossingWatcher inside TenantSegmentBoundary, which itself renders nothing: it reads the page address and loads a new document when a client-side navigation crosses the tenant segment (AL-2675, council round 1). The app renders beside that boundary, never beneath its fallback. The boundary exists so the root layouts of Mission Control and the missionary workspace read no request data outside Suspense and every route keeps its prerendered shell; a visible placeholder would show something where the watcher never shows anything. The cited unit suite verifies the watcher's document loads and that the app still renders; no browser verification is claimed.",
+      "verificationTests": ["tests/unit/auth/tenant-navigation.test.tsx"],
+      "evidenceFingerprint": "c42e841d54e48e09e98d0377c8a1c203c53aeadd2ffcb844237beab1b9d7c18e",
+      "proof": [
+        {
+          "path": "packages/auth/tenant-navigation.tsx",
+          "sha256": "3fa599dd88dee2d3c4ae63c07a9ade1590c00040ade87c6c25183aaa1c7e55d7"
+        },
+        {
+          "path": "tests/unit/auth/tenant-navigation.test.tsx",
+          "sha256": "a10cf0eca9201d5a1da496d191319b26b63658278c9e5623bb472cefe59c4ad7"
         }
       ]
     },

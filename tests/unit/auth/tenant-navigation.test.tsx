@@ -17,6 +17,7 @@ const nav = vi.hoisted(() => ({
   back: vi.fn(),
 }));
 const reloadDocument = vi.hoisted(() => vi.fn());
+const loadDocument = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   usePathname: () => nav.pathname,
@@ -33,10 +34,14 @@ vi.mock("next/link", () => ({
   default: ({
     href,
     children,
+    prefetch: _prefetch,
+    replace: _replace,
     ...props
   }: {
     href: string | { pathname?: string; query?: Record<string, string> };
     children: React.ReactNode;
+    prefetch?: boolean | null;
+    replace?: boolean;
   }) => (
     <a
       href={
@@ -52,6 +57,7 @@ vi.mock("next/link", () => ({
 }));
 vi.mock("../../../packages/database/document-reload", () => ({
   reloadDocument,
+  loadDocument,
 }));
 
 const TA = "00000000-0000-0000-0000-000000000001";
@@ -85,6 +91,7 @@ beforeEach(() => {
   nav.replace.mockReset();
   nav.prefetch.mockReset();
   reloadDocument.mockReset();
+  loadDocument.mockReset();
 });
 
 afterEach(() => {
@@ -172,15 +179,17 @@ describe("TenantDocument: the guard", () => {
 
   it("renders nothing instead of throwing when the address leaves the segment of a document that fixed its scope, loaded outside it (council round 1, A6)", async () => {
     const { TenantDocument } = await load();
-    // Signed in through the form: a soft navigation, so the navigation entry
-    // is still /login, outside the tenant segment.
-    loadDocumentAt("/login");
     const view = render(
       <TenantDocument scope={scopeA}>
         <p>page</p>
       </TenantDocument>,
     );
     expect(screen.getByText("page")).toBeTruthy();
+    // The navigation entry names an address outside the segment, as the
+    // reviewer read for a document signed in through the form. (Since the
+    // ruling such a document loads anew before it fixes a scope; the guard
+    // must not throw either way.)
+    loadDocumentAt("/login");
 
     // A hidden (Activity) copy of the signed-in layout renders again with
     // the address of an outside page, such as Web Studio.
@@ -321,5 +330,178 @@ describe("one way to build an address", () => {
     nav.pathname = `/${TA}`;
     render(<Page />);
     expect(screen.getByText("/")).toBeTruthy();
+  });
+});
+
+/**
+ * Council round 1 ruling (A7, A8): each document has one scope, fixed at load,
+ * so every navigation that crosses the boundary of the tenant segment is a
+ * document load: into it from outside, out of it, and from one tenant or
+ * sub-role to another. Inside one tenant's segment navigation stays soft.
+ */
+describe("TenantSegmentBoundary: a crossing is a document load", () => {
+  it.each([
+    ["an account screen", "/no-access"],
+    ["the chooser", "/choose-organization"],
+    ["sign-in", "/login"],
+    ["Web Studio", "/web-studio"],
+  ])(
+    "shows no signed-in page in a document loaded at %s, and loads it as a document",
+    async (_label, loadedAt) => {
+      const { TenantDocument } = await load();
+      loadDocumentAt(loadedAt);
+      nav.pathname = `${scopeA.addressPrefix}/contributions`;
+      render(
+        <TenantDocument scope={scopeA}>
+          <p>page</p>
+        </TenantDocument>,
+      );
+      expect(screen.queryByText("page")).toBeNull();
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+      const { getDocumentScope } =
+        await import("../../../packages/database/document-scope");
+      expect(getDocumentScope()).toBeNull();
+    },
+  );
+
+  async function boundaryLoadedAt(pathname: string) {
+    const mod = await load();
+    nav.pathname = pathname;
+    loadDocumentAt(pathname);
+    const page = () => (
+      <mod.TenantSegmentBoundary>
+        <p>app</p>
+      </mod.TenantSegmentBoundary>
+    );
+    const view = render(page());
+    expect(screen.getByText("app")).toBeTruthy();
+    return {
+      ...mod,
+      moveTo(address: string) {
+        nav.pathname = address;
+        view.rerender(page());
+      },
+    };
+  }
+
+  it.each([
+    ["into the segment from an account screen", "/no-access", `/${TA}`],
+    [
+      "into the segment from the chooser",
+      "/choose-organization",
+      `/${TA}/tasks`,
+    ],
+    ["into the segment from sign-in", "/login", `/${TA}~finance`],
+    ["out of the segment to Web Studio", `/${TA}/contributions`, "/web-studio"],
+    ["out of the segment to an account screen", `/${TA}/tasks`, "/no-access"],
+    ["to another tenant", `/${TA}/tasks`, `/${TB}/tasks`],
+    ["to another sub-role", `/${TA}~finance/care`, `/${TA}~member_care/care`],
+  ])(
+    "loads the new address as a document when a soft navigation goes %s",
+    async (_label, from, to) => {
+      const boundary = await boundaryLoadedAt(from);
+      boundary.moveTo(to);
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each([
+    ["within one tenant's segment", `/${TA}/tasks`, `/${TA}/tasks/t-1`],
+    ["between two outside pages", "/login", "/register"],
+  ])("stays soft %s", async (_label, from, to) => {
+    const boundary = await boundaryLoadedAt(from);
+    boundary.moveTo(to);
+    expect(screen.getByText("app")).toBeTruthy();
+    expect(reloadDocument).not.toHaveBeenCalled();
+  });
+
+  it("makes TenantLink and the tenant router load a document for a crossing, and stay soft inside the segment", async () => {
+    const mod = await boundaryLoadedAt(`${scopeA.addressPrefix}/contributions`);
+    cleanup();
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return (
+        <>
+          <mod.TenantLink href="/web-studio">Web Studio</mod.TenantLink>
+          <mod.TenantLink href={`/${TB}/tasks`}>Other tenant</mod.TenantLink>
+          <mod.TenantLink href="/care/directory">Directory</mod.TenantLink>
+        </>
+      );
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <mod.TenantDocument scope={scopeA}>
+          <Page />
+        </mod.TenantDocument>
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => screen.getByText("Web Studio").click());
+    expect(loadDocument).toHaveBeenLastCalledWith("/web-studio", {
+      replace: false,
+    });
+    act(() => screen.getByText("Other tenant").click());
+    expect(loadDocument).toHaveBeenLastCalledWith(`/${TB}/tasks`, {
+      replace: false,
+    });
+    loadDocument.mockReset();
+    act(() => screen.getByText("Directory").click());
+    expect(loadDocument).not.toHaveBeenCalled();
+
+    act(() => router!.push("/web-studio"));
+    expect(loadDocument).toHaveBeenLastCalledWith("/web-studio", {
+      replace: false,
+    });
+    act(() => router!.replace(`/${TB}`));
+    expect(loadDocument).toHaveBeenLastCalledWith(`/${TB}`, { replace: true });
+    act(() => router!.push("/care"));
+    expect(nav.push).toHaveBeenCalledWith(`${scopeA.addressPrefix}/care`);
+    expect(nav.push).toHaveBeenCalledTimes(1);
+  });
+
+  it("makes a link from an outside page into the segment load a document", async () => {
+    const mod = await boundaryLoadedAt("/no-access");
+    cleanup();
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return (
+        <>
+          <mod.TenantLink href="/">Go to home</mod.TenantLink>
+          <mod.TenantLink href="/login">Sign in</mod.TenantLink>
+        </>
+      );
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <Page />
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => screen.getByText("Go to home").click());
+    expect(loadDocument).toHaveBeenLastCalledWith("/", { replace: false });
+    loadDocument.mockReset();
+    act(() => screen.getByText("Sign in").click());
+    expect(loadDocument).not.toHaveBeenCalled();
+    act(() => router!.replace("/tasks"));
+    expect(loadDocument).toHaveBeenLastCalledWith("/tasks", { replace: true });
+  });
+
+  it("keeps every navigation soft in an app with no tenant segment, such as the donor portal", async () => {
+    const mod = await load();
+    nav.pathname = "/donor-dashboard";
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return (
+        <mod.TenantLink href="/donor-dashboard/history">History</mod.TenantLink>
+      );
+    }
+    render(<Page />);
+    act(() => screen.getByText("History").click());
+    act(() => router!.push("/donor-dashboard/pledges"));
+    expect(loadDocument).not.toHaveBeenCalled();
+    expect(nav.push).toHaveBeenCalledWith("/donor-dashboard/pledges");
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { reloadDocument } from "@asym/database/document-reload";
+import { loadDocument, reloadDocument } from "@asym/database/document-reload";
 import {
   DocumentScopeProvider,
   getDocumentScope,
@@ -9,15 +9,23 @@ import {
 } from "@asym/database/document-scope";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import {
+  createContext,
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react";
 
 import {
+  isOutsideTenantSegment,
   parseTenantAddress,
   stripTenantAddress,
   withTenantAddress,
 } from "./tenant-address";
 
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, MouseEvent, ReactNode } from "react";
 
 /**
  * The tenant document and the one way page code builds an address (plan 5.2;
@@ -33,6 +41,131 @@ import type { ComponentProps, ReactNode } from "react";
  * a tenant document (sign-in, the chooser, the donor portal) they leave every
  * address as it is.
  */
+
+/**
+ * The segment of the address the document was loaded at: a tenant address
+ * prefix, sub-role suffix included, or `null` outside the tenant segment;
+ * `undefined` where the browser cannot say. Read from the navigation timing
+ * entry, which names the address the document was loaded at whatever the
+ * client router did since. Browser only.
+ */
+function loadedSegment(): string | null | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const [entry] = performance.getEntriesByType("navigation");
+    if (!entry) return undefined;
+    return parseTenantAddress(new URL(entry.name).pathname)?.prefix ?? null;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Present only in an app whose signed-in pages live under the tenant address. */
+const SegmentContext = createContext<{
+  documentSegment: string | null | undefined;
+} | null>(null);
+
+/**
+ * Makes every navigation that crosses the boundary of the tenant segment a
+ * document load (council round 1 ruling; plan 5.2: one scope for each
+ * document, fixed at load). Mission Control's and the missionary workspace's
+ * root layouts render it around the whole app.
+ *
+ * Crossing means: into the segment from outside, out of it, and from one
+ * tenant or sub-role to another. Inside one tenant's segment, and between two
+ * pages outside it, navigation stays soft. Three things hold the rule:
+ *
+ * - `TenantLink` and `useTenantRouter` load a crossing's address as a new
+ *   document instead of a client-side transition, so the usual way across
+ *   never renders on the old document.
+ * - `TenantDocument` renders nothing and reloads where the signed-in pages
+ *   would otherwise render in a document loaded outside their segment.
+ * - This boundary's watcher loads a new document after any other
+ *   client-side navigation that lands across the boundary: a redirect the
+ *   browser carries out, the proxy's redirect of a client request, a link
+ *   that bypassed the helpers.
+ *
+ * The watcher reads the address inside a Suspense boundary of its own, so
+ * the root layout reads no request data outside Suspense and every route
+ * keeps its prerendered shell.
+ */
+export function TenantSegmentBoundary({ children }: { children: ReactNode }) {
+  const value = useMemo(() => ({ documentSegment: loadedSegment() }), []);
+  return (
+    <SegmentContext.Provider value={value}>
+      <Suspense fallback={null}>
+        <SegmentCrossingWatcher documentSegment={value.documentSegment} />
+      </Suspense>
+      {children}
+    </SegmentContext.Provider>
+  );
+}
+
+function SegmentCrossingWatcher({
+  documentSegment,
+}: {
+  documentSegment: string | null | undefined;
+}) {
+  const addressSegment =
+    parseTenantAddress(usePathname() ?? "/")?.prefix ?? null;
+  const crossed =
+    documentSegment !== undefined && addressSegment !== documentSegment;
+  useEffect(() => {
+    if (crossed) reloadDocument();
+  }, [crossed]);
+  return null;
+}
+
+/**
+ * Rendered where a document loaded outside the workspace finds itself
+ * showing a workspace page: nothing, and a new document for the address.
+ */
+export function ReloadAcrossSegment() {
+  useEffect(() => {
+    reloadDocument();
+  }, []);
+  return null;
+}
+
+/** The segment of a navigation target, or `undefined` for one the browser handles as it is. */
+function targetSegment(href: string): string | null | undefined {
+  if (!href.startsWith("/") || href.startsWith("//")) return undefined;
+  const pathname = href.split(/[?#]/)[0] || "/";
+  const address = parseTenantAddress(pathname);
+  if (address) return address.prefix;
+  // An unprefixed page address inside the segment: the proxy puts it under
+  // the person's prefix, so it is in a segment other than "outside".
+  return isOutsideTenantSegment(pathname) ? null : "unprefixed";
+}
+
+/**
+ * Whether going to `href` (already prefixed for this document) crosses the
+ * tenant segment's boundary. Never in an app with no tenant segment.
+ */
+function useCrossesSegment(): (href: string) => boolean {
+  const segment = useContext(SegmentContext);
+  return useCallback(
+    (href: string) => {
+      if (!segment || segment.documentSegment === undefined) return false;
+      const target = targetSegment(href);
+      return target !== undefined && target !== segment.documentSegment;
+    },
+    [segment],
+  );
+}
+
+/** A left click with no modifier on a link that opens in this window. */
+function isPlainClick(event: MouseEvent<HTMLAnchorElement>): boolean {
+  const target = event.currentTarget.getAttribute("target");
+  return (
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    (!target || target === "_self")
+  );
+}
 
 export class TenantScopeMismatchError extends Error {
   constructor(addressPrefix: string | null, scopePrefix: string) {
@@ -81,12 +214,18 @@ export function TenantDocument({
   if (mismatch && neverFixedScope() && isAtLoadedAddress(addressPrefix)) {
     throw new TenantScopeMismatchError(addressPrefix, scope.addressPrefix);
   }
+  // A document loaded outside this segment never fixes its scope here: the
+  // person crossed into the segment without a document load, so one is
+  // loaded now (council round 1 ruling, A7, A8).
+  const enteredWithoutLoad =
+    !mismatch && neverFixedScope() && loadedElsewhere(scope.addressPrefix);
+  const reload = mismatch || enteredWithoutLoad;
 
   useEffect(() => {
-    if (mismatch) reloadDocument();
-  }, [mismatch]);
+    if (reload) reloadDocument();
+  }, [reload]);
 
-  if (mismatch) return null;
+  if (reload) return null;
   return (
     <DocumentScopeProvider scope={scope}>
       {/* What the end-to-end suites read; it renders nothing visible. */}
@@ -113,14 +252,15 @@ function neverFixedScope(): boolean {
  */
 function isAtLoadedAddress(addressPrefix: string | null): boolean {
   if (typeof window === "undefined") return true;
-  try {
-    const [entry] = performance.getEntriesByType("navigation");
-    if (!entry) return false;
-    const loaded = parseTenantAddress(new URL(entry.name).pathname);
-    return (loaded?.prefix ?? null) === addressPrefix;
-  } catch {
-    return false;
-  }
+  const loaded = loadedSegment();
+  return loaded !== undefined && loaded === addressPrefix;
+}
+
+/** Whether the browser knows the document was loaded in a segment other than `prefix`. */
+function loadedElsewhere(prefix: string): boolean {
+  if (typeof window === "undefined") return false;
+  const loaded = loadedSegment();
+  return loaded !== undefined && loaded !== prefix;
 }
 
 /** Adds the document's tenant prefix to an internal page address. */
@@ -144,15 +284,58 @@ function prefixLinkHref(
   return { ...href, pathname: toHref(href.pathname) };
 }
 
-/** `next/link` with the document's tenant prefix on internal page addresses. */
+/** The address a link goes to, as a string, when it is a path on this site. */
+function linkTarget(href: LinkHref): string | null {
+  if (typeof href === "string") return href;
+  if (href instanceof URL) return null;
+  if (typeof href.pathname !== "string") return null;
+  const query =
+    href.query && typeof href.query === "object"
+      ? new URLSearchParams(
+          Object.entries(href.query).flatMap(([key, value]) =>
+            value == null
+              ? []
+              : (Array.isArray(value) ? value : [value]).map(
+                  (item) => [key, String(item)] as [string, string],
+                ),
+          ),
+        ).toString()
+      : "";
+  return `${href.pathname}${query ? `?${query}` : ""}${href.hash ?? ""}`;
+}
+
+/**
+ * `next/link` with the document's tenant prefix on internal page addresses.
+ * A link that crosses the tenant segment's boundary loads its address as a
+ * new document instead of a client-side transition, and is not prefetched.
+ */
 export function TenantLink({
   href,
   children,
+  onClick,
+  prefetch,
+  replace,
   ...props
 }: ComponentProps<typeof Link>) {
   const toHref = useTenantHref();
+  const crosses = useCrossesSegment();
+  const prefixed = prefixLinkHref(href, toHref);
+  const target = linkTarget(prefixed);
+  const crossing = target !== null && crosses(target);
   return (
-    <Link href={prefixLinkHref(href, toHref)} {...props}>
+    <Link
+      href={prefixed}
+      prefetch={crossing ? false : prefetch}
+      replace={replace}
+      onClick={(event) => {
+        onClick?.(event);
+        if (crossing && !event.defaultPrevented && isPlainClick(event)) {
+          event.preventDefault();
+          loadDocument(target, { replace: replace === true });
+        }
+      }}
+      {...props}
+    >
       {children}
     </Link>
   );
@@ -160,18 +343,34 @@ export function TenantLink({
 
 type AppRouter = ReturnType<typeof useRouter>;
 
-/** `useRouter` whose `push`, `replace` and `prefetch` carry the prefix. */
+/**
+ * `useRouter` whose `push`, `replace` and `prefetch` carry the prefix. A
+ * target across the tenant segment's boundary is loaded as a new document,
+ * and not prefetched.
+ */
 export function useTenantRouter(): AppRouter {
   const router = useRouter();
   const toHref = useTenantHref();
+  const crosses = useCrossesSegment();
   return useMemo(
     () => ({
       ...router,
-      push: (href, ...options) => router.push(toHref(href), ...options),
-      replace: (href, ...options) => router.replace(toHref(href), ...options),
-      prefetch: (href, ...options) => router.prefetch(toHref(href), ...options),
+      push: (href, ...options) => {
+        const target = toHref(href);
+        if (crosses(target)) loadDocument(target, { replace: false });
+        else router.push(target, ...options);
+      },
+      replace: (href, ...options) => {
+        const target = toHref(href);
+        if (crosses(target)) loadDocument(target, { replace: true });
+        else router.replace(target, ...options);
+      },
+      prefetch: (href, ...options) => {
+        const target = toHref(href);
+        if (!crosses(target)) router.prefetch(target, ...options);
+      },
     }),
-    [router, toHref],
+    [router, toHref, crosses],
   );
 }
 

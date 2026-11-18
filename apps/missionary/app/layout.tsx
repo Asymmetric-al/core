@@ -2,7 +2,11 @@ import "@asym/env";
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { CHOOSER_PATH, stripTenantAddress } from "@asym/auth/tenant-address";
-import { TenantDocument } from "@asym/auth/tenant-navigation";
+import {
+  ReloadAcrossSegment,
+  TenantDocument,
+  TenantSegmentBoundary,
+} from "@asym/auth/tenant-navigation";
 import { readDocumentScope } from "@asym/auth/tenant-server";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
@@ -71,9 +75,13 @@ async function MissionaryWorkspace({
 }) {
   const pathname = (await headers()).get("x-asym-pathname") ?? "/";
   // React renders this element for every route, account screens included,
-  // even where the shell does not show it: do no auth work for those.
+  // even where the shell does not show it: do no auth work for those. The
+  // shell shows it only on a workspace page, so a document loaded at an
+  // account screen that reaches a workspace page without a document load
+  // shows nothing and loads one, whose layout renders this for that page
+  // (council round 1, A7).
   if (isMissionaryRoleGatePublicPath(stripTenantAddress(pathname))) {
-    return <MissionaryWorkspaceChrome>{children}</MissionaryWorkspaceChrome>;
+    return <ReloadAcrossSegment />;
   }
 
   const authContext = await getAuthContext(undefined, {
@@ -164,27 +172,34 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <BoneyardRegistry />
-            <QueryProvider>
-              <MotionProvider>
-                <TooltipProvider delay={0}>
-                  <NuqsAdapter>
-                    <SessionRetainedDraftProvider>
-                      <MissionaryLayoutShell
-                        workspace={
-                          <Suspense fallback={<WorkspaceSkeleton />}>
-                            <MissionaryWorkspace>
-                              {children}
-                            </MissionaryWorkspace>
-                          </Suspense>
-                        }
-                      >
-                        {children}
-                      </MissionaryLayoutShell>
-                    </SessionRetainedDraftProvider>
-                  </NuqsAdapter>
-                </TooltipProvider>
-              </MotionProvider>
-            </QueryProvider>
+            {/* A navigation across the tenant segment's boundary loads a
+                new document (AL-2675). So the `workspace` element below, built
+                when the document loaded, never serves another segment: a
+                document loaded at an account screen took the public branch,
+                and entering the workspace from it renders on the server. */}
+            <TenantSegmentBoundary>
+              <QueryProvider>
+                <MotionProvider>
+                  <TooltipProvider delay={0}>
+                    <NuqsAdapter>
+                      <SessionRetainedDraftProvider>
+                        <MissionaryLayoutShell
+                          workspace={
+                            <Suspense fallback={<WorkspaceSkeleton />}>
+                              <MissionaryWorkspace>
+                                {children}
+                              </MissionaryWorkspace>
+                            </Suspense>
+                          }
+                        >
+                          {children}
+                        </MissionaryLayoutShell>
+                      </SessionRetainedDraftProvider>
+                    </NuqsAdapter>
+                  </TooltipProvider>
+                </MotionProvider>
+              </QueryProvider>
+            </TenantSegmentBoundary>
             <Toaster />
           </ThemeProvider>
         </div>
