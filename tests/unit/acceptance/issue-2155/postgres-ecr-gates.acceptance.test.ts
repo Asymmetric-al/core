@@ -349,6 +349,16 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // two intermediate states of stage 1's integration, which develop never
     // held.
     { ref: "AL-2674 seed counts and program steps", hash: "c0e17f294078fd87" },
+    // Amended by AL-2675 (WP2b slice A, council round 1, A14; record D-18):
+    // the test-e2e job runs the two tenant-address specs, one step after each
+    // app's boneyard smoke (bun run test:e2e:tenant-address:admin and
+    // :missionary), pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
+    // workflow change was allowed for that item only.
+    {
+      ref: "AL-2675 tenant-address specs in test-e2e",
+      hash: "d14393547b0e5925",
+    },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(
