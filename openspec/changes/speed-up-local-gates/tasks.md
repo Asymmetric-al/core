@@ -86,7 +86,7 @@
 - [x] 7.6 Scope the accepted preflight-ordering scenario to the full profile
       with a MODIFIED requirement; correct the format-gate test wording, the
       re-run command in `docs/ci.md` and what each harness shows the agent.
-- [ ] 7.7 Run the fast profile on this Windows host and record per-stage
+- [x] 7.7 Run the fast profile on this Windows host and record per-stage
       timings and machine state.
 
 ## Workflow follow-up
