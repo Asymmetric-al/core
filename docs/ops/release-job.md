@@ -23,7 +23,9 @@ and none is ever cancelled.
    (`scripts/release/schema-fingerprint.mjs`). Before the first migration the
    replay gives `postgres` the default privileges hosted Supabase gives it in
    `public` (`scripts/sql/hosted-default-privileges.sql`, the one copy, which
-   the real-stack privileges harness reads too). Without them every table,
+   both rebuilds put back before their reset, see
+   [What a reset keeps of the default privileges](#what-a-reset-keeps-of-the-default-privileges),
+   and the real-stack privileges harness reads too). Without them every table,
    sequence and function the chain creates has another access list than on
    the hosted target, and step 4 stops every hosted release, as it stopped the
    first hosted run (WP1.6). The Local Supabase Stack workflow proves on every
@@ -134,13 +136,13 @@ has no rollback of its own.
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                         |
-| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                             |
-| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                   |
-| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                      |
+| Operation                        | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                                                                     |
+| `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                                                                         |
+| `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: put the platform's default privileges back, drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                                                               |
+| `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                                                                  |
 
 The marker change and the first rebuild run only after a required reviewer of
 the GitHub environment `release-owner-approval` approves the run's
@@ -299,7 +301,11 @@ the migration ledger. A project with a history keeps the rest:
   `net._http_response`;
 - the cluster's roles, Storage buckets and objects, Edge Functions and their
   secrets, the project's Auth, API and Storage settings, and anything outside
-  Supabase aimed at the project, such as a provider's webhook endpoint.
+  Supabase aimed at the project, such as a provider's webhook endpoint;
+- the default privileges `postgres` holds in `public`. These the rebuild
+  itself puts back before the reset
+  ([below](#what-a-reset-keeps-of-the-default-privileges)); nothing is done
+  by hand.
 
 They are removed by hand, once, after the rebuild and before its gates, each
 object listed before it goes:
@@ -320,6 +326,30 @@ tables with the `pgmq` schema, six `net._http_response` rows, and the Stripe
 test-mode endpoint that called the webhook function, now disabled
 (`docs/audits/core-crm-cms-database-proofs/wp16-hosted-proofs.md`). The census
 found none of these objects in development.
+
+### What a reset keeps of the default privileges
+
+The reset never drops `public`, so it keeps the default privileges `postgres`
+holds there: they belong to a role and a schema, not to any object the reset
+drops. The chain changes them. Stage 1 closes them for `anon` and
+`authenticated` (`20261117034926_close_default_privileges_and_demo_grants`).
+So a rebuild of a project that was already rebuilt used to start from the
+previous chain's end state, not where a fresh project starts. The functions in
+`public` made before that migration, which have no grant of their own, then
+lacked the EXECUTE grants to `anon` and `authenticated` that a fresh project
+gives them. On 18 November 2026 that stopped the recovery of the preview
+project at its gates: 15 such functions, their access lists the only
+difference.
+
+Both rebuilds therefore put the platform's default privileges back before
+the reset, from `scripts/sql/hosted-default-privileges.sql`, the file the
+replay applies before the chain. Every statement in it runs as `postgres`,
+which owns those defaults and owns the database, so it may grant on `public`.
+If that step fails, the rebuild stops and resets nothing. `migrate` never
+resets and never touches default privileges: the chain's own changes to them
+stand. The release real-stack suite proves the rebuild: a database built with
+the chain, then reset the way the CLI resets a hosted one, fingerprints equal
+to a fresh replay.
 
 ### Pull requests that carry a migration
 
