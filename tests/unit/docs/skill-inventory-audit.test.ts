@@ -960,6 +960,30 @@ describe("reviewed installed skill inventory", () => {
     }
   });
 
+  // The audit's `lockHash` is the hash `skills-lock.json` tracks for the skill
+  // (its hashMeaning: "Existing Skills CLI/tracked import hash"), so the two
+  // move together, and a skill with no lock entry records none.
+  it("keeps every audit lockHash equal to the skill's lock computedHash", () => {
+    const { skills } = readLock();
+    const audit = JSON.parse(
+      readRepoFile("docs/ai/skill-source-audit.json"),
+    ) as { skills: Array<{ name: string; lockHash: string | null }> };
+    const disagreements = audit.skills
+      .filter(
+        (skill) =>
+          skill.lockHash !== (skills[skill.name]?.computedHash ?? null),
+      )
+      .map((skill) => skill.name);
+
+    expect(disagreements).toEqual([]);
+    expect(Object.keys(skills).sort()).toEqual(
+      audit.skills
+        .filter((skill) => skill.lockHash !== null)
+        .map((skill) => skill.name)
+        .sort(),
+    );
+  });
+
   it("distinguishes reviewed ReUI bundle identity from removed-source availability evidence", () => {
     const audit = JSON.parse(readRepoFile("docs/ai/skill-source-audit.json"));
     const manifest = JSON.parse(

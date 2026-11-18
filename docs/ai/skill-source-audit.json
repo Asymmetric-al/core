@@ -729,7 +729,7 @@
       "examinedRef": "baae1ad6c9386bad2fc04a95a13530a4497b3ff5",
       "sourcePath": "skills/babysit/SKILL.md",
       "rawSkillHash": "532d534cc1ec6f83e10a4bf6a00ebefddea348e85ed80b88e1703612fdd68de5",
-      "lockHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
+      "lockHash": "d787edc432d7bf2cb6d3b40805b68a9fd62243899c0e356ad8b2cf1f99cf611d",
       "entrypointHash": "d787edc432d7bf2cb6d3b40805b68a9fd62243899c0e356ad8b2cf1f99cf611d",
       "treeHash": "7b032756021a70153db89747d123850d484e329b5b40d479008a595395255668",
       "license": {
@@ -2412,7 +2412,7 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/deslop/SKILL.md",
       "rawSkillHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
-      "lockHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+      "lockHash": "395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457",
       "entrypointHash": "395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457",
       "treeHash": "166383cb60a76556282ac0ce8d887cbc47e83e200b662f5afdf64c9ddae97dc8",
       "license": {
@@ -4708,7 +4708,7 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
       "rawSkillHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "lockHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
+      "lockHash": "3cedc36803d90b2f0977facb9f6e44b490cd106af2f1e12a99324dc09d90a58f",
       "entrypointHash": "3cedc36803d90b2f0977facb9f6e44b490cd106af2f1e12a99324dc09d90a58f",
       "treeHash": "14da7413f067c5428f7e4276f7b08c505e28ba59c8ed56ee3121c97ac92b8963",
       "license": {
@@ -5291,7 +5291,7 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
       "rawSkillHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
-      "lockHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+      "lockHash": "02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320",
       "entrypointHash": "02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320",
       "treeHash": "65bc3e5583cdb85ba63940e04147303fc36e8531c31244a756411b216191a6d9",
       "license": {
@@ -8791,7 +8791,7 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/review-and-ship/SKILL.md",
       "rawSkillHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
-      "lockHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+      "lockHash": "985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8",
       "entrypointHash": "985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8",
       "treeHash": "fab958c2c6f8530a5a4c7b53abf79e2090eddefb210c4ad4159442d7cd6d5d18",
       "license": {
@@ -8916,7 +8916,7 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/run-smoke-tests/SKILL.md",
       "rawSkillHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
-      "lockHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
+      "lockHash": "b515fb0563602965efd04d1a8416df786788bee782b5bf6bb4ae4633fc0971bc",
       "entrypointHash": "b515fb0563602965efd04d1a8416df786788bee782b5bf6bb4ae4633fc0971bc",
       "treeHash": "5b9eb7b609d290f53dee0c70b190a0c35c9a483df1e3413acc4fd334a497a365",
       "license": {

@@ -125,6 +125,21 @@ adaptation to reapply.
   `next-partial-prefetching-adoption`: Cache Components is already on, and its
   unpinned codemods, `npx skills add`, `--force` and `git stash` are ruled out.
 
+### Review fixes
+
+Independent reviews of this pass and of the AL-2713 import listed small
+defects. Each was checked against the files before it was fixed.
+
+- The audit's `lockHash` is the hash `skills-lock.json` tracks ("Existing
+  Skills CLI/tracked import hash"), and that hash may describe an adapted
+  entrypoint. The repairs above moved the lock to the adapted bytes for
+  `babysit`, `deslop`, `loop-on-ci`, `new-branch-and-pr`, `review-and-ship` and
+  `run-smoke-tests`, as `bun run skills:refresh-upstream` writes it and the
+  `babysit` test requires, but left those six audit records at the old value.
+  They now match the lock. The AL-2654 explicit-only change (2026-11-13) took
+  the other path and left the lock alone; the refresh rewrites it either way.
+  An inventory test now fails when any audit `lockHash` differs from the lock.
+
 ## Next.js skill import - 2026-11-18 (AL-2713)
 
 Imported the three official Next.js skills that Core lacked, so all six skills
