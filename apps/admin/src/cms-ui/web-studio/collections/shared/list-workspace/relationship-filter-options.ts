@@ -41,12 +41,17 @@ export function filterableRelationships(
  * (label from the related collection's title field, value its id), through
  * Payload's REST API with the signed-in user's access. A collection that
  * fails to load offers no options rather than failing the list.
+ *
+ * The address is Payload's REST route (`apiURL`, from Payload's
+ * `serverURL` and `routes.api`), not the app's own API, so it is called
+ * with the global `fetch` directly, where the own-API lint rule can read it
+ * (AL-2675). A test passes its own `fetcher`.
  */
 export async function loadRelationshipFilterOptions({
   relationships,
   apiURL,
   titleFieldOf,
-  fetcher = fetch,
+  fetcher,
   signal,
 }: {
   relationships: ReadonlyArray<{ name: string; relationTo: string }>;
@@ -65,10 +70,11 @@ export async function loadRelationshipFilterOptions({
         [`select[${titleField}]`]: "true",
       });
       try {
-        const response = await fetcher(
-          `${apiURL}/${encodeURIComponent(relationTo)}?${params}`,
-          { credentials: "include", signal },
-        );
+        const url = `${apiURL}/${encodeURIComponent(relationTo)}?${params}`;
+        const init: RequestInit = { credentials: "include", signal };
+        const response = await (fetcher
+          ? fetcher(url, init)
+          : fetch(url, init));
         if (!response.ok) return [name, []] as const;
         const body = (await response.json()) as {
           docs?: Array<Record<string, unknown>>;

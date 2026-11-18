@@ -1,12 +1,15 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import tsParser from "@typescript-eslint/parser";
 import { ESLint } from "eslint";
 import { describe, expect, it } from "vitest";
 
-import { ownApiConfig } from "../../../tooling/eslint-config/own-api.mjs";
+import {
+  ownApiConfig,
+  ownApiWorkspaces,
+} from "../../../tooling/eslint-config/own-api.mjs";
 
 /**
  * The own-API lint rule on the tree (plan 12, WP2 exit: "The own-API lint
@@ -19,9 +22,9 @@ const root = process.cwd();
 const RULE = "own-api/no-direct-call";
 
 /**
- * The three product apps and the packages their pages import. The operator
- * Console (`apps/factory-console`) is not a product app: it has no tenant and
- * calls only its own console API on the factory VM.
+ * A file in each linted workspace (`ownApiWorkspaces.linted`), to resolve that
+ * workspace's own lint config. Every other workspace is excluded by name with
+ * its reason in `ownApiWorkspaces.excluded`.
  */
 const PRODUCT_WORKSPACES = [
   { workspace: "apps/admin", file: "apps/admin/lib/admin-access.ts" },
@@ -55,7 +58,7 @@ function trackedSourceFiles(): string[] {
       "--others",
       "--exclude-standard",
       "--",
-      ...PRODUCT_WORKSPACES.map(({ workspace }) => workspace),
+      ...ownApiWorkspaces.linted,
     ],
     { cwd: root, encoding: "utf8" },
   )
@@ -63,7 +66,43 @@ function trackedSourceFiles(): string[] {
     .filter((file) => /\.(?:[cm]?[jt]sx?)$/.test(file));
 }
 
+/** Every workspace under `apps/` and `packages/`: a folder with a package.json. */
+function everyWorkspace(): string[] {
+  return ["apps", "packages"]
+    .flatMap((parent) =>
+      readdirSync(path.join(root, parent), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => `${parent}/${entry.name}`),
+    )
+    .filter((workspace) =>
+      existsSync(path.join(root, workspace, "package.json")),
+    )
+    .sort();
+}
+
 describe("the own-API lint rule in the repository's lint configuration", () => {
+  it("places every apps/* and packages/* workspace: linted, or excluded by name with a reason", () => {
+    const linted = [...ownApiWorkspaces.linted].sort();
+    const excluded = Object.keys(ownApiWorkspaces.excluded).sort();
+
+    expect(linted.filter((workspace) => excluded.includes(workspace))).toEqual(
+      [],
+    );
+    expect([...linted, ...excluded].sort()).toEqual(everyWorkspace());
+    for (const [workspace, reason] of Object.entries(
+      ownApiWorkspaces.excluded,
+    )) {
+      expect(
+        reason.length,
+        `the reason ${workspace} is excluded`,
+      ).toBeGreaterThan(40);
+    }
+    // Each linted workspace is checked below through its own lint config.
+    expect(PRODUCT_WORKSPACES.map(({ workspace }) => workspace).sort()).toEqual(
+      linted,
+    );
+  });
+
   it.each(PRODUCT_WORKSPACES)(
     "refuses a direct call to an own-API path in $workspace",
     async ({ workspace, file }) => {

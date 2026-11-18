@@ -116,13 +116,39 @@ assignment, and keys in browser storage carry the person and the tenant
 
 ESLint enforces the first rule: `own-api/no-direct-call`
 (`tooling/eslint-config/own-api.mjs`) refuses a direct `fetch`, beacon, event
-source, request object, XMLHttpRequest or navigation to an own-API path in
-the three product apps and in `@asym/auth`, `@asym/database`, `@asym/lib`,
-`@asym/missionary` and `@asym/ui`, through each workspace's own lint config,
-so `bun run lint` runs it. It has no exemption: a call that cannot move onto
-the wrapper is a finding to raise, not a rule to switch off. It reads one
-module at a time: it follows an address through that module's own constants
-and calls, but not an address built in another module and passed in.
+source, socket, request object, XMLHttpRequest, axios, ky or ofetch call, or
+navigation to an own-API path. A navigation is a link, a form, media or object
+address, a DOM write of one, `window.open`, a location change, a router push or
+a server redirect. The rule also refuses the global `fetch` used as a value
+(aliased, bound, called through `call`, or handed over as a `fetcher`): the
+global `fetch` is only ever called where its address is written, and
+`ownApiFetch` is what code hands over for the app's own API. It runs in the
+workspaces listed in `ownApiWorkspaces.linted` (the three product apps and
+`@asym/auth`, `@asym/database`, `@asym/lib`, `@asym/missionary` and
+`@asym/ui`), through each workspace's own lint config, so `bun run lint` runs
+it. Every other workspace is excluded by name, with its reason, in
+`ownApiWorkspaces.excluded`. It has no exemption: a call that cannot move onto
+the wrapper is a finding to raise, not a rule to switch off.
+
+Payload's REST routes under Web Studio's `routes.api` are not the app's own
+API, and this rule does not cover them; Web Studio's document fetch hook
+scopes those calls.
+
+The rule reads one module at a time. It follows an address through that
+module's literals, constants, object literals held in a constant, choices,
+concatenation, an origin before the path, `new URL` and the parameters of its
+own functions. It does not see:
+
+- an address built in another module and passed in, or returned by a function
+  of another module;
+- an address read from data at run time, such as a contribution batch's
+  `nextAction.href` from the server's JSON;
+- a `fetch` captured through a local alias of `window` or a parameter, as Web
+  Studio's document fetch hook does;
+- an SWR or TanStack Query key that names a path: a key is not a request, and
+  the fetcher it is given decides how the call is made;
+- HTTP clients other than axios, ky and ofetch, and a router other than
+  Next.js's `useRouter()`.
 
 ## Missionaries reads
 
