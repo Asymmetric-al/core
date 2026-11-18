@@ -29,10 +29,17 @@ be a required check or part of any gate job on `develop`.
   the guards writes no decision
 - **THEN** the job builds donor and runs the guards
 
+#### Scenario: The change-set decision fails
+
+- **WHEN** the step that decides whether a `develop` pull request can affect
+  the guards fails
+- **THEN** the job fails
+
 #### Scenario: Release verification
 
 - **WHEN** a pull request targets `production`, a push reaches `production`,
   or the job is dispatched manually
 - **THEN** the guards run unconditionally and the production E2E gate still
   requires them
-- **AND** whether they run does not depend on the change-set decision
+- **AND** the change-set decision step does not run, so whether the guards
+  run does not depend on it

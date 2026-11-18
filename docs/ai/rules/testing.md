@@ -14,9 +14,13 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Unit-test skill:** Use `docs/ai/skills/vitest/SKILL.md` for Core-specific
   Vitest 5 test placement, filtering, mocking, environments, isolation, and
   measured coverage scope. Use `bun run test:unit` for the full gate; do not use
-  `bun test`, which selects Bun's test runner. `test:unit` leaves
-  `tests/unit/acceptance/` to `bun run test:acceptance` (CI runs it once, in the
-  `acceptance-tests` job) unless an argument names acceptance files.
+  `bun test`, which selects Bun's test runner. Without test filters,
+  `test:unit` leaves `tests/unit/acceptance/` to `bun run test:acceptance` (CI
+  runs it once, in the `acceptance-tests` job). With filters
+  (`bun run test:unit <filter>`) Vitest's own filter matching decides which
+  files run, acceptance files included; options such as `-t` are not filters.
+  CI runs every unit test on every event, split into three `test-unit` shards
+  (`bun run test:unit --shard=<i>/3`).
 - **Unit test env defaults:** `vitest.config.mts` provides `SKIP_ENV_VALIDATION=1` plus placeholder public Supabase values so unit tests can import env-sensitive modules. Tests that validate env schema behavior must override or clear those values intentionally. These defaults do not replace integration or production env validation, and no real secrets belong in test config.
 - **Accessibility:** `@axe-core/playwright`.
 - **Accessibility review:** Use

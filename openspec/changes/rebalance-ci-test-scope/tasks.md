@@ -22,27 +22,24 @@
       `test-unit` plus 134 in `acceptance-tests`; none missing, none extra,
       none run twice.)
 
-## 3. Factory tests by their inputs
+## 3. Unit tests in shards
 
-- [x] 3.1 Red first: tests for the pure selection function (events, base
-      branch, unknown or empty change sets, full-run triggers, group inputs,
-      group test files, skip reasons, glob matching) and for the changed-file
-      reader (invalid SHAs, shallow history, git failure). (The suite failed
-      to load before the module existed.)
-- [x] 3.2 Implement `scripts/verify/ci-test-scope.mjs`.
-- [x] 3.3 Red first: runner tests that a skipped group becomes `--exclude`
-      arguments, that the decision is printed, and that a selection error
-      runs everything. (2 failed before the wiring.)
-- [x] 3.4 Wire the selection into `scripts/verify/unit-tests.mjs` and pass the
-      pull request's base and head SHAs to the `test-unit` step.
-- [x] 3.5 Red first, then green: the narrow-input analysis
-      (`tests/unit/scripts/ci-test-scope-inputs.test.ts`) clears fixture tests
-      that stay inside the inputs and keeps those that import or read outside
-      them. (4 failed against a stub analysis.) The analysis moved from a
-      failing guard into the selection itself; see `design.md` §2.
-- [x] 3.6 Dry-run the selection on real pull requests (documentation only
-      #2691, product only #2700, factory scripts #2666, test setup #2663) and
-      record the result in the workstream report.
+- [x] 3.1 Red first: a develop pull request whose real diff is documents only
+      must pass Vitest no exclusion but the acceptance directory. (The
+      factory-test selection excluded 70 files.) Remove the selection, its
+      analysis, its derived full-run triggers and their tests; rename what
+      remains to `scripts/verify/instant-navigation-scope.mjs`.
+- [x] 3.2 Choose the shard count from per-file times in three develop logs
+      (`design.md` §2): three.
+- [x] 3.3 Red first: workflow tests for the `test-unit` matrix
+      (`fail-fast: false`, the `--shard` run line, a coverage artifact per
+      shard), and a test that the shards, as Vitest assigns them, run the
+      unsharded `test:unit` list exactly once each. (5 failed before the
+      matrix.) Then shard `test-unit` in `ci.yml`.
+- [x] 3.4 List the files each job executes for a push to `develop`, a
+      `merge_group` run and a develop pull request: 1,567 before; 1,433 in
+      `test-unit` (478, 478 and 477 per shard) plus 134 in
+      `acceptance-tests`; none missing, extra or run twice.
 
 ## 4. Required integration path
 
@@ -90,8 +87,9 @@
 - [x] 8.2 Run the changed and affected tests with at most two workers, the
       required-checks guard, and every test that reads the two workflows.
 - [x] 8.3 Lint and format the touched files.
-- [ ] 8.4 After the pull request runs: confirm the `test-unit`, CI
-      Integration and `instant-nav` timings and logs on GitHub.
+- [ ] 8.4 After the pull request runs: confirm the three `test-unit` shard
+      timings, that `ci-gate` reads the matrix result, and the CI Integration
+      and `instant-nav` timings and logs on GitHub.
 
 ## 9. Not in this change (reported for others)
 
@@ -100,10 +98,13 @@
 - [ ] 9.2 Add an acceptance stage to the local preflight (pre-push
       workstream, `scripts/verify/ci-preflight.mjs`), and update its comment
       that `verify:shadcn-config` runs only locally.
-- [ ] 9.3 Add a one-line pointer to this change's supersession (`design.md`
+- [x] 9.3 Add a one-line pointer to this change's supersession (`design.md`
       §7) at the top of `reduce-development-builds/design.md`, as
-      `complete-repository-modernization` did for its own (that change's
-      owner), and archive `reduce-development-builds` first.
+      `complete-repository-modernization` did for its own.
+- [ ] 9.4 Amend the superseded clause itself in
+      `reduce-development-builds/design.md` and its task 1.4, keeping the old
+      wording as dated history (that change's owner).
+- [ ] 9.5 Archive `reduce-development-builds` before this change.
 
 ## 10. Review fixes (review round 6, sections c1 and c2)
 
@@ -112,20 +113,11 @@
       CLI test runs the scope script as the job does with a temporary
       `GITHUB_OUTPUT`. Then make the production guards independent of the
       script and run on `develop` unless the output is exactly `false`.
-- [x] 10.2 Red first: one fixture test per shape the analysis cleared (wrapped
-      URL, root imported from a helper, working-directory read, bare
-      segments, non-relative alias), plus computed imports and child-process
-      paths. Then extend `analyzeGroupTests` and make `design.md` §2 and the
-      spec say exactly what it covers and what it cannot see.
-- [x] 10.3 Red first: a change to `scripts/git/environment.mjs`, which the
-      setup file imports, must run everything. Derive the full-run triggers'
-      import closure on each selection instead of listing it.
 - [x] 10.4 Red first: a non-ASCII donor path through real git, and
-      NUL-separated reader output. Then read the diff with `-z`.
-- [x] 10.5 Make the two runner assertions for "every test runs" able to fail,
-      and show them failing under a fail-open mutation.
+      NUL-separated reader output. Then read the instant-nav diff with `-z`.
 - [x] 10.6 Red first: arguments that merely contain "acceptance" keep the
       exclusion. Then drop it only for a path inside `tests/unit/acceptance`.
+      (Replaced by 11.2.)
 - [x] 10.7 Red first: the debug-prerender rebuild must have its own timeout of
       at most half the build job budget. Then give it `timeout-minutes: 6`.
 - [x] 10.8 Correct the two documents that still describe the serial
@@ -139,3 +131,22 @@
       dev lock first, and a live server holding it fails the start with a
       message naming it and what to do; CI keeps the plain command. Then add
       `tests/e2e/dev-server-lock.mjs`.
+
+## 11. Review round 8 fixes
+
+- [x] 11.1 Red first: a changed file whose name holds a newline matches
+      `apps/donor/**` (c2a.7). Then compile `**` to `[\s\S]*`.
+- [x] 11.2 Red first: what Vitest selects through the runner for each filter
+      form (a fragment, a directory name and a bare file name selected
+      nothing; a path after `--` ran all 134 acceptance files). Then let
+      Vitest's `parseCLI` decide whether the arguments carry filters (c2a.10).
+- [x] 11.3 Red first: the decision step runs only on develop pull requests,
+      and no `instant-nav` step swallows a failure. Then add its `if` and drop
+      the `|| true` (c2b.1, c2b.2).
+- [x] 11.4 Say that the guards depend on the decision step only on develop
+      pull requests, where a failing step fails the job (c2b.1); that
+      `instant-nav` feeds no `develop` required check (c2b.2); and that a test
+      filter, not a named path, lifts the acceptance exclusion (c2b.4).
+      Record the supersession on both sides (c2b.3).
+- [x] 11.5 Run the required-checks guard of `retire-acceptance-byte-pins`
+      against the final workflows, and every test that reads them.

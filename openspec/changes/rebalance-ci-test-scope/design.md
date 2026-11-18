@@ -32,28 +32,41 @@ here must keep green).
 
 ## Goals and non-goals
 
-Goals: every test that runs on the path to `develop` today still runs on that
-path; pull requests stop paying for duplicate and provably unaffected work;
-the required integration path gets shorter without renaming or removing a
-required check; two guards that matter get a CI home.
+Goals: every test that runs on the path to `develop` today still runs on every
+event that reaches it; pull requests stop paying for duplicate work and wait
+less for the unit tests; the required integration path gets shorter without
+renaming or removing a required check; two guards that matter get a CI home.
 
-Non-goals: deleting, skipping or weakening any test; a hand-maintained list of
-test files; changing the local preflight, hooks or acceptance tests; changing
-branch protection.
+Non-goals: deleting, skipping or weakening any test; skipping a unit test
+because of what a pull request changes; a hand-maintained list of test files;
+changing the local preflight, hooks or acceptance tests; changing branch
+protection.
 
 ## Decisions
 
 ### 1. Acceptance runs once, in its own job
 
 `scripts/verify/unit-tests.mjs` appends `--exclude tests/unit/acceptance/**`
-(Vitest's CLI `--exclude` adds to the configured excludes). It does not add
-the exclusion when an argument is a path inside `tests/unit/acceptance`
-(relative, with or without `./`, either slash, or absolute under the
-repository), so `bun run test:unit -- tests/unit/acceptance/<file>` (the
-factory check tool's documented form) still runs the file. Options, test-name
-patterns and other filters that merely contain the word keep the exclusion; a
-first draft dropped it for any argument containing "acceptance" (review round
-6, c1.5).
+(Vitest's CLI `--exclude` adds to the configured excludes) to a run without
+test filters. Whether the arguments carry filters is decided by Vitest's own
+CLI parser (`parseCLI` from `vitest/node`), so `-t acceptance`, `--shard=2/3`
+and anything after `--` are options, not filters, and keep the exclusion. With
+filters the runner adds nothing and Vitest's filter matching decides: every
+form Vitest accepts for a path inside the directory runs those files
+(root-relative or absolute, either slash, `file:line`, a fragment such as
+`issue-2153`, a bare file name), including
+`bun run test:unit -- tests/unit/acceptance/<file>`, the factory check tool's
+documented form. The exclusion only ever removes acceptance files, so dropping
+it for a filter that matches none of them selects exactly the same files.
+
+History: a first draft dropped the exclusion for any argument containing
+"acceptance", so `-t acceptance` ran the whole directory (review round 6,
+c1.5). The fix accepted only a root-relative or absolute path, so a fragment
+or file name selected nothing (review round 8, c2a.10), and it dropped the
+exclusion for a path after `--`, which Vitest does not read as a filter, so
+that run executed all 134 acceptance files. The runner tests now check what
+Vitest actually selects for each form, through
+`tests/unit/scripts/support/vitest-run-files.mjs`.
 
 The `acceptance-tests` job stays: it has no `if` and no secrets, so it runs on
 fork pull requests, and `issue-2153` pins its id and `ci-gate` wiring. Its
@@ -68,144 +81,98 @@ change it no longer runs acceptance tests; adding an acceptance stage there
 belongs to the pre-push workstream (#2710), which owns
 `scripts/verify/ci-preflight.mjs`.
 
-### 2. One scoped group: the factory pack tests
+### 2. Every unit test on every event, in three shards
 
-Selection lives in `scripts/verify/ci-test-scope.mjs`, imported by the unit
-runner. `selectUnitTests({ event, baseRef, changedFiles })` is pure: it
-returns the overall reason and, per group, whether it runs and why. A separate
-impure reader computes the changed files with
-`git diff --no-renames --name-only -z <base>...<head>` and returns `null` on
-any failure, an invalid SHA or a shallow checkout. `-z` keeps every name
-exactly as stored; without it git quotes and escapes non-ASCII and special
-names, which then match no input (review round 6, c1.3). For a skipped group the runner
-excludes, file by file, only the tests the analysis below clears, and prints
-one line per decision. Any exception in selection runs every test.
+`test-unit` runs every file `test:unit` selects (everything Vitest's
+configuration includes except `tests/unit/acceptance/`) on every event,
+whatever a pull request changes. It is a matrix job of three shards: shard
+`i` runs `bun run test:unit --shard=<i>/${{ strategy.job-total }}`, and
+`strategy.job-total` is 3 because the matrix has one dimension, `shard`, with
+the values 1 to 3. Bun passes `--shard=<i>/3` to the runner, and the runner's
+acceptance rule (§1) reads it as an option, not a filter.
 
-Full run (no skips) when: the event is not `pull_request`; the base branch is
-not `develop`; the change set is `null` or empty; or any changed file matches
-a full-run trigger. Full-run triggers: root `package.json`, `bun.lock`,
-`bun.lockb`, `bunfig.toml`, `.bun-version`, `.node-version`, `.nvmrc`,
-`.npmrc`, root `tsconfig*.json`, `tooling/typescript-config/**`, the Vitest
-configuration files and `tests/setup/**`, `tests/mocks/**`, the unit runner,
-the selection module, and `.github/workflows/ci.yml`; and every module those
-files import, transitively. That last set is derived on each selection
-(`derivedFullRunTriggers`), not listed: today it is
-`scripts/git/environment.mjs`, which the setup file `tests/setup/unit-env.ts`
-imports to clear checkout-local `GIT_*` variables before every test (review
-round 6, c1.2). An import the derivation cannot follow (a computed specifier,
-a workspace package, a missing relative file) makes every change a full run;
-comment lines are skipped so prose such as `vi.mock("@asym/...")` in a doc
-comment is not read as an import. The `test-unit` job already checks out full
-history (`fetch-depth: 0`); a shallow checkout would select everything, never
-nothing.
+How Vitest shards (5.0.5, read in `node_modules/vitest`): the pool sorts the
+selected files by the SHA-1 of their root-relative path, written with forward
+slashes on every platform, and gives each shard an equal count
+(`BaseSequencer.shard` and `calculateShardRange`). The split is therefore the
+same locally and on GitHub; today it is 478, 478 and 477 files. `vitest list
+--filesOnly` does not apply `--shard`, so the tests ask Vitest for each shard
+through `getRelevantTestSpecifications` and the configured sequencer's
+`shard`, the calls the pool makes
+(`tests/unit/scripts/support/vitest-run-files.mjs`). Each argument list is
+resolved in its own process, because Vitest 5.0.5 carries a CLI `--exclude`
+into later instances created in the same process.
 
-The factory group is `tests/unit/scripts/archon-*.test.ts` and
-`tests/unit/scripts/factory-*.test.ts` (74 files, 44.8 s of test time, 3.9% of
-unit worker time). Its inputs are the group's own test files,
-`scripts/archon-factory/**`, `scripts/factory/**`,
-`scripts/verify/bun-lock-drift.mjs`, `scripts/verify/ci-build-policy.mjs`,
-`tests/unit/helpers/**`, `tests/unit/scripts/support/**`, `.codex/**`,
-`docs/ai/skills/samson-factory/**`,
-`docs/guides/development/samson-codex-cloud.md` and
-`openspec/changes/add-six-agent-codex-factory/**`.
+`tests/unit/scripts/unit-test-shards.test.ts` reads the shard numbers and the
+run line from `ci.yml` and checks that the shards together run exactly the
+unsharded `test:unit` list, each file once and none of the acceptance
+directory, and that `test:unit` plus the acceptance job run exactly what
+Vitest's configuration includes. A runner that dropped `--shard` fails it.
 
-Narrowness proof, recorded by inspection on 2026-11-18:
+Gate: `ci-gate` needs `test-unit` and passes
+`"unit": "${{ needs.test-unit.result }}"` to `validateCiGate`, which accepts
+only `success`. GitHub reports a matrix job's result as `success` only when
+every shard succeeded. `fail-fast: false` keeps one red shard from cancelling
+the others, so every failure in a run is reported. The job id, `if`, `runs-on`
+and `timeout-minutes` are unchanged; GitHub lists the shards as
+`test-unit (1)` to `test-unit (3)`. None of them is a required check: `develop`
+requires `ci-gate`, `e2e-smoke-gate`, `migrate` and `smoke`, so no required
+check name changes. The required-checks guard of `retire-acceptance-byte-pins`
+passes on the sharded workflow.
 
-- Imports. Every relative import in the 74 test files resolves under
-  `scripts/archon-factory/`, `scripts/factory/`,
-  `scripts/verify/bun-lock-drift.mjs`, `tests/unit/helpers/workflow-yaml.ts`
-  (used only for `parseWorkflowSource` on pack YAML) or
-  `tests/unit/scripts/support/`. No relative import inside
-  `scripts/archon-factory/` or `scripts/factory/` leaves those directories.
-  `tests/unit/helpers/workflow-yaml.ts` imports
-  `scripts/verify/ci-build-policy.mjs` and its sibling helper. No test or
-  module imports a workspace package (`@asym/*`). Bare npm imports change only
-  with the lockfile or manifests, which are full-run triggers.
-- File reads. Seven test files resolve repository paths: five read pack files
-  through `new URL("../../../scripts/archon-factory/...", import.meta.url)`;
-  `factory-hosted-startup` creates a temporary directory under the working
-  directory; `factory-startup-guidance.contract` reads the samson-factory
-  skill, its protocol, `docs/guides/development/samson-codex-cloud.md` and the
-  `add-six-agent-codex-factory` spec. Every other path string in the group is
-  a fixture inside a temporary directory. Factory modules resolve the
-  repository root in three places: `build-pack.mjs` (pack roles, `.codex`
-  agents, the samson-factory skill; no group test imports it) and
-  `scripts/factory/install-native.mjs` and `setup-cloud.mjs` (`.codex/**`, the
-  samson-factory skill and `package.json`, defaults the tests replace with
-  fixture roots). The inputs include all of these defaults anyway.
+Coverage: each shard uploads its own `coverage/` as `unit-test-coverage-<i>`,
+covering only that shard's files. Nothing in CI or the repository reads these
+artifacts, so no merged report is built; Vitest's blob reporter and
+`--merge-reports` are the way to build one if it is ever needed.
 
-The proof is re-checked on every skip, with no list of files to maintain.
-Before excluding anything, `analyzeGroupTests` follows each group test's
-relative imports transitively. In every module of that closure it flags:
+Choosing three shards. Per-file test times come from the `test-unit` logs of
+three develop pushes (runs 44258470352, 44245610411 and 44240784778, whose
+jobs took 795, 1,169 and 1,222 s; the last five develop pushes took 795 to
+1,222 s, median 1,047). The model gives each file its logged test time plus
+an even share of the import, environment and setup time Vitest reports
+(0.48 to 0.74 s per file), assigns files as Vitest does, divides each shard's
+total by the observed parallelism (2.7 workers on the 4-vCPU runner), and adds
+Vitest's start and report time (11 to 19 s), the job's setup (75 to 92 s:
+checkout, canvas packages, Node, Bun, `bun ci`) and its post steps (about
+6 s).
 
-- an import of a workspace package (`@asym/*`), or of a bare specifier that is
-  neither a Node built-in nor present in the root `node_modules` (a `@/` alias,
-  a `#` subpath import, an unresolvable name);
-- a relative import, or a `new URL("…", import.meta.url)` target, outside the
-  inputs, including the Prettier-wrapped form with a trailing comma;
-- a dynamic `import()`, `require()`, `vi.mock()` family call or
-  `new URL(..., import.meta.url)` whose specifier is not a plain literal (it
-  cannot be followed, so the test is treated as reaching outside);
-- a literal first argument to a file-system call (`readFileSync`,
-  `existsSync`, `readdirSync`, `globSync` and similar) or to `path.resolve`
-  that names a repository entry outside the inputs, since those resolve
-  against the working directory, which is the repository root under Vitest;
-  and the same for any literal argument, word by word, of a child-process call
-  (`spawnSync`, `execFileSync` and similar), which also starts there;
-- in a module that reaches the real repository root (`import.meta.dirname`,
-  `__dirname`, `process.cwd()`, `fileURLToPath(import.meta.url)` other than an
-  entry-point check, or a URL that resolves to the root) itself or through any
-  module it imports (a helper that exports `repoRoot`): every string literal
-  below a top-level repository entry, or naming a top-level file, and the
-  joined literal arguments of each `join` or `resolve` call
-  (`path.join(root, "docs", "ci.md")` names `docs/ci.md`), that lie outside
-  the inputs.
+| Shards            | Slowest shard job, three runs | Billed minutes per run |
+| ----------------- | ----------------------------- | ---------------------- |
+| 1 (no acceptance) | 11.7, 17.0, 17.8 min          | 12, 18, 18             |
+| 2                 | 6.7, 9.5, 10.1 min            | 14, 20, 21             |
+| **3 (chosen)**    | **5.0, 7.0, 7.4 min**         | **17, 21, 23**         |
+| 4                 | 4.3, 5.8, 6.2 min             | 18, 24, 25             |
 
-A test with any flag stays in the run, and the log names it and the paths.
-Reading a full-run trigger is allowed, since changing one runs everything. A
-failure inside the analysis runs every test.
+Three shards put the slowest shard job at about 7 minutes on the slower
+runners that set the median, inside the 7-8 minute target, and still above
+`format` (224 to 275 s), the next longest job on develop pushes. Four would
+save about one more minute of wall time for one or two more billed minutes per
+run; two would leave about 10 minutes on the slower runners.
 
-What the analysis cannot see: a path built at run time from variables, string
-concatenation or interpolation; a path read from another file's contents; and
-literal arguments passed through calls nested more than one level deep. The
-first analysis (review round 6, finding c1.1) also missed the wrapped URL, a
-root imported from a helper, working-directory reads, bare segments and
-non-relative aliases; each of those now has a fixture test in
-`tests/unit/scripts/ci-test-scope-inputs.test.ts` that failed before the fix.
+Minutes trade: each shard repeats about 1.3 to 1.5 minutes of setup, and
+GitHub rounds each job up to a whole minute, so billed minutes for
+`test-unit` rise from about 12-18 to about 17-23 per run (3 to 5 more), while
+its wall time falls from about 12-18 minutes to about 5-7.5. The repository is
+public, so hosted minutes cost nothing today; on a private plan this is the
+trade to weigh. Real timings come from the pull-request run.
 
-An earlier draft made this a guard test that failed CI; it
-flagged code paths no factory test executes (diff-classification patterns in
-`ci-build-policy.mjs`), which would have forced either an `apps/**` input or a
-hand list of exceptions. Keeping a flagged test in the run is always safe and
-needs no fix-up. `tests/unit/scripts/ci-test-scope-inputs.test.ts` tests the
-analysis on fixtures and on the real group. For the reads it cannot see, the
-develop-push and merge-group full runs are the backstop.
+Equivalence, from Vitest's own selection on this branch: `test:unit` before
+this change (`vitest run --coverage`) ran 1,567 files. `test:unit` now runs
+1,433 for a push to `develop`, a `merge_group` run and a develop pull request
+alike; `acceptance-tests` runs the other 134; none is missing, extra or run
+twice. The three shards hold 478, 478 and 477 of the 1,433, with no overlap.
 
-On 2026-11-18, after the review fixes, the analysis clears 70 of the 74 files
-(34.0 s of test time) and keeps four: `archon-flow-routes` and
-`archon-ops-record` (they import `tests/unit/helpers/workflow-yaml.ts`, which
-imports `ci-build-policy.mjs`, whose path patterns name `apps`, `turbo.json`
-and others), `factory-hosted-startup` (fixture paths beside a
-`process.cwd()` temporary directory), and `factory-native-install` (fixture
-paths under a temporary home, scanned because it imports
-`scripts/factory/install-native.mjs`, which resolves the repository root).
-The last is a false positive the closure rule accepts: keeping a test costs
-1.9 s, missing one costs a regression found only after merge. The analysis
-takes about 0.6 s.
-
-Measured saving: about 34 s of test time, roughly 25-35 s of wall time, on
-pull requests that do not touch the factory. That is small; it is the honest
-result of the narrow-input rule.
-
-Groups examined and not scoped: design-system tests (12 files, 75 s) read
-`apps/**`, `packages/ui/**` and `tooling/**`; Phase 24 authority tests (5
-files, 64 s) read `docs/adr`, `docs/prds`, `openspec/specs` and
-`openspec/changes`; `supabase-migrations.test.ts` (55 s) reads
-`supabase/migrations`, `docs/security/**`, acceptance harnesses and
-`scripts/**`; skill tests (6 files, 30 s) copy `scripts/**`,
-`docs/ai/skills/**` and `.agents/**`; `e2e-dev-server` reads `.github`.
-None has narrow inputs, so all stay unscoped. The factory-console app tests
-(16 files, 4.4 s) are not worth a group.
+What was withdrawn. The first version of this change skipped the factory-pack
+tests (`tests/unit/scripts/archon-*` and `factory-*`) on develop pull requests
+that touched none of their inputs, after a static analysis of each test's
+imports and repository reads. Review rounds 6 and 8 kept finding shapes it
+missed; in round 8, 22 of 23 constructed shapes that read outside the inputs
+were cleared. The saving was about 36 s of test time in a test step whose
+median is about 971 s. A heuristic that keeps missing shapes is not worth
+that, so the selection, its analysis, its derived full-run triggers and their
+tests were removed (2026-11-18), and sharding cuts far more wall time without
+skipping anything. What remained of `scripts/verify/ci-test-scope.mjs` was
+the instant-nav decision (§7), now `scripts/verify/instant-navigation-scope.mjs`.
 
 ### 3. Required integration path
 
@@ -271,20 +238,28 @@ green build; one extra app build, at most 6 minutes, on a red one.
 
 ### 7. `instant-nav` on develop pull requests
 
-The job's `if` adds same-repository pull requests into `develop`. A first step
-asks the selection module whether the change set can affect the guards; if
-not, every later step is skipped and the log says why. Each later step runs
-unless the event is a pull request into `develop` and the step's output is
-exactly `false`
+The job's `if` adds same-repository pull requests into `develop`. A first
+step, `node scripts/verify/instant-navigation-scope.mjs`, decides whether the
+change set can affect the guards, and runs only for a pull request into
+`develop` (`if: github.event_name == 'pull_request' && github.base_ref == 'develop'`);
+when it clears the change, every later step is skipped and the log says why.
+Each later step runs unless the event is a pull request into `develop` and the
+step's output is exactly `false`
 (`github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'`).
-So the production guards never depend on the script, and on `develop` a
-script that writes nothing (GitHub reads a missing output as `''`) runs them.
-A first draft gated the steps on `run == 'true'`, which would have let a
-broken script skip every production guard while `e2e-gate` saw a successful
-job. A unit test runs the script exactly as the job does, with a temporary
-`GITHUB_OUTPUT`, and the workflow test evaluates every step condition for each
-event and for the outputs `true`, `false` and missing. Inputs: `apps/donor/**`,
-`packages/**`, `tooling/**`, `vendor/**`, `scripts/**` (the donor Next.js
+On production pull requests, production pushes and dispatch the decision step
+is skipped and the guards run, so they never depend on the script. On
+`develop` a script that writes nothing (GitHub reads a missing output as `''`)
+runs them, and a script that fails fails the job, because the later steps
+carry an implicit `success()`. History: a first draft gated the steps on
+`run == 'true'`, which would have let a broken script skip every production
+guard while `e2e-gate` saw a successful job (review round 6, c2.1); the next
+ran the decision step on every event, so a failing script would have failed a
+production job that does not need it (review round 8, c2b.1). A unit test runs
+the script exactly as the job does, with a temporary `GITHUB_OUTPUT`, and the
+workflow test evaluates the decision step and every later step for each event,
+for the outputs `true`, `false` and missing, and for a failed decision step.
+Inputs: `apps/donor/**`, `packages/**`, `tooling/**`, `vendor/**`,
+`scripts/**` (the donor Next.js
 configuration imports several root scripts), `tests/e2e/**`,
 `playwright*.config.ts`, the root manifests and lockfile, `turbo.json`, root
 `tsconfig*.json` and `.github/workflows/ci-integration.yml`. An unknown change
@@ -295,8 +270,11 @@ always run the guards, and `e2e-gate` still needs the job on production.
 The dead `continue-on-error` expression is removed: it is true exactly on
 develop pull requests and pushes, so once the job runs on develop pull
 requests it would turn a guard failure into a green job. The job is not added
-to `e2e-smoke-gate`, `integration-gate` or branch protection. The
-required-checks guard treats it as advisory because no required job needs it.
+to `e2e-smoke-gate`, `integration-gate` or `develop`'s branch protection. The
+required-checks guard treats it as advisory because no `develop`-required job
+needs it. Production's `e2e-gate` does need it, so its steps keep the rule for
+jobs a required check reaches: the `|| true` after printing the donor log, just
+before an unconditional `exit 1`, is gone (review round 8, c2b.2).
 
 `development-build-policy` is introduced by the active change
 `reduce-development-builds` and is not in `openspec/specs`, so OpenSpec cannot
@@ -321,13 +299,13 @@ supersession of a `reduce-development-builds` clause, and
 `docs/ai/document-authority.md`'s rule that an intent conflict follows the
 explicit supersession, not file age.
 
-That precedent also added a one-line pointer at the top of
-`reduce-development-builds/design.md`. This branch does not: the shared
-program rules fence every workstream to its own files (another active
-change's folder is not in this one), and `docs/ai/rules/openspec.md` asks each
-change to keep its own proposal, deltas, design and tasks aligned and to read
-every overlapping active change, which this section does. The pointer is
-listed for that change's owner (review round 6, c2.4). Archive order:
+That precedent also added a pointer at the top of
+`reduce-development-builds/design.md`, and this change adds the same kind of
+one-line pointer there, so the supersession is recorded on both sides (review
+round 8, c2b.3). `docs/ai/document-authority.md` also asks that a superseded
+clause be edited itself; amending that change's design line and its task 1.4
+is left to its owner, because this change edits exactly one line of another
+active change (task 9.4). Archive order:
 `reduce-development-builds` first, because it introduces the capability and
 the requirement this one qualifies; archived the other way round,
 `openspec/specs/development-build-policy` would briefly hold only the
@@ -384,10 +362,20 @@ is gone and the check exits 0.
 
 ## Risks and trade-offs
 
-- A factory test that starts reading outside its inputs through a path built
-  at run time would be skipped on unrelated pull requests until the develop
-  push or merge-group run catches it. Decision 2 lists exactly which forms
-  the analysis recognises.
+- Billed minutes for `test-unit` rise by about 3 to 5 per run (§2), because
+  each shard repeats setup; wall time falls by more than half.
+- Shards hold equal file counts, not equal durations. A slow file lands where
+  its path hash puts it, so one shard can run longer than the others; the
+  model allows for today's slowest file (`supabase-migrations`, 55 to 84 s),
+  and the first runs show the real spread.
+- Each coverage artifact covers one shard. Nothing reads them today; a
+  consumer would need a merged report.
+- The runner imports `parseCLI` from `vitest/node`. A Vitest upgrade that
+  drops or changes it breaks `test:unit` loudly, never silently, and the
+  runner tests check the selection through Vitest itself.
+- The matrix semantics (`needs.test-unit.result`, `fail-fast: false`) and
+  the shard timings are GitHub behaviour this branch cannot run locally; the
+  first pull-request run confirms them.
 - `test-e2e-smoke` runs even when `migrate` fails, spending free runner time
   for the same red gate.
 - `instant-nav` adds about 2.5 runner-minutes to qualifying develop pull

@@ -1,8 +1,9 @@
 ## Purpose
 
 Decide where and how often CI runs each kind of test and verifier, so every
-test that guards `develop` still runs on the path to it while pull requests
-stop paying for duplicate or provably unaffected work.
+test that guards `develop` still runs on every event that reaches it while
+pull requests stop paying for duplicate work and wait less for the unit
+tests.
 
 ## ADDED Requirements
 
@@ -10,8 +11,9 @@ stop paying for duplicate or provably unaffected work.
 
 The acceptance directory SHALL run in the dedicated, fork-safe acceptance job
 and SHALL NOT run again in the unit-test job. The acceptance job SHALL fail
-when no acceptance test executes. A unit-test invocation whose arguments
-explicitly target acceptance files SHALL still run them.
+when no acceptance test executes. A unit-test invocation given test filters
+SHALL run the files the test runner's own filter matching selects, acceptance
+files included, and options SHALL NOT bring the acceptance directory back.
 
 #### Scenario: A pull request runs the unit and acceptance jobs
 
@@ -28,116 +30,51 @@ explicitly target acceptance files SHALL still run them.
 
 #### Scenario: Someone runs an acceptance file through the unit runner
 
-- **WHEN** a person or agent runs the unit-test command with an argument that
-  names an acceptance file or the acceptance directory
-- **THEN** the named acceptance tests run
+- **WHEN** a person or agent runs the unit-test command with a test filter
+  that the test runner matches to acceptance files, such as a path inside the
+  acceptance directory, a fragment of one or a file name
+- **THEN** exactly the acceptance tests the test runner matches run
+
+#### Scenario: An option is not a filter
+
+- **WHEN** the unit-test command is given only options, such as a test-name
+  pattern or a shard, or a path after the option terminator
+- **THEN** no acceptance file runs in that invocation
 
 #### Scenario: The acceptance job collects nothing
 
 - **WHEN** the acceptance job collects no files or executes no test
 - **THEN** the job fails
 
-### Requirement: Pull requests skip only provably unaffected test groups
+### Requirement: Every unit test runs on every event, in shards
 
-On a pull request the unit-test job SHALL skip a scoped group's tests only
-when the change set is known and touches none of the group's inputs, and
-SHALL skip only the tests the narrow-input analysis clears. The job SHALL log
-what it skipped, what it kept and why.
+The unit-test job SHALL run every unit test file outside the acceptance
+directory on every event, whatever a pull request changes. It SHALL split them
+across parallel shards by the test runner's own shard assignment, so that
+together the shards run each of those files exactly once. A failing shard
+SHALL NOT cancel the others, and the CI gate SHALL pass only when every shard
+succeeded. No required status check SHALL be renamed.
 
-#### Scenario: A pull request does not touch the factory
+#### Scenario: A pull request changes only documents
 
-- **WHEN** a same-repository pull request changes only files outside the
-  factory group's inputs and outside the full-run triggers
-- **THEN** the unit-test job skips the factory group's cleared tests and runs
-  every other test
-- **AND** the job log names the skipped group and why it was skipped
+- **WHEN** a same-repository pull request into `develop` changes only
+  documentation
+- **THEN** the unit-test job runs every unit test file outside the acceptance
+  directory, as it does for a push to `develop` or a `merge_group` run
 
-#### Scenario: A pull request touches a group input
+#### Scenario: The shards of one run
 
-- **WHEN** any changed file matches a scoped group's inputs or one of its
-  test files
-- **THEN** that group runs
+- **WHEN** the unit-test job runs its shards for one commit
+- **THEN** each unit test file outside the acceptance directory runs in
+  exactly one shard
+- **AND** no acceptance file runs in any shard
 
-### Requirement: The narrow-input analysis keeps every test it cannot clear
+#### Scenario: One shard fails
 
-The analysis SHALL follow each scoped test's relative imports transitively
-and SHALL keep the test in the run when any module in that closure reaches
-outside the group's inputs in a form the analysis recognises, or loads a
-module or URL it cannot follow. The job log SHALL name each kept test and the
-path or form that kept it.
-
-#### Scenario: A module imports outside the inputs
-
-- **WHEN** a module in a scoped test's closure imports a relative module
-  outside the inputs, a workspace package, or a bare specifier that is
-  neither a Node built-in nor an installed package
-- **THEN** that test runs on every pull request
-
-#### Scenario: A module names a repository path in a call
-
-- **WHEN** a module in the closure names a repository path outside the
-  inputs in a `new URL(..., import.meta.url)` literal, including the wrapped
-  form with a trailing comma, in the literal first argument of a file-system
-  call or `path.resolve`, or in a literal argument of a child-process call
-- **THEN** that test runs on every pull request
-
-#### Scenario: A module that reaches the repository root names a path
-
-- **WHEN** a module in the closure reaches the repository root, itself or
-  through a module it imports, and names a repository path outside the inputs
-  in a string literal or in the joined literal arguments of a `join` or
-  `resolve` call
-- **THEN** that test runs on every pull request
-
-#### Scenario: A module loads through a computed specifier
-
-- **WHEN** a module in the closure imports, mocks or opens a URL through a
-  specifier that is not a plain literal
-- **THEN** that test runs on every pull request
-
-#### Scenario: A test builds a repository path at run time
-
-- **WHEN** a scoped test reads a repository path it builds at run time (from
-  variables, concatenation or interpolation, from another file's contents, or
-  through calls nested more than one level deep) and none of the recognised
-  forms appears
-- **THEN** a pull request into `develop` that changes only that path may skip
-  the test
-- **AND** the next push to `develop` and every `merge_group` run still run it
-
-### Requirement: Test selection fails safe
-
-The unit-test job SHALL run every test whenever the selection cannot be sure
-a skip is safe: on any event other than a pull request, on pushes to
-`develop`, on `merge_group`, when the base or head is missing or invalid, when
-the history is shallow, when the diff fails or is empty, or when a full-run
-trigger changes.
-
-#### Scenario: A push to develop or a merge-group run
-
-- **WHEN** the unit-test job runs for a push to `develop`, a `merge_group`
-  event or a manual dispatch
-- **THEN** every unit test runs
-
-#### Scenario: The change set cannot be computed
-
-- **WHEN** the base or head commit is missing or malformed, the checkout is
-  shallow, or `git diff` fails or returns no files
-- **THEN** every unit test runs and the log says why
-
-#### Scenario: The selection or its environment changes
-
-- **WHEN** a pull request changes the selection logic, the unit-test runner,
-  the Vitest configuration or setup files, the root manifests or lockfile, a
-  TypeScript base configuration, or the CI workflow
-- **THEN** every unit test runs
-
-#### Scenario: A module the setup or configuration imports changes
-
-- **WHEN** a pull request changes a module that one of those files imports,
-  directly or transitively, such as a helper the Vitest setup file loads
-  before every test
-- **THEN** every unit test runs, without that module being listed anywhere
+- **WHEN** one shard fails
+- **THEN** the other shards still run to completion and report their own
+  failures
+- **AND** the CI gate fails
 
 ### Requirement: Required integration checks run in parallel where independent
 
