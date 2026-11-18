@@ -38,10 +38,24 @@
 - [x] 6.7 Workflow filter covers every input; verify `workflow-paths.test.ts` red on the previous filter then green, and the workflow-convention tests pass.
 - [x] 6.8 Reword the workflow header, proposal, spec and design to what the check proves, and correct the inexact seam rows; verify with `bun run openspec -- validate add-api-contract-verification --strict` and `bun run verify:openspec-deltas`.
 
+## 7. Final review fixes (#2708, review 5)
+
+- [x] 7.1 Identity guard proves the tenant claim: its second check needs a row of the caller's tenant in `funds`, `campaigns` or `assets` (only SELECT policy `tenant_id = authz.current_tenant_id()`, checked in `pg_policies`); each fixture tenant gets a fund; verify tenant A's subject with tenant B's claim and with no claim each fail the guard (red against the previous guard, green now), and both callers pass.
+- [x] 7.2 The seed tenant's claim does not resolve (`authz.current_tenant_id()` rejects `00000000-…-0001`): the sweep's callers become two fixture tenants and a live test records the defect two-way; verify the seed user's token fails only the claim check and tenant A is evidenced on the core tables.
+- [x] 7.3 Filter derivation follows relative imports, literal repository paths and shell-named paths from the files the job runs and the project's tests; verify `workflow-paths.test.ts` red with 14 uncovered inputs (the migrate step's helpers, `prepare-apt.sh`, the preflight's SQL files, the census artefacts) and green after the filter names them.
+- [x] 7.4 Checkout fetches full history for the census's `git show`; verify `workflow-checkout.test.ts` red then green.
+- [x] 7.5 Harness ownership by Docker id, per-checkout default state file, `down` limited to the prefix; verify `stack-config.test.ts` red then green and live: a name-only state file, a stale id, an unrecorded network and a resource outside the prefix are each left alone, and `up` replaces its own containers by id.
+- [x] 7.6 Known-defect entries carry a message fragment; verify `select-failures.test.ts` red on a different failure of the excused select, then green, and the live sweep still matches both defects.
+- [x] 7.7 The key reader pages by the declared `max_rows` and stops only on an empty page; verify `isolation-probe.test.ts` red (3 of 7 rows behind a cap of 3) then green, and the live sweep unchanged.
+- [x] 7.8 A tenant fixture that fails part-way removes its rows before rethrowing; verify `fixtures.live.test.ts` red (14 rows left) then green.
+- [x] 7.9 The pure tests move to `tests/unit/api-contract/`; verify a targeted root-config run executes them and no live test, and the project still includes them.
+- [x] 7.10 Reword the spec, design, proposal and workflow header to what the check now proves; verify with `bun run openspec -- validate add-api-contract-verification --strict` and `bun run verify:openspec-deltas`.
+
 ## Workflow follow-up
 
 - Add a `test:api-contract` package script and a `docs/ci.md` entry after workstreams A and B merge (outside this pass's fence).
 - Consider moving the job onto the AL-2673 local Supabase stack once it lands.
 - Add money-path tests (duplicate and out-of-order events, refunds, 1,001-gift history) against the WP8 commands when they exist.
-- Before promotion to a required check: drop the pull-request path filter (or report success on skipped runs) and add a `merge_group` trigger.
+- Before promotion to a required check: drop the pull-request path filter (or report success on skipped runs) and add a `merge_group` trigger. `workflow-paths.test.ts` asserts that the filter covers every derived input and fails when it finds no filter, so adapt it in the same change (keep the derivation; assert the unfiltered trigger instead).
+- Once the seed tenant's claim resolves (the known-defect test in `tenant-isolation.live.test.ts` fails), delete that test and consider sweeping the seed user as a third caller.
 - Archive after merge and an owner decision on promotion.

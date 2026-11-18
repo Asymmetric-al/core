@@ -14,8 +14,12 @@ name: API Contract
 #   line; selects built at run time are listed as not verified;
 # - the real missionary-portal reads run for two tenants;
 # - a read matching more rows than max_rows returns exactly the cap;
-# - every tenant table is probed as a user of each of two tenants and as
-#   anon. What that proves is printed per caller: tables evidenced (readable
+# - every tenant table is probed as a user of each of two tenants written for
+#   the run and as anon, after each user's token is shown to reach the
+#   database with its subject and its tenant claim (the seed's demo tenant id
+#   is not accepted by authz.current_tenant_id(), so its user is not a
+#   caller; a test reports that defect). What that proves is printed per
+#   caller: tables evidenced (readable
 #   and holding rows the caller must not read; donors, donations,
 #   donor_pledges, profiles, missionaries, posts and locations must be), tables
 #   readable but unevidenced, and tables refused for lack of privilege. Plain
@@ -25,8 +29,9 @@ name: API Contract
 # Its own workflow, so no file of ci.yml or ci-integration.yml changes. Not a
 # required check: promoting it needs an unfiltered pull_request trigger and a
 # merge_group trigger, since a filtered required check never reports on the
-# pull requests it skips. It uses no repository secrets: the JWT secret and
-# database passwords are random per run.
+# pull requests it skips (and workflow-paths.test.ts adapted with it). It uses
+# no repository secrets: the JWT secret and database passwords are random per
+# run.
 #
 # Local run: node scripts/api-contract/stack.mjs up && node
 # scripts/api-contract/stack.mjs test; node scripts/api-contract/stack.mjs down

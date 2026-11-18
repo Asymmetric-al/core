@@ -16,19 +16,19 @@ base (`cf634218a`); the most integrated branch, `int/AL-2675-wp2-on-stage1`,
 was read at `34f5bf731` and re-checked at `e5e5b95c0`. Files that exist only on
 those branches are marked in-flight.
 
-| Seam                                                                                                                     | Stable?       | Evidence                                                                                                                                                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Exposed schemas `public, graphql_public`; `max_rows = 1000` (`supabase/config.toml` `[api]`)                             | Stable        | Branch diffs of `config.toml` touch only Auth settings and `[remotes.*]`                                                                                                                                                                                     |
-| Bootstrap + migrations + seed on plain Postgres 17                                                                       | Stable        | Branch bootstrap diff (+8/−1) changes only `auth.uid()` to read `request.jwt.claims`; the in-flight migrations add tables, functions and grants but no column the fixtures write is dropped                                                                  |
-| PostgREST roles `authenticator` → `anon` / `authenticated` / `service_role`; JWT `role`, `sub`, `app_metadata.tenant_id` | Stable        | Bootstrap; `authz.current_tenant_id()` is defined only in `20260226113000` and unchanged on the branches. Application code moves tenant resolution from the claim to memberships (AL-2675 `f57383048`); the minted tokens copy what GoTrue issues either way |
-| `authz.memberships (user_id, tenant_id, role, staff_role, is_active)`                                                    | Stable        | WP2a (in-flight `20261117065007`) adds nullable `granted_by` and `revoked_at`, `is_tenant_admin` defaulting to `false`, a check `is_active = (revoked_at IS NULL)` and a lifecycle trigger; the fixture's active rows with no `revoked_at` satisfy both      |
-| Missionary-portal service reads that take a client parameter                                                             | Stable        | Branch diff of `missionary-portal/service.ts` is three lines (+2/−1): it drops the profile read's tenant filter (AL-2675, NR-68); the missionaries-row lookup keeps the tenant scope the portal test asserts                                                 |
-| Select strings in `packages/api/src`                                                                                     | Self-updating | Read from source on every run                                                                                                                                                                                                                                |
-| Invariant: no cross-tenant or anonymous tenant reads                                                                     | Stable        | `supabase/AGENTS.md`, `docs/security/tenant-read-floor.md`                                                                                                                                                                                                   |
-| `packages/auth`, `withOperation` handlers, principal resolver                                                            | Unstable      | `context.ts` +405/−110 and `middleware.ts` +333/−18; the principal moves into `packages/auth/principal/`                                                                                                                                                     |
-| Individual policies, per-role positive visibility, `anon`/`authenticated` grants                                         | Unstable      | In-flight AL-2674 `20261117034926_close_default_privileges_and_demo_grants.sql` (not on `develop`): "Policies are not changed; WP2 rewrites them", and it revokes every `anon`/`authenticated` grant no policy admits                                        |
-| Membership RPCs (`current_user_assignments`, `current_user_memberships`)                                                 | Unstable      | In-flight `20261117065007` drops and recreates both with an `is_tenant_admin` column                                                                                                                                                                         |
-| Money path (webhook claim, saga, refunds, pledges, staged gifts)                                                         | Replaced      | AL-2671 plan WP8 "Money kernel" (WP8a, WP8c) removes the legacy writers                                                                                                                                                                                      |
+| Seam                                                                                                                     | Stable?       | Evidence                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exposed schemas `public, graphql_public`; `max_rows = 1000` (`supabase/config.toml` `[api]`)                             | Stable        | Branch diffs of `config.toml` touch only Auth settings and `[remotes.*]`                                                                                                                                                                                                                                                                                                                                  |
+| Bootstrap + migrations + seed on plain Postgres 17                                                                       | Stable        | Branch bootstrap diff (+8/−1) changes only `auth.uid()` to read `request.jwt.claims`; the in-flight migrations add tables, functions and grants but no column the fixtures write is dropped                                                                                                                                                                                                               |
+| PostgREST roles `authenticator` → `anon` / `authenticated` / `service_role`; JWT `role`, `sub`, `app_metadata.tenant_id` | Stable        | Bootstrap; `authz.current_tenant_id()` is defined only in `20260226113000` and unchanged on the branches. It accepts only a version 1-5 UUID, so the seed tenant's `00000000-…-0001` claim resolves to NULL (a defect the branches keep; `84561e8ad`). Application code moves tenant resolution from the claim to memberships (AL-2675 `f57383048`); the minted tokens copy what GoTrue issues either way |
+| `authz.memberships (user_id, tenant_id, role, staff_role, is_active)`                                                    | Stable        | WP2a (in-flight `20261117065007`) adds nullable `granted_by` and `revoked_at`, `is_tenant_admin` defaulting to `false`, a check `is_active = (revoked_at IS NULL)` and a lifecycle trigger; the fixture's active rows with no `revoked_at` satisfy both                                                                                                                                                   |
+| Missionary-portal service reads that take a client parameter                                                             | Stable        | Branch diff of `missionary-portal/service.ts` is three lines (+2/−1): it drops the profile read's tenant filter (AL-2675, NR-68); the missionaries-row lookup keeps the tenant scope the portal test asserts                                                                                                                                                                                              |
+| Select strings in `packages/api/src`                                                                                     | Self-updating | Read from source on every run                                                                                                                                                                                                                                                                                                                                                                             |
+| Invariant: no cross-tenant or anonymous tenant reads                                                                     | Stable        | `supabase/AGENTS.md`, `docs/security/tenant-read-floor.md`                                                                                                                                                                                                                                                                                                                                                |
+| `packages/auth`, `withOperation` handlers, principal resolver                                                            | Unstable      | `context.ts` +405/−110 and `middleware.ts` +333/−18; the principal moves into `packages/auth/principal/`                                                                                                                                                                                                                                                                                                  |
+| Individual policies, per-role positive visibility, `anon`/`authenticated` grants                                         | Unstable      | In-flight AL-2674 `20261117034926_close_default_privileges_and_demo_grants.sql` (not on `develop`): "Policies are not changed; WP2 rewrites them", and it revokes every `anon`/`authenticated` grant no policy admits                                                                                                                                                                                     |
+| Membership RPCs (`current_user_assignments`, `current_user_memberships`)                                                 | Unstable      | In-flight `20261117065007` drops and recreates both with an `is_tenant_admin` column                                                                                                                                                                                                                                                                                                                      |
+| Money path (webhook claim, saga, refunds, pledges, staged gifts)                                                         | Replaced      | AL-2671 plan WP8 "Money kernel" (WP8a, WP8c) removes the legacy writers                                                                                                                                                                                                                                                                                                                                   |
 
 ## Goals / Non-Goals
 
@@ -75,12 +75,24 @@ those branches are marked in-flight.
    per-run secret; claims copy what GoTrue issues for that row (`sub`, `role`,
    `aud`, `email`, `app_metadata`, `user_metadata`). No secret is stored or
    printed.
-5. **Fixtures: the seed's demo tenant is tenant A; the tests add tenant B.**
-   Tenant B gets an auth user, profile, staff/donor/missionary memberships, a
-   missionary, a donor and a task, plus the rows that give tenant A something
-   to leak: a gift, a pledge, and a draft post and draft location that no
-   ruling makes public. All with random ids, written as `postgres` through
-   only the columns that exist, and deleted afterwards.
+5. **Fixtures: tenants written per run; the seed's demo tenant is data.**
+   `createTenantFixture` writes a tenant with an auth user, profile,
+   staff/donor/missionary memberships, a missionary, a donor and a task, plus
+   rows another tenant must not read (a gift, a pledge, a draft post and a
+   draft location that no ruling makes public) and a fund, a row only its own
+   tenant claim admits. Ids come from `randomUUID()` (version 4), written as
+   `postgres` through only the columns that exist, and deleted afterwards; a
+   fixture that fails part-way deletes what it wrote before rethrowing.
+   - The isolation sweep's signed-in callers are two such tenants, A and B.
+     The seed's demo user is not a caller: its tenant id
+     `00000000-0000-0000-0000-000000000001` is not a version 1-5 UUID, so
+     `authz.current_tenant_id()` returns NULL for its claim and every policy
+     keyed on the claim admits none of its rows. As a caller it would make the
+     sweep vacuous on those tables (the identity guard found this). A live
+     test records the defect and fails once the claim resolves; the seed's
+     rows stay in the database as rows neither caller may read.
+   - The portal and row-cap tests use the service role, so the claim does not
+     matter there; the portal tests read the seed tenant as tenant A.
 6. **Select inventory by TypeScript AST.** Resolves string literals, template
    literals and same-file `const` strings (also through `${CONST}`
    substitution), and the table from the nearest `.from("...")` in the call
@@ -104,40 +116,77 @@ those branches are marked in-flight.
      (`missionaries` grants `authenticated` `id, profile_id`), the sweep reads
      a readable single-column primary key and resolves each row's tenant
      through the admin connection; a column grant without one fails the run.
+   - Keys are read page by page with the `max_rows` that
+     `supabase/config.toml` declares as the page size. Each page starts after
+     the rows received and only an empty page ends the read, so a served cap
+     lower than the page size cannot end it early (`readAllPages`).
    - A table is evidenced for a caller when the caller could query it and the
      database holds rows that caller must not read. Donors, donations,
      donor_pledges, profiles, missionaries, posts and locations must be
      evidenced for both tenants, and posts and locations for `anon`. Each run
      prints the evidenced, readable-but-unevidenced and refused tables by name.
    - Identity guard: each signed-in caller must read its own `profiles` row by
-     id and some row of its own tenant outside the ruled public reads. A token
-     for an unknown subject carrying tenant A's claims must fail that guard.
+     id, which proves its subject (the profile policies key on `auth.uid()`),
+     and a row of its own tenant in `funds`, `campaigns` or `assets`, whose
+     only SELECT policy for `authenticated` is `tenant_id =
+authz.current_tenant_id()`, which proves its `app_metadata.tenant_id`
+     reached the database and resolved to that tenant. Tokens with tenant A's
+     claims and an unknown subject, with tenant A's subject and tenant B's
+     claim, and with tenant A's subject and no claim must each fail it.
 8. **Known defects are explicit, specific and two-way.** A select that fails
    today because of a product defect the check found is listed in
-   `known-defects.ts` with its file, table, PostgREST code and `match`, text
-   specific to that select (the broken embed) that must occur in the select
-   string or PostgREST's message. Any other failure fails the run, as do an
-   entry matching more than one failing select and an entry that stops
-   failing, so the fixing change deletes its entry. Alternative: leave the job
-   red until the defects are fixed; rejected because a permanently red
-   advisory job hides new regressions.
+   `known-defects.ts` with its file, table, PostgREST code, `message` (a
+   stable fragment of PostgREST's message for that defect, which the failure
+   must contain) and `match`, text specific to that select (the broken embed)
+   that must occur in the select string or PostgREST's message. Any other
+   failure fails the run, a different failure of an excused select included,
+   as do an entry matching more than one failing select and an entry that
+   stops failing, so the fixing change deletes its entry. Alternative: leave
+   the job red until the defects are fixed; rejected because a permanently
+   red advisory job hides new regressions.
 9. **Separate workflow, advisory.** `.github/workflows/api-contract.yml`, hosted
    runner, `contents: read`, actions pinned by SHA, no secrets, not in
-   `ci-gate`. Pull requests run it when anything that can change the result
-   changes: `packages/**` (the reads import most workspace packages), the
-   schema chain, the harness and installer scripts, the Vitest configuration
-   chain and the dependency manifests; `workflow-paths.test.ts` derives those
-   inputs from the repository and fails when the filter misses one. Every
-   `develop` push runs it as a backstop. It does not edit `ci-integration.yml`,
-   so no fingerprint changes.
+   `ci-gate`. It checks out full history, as the `migrate` job does, because
+   the migrate step's field-policy census reads a pinned base commit with
+   `git show` (`workflow-checkout.test.ts`).
+   - The pull-request filter lists the inputs `workflow-paths.test.ts`
+     derives: the files the workflow names and the project's test files, then
+     transitively their relative imports, the repository paths their code
+     names in string literals or literal `path.join` segments (spawned
+     scripts, read files; a named directory stands for its files) and the
+     paths shell scripts name; the Vitest configuration chain; and the
+     workspace packages `packages/api` depends on. `packages/**` is covered
+     whole and not followed file by file. The test fails when the filter
+     misses a derived input. Paths built at run time (the census reads
+     `source_path` values from its JSON artefacts, today migrations under the
+     covered `supabase/migrations/**`) are not derived.
+   - The filter names each derived script and data file by path, and
+     `docs/security/field-policies/**` for the directory the census names.
+   - Every `develop` push runs it unfiltered as a backstop. It does not edit
+     `ci-integration.yml`, so no fingerprint changes.
+   - The tests that need no stack (`stack-config`, `select-failures`,
+     `isolation-probe`, `workflow-paths`, `workflow-checkout`) live in
+     `tests/unit/api-contract/`, which the root Vitest include selects, so the
+     required unit run enforces them; the API contract project includes that
+     directory too. `select-inventory` and `tokens` tests stay in
+     `tests/integration/api-contract/` and run only in this job.
 10. **The harness touches only what it started.** `DATABASE_URL` must be a
     Postgres URL on a loopback host with no `host`, `hostaddr` or `service`
-    parameter (node-postgres and libpq honour those over the hostname).
-    `up` and `prepare` remove a container or network only when the run's state
-    file records it, refuse a same-named one they did not start, and record a
-    name before starting anything under it. On the host network PostgREST
-    binds to `127.0.0.1`; in a container network only the loopback port is
-    published.
+    parameter (node-postgres and libpq honour those over the hostname). On
+    the host network PostgREST binds to `127.0.0.1`; in a container network
+    only the loopback port is published.
+    - The state file records each container and network as `{ name, id }`,
+      the id `docker run` or `docker network create` returned. `up` and
+      `prepare` replace (or reuse, for the network) only a resource whose name
+      still resolves to its recorded id, removing it by that id, and refuse
+      any other of the same name. Bare-name entries from older state files
+      carry no id and are never trusted.
+    - `down` removes, by id, only recorded resources under the configured
+      prefix that still hold their recorded id, and reports each one it
+      leaves and why.
+    - The default state file is named after the prefix and a hash of the
+      checkout's path, so two worktrees on the default prefix never share
+      one.
 
 ## Risks / Trade-offs
 
@@ -168,6 +217,21 @@ those branches are marked in-flight.
 - [Runner cost] → One job, about the `migrate` job's build plus under a minute
   of tests; the widened filter runs it on most pull requests that touch
   packages. It does not block merges.
+- [The sweep reads as fixture users, not as the demo user] → The fixture
+  tenants carry the same staff, donor and missionary memberships as the demo
+  user, and the seed's rows remain as rows they must not read, so tenant A is
+  now evidenced on 18 tables (7 as the demo user). What is lost is a read as
+  the demo user on tables not keyed on the claim; it returns once the seed
+  tenant's claim resolves, which the known-defect test reports.
+- [`CLAIM_GATED_READS` restates three policies] → If WP2 lets a token read
+  `funds`, `campaigns` or `assets` without the claim, the identity guard's
+  negative tests fail by name; the fix is to choose tables still gated by the
+  claim, never to drop the tests.
+- [The filter derivation reads source text] → It follows imports, literal
+  paths and literal `path.join` segments with the TypeScript parser; a path
+  assembled from variables is missed, and a literal that names a repository
+  file it does not read widens the filter. Both are visible in the test's
+  printed input list.
 
 ## Migration Plan
 
@@ -176,7 +240,8 @@ references them. Promotion to a required check is a separate owner decision,
 and needs the trigger changed first: a required check must report on every
 pull request, so the `pull_request` path filter goes (or a skipped run must
 report success), and a `merge_group` trigger is added so the merge queue can
-run it.
+run it. `workflow-paths.test.ts` asserts that the filter covers every derived
+input and fails when it reads no filter, so it is adapted in the same change.
 
 ## Open Questions
 
