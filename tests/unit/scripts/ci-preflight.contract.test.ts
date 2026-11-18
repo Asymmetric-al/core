@@ -13,7 +13,12 @@ import {
   rerunCommand,
   selectStages,
   stagePassLine,
+  touchesInputs,
 } from "../../../scripts/verify/ci-preflight.mjs";
+import {
+  SHADCN_REVIEW_BASELINE,
+  shadcnDiffInputs,
+} from "../../../scripts/verify/shadcn-diff.mjs";
 
 const PREFLIGHT_PATH = "scripts/verify/ci-preflight.mjs";
 
@@ -52,9 +57,10 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
 ];
 
 // The fast profile keeps the full profile's order. It leaves out the stages
-// that need the network or took more than a few seconds when timed alone on
-// the loaded Windows host (skills:verify 183 s, verify:eslint 54 s), and the
-// unit, acceptance and build stages that required CI runs on every PR.
+// that took more than a few seconds when timed alone on the loaded Windows
+// host (skills:verify 183 s, verify:eslint 54 s), and the unit, acceptance and
+// build stages that required CI runs on every PR. verify:shadcn-diff, which
+// no CI job runs, stays and runs only when the push changes its inputs.
 const FAST_STAGE_IDS = [
   "runtime",
   "format",
@@ -69,7 +75,96 @@ const FAST_STAGE_IDS = [
   "verify-workspace-contract",
   "verify-bun-lock-drift",
   "verify-shadcn-config",
+  "verify-shadcn-diff",
   "typecheck",
+];
+
+// Fast stages that run only when the push changes one of their inputs. Each
+// one except verify-shadcn-diff also runs in a required CI job on every pull
+// request.
+const SCOPED_STAGE_IDS = [
+  "verify-phase25-spec",
+  "verify-phase27-spec",
+  "verify-phase28-spec",
+  "openspec-validate",
+  "verify-openspec-deltas",
+  "verify-data-boundary",
+  "verify-cms-public-sole-entry",
+  "verify-workspace-contract",
+  "verify-shadcn-diff",
+];
+
+// One path each stage reads, from a trace of every file it opened.
+const STAGE_INPUT_SAMPLES: Record<string, string[]> = {
+  "verify-phase25-spec": [
+    "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/traceability.json",
+    "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md",
+    "openspec/changes/add-donor-dashboard-depth/specs/donor-dashboard-depth/spec.md",
+  ],
+  "verify-phase27-spec": [
+    "docs/prds/sitestacker-parity/phase-27-donor-development/stories.json",
+    "docs/prds/sitestacker-parity/phase-27-donor-development.md",
+    "openspec/changes/add-donor-development/specs/donor-development/spec.md",
+    "openspec/contracts/summaries.json",
+    "docs/features/donor-development/grill/phase27-grill-log.md",
+    "scripts/lib/openspec-contracts.mjs",
+  ],
+  "verify-phase28-spec": [
+    "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth/traceability.json",
+    "docs/prds/sitestacker-parity/phase-28-missionary-workspace-depth.md",
+    "openspec/changes/add-missionary-workspace-depth/tasks.md",
+    "docs/features/missionary-workspace-depth/grill/d1-evidence/current-runtime.md",
+    "scripts/git/environment.mjs",
+  ],
+  "openspec-validate": [
+    "openspec/specs/agent-instruction-system/spec.md",
+    "openspec/config.yaml",
+  ],
+  "verify-openspec-deltas": [
+    "openspec/changes/speed-up-local-gates/proposal.md",
+    "docs/adr/0185-tenant-owned-donor-portal-host.md",
+    "docs/prds/sitestacker-parity/phase-24-multi-site-management.md",
+    "docs/features/files-documents/CONTEXT.md",
+    "docs/ai/document-authority.md",
+    "scripts/verify/phase24-authority.mjs",
+  ],
+  "verify-data-boundary": [
+    "apps/donor/lib/cms/client.ts",
+    "packages/api/src/admin/comments/comment.ts",
+    "scripts/cms/local-bootstrap.mjs",
+    ".env.example",
+  ],
+  "verify-cms-public-sole-entry": [
+    "apps/admin/src/cms/public/resolve-tenant.ts",
+    "apps/donor/app/(public)/(hero)/about/page.tsx",
+    "packages/database/collections/admin-locations.ts",
+  ],
+  "verify-workspace-contract": [
+    "apps/admin/app/api/health/route.ts",
+    "apps/missionary/app/(auth)/login/page.tsx",
+    "docs/guides/architecture/runtime-map.md",
+    "vendor/react-pdf-packages/asym-pdf-editor/package.json",
+    "docs/maintenance/modernization/pdf-owner-release.json",
+  ],
+  "verify-shadcn-diff": [
+    "tooling/shadcn/upstream-review-baseline.json",
+    "scripts/verify/shadcn-diff.mjs",
+    "packages/ui/components/shadcn/accordion.tsx",
+    "packages/ui/components.json",
+    "packages/lib/hooks/use-mobile.ts",
+    "docs/ai/rules/frontend.md",
+    "tests/unit/scripts/shadcn-upstream-review.test.ts",
+  ],
+};
+
+// A change to any of these can alter every scoped stage's result.
+const SHARED_INPUT_SAMPLES = [
+  "package.json",
+  "apps/admin/package.json",
+  "bun.lock",
+  ".node-version",
+  "docs/.prettierrc.json",
+  "scripts/verify/ci-preflight.mjs",
 ];
 
 // Full compilation of the product apps for a documentation change, so the
@@ -250,7 +345,7 @@ describe("fast pre-push profile", () => {
     expect(fastStages(null).map((s) => s.id)).toEqual(FAST_STAGE_IDS);
   });
 
-  it("never runs a unit, acceptance, build, network or slow stage", () => {
+  it("never runs a unit, acceptance, build or slow stage", () => {
     for (const stages of [fastStages(null), fastStages(["bun.lock"])]) {
       const commands = stages.flatMap((s) => [
         s.script ?? "",
@@ -260,7 +355,6 @@ describe("fast pre-push profile", () => {
         "test:unit",
         "test:acceptance",
         "build",
-        "verify:shadcn-diff",
         "skills:verify",
         "verify:eslint",
       ])
@@ -334,6 +428,136 @@ describe("fast pre-push profile", () => {
     expect(stage(stages, "format").script).toBe("format:check");
     expect(stage(stages, "lint").script).toBe("lint");
     expect(stage(stages, "typecheck").script).toBe("typecheck");
+    for (const id of SCOPED_STAGE_IDS) {
+      expect(stage(stages, id).skip, id).toBeUndefined();
+      expect(stage(stages, id).script, id).toBeDefined();
+    }
+  });
+});
+
+describe("fast profile stages scoped to their inputs", () => {
+  const unrelated = ["README.md", "docs/ai/rules/general.md"];
+
+  it("runs each scoped stage when the push changes one of its inputs", () => {
+    for (const id of SCOPED_STAGE_IDS)
+      for (const file of STAGE_INPUT_SAMPLES[id]) {
+        const selected = stage(fastStages([...unrelated, file]), id);
+        expect(selected.skip, `${id} for ${file}`).toBeUndefined();
+        expect(selected.script, `${id} for ${file}`).toBeDefined();
+      }
+  });
+
+  it("skips each scoped stage with a printed reason when no input changed", () => {
+    const stages = fastStages(unrelated);
+    for (const id of SCOPED_STAGE_IDS) {
+      const skipped = stage(stages, id);
+      expect(skipped.runs, id).toEqual([]);
+      expect(skipped.skip, id).toMatch(/no change to its inputs/);
+    }
+    // A product code change leaves the document and spec projections and
+    // the shadcn review out.
+    const code = fastStages([
+      "apps/admin/features/mission-control/care/care-contact-trend.ts",
+    ]);
+    for (const id of [
+      "verify-phase25-spec",
+      "verify-phase27-spec",
+      "verify-phase28-spec",
+      "openspec-validate",
+      "verify-openspec-deltas",
+      "verify-shadcn-diff",
+    ])
+      expect(stage(code, id).skip, id).toMatch(/no change to its inputs/);
+    for (const id of ["verify-data-boundary", "verify-cms-public-sole-entry"])
+      expect(stage(code, id).skip, id).toBeUndefined();
+  });
+
+  it("runs every scoped stage when a shared input changes", () => {
+    for (const file of SHARED_INPUT_SAMPLES) {
+      const stages = fastStages([file]);
+      for (const id of SCOPED_STAGE_IDS)
+        expect(stage(stages, id).skip, `${id} for ${file}`).toBeUndefined();
+    }
+  });
+
+  it("derives the shadcn review's inputs from its verifier and baseline", () => {
+    const baseline = JSON.parse(readFileSync(SHADCN_REVIEW_BASELINE, "utf8"));
+    const inputs = shadcnDiffInputs(baseline) as string[];
+    const hashed = [
+      SHADCN_REVIEW_BASELINE,
+      "scripts/verify/shadcn-diff.mjs",
+      ...baseline.proofSources.map((entry: { path: string }) => entry.path),
+      ...baseline.protectedSources.map((entry: { path: string }) => entry.path),
+      ...baseline.files.map(
+        (entry: { path: string; localPath?: string }) =>
+          `packages/ui/${entry.localPath ?? entry.path}`,
+      ),
+      ...baseline.localOnly.map(
+        (entry: { path: string }) => `packages/ui/${entry.path}`,
+      ),
+      // What the upstream CLI reads through the projected source view.
+      "package.json",
+      "bun.lock",
+      "tsconfig.base.json",
+      "packages/ui/components.json",
+      "packages/ui/package.json",
+      "packages/ui/styles/globals.css",
+    ];
+    expect(hashed.length).toBeGreaterThan(200);
+    for (const file of hashed) {
+      expect(touchesInputs([file], inputs), file).toBe(true);
+      expect(stage(fastStages([file]), "verify-shadcn-diff").skip, file).toBe(
+        undefined,
+      );
+    }
+    for (const file of [
+      "apps/admin/app/page.tsx",
+      "packages/api/src/admin/comments/index.ts",
+      "packages/ui/AGENTS.md.orig",
+      "tests/unit/scripts/ci-preflight.contract.test.ts",
+    ])
+      expect(touchesInputs([file], inputs), file).toBe(false);
+  });
+
+  it("runs the shadcn review when its baseline cannot be read", () => {
+    const selected = getFastStages({
+      changedFiles: ["README.md"],
+      exists: everyFileExists,
+      shadcnBaseline: null,
+    }) as Stage[];
+    expect(stage(selected, "verify-shadcn-diff").skip).toBeUndefined();
+    expect(shadcnDiffInputs(null)).toBeNull();
+  });
+
+  it("scopes only stages a required CI job also runs on every pull request", () => {
+    const ci = readFileSync(".github/workflows/ci.yml", "utf8");
+    const required = ["integrity", "lint"].flatMap((job) => {
+      const lines = ci.split(/\r?\n/);
+      const start = lines.indexOf(`  ${job}:`);
+      const end = lines.findIndex(
+        (line, index) => index > start && /^  \S[^:]*:\s*$/.test(line),
+      );
+      return lines
+        .slice(start + 1, end)
+        .join("\n")
+        .split(/^ {6}- /m)
+        .slice(1)
+        .filter((step) => !/(?:^|\n)\s*(?:if|continue-on-error):/.test(step));
+    });
+    const scoped = fastStages(["README.md"]).filter(
+      (candidate) => candidate.skip && candidate.id !== "format",
+    );
+    expect(scoped.map((candidate) => candidate.id)).toEqual(SCOPED_STAGE_IDS);
+    const full = getPreflightStages(FULL_DOCS_CHANGE) as Stage[];
+    for (const { id } of scoped) {
+      const { script } = stage(full, id);
+      const inCi = required.some((step) =>
+        step.includes(`run: bun run ${script}`),
+      );
+      // verify:shadcn-diff calls the public registry and has no CI job; the
+      // fast profile is its routine check (docs/ci.md).
+      expect(inCi, id).toBe(id !== "verify-shadcn-diff");
+    }
   });
 });
 

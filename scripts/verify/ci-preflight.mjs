@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
-import { statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -8,6 +8,7 @@ import {
   readCompilationChanges,
   resolveCompilation,
 } from "./ci-build-policy.mjs";
+import { SHADCN_REVIEW_BASELINE, shadcnDiffInputs } from "./shadcn-diff.mjs";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -141,17 +142,131 @@ const stages = [
 ];
 
 // Fast profile (the pre-push default): the full profile's order without the
-// stages required CI already runs on every pull request and that are slow or
-// need the network. skills:verify (183 s) and verify:eslint (54 s) were timed
-// alone on the loaded Windows host and were not cheap.
+// slow stages that required CI already runs on every pull request.
+// skills:verify (183 s) and verify:eslint (54 s) were timed alone on the
+// loaded Windows host and were not cheap.
 const FAST_EXCLUDED = new Set([
   "skills-verify",
   "verify-eslint",
-  "verify-shadcn-diff",
   "build",
   "test-unit",
   "acceptance",
 ]);
+
+// Fast stages that run only when the push changes one of their inputs; any
+// other push skips them with a printed line. An unknown change set runs them
+// all. A string ending in "/" stands for everything under it.
+//
+// Inputs every scoped stage shares: the lock and runtime pin, any package
+// manifest (workspaces, scripts, dependency versions, and Prettier's option
+// lookup), Prettier configuration, and this selection code.
+const SHARED_INPUTS = [
+  "bun.lock",
+  "bunfig.toml",
+  ".npmrc",
+  ".node-version",
+  "scripts/verify/ci-preflight.mjs",
+  "scripts/verify/ci-build-policy.mjs",
+  /(?:^|\/)package\.(?:json|yaml)$/,
+  /(?:^|\/)(?:\.prettierrc(?:\.[^/]+)?|prettier\.config\.[^/]+|\.editorconfig)$/,
+];
+const PRD = "docs/prds/sitestacker-parity/";
+// Each list is every repository path the stage's scripts opened when traced
+// on 2026-11-18 (Node fs calls and git commands), collapsed to the
+// directories they read or list, plus the scripts themselves. Each of these
+// stages also runs in the required CI `integrity` or `lint` job.
+const STAGE_INPUTS = {
+  "verify-phase25-spec": [
+    `${PRD}phase-25-donor-dashboard-depth/`,
+    `${PRD}phase-25-donor-dashboard-depth.md`,
+    "openspec/changes/add-donor-dashboard-depth/",
+  ],
+  "verify-phase27-spec": [
+    `${PRD}phase-27-donor-development/`,
+    `${PRD}phase-27-donor-development.md`,
+    "openspec/changes/add-donor-development/",
+    "openspec/contracts/",
+    "docs/features/donor-development/",
+    "scripts/lib/openspec-contracts.mjs",
+  ],
+  "verify-phase28-spec": [
+    `${PRD}phase-28-missionary-workspace-depth/`,
+    `${PRD}phase-28-missionary-workspace-depth.md`,
+    "openspec/changes/add-missionary-workspace-depth/",
+    "openspec/contracts/",
+    "docs/features/missionary-workspace-depth/",
+    "scripts/lib/openspec-contracts.mjs",
+    "scripts/git/environment.mjs",
+  ],
+  "openspec-validate": ["openspec/"],
+  // openspec-delta-compatibility, phase24-authority (which also compares the
+  // listings of docs/adr and the sitestacker-parity folder) and phase 29.
+  "verify-openspec-deltas": [
+    "openspec/",
+    PRD,
+    "docs/adr/",
+    "docs/features/files-documents/",
+    "docs/ai/document-authority.md",
+    "scripts/lib/openspec-contracts.mjs",
+    "scripts/verify/openspec-delta-compatibility.mjs",
+    "scripts/verify/phase24-authority.mjs",
+  ],
+  "verify-data-boundary": ["apps/", "packages/", "scripts/", ".env.example"],
+  "verify-cms-public-sole-entry": [
+    "apps/admin/",
+    "apps/donor/",
+    "packages/",
+    "scripts/verify/cms-public-sole-entry.mjs",
+  ],
+  // Workspace manifests are shared inputs; the App Router trees are where it
+  // finds route handlers, segment config and private capture routes.
+  "verify-workspace-contract": [
+    /^apps\/[^/]+\/(?:src\/)?app\//,
+    "docs/guides/architecture/runtime-map.md",
+    "docs/maintenance/modernization/pdf-owner-release.json",
+    "docs/maintenance/modernization/pdf-package-provenance.json",
+    "vendor/react-pdf-packages/",
+    "scripts/verify-workspace-contract.mjs",
+    "scripts/verify/typescript-toolchain.mjs",
+    "scripts/verify/pdf-package-provenance.mjs",
+  ],
+};
+
+function matchesInput(file, input) {
+  if (input instanceof RegExp) return input.test(file);
+  return input.endsWith("/") ? file.startsWith(input) : file === input;
+}
+
+/** True when any changed path is one of the inputs. */
+export function touchesInputs(changedFiles, inputs) {
+  return changedFiles.some((file) =>
+    inputs.some((input) => matchesInput(file, input)),
+  );
+}
+
+function readShadcnBaseline() {
+  try {
+    return JSON.parse(
+      readFileSync(path.join(REPO_ROOT, SHADCN_REVIEW_BASELINE), "utf8"),
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Inputs per scoped stage, shared inputs included. verify:shadcn-diff's come
+ * from the verifier and its review baseline; null means they cannot be told
+ * (the baseline is unreadable), so the stage runs.
+ */
+function scopedStageInputs(shadcnBaseline) {
+  const shadcn = shadcnDiffInputs(shadcnBaseline);
+  return Object.fromEntries(
+    Object.entries({ ...STAGE_INPUTS, "verify-shadcn-diff": shadcn }).map(
+      ([id, inputs]) => [id, inputs && [...inputs, ...SHARED_INPUTS]],
+    ),
+  );
+}
 
 function isExistingFile(file) {
   try {
@@ -182,15 +297,35 @@ export function formatChunks(files, limit = FORMAT_CHUNK_CHARS) {
 /**
  * Fast-profile stages. `changedFiles` is the branch diff against
  * origin/develop with working-tree changes (readCompilationChanges), or null
- * when that diff is unknown: then every scoped stage checks the whole
- * repository instead.
+ * when that diff is unknown: then every stage runs and checks the whole
+ * repository. `shadcnBaseline` is the parsed shadcn review baseline (null when
+ * unreadable).
  */
-export function getFastStages({ changedFiles, exists = isExistingFile }) {
+export function getFastStages({
+  changedFiles,
+  exists = isExistingFile,
+  shadcnBaseline = readShadcnBaseline(),
+}) {
   const known = Array.isArray(changedFiles);
+  const scoped = scopedStageInputs(shadcnBaseline);
   return stages
     .filter((stage) => !FAST_EXCLUDED.has(stage.id))
     .map((stage) => {
       if (!known) return stage;
+      if (stage.id in scoped) {
+        const inputs = scoped[stage.id];
+        return !inputs || touchesInputs(changedFiles, inputs)
+          ? stage
+          : {
+              id: stage.id,
+              runs: [],
+              skip: `no change to its inputs; ${
+                stage.id === "verify-shadcn-diff"
+                  ? "the full profile and the production release run it"
+                  : "required CI runs it on every pull request"
+              }`,
+            };
+      }
       if (stage.id === "format") {
         const files = changedFiles.filter((file) => exists(file));
         return files.length === 0

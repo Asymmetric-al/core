@@ -82,6 +82,71 @@ export const SHADCN_MAPPED_SUPPORTING_SOURCES = Object.freeze(
 const UI_DIRECTORY = "packages/ui";
 const COMPONENT_DIRECTORY = "components/shadcn";
 const PREVIEW_END = "└ Run without --dry-run to apply.";
+// What the upstream CLI sees through createUpstreamSourceView: these root
+// files and these entries of the UI package.
+export const SHADCN_VIEW_ROOT_FILES = Object.freeze([
+  "package.json",
+  "bun.lock",
+  "tsconfig.json",
+  "tsconfig.base.json",
+]);
+export const SHADCN_VIEW_UI_ENTRIES = Object.freeze([
+  "package.json",
+  "components.json",
+  "tsconfig.json",
+  "components",
+  "lib",
+  "hooks",
+  "styles",
+]);
+const VERIFIER_PATH = path
+  .relative(
+    fileURLToPath(new URL("../..", import.meta.url)),
+    fileURLToPath(import.meta.url),
+  )
+  .split(path.sep)
+  .join("/");
+
+/**
+ * Every repository path this verifier's result depends on, for a parsed
+ * review baseline: this script, the baseline, each file it hashes (proofs,
+ * protected sources, reviewed and local component sources) and what the
+ * upstream CLI reads. A path ending in "/" stands for everything under it.
+ * Returns null when the baseline is unusable, so a caller cannot tell.
+ */
+export function shadcnDiffInputs(baseline) {
+  if (!baseline || typeof baseline !== "object" || Array.isArray(baseline))
+    return null;
+  const ui = (file) => `${UI_DIRECTORY}/${file}`;
+  const paths = (entries, pick, prefix = "") =>
+    (Array.isArray(entries) ? entries : []).flatMap((entry) => {
+      const file = entry && pick(entry);
+      return typeof file === "string" ? [prefix + file] : [];
+    });
+  // Without split-component mappings the CLI runs in the UI package itself.
+  const cliView =
+    baseline.schemaVersion === 3
+      ? SHADCN_VIEW_UI_ENTRIES.flatMap((entry) => [ui(entry), `${ui(entry)}/`])
+      : [`${UI_DIRECTORY}/`];
+  return [
+    ...new Set([
+      VERIFIER_PATH,
+      SHADCN_REVIEW_BASELINE,
+      ...SHADCN_VIEW_ROOT_FILES,
+      ...cliView,
+      ...SHADCN_REQUIRED_SUPPORTING_SOURCES,
+      ...SHADCN_MAPPED_SUPPORTING_SOURCES,
+      ...paths(baseline.protectedSources, (entry) => entry.path),
+      ...paths(baseline.proofSources, (entry) => entry.path),
+      ...paths(
+        baseline.files,
+        (entry) => entry.localPath ?? entry.path,
+        `${UI_DIRECTORY}/`,
+      ),
+      ...paths(baseline.localOnly, (entry) => entry.path, `${UI_DIRECTORY}/`),
+    ]),
+  ];
+}
 
 function requireCondition(condition, message) {
   if (!condition) throw new Error(message);
@@ -962,25 +1027,12 @@ export function createUpstreamSourceView(root, mappings) {
         copyFileSync(source, target);
       }
     };
-    for (const file of [
-      "package.json",
-      "bun.lock",
-      "tsconfig.json",
-      "tsconfig.base.json",
-    ])
+    for (const file of SHADCN_VIEW_ROOT_FILES)
       if (existsSync(path.join(root, file)))
         copy(path.join(root, file), path.join(view, file));
     const ui = path.join(root, UI_DIRECTORY),
       copiedUi = path.join(view, UI_DIRECTORY);
-    for (const file of [
-      "package.json",
-      "components.json",
-      "tsconfig.json",
-      "components",
-      "lib",
-      "hooks",
-      "styles",
-    ])
+    for (const file of SHADCN_VIEW_UI_ENTRIES)
       if (existsSync(path.join(ui, file)))
         copy(path.join(ui, file), path.join(copiedUi, file));
     for (const directory of ["", UI_DIRECTORY]) {
