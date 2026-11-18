@@ -208,6 +208,40 @@ describe("instant-nav runs on develop pull requests as a non-required job", () =
     },
   );
 
+  // Review round 8 (c2b.1): the scope step ran on every event, so on
+  // production a failing helper skipped every guard (the job failed closed,
+  // but a release depended on a helper that matters only on develop).
+  it.each(RUNS_JOB.map((scenario) => [scenario.label, scenario] as const))(
+    "%s: the scope step runs only on a develop pull request",
+    (_label, scenario) => {
+      const { event_name, base_ref } = github(scenario);
+      expect(
+        evaluateIfCondition(scope?.if, scenarioContext(scenario, {})),
+      ).toBe(event_name === "pull_request" && base_ref === "develop");
+    },
+  );
+
+  it.each(RUNS_JOB.map((scenario) => [scenario.label, scenario] as const))(
+    "%s: a failed scope step runs no guard step, so the job fails",
+    (_label, scenario) => {
+      const ctx = scenarioContext(scenario, {});
+      // It wrote nothing, which GitHub reads as ''.
+      ctx.contexts.steps = { [scope!.id!]: { outputs: { run: "" } } };
+      ctx.status = { success: false, failure: true, cancelled: false };
+      for (const step of work)
+        expect(evaluateIfCondition(step.if, ctx), step.name).toBe(false);
+    },
+  );
+
+  // Review round 8 (c2b.2): production's e2e-gate needs this job, so its
+  // steps keep the rule for jobs a required check reaches.
+  it("swallows no failure outside failure()-only steps", () => {
+    for (const step of steps.filter((s) => s.if !== "failure()"))
+      expect(step.run ?? "", step.name).not.toMatch(
+        /\|\|\s*(?:true|:|echo)\b|;\s*true\b|\bset\s+\+e/,
+      );
+  });
+
   it("feeds no develop gate; only the production e2e-gate needs it", () => {
     for (const [id, other] of Object.entries(CII))
       if (id !== "e2e-gate")

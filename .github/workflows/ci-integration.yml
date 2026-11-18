@@ -481,11 +481,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       # Only a develop pull request may skip the guards, and only when this
-      # step wrote exactly run=false. Production, dispatch and a missing or
-      # unexpected output run them whatever the script does (an unwritten
-      # output reads as '', which is not 'false').
+      # step wrote exactly run=false. The step runs only there, so production
+      # pull requests, pushes and dispatch never depend on it (a skipped
+      # step's output reads as '', which is not 'false'). On develop a missing
+      # or unexpected output runs the guards, and a failing step fails the job.
       - name: Decide whether the change can affect the guards
         id: scope
+        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           CI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -519,7 +521,7 @@ jobs:
             sleep 1
           done
           echo "Timed out waiting for the donor production server"
-          tail -n 100 /tmp/donor-prod.log || true
+          tail -n 100 /tmp/donor-prod.log
           exit 1
       - name: Instant navigation guards
         if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
