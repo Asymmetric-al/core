@@ -164,7 +164,7 @@ describe("release database steps", () => {
     expect(head).toMatch(/^\d{14}$/);
   });
 
-  it("refuses a database with no health function, no marker, or the frozen production-named project", () => {
+  it("refuses a database with no health function, no marker, or, in the production environment, the preview project", () => {
     expect(() =>
       preflight({
         settings: settings(),
@@ -217,6 +217,76 @@ describe("release database steps", () => {
     ).rejects.toThrow(/must not touch/);
     expect(requireDisposable).not.toHaveBeenCalled();
     expect(runCommand).not.toHaveBeenCalled();
+  });
+
+  it("lets the preview environment rebuild the preview project, and still keeps the production environment off it", async () => {
+    // Two hosted projects and no third (hosted plan 3.1): the production-named
+    // project is the disposable preview project until WP11.
+    const previewRef = "btewedpsxwsjczvmegby";
+    expect(RELEASE_ENVIRONMENTS.preview.forbiddenRefs).toEqual([
+      "pnmlrbgjiqzzsthsoikm",
+    ]);
+    expect(RELEASE_ENVIRONMENTS.production.forbiddenRefs).toEqual([previewRef]);
+    const previewProject = (environment: "production" | "preview") =>
+      readReleaseSettings({
+        RELEASE_ENVIRONMENT: environment,
+        RELEASE_SUPABASE_PROJECT_REF: previewRef,
+        RELEASE_DATABASE_URL: databaseUrl.replace(ref, previewRef),
+        RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+        RELEASE_DATABASE_SSL_CA: CA,
+      });
+    const signoff =
+      "https://github.com/Asymmetric-al/core/issues/2671#issuecomment-1";
+
+    // Its one-off first rebuild runs in the preview environment.
+    const fake = fakeDatabase({ environment: null });
+    const order: string[] = [];
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      if (command === "supabase" && args[0] === "--version")
+        return { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` };
+      if (command === "supabase") {
+        fake.db.environment = "disposable";
+        order.push("direct reset");
+      } else {
+        order.push(command === "bun" ? "payload" : command);
+      }
+      return { status: 0 };
+    });
+    await rebuild({
+      settings: previewProject("preview"),
+      mode: "first",
+      signoff,
+      confirmation: `rebuild ${previewRef}`,
+      env: passwords,
+      query: fake.query,
+      run: fake.run,
+      runCommand,
+      log: silent,
+    });
+    expect(order).toEqual(["direct reset", "payload"]);
+    expect(() =>
+      preflight({
+        settings: previewProject("preview"),
+        query: fakeDatabase({}).query,
+        log: silent,
+      }),
+    ).not.toThrow();
+
+    // The production environment refuses it before anything runs.
+    const refused = vi.fn();
+    await expect(
+      rebuild({
+        settings: previewProject("production"),
+        mode: "first",
+        signoff,
+        confirmation: `rebuild ${previewRef}`,
+        env: passwords,
+        query: fakeDatabase({ environment: null }).query,
+        runCommand: refused,
+        log: silent,
+      }),
+    ).rejects.toThrow(/must not touch/);
+    expect(refused).not.toHaveBeenCalled();
   });
 
   it("resets only where WP1.1's shared rule finds the disposable marker, and never in the production environment", async () => {

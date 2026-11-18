@@ -3,10 +3,14 @@
 // connection string.
 import { databaseUrlRoutingOverrides } from "../../../packages/env/src/database-url.mjs";
 
-/** Hosted projects named in docs/ops/environments.md. */
+/**
+ * Hosted projects named in docs/ops/environments.md. There are two and no
+ * third: the production-named project is the disposable `preview` project
+ * until WP11 decides production's database.
+ */
 export const KNOWN_PROJECT_REFS = Object.freeze({
   development: "pnmlrbgjiqzzsthsoikm",
-  productionNamed: "btewedpsxwsjczvmegby",
+  preview: "btewedpsxwsjczvmegby",
 });
 
 const REF = /^[a-z0-9]{20}$/;

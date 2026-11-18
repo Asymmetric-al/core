@@ -71,22 +71,20 @@ const repoRoot = path.resolve(
 /**
  * What each release environment may touch. Until WP11 the production-target
  * deployments use the development database (plan 12, "The production-named
- * project until WP11"), so the production job refuses the frozen
- * production-named project; WP11 changes that line. The preview environment
- * refuses both shared projects whatever its configuration says.
+ * project until WP11"), so the production job refuses the preview project,
+ * the production-named project that serves as the disposable preview
+ * database; WP11 changes that line. The preview environment refuses
+ * development, the shared database, whatever its configuration says.
  */
 export const RELEASE_ENVIRONMENTS = Object.freeze({
   production: Object.freeze({
     markers: ENVIRONMENT_MARKERS,
-    forbiddenRefs: Object.freeze([KNOWN_PROJECT_REFS.productionNamed]),
+    forbiddenRefs: Object.freeze([KNOWN_PROJECT_REFS.preview]),
     rebuild: "first-only",
   }),
   preview: Object.freeze({
     markers: Object.freeze(["disposable"]),
-    forbiddenRefs: Object.freeze([
-      KNOWN_PROJECT_REFS.development,
-      KNOWN_PROJECT_REFS.productionNamed,
-    ]),
+    forbiddenRefs: Object.freeze([KNOWN_PROJECT_REFS.development]),
     rebuild: "disposable",
   }),
 });

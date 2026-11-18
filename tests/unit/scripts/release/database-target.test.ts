@@ -90,10 +90,12 @@ describe("release database target", () => {
     ).not.toThrow();
   });
 
-  it("knows the development and production-named projects by ref", () => {
+  it("knows the development project and the preview project by ref", () => {
+    // Two hosted projects and no third: the production-named project is the
+    // disposable preview project until WP11 (hosted plan 3.1).
     expect(KNOWN_PROJECT_REFS).toEqual({
       development: "pnmlrbgjiqzzsthsoikm",
-      productionNamed: "btewedpsxwsjczvmegby",
+      preview: "btewedpsxwsjczvmegby",
     });
   });
 });
