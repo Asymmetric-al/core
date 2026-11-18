@@ -118,3 +118,5 @@
       import closure on each selection instead of listing it.
 - [x] 10.4 Red first: a non-ASCII donor path through real git, and
       NUL-separated reader output. Then read the diff with `-z`.
+- [x] 10.5 Make the two runner assertions for "every test runs" able to fail,
+      and show them failing under a fail-open mutation.

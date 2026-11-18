@@ -248,18 +248,35 @@ describe("input-scoped selection", () => {
     );
   });
 
+  // Every value passed to Vitest's --exclude, in order.
+  const exclusions = (args: string[]) =>
+    args.flatMap((argument, index) =>
+      argument === "--exclude" ? [args[index + 1]] : [],
+    );
+  // An analysis that would clear a known file, so a run that wrongly skipped
+  // the group would show that file among the exclusions (review round 6,
+  // c1.4: the earlier assertions looked for a glob nothing ever passes).
+  const clearsOneFile = () =>
+    vi.fn(() => ({
+      scoped: ["tests/unit/scripts/archon-a.test.ts"],
+      unscoped: [],
+    }));
+
   it("runs every test when the selection fails", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
     const log = vi.fn();
+    const analyze = clearsOneFile();
     runUnitTests("linux", spawn, [], {
       env: pullRequest,
       readChanges: () => {
         throw new Error("boom");
       },
+      analyze,
       log,
     });
     const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-    expect(args).not.toContain("tests/unit/scripts/archon-*.test.ts");
+    expect(exclusions(args)).toEqual([ACCEPTANCE_EXCLUDE]);
+    expect(analyze).not.toHaveBeenCalled();
     expect(log.mock.calls.flat().join(" ")).toMatch(
       /selection failed.*every test runs/,
     );
@@ -267,13 +284,16 @@ describe("input-scoped selection", () => {
 
   it("runs every test on a push to develop", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
+    const analyze = clearsOneFile();
     runUnitTests("linux", spawn, [], {
       env: { ...pullRequest, GITHUB_EVENT_NAME: "push", GITHUB_BASE_REF: "" },
       readChanges: () => ["docs/ci.md"],
+      analyze,
       log: () => {},
     });
     const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-    expect(args).not.toContain("tests/unit/scripts/archon-*.test.ts");
+    expect(exclusions(args)).toEqual([ACCEPTANCE_EXCLUDE]);
+    expect(analyze).not.toHaveBeenCalled();
   });
 });
 
