@@ -1,9 +1,9 @@
-import {
-  reportAccessDiagnostic,
-  withReadErrorCause,
-} from "./access-diagnostics";
+import { reportAccessDiagnostic } from "./access-diagnostics";
 import { resolveActiveAssignment } from "./principal/assignment";
-import { createRpcAssignmentReader } from "./principal/reader";
+import {
+  createRpcAssignmentReader,
+  withReadErrorCause,
+} from "./principal/reader";
 
 import type { SupabaseUserRoleReader } from "./middleware";
 import type { RoleSnapshot } from "./permissions";

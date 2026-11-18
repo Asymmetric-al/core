@@ -5,10 +5,7 @@ import {
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  reportAccessDiagnostic,
-  withReadErrorCause,
-} from "./access-diagnostics";
+import { reportAccessDiagnostic } from "./access-diagnostics";
 import { safeNextParam } from "./demo-login";
 import {
   assertSupabaseDatasourceAllowedForE2EBypass,
@@ -21,7 +18,10 @@ import {
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
 import { readActiveAssignments } from "./principal/assignment";
 import { listE2EAuthAssignments } from "./principal/e2e-assignments";
-import { createRpcAssignmentReader } from "./principal/reader";
+import {
+  createRpcAssignmentReader,
+  withReadErrorCause,
+} from "./principal/reader";
 import {
   ADDRESS_PREFIX_HEADER,
   ASSIGNMENT_HEADER,
