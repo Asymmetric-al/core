@@ -66,6 +66,8 @@ describe("release settings", () => {
 /** A fake target database answering the queries the release steps send. */
 function fakeDatabase(state: {
   cmsNeverAccept?: boolean;
+  defaultsOpen?: boolean;
+  cmsRefusal?: string;
   defaultsFail?: string;
   healthFunction?: boolean;
   environment?: string | null;
@@ -98,6 +100,8 @@ function fakeDatabase(state: {
     defaultsFail: undefined as string | undefined,
     cmsLogins: [] as string[],
     cmsNeverAccept: false,
+    defaultsOpen: false,
+    cmsRefusal: undefined as string | undefined,
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
       payload: string | null;
@@ -108,6 +112,11 @@ function fakeDatabase(state: {
   const query = vi.fn(
     ({ sql, databaseUrl }: { sql: string; databaseUrl: string }) => {
       if (sql.includes("to_regprocedure")) return { exists: db.healthFunction };
+      // Review K3: the read after a failed reset, and preflight's check.
+      if (sql.includes("query_to_xml"))
+        return { marker: db.environment, open: db.defaultsOpen };
+      if (sql.includes("'open'") && sql.includes("pg_default_acl"))
+        return { open: db.defaultsOpen };
       if (sql.includes("public.platform_health()::text")) {
         return {
           environment: db.environment,
@@ -136,6 +145,8 @@ function fakeDatabase(state: {
         const user = decodeURIComponent(new URL(databaseUrl).username).split(
           ".",
         )[0]!;
+        if (user.startsWith("cms_") && db.cmsRefusal)
+          throw new Error(`log in as ${user}: psql exited 2. ${db.cmsRefusal}`);
         if (user.startsWith("cms_") && !db.cmsLogins.includes(user)) {
           throw new Error(
             `log in as ${user}: psql exited 2. psql: error: FATAL:  password authentication failed for user "${user}"`,
@@ -158,6 +169,7 @@ function fakeDatabase(state: {
       if (sql?.includes(DEFAULTS_SQL)) {
         events.push("default privileges");
         if (db.defaultsFail) throw new Error(db.defaultsFail);
+        db.defaultsOpen = true;
       }
       if ("RELEASE_ROLE_VERIFIER" in variables) {
         events.push("role password");
@@ -628,6 +640,137 @@ describe("release database steps", () => {
     },
   );
 
+  // Review K3: after a failed reset the stop reads the marker and postgres's
+  // defaults in public, and names the case and what to run next.
+  it.each([
+    [
+      "disposable",
+      { environment: "disposable", open: true },
+      /marker reads disposable.*are open to anon and authenticated.*Rebuild it again.*preflight refuses migrate/s,
+    ],
+    [
+      "first",
+      { environment: null, open: true },
+      /has no marker.*are open to anon and authenticated.*dispatch first-rebuild again/s,
+    ],
+    [
+      "first",
+      { environment: "disposable", open: false },
+      /marker reads disposable.*closed again.*dispatch set-cms-role-passwords, then the release/s,
+    ],
+    [
+      "first",
+      { environment: "disposable", open: true },
+      /marker reads disposable.*are open to anon and authenticated.*needs the owner/s,
+    ],
+  ] as const)(
+    "%s rebuild: a failed reset names the state it left (%o) and what to run next",
+    async (mode, after, expected) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+      });
+      const runCommand = withPinnedCli(() => {
+        fake.db.environment = after.environment;
+        fake.db.defaultsOpen = after.open;
+        return { status: 1 };
+      });
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        }),
+      ).rejects.toThrow(expected);
+    },
+  );
+
+  it("preflight refuses a database whose postgres defaults in public are open to anon or authenticated", () => {
+    const fake = fakeDatabase({ defaultsOpen: true });
+    const runCommand = vi.fn();
+    expect(() =>
+      migrate({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        log: silent,
+      }),
+    ).toThrow(/open to anon and authenticated.*nothing was migrated/s);
+    expect(runCommand).not.toHaveBeenCalled();
+  });
+
+  // Review K3: a refusal the password step does not recognise changes
+  // nothing, and the stop says what to run next for each operation.
+  it.each([
+    [
+      "first",
+      /Nothing was changed.*first-rebuild cannot run again.*dispatch set-cms-role-passwords, then the release/s,
+    ],
+    ["disposable", /Nothing was changed.*rebuild again/s],
+  ] as const)(
+    "%s rebuild: an unrecognised refusal says what to run next",
+    async (mode, expected) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+        cmsRefusal: 'FATAL:  too many connections for role "cms_owner"',
+      });
+      const runCommand = withPinnedCli((_command, args) => {
+        if (args.includes("reset")) {
+          fake.db.environment = "disposable";
+          fake.db.defaultsOpen = false;
+        }
+        return { status: 0 };
+      });
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        }),
+      ).rejects.toThrow(expected);
+      expect(fake.events).not.toContain("role password");
+    },
+  );
+
+  it("migrate and set-cms-role-passwords: an unrecognised refusal says what to run next", () => {
+    const refusal = 'FATAL:  too many connections for role "cms_owner"';
+    const fake = fakeDatabase({ cmsRefusal: refusal });
+    expect(() =>
+      migrate({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand: vi.fn(() => ({ status: 0 })),
+        log: silent,
+      }),
+    ).toThrow(/Nothing was changed.*nothing was deployed.*re-run the release/s);
+    expect(() =>
+      setCmsRolePasswords({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        log: silent,
+      }),
+    ).toThrow(/Nothing was changed.*dispatch set-cms-role-passwords again/s);
+  });
+
   it("migrate: when a new CMS role password never logs in, says nothing was deployed and to re-run the release", () => {
     const fake = fakeDatabase({ cmsNeverAccept: true });
     const runCommand = vi.fn((_command: string, _args: string[]) => ({
@@ -679,7 +822,7 @@ describe("release database steps", () => {
         }),
       ).rejects.toThrow(
         // Review H1.3: the defaults are open again and the chain may remain.
-        /reset.* failed \(exit 1\).*open to anon and authenticated.*Rebuild it again; never run migrate on it until a rebuild has passed/s,
+        /reset.* failed \(exit 1\).*are open to anon and authenticated/s,
       );
       expect(fake.events).toEqual(["default privileges", "seeded logins"]);
       expect(fake.db.publishedLogins).toBe(0);

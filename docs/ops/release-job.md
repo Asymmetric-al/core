@@ -246,6 +246,15 @@ next. In every case, wait two minutes first, and never retry in a loop.
 
 A password that logs in by then is left alone, so none of these sets it again.
 
+A login refused for a reason the step does not recognise (anything but the
+two forms above: the pooler, TLS, the role's connection limit, the circuit
+breaker) stops the step before it changes anything. The stop names the
+refusal and says what to run next for the operation it stopped: fix what
+the refusal names (for the circuit breaker, wait two minutes), then the same
+next step as in the list above. In a first rebuild this comes after the
+migrations have marked the database `disposable`, so it too continues with
+`set-cms-role-passwords` and the release (review K3).
+
 ### Seeded logins on a hosted rebuild
 
 `supabase/seed.sql` creates logins (today `demo-owner@givehope.test`) whose
@@ -413,14 +422,23 @@ fingerprints equal to a fresh replay. The model cannot show what a
 non-superuser `postgres` or a different `drop.sql` would do; the hosted
 rebuilds of 18 November 2026 did.
 
-**If the reset fails after this step.** The defaults of `postgres` in
-`public` are then open to `anon` and `authenticated` again. A reset that
-failed before it dropped anything (the wrapper could not read the marker, no
-route) leaves the whole chain under them, and anything created in `public`
-from then on would be open to both roles. The rebuild stops and says so. Fix
-the cause and rebuild again. Never run `migrate` on that database until a
-rebuild has passed. Since review H1 the gate reads these default privileges, and
-those of `postgres` for every schema (the schema fingerprint, version 2), so a release would stop at its gates
+**If the reset fails after this step.** The restore has reopened the
+defaults of `postgres` in `public` to `anon` and `authenticated`, and the
+chain closes them again. So the rebuild reads, in one query, the marker and
+whether those defaults are still open, and its stop names the case:
+
+| What the stop reads                      | How far the chain got                          | What to run next                                                                                                                                                                                                                                               |
+| ---------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No marker                                | Not as far as the marker migration             | Fix the cause, then dispatch `first-rebuild` again for this environment: it runs on a database with no marker                                                                                                                                                  |
+| A marker, defaults open, preview rebuild | Not as far as closing the defaults             | Fix the cause, then rebuild again                                                                                                                                                                                                                              |
+| A marker, defaults closed, first rebuild | Past both (it failed later, in the seed, say)  | `first-rebuild` refuses a marked database, and the seed may be partial (fixtures only). Dispatch `set-cms-role-passwords`, then the release: its migrate step applies what the chain did not and runs Payload's migrations, and the gates and the heads follow |
+| A marker, defaults open, first rebuild   | Past the marker, not past closing the defaults | This needs the owner: `first-rebuild` refuses a marked database and a production environment never resets. Removing the marker by hand lets `first-rebuild` run again                                                                                          |
+
+While the defaults are open, anything created in `public` would be open to
+both roles, so `preflight`, the first step of `migrate`, refuses such a
+database and migrates nothing (review K3). Since review H1 the gate also
+reads these default privileges, and those of `postgres` for every schema
+(the schema fingerprint, version 2), so a release would stop at its gates
 rather than deploy over them.
 
 ### Pull requests that carry a migration

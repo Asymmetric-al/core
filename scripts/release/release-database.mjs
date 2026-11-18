@@ -207,6 +207,29 @@ const HEALTH_EXISTS_SQL = `SELECT json_build_object('exists',
   to_regprocedure('${RELEASE_DATABASE_CONTRACT.healthFunction}()') IS NOT NULL)::text;`;
 const HEALTH_SQL = `SELECT ${RELEASE_DATABASE_CONTRACT.healthFunction}()::text;`;
 
+/**
+ * Whether the default privileges of postgres in public grant anon or
+ * authenticated anything (review K3). A rebuild reopens them before its reset
+ * and the chain closes them again; while they are open, anything a migration
+ * creates in public is open to both, so preflight refuses migrate.
+ */
+const PUBLIC_DEFAULTS_OPEN = `EXISTS (
+  SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
+  WHERE d.defaclrole = 'postgres'::regrole
+    AND d.defaclnamespace = 'public'::regnamespace
+    AND a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated')))`;
+const DEFAULTS_OPEN_SQL = `SELECT json_build_object('open', ${PUBLIC_DEFAULTS_OPEN})::text;`;
+/**
+ * After a failed reset: the marker and those defaults in one query. The
+ * marker is read through query_to_xml, so a reset that dropped the platform
+ * schema reads as no marker rather than as an error.
+ */
+const AFTER_FAILED_RESET_SQL = `SELECT json_build_object(
+  'marker', CASE WHEN to_regclass('platform.environment') IS NULL THEN NULL
+    ELSE (xpath('//kind/text()', query_to_xml('SELECT kind FROM platform.environment', false, false, '')))[1]::text END,
+  'open', ${PUBLIC_DEFAULTS_OPEN}
+)::text;`;
+
 /** The marker and recorded heads, or null when the database predates WP1. */
 export function readReleaseHealth({ databaseUrl, query = queryJson }) {
   const { exists } = query({
@@ -277,6 +300,18 @@ export function preflight({
   }
   // A rebuild that stopped between its seed and the replacement of the seed's
   // password leaves that published password live (record D-24).
+  // Review K3: a rebuild that stopped after it reopened postgres's defaults
+  // in public, and before the chain closed them, must not be migrated.
+  const defaults = query({
+    databaseUrl: settings.databaseUrl,
+    sql: DEFAULTS_OPEN_SQL,
+    label: "read the default privileges of postgres in public",
+  });
+  if (defaults?.open) {
+    stop(
+      `The default privileges of postgres in public are open to anon and authenticated: a rebuild stopped after it put the platform's back and before the chain closed them again. migrate would create everything new there open to both, so nothing was migrated or deployed. Rebuild the database (docs/ops/release-job.md, "If the reset fails after this step").`,
+    );
+  }
   const published = countPublishedLogins({ settings, root, query });
   if (published > 0) {
     stop(
@@ -574,6 +609,8 @@ export function migrate({
     sleep,
     now,
     next: "This release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Wait two minutes, then re-run the release; a password that then logs in is left alone.",
+    nextUnchanged:
+      "Nothing was changed, and this release stopped before Payload's migrations, the gates, the heads and the deployment, so nothing was deployed. Fix what the refusal names, then re-run the release.",
   });
   payloadMigrate({ settings, runCommand });
   const { checks } = checkLedgers({
@@ -833,6 +870,56 @@ export function restoreHostedDefaultPrivileges({
   );
 }
 
+/**
+ * What a failed reset left, and what to run next (review K3). The restore
+ * reopened postgres's defaults in public; the chain closes them again, and
+ * an early migration writes the marker. So the marker and those defaults say
+ * how far the chain got.
+ */
+/** The marker and postgres's defaults in public after a failed reset, or null when the database cannot be read (review K3). */
+export function readStateAfterFailedReset({ settings, query = queryJson }) {
+  try {
+    return query({
+      databaseUrl: settings.databaseUrl,
+      sql: AFTER_FAILED_RESET_SQL,
+      label: "read the marker and the defaults after the failed reset",
+    });
+  } catch {
+    return null;
+  }
+}
+
+function failedResetMessage({ resetFailure, state, mode }) {
+  const head = `The reset failed (${resetFailure.message}) after the platform's default privileges were put back.`;
+  const guide = `docs/ops/release-job.md, "If the reset fails after this step"`;
+  if (!state || typeof state.open !== "boolean") {
+    return `${head} The database could not be read afterwards, so treat the default privileges of postgres in public as open to anon and authenticated; preflight refuses migrate while they are. Fix the cause, then rebuild it (${guide}).`;
+  }
+  const marker = state.marker
+    ? `Its marker reads ${state.marker}`
+    : "It has no marker";
+  const defaults = state.open
+    ? "the default privileges of postgres in public are open to anon and authenticated, as the restore left them: the chain did not get as far as closing them"
+    : "the default privileges of postgres in public are closed again: the chain ran past the migration that closes them";
+  let next;
+  if (!state.marker) {
+    next =
+      "Fix the cause, then dispatch first-rebuild again for this environment: it runs on a database with no marker.";
+  } else if (mode === "disposable") {
+    next = "Fix the cause. Rebuild it again.";
+  } else if (!state.open) {
+    next =
+      "first-rebuild refuses a marked database, and the seed may be partial (fixtures only). Fix the cause, then dispatch set-cms-role-passwords, then the release: its migrate step applies what the chain did not and runs Payload's migrations, and the gates and the heads follow.";
+  } else {
+    next =
+      "This needs the owner: first-rebuild refuses a marked database, a production environment never resets, and preflight refuses migrate while the defaults are open. Removing the marker by hand lets first-rebuild run again.";
+  }
+  const guard = state.open
+    ? " Until then preflight refuses migrate on it."
+    : "";
+  return `${head} ${marker}, and ${defaults}. ${next}${guard} (${guide}).`;
+}
+
 const CENSUS_SIGNOFF =
   /^https:\/\/github\.com\/Asymmetric-al\/core\/(issues|pull)\/\d+(#issuecomment-\d+)?$/;
 const EMPTY_SQL = `SELECT json_build_object(
@@ -965,9 +1052,8 @@ export async function rebuild({
   // it dropped anything leaves the whole chain under them. migrate would then
   // create every new table, sequence and function in public open to both.
   if (resetFailure) {
-    stop(
-      `The reset failed (${resetFailure.message}) after the platform's default privileges were put back. The database may still hold the whole chain, and the default privileges of postgres in public are open to anon and authenticated again, so anything created there now would be open to both. Rebuild it again; never run migrate on it until a rebuild has passed (docs/ops/release-job.md, "What a reset keeps of the default privileges").`,
-    );
+    const state = readStateAfterFailedReset({ settings, query });
+    stop(failedResetMessage({ resetFailure, state, mode }));
   }
   // The marker migration writes `disposable` when public.profiles,
   // public.donors and public.donations are empty, as they are right after the
@@ -990,6 +1076,10 @@ export async function rebuild({
       mode === "first"
         ? "This first rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads, and the migrations have already marked the database disposable, so first-rebuild cannot run again. Wait two minutes, dispatch set-cms-role-passwords, then the release: its migrate step runs Payload's migrations, and the gates and the heads follow (docs/ops/release-job.md, \"If the CMS role passwords stop a run\")."
         : "This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Wait two minutes, then rebuild again; a password that then logs in is left alone.",
+    nextUnchanged:
+      mode === "first"
+        ? 'Nothing was changed. This first rebuild stopped after the reset and the seed, before Payload\'s migrations, the gates and the heads, and the migrations have already marked the database disposable, so first-rebuild cannot run again. Fix what the refusal names, then dispatch set-cms-role-passwords, then the release (docs/ops/release-job.md, "If the CMS role passwords stop a run").'
+        : "Nothing was changed. This rebuild stopped after the reset and the seed, before Payload's migrations, the gates and the heads. Fix what the refusal names, then rebuild again.",
   });
   payloadMigrate({ settings, runCommand });
   checkLedgers({ databaseUrl: settings.databaseUrl, query });
@@ -1098,6 +1188,9 @@ export function setCmsRolePasswords({
   // never verified (review H4). The default suits the dispatched
   // set-cms-role-passwords operation; migrate and the rebuilds say their own.
   next = "Wait two minutes, then dispatch set-cms-role-passwords again; a password that then logs in is left alone.",
+  // The same for a refusal the step does not recognise, before it changed
+  // anything (review K3).
+  nextUnchanged = "Nothing was changed. Fix what the refusal names, then dispatch set-cms-role-passwords again; for the pooler's circuit breaker, wait two minutes first.",
 }) {
   assertTarget(settings);
   const names = Object.keys(roleVariables);
@@ -1142,7 +1235,7 @@ export function setCmsRolePasswords({
     }
     if (first.kind !== "password") {
       stop(
-        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message}`,
+        `Logging in as ${role} was refused for a reason other than its password, so its password was not changed: ${first.message} ${nextUnchanged}`,
       );
     }
     run({

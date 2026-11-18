@@ -77,6 +77,8 @@ describe("hosted Supabase default privileges (one source)", () => {
       "What a replay starts from, worked out from the file; never committed.",
     "tests/unit/scripts/release/schema-fingerprint.realstack.test.ts":
       "Review H5: the restore only grants",
+    "tests/unit/scripts/release/release-database.realstack.test.ts":
+      "Review K3: while postgres's defaults in public grant anon or",
     "tests/unit/scripts/release/hosted-default-privileges.test.ts":
       "Review H2: every other statement of default privileges in public",
   };

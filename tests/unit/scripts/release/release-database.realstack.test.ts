@@ -13,6 +13,7 @@ import {
   readReleaseHealth,
   readReleaseSettings,
   replaceSeededLoginPasswords,
+  readStateAfterFailedReset,
   setCmsRolePasswords,
 } from "../../../../scripts/release/release-database.mjs";
 import {
@@ -87,6 +88,41 @@ describe.skipIf(!adminDatabaseUrl)(
   // Each test spawns node and psql several times; slow on loaded hosts.
   { timeout: 180_000 },
   () => {
+    // Review K3: while postgres's defaults in public grant anon or
+    // authenticated, migrate would create everything new there open to both.
+    const OPEN_DEFAULTS_SQL = `DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+    END $$;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO anon;`;
+    const settingsFor = (url: string) =>
+      readReleaseSettings({
+        RELEASE_ENVIRONMENT: "preview",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_DATABASE_URL: url,
+        RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+      });
+
+    it("refuses at preflight a database whose postgres defaults in public are open to anon", () => {
+      const db = database("defaults_open");
+      applyLedgers(db.url, source.supabase, source.payload);
+      psql(db.url, OPEN_DEFAULTS_SQL);
+      const result = step("preflight", db.url);
+      expect(result.status).toBe(1);
+      expect(result.output).toMatch(/open to anon and authenticated/);
+    });
+
+    it("reads the marker and those defaults after a failed reset, with and without the platform schema", () => {
+      const marked = database("after_reset_marked");
+      expect(
+        readStateAfterFailedReset({ settings: settingsFor(marked.url) }),
+      ).toEqual({ marker: "disposable", open: false });
+      const bare = database("after_reset_bare", { contract: false });
+      psql(bare.url, OPEN_DEFAULTS_SQL);
+      expect(
+        readStateAfterFailedReset({ settings: settingsFor(bare.url) }),
+      ).toEqual({ marker: null, open: true });
+    });
+
     it("passes preflight on an up-to-date disposable database", () => {
       const db = database("preflight_ok");
       applyLedgers(db.url, source.supabase, source.payload);
