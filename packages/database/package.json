@@ -68,6 +68,10 @@
       "types": "./document-reload.ts",
       "default": "./document-reload.ts"
     },
+    "./document-storage": {
+      "types": "./document-storage.ts",
+      "default": "./document-storage.ts"
+    },
     "./own-api": {
       "types": "./own-api.ts",
       "default": "./own-api.ts"
