@@ -6,6 +6,7 @@ import {
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
 import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { chooseWebStudioOrganization } from "./actions";
@@ -44,6 +45,9 @@ function first(value: string | string[] | undefined): string | null {
 }
 
 async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
+  // Request time first: the session read below must never run while the
+  // static shell is prerendered.
+  await connection();
   const params = await searchParams;
   const choices = await loadWebStudioOrganizationChoices();
   if (choices.kind === "signed_out") {
