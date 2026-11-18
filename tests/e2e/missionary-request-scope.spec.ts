@@ -17,6 +17,13 @@ import {
 const { demo: DEMO, second: SECOND } = TENANTS;
 const expect = baseExpect.configure({ timeout: 90_000 });
 
+// The first hit on a cold development server compiles the workspace and
+// takes longer than Playwright's default 30 seconds, so a retry would hide a
+// slow start. The same limit as the Mission Control surface's
+// (`ADMIN_SURFACE.testTimeout`, 180 s), for each test of this file (council
+// round 1 on slice B, SB12).
+test.describe.configure({ timeout: 180_000 });
+
 test.beforeEach(({}, testInfo) => {
   test.skip(
     testInfo.project.name !== "missionary-boneyard",
