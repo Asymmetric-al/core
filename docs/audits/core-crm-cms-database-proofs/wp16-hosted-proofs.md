@@ -8,8 +8,9 @@
 - One of #2714's review fixes edits `20261117040237_role_change_requires_tenant_admin.sql` in place. So the project was rebuilt again at `51f30dfa2`. That second rebuild stopped at the CMS role passwords (section 8).
 - The recovery at `ae09da272` carries the fix for that, and stopped at its gates (section 9).
 - The third and fourth rebuilds ran at `3fb11620c`, with both fixes, and pass (section 10).
+- Two reviews then asked for eleven fixes, H1 to H11 (section 18). #2714 merged into `develop` at `e6a5ce81a`, merged here as `e65d6b87f` with no content. The fifth rebuild ran at that tip and passes.
 
-**Where it ran.** From the WSL clone `~/code/scratch-clones/wp16-hosted` on the coordinating machine, on 18 November 2026: between 06:59 and 09:25 UTC for the first rebuild and its proofs, and between 10:36 and 13:58 UTC for the later rebuilds (sections 8 to 11).
+**Where it ran.** From the WSL clone `~/code/scratch-clones/wp16-hosted` on the coordinating machine, on 18 November 2026: between 06:59 and 09:25 UTC for the first rebuild and its proofs, between 10:36 and 13:58 UTC for the later rebuilds (sections 8 to 11), and between 15:06 and 16:13 UTC for the reads of development and the fifth rebuild (sections 17 and 18).
 
 - Every database step went through the project's session pooler `aws-0-us-west-2.pooler.supabase.com:5432`, or its transaction pooler on 6543 where a proof needs it. The machine has no IPv6 route, and the direct host resolves only to IPv6.
 - The tools were Node 24.22.3, the Supabase CLI 2.121.0 that `scripts/supabase-cli.mjs` pins, psql 17.11 and Playwright 1.64.1's headless Chromium.
@@ -81,32 +82,35 @@ Numbers follow section 6 of the hosted plan.
 
 ## 3. The run
 
-| Step                                           | UTC               | Result                                                                        |
-| ---------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
-| Password reset through the Management API      | 06:59:26-06:59:30 | "Successfully updated password"; the `verify-full` login passed at 06:59:47   |
-| Logical backup and its check                   | 07:00:31-07:11:22 | 238 tables, each equal to its live count; checksums pass                      |
-| `preflight` before                             | 07:48:08-07:48:17 | Stops, as expected: "it predates WP1"                                         |
-| `first-rebuild` at `946415c20`                 | 07:48:45-07:55:49 | Exit 0. Reset, chain and seed about 6 minutes 40 seconds; Payload 12 seconds  |
-| `gates` (plain replay)                         | 07:56:25-07:57:00 | **Exit 1**: 106 access-list differences, 19 `pgmq` objects only on hosted     |
-| `record-heads`, `preflight` (operator's error) | 07:57:01-07:57:59 | Exit 0 (section 12)                                                           |
-| Engine removal, rename, Stripe endpoint        | 08:16:11-08:17:39 | Section 6                                                                     |
-| SSL enforcement on                             | 08:18:04          | Applied at once; logins checked at 08:18:24                                   |
-| Local stack on slot B, started and stopped     | 09:03:41-09:08:34 | Section 5.3                                                                   |
-| `gates` (fixed replay at `172bd89f0`)          | 09:15:20-09:15:30 | Exit 0: "Schema fingerprints match (CI replay = btewedpsxwsjczvmegby)"        |
-| `record-heads`, then `preflight`               | 09:15:30-09:16:02 | Exit 0, each run only after the step before it passed                         |
-| Proofs 6 to 10, fixtures created and removed   | 09:17-09:25       | Section 4                                                                     |
-| Read-only probe of the pooler's connections    | 10:36:59-10:37:32 | Section 11                                                                    |
-| `preflight`, `gates` at `51f30dfa2`            | 10:58:44-10:59:32 | Preflight 0 pending; **gates exit 1**: the in-place edit differs (section 12) |
-| `preview-rebuild` at `51f30dfa2` (second)      | 11:00:08-11:08:31 | **Exit 1** at the CMS role passwords (section 8)                              |
-| `migrate` at `ae09da272` (recovery)            | 12:03:31-12:04:45 | Exit 0: both secrets already logged in; Payload's five migrations             |
-| `gates` at `ae09da272`                         | 12:05:05-12:05:16 | **Exit 1**: 15 functions differ in their access lists (section 9)             |
-| `preview-rebuild` at `3fb11620c` (third)       | 13:17:10-13:30:15 | Exit 0: the defaults put back first; both secrets already logged in           |
-| `gates`, `record-heads`, `preflight`           | 13:30:42-13:36:00 | Exit 0: 0 differing                                                           |
-| `migrate` after rotating both secrets          | 13:36:23-13:39:55 | Exit 0: each password set once, logged in after 36 and 37 seconds             |
-| `preview-rebuild` at `3fb11620c` (fourth)      | 13:44:56-13:54:54 | Exit 0: both secrets already logged in                                        |
-| `gates`, `record-heads`, `preflight`           | 13:54:55-13:55:47 | Exit 0: 0 differing                                                           |
-| Role-change proof, rolled back                 | 13:56:26-13:56:32 | Section 10                                                                    |
-| `MANAGEMENT_API_URL` unset                     | 13:57:25          | Section 10                                                                    |
+| Step                                                  | UTC               | Result                                                                          |
+| ----------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------- |
+| Password reset through the Management API             | 06:59:26-06:59:30 | "Successfully updated password"; the `verify-full` login passed at 06:59:47     |
+| Logical backup and its check                          | 07:00:31-07:11:22 | 238 tables, each equal to its live count; checksums pass                        |
+| `preflight` before                                    | 07:48:08-07:48:17 | Stops, as expected: "it predates WP1"                                           |
+| `first-rebuild` at `946415c20`                        | 07:48:45-07:55:49 | Exit 0. Reset, chain and seed about 6 minutes 40 seconds; Payload 12 seconds    |
+| `gates` (plain replay)                                | 07:56:25-07:57:00 | **Exit 1**: 106 access-list differences, 19 `pgmq` objects only on hosted       |
+| `record-heads`, `preflight` (operator's error)        | 07:57:01-07:57:59 | Exit 0 (section 12)                                                             |
+| Engine removal, rename, Stripe endpoint               | 08:16:11-08:17:39 | Section 6                                                                       |
+| SSL enforcement on                                    | 08:18:04          | Applied at once; logins checked at 08:18:24                                     |
+| Local stack on slot B, started and stopped            | 09:03:41-09:08:34 | Section 5.3                                                                     |
+| `gates` (fixed replay at `172bd89f0`)                 | 09:15:20-09:15:30 | Exit 0: "Schema fingerprints match (CI replay = btewedpsxwsjczvmegby)"          |
+| `record-heads`, then `preflight`                      | 09:15:30-09:16:02 | Exit 0, each run only after the step before it passed                           |
+| Proofs 6 to 10, fixtures created and removed          | 09:17-09:25       | Section 4                                                                       |
+| Read-only probe of the pooler's connections           | 10:36:59-10:37:32 | Section 11                                                                      |
+| `preflight`, `gates` at `51f30dfa2`                   | 10:58:44-10:59:32 | Preflight 0 pending; **gates exit 1**: the in-place edit differs (section 12)   |
+| `preview-rebuild` at `51f30dfa2` (second)             | 11:00:08-11:08:31 | **Exit 1** at the CMS role passwords (section 8)                                |
+| `migrate` at `ae09da272` (recovery)                   | 12:03:31-12:04:45 | Exit 0: both secrets already logged in; Payload's five migrations               |
+| `gates` at `ae09da272`                                | 12:05:05-12:05:16 | **Exit 1**: 15 functions differ in their access lists (section 9)               |
+| `preview-rebuild` at `3fb11620c` (third)              | 13:17:10-13:30:15 | Exit 0: the defaults put back first; both secrets already logged in             |
+| `gates`, `record-heads`, `preflight`                  | 13:30:42-13:36:00 | Exit 0: 0 differing                                                             |
+| `migrate` after rotating both secrets                 | 13:36:23-13:39:55 | Exit 0: each password set once, logged in after 36 and 37 seconds               |
+| `preview-rebuild` at `3fb11620c` (fourth)             | 13:44:56-13:54:54 | Exit 0: both secrets already logged in                                          |
+| `gates`, `record-heads`, `preflight`                  | 13:54:55-13:55:47 | Exit 0: 0 differing                                                             |
+| Role-change proof, rolled back                        | 13:56:26-13:56:32 | Section 10                                                                      |
+| `MANAGEMENT_API_URL` unset                            | 13:57:25          | Section 10                                                                      |
+| Read-only reads of development                        | 15:06             | Section 17                                                                      |
+| `preview-rebuild` at `e65d6b87f` (fifth)              | 16:04:51-16:11:47 | Exit 0: the defaults put back and checked first; both secrets already logged in |
+| `gates` (fingerprint v2), `record-heads`, `preflight` | 16:11:47-16:12:32 | Exit 0: 0 differing, the default-privilege rows included                        |
 
 **Pre-checks before the first rebuild.**
 
@@ -576,6 +580,7 @@ Later, on the operator's own Postgres (`postgres:17.11-alpine`):
 - At `ae09da272`: `tests/unit/scripts` and `tests/unit/workflows`, 244 files passed and 2 skipped, 6,301 tests passed and 17 skipped; the release, fingerprint and CMS roles real-stack step, 32 passed and 4 skipped.
 - At `3fb11620c`: the same unit suites, 6,306 passed and 18 skipped; the real-stack step, 33 passed and 4 skipped; `tests/unit/docs`, 184 passed. The four skipped real-stack cases are the guards that fail in CI when an admin URL is missing.
 - Both tips: `format:check` clean; `lint` and `typecheck` pass, from Turbo's cache, which does not cover the root `scripts` and `tests`; ESLint on the changed files, no error.
+- At `e65d6b87f` (phase 7, after the merge of `develop`): `lint` and `typecheck` 16 of 16, not cached; ESLint on the changed files, no error; `format:check` clean; `tests/unit/scripts`, `tests/unit/workflows` and `tests/unit/docs`, 265 files passed and 1 skipped, 6,517 tests passed and 22 skipped; the six suites that pin `docs/ci.md`, 206 passed; CI's `migrate` job, its whole sequence on the operator's own Postgres, every step passing, the release, fingerprint and CMS roles step 38 passed and 4 skipped.
 
 ## 17. Development, read on 18 November 2026
 
@@ -609,3 +614,33 @@ Review H5 approved these reads of the development project (`pnmlrbgjiqzzsthsoikm
 - The three buckets survive the reset as rows, which the fingerprint does not read. The chain's bucket migrations ran over the buckets of the previous run in the third and fourth rebuilds of the preview project.
 - `pg_net` is installed on the preview project but not on development. The fingerprint leaves extensions out, so this is no difference at the gates.
 - The reset truncates `auth`, so the 8 users go, and the seed makes its own.
+
+## 18. The review fixes (phase 7)
+
+Two reviewers read the branch at `e1d3233f2` (7/10 and 7/10, "accept after fixes", no blocking finding) and left ten items, H1 to H10. The last independent review before #2714 merged added H11. One commit each:
+
+| Item | Commit      | What changed                                                                                                                                                                                                                                                                                                                                   | What failed first                                                                                                        |
+| ---- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| H1   | `894e2ceec` | Both rebuilds check the pinned CLI before they touch the database; the restore runs in one transaction; a failed reset says the defaults are open again and to rebuild, never migrate; the fingerprint (version 2) holds the default privileges of `postgres`, and the defaults file names `postgres` among its grantees, as the platform does | 7 unit cases; 2 real-stack cases (a defaults file failing part way, a planted default privilege), red against the parent |
+| H2   | `a0e4ff25b` | The bootstrap's `service_role` grant stays and says what it is; the single-source test reads every file for any statement of default privileges in `public`, with four named exceptions                                                                                                                                                        | The widened single-source case                                                                                           |
+| H3   | `ea00b60de` | Only "password authentication failed for user" naming the role, or "(EAUTHQUERY) unsupported or invalid secret format", sets a password; the breaker's figures attributed to a named revision and called an estimate for hosted                                                                                                                | 4 unit cases (a failed auth query, an unknown user, an MD5 secret, another user's password)                              |
+| H4   | `dc408e31f` | A password that never verifies stops with what the run skipped and what to run next, per caller                                                                                                                                                                                                                                                | 3 unit cases                                                                                                             |
+| H5   | `913943cc1` | Both rebuilds stop before the reset, naming each entry, when `postgres` holds default privileges a replay does not start from; step 5 of the runbook says what a leftover does after the reset and how to recover; section 17                                                                                                                  | 2 real-stack cases (a grant to `pg_monitor`, a revoke from PUBLIC for every schema)                                      |
+| H6   | `5730305ee` | The reset model is tied to the CLI pin and says what it cannot show                                                                                                                                                                                                                                                                            | Checked by setting the model's version to 2.120.0                                                                        |
+| H7   | `c015c8441` | The drift guard and the harness are described as what they prove; three more limits; `docs/ci.md` corrected, with the six pins re-taken under D-18                                                                                                                                                                                             | Documents only                                                                                                           |
+| H8   | `80bda5222` | An empty fingerprint is refused; the drift guard's step and job are pinned free of `if:` and `continue-on-error`                                                                                                                                                                                                                               | 2 unit cases; the pin checked by adding `continue-on-error`                                                              |
+| H9   | `ee4196d7f` | The runbook says migration dates must follow the order of merge                                                                                                                                                                                                                                                                                | Documents only                                                                                                           |
+| H10  | (no code)   | The fifth rebuild, below                                                                                                                                                                                                                                                                                                                       | Not a code change                                                                                                        |
+| H11  | `2051be8e5` | psql gets the URL's parsed parts as libpq keywords, never the raw string, and `-X`; a URL that libpq would read as another host is refused                                                                                                                                                                                                     | 16 cases of `tests/unit/scripts/psql.test.ts`                                                                            |
+
+**H2, decided with evidence.** With the bootstrap's `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO service_role` removed, CI's `migrate` job, on the operator's own Postgres, stopped at "Apply migrations": `20261026105000_missionaries_server_only_reads.sql` asserts "service_role lost SELECT on public.missionaries" (issue #2364), and eight steps failed from there. So the line stays as the plain replay's own minimal grant, not a statement of hosted Supabase's defaults. CI's `migrate` job is therefore not privilege-identical to a hosted database; section 13 records that for WP4a.
+
+**H3, the forms and the revision.** Supavisor v2.10.1, commit `83ca93e1f463f37ff7882aaa87f810a0de5ef9cc`, its newest tag on 18 November 2026: `lib/supavisor/errors/wrong_password_error.ex` and `password_changed_error.ex` send "password authentication failed for user" with SQLSTATE 28P01; `lib/supavisor/auth_query.ex` (`parse_secret/2`) reports "unsupported or invalid secret format" for a secret that is neither SCRAM nor MD5; `lib/supavisor/circuit_breaker.ex` blocks a project's client address for 120 seconds after 10 refused logins in 150 seconds. Supabase does not publish which version its pooler runs, so the bound is an estimate for hosted. The preview project's refusal at 11:08 UTC carried no "recently changed" hint.
+
+**H11.** psql 17.11, given `postgres://localhost?x=@probe-target.invalid/db`, tried to resolve `probe-target.invalid`, while the helper had called the URL local. Now the helper refuses it, and psql is started with `host='127.0.0.1' port='54322' dbname='postgres' user='postgres' -X`, the password only in `PGPASSWORD`. Every caller's tests pass, the `--hosted-defaults` replay and CI's `migrate` job included, and the fifth rebuild's reset wrapper read the marker through it.
+
+**H10, the fifth rebuild**, from `e65d6b87f`, against a fresh flagged replay with fingerprint version 2 (`bb5b8f68d4febab499b5df1f40284268c66f9cbbcc779529041c1d0979e6180f`, 5,896 objects, three of them the default privileges of `postgres` in `public`, each `postgres` and `service_role` only):
+
+- `preview-rebuild`, 16:04:51-16:11:47: the pinned CLI checked; "Put back the platform's default privileges in public", which commits only after the pre-reset check of H5 passed; the reset, 109 migrations (14 rollback files skipped), the seed; one seeded login replaced; both CMS secrets already logged in; Payload's five migrations in 20 seconds.
+- `gates`, 16:11:47-16:11:58: "Schema fingerprints match", 0 differing, the default-privilege rows included.
+- `record-heads`, to 16:12:15; `preflight`, to 16:12:32: 0 pending on both ledgers, marked `disposable`.
