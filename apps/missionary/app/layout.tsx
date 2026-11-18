@@ -28,7 +28,7 @@ import {
   MissionaryLayoutShell,
   MissionaryWorkspaceChrome,
 } from "@/app/_providers/missionary-layout-shell";
-import { WorkspaceSkeleton } from "@/app/_providers/workspace-skeleton";
+import { RouteSkeleton } from "@/app/_providers/route-skeleton";
 import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
 import { isMissionaryRoleGatePublicPath } from "@/lib/route-policy";
 import "./globals.css";
@@ -178,7 +178,7 @@ export default function RootLayout({
                       <SessionRetainedDraftProvider>
                         <MissionaryLayoutShell
                           workspace={
-                            <Suspense fallback={<WorkspaceSkeleton />}>
+                            <Suspense fallback={<RouteSkeleton />}>
                               <MissionaryWorkspace>
                                 {children}
                               </MissionaryWorkspace>

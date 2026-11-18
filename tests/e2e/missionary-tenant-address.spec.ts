@@ -305,6 +305,9 @@ test.describe("production build", () => {
     );
     // The one shell holds no tenant at all (A15).
     expect(tenantFreeShellProblems(shell)).toEqual([]);
+    // It paints the route's own skeleton, chosen by the route path, inside
+    // the workspace's chrome (council round 2, AR11).
+    expect(shell).toContain('data-route-skeleton="/tasks"');
     for (const tenant of [DEMO, SECOND]) {
       await signInAs(page, "missionary", "twoTenantMissionary", baseURL());
       const response = await page.request.get(tenantPath(tenant, "/tasks"));
