@@ -624,7 +624,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "b6e4ff761c9f96a61492c1ff8a724e17861bf4647ef3b39602dd3d33b57b9714"
+          "sha256": "da1b2f57078966f3875e38ad551e2cadcd692650f2fb86f218351a0b3d580bf5"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",
@@ -665,7 +665,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "b6e4ff761c9f96a61492c1ff8a724e17861bf4647ef3b39602dd3d33b57b9714"
+          "sha256": "da1b2f57078966f3875e38ad551e2cadcd692650f2fb86f218351a0b3d580bf5"
         },
         {
           "path": "apps/donor/features/donor/components/donor-portal-header.tsx",

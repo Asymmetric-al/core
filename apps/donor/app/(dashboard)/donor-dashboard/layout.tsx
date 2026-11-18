@@ -9,7 +9,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { DonorPortalContentSkeleton } from "./donor-portal-content-skeleton";
+import { DonorPortalFrameSkeleton } from "./donor-portal-frame-skeleton";
 import { DonorPortalHeader } from "../../../features/donor/components/donor-portal-header";
 
 import type { Metadata } from "next";
@@ -34,23 +34,27 @@ export default function DonorDashboardLayout({
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <DonorPortalHeader />
-      <div className="flex flex-1 flex-col">
-        <main id="main-content" className="flex-1 pt-8 pb-20">
-          <RouteMainViewTransitionBoundary className="container-responsive">
-            {/*
-             * The pages render inside the portal's document scope (WP2b,
-             * AL-2675), so they wait for the request's donor membership as
-             * Mission Control's and the workspace's pages wait for theirs.
-             * The fallback is a skeleton, never `null`, and each route's own
-             * `loading.tsx` still streams inside the scoped document.
-             */}
-            <Suspense fallback={<DonorPortalContentSkeleton />}>
-              <DonorPortalDocument>{children}</DonorPortalDocument>
-            </Suspense>
-          </RouteMainViewTransitionBoundary>
-        </main>
-      </div>
+      {/*
+       * The header and the pages render inside the portal's document scope
+       * (WP2b, AL-2675), as the workspace's chrome renders inside its
+       * `TenantDocument`: the header reads the donor's own data through the
+       * own-API wrapper, and a call made outside the scope would leave with
+       * no tenant or assignment. Both wait for the request's donor
+       * membership behind a skeleton frame, never `null`, and each route's
+       * own `loading.tsx` still streams inside the scoped document.
+       */}
+      <Suspense fallback={<DonorPortalFrameSkeleton />}>
+        <DonorPortalDocument>
+          <DonorPortalHeader />
+          <div className="flex flex-1 flex-col">
+            <main id="main-content" className="flex-1 pt-8 pb-20">
+              <RouteMainViewTransitionBoundary className="container-responsive">
+                {children}
+              </RouteMainViewTransitionBoundary>
+            </main>
+          </div>
+        </DonorPortalDocument>
+      </Suspense>
       <DonorPortalFooter />
     </div>
   );
