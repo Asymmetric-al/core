@@ -1011,7 +1011,7 @@ export function ContributionsMainBody({
         }
       };
       const body = await continueContributionBatch({
-        fetcher: fetch,
+        fetcher: ownApiFetch,
         initialResponse: batchResponse,
         onContinuationAction: rememberContinuationAction,
         onProgress: (batch) => {
