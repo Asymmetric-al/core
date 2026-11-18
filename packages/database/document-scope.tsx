@@ -18,8 +18,13 @@ import type { ReactNode } from "react";
  * storage carry the person and the tenant.
  *
  * Signed-in pages of Mission Control and the missionary workspace always have
- * one. Everything else (sign-in, the chooser, Web Studio, the donor portal)
- * has none: `useDocumentScope()` and `getDocumentScope()` return `null`.
+ * one, and so does the donor portal, from the person's one live donor
+ * membership (`PortalDocument` in `@asym/auth/portal-document`; WP2b). The
+ * portal's address names no tenant, so its scope is fixed with a boundary,
+ * the portal's path: outside it `getDocumentScope()` returns `null`, and
+ * leaving it is a document load (record D-41). Everything else (sign-in, the
+ * chooser, Web Studio, the public website) has none: `useDocumentScope()` and
+ * `getDocumentScope()` return `null`.
  */
 export interface DocumentScope {
   /** The signed-in person: their Supabase user id. */
@@ -40,6 +45,18 @@ const DocumentScopeContext = createContext<DocumentScope | null>(null);
 /** Browser only: the scope this document was loaded with, once fixed. */
 let fixedScope: DocumentScope | null = null;
 
+/**
+ * Browser only: the path the fixed scope applies under, for a document whose
+ * address names no tenant (the donor portal's `/donor-dashboard`), or `null`.
+ */
+let fixedBoundary: string | null = null;
+
+function insideBoundary(): boolean {
+  if (fixedBoundary === null) return true;
+  const path = window.location.pathname;
+  return path === fixedBoundary || path.startsWith(`${fixedBoundary}/`);
+}
+
 function sameScope(a: DocumentScope, b: DocumentScope): boolean {
   return (
     a.userId === b.userId &&
@@ -54,10 +71,14 @@ function sameScope(a: DocumentScope, b: DocumentScope): boolean {
  * when the document already holds another scope. A no-op on the server,
  * where module state would be shared by every request.
  */
-function fixDocumentScope(scope: DocumentScope): boolean {
+function fixDocumentScope(
+  scope: DocumentScope,
+  boundary: string | null,
+): boolean {
   if (typeof window === "undefined") return true;
   if (fixedScope === null) {
     fixedScope = Object.freeze({ ...scope });
+    fixedBoundary = boundary;
     return true;
   }
   return sameScope(fixedScope, scope);
@@ -71,16 +92,24 @@ function fixDocumentScope(scope: DocumentScope): boolean {
  * change of signed-in person could cause, it renders nothing and reloads.
  *
  * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation`, which also
- * guards the page address; apps do not render it directly.
+ * guards the page address, and by `PortalDocument` in
+ * `@asym/auth/portal-document`, with the portal's path as `boundary`; apps do
+ * not render it directly.
  */
 export function DocumentScopeProvider({
   scope,
+  boundary,
   children,
 }: {
   scope: DocumentScope;
+  /**
+   * For a document whose address names no tenant: the path the scope applies
+   * under. Outside it `getDocumentScope()` returns `null`.
+   */
+  boundary?: string;
   children: ReactNode;
 }) {
-  const fixed = fixDocumentScope(scope);
+  const fixed = fixDocumentScope(scope, boundary ?? null);
 
   useEffect(() => {
     if (!fixed) reloadDocument();
@@ -101,9 +130,11 @@ export function useDocumentScope(): DocumentScope | null {
 
 /**
  * The document's scope for code outside React, such as the browser client
- * and the fetch wrapper. Browser only: always `null` on the server, and
- * `null` until a signed-in page has rendered its provider.
+ * and the fetch wrapper. Browser only: always `null` on the server, `null`
+ * until a signed-in page has rendered its provider, and `null` while the
+ * address is outside the scope's boundary, if it has one.
  */
 export function getDocumentScope(): DocumentScope | null {
-  return typeof window === "undefined" ? null : fixedScope;
+  if (typeof window === "undefined" || fixedScope === null) return null;
+  return insideBoundary() ? fixedScope : null;
 }

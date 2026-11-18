@@ -15,6 +15,11 @@ import type { AuthContext } from "../../../packages/auth/context";
 
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 
+// jsdom cannot load a new document; the reload is observed instead.
+const reload = vi.hoisted(() => ({ reloadDocument: vi.fn() }));
+vi.mock("@asym/database/document-reload", () => reload);
+vi.mock("../../../packages/database/document-reload", () => reload);
+
 const TENANT = "00000000-0000-0000-0000-000000000001";
 const ASSIGNMENT = "00000000-0000-4000-8000-0000000000d1";
 const USER = "00000000-0000-4000-8000-0000000000a1";
@@ -97,7 +102,15 @@ describe("readPortalDocumentScope", () => {
 });
 
 describe("PortalDocument", () => {
+  afterEach(() => {
+    window.history.replaceState(null, "", "/");
+    reload.reloadDocument.mockClear();
+  });
+
   it("fixes the scope for the document, so the wrapper and the data layer read it", async () => {
+    // Record D-41 (council round 1 on slice B, SB2): the portal's scope
+    // applies under the portal's path, so the page is at a portal address.
+    window.history.replaceState(null, "", "/donor-dashboard");
     vi.resetModules();
     const { PortalDocument } =
       await import("../../../packages/auth/portal-document");
@@ -126,5 +139,60 @@ describe("PortalDocument", () => {
         .querySelector("[data-tenant-assignment]")
         ?.getAttribute("data-tenant-assignment"),
     ).toBe(ASSIGNMENT);
+  });
+
+  /** A portal page at `path`, as the portal's layout renders it. */
+  async function renderPortalAt(path: string) {
+    window.history.replaceState(null, "", path);
+    vi.resetModules();
+    const { PortalDocument } =
+      await import("../../../packages/auth/portal-document");
+    const scopeModule =
+      await import("../../../packages/database/document-scope");
+    const scope = {
+      userId: USER,
+      tenantId: TENANT,
+      assignmentId: ASSIGNMENT,
+      addressPrefix: "",
+    };
+    const view = render(
+      <PortalDocument scope={scope}>
+        <p>portal page</p>
+      </PortalDocument>,
+    );
+    return { view, scope, ...scopeModule };
+  }
+
+  it("leaves no scope outside the portal: both scope functions return nothing there (record D-41)", async () => {
+    const { getDocumentScope, useDocumentScope, scope } = await renderPortalAt(
+      "/donor-dashboard/history",
+    );
+    expect(getDocumentScope()).toEqual(scope);
+
+    // A soft navigation to the public site, in the donor app's one root layout.
+    window.history.pushState(null, "", "/checkout?amount=50");
+    expect(getDocumentScope()).toBeNull();
+    function PublicProbe() {
+      return <p>{`public scope ${useDocumentScope()?.tenantId ?? "none"}`}</p>;
+    }
+    render(<PublicProbe />);
+    expect(screen.getByText("public scope none")).toBeTruthy();
+  });
+
+  it("makes leaving the portal a document load (record D-41)", async () => {
+    const { view } = await renderPortalAt("/donor-dashboard");
+
+    window.history.pushState(null, "", "/workers");
+    view.unmount();
+
+    expect(reload.reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reload while the address is still in the portal", async () => {
+    const { view } = await renderPortalAt("/donor-dashboard/history");
+
+    view.unmount();
+
+    expect(reload.reloadDocument).not.toHaveBeenCalled();
   });
 });
