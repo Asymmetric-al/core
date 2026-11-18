@@ -27,8 +27,7 @@ import {
 import {
   parseReactDoctorReport,
   reactDoctorConfigHash,
-  reviewReactDoctorFindings,
-} from "./react-doctor-ledger.mjs";
+} from "./react-doctor-report.mjs";
 
 const rootFiles = new Set([
   "package.json",
@@ -226,13 +225,275 @@ export function createAuditSnapshot({
   return snapshot;
 }
 
+function scanTargetWithCli({ directory, snapshot }) {
+  const command = createSpawnCommand(
+    createReactDoctorCommand(directory, [
+      "--scope",
+      "full",
+      "--json",
+      "--blocking",
+      "none",
+      "--no-respect-inline-disables",
+      "--no-cache",
+    ]),
+  );
+  return spawnSync(command.command, command.args, {
+    cwd: snapshot,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    env: {
+      ...process.env,
+      REACT_DOCTOR_NO_TELEMETRY: "1",
+      REACT_DOCTOR_NO_CACHE: "1",
+    },
+  });
+}
+
+function gitOutput(root, args, failure) {
+  const result = spawnSync("git", args, {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
+    env: repositoryGitEnvironment(),
+  });
+  if (result.error || result.status !== 0) throw new Error(failure);
+  return result.stdout;
+}
+
+// Lists the files the working tree adds, modifies or renames relative to the
+// merge base of HEAD and the revision, plus untracked files that Git does not
+// ignore. Using the merge base keeps commits the base gained after the branch
+// was cut out of the list.
+export function resolveChangedSince(root, revision) {
+  const unresolved = `Cannot resolve the base revision "${revision}". Pass a branch, tag or commit, as in --changed-since=origin/develop.`;
+  if (
+    typeof revision !== "string" ||
+    revision === "" ||
+    revision.startsWith("-")
+  )
+    throw new Error(unresolved);
+  const commit = gitOutput(
+    root,
+    ["rev-parse", "--verify", "--quiet", `${revision}^{commit}`],
+    unresolved,
+  ).trim();
+  const mergeBase = gitOutput(
+    root,
+    ["merge-base", commit, "HEAD"],
+    `The base revision "${revision}" shares no history with HEAD.`,
+  ).trim();
+  const changed = gitOutput(
+    root,
+    ["diff", "--name-only", "--diff-filter=AMR", "-M", "-z", mergeBase, "--"],
+    `Git could not list the files changed since the merge base of "${revision}".`,
+  );
+  const untracked = gitOutput(
+    root,
+    ["ls-files", "--others", "--exclude-standard", "-z"],
+    "Git could not list the untracked files.",
+  );
+  const files = [
+    ...new Set(`${changed}\0${untracked}`.split("\0").filter(Boolean)),
+  ].sort();
+  return { revision, mergeBase, files };
+}
+
+export function assertCompleteReactDoctorScans(
+  scans,
+  expectedTargets = REACT_DOCTOR_TARGETS,
+) {
+  const targets = scans.map((scan) => scan.target);
+  if (
+    new Set(targets).size !== targets.length ||
+    targets.length !== expectedTargets.length ||
+    expectedTargets.some((target) => !targets.includes(target))
+  )
+    throw new Error(
+      "The audit did not complete every required target exactly once.",
+    );
+  for (const scan of scans)
+    if (
+      !Array.isArray(scan.diagnostics) ||
+      !Array.isArray(scan.skippedChecks) ||
+      scan.skippedChecks.length ||
+      scan.complete !== true ||
+      !Number.isSafeInteger(scan.scannedFileCount) ||
+      scan.scannedFileCount < 1
+    )
+      throw new Error(
+        `Target ${scan.target} has skipped, incomplete, or missing checks.`,
+      );
+}
+
+function repositoryFile(target, filePath) {
+  const relative =
+    typeof filePath === "string" ? filePath.replaceAll("\\", "/") : "";
+  const file = path.posix.join(target, relative);
+  if (
+    !relative ||
+    path.posix.isAbsolute(relative) ||
+    /^[A-Za-z]:/.test(relative) ||
+    !file.startsWith(`${target}/`)
+  )
+    throw new Error(
+      `A ${target} diagnostic names a file outside its target: ${String(filePath)}`,
+    );
+  return file;
+}
+
+const ruleId = (finding) => `${finding.plugin}/${finding.rule}`;
+
+// Code-unit order keeps findings.json identical across Node and ICU builds.
+const byCodeUnit = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
+
+function compareFindings(left, right) {
+  return (
+    byCodeUnit(left.file, right.file) ||
+    (left.line ?? 0) - (right.line ?? 0) ||
+    (left.column ?? 0) - (right.column ?? 0) ||
+    byCodeUnit(ruleId(left), ruleId(right)) ||
+    byCodeUnit(String(left.message), String(right.message))
+  );
+}
+
+function renderSummary(findings, listed) {
+  const { totals, baseRevision } = findings;
+  const oneLine = (text) =>
+    String(text ?? "")
+      .replace(/\s+/g, " ")
+      .trim();
+  const lines = [
+    "# React Doctor audit summary",
+    "",
+    "This audit is advisory. Every target scanned completely, and its findings",
+    "fail no check. Triage them as `docs/guides/development/react-doctor.md`",
+    "describes.",
+    "",
+    findings.profile === "raw"
+      ? "- Profile: raw, every rule including the disabled `react-in-jsx-scope` (`bun run react-doctor:raw`)"
+      : "- Profile: applicable rules from `doctor.config.json` (`bun run react-doctor:audit`)",
+    `- React Doctor: ${findings.reactDoctorVersion}`,
+    `- \`doctor.config.json\` SHA-256: \`${findings.configHash}\``,
+    baseRevision
+      ? `- Base revision: \`${baseRevision.revision}\`, merge base \`${baseRevision.mergeBase}\``
+      : "- Base revision: none",
+    `- Findings: ${totals.findings} across ${Object.keys(totals.byTarget).length} targets`,
+    "",
+    "## Findings per target",
+    "",
+    "| Target | Findings |",
+    "| --- | ---: |",
+    ...Object.entries(totals.byTarget).map(
+      ([target, count]) => `| \`${target}\` | ${count} |`,
+    ),
+    "",
+    "## Findings per rule",
+    "",
+  ];
+  const rules = Object.entries(totals.byRule);
+  if (rules.length)
+    lines.push(
+      "| Rule | Findings |",
+      "| --- | ---: |",
+      ...rules.map(([rule, count]) => `| \`${rule}\` | ${count} |`),
+    );
+  else lines.push("No findings.");
+  lines.push("", "## Listed findings", "");
+  lines.push(
+    baseRevision
+      ? `${listed.length} of ${totals.findings} findings are in files the working tree adds, modifies or renames relative to \`${baseRevision.mergeBase}\`, the merge base of \`${baseRevision.revision}\` and HEAD, or in untracked files.`
+      : `All ${totals.findings} findings, grouped by file.`,
+  );
+  let file;
+  for (const finding of listed) {
+    if (finding.file !== file) {
+      file = finding.file;
+      lines.push("", `### \`${file}\``, "");
+    }
+    lines.push(
+      `- ${finding.line ?? "?"}:${finding.column ?? "?"} ${finding.severity} \`${ruleId(finding)}\`: ${oneLine(finding.message) || "(no message)"}`,
+    );
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+// Builds findings.json and summary.md from complete scans. Findings never
+// change the exit code; only an incomplete scan fails, by throwing.
+export function createReactDoctorReport({
+  scans,
+  configHash,
+  raw = false,
+  changedSince = null,
+  expectedTargets = REACT_DOCTOR_TARGETS,
+  version = REACT_DOCTOR_VERSION,
+}) {
+  assertCompleteReactDoctorScans(scans, expectedTargets);
+  const changed = changedSince ? new Set(changedSince.files) : null;
+  const all = [];
+  for (const scan of scans)
+    for (const diagnostic of scan.diagnostics) {
+      const finding = {
+        target: scan.target,
+        file: repositoryFile(scan.target, diagnostic.filePath),
+        line: diagnostic.line ?? null,
+        column: diagnostic.column ?? null,
+        plugin: diagnostic.plugin,
+        rule: diagnostic.rule,
+        severity: diagnostic.severity,
+        message: diagnostic.message ?? null,
+      };
+      if (changed) finding.changed = changed.has(finding.file);
+      all.push(finding);
+    }
+  all.sort(compareFindings);
+  const byTarget = Object.fromEntries(
+    expectedTargets.map((target) => [target, 0]),
+  );
+  const ruleCounts = new Map();
+  for (const finding of all) {
+    byTarget[finding.target] += 1;
+    ruleCounts.set(ruleId(finding), (ruleCounts.get(ruleId(finding)) ?? 0) + 1);
+  }
+  const byRule = Object.fromEntries(
+    [...ruleCounts].sort(
+      ([leftRule, left], [rightRule, right]) =>
+        right - left || byCodeUnit(leftRule, rightRule),
+    ),
+  );
+  const findings = {
+    schemaVersion: 1,
+    profile: raw ? "raw" : "applicable",
+    reactDoctorVersion: version,
+    configHash,
+    baseRevision: changedSince
+      ? { revision: changedSince.revision, mergeBase: changedSince.mergeBase }
+      : null,
+    totals: { findings: all.length, byTarget, byRule },
+    findings: all,
+  };
+  const listed = changed ? all.filter((finding) => finding.changed) : all;
+  return {
+    exitCode: 0,
+    findings,
+    listed,
+    summary: renderSummary(findings, listed),
+  };
+}
+
 export function runReactDoctorAudit({
   root,
   outputDirectory,
   raw = false,
-  check = false,
+  changedSince,
+  scanTarget = scanTargetWithCli,
+  log = console.log,
 }) {
   const absoluteRoot = realpathSync(root);
+  // Resolve the base revision first, so a bad one fails before any scan.
+  const changed =
+    changedSince === undefined || changedSince === null
+      ? null
+      : resolveChangedSince(absoluteRoot, changedSince);
   const output = outputDirectory
     ? path.resolve(outputDirectory)
     : mkdtempSync(path.join(tmpdir(), "core-react-doctor-audit-"));
@@ -277,27 +538,7 @@ export function runReactDoctorAudit({
   const scans = [];
   for (const target of REACT_DOCTOR_TARGETS) {
     const directory = path.join(snapshot, target);
-    const command = createSpawnCommand(
-      createReactDoctorCommand(directory, [
-        "--scope",
-        "full",
-        "--json",
-        "--blocking",
-        "none",
-        "--no-respect-inline-disables",
-        "--no-cache",
-      ]),
-    );
-    const result = spawnSync(command.command, command.args, {
-      cwd: snapshot,
-      encoding: "utf8",
-      maxBuffer: 64 * 1024 * 1024,
-      env: {
-        ...process.env,
-        REACT_DOCTOR_NO_TELEMETRY: "1",
-        REACT_DOCTOR_NO_CACHE: "1",
-      },
-    });
+    const result = scanTarget({ target, directory, snapshot });
     writeFileSync(
       path.join(output, `${target.replaceAll("/", "-")}.stderr.log`),
       result.stderr ?? "",
@@ -306,15 +547,22 @@ export function runReactDoctorAudit({
       throw new Error(
         `React Doctor could not complete ${target}: ${result.error?.message ?? result.status}`,
       );
-    const report = JSON.parse(result.stdout);
+    let report;
+    try {
+      report = JSON.parse(result.stdout);
+    } catch {
+      throw new Error(
+        `React Doctor returned an unreadable report for ${target}.`,
+      );
+    }
     writeFileSync(
       path.join(output, `${target.replaceAll("/", "-")}.json`),
       JSON.stringify(report, null, 2) + "\n",
     );
     const scan = parseReactDoctorReport(report, target, directory);
     scans.push(scan);
-    console.log(
-      `${target}: ${scan.diagnostics.length} raw diagnostics, ${scan.scannedFileCount} files, no skipped checks`,
+    log(
+      `${target}: ${scan.diagnostics.length} findings, ${scan.scannedFileCount} files scanned, no skipped checks`,
     );
   }
   writeFileSync(
@@ -335,59 +583,87 @@ export function runReactDoctorAudit({
       2,
     ) + "\n",
   );
-  if (raw) {
-    console.log(`Unsuppressed all-rule audit retained at ${output}`);
-    return { output, scans, raw: true, exitCode: 0 };
-  }
-  const ledgerPath = path.join(
-    absoluteRoot,
-    "docs/qa/react-doctor/exceptions.json",
-  );
-  const ledger = existsSync(ledgerPath)
-    ? JSON.parse(readFileSync(ledgerPath, "utf8"))
-    : {
-        schemaVersion: 1,
-        reactDoctorVersion: REACT_DOCTOR_VERSION,
-        configHash,
-        exceptions: [],
-      };
-  const reviewed = reviewReactDoctorFindings(scans, ledger, {
-    root: absoluteRoot,
-    configHash,
-  });
-  writeFileSync(
-    path.join(output, "actionable.json"),
-    JSON.stringify(
-      { version: REACT_DOCTOR_VERSION, configHash, ...reviewed },
-      null,
-      2,
-    ) + "\n",
-  );
-  console.log(
-    `${reviewed.actionable.length} actionable findings; ${reviewed.excepted.length} exact, evidence-backed exceptions. Reports: ${output}`,
-  );
-  return {
-    output,
+  const report = createReactDoctorReport({
     scans,
-    ...reviewed,
-    exitCode: check && reviewed.actionable.length ? 1 : 0,
+    configHash,
+    raw,
+    changedSince: changed,
+  });
+  const findingsPath = path.join(output, "findings.json");
+  const summaryPath = path.join(output, "summary.md");
+  writeFileSync(findingsPath, JSON.stringify(report.findings, null, 2) + "\n");
+  writeFileSync(summaryPath, report.summary);
+  const { totals } = report.findings;
+  log(
+    `${totals.findings} findings across ${REACT_DOCTOR_TARGETS.length} targets (${raw ? "raw profile" : "applicable rules"}). This audit is advisory: findings do not fail it.`,
+  );
+  if (changed)
+    log(
+      `${report.listed.length} of them are in files changed since ${changed.mergeBase}, the merge base of ${changed.revision} and HEAD.`,
+    );
+  log(`Findings: ${findingsPath}`);
+  log(`Summary: ${summaryPath}`);
+  return { output, scans, ...report };
+}
+
+export function parseReactDoctorAuditArgs(args) {
+  const options = {
+    raw: false,
+    outputDirectory: undefined,
+    changedSince: undefined,
   };
+  const seen = new Set();
+  const unknown = [];
+  for (const arg of args) {
+    const flag = arg.split("=", 1)[0];
+    if (seen.has(flag)) throw new Error(`${flag} may be given only once.`);
+    if (arg === "--raw") options.raw = true;
+    else if (arg.startsWith("--output=")) {
+      options.outputDirectory = arg.slice("--output=".length);
+      if (!options.outputDirectory)
+        throw new Error("--output needs a fresh, empty directory.");
+    } else if (arg.startsWith("--changed-since=")) {
+      options.changedSince = arg.slice("--changed-since=".length);
+      if (!options.changedSince)
+        throw new Error(
+          "--changed-since needs a revision, as in --changed-since=origin/develop.",
+        );
+    } else {
+      unknown.push(arg);
+      continue;
+    }
+    seen.add(flag);
+  }
+  if (unknown.length)
+    throw new Error(`Unknown audit arguments: ${unknown.join(", ")}`);
+  return options;
+}
+
+// Every failure, including bad arguments, is reported as unavailable
+// evidence with exit code 1, so it is never read as a clean result.
+export function runReactDoctorAuditCommand(
+  args,
+  {
+    root,
+    runAudit = runReactDoctorAudit,
+    log = console.log,
+    logError = console.error,
+  } = {},
+) {
+  try {
+    const options = parseReactDoctorAuditArgs(args);
+    return runAudit({ root, ...options, log }).exitCode;
+  } catch (error) {
+    logError(
+      `React Doctor audit evidence is unavailable: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return 1;
+  }
 }
 
 const scriptPath = fileURLToPath(import.meta.url);
 if (process.argv[1] && path.resolve(process.argv[1]) === scriptPath) {
-  const args = process.argv.slice(2);
-  const outputFlag = args.find((arg) => arg.startsWith("--output="));
-  const unknown = args.filter(
-    (arg) => !["--raw", "--check"].includes(arg) && arg !== outputFlag,
-  );
-  if (unknown.length)
-    throw new Error(`Unknown audit arguments: ${unknown.join(", ")}`);
-  const result = runReactDoctorAudit({
+  process.exitCode = runReactDoctorAuditCommand(process.argv.slice(2), {
     root: path.resolve(path.dirname(scriptPath), ".."),
-    outputDirectory: outputFlag?.slice("--output=".length),
-    raw: args.includes("--raw"),
-    check: args.includes("--check"),
   });
-  process.exitCode = result.exitCode;
 }

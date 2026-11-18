@@ -6,7 +6,7 @@
 
 ## 2. Advisory audit runner
 
-- [ ] 2.1 Write failing tests, against pure functions the audit calls, for the report rules in design D1 and D2:
+- [x] 2.1 Write failing tests, against pure functions the audit calls, for the report rules in design D1 and D2:
   - complete scans with findings give exit code 0;
   - a missing or repeated target and a scan with skipped checks fail with an "evidence unavailable" error;
   - `findings.json` carries the version, the config hash, the base revision and every finding's target, file, line, column, plugin, rule, severity and message;
@@ -18,8 +18,8 @@
 
   Build the changed-file cases in a temporary Git repository with a branch that diverges from its base after the base moves on. Verify that each new test fails before the implementation and passes after it
 
-- [ ] 2.2 Move `parseReactDoctorReport` and the config-hash helper into `scripts/react-doctor-report.mjs`. Rename `tests/unit/scripts/react-doctor-ledger.test.ts` to `react-doctor-report.test.ts`, keeping its supported CLI report boundary cases byte-identical. Move the "fails closed when any required project or check is absent" case to the audit's completeness check, and move the per-diagnostic severity, fingerprint, plugin and rule checks from `reviewReactDoctorFindings` into `parseReactDoctorReport`. Verify that the renamed file and `tests/unit/scripts/react-doctor-snapshot.test.ts` pass unchanged
-- [ ] 2.3 Implement design D1 and D2 in `scripts/react-doctor-audit.mjs`:
+- [x] 2.2 Move `parseReactDoctorReport` and the config-hash helper into `scripts/react-doctor-report.mjs`. Rename `tests/unit/scripts/react-doctor-ledger.test.ts` to `react-doctor-report.test.ts`, keeping its supported CLI report boundary cases byte-identical. Move the "fails closed when any required project or check is absent" case to the audit's completeness check, and move the per-diagnostic severity, fingerprint, plugin and rule checks from `reviewReactDoctorFindings` into `parseReactDoctorReport`. Verify that the renamed file and `tests/unit/scripts/react-doctor-snapshot.test.ts` pass unchanged
+- [x] 2.3 Implement design D1 and D2 in `scripts/react-doctor-audit.mjs`:
   - the summary files for both the default and raw modes;
   - `--changed-since=<revision>`;
   - exit 0 on any complete scan;
@@ -28,7 +28,7 @@
 
   Verify that the tests from 2.1 pass
 
-- [ ] 2.4 Delete `scripts/react-doctor-ledger.mjs`, the ledger-only test cases and `docs/qa/react-doctor/exceptions.json`, and remove the `react-doctor:check` script from the root `package.json`. Verify that `git grep -n -E "react-doctor-ledger|reviewReactDoctorFindings|evidenceFileHash|react-doctor:check" -- scripts tests package.json` prints nothing, that `node scripts/react-doctor-audit.mjs --check` fails as an unknown argument before any scan, and that `bunx --no-install vitest run tests/unit/scripts/react-doctor-` passes
+- [x] 2.4 Delete `scripts/react-doctor-ledger.mjs`, the ledger-only test cases and `docs/qa/react-doctor/exceptions.json`, and remove the `react-doctor:check` script from the root `package.json`. Verify that `git grep -n -E "react-doctor-ledger|reviewReactDoctorFindings|evidenceFileHash|react-doctor:check" -- scripts tests package.json` prints nothing, that `node scripts/react-doctor-audit.mjs --check` fails as an unknown argument before any scan, and that `bunx --no-install vitest run tests/unit/scripts/react-doctor-` passes
 
 ## 3. Guide, skill and registries
 
