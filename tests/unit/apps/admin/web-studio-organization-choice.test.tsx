@@ -318,9 +318,17 @@ describe("the chooser's Web Studio form", () => {
       name: /Bravo Mission/,
     });
     expect(bravo.disabled).toBe(false);
+    bravo.focus();
     fireEvent.click(bravo);
 
-    await waitFor(() => expect(bravo.disabled).toBe(true));
+    // Busy and unavailable, but still focusable, so keyboard focus stays on
+    // it while the server answers (council r2, minor): a disabled button
+    // drops focus in the browser.
+    await waitFor(() =>
+      expect(bravo.getAttribute("aria-disabled")).toBe("true"),
+    );
+    expect(bravo.disabled).toBe(false);
+    expect(document.activeElement).toBe(bravo);
     expect(bravo.getAttribute("aria-busy")).toBe("true");
     expect(bravo.querySelector("svg")).not.toBeNull();
     expect(action).toHaveBeenCalledTimes(1);
