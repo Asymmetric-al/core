@@ -19,6 +19,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   DATABASE_URL_QUERY_KEYS,
+  DATABASE_URL_QUERY_ENV,
   SUPABASE_POOLER_HOST,
   databaseUrlHostProblem,
   databaseUrlProblem,
@@ -403,7 +404,10 @@ describe("the query a URL may carry (review K1)", () => {
 
   it.each(
     Object.entries(DATABASE_URL_QUERY_KEYS)
-      .filter(([key, entry]) => entry.psql && key !== "password")
+      .filter(
+        ([key, entry]) =>
+          entry.psql && key !== "password" && key !== "connect_timeout",
+      )
       .map(([key]) => key),
   )("passes %s through with its value intact", (key) => {
     const value = "a b'c\\d=e host=evil";
@@ -619,5 +623,40 @@ describe("the one check for an address (review L2)", () => {
       "postgresql://postgres@127.0.0.1:54322/postgres?options=-c%20role%3Dcms_owner";
     expect(databaseUrlProblem(session)).toBeNull();
     expect(databaseUrlProblem(session, { forPsql: true })).not.toBeNull();
+  });
+});
+
+// Review L3: the allowlist holds only what the repository uses. No address in
+// it sets a client certificate, its key or a revocation list, and libpq loads
+// an OpenSSL engine by name for an sslkey of the form engine:key.
+describe("the allowlist holds only what the repository uses (review L3)", () => {
+  it.each(["sslcert", "sslkey", "sslcrl", "sslcrldir"])("refuses %s", (key) => {
+    const url = `postgresql://postgres@127.0.0.1:54322/postgres?${key}=x`;
+    expect(isLoopbackDatabaseUrl(url)).toBe(false);
+    expect(() => psqlConnection(url, {})).toThrow(/refused for psql/);
+  });
+
+  it.each(["0", "-1", "1.5", "abc", "301", "", "007"])(
+    "refuses connect_timeout=%s: a whole number of seconds from 1 to 300",
+    (value) => {
+      const url = `postgresql://postgres@127.0.0.1:54322/postgres?connect_timeout=${value}`;
+      expect(isLoopbackDatabaseUrl(url)).toBe(false);
+      expect(() => psqlConnection(url, {})).toThrow(/connect_timeout/);
+    },
+  );
+
+  it.each(["1", "30", "300"])("accepts connect_timeout=%s", (value) => {
+    expect(
+      psqlConnection(
+        `postgresql://postgres@127.0.0.1:54322/postgres?connect_timeout=${value}`,
+        {},
+      ).connection,
+    ).toContain(`connect_timeout='${value}'`);
+  });
+
+  it("maps every allowed key to its libpq variable, and nothing else", () => {
+    expect(Object.keys(DATABASE_URL_QUERY_ENV).sort()).toEqual(
+      Object.keys(DATABASE_URL_QUERY_KEYS).sort(),
+    );
   });
 });

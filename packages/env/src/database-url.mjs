@@ -28,8 +28,10 @@ export const DATABASE_URL_ROUTING_KEYS = Object.freeze([
  * by psqlConnection (scripts/lib/psql.mjs) and by the release job's target
  * check, because libpq skips the blanks around a keyword and lets a later
  * value replace an earlier one: `?%20host=elsewhere` routed psql. The keys
- * come from what the repository's own URLs use and what the release job's
- * hosted connection needs.
+ * are only what the repository's own addresses use and what the release
+ * job's hosted connection needs (review L3): no client certificate, key or
+ * revocation list, since none is used and libpq loads an OpenSSL engine by
+ * name for an sslkey of the form engine:key.
  */
 export const DATABASE_URL_QUERY_KEYS = Object.freeze({
   sslmode: Object.freeze({
@@ -41,26 +43,6 @@ export const DATABASE_URL_QUERY_KEYS = Object.freeze({
     psql: true,
     reason:
       "the CA file the release job verifies the pooler against (verify-full); a local file, not a target.",
-  }),
-  sslcert: Object.freeze({
-    psql: true,
-    reason:
-      "a TLS client certificate file; it names a local file, never a server or a login.",
-  }),
-  sslkey: Object.freeze({
-    psql: true,
-    reason:
-      "the key file of that certificate; it names a local file, never a server or a login.",
-  }),
-  sslcrl: Object.freeze({
-    psql: true,
-    reason:
-      "a TLS revocation list file; it can only refuse a server certificate, never choose a server.",
-  }),
-  sslcrldir: Object.freeze({
-    psql: true,
-    reason:
-      "a directory of TLS revocation lists; it can only refuse a server certificate, never choose one.",
   }),
   application_name: Object.freeze({
     psql: true,
@@ -134,7 +116,7 @@ export function databaseUrlQueryProblem(databaseUrl, { forPsql = false } = {}) {
     return error.message;
   }
   const seen = new Set();
-  for (const [key] of entries) {
+  for (const [key, value] of entries) {
     const shown = JSON.stringify(key.slice(0, 40));
     if (DATABASE_URL_ROUTING_KEYS.includes(key))
       return `the query key ${shown} is a routing override`;
@@ -142,6 +124,9 @@ export function databaseUrlQueryProblem(databaseUrl, { forPsql = false } = {}) {
       return `the query key ${shown} is not a plain libpq keyword`;
     if (!Object.hasOwn(DATABASE_URL_QUERY_KEYS, key))
       return `the query key ${shown} is not one the repository allows`;
+    // Review L3: zero waits for ever, and libpq reads only a whole number.
+    if (key === "connect_timeout" && !/^(?:[1-9]\d?|[12]\d\d|300)$/.test(value))
+      return `the query key "connect_timeout" must be a whole number of seconds from 1 to 300`;
     if (forPsql && !DATABASE_URL_QUERY_KEYS[key].psql)
       return `the query key ${shown} is never handed to psql`;
     if (seen.has(key)) return `the query key ${shown} appears twice`;
