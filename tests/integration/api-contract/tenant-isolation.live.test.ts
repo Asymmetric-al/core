@@ -49,7 +49,12 @@ import {
   TENANT_A,
   type TenantFixture,
 } from "./fixtures";
-import { isRefusalOf, qualifiedName, type Relation } from "./isolation-probe";
+import {
+  isRefusalOf,
+  qualifiedName,
+  readAllPages,
+  type Relation,
+} from "./isolation-probe";
 import {
   adminDatabase,
   anonClient,
@@ -97,9 +102,6 @@ const REQUIRED_EVIDENCE = {
  * claim; then choose tables that still do.
  */
 const CLAIM_GATED_READS = ["funds", "campaigns", "assets"] as const;
-
-/** PostgREST's cap here is 1000 rows; pages never exceed it. */
-const PAGE = 1000;
 
 type Caller = {
   name: string;
@@ -236,27 +238,29 @@ describeLive("tenant isolation through the Data API", (stack) => {
     };
   }
 
-  /** Every value of `column` the caller can read, page by page. */
+  /** Every value of `column` the caller can read, paged by the declared max_rows. */
   async function readKeys(
     caller: Caller,
     relation: Relation,
     column: string,
     foreignOnly: boolean,
   ): Promise<{ values: string[] } | { error: PostgrestError }> {
-    const values: string[] = [];
-    for (let from = 0; ; from += PAGE) {
-      let query = api(caller.client, relation)
-        .select(column)
-        .order(column)
-        .range(from, from + PAGE - 1);
-      if (foreignOnly && caller.tenantId)
-        query = query.neq("tenant_id", caller.tenantId);
-      const { data, error } = await query;
-      if (error) return { error };
-      const rows = (data ?? []) as unknown as Record<string, unknown>[];
-      values.push(...rows.map((row) => String(row[column])));
-      if (rows.length < PAGE) return { values };
-    }
+    const read = await readAllPages<string, PostgrestError>(
+      async (from, to) => {
+        let query = api(caller.client, relation)
+          .select(column)
+          .order(column)
+          .range(from, to);
+        if (foreignOnly && caller.tenantId)
+          query = query.neq("tenant_id", caller.tenantId);
+        const { data, error } = await query;
+        if (error) return { error };
+        const rows = (data ?? []) as unknown as Record<string, unknown>[];
+        return { rows: rows.map((row) => String(row[column])) };
+      },
+      settings.maxRows,
+    );
+    return "error" in read ? read : { values: read.rows };
   }
 
   /** Resolves keys the caller read to tenants and the ruling, as the admin. */
