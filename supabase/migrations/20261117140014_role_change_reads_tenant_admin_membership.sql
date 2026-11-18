@@ -121,7 +121,7 @@ BEGIN
       AND elsewhere.is_active
       AND elsewhere.revoked_at IS NULL
   ) THEN
-    RAISE EXCEPTION 'This person also belongs to another organization, so their role cannot be changed here'
+    RAISE EXCEPTION 'This person also belongs to another organization; their role cannot be changed here'
       USING ERRCODE = '42501';
   END IF;
 
