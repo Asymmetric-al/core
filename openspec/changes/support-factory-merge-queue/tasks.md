@@ -87,6 +87,10 @@
 - [x] 7.2 Add the unknown-enqueue recovery to the runbook section "Merge
       queue on develop" and to design.md, and the queue to the spec scenario
       "The enqueue response is lost".
+- [x] 7.3 Record that required code-owner review under a queue still needs
+      GitHub's `clean` (design.md risk, runbook note) and pin it with two
+      readiness tests that pass as built: clean enqueues, `behind` stays
+      PR_READY.
 
 ## Workflow follow-up
 

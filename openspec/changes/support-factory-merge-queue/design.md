@@ -175,6 +175,20 @@ state; supporting a queue configured only in classic branch protection.
   requires a queue; not documented and not observed here] → Readiness would
   answer PR_READY ("Required human review pending (0/0)") and not enqueue. The
   runbook makes the first queued factory merge the check.
+- [With required code-owner review, a queue and a `behind` pull request,
+  readiness still asks for review] → Readiness proves a code owner's approval
+  only by GitHub's `clean`, because the reviews list does not say who owns the
+  code. A `behind` pull request therefore stops at PR_READY ("Required human
+  review pending (0/0, code owners)") and a person adds it with Merge when
+  ready; it is never enqueued without GitHub's proof. Treating `behind` as
+  proof under a queue would rest on undocumented behaviour (whether GitHub
+  reports `blocked` before `behind` while a review is missing), and the GraphQL
+  `reviewDecision` field ("The current status of this pull request with
+  respect to code review") does not say that it covers code owners and would
+  need a new read. `develop` requires no code-owner review (read 19 November
+  2026: no required approvals, `require_code_owner_reviews` false, no
+  rulesets), so under the "Only do what is needed" ruling this stays as built;
+  two readiness tests pin it.
 - [A queue required only in classic protection is invisible to REST] → The
   direct merge is refused and the issue blocks; the runbook uses a ruleset.
 - [The queue merges with its own merge method and message, not the factory's

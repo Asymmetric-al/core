@@ -628,6 +628,12 @@ human review pending (0/0)", and the round's `readiness-observation` shows
 readiness cannot tell; turn the queue off and report it. People merge by hand
 with **Merge when ready**.
 
+`develop` requires no code-owner review today. If it ever does, readiness
+counts that review as given only when GitHub reports the pull request
+`clean`, so a pull request GitHub reports `behind` stops at `PR_READY`
+("Required human review pending (0/0, code owners)") even under the queue. A
+person checks the code owner's approval and adds it with **Merge when ready**.
+
 Turn it off (restore the rule first, again so `develop` is never unprotected):
 
 1. Settings → Branches → edit the `develop` rule → tick **Require branches to
