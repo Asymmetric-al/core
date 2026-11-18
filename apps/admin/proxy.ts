@@ -1,6 +1,8 @@
 import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 
+import { readWebStudioTenantCookie } from "./src/cms/web-studio-tenant-cookie";
+
 export const proxy = createAuthMiddleware({
   publicRoutes: [
     "/auth/callback",
@@ -30,6 +32,10 @@ export const proxy = createAuthMiddleware({
   // it is no longer listed as public. Web Studio, the chooser, sign-in and
   // the API routes stay outside the tenant segment.
   tenantAddress: true,
+  // Web Studio's organization travels in its own signed cookie, scoped to
+  // `/web-studio`; Payload's REST routes under `/web-studio/api` only have
+  // their session refreshed (plan 5.2, "One stated exception: Web Studio").
+  webStudio: { readCookie: readWebStudioTenantCookie },
 });
 
 export const config = {
