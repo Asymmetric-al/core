@@ -127,8 +127,9 @@ tests, is:
   service-key reader of a tenant's members, and `private.profile_in_tenant`
   (INVOKER):
   - `tenant_member_directory`: display names for the member directory.
-  - `tenant_member_profiles`: a tenant's memberships joined to profiles, for
-    service-key server code (AL-2675 sweep, NR-68).
+  - `tenant_member_profiles` (INVOKER since council round 1 on WP2a): a
+    tenant's memberships joined to profiles, for service-key server code
+    (AL-2675 sweep, NR-68).
   - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
     a live membership in a tenant.
   - `assert_eve_retention_actor`

@@ -10,9 +10,13 @@
 -- returns one row per membership of the tenant, joined to the member's
 -- profile by login: live memberships only unless `include_revoked` asks for
 -- the rows a tenant keeps as history (an author or requester shown on a
--- record). Either id list narrows the result. Definer rights with an empty
--- search path; executable by the service role only, which is the only caller
--- (the member directory serves signed-in staff).
+-- record). Either id list narrows the result. Invoker rights with an empty
+-- search path (council round 1 on WP2a, F12): its only caller, the service
+-- role, holds USAGE on `authz` and every right on `authz.memberships`
+-- (20260226113000_authz_memberships_foundation.sql), SELECT on
+-- `public.profiles` (hosted Supabase's default privileges), and bypasses row
+-- security, so definer rights would add nothing. Executable by the service
+-- role only (the member directory serves signed-in staff).
 
 BEGIN;
 
@@ -33,7 +37,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $$
   SELECT

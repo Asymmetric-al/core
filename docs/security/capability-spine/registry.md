@@ -38,10 +38,10 @@ error. Keys match `^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$`. Every entry carries
 | `contributions.use_provider_actions`     | contributions | `ContributionCapability`           |
 | `contributions.manage_settings`          | contributions | `ContributionCapability`           |
 | `crm.gift_history.manage_view_defaults`  | crm           | `ContributionCapability`           |
-| `admin.dashboard.access`                 | admin         | `StaffCapability`                  |
-| `admin.crm.manage`                       | admin         | `StaffCapability`                  |
-| `admin.gifts.manage`                     | admin         | `StaffCapability`                  |
-| `admin.reports.view`                     | admin         | `StaffCapability`                  |
+| `admin.dashboard.access`                 | admin         | `StaffCapability` (retired)        |
+| `admin.crm.manage`                       | admin         | `StaffCapability` (retired)        |
+| `admin.gifts.manage`                     | admin         | `StaffCapability` (retired)        |
+| `admin.reports.view`                     | admin         | `StaffCapability` (retired)        |
 | `permissions.view`                       | permissions   | Meta-capability (Phase 3 Module 5) |
 | `permissions.propose_widening`           | permissions   | Meta-capability (maker)            |
 | `permissions.approve_widening`           | permissions   | Meta-capability (checker)          |
@@ -63,7 +63,7 @@ reproduces today's incumbent tiers (3 / 6 / 9 / 11 atoms).
 
 | Bundle                  | Atoms                                                                                                                                                     |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `staff_base`            | the four `admin.*` atoms (`STAFF_SUBROLE_CAPABILITIES`)                                                                                                   |
+| `staff_base`            | the four `admin.*` atoms (once the retired `STAFF_SUBROLE_CAPABILITIES`)                                                                                  |
 | `donor_care`            | `view_detail`, `request_corrections`, `manage_table_preferences`                                                                                          |
 | `finance_staff`         | `donor_care` + `apply_corrections`, `manage_receipts`, `retry_crm_post`                                                                                   |
 | `finance_approver`      | `finance_staff` + `approve_corrections`, `run_refunds`, `use_provider_actions`                                                                            |

@@ -67,10 +67,12 @@ export const NEW_ROWS = SEAMS.flatMap(([record_type]) =>
  * `private` too. `private.profile_in_tenant` and the service-key reader
  * `tenant_member_profiles` name profiles beside `authz.memberships.tenant_id`
  * and read no profile's tenant; the lexical scan matches them.
+ * `tenant_member_profiles` is an invoker since council round 1 on WP2a (F12):
+ * its only caller, the service role, holds the rights it needs.
  */
 export const READER_FUNCTIONS: Record<string, boolean> = {
   tenant_member_directory: true,
-  tenant_member_profiles: true,
+  tenant_member_profiles: false,
   profile_in_tenant: false,
   assert_eve_retention_actor: true,
   assert_eve_admin_memory_owner: true,

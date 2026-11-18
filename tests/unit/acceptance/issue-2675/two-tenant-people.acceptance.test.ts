@@ -193,24 +193,16 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
     expect(stranger?.assignedToName).toBeUndefined();
   });
 
-  it("own-profile lookups find a person in each tenant they belong to, and in no other", async () => {
-    for (const t of [TA, TB])
-      expect(
-        (await findProfileByUserId(client as never, userId("riley"), t)).data,
-      ).toMatchObject({
-        id: P.riley,
-      });
+  // Council round 1 on WP2a, F12: the own-profile lookups read the signed-in
+  // person's profile and no membership; the resolver has already admitted the
+  // person in the request's tenant, which is where "in no other tenant" holds.
+  it("own-profile lookups read the person's own profile, whichever tenants they belong to", async () => {
     expect(
-      (await findProfileByUserId(client as never, userId("admB"), TA)).data,
-    ).toBeNull();
+      (await findProfileByUserId(client as never, userId("riley"))).data,
+    ).toMatchObject({ id: P.riley });
     expect(
-      (await findFullProfileById(client as never, P.both, TB)).data,
-    ).toMatchObject({
-      id: P.both,
-    });
-    expect(
-      (await findFullProfileById(client as never, P.finA, TB)).data,
-    ).toBeNull();
+      (await findFullProfileById(client as never, P.both)).data,
+    ).toMatchObject({ id: P.both });
   });
 
   it("history keeps revoked members only when asked", async () => {

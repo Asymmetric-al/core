@@ -40,42 +40,24 @@ const memberRead = (args: Record<string, unknown>) => [
 ];
 
 describe("api/shared/queries", () => {
-  it("returns profile by user id (happy path)", async () => {
+  // Council round 1 on WP2a, F12: every caller passes the signed-in person's
+  // login, whose membership the resolver has checked, so the lookup reads no
+  // membership again and filters profiles on user_id alone.
+  it("returns the signed-in person's profile id by login, reading no membership again", async () => {
     const result = { data: { id: "profile-1" }, error: null };
     const mock = createSingleChainMock(result);
-    mock.rpc.mockResolvedValue({
-      data: [memberRow({ profileId: "profile-1", userId: "user-1" })],
-      error: null,
-    });
 
     const response = await findProfileByUserId(
       mock.supabase as never,
       "user-1",
-      "tenant-1",
     );
 
     expect(response).toEqual(result);
-    expect(mock.rpc).toHaveBeenCalledWith(
-      ...memberRead({ p_user_ids: ["user-1"] }),
-    );
+    expect(mock.rpc).not.toHaveBeenCalled();
     expect(mock.from).toHaveBeenCalledWith("profiles");
     expect(mock.select).toHaveBeenCalledWith("id");
-    expect(mock.eq.mock.calls).toEqual([["id", "profile-1"]]);
+    expect(mock.eq.mock.calls).toEqual([["user_id", "user-1"]]);
     expect(mock.single).toHaveBeenCalledOnce();
-  });
-
-  it("finds no profile for a login with no live membership in the tenant", async () => {
-    const mock = createSingleChainMock({ data: { id: "x" }, error: null });
-
-    const response = await findProfileByUserId(
-      mock.supabase as never,
-      "user-2",
-      "tenant-1",
-    );
-
-    expect(response.data).toBeNull();
-    expect(response.error).toMatchObject({ code: "PGRST116" });
-    expect(mock.from).not.toHaveBeenCalled();
   });
 
   it("returns null data when profile is not found", async () => {
