@@ -419,8 +419,8 @@ failed before it dropped anything (the wrapper could not read the marker, no
 route) leaves the whole chain under them, and anything created in `public`
 from then on would be open to both roles. The rebuild stops and says so. Fix
 the cause and rebuild again. Never run `migrate` on that database until a
-rebuild has passed. Since review H1 the gate reads these default privileges
-(the schema fingerprint, version 2), so a release would stop at its gates
+rebuild has passed. Since review H1 the gate reads these default privileges, and
+those of `postgres` for every schema (the schema fingerprint, version 2), so a release would stop at its gates
 rather than deploy over them.
 
 ### Pull requests that carry a migration

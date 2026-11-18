@@ -147,6 +147,33 @@ describe.skipIf(!adminDatabaseUrl)(
       );
     });
 
+    // Review K2: a default privilege of postgres for every schema
+    // (defaclnamespace 0) decides the access list of everything it creates
+    // anywhere, so the fingerprint holds it too.
+    it("tells apart two databases that differ only in a default privilege for every schema", () => {
+      const pair = ["fp_global_a", "fp_global_b"].map((label) => {
+        const db = createDatabase(label);
+        created.push(db.name);
+        psql(
+          db.url,
+          readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+        );
+        return db;
+      });
+      psql(
+        pair[1]!.url,
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT SELECT ON TABLES TO anon;",
+      );
+      const diff = diffFingerprints(
+        captureFingerprint({ databaseUrl: pair[0]!.url }),
+        captureFingerprint({ databaseUrl: pair[1]!.url }),
+      );
+      expect(diff.equal).toBe(false);
+      expect([...diff.missing, ...diff.unexpected, ...diff.changed]).toEqual([
+        "default privileges postgres in every schema on tables",
+      ]);
+    });
+
     it("passes the catalog gates on a fresh replay, and fails a new cross-schema name collision", () => {
       // Payload's migrations create cms.tenants, the one recorded exception;
       // this replay ran the Supabase chain only, so stand in for it.

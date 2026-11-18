@@ -9,9 +9,10 @@
 // causing it. Policies are read from every schema, because migrations write
 // policies on Supabase's tables too (storage.objects). Rows are not read:
 // ledgers, markers and data are not schema. Version 2 adds the default
-// privileges of `postgres`, the role that runs the chain, in those schemas:
-// they decide the access lists of what a later migration creates, and a
-// hosted reset keeps the ones in `public` (review H1).
+// privileges of `postgres`, the role that runs the chain, in those schemas
+// and for every schema (review K2): they decide the access lists of what a
+// later migration creates, and a hosted reset keeps the ones in `public`
+// (review H1).
 //
 //   node scripts/release/schema-fingerprint.mjs capture \
 //     --database-url-env DATABASE_URL --out fingerprint.json
@@ -152,6 +153,16 @@ items(key, def) AS (
     json_build_object('acl', ${acl("d.defaclacl")})::text
   FROM pg_default_acl d JOIN ns n ON n.oid = d.defaclnamespace
   WHERE d.defaclrole = 'postgres'::regrole
+  UNION ALL
+  -- A default for every schema (defaclnamespace 0) covers all of the above
+  -- and everything else postgres creates (review K2).
+  SELECT 'default privileges ' || pg_get_userbyid(d.defaclrole) || ' in every schema'
+      || ' on ' || CASE d.defaclobjtype WHEN 'r' THEN 'tables' WHEN 'S' THEN 'sequences'
+                   WHEN 'f' THEN 'functions' WHEN 'T' THEN 'types' WHEN 'n' THEN 'schemas'
+                   ELSE d.defaclobjtype::text END,
+    json_build_object('acl', ${acl("d.defaclacl")})::text
+  FROM pg_default_acl d
+  WHERE d.defaclrole = 'postgres'::regrole AND d.defaclnamespace = 0
 )
 SELECT coalesce(json_agg(json_build_array(key, def) ORDER BY key), '[]'::json)::text
 FROM items;`;
