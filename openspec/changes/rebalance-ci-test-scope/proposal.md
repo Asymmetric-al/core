@@ -48,9 +48,10 @@ assigned by the program's gap check (issue #2711).
   own directories. Every uncertain case runs everything: no base, a shallow or
   failed diff, an unknown event, a change to the selection logic, the Vitest
   configuration, the root manifests or the CI workflow. Pushes to `develop`,
-  `merge_group` and manual runs always run the full suite. The log names each
-  skipped group and why. A structural guard, which always runs, fails when a
-  test in a scoped group imports or reads outside the group's inputs.
+  `merge_group` and manual runs always run the full suite. Membership needs no
+  list: before skipping, the selection follows each factory test's imports and
+  repository reads and keeps any test that reaches outside the group's inputs
+  in the run. The log names what was skipped, what was kept and why.
 - **Shorter required integration path.** `test-e2e-smoke` stops waiting for
   `smoke`; it applies its own migrations and seed and starts its own servers.
   `smoke` keeps waiting for `migrate`. No required check is renamed or

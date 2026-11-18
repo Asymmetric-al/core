@@ -69,10 +69,12 @@ belongs to the pre-push workstream (#2710), which owns
 
 Selection lives in `scripts/verify/ci-test-scope.mjs`, imported by the unit
 runner. `selectUnitTests({ event, baseRef, changedFiles })` is pure: it
-returns `{ full, reason, skipped[] }`. A separate impure reader computes the
-changed files with `git diff --no-renames --name-only <base>...<head>` and
-returns `null` on any failure or a shallow checkout. The runner turns each
-skipped group into `--exclude` globs and prints one line per decision.
+returns the overall reason and, per group, whether it runs and why. A separate
+impure reader computes the changed files with
+`git diff --no-renames --name-only <base>...<head>` and returns `null` on any
+failure, an invalid SHA or a shallow checkout. For a skipped group the runner
+excludes, file by file, only the tests the analysis below clears, and prints
+one line per decision. Any exception in selection runs every test.
 
 Full run (no skips) when: the event is not `pull_request`; the base branch is
 not `develop`; the change set is `null` or empty; or any changed file matches
@@ -119,18 +121,33 @@ Narrowness proof, recorded by inspection on 2026-11-18:
   samson-factory skill and `package.json`, defaults the tests replace with
   fixture roots). The inputs include all of these defaults anyway.
 
-A structural guard (`tests/unit/scripts/ci-test-scope-inputs.test.ts`) keeps
-the proof true without a list of files: for every file the group's globs
-match, it follows relative imports transitively and checks `new URL(...,
-import.meta.url)` targets, workspace-package imports, and, in test files that
-reach the repository root (`import.meta.dirname`, `__dirname`,
-`process.cwd()`), every path literal that names a top-level repository entry.
-Anything outside the inputs fails the guard with the file and path. The guard
-is not in the group, so it runs on every pull request. Its limits: a read
-through a computed path it cannot see would escape it; the develop-push and
-merge-group full runs are the backstop for that case.
+The proof is re-checked on every skip, with no list of files to maintain.
+Before excluding anything, `analyzeGroupTests` follows each group test's
+relative imports transitively and flags workspace-package imports, `new
+URL(..., import.meta.url)` targets outside the inputs, and, in any file that
+reaches the real repository root (`import.meta.dirname`, `__dirname`,
+`process.cwd()`, `fileURLToPath(import.meta.url)` other than an entry-point
+check), every path literal below a top-level repository entry, or naming a
+top-level file, that lies outside the inputs. A test with any flag stays in
+the run, and the log names it and the paths. Reading a full-run trigger is
+allowed, since changing one runs everything. A failure inside the analysis
+runs every test. An earlier draft made this a guard test that failed CI; it
+flagged code paths no factory test executes (diff-classification patterns in
+`ci-build-policy.mjs`), which would have forced either an `apps/**` input or a
+hand list of exceptions. Keeping a flagged test in the run is always safe and
+needs no fix-up. `tests/unit/scripts/ci-test-scope-inputs.test.ts` tests the
+analysis on fixtures and on the real group. Its limit: a read through a
+computed path is invisible to it; the develop-push and merge-group full runs
+are the backstop for that case.
 
-Measured saving: about 45 s of test time, roughly 30-45 s of wall time, on
+On 2026-11-18 the analysis clears 71 of the 74 files (35.9 s of test time)
+and keeps three: `archon-flow-routes` and `archon-ops-record` (they import
+`tests/unit/helpers/workflow-yaml.ts`, which imports `ci-build-policy.mjs`,
+whose path patterns name `apps`, `turbo.json` and others), and
+`factory-hosted-startup` (fixture paths beside a `process.cwd()` temporary
+directory). The analysis takes about 0.4 s.
+
+Measured saving: about 36 s of test time, roughly 25-35 s of wall time, on
 pull requests that do not touch the factory. That is small; it is the honest
 result of the narrow-input rule.
 

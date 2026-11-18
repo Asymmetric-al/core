@@ -32,10 +32,10 @@ explicitly target acceptance files SHALL still run them.
 
 ### Requirement: Pull requests skip only provably unaffected test groups
 
-On a pull request the unit-test job SHALL skip a scoped test group only when
-the change set is known and touches none of the group's inputs. A group SHALL
-be scoped only when every test in it imports and reads files inside the
-group's declared inputs. The job SHALL log each skipped group with its reason.
+On a pull request the unit-test job SHALL skip a scoped group's tests only
+when the change set is known and touches none of the group's inputs, and
+SHALL skip only the tests whose imports and repository reads it can show stay
+inside those inputs. The job SHALL log what it skipped, what it kept and why.
 
 #### Scenario: A pull request does not touch the factory
 
@@ -52,10 +52,10 @@ group's declared inputs. The job SHALL log each skipped group with its reason.
 
 #### Scenario: A test in a scoped group reaches outside the group's inputs
 
-- **WHEN** a test in a scoped group imports a module or reads a repository
-  path outside the group's declared inputs
-- **THEN** a structural check that runs on every unit-test run fails and names
-  the test and the path
+- **WHEN** a test in a scoped group, or a module it imports, imports a module
+  or reads a repository path outside the group's declared inputs
+- **THEN** that test runs on every pull request
+- **AND** the job log names the test and the path that kept it in the run
 
 ### Requirement: Test selection fails safe
 
