@@ -192,20 +192,23 @@ something else, not individual findings, and nothing validates it. Once
 Shadscan stops being consulted, or detects workspace-owned providers, the
 declarations can be removed in their own change.
 
-### D8. The shared `ui-quality-audits` Purpose
+### D8. A capability of its own
 
-`ui-quality-audits` does not exist yet, and three active changes add to it.
-The pinned merger uses a delta's Purpose only to create a missing spec. When
-the spec already exists with a different Purpose, it warns, and
-`verify:openspec-deltas` fails on that warning. This change therefore uses
-`make-shadscan-advisory`'s Purpose word for word, so those two can archive in
-either order. `modernize-shadscan-readiness` carries a different Purpose
-again, and no planned task in either Shadscan change aligns it, so the rule
-for this change is simple: whichever change archives later matches the
-Purpose that is already there. Task 4.4 does that for this change before it
-archives. If `openspec/specs/ui-quality-audits/spec.md` exists by then, this
-delta's Purpose is made byte-identical to that spec's, and
-`verify:openspec-deltas` must pass before the archive.
+The requirements go in a new capability, `react-source-audits`, rather than in
+`ui-quality-audits`. That spec does not exist yet, and the active
+`make-shadscan-advisory` and `modernize-shadscan-readiness` changes both
+create it, each with a different Purpose. The pinned merger uses a delta's
+Purpose only to create a missing spec and warns when an existing spec's Purpose
+differs, and `verify:openspec-deltas` fails on that warning. Whichever of
+those changes archives first therefore breaks the gate for the other active
+deltas. Joining them would tie this change's archive to that unresolved
+conflict and to two other owners' changes.
+
+Alternative considered: **share `ui-quality-audits` and align Purposes at
+archive time.** Rejected, because aligning means editing other active changes'
+deltas, and a third Purpose either breaks one of them or copies text that does
+not describe React source audits. React Doctor audits React source rather than
+UI scores, so its own capability is also the more accurate boundary.
 
 ## Risks / Trade-offs
 

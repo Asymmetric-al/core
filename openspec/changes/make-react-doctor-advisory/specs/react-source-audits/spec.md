@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Defines how Core reports third-party UI audit results and how it enforces
-accessibility, so real defects block regressions without score bookkeeping.
+Defines how Core runs and reports audits of its first-party React source, so
+real defects are found and fixed without bookkeeping that unrelated changes must
+maintain.
 
 ## ADDED Requirements
 

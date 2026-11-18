@@ -41,9 +41,8 @@
 - [ ] 4.1 On the implementing branch, run `bun run react-doctor:audit`. Verify that it completes all eight targets, exits 0 while reporting findings, and writes `findings.json` and `summary.md`. Run it again with `-- --changed-since=origin/develop` and verify that only files the branch changed are listed. Verify that `bun run react-doctor:raw` exits 0, and that `-- --changed-since=no-such-ref` exits 1 and names the revision. Record the counts and exit codes in the pull request
 - [ ] 4.2 Verify that `bun run openspec -- validate make-react-doctor-advisory --strict`, `bun run verify:openspec-deltas`, `bun run lint`, `bun run format:check` and the full unit suite (`bun run test:unit`) pass, and that CI's required checks pass on the pull request
 - [ ] 4.3 Prove that rollback works: in a scratch worktree, revert the implementing commit and verify that `docs/qa/react-doctor/exceptions.json`, `scripts/react-doctor-ledger.mjs` and the `react-doctor:check` script return byte-identical to their state on the pull request's base
-- [ ] 4.4 Before archiving, check whether `openspec/specs/ui-quality-audits/spec.md` exists. If it does and its Purpose differs from this delta's, make this delta's Purpose byte-identical to it (design D8), and verify that a `diff` of the two Purpose sections is empty. If it does not exist, leave the Purpose as it is; this delta then creates the spec. In both cases, verify that `bun run verify:openspec-deltas` passes
 
 ## Workflow follow-up
 
-- Archive this change after the implementing pull request merges, its
-  verification is recorded, and task 4.4 is done.
+- Archive this change after the implementing pull request merges and its
+  verification is recorded.

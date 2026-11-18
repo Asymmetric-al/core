@@ -97,15 +97,12 @@ ratification.
 
 ### New Capabilities
 
-- `ui-quality-audits`: how Core runs and reports quality audits of its
-  first-party UI and React source. This change adds the requirements that React
-  source audits are on-demand reports with no acceptance target, that a report
-  can focus on one change, and that findings are triaged by review without a
-  hashed ledger. No durable spec exists at this path yet. The active
-  `make-shadscan-advisory` and `modernize-shadscan-readiness` changes also
-  propose ADDED requirements here, under different names. This delta uses
-  `make-shadscan-advisory`'s Purpose word for word, so the two can archive in
-  either order (design D8).
+- `react-source-audits`: how Core runs and reports audits of its first-party
+  React source. This change adds the requirements that those audits are
+  on-demand reports with no acceptance target, that a report can focus on one
+  change, and that findings are triaged by review without a hashed ledger. It
+  is a capability of its own rather than part of `ui-quality-audits`, which
+  two active Shadscan changes create with conflicting Purpose text (design D8).
 
 ### Modified Capabilities
 
