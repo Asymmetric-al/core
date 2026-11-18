@@ -4,6 +4,7 @@ import { memberRow } from "../../../fixtures/fake-service-client";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { NextRequest } from "next/server";
+import { TENANT_MEMBER_PAGE_SIZE } from "../../../../packages/api/src/shared/tenant-members";
 
 const getAdminClientMock = vi.fn();
 const getAuthContextMock = vi.fn();
@@ -199,6 +200,10 @@ describe("Eve admin-memory route tenant binding", () => {
         p_profile_ids: [profileId],
         p_user_ids: ["user_1"],
         p_include_revoked: false,
+        p_role: null,
+        p_tenant_admin: null,
+        p_after_membership_id: null,
+        p_limit: TENANT_MEMBER_PAGE_SIZE,
       });
       expect(loadViewMock).toHaveBeenCalledWith(
         expect.objectContaining({

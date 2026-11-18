@@ -152,6 +152,54 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         });
       }));
 
+    // Council round 1 on WP2a, F1: a revocation must take the administration
+    // with it, or the pinned re-grant above brings it back.
+    it("revoking a flagged row clears the flag, so a re-grant with the same upsert brings no administration back", () =>
+      tx(async () => {
+        await db.query(
+          "update authz.memberships set is_active = false where id = $1",
+          [id.mAdm],
+        );
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: false,
+          is_tenant_admin: false,
+        });
+        const regrant = await one(
+          `insert into authz.memberships (user_id, tenant_id, role, staff_role, granted_by)
+           values ($1, $2, 'staff', 'development', $3)
+           on conflict (user_id, tenant_id, role, staff_role)
+           do update set is_active = true, granted_by = excluded.granted_by
+           returning id`,
+          [id.UADM, id.TA, id.UDEV],
+        );
+        expect(keyOf(regrant.id)).toBe("mAdm");
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: true,
+          revoked_at: null,
+          is_tenant_admin: false,
+        });
+      }));
+
+    it("keeps the flag on a row granted with it in the statement that makes the row live", () =>
+      tx(async () => {
+        await db.query(
+          "update authz.memberships set revoked_at = now() where id = $1",
+          [id.mAdm],
+        );
+        await db.query(
+          `insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, granted_by)
+           values ($1, $2, 'staff', 'development', true, $3)
+           on conflict (user_id, tenant_id, role, staff_role)
+           do update set is_active = true, is_tenant_admin = excluded.is_tenant_admin, granted_by = excluded.granted_by`,
+          [id.UADM, id.TA, id.UDEV],
+        );
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: true,
+          revoked_at: null,
+          is_tenant_admin: true,
+        });
+      }));
+
     it("refuses the flag on a row that is not staff, and a live row that carries revoked_at", () =>
       tx(async () => {
         await db.query("savepoint s");
@@ -443,6 +491,51 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         expect(anon.code).toBe("42501");
       }));
 
+    // Council round 1 on WP2a, F8: Mission Control's users list reads the
+    // directory on the caller's token. It names its columns, each one Mission
+    // Control may see (profiles.email is "vex" there in the field-policy
+    // manifest), and shows a person who belongs to two tenants only by the
+    // row of the tenant asked about.
+    it("names its columns, the email among them, and shows a two-tenant member only by that tenant's row", () =>
+      tx(async () => {
+        await db.query(
+          "update public.profiles set email = 'drew@example.org' where user_id = $1",
+          [id.UDON],
+        );
+        const r = await as(
+          "authenticated",
+          { sub: "UB" },
+          `select * from public.tenant_member_directory('${id.TB}')`,
+        );
+        expect(r.code, r.message).toBeNull();
+        expect(Object.keys(r.rows[0]!).sort()).toEqual([
+          "display_name",
+          "email",
+          "is_tenant_admin",
+          "membership_id",
+          "profile_id",
+          "role",
+          "staff_role",
+          "user_id",
+        ]);
+        const profile = await one(
+          "select id from public.profiles where user_id = $1",
+          [id.UDON],
+        );
+        expect(r.rows.filter((row) => row.user_id === id.UDON)).toEqual([
+          {
+            membership_id: id.mDonB,
+            user_id: id.UDON,
+            profile_id: profile.id,
+            display_name: DISPLAY.UDON,
+            email: "drew@example.org",
+            role: "donor",
+            staff_role: null,
+            is_tenant_admin: false,
+          },
+        ]);
+      }));
+
     it("refuses at the next request once the caller's row is revoked", () =>
       tx(async () => {
         expect(
@@ -526,6 +619,88 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           const r = await as(role, { sub: "UADM" }, READER("TA"));
           expect(r.code, role).toBe("42501");
         }
+      }));
+
+    // Council round 1 on WP2a, F7: the caller asks for a class and the flag,
+    // and reads in pages ordered by membership id, 1,000 rows at most a call.
+    const FILTERED = (
+      tenant: string,
+      role: string | null,
+      admin: boolean | null,
+      after: string | null = null,
+      limit: number | null = null,
+    ) =>
+      READER(
+        tenant,
+        `, null, null, false, ${role ? `'${role}'` : "null"}, ${admin ?? "null"}, ${after ? `'${after}'::uuid` : "null"}, ${limit ?? "null"}`,
+      );
+
+    it("narrows by class and by the administrator flag", () =>
+      tx(async () => {
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", "staff", null))),
+        ).toEqual(["mAdm", "mCare", "mDev", "mFin"]);
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", "staff", true))),
+        ).toEqual(["mAdm"]);
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", "donor", null))),
+        ).toEqual(["mDonA"]);
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", null, false))),
+        ).toEqual(["mCare", "mDev", "mDonA", "mFin"]);
+      }));
+
+    it("pages by membership id: each row once, in order, to the end", () =>
+      tx(async () => {
+        const all = await as("service_role", {}, READER("TA"));
+        const ordered = all.rows.map((row) => String(row.membership_id));
+        expect(ordered).toEqual([...ordered].sort());
+        const seen: string[] = [];
+        let after: string | null = null;
+        for (let call = 0; call < 10; call += 1) {
+          const page = await as(
+            "service_role",
+            {},
+            FILTERED("TA", null, null, after, 2),
+          );
+          expect(page.code, page.message).toBeNull();
+          expect(page.rows.length).toBeLessThanOrEqual(2);
+          seen.push(...page.rows.map((row) => String(row.membership_id)));
+          if (page.rows.length < 2) break;
+          after = seen.at(-1)!;
+        }
+        expect(seen).toEqual(ordered);
+      }));
+
+    it("returns 1,000 rows at most in one call, whatever the caller asks", () =>
+      tx(async () => {
+        await db.query(
+          `insert into auth.users (id, raw_app_meta_data)
+           select gen_random_uuid(), jsonb_build_object('tenant_id', $1::text)
+             from generate_series(1, 1001)`,
+          [id.TB],
+        );
+        const first = await as(
+          "service_role",
+          {},
+          FILTERED("TB", "donor", null, null, 5000),
+        );
+        expect(first.code, first.message).toBeNull();
+        expect(first.rows).toHaveLength(1000);
+        const rest = await as(
+          "service_role",
+          {},
+          FILTERED(
+            "TB",
+            "donor",
+            null,
+            String(first.rows.at(-1)!.membership_id),
+            5000,
+          ),
+        );
+        // 1,001 sign-ups and mDonB.
+        expect(rest.rows).toHaveLength(2);
       }));
   });
 
@@ -629,10 +804,85 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           after.find((r) => r.k === "adminNone")!.caps as string[],
         ).toContain("people.manage_members");
       }));
+
+    // Council round 1 on WP2a, F4. Hosted Supabase's auth.users has
+    // deleted_at (soft delete) and banned_until; the compatibility bootstrap
+    // this cluster runs on has neither, and altering auth.users from a test
+    // would lock it under the suites that run beside this one. So the step
+    // runs with its one auth.users reference pointed at a temporary copy of
+    // the logins that carries both columns.
+    it("skips a profile that names no login and a soft-deleted login, keeps a banned login, and runs twice to the same rows", () =>
+      tx(async () => {
+        const STEP = DATA_STEP.replaceAll("auth.users", "pg_temp.wp2a_logins");
+        expect(STEP).not.toBe(DATA_STEP);
+        const people = ["orphan", "softDeleted", "banned", "plain"];
+        const ids = Object.fromEntries(
+          people.map((p) => [p, crypto.randomUUID()]),
+        );
+        await db.query(
+          "insert into auth.users (id) select unnest($1::uuid[])",
+          [Object.values(ids)],
+        );
+        await db.query(
+          "delete from authz.memberships where user_id = any($1::uuid[])",
+          [Object.values(ids)],
+        );
+        await db.query(
+          "update public.profiles set role = 'donor', tenant_id = $2 where user_id = any($1::uuid[])",
+          [Object.values(ids), id.TA],
+        );
+        // A legacy profile whose user_id names no login: profiles.user_id
+        // has no foreign key, memberships.user_id references auth.users.
+        const dangling = crypto.randomUUID();
+        await db.query(
+          "update public.profiles set user_id = $2 where user_id = $1",
+          [ids.orphan, dangling],
+        );
+        await db.query(
+          `create temporary table wp2a_logins (id uuid primary key, deleted_at timestamptz, banned_until timestamptz) on commit drop;
+           insert into pg_temp.wp2a_logins (id) select id from auth.users`,
+        );
+        await db.query(
+          "update pg_temp.wp2a_logins set deleted_at = now() where id = $1",
+          [ids.softDeleted],
+        );
+        await db.query(
+          "update pg_temp.wp2a_logins set banned_until = now() + interval '30 days' where id = $1",
+          [ids.banned],
+        );
+
+        const membershipsOf = async () =>
+          (
+            await rows(
+              `select u.k, m.tenant_id, m.role::text, m.is_active
+                 from unnest($1::text[], $2::uuid[]) u(k, user_id)
+                 join authz.memberships m on m.user_id = u.user_id
+                order by u.k, m.role`,
+              [
+                [...people, "dangling"],
+                [...people.map((p) => ids[p]), dangling],
+              ],
+            )
+          ).map((r) => [r.k, keyOf(r.tenant_id), r.role, r.is_active]);
+
+        await db.query(STEP);
+        const once = await membershipsOf();
+        expect(once).toEqual([
+          ["banned", "TA", "donor", true],
+          ["plain", "TA", "donor", true],
+        ]);
+        await db.query(STEP);
+        expect(await membershipsOf()).toEqual(once);
+      }));
   });
 
   describe("sign-up for this release (WP2 'Interim rules')", () => {
-    it("creates a profile with no tenant and a donor membership in the demo tenant, or the app-metadata tenant", () =>
+    // Council round 1 on WP2a, F3 (plan 7.4 over WP2's wording, a recorded
+    // deviation): the release already running reads a person's tenant from
+    // profiles.tenant_id, so sign-up keeps writing the membership's tenant
+    // there too until the migration that drops the column (WP5). Nothing in
+    // WP2a reads it as authority; the reader manifest still enforces that.
+    it("creates a donor membership in the demo tenant, or the app-metadata tenant, and the same tenant on the profile", () =>
       tx(async () => {
         const plain = crypto.randomUUID();
         const invited = crypto.randomUUID();
@@ -650,7 +900,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           {
             user_id: plain,
             role: "donor",
-            profile_tenant: null,
+            profile_tenant: DEMO_TENANT,
             tenant_id: DEMO_TENANT,
             membership_role: "donor",
             is_active: true,
@@ -658,7 +908,7 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           {
             user_id: invited,
             role: "donor",
-            profile_tenant: null,
+            profile_tenant: id.TB,
             tenant_id: id.TB,
             membership_role: "donor",
             is_active: true,

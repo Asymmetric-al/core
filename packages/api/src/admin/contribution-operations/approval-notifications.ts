@@ -220,9 +220,11 @@ export async function listEligibleApprovers(
 ): Promise<EligibleApprover[]> {
   // AL-2675 (NR-68): the eligible approvers are the members of this tenant
   // whose live row holds contributions.approve_corrections in the registry
-  // (today the tenant administrator); never a profile role filter.
+  // (today the tenant administrator); never a profile role filter. Only
+  // staff rows hold capabilities, so the read asks for the staff rows and
+  // reads them to the end (council round 1 on WP2a, F7).
   const [members, preferencesResult] = await Promise.all([
-    listTenantMembers(supabaseAdmin, tenantId),
+    listTenantMembers(supabaseAdmin, tenantId, { role: "staff" }),
     supabaseAdmin
       .from("contribution_approval_notification_preferences")
       .select("profile_id, in_app_enabled, email_enabled")

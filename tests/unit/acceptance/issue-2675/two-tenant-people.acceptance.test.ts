@@ -9,7 +9,10 @@
  *
  * The real query code runs against an in-memory service client whose
  * `tenant_member_profiles` RPC answers as the SQL function does (the
- * function itself is proved on the real stack in membership-core).
+ * function itself is proved on the real stack in membership-core). The users
+ * list reads the member directory on the caller's token (council round 1 on
+ * WP2a, F8); the same in-memory client stands in for that token's client and
+ * answers the directory as the SQL function does.
  */
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,6 +34,9 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({})),
+}));
+vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
+  createRequestSessionClient: async () => h.client,
 }));
 
 import { listEligibleApprovers } from "../../../../packages/api/src/admin/contribution-operations/approval-notifications";
@@ -177,13 +183,33 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
         users: { id: string; tenant_id: string; role: string }[];
       };
       for (const user of body.users) expect(user.tenant_id).toBe(t);
+      lastUsers = body.users;
       return sorted(body.users.map((u) => u.id));
     };
+    let lastUsers: Record<string, unknown>[] = [];
     expect(await list(TA)).toEqual(sorted([P.admA, P.finA, P.both, P.riley]));
     expect(await list(TB)).toEqual(sorted([P.admB, P.both, P.riley]));
     expect(await list(TB, "&role=admin")).toEqual(sorted([P.admB, P.both]));
     expect(await list(TA, "&role=staff")).toEqual([P.finA]);
     expect(await list(TB, "&role=super_admin")).toEqual([]);
+
+    // Council round 1 on WP2a, F8: tenant B sees the two-tenant donor through
+    // B's row and the directory's named columns only; nothing of the profile
+    // that names tenant A (its tenant column, its stale role) comes back.
+    await list(TB, "&role=donor");
+    expect(lastUsers).toEqual([
+      {
+        id: P.riley,
+        membership_id: "m7",
+        display_name: "riley",
+        email: "riley@example.test",
+        tenant_id: TB,
+        role: "donor",
+        staff_role: null,
+        is_tenant_admin: false,
+      },
+    ]);
+    expect(client.calls).not.toContain("from:profiles");
   });
 
   it("an assignee is named in a tenant only when they belong to it", async () => {
@@ -193,24 +219,16 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
     expect(stranger?.assignedToName).toBeUndefined();
   });
 
-  it("own-profile lookups find a person in each tenant they belong to, and in no other", async () => {
-    for (const t of [TA, TB])
-      expect(
-        (await findProfileByUserId(client as never, userId("riley"), t)).data,
-      ).toMatchObject({
-        id: P.riley,
-      });
+  // Council round 1 on WP2a, F12: the own-profile lookups read the signed-in
+  // person's profile and no membership; the resolver has already admitted the
+  // person in the request's tenant, which is where "in no other tenant" holds.
+  it("own-profile lookups read the person's own profile, whichever tenants they belong to", async () => {
     expect(
-      (await findProfileByUserId(client as never, userId("admB"), TA)).data,
-    ).toBeNull();
+      (await findProfileByUserId(client as never, userId("riley"))).data,
+    ).toMatchObject({ id: P.riley });
     expect(
-      (await findFullProfileById(client as never, P.both, TB)).data,
-    ).toMatchObject({
-      id: P.both,
-    });
-    expect(
-      (await findFullProfileById(client as never, P.finA, TB)).data,
-    ).toBeNull();
+      (await findFullProfileById(client as never, P.both)).data,
+    ).toMatchObject({ id: P.both });
   });
 
   it("history keeps revoked members only when asked", async () => {

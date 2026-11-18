@@ -11,6 +11,10 @@
 --    held before revives that same row, because the unique key covers revoked
 --    rows too: `is_active` returns and `revoked_at` clears, and the writer sets
 --    the new `granted_by`. The helpers that test `is_active` stay correct.
+--    A row that is not live never carries the tenant-administrator flag: the
+--    trigger clears it on revocation, so a re-grant brings no administration
+--    back unless the re-granting statement sets the flag itself (council
+--    round 1 on WP2a, F1).
 -- 3. The active-membership index (plan 9.4) covers the lookups every helper
 --    makes: the caller's live rows in a tenant, by class and sub-role.
 -- 4. Data. No staff row keeps the member-care sub-role by default: each such
@@ -25,7 +29,8 @@
 --    no tenant is placed in the demo tenant, as the application does today. A
 --    class that has any row there, live or revoked, gets no new one, so a
 --    revocation stands. Profiles with any other role get nothing: they hold no
---    authority today.
+--    authority today. Nor does a profile that names no login or a
+--    soft-deleted one; a banned login keeps its row (step 4b).
 -- 5. The assignments functions return the flag.
 --
 -- Down (run by hand, in one transaction): restore the two functions from
@@ -88,6 +93,13 @@ BEGIN
     NEW.revoked_at := NULL;
   ELSIF NEW.revoked_at IS NULL THEN
     NEW.revoked_at := pg_catalog.now();
+  END IF;
+
+  -- A row that is not live holds no administration, so a revocation takes
+  -- the flag with it and a re-grant does not bring it back. A writer that
+  -- re-grants with the flag sets it in the statement that makes the row live.
+  IF NOT NEW.is_active THEN
+    NEW.is_tenant_admin := false;
   END IF;
 
   RETURN NEW;
@@ -157,7 +169,16 @@ UPDATE authz.memberships AS mc
         AND d.staff_role = 'development'
    );
 
--- 4b. A membership for every profile whose role class has none in its tenant.
+-- 4b. A membership for every profile whose role class has none in its tenant,
+-- and whose login exists and is not closed (council round 1 on WP2a, F4).
+-- `profiles.user_id` has no foreign key while `authz.memberships.user_id`
+-- references `auth.users`, so a profile that names no login would abort the
+-- whole migration; it gets no row. A soft-deleted login (`deleted_at` on
+-- hosted Supabase's `auth.users`) gets none either: a closed account holds no
+-- membership (plan 5.5). The column is read through `to_jsonb` because the
+-- compatibility bootstrap CI's database starts from has no such column. A
+-- banned login (`banned_until`) keeps its membership: a ban is not an account
+-- closure, and lifting it gives the person back what they had.
 WITH profile_class AS (
   SELECT
     p.user_id,
@@ -169,6 +190,8 @@ WITH profile_class AS (
     END::authz.membership_role AS role,
     p.role IN ('admin', 'super_admin') AS is_tenant_admin
   FROM public.profiles AS p
+  JOIN auth.users AS login
+    ON login.id = p.user_id
   JOIN public.tenants AS t
     ON t.id = COALESCE(
       p.tenant_id,
@@ -176,6 +199,7 @@ WITH profile_class AS (
     )
   WHERE p.user_id IS NOT NULL
     AND p.role IN ('donor', 'missionary', 'staff', 'admin', 'super_admin')
+    AND (pg_catalog.to_jsonb(login) ->> 'deleted_at') IS NULL
 )
 INSERT INTO authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin)
 SELECT

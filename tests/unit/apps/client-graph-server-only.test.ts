@@ -39,11 +39,19 @@ import type { Node } from "typescript";
  * follows every runtime import of a reached module, so it is stricter than the
  * bundler, which drops re-exports nobody uses; a module that must stay
  * reachable from client code keeps server-only values out of its imports.
+ *
+ * Council round 1 on WP2a, F6: the walk covers what a build covers. The
+ * `"use client"` modules of the workspace packages are entry points too, and
+ * an import it cannot resolve (`.`, `@/` or `@asym/`) fails the test instead
+ * of being skipped, so a blind spot cannot hide a path.
  */
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const APPS = ["admin", "donor", "missionary"] as const;
 const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs"];
+/** Files a module may import that are not code (styles, data, assets). */
+const ASSET_EXTENSIONS =
+  /\.(?:css|scss|json|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|md|txt|html)$/;
 const FORBIDDEN_FILES = new Set(["packages/auth/context.ts"]);
 const FORBIDDEN_SPECIFIERS = new Set(["next/headers", "server-only"]);
 
@@ -117,16 +125,43 @@ function hasExtension(path: string) {
   return SOURCE_EXTENSIONS.some((extension) => path.endsWith(extension));
 }
 
-function resolveWorkspaceSpecifier(specifier: string): string | null {
+type Resolution =
+  | { kind: "file"; path: string }
+  | { kind: "forbidden"; path: string }
+  | { kind: "external" }
+  | { kind: "unresolved"; specifier: string };
+
+const UNRESOLVED = (specifier: string): Resolution => ({
+  kind: "unresolved",
+  specifier,
+});
+
+/** A repository path: a source file, an asset that is not code, or neither. */
+function resolvePath(base: string, specifier: string): Resolution {
+  const file = resolveFile(base);
+  if (file) return { kind: "file", path: file };
+  const absolute = join(root, base);
+  if (ASSET_EXTENSIONS.test(base) && existsSync(absolute))
+    return { kind: "external" };
+  return UNRESOLVED(specifier);
+}
+
+function resolveWorkspaceSpecifier(specifier: string): Resolution {
   const parts = specifier.split("/");
   const name = specifier.startsWith("@")
     ? parts.slice(0, 2).join("/")
-    : parts[0];
-  const workspace = name ? PACKAGES.get(name) : undefined;
-  if (!workspace) return null;
+    : parts[0]!;
+  const workspace = PACKAGES.get(name);
+  if (!workspace) {
+    // A package of the scope that is not in the workspace (the vendored
+    // `@asym/pdf-*` packages) resolves from node_modules.
+    return existsSync(join(root, "node_modules", name))
+      ? { kind: "external" }
+      : UNRESOLVED(specifier);
+  }
   const subpath = "." + specifier.slice(name.length);
   const exact = workspace.exports.get(subpath);
-  if (exact) return resolveFile(join(workspace.dir, exact));
+  if (exact) return resolvePath(join(workspace.dir, exact), specifier);
   for (const [pattern, target] of workspace.exports) {
     const star = pattern.indexOf("*");
     if (star < 0) continue;
@@ -137,22 +172,34 @@ function resolveWorkspaceSpecifier(specifier: string): string | null {
         prefix.length,
         subpath.length - suffix.length,
       );
-      return resolveFile(join(workspace.dir, target.replace("*", middle)));
+      return resolvePath(
+        join(workspace.dir, target.replace("*", middle)),
+        specifier,
+      );
     }
   }
-  return null;
+  return UNRESOLVED(specifier);
 }
 
-/** A resolved repository file, a forbidden specifier, or nothing (external). */
-function resolveImport(from: string, specifier: string): string | null {
-  if (FORBIDDEN_SPECIFIERS.has(specifier)) return specifier;
+/**
+ * Where an import leads. `@/` is the app's root inside an app and the
+ * package's root inside a package (their tsconfig paths); anything outside
+ * `.`, `@/` and `@asym/` is a dependency, not followed.
+ */
+function resolveImport(from: string, specifier: string): Resolution {
+  if (FORBIDDEN_SPECIFIERS.has(specifier))
+    return { kind: "forbidden", path: specifier };
   if (specifier.startsWith("."))
-    return resolveFile(join(dirname(from), specifier));
+    return resolvePath(join(dirname(from), specifier), specifier);
   if (specifier.startsWith("@/")) {
-    const app = from.match(/^apps\/([^/]+)\//)?.[1];
-    return app ? resolveFile(join("apps", app, specifier.slice(2))) : null;
+    const owner = from.match(/^(apps|packages)\/([^/]+)\//);
+    return owner
+      ? resolvePath(join(owner[1]!, owner[2]!, specifier.slice(2)), specifier)
+      : UNRESOLVED(specifier);
   }
-  return resolveWorkspaceSpecifier(specifier);
+  if (specifier.startsWith("@asym/"))
+    return resolveWorkspaceSpecifier(specifier);
+  return { kind: "external" };
 }
 
 function isUseClient(text: string, path: string): boolean {
@@ -239,16 +286,21 @@ function runtimeSpecifiers(path: string): string[] {
   return specifiers;
 }
 
+const ENTRY_ROOTS = [...APPS.map((app) => `apps/${app}`), "packages/*"];
+
+/** Every `"use client"` module of the product apps and the workspace packages. */
 function clientEntries(): string[] {
-  return APPS.flatMap((app) =>
-    globSync(`apps/${app}/**/*.{ts,tsx}`, {
+  return ENTRY_ROOTS.flatMap((dir) =>
+    globSync(`${dir}/**/*.{ts,tsx}`, {
       cwd: root,
       nodir: true,
       ignore: [
         "**/.next/**",
+        "**/dist/**",
         "**/node_modules/**",
         "**/*.test.*",
         "**/*.spec.*",
+        "**/*.stories.*",
       ],
     }),
   )
@@ -257,8 +309,14 @@ function clientEntries(): string[] {
     .sort();
 }
 
-/** For each forbidden module reached, the shortest path from a client entry. */
-function findClientPathsToServerOnly(entries: string[]): string[][] {
+interface ClientGraph {
+  /** For each forbidden module reached, the shortest path from a client entry. */
+  paths: string[][];
+  /** `file: specifier` for each `.`, `@/` or `@asym/` import that resolves to nothing. */
+  unresolved: string[];
+}
+
+function walkClientGraph(entries: string[]): ClientGraph {
   const parent = new Map<string, string | null>();
   const queue: string[] = [];
   for (const entry of entries) {
@@ -268,7 +326,7 @@ function findClientPathsToServerOnly(entries: string[]): string[][] {
     }
   }
   const hits: string[] = [];
-  const edgesCache = new Map<string, string[]>();
+  const unresolved: string[] = [];
   while (queue.length > 0) {
     const current = queue.shift() as string;
     if (FORBIDDEN_FILES.has(current) || FORBIDDEN_SPECIFIERS.has(current)) {
@@ -276,41 +334,52 @@ function findClientPathsToServerOnly(entries: string[]): string[][] {
       continue;
     }
     if (!hasExtension(current)) continue;
-    let edges = edgesCache.get(current);
-    if (!edges) {
-      edges = runtimeSpecifiers(current)
-        .map((specifier) => resolveImport(current, specifier))
-        .filter((target): target is string => target !== null);
-      edgesCache.set(current, edges);
-    }
-    for (const target of edges) {
-      if (parent.has(target)) continue;
-      parent.set(target, current);
-      queue.push(target);
+    for (const specifier of runtimeSpecifiers(current)) {
+      const target = resolveImport(current, specifier);
+      if (target.kind === "unresolved") {
+        unresolved.push(`${current}: ${target.specifier}`);
+        continue;
+      }
+      if (target.kind === "external" || parent.has(target.path)) continue;
+      parent.set(target.path, current);
+      queue.push(target.path);
     }
   }
-  return hits.map((hit) => {
+  const paths = hits.map((hit) => {
     const path: string[] = [];
     for (let node: string | null = hit; node; node = parent.get(node) ?? null) {
       path.unshift(node);
     }
     return path;
   });
+  return { paths, unresolved: [...new Set(unresolved)].sort() };
+}
+
+function findClientPathsToServerOnly(entries: string[]): string[][] {
+  return walkClientGraph(entries).paths;
 }
 
 describe("client module graph (AL-2675)", () => {
-  it("finds the client entries of every product app", () => {
-    const entries = clientEntries();
+  const entries = clientEntries();
+  const graph = walkClientGraph(entries);
+
+  it("finds the client entries of every product app and of the workspace packages", () => {
     for (const app of APPS) {
       expect(entries.some((entry) => entry.startsWith(`apps/${app}/`))).toBe(
         true,
       );
     }
+    expect(
+      entries.filter((entry) => entry.startsWith("packages/")).length,
+    ).toBeGreaterThan(100);
   });
 
   it("reaches no module that needs the request or is marked server-only", () => {
-    const paths = findClientPathsToServerOnly(clientEntries());
-    expect(paths.map((path) => path.join("\n  -> "))).toEqual([]);
+    expect(graph.paths.map((path) => path.join("\n  -> "))).toEqual([]);
+  });
+
+  it("resolves every relative, @/ and @asym/ import it reaches", () => {
+    expect(graph.unresolved).toEqual([]);
   });
 
   it("keeps the CRM gift-history row actions off the request context", () => {

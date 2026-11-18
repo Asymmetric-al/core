@@ -4,15 +4,6 @@ import type {
   UserRole,
 } from "@asym/database/types";
 
-export type DashboardScope =
-  "donor_portal" | "missionary_dashboard" | "admin_dashboard";
-
-export type StaffCapability =
-  | "admin.dashboard.access"
-  | "admin.crm.manage"
-  | "admin.gifts.manage"
-  | "admin.reports.view";
-
 export interface AuthMembership {
   tenantId: string;
   role: MembershipRole;
@@ -36,44 +27,12 @@ export interface RoleSnapshot {
   memberships: readonly AuthMembership[];
 }
 
-const BASE_STAFF_CAPABILITIES: readonly StaffCapability[] = [
-  "admin.dashboard.access",
-  "admin.crm.manage",
-  "admin.gifts.manage",
-  "admin.reports.view",
-];
-
-/**
- * Foundation policy:
- * - All staff subroles have full Mission Control admin access in MVP.
- * - This map intentionally keeps capability sets explicit so we can narrow by
- *   subrole later without changing call sites.
- */
-export const STAFF_SUBROLE_CAPABILITIES: Readonly<
-  Record<StaffSubrole, readonly StaffCapability[]>
-> = {
-  finance: BASE_STAFF_CAPABILITIES,
-  mobilizer: BASE_STAFF_CAPABILITIES,
-  development: BASE_STAFF_CAPABILITIES,
-  hr: BASE_STAFF_CAPABILITIES,
-  member_care: BASE_STAFF_CAPABILITIES,
-};
-
 function liveMemberships(snapshot: RoleSnapshot, role: MembershipRole) {
   return snapshot.memberships.filter(
     (membership) => membership.isActive && membership.role === role,
   );
 }
 
-/**
- * Whether the snapshot's membership grants a role name:
- * - `admin`: a live staff membership that carries the tenant-administrator
- *   flag. A staff membership without it is not an administrator.
- * - `staff`: any live staff membership, flagged or not.
- * - `donor`, `missionary`: a live membership of that class.
- * - `super_admin` and every other name: never. Platform operators are not a
- *   membership role; WP2c gives them their own list.
- */
 /**
  * Whether a live membership of `roleClass` in `tenantId` is among
  * `memberships` (AL-2675). Pure, so runtimes without a request scope can use
@@ -106,6 +65,15 @@ export function hasTenantAdministratorMembership(
   );
 }
 
+/**
+ * Whether the snapshot's membership grants a role name:
+ * - `admin`: a live staff membership that carries the tenant-administrator
+ *   flag. A staff membership without it is not an administrator.
+ * - `staff`: any live staff membership, flagged or not.
+ * - `donor`, `missionary`: a live membership of that class.
+ * - `super_admin` and every other name: never. Platform operators are not a
+ *   membership role; WP2c gives them their own list.
+ */
 export function hasRole(snapshot: RoleSnapshot, role: UserRole): boolean {
   if (role === "admin") {
     return liveMemberships(snapshot, "staff").some(
@@ -133,28 +101,4 @@ export function derivePrimaryRole(snapshot: RoleSnapshot): UserRole | null {
   if (hasRole(snapshot, "missionary")) return "missionary";
   if (hasRole(snapshot, "donor")) return "donor";
   return null;
-}
-
-export function hasStaffSubrole(
-  snapshot: RoleSnapshot,
-  staffRole: StaffSubrole,
-) {
-  return liveMemberships(snapshot, "staff").some(
-    (membership) => membership.staffRole === staffRole,
-  );
-}
-
-export function canAccessDashboard(
-  snapshot: RoleSnapshot,
-  scope: DashboardScope,
-) {
-  if (scope === "admin_dashboard") {
-    return hasRole(snapshot, "staff");
-  }
-
-  if (scope === "missionary_dashboard") {
-    return hasRole(snapshot, "missionary");
-  }
-
-  return hasRole(snapshot, "donor");
 }

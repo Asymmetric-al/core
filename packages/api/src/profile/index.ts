@@ -55,7 +55,6 @@ export async function GET(request: NextRequest) {
     const { data: profile, error: profileError } = await findFullProfileById(
       supabaseAdmin,
       ctx.profileId,
-      ctx.tenantId,
     );
 
     if (profileError)

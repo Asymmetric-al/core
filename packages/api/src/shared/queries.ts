@@ -1,4 +1,4 @@
-import { isTenantMemberProfile, listTenantMembers } from "./tenant-members";
+import { isTenantMemberProfile } from "./tenant-members";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -8,24 +8,17 @@ const NOT_A_MEMBER = {
 } as const;
 
 /**
- * The profile id of a login that holds a live membership in the tenant
- * (AL-2675, NR-68): membership decides, never the profile's tenant column. A login
- * with no membership there gets the shape `.single()` gives for no row.
+ * The profile id of the signed-in person's login. Every caller passes the
+ * login of the request's resolved assignment, whose live membership in the
+ * request's tenant the resolver has just checked, so this reads no membership
+ * again (council round 1 on WP2a, F12). It filters on `user_id`, never on the
+ * profile's tenant column (AL-2675, NR-68).
  */
 export async function findProfileByUserId(
   supabase: AdminSupabaseClient,
   userId: string,
-  tenantId: string,
 ) {
-  const [member] = await listTenantMembers(supabase, tenantId, {
-    userIds: [userId],
-  });
-  if (!member) return NOT_A_MEMBER;
-  return supabase
-    .from("profiles")
-    .select("id")
-    .eq("id", member.profileId)
-    .single();
+  return supabase.from("profiles").select("id").eq("user_id", userId).single();
 }
 
 /** A profile by id; with a tenant, only when it is a live member there (AL-2675). */
