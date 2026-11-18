@@ -1206,6 +1206,39 @@ describe("CMS role passwords through a hosted pooler", () => {
     },
   );
 
+  // Review H3: only a refusal that says this password is wrong, or that the
+  // role has no usable secret, sets a password. Any other auth-query failure
+  // (a timeout, a partial outage) must not: setting the same password again
+  // renews the very stale cache the step avoids.
+  it.each([
+    [
+      "an auth query that failed",
+      "FATAL:  (EAUTHQUERY) authentication query failed: timeout",
+    ],
+    [
+      "an auth query that found no such user",
+      "FATAL:  (EAUTHQUERY) user not found in the database",
+    ],
+    [
+      "an MD5 secret",
+      "FATAL:  (EAUTHQUERY) MD5 secrets are not supported for auth_query, use require_user instead",
+    ],
+    [
+      "another user's password",
+      'FATAL:  password authentication failed for user "postgres"',
+    ],
+  ])(
+    "sets nothing and stops at once when the pooler reports %s",
+    (_case, refusal) => {
+      const h = hosted({ cms_owner: [refusal], cms_runtime: ["ok"] });
+      expect(() => call(h)).toThrow(
+        /refused for a reason other than its password/,
+      );
+      expect(h.run).not.toHaveBeenCalled();
+      expect(h.sleeps).toEqual([]);
+    },
+  );
+
   it("stops at once when a verification after the change is refused for another reason", () => {
     const h = hosted({
       cms_owner: [
@@ -1219,10 +1252,12 @@ describe("CMS role passwords through a hosted pooler", () => {
     expect(h.sleeps).toEqual([]);
   });
 
-  // Supavisor blocks a client after 10 refused logins in 150 seconds for one
-  // project and client IP (lib/supavisor/circuit_breaker.ex, :auth_error); the
-  // pooler took the new password within about 80 seconds on the preview
-  // project. Both roles share one client IP in one run.
+  // Supavisor v2.10.1 (commit 83ca93e1) blocks a client after 10 refused
+  // logins in 150 seconds for one project and client address
+  // (lib/supavisor/circuit_breaker.ex, :auth_error); hosted's version is not
+  // published, so this is an estimate there. The pooler took the new password
+  // within about 80 seconds on the preview project. Both roles share one
+  // client address in one run.
   it("waits longer than the measured cache, and stays under the pooler's circuit breaker for both roles", () => {
     const at = ROLE_LOGIN_VERIFICATION.attemptsAtSeconds;
     expect(at[0]).toBe(0);

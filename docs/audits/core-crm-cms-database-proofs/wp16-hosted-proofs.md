@@ -385,12 +385,12 @@ Other settings: `max_connections` 60, `password_encryption` `scram-sha-256`, Pos
 
 **What happened.** `preview-rebuild` at `51f30dfa2` ran the reset, the chain and the seed, and replaced the seeded login's password. It then set the `cms_owner` password and logged in as `cms_owner` at once. The pooler refused: "password authentication failed for user cms_owner". The step stopped at 11:08:31, before Payload's migrations; `preflight` at 11:10:23 found Payload's five pending. A read-only login as each role at 11:09:51, about 80 seconds after the refusal, worked with the same secrets.
 
-**The cause.** The pooler (Supavisor) caches each role's credentials. Each `ALTER ROLE ... PASSWORD` writes a new verifier with a new salt, even for the same password. A login right after it can be refused until the pooler fetches the new one (Supabase, "Supavisor error: password authentication failed after rotating database password"). Repeated refusals trip its circuit breaker: 10 refused logins in 150 seconds block the client for 120 seconds (`lib/supavisor/circuit_breaker.ex`). The step set the same passwords on every release, so every release risked this.
+**The cause.** The pooler (Supavisor) caches each role's credentials. Each `ALTER ROLE ... PASSWORD` writes a new verifier with a new salt, even for the same password. A login right after it can be refused until the pooler fetches the new one (Supabase, "Supavisor error: password authentication failed after rotating database password"). Repeated refusals trip its circuit breaker. In Supavisor v2.10.1 (commit `83ca93e1`, its newest tag on 18 November 2026), 10 refused logins in 150 seconds block the client address for 120 seconds (`lib/supavisor/circuit_breaker.ex`, `:auth_error`). Supabase does not publish which version its pooler runs, so for hosted that bound is an estimate. The step set the same passwords on every release, so every release risked this.
 
 **The fix** (`c452bb6fc`; runbook `ae09da272`, "The CMS role passwords"). The step first logs in with each secret.
 
 - The login works: nothing changes. Every ordinary release takes this path.
-- The login is refused for the password: the step sets the password once, from a SCRAM verifier computed on the runner. It then logs in again at 0, 30 and 90 seconds after the change.
+- The login is refused for the password, in one of Supavisor v2.10.1's two forms: "password authentication failed for user" naming that role, or "(EAUTHQUERY) unsupported or invalid secret format" for a role with no usable password. The step sets the password once, from a SCRAM verifier computed on the runner. It then logs in again at 0, 30 and 90 seconds after the change.
 - The login is refused for any other reason: the step stops at once and changes nothing.
 
 One role costs at most four refused logins, a run at most eight. No message carries a password or a verifier.
@@ -398,7 +398,7 @@ One role costs at most four refused logins, a run at most eight. No message carr
 **Tests that failed first.** Ten unit cases:
 
 - a secret that logs in changes nothing;
-- a wrong password, and the pooler's EAUTHQUERY, are each set once and verified on a later attempt;
+- a wrong password, and the pooler's "unsupported or invalid secret format", are each set once and verified on a later attempt;
 - a password that never logs in within the bound stops the step, naming the role and the bound and nothing secret;
 - four other refusals set nothing;
 - a verification refused for another reason stops at once;

@@ -889,27 +889,45 @@ export async function rebuild({
  * authentication failed after rotating database password"). On the preview
  * project the pooler refused the first login after a change and accepted one
  * about 80 seconds later (WP1.6 report). So the last attempt comes after 90
- * seconds. Supavisor blocks a client IP for 120 seconds after 10 refused
- * logins in 150 seconds for one project (`lib/supavisor/circuit_breaker.ex`,
- * `:auth_error`); with the first login before the change, one role costs at
- * most four refusals and the two roles of one run at most eight.
+ * seconds. Supavisor v2.10.1 (commit 83ca93e1f463f37ff7882aaa87f810a0de5ef9cc,
+ * its newest tag on 18 November 2026) blocks a project's client address for
+ * 120 seconds after 10 refused logins in 150 seconds
+ * (`lib/supavisor/circuit_breaker.ex`, `:auth_error`). Supabase does not
+ * publish which version its pooler runs, so for hosted these figures are an
+ * estimate. With the first login before the change, one role costs at most
+ * four refusals and the two roles of one run at most eight.
  */
 export const ROLE_LOGIN_VERIFICATION = Object.freeze({
   attemptsAtSeconds: Object.freeze([0, 30, 90]),
 });
 
 /**
- * Whether a refused login means the secret is not the role's stored password
- * ("password") or something else ("other"). A role that was made without a
- * password has no secret the pooler can use, which it reports as EAUTHQUERY
- * "unsupported or invalid secret format"; that is the first rebuild of a new
- * project, so it counts as a password to set. Anything else (no route, TLS,
- * the role's connection limit, the pooler's circuit breaker) does not.
+ * Whether a refused login of `role` means its secret is not a usable password
+ * of that role ("password") or something else ("other"). Two forms only, as
+ * Supavisor v2.10.1 (commit 83ca93e1f463f37ff7882aaa87f810a0de5ef9cc) words
+ * them:
+ *
+ * - `password authentication failed for user "<role>"` (SQLSTATE 28P01): a
+ *   wrong password (`lib/supavisor/errors/wrong_password_error.ex`), or one
+ *   changed since the pooler cached the role's salt
+ *   (`lib/supavisor/errors/password_changed_error.ex`, which keeps Postgres's
+ *   own wording). Postgres says the same. Seen on the preview project at
+ *   11:08 UTC on 18 November 2026.
+ * - `(EAUTHQUERY) unsupported or invalid secret format`: the stored secret is
+ *   neither a SCRAM verifier nor MD5, as for a role made without a password
+ *   (`lib/supavisor/auth_query.ex`, `parse_secret/2`).
+ *
+ * Every other refusal is "other", other EAUTHQUERY reasons included: a failed
+ * or timed-out auth query, an unknown user, an MD5 secret. So is a refusal
+ * naming another user, and so are no route, TLS, the role's connection limit
+ * and the pooler's circuit breaker.
  */
-export function classifyLoginRefusal(message) {
+export function classifyLoginRefusal(message, role) {
   const text = String(message ?? "");
-  if (/password authentication failed/i.test(text)) return "password";
-  if (/EAUTHQUERY|invalid secret format/i.test(text)) return "password";
+  if (text.includes(`password authentication failed for user "${role}"`))
+    return "password";
+  if (text.includes("(EAUTHQUERY) unsupported or invalid secret format"))
+    return "password";
   return "other";
 }
 
@@ -928,7 +946,7 @@ function tryRoleLogin({ settings, role, password, query }) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { ok: false, kind: classifyLoginRefusal(message), message };
+    return { ok: false, kind: classifyLoginRefusal(message, role), message };
   }
   if (who?.user !== role)
     stop(`Logging in as ${role} did not yield that role.`);

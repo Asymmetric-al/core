@@ -173,8 +173,11 @@ The shared pooler of a hosted project caches each role's credentials for a
 while. A login right after `ALTER ROLE ... PASSWORD` can be refused although
 the new password is right, and repeated refusals trip the pooler's circuit
 breaker, which blocks the client (Supabase, "Supavisor error: password
-authentication failed after rotating database password"; Supavisor blocks a
-client IP for 120 seconds after 10 refused logins in 150 seconds). Setting the
+authentication failed after rotating database password"). Supavisor v2.10.1
+(commit `83ca93e1`, its newest tag on 18 November 2026) blocks a project's
+client address for 120 seconds after 10 refused logins in 150 seconds;
+Supabase does not publish which version its pooler runs, so for hosted that
+bound is an estimate. Setting the
 same passwords again on every release made this happen: the second rebuild of
 the preview project stopped at "password authentication failed for user
 cms_owner", and the same login succeeded 80 seconds later. On the rotation
@@ -185,17 +188,28 @@ So the step first logs in as each role with its secret.
 
 - The login works: the password is already right, and nothing changes. This
   is every ordinary release.
-- The login is refused for the password ("password authentication failed",
-  or the pooler's "(EAUTHQUERY) unsupported or invalid secret format" for a
-  role made without one): the step sets the password once, from a verifier
+- The login is refused for the password, in one of two forms only, as
+  Supavisor v2.10.1 words them: "password authentication failed for user"
+  naming that role, or "(EAUTHQUERY) unsupported or invalid secret format"
+  for a role with no usable password. The step sets the password once, from a verifier
   computed on the runner, then logs in again at once, after 30 seconds and
   after 90 seconds (`ROLE_LOGIN_VERIFICATION` in
   `scripts/release/release-database.mjs`). That is a rotation, a restore from
   backup (plan 8.5) or a role just made. One role costs at most four refused
   logins, the two roles of a run at most eight.
-- The login is refused for any other reason (no route, TLS, the role's
-  connection limit, the circuit breaker): the step stops at once and changes
-  nothing.
+- The login is refused for any other reason: any other EAUTHQUERY reason,
+  such as a failed or timed-out auth query; a refusal naming another user; no
+  route; TLS; the role's connection limit; the circuit breaker. The step stops
+  at once and changes nothing.
+
+Runs close together are the one case the step cannot tell apart. A run that
+starts within minutes of another run's password change can meet a pooler
+node that still holds the old salt. That node refuses the right password in
+the first form above, so the step sets the password again, and the new salt
+starts the wait anew. Waiting two minutes after a run that changed a password
+is the only mitigation. Newer Supavisor marks such a refusal with the hint
+"The password for this user was recently changed"; the preview project's
+pooler showed none on 18 November 2026.
 
 If the new password is still refused after 90 seconds, the step stops and
 says so. Wait two minutes, then dispatch `set-cms-role-passwords`; do not
