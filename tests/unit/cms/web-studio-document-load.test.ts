@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 
-import { afterEach, expect, it, vi } from "vitest";
+import { cleanup, render } from "@testing-library/react";
+import { createElement, useEffect } from "react";
+import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
 import { loadDocument } from "../../../apps/admin/src/cms/web-studio-document-load";
 
@@ -8,18 +10,39 @@ import { loadDocument } from "../../../apps/admin/src/cms/web-studio-document-lo
  * Leaving Web Studio by Payload's router after its leave-without-saving
  * dialog: the person has already chosen to leave, so Payload's own
  * `beforeunload` listener, still attached, must not ask a second time
- * (AL-2675, council C1). jsdom cannot navigate; the unload is dispatched by
- * hand after the load is asked for.
+ * (AL-2675, council C1). Chromium runs a window's `beforeunload` listeners
+ * in the order they were added, whatever their capture flag (seen in the
+ * end-to-end suite), so the guard must be added before Payload's: the Web
+ * Studio document adds it as it first renders. jsdom cannot navigate; the
+ * unload is dispatched by hand. The cases run in order, as one document.
  */
 
 const payloadPrompt = vi.fn((event: Event) => {
   event.preventDefault();
 });
+const added: Array<{ listener: unknown; capture: boolean }> = [];
+const originalAdd = window.addEventListener.bind(window);
 
-afterEach(() => {
-  window.removeEventListener("beforeunload", payloadPrompt);
-  payloadPrompt.mockClear();
+beforeAll(() => {
+  window.addEventListener = ((
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ) => {
+    if (type === "beforeunload") {
+      added.push({
+        listener,
+        capture:
+          typeof options === "object" ? Boolean(options.capture) : !!options,
+      });
+    }
+    return originalAdd(type, listener, options);
+  }) as typeof window.addEventListener;
 });
+afterAll(() => {
+  window.addEventListener = originalAdd;
+});
+afterEach(cleanup);
 
 function unload(): Event {
   const event = new Event("beforeunload", { cancelable: true });
@@ -27,8 +50,48 @@ function unload(): Event {
   return event;
 }
 
-it("lets the document unload without Payload's second prompt", () => {
-  window.addEventListener("beforeunload", payloadPrompt);
+/** Stands in for a Payload form that holds a change. */
+function FormWithUnsavedChange() {
+  useEffect(() => {
+    window.addEventListener("beforeunload", payloadPrompt);
+  }, []);
+  return null;
+}
+
+it("adds the leave guard as the Web Studio document renders, before any form's prompt", async () => {
+  const { WebStudioDocument } =
+    await import("../../../apps/admin/src/cms-ui/web-studio/shell/web-studio-document");
+  render(
+    createElement(
+      WebStudioDocument,
+      {
+        scope: {
+          userId: "00000000-0000-4000-8000-0000000000c1",
+          tenantId: "00000000-0000-0000-0000-000000000001",
+          assignmentId: "00000000-0000-4000-8000-0000000000a1",
+          addressPrefix: "",
+        },
+        organization: { name: "Alpha Mission", canSwitch: true },
+      },
+      createElement(FormWithUnsavedChange),
+    ),
+  );
+
+  expect(added.map((entry) => entry.listener)).toContain(payloadPrompt);
+  const guard = added.findIndex((entry) => entry.capture);
+  const prompt = added.findIndex((entry) => entry.listener === payloadPrompt);
+  expect(guard).toBeGreaterThanOrEqual(0);
+  expect(guard).toBeLessThan(prompt);
+});
+
+it("leaves Payload's prompt in place until the person chose to leave", () => {
+  const event = unload();
+  expect(payloadPrompt).toHaveBeenCalledTimes(1);
+  expect(event.defaultPrevented).toBe(true);
+});
+
+it("lets the document unload without Payload's second prompt once the person chose to leave", () => {
+  payloadPrompt.mockClear();
   const jsdomNavigation = vi
     .spyOn(console, "error")
     .mockImplementation(() => {});
@@ -40,19 +103,4 @@ it("lets the document unload without Payload's second prompt", () => {
   const event = unload();
   expect(payloadPrompt).not.toHaveBeenCalled();
   expect(event.defaultPrevented).toBe(false);
-});
-
-it("stops the prompt for that one load only", () => {
-  window.addEventListener("beforeunload", payloadPrompt);
-  const jsdomNavigation = vi
-    .spyOn(console, "error")
-    .mockImplementation(() => {});
-  loadDocument("/", { replace: true });
-  jsdomNavigation.mockRestore();
-  unload();
-
-  // A later unload, as from the browser's own reload, asks again.
-  const later = unload();
-  expect(payloadPrompt).toHaveBeenCalledTimes(1);
-  expect(later.defaultPrevented).toBe(true);
 });

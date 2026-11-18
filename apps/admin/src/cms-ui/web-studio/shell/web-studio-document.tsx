@@ -8,6 +8,7 @@ import { createContext, useContext } from "react";
 
 import { installWebStudioDocumentFetch } from "./web-studio-document-fetch";
 import { WebStudioRefusalDialog } from "./web-studio-refusal-dialog";
+import { installWebStudioLeaveGuard } from "../../../cms/web-studio-document-load";
 
 import type { ReactNode } from "react";
 
@@ -41,8 +42,12 @@ export function WebStudioDocument({
   organization: WebStudioOrganization;
   children: ReactNode;
 }) {
-  // Before any child effect, so no call leaves without its scope.
-  if (typeof window !== "undefined") installWebStudioDocumentFetch();
+  // Before any child effect, so no call leaves without its scope, and so the
+  // leave guard comes before Payload's own "leave this page?" listener.
+  if (typeof window !== "undefined") {
+    installWebStudioDocumentFetch();
+    installWebStudioLeaveGuard();
+  }
 
   return (
     <DocumentScopeProvider scope={scope}>
