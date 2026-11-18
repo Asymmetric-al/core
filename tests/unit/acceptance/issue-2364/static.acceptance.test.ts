@@ -4,6 +4,7 @@ import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const REGISTRY = "packages/database/collections/registry.ts";
 const DOC = "docs/guides/architecture/data-access-boundary.md";
@@ -120,5 +121,16 @@ describe("#2364 static [A][S]", () => {
     expect(doc).toMatch(/\/api\/missionaries/);
     expect(doc).toMatch(/GraphQL/i);
     expect(doc).toMatch(/\/api\/donate[\s\S]*(?:config|publishableKey)/);
+  });
+  // #2706: the real-stack file skips cleanly without an admin URL, so CI must
+  // run it with one. This replaces the retired exact run string in #2250.
+  it("#2364 [A][R] criteria 1-4, 11-14 run in CI: a blocking migrate step runs the real-stack file against the migrated database", () => {
+    expectRealstackStep(
+      "Verify tenant isolation (real stack)",
+      [
+        "tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts",
+      ],
+      { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+    );
   });
 });
