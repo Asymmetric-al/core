@@ -169,7 +169,12 @@ export function useMissionaryDonorRows(
     hasMore: query.hasNextPage,
     isLoadingMore: query.isFetchingNextPage,
     loadMore,
-    isLoading: query.isLoading,
+    /**
+     * Nothing has loaded and a load is running or waiting. Offline, a load
+     * with nothing cached waits for the connection: pending and paused, not
+     * TanStack's `isLoading`, yet it has not answered.
+     */
+    isLoading: query.isLoading || (query.isPending && query.isPaused),
     error: (query.error as Error | null) ?? null,
   };
 }
