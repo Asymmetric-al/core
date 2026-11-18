@@ -124,3 +124,6 @@
       exclusion. Then drop it only for a path inside `tests/unit/acceptance`.
 - [x] 10.7 Red first: the debug-prerender rebuild must have its own timeout of
       at most half the build job budget. Then give it `timeout-minutes: 6`.
+- [x] 10.8 Correct the two documents that still describe the serial
+      integration chain (`docs/ai/repo-groundtruth.md`, the `docs/ci.md`
+      `test-e2e` heading).
