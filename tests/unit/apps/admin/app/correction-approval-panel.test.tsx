@@ -18,6 +18,16 @@ import type { ContributionCorrectionRequestView } from "../../../../../apps/admi
 // eslint-disable-next-line no-restricted-imports -- AL-1894: App panel regression test at its public UI boundary.
 import type { ContributionReceiptDeliveryContext } from "../../../../../apps/admin/app/(app)/contributions/receipt-delivery-choice";
 
+// WP2b, AL-2675: the updated-receipt PDF is an own-API download; only the
+// download itself is replaced, ownApiFetch stays real.
+const { ownApiDownloadMock } = vi.hoisted(() => ({
+  ownApiDownloadMock: vi.fn(async () => undefined),
+}));
+vi.mock("@asym/database/own-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ownApiDownload: ownApiDownloadMock,
+}));
+
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm", "records"],
@@ -429,12 +439,18 @@ describe("CorrectionApprovalPanel", () => {
     const view = renderPanel();
     fireEvent.click(view.getByRole("button", { name: "Approve" }));
 
-    const link = await view.findByRole("link", {
-      name: /download updated receipt pdf\s*\(opens in a new tab\)/i,
+    // WP2b, AL-2675: the PDF route is the app's own API, so the control
+    // downloads it through the own-API wrapper; a link that opened it in a
+    // new tab was a page load with no tenant header. Where this read the
+    // link's href, it now reads the address the click downloads.
+    const control = await view.findByRole("button", {
+      name: /download updated receipt pdf/i,
     });
     expect(view.getByText("Receipt: PDF generated")).toBeTruthy();
-    expect(link.getAttribute("href")).toBe(
+    fireEvent.click(control);
+    expect(ownApiDownloadMock).toHaveBeenCalledWith(
       "/api/admin/contribution-operations/receipt-snapshots/snap-7/pdf",
+      {},
     );
   });
 });

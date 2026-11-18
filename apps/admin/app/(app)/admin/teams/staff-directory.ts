@@ -1,3 +1,4 @@
+import { ownApiFetch } from "@asym/database/own-api";
 export interface StaffAccount {
   id: string;
   full_name?: string | null;
@@ -40,7 +41,7 @@ export async function loadStaffAccounts(
           limit: "100",
           offset: String(offset),
         });
-        const response = await fetch(`/api/admin/users?${params}`, {
+        const response = await ownApiFetch(`/api/admin/users?${params}`, {
           signal,
           credentials: "same-origin",
           headers: { Accept: "application/json" },

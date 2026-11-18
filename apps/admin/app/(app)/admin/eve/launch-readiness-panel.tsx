@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_LAUNCH_CANARY_IDS } from "@asym/api/eve/launch-readiness";
+import { ownApiFetch } from "@asym/database/own-api";
 import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
@@ -62,7 +63,7 @@ const FAILED_CANARY_RESULTS = Object.fromEntries(
 );
 
 async function loadReadiness(): Promise<LaunchReadinessResponse> {
-  const response = await fetch("/api/admin/eve/launch-readiness", {
+  const response = await ownApiFetch("/api/admin/eve/launch-readiness", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
@@ -82,7 +83,7 @@ async function loadReadiness(): Promise<LaunchReadinessResponse> {
 async function mutateReadiness(
   body: Record<string, unknown>,
 ): Promise<LaunchReadinessResponse> {
-  const response = await fetch("/api/admin/eve/launch-readiness", {
+  const response = await ownApiFetch("/api/admin/eve/launch-readiness", {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },

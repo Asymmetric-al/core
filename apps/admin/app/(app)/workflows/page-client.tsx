@@ -4,6 +4,7 @@ import {
   useRoutePathname as usePathname,
   useTenantRouter as useRouter,
 } from "@asym/auth/tenant-navigation";
+import { ownApiFetch } from "@asym/database/own-api";
 import {
   MetricCard,
   MetricGrid,
@@ -56,7 +57,7 @@ export default function WorkflowsPageClient() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/admin/workflows/summaries")
+    ownApiFetch("/api/admin/workflows/summaries")
       .then(async (response) => {
         if (!response.ok) throw new Error("summaries_unavailable");
         return (await response.json()) as SummariesResponse;

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
+import { ownApiFetch } from "@asym/database/own-api";
 import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
 import {
   DataGridPanel,
@@ -974,7 +975,7 @@ export function ContributionsMainBody({
       let batchResponse = bulkReceiptContinuationRef.current;
       if (!batchResponse) {
         bulkReceiptBatchTokenRef.current ??= crypto.randomUUID();
-        const response = await fetch("/api/admin/contribution-batches", {
+        const response = await ownApiFetch("/api/admin/contribution-batches", {
           body: JSON.stringify({
             actionType: "resend_receipt",
             confirmationToken: bulkReceiptBatchTokenRef.current,

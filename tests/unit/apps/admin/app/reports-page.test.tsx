@@ -23,8 +23,16 @@ import type { ReactElement, ReactNode } from "react";
 
 import type { AdminCrmReportResponse } from "@asym/database/types";
 
-const { useAdminCrmReportMock } = vi.hoisted(() => ({
+const { useAdminCrmReportMock, ownApiDownloadMock } = vi.hoisted(() => ({
   useAdminCrmReportMock: vi.fn(),
+  ownApiDownloadMock: vi.fn(async () => undefined),
+}));
+
+// WP2b, AL-2675: the export is an own-API call carrying the document's
+// tenant and assignment, not a link (a page load carries no header).
+vi.mock("@asym/database/own-api", () => ({
+  ownApiDownload: ownApiDownloadMock,
+  ownApiFetch: vi.fn(),
 }));
 
 vi.mock("@asym/database/hooks", async () => ({
@@ -331,9 +339,13 @@ describe("apps/admin/app/(app)/reports/page-client", () => {
       dateFrom: null,
       dateTo: null,
     });
-    expect(
-      view.getByRole("link", { name: "Export CSV" }).getAttribute("href"),
-    ).toBe("/api/admin/crm/reports/export?slice=funds");
+    // Was a link whose href this asserted; the export is now an own-API
+    // download of the same address (WP2b, AL-2675).
+    fireEvent.click(view.getByRole("button", { name: "Export CSV" }));
+    expect(ownApiDownloadMock).toHaveBeenCalledWith(
+      "/api/admin/crm/reports/export?slice=funds",
+      {},
+    );
     fireEvent.click(
       view.getByRole("button", { name: "Missionary", exact: true }),
     );

@@ -150,7 +150,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
+          "sha256": "1a50659c73f6354aeb28f5a62df65b6f35f28dc0be1b46541160314a54cd5c4e"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
@@ -244,7 +244,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
+          "sha256": "1a50659c73f6354aeb28f5a62df65b6f35f28dc0be1b46541160314a54cd5c4e"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
@@ -268,7 +268,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
-          "sha256": "a18606dd39e038c9861851f308d0eeb9a617187076ea31bed90d483879b64454"
+          "sha256": "804725561f0e8785f51f25026b4a4bf83739b63a66477dad832c083a08fce89c"
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
@@ -288,7 +288,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
+          "sha256": "1a50659c73f6354aeb28f5a62df65b6f35f28dc0be1b46541160314a54cd5c4e"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
@@ -349,7 +349,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/pdf/page-client.tsx",
-          "sha256": "04259a0e15191bc3fa27b35624eb694721781d5974c0dd2d0786d53ef50187bc"
+          "sha256": "11225e9900205f05f3da811273b6aa2bd241ead2f104a6673ca67db9745920ca"
         },
         {
           "path": "packages/ui/components/shadcn/tooltip.tsx",
@@ -506,7 +506,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "6713cceb355a9e2eddb7afe89a18758cc2ab860deabfc6e58f22dfe89f3389bd"
+          "sha256": "1a50659c73f6354aeb28f5a62df65b6f35f28dc0be1b46541160314a54cd5c4e"
         },
         {
           "path": "packages/ui/components/shadcn/alert.tsx",
@@ -603,7 +603,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/launch-readiness-panel.tsx",
-          "sha256": "f763799e7e8029fb1f22307aea99a09cc589cfd750fd9500189f820c761311ee"
+          "sha256": "1236f7a65a18af46e4720877ac8f9f63745c23cacf7c7ab48bc1d442f30fcc0c"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx",

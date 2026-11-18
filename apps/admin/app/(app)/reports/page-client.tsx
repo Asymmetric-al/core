@@ -37,6 +37,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@asym/ui/components/shadcn/toggle-group";
+import { useOwnApiDownload } from "@asym/ui/hooks";
 import { AlertTriangle, ArrowDown, RotateCw } from "lucide-react";
 import { parseAsStringEnum, useQueryStates } from "nuqs";
 import { useId, useMemo, type ReactNode } from "react";
@@ -176,6 +177,8 @@ export function ReportsPageView({
   report: AdminCrmReportResponse | null;
 }) {
   const exportReasonId = useId();
+  // The export is an own-API call with the document's scope, not a link.
+  const { download, pending: exportPending } = useOwnApiDownload();
   const group = reportGroupLabels(report);
   const exportReason = isError
     ? "Load the report successfully before exporting."
@@ -235,13 +238,14 @@ export function ReportsPageView({
               </span>
             </>
           ) : (
-            <ButtonLink
+            <Button
               variant="outline"
               size="sm"
-              render={<a href={crmReportExportHref(report!)} />}
+              disabled={exportPending}
+              onClick={() => void download(crmReportExportHref(report!))}
             >
               Export CSV
-            </ButtonLink>
+            </Button>
           )}
         </div>
       }

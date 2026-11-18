@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { FieldDescription } from "@asym/ui/components/shadcn/field";
 import { useAuth, useConfig } from "@payloadcms/ui";
@@ -84,7 +85,7 @@ function ProjectPageCreateViewContent() {
   } = useQuery({
     queryKey: ["web-studio", "admin-funds"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/funds?limit=200", {
+      const res = await ownApiFetch("/api/admin/funds?limit=200", {
         credentials: "include",
       });
       if (!res.ok) {
