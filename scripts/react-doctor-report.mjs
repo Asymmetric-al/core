@@ -76,8 +76,18 @@ export function parseReactDoctorReport(report, target, expectedDirectory) {
     !Number.isSafeInteger(project.scannedFileCount) ||
     project.scannedFileCount < 1
   ) {
+    // Name the scanner's own reasons: under load a lint batch timeout looks
+    // like this, and the fix is a rerun, not a code change.
+    const reasons =
+      project.skippedCheckReasons &&
+      typeof project.skippedCheckReasons === "object" &&
+      !Array.isArray(project.skippedCheckReasons)
+        ? Object.entries(project.skippedCheckReasons).map(
+            ([check, reason]) => `${check}: ${String(reason)}`,
+          )
+        : [];
     throw new Error(
-      "React Doctor skipped checks, omitted source coverage, or returned a partial project.",
+      `React Doctor skipped checks, omitted source coverage, or returned a partial project for ${target}${reasons.length ? ` (${reasons.join("; ")})` : ""}.`,
     );
   }
   const errors = report.diagnostics.filter(

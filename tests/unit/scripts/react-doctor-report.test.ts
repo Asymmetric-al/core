@@ -175,3 +175,56 @@ describe("React Doctor diagnostic identity and severity", () => {
     ).toThrow(/diagnostic identity or severity is unsupported/i);
   });
 });
+
+describe("React Doctor incomplete-scan reasons", () => {
+  const root = "/fixture/apps/donor";
+  const project = {
+    directory: root,
+    packageRoot: root,
+    project: { rootDirectory: root },
+    diagnostics: [],
+    score: null,
+    complete: false,
+    skippedChecks: [],
+    skippedCheckReasons: {
+      "lint:partial":
+        "1 file(s) failed to lint and were skipped (app/checkout.tsx) — first failure: oxlint batch timed out: 60s budget exceeded",
+    },
+    analyzedFiles: ["app/page.tsx"],
+    analyzedFileCount: 1,
+    scannedFileCount: 2,
+  };
+  const report = {
+    schemaVersion: 3,
+    version: REACT_DOCTOR_VERSION,
+    mode: "full",
+    ok: true,
+    error: null,
+    directory: root,
+    diagnostics: [],
+    summary: {
+      errorCount: 0,
+      warningCount: 0,
+      totalDiagnosticCount: 0,
+      score: null,
+    },
+    projects: [project],
+  };
+
+  it("names the target and the scanner's reasons when a project is partial", () => {
+    expect(() => parseReactDoctorReport(report, "apps/donor", root)).toThrow(
+      /partial project for apps\/donor \(lint:partial: 1 file\(s\) failed to lint .*oxlint batch timed out: 60s budget exceeded\)/,
+    );
+  });
+
+  it("still names the target when the scanner gives no reason", () => {
+    const { skippedCheckReasons: _omitted, ...withoutReasons } = project;
+    expect(() =>
+      parseReactDoctorReport(
+        { ...report, projects: [withoutReasons] },
+        "apps/donor",
+        root,
+      ),
+    ).toThrow(/partial project for apps\/donor\.$/);
+  });
+});
