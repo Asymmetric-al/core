@@ -29,6 +29,10 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+// `redirectInTenant` reads the request's address prefix; these pages and
+// gates have none, so it is the plain redirect (council round 1, A10).
+vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
+
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({ client: null }),
 }));

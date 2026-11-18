@@ -1,6 +1,7 @@
 import { libraryConfig } from "@asym/eslint-config/library.mjs";
 import { scopeWorkspaceConfig } from "@asym/eslint-config/workspace.mjs";
 import { designSystemConfig } from "@asym/eslint-config/design-system.mjs";
+import { tenantNavigationConfig } from "@asym/eslint-config/tenant-navigation.mjs";
 
 const missionaryConfig = [
   ...scopeWorkspaceConfig(
@@ -29,6 +30,7 @@ const missionaryConfig = [
     import.meta.url,
   ),
   ...designSystemConfig({ workspace: "packages/missionary" }),
+  ...tenantNavigationConfig({ workspace: "packages/missionary" }),
 ];
 
 export { libraryConfig, missionaryConfig };

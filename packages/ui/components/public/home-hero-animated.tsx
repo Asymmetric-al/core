@@ -1,5 +1,6 @@
 "use client";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import {
   useReducedMotion,
   LazyMotion,
@@ -9,7 +10,6 @@ import {
 import { propsHeroEntrance, STAGGER_TIGHT } from "@asym/lib/motion-presets";
 import { Activity, ArrowRight, Users, Zap } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 

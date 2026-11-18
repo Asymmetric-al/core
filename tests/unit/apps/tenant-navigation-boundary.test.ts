@@ -5,21 +5,12 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 /**
- * One way to build an address (plan 5.2; AL-2675). The signed-in pages of
- * Mission Control and the missionary workspace render under
- * `/<tenant>[~<sub-role>]`, so every link, router call, redirect and
- * active-navigation test in them goes through the tenant helpers, never the
- * Next.js originals, which know nothing of the prefix:
- *
- * - `next/link` -> `TenantLink` (`@asym/auth/tenant-navigation`)
- * - `useRouter` -> `useTenantRouter`
- * - `usePathname` -> `useRoutePathname`
- * - `redirect`, `permanentRedirect` -> `redirectInTenant`,
- *   `permanentRedirectInTenant` (`@asym/auth/tenant-server`)
- *
- * Pages outside the tenant segment (sign-in, the chooser, Web Studio, the
- * API routes) keep the originals. Signed-in page code also caches nothing
- * itself: the tenant reaches a cached read only as an argument.
+ * One way to build an address (plan 5.2; AL-2675). The navigation rule itself
+ * is ESLint's now (`tenant-navigation/no-prefixless-navigation`, in
+ * `tooling/eslint-config/tenant-navigation.mjs`; council round 1, A10), and
+ * `tests/unit/scripts/tenant-navigation-lint.test.ts` proves it. What stays
+ * here until A21 moves it into the same rule: signed-in page code caches
+ * nothing itself; the tenant reaches a cached read only as an argument.
  */
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -39,40 +30,6 @@ const SIGNED_IN_TREES = [
   "packages/missionary",
 ];
 
-/** Outside the tenant segment, or redirecting only to pages that are. */
-const OUTSIDE_THE_SEGMENT = new Set([
-  // Redirects to sign-in, `/no-access` and the chooser only.
-  "apps/admin/lib/admin-access.ts",
-  "apps/missionary/app/layout.tsx",
-  // Sign-in, the chooser and the other account screens.
-  "apps/missionary/app/(auth)",
-  "apps/missionary/app/auth",
-  "apps/missionary/app/api",
-  "apps/missionary/app/choose-organization",
-  "apps/missionary/app/forgot-password",
-  "apps/missionary/app/no-access",
-  "apps/missionary/app/register",
-  "apps/missionary/app/boneyard",
-  "apps/missionary/app/global-not-found.tsx",
-  "apps/missionary/app/global-error.tsx",
-]);
-
-const BANNED: ReadonlyArray<[RegExp, string]> = [
-  [/from\s+["']next\/link["']/, "next/link: use TenantLink"],
-  [
-    /import\s*\{[^}]*\buseRouter\b[^}]*\}\s*from\s*["']next\/navigation["']/,
-    "useRouter: use useTenantRouter",
-  ],
-  [
-    /import\s*\{[^}]*\busePathname\b[^}]*\}\s*from\s*["']next\/navigation["']/,
-    "usePathname: use useRoutePathname",
-  ],
-  [
-    /import\s*\{[^}]*\b(?:permanentRedirect|redirect)\b[^}]*\}\s*from\s*["']next\/navigation["']/,
-    "redirect: use redirectInTenant",
-  ],
-];
-
 function sourceFiles(relative: string): string[] {
   const absolute = path.join(root, relative);
   let entries;
@@ -83,9 +40,7 @@ function sourceFiles(relative: string): string[] {
   }
   return entries.flatMap((entry) => {
     const child = path.posix.join(relative, entry.name);
-    if (entry.name === "node_modules" || OUTSIDE_THE_SEGMENT.has(child)) {
-      return [];
-    }
+    if (entry.name === "node_modules") return [];
     if (entry.isDirectory()) return sourceFiles(child);
     return /\.(ts|tsx)$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)
       ? [child]
@@ -93,23 +48,13 @@ function sourceFiles(relative: string): string[] {
   });
 }
 
-describe("signed-in pages build addresses through the tenant helpers", () => {
+describe("signed-in page code", () => {
   const files = SIGNED_IN_TREES.flatMap(sourceFiles);
 
   it("scans the signed-in source of both apps", () => {
     expect(files).toContain("apps/admin/app/mc-shell.tsx");
     expect(files).toContain("apps/missionary/components/app-sidebar.tsx");
     expect(files.length).toBeGreaterThan(200);
-  });
-
-  it("imports no Next.js navigation API that drops the tenant prefix", () => {
-    const offenders = files.flatMap((file) => {
-      const source = readFileSync(path.join(root, file), "utf8");
-      return BANNED.filter(([pattern]) => pattern.test(source)).map(
-        ([, rule]) => `${file} (${rule})`,
-      );
-    });
-    expect(offenders).toEqual([]);
   });
 
   it("caches nothing in signed-in page code, where only params could key it", () => {

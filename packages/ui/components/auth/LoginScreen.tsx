@@ -6,10 +6,10 @@ import {
   safeNextParam,
   type AppId,
 } from "@asym/auth/demo-login";
+import { useTenantRouter } from "@asym/auth/tenant-navigation";
 import { createBrowserClient } from "@asym/database/supabase";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { AuthShell } from "./auth-primitives";
@@ -64,7 +64,7 @@ export function LoginScreen({
   showRegisterLink = true,
   accountNote,
 }: LoginScreenProps) {
-  const { replace, refresh } = useRouter();
+  const { replace, refresh } = useTenantRouter();
   const demoRole = getDemoRoleForApp(appId);
   const defaultPostLoginPath = getDefaultPostLoginPathForApp(appId);
   const sanitizedNextPath = safeNextParam(nextPath);

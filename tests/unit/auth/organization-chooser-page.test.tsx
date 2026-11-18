@@ -24,6 +24,10 @@ vi.mock("next/navigation", async (importOriginal) => ({
   },
 }));
 
+// `redirectInTenant` reads the request's address prefix; these pages and
+// gates have none, so it is the plain redirect (council round 1, A10).
+vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
+
 const { default: AdminChooserPage } =
   await import("../../../apps/admin/app/(auth)/choose-organization/page");
 const { default: MissionaryChooserPage } =

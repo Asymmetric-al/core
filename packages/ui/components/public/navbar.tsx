@@ -1,8 +1,8 @@
 "use client";
 "use memo";
 
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { siteConfig } from "@asym/config/site-client";
-import Link from "next/link";
 
 import { NavbarClient, type NavbarVariant } from "./navbar-client";
 import { buttonVariants } from "../shadcn/button";

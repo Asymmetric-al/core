@@ -7,7 +7,7 @@ import {
   TenantDocument,
   TenantSegmentBoundary,
 } from "@asym/auth/tenant-navigation";
-import { readDocumentScope } from "@asym/auth/tenant-server";
+import { readDocumentScope, redirectInTenant } from "@asym/auth/tenant-server";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
@@ -21,7 +21,6 @@ import {
 } from "@asym/ui/hooks";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
@@ -93,16 +92,18 @@ async function MissionaryWorkspace({
   );
 
   if (authRedirectPath) {
-    redirect(authRedirectPath);
+    return redirectInTenant(authRedirectPath);
   }
 
   if (!hasAnyContextRole(authContext, [...MISSIONARY_ALLOWED_ROLES])) {
-    redirect("/no-access");
+    return redirectInTenant("/no-access");
   }
 
   const scope = await readDocumentScope(authContext);
   if (!scope) {
-    redirect(`${CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`);
+    return redirectInTenant(
+      `${CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`,
+    );
   }
 
   // Retained drafts are scoped by the page's tenant: the tenant of the

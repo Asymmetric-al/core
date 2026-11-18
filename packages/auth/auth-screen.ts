@@ -1,9 +1,9 @@
 import { createClient } from "@asym/database/supabase/server";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
 import { getDefaultPostLoginPathForApp, safeNextParam } from "./demo-login";
 import { passwordRecoverySecondsLeft } from "./password-recovery";
+import { redirectInTenant } from "./tenant-server";
 
 import type { AppId } from "./demo-login";
 
@@ -33,7 +33,9 @@ export async function requireAnonymousVisitor(params: {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect(nextPath ?? getDefaultPostLoginPathForApp(params.appId));
+    return redirectInTenant(
+      nextPath ?? getDefaultPostLoginPathForApp(params.appId),
+    );
   }
 
   return { nextPath };
