@@ -55,8 +55,26 @@ const entry: KnownSelectDefect = {
   table: "post_comments",
   code: "PGRST200",
   match: "profiles!user_id",
+  message: "between 'post_comments' and 'profiles'",
   defect: "the author embed names a relationship that does not exist",
 };
+
+/** The same author-embed select, failing for another reason with the same code. */
+const authorEmbedOtherEmbed = failure(
+  58,
+  "*, author:profiles!user_id(id, first_name, last_name, avatar_url, full_name)",
+  "PGRST200",
+  "Could not find a relationship between 'post_comments' and 'posts' in the schema cache",
+);
+/** The same author-embed select, failing with another code. */
+const authorEmbedMissingColumn = failure(
+  58,
+  "*, author:profiles!user_id(id, first_name, last_name, avatar_url, full_name)",
+  "42703",
+  "column profiles_1.full_name does not exist",
+);
+/** A second select in the file with the same broken embed. */
+const sameEmbedElsewhere = failure(70, "id, author:profiles!user_id(id)");
 
 describe("triageFailures", () => {
   it("reports the failure an entry names as known", () => {
@@ -73,10 +91,23 @@ describe("triageFailures", () => {
     expect(triage.known.map((k) => k.failure)).toEqual([authorEmbed]);
   });
 
+  it("does not let an entry absorb a different failure of the same select", () => {
+    // Same file, table, select and code; PostgREST now names another embed.
+    const otherMessage = triageFailures([authorEmbedOtherEmbed], [entry]);
+    expect(otherMessage.unexpected).toEqual([authorEmbedOtherEmbed]);
+    expect(otherMessage.known).toEqual([]);
+    expect(otherMessage.stale).toEqual([entry]);
+    // Same select, another code.
+    const otherCode = triageFailures([authorEmbedMissingColumn], [entry]);
+    expect(otherCode.unexpected).toEqual([authorEmbedMissingColumn]);
+    expect(otherCode.known).toEqual([]);
+  });
+
   it("matches the required text against the PostgREST message as well", () => {
     const byMessage = {
       ...entry,
       match: "between 'post_comments' and 'posts'",
+      message: "between 'post_comments' and 'posts'",
     };
     const triage = triageFailures([tenantCheck], [byMessage]);
     expect(triage.known.map((k) => k.failure)).toEqual([tenantCheck]);
@@ -84,9 +115,9 @@ describe("triageFailures", () => {
 
   it("fails an entry that matches more than one distinct select", () => {
     const broad = { ...entry, match: "post_comments" };
-    const triage = triageFailures([authorEmbed, tenantCheck], [broad]);
+    const triage = triageFailures([authorEmbed, sameEmbedElsewhere], [broad]);
     expect(triage.ambiguous).toEqual([
-      { entry: broad, failures: [authorEmbed, tenantCheck] },
+      { entry: broad, failures: [authorEmbed, sameEmbedElsewhere] },
     ]);
     expect(triage.known).toEqual([]);
   });
@@ -95,8 +126,11 @@ describe("triageFailures", () => {
     expect(triageFailures([], [entry]).stale).toEqual([entry]);
   });
 
-  it("requires every entry to name something specific to its select", () => {
-    for (const known of KNOWN_SELECT_DEFECTS)
+  it("requires every entry to name its select and the message it excuses", () => {
+    for (const known of KNOWN_SELECT_DEFECTS) {
       expect(known.match.trim().length, known.file).toBeGreaterThan(3);
+      expect(known.code.trim(), known.file).not.toBe("");
+      expect(known.message.trim().length, known.file).toBeGreaterThan(3);
+    }
   });
 });

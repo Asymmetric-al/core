@@ -102,7 +102,7 @@ describeLive("packages/api selects against the migrated schema", (stack) => {
     expect(unexpected, formatFailures(unexpected)).toEqual([]);
     expect(
       ambiguous.map(({ entry, failures: matched }) => ({
-        entry: `${entry.file} (${entry.table}, ${entry.code}, "${entry.match}")`,
+        entry: `${entry.file} (${entry.table}, ${entry.code}, "${entry.match}", "${entry.message}")`,
         selects: matched.map((f) => `${f.sites[0]!.line}`),
       })),
       `These known-defects entries match more than one failing select, so they could hide a new one; make "match" specific to the listed select:\n${ambiguous
@@ -114,7 +114,7 @@ describeLive("packages/api selects against the migrated schema", (stack) => {
       `These known defects no longer reproduce; delete their entries from tests/integration/api-contract/known-defects.ts:\n${stale
         .map(
           (entry) =>
-            `- ${entry.file} (${entry.table}, ${entry.code}, "${entry.match}")`,
+            `- ${entry.file} (${entry.table}, ${entry.code}, "${entry.match}", "${entry.message}")`,
         )
         .join("\n")}`,
     ).toEqual([]);

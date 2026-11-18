@@ -28,13 +28,16 @@ export const compactSelect = (select: string) =>
   select.replace(/\s+/g, " ").trim();
 
 /**
- * An entry explains a failure when the file, table and PostgREST code agree
- * and its `match` text occurs in that select string or in PostgREST's message,
- * so a second, different select in the same file is never covered by it.
+ * An entry explains a failure when the file, table and PostgREST code agree,
+ * PostgREST's message contains the entry's `message` fragment, and its `match`
+ * text occurs in that select string or in the message. So a second, different
+ * select in the same file is never covered by it, and neither is a different
+ * failure of the same select.
  */
 function matches(entry: KnownSelectDefect, failure: SelectFailure): boolean {
   if (entry.code !== failure.code) return false;
-  if (entry.match.trim() === "") return false;
+  if (entry.match.trim() === "" || entry.message.trim() === "") return false;
+  if (!failure.message.includes(entry.message)) return false;
   const site = failure.sites.find(
     (candidate) =>
       candidate.file === entry.file && candidate.table === entry.table,
