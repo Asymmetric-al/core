@@ -12,6 +12,14 @@ import { afterEach, expect, it, vi } from "vitest";
 import { TaskDialog } from "../../../../packages/missionary/components/task-dialog";
 import type { Task } from "../../../../packages/missionary/types";
 
+/**
+ * WP2b, AL-2675: the dialog saves through the missionary workspace's task
+ * routes (server commands, behind the own-API wrapper) instead of writing
+ * `missionary_tasks` with the browser client, and lists partners from the
+ * redacted partner route. `write` records each task request's method, path
+ * and body; `single` stands for the route's response, as it stood for the
+ * table write's result before.
+ */
 const mutation = vi.hoisted(() => ({
   write: vi.fn(),
   single: vi.fn(),
@@ -20,26 +28,27 @@ const mutation = vi.hoisted(() => ({
 vi.mock("@asym/lib/hooks", () => ({
   useAuth: () => ({ profile: { id: "missionary-1" } }),
 }));
-vi.mock("@asym/database/supabase", () => ({
-  createBrowserClient: () => {
-    const query = {
-      select: () => query,
-      eq: () => query,
-      order: async () => ({
-        data: [{ id: "partner-1", name: "Existing partner" }],
-        error: null,
-      }),
-      update: (payload: unknown) => {
-        mutation.write(payload);
-        return query;
-      },
-      insert: (payload: unknown) => {
-        mutation.write(payload);
-        return query;
-      },
-      single: mutation.single,
+vi.mock("@asym/database/own-api", () => ({
+  ownApiFetch: async (path: string, init: RequestInit = {}) => {
+    if (path.startsWith("/api/missionary/donors")) {
+      return Response.json({
+        donors: [{ id: "partner-1", name: "Existing partner" }],
+        hasMore: false,
+        nextOffset: null,
+      });
+    }
+    mutation.write({
+      method: init.method,
+      path,
+      body: JSON.parse(String(init.body)),
+    });
+    const { data, error } = (await mutation.single()) as {
+      data: unknown;
+      error: { message: string } | null;
     };
-    return { from: () => query };
+    return error
+      ? Response.json({ error: error.message }, { status: 500 })
+      : Response.json({ task: data });
   },
 }));
 
@@ -96,11 +105,15 @@ it.each([
     expect(button.getAttribute("aria-busy")).toBe("true");
     fireEvent.click(button);
     expect(mutation.write).toHaveBeenCalledTimes(1);
-    expect(mutation.write).toHaveBeenCalledWith(
-      expect.objectContaining({
-        missionary_id: "missionary-1",
-        title: task.title,
-      }),
+    // The route takes the missionary from the resolved assignment, so the
+    // body names the task and never the missionary.
+    expect(mutation.write).toHaveBeenCalledWith({
+      method: editing ? "PATCH" : "POST",
+      path: editing ? "/api/missionary/tasks/task-1" : "/api/missionary/tasks",
+      body: expect.objectContaining({ title: task.title }),
+    });
+    expect(mutation.write.mock.calls[0]![0].body).not.toHaveProperty(
+      "missionary_id",
     );
     await act(async () => {
       finish({ data: task, error: null });

@@ -2155,7 +2155,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-dialog.tsx",
-          "sha256": "a536efc61800f02f366e859568f87b77c803d5051d4c599fd537dd84d6658d97"
+          "sha256": "b0841db1ccd362073734e8fccb93eb0f5dc87b3f00be9a4d6de4765f28bcef13"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",

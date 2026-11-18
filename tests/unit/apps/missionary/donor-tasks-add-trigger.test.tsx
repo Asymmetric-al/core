@@ -10,40 +10,48 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+// WP2b, AL-2675: the dialog reads partners from the workspace's redacted
+// partner route and saves through the task routes, both behind the own-API
+// wrapper, instead of the browser client's `donors` and `missionary_tasks`
+// tables. The boundary is the wrapper: `donorRead` records partner reads,
+// `taskWrites` any task route request.
 const boundaries = vi.hoisted(() => {
   const taskWrites = {
-    insert: vi.fn(),
-    update: vi.fn(),
-    upsert: vi.fn(),
+    post: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
   };
-  const donorRead = {
-    select: vi.fn(),
-    eq: vi.fn(),
-    order: vi.fn(),
-  };
-  donorRead.select.mockReturnValue(donorRead);
-  donorRead.eq.mockReturnValue(donorRead);
-  donorRead.order.mockResolvedValue({
-    data: [
-      {
-        id: "donor-anna-fixture",
-        name: "Anna Fixture",
-        email: "anna@example.test",
-        avatar_url: null,
-      },
-    ],
-    error: null,
-  });
+  const donorRead = vi.fn();
 
   return {
     profile: { id: "missionary-fixture" },
     taskWrites,
     donorRead,
-    from: vi.fn((table: string) => {
-      if (table === "donors") return donorRead;
-      if (table === "missionary_tasks") return taskWrites;
-      throw new Error(`Unexpected browser table: ${table}`);
+    ownApiFetch: vi.fn(async (path: string, init: RequestInit = {}) => {
+      if (path.startsWith("/api/missionary/donors")) {
+        donorRead(path);
+        return Response.json({
+          donors: [
+            {
+              id: "donor-anna-fixture",
+              name: "Anna Fixture",
+              email: "anna@example.test",
+              avatar_url: null,
+            },
+          ],
+          hasMore: false,
+          nextOffset: null,
+        });
+      }
+      if (path.startsWith("/api/missionary/tasks")) {
+        const method = (init.method ?? "GET").toLowerCase();
+        taskWrites[method as keyof typeof taskWrites]?.(path, init);
+        return Response.json(
+          { error: "Unexpected task write" },
+          { status: 500 },
+        );
+      }
+      throw new Error(`Unexpected own-API path: ${path}`);
     }),
     completeTask: vi.fn(),
     reopenTask: vi.fn(),
@@ -63,8 +71,8 @@ vi.mock("@asym/lib/hooks", () => ({
     refresh: boundaries.refresh,
   }),
 }));
-vi.mock("@asym/database/supabase", () => ({
-  createBrowserClient: () => ({ from: boundaries.from }),
+vi.mock("@asym/database/own-api", () => ({
+  ownApiFetch: boundaries.ownApiFetch,
 }));
 
 const { DonorTasks } =
@@ -106,7 +114,10 @@ function expectNoTaskWrites() {
   expect(boundaries.reopenTask).not.toHaveBeenCalled();
   expect(boundaries.deleteTask).not.toHaveBeenCalled();
   expect(boundaries.refresh).not.toHaveBeenCalled();
-  expect(boundaries.from).not.toHaveBeenCalledWith("missionary_tasks");
+  expect(boundaries.ownApiFetch).not.toHaveBeenCalledWith(
+    expect.stringMatching(/^\/api\/missionary\/tasks/),
+    expect.anything(),
+  );
 }
 
 it.each(["Escape", "Cancel"] as const)(
@@ -132,9 +143,9 @@ it.each(["Escape", "Cancel"] as const)(
       name: "Partner",
     });
     await waitFor(() => expect(partner.textContent).toContain("Anna Fixture"));
-    expect(boundaries.donorRead.eq).toHaveBeenCalledWith(
-      "missionary_id",
-      "missionary-fixture",
+    // The route takes the missionary from the resolved assignment.
+    expect(boundaries.donorRead).toHaveBeenCalledWith(
+      "/api/missionary/donors?limit=100&offset=0",
     );
     await waitFor(() =>
       expect(dialog.contains(document.activeElement)).toBe(true),
