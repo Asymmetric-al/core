@@ -276,7 +276,7 @@ describe("hosted-only CI routing", () => {
     "test-unit": [],
     migrate: [],
     smoke: ["migrate"],
-    "test-e2e-smoke": ["smoke"],
+    "test-e2e-smoke": [],
     "test-e2e": ["smoke", "test-e2e-smoke"],
     "instant-nav": [],
   };
@@ -310,7 +310,10 @@ describe("hosted-only CI routing", () => {
                 (id === "test-e2e"
                   ? github.event_name !== "merge_group"
                   : id === "instant-nav"
-                    ? github.event_name === "workflow_dispatch" || production
+                    ? github.event_name === "workflow_dispatch" ||
+                      production ||
+                      (github.event_name === "pull_request" &&
+                        github.base_ref === "develop")
                     : true);
           for (const fallback of fallbackValues) {
             const needs = Object.fromEntries(
@@ -331,7 +334,9 @@ describe("hosted-only CI routing", () => {
             ]);
             expect(evaluateIfCondition(job.if, ctx), label).toBe(expectedRuns);
             expect(evaluateFlag(job["continue-on-error"], ctx), label).toBe(
-              (id === "test-e2e" || id === "instant-nav") && develop,
+              // instant-nav runs on develop pull requests as a visible,
+              // non-required check (#2711), so it has no continue-on-error.
+              id === "test-e2e" && develop,
             );
           }
         }

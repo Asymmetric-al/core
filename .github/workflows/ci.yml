@@ -161,6 +161,7 @@ jobs:
       - name: Check bun.lock workspace-manifest drift
         run: bun run verify:bun-lock-drift
       - run: bun run verify:eslint
+      - run: bun run verify:shadcn-config
 
   typecheck:
     runs-on: ubuntu-latest
@@ -228,6 +229,12 @@ jobs:
         env:
           CI_BUILD_APPS: ${{ needs.compilation-plan.outputs.apps }}
         run: node scripts/verify/ci-build-policy.mjs --build
+      # Diagnostics only: rebuild the app whose next build failed with
+      # --debug-prerender (server source maps, every failing route). Vercel
+      # runs the normal build command, which never carries the flag.
+      - name: Rebuild failed apps with prerender diagnostics
+        if: failure()
+        run: node scripts/verify/ci-build.mjs --debug-prerender
 
   test-unit:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
@@ -258,7 +265,13 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
+      # On pull requests into develop the runner may skip factory tests the
+      # change provably cannot affect (scripts/verify/ci-test-scope.mjs);
+      # pushes and merge_group always run every test.
       - name: Run unit tests
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: bun run test:unit
       - name: Upload coverage artifact (best effort)
         if: always()
