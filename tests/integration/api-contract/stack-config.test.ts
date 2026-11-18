@@ -9,6 +9,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertLoopbackDatabaseUrl,
+  containerAction,
+  postgrestBinding,
   postgrestEnvironment,
   readApiSettings,
 } from "../../../scripts/api-contract/stack.mjs";
@@ -68,6 +70,7 @@ describe("postgrestEnvironment", () => {
       },
       dbUri: "postgres://authenticator:pw@db:5432/app",
       jwtSecret: "s".repeat(40),
+      serverHost: "127.0.0.1",
       serverPort: 3000,
     });
     expect(env).toEqual({
@@ -77,6 +80,7 @@ describe("postgrestEnvironment", () => {
       PGRST_DB_MAX_ROWS: "1000",
       PGRST_DB_ANON_ROLE: "anon",
       PGRST_JWT_SECRET: "s".repeat(40),
+      PGRST_SERVER_HOST: "127.0.0.1",
       PGRST_SERVER_PORT: "3000",
       PGRST_DB_CHANNEL_ENABLED: "true",
       PGRST_LOG_LEVEL: "error",
@@ -107,5 +111,68 @@ describe("assertLoopbackDatabaseUrl", () => {
       "not a url",
     ])
       expect(() => assertLoopbackDatabaseUrl(url)).toThrow(/loopback|valid/);
+  });
+
+  it("refuses query parameters that move the connection off the checked host", () => {
+    // node-postgres (pg-connection-string) and libpq both let these override
+    // the URL's host, so a loopback hostname alone proves nothing.
+    for (const url of [
+      "postgresql://postgres@127.0.0.1:5432/db?host=db.example.supabase.co",
+      "postgresql://postgres@localhost:5432/db?sslmode=disable&hostaddr=10.0.0.5",
+      "postgresql://postgres@localhost/db?service=production",
+      "postgresql://postgres@localhost/db?HOST=db.example.supabase.co",
+    ])
+      expect(() => assertLoopbackDatabaseUrl(url), url).toThrow(
+        /host|hostaddr|service/,
+      );
+    expect(() =>
+      assertLoopbackDatabaseUrl(
+        "postgresql://postgres@127.0.0.1:5432/db?sslmode=disable",
+      ),
+    ).not.toThrow();
+  });
+
+  it("refuses a URL that is not a Postgres URL", () => {
+    expect(() => assertLoopbackDatabaseUrl("http://127.0.0.1:5432/db")).toThrow(
+      /Postgres/,
+    );
+  });
+});
+
+describe("containerAction", () => {
+  it("creates a container that does not exist", () => {
+    expect(containerAction({ name: "x-pg", exists: false, recorded: [] })).toBe(
+      "create",
+    );
+  });
+
+  it("replaces only a container this stack's state file records", () => {
+    expect(
+      containerAction({ name: "x-pg", exists: true, recorded: ["x-pg"] }),
+    ).toBe("replace");
+  });
+
+  it("refuses a same-named container this stack did not start", () => {
+    expect(() =>
+      containerAction({ name: "x-pg", exists: true, recorded: ["x-rest"] }),
+    ).toThrow(/x-pg.*not start|state file/);
+  });
+});
+
+describe("postgrestBinding", () => {
+  it("binds PostgREST to loopback when it shares the host network", () => {
+    expect(postgrestBinding({ hostNetwork: true, restPort: 54401 })).toEqual({
+      serverHost: "127.0.0.1",
+      serverPort: 54401,
+      publish: null,
+    });
+  });
+
+  it("publishes the container port on loopback only otherwise", () => {
+    expect(postgrestBinding({ hostNetwork: false, restPort: 54401 })).toEqual({
+      serverHost: "!4",
+      serverPort: 3000,
+      publish: "127.0.0.1:54401:3000",
+    });
   });
 });

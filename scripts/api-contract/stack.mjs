@@ -50,6 +50,12 @@ export const POSTGRES_IMAGE =
   "public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+/**
+ * Connection-string parameters that node-postgres (pg-connection-string) or
+ * libpq (psql) honour over the URL's host, so a loopback hostname would prove
+ * nothing while one of them is present.
+ */
+const HOST_OVERRIDE_PARAMETERS = new Set(["host", "hostaddr", "service"]);
 
 export function assertLoopbackDatabaseUrl(value) {
   let url;
@@ -58,11 +64,50 @@ export function assertLoopbackDatabaseUrl(value) {
   } catch {
     throw new Error("DATABASE_URL is not a valid Postgres URL");
   }
+  if (url.protocol !== "postgres:" && url.protocol !== "postgresql:")
+    throw new Error("DATABASE_URL is not a Postgres URL");
   if (!LOOPBACK_HOSTS.has(url.hostname))
     throw new Error(
       "Refusing a non-loopback DATABASE_URL: the API contract stack only prepares a disposable local database",
     );
+  const overrides = [...url.searchParams.keys()].filter((key) =>
+    HOST_OVERRIDE_PARAMETERS.has(key.toLowerCase()),
+  );
+  if (overrides.length > 0)
+    throw new Error(
+      `Refusing DATABASE_URL: its ${overrides.join(", ")} parameter can move the connection off the loopback host the URL names`,
+    );
   return url;
+}
+
+/**
+ * What to do with a container name before `docker run`: create it when absent,
+ * replace it only when this stack's state file records it (a previous run of
+ * this script started it), and refuse otherwise, so a same-named container
+ * that another session owns is never removed.
+ */
+export function containerAction({ name, exists, recorded }) {
+  if (!exists) return "create";
+  if (recorded.includes(name)) return "replace";
+  throw new Error(
+    `A container or network named ${name} exists, but this stack did not start it (its state file does not list it). Remove it yourself or set API_CONTRACT_NAME to another prefix.`,
+  );
+}
+
+/**
+ * Where PostgREST listens. On the host network it binds to loopback, so the
+ * runner exposes nothing; in a container network it listens inside the
+ * container (PostgREST's default, any IPv4) and only the loopback port is
+ * published on the host.
+ */
+export function postgrestBinding({ hostNetwork, restPort }) {
+  return hostNetwork
+    ? { serverHost: "127.0.0.1", serverPort: restPort, publish: null }
+    : {
+        serverHost: "!4",
+        serverPort: 3000,
+        publish: `127.0.0.1:${restPort}:3000`,
+      };
 }
 
 /** Parses a TOML string array such as `["public", "graphql_public"]`. */
@@ -120,6 +165,7 @@ export function postgrestEnvironment({
   settings,
   dbUri,
   jwtSecret,
+  serverHost,
   serverPort,
 }) {
   if (jwtSecret.length < 32)
@@ -131,6 +177,7 @@ export function postgrestEnvironment({
     PGRST_DB_MAX_ROWS: String(settings.maxRows),
     PGRST_DB_ANON_ROLE: "anon",
     PGRST_JWT_SECRET: jwtSecret,
+    PGRST_SERVER_HOST: serverHost,
     PGRST_SERVER_PORT: String(serverPort),
     PGRST_DB_CHANNEL_ENABLED: "true",
     PGRST_LOG_LEVEL: "error",
@@ -232,6 +279,32 @@ function docker(args, { env, allowFailure } = {}) {
   return result;
 }
 
+/**
+ * Makes `name` free for this stack (containerAction): removes a container a
+ * previous run recorded, refuses one it did not, and records the name in the
+ * state file before anything is started under it.
+ */
+function claimContainer(name, state, stateFile) {
+  const exists =
+    docker(["container", "inspect", name], { allowFailure: true }).status === 0;
+  if (
+    containerAction({ name, exists, recorded: state.containers }) === "replace"
+  )
+    docker(["rm", "-f", name]);
+  state.containers = [...new Set([...state.containers, name])];
+  writeState(stateFile, state);
+}
+
+/** Creates `name` unless a previous run recorded it; refuses anyone else's. */
+function claimNetwork(name, state, stateFile) {
+  const exists =
+    docker(["network", "inspect", name], { allowFailure: true }).status === 0;
+  if (containerAction({ name, exists, recorded: state.networks }) === "create")
+    docker(["network", "create", name]);
+  state.networks = [...new Set([...state.networks, name])];
+  writeState(stateFile, state);
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function withClient(databaseUrl, work) {
@@ -307,22 +380,23 @@ async function prepare({ databaseUrl, restDbHost, restDbPort, network }) {
   const database = url.pathname.replace(/^\//, "");
   const dbUri = `postgres://authenticator:${authenticatorPassword}@${restDbHost}:${restDbPort}/${database}`;
   const restName = `${opts.name}-rest`;
+  const binding = postgrestBinding({ hostNetwork, restPort: opts.restPort });
   const environment = postgrestEnvironment({
     settings,
     dbUri,
     jwtSecret,
-    serverPort: hostNetwork ? opts.restPort : 3000,
+    serverHost: binding.serverHost,
+    serverPort: binding.serverPort,
   });
-  docker(["rm", "-f", restName], { allowFailure: true });
+  claimContainer(restName, state, opts.stateFile);
   const args = ["run", "-d", "--name", restName];
   if (hostNetwork) args.push("--network", "host");
-  else args.push("--network", network, "-p", `127.0.0.1:${opts.restPort}:3000`);
+  else args.push("--network", network, "-p", binding.publish);
   // `-e NAME` takes the value from this process's environment, so no secret
   // appears in the docker command line.
   for (const key of Object.keys(environment)) args.push("-e", key);
   args.push(POSTGREST_IMAGE);
   docker(args, { env: { ...process.env, ...environment } });
-  state.containers = [...new Set([...state.containers, restName])];
 
   const postgrestUrl = `http://127.0.0.1:${opts.restPort}`;
   writeState(opts.stateFile, {
@@ -347,12 +421,8 @@ async function up() {
   const password = secret();
   const database = "asymmetrical_test";
 
-  if (
-    docker(["network", "inspect", network], { allowFailure: true }).status !== 0
-  )
-    docker(["network", "create", network]);
-  state.networks = [...new Set([...state.networks, network])];
-  docker(["rm", "-f", pgName], { allowFailure: true });
+  claimNetwork(network, state, opts.stateFile);
+  claimContainer(pgName, state, opts.stateFile);
   docker(
     [
       "run",
@@ -373,8 +443,6 @@ async function up() {
     ],
     { env: { ...process.env, POSTGRES_PASSWORD: password } },
   );
-  state.containers = [...new Set([...state.containers, pgName])];
-  writeState(opts.stateFile, state);
 
   const databaseUrl = `postgresql://postgres:${password}@127.0.0.1:${opts.pgPort}/${database}`;
   await waitForDatabase(databaseUrl);
