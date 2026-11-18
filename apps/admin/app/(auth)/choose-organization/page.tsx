@@ -1,6 +1,9 @@
 import { loadOrganizationChoices } from "@asym/api/auth/organization-choices";
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
-import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
+import {
+  OrganizationChooser,
+  OrganizationChooserUnavailable,
+} from "@asym/ui/components/auth/organization-chooser";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -42,8 +45,10 @@ async function Choices({ searchParams }: ChooseOrganizationPageProps) {
     next: first(params.next),
   });
   if (choices.kind === "signed_out") redirect("/login");
+  // A failed read is an alert with a way to try again, not the error page
+  // (council round 1, A9).
   if (choices.kind === "unavailable") {
-    throw new Error("Your organizations could not be read. Try again.");
+    return <OrganizationChooserUnavailable retryHref={choices.retryHref} />;
   }
   const options = choices.organizations.flatMap((o) => o.options);
   if (options.length === 0) redirect("/no-access");
