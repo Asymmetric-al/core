@@ -1,4 +1,8 @@
-import { QueryClient, isServer } from "@tanstack/react-query";
+import { QueryClient, hashKey, isServer } from "@tanstack/react-query";
+
+import { getDocumentScope } from "../document-scope-store";
+
+import type { QueryKey } from "@tanstack/react-query";
 
 const NON_RETRIABLE_STATUS_CODES = new Set([401, 403]);
 // `throwOnError()` from postgrest-js throws PostgrestError with `code` but no `status`.
@@ -78,10 +82,33 @@ function shouldRetryQuery(failureCount: number, error: unknown): boolean {
   return failureCount < 3;
 }
 
+/**
+ * Every cache key carries the document's person, tenant and assignment (plan
+ * 5.2; AL-2675), so a row cached under another scope, or before the scope was
+ * fixed, is never served to a scoped page. Applied to every query through the
+ * client's defaults, so hooks, infinite queries and the query-backed
+ * collections need not repeat the scope in their keys, and prefix
+ * invalidation, which matches the key and not its hash, keeps working.
+ */
+export function documentScopedQueryKeyHash(queryKey: QueryKey): string {
+  const scope = getDocumentScope();
+  return hashKey([
+    scope
+      ? {
+          person: scope.userId,
+          tenant: scope.tenantId,
+          assignment: scope.assignmentId,
+        }
+      : null,
+    ...queryKey,
+  ]);
+}
+
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
+        queryKeyHashFn: documentScopedQueryKeyHash,
         staleTime: 60 * 1000,
         gcTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
