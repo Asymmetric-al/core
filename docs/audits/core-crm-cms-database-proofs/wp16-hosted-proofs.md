@@ -2,9 +2,14 @@
 
 **Purpose.** WP1.6 owes the platform proofs that only a hosted Supabase project can give (plan section 12, WP1; section 15.2; `docs/ops/release-job.md`, "What still needs a hosted run"). This report records them. They ran on the production-named project `btewedpsxwsjczvmegby`, which is the disposable `preview` project until WP11 (the coordinator's ruling of 18 November 2026; `docs/ops/release-job.md`, step 8). The project is now named `preview`.
 
-**Base.** Branch `feature/AL-2674-wp16-hosted-mapping`, on stage 1 at `c3d03ca97` (pull request #2714). The first rebuild ran at `946415c20`. The gates that pass ran at `172bd89f0`, which adds the replay fix (section 5). One of #2714's review fixes edits `20261117040237_role_change_requires_tenant_admin.sql` in place, so this database is rebuilt once more from the new tip. No proof calls a function of that migration (section 5.5).
+**Base.** Branch `feature/AL-2674-wp16-hosted-mapping`. It started on stage 1 at `c3d03ca97` (pull request #2714), then merged stage 1 at `7a9fc5b39` (merge `fc39fe557`) and at `be59e2a68` (merge `95710bee4`).
 
-**Where it ran.** From the WSL clone `~/code/scratch-clones/wp16-hosted` on the coordinating machine, on 18 November 2026, between 06:59 and 09:25 UTC.
+- The first rebuild ran at `946415c20`. The gates that pass first ran at `172bd89f0`, which adds the replay fix (section 5).
+- One of #2714's review fixes edits `20261117040237_role_change_requires_tenant_admin.sql` in place. So the project was rebuilt again at `51f30dfa2`. That second rebuild stopped at the CMS role passwords (section 8).
+- The recovery at `ae09da272` carries the fix for that, and stopped at its gates (section 9).
+- The third and fourth rebuilds ran at `3fb11620c`, with both fixes, and pass (section 10).
+
+**Where it ran.** From the WSL clone `~/code/scratch-clones/wp16-hosted` on the coordinating machine, on 18 November 2026: between 06:59 and 09:25 UTC for the first rebuild and its proofs, and between 10:36 and 13:58 UTC for the later rebuilds (sections 8 to 11).
 
 - Every database step went through the project's session pooler `aws-0-us-west-2.pooler.supabase.com:5432`, or its transaction pooler on 6543 where a proof needs it. The machine has no IPv6 route, and the direct host resolves only to IPv6.
 - The tools were Node 24.22.3, the Supabase CLI 2.121.0 that `scripts/supabase-cli.mjs` pins, psql 17.11 and Playwright 1.64.1's headless Chromium.
@@ -16,7 +21,8 @@
 - the removal of the legacy Stripe engine;
 - the rename, SSL enforcement, and disabling the Stripe test-mode endpoint;
 - the gates again after the fix;
-- the proofs below, with small fixture writes that were removed afterwards.
+- the proofs below, with small fixture writes that were removed afterwards;
+- later the same day: the second rebuild, the recovery's `migrate` and gates, two more rebuilds with the fixes, the rotation of both CMS role passwords, the role-change proof in a transaction that was rolled back, and the removal of the function secret `MANAGEMENT_API_URL`. A hand edit of a hosted object and a new migration were not approved.
 
 ## 1. Verdict
 
@@ -31,24 +37,31 @@ The first hosted run did not get there. Its fingerprint gate failed, and that fa
 
 The legacy engine's leftovers, which the CLI's reset spares, were removed by hand.
 
+The second rebuild, and the recovery after it, found two more defects. Both are in the release job, and both are fixed on this branch:
+
+- **The pooler's credential cache** (section 8). The CMS role step set each password on every run and logged in right after. The pooler still held the old credentials and refused. The step now changes a password only when its secret is refused, then waits for the pooler within a bound.
+- **A reset keeps default privileges** (section 9). The second rebuild started from the first one's end state, not where a fresh project starts. So 15 functions lacked grants a fresh project gives them. Both rebuilds now put the platform's defaults back before the reset.
+
+With both fixes, the project was rebuilt twice in a row from the same tip. Each time its fingerprint equals CI's replay (section 10).
+
 ## 2. Results
 
 Numbers follow section 6 of the hosted plan.
 
-| #   | Proof                                                        | Result | Evidence                                                                                                                                                                                          |
-| --- | ------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | The pooler's certificate chains to Supabase's public root CA | Pass   | Ports 5432 and 6543: `*.pooler.supabase.com`, then Supabase Intermediate 2021 CA, then Supabase Root 2021 CA, hostname verified, return code 0                                                    |
-| 2   | The pinned CLI reads `PGPASSWORD` against the hosted pooler  | Pass   | `supabase migration list --db-url` with no password in the URL lists the 25 remote versions the Management API lists                                                                              |
-| 3   | `db reset --db-url` and the migrations on hosted             | Pass   | 109 forward migrations, 14 `rollback_*` files skipped by name, seed applied; "Rebuild complete; the database is marked disposable"                                                                |
-| 4   | The CMS role migration by a `postgres` that is not superuser | Pass   | `postgres` has no superuser flag; `cms_owner` (limit 2) and `cms_runtime` (limit 10) log in and do not inherit; `cms` is owned by `cms_owner`                                                     |
-| 5   | Payload's migrations as `cms_owner` over `verify-full`       | Pass   | Five migrations in 12 seconds through the session pooler; the Payload ledger holds all five                                                                                                       |
-| 6   | Custom login roles through the pooler, and their limits      | Pass   | Both roles log in on 5432 and 6543. At each role's limit, the next session-mode login gets "too many connections for role". Two pooler behaviours bear on the limits (section 4.6)                |
-| 7   | Seeded logins carry the release secret                       | Pass   | Supabase Auth signs `demo-owner@givehope.test` in with the release secret (HTTP 200, `aal1`) and refuses `demo-password` (HTTP 400, `invalid_credentials`)                                        |
-| 8   | Payload's start-up as `cms_runtime` cannot change the schema | Pass   | Payload ran three statements as `cms_runtime`, none of them DDL. `cms_runtime` is refused a table in `cms` and a read of `public.donors`                                                          |
-| 9   | A human command through a definer owned by the guard         | Pass   | `public.resolve_command_assignment` on a signed-in token resolves the named assignment inside its tenant and refuses another tenant's. Both platform checks are recorded (section 4.9)            |
-| 10  | The request header from a server and from a browser          | Pass   | The preflight from another origin admits `x-asym-assignment`. Headless Chromium on `https://wp16-probe.example` gets the server's answers: named, missing, cross-tenant and malformed             |
-| 11  | The schema fingerprint equals CI's replay                    | Pass   | First run: 106 access-list differences and 19 `pgmq` objects. After the fix and the removal: "Schema fingerprints match (CI replay = btewedpsxwsjczvmegby)", 0 differing                          |
-| 12  | Marker and heads                                             | Pass   | The marker reads `disposable`; the heads read `20261117153112` and `20261117_082928_cms_runtime_ledger_read_only`; preflight passes. The first run recorded heads after a failed gate (section 8) |
+| #   | Proof                                                        | Result | Evidence                                                                                                                                                                                                                                        |
+| --- | ------------------------------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | The pooler's certificate chains to Supabase's public root CA | Pass   | Ports 5432 and 6543: `*.pooler.supabase.com`, then Supabase Intermediate 2021 CA, then Supabase Root 2021 CA, hostname verified, return code 0                                                                                                  |
+| 2   | The pinned CLI reads `PGPASSWORD` against the hosted pooler  | Pass   | `supabase migration list --db-url` with no password in the URL lists the 25 remote versions the Management API lists                                                                                                                            |
+| 3   | `db reset --db-url` and the migrations on hosted             | Pass   | 109 forward migrations, 14 `rollback_*` files skipped by name, seed applied; "Rebuild complete; the database is marked disposable"                                                                                                              |
+| 4   | The CMS role migration by a `postgres` that is not superuser | Pass   | `postgres` has no superuser flag; `cms_owner` (limit 2) and `cms_runtime` (limit 10) log in and do not inherit; `cms` is owned by `cms_owner`                                                                                                   |
+| 5   | Payload's migrations as `cms_owner` over `verify-full`       | Pass   | Five migrations in 12 seconds through the session pooler; the Payload ledger holds all five                                                                                                                                                     |
+| 6   | Custom login roles through the pooler, and their limits      | Pass   | Both roles log in on 5432 and 6543. At each role's limit, the next session-mode login gets "too many connections for role". Two pooler behaviours bear on the limits (section 4.6)                                                              |
+| 7   | Seeded logins carry the release secret                       | Pass   | Supabase Auth signs `demo-owner@givehope.test` in with the release secret (HTTP 200, `aal1`) and refuses `demo-password` (HTTP 400, `invalid_credentials`)                                                                                      |
+| 8   | Payload's start-up as `cms_runtime` cannot change the schema | Pass   | Payload ran three statements as `cms_runtime`, none of them DDL. `cms_runtime` is refused a table in `cms` and a read of `public.donors`                                                                                                        |
+| 9   | A human command through a definer owned by the guard         | Pass   | `public.resolve_command_assignment` on a signed-in token resolves the named assignment inside its tenant and refuses another tenant's. Both platform checks are recorded (section 4.9)                                                          |
+| 10  | The request header from a server and from a browser          | Pass   | The preflight from another origin admits `x-asym-assignment`. Headless Chromium on `https://wp16-probe.example` gets the server's answers: named, missing, cross-tenant and malformed                                                           |
+| 11  | The schema fingerprint equals CI's replay                    | Pass   | First run: 106 access-list differences and 19 `pgmq` objects. After the fix and the removal: "Schema fingerprints match (CI replay = btewedpsxwsjczvmegby)", 0 differing. Again after the third and fourth rebuilds (section 10)                |
+| 12  | Marker and heads                                             | Pass   | The marker reads `disposable`; the heads read `20261117153112` and `20261117_082928_cms_runtime_ledger_read_only`; preflight passes. The first run recorded heads after a failed gate (section 12). Again after the fourth rebuild (section 10) |
 
 | Other act                                | Result | Evidence                                                                                                                                                      |
 | ---------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -57,23 +70,43 @@ Numbers follow section 6 of the hosted plan.
 | SSL enforcement                          | Done   | A login without TLS is refused on 5432 and 6543 with "(ESSLREQUIRED) SSL connection is required"; the `verify-full` login works                               |
 | Rename                                   | Done   | `production` to `preview` at 08:17:20 UTC; the ref is unchanged                                                                                               |
 | The replay against Supabase's own image  | Equal  | Local stack on slot B (`supabase/postgres:17.11.0.004`): its default privileges equal hosted's, and its fingerprint equals a flagged replay's (4,194 objects) |
+| Removal of `MANAGEMENT_API_URL`          | Done   | Unset at 13:57:25 UTC. Only the platform's `SUPABASE_*` secrets remain; no Edge Function (section 10)                                                         |
+
+| Later proof                                          | Result | Evidence                                                                                                                                               |
+| ---------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A secret that already logs in changes nothing        | Pass   | The recovery's `migrate` and the third and fourth rebuilds: "The cms_owner password already logs in; nothing changed", and the same for `cms_runtime`  |
+| Rotation of both CMS role passwords                  | Pass   | Each login refused, each password set once; each logged in on the second attempt, 36 and 37 seconds after its change; limits and fingerprint unchanged |
+| A rebuild of a rebuilt project equals a fresh replay | Pass   | Fourth rebuild at `3fb11620c`: "Schema fingerprints match", 0 differing                                                                                |
+| A role change for someone in another organization    | Pass   | Refused with SQLSTATE 42501 and the function's own message; a person wholly inside is changed, with one audit row; all rolled back                     |
 
 ## 3. The run
 
-| Step                                           | UTC               | Result                                                                       |
-| ---------------------------------------------- | ----------------- | ---------------------------------------------------------------------------- |
-| Password reset through the Management API      | 06:59:26-06:59:30 | "Successfully updated password"; the `verify-full` login passed at 06:59:47  |
-| Logical backup and its check                   | 07:00:31-07:11:22 | 238 tables, each equal to its live count; checksums pass                     |
-| `preflight` before                             | 07:48:08-07:48:17 | Stops, as expected: "it predates WP1"                                        |
-| `first-rebuild` at `946415c20`                 | 07:48:45-07:55:49 | Exit 0. Reset, chain and seed about 6 minutes 40 seconds; Payload 12 seconds |
-| `gates` (plain replay)                         | 07:56:25-07:57:00 | **Exit 1**: 106 access-list differences, 19 `pgmq` objects only on hosted    |
-| `record-heads`, `preflight` (operator's error) | 07:57:01-07:57:59 | Exit 0 (section 8)                                                           |
-| Engine removal, rename, Stripe endpoint        | 08:16:11-08:17:39 | Section 6                                                                    |
-| SSL enforcement on                             | 08:18:04          | Applied at once; logins checked at 08:18:24                                  |
-| Local stack on slot B, started and stopped     | 09:03:41-09:08:34 | Section 5.3                                                                  |
-| `gates` (fixed replay at `172bd89f0`)          | 09:15:20-09:15:30 | Exit 0: "Schema fingerprints match (CI replay = btewedpsxwsjczvmegby)"       |
-| `record-heads`, then `preflight`               | 09:15:30-09:16:02 | Exit 0, each run only after the step before it passed                        |
-| Proofs 6 to 10, fixtures created and removed   | 09:17-09:25       | Section 4                                                                    |
+| Step                                           | UTC               | Result                                                                        |
+| ---------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
+| Password reset through the Management API      | 06:59:26-06:59:30 | "Successfully updated password"; the `verify-full` login passed at 06:59:47   |
+| Logical backup and its check                   | 07:00:31-07:11:22 | 238 tables, each equal to its live count; checksums pass                      |
+| `preflight` before                             | 07:48:08-07:48:17 | Stops, as expected: "it predates WP1"                                         |
+| `first-rebuild` at `946415c20`                 | 07:48:45-07:55:49 | Exit 0. Reset, chain and seed about 6 minutes 40 seconds; Payload 12 seconds  |
+| `gates` (plain replay)                         | 07:56:25-07:57:00 | **Exit 1**: 106 access-list differences, 19 `pgmq` objects only on hosted     |
+| `record-heads`, `preflight` (operator's error) | 07:57:01-07:57:59 | Exit 0 (section 12)                                                           |
+| Engine removal, rename, Stripe endpoint        | 08:16:11-08:17:39 | Section 6                                                                     |
+| SSL enforcement on                             | 08:18:04          | Applied at once; logins checked at 08:18:24                                   |
+| Local stack on slot B, started and stopped     | 09:03:41-09:08:34 | Section 5.3                                                                   |
+| `gates` (fixed replay at `172bd89f0`)          | 09:15:20-09:15:30 | Exit 0: "Schema fingerprints match (CI replay = btewedpsxwsjczvmegby)"        |
+| `record-heads`, then `preflight`               | 09:15:30-09:16:02 | Exit 0, each run only after the step before it passed                         |
+| Proofs 6 to 10, fixtures created and removed   | 09:17-09:25       | Section 4                                                                     |
+| Read-only probe of the pooler's connections    | 10:36:59-10:37:32 | Section 11                                                                    |
+| `preflight`, `gates` at `51f30dfa2`            | 10:58:44-10:59:32 | Preflight 0 pending; **gates exit 1**: the in-place edit differs (section 12) |
+| `preview-rebuild` at `51f30dfa2` (second)      | 11:00:08-11:08:31 | **Exit 1** at the CMS role passwords (section 8)                              |
+| `migrate` at `ae09da272` (recovery)            | 12:03:31-12:04:45 | Exit 0: both secrets already logged in; Payload's five migrations             |
+| `gates` at `ae09da272`                         | 12:05:05-12:05:16 | **Exit 1**: 15 functions differ in their access lists (section 9)             |
+| `preview-rebuild` at `3fb11620c` (third)       | 13:17:10-13:30:15 | Exit 0: the defaults put back first; both secrets already logged in           |
+| `gates`, `record-heads`, `preflight`           | 13:30:42-13:36:00 | Exit 0: 0 differing                                                           |
+| `migrate` after rotating both secrets          | 13:36:23-13:39:55 | Exit 0: each password set once, logged in after 36 and 37 seconds             |
+| `preview-rebuild` at `3fb11620c` (fourth)      | 13:44:56-13:54:54 | Exit 0: both secrets already logged in                                        |
+| `gates`, `record-heads`, `preflight`           | 13:54:55-13:55:47 | Exit 0: 0 differing                                                           |
+| Role-change proof, rolled back                 | 13:56:26-13:56:32 | Section 10                                                                    |
+| `MANAGEMENT_API_URL` unset                     | 13:57:25          | Section 10                                                                    |
 
 **Pre-checks before the first rebuild.**
 
@@ -308,7 +341,7 @@ At `172bd89f0`, against a fingerprint from the fixed replay (`14e4dd8e…`, 5,89
 
 ### 5.5 The role-change migration
 
-None of the objects that differed comes from `20261117040237_role_change_requires_tenant_admin.sql`, whose function is `public.atomic_update_user_role_with_audit`, and no proof calls it. Its in-place edit changes the replay's fingerprint and the hosted one alike, so the comparison is captured again after the rebuild from #2714's tip.
+None of the objects that differed comes from `20261117040237_role_change_requires_tenant_admin.sql`, whose function is `public.atomic_update_user_role_with_audit`, and no proof calls it. Its in-place edit changes the replay's fingerprint and the hosted one alike, so the comparison is captured again after the rebuild from #2714's tip. It was: after the third and fourth rebuilds the function equals the replay's (section 10).
 
 ### 5.6 A question for the package that narrows the service key
 
@@ -329,7 +362,7 @@ On this project that left the legacy engine's objects. Each was listed, then rem
 | `pgmq.q_stripe_sync_work`, `pgmq.a_stripe_sync_work`, schema `pgmq`                          | 2 empty tables, 3 indexes, their row types; owned by `postgres`; nothing outside depends on them | Dropped without CASCADE, 08:16:48                     |
 | Stripe test-mode endpoint `we_1TRwFtCKW1xvz62wDmPDLukb`                                      | `enabled`, `livemode: false`, aimed at `stripe-webhook`                                          | Disabled, not deleted, 08:17:39                       |
 
-The database removals ran in one transaction, which would have rolled back unless it removed exactly 3 vault rows and 6 `net` rows. Afterwards there is no `vault.secrets` row, no `net` response, and no `pgmq`, `stripe` or `cron` schema. The extensions are those the platform keeps. The function secret `MANAGEMENT_API_URL`, not named in the approval, remains.
+The database removals ran in one transaction, which would have rolled back unless it removed exactly 3 vault rows and 6 `net` rows. Afterwards there is no `vault.secrets` row, no `net` response, and no `pgmq`, `stripe` or `cron` schema. The extensions are those the platform keeps. The function secret `MANAGEMENT_API_URL`, not named in that approval, remained until it was unset with approval later that day (section 10).
 
 The runbook's section "What the first rebuild does not remove" now lists this and the way it is removed.
 
@@ -346,15 +379,116 @@ The runbook's section "What the first rebuild does not remove" now lists this an
 
 Other settings: `max_connections` 60, `password_encryption` `scram-sha-256`, Postgres 17.6.1.063. SSL enforcement is now on. On a pooled session, `pg_stat_ssl` describes the pooler's own link to Postgres, not the client's.
 
-## 8. Observations, and the operator's deviations
+## 8. The second rebuild: the pooler's credential cache
+
+**Why it ran.** #2714's review fix edits `20261117040237_role_change_requires_tenant_admin.sql` in place. At `51f30dfa2`, `preflight` found 0 pending migrations on both ledgers (10:58:44 UTC). Then `gates` found the edit: `public.atomic_update_user_role_with_audit` is defined differently (10:59:19). The coordinator called a second rebuild.
+
+**What happened.** `preview-rebuild` at `51f30dfa2` ran the reset, the chain and the seed, and replaced the seeded login's password. It then set the `cms_owner` password and logged in as `cms_owner` at once. The pooler refused: "password authentication failed for user cms_owner". The step stopped at 11:08:31, before Payload's migrations; `preflight` at 11:10:23 found Payload's five pending. A read-only login as each role at 11:09:51, about 80 seconds after the refusal, worked with the same secrets.
+
+**The cause.** The pooler (Supavisor) caches each role's credentials. Each `ALTER ROLE ... PASSWORD` writes a new verifier with a new salt, even for the same password. A login right after it can be refused until the pooler fetches the new one (Supabase, "Supavisor error: password authentication failed after rotating database password"). Repeated refusals trip its circuit breaker: 10 refused logins in 150 seconds block the client for 120 seconds (`lib/supavisor/circuit_breaker.ex`). The step set the same passwords on every release, so every release risked this.
+
+**The fix** (`c452bb6fc`; runbook `ae09da272`, "The CMS role passwords"). The step first logs in with each secret.
+
+- The login works: nothing changes. Every ordinary release takes this path.
+- The login is refused for the password: the step sets the password once, from a SCRAM verifier computed on the runner. It then logs in again at 0, 30 and 90 seconds after the change.
+- The login is refused for any other reason: the step stops at once and changes nothing.
+
+One role costs at most four refused logins, a run at most eight. No message carries a password or a verifier.
+
+**Tests that failed first.** Ten unit cases:
+
+- a secret that logs in changes nothing;
+- a wrong password, and the pooler's EAUTHQUERY, are each set once and verified on a later attempt;
+- a password that never logs in within the bound stops the step, naming the role and the bound and nothing secret;
+- four other refusals set nothing;
+- a verification refused for another reason stops at once;
+- the bound outlasts 80 seconds and stays under the breaker.
+
+The preview rebuild case failed too, because its fake did not record the change. The release real-stack suite now also proves, on a real Postgres, that a second run leaves both verifiers untouched and that a rotated secret is set once.
+
+## 9. The recovery: a reset keeps default privileges
+
+**What happened.** At `ae09da272`, the fix above on stage 1 at `be59e2a68`, `migrate` passed (12:03:31-12:04:45). Both secrets already logged in, and Payload's five migrations ran as `cms_owner`. Then `gates` failed (12:05:05-12:05:16): 15 functions in `public` differ. The in-place edit no longer does.
+
+**The difference.** Each of the 15 differs only in its access list. The replay grants EXECUTE to `anon` and `authenticated`; hosted does not. PUBLIC executes them on both sides, so who may call them is the same. They are:
+
+- `admin_contributions_summary` and `assert_amount_columns_multiple_of_100`;
+- the seven post counters (`increment_post_*` and `decrement_post_*`) and `get_user_post_interactions`;
+- `normalize_email`;
+- four `updated_at` trigger functions (`set_pdf_template_native_updated_at`, `set_support_hub_updated_at`, `set_support_workspace_updated_at`, `set_workflow_dispatch_updated_at`).
+
+All are made before `20261117034926_close_default_privileges_and_demo_grants.sql`, and none has a grant of its own. They are the 15 functions of section 5.1's "default list" row.
+
+**The cause.** Default privileges belong to a role and a schema. The CLI's reset drops every object in `public` but never `public` itself, so it keeps the default privileges `postgres` holds there. Stage 1's migration closes them for `anon` and `authenticated`. The first rebuild started from the platform's defaults. The second started from the first one's end state, so the functions made before that migration got none of the grants a fresh project gives them. On hosted, the defaults of `postgres` in `public` read `postgres` and `service_role` only: the chain's end state. The `supabase_admin` row is untouched.
+
+**The fix** (`7afd07286`; runbook `3fb11620c`, "What a reset keeps of the default privileges"). Both rebuilds put the platform's default privileges back before the reset. They read them from `scripts/sql/hosted-default-privileges.sql`, the file the replay applies before the chain, and nothing else holds a list of them. Every statement in it runs as hosted `postgres`: it owns those defaults, and as the database's owner it may grant on `public`, which `pg_database_owner` owns. If the step fails, nothing is reset. `migrate` never resets and leaves default privileges alone. No migration was added.
+
+**Tests that failed first.**
+
+- A real-stack test builds a database with the chain and puts the defaults back as the rebuild does. It then resets it as the CLI resets a hosted database (every schema but `public`, and every object in `public`), applies the chain, and compares with a fresh flagged replay. Without the step it failed with exactly the 15 functions above.
+- Unit cases: the defaults go back from their file before the reset, in both rebuilds; a failure resets nothing; `migrate` leaves them alone. The last is a guard: it passes before and after.
+- The single-source test names the rebuild as a reader of the file.
+
+## 10. The third and fourth rebuilds, the rotation and the role change
+
+All ran at `3fb11620c`, each step only after the one before it passed. The gates compared against a fresh flagged replay made as `release.yml` makes it, on the operator's own Postgres: `9705936f5c672c88f164182d5c41c1d74a249c2d91e28c291c2a920d08ad6a2b`, 5,893 objects.
+
+**Third rebuild** (13:17:10-13:30:15).
+
+- "Put back the platform's default privileges in public", then the reset: 109 migrations (14 rollback files skipped by name) and the seed.
+- One seeded login replaced.
+- Both CMS secrets already logged in ("nothing changed"), so there was no wait.
+- Payload's five migrations in 42 seconds.
+
+`gates`: "Schema fingerprints match", 0 differing. Then `record-heads` and `preflight` (13:30:42-13:36:00).
+
+**Rotation proof** (13:36:23-13:39:55). Both stored passwords were replaced with new random 48-character values, then `migrate` ran.
+
+- Each login was refused, and each password was set once.
+- Each new password logged in on the second attempt: `cms_owner` 36 seconds after its change, `cms_runtime` 37 seconds after.
+- That is four refused logins in the run, inside the bound of 90 seconds and under the breaker.
+- Nothing else changed. Both roles keep their limits (2 and 10), no expiry and no inherit. The fingerprint still equals the replay's: its digest is `9705936f…` on both sides.
+
+**Fourth rebuild** (13:44:56-13:54:54). This is the proof that a rebuild of a rebuilt project equals a fresh one. It ran the same steps, and both rotated secrets already logged in. `gates`: "Schema fingerprints match", 0 differing. Then `record-heads` and `preflight` (13:54:55-13:55:47). Proofs 11 and 12 hold again: `platform_health()` reads `environment: disposable`, with expected heads `20261117153112` and `20261117_082928_cms_runtime_ledger_read_only`.
+
+**Role-change proof** (13:56:26-13:56:32). It ran in one transaction that was rolled back, calling the function as `service_role`. The fixtures were two people in the demo organization (the new-user trigger gives each a donor profile there) and a second organization in which one of them has an active membership. The seeded demo owner, an admin, asked for both to become staff.
+
+- The person with the other membership: refused, SQLSTATE 42501, "This person also belongs to another organization; their role cannot be changed here".
+- The person wholly inside: changed to staff, with one `role_change` audit row (`oldRole` donor, `newRole` staff).
+- After the rollback, no fixture user, profile, organization, membership or audit row remains.
+
+**The last of the old engine.** The function secret `MANAGEMENT_API_URL` was unset at 13:57:25. Only the platform's own `SUPABASE_*` secrets remain, and the project has no Edge Function. The database has no `pgmq`, `stripe` or `cron` schema, no `vault.secrets` row and no `net._http_response` row.
+
+## 11. The connection limit of `cms_owner`
+
+**The question.** Can `cms_owner`'s limit of 2 make the release job fail, given that the pooler holds idle server connections for about two minutes?
+
+**Which connection each CMS step uses.** All of them use the session pooler on port 5432: the password step's logins, Payload's migrations as `cms_owner`, and the ledger check. None uses the transaction pooler or the direct host.
+
+**What the pooler does.** A read-only probe ran at 10:36:59-10:37:32:
+
+- Three session clients, one after another, reused one server connection, and it stayed held, idle, after each.
+- Two concurrent session clients took two server connections. Both stayed held.
+- With both held by session mode, a transaction-mode client lost its connection.
+- Two further session clients reused the two held connections.
+
+**The answer.** The job's CMS steps run one after another in session mode. So they reuse what the pooler holds and stay within the limit, re-runs inside the window included. The limit binds only when more than two `cms_owner` sessions overlap, such as a person running a CMS migration during the job, or when a transaction-mode client meets connections held in session mode. Payload's own pool on the runner is not bounded to 2, a bound that applies only on Vercel or a protected deployment, so it takes node-postgres's default of 10; its migrations stayed within the limit on every run here.
+
+**Recommendation, accepted by the coordinator:** leave the limit at 2.
+
+## 12. Observations, and the operator's deviations
 
 - **Only the step order keeps heads behind the gates.** In the first run the operator's loop ran `record-heads` and `preflight` after `gates` failed. Both passed. So nothing in `record-heads` checks that the gates passed: in the job, the workflow's step order alone keeps heads from being recorded after a failed gate. On this disposable database it did no harm, and the passing run recorded the same heads. The runbook now says that a direct run stops at the first failure.
 - **Real-stack suites on the shared test Postgres.** The CMS roles suite (`tests/unit/cms/cms-database-roles.realstack.test.ts`) sets the cluster-wide `cms_owner` and `cms_runtime` passwords in its setup and sets them back to NULL afterwards. The release suite creates and drops two `wp13r_*` roles. The operator ran both on the shared cluster before noticing, against the rule to create and alter no role there. Afterwards both CMS roles have no password and no test role remains. No suite that changes roles was run again.
 - **One CMS roles case failed on the shared cluster:** "stops the eleventh cms_runtime connection at the role's limit". Role limits are cluster-wide, and other sessions on that cluster held `cms_runtime` connections during the run. The case does not touch code this branch changes. CI's own cluster is its judge.
 - **The local stack's printed credentials.** Starting the slot B stack printed its local publishable key and local S3 key pair, which the operator's output filter missed. They are throwaway values of a local stack that no longer exists. No hosted value was printed.
+- **The ledger cannot see an edit in place.** At `51f30dfa2`, `preflight` found 0 pending migrations on both ledgers, while `gates` found the edited function (section 8). A ledger records versions, not contents. So only the fingerprint shows an applied migration that was edited in place. Here a rebuild applied the new text; on a shared or production database a forward migration would have to.
+- **The recovery stopped at its first failure.** In the recovery and in the later runs, `record-heads` and `preflight` ran only after `gates` passed.
+- **Later real-stack runs** used only the operator's own Postgres container (`postgres:17.11-alpine`, record D-34). It is removed.
+- **A unit test timed out under load.** "fails the #2256 v3 census for v3-column-missing" timed out at 60 seconds once, with a load average above 27. Run alone, its file passed, 16 of 16. It does not touch code this branch changes.
 - **The pooler drops startup options** (4.6, section 7). The first login check, a single SELECT, ran without a read-only transaction. Every later read used `begin transaction read only`.
 
-## 9. Where the runbook, the plan and other documents change
+## 13. Where the runbook, the plan and other documents change
 
 Done on this branch, in `docs/ops/release-job.md`:
 
@@ -363,7 +497,10 @@ Done on this branch, in `docs/ops/release-job.md`:
 - `record-heads` kept behind the gates by step order only;
 - "What the first rebuild does not remove";
 - development's pooler host in step 6;
-- "What still needs a hosted run", including the pooler's behaviours.
+- "What still needs a hosted run", including the pooler's behaviours;
+- "The CMS role passwords": a password changes only when its secret is refused, and the wait for the pooler;
+- the pooler's credential cache, and its reuse of held connections in session mode;
+- "What a reset keeps of the default privileges", and the rebuild's first step.
 
 For the coordinator:
 
@@ -382,17 +519,20 @@ For the coordinator:
 
 - **Record D-27.** Hosted `postgres` may grant USAGE on `auth`, but not EXECUTE on `auth.uid()`. The claims-setting fallback stands.
 - **Record section 9, the TP4 row.** Replacing a guard-owned function on hosted Supabase takes the migration's pattern of granting CREATE on the schema, `SET ROLE tenant_guard`, then revoking.
-- **WP4a.** The question of section 5.6.
+- **WP4a.** The question of section 5.6. With it: the 15 early functions in `public` whose EXECUTE grants to `anon` and `authenticated` come from the platform's default privileges, not from a grant of their own (section 9). Whether they keep those grants is a privilege question, decided with the `service_role` defaults.
+- **Plan 7.5 and 8.5.** "Every release sets the CMS role passwords" becomes "every release makes the secrets log in: it changes a password only when its secret is refused, then waits up to 90 seconds for the pooler". A rotation is a new secret, then a release or `set-cms-role-passwords`.
+- **Plan 7.5, the rebuild.** A hosted reset keeps `public` and the default privileges held there. So a rebuild first puts the platform's defaults back, from the replay's file.
+- **Plan 7.4.** The ledgers check versions only. An applied migration edited in place shows only in the fingerprint, which is what enforces the rule that applied migrations are never edited.
+- **Plan 9.3.** `cms_owner`'s limit of 2 holds for the job's own steps, which run one after another in session mode (section 11). Overlap with a person's CMS migration would exceed it.
 - **`docs/ci.md`, "Local Supabase stack workflow".** The section should gain one line for the new comparison. Six frozen suites pin that file's bytes (issues 2180, 2250, 2254, 2258, 2260 and 2312), so the line belongs in a change that updates them under D-18.
 
-## 10. What did not run
+## 14. What did not run
 
 - **Everything that needs a deployment:** Vercel staging and promotion through the job, the health route's detail behind the bypass header, a gitSource deployment into `preview-database`, the deployed Payload's role, and the preview group's queueing. These wait for Vercel.
 - **`supabase db push` on hosted,** which runs in a `release`.
 - **Fingerprint equality with development,** after its first rebuild.
-- **A second rebuild of this project from #2714's tip,** which the coordinator will call.
 
-## 11. How to repeat
+## 15. How to repeat
 
 From the clone, with the pinned CLI and Node 24.22.3 on the PATH and the release values in the environment (names in `docs/ops/release-job.md`, "Secrets and variables"; `RELEASE_ENVIRONMENT=preview`):
 
@@ -406,22 +546,29 @@ node scripts/release/schema-fingerprint.mjs capture --database-url-env REPLAY_DA
 # The hosted steps, each only after the one before it passed.
 node scripts/release/release-database.mjs preflight      # before a first rebuild: stops, "predates WP1"
 node scripts/release/release-database.mjs first-rebuild  # RELEASE_CENSUS_SIGNOFF, RELEASE_CONFIRMATION
+# Later rebuilds of the marked project: preview-rebuild, with RELEASE_CONFIRMATION.
 # Remove what the reset spares (runbook, "What the first rebuild does not remove").
 RELEASE_REPLAY_FINGERPRINT=replay.json node scripts/release/release-database.mjs gates &&
   node scripts/release/release-database.mjs record-heads &&
   node scripts/release/release-database.mjs preflight
 ```
 
-These databases stay on the shared test Postgres for review: `wp16_release_replay`, `wp16_release_replay_hd`, `wp16_replay_hosted_defaults`, `wp16_replay_hd_chain_only` and `wp16_realstack_admin`.
+The scratch databases of the first run (`wp16_release_replay`, `wp16_release_replay_hd`, `wp16_replay_hosted_defaults`, `wp16_replay_hd_chain_only` and `wp16_realstack_admin`) were dropped from the shared test Postgres in the clean-up. The later replays ran on the operator's own Postgres container, since removed.
 
-## 12. Checks run
+## 16. Checks run
 
 - `tests/unit/scripts/release`, `tests/unit/workflows` and `tests/unit/docs`: 304 passed, 15 skipped (the files that need a database).
 - Real-stack suites on the shared test Postgres (17.10), Vitest at 8 workers:
   - `schema-fingerprint.realstack` and `release-database.realstack`: pass, including the new cases;
   - `privileges-manifest.realstack` (the harness): 30 passed;
-  - `cms-database-roles.realstack`: 19 passed and the one case of section 8 failed.
+  - `cms-database-roles.realstack`: 19 passed and the one case of section 12 failed.
 - ESLint on the changed files: no finding.
 - Prettier on the changed files: formatted.
 - The three edited workflows parse.
 - The mapping change's two tests, and every test named in 5.3, failed first.
+
+Later, on the operator's own Postgres (`postgres:17.11-alpine`):
+
+- At `ae09da272`: `tests/unit/scripts` and `tests/unit/workflows`, 244 files passed and 2 skipped, 6,301 tests passed and 17 skipped; the release, fingerprint and CMS roles real-stack step, 32 passed and 4 skipped.
+- At `3fb11620c`: the same unit suites, 6,306 passed and 18 skipped; the real-stack step, 33 passed and 4 skipped; `tests/unit/docs`, 184 passed. The four skipped real-stack cases are the guards that fail in CI when an admin URL is missing.
+- Both tips: `format:check` clean; `lint` and `typecheck` pass, from Turbo's cache, which does not cover the root `scripts` and `tests`; ESLint on the changed files, no error.

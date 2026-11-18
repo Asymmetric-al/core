@@ -177,7 +177,9 @@ authentication failed after rotating database password"; Supavisor blocks a
 client IP for 120 seconds after 10 refused logins in 150 seconds). Setting the
 same passwords again on every release made this happen: the second rebuild of
 the preview project stopped at "password authentication failed for user
-cms_owner", and the same login succeeded 80 seconds later.
+cms_owner", and the same login succeeded 80 seconds later. On the rotation
+proof that followed the fix, each new password logged in on the second
+attempt, 36 and 37 seconds after its change.
 
 So the step first logs in as each role with its secret.
 
@@ -324,7 +326,8 @@ Functions (`stripe-setup`, `stripe-webhook`, `stripe-worker`), the function
 secret `STRIPE_SECRET_KEY`, three `vault.secrets` rows, two `pgmq` queue
 tables with the `pgmq` schema, six `net._http_response` rows, and the Stripe
 test-mode endpoint that called the webhook function, now disabled
-(`docs/audits/core-crm-cms-database-proofs/wp16-hosted-proofs.md`). The census
+(`docs/audits/core-crm-cms-database-proofs/wp16-hosted-proofs.md`). The
+function secret `MANAGEMENT_API_URL` followed later that day. The census
 found none of these objects in development.
 
 ### What a reset keeps of the default privileges
