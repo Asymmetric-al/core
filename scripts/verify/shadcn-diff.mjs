@@ -99,24 +99,128 @@ export const SHADCN_VIEW_UI_ENTRIES = Object.freeze([
   "hooks",
   "styles",
 ]);
+const VERIFIER_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const VERIFIER_PATH = path
-  .relative(
-    fileURLToPath(new URL("../..", import.meta.url)),
-    fileURLToPath(import.meta.url),
-  )
+  .relative(VERIFIER_ROOT, fileURLToPath(import.meta.url))
   .split(path.sep)
   .join("/");
+
+const toPosix = (file) => file.split(path.sep).join("/");
+
+function insideRoot(root, file) {
+  const relative = path.relative(root, file);
+  return relative !== "" &&
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+    ? toPosix(relative)
+    : null;
+}
+
+function packageName(specifier) {
+  const parts = specifier.split("/");
+  const length = specifier.startsWith("@") ? 2 : 1;
+  return parts.length < length || parts.slice(0, length).some((part) => !part)
+    ? null
+    : {
+        name: parts.slice(0, length).join("/"),
+        subpath: parts.slice(length).join("/"),
+      };
+}
+
+/**
+ * The repository files the `extends` chain of packages/ui/tsconfig.json
+ * reaches, which the CLI reads through the linked node_modules when it
+ * resolves path aliases: relative and package specifiers, arrays included,
+ * with the manifest of each package it goes through. Returns null when any
+ * link cannot be followed or leaves the repository, so a caller cannot tell.
+ */
+export function shadcnTsconfigChain(root = VERIFIER_ROOT) {
+  const chain = new Set();
+  const pending = [path.join(root, UI_DIRECTORY, "tsconfig.json")];
+  const seen = new Set();
+  const existing = (file) => {
+    try {
+      return statSync(file).isFile() ? file : null;
+    } catch {
+      return null;
+    }
+  };
+  const asJson = (file) =>
+    existing(file) ??
+    (file.endsWith(".json") ? null : existing(`${file}.json`));
+  const resolveExtends = (from, specifier) => {
+    if (typeof specifier !== "string" || specifier === "") return null;
+    if (specifier.startsWith(".") || path.isAbsolute(specifier))
+      return asJson(path.resolve(path.dirname(from), specifier));
+    const parsed = packageName(specifier);
+    if (!parsed) return null;
+    for (
+      let directory = path.dirname(from);
+      insideRoot(root, directory) !== null || directory === path.resolve(root);
+      directory = path.dirname(directory)
+    ) {
+      const linked = path.join(directory, "node_modules", parsed.name);
+      let packageDirectory;
+      try {
+        packageDirectory = realpathSync(linked);
+      } catch {
+        continue;
+      }
+      const manifestFile = path.join(packageDirectory, "package.json");
+      const manifest = JSON.parse(readFileSync(manifestFile, "utf8"));
+      // Package exports can redirect the specifier; this resolver does not.
+      if (manifest.exports !== undefined) return null;
+      const relativeManifest = insideRoot(root, manifestFile);
+      if (relativeManifest === null) return null;
+      chain.add(relativeManifest);
+      return asJson(
+        path.join(packageDirectory, parsed.subpath || "tsconfig.json"),
+      );
+    }
+    return null;
+  };
+  try {
+    while (pending.length > 0) {
+      const file = pending.pop();
+      if (seen.has(file)) continue;
+      seen.add(file);
+      const config = JSON.parse(readFileSync(file, "utf8"));
+      if (!config || typeof config !== "object" || Array.isArray(config))
+        return null;
+      const parents =
+        config.extends === undefined ? [] : [config.extends].flat();
+      for (const specifier of parents) {
+        const parent = resolveExtends(file, specifier);
+        const relative = parent && insideRoot(root, realpathSync(parent));
+        if (!relative) return null;
+        chain.add(relative);
+        pending.push(realpathSync(parent));
+      }
+    }
+  } catch {
+    return null;
+  }
+  return [...chain];
+}
 
 /**
  * Every repository path this verifier's result depends on, for a parsed
  * review baseline: this script, the baseline, each file it hashes (proofs,
  * protected sources, reviewed and local component sources) and what the
- * upstream CLI reads. A path ending in "/" stands for everything under it.
- * Returns null when the baseline is unusable, so a caller cannot tell.
+ * upstream CLI reads, including the extends chain of the UI package's
+ * tsconfig (`tsconfigChain`, derived from this checkout by default). A path
+ * ending in "/" stands for everything under it. Returns null when the
+ * baseline is unusable or the chain cannot be resolved, so a caller cannot
+ * tell.
  */
-export function shadcnDiffInputs(baseline) {
+export function shadcnDiffInputs(
+  baseline,
+  { tsconfigChain = shadcnTsconfigChain() } = {},
+) {
   if (!baseline || typeof baseline !== "object" || Array.isArray(baseline))
     return null;
+  if (!Array.isArray(tsconfigChain)) return null;
   const ui = (file) => `${UI_DIRECTORY}/${file}`;
   const paths = (entries, pick, prefix = "") =>
     (Array.isArray(entries) ? entries : []).flatMap((entry) => {
@@ -134,6 +238,7 @@ export function shadcnDiffInputs(baseline) {
       SHADCN_REVIEW_BASELINE,
       ...SHADCN_VIEW_ROOT_FILES,
       ...cliView,
+      ...tsconfigChain,
       ...SHADCN_REQUIRED_SUPPORTING_SOURCES,
       ...SHADCN_MAPPED_SUPPORTING_SOURCES,
       ...paths(baseline.protectedSources, (entry) => entry.path),

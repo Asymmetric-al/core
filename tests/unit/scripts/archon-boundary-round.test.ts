@@ -709,8 +709,13 @@ describe("Core hooks are pinned and must be seen to run", () => {
 
   it("accepts the full profile's pass line and refuses the fast profile's", () => {
     const shim = "core-factory: pre-push hook passed\n";
-    const full = completionLines({ profile: "full", stages: 20, seconds: 1 });
-    const fast = completionLines({ profile: "fast", stages: 14, seconds: 1 });
+    const full = completionLines({ profile: "full", ran: 20, seconds: 1 });
+    const fast = completionLines({
+      profile: "fast",
+      ran: 6,
+      skipped: 9,
+      seconds: 1,
+    });
     expect(
       hookEvidence("pre-push", {
         stdout: `${full.join("\n")}\n${shim}`,

@@ -165,6 +165,7 @@ const SHARED_INPUT_SAMPLES = [
   ".node-version",
   "docs/.prettierrc.json",
   "scripts/verify/ci-preflight.mjs",
+  "scripts/verify/ci-preflight-shadcn.mjs",
 ];
 
 // Full compilation of the product apps for a documentation change, so the
@@ -180,8 +181,18 @@ const AFFECTED_FILTERS = [
 
 const everyFileExists = () => true;
 
-function fastStages(changedFiles: string[] | null, exists = everyFileExists) {
-  return getFastStages({ changedFiles, exists }) as Stage[];
+// Unless a test says otherwise, a root manifest or lock change counts as one
+// that can change what the shadcn CLI resolves (the "cannot tell" answer).
+function fastStages(
+  changedFiles: string[] | null,
+  exists = everyFileExists,
+  shadcnResolutionChanged = (_file: string) => true,
+) {
+  return getFastStages({
+    changedFiles,
+    exists,
+    shadcnResolutionChanged,
+  }) as Stage[];
 }
 
 function stage(stages: Stage[], id: string): Stage {
@@ -422,6 +433,14 @@ describe("fast pre-push profile", () => {
       ]);
   });
 
+  it("treats an empty change list as uncertain and runs every scoped stage", () => {
+    const stages = fastStages([]);
+    for (const id of SCOPED_STAGE_IDS) {
+      expect(stage(stages, id).skip, id).toBeUndefined();
+      expect(stage(stages, id).script, id).toBeDefined();
+    }
+  });
+
   it("falls back to whole-repository checks when the branch diff is unknown", () => {
     const stages = fastStages(null);
     expect(stage(stages, "format").script).toBe("format:check");
@@ -496,11 +515,66 @@ describe("fast profile stages scoped to their inputs", () => {
       "docs/.prettierrc.json",
       ".node-version",
       "scripts/verify/ci-preflight.mjs",
+      "scripts/verify/ci-preflight-shadcn.mjs",
     ])
       expect(
         stage(fastStages([file]), "verify-shadcn-diff").skip,
         file,
       ).toMatch(/no change to its inputs/);
+  });
+
+  // The CLI reads the root manifest and lock only through what they resolve:
+  // the shadcn package and its dependency tree, the UI workspace's entries,
+  // the package manager and workspaces (shadcn-diff-inputs.test.ts).
+  it("runs the shadcn review for a root manifest or lock change only when what the CLI resolves can change", () => {
+    const asked: string[] = [];
+    const unrelated = (file: string) => {
+      asked.push(file);
+      return false;
+    };
+    for (const file of ["package.json", "bun.lock"]) {
+      expect(
+        stage(
+          fastStages([file], everyFileExists, unrelated),
+          "verify-shadcn-diff",
+        ).skip,
+        file,
+      ).toMatch(/no change to its inputs/);
+      expect(
+        stage(
+          fastStages([file], everyFileExists, () => true),
+          "verify-shadcn-diff",
+        ).skip,
+        file,
+      ).toBeUndefined();
+      // The other scoped stages still take every manifest and lock change.
+      expect(
+        stage(
+          fastStages([file], everyFileExists, unrelated),
+          "verify-workspace-contract",
+        ).skip,
+        file,
+      ).toBeUndefined();
+    }
+    expect([...new Set(asked)].sort()).toEqual(["bun.lock", "package.json"]);
+    // Every other input is a path trigger.
+    for (const file of ["packages/ui/package.json", "tsconfig.base.json"])
+      expect(
+        stage(
+          fastStages([file, "bun.lock"], everyFileExists, unrelated),
+          "verify-shadcn-diff",
+        ).skip,
+        file,
+      ).toBeUndefined();
+  });
+
+  it("runs the shadcn review when the extends chain of the UI tsconfig cannot be resolved", () => {
+    const selected = getFastStages({
+      changedFiles: ["README.md"],
+      exists: everyFileExists,
+      shadcnTsconfigChain: null,
+    }) as Stage[];
+    expect(stage(selected, "verify-shadcn-diff").skip).toBeUndefined();
   });
 
   it("derives the shadcn review's inputs from its verifier and baseline", () => {
@@ -525,6 +599,10 @@ describe("fast profile stages scoped to their inputs", () => {
       "packages/ui/components.json",
       "packages/ui/package.json",
       "packages/ui/styles/globals.css",
+      // The extends chain of packages/ui/tsconfig.json, which the CLI reads
+      // through the linked node_modules.
+      "tooling/typescript-config/library-transitional.json",
+      "tooling/typescript-config/base.json",
     ];
     expect(hashed.length).toBeGreaterThan(200);
     for (const file of hashed) {
@@ -670,20 +748,49 @@ describe("preflight arguments and output", () => {
 
   it("prints the factory's full-preflight line only for a complete full profile", () => {
     expect(FULL_PASS_LINE).toBe("==> PASS ci:preflight");
-    const full = completionLines({ profile: "full", stages: 20, seconds: 9 });
+    const full = completionLines({ profile: "full", ran: 20, seconds: 9 });
     expect(full.at(-1)).toBe(FULL_PASS_LINE);
-    expect(full.join("\n")).toMatch(/full profile/i);
+    expect(full.join("\n")).toMatch(/full profile: all 20 stages passed/i);
 
-    const fast = completionLines({ profile: "fast", stages: 14, seconds: 9 });
+    const fast = completionLines({ profile: "fast", ran: 14, seconds: 9 });
     expect(fast.join("\n")).toMatch(/fast pre-push profile/i);
     expect(fast.join("\n")).not.toContain(FULL_PASS_LINE);
 
     const only = completionLines({
       profile: "full",
-      stages: 1,
+      ran: 1,
       seconds: 9,
       only: "test-unit",
     });
     expect(only.join("\n")).not.toContain(FULL_PASS_LINE);
+  });
+
+  it("counts the fast stages that ran and those skipped separately", () => {
+    const lines = completionLines({
+      profile: "fast",
+      ran: 6,
+      skipped: 9,
+      seconds: 19,
+    });
+    expect(lines.join("\n")).toMatch(
+      /PASS fast pre-push profile: 6 stages ran and 9 were skipped/,
+    );
+  });
+
+  it("says a skipped --only stage did not run instead of passing it", () => {
+    const skipped = stage(fastStages(["README.md"]), "verify-shadcn-diff");
+    const lines = completionLines({
+      profile: "fast",
+      ran: 0,
+      skipped: 1,
+      seconds: 0,
+      only: "verify-shadcn-diff",
+      onlySkipped: skipped,
+    }) as string[];
+    expect(lines.join("\n")).not.toMatch(/PASS/);
+    expect(lines.join("\n")).toMatch(
+      /verify-shadcn-diff did not run \(no change to its inputs; .*\)/,
+    );
+    expect(lines.join("\n")).toContain("bun run verify:shadcn-diff");
   });
 });

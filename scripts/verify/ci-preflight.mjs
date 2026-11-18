@@ -8,6 +8,10 @@ import {
   readCompilationChanges,
   resolveCompilation,
 } from "./ci-build-policy.mjs";
+import {
+  SHADCN_RESOLUTION_FILES,
+  shadcnResolutionChanged,
+} from "./ci-preflight-shadcn.mjs";
 import { SHADCN_REVIEW_BASELINE, shadcnDiffInputs } from "./shadcn-diff.mjs";
 
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
@@ -166,6 +170,7 @@ const SHARED_INPUTS = [
   ".npmrc",
   ".node-version",
   "scripts/verify/ci-preflight.mjs",
+  "scripts/verify/ci-preflight-shadcn.mjs",
   "scripts/verify/ci-build-policy.mjs",
   /(?:^|\/)package\.(?:json|yaml)$/,
   /(?:^|\/)(?:\.prettierrc(?:\.[^/]+)?|prettier\.config\.[^/]+|\.editorconfig)$/,
@@ -255,13 +260,42 @@ function readShadcnBaseline() {
 }
 
 /**
- * Inputs per scoped stage. The traced stages also take the shared inputs.
- * verify:shadcn-diff takes exactly what its verifier derives from itself and
- * its review baseline (it calls the public registry, so it runs no more often
- * than that); null means they cannot be told (the baseline is unreadable), so
- * the stage runs.
+ * Whether this checkout's change to a root manifest or lock can change what
+ * the shadcn CLI resolves: the file at the merge base with origin/develop
+ * against the working tree. A side that cannot be read counts as a change.
  */
-function scopedStageInputs(shadcnBaseline) {
+function readShadcnResolutionChange(file) {
+  const git = (args) =>
+    execFileSync("git", args, {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 64 * 1024 * 1024,
+    });
+  let before = null;
+  try {
+    const base = git(["merge-base", "origin/develop", "HEAD"]).trim();
+    before = git(["show", `${base}:${file}`]);
+  } catch {
+    before = null;
+  }
+  let after = null;
+  try {
+    after = readFileSync(path.join(REPO_ROOT, file), "utf8");
+  } catch {
+    after = null;
+  }
+  return shadcnResolutionChanged(file, before, after);
+}
+
+/**
+ * Inputs per scoped stage. The traced stages also take the shared inputs.
+ * verify:shadcn-diff takes exactly what its verifier derives from itself, its
+ * review baseline and the UI tsconfig's extends chain (it calls the public
+ * registry, so it runs no more often than that); null means they cannot be
+ * told (an unreadable baseline or unresolved chain), so the stage runs.
+ */
+function scopedStageInputs(shadcnBaseline, tsconfigChain) {
   return {
     ...Object.fromEntries(
       Object.entries(STAGE_INPUTS).map(([id, inputs]) => [
@@ -269,7 +303,10 @@ function scopedStageInputs(shadcnBaseline) {
         [...inputs, ...SHARED_INPUTS],
       ]),
     ),
-    "verify-shadcn-diff": shadcnDiffInputs(shadcnBaseline),
+    "verify-shadcn-diff": shadcnDiffInputs(
+      shadcnBaseline,
+      tsconfigChain === undefined ? undefined : { tsconfigChain },
+    ),
   };
 }
 
@@ -303,38 +340,60 @@ export function formatChunks(files, limit = FORMAT_CHUNK_CHARS) {
  * Fast-profile stages. `changedFiles` is the branch diff against
  * origin/develop with working-tree changes (readCompilationChanges), or null
  * when that diff is unknown: then every stage runs and checks the whole
- * repository. `shadcnBaseline` is the parsed shadcn review baseline (null when
- * unreadable).
+ * repository. An empty list is uncertain too (the pushed ref may not be the
+ * checked-out tree), so every scoped stage runs. `shadcnBaseline` is the
+ * parsed shadcn review baseline (null when unreadable); `shadcnTsconfigChain`
+ * overrides the derived extends chain of the UI tsconfig (null: unresolved);
+ * `shadcnResolutionChanged(file)` says whether a root manifest or lock change
+ * can change what the shadcn CLI resolves.
  */
 export function getFastStages({
   changedFiles,
   exists = isExistingFile,
   shadcnBaseline = readShadcnBaseline(),
+  shadcnTsconfigChain,
+  shadcnResolutionChanged: resolutionChanged = readShadcnResolutionChange,
 }) {
   const known = Array.isArray(changedFiles);
-  const scoped = scopedStageInputs(shadcnBaseline);
+  const scopeKnown = known && changedFiles.length > 0;
+  const scoped = scopedStageInputs(shadcnBaseline, shadcnTsconfigChain);
+  // The shadcn review judges the root manifest and lock by what they resolve.
+  const resolutionFiles = scopeKnown
+    ? changedFiles.filter((file) => SHADCN_RESOLUTION_FILES.includes(file))
+    : [];
+  const unresolved = new Set(
+    resolutionFiles.filter((file) => !resolutionChanged(file)),
+  );
+  const skipped = (stage, skip) => ({ ...stage, runs: [], skip });
   return stages
     .filter((stage) => !FAST_EXCLUDED.has(stage.id))
     .map((stage) => {
       if (!known) return stage;
       if (stage.id in scoped) {
         const inputs = scoped[stage.id];
-        return !inputs || touchesInputs(changedFiles, inputs)
-          ? stage
-          : {
-              id: stage.id,
-              runs: [],
-              skip: `no change to its inputs; ${
-                stage.id === "verify-shadcn-diff"
-                  ? "the full profile and the production release run it"
-                  : "required CI runs it on every pull request"
-              }`,
-            };
+        const shadcn = stage.id === "verify-shadcn-diff";
+        const changes = shadcn
+          ? changedFiles.filter((file) => !unresolved.has(file))
+          : changedFiles;
+        if (!scopeKnown || !inputs || touchesInputs(changes, inputs))
+          return stage;
+        return skipped(
+          stage,
+          `no change to its inputs${
+            shadcn && unresolved.size > 0
+              ? ` (${[...unresolved].join(" and ")} changed, but not what the shadcn CLI resolves)`
+              : ""
+          }; ${
+            shadcn
+              ? "the full profile and the production release run it"
+              : "required CI runs it on every pull request"
+          }`,
+        );
       }
       if (stage.id === "format") {
         const files = changedFiles.filter((file) => exists(file));
         return files.length === 0
-          ? { id: stage.id, runs: [], skip: "no changed file to format" }
+          ? skipped(stage, "no changed file to format")
           : {
               id: stage.id,
               runs: formatChunks(files).map((chunk) => ({
@@ -463,18 +522,34 @@ export function failureLines({
   ];
 }
 
-export function completionLines({ profile, stages: count, seconds, only }) {
+/**
+ * The closing lines of a run that did not fail. `ran` and `skipped` count
+ * stages separately; `onlySkipped` is the stage `--only` selected when the
+ * profile skipped it, which is reported as not run, never as passed.
+ */
+export function completionLines({
+  profile,
+  ran,
+  skipped = 0,
+  seconds,
+  only,
+  onlySkipped,
+}) {
+  if (only && onlySkipped)
+    return [
+      `==> ${only} did not run (${onlySkipped.skip}); nothing was checked. Run it alone with: ${rerunCommand(onlySkipped, profile)}`,
+    ];
   if (only)
     return [
       `==> PASS ${only} (only this stage ran; this is not a complete ${profile} profile)`,
     ];
   if (profile === "full")
     return [
-      `==> Full profile: all ${count} stages passed in ${seconds}s`,
+      `==> Full profile: all ${ran} stages passed in ${seconds}s`,
       FULL_PASS_LINE,
     ];
   return [
-    `==> PASS fast pre-push profile: ${count} stages in ${seconds}s. Before a pull request is ready, run the full preflight: bun run ci:preflight`,
+    `==> PASS fast pre-push profile: ${ran} stages ran and ${skipped} were skipped, in ${seconds}s. Before a pull request is ready, run the full preflight: bun run ci:preflight`,
   ];
 }
 
@@ -515,11 +590,12 @@ function runTeed(args, env) {
   });
 }
 
+/** Runs one stage: "passed", "skipped" or "failed". */
 async function runStage(stage, { profile, full }) {
   console.log(`==> CI preflight: ${stage.id}`);
   if (stage.skip) {
     console.log(`==> SKIP ${stage.id} (${stage.skip})`);
-    return true;
+    return "skipped";
   }
   const started = Date.now();
   const runs = stage.runs ?? [{ args: ["run", stage.script] }];
@@ -536,17 +612,19 @@ async function runStage(stage, { profile, full }) {
         tail: result.tail,
       }))
         console.error(line);
-      return false;
+      return "failed";
     }
   }
   console.log(stagePassLine(stage.id, Date.now() - started));
-  return true;
+  return "passed";
 }
 
 function describeChanges(changedFiles) {
-  return Array.isArray(changedFiles)
-    ? `${changedFiles.length} changed files against origin/develop, working tree included`
-    : "branch diff unknown (no origin/develop?): checking the whole repository";
+  if (!Array.isArray(changedFiles))
+    return "branch diff unknown (no origin/develop?): checking the whole repository";
+  return changedFiles.length === 0
+    ? "no change against origin/develop: every scoped stage runs"
+    : `${changedFiles.length} changed files against origin/develop, working tree included`;
 }
 
 async function main() {
@@ -577,13 +655,19 @@ async function main() {
   }
   selected = selectStages(selected, only);
   const started = Date.now();
-  for (const stage of selected)
-    if (!(await runStage(stage, { profile, full }))) return 1;
+  const outcomes = [];
+  for (const stage of selected) {
+    const outcome = await runStage(stage, { profile, full });
+    if (outcome === "failed") return 1;
+    outcomes.push(outcome);
+  }
   for (const line of completionLines({
     profile,
-    stages: selected.length,
+    ran: outcomes.filter((outcome) => outcome === "passed").length,
+    skipped: outcomes.filter((outcome) => outcome === "skipped").length,
     seconds: Math.round((Date.now() - started) / 1000),
     only,
+    onlySkipped: only && selected[0]?.skip ? selected[0] : undefined,
   }))
     console.log(line);
   return 0;
