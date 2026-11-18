@@ -191,6 +191,23 @@ describe("Payload's REST routes under /web-studio/api", () => {
     expect(forwarded(response, "x-asym-address-prefix")).toBeNull();
   });
 
+  it("are the prefix with its slash: the bare path is a Web Studio page, gated, with no client scope headers", async () => {
+    state.rows = [
+      row(TA, "staff", "development"),
+      row(TB, "staff", "development"),
+    ];
+
+    const response = await adminProxy()(
+      request("/web-studio/api", { "x-asym-tenant": TA }),
+    );
+
+    expect(location(response)).toBe(
+      "/web-studio/organization?next=%2Fweb-studio%2Fapi",
+    );
+    expect(forwarded(response, "x-asym-tenant")).toBeNull();
+    expect(state.rpcCalls).toBe(1);
+  });
+
   it("never answer inside the tenant segment", async () => {
     const response = await adminProxy()(request(`/${TA}/web-studio/api/pages`));
     expect(response.status).toBe(404);

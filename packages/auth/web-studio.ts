@@ -72,8 +72,13 @@ export function isWebStudioPath(pathname: string): boolean {
   return hasPathPrefix(pathname, WEB_STUDIO_PATH);
 }
 
+/**
+ * A path under Payload's REST routes: the prefix with its slash. The bare
+ * `/web-studio/api` is not one; no API route serves it, so it falls to the
+ * page route and is gated as a Web Studio page.
+ */
 export function isWebStudioApiPath(pathname: string): boolean {
-  return hasPathPrefix(pathname, WEB_STUDIO_API_PATH);
+  return pathname.startsWith(`${WEB_STUDIO_API_PATH}/`);
 }
 
 /**

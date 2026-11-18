@@ -137,7 +137,9 @@ describe("Web Studio paths", () => {
     expect(isWebStudioPath("/web-studio/collections/pages")).toBe(true);
     expect(isWebStudioPath("/web-studio-old")).toBe(false);
     expect(isWebStudioPath("/api/web-studio")).toBe(false);
-    expect(isWebStudioApiPath("/web-studio/api")).toBe(true);
+    // Only the prefix with its slash: no API route serves the bare path,
+    // which falls to the page route and its gate (council C5).
+    expect(isWebStudioApiPath("/web-studio/api")).toBe(false);
     expect(isWebStudioApiPath("/web-studio/api/pages/1")).toBe(true);
     expect(isWebStudioApiPath("/web-studio/apis")).toBe(false);
     expect(isWebStudioApiPath("/web-studio")).toBe(false);
