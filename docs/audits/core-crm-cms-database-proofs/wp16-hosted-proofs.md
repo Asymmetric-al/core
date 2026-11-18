@@ -639,7 +639,7 @@ Two reviewers read the branch at `e1d3233f2` (7/10 and 7/10, "accept after fixes
 
 **H11.** psql 17.11, given `postgres://localhost?x=@probe-target.invalid/db`, tried to resolve `probe-target.invalid`, while the helper had called the URL local. Now the helper refuses it, and psql is started with `host='127.0.0.1' port='54322' dbname='postgres' user='postgres' -X`, the password only in `PGPASSWORD`. Every caller's tests pass, the `--hosted-defaults` replay and CI's `migrate` job included, and the fifth rebuild's reset wrapper read the marker through it.
 
-**H10, the fifth rebuild**, from `e65d6b87f`, against a fresh flagged replay with fingerprint version 2 (`bb5b8f68d4febab499b5df1f40284268c66f9cbbcc779529041c1d0979e6180f`, 5,896 objects, three of them the default privileges of `postgres` in `public`, each `postgres` and `service_role` only):
+**H10, the fifth rebuild**, from `e65d6b87f`, against a fresh flagged replay with fingerprint version 2, made on the operator's own Postgres 17.11 (`postgres:17.11-alpine`, digest `b0f9560a…`, the image `release.yml` replays on) (`bb5b8f68d4febab499b5df1f40284268c66f9cbbcc779529041c1d0979e6180f`, 5,896 objects, three of them the default privileges of `postgres` in `public`, each `postgres` and `service_role` only):
 
 - `preview-rebuild`, 16:04:51-16:11:47: the pinned CLI checked; "Put back the platform's default privileges in public", which commits only after the pre-reset check of H5 passed; the reset, 109 migrations (14 rollback files skipped), the seed; one seeded login replaced; both CMS secrets already logged in; Payload's five migrations in 20 seconds.
 - `gates`, 16:11:47-16:11:58: "Schema fingerprints match", 0 differing, the default-privilege rows included.
