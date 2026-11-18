@@ -1,8 +1,13 @@
-// One way to run psql against a Postgres URL (AL-2674). The password travels
-// in PGPASSWORD, never in the argument list, so it does not show in process
-// listings; and one list says which hosts are loopback. The catalog gate, the
-// field-policy gate and the environment marker run through it, and the release
-// job runs those against hosted databases.
+// The one seam for database tooling (AL-2674, PR #2714 review): only
+// isLoopbackDatabaseUrl, re-exported here from packages/env/src/database-url.mjs,
+// decides that a URL names a database on this machine (a Postgres URL on
+// 127.0.0.1, localhost or [::1] whose query carries no routing override), and
+// psql starts only through this file (runPsqlQuery, spawnPsql, or
+// psqlConnection for a caller's own spawn), with the URL as the whole target,
+// every ambient PG* setting dropped and the password in PGPASSWORD, never in
+// the argument list. The catalog gate, the field-policy gate, the environment
+// marker, the migration verifier and seed verify run through it, and the
+// release job runs the gates against hosted databases.
 import { spawnSync } from "node:child_process";
 
 import {

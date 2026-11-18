@@ -251,6 +251,16 @@ describe("every local-database decision calls the one helper", () => {
     expect(source).not.toMatch(/^\s*psql\s/m);
   });
 
+  it("scripts/AGENTS.md and the helper's header name the seam", () => {
+    for (const file of ["scripts/AGENTS.md", "scripts/lib/psql.mjs"]) {
+      const text = readFileSync(file, "utf8");
+      expect(text).toContain("isLoopbackDatabaseUrl");
+      expect(text).toContain("packages/env/src/database-url.mjs");
+      expect(text).toContain("spawnPsql");
+      expect(text).toMatch(/routing override/);
+    }
+  });
+
   it("the helper is the routing rule's own function", async () => {
     const shared = await import("../../../packages/env/src/database-url.mjs");
     expect(isLoopbackDatabaseUrl).toBe(shared.isLoopbackDatabaseUrl);
