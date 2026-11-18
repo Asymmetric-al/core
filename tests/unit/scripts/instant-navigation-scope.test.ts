@@ -16,7 +16,7 @@ import {
   matchesGlob,
   readChangedFiles,
   selectInstantNavigation,
-} from "../../../scripts/verify/ci-test-scope.mjs";
+} from "../../../scripts/verify/instant-navigation-scope.mjs";
 
 const BASE = "a".repeat(40);
 const HEAD = "b".repeat(40);
@@ -160,7 +160,7 @@ describe("instant-navigation selection", () => {
         "apps/missionary/app/page.tsx",
         "supabase/migrations/20261118000000_x.sql",
         "openspec/changes/x/proposal.md",
-        "tests/unit/scripts/ci-test-scope.test.ts",
+        "tests/unit/scripts/instant-navigation-scope.test.ts",
       ],
     });
     expect(selection.run).toBe(false);
@@ -174,16 +174,16 @@ describe("instant-navigation selection", () => {
 });
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../..");
-const SCOPE_SCRIPT = "scripts/verify/ci-test-scope.mjs";
+const SCOPE_SCRIPT = "scripts/verify/instant-navigation-scope.mjs";
 
 function git(cwd: string, ...args: string[]) {
   const result = spawnSync(
     "git",
     [
       "-c",
-      "user.name=ci-test-scope",
+      "user.name=instant-navigation-scope",
       "-c",
-      "user.email=ci-test-scope@example.invalid",
+      "user.email=instant-navigation-scope@example.invalid",
       "-c",
       "commit.gpgsign=false",
       ...args,
@@ -213,7 +213,7 @@ function repositoryWithChange(root: string, changed: string[]) {
 }
 
 /**
- * Runs `node scripts/verify/ci-test-scope.mjs --instant-navigation` the way
+ * Runs `node scripts/verify/instant-navigation-scope.mjs` the way
  * the instant-nav job does, and returns what it wrote to GITHUB_OUTPUT. Every
  * GitHub variable comes from the case, never from the host, so the test
  * behaves the same inside a GitHub Actions run.
@@ -229,7 +229,7 @@ function runInstantNavigationCli(
   const env: NodeJS.ProcessEnv = {};
   for (const [name, value] of Object.entries(process.env))
     if (!/^(GITHUB_|CI_BASE_SHA$|CI_HEAD_SHA$)/.test(name)) env[name] = value;
-  const result = spawnSync(process.execPath, [script, "--instant-navigation"], {
+  const result = spawnSync(process.execPath, [script], {
     cwd,
     encoding: "utf8",
     shell: false,
@@ -244,7 +244,7 @@ describe("the instant-nav scope CLI as the workflow runs it", () => {
   let donor: ReturnType<typeof repositoryWithChange>;
   let donorUnicode: ReturnType<typeof repositoryWithChange>;
   beforeAll(() => {
-    root = mkdtempSync(path.join(os.tmpdir(), "ci-test-scope-cli-"));
+    root = mkdtempSync(path.join(os.tmpdir(), "instant-navigation-scope-cli-"));
     docsOnly = repositoryWithChange(root, ["docs/notes.md"]);
     donor = repositoryWithChange(root, ["apps/donor/app/page.tsx"]);
     donorUnicode = repositoryWithChange(root, [

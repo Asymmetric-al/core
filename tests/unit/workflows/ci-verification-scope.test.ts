@@ -127,8 +127,8 @@ describe("instant-nav runs on develop pull requests as a non-required job", () =
   );
 
   const steps = stepsOf(job);
-  const scope = steps.find((s) =>
-    s.run?.includes("scripts/verify/ci-test-scope.mjs --instant-navigation"),
+  const scope = steps.find(
+    (s) => s.run === "node scripts/verify/instant-navigation-scope.mjs",
   );
   // Every step after the scope step does the guards' work, except the report
   // upload, which runs always().

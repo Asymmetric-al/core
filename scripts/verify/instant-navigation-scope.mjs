@@ -128,11 +128,7 @@ function changeContext(env, readChanges) {
   return { event, baseRef, changedFiles };
 }
 
-function main(args) {
-  if (!args.includes("--instant-navigation")) {
-    console.error("usage: ci-test-scope.mjs --instant-navigation");
-    return 2;
-  }
+function main() {
   let decision;
   try {
     decision = selectInstantNavigation(
@@ -151,4 +147,4 @@ function main(args) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = main();

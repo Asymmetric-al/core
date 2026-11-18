@@ -453,8 +453,8 @@ jobs:
   # neither prefetches nor locks reliably — so this job builds and starts donor
   # rather than reusing the dev servers the other e2e jobs run. See
   # instant-nav.rig.md. On develop pull requests it runs only when the change
-  # can affect donor or the guards (scripts/verify/ci-test-scope.mjs), and it
-  # is a visible, non-required check there: no develop gate needs it.
+  # can affect donor or the guards (scripts/verify/instant-navigation-scope.mjs),
+  # and it is a visible, non-required check there: no develop gate needs it.
   instant-nav:
     if: >-
       (github.event_name == 'workflow_dispatch' ||
@@ -489,7 +489,7 @@ jobs:
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           CI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node scripts/verify/ci-test-scope.mjs --instant-navigation
+        run: node scripts/verify/instant-navigation-scope.mjs
       - name: Install system dependencies (canvas)
         if: github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'
         run: bash scripts/github/install-canvas-deps.sh
