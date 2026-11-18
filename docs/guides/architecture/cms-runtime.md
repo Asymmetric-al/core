@@ -34,7 +34,7 @@ Top-level Payload admin views (still under `/web-studio`) provide template galle
 - `/web-studio/pages/new-from-template` — standard page from template
 - `/web-studio/ministry-updates/new` — ministry update starter from template
 
-Draft instantiation uses the Payload root endpoint `POST /api/web-studio/create-from-template` (see `apps/admin/src/cms/create-from-template-endpoint.ts`), which runs inside Payload so collection access hooks apply.
+Draft instantiation uses the Payload root endpoint `POST /web-studio/api/web-studio/create-from-template` (see `apps/admin/src/cms/create-from-template-endpoint.ts`), which runs inside Payload so collection access hooks apply.
 
 Registration is collection-scoped via `admin.components.views` in each collection config and guarded by env rollout flags:
 
@@ -112,10 +112,12 @@ Payload runtime access stays in `apps/admin`; donor and shared packages must not
 
 ### Staff-only management APIs (Payload runtime)
 
-| Method                              | Endpoint                         | Auth                    | Source file                                       | Notes                                                                 |
-| ----------------------------------- | -------------------------------- | ----------------------- | ------------------------------------------------- | --------------------------------------------------------------------- |
-| `GET/POST/PATCH/PUT/DELETE/OPTIONS` | `/api/*` (Payload REST handlers) | Staff/Admin/Super Admin | `apps/admin/app/(payload)/api/[...slug]/route.ts` | Includes collection CRUD and upload operations from Payload REST API. |
-| `POST/OPTIONS`                      | `/api/graphql`                   | Staff/Admin/Super Admin | `apps/admin/app/(payload)/api/graphql/route.ts`   | Payload GraphQL endpoint for admin-authorized queries and mutations.  |
+Payload's REST routes answer under `/web-studio/api` (`routes.api`; plan 5.2, AL-2675 WP2b), inside Web Studio's path. The organization Web Studio works in travels in a signed, HttpOnly cookie scoped to `/web-studio` (`asym_web_studio_tenant`, keyed from `PAYLOAD_SECRET`), which reaches these routes and never Mission Control's `/api`. It only narrows: Payload's strategy proposes its tenant and membership row to the principal resolver, which checks them against the caller's live staff rows on every request. On these routes the admin proxy only refreshes the session; an ended session gets a JSON 401, a call from a page opened for another organization a JSON 409, and a cross-origin write a JSON 403. Nothing of Payload's answers under `/api`.
+
+| Method                              | Endpoint                                    | Auth                    | Source file                                                  | Notes                                                                                                                                                       |
+| ----------------------------------- | ------------------------------------------- | ----------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET/POST/PATCH/PUT/DELETE/OPTIONS` | `/web-studio/api/*` (Payload REST handlers) | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/[...slug]/route.ts` | Includes collection CRUD and upload operations from Payload REST API. Writes must be same-origin; the organization comes from the Web Studio tenant cookie. |
+| `POST/OPTIONS`                      | `/web-studio/api/graphql`                   | Staff/Admin/Super Admin | `apps/admin/app/(payload)/web-studio/api/graphql/route.ts`   | Payload GraphQL endpoint for admin-authorized queries and mutations; WP6 removes it.                                                                        |
 
 ### Public, tenant-scoped read APIs
 

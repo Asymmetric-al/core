@@ -204,9 +204,10 @@ test inputs and cannot select a production Public Ministry Page.
 
 ### Staff endpoints (auth required)
 
-- `GET/POST/PATCH/PUT/DELETE /api/*` (Payload REST)
-- `POST /api/graphql` (Payload GraphQL)
-- `POST /api/web-studio/create-from-template` (Payload custom endpoint — template instantiation)
+- `GET/POST/PATCH/PUT/DELETE /web-studio/api/*` (Payload REST; writes must be same-origin and name the page's organization)
+- `POST /web-studio/api/graphql` (Payload GraphQL; WP6 removes it)
+- `POST /web-studio/api/web-studio/create-from-template` (Payload custom endpoint — template instantiation)
+- `GET /web-studio/organization` (the organization Web Studio works in, for a person with staff rows in more than one place)
 - `GET /web-studio/preview/:collection/:id` (authenticated draft preview; uses Payload access control with `overrideAccess: false`)
 - `GET /api/admin/missionaries`, `GET /api/admin/funds` (thin re-exports to `@asym/api` — Web Studio wizards)
 
