@@ -52,6 +52,7 @@ describe("#2257 criterion 10: ADR-0001 Phase 9 re-confirm", () => {
       "the store is `donor_merge_candidates`, and the Twenty-era `crm_merge_candidates` is not extended",
       "`crm_command_logs` is not Phase 9's write-path or audit carrier (Phase 9 audits through `crm_audit_events`",
       "PR #1325 (merged 2026-08-19) already created an interim native `public.crm_notes`",
+      "#616 must reach the columns above through an explicit forward migration that reshapes or replaces that table (a `CREATE TABLE IF NOT EXISTS` would silently no-op)",
     ])
       expect(prd).toContain(correction);
   });
