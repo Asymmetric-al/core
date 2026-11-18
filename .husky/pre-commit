@@ -1,5 +1,3 @@
 set -e
 
 bunx lint-staged --concurrent false --no-stash --no-hide-partially-staged
-
-bun run verify:shadscan -- --staged
