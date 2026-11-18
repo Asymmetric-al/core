@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 import pg from "pg";
 
 import { DEMO_TENANT_ID } from "../../../packages/auth/constants";
+import { databaseUrlRoutingOverrides } from "../../../packages/env/src/database-url.mjs";
 import { isLocalHostname } from "../playwright-shared";
 
 /**
@@ -46,6 +47,14 @@ export function readAuthMailEnv(
       );
     }
   }
+  // The query can replace the host the database URL shows; the journeys
+  // insert memberships through it (council round 1, A18).
+  const overrides = dbUrl ? databaseUrlRoutingOverrides(dbUrl) : [];
+  if (overrides.length > 0) {
+    throw new Error(
+      `Auth mail e2e refuses a database URL with routing overrides in its query (${overrides.join(", ")}).`,
+    );
+  }
 
   return { supabaseUrl, anonKey, serviceRoleKey, mailUrl, dbUrl };
 }
@@ -87,7 +96,11 @@ export type AuthMailMembership =
  */
 export async function createConfirmedUser(
   env: AuthMailEnv,
-  input: { email: string; password: string; membership: AuthMailMembership },
+  input: {
+    email: string;
+    password: string;
+    membership: AuthMailMembership;
+  },
 ): Promise<string> {
   const created = await fetch(`${env.supabaseUrl}/auth/v1/admin/users`, {
     method: "POST",
