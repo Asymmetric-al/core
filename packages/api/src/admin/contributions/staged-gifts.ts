@@ -4,8 +4,11 @@ import { z } from "zod";
 import { sendStagedGiftReceipt } from "../../giving/receipts";
 import {
   approveStagedGiftForFinance,
+  canTransitionStagedGift,
   loadStagedGiftById,
   rejectRetiredCrmPostingRetry,
+  type StagedGiftRow,
+  type StagedGiftStatus,
 } from "../../giving/staged-gifts";
 import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
@@ -14,6 +17,19 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+import {
+  assertContributionActionPermission,
+  assertContributionPermission,
+} from "../contribution-operations/permissions";
+
+/*
+ * Legacy staged-gift routes (WP0, audit findings NB-01 and NV-03). They stay
+ * the only approve and relink path until the money kernel replaces them, so
+ * they keep working, but the wrapper's staff gate is no longer the authority:
+ * each handler requires the finance capability for its action from the shared
+ * contribution capability table, and the edit and receipt handlers check the
+ * staged gift's state before they write.
+ */
 
 const allocationSchema = z.object({
   fundId: z.string().uuid().nullable().optional(),
@@ -48,6 +64,117 @@ function getStagedGiftIdFromPath(request: Request) {
   return stagedGiftId;
 }
 
+/**
+ * A gift is still under review while the state machine lets it go back to
+ * review or forward to posting. A posted, refunded or voided gift is not, and
+ * the legacy edit handler changes nothing about it.
+ */
+function isUnderReview(status: StagedGiftStatus): boolean {
+  return (
+    canTransitionStagedGift(status, "needs_review") ||
+    canTransitionStagedGift(status, "ready_to_post")
+  );
+}
+
+function assertEditableStagedGift(
+  gift: StagedGiftRow,
+  nextStatus: StagedGiftStatus | undefined,
+) {
+  if (!isUnderReview(gift.status)) {
+    throw new ApiHttpError(
+      409,
+      `Cannot edit a staged gift in ${gift.status} status.`,
+    );
+  }
+
+  if (nextStatus && !canTransitionStagedGift(gift.status, nextStatus)) {
+    throw new ApiHttpError(
+      409,
+      `Cannot move a staged gift from ${gift.status} to ${nextStatus}.`,
+    );
+  }
+}
+
+/** Gifts that no receipt may be sent for, whatever their receipt status. */
+const RECEIPT_BLOCKED_STATUSES: ReadonlySet<StagedGiftStatus> = new Set([
+  "refunded",
+  "voided",
+]);
+
+function assertReceiptableStagedGift(gift: StagedGiftRow) {
+  if (RECEIPT_BLOCKED_STATUSES.has(gift.status)) {
+    throw new ApiHttpError(
+      409,
+      `Cannot send a receipt for a staged gift in ${gift.status} status.`,
+    );
+  }
+
+  if (gift.receiptStatus === "suppressed") {
+    throw new ApiHttpError(409, "Receipts are suppressed for this gift.");
+  }
+}
+
+/**
+ * Every donor, fund and missionary a review edit names must belong to the
+ * gift's tenant. The foreign keys do not include the tenant, so the service
+ * client would otherwise accept another organization's records.
+ */
+async function assertTenantReferences(input: {
+  supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
+  tenantId: string;
+  donorId: string | null | undefined;
+  allocations: z.infer<typeof allocationSchema>[] | undefined;
+}) {
+  const references: Array<{
+    table: "donors" | "funds" | "missionaries";
+    label: string;
+    ids: string[];
+  }> = [
+    {
+      table: "donors",
+      label: "donor",
+      ids: input.donorId ? [input.donorId] : [],
+    },
+    {
+      table: "funds",
+      label: "fund",
+      ids: (input.allocations ?? []).flatMap((allocation) =>
+        allocation.fundId ? [allocation.fundId] : [],
+      ),
+    },
+    {
+      table: "missionaries",
+      label: "missionary",
+      ids: (input.allocations ?? []).flatMap((allocation) =>
+        allocation.missionaryId ? [allocation.missionaryId] : [],
+      ),
+    },
+  ];
+
+  for (const reference of references) {
+    const ids = Array.from(new Set(reference.ids));
+    if (ids.length === 0) {
+      continue;
+    }
+
+    const { data, error } = await input.supabaseAdmin
+      .from(reference.table)
+      .select("id")
+      .eq("tenant_id", input.tenantId)
+      .in("id", ids);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if ((data ?? []).length !== ids.length) {
+      throw new ApiHttpError(
+        400,
+        `Every ${reference.label} must belong to this organization.`,
+      );
+    }
+  }
+}
+
 async function appendReviewAudit(input: {
   supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
   tenantId: string;
@@ -73,15 +200,20 @@ async function appendReviewAudit(input: {
   }
 }
 
+/** SQLSTATE the replacement RPC raises when the gift's status has moved. */
+const STAGED_GIFT_CHANGED = "40001";
+
 /**
  * Replace a staged gift's allocation split through a tenant-scoped Postgres
- * RPC. The RPC locks the staged gift row, deletes the previous allocation set,
- * and inserts the replacement rows in one transaction so concurrent PATCHes
- * cannot interleave partial allocation state.
+ * RPC. The RPC locks the staged gift row, refuses when its status is no longer
+ * `gift.status` (the status the caller checked), deletes the previous
+ * allocation set and inserts the replacement rows in one transaction, so
+ * concurrent PATCHes cannot interleave partial allocation state and a refund
+ * or posting that lands after the check keeps its split. A refusal is a 409.
  */
 export async function replaceStagedGiftAllocations(input: {
   supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
-  gift: { id: string; tenantId: string };
+  gift: { id: string; tenantId: string; status: StagedGiftStatus };
   allocations: z.infer<typeof allocationSchema>[];
 }): Promise<void> {
   const { supabaseAdmin, gift, allocations } = input;
@@ -96,8 +228,15 @@ export async function replaceStagedGiftAllocations(input: {
   const { error } = await supabaseAdmin.rpc("replace_staged_gift_allocations", {
     p_tenant_id: gift.tenantId,
     p_staged_gift_id: gift.id,
+    p_expected_status: gift.status,
     p_allocations: replacementRows,
   });
+  if (error?.code === STAGED_GIFT_CHANGED) {
+    throw new ApiHttpError(
+      409,
+      "The staged gift changed while its split was being saved. Reload it and check the split.",
+    );
+  }
   if (error) {
     throw new Error(error.message);
   }
@@ -106,6 +245,7 @@ export async function replaceStagedGiftAllocations(input: {
 export const GET = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
+      assertContributionPermission(auth, "finance:manage_contributions");
       const searchParams = new URL(request.url).searchParams;
       const statuses = searchParams
         .getAll("status")
@@ -139,12 +279,42 @@ export const GET = withOperation(
 export const PATCH = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
+      assertContributionActionPermission(auth, "metadata_update");
       const stagedGiftId = getStagedGiftIdFromPath(request);
       const body = reviewPatchSchema.parse(await ensureJsonBody(request));
+      if (body.donorId !== undefined) {
+        assertContributionActionPermission(auth, "donor_relink");
+      }
+      if (body.allocations) {
+        assertContributionActionPermission(auth, "allocation_correction");
+      }
+
       const gift = await loadStagedGiftById({
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
+      });
+
+      // Every check runs before the first write, so a refused edit changes
+      // nothing (NV-03).
+      assertEditableStagedGift(gift, body.status);
+      if (body.allocations) {
+        const total = body.allocations.reduce(
+          (sum, allocation) => sum + allocation.amount,
+          0,
+        );
+        if (total !== gift.amount) {
+          throw new ApiHttpError(
+            400,
+            "Allocation split must equal staged gift amount.",
+          );
+        }
+      }
+      await assertTenantReferences({
+        supabaseAdmin,
+        tenantId: gift.tenantId,
+        donorId: body.donorId,
+        allocations: body.allocations,
       });
 
       const patch = {
@@ -158,45 +328,83 @@ export const PATCH = withOperation(
         ...(body.note !== undefined ? { review_reason: body.note } : {}),
         updated_at: new Date().toISOString(),
       };
+      // Conditional on the state that was checked: a gift posted, refunded or
+      // otherwise moved since it was read matches no row.
       const updated = await supabaseAdmin
         .from("staged_gifts")
         .update(patch)
         .eq("id", gift.id)
+        .eq("tenant_id", gift.tenantId)
+        .eq("status", gift.status)
         .select("*")
-        .single();
+        .maybeSingle();
       if (updated.error) {
         throw new Error(updated.error.message);
       }
-
-      if (body.allocations) {
-        const total = body.allocations.reduce(
-          (sum, allocation) => sum + allocation.amount,
-          0,
+      if (!updated.data) {
+        throw new ApiHttpError(
+          409,
+          "The staged gift changed while it was being edited. Reload it and try again.",
         );
-        if (total !== gift.amount) {
-          throw new ApiHttpError(
-            400,
-            "Allocation split must equal staged gift amount.",
-          );
+      }
+      // The status that write checked and left the gift in.
+      const statusAfterEdit: StagedGiftStatus = body.status ?? gift.status;
+
+      // What became of the split, for the audit row. The write above is
+      // saved by now, so an edit whose split is then refused is still audited
+      // and still refreshes the lists before it answers 409 (council round 3).
+      let split: "replaced" | "refused" | "replaced_gift_moved" | null = null;
+      let splitRefusal: ApiHttpError | null = null;
+      if (body.allocations) {
+        try {
+          // The RPC checks that status under the gift's lock, so a refund or
+          // posting that landed since keeps its split and the edit answers
+          // 409 (council round 2, B5).
+          await replaceStagedGiftAllocations({
+            supabaseAdmin,
+            gift: {
+              id: gift.id,
+              tenantId: gift.tenantId,
+              status: statusAfterEdit,
+            },
+            allocations: body.allocations,
+          });
+          split = "replaced";
+        } catch (error) {
+          if (!(error instanceof ApiHttpError) || error.status !== 409) {
+            throw error;
+          }
+          split = "refused";
+          splitRefusal = error;
         }
 
-        await replaceStagedGiftAllocations({
-          supabaseAdmin,
-          gift: { id: gift.id, tenantId: gift.tenantId },
-          allocations: body.allocations,
-        });
-
-        const allocationStatus =
-          body.allocations.length > 1 ? "split" : "corrected";
-        const allocationPatch = await supabaseAdmin
-          .from("staged_gifts")
-          .update({
-            allocation_status: allocationStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", gift.id);
-        if (allocationPatch.error) {
-          throw new Error(allocationPatch.error.message);
+        if (split === "replaced") {
+          // Recorded only while the gift is still in the state this edit
+          // left it in; a gift posted or refunded meanwhile is reported, not
+          // marked.
+          const allocationStatus =
+            body.allocations.length > 1 ? "split" : "corrected";
+          const allocationPatch = await supabaseAdmin
+            .from("staged_gifts")
+            .update({
+              allocation_status: allocationStatus,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", gift.id)
+            .eq("tenant_id", gift.tenantId)
+            .eq("status", statusAfterEdit)
+            .select("id")
+            .maybeSingle();
+          if (allocationPatch.error) {
+            throw new Error(allocationPatch.error.message);
+          }
+          if (!allocationPatch.data) {
+            split = "replaced_gift_moved";
+            splitRefusal = new ApiHttpError(
+              409,
+              "The staged gift changed while its split was being saved. Reload it and check the split.",
+            );
+          }
         }
       }
 
@@ -211,10 +419,15 @@ export const PATCH = withOperation(
           donorCorrected: body.donorId !== undefined,
           allocationCount: body.allocations?.length ?? null,
           status: body.status ?? null,
+          ...(split ? { split } : {}),
         },
       });
 
       revalidateAdminContributionsCache(auth.tenantId);
+
+      if (splitRefusal) {
+        throw splitRefusal;
+      }
 
       return NextResponse.json({ stagedGift: updated.data, requestId });
     } catch (error) {
@@ -227,8 +440,10 @@ export const PATCH = withOperation(
 export const POST_APPROVE = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
+      assertContributionActionPermission(auth, "approve_staged_gift");
       const stagedGiftId = getStagedGiftIdFromPath(request);
       const body = actionSchema.parse(await ensureJsonBody(request));
+      // approveStagedGiftForFinance applies the state machine check itself.
       const stagedGift = await approveStagedGiftForFinance({
         supabaseAdmin,
         stagedGiftId,
@@ -252,8 +467,9 @@ export const POST_APPROVE = withOperation(
 );
 
 export const POST_RETRY = withOperation(
-  async ({ request, requestId }) => {
+  async ({ request, auth, requestId }) => {
     try {
+      assertContributionActionPermission(auth, "retry_staged_gift");
       getStagedGiftIdFromPath(request);
       actionSchema.parse(await ensureJsonBody(request));
       rejectRetiredCrmPostingRetry();
@@ -267,12 +483,14 @@ export const POST_RETRY = withOperation(
 export const POST_RECEIPT = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
+      assertContributionActionPermission(auth, "resend_receipt");
       const stagedGiftId = getStagedGiftIdFromPath(request);
       const gift = await loadStagedGiftById({
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
       });
+      assertReceiptableStagedGift(gift);
       await appendReviewAudit({
         action: "staged_gift_receipt_resend_requested",
         actorProfileId: auth.profileId,

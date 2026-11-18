@@ -241,6 +241,62 @@ stays single-locale, with no Site-global serving head or distributed transaction
 See [D10](#d10--complete-cohort-all-or-none-site-presentation-activation) and
 [ADR-0154](../../adr/0154-complete-cohort-site-presentation-activation-through-d1.md).
 
+### CRM, CMS and database foundation first-release amendment — 2026-11-17
+
+**Authority.** The owner's instruction of 17 November 2026 to implement the CRM,
+CMS and database plan ratifies the disposition its
+[section 14](../../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+lists for ADR-0145 and the dependent Phase 23 decisions. The plan section 15.1
+question whether the first release needs atomic multi-page launches is taken at
+its default, "not needed", under the
+[implementation record](../../audits/core-crm-cms-database-implementation-record.md#6-decisions-and-deviations)
+(D-05); that is a default taken, not a fresh founder ruling, and if the owner
+rules otherwise this amendment lapses. It records intent, not implementation.
+
+**First-release scope of D1.** The first release serves per-page immutable
+releases in Core, with every document of one publish activated together in one
+transaction, instead of a Site-and-locale Public Site Generation
+([ADR-0229](../../adr/0229-per-page-releases-and-two-publish-commands.md);
+[ADR-0145](../../adr/0145-page-local-composition-bounded-reuse-and-coherent-site-generations.md)
+first-release scope amendment). Whole-Site generations remain the later target.
+They return when a requirement needs atomic multi-page launches, scheduled
+releases or whole-Site rollback, and can be added without replacing the release
+tables. This D1 text and its binding interpretation describe that target and
+are not rewritten.
+
+**Dependent decisions, as the first release meets them.** Each target below is
+unchanged; the first release narrows it as stated, and the package named builds
+the narrowed form.
+
+- **D2 and D3 (paths and route continuity).** A page's public path is its slug,
+  which may hold several segments, unique per Site and locale among live heads.
+  There is no Page Placement Revision. A changed path leaves no redirect and the
+  old path returns 404 (WP6, WP7; ADR-0119 first-release record).
+- **D4 and D5 (Navigation).** Navigation is a release row of its own, published
+  separately from pages; a page and a menu published separately can disagree
+  until both are published (WP7).
+- **D8 (Reusable Sections).** Not in the first release's collections; they wait
+  for generations.
+- **D10 (Site Presentation Activation).** It advances a generation, so it waits
+  for generations.
+- **D13 (Scheduled Publication).** Deferred. When built, a schedule is an outbox
+  row that calls the same publish commands.
+- **D17 and D28 (site search, search and sharing).** Not built in the first
+  release; a link-only page carries `noindex`, and no sitemap ships
+  (`public-ministry-pages` D14 narrowing).
+- **D22 (localization).** Deferred. Release rows carry a locale column from the
+  start because it is part of their key.
+- **D24 (one exact public audience).** Met by an admission read on every request,
+  in the donor app's proxy, before any cached body is read (WP7).
+- **D25 (whole-Site Preview Candidates).** The first release previews in the
+  admin app, to signed-in staff only, from the one shared block registry that the
+  public renderer also uses (WP0b, WP7).
+- **D27 (Media).** Core custody with derived live use
+  ([ADR-0231](../../adr/0231-core-media-custody-and-derived-live-use.md); ADR-0171
+  first-release scope amendment).
+- **D30, D34 and D35.** See the 2026-11-17 amendments to ADR-0174, ADR-0178 and
+  ADR-0179.
+
 ## D2 — Staged hierarchical public paths under the D1 serving generation
 
 **Status:** Ratified and adversarially hardened on 2026-08-15.

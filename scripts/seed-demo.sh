@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SEED_SQL="$ROOT_DIR/supabase/seed.sql"
-EXPECTED_PROJECT_REF="${SUPABASE_PROJECT_REF:-btewedpsxwsjczvmegby}"
-EXPECTED_SUPABASE_URL="https://${EXPECTED_PROJECT_REF}.supabase.co"
 MODE="${1:-local}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -29,33 +26,46 @@ run_local() {
   echo "Local seed complete."
 }
 
+# The hosted seed is retired (WP0, audit finding NA-03). supabase/seed.sql
+# deletes every tenant's rows before it reseeds, and this mode also pushed
+# every pending migration, so it must never reach a hosted database. The mode
+# name is kept only so that a stale command fails loudly.
 run_hosted() {
-  require_cmd bun
-  require_cmd psql
-  require_env SUPABASE_SERVICE_ROLE_KEY
-  require_env SUPABASE_DB_URL
-  require_env NEXT_PUBLIC_SUPABASE_URL
+  echo "Refusing to seed a hosted database: the hosted seed deletes every organization's data and is retired." >&2
+  echo "Seed the local stack with: bash ./scripts/seed-demo.sh local" >&2
+  exit 1
+}
 
-  local normalized_url="${NEXT_PUBLIC_SUPABASE_URL%/}"
-  if [[ "$normalized_url" != "$EXPECTED_SUPABASE_URL" ]]; then
-    echo "NEXT_PUBLIC_SUPABASE_URL mismatch. Expected: $EXPECTED_SUPABASE_URL" >&2
+# Succeeds only when the repository's one local-database decision
+# (isLoopbackDatabaseUrl, packages/env/src/database-url.mjs) admits the URL in
+# the environment variable named by $1: a Postgres URL on 127.0.0.1,
+# localhost or [::1] with no routing override in its query.
+is_loopback_database_url() {
+  node "$SCRIPT_DIR/lib/local-database.mjs" admit "$1"
+}
+
+require_loopback_database_url() {
+  if ! is_loopback_database_url SUPABASE_DB_URL; then
+    echo "Refusing to run against a non-loopback database. SUPABASE_DB_URL must name localhost, 127.0.0.1 or [::1], with no routing override (host, hostaddr, port, dbname, user or service) in its query." >&2
     exit 1
   fi
+}
 
-  echo "Applying migrations to hosted database via Supabase CLI (repo runner)..."
-  bun run supabase -- db push --db-url "$SUPABASE_DB_URL"
-
-  echo "Running deterministic seed SQL on hosted database..."
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$SEED_SQL"
-  echo "Hosted seed complete."
+# Runs psql on SUPABASE_DB_URL through the repository's one psql runner
+# (spawnPsql, scripts/lib/psql.mjs): the URL is the whole target, every
+# ambient PG* setting is dropped, and the password travels in PGPASSWORD.
+local_psql() {
+  node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"
 }
 
 run_verify() {
+  require_cmd node
   require_cmd psql
   require_env SUPABASE_DB_URL
+  require_loopback_database_url
 
   echo "Row counts:"
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
+  local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT *
     FROM (
       VALUES
@@ -89,7 +99,7 @@ run_verify() {
 
   echo
   echo "Single-profile check:"
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
+  local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT COUNT(*)::bigint AS profile_rows,
            COUNT(*) FILTER (WHERE id = '11111111-1111-1111-1111-111111111111')::bigint AS demo_profile_rows
     FROM public.profiles;

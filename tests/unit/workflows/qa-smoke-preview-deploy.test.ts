@@ -79,9 +79,10 @@ describe("qa smoke preview deployment workflow", () => {
     ).toHaveLength(3);
     expect(workflow).not.toContain("Install local preview build dependencies");
     expect(workflow).not.toContain("vercel pull");
+    // Three label-gated surfaces, plus the preview-database job's one loop.
     expect(
       workflow.match(/node scripts\/qa\/deploy-hosted-preview\.mjs /g),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     for (const app of ["admin", "donor", "missionary"]) {
       expect(workflow).not.toContain(`--cwd apps/${app} deploy`);
     }
@@ -92,12 +93,12 @@ describe("qa smoke preview deployment workflow", () => {
       workflow.match(
         /QA_TEST_EMAIL: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL && secrets\.QA_PREVIEW_TEST_PASSWORD && secrets\.QA_PREVIEW_TEST_EMAIL \|\| secrets\.QA_TEST_EMAIL \}\}/g,
       ),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       workflow.match(
         /QA_TEST_PASSWORD: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL && secrets\.QA_PREVIEW_TEST_PASSWORD && secrets\.QA_PREVIEW_TEST_PASSWORD \|\| secrets\.QA_TEST_PASSWORD \}\}/g,
       ),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(workflow).toContain("QA_PREVIEW_CREDENTIALS_PARTIAL:");
     expect(workflow).toContain('"${QA_PREVIEW_CREDENTIALS_PARTIAL}" == "true"');
     expect(workflow).toContain(
@@ -177,6 +178,84 @@ describe("qa smoke preview deployment workflow", () => {
       "playwright-report/pr-preview-smoke-*/sanitized/index.html",
       "playwright-report/pr-preview-smoke-*/sanitized/results.json",
     ]);
+  });
+
+  it("keeps the per-pull-request group, which cancels, for pull requests without a migration", () => {
+    const deployJob = workflow.split("\n  preview-database:")[0]!;
+    expect(workflow).not.toMatch(/^concurrency:/m);
+    expect(deployJob).toContain(
+      "group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}",
+    );
+    expect(deployJob).toContain("cancel-in-progress: true");
+    expect(deployJob).toContain(
+      "^(supabase/migrations/|apps/admin/src/migrations/)",
+    );
+    expect(deployJob).not.toContain("release-database.mjs");
+  });
+
+  it("runs a pull request that carries a migration as one never-cancelled, repository-wide job", () => {
+    const job = workflow.split("\n  preview-database:")[1]!;
+    expect(job).toContain(
+      "if: needs.deploy.outputs.carries_migration == 'true'",
+    );
+    expect(job).toMatch(
+      /concurrency:\n\s+group: preview-database\n\s+cancel-in-progress: false\n\s+queue: max/,
+    );
+    expect(job).toContain("environment: release-preview");
+    const order = [
+      "node scripts/verify/supabase-migrations.mjs",
+      "schema-fingerprint.mjs capture",
+      "release-database.mjs preview-rebuild",
+      "release-database.mjs gates",
+      "release-database.mjs record-heads",
+      "node scripts/qa/deploy-hosted-preview.mjs",
+      "vercel-release.mjs check",
+      "playwright.development-smoke.config.ts",
+      "<!-- preview-database-smoke -->",
+    ].map((marker) => job.indexOf(marker));
+    expect(order.every((index) => index > 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(job).toContain("CORE_PREVIEW_CUSTOM_ENVIRONMENT: preview-database");
+    expect(job).not.toContain("SUPABASE_DB_URL");
+  });
+
+  // Council round 2, A5 (record D-24) and A6a: the rebuild replaces the
+  // seed's published login password, and Payload verifies the pooler.
+  it("hands the preview rebuild the seeded-login password and the project's CA", () => {
+    const job = workflow.split("\n  preview-database:")[1]!;
+    const rebuild = job
+      .split("\n      - ")
+      .find((step) => step.includes("release-database.mjs preview-rebuild"))!;
+    expect(rebuild).toContain(
+      "RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}",
+    );
+    expect(rebuild).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+  });
+
+  // AL-2674 A10: the preview rebuild runs the wrapper with
+  // SUPABASE_CLI_FORCE_PINNED, which never fetches a CLI (npx inside the
+  // repository stops on the root package.json's overrides), so the job
+  // installs the wrapper's pin first.
+  it("installs the wrapper's pinned Supabase CLI before the preview rebuild", () => {
+    const job = workflow
+      .split("\n  preview-database:")[1]!
+      .split(/\n  [a-z-]+:\n/)[0]!;
+    const pinned = /^const PINNED_SUPABASE_CLI_VERSION = "([0-9.]*)";$/m.exec(
+      readFileSync("scripts/supabase-cli.mjs", "utf8"),
+    )?.[1];
+    expect(pinned).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(job).toContain(
+      String.raw`version="$(sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs)"`,
+    );
+    expect(job).toMatch(
+      /- uses: supabase\/setup-cli@[0-9a-f]{40} # v\d+\.\d+\.\d+\n\s+with:\n\s+version: \$\{\{ steps\.supabase-pin\.outputs\.version \}\}/,
+    );
+    expect(job.indexOf("supabase/setup-cli@")).toBeLessThan(
+      job.indexOf("release-database.mjs preview-rebuild"),
+    );
+    expect(job).not.toMatch(/npx[^\n]*supabase@/);
   });
 
   it("does not use bypass query parameters", () => {

@@ -16,6 +16,7 @@
     "./follower-requests": "./src/follower-requests/index.ts",
     "./follower-requests/request": "./src/follower-requests/request.ts",
     "./auth/callback": "./src/auth/callback.ts",
+    "./auth/password-recovery": "./src/auth/password-recovery.ts",
     "./auth/demo-account": "./src/auth/demo-account.ts",
     "./auth/signout": "./src/auth/signout.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",

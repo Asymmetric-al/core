@@ -22,9 +22,14 @@ const sql = () => {
   expect(existsSync(H.MIGRATION), `${H.MIGRATION} must exist`).toBe(true);
   return H.code(H.read(H.MIGRATION));
 };
-/** sha256 of the 85 other exceptions entry lines at develop 0727d810, trimmed, "\n"-joined. */
+/**
+ * sha256 of the other exceptions entry lines, trimmed, "\n"-joined. It was
+ * 9b004012... for the 85 lines at develop 0727d810; AL-2674 (D09) drops the
+ * backup_notification_queue_orphans_20260214 table and its entry, and this is
+ * the digest of those same lines without that one.
+ */
 const OTHERS_SHA =
-  "9b004012247680c8b1bb83b2f3838752251789e71ea5b2cdb4e2c9d682d4e151";
+  "866842f870309fb9a6e47f9d9a138c3ba4a612c0b08cca3ce49b335dee76d1f9";
 /** Reviewed docs/ci.md prefixes, one entry per reviewed file. */
 const CI_BASES = [
   // Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix.
@@ -36,6 +41,37 @@ const CI_BASES = [
   {
     bytes: 40426,
     sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
+  },
+  // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
+  // release workflow, the preview database job and the two new migrate
+  // steps, and its field-policy paragraph describes the classification
+  // manifest that replaced the AL-491 census. Pinned on that exact reviewed
+  // whole file.
+  {
+    bytes: 44177,
+    sha256: "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
+  },
+  // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
+  // .node-version to 24.22.3, its migrate real-stack bullet describes the three
+  // AL-2674 steps (the program-wide suite glob, the release and CMS role
+  // suites, the Payload qualification), its migrate summary names the
+  // seed-count check and supabase/seed-expectations.json, and its release
+  // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact reviewed
+  // whole file.
+  {
+    bytes: 45088,
+    sha256: "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
+  },
+  {
+    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
+    // gains one section, "Local Supabase stack workflow", after the release
+    // workflow section. It documents `.github/workflows/local-supabase.yml`,
+    // which applies the chain and the seed to the real Supabase image and runs
+    // the auth email round trips, a workflow of its own so that ci.yml and
+    // ci-integration.yml do not change. Nothing else in the file changes.
+    // Pinned on that exact reviewed whole file.
+    bytes: 46788,
+    sha256: "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
   },
 ];
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
@@ -68,14 +104,14 @@ describe("#2260 static (17-20)", () => {
     for (const g of body.match(/\bGRANT\b[^;]*;/gi) ?? [])
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
-  it("18: exceptions JSON drops only donor_feed_preferences: 85 entries (67 S + 18 D), others byte-identical, sorted", () => {
+  it("18: exceptions JSON drops only donor_feed_preferences: 84 entries (67 S + 17 D, after AL-2674), others byte-identical, sorted", () => {
     const raw = H.read(H.EXCEPTIONS);
     const e = (
       JSON.parse(raw) as { entries: { table: string; outcome: string }[] }
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      85, 67, 18,
+      84, 67, 17,
     ]);
     const lines = raw
       .split("\n")

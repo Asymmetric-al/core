@@ -5,6 +5,25 @@
  * it fails. Each fixture runs inside the gate's own psql session, wrapped in
  * BEGIN ... ROLLBACK by a psqlBin shim, so nothing persists.
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2674 (WP1 slice 1.1a, plan 5.4): the gate now also asserts a
+ * fixed search path and no PUBLIC or anon EXECUTE on every SECURITY DEFINER
+ * function in the app schemas, tenant_guard's and platform's included. The
+ * DEFINER fixture below creates its functions without SET search_path and with
+ * the default PUBLIC EXECUTE, so each now also reports those codes; the
+ * tenant_guard-owned one stays exempt from the owner rule only. The new
+ * assertions have their own real-stack suite in tests/unit/acceptance/issue-2674.
+ *
+ * Amended by AL-2674 council round 1 (findings A1 and A5, plan 5.4 and 7.4):
+ * the guard owner's exemption from the owner rule was not bound to its schema,
+ * so a tenant_guard-owned definer in `public` passed and could act as the
+ * guard in any tenant. It now holds only inside the `tenant_guard` schema, and
+ * the gate fails any function tenant_guard owns elsewhere. The DEFINER case's
+ * tenant_guard-owned function in `public` therefore now reports
+ * DEFINER_OWNER_NO_BYPASS and GUARD_OWNED_OUTSIDE_SCHEMA as well: the old
+ * expectation encoded the defect. The gate also gained a standing grants
+ * check; the GRANT_* cases below plant each of its violations and one grant a
+ * policy admits, which passes.
  */
 import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
@@ -113,10 +132,11 @@ const CASES: [string, string, string[][]][] = [
   ],
   [
     "stale exceptions: gained a policy, dropped, lost tenant_id (3)",
-    "create policy acc2253 on public.donor_merge_candidates using (false); drop table public.backup_notification_queue_orphans_20260214; alter table public.currency_rate_snapshots drop column tenant_id cascade;",
+    "create policy acc2253 on public.donor_merge_candidates using (false); drop table public.contribution_operation_user_preferences; alter table public.currency_rate_snapshots drop column tenant_id cascade;",
     [
       ["STALE_HAS_POLICY", "donor_merge_candidates"],
-      ["STALE_MISSING_TABLE", "backup_notification_queue_orphans_20260214"],
+      // AL-2674 (D09) dropped the backup table this probe used to drop.
+      ["STALE_MISSING_TABLE", "contribution_operation_user_preferences"],
       ["STALE_NOT_TENANT", "currency_rate_snapshots"],
     ],
   ],
@@ -126,7 +146,7 @@ const CASES: [string, string, string[][]][] = [
     [["OWNER_NO_BYPASS", "acc2253_owned"]],
   ],
   [
-    "DEFINER_OWNER_NO_BYPASS in public/authz/document_cutover/private only; invoker and tenant_guard-owned exempt (4)",
+    "DEFINER_OWNER_NO_BYPASS in public/authz/document_cutover/private only; invoker exempt; tenant_guard-owned outside its schema fails (4)",
     `${NOBYPASS} create schema acc2253_s; do $$ declare s text; begin
       foreach s in array array['public', 'authz', 'document_cutover', 'private', 'acc2253_s'] loop
         execute format('create function %I.acc2253_def_%s() returns int language sql security definer as ''select 1''', s, s);
@@ -136,10 +156,39 @@ const CASES: [string, string, string[][]][] = [
       alter function public.acc2253_invoker() owner to acc2253_nobypass;
       create function public.acc2253_guard() returns int language sql security definer as 'select 1';
       alter function public.acc2253_guard() owner to tenant_guard;`,
-    ["authz", "document_cutover", "private", "public"].map((s) => [
-      "DEFINER_OWNER_NO_BYPASS",
-      `acc2253_def_${s}`,
-    ]),
+    [
+      ...["authz", "document_cutover", "private", "public"].flatMap((s) =>
+        [
+          "DEFINER_OWNER_NO_BYPASS",
+          "DEFINER_SEARCH_PATH_UNSET",
+          "DEFINER_PUBLIC_EXECUTE",
+          "DEFINER_ANON_EXECUTE",
+        ].map((code) => [code, `acc2253_def_${s}`]),
+      ),
+      ...[
+        "DEFINER_OWNER_NO_BYPASS",
+        "DEFINER_SEARCH_PATH_UNSET",
+        "DEFINER_PUBLIC_EXECUTE",
+        "DEFINER_ANON_EXECUTE",
+        "GUARD_OWNED_OUTSIDE_SCHEMA",
+      ].map((code) => [code, "acc2253_guard"]),
+    ].sort(),
+  ],
+  [
+    "GRANT_TO_PUBLIC, GRANT_UNSAFE_PRIVILEGE and GRANT_WITHOUT_POLICY on tables in public",
+    "grant select on public.tenants to public; grant truncate on public.funds to authenticated; grant select on public.donors to anon;",
+    [
+      ["GRANT_TO_PUBLIC", "tenants"],
+      ["GRANT_UNSAFE_PRIVILEGE", "funds"],
+      ["GRANT_WITHOUT_POLICY", "donors"],
+    ],
+  ],
+  [
+    "nothing for a table grant that a policy admits for that role and command",
+    `${TENANT("acc2253_read")} alter table public.acc2253_read enable row level security, force row level security;
+     create policy acc2253 on public.acc2253_read for select to anon using (true);
+     grant select on public.acc2253_read to anon;`,
+    [],
   ],
 ];
 
@@ -160,7 +209,8 @@ async function catalogCounts() {
   await db.end();
   return rows[0] as { n: number; pol: number };
 }
-const LISTED = 85;
+// AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
+const LISTED = 84;
 
 describe.skipIf(!ADMIN_URL)(
   "#2253 tenant RLS catalog gate (real stack)",

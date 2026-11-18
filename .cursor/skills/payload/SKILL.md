@@ -7,7 +7,7 @@ description: Develop and migrate Core's Payload CMS configuration, collections, 
 
 Read `apps/admin/AGENTS.md`, `apps/admin/payload.config.ts`, and the affected CMS source before editing. OpenSpec and `docs/ai/rules/backend.md` own durable behavior. Supabase schema, RLS, and Auth follow the Supabase skill and `supabase/AGENTS.md`; business data remains behind `docs/guides/architecture/data-access-boundary.md`. Admin UI follows Core's Base UI, exact `base-maia`, semantic tokens, and shared component ownership.
 
-Use the versions in `apps/admin/package.json` and the installed public exports. Read [Core's public-v4 compatibility reference](reference/PUBLIC-V4.md) for request creation, access defaults, media, generated types, and tokens. The official versioned migration guide and installed source resolve API questions. The vendored `vendor/payload-upstream` examples and removed generic v3 skill examples are historical sources, not current API authority. [Provenance and refresh](references/upstream.md) records the reviewed source and Core adaptations.
+Use the versions in `apps/admin/package.json` and the installed public exports. Read [Core's public-v4 compatibility reference](reference/PUBLIC-V4.md) for request creation, access defaults, media, generated types, and tokens. The official versioned migration guide and installed source resolve API questions. The retired `vendor/payload-upstream` copy (Payload 3.77.0, kept only in Git history) and the removed generic v3 skill examples describe v3 and are not API authority. [Provenance and refresh](references/upstream.md) records the reviewed source and Core adaptations.
 
 ## Implementation workflow
 

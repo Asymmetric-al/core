@@ -1,6 +1,6 @@
 # ADR-0124: One exact Page Giving Binding for the Phase 22 MVP
 
-**Status:** Accepted (founder ruling, Phase 22 grill session - D7)
+**Status:** Accepted (founder ruling, Phase 22 grill session - D7; interim target recorded 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -58,6 +58,34 @@ fresh explicit navigation and inherits no Designation or Giving context.
   request-time revalidation remains authoritative.
 - Existing mock IDs, soft references, and handcrafted checkout URLs cannot
   authorize migration or release.
+
+## Amendments
+
+### 2026-11-17: The fund ID is a stated interim until Designations exist (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record: keep it, and record what follows. This records intent,
+  not implementation; the
+  [implementation record](../audits/core-crm-cms-database-implementation-record.md)
+  says what exists.
+- **Default, not ruling.** The plan section 15.1 question whether the first
+  slice may use the fund ID is taken at its default, "use the fund ID as a
+  stated interim", under the implementation record (D-05). It is a default
+  taken, not a fresh owner ruling.
+- **Interim.** Until Phase 13 Designations exist, a page that takes gifts
+  carries exactly one giving-target ID, a fund ID, in place of this record's one
+  Designation. Each giving target belongs to exactly one Legal Entity. The rule
+  of one binding per released page is unchanged
+  ([ADR-0237](0237-funds-and-ministry-assignments-as-interim-giving-targets.md)).
+- **Read through Core.** The target is a plain UUID, checked against the page's
+  tenant when saved and again by the publish command, and resolved through
+  Core's public projection when the page is read. A foreign-tenant, inactive or
+  withdrawn target resolves to nothing: the giving action is hidden and the
+  condition is reported.
+- **Open.** How lines frozen on a fund ID are read as Designations when Phase 13
+  lands is not settled here (council record C.8, reservation 3).
 
 ## Related decisions
 

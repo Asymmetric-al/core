@@ -1,6 +1,6 @@
 # ADR-0027: Transport-agnostic reader, single Payload read in admin, availability seam
 
-**Status:** Accepted (founder ruling, Phase 5 grill session 2026-07-05 — A3/A4)
+**Status:** Accepted (founder ruling, Phase 5 grill session 2026-07-05 — A3/A4; implementation amended 2026-11-17 for AL-2688)
 
 > Full record: `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`
 > (rulings A3 and A4; deep modules in Section B).
@@ -32,6 +32,12 @@ package client, never a hard-coded admin URL. The cache-tag scheme is built
 now so public reads are cacheable; an alternate transport that removes admin
 from the hot read path (CDN/replica) is a **reserved capability with an
 explicit trigger** (an `apps/web` extraction or an availability SLO).
+_Amended 2026-11-17 (see Amendments): the reserved capability is invoked. The
+`PublishedContentReader` interface stays, and its implementation reads Core's
+immutable published releases in `packages/api`, after an admission read on
+every request; no implementation touches Payload on the public path, and the
+cache-tag scheme is replaced by caching each release body under its release
+ID. The sentences above are the 2026-07-05 ruling, kept as dated history._
 
 ## Consequences
 
@@ -58,3 +64,37 @@ remain source-owned. The reader never asks Payload to substitute fields or
 complete resources.
 Readiness consumes batched source-owned version evidence through this boundary;
 it does not duplicate Payload status or scan every document on a public request.
+
+## Amendments
+
+### 2026-11-17: The release-backed reader is the implementation (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record. It records intent, not implementation.
+- **Kept.** The public-content contract lives in one server-only package under
+  `packages/api`; dependencies point into it; consuming pages read only through
+  it and never a hard-coded admin URL; the reader interface grows additively; and
+  the public runtime depends on a stable serialized contract, never raw Payload
+  documents or the `cms` schema.
+- **Changed.** The reader's implementation is backed by Core's release tables
+  ([ADR-0229](0229-per-page-releases-and-two-publish-commands.md)). Publishing
+  copies the serialized page into an immutable release row; the public site never
+  queries Payload and does not depend on the admin app being up. That is the
+  reserved capability this record named, invoked behind the same interface. The
+  plan's trigger is concrete: every cache miss on a public page would otherwise
+  compete with editors for Payload's small pool, and withdrawal would depend on an
+  expiry call crossing two deployments (plan section 11.3, decision 1).
+- **Admission decides what is served.** One read function, keyed by verified
+  host and path and never cached across requests, admits every request before any
+  cached content is read: the page's live head and reach, the Site's live
+  navigation release, and whether the tenant, the Site and the page's subject may
+  be served now. Only then is the body read, cached under its release ID. The
+  reader treats a release as untrusted when it renders: it parses the content
+  against the shared block registry, drops unknown blocks and never renders stored
+  markup unescaped.
+- **Availability.** The consequence that the admin app stays on the cold-read
+  path no longer holds once the release-backed reader ships (WP7).
+- **Phase 24 D66.** Its locale-bearing contract carries over to releases, which
+  carry a locale column from the start; localization itself is deferred.

@@ -32,6 +32,14 @@ interface GraphQLContext {
   supabaseAdmin: SupabaseClient;
 }
 
+/** Mirrors the `AssignableUserRole` enum and the SQL role-change command. */
+const ASSIGNABLE_USER_ROLES: ReadonlySet<string> = new Set([
+  "donor",
+  "missionary",
+  "staff",
+  "admin",
+]);
+
 function revalidatePostTags(postId: string, tenantId: string) {
   revalidateTags([CACHE_TAGS.tenantPosts(tenantId), CACHE_TAGS.post(postId)]);
 }
@@ -192,9 +200,21 @@ const typeDefs = /* GraphQL */ `
     fundingGoal: Int
   }
 
+  """
+  The tenant roles an organization administrator may grant. The platform
+  role, super_admin, is deliberately absent (WP0, audit finding A01).
+  """
+  enum AssignableUserRole {
+    donor
+    missionary
+    staff
+    admin
+  }
+
   input UpdateUserRoleInput {
+    "The target's profile ID."
     userId: ID!
-    role: UserRole!
+    role: AssignableUserRole!
   }
 
   type Mutation {
@@ -799,16 +819,29 @@ const resolvers = {
 
     updateUserRole: async (
       _: unknown,
-      args: {
-        input: {
-          userId: string;
-          role: "donor" | "missionary" | "admin" | "staff" | "super_admin";
-        };
-      },
+      args: { input: { userId: string; role: string } },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["admin", "staff", "super_admin"]);
+      requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      // Only a tenant administrator changes roles. `requireRole(…, ["admin"])`
+      // would also admit any staff member (`hasRole` treats staff as admin),
+      // so this reads the profile role directly, as the SQL command does,
+      // until WP2 moves tenant administration to the staff membership. A
+      // platform operator is not a tenant administrator.
+      if (auth.profileRole !== "admin") {
+        throw new Error(
+          "Forbidden: only an organization administrator can change roles",
+        );
+      }
+      if (!ASSIGNABLE_USER_ROLES.has(args.input.role)) {
+        throw new Error("Forbidden: this role cannot be granted");
+      }
+      if (args.input.userId === auth.profileId) {
+        throw new Error(
+          "Forbidden: administrators cannot change their own role",
+        );
+      }
 
       const { error: rpcError } = await ctx.supabaseAdmin.rpc(
         "atomic_update_user_role_with_audit",
@@ -823,6 +856,9 @@ const resolvers = {
       );
       if (rpcError) {
         if (rpcError.code === "P0002") throw new Error("User not found");
+        if (rpcError.code === "42501") {
+          throw new Error(`Forbidden: ${rpcError.message}`);
+        }
         throw new Error(rpcError.message);
       }
 

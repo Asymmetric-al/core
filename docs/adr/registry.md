@@ -138,3 +138,49 @@ accepted identities remain unchanged. These seven records map one-to-one to
 current Phase 6 F1–F7 under [AL-551](https://github.com/Asymmetric-al/core/issues/551)
 and its October 8 owner reconciliation. Phase 17 ADRs are supporting owners,
 not substitutes. Acceptance records target intent, not runtime or activation.
+
+## Accepted CRM, CMS and database foundation records — AL-2688
+
+These sixteen records state the decisions that section 14 of the
+[CRM, CMS and database plan](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+lists as new, and the Stripe Connect topology record that ADR-0011 calls missing.
+
+Authority, lanes and environments:
+
+- [0224: Human server work runs on the caller's token, and governed writes are SQL commands](0224-caller-token-server-lanes-and-sql-commands.md)
+- [0225: One database role per runtime, and one migration owner per schema](0225-database-roles-per-runtime.md)
+- [0226: One release job per environment, an environment marker, and repair rather than reset](0226-one-release-job-environment-marker-and-repair-not-reset.md)
+- [0227: One policy pattern, one selected assignment, and how each surface carries the tenant](0227-one-policy-pattern-and-the-carried-tenant.md)
+- [0228: Platform operators, the one script that lists them, and support grants as their own request context](0228-platform-operators-and-support-grants.md)
+
+Publishing, operational content and media:
+
+- [0229: Publishing copies pages into immutable Core releases through two commands, and the public reads only those](0229-per-page-releases-and-two-publish-commands.md)
+- [0230: Missionary updates and self-edited profile content are operational records, not CMS documents](0230-missionary-updates-and-profile-content-are-operational.md)
+- [0231: Core holds media bytes in private custody, and whether a use is live is derived on every request](0231-core-media-custody-and-derived-live-use.md)
+- [0232: A partners-only update is readable by donors whose record follows that missionary](0232-partners-only-update-audience.md)
+
+Money:
+
+- [0233: Each money effect has its own identity, claimed work holds a lease, and provider retries stop at the provider's window](0233-money-effect-identities-lease-and-provider-retry-window.md)
+- [0234: Stripe Connect direct charges on tenant-owned connected accounts, one binding per Legal Entity](0234-stripe-connect-direct-charges-on-tenant-owned-accounts.md)
+- [0235: Payment-account onboarding, the binding lifecycle, and dispute handling](0235-payment-account-onboarding-binding-lifecycle-and-disputes.md)
+- [0236: Public giving is guarded by a Postgres rate limit and a server-verified bot challenge](0236-abuse-controls-on-public-giving.md)
+- [0237: Funds and ministry assignments are the interim giving targets, each carrying one Legal Entity, until Designations exist](0237-funds-and-ministry-assignments-as-interim-giving-targets.md)
+
+The assistant and the person lifecycle:
+
+- [0238: An AI assistant has no lane of its own; it acts on the token and tenant of the person it serves](0238-ai-assistance-has-no-lane-of-its-own.md)
+- [0239: A tenant's erasure of a person stops at that tenant; closing an account is the person's own act](0239-tenant-erasure-is-distinct-from-account-closure.md)
+
+The canonical directory ended at 0223 before allocation. Numbers 0224–0239 were
+absent from the directory, the pending-collision register and the open pull
+requests inspected on 2026-11-17; existing accepted identities are unchanged.
+The owner's instruction of 17 November 2026 to implement the whole plan is the
+ratifying instruction. Where a record rests on a plan section 15.1 default, its
+status line says so; such a default is recorded as taken, not as an owner ruling.
+ADR-0234 writes down Phase 13 D1 and makes no new topology decision. Acceptance
+records target intent, not implementation: the
+[implementation record](../audits/core-crm-cms-database-implementation-record.md)
+says what exists, and the OpenSpec change `build-crm-cms-database-foundation`
+carries the work packages.
