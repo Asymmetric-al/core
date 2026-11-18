@@ -16,6 +16,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Default port **3030**. Start: `bun run dev:admin`. Cloud Mission Control: `bun run setup:mission-control:cloud` then `bun run dev:mission-control` (see `docs/guides/development/cursor-cloud.md`).
 - Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow `docs/ai/rules/frontend.md` § Instant Navigation. Stream request-time data; do not set `instant = false` without a comment.
+- **Tenant address:** signed-in pages live under `/<tenant>[~<sub-role>]`; sign-in, the chooser, Web Studio and the API routes stay outside. Build links and redirects through the tenant helpers, never `next/link` or the router, pathname or redirect of `next/navigation`, and bind servers to `localhost`. Follow `docs/ai/rules/frontend.md` § The tenant in the page address.
 - Read nearest `node_modules/next/dist/docs/` before Next.js API work. Use Next.js MCP against a running dev server for live errors and routes.
 - **UI/UX:** consume `@asym/ui`. Follow `packages/ui/AGENTS.md`. Do not define a local visual system, app-local shadcn primitives, or another style/preset/base.
 - Data: thin `app/api` re-exports only. Business DB logic lives in `packages/api`. Browser table data uses `@asym/database/hooks` when a collection exists (`docs/guides/architecture/data-access-boundary.md`). Asym Postgres owns CRM truth; do not restore Twenty-backed CRM reads or labels.
