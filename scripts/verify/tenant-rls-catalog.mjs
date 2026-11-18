@@ -187,6 +187,10 @@ select jsonb_build_object(
     where p.prokind in ('f', 'p')
       and (n.nspname in (${quoted(COMMAND_SCHEMAS)})
         or r.rolname = '${COMMAND_OWNER}')), '[]'::jsonb),
+  -- Every function outside the command schemas whose text mentions one, or
+  -- whose search path names one. The evaluator decides, with comments
+  -- removed, which of them call into one (a comment inside a qualified name
+  -- must not hide the call, and one that only names it must not count).
   'wrappers', coalesce((
     select jsonb_agg(jsonb_build_object(
       'function', ${SIGNATURE},
@@ -202,7 +206,7 @@ select jsonb_build_object(
     where p.prokind in ('f', 'p')
       and n.nspname not in (${quoted(COMMAND_SCHEMAS)}, 'pg_catalog', 'information_schema')
       and n.nspname not like 'pg\\_toast%'
-      and (${BODY} ~* '(${COMMAND_SCHEMA_PATTERN})"?\\s*\\.'
+      and (${BODY} ~* '(${COMMAND_SCHEMA_PATTERN})'
         or ${SEARCH_PATH} ~* '(${COMMAND_SCHEMA_PATTERN})')), '[]'::jsonb),
   'grants', coalesce((
     select jsonb_agg(to_jsonb(g) order by g.relation, g.grantee, g.privilege)
@@ -325,7 +329,12 @@ function outerBlockHasHandler(main) {
  */
 export function laneCheckProblem({ schema, language, body }) {
   if (language !== "plpgsql") return "is not PL/pgSQL";
-  const text = stripComments(String(body ?? ""), { blankStrings: true });
+  // Quoted identifiers are names, never keywords: blanked to an identifier of
+  // the same length, a quoted "end", "case" or "begin ..." can neither hide
+  // the outer EXCEPTION section nor fake the start of the body.
+  const text = stripComments(String(body ?? ""), {
+    blankStrings: true,
+  }).replace(/"(?:[^"]|"")*"/g, (quoted) => "_".repeat(quoted.length));
   const begin = text.search(/\bBEGIN\b/i);
   if (begin < 0) return "has no BEGIN";
   const declare = text.slice(0, begin);
@@ -358,6 +367,18 @@ export function callsIntoCommandSchemas(body) {
   for (const [, schema, name] of text.matchAll(re))
     calls.add(`${schema.toLowerCase()}.${name.toLowerCase()}`);
   return [...calls].sort();
+}
+
+/**
+ * Whether a function body names a command schema as a qualifier
+ * (`tenant_guard.`, `"platform" .`), comments ignored and strings included,
+ * so that dynamic SQL counts.
+ */
+export function namesCommandSchema(body) {
+  return new RegExp(
+    `(?:^|[^A-Za-z0-9_$."])"?(?:${COMMAND_SCHEMAS.join("|")})"?\\s*\\.`,
+    "i",
+  ).test(stripComments(String(body ?? "")));
 }
 
 /** `auth.` (or `"auth".`) as a qualifier, not the tail of a longer name. */
@@ -632,10 +653,15 @@ export function evaluateTenantRlsCatalog(
         w.function,
         `its search path names ${onPath.join(", ")}: a function outside the command schemas calls into them by qualified name only, with SET search_path = ''`,
       );
+    // A function whose text, comments removed, names a command schema is held
+    // to the wrapper rules even when no call in it parses (dynamic SQL that
+    // builds the call, a regproc): only the grant rule needs the targets.
+    if (!namesCommandSchema(w.body)) continue;
     const targets = callsIntoCommandSchemas(w.body);
-    if (!targets.length) continue;
-    wrappers += 1;
-    const calls = `it calls ${targets.join(", ")}`;
+    if (targets.length) wrappers += 1;
+    const calls = targets.length
+      ? `it calls ${targets.join(", ")}`
+      : "it names a command schema in a call no scanner reads";
     if (w.definer)
       failFn(
         "WRAPPER_DEFINER",

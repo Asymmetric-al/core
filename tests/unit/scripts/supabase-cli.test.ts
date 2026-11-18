@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   guardConfigPush,
   guardReset,
+  npxFallbackArgs,
   parseQueryRows,
   parseResetTarget,
 } from "../../../scripts/supabase-cli.mjs";
@@ -138,6 +139,60 @@ describe.skipIf(process.platform === "win32")("Supabase CLI dispatch", () => {
   it("honors an explicit version override without accepting another global version", () => {
     const { commands } = dispatch({ SUPABASE_CLI_VERSION: " 2.119.1 " });
     npxFallback(commands[1]!.args, "2.119.1");
+  });
+
+  // Council round 3, lens 2 (A10 nits): under SUPABASE_CLI_FORCE_PINNED the
+  // repository's pin is the version that runs, whatever SUPABASE_CLI_VERSION
+  // says.
+  it("ignores SUPABASE_CLI_VERSION under SUPABASE_CLI_FORCE_PINNED: the pin runs", () => {
+    const { result, commands } = dispatch({
+      SUPABASE_CLI_FORCE_PINNED: "1",
+      SUPABASE_CLI_VERSION: "2.119.1",
+    });
+    expect(result.status).toBe(0);
+    expect(commands).toEqual([
+      { command: "supabase", args: ["--version"] },
+      { command: "supabase", args: ["db", "--help"] },
+    ]);
+  });
+
+  it("ignores SUPABASE_CLI_VERSION under SUPABASE_CLI_FORCE_PINNED: another installed version stops", () => {
+    const { result, commands } = dispatch({
+      SUPABASE_CLI_FORCE_PINNED: "1",
+      SUPABASE_CLI_VERSION: "2.119.1",
+      TEST_GLOBAL_VERSION: "2.119.1",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      "the Supabase CLI 2.121.0 must be installed on the PATH (found 2.119.1)",
+    );
+    expect(commands).toEqual([{ command: "supabase", args: ["--version"] }]);
+  });
+});
+
+// Council round 3, lens 2 (A10 nits): on Windows the wrapper runs npx through
+// a shell, which splits an unquoted path at a space.
+describe("npxFallbackArgs", () => {
+  const project = String.raw`C:\Users\A B\AppData\Local\Temp\core-supabase-npx-x1`;
+
+  it("quotes the npm project through a shell, so a space survives", () => {
+    expect(npxFallbackArgs(project, "2.121.0", true)).toEqual([
+      "--prefix",
+      `"${project}"`,
+      "-y",
+      "supabase@2.121.0",
+    ]);
+  });
+
+  it("passes it as it is without a shell", () => {
+    expect(
+      npxFallbackArgs("/tmp/core-supabase-npx-x1", "2.121.0", false),
+    ).toEqual([
+      "--prefix",
+      "/tmp/core-supabase-npx-x1",
+      "-y",
+      "supabase@2.121.0",
+    ]);
   });
 });
 

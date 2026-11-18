@@ -13,6 +13,7 @@
  * rolled back; the race check commits its fixtures and deletes them after.
  */
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -136,7 +137,12 @@ describe.skipIf(!ADMIN_URL)(
       }
     }
 
-    it("has one signature, which takes the checked status, with its owner, search path and grants", async () => {
+    // Amended by council round 3 (lens 1 I1; record D-18): the migration
+    // expands and does not contract (plan 7.4). The release already running
+    // calls the three-argument function, so it stays, unchanged, beside the
+    // four-argument one until the package that retires the legacy review
+    // route drops it. Both keep the owner, search path and grants.
+    it("has both signatures for this release, each with its owner, search path and grants", async () => {
       const { rows } = await db.query(
         `select pg_get_function_identity_arguments(p.oid) as args,
                 pg_get_userbyid(p.proowner) as owner,
@@ -147,18 +153,55 @@ describe.skipIf(!ADMIN_URL)(
                                     from aclexplode(p.proacl) a where a.privilege_type = 'EXECUTE') e), '{}')::text[] as executors
            from pg_proc p
           where p.pronamespace = 'public'::regnamespace
-            and p.proname = 'replace_staged_gift_allocations'`,
+            and p.proname = 'replace_staged_gift_allocations'
+          order by p.pronargs`,
       );
+      const shape = {
+        owner: "postgres",
+        definer: false,
+        config: ["search_path=public"],
+        executors: ["postgres", "service_role"],
+      };
       expect(rows).toEqual([
         {
+          args: "p_tenant_id uuid, p_staged_gift_id uuid, p_allocations jsonb",
+          ...shape,
+        },
+        {
           args: "p_tenant_id uuid, p_staged_gift_id uuid, p_allocations jsonb, p_expected_status text",
-          owner: "postgres",
-          definer: false,
-          config: ["search_path=public"],
-          executors: ["postgres", "service_role"],
+          ...shape,
         },
       ]);
     });
+
+    it("keeps the three-argument function's body as 20260707220134 created it", async () => {
+      const source = readFileSync(
+        "supabase/migrations/20260707220134_atomic_staged_gift_allocation_replace.sql",
+        "utf8",
+      );
+      const body = /AS \$function\$([\s\S]*?)\$function\$;/.exec(source)?.[1];
+      expect(body).toBeDefined();
+      const { rows } = await db.query(
+        `select prosrc from pg_proc
+          where oid = 'public.replace_staged_gift_allocations(uuid, uuid, jsonb)'::regprocedure`,
+      );
+      expect(rows[0]?.prosrc).toBe(body);
+    });
+
+    it("still replaces the split when called as develop's handler calls it, with three named arguments", () =>
+      tx(async () => {
+        const fixture = await makeFixture(db, "needs_review");
+        await db.query(
+          "grant select, update on public.staged_gifts to service_role; grant select, insert, delete on public.staged_gift_allocations to service_role",
+        );
+        await db.query("set local role service_role");
+        await db.query(
+          `select ${FN}(p_tenant_id => $1::uuid, p_staged_gift_id => $2::uuid, p_allocations => $3::jsonb)`,
+          [fixture.tenantId, fixture.giftId, JSON.stringify(NEW_SPLIT)],
+        );
+        await db.query("reset role");
+        expect(await split(db, fixture.giftId)).toEqual(NEW_SPLIT);
+      }));
 
     it("replaces the split of a gift still in the status the caller checked", () =>
       tx(async () => {

@@ -133,11 +133,14 @@ describe("evaluateTenantRlsCatalog", () => {
             authenticated: true,
           }),
           wrapper("public.work(uuid)", "SELECT tenant_guard.work(p);"),
-          // Mentions the schema but calls nothing in it: not a wrapper.
-          wrapper("public.reads()", "SELECT kind FROM platform.environment;", {
-            definer: true,
-            search_path: null,
-          }),
+          // Mentions the schema but calls nothing in it: not counted as a
+          // wrapper. Amended by council round 3 (lens 1 I2 (b); record D-18):
+          // it was a definer with no search path, which passed because no
+          // call parsed. A function that names a command schema is now held
+          // to the wrapper rules whether or not a call parses, so this one is
+          // an invoker with a fixed search path; the definer is failed in
+          // "council round 3 (lens 1 I2)" below.
+          wrapper("public.reads()", "SELECT kind FROM platform.environment;"),
         ],
       },
     );
@@ -892,6 +895,113 @@ describe("evaluateTenantRlsCatalog: council round 2 (A3)", () => {
         "authenticated holds SELECT on column amount",
       ),
     });
+  });
+});
+
+// Council round 3, lens 1 I2: the defeats of the scanner that were cheap to
+// close. (b) a call no parser reads still makes a wrapper; (c) comments are
+// ignored where the gate decides what is a wrapper; (e) a quoted identifier
+// cannot hide or fake a keyword in the lane check.
+describe("evaluateTenantRlsCatalog: council round 3 (lens 1 I2)", () => {
+  const lanes = [
+    human("tenant_guard.resolve(uuid)"),
+    command("tenant_guard.acquire_claim(uuid)"),
+  ];
+  const judge = (wrappers: object[]) =>
+    evaluate([], listed(), [], lanes, allow(), { wrappers });
+  const DYNAMIC =
+    "DECLARE r jsonb; BEGIN EXECUTE 'select tenant_guard.' || 'acquire_claim($1)' INTO r USING p; RETURN r; END;";
+
+  it.each<[string, Record<string, unknown>, string]>([
+    ["is SECURITY DEFINER", { definer: true }, "WRAPPER_DEFINER"],
+    ["has no fixed search path", { search_path: null }, "WRAPPER_SEARCH_PATH"],
+    [
+      "lets PUBLIC execute it",
+      { public_execute: true },
+      "WRAPPER_PUBLIC_EXECUTE",
+    ],
+  ])(
+    "(b) fails a function whose call into a command schema no parser reads, when it %s",
+    (_name, over, code) => {
+      expect(
+        codes(judge([wrapper("public.dynamic(uuid)", DYNAMIC, over)])),
+      ).toEqual([`${code} public.dynamic(uuid)`]);
+    },
+  );
+
+  it("holds a definer that names a command schema without calling into it to the wrapper rules", () => {
+    expect(
+      codes(
+        judge([
+          wrapper("public.reads()", "SELECT kind FROM platform.environment;", {
+            definer: true,
+            search_path: null,
+          }),
+        ]),
+      ),
+    ).toEqual([
+      "WRAPPER_DEFINER public.reads()",
+      "WRAPPER_SEARCH_PATH public.reads()",
+    ]);
+  });
+
+  it("(c) reads a call that has a comment between the schema and its dot", () => {
+    expect(
+      codes(
+        judge([
+          wrapper(
+            "public.comment_dot(uuid)",
+            "SELECT tenant_guard/**/.acquire_claim(p);",
+            { definer: true, authenticated: true },
+          ),
+        ]),
+      ),
+    ).toEqual([
+      "WRAPPER_DEFINER public.comment_dot(uuid)",
+      "WRAPPER_GRANTS_WORKER public.comment_dot(uuid)",
+    ]);
+  });
+
+  it("passes a definer that names a command schema only in a comment", () => {
+    expect(
+      judge([
+        wrapper(
+          "public.comment_only()",
+          "-- tenant_guard.acquire_claim(p) is not called here\n/* nor platform.health() */ SELECT 1;",
+          { definer: true, authenticated: true },
+        ),
+      ]).failures,
+    ).toEqual([]);
+  });
+
+  const humanWith = (body: string) =>
+    evaluate([], listed(), [], [human("tenant_guard.cmd(uuid)", { body })]);
+
+  it.each<[string, string]>([
+    [
+      '(e) a quoted "end" that hides the outer EXCEPTION section',
+      'DECLARE "end" int := 0; BEGIN PERFORM tenant_guard.begin_human_command(p); "end" := 1; RETURN 1; EXCEPTION WHEN others THEN RETURN 0; END;',
+    ],
+    [
+      '(e) a quoted "case" that hides it',
+      'DECLARE "case" int := 0; BEGIN PERFORM tenant_guard.begin_human_command(p); "case" := 1; RETURN 1; EXCEPTION WHEN others THEN RETURN 0; END;',
+    ],
+    [
+      "a quoted identifier that holds a BEGIN and a fake preamble (the old recorded limit 1)",
+      'DECLARE "begin perform tenant_guard.begin_human_command(p);" int; BEGIN RETURN 1; END;',
+    ],
+  ])("fails a human entry point with %s", (_name, body) => {
+    expect(codes(humanWith(body))).toEqual([
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.cmd(uuid)",
+    ]);
+  });
+
+  it('passes a human entry point whose quoted identifiers are only names: v."end", "case"', () => {
+    expect(
+      humanWith(
+        'DECLARE "case" int; BEGIN v_ctx := tenant_guard.begin_human_command(p."end"); "case" := 1; RETURN v_ctx; END;',
+      ).failures,
+    ).toEqual([]);
   });
 });
 
