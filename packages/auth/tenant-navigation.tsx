@@ -16,6 +16,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
 
 import {
@@ -220,11 +221,23 @@ export function TenantDocument({
   const enteredWithoutLoad =
     !mismatch && neverFixedScope() && loadedElsewhere(scope.addressPrefix);
   const reload = mismatch || enteredWithoutLoad;
+  // A reload that did not cure the mismatch is a fault, not a navigation:
+  // one reload, then the error, never a loop (council round 1, A12).
+  const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    if (reload) reloadDocument();
+    if (!reload) {
+      forgetReload();
+    } else if (claimReload()) {
+      reloadDocument();
+    } else {
+      setStuck(true);
+    }
   }, [reload]);
 
+  if (stuck) {
+    throw new TenantScopeMismatchError(addressPrefix, scope.addressPrefix);
+  }
   if (reload) return null;
   return (
     <DocumentScopeProvider scope={scope}>
@@ -237,6 +250,53 @@ export function TenantDocument({
       {children}
     </DocumentScopeProvider>
   );
+}
+
+/** This tab's memory of the reload `TenantDocument` already tried. */
+const RELOAD_CLAIM = "asym:tenant-document-reload";
+/** How long a reload of the same address counts as the one already tried. */
+const RELOAD_CLAIM_MS = 30_000;
+
+/**
+ * Claims this tab's one reload of the current address: `false` when a
+ * reload of it was already tried within the last half minute and no document
+ * has rendered since, which would make another one a loop. Without session
+ * storage a tab cannot remember the reload, so it does not reload (a person
+ * whose browser refuses storage cannot sign in either).
+ */
+function claimReload(): boolean {
+  const href = window.location.href;
+  const now = Date.now();
+  try {
+    const raw = window.sessionStorage.getItem(RELOAD_CLAIM);
+    const last = raw
+      ? (JSON.parse(raw) as { href?: unknown; at?: unknown })
+      : null;
+    if (
+      last &&
+      last.href === href &&
+      typeof last.at === "number" &&
+      now - last.at < RELOAD_CLAIM_MS
+    ) {
+      return false;
+    }
+    window.sessionStorage.setItem(
+      RELOAD_CLAIM,
+      JSON.stringify({ href, at: now }),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** A document rendered: a later reload of any address is a new one. */
+function forgetReload(): void {
+  try {
+    window.sessionStorage.removeItem(RELOAD_CLAIM);
+  } catch {
+    // Nothing was remembered.
+  }
 }
 
 /**
@@ -252,7 +312,7 @@ function neverFixedScope(): boolean {
  * Whether the address prefix is the one the document was loaded at: always
  * on the server, which renders the requested address; in the browser, from
  * the navigation timing entry. Where the browser cannot say, it answers no,
- * so the guard reloads rather than throws.
+ * so the guard reloads, once, rather than throws (A12).
  */
 function isAtLoadedAddress(addressPrefix: string | null): boolean {
   if (typeof window === "undefined") return true;

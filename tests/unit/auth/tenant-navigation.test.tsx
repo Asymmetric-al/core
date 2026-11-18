@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, render, screen } from "@testing-library/react";
+import { Component, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -92,10 +93,107 @@ beforeEach(() => {
   nav.prefetch.mockReset();
   reloadDocument.mockReset();
   loadDocument.mockReset();
+  // One tab's memory of the reload it already tried (A12).
+  window.sessionStorage.clear();
 });
 
 afterEach(() => {
   cleanup();
+});
+
+/** Renders `children`, or the message of the error they throw. */
+class Boundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    return this.state.error ? (
+      <p role="alert">{this.state.error.name}</p>
+    ) : (
+      this.props.children
+    );
+  }
+}
+
+// Council round 1, A12: where the browser cannot say which address the
+// document was loaded at, a mismatch reloads; a server fault that the reload
+// does not cure used to reload for ever. It reloads once, then shows the
+// error.
+describe("TenantDocument: one reload, then the error", () => {
+  function noNavigationEntry() {
+    vi.spyOn(performance, "getEntriesByType").mockImplementation(() => []);
+  }
+
+  it("reloads once, and shows the error when the new document has the same mismatch", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    noNavigationEntry();
+    nav.pathname = `/${TB}/contributions`;
+
+    const first = await load();
+    render(
+      <Boundary>
+        <first.TenantDocument scope={scopeA}>
+          <p>page</p>
+        </first.TenantDocument>
+      </Boundary>,
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("page")).toBeNull();
+    cleanup();
+
+    // The reloaded document: fresh modules, the same tab, the same fault.
+    const second = await load();
+    render(
+      <Boundary>
+        <second.TenantDocument scope={scopeA}>
+          <p>page</p>
+        </second.TenantDocument>
+      </Boundary>,
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("alert").textContent).toBe(
+      "TenantScopeMismatchError",
+    );
+    errors.mockRestore();
+  });
+
+  it("forgets the reload once a document renders, so a later crossing reloads again", async () => {
+    noNavigationEntry();
+    nav.pathname = `/${TB}/contributions`;
+    const first = await load();
+    render(
+      <first.TenantDocument scope={scopeA}>
+        <p>page</p>
+      </first.TenantDocument>,
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    cleanup();
+
+    // The reload cured it: the new document renders its page.
+    nav.pathname = `/${TA}~finance/contributions`;
+    const second = await load();
+    render(
+      <second.TenantDocument scope={scopeA}>
+        <p>page</p>
+      </second.TenantDocument>,
+    );
+    expect(screen.getByText("page")).toBeTruthy();
+    cleanup();
+
+    // Later the same address needs a reload again: it gets one.
+    nav.pathname = `/${TB}/contributions`;
+    const third = await load();
+    render(
+      <third.TenantDocument scope={scopeA}>
+        <p>page</p>
+      </third.TenantDocument>,
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("TenantDocument: the guard", () => {
