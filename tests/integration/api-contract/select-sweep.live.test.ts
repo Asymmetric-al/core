@@ -10,30 +10,17 @@ import path from "node:path";
 
 import { expect, it } from "vitest";
 
-import { KNOWN_SELECT_DEFECTS, type KnownSelectDefect } from "./known-defects";
+import { KNOWN_SELECT_DEFECTS } from "./known-defects";
 import { describeLive, serviceClient } from "./live-stack";
+import {
+  compactSelect as compact,
+  triageFailures,
+  type SelectFailure as Failure,
+} from "./select-failures";
 import { inventorySelects, type SelectSite } from "./select-inventory";
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const ROOTS = ["packages/api/src"] as const;
-
-type Failure = {
-  sites: SelectSite[];
-  code: string;
-  message: string;
-  details: string;
-};
-
-const compact = (select: string) => select.replace(/\s+/g, " ").trim();
-
-const knownDefectOf = (failure: Failure): KnownSelectDefect | undefined =>
-  KNOWN_SELECT_DEFECTS.find(
-    (known) =>
-      known.code === failure.code &&
-      failure.sites.some(
-        (site) => site.file === known.file && site.table === known.table,
-      ),
-  );
 
 export function formatFailures(failures: readonly Failure[]): string {
   const lines = [
@@ -104,20 +91,31 @@ describeLive("packages/api selects against the migrated schema", (stack) => {
         `${b.sites[0]!.file}:${b.sites[0]!.line}`,
       ),
     );
-    const unexpected = failures.filter((failure) => !knownDefectOf(failure));
-    const known = failures.filter((failure) => knownDefectOf(failure));
+    const { unexpected, known, stale, ambiguous } = triageFailures(
+      failures,
+      KNOWN_SELECT_DEFECTS,
+    );
     if (known.length > 0)
       console.info(
-        `Known product defects, reported and not yet fixed (known-defects.ts):\n${formatFailures(known)}`,
+        `Known product defects, reported and not yet fixed (known-defects.ts):\n${formatFailures(known.map((k) => k.failure))}`,
       );
     expect(unexpected, formatFailures(unexpected)).toEqual([]);
-    const stale = KNOWN_SELECT_DEFECTS.filter(
-      (entry) => !known.some((failure) => knownDefectOf(failure) === entry),
-    );
+    expect(
+      ambiguous.map(({ entry, failures: matched }) => ({
+        entry: `${entry.file} (${entry.table}, ${entry.code}, "${entry.match}")`,
+        selects: matched.map((f) => `${f.sites[0]!.line}`),
+      })),
+      `These known-defects entries match more than one failing select, so they could hide a new one; make "match" specific to the listed select:\n${ambiguous
+        .map(({ failures: matched }) => formatFailures(matched))
+        .join("\n")}`,
+    ).toEqual([]);
     expect(
       stale,
       `These known defects no longer reproduce; delete their entries from tests/integration/api-contract/known-defects.ts:\n${stale
-        .map((entry) => `- ${entry.file} (${entry.table}, ${entry.code})`)
+        .map(
+          (entry) =>
+            `- ${entry.file} (${entry.table}, ${entry.code}, "${entry.match}")`,
+        )
         .join("\n")}`,
     ).toEqual([]);
   });
