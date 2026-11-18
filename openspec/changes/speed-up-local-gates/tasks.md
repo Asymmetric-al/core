@@ -109,7 +109,9 @@
 - [x] 8.5 Protect `.codex/config.toml` in the factory scope validator.
 - [x] 8.6 Keep the temp-repository and routing tests free of user git
       configuration, and derive the CI-coverage test's jobs from `ci-gate`.
-- [ ] 8.7 Run `bun run ci:preflight -- --fast` once on this Windows host.
+- [x] 8.7 Run `bun run ci:preflight -- --fast` on this Windows host: the
+      first run stopped on a stale review proof (fixed by rebinding it after
+      re-review); the second passed all 15 stages in 426 s.
 
 ## Workflow follow-up
 
