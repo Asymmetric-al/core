@@ -16,8 +16,15 @@ explicitly target acceptance files SHALL still run them.
 #### Scenario: A pull request runs the unit and acceptance jobs
 
 - **WHEN** CI runs the unit-test job and the acceptance job for one commit
-- **THEN** each acceptance test file runs in the acceptance job only
-- **AND** an acceptance failure turns exactly one job red
+- **THEN** each acceptance test file runs in the acceptance job and not again
+  in the unit-test job
+- **AND** an acceptance failure does not turn the unit-test job red
+
+#### Scenario: Real-database acceptance files
+
+- **WHEN** CI Integration's `migrate` job runs against its migrated database
+- **THEN** the real-database acceptance files still run there as well, as
+  they did before this change
 
 #### Scenario: Someone runs an acceptance file through the unit runner
 

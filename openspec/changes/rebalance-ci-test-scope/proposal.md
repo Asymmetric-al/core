@@ -109,7 +109,11 @@ assigned by the program's gap check (issue #2711).
   non-required job on develop pull requests. The capability is introduced by
   the active change `reduce-development-builds` and is not yet in
   `openspec/specs`, so the delta is an ADDED requirement that names the
-  scenario it qualifies (see `design.md`).
+  scenario it qualifies (see `design.md`). It explicitly supersedes one
+  clause of `reduce-development-builds` ("Instant-navigation compilation runs
+  only for production or explicit QA/manual integration checks") for that one
+  case; the rest of that change stays binding. Archive
+  `reduce-development-builds` first.
 
 ## Impact
 

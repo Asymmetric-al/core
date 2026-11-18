@@ -100,6 +100,10 @@
 - [ ] 9.2 Add an acceptance stage to the local preflight (pre-push
       workstream, `scripts/verify/ci-preflight.mjs`), and update its comment
       that `verify:shadcn-config` runs only locally.
+- [ ] 9.3 Add a one-line pointer to this change's supersession (`design.md`
+      §7) at the top of `reduce-development-builds/design.md`, as
+      `complete-repository-modernization` did for its own (that change's
+      owner), and archive `reduce-development-builds` first.
 
 ## 10. Review fixes (review round 6, sections c1 and c2)
 
@@ -127,3 +131,7 @@
 - [x] 10.8 Correct the two documents that still describe the serial
       integration chain (`docs/ai/repo-groundtruth.md`, the `docs/ci.md`
       `test-e2e` heading).
+- [x] 10.9 Say the acceptance files run in the acceptance job and not again in
+      the unit-test job (real-database files also run in `migrate`); record
+      the explicit supersession of one `reduce-development-builds` clause and
+      the archive order.

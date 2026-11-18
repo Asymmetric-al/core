@@ -304,6 +304,35 @@ build a MODIFIED delta against it. The exception is an ADDED requirement in
 that capability that names the scenario it qualifies; when both changes are
 archived, the requirement joins the capability next to the rule it qualifies.
 
+**Explicit supersession of one `reduce-development-builds` clause.** That
+change's `design.md` says "Instant-navigation compilation runs only for
+production or explicit QA/manual integration checks", and its task 1.4 says
+"restrict instant-navigation builds to checkpoints". On the owner's
+2026-11-18 "yes" (see `proposal.md`), this change supersedes exactly that
+clause for one case: a same-repository pull request into `develop` whose
+changes can affect the `instant()` guards gets one donor production build, in
+the non-required `instant-nav` job. Everything else in
+`reduce-development-builds` stays binding: develop pushes compile nothing,
+routine develop pull requests compile only dependency and build inputs in the
+`build` job, `ci-gate` accepts a skipped build only after a successful
+no-build plan, and the required migration and smoke jobs keep running. This
+follows the form `complete-repository-modernization` used for its own
+supersession of a `reduce-development-builds` clause, and
+`docs/ai/document-authority.md`'s rule that an intent conflict follows the
+explicit supersession, not file age.
+
+That precedent also added a one-line pointer at the top of
+`reduce-development-builds/design.md`. This branch does not: the shared
+program rules fence every workstream to its own files (another active
+change's folder is not in this one), and `docs/ai/rules/openspec.md` asks each
+change to keep its own proposal, deltas, design and tasks aligned and to read
+every overlapping active change, which this section does. The pointer is
+listed for that change's owner (review round 6, c2.4). Archive order:
+`reduce-development-builds` first, because it introduces the capability and
+the requirement this one qualifies; archived the other way round,
+`openspec/specs/development-build-policy` would briefly hold only the
+exception.
+
 ### 8. Next.js dev-server lock (gap check row R2)
 
 Two Core scripts delete Next's dev-server lock: `devServerCommand` in
