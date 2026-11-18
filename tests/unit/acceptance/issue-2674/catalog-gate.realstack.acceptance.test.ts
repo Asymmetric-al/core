@@ -262,6 +262,48 @@ const CASES: [string, string, string[], unknown?][] = [
      grant select (id) on public.acc2674_cols to anon;`,
     ["GRANT_ON_VIEW acc2674_view", "GRANT_WITHOUT_POLICY acc2674_cols"],
   ],
+  // Council round 3, lens 1 I2: three defeats of the scanner that are cheap
+  // to close. Each passes the gate of round 2.
+  [
+    "(b) a definer that hands the workflow claim to signed-in users through dynamic SQL no call parses",
+    `create function public.acc2674_dynamic(p_tenant_id uuid) returns jsonb language plpgsql security definer set search_path = ''
+       as $$ declare r jsonb; begin execute 'select tenant_guard.' || 'acquire_workflow_work_claim($1, ''x'', ''y'', ''z'', 60)' into r using p_tenant_id; return r; end $$;
+     ${REVOKE("public.acc2674_dynamic(uuid)")} grant execute on function public.acc2674_dynamic(uuid) to authenticated;`,
+    ["WRAPPER_DEFINER public.acc2674_dynamic(p_tenant_id uuid)"],
+  ],
+  [
+    "(c) a definer whose call has a comment between the schema and its dot",
+    `create function public.acc2674_comment_dot(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+       as $$ select tenant_guard/**/.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;
+     ${REVOKE("public.acc2674_comment_dot(uuid)")} grant execute on function public.acc2674_comment_dot(uuid) to authenticated;`,
+    [
+      "WRAPPER_DEFINER public.acc2674_comment_dot(p_tenant_id uuid)",
+      "WRAPPER_GRANTS_WORKER public.acc2674_comment_dot(p_tenant_id uuid)",
+    ],
+  ],
+  [
+    '(e) a human entry point whose outer EXCEPTION section a quoted "end" hides',
+    `${HUMAN_BLOCK(
+      "acc2674_quoted_end",
+      `declare "end" int := 0; begin ${PREAMBLE} "end" := 1; return '{}'::jsonb; exception when others then return '{}'::jsonb; end`,
+    )} grant execute on function tenant_guard.acc2674_quoted_end(uuid) to authenticated;`,
+    [
+      "COMMAND_HUMAN_NO_PREAMBLE tenant_guard.acc2674_quoted_end(p_tenant_id uuid)",
+    ],
+  ],
+  // A function that names a command schema only in a comment is not a
+  // wrapper: the pre-filter's comments are ignored.
+  [
+    "a definer that names a command function only in its comment, beside one (c) above",
+    `create function public.acc2674_comment_only() returns int language plpgsql security definer set search_path = ''
+       as $$ begin -- tenant_guard.acquire_workflow_work_claim(...) is not called here
+       return 1; end $$;
+     ${REVOKE("public.acc2674_comment_only()")}
+     create function public.acc2674_comment_dot(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+       as $$ select tenant_guard/**/.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;
+     ${REVOKE("public.acc2674_comment_dot(uuid)")}`,
+    ["WRAPPER_DEFINER public.acc2674_comment_dot(p_tenant_id uuid)"],
+  ],
   // AL-2674 A9 (plan 15.2): the guard holds nothing on auth, so nothing in a
   // command schema may name it.
   [
