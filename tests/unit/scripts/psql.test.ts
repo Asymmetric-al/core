@@ -243,6 +243,14 @@ describe("every local-database decision calls the one helper", () => {
     expect(source).not.toMatch(/127\\\.|BASH_REMATCH/);
   });
 
+  it("scripts/seed-demo.sh starts psql only through the shared runner", () => {
+    const source = readFileSync("scripts/seed-demo.sh", "utf8");
+    expect(source).toMatch(
+      /node "[^"]*lib\/local-database\.mjs" psql SUPABASE_DB_URL /,
+    );
+    expect(source).not.toMatch(/^\s*psql\s/m);
+  });
+
   it("the helper is the routing rule's own function", async () => {
     const shared = await import("../../../packages/env/src/database-url.mjs");
     expect(isLoopbackDatabaseUrl).toBe(shared.isLoopbackDatabaseUrl);

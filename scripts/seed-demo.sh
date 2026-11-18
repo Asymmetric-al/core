@@ -51,6 +51,13 @@ require_loopback_database_url() {
   fi
 }
 
+# Runs psql on SUPABASE_DB_URL through the repository's one psql runner
+# (spawnPsql, scripts/lib/psql.mjs): the URL is the whole target, every
+# ambient PG* setting is dropped, and the password travels in PGPASSWORD.
+local_psql() {
+  node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"
+}
+
 run_verify() {
   require_cmd node
   require_cmd psql
@@ -58,7 +65,7 @@ run_verify() {
   require_loopback_database_url
 
   echo "Row counts:"
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
+  local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT *
     FROM (
       VALUES
@@ -92,7 +99,7 @@ run_verify() {
 
   echo
   echo "Single-profile check:"
-  psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -P pager=off -c "
+  local_psql -v ON_ERROR_STOP=1 -P pager=off -c "
     SELECT COUNT(*)::bigint AS profile_rows,
            COUNT(*) FILTER (WHERE id = '11111111-1111-1111-1111-111111111111')::bigint AS demo_profile_rows
     FROM public.profiles;

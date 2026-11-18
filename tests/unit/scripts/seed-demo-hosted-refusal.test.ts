@@ -57,7 +57,9 @@ function runSeed(mode: string, env: Record<string, string> = {}) {
   mkdirSync(bin);
   // One log line per call; newlines inside arguments (psql -c SQL) are flattened.
   const stub =
-    '#!/usr/bin/env bash\nargs="$*"\nprintf \'%s %s\\n\' "$(basename "$0")" "${args//$\'\\n\'/ }" >> "$WP0_STUB_LOG"\n';
+    '#!/usr/bin/env bash\nargs="$*"\nprintf \'%s %s\\n\' "$(basename "$0")" "${args//$\'\\n\'/ }" >> "$WP0_STUB_LOG"\n' +
+    // PR #2714 review: each call's PG* environment, one line per call.
+    "printf '%s\\n' \"$(env | grep '^PG' | sort | tr '\\n' ' ')\" >> \"$WP0_STUB_LOG.env\"\n";
   for (const name of ["bun", "psql"]) {
     writeFileSync(path.join(bin, name), stub);
     chmodSync(path.join(bin, name), 0o755);
@@ -84,8 +86,16 @@ function runSeed(mode: string, env: Record<string, string> = {}) {
   const calls = existsSync(log)
     ? readFileSync(log, "utf8").trim().split("\n").filter(Boolean)
     : [];
-  return { status: result.status, stderr: result.stderr, calls };
+  const environments = existsSync(`${log}.env`)
+    ? readFileSync(`${log}.env`, "utf8")
+        .split("\n")
+        .slice(0, calls.length)
+        .map((line) => line.trim())
+    : [];
+  return { status: result.status, stderr: result.stderr, calls, environments };
 }
+
+const itPosix = process.platform === "win32" ? it.skip : it;
 
 describe.runIf(bashAvailable())("seed-demo.sh hosted refusal (NA-03)", () => {
   it("refuses the hosted seed against the production-named project and runs nothing", () => {
@@ -149,18 +159,63 @@ describe.runIf(bashAvailable())("seed-demo.sh hosted refusal (NA-03)", () => {
     },
   );
 
-  it.each([
+  // PR #2714 review (record D-18): seed verify now starts psql through the
+  // repository's one psql runner (spawnPsql in scripts/lib/psql.mjs), so psql
+  // receives the URL without its password, which travels in PGPASSWORD, and
+  // not the raw URL this case used to pin; it also asserts the exact number of
+  // psql calls instead of "at least one". Node starts psql there, and node
+  // cannot start this bash stub on Windows, so the cases that reach psql run on
+  // POSIX only, as the runner's own suites (psql.test.ts and
+  // supabase-migrations.test.ts) do. Every refusal above still runs everywhere.
+  itPosix.each([
     "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
     "postgresql://postgres:postgres@localhost:54322/postgres",
     "postgresql://postgres:postgres@[::1]:54322/postgres",
   ])("still verifies a loopback database URL %s", (url) => {
     const run = runSeed("verify", { SUPABASE_DB_URL: url });
-    expect(run.status).toBe(0);
-    expect(run.calls.length).toBeGreaterThan(0);
-    expect(run.calls.every((call) => call.startsWith(`psql ${url} `))).toBe(
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.calls).toHaveLength(2);
+    const target = url.replace("postgres:postgres@", "postgres@");
+    expect(run.calls.every((call) => call.startsWith(`psql ${target} `))).toBe(
       true,
     );
+    expect(run.environments).toEqual([
+      "PGPASSWORD=postgres",
+      "PGPASSWORD=postgres",
+    ]);
   });
+
+  // PR #2714 review: an ambient PGHOSTADDR overrides the URL's host, and
+  // PGHOST, PGPORT, PGSERVICE and PGOPTIONS fill in a target or a role, so
+  // none may reach psql; the password stays out of its arguments.
+  itPosix(
+    "hands psql no ambient PG* setting and keeps the password out of its arguments",
+    () => {
+      const run = runSeed("verify", {
+        SUPABASE_DB_URL:
+          "postgresql://postgres:s3cret-seed@127.0.0.1:54322/postgres",
+        PGHOSTADDR: "203.0.113.9",
+        PGHOST: "db.example.supabase.co",
+        PGPORT: "6543",
+        PGSERVICE: "hosted",
+        PGOPTIONS: "-c role=postgres",
+      });
+      expect(run.status, run.stderr).toBe(0);
+      expect(run.environments).toEqual([
+        "PGPASSWORD=s3cret-seed",
+        "PGPASSWORD=s3cret-seed",
+      ]);
+      expect(run.calls).toHaveLength(2);
+      for (const call of run.calls) {
+        expect(
+          call.startsWith(
+            "psql postgresql://postgres@127.0.0.1:54322/postgres ",
+          ),
+        ).toBe(true);
+        expect(call).not.toContain("s3cret-seed");
+      }
+    },
+  );
 
   it("still seeds the local stack through the repository runner", () => {
     const run = runSeed("local");
