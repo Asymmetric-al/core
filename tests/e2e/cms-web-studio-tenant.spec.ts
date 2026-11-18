@@ -156,13 +156,26 @@ async function acknowledgeStaleNotice(page: Page) {
   return seen;
 }
 
-/** Whether the person was told: the notice is open, or was seen and acknowledged. */
-async function toldToReload(page: Page, seen: string[]) {
-  if (seen.length > 0) return seen[0]!.includes(STALE_MESSAGE);
-  const notice = staleNotice(page);
-  return (
-    (await notice.isVisible()) &&
-    ((await notice.textContent()) ?? "").includes(STALE_MESSAGE)
+/**
+ * Keeps the stale tab's own calls from reaching the server, so the only
+ * refused call is the action under test and the notice can come only from it
+ * (council r2 CR5): its reads are held unanswered (a tab that regains focus
+ * reads again, a list or a relationship field, and in the app that read is
+ * refused first), and its autosaves fail at once (a held autosave would keep
+ * the Save button disabled).
+ */
+async function holdOwnCalls(page: Page) {
+  await page.route(
+    (url) => url.pathname.startsWith("/web-studio/api/"),
+    async (route) => {
+      const request = route.request();
+      if (new URL(request.url()).searchParams.get("autosave") === "true") {
+        await route.abort();
+        return;
+      }
+      if (request.method() === "GET") return; // never answered
+      await route.continue();
+    },
   );
 }
 
@@ -348,7 +361,11 @@ test("@cms a Web Studio REST call with no session gets JSON 401 that names the r
     expect(response.headers()["content-type"]).toContain("application/json");
     expect(response.headers()["x-asym-web-studio-refusal"]).toBe("no_session");
     const message = "Your session has ended. Sign in again to continue.";
-    expect(await response.json()).toEqual({ message, errors: [{ message }] });
+    expect(await response.json()).toEqual({
+      message,
+      errors: [{ message }],
+      docs: [],
+    });
   }
 });
 
@@ -450,13 +467,14 @@ test("@cms Save in a page opened for one organization, after another tab switche
     const title = page.getByRole("textbox", { name: /^Title/ }).first();
     await expect(title).toHaveValue(`Form ${stamp}`);
     // Tab two switches Web Studio to the second organization.
+    await holdOwnCalls(page);
     const other = await page.context().newPage();
     await switchOrganization(other, base, SECOND);
 
-    // The editor's own Save is refused, named as a refusal, and the person
-    // is told, in one notice (council C2).
-    const seen = await acknowledgeStaleNotice(page);
+    // The editor's own Save is refused, named as a refusal, and it is the
+    // Save that opens the one notice (council C2, r2 CR5).
     await title.fill(`Retargeted ${stamp}`);
+    await expect(staleNotice(page)).toHaveCount(0);
     const saved = page.waitForResponse(
       (r) =>
         new URL(r.url()).pathname === `/web-studio/api/pages/${id}` &&
@@ -467,8 +485,9 @@ test("@cms Save in a page opened for one organization, after another tab switche
     const save = await saved;
     expect(save.status()).toBe(409);
     expect(save.headers()["x-asym-web-studio-refusal"]).toBe("scope_mismatch");
-    await expect.poll(() => toldToReload(page, seen)).toBe(true);
-    expect(await page.getByRole("alertdialog").count()).toBeLessThanOrEqual(1);
+    await expect(staleNotice(page)).toBeVisible();
+    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
+    await expect(page.getByRole("alertdialog")).toHaveCount(1);
 
     // A create from the same document is refused the same way.
     const created = await page.evaluate(async (s) => {
@@ -496,15 +515,10 @@ test("@cms Save in a page opened for one organization, after another tab switche
     await switchOrganization(other, base, SECOND);
     await other.close();
 
-    // Reload, from the notice while it is open, opens the organization the
-    // cookie now selects.
-    await page.removeLocatorHandler(staleNotice(page));
+    // Reload, from the notice, opens the organization the cookie now selects.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
     await markDocument(page);
-    if (await staleNotice(page).isVisible()) {
-      await staleNotice(page).getByRole("button", { name: "Reload" }).click();
-    } else {
-      await page.reload();
-    }
+    await staleNotice(page).getByRole("button", { name: "Reload" }).click();
     await expect.poll(() => sameDocument(page)).toBe(false);
     await expect
       .poll(async () => (await webStudioScope(page)).tenant)
@@ -528,9 +542,9 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
     );
     const row = page.getByRole("checkbox", { name: `Select Bulk ${stamp}` });
     await expect(row).toBeVisible();
+    await holdOwnCalls(page);
     const other = await page.context().newPage();
     await switchOrganization(other, base, SECOND);
-    const seen = await acknowledgeStaleNotice(page);
 
     await row.check();
     await page
@@ -544,13 +558,17 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
         new URL(r.url()).pathname === "/web-studio/api/pages" &&
         ["DELETE", "PATCH"].includes(r.request().method()),
     );
+    await expect(staleNotice(page)).toHaveCount(0);
     await page.getByRole("button", { name: "Confirm", exact: true }).click();
     const response = await deleted;
     expect(response.status()).toBe(409);
     expect(response.headers()["x-asym-web-studio-refusal"]).toBe(
       "scope_mismatch",
     );
-    await expect.poll(() => toldToReload(page, seen)).toBe(true);
+    // The bulk delete itself opens the notice (council r2 CR5).
+    await expect(staleNotice(page)).toBeVisible();
+    await expect(staleNotice(page)).toContainText(STALE_MESSAGE);
+    await page.unrouteAll({ behavior: "ignoreErrors" });
 
     await switchOrganization(other, base, DEMO);
     expect(await restTitles(other, base, "pages", stamp)).toEqual([

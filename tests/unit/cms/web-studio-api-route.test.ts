@@ -137,9 +137,10 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
     expect(refusalFor("no_session")).toEqual({
       status: 401,
       // A top-level message for any reader, Payload's errors for its own
-      // screens, and a header the Web Studio document recognizes the
-      // refusal by (council C2).
-      response: { message, errors: [{ message }] },
+      // screens, an empty `docs` so Payload's bulk actions show the message
+      // rather than "Unknown error" (council r2 CR5), and a header the Web
+      // Studio document recognizes the refusal by (council C2).
+      response: { message, errors: [{ message }], docs: [] },
       header: "no_session",
     });
   });
@@ -150,6 +151,7 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
       response: {
         message: expect.stringMatching(/Reload the page/),
         errors: [{ message: expect.stringMatching(/Reload the page/) }],
+        docs: [],
       },
       header: "scope_mismatch",
     });

@@ -2,6 +2,11 @@
 
 import { reloadDocument } from "@asym/database/document-reload";
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -11,10 +16,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
+import { Button } from "@asym/ui/components/shadcn/button";
 
 import {
   dismissWebStudioRefusal,
   useWebStudioRefusalNotice,
+  useWebStudioStaleRefusal,
 } from "./web-studio-refusal-notice";
 import { WEB_STUDIO_REFUSAL_MESSAGES } from "../../../cms/auth/web-studio-refusal";
 
@@ -36,6 +43,8 @@ const TITLES: Record<WebStudioRefusal, string> = {
  */
 export function WebStudioRefusalDialog() {
   const refusal = useWebStudioRefusalNotice();
+  const stale = useWebStudioStaleRefusal();
+  if (stale !== null) return <WebStudioStaleNotice refusal={stale} />;
   if (refusal === null) return null;
 
   return (
@@ -60,5 +69,31 @@ export function WebStudioRefusalDialog() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+/**
+ * The one notice that stays once the person chose "Not now" (council r2
+ * CR5): the page is still stale and nothing it sends is saved, so it says so
+ * until the person reloads, instead of a toast for every refused autosave.
+ */
+function WebStudioStaleNotice({ refusal }: { refusal: WebStudioRefusal }) {
+  return (
+    <div className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-lg">
+      <Alert role="status" variant="destructive">
+        <AlertTitle>{TITLES[refusal]}</AlertTitle>
+        <AlertDescription>
+          {WEB_STUDIO_REFUSAL_MESSAGES[refusal]}
+          <Button
+            className="mt-2"
+            size="sm"
+            variant="outline"
+            onClick={() => reloadDocument()}
+          >
+            Reload
+          </Button>
+        </AlertDescription>
+      </Alert>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
@@ -116,4 +117,36 @@ it("opens it only once in a document", async () => {
   await save();
   await waitFor(() => expect(underlyingFetch).toHaveBeenCalled());
   expect(screen.queryByRole("alertdialog")).toBeNull();
+});
+
+// Council round 2, CR5: once the person has closed the dialog, one notice
+// stays, and refused autosaves raise no toast on every pause.
+
+it("keeps one notice with a Reload action once the dialog is closed", () => {
+  openDocument();
+  const notice = screen.getByRole("status");
+  expect(notice.textContent).toContain(MESSAGE);
+  reload.mockClear();
+  fireEvent.click(within(notice).getByRole("button", { name: "Reload" }));
+  expect(reload).toHaveBeenCalledTimes(1);
+});
+
+it("hands Payload a refused autosave without a message, so it raises no toast per pause; an explicit save keeps it", async () => {
+  openDocument();
+  let autosave: Response | undefined;
+  await act(async () => {
+    autosave = await window.fetch(
+      "/web-studio/api/pages/7?autosave=true&depth=0&draft=true",
+      { method: "PATCH", body: "{}" },
+    );
+  });
+  expect(autosave!.status).toBe(409);
+  expect(autosave!.headers.get("x-asym-web-studio-refusal")).toBe(
+    "scope_mismatch",
+  );
+  await expect(autosave!.json()).resolves.toEqual({ errors: [] });
+
+  const explicit = await save();
+  await expect(explicit.json()).resolves.toMatchObject({ message: MESSAGE });
+  expect(screen.getAllByRole("status")).toHaveLength(1);
 });

@@ -13,18 +13,25 @@ import type { WebStudioRefusal } from "../../../cms/auth/web-studio-refusal";
  */
 let asked = false;
 let openRefusal: WebStudioRefusal | null = null;
+/** The refusal the document met first; it stays after the dialog closes. */
+let staleRefusal: WebStudioRefusal | null = null;
 const listeners = new Set<() => void>();
 
 function publish() {
   for (const listener of listeners) listener();
 }
 
-/** Opens the notice for the refusal a response's header names, if none was asked before. */
-export function noticeWebStudioRefusal(header: string | null): void {
-  if (asked || !isWebStudioRefusal(header)) return;
+/**
+ * Opens the notice for the refusal a response's header names, if none was
+ * asked before. `true` when this refusal opened it.
+ */
+export function noticeWebStudioRefusal(header: string | null): boolean {
+  if (asked || !isWebStudioRefusal(header)) return false;
   asked = true;
   openRefusal = header;
+  staleRefusal = header;
   publish();
+  return true;
 }
 
 /** Closes the notice for good in this document. */
@@ -46,6 +53,18 @@ export function useWebStudioRefusalNotice(): WebStudioRefusal | null {
   return useSyncExternalStore(
     subscribe,
     () => openRefusal,
+    () => null,
+  );
+}
+
+/**
+ * The refusal the document met, once its dialog is closed: the page stays
+ * stale, and one notice says so until it is reloaded (council r2 CR5).
+ */
+export function useWebStudioStaleRefusal(): WebStudioRefusal | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => (openRefusal === null ? staleRefusal : null),
     () => null,
   );
 }

@@ -84,6 +84,7 @@ export const webStudioRefusalAfterError: AfterErrorHook = ({ error, req }) => {
   const message = WEB_STUDIO_REFUSAL_MESSAGES[refusal];
   return {
     status: STATUS[refusal],
-    response: { message, errors: [{ message }] },
+    // `docs` lets Payload's bulk actions show the message (council r2 CR5).
+    response: { message, errors: [{ message }], docs: [] },
   };
 };

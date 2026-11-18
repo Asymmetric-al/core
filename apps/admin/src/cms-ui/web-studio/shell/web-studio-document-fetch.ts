@@ -21,7 +21,8 @@ import { WEB_STUDIO_REFUSAL_HEADER } from "../../../cms/auth/web-studio-refusal"
  *
  * A response the server marks as a Web Studio refusal is reported to the
  * document, which asks the person to reload once (council C2); the response
- * itself reaches Payload unchanged.
+ * itself reaches Payload unchanged, except a later refused autosave, which
+ * reaches it without a message (council r2 CR5).
  */
 
 const WRAPPED = Symbol.for("asym.webStudio.documentFetch");
@@ -32,6 +33,18 @@ function requestUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.href;
   return input.url;
+}
+
+/** The same refusal, with an empty error list Payload's forms show nothing for. */
+function withoutMessage(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  headers.set("content-type", "application/json");
+  return new Response(JSON.stringify({ errors: [] }), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 export function installWebStudioDocumentFetch(
@@ -61,7 +74,14 @@ export function installWebStudioDocumentFetch(
     headers.set(TENANT_HEADER, scope.tenantId);
     headers.set(ASSIGNMENT_HEADER, scope.assignmentId);
     return original(input, { ...init, headers }).then((response) => {
-      noticeWebStudioRefusal(response.headers.get(WEB_STUDIO_REFUSAL_HEADER));
+      const refusal = response.headers.get(WEB_STUDIO_REFUSAL_HEADER);
+      const first = noticeWebStudioRefusal(refusal);
+      // Payload toasts a refused autosave on every pause; the document's
+      // notice already says nothing is saved, so later ones reach Payload
+      // with no message (council r2 CR5). An explicit save keeps its own.
+      if (refusal && !first && url.searchParams.get("autosave") === "true") {
+        return withoutMessage(response);
+      }
       return response;
     });
   };
