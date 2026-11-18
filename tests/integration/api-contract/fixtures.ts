@@ -1,13 +1,20 @@
 /**
- * #2708: the two tenants of the live tests.
+ * #2708: the tenants of the live tests.
  *
- * Tenant A is supabase/seed.sql's demo tenant: its one user is staff, donor
- * and missionary there and owns the seeded donors, tasks and gifts.
- * Tenant B is written here per run, with random ids, mirroring that user:
- * an auth user (the profile comes from the auth trigger), staff, donor and
- * missionary memberships, a missionaries row, a donor and a task, plus the
- * rows that give tenant A something to leak in the isolation sweep: a gift,
- * a pledge, and a draft post and draft location that no ruling makes public.
+ * The seed tenant (TENANT_A) is supabase/seed.sql's demo tenant: its one user
+ * is staff, donor and missionary there and owns the seeded donors, tasks and
+ * gifts. The portal tests read it as tenant A.
+ *
+ * createTenantFixture writes a tenant per run, with random ids, mirroring that
+ * user: an auth user (the profile comes from the auth trigger), staff, donor
+ * and missionary memberships, a missionaries row, a donor and a task, plus
+ * rows another tenant must not read: a gift, a pledge, and a draft post and
+ * draft location that no ruling makes public. It also gets a fund: funds are
+ * readable only through the tenant claim, so its identity guard has a row
+ * only its own `app_metadata.tenant_id` admits. Its ids come from
+ * randomUUID(), version 4 UUIDs, which authz.current_tenant_id() accepts; it
+ * rejects the seed tenant's id (see tenant-isolation.live.test.ts).
+ *
  * Rows are written as the database owner through only the columns that exist
  * today (upsertFixture) and removed afterwards.
  */
@@ -31,10 +38,13 @@ export type TenantFixture = {
   pledgeId: string;
   draftPostId: string;
   draftLocationId: string;
+  fundId: string;
 };
 
+/** `label` names the fixture's rows ("Tenant B", tenant-b.test). */
 export async function createTenantFixture(
   db: pg.Client,
+  label = "B",
 ): Promise<TenantFixture> {
   const fixture: TenantFixture = {
     tenantId: randomUUID(),
@@ -46,13 +56,14 @@ export async function createTenantFixture(
     pledgeId: randomUUID(),
     draftPostId: randomUUID(),
     draftLocationId: randomUUID(),
+    fundId: randomUUID(),
   };
   const short = fixture.tenantId.slice(0, 8);
-  const email = `api-contract-${short}@tenant-b.test`;
+  const email = `api-contract-${short}@tenant-${label.toLowerCase()}.test`;
 
   await upsertFixture(db, "public.tenants", {
     id: fixture.tenantId,
-    name: `API contract tenant ${short}`,
+    name: `API contract tenant ${label} ${short}`,
     slug: `api-contract-${short}`,
   });
   await upsertFixture(db, "auth.users", {
@@ -69,8 +80,8 @@ export async function createTenantFixture(
     },
     raw_user_meta_data: {
       first_name: "Tenant",
-      last_name: "B",
-      full_name: "Tenant B",
+      last_name: label,
+      full_name: `Tenant ${label}`,
     },
   });
   await upsertFixture(db, "public.profiles", {
@@ -78,9 +89,9 @@ export async function createTenantFixture(
     user_id: fixture.userId,
     email,
     first_name: "Tenant",
-    last_name: "B",
-    full_name: "Tenant B",
-    display_name: "Tenant B",
+    last_name: label,
+    full_name: `Tenant ${label}`,
+    display_name: `Tenant ${label}`,
     role: "admin",
     tenant_id: fixture.tenantId,
   });
@@ -107,20 +118,20 @@ export async function createTenantFixture(
     tenant_id: fixture.tenantId,
     profile_id: fixture.userId,
     mission_field: "API contract field",
-    tagline: "Tenant B missionary",
+    tagline: `Tenant ${label} missionary`,
   });
   await upsertFixture(db, "public.donors", {
     id: fixture.donorId,
     tenant_id: fixture.tenantId,
     missionary_id: fixture.userId,
-    name: "Tenant B donor",
-    email: `donor-${short}@tenant-b.test`,
+    name: `Tenant ${label} donor`,
+    email: `donor-${short}@tenant-${label.toLowerCase()}.test`,
   });
   await upsertFixture(db, "public.missionary_tasks", {
     id: fixture.taskId,
     missionary_id: fixture.userId,
     donor_id: fixture.donorId,
-    title: "Tenant B task",
+    title: `Tenant ${label} task`,
   });
   await upsertFixture(db, "public.donor_pledges", {
     id: fixture.pledgeId,
@@ -146,18 +157,23 @@ export async function createTenantFixture(
     id: fixture.draftPostId,
     tenant_id: fixture.tenantId,
     missionary_id: fixture.userId,
-    title: "Tenant B draft",
-    content: "Not published: no ruling makes this readable outside tenant B.",
+    title: `Tenant ${label} draft`,
+    content: `Not published: no ruling makes this readable outside tenant ${label}.`,
     visibility: "public",
     status: "draft",
   });
   await upsertFixture(db, "public.locations", {
     id: fixture.draftLocationId,
     tenant_id: fixture.tenantId,
-    title: "Tenant B draft location",
+    title: `Tenant ${label} draft location`,
     lat: 0,
     lng: 0,
     status: "draft",
+  });
+  await upsertFixture(db, "public.funds", {
+    id: fixture.fundId,
+    tenant_id: fixture.tenantId,
+    name: `Tenant ${label} fund`,
   });
   return fixture;
 }
@@ -173,6 +189,7 @@ export async function removeTenantFixture(
     ["public.donor_pledges", "tenant_id", fixture.tenantId],
     ["public.posts", "tenant_id", fixture.tenantId],
     ["public.locations", "tenant_id", fixture.tenantId],
+    ["public.funds", "tenant_id", fixture.tenantId],
     ["public.missionary_tasks", "missionary_id", fixture.userId],
     ["public.donors", "tenant_id", fixture.tenantId],
     ["public.missionaries", "tenant_id", fixture.tenantId],

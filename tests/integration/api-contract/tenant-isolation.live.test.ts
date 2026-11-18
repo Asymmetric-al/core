@@ -1,9 +1,12 @@
 /**
  * #2708: tenant isolation through the Data API. Every table or view in the
  * exposed schemas with a `tenant_id` column is read as a signed-in user of
- * tenant A (the seed's demo user), as a signed-in user of tenant B (written
- * here), and anonymously. It asserts floors only, so the WP2 policy rewrite
- * can change who reads what inside a tenant without breaking it:
+ * tenant A and of tenant B (both written per run by createTenantFixture, each
+ * staff, donor and missionary of its tenant), and anonymously. The seed's demo
+ * tenant stays in the database as rows neither may read; its user is not a
+ * caller, because its tenant claim does not resolve (see the known-defect
+ * test below). It asserts floors only, so the WP2 policy rewrite can change
+ * who reads what inside a tenant without breaking it:
  *
  * - no signed-in caller receives a row whose tenant_id names another tenant,
  *   unless a ruling makes that row public (ruled-public-reads.ts: published
@@ -27,8 +30,11 @@
  * those defaults are closed (AL-2674's in-flight default-privilege migration).
  *
  * Vacuity guard: each signed-in caller must read its own profiles row by id
- * and some row of its own tenant outside the ruled public reads, so its token
- * reached the database as that user; a token for an unknown subject must not.
+ * (its subject reached the database) and some row of its own tenant in a table
+ * gated only by the tenant claim (its `app_metadata.tenant_id` reached the
+ * database and resolved to its tenant). Tokens for an unknown subject, for the
+ * user with another tenant's claim and for the user with no tenant claim must
+ * each fail it.
  */
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -80,6 +86,18 @@ const REQUIRED_EVIDENCE = {
   anon: ["posts", "locations"],
 } as const;
 
+/**
+ * Tables whose only SELECT policy for `authenticated` is "tenant scoped read",
+ * `tenant_id IS NOT NULL AND tenant_id = authz.current_tenant_id()`
+ * (20261025120800_close_public_reads_tenant_scope.sql), so a row of a tenant
+ * is visible only to a token whose `app_metadata.tenant_id` names it (and
+ * that authz.current_tenant_id() accepts: a version 1-5 UUID). Each fixture
+ * tenant holds a fund there. The identity guard's negative tests (another
+ * tenant's claim, no claim) fail if a policy here stops depending on the
+ * claim; then choose tables that still do.
+ */
+const CLAIM_GATED_READS = ["funds", "campaigns", "assets"] as const;
+
 /** PostgREST's cap here is 1000 rows; pages never exceed it. */
 const PAGE = 1000;
 
@@ -126,6 +144,7 @@ describeLive("tenant isolation through the Data API", (stack) => {
     readFileSync(path.join(repoRoot, "supabase/config.toml"), "utf8"),
   );
   let db: pg.Client;
+  let a: TenantFixture;
   let b: TenantFixture;
   let tables: Relation[];
   const callers: Record<"A" | "B" | "anon", Caller> = {} as Record<
@@ -135,7 +154,8 @@ describeLive("tenant isolation through the Data API", (stack) => {
 
   beforeAll(async () => {
     db = await adminDatabase(stack);
-    b = await createTenantFixture(db);
+    a = await createTenantFixture(db, "A");
+    b = await createTenantFixture(db, "B");
     tables = (
       await db.query<Relation>(
         `select c.table_schema as schema, c.table_name as table
@@ -147,10 +167,10 @@ describeLive("tenant isolation through the Data API", (stack) => {
     ).rows;
     callers.A = {
       name: "tenant A",
-      client: await userClient(stack, db, SEED_USER_A),
+      client: await userClient(stack, db, a.userId),
       role: "authenticated",
-      tenantId: TENANT_A,
-      userId: SEED_USER_A,
+      tenantId: a.tenantId,
+      userId: a.userId,
     };
     callers.B = {
       name: "tenant B",
@@ -170,7 +190,9 @@ describeLive("tenant isolation through the Data API", (stack) => {
 
   afterAll(async () => {
     if (db) {
-      const problems = b ? await removeTenantFixture(db, b) : [];
+      const problems: string[] = [];
+      for (const fixture of [a, b])
+        if (fixture) problems.push(...(await removeTenantFixture(db, fixture)));
       await db.end();
       expect(problems, "fixture cleanup").toEqual([]);
     }
@@ -392,13 +414,21 @@ describeLive("tenant isolation through the Data API", (stack) => {
     );
   });
 
+  const claimGateProblem = (tenantId: string) =>
+    `no row of tenant ${tenantId} is visible in a table gated by the tenant claim (${CLAIM_GATED_READS.join(", ")})`;
+
   /**
    * Why `client` cannot be shown to read as `userId` of `tenantId`; empty when
-   * it can. Two reads only that identity passes: the user's own profiles row
-   * by id (the profile policies admit it to the user or to staff of its
-   * tenant, never to an unresolved token), and some row of its own tenant in a
-   * table outside the ruled public reads (a published post is readable by
-   * any token, so it proves nothing).
+   * it can. Two reads only that identity passes:
+   *
+   * - the user's own profiles row by id. The profile policies key on
+   *   `auth.uid()` (or staff of its tenant), so this proves the subject and
+   *   nothing about the tenant claim;
+   * - some row of its own tenant in a CLAIM_GATED_READS table, whose only
+   *   SELECT policy for `authenticated` is `tenant_id =
+   *   authz.current_tenant_id()`. This proves the token's
+   *   `app_metadata.tenant_id` reached the database and resolved to that
+   *   tenant, as every claim-gated policy the sweep relies on needs.
    */
   async function identityProblems(
     client: SupabaseClient,
@@ -413,40 +443,104 @@ describeLive("tenant isolation through the Data API", (stack) => {
       problems.push(`its own profiles row ${userId} is not visible`);
 
     let own = 0;
-    for (const relation of tables) {
-      if (RULED_PUBLIC_READS.has(qualifiedName(relation))) continue;
-      const { count } = await api(client, relation)
+    const errors: string[] = [];
+    for (const table of CLAIM_GATED_READS) {
+      const { count, error } = await client
+        .from(table)
         .select("tenant_id", { count: "exact", head: true })
         .eq("tenant_id", tenantId);
+      if (error) errors.push(`${table}: ${describeError(error)}`);
       own += count ?? 0;
     }
     if (own === 0)
       problems.push(
-        `no row of tenant ${tenantId} outside the ruled public reads is visible`,
+        `${claimGateProblem(tenantId)}${errors.length ? ` (${errors.join("; ")})` : ""}`,
       );
     return problems;
   }
 
+  // The negative tests below use tenant A's subject, whose own token passes
+  // the guard (the per-caller test), so each failure is the changed claim's.
+
   it("a token whose subject is not the user does not pass the identity guard", async () => {
-    const claims = await claimsOfUser(db, SEED_USER_A);
+    const claims = await claimsOfUser(db, a.userId);
     const stranger = claimsClient(stack, { ...claims, sub: randomUUID() });
-    const problems = await identityProblems(stranger, SEED_USER_A, TENANT_A);
+    const problems = await identityProblems(stranger, a.userId, a.tenantId);
     console.info(
       `API contract: a token for an unknown subject with tenant A's claims fails the identity guard: ${problems.join("; ")}.`,
     );
     expect(
       problems,
       "a token for an unknown subject with tenant A's claims",
-    ).toContain(`its own profiles row ${SEED_USER_A} is not visible`);
+    ).toContain(`its own profiles row ${a.userId} is not visible`);
+  });
+
+  /** Tenant A's user's claims with `app_metadata.tenant_id` replaced or dropped. */
+  async function claimsWithTenant(tenantId: string | undefined) {
+    const claims = await claimsOfUser(db, a.userId);
+    const appMetadata = {
+      ...(claims.app_metadata as Record<string, unknown>),
+    };
+    if (tenantId === undefined) delete appMetadata.tenant_id;
+    else appMetadata.tenant_id = tenantId;
+    return { ...claims, app_metadata: appMetadata };
+  }
+
+  it("a token with the user's subject and another tenant's claim does not pass the identity guard", async () => {
+    const wrongTenant = claimsClient(stack, await claimsWithTenant(b.tenantId));
+    const problems = await identityProblems(wrongTenant, a.userId, a.tenantId);
+    console.info(
+      `API contract: a token with tenant A's subject and tenant B's tenant claim fails the identity guard: ${problems.join("; ")}.`,
+    );
+    expect(
+      problems,
+      "a token with tenant A's subject and tenant B's tenant claim",
+    ).toEqual([claimGateProblem(a.tenantId)]);
+  });
+
+  it("a token with the user's subject and no tenant claim does not pass the identity guard", async () => {
+    const noTenant = claimsClient(stack, await claimsWithTenant(undefined));
+    const problems = await identityProblems(noTenant, a.userId, a.tenantId);
+    console.info(
+      `API contract: a token with tenant A's subject and no tenant claim fails the identity guard: ${problems.join("; ")}.`,
+    );
+    expect(
+      problems,
+      "a token with tenant A's subject and no tenant claim",
+    ).toEqual([claimGateProblem(a.tenantId)]);
+  });
+
+  /**
+   * Known defect, reported and not fixed here (supabase/** belongs to the
+   * in-flight database work): the seed's demo tenant id
+   * 00000000-0000-0000-0000-000000000001 is not a version 1-5 UUID, so
+   * authz.current_tenant_id() (20260226113000_authz_memberships_foundation.sql)
+   * returns NULL for its users' claims and every policy keyed on the claim
+   * admits none of its rows to the demo user. Its token passes the subject
+   * check and fails the claim check, so the sweep cannot use it as a caller.
+   * When this test fails, the claim resolves: delete this test and consider
+   * sweeping the seed user again.
+   */
+  it("the seed tenant's claim does not resolve, so its user is not swept (known defect)", async () => {
+    const seed = await userClient(stack, db, SEED_USER_A);
+    const problems = await identityProblems(seed, SEED_USER_A, TENANT_A);
+    console.info(
+      `API contract: known defect: the seed user's token fails the identity guard (${problems.join("; ")}); authz.current_tenant_id() rejects the seed tenant id ${TENANT_A}, which is not a version 1-5 UUID.`,
+    );
+    expect(
+      problems,
+      "the seed user's token: own profile visible, claim-gated rows of the seed tenant not visible",
+    ).toEqual([claimGateProblem(TENANT_A)]);
   });
 
   for (const key of ["A", "B"] as const) {
-    it(`a user of tenant ${key} sees its own tenant, so its token reached the database`, async () => {
+    it(`a user of tenant ${key} sees its own profile and its tenant's claim-gated rows, so its token reached the database`, async () => {
       const { client, tenantId, userId } = callers[key];
-      expect(
-        await identityProblems(client, userId!, tenantId!),
-        `caller ${key}`,
-      ).toEqual([]);
+      const problems = await identityProblems(client, userId!, tenantId!);
+      console.info(
+        `API contract: tenant ${key}'s token ${problems.length === 0 ? "passes" : "fails"} the identity guard: ${problems.join("; ") || "own profiles row visible, rows of its tenant visible in a claim-gated table"}.`,
+      );
+      expect(problems, `caller ${key}`).toEqual([]);
     });
 
     it(`a user of tenant ${key} reads no row of another tenant`, async () => {
