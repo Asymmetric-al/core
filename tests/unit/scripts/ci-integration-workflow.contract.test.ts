@@ -223,6 +223,40 @@ describe("ci-integration workflow contract", () => {
     }
   });
 
+  // Council round 2 (the coordinator's note on the joined tree, point 2): the
+  // five steps AL-2675 adds are bounded by what they were measured to take,
+  // and the job keeps its limit. Measured on 2026-11-19 by replaying the job
+  // locally as CI runs it (dev servers, `CI=1`, the placeholder Supabase),
+  // at load 4 to 15. The slowest of two runs for each step: tenant address
+  // (admin) 305 s, request scope (admin) 112 s, tenant address (missionary)
+  // 65 s, request scope (missionary) 10 s, request scope (donor) 60 s. The
+  // same replay took 1.35 to 2.1 times as long as recent hosted runs for
+  // the job's existing steps (production gate 426 s here against 248 to
+  // 316 s hosted). So each limit is at least twice the slowest local run,
+  // and the five should add 5.5 to 7 minutes to a hosted job that took 8.5
+  // to 11. The whole job took 21.3 minutes here, inside its 30.
+  it("bounds the AL-2675 steps by their measured times, inside the job's limit", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    expect(testE2e).toMatch(/^ {4}timeout-minutes: 30$/m);
+    const stepBlock = (name: string) => {
+      const start = testE2e.indexOf(`      - name: ${name}\n`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = testE2e.indexOf("      - name: ", start + 1);
+      return testE2e.slice(start, next === -1 ? undefined : next);
+    };
+    for (const [step, minutes] of [
+      ["Tenant address (admin app)", 10],
+      ["Request scope (admin app)", 5],
+      ["Tenant address (missionary app)", 5],
+      ["Request scope (missionary app)", 5],
+      ["Request scope (donor app)", 5],
+    ] as const) {
+      expect(stepBlock(step), step).toMatch(
+        new RegExp(`^ {8}timeout-minutes: ${minutes}$`, "m"),
+      );
+    }
+  });
+
   it("keeps auth, production, and CMS run artifacts distinct with retry diagnostics", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     expect(testE2e).toContain(

@@ -248,10 +248,16 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // after its boneyard smoke (bun run test:e2e:request-scope:admin,
     // :missionary and :donor), pinned in
     // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
-    // workflow change was allowed for that item only.
+    // workflow change was allowed for that item only. Council round 2 (the
+    // coordinator's note on the joined tree, point 2) then bounded the five
+    // AL-2675 steps by their measured times (10 minutes for the admin
+    // tenant-address step, 5 for the other four, the job's 30 unchanged),
+    // pinned in the same contract test; the state before those limits was an
+    // intermediate one of this branch, which develop never held, so it is
+    // replaced.
     {
       ref: "AL-2675 request-scope specs in test-e2e",
-      hash: "cb735f990a7b6f42",
+      hash: "2cc963afd9cea670",
     },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {

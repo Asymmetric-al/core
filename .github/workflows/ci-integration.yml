@@ -393,7 +393,7 @@ jobs:
       # A14, record D-18): the acceptance lines' proof and D-19's first
       # condition, on the dev server started above.
       - name: Tenant address (admin app)
-        timeout-minutes: 15
+        timeout-minutes: 10
         env:
           CI: "1"
         run: bun run test:e2e:tenant-address:admin
@@ -401,7 +401,7 @@ jobs:
       # (AL-2675; council round 1 on slice B, SB1; record D-18), on the dev
       # server started above.
       - name: Request scope (admin app)
-        timeout-minutes: 15
+        timeout-minutes: 5
         env:
           CI: "1"
         run: bun run test:e2e:request-scope:admin
@@ -417,13 +417,13 @@ jobs:
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
         run: bun run test:e2e:boneyard:missionary
       - name: Tenant address (missionary app)
-        timeout-minutes: 15
+        timeout-minutes: 5
         env:
           CI: "1"
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
         run: bun run test:e2e:tenant-address:missionary
       - name: Request scope (missionary app)
-        timeout-minutes: 15
+        timeout-minutes: 5
         env:
           CI: "1"
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
@@ -436,7 +436,7 @@ jobs:
           PLAYWRIGHT_DONOR_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:boneyard:donor
       - name: Request scope (donor app)
-        timeout-minutes: 15
+        timeout-minutes: 5
         env:
           CI: "1"
         run: bun run test:e2e:request-scope:donor

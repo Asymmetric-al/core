@@ -366,10 +366,16 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // after its boneyard smoke (bun run test:e2e:request-scope:admin,
     // :missionary and :donor), pinned in
     // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
-    // workflow change was allowed for that item only.
+    // workflow change was allowed for that item only. Council round 2 (the
+    // coordinator's note on the joined tree, point 2) then bounded the five
+    // AL-2675 steps by their measured times (10 minutes for the admin
+    // tenant-address step, 5 for the other four, the job's 30 unchanged),
+    // pinned in the same contract test; the state before those limits was an
+    // intermediate one of this branch, which develop never held, so it is
+    // replaced.
     {
       ref: "AL-2675 request-scope specs in test-e2e",
-      hash: "573979f581ef1462",
+      hash: "28ed0e7f3883b3de",
     },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
