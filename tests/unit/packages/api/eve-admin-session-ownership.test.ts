@@ -271,6 +271,47 @@ describe("Eve admin auth and session ownership", () => {
     );
   });
 
+  // Council round 1 on WP2a, F15 (plan 5.5: a revoked member is refused at
+  // the next request). Eve runs route auth on every inbound turn, the answer
+  // that resumes a parked run included, and carries that caller's snapshot
+  // into the turn as `auth.current` (eve 0.25.1, docs/guides/
+  // auth-and-route-protection.md, "Inside runtime code"); specialists read
+  // only `auth.current`. A snapshot taken before a revocation therefore
+  // serves only the turn already running; the next request is refused before
+  // a turn starts, so no specialist run resumes under it.
+  it("refuses the next request once the flag or the membership is revoked; the running turn keeps its snapshot", async () => {
+    const turnSnapshot = toEveSessionAuthSnapshot(adminIdentity());
+    const row = verifiedAdmin.memberships[0];
+    const afterRevocation: AuthContext[] = [
+      // The flag is cleared: the person stays staff.
+      {
+        ...verifiedAdmin,
+        role: "staff",
+        memberships: [{ ...row, isTenantAdmin: false }],
+      },
+      // The membership is revoked: no live staff row in the tenant.
+      {
+        ...verifiedAdmin,
+        role: null,
+        tenantId: null,
+        memberships: [{ ...row, isActive: false }],
+      },
+    ];
+    for (const live of afterRevocation) {
+      const resume = await resolveAdminEveSessionIdentity(
+        new Request("https://eve.test/eve/v1/session/session-owned", {
+          method: "POST",
+        }),
+        { getVerifiedAuthContext: vi.fn().mockResolvedValue(live) },
+      );
+      expect(resume.ok).toBe(false);
+    }
+    expect(identityFromEveSessionAuthSnapshot(turnSnapshot)).toMatchObject({
+      actorIsTenantAdmin: true,
+      tenantId: TENANT_ID,
+    });
+  });
+
   it("extracts ownership targets only from Eve session route paths", () => {
     expect(
       getEveSessionIdFromRoute(

@@ -158,9 +158,14 @@ export async function listEveNotificationRecipients(input: {
   // AL-2675 (NR-68): the eligible recipients are the tenant's live
   // administrators, by membership; the AL-2675 backfill made each
   // super_admin profile one in its own tenant, so configured recipients keep
-  // receiving. Platform owners as such are WP2c's operator list.
+  // receiving. Platform owners as such are WP2c's operator list. The read
+  // asks for the flagged staff rows and reads them to the end (council round
+  // 1 on WP2a, F7).
   const administrators = (
-    await listTenantMembers(input.supabaseAdmin, input.tenantId)
+    await listTenantMembers(input.supabaseAdmin, input.tenantId, {
+      role: "staff",
+      tenantAdmin: true,
+    })
   ).filter((member) => member.role === "staff" && member.isTenantAdmin);
   const adminIds = [...new Set(administrators.map((m) => m.profileId))];
   const [profiles, preferences] = await Promise.all([
@@ -226,6 +231,8 @@ export async function setEveNotificationRecipient(input: {
   const isAdministrator = (
     await listTenantMembers(input.supabaseAdmin, input.tenantId, {
       profileIds: [input.profileId],
+      role: "staff",
+      tenantAdmin: true,
     })
   ).some((member) => member.role === "staff" && member.isTenantAdmin);
   const { data: profile, error: profileError } = isAdministrator

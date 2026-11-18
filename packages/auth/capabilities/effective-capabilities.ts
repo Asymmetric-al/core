@@ -181,9 +181,10 @@ export type SelectedAssignment = {
 
 /**
  * The capabilities one live membership row holds: its sub-role or member
- * bundles and, when the row carries the flag, the `tenant_admin` grant. No
- * other row of the person counts. The database judges the same row with
- * `authz.assignment_capabilities`.
+ * bundles and, when a staff row carries the flag, the `tenant_admin` grant.
+ * The flag lives only on a staff row (plan 5.1), so on any other row it
+ * grants nothing. No other row of the person counts. The database judges the
+ * same row with `authz.assignment_capabilities`.
  */
 export function resolveAssignmentCapabilities(
   assignment: SelectedAssignment,
@@ -198,7 +199,7 @@ export function resolveAssignmentCapabilities(
       isActive: true,
     },
   ];
-  if (assignment.isTenantAdmin) {
+  if (assignment.isTenantAdmin && assignment.membershipRole === "staff") {
     sources.push({
       kind: "named",
       grantId: assignment.assignmentId,

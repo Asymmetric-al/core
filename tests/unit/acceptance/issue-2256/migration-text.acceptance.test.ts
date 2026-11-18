@@ -225,6 +225,12 @@ describe("#2256 seams, readers and writers", () => {
       'let query = admin.from("profiles").select("*");\nif (role) query = query.eq("role", role);',
       'const rows = await selectTenantRows(supabase, "profiles", tenantId);',
       'await admin.from("profiles").select("id").match({ tenant_id: t });',
+      // Council round 1 on WP2a, F14: a filter on profiles joined from
+      // another table, by dotted column or by the referenced-table option.
+      'await admin.from("donors").select("id, profiles!inner(id)").eq("profiles.tenant_id", tenantId);',
+      'await admin.from("donors").select("id, profiles(role)").in("profiles.role", ["admin"]);',
+      'await admin.from("donors").select("id, profiles(id)").or(`tenant_id.eq.${t}`, { referencedTable: "profiles" });',
+      'await admin.from("donors").select("id, profiles(id)").or("role.eq.admin", { foreignTable: "profiles" });',
     ];
     for (const text of planted)
       expect(profileQueryFilterHits("planted.ts", text), text).not.toEqual([]);
@@ -234,6 +240,8 @@ describe("#2256 seams, readers and writers", () => {
       'await admin.from("donors").select("id").eq("tenant_id", tenantId);',
       'await selectTenantRows(supabase, "donors", tenantId);',
       'await Promise.all([admin.from("profiles").select("id").in("id", ids), admin.from("prefs").select("*").eq("tenant_id", t)]);',
+      'await admin.from("donors").select("id, profiles(id)").eq("profiles.id", profileId);',
+      'await admin.from("donors").select("id, profiles(id)").order("created_at", { referencedTable: "profiles" });',
     ];
     for (const text of clean)
       expect(profileQueryFilterHits("clean.ts", text), text).toEqual([]);

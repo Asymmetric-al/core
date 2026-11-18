@@ -19,10 +19,21 @@
 --     admin), the target not to be the caller, and the target not to hold the
 --     platform role. The platform role is still the target's `profiles.role =
 --     'super_admin'` until WP2c's operator list replaces it.
+--   * the target to be a live member of no tenant but this one (council round
+--     1 on WP2a, F2). What the command writes is the person's one global
+--     `profiles.role`, and the restricted-note policies on `crm_notes` still
+--     admit `profiles.role IN ('admin', 'super_admin')` with no tenant
+--     condition. Without this refusal an administrator of one tenant could
+--     promote a person who also works in another tenant, who would then read
+--     that tenant's restricted notes, or strip another tenant's administrator
+--     of them. This refusal goes with the package that moves the note
+--     policies off `profiles.role` (WP2b's second release) or the one that
+--     deletes the mutation (WP2c), whichever comes first.
 -- Every refusal raises 42501 and changes nothing. The signature, the audit row
 -- and the return value are unchanged. What the command writes is unchanged
--- too: the target's `profiles.role`, which grants nothing since WP2a; setting
--- or clearing the flag on a membership is plan 5.4's role-change command.
+-- too: the target's `profiles.role`, which grants nothing since WP2a but the
+-- note policies' read; setting or clearing the flag on a membership is plan
+-- 5.4's role-change command.
 --
 -- The function becomes SECURITY DEFINER (owner postgres, empty search path) so
 -- that it can read `authz.memberships` and call the capability function,
@@ -100,6 +111,20 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
+  -- The role written is global: refuse a target who is a live member of any
+  -- other tenant (F2).
+  IF EXISTS (
+    SELECT 1
+    FROM authz.memberships AS elsewhere
+    WHERE elsewhere.user_id = v_target_user_id
+      AND elsewhere.tenant_id <> p_tenant_id
+      AND elsewhere.is_active
+      AND elsewhere.revoked_at IS NULL
+  ) THEN
+    RAISE EXCEPTION 'This person also belongs to another organization, so their role cannot be changed here'
+      USING ERRCODE = '42501';
+  END IF;
+
   UPDATE public.profiles
   SET role = p_new_role,
       updated_at = NOW()
@@ -133,7 +158,8 @@ $function$;
 COMMENT ON FUNCTION public.atomic_update_user_role_with_audit(UUID, UUID, UUID, TEXT, TEXT, TEXT) IS
   'Role change by a tenant administrator: the caller''s live staff membership '
   'in the tenant must hold people.manage_members, and the target must be a '
-  'member there (WP0 A01; moved to membership by AL-2675).';
+  'member there and of no other tenant, because the role written is global '
+  '(WP0 A01; moved to membership by AL-2675).';
 
 ALTER FUNCTION public.atomic_update_user_role_with_audit(UUID, UUID, UUID, TEXT, TEXT, TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.atomic_update_user_role_with_audit(UUID, UUID, UUID, TEXT, TEXT, TEXT)

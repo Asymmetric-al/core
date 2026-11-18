@@ -6,8 +6,10 @@ import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 /*
  * Graduated bundles. The contribution chain reproduces the incumbent tiers
  * (donor care 3, finance staff 6, finance approver 9, contribution admin 11)
- * and `staff_base` reproduces `STAFF_SUBROLE_CAPABILITIES`. Each tier is a
- * strict superset of the one before it.
+ * and `staff_base` holds the four `admin.*` capabilities every staff sub-role
+ * held before the registry (the retired `STAFF_SUBROLE_CAPABILITIES`; plan
+ * 5.1 allows one capability vocabulary). Each tier is a strict superset of
+ * the one before it.
  *
  * The SQL capability function `authz.assignment_capabilities` holds the same
  * mapping for the database (AL-2675); a real-stack test compares the two for

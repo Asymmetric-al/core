@@ -166,8 +166,15 @@ export function formatRequiredCapabilities(
   return capabilities.join(` ${conjunction} `);
 }
 
-const CONTRIBUTION_CAPABILITIES: ReadonlySet<string> =
-  new Set<ContributionCapability>([
+/**
+ * The contribution capability names, a copy of the registry's
+ * (`@asym/auth/capabilities`), which this module may not import (#492
+ * criterion 13). `tests/unit/packages/api/admin/contribution-capability-names.test.ts`
+ * fails when the two differ, so a new contribution capability in the
+ * registry cannot be missed here.
+ */
+export const CONTRIBUTION_CAPABILITY_NAMES: readonly ContributionCapability[] =
+  [
     "contributions.view_detail",
     "contributions.request_corrections",
     "contributions.apply_corrections",
@@ -179,7 +186,11 @@ const CONTRIBUTION_CAPABILITIES: ReadonlySet<string> =
     "contributions.manage_settings",
     "contributions.manage_table_preferences",
     "crm.gift_history.manage_view_defaults",
-  ]);
+  ];
+
+const CONTRIBUTION_CAPABILITIES: ReadonlySet<string> = new Set(
+  CONTRIBUTION_CAPABILITY_NAMES,
+);
 
 export function isContributionCapability(
   capability: string,

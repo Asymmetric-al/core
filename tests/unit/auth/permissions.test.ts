@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  canAccessDashboard,
   derivePrimaryRole,
   hasRole,
-  hasStaffSubrole,
-  STAFF_SUBROLE_CAPABILITIES,
   type AuthMembership,
   type RoleSnapshot,
 } from "../../../packages/auth/permissions";
@@ -91,26 +88,8 @@ describe("auth permissions: membership is the only authority (AL-2675)", () => {
     ).toBe(false);
   });
 
-  it("supports one-login multi-dashboard access by membership", () => {
-    const snapshot = createSnapshot([
-      membership({ role: "donor", staffRole: null }),
-      membership({ role: "missionary", staffRole: null }),
-      membership({ staffRole: "member_care" }),
-    ]);
-
-    expect(canAccessDashboard(snapshot, "donor_portal")).toBe(true);
-    expect(canAccessDashboard(snapshot, "missionary_dashboard")).toBe(true);
-    expect(canAccessDashboard(snapshot, "admin_dashboard")).toBe(true);
-  });
-
-  it("keeps all staff subroles on full admin capabilities for MVP", () => {
-    const snapshot = createSnapshot([membership({ staffRole: "mobilizer" })]);
-
-    expect(hasStaffSubrole(snapshot, "mobilizer")).toBe(true);
-    expect(hasStaffSubrole(snapshot, "finance")).toBe(false);
-    expect(STAFF_SUBROLE_CAPABILITIES.finance).toContain(
-      "admin.dashboard.access",
-    );
-    expect(STAFF_SUBROLE_CAPABILITIES.hr).toContain("admin.gifts.manage");
-  });
+  // `canAccessDashboard`, `hasStaffSubrole` and `STAFF_SUBROLE_CAPABILITIES`
+  // are retired with their cases (council round 1 on WP2a, F12): nothing but
+  // tests used them, and plan 5.1 allows one capability vocabulary, the
+  // registry's (`staff_base` holds what the map held).
 });

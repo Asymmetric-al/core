@@ -5,8 +5,10 @@ import {
   createMissionControlCrmNote,
   listMissionControlCrmNotes,
 } from "../../../../packages/api/src/admin/crm/notes/service";
+import { requireCrmAccess } from "../../../../packages/api/src/crm/auth/access";
 
 import type { ActorContext } from "../../../../packages/api/src/crm/types";
+import type { AuthContext } from "../../../../packages/auth/context";
 
 const TENANT_A = "11111111-1111-4111-8111-111111111111";
 const TENANT_B = "22222222-2222-4222-8222-222222222222";
@@ -217,6 +219,58 @@ describe("listMissionControlCrmNotes", () => {
 
     expect(staffResponse.rows).toEqual([]);
     expect(adminResponse.rows.map((row) => row.title)).toEqual(["Pastoral"]);
+  });
+
+  // Council round 1 on WP2a, F14 (plan acceptance line: "A finance staff
+  // member cannot read a restricted note"): the actor comes from a finance
+  // staff membership through requireCrmAccess, not built by hand.
+  it("hides restricted notes from a finance staff member, through requireCrmAccess", async () => {
+    const store = new MemoryCrmNotesSupabase();
+    seedNote(store, { title: "Pastoral", visibility: "restricted" });
+    seedNote(store, {
+      id: "77777777-7777-4777-8777-777777777777",
+      title: "Follow-up",
+    });
+    const context = (
+      staffRole: "finance" | "development",
+      isTenantAdmin: boolean,
+    ): AuthContext => ({
+      userId: STAFF_ID,
+      email: null,
+      tenantId: TENANT_A,
+      role: isTenantAdmin ? "admin" : "staff",
+      memberships: [
+        {
+          tenantId: TENANT_A,
+          role: "staff",
+          staffRole,
+          isActive: true,
+          isTenantAdmin,
+        },
+      ],
+      assignment: null,
+      assignmentDenial: null,
+      profileId: STAFF_ID,
+      isAuthenticated: true,
+    });
+    const read = (auth: AuthContext) =>
+      listMissionControlCrmNotes({
+        actor: requireCrmAccess(auth, {
+          action: "crm.note.read",
+          resourceType: "note",
+        }),
+        params: defaultParams,
+        supabase: store,
+      });
+
+    expect(
+      (await read(context("finance", false))).rows.map((row) => row.title),
+    ).toEqual(["Follow-up"]);
+    expect(
+      (await read(context("development", true))).rows
+        .map((row) => row.title)
+        .sort(),
+    ).toEqual(["Follow-up", "Pastoral"]);
   });
 });
 
