@@ -13,6 +13,7 @@ import {
   tenantPath,
   trackDocumentLoads,
   tenantFreeShellProblems,
+  withServerBoundToLoopbackLiteral,
 } from "./helpers/tenant-address";
 
 /**
@@ -269,6 +270,31 @@ test("the retired update pages answer a real permanent redirect to the feed", as
 
 test.describe("production build", () => {
   test.skip(!signsInThroughStub, "Measured on a production build only");
+
+  // Record D-19, council round 1, A19: see the same test in
+  // admin-tenant-address.spec.ts.
+  test("a server bound to 127.0.0.1 answers a tenant page with the guard's 500, the one bound by name renders it", async ({
+    page,
+  }) => {
+    const home = tenantPath(DEMO, "/tasks");
+    const literalPort = Number(new URL(baseURL()).port) + 1;
+    await withServerBoundToLoopbackLiteral(
+      "missionary",
+      literalPort,
+      async (literal) => {
+        await signInAs(page, "missionary", "missionary", literal);
+        const refused = await page.request.get(`${literal}${home}`, {
+          maxRedirects: 0,
+        });
+        expect(refused.status()).toBe(500);
+        expect(await refused.text()).toMatch(/rewrite left the server/);
+      },
+    );
+
+    await signInAs(page, "missionary", "missionary", baseURL());
+    const rendered = await page.request.get(home, { maxRedirects: 0 });
+    expect(rendered.status()).toBe(200);
+  });
 
   test("every organization receives the route's one prerendered shell", async ({
     page,

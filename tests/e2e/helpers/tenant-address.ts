@@ -1,3 +1,5 @@
+import { spawn } from "node:child_process";
+
 import { DEMO_TENANT_ID } from "../../../packages/auth/constants";
 import {
   createE2EAuthCookieValue,
@@ -185,6 +187,57 @@ export async function softNavigate(page: Page, href: string) {
     if (!next?.router) throw new Error("The client router is not exposed.");
     next.router.push(target);
   }, href);
+}
+
+/**
+ * Runs `run` against a second production server of the same build, bound to
+ * the loopback IP literal 127.0.0.1 (record D-19; council round 1, A19).
+ * There Next treats the proxy's tenant-address rewrite as external, and the
+ * proxy must answer 500 rather than render a page without its tenant. The
+ * server is stopped afterwards.
+ */
+export async function withServerBoundToLoopbackLiteral(
+  app: "admin" | "missionary",
+  port: number,
+  run: (baseURL: string) => Promise<void>,
+) {
+  const server = spawn(
+    "bun",
+    [
+      "run",
+      "--cwd",
+      `apps/${app}`,
+      "start",
+      "--",
+      "--port",
+      String(port),
+      "--hostname",
+      "127.0.0.1",
+    ],
+    { detached: true, env: process.env, stdio: "ignore" },
+  );
+  const baseURL = `http://127.0.0.1:${port}`;
+  try {
+    const deadline = Date.now() + 90_000;
+    for (;;) {
+      try {
+        await fetch(`${baseURL}/login`, { redirect: "manual" });
+        break;
+      } catch {
+        if (Date.now() > deadline) {
+          throw new Error(`No production server answered on ${baseURL}.`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    await run(baseURL);
+  } finally {
+    try {
+      process.kill(-server.pid!, "SIGTERM");
+    } catch {
+      // Already stopped.
+    }
+  }
 }
 
 /**

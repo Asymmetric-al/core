@@ -15,6 +15,7 @@ import {
   tenantPath,
   trackDocumentLoads,
   tenantFreeShellProblems,
+  withServerBoundToLoopbackLiteral,
 } from "./helpers/tenant-address";
 
 /**
@@ -425,6 +426,34 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
 
 test.describe("production build", () => {
   test.skip(!production, "Measured on a production build only");
+
+  // Record D-19, council round 1, A19: bound to the loopback IP literal, the
+  // same build answers a tenant page with the guard's 500, never with the
+  // page rendered without its tenant; bound by the loopback name, as every
+  // harness now binds it, it renders the page.
+  test("a server bound to 127.0.0.1 answers a tenant page with the guard's 500, the one bound by name renders it", async ({
+    page,
+  }) => {
+    const home = tenantPath(DEMO, "/");
+    const literalPort = Number(new URL(baseURL()).port) + 1;
+    await withServerBoundToLoopbackLiteral(
+      "admin",
+      literalPort,
+      async (literal) => {
+        await signInAs(page, "admin", "demoAdmin", literal);
+        const refused = await page.request.get(`${literal}${home}`, {
+          maxRedirects: 0,
+        });
+        expect(refused.status()).toBe(500);
+        expect(await refused.text()).toMatch(/rewrite left the server/);
+      },
+    );
+
+    await signInAs(page, "admin", "demoAdmin", baseURL());
+    const rendered = await page.request.get(home, { maxRedirects: 0 });
+    expect(rendered.status()).toBe(200);
+    expect(await rendered.text()).toContain(`data-tenant-scope="/${DEMO}"`);
+  });
 
   test("a person who signs in through the form reaches Web Studio from Mission Control without an error page", async ({
     page,
