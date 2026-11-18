@@ -38,6 +38,19 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     );
   });
 
+  // Review H8: nothing may skip the comparison or excuse its failure.
+  it("gives the comparison step no condition and no continue-on-error, and the job no continue-on-error", () => {
+    const compare = step("schema-fingerprint.mjs compare")!;
+    expect(compare).not.toMatch(/^\s*if:/m);
+    expect(compare).not.toMatch(/continue-on-error/);
+    const job = workflow.slice(
+      workflow.indexOf("\n  local-supabase:\n"),
+      workflow.indexOf("\n    steps:\n"),
+    );
+    expect(job).toContain("runs-on:");
+    expect(job).not.toMatch(/continue-on-error/);
+  });
+
   it("compares after the stack has applied the chain and before the round trips write to it", () => {
     const start = at("name: Start the local Supabase stack");
     const replay = at("supabase-migrations.mjs --hosted-defaults");

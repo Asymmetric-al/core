@@ -174,8 +174,22 @@ export function captureFingerprint({ databaseUrl, query = queryJson }) {
   return buildFingerprint(entries);
 }
 
-/** Keys present on one side only, and keys whose definitions differ. */
+/**
+ * Keys present on one side only, and keys whose definitions differ. A
+ * fingerprint with no objects is refused: two empty ones would compare equal
+ * and prove nothing, and every migrated database has objects.
+ */
 export function diffFingerprints(expected, actual) {
+  for (const [side, fingerprint] of [
+    ["expected", expected],
+    ["actual", actual],
+  ]) {
+    if (!(fingerprint?.entries?.length > 0)) {
+      throw new Error(
+        `The ${side} fingerprint holds no objects; an empty fingerprint proves nothing, so it is never compared.`,
+      );
+    }
+  }
   if (expected.version !== actual.version) {
     return {
       equal: false,
