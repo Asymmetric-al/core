@@ -43,6 +43,15 @@
 --     The rule that follows: the restricted-note policies move off
 --     `profiles.role` (WP2b's second release) before any command can grant
 --     a staff row (WP2c).
+-- What the role-change command writes since WP2a: it changes the profile role,
+-- which the restricted-note policies and the release already running still
+-- read; it grants and revokes no application access, which membership alone
+-- decides. No person can reach it: GraphQL is mounted in the donor app only,
+-- whose proxy fixes the donor class, and a donor row never holds
+-- `people.manage_members`. WP2c deletes it and builds the membership command
+-- of plan 5.4.
+-- (PR #2720 review.)
+--
 -- Every refusal raises 42501 and changes nothing. The signature, the audit row
 -- and the return value are unchanged. What the command writes is unchanged
 -- too: the target's `profiles.role`, which grants nothing since WP2a but the
