@@ -1809,11 +1809,11 @@
       "proof": [
         {
           "path": "packages/auth/tenant-navigation.tsx",
-          "sha256": "0906d18cb22942a2a47c630e168fe353c8a8c6bc39c6ec8b38fef0c0c74b1ed1"
+          "sha256": "9eaaf509231781d017548e5817a4ade507d2e546e1a21d75b2ffe2bbd1df52ae"
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",
-          "sha256": "f62d236f84a82ec38e88b810d9d1cac945b739f0456db44d30408d19473977fe"
+          "sha256": "0f907d0b17d0646985584ae2923d4f71da01fc4b5e1f3e8cad7fc72814323772"
         }
       ]
     },

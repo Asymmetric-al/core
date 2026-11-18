@@ -3,6 +3,8 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { Component, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type * as FormatUrl from "next/dist/shared/lib/router/utils/format-url";
+
 /**
  * The tenant document and the one way to build an address (plan 5.2;
  * AL-2675). The guard renders nothing and reloads when the address's tenant
@@ -31,31 +33,31 @@ vi.mock("next/navigation", () => ({
     refresh: vi.fn(),
   }),
 }));
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    prefetch: _prefetch,
-    replace: _replace,
-    ...props
-  }: {
-    href: string | { pathname?: string; query?: Record<string, string> };
-    children: React.ReactNode;
-    prefetch?: boolean | null;
-    replace?: boolean;
-  }) => (
-    <a
-      href={
-        typeof href === "string"
-          ? href
-          : `${href.pathname ?? ""}${href.query ? `?${new URLSearchParams(href.query)}` : ""}`
-      }
-      {...props}
-    >
-      {children}
-    </a>
-  ),
-}));
+vi.mock("next/link", async () => {
+  // next/link's own formatting of an object href, so the anchor carries the
+  // address the real link renders (council round 2, AR4).
+  const { formatUrl } = await vi.importActual<typeof FormatUrl>(
+    "next/dist/shared/lib/router/utils/format-url",
+  );
+  return {
+    default: ({
+      href,
+      children,
+      prefetch: _prefetch,
+      replace: _replace,
+      ...props
+    }: {
+      href: string | Parameters<typeof formatUrl>[0];
+      children: React.ReactNode;
+      prefetch?: boolean | null;
+      replace?: boolean;
+    }) => (
+      <a href={typeof href === "string" ? href : formatUrl(href)} {...props}>
+        {children}
+      </a>
+    ),
+  };
+});
 vi.mock("../../../packages/database/document-reload", () => ({
   reloadDocument,
   loadDocument,
@@ -584,6 +586,76 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     act(() => router!.push("/care"));
     expect(nav.push).toHaveBeenCalledWith(`${scopeA.addressPrefix}/care`);
     expect(nav.push).toHaveBeenCalledTimes(1);
+  });
+
+  // Council round 2, AR4: a crossing loads the address the link itself
+  // shows, as next/link formats an object href and the browser resolves it,
+  // not a second formatting of the object.
+  it.each([
+    [
+      "a fragment written without its #",
+      { pathname: "/web-studio", hash: "pages" },
+      "/web-studio#pages",
+    ],
+    [
+      "a query given as a string",
+      { pathname: "/web-studio", query: "site=1" },
+      "/web-studio?site=1",
+    ],
+    [
+      "a search",
+      { pathname: "/web-studio", search: "?site=1" },
+      "/web-studio?site=1",
+    ],
+    [
+      "a query object and a fragment",
+      { pathname: "/web-studio", query: { site: ["1", "2"] }, hash: "#pages" },
+      "/web-studio?site=1&site=2#pages",
+    ],
+  ])(
+    "loads the address the link shows for a crossing with %s",
+    async (_label, href, shown) => {
+      const mod = await boundaryLoadedAt(
+        `${scopeA.addressPrefix}/contributions`,
+      );
+      cleanup();
+      render(
+        <mod.TenantSegmentBoundary>
+          <mod.TenantDocument scope={scopeA}>
+            <mod.TenantLink href={href}>Web Studio</mod.TenantLink>
+          </mod.TenantDocument>
+        </mod.TenantSegmentBoundary>,
+      );
+
+      const link = screen.getByText("Web Studio");
+      expect(link.getAttribute("href")).toBe(shown);
+      act(() => link.click());
+      expect(loadDocument).toHaveBeenCalledTimes(1);
+      expect(loadDocument).toHaveBeenLastCalledWith(shown, { replace: false });
+    },
+  );
+
+  it("leaves a link whose address is on another host to the browser", async () => {
+    const mod = await boundaryLoadedAt(`${scopeA.addressPrefix}/contributions`);
+    cleanup();
+    render(
+      <mod.TenantSegmentBoundary>
+        <mod.TenantDocument scope={scopeA}>
+          <mod.TenantLink
+            href={{ pathname: "/web-studio", host: "elsewhere.example" }}
+          >
+            Elsewhere
+          </mod.TenantLink>
+        </mod.TenantDocument>
+      </mod.TenantSegmentBoundary>,
+    );
+
+    const link = screen.getByText("Elsewhere");
+    expect(link.getAttribute("href")).toBe("//elsewhere.example/web-studio");
+    // jsdom does not navigate; the click must not be turned into a load of
+    // this site's /web-studio.
+    act(() => link.click());
+    expect(loadDocument).not.toHaveBeenCalled();
   });
 
   it("makes a link from an outside page into the segment load a document", async () => {

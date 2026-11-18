@@ -366,24 +366,27 @@ function prefixLinkHref(
   return { ...href, pathname: toHref(href.pathname) };
 }
 
-/** The address a link goes to, as a string, when it is a path on this site. */
-function linkTarget(href: LinkHref): string | null {
+/**
+ * The path a link goes to, which is all that decides whether it crosses the
+ * segment's boundary; its query and fragment do not. The address itself is
+ * read from the rendered anchor when the link is followed.
+ */
+function linkPathname(href: LinkHref): string | null {
   if (typeof href === "string") return href;
-  if (href instanceof URL) return null;
-  if (typeof href.pathname !== "string") return null;
-  const query =
-    href.query && typeof href.query === "object"
-      ? new URLSearchParams(
-          Object.entries(href.query).flatMap(([key, value]) =>
-            value == null
-              ? []
-              : (Array.isArray(value) ? value : [value]).map(
-                  (item) => [key, String(item)] as [string, string],
-                ),
-          ),
-        ).toString()
-      : "";
-  return `${href.pathname}${query ? `?${query}` : ""}${href.hash ?? ""}`;
+  return typeof href.pathname === "string" ? href.pathname : null;
+}
+
+/**
+ * The address the anchor points to, as next/link formatted it and the
+ * browser resolved it, as a path on this site; null when it is on another
+ * origin, which the browser follows by itself. Not a second formatting of
+ * an object href, which got a fragment without its `#`, a query given as a
+ * string and a `search` wrong (council round 2, AR4).
+ */
+function anchorAddress(anchor: HTMLAnchorElement): string | null {
+  const url = new URL(anchor.href);
+  if (url.origin !== window.location.origin) return null;
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 /**
@@ -402,8 +405,8 @@ export function TenantLink({
   const toHref = useTenantHref();
   const crosses = useCrossesSegment();
   const prefixed = prefixLinkHref(href, toHref);
-  const target = linkTarget(prefixed);
-  const crossing = target !== null && crosses(target);
+  const pathname = linkPathname(prefixed);
+  const crossing = pathname !== null && crosses(pathname);
   return (
     <Link
       href={prefixed}
@@ -411,10 +414,13 @@ export function TenantLink({
       replace={replace}
       onClick={(event) => {
         onClick?.(event);
-        if (crossing && !event.defaultPrevented && isPlainClick(event)) {
-          event.preventDefault();
-          loadDocument(target, { replace: replace === true });
+        if (!crossing || event.defaultPrevented || !isPlainClick(event)) {
+          return;
         }
+        const address = anchorAddress(event.currentTarget);
+        if (address === null) return;
+        event.preventDefault();
+        loadDocument(address, { replace: replace === true });
       }}
       {...props}
     >
