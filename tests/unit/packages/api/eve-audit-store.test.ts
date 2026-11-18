@@ -37,7 +37,6 @@ const AUTH = {
   email: "admin@example.com",
   tenantId: RECORD.tenantId,
   role: "admin",
-  profileRole: "admin",
   memberships: [],
   profileId: RECORD.actorProfileId,
   isAuthenticated: true,

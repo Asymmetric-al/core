@@ -141,7 +141,11 @@ async function resolveMatchingDonorIds(
   }
 
   const term = escapeSearchValue(search);
-  const [donorsResult, profilesResult] = await Promise.all([
+  // AL-2675 (NR-68): a donor of this tenant matches on their own fields or
+  // on their linked profile's names. The profile is reached through the
+  // tenant's donor row, never through a filter on the profile's tenant column, which
+  // would miss a person whose profile names another organization.
+  const [donorsResult, profileMatchResult] = await Promise.all([
     supabaseAdmin
       .from("donors")
       .select("id, profile_id")
@@ -151,11 +155,12 @@ async function resolveMatchingDonorIds(
       )
       .limit(200),
     supabaseAdmin
-      .from("profiles")
-      .select("id")
+      .from("donors")
+      .select("id, profiles!inner(id)")
       .eq("tenant_id", tenantId)
       .or(
         `display_name.ilike.%${term}%,first_name.ilike.%${term}%,last_name.ilike.%${term}%,full_name.ilike.%${term}%,email.ilike.%${term}%`,
+        { referencedTable: "profiles" },
       )
       .limit(200),
   ]);
@@ -163,32 +168,15 @@ async function resolveMatchingDonorIds(
   if (donorsResult.error) {
     throw new ApiHttpError(500, donorsResult.error.message);
   }
-  if (profilesResult.error) {
-    throw new ApiHttpError(500, profilesResult.error.message);
+  if (profileMatchResult.error) {
+    throw new ApiHttpError(500, profileMatchResult.error.message);
   }
 
   const donorIds = new Set<string>(
     ((donorsResult.data ?? []) as { id: string }[]).map((row) => row.id),
   );
-  const profileIds = normalizeSearchIds(
-    ((profilesResult.data ?? []) as { id: string }[]).map((row) => row.id),
-  );
-
-  if (profileIds.length > 0) {
-    const donorsByProfileResult = await supabaseAdmin
-      .from("donors")
-      .select("id")
-      .eq("tenant_id", tenantId)
-      .in("profile_id", profileIds)
-      .limit(200);
-
-    if (donorsByProfileResult.error) {
-      throw new ApiHttpError(500, donorsByProfileResult.error.message);
-    }
-
-    for (const donor of donorsByProfileResult.data ?? []) {
-      donorIds.add(donor.id);
-    }
+  for (const donor of (profileMatchResult.data ?? []) as { id: string }[]) {
+    donorIds.add(donor.id);
   }
 
   return Array.from(donorIds);

@@ -12,9 +12,10 @@ interface EveSessionIdentityBase {
 }
 
 export interface EveAdminSessionIdentity extends EveSessionIdentityBase {
+  /** The staff row the session acts under carries the tenant-administrator flag (AL-2675). */
+  actorIsTenantAdmin: boolean;
   actorMembershipRoles: MembershipRole[];
   actorProfileId: string;
-  actorProfileRole: UserRole | null;
   actorRole: UserRole;
   identityMode: "admin";
   initiatorType: "authenticated_admin";

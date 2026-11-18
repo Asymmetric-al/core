@@ -50,16 +50,14 @@ export function defaultRouteForRole(role: AppRole): string {
 }
 
 /**
- * Resolve an arbitrary profile role string to a known portal home route.
- *
- * Routing implication: callers can safely pass role values from `profiles.role`
- * without duplicating alias logic in multiple apps.
+ * Resolve a role or membership-class name to a known portal home route.
+ * UX only: access is enforced by the proxies, layouts and RLS. Since AL-2675
+ * the sign-in callback passes the class of a live membership, never
+ * `profiles.role`.
  */
-export function routeForProfileRole(
-  profileRole: string | null | undefined,
-): string | null {
-  if (!profileRole) return null;
-  const normalized = profileRole.trim().toLowerCase();
-  const role = ROLE_ROUTE_ALIASES[normalized];
-  return role ? defaultRouteForRole(role) : null;
+export function routeForRole(role: string | null | undefined): string | null {
+  if (!role) return null;
+  const normalized = role.trim().toLowerCase();
+  const appRole = ROLE_ROUTE_ALIASES[normalized];
+  return appRole ? defaultRouteForRole(appRole) : null;
 }

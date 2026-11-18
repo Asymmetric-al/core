@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { memberRow } from "../../../../fixtures/fake-service-client";
+
 import { createMissionaryPost } from "../../../../../packages/api/src/posts/create";
 import { postWriteSchema } from "../../../../../packages/api/src/schemas/posts";
 
@@ -17,12 +19,24 @@ const auth = {
   role: "missionary",
 } as never;
 
-/** Just enough of the service-role client for the create path. */
+/**
+ * Just enough of the service-role client for the create path. The author's
+ * profile is read by their login (never by the profile's tenant column,
+ * AL-2675, NR-68); the resolver has already checked their membership in the
+ * tenant (council round 1 on WP2a, F12). `profile: null` means no profile.
+ */
 function fakeClient(options: { profile?: { id: string } | null } = {}) {
-  const rpc = vi.fn(async () => ({
-    data: { post_id: "post-1" },
-    error: null,
-  }));
+  const rpc = vi.fn(async (fn: string) =>
+    fn === "tenant_member_profiles"
+      ? {
+          data:
+            options.profile === null
+              ? []
+              : [memberRow({ profileId: "profile-1", userId: "user-1" })],
+          error: null,
+        }
+      : { data: { post_id: "post-1" }, error: null },
+  );
   const created = {
     id: "post-1",
     title: "Clinic opens",
@@ -127,7 +141,13 @@ describe("createMissionaryPost", () => {
       }),
     });
 
+    // Council round 1 on WP2a, F12: the author's profile is read by login
+    // alone; the resolver has checked their membership, so no second read.
     expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).not.toHaveBeenCalledWith(
+      "tenant_member_profiles",
+      expect.anything(),
+    );
     expect(rpc).toHaveBeenCalledWith("atomic_create_post_with_audit", {
       p_tenant_id: "tenant-1",
       // posts.missionary_id references profiles.id.
@@ -162,7 +182,7 @@ describe("createMissionaryPost", () => {
     );
   });
 
-  it("refuses when the signed-in user has no profile in this tenant", async () => {
+  it("refuses when the signed-in user has no profile", async () => {
     const { client, rpc } = fakeClient({ profile: null });
     const result = await createMissionaryPost({
       supabaseAdmin: client,
@@ -175,6 +195,9 @@ describe("createMissionaryPost", () => {
       status: 404,
       error: "Profile not found",
     });
-    expect(rpc).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalledWith(
+      "atomic_create_post_with_audit",
+      expect.anything(),
+    );
   });
 });

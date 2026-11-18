@@ -48,6 +48,7 @@ import { GET, POST } from "../../../../packages/api/src/donations";
 import { createGraphQLHandler } from "../../../../packages/graphql/handler";
 
 import type { AuthContext } from "../../../../packages/auth/context";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 import type * as AuthModule from "../../../../packages/auth/context";
 
 const URL_ = process.env.DONATIONS_EMBED_IT_POSTGREST_URL ?? "";
@@ -160,8 +161,8 @@ const as = (profileId: string, role: string): AuthContext =>
     email: null,
     tenantId: TA,
     role,
-    profileRole: role,
-    memberships: [],
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole(role, TA),
     profileId,
     isAuthenticated: true,
   }) as AuthContext;

@@ -24,8 +24,17 @@ const verifiedAdmin = {
   email: "admin@example.com",
   tenantId: TENANT_ID,
   role: "admin",
-  profileRole: "admin",
-  memberships: [],
+  // AL-2675: an administrator is a staff membership with the
+  // tenant-administrator flag; the profile role carries no authority.
+  memberships: [
+    {
+      isActive: true,
+      isTenantAdmin: true,
+      role: "staff",
+      staffRole: "development",
+      tenantId: TENANT_ID,
+    },
+  ],
   profileId: PROFILE_ID,
   isAuthenticated: true,
 } satisfies AuthContext;
@@ -103,7 +112,14 @@ describe("Eve admin auth and session ownership", () => {
       createAdminEveSessionIdentity({
         ...verifiedAdmin,
         role: "donor",
-        profileRole: "donor",
+        memberships: [
+          {
+            isActive: true,
+            role: "donor",
+            staffRole: null,
+            tenantId: TENANT_ID,
+          },
+        ],
       }),
     ).toEqual({ ok: false, reason: "forbidden" });
   });
@@ -173,71 +189,128 @@ describe("Eve admin auth and session ownership", () => {
     ).toBeNull();
   });
 
-  it.each([
-    ["admin", "donor"],
-    ["admin", "missionary"],
-    ["staff", "donor"],
-    ["staff", "missionary"],
-  ] as const)(
-    "preserves the authorizing %s profile role when the primary role is %s",
-    (profileRole, membershipRole) => {
-      const result = createAdminEveSessionIdentity({
-        ...verifiedAdmin,
-        memberships: [
-          {
-            isActive: true,
-            role: membershipRole,
-            staffRole: null,
-            tenantId: TENANT_ID,
-          },
-        ],
-        profileRole,
-        role: membershipRole,
-      });
-      if (!result.ok) throw new Error("expected mixed-role admin identity");
+  it("keeps the tenant-administrator flag through the session snapshot", () => {
+    const identity = adminIdentity();
+    expect(identity.actorIsTenantAdmin).toBe(true);
+    const snapshot = toEveSessionAuthSnapshot(identity);
+    expect(snapshot.attributes).toMatchObject({
+      membershipRoles: ["staff"],
+      role: "admin",
+      tenantAdmin: "true",
+    });
+    expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(identity);
+  });
 
-      const snapshot = toEveSessionAuthSnapshot(result.identity);
+  it("refuses a stored snapshot that does not carry the flag (fails closed)", () => {
+    const snapshot = toEveSessionAuthSnapshot(adminIdentity());
+    const { tenantAdmin: _flag, ...withoutFlag } = snapshot.attributes;
+    expect(
+      identityFromEveSessionAuthSnapshot({
+        ...snapshot,
+        attributes: withoutFlag,
+      }),
+    ).toBeNull();
+  });
 
-      expect(snapshot.attributes).toMatchObject({
-        profileRole,
-        role: membershipRole,
-      });
-      expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
-        result.identity,
-      );
-    },
-  );
-
+  // AL-2675: the context carries no profile role, and a primary role name
+  // does not authorize an admin session without the flagged staff row.
   it.each(["donor", "missionary"] as const)(
-    "preserves staff-membership authority for a %s profile",
-    (profileRole) => {
-      const result = createAdminEveSessionIdentity({
-        ...verifiedAdmin,
-        memberships: [
-          {
-            isActive: true,
-            role: "staff",
-            staffRole: "mobilizer",
-            tenantId: TENANT_ID,
-          },
-        ],
-        profileRole,
-        role: "staff",
-      });
-      if (!result.ok) throw new Error("expected staff member identity");
-
-      const snapshot = toEveSessionAuthSnapshot(result.identity);
-
-      expect(snapshot.attributes).toMatchObject({
-        membershipRoles: ["staff"],
-        profileRole,
-        role: "staff",
-      });
-      expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
-        result.identity,
-      );
+    "refuses a %s membership even when the role name says admin",
+    (membershipRole) => {
+      expect(
+        createAdminEveSessionIdentity({
+          ...verifiedAdmin,
+          memberships: [
+            {
+              isActive: true,
+              role: membershipRole,
+              staffRole: null,
+              tenantId: TENANT_ID,
+            },
+          ],
+          role: "admin",
+        }),
+      ).toEqual({ ok: false, reason: "forbidden" });
     },
   );
+
+  // AL-2675: administrator means the flag, so a staff row without it is not
+  // an admin session; the same row with it is.
+  it("admits a staff row only when it carries the flag", () => {
+    const staffRow = {
+      isActive: true,
+      role: "staff" as const,
+      staffRole: "mobilizer" as const,
+      tenantId: TENANT_ID,
+    };
+    expect(
+      createAdminEveSessionIdentity({
+        ...verifiedAdmin,
+        memberships: [{ ...staffRow, isTenantAdmin: false }],
+        role: "staff",
+      }),
+    ).toEqual({ ok: false, reason: "forbidden" });
+
+    const result = createAdminEveSessionIdentity({
+      ...verifiedAdmin,
+      memberships: [{ ...staffRow, isTenantAdmin: true }],
+      role: "admin",
+    });
+    if (!result.ok) throw new Error("expected flagged staff identity");
+
+    const snapshot = toEveSessionAuthSnapshot(result.identity);
+
+    expect(snapshot.attributes).toMatchObject({
+      membershipRoles: ["staff"],
+      role: "admin",
+      tenantAdmin: "true",
+    });
+    expect(snapshot.attributes).not.toHaveProperty("profileRole");
+    expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
+      result.identity,
+    );
+  });
+
+  // Council round 1 on WP2a, F15 (plan 5.5: a revoked member is refused at
+  // the next request). Eve runs route auth on every inbound turn, the answer
+  // that resumes a parked run included, and carries that caller's snapshot
+  // into the turn as `auth.current` (eve 0.25.1, docs/guides/
+  // auth-and-route-protection.md, "Inside runtime code"); specialists read
+  // only `auth.current`. A snapshot taken before a revocation therefore
+  // serves only the turn already running; the next request is refused before
+  // a turn starts, so no specialist run resumes under it.
+  it("refuses the next request once the flag or the membership is revoked; the running turn keeps its snapshot", async () => {
+    const turnSnapshot = toEveSessionAuthSnapshot(adminIdentity());
+    const row = verifiedAdmin.memberships[0];
+    const afterRevocation: AuthContext[] = [
+      // The flag is cleared: the person stays staff.
+      {
+        ...verifiedAdmin,
+        role: "staff",
+        memberships: [{ ...row, isTenantAdmin: false }],
+      },
+      // The membership is revoked: no live staff row in the tenant.
+      {
+        ...verifiedAdmin,
+        role: null,
+        tenantId: null,
+        memberships: [{ ...row, isActive: false }],
+      },
+    ];
+    for (const live of afterRevocation) {
+      const resume = await resolveAdminEveSessionIdentity(
+        new Request("https://eve.test/eve/v1/session/session-owned", {
+          method: "POST",
+        }),
+        { getVerifiedAuthContext: vi.fn().mockResolvedValue(live) },
+      );
+      expect(resume.ok).toBe(false);
+    }
+    expect(identityFromEveSessionAuthSnapshot(turnSnapshot)).toMatchObject({
+      actorIsTenantAdmin: true,
+      tenantId: TENANT_ID,
+    });
+  });
 
   it("extracts ownership targets only from Eve session route paths", () => {
     expect(

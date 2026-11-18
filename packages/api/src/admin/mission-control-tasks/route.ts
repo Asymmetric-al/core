@@ -21,5 +21,5 @@ export const GET_NEEDS_ATTENTION = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );

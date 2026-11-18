@@ -53,6 +53,7 @@ function createSupabaseStub(state: StubState = {}) {
   const session = {
     profileId: "profile-1",
     isSuperAdmin: false,
+    isTenantAdministrator: false,
     ...state.session,
   };
 

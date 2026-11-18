@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BUCKET, DEMO } from "./harness";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import type * as AuthModule from "@asym/auth/context";
 
@@ -75,13 +76,16 @@ const STAFFISH: Actor[] = [
 function ctxFor(actor: Actor): AuthModule.AuthContext {
   const role = actor.startsWith("super_admin") ? "super_admin" : actor;
   const staff = actor === "staff";
+  const tenantId = actor === "super_admin (no tenant)" ? DEMO : TENANT;
   return {
     userId: USER,
-    tenantId: actor === "super_admin (no tenant)" ? DEMO : TENANT,
+    tenantId,
     profileId: "33333333-3333-4333-8333-333333333333",
     email: "caller@example.test",
     role,
-    profileRole: staff ? "donor" : role,
+    // AL-2675: authority is the membership the request acts under. A
+    // super_admin acts under the flagged staff row the backfill gives it in its
+    // tenant (the demo tenant when its profile had none).
     memberships: staff
       ? [
           {
@@ -91,7 +95,7 @@ function ctxFor(actor: Actor): AuthModule.AuthContext {
             isActive: true,
           },
         ]
-      : [],
+      : membershipsForRole(role, tenantId),
     isAuthenticated: true,
   };
 }

@@ -3,8 +3,8 @@
  * stay the approve and relink path, but each requires the finance capability,
  * and the edit and receipt handlers check the staged gift's state.
  *
- * The handlers run through the real `withOperation` wrapper, the real
- * `requireRole` and the real contribution capability table; only the auth
+ * The handlers run through the real `withOperation` wrapper, its real gates
+ * and the real contribution capabilities (the registry since AL-2675); only the auth
  * lookup, the service client and the receipt sender are doubles.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -227,38 +227,38 @@ const baseAuth = {
   isAuthenticated: true,
 } as const;
 
-function staffWith(staffRole: string): AuthContext {
+function staffWith(staffRole: string, isTenantAdmin = false): AuthContext {
   return {
     ...baseAuth,
-    role: "staff",
-    profileRole: "staff",
+    role: isTenantAdmin ? "admin" : "staff",
     memberships: [
       {
         tenantId: TENANT,
         role: "staff",
         staffRole: staffRole as never,
         isActive: true,
+        isTenantAdmin,
       },
     ],
   };
 }
 
+/**
+ * Joined with WP2a (AL-2675): capabilities come from the registry by the one
+ * membership the request acts under, and the auth context has no profile
+ * role. A caller with a role name and no membership holds nothing; the
+ * administrator is the flagged staff row.
+ */
 const callers = {
   memberCare: staffWith("member_care"),
   development: staffWith("development"),
   legacyStaffProfile: {
     ...baseAuth,
     role: "staff",
-    profileRole: "staff",
     memberships: [],
   } satisfies AuthContext,
   finance: staffWith("finance"),
-  admin: {
-    ...baseAuth,
-    role: "admin",
-    profileRole: "admin",
-    memberships: [],
-  } satisfies AuthContext,
+  admin: staffWith("development", true),
 };
 
 function request(pathSuffix: string, method: string, body?: unknown) {

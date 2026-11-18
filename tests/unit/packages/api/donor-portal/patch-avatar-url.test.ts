@@ -30,6 +30,10 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: async () => m.ctx,
   requireAuth: () => undefined,
   requireRole: () => undefined,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: () => undefined,
+  requireTenantAdministrator: () => undefined,
+  requireRoleClass: () => undefined,
 }));
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: () => ({ log: async () => undefined }),

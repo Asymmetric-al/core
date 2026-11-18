@@ -54,7 +54,8 @@ export interface EveNotificationRecipient {
   profileId: string;
   email: string;
   displayName?: string;
-  role: "super_admin";
+  /** Since AL-2675 recipients are tenant administrators, by membership. */
+  role: "tenant_admin";
   enabled: boolean;
   optedOut: boolean;
 }

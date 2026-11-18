@@ -81,5 +81,5 @@ export const GET = withOperation(
 
     return NextResponse.json({ missionaries });
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );
