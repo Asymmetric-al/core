@@ -5,6 +5,7 @@ import {
   attachPayloadDbConsoleListener,
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
+import { writeHeaders } from "./helpers/web-studio";
 
 const nativePagesUiDisabled =
   process.env.CMS_WEB_STUDIO_NATIVE_PAGES === "false" ||
@@ -95,9 +96,12 @@ test.describe("@cms Web Studio native shell", () => {
     try {
       await signInAsAdmin(page);
       const slug = `native-draft-check-${Date.now()}`;
+      // Payload's REST routes answer under /web-studio/api, and a write
+      // carries the document's scope and origin (AL-2675, WP2b slice C).
       const created = await page.request.post(
-        `${adminBaseURL}/api/pages?draft=true`,
+        `${adminBaseURL}/web-studio/api/pages?draft=true`,
         {
+          headers: await writeHeaders(page, adminBaseURL),
           data: {
             title: "Native draft check",
             slug,
@@ -153,7 +157,7 @@ test.describe("@cms Web Studio native shell", () => {
         .poll(
           async () => {
             const response = await page.request.get(
-              `${adminBaseURL}/api/pages/${documentId}?draft=true&depth=0`,
+              `${adminBaseURL}/web-studio/api/pages/${documentId}?draft=true&depth=0`,
             );
             const doc = response.ok() ? await response.json() : null;
             return (
@@ -175,7 +179,8 @@ test.describe("@cms Web Studio native shell", () => {
       try {
         if (documentId !== undefined) {
           const deleted = await page.request.delete(
-            `${adminBaseURL}/api/pages/${documentId}`,
+            `${adminBaseURL}/web-studio/api/pages/${documentId}`,
+            { headers: await writeHeaders(page, adminBaseURL) },
           );
           expect(deleted.ok()).toBe(true);
         }
