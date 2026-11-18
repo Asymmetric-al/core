@@ -2,6 +2,31 @@
 
 Last updated: 2026-11-17
 
+## OpenSpec skill refresh to v2.1.0 - 2026-11-17 (AL-2693)
+
+Refreshed the seven selected OpenSpec skills from `Fission-AI/OpenSpec` tag
+`v2.1.0` (`8bd4b3557b5bf1d231cd2f165b28f24e2d90a2a0`) with
+`scripts/refresh-upstream-skills.mjs --only=Fission-AI/OpenSpec`, alongside the
+CLI pin. Upstream changed all seven raw entrypoints and all seven installed
+skills changed: hand-offs to slash commands became plain-language or CLI
+guidance, and the Update and Apply workflows no longer hand off to the Continue and New
+slash commands, which Core does not install. The three refresh replacements that
+rewrote those references matched nothing in 2.1 and were removed. Two were
+added. One drops the new Apply sentence about keeping a selected Store, because
+Core does not use Stores. The other keeps Update's archive hand-off on the
+archive workflow and on merged, accepted work, where 2.1 suggests the raw
+archive command. The upstream licence notice changed its copyright line.
+The refresh re-applied Core's overlay, wrapper permission, project check and
+provenance, and each skill's diff was read. The seven records in
+[skill-source-audit.json](skill-source-audit.json) cite that commit, its raw
+entrypoint hashes and the current lock hashes. The v2.0.0 entry below remains as
+history. The refresh ran no upstream code.
+
+Two host differences in the refresh script were fixed in the same change. It
+now checks upstream files out with their committed line endings, and it
+accepts the Prettier launcher name that Bun creates on Windows. Before that, a Windows refresh skipped repository formatting and
+produced different bytes and hashes from a Linux one.
+
 ## UI SDK skill overlay - 2026-11-17
 
 Core's `ui-sdk` overlay now names the shared UI SDK owners in

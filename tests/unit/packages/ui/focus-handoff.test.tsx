@@ -2,8 +2,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-2690: Unit test of the donor app's own focus helper at its app boundary.
-import { useFocusHandoff } from "../../../../apps/donor/features/donor/focus-recovery";
+import { useFocusHandoff } from "../../../../packages/ui/hooks/load-retry";
 
 afterEach(cleanup);
 

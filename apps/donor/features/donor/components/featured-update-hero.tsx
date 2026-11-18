@@ -25,8 +25,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import type { useLoadRetry } from "../focus-recovery";
 import type { DonorFeedPost } from "@asym/database/hooks";
+import type { useLoadRetry } from "@asym/ui/hooks";
 
 /**
  * The donor's newest ministry update from the feed. Callers key this by post

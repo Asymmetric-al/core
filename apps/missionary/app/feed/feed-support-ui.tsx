@@ -2,10 +2,6 @@
 
 import { useLastSynced } from "@asym/lib/hooks";
 import { motion } from "@asym/lib/motion";
-import {
-  pageHeading,
-  useLoadRetry,
-} from "@asym/missionary/hooks/use-load-retry";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
@@ -17,6 +13,7 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { pageHeading, useLoadRetry } from "@asym/ui/hooks";
 import { Clock, Globe, TriangleAlert } from "lucide-react";
 import { type ElementType, type ReactNode, type Ref, useRef } from "react";
 
@@ -93,18 +90,20 @@ export function EmptyState({
 }
 
 function FeedLoadErrorState({
+  ref,
   message,
   onRetry,
   retrying,
   retryRef,
 }: {
+  ref: Ref<HTMLDivElement>;
   message: string;
   onRetry?: () => void;
   retrying: boolean;
   retryRef: Ref<HTMLButtonElement>;
 }) {
   return (
-    <div role="alert">
+    <div ref={ref} role="alert">
       <EmptyState
         icon={TriangleAlert}
         title="Couldn't load your feed"
@@ -142,13 +141,13 @@ export function PublishedFeedPane({
   onRetry?: () => void;
 }) {
   const loadRetryButton = useRef<HTMLButtonElement>(null);
-  const loadRetry = useLoadRetry({
+  const { failureView, ...loadRetry } = useLoadRetry({
     retryRef: loadRetryButton,
     error: hasPosts || isLoading ? null : feedError,
     loading: isLoading,
     onRetry,
-    landing: (button) =>
-      button?.closest<HTMLElement>('[role="tabpanel"]') ?? pageHeading(button),
+    landing: (from) =>
+      from?.closest<HTMLElement>('[role="tabpanel"]') ?? pageHeading(from),
   });
 
   if (isLoading && !loadRetry.retrying) {
@@ -162,6 +161,7 @@ export function PublishedFeedPane({
   if (loadRetry.error) {
     return (
       <FeedLoadErrorState
+        ref={failureView}
         message={loadRetry.error}
         onRetry={onRetry ? loadRetry.retry : undefined}
         retrying={loadRetry.retrying}
