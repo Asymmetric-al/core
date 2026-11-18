@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ACCEPTANCE_DIR } from "../../../scripts/verify/acceptance-tests.mjs";
 import {
@@ -13,9 +13,6 @@ import {
   runBunVersionGuard,
   runUnitTests,
 } from "../../../scripts/verify/unit-tests.mjs";
-
-// No CI event: the input-scoped selection always runs every group.
-const LOCAL = { env: {} };
 
 describe("unit test runner", () => {
   it("uses the cross-platform Bun version guard on Windows", () => {
@@ -50,7 +47,7 @@ describe("unit test runner", () => {
   it("stops on Windows when the Bun version guard fails", () => {
     const spawn = vi.fn(() => ({ status: 7 }));
 
-    expect(runUnitTests("win32", spawn, [], LOCAL)).toBe(7);
+    expect(runUnitTests("win32", spawn, [])).toBe(7);
     expect(spawn).toHaveBeenCalledOnce();
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
@@ -65,7 +62,7 @@ describe("unit test runner", () => {
   it("skips the Bun version guard on non-Windows platforms", () => {
     const spawn = vi.fn(() => ({ status: 0 }));
 
-    expect(runUnitTests("linux", spawn, [], LOCAL)).toBe(0);
+    expect(runUnitTests("linux", spawn, [])).toBe(0);
     expect(spawn).toHaveBeenCalledOnce();
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
@@ -89,7 +86,7 @@ describe("unit test runner", () => {
       .mockReturnValueOnce({ status: 0 })
       .mockReturnValueOnce({ status: 0 });
 
-    expect(runUnitTests("win32", spawn, [], LOCAL)).toBe(0);
+    expect(runUnitTests("win32", spawn, [])).toBe(0);
     expect(spawn).toHaveBeenCalledTimes(2);
     expect(spawn).toHaveBeenNthCalledWith(
       2,
@@ -125,12 +122,10 @@ describe("unit runner argument forwarding", () => {
         }),
       );
       expect(
-        runUnitTests(
-          platform,
-          spawn,
-          ["tests/unit/scripts/setup-verify.test.ts", "--maxWorkers=2"],
-          LOCAL,
-        ),
+        runUnitTests(platform, spawn, [
+          "tests/unit/scripts/setup-verify.test.ts",
+          "--maxWorkers=2",
+        ]),
       ).toBe(0);
       const invocation = spawn.mock.calls.at(-1);
       expect(invocation?.[1]).toContain("--coverage");
@@ -143,12 +138,12 @@ describe("unit runner argument forwarding", () => {
 
   it("retains unspecified defaults and repeatable exclusions on Windows", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    runUnitTests(
-      "win32",
-      spawn,
-      ["--max-workers", "2", "--exclude", "custom/**"],
-      LOCAL,
-    );
+    runUnitTests("win32", spawn, [
+      "--max-workers",
+      "2",
+      "--exclude",
+      "custom/**",
+    ]);
     const args = spawn.mock.calls.at(-1)?.[1];
     expect(args).not.toContain("--maxWorkers=50%");
     expect(args).toContain("--coverage");
@@ -161,13 +156,13 @@ describe("unit runner argument forwarding", () => {
 
   it("keeps default coverage when only its provider is explicit", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    runUnitTests("linux", spawn, ["--coverage.provider=v8"], LOCAL);
+    runUnitTests("linux", spawn, ["--coverage.provider=v8"]);
     expect(spawn.mock.calls.at(-1)?.[1]).toContain("--coverage");
   });
 
   it("does not interpret filters after the option terminator as overrides", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    runUnitTests("linux", spawn, ["--", "--coverage=false"], LOCAL);
+    runUnitTests("linux", spawn, ["--", "--coverage=false"]);
     expect(spawn.mock.calls.at(-1)?.[1]).toEqual([
       path.resolve("node_modules/vitest/vitest.mjs"),
       "run",
@@ -191,7 +186,7 @@ describe("acceptance tests run once", () => {
       const spawn = vi.fn((_command: string, _args: string[]) => ({
         status: 0,
       }));
-      runUnitTests(platform, spawn, [], LOCAL);
+      runUnitTests(platform, spawn, []);
       const args = spawn.mock.calls.at(-1)?.[1] ?? [];
       const index = args.indexOf(ACCEPTANCE_EXCLUDE);
       expect(index).toBeGreaterThan(0);
@@ -214,7 +209,7 @@ describe("acceptance tests run once", () => {
       const spawn = vi.fn((_command: string, _args: string[]) => ({
         status: 0,
       }));
-      runUnitTests(platform, spawn, ["--", filter], LOCAL);
+      runUnitTests(platform, spawn, ["--", filter]);
       const args = spawn.mock.calls.at(-1)?.[1] ?? [];
       expect(args).not.toContain(ACCEPTANCE_EXCLUDE);
       expect(args).toContain(filter);
@@ -234,7 +229,7 @@ describe("acceptance tests run once", () => {
     const spawn = vi.fn((_command: string, _args: string[]) => ({
       status: 0,
     }));
-    runUnitTests("linux", spawn, ["--", ...filters], LOCAL);
+    runUnitTests("linux", spawn, ["--", ...filters]);
     const args = spawn.mock.calls.at(-1)?.[1] ?? [];
     const index = args.indexOf(ACCEPTANCE_EXCLUDE);
     expect(index).toBeGreaterThan(0);
@@ -242,81 +237,54 @@ describe("acceptance tests run once", () => {
   });
 });
 
-describe("input-scoped selection", () => {
-  const pullRequest = {
-    GITHUB_EVENT_NAME: "pull_request",
-    GITHUB_BASE_REF: "develop",
-    CI_BASE_SHA: "a".repeat(40),
-    CI_HEAD_SHA: "b".repeat(40),
+describe("every unit test runs on every event", () => {
+  // A same-repository pull request into develop whose real diff touches only
+  // documents (31cceeacd, from this change's own history). The factory-test
+  // selection this replaced skipped 70 factory files for it.
+  const DOCS_ONLY = {
+    CI_BASE_SHA: "06a7c85e69eabe8dce624c71aa8c670c69de686d",
+    CI_HEAD_SHA: "31cceeacd9cbd2354822ec8a1afe5e0a47e2ec21",
   };
-
-  it("excludes a skipped group and says so in the log", () => {
-    const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    const log = vi.fn();
-    runUnitTests("linux", spawn, [], {
-      env: pullRequest,
-      readChanges: () => ["docs/ci.md"],
-      analyze: () => ({
-        scoped: ["tests/unit/scripts/archon-a.test.ts"],
-        unscoped: [],
-      }),
-      log,
-    });
-    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-    expect(args).toContain("tests/unit/scripts/archon-a.test.ts");
-    expect(args).toContain(ACCEPTANCE_EXCLUDE);
-    expect(log.mock.calls.flat().join(" ")).toMatch(
-      /skipping 1 files of the factory group/,
-    );
-  });
-
-  // Every value passed to Vitest's --exclude, in order.
-  const exclusions = (args: string[]) =>
+  const exclusionsOf = (args: string[]) =>
     args.flatMap((argument, index) =>
       argument === "--exclude" ? [args[index + 1]] : [],
     );
-  // An analysis that would clear a known file, so a run that wrongly skipped
-  // the group would show that file among the exclusions (review round 6,
-  // c1.4: the earlier assertions looked for a glob nothing ever passes).
-  const clearsOneFile = () =>
-    vi.fn(() => ({
-      scoped: ["tests/unit/scripts/archon-a.test.ts"],
-      unscoped: [],
-    }));
 
-  it("runs every test when the selection fails", () => {
-    const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    const log = vi.fn();
-    const analyze = clearsOneFile();
-    runUnitTests("linux", spawn, [], {
-      env: pullRequest,
-      readChanges: () => {
-        throw new Error("boom");
-      },
-      analyze,
-      log,
-    });
-    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-    expect(exclusions(args)).toEqual([ACCEPTANCE_EXCLUDE]);
-    expect(analyze).not.toHaveBeenCalled();
-    expect(log.mock.calls.flat().join(" ")).toMatch(
-      /selection failed.*every test runs/,
-    );
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
-  it("runs every test on a push to develop", () => {
-    const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
-    const analyze = clearsOneFile();
-    runUnitTests("linux", spawn, [], {
-      env: { ...pullRequest, GITHUB_EVENT_NAME: "push", GITHUB_BASE_REF: "" },
-      readChanges: () => ["docs/ci.md"],
-      analyze,
-      log: () => {},
-    });
-    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
-    expect(exclusions(args)).toEqual([ACCEPTANCE_EXCLUDE]);
-    expect(analyze).not.toHaveBeenCalled();
-  });
+  it.each([
+    [
+      "a develop pull request with a documentation-only diff",
+      "pull_request",
+      "develop",
+    ],
+    ["a production pull request", "pull_request", "production"],
+    ["a push", "push", ""],
+    ["a merge-queue run", "merge_group", ""],
+    ["a manual dispatch", "workflow_dispatch", ""],
+  ])(
+    "passes Vitest no exclusion but the acceptance directory for %s",
+    (_label, event, baseRef) => {
+      vi.stubEnv("GITHUB_EVENT_NAME", event);
+      vi.stubEnv("GITHUB_BASE_REF", baseRef);
+      vi.stubEnv("CI_BASE_SHA", DOCS_ONLY.CI_BASE_SHA);
+      vi.stubEnv("CI_HEAD_SHA", DOCS_ONLY.CI_HEAD_SHA);
+      const spawn = vi.fn((_command: string, _args: string[]) => ({
+        status: 0,
+      }));
+      const log = vi.spyOn(console, "log").mockImplementation(() => {});
+      try {
+        runUnitTests("linux", spawn, []);
+      } finally {
+        log.mockRestore();
+      }
+      expect(exclusionsOf(spawn.mock.calls.at(-1)?.[1] ?? [])).toEqual([
+        ACCEPTANCE_EXCLUDE,
+      ]);
+    },
+  );
 });
 
 describe("installed Vitest dispatch", () => {
@@ -373,20 +341,15 @@ describe("installed Vitest dispatch", () => {
           results.push(result);
           return result;
         };
-        const status = runUnitTests(
-          platform,
-          spawn,
-          [
-            "--config",
-            config,
-            coverageOption,
-            "--maxWorkers=1",
-            "--testTimeout=10000",
-            "--hookTimeout=10000",
-            "--file-parallelism",
-          ],
-          LOCAL,
-        );
+        const status = runUnitTests(platform, spawn, [
+          "--config",
+          config,
+          coverageOption,
+          "--maxWorkers=1",
+          "--testTimeout=10000",
+          "--hookTimeout=10000",
+          "--file-parallelism",
+        ]);
         expect(results).toHaveLength(1);
         expect(results[0]?.error).toBeUndefined();
         expect(String(results[0]?.stderr ?? "")).not.toContain(
