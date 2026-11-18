@@ -12,20 +12,43 @@
 // applies the fixes once the code is complete. Layout is Prettier's job.
 //
 // It never blocks or fails an edit: a missing tool, an unreadable payload or
-// any unexpected error exits 0 without output. It stops within a time budget
-// below the harness timeout and says what it did not check. It acts only on
-// files inside the checkout that holds this script, makes no network call
-// and never runs the `next` CLI, a build, a typecheck or tests.
+// any unexpected error exits 0 without output. It names each file Prettier
+// rewrote, so the agent re-reads it before its next edit, and says when a
+// tool did not run or finish, so an unchecked edit never reads as clean. It
+// stops within a time budget below the harness timeout. It acts only on
+// files whose real path is inside the checkout that holds this script, makes
+// no network call and never runs the `next` CLI, a build, a typecheck or
+// tests.
 //
 // Usage: node scripts/agent-hooks/after-edit.mjs <claude|codex|cursor>
 // ASYM_EDIT_HOOK=format skips the lint step; ASYM_EDIT_HOOK=off skips both.
 import { spawnSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+
+/**
+ * The real path of a file, or of its nearest existing ancestor joined with
+ * the rest, so a checkout reached through a symlink or junction and a link
+ * inside it that points elsewhere are both judged by where they lead.
+ */
+export function realPath(file) {
+  const missing = [];
+  let current = path.resolve(file);
+  for (;;) {
+    try {
+      return path.join(realpathSync(current), ...missing.reverse());
+    } catch {
+      const parent = path.dirname(current);
+      if (parent === current) return path.resolve(file);
+      missing.push(path.basename(current));
+      current = parent;
+    }
+  }
+}
 
 // The checkout this script belongs to; the hook acts on no other tree.
-export const HOOK_ROOT = path.resolve(
+export const HOOK_ROOT = realPath(
   fileURLToPath(new URL("../../", import.meta.url)),
 );
 const LINTED = /^(?:apps|packages|tooling)\/.+\.(?:ts|tsx|js|jsx|mjs|cjs)$/;
@@ -64,27 +87,48 @@ function resolveFrom(base, file) {
   return path.resolve(typeof base === "string" ? base : process.cwd(), file);
 }
 
+const PATCH_HEADER = /^\*\*\* (Add File|Delete File|Update File): (.+)$/;
+const MOVE_HEADER = /^\*\*\* Move to: (.+)$/;
+
 /**
- * Files written by apply_patch: added, updated, and moved-to paths. File
- * headers start at the beginning of a line; a content or context line that
- * only looks like one is indented or prefixed, so it is not matched.
+ * Files written by apply_patch: added, updated, and moved-to paths. Headers
+ * follow the grammar Codex's apply_patch accepts (openai/codex,
+ * codex-rs/apply-patch/src/streaming_parser.rs, `process_line`, read
+ * 2026-11-18): nothing counts before "*** Begin Patch" or after
+ * "*** End Patch"; after "*** Begin Patch", "*** Add File" and
+ * "*** Delete File" a header is matched on the trimmed line; inside an
+ * "*** Update File" hunk only trailing whitespace is removed, so an indented
+ * header there is a context line, and "*** Move to" counts only before the
+ * hunk's first change line. Content lines ("+", "-", " ") never match.
  */
 function patchedFiles(command) {
   const text = Array.isArray(command) ? command.join("\n") : String(command);
   const files = [];
-  let updated = null;
+  let state = "before";
+  let movable = null;
   for (const line of text.split(/\r?\n/)) {
-    const match =
-      /^\*\*\* (Add File|Update File|Move to|Delete File): (.+)$/.exec(line);
-    if (!match) continue;
-    const [, kind, file] = match;
-    if (kind === "Move to" && updated !== null) files[updated] = file.trim();
-    else if (kind === "Add File" || kind === "Update File") {
-      files.push(file.trim());
-      updated = kind === "Update File" ? files.length - 1 : null;
+    if (state === "before") {
+      if (line.trim() === "*** Begin Patch") state = "patch";
       continue;
     }
-    updated = null;
+    if (state === "ended") break;
+    const header = state === "update" ? line.trimEnd() : line.trim();
+    if (header === "*** End Patch") {
+      state = "ended";
+      continue;
+    }
+    const match = PATCH_HEADER.exec(header);
+    if (match) {
+      const [, kind, file] = match;
+      if (kind !== "Delete File") files.push(file);
+      movable = kind === "Update File" ? files.length - 1 : null;
+      state = kind === "Update File" ? "update" : "patch";
+      continue;
+    }
+    if (state !== "update") continue;
+    const move = movable === null ? null : MOVE_HEADER.exec(header);
+    if (move) files[movable] = move[1];
+    movable = null;
   }
   return files;
 }
@@ -128,8 +172,13 @@ function relativeName(root, file) {
   return path.relative(root, file).split(path.sep).join("/");
 }
 
-export function classifyEdit(root, file, exists = isFile) {
-  const relative = relativeName(root, file);
+/**
+ * What the hook does with one edited file. Both paths are compared by their
+ * real paths (`real`), so a link into the checkout is handled and a link
+ * inside it that leads elsewhere is outside.
+ */
+export function classifyEdit(root, file, exists = isFile, real = realPath) {
+  const relative = relativeName(real(root), real(file));
   if (
     relative === "" ||
     relative === ".." ||
@@ -161,10 +210,12 @@ export function buildCommands({ root, edits, node, tools, lint = true }) {
       tool: "prettier",
       files: edits.map((edit) => edit.file),
       command: node,
+      // With --write, --list-different prints each file Prettier rewrote.
       args: [
         path.join(root, "node_modules", "prettier", "bin", "prettier.cjs"),
         "--ignore-unknown",
         "--write",
+        "--list-different",
         ...edits.map((edit) => edit.file),
       ],
       cwd: root,
@@ -194,18 +245,33 @@ export function buildCommands({ root, edits, node, tools, lint = true }) {
 }
 
 /**
+ * ESLint's `--format json` results, or null when the output is not a
+ * complete result list.
+ */
+export function eslintResults(output) {
+  try {
+    const parsed = JSON.parse(output);
+    return Array.isArray(parsed) &&
+      parsed.every(
+        (result) =>
+          result &&
+          typeof result === "object" &&
+          typeof result.filePath === "string" &&
+          Array.isArray(result.messages),
+      )
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * A few lines per file naming the ESLint errors and the fixable problems the
  * hook left in place, or none.
  */
 export function summarizeEslint(output, root) {
-  const results = (() => {
-    try {
-      const parsed = JSON.parse(output);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  })();
+  const results = eslintResults(output) ?? [];
   const lines = [];
   for (const result of results) {
     const problems = (result.messages ?? []).filter(
@@ -233,17 +299,55 @@ export function summarizeEslint(output, root) {
   return lines;
 }
 
-function prettierFailure(result) {
-  if (result.status !== 2) return [];
-  const errors = String(result.stderr ?? "")
+function outputLines(text) {
+  return String(text ?? "")
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) => line !== "")
-    .slice(0, 3);
+    .filter((line) => line !== "");
+}
+
+/**
+ * One line per file Prettier rewrote (with --write, --list-different prints
+ * each one relative to the hook's cwd), then any formatting failure. The
+ * harness still holds the text the agent wrote, so the agent must re-read a
+ * rewritten file before its next edit or that edit will not match.
+ */
+export function summarizePrettier(result, command, root) {
+  const names = new Set(command.files.map((file) => relativeName(root, file)));
+  const lines = outputLines(result.stdout)
+    .map((line) => line.split(path.sep).join("/"))
+    .filter((name) => names.has(name))
+    .map(
+      (name) =>
+        `${name}: reformatted by Prettier; re-read it before the next edit.`,
+    );
+  if (result.status !== 2) return lines;
+  const errors = outputLines(result.stderr).slice(0, 3);
   return [
+    ...lines,
     `Prettier could not format every edited file${errors.length ? ":" : "."}`,
     ...errors.map((line) => `  ${line}`),
   ];
+}
+
+/** ESLint's report, or why the files were not linted. */
+function eslintReport(result, command, root) {
+  const results = eslintResults(result.stdout);
+  const reason = outputLines(result.stderr)[0];
+  if (results === null)
+    return notChecked(
+      root,
+      command,
+      result.status === 2
+        ? `ESLint failed${reason ? ` (${reason})` : ""}`
+        : "ESLint printed no readable results",
+    );
+  const lines = summarizeEslint(result.stdout, root);
+  // ESLint 10 also exits 2 after printing complete results, for example
+  // when an edit leaves a suppression count above what it suppresses.
+  if (result.status === 2)
+    lines.push(`ESLint exited 2 after linting${reason ? `: ${reason}` : ""}`);
+  return lines;
 }
 
 /**
@@ -313,8 +417,13 @@ export function afterEdit({
   const deadline = clock() + budgetMs;
   const mode = env.ASYM_EDIT_HOOK ?? "";
   if (mode === "off") return hookResponse(harness, []);
+  // The tools get each file's real path, so their output names it relative
+  // to the checkout however the harness reached it.
   const edits = parsePayload(harness, input)
-    .map((file) => ({ file, ...classifyEdit(root, file, exists) }))
+    .map((file) => ({
+      file: realPath(file),
+      ...classifyEdit(root, file, exists),
+    }))
     .filter((edit) => edit.action !== "skip");
   if (edits.length === 0) return hookResponse(harness, []);
   const lines = [];
@@ -344,22 +453,23 @@ export function afterEdit({
       );
       continue;
     }
-    if (result.error || result.signal) continue;
-    if (command.tool === "eslint" && result.status === 2) {
-      // ESLint's exit 2 is a configuration or internal failure, not findings.
-      const first = String(result.stderr ?? "")
-        .split(/\r?\n/)
-        .find((line) => line.trim() !== "");
+    // A tool that could not start, overflowed its output buffer (ENOBUFS)
+    // or was killed checked nothing; say so rather than report a clean edit.
+    if (result.error || result.signal) {
       lines.push(
         ...notChecked(
           root,
           command,
-          `${name} failed${first ? ` (${first.trim()})` : ""}`,
+          result.error
+            ? `${name} could not run (${result.error.code ?? result.error.message})`
+            : `${name} was stopped by ${result.signal}`,
         ),
       );
-    } else if (command.tool === "eslint")
-      lines.push(...summarizeEslint(result.stdout, root));
-    else lines.push(...prettierFailure(result));
+      continue;
+    }
+    if (command.tool === "eslint")
+      lines.push(...eslintReport(result, command, root));
+    else lines.push(...summarizePrettier(result, command, root));
   }
   return hookResponse(harness, lines);
 }
@@ -379,5 +489,18 @@ function main() {
   return response.exit;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
-  process.exitCode = main();
+// Node runs the real path of the script it was given, so compare real paths:
+// a hook started through a linked checkout still runs.
+function invokedDirectly() {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(path.resolve(process.argv[1])) ===
+      fileURLToPath(import.meta.url)
+    );
+  } catch {
+    return false;
+  }
+}
+
+if (invokedDirectly()) process.exitCode = main();

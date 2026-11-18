@@ -1,5 +1,5 @@
 {
-  "description": "Core edit hook: ESLint --fix and Prettier --write on each file apply_patch writes (scripts/agent-hooks/after-edit.mjs). Codex runs it after you trust it with /hooks.",
+  "description": "Core edit hook: Prettier --write on each file apply_patch writes, then an ESLint report on the source files; it applies no ESLint fix (scripts/agent-hooks/after-edit.mjs). Codex runs it after you trust it with /hooks.",
   "hooks": {
     "PostToolUse": [
       {

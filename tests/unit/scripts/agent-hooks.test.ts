@@ -109,7 +109,17 @@ describe("edit hook payloads", () => {
     ).toEqual([]);
   });
 
-  it("matches apply_patch file headers only at the start of a line", () => {
+  const patchFiles = (patch: string) =>
+    parsePayload(
+      "codex",
+      JSON.stringify({
+        cwd: ROOT,
+        tool_name: "apply_patch",
+        tool_input: { command: patch },
+      }),
+    );
+
+  it("never takes an apply_patch content or context line for a header", () => {
     // A patch to a document that shows a patch: its content and context
     // lines carry a "+", "-" or " " prefix, so they never start a header.
     const patch = [
@@ -120,18 +130,64 @@ describe("edit hook payloads", () => {
       "-  *** Add File: apps/admin/lib/removed.ts",
       "+*** Add File: apps/admin/lib/added.ts",
       "+\t*** Update File: apps/admin/lib/tabbed.ts",
+      "*** Add File: docs/shown.md",
+      "+*** Update File: apps/admin/lib/added-content.ts",
+      "+  *** Delete File: apps/admin/lib/added-content-2.ts",
       "*** End Patch",
     ].join("\n");
-    expect(
-      parsePayload(
-        "codex",
-        JSON.stringify({
-          cwd: ROOT,
-          tool_name: "apply_patch",
-          tool_input: { command: patch },
-        }),
-      ),
-    ).toEqual([at("docs/patch-format.md")]);
+    expect(patchFiles(patch)).toEqual([
+      at("docs/patch-format.md"),
+      at("docs/shown.md"),
+    ]);
+  });
+
+  // Codex's apply_patch (openai/codex codex-rs/apply-patch/src/
+  // streaming_parser.rs, process_line) matches headers on the trimmed line
+  // after "*** Begin Patch", "*** Add File" and "*** Delete File", and on the
+  // line with only trailing whitespace removed inside an "*** Update File"
+  // hunk, where an indented header is a context line.
+  it("reads indented headers where Codex's apply_patch accepts them", () => {
+    const patch = [
+      "*** Update File: apps/admin/lib/before-begin.ts",
+      "  *** Begin Patch",
+      "  *** Add File: docs/indented-add.md",
+      "+hello",
+      "\t*** Update File: apps/admin/lib/after-add.ts",
+      "  *** Move to: apps/admin/lib/not-a-move.ts",
+      "@@",
+      "-a",
+      "+b",
+      "*** Delete File: apps/admin/lib/gone.ts",
+      "   *** Update File: packages/api/src/after-delete.ts  ",
+      "@@",
+      "  *** Update File: apps/admin/lib/indented-context.ts",
+      "+c",
+      "*** End Patch",
+      "*** Update File: apps/admin/lib/after-end.ts",
+    ].join("\n");
+    expect(patchFiles(patch)).toEqual([
+      at("docs/indented-add.md"),
+      at("apps/admin/lib/after-add.ts"),
+      at("packages/api/src/after-delete.ts"),
+    ]);
+  });
+
+  it("takes a move only right after its Update File header", () => {
+    const patch = [
+      "*** Begin Patch",
+      "*** Update File: packages/api/src/old.ts",
+      "*** Move to: packages/api/src/new.ts  ",
+      "@@",
+      "-a",
+      "+b",
+      "*** Add File: docs/added.md",
+      "+x",
+      "*** End Patch",
+    ].join("\n");
+    expect(patchFiles(patch)).toEqual([
+      at("packages/api/src/new.ts"),
+      at("docs/added.md"),
+    ]);
   });
 
   it("reads the edited file from a Cursor afterFileEdit payload", () => {
@@ -214,6 +270,35 @@ describe("edit hook path decisions", () => {
     });
   });
 
+  it("compares real paths, so links into or out of the checkout are judged by their target", () => {
+    const links: Record<string, string> = {
+      [path.resolve("/link/core")]: ROOT,
+      [at("docs/escape")]: path.resolve("/elsewhere"),
+    };
+    const real = (file: string) => {
+      for (const [link, target] of Object.entries(links))
+        if (file === link || file.startsWith(link + path.sep))
+          return target + file.slice(link.length);
+      return file;
+    };
+    // The checkout reached through a link, on either side.
+    expect(
+      classifyEdit(
+        path.resolve("/link/core"),
+        at("apps/donor/app/page.tsx"),
+        always,
+        real,
+      ),
+    ).toEqual({ action: "lint-and-format" });
+    expect(
+      classifyEdit(ROOT, path.resolve("/link/core/docs/ci.md"), always, real),
+    ).toEqual({ action: "format" });
+    // A file whose real path leaves the checkout stays outside.
+    expect(
+      classifyEdit(ROOT, at("docs/escape/notes.md"), always, real),
+    ).toEqual({ action: "skip", reason: "outside the checkout" });
+  });
+
   it("skips deleted files and files outside the checkout", () => {
     expect(
       classifyEdit(ROOT, at("apps/donor/app/page.tsx"), () => false),
@@ -246,10 +331,12 @@ describe("edit hook commands", () => {
       tool: "prettier",
       files: edits.map((entry) => entry.file),
       command: node,
+      // --list-different with --write names each file Prettier rewrote.
       args: [
         path.join(ROOT, "node_modules", "prettier", "bin", "prettier.cjs"),
         "--ignore-unknown",
         "--write",
+        "--list-different",
         ...edits.map((entry) => entry.file),
       ],
       cwd: ROOT,
@@ -578,20 +665,138 @@ describe("edit hook runs and time budget", () => {
     ).toMatch(/did not lint .*budget ran out/);
   });
 
-  it("says so when ESLint itself fails instead of reporting a clean file", () => {
-    const failed = hook((command) =>
+  const contextOf = (response: { stdout: string }) =>
+    JSON.parse(response.stdout).hookSpecificOutput.additionalContext as string;
+
+  it.each([
+    ["no output", ""],
+    ["unreadable output", "Oops"],
+  ])(
+    "says so when ESLint exits 2 with %s instead of reporting a clean file",
+    (_case, stdout) => {
+      const failed = hook((command) =>
+        command.tool === "eslint"
+          ? {
+              status: 2,
+              stdout,
+              stderr: "\nOops! Something went wrong! :(\n\nESLint: 10.13.0\n",
+            }
+          : ok,
+      );
+      expect(failed.exit).toBe(0);
+      expect(contextOf(failed)).toMatch(
+        /did not lint .*ESLint failed \(Oops! Something went wrong/,
+      );
+    },
+  );
+
+  // ESLint 10 prints its complete results and then exits 2 when an edit
+  // leaves a suppression count higher than the violations it suppresses.
+  it("reports the results ESLint printed before exiting 2", () => {
+    const results = JSON.stringify([
+      {
+        filePath: at("packages/api/src/a.ts"),
+        messages: [
+          {
+            line: 3,
+            column: 7,
+            severity: 2,
+            ruleId: "no-undef",
+            message: "'x' is not defined.",
+          },
+        ],
+      },
+      { filePath: at("packages/api/src/b.ts"), messages: [] },
+    ]);
+    const unpruned =
+      "There are suppressions left that do not occur anymore. To resolve this, re-run the command with `--prune-suppressions`.";
+    const response = hook((command) =>
+      command.tool === "eslint"
+        ? { status: 2, stdout: results, stderr: `${unpruned}\n` }
+        : ok,
+    );
+    expect(response.exit).toBe(0);
+    const context = contextOf(response);
+    expect(context).not.toMatch(/did not lint/);
+    expect(context).toContain("packages/api/src/a.ts: 1 ESLint error:");
+    expect(context).toContain("  3:7 no-undef 'x' is not defined.");
+    expect(context).toContain(`ESLint exited 2 after linting: ${unpruned}`);
+
+    // The same exit with clean results still carries ESLint's own reason.
+    const clean = hook((command) =>
       command.tool === "eslint"
         ? {
             status: 2,
-            stdout: "",
-            stderr: "\nOops! Something went wrong! :(\n\nESLint: 10.13.0\n",
+            stdout: JSON.stringify([
+              { filePath: at("packages/api/src/a.ts"), messages: [] },
+            ]),
+            stderr: `${unpruned}\n`,
           }
         : ok,
     );
-    expect(failed.exit).toBe(0);
-    expect(
-      JSON.parse(failed.stdout).hookSpecificOutput.additionalContext,
-    ).toMatch(/did not lint .*ESLint failed \(Oops! Something went wrong/);
+    expect(contextOf(clean)).toBe(`ESLint exited 2 after linting: ${unpruned}`);
+  });
+
+  it.each([
+    [
+      "fails to start",
+      {
+        status: null,
+        error: Object.assign(new Error("spawnSync node ENOENT"), {
+          code: "ENOENT",
+        }),
+      },
+      /could not run \(ENOENT\)/,
+    ],
+    [
+      "overflows its output buffer",
+      {
+        status: null,
+        signal: "SIGTERM",
+        error: Object.assign(new Error("spawnSync node ENOBUFS"), {
+          code: "ENOBUFS",
+        }),
+      },
+      /could not run \(ENOBUFS\)/,
+    ],
+    [
+      "is killed",
+      { status: null, signal: "SIGKILL" },
+      /was stopped by SIGKILL/,
+    ],
+  ])(
+    "says the edit was not checked when a tool %s",
+    (_case, failure, reason) => {
+      const lint = contextOf(
+        hook((command) => (command.tool === "eslint" ? failure : ok)),
+      );
+      expect(lint).toMatch(/did not lint packages\/api\/src\/a\.ts, /);
+      expect(lint).toMatch(new RegExp(`ESLint ${reason.source}`));
+      const format = contextOf(
+        hook((command) => (command.tool === "prettier" ? failure : ok)),
+      );
+      expect(format).toMatch(/did not format packages\/api\/src\/a\.ts, /);
+      expect(format).toMatch(new RegExp(`Prettier ${reason.source}`));
+    },
+  );
+
+  it("names each file Prettier reformatted so the agent re-reads it", () => {
+    const response = hook((command) =>
+      command.tool === "prettier"
+        ? {
+            status: 0,
+            // Prettier prints each rewritten file relative to its cwd.
+            stdout: "packages/api/src/b.ts\ndocs/notes.md\n",
+            stderr: "",
+          }
+        : ok,
+    );
+    expect(contextOf(response).split("\n")).toEqual([
+      "packages/api/src/b.ts: reformatted by Prettier; re-read it before the next edit.",
+      "docs/notes.md: reformatted by Prettier; re-read it before the next edit.",
+    ]);
+    // Unchanged files are not named.
+    expect(hook(() => ok)).toEqual({ exit: 0, stdout: "", stderr: "" });
   });
 
   it("starts no tool for files outside its own checkout", () => {
@@ -776,6 +981,82 @@ describe("edit hook process", () => {
     );
   }, 180_000);
 
+  // A scratch checkout holding a copy of the hook and a link to this
+  // checkout's installed tools (formatting only: no lint configuration).
+  function formattingCheckout() {
+    const root = mkdtempSync(path.join(os.tmpdir(), "core-edit-hook-real-"));
+    created.push(root);
+    mkdirSync(path.dirname(path.join(root, HOOK)), { recursive: true });
+    copyFileSync(HOOK, path.join(root, HOOK));
+    symlinkSync(
+      path.resolve("node_modules"),
+      path.join(root, "node_modules"),
+      "junction",
+    );
+    linked.push(path.join(root, "node_modules"));
+    mkdirSync(path.join(root, "docs"));
+    return root;
+  }
+  const unformatted = "#   Title\n\n\n\nSome   text.\n";
+  const formatted = "# Title\n\nSome text.\n";
+
+  it("acts on a checkout reached through a link or junction", () => {
+    const root = formattingCheckout();
+    const via = mkdtempSync(path.join(os.tmpdir(), "core-edit-hook-link-"));
+    created.push(via);
+    const link = path.join(via, "core");
+    symlinkSync(root, link, "junction");
+    linked.push(link);
+    for (const [script, file] of [
+      [path.join(link, HOOK), path.join(link, "docs", "a.md")],
+      [path.join(root, HOOK), path.join(link, "docs", "b.md")],
+      [path.join(link, HOOK), path.join(root, "docs", "c.md")],
+    ]) {
+      writeFileSync(file, unformatted);
+      const result = spawnSync(process.execPath, [script, "claude"], {
+        input: JSON.stringify({ tool_input: { file_path: file } }),
+        encoding: "utf8",
+        env: { ...process.env, ASYM_EDIT_HOOK: "format" },
+        timeout: 60_000,
+      });
+      expect(result.status, file).toBe(0);
+      expect(readFileSync(file, "utf8"), file).toBe(formatted);
+      expect(
+        JSON.parse(result.stdout).hookSpecificOutput.additionalContext,
+        file,
+      ).toBe(
+        `docs/${path.basename(file)}: reformatted by Prettier; re-read it before the next edit.`,
+      );
+    }
+  }, 120_000);
+
+  it("refuses a file whose real path leaves the checkout", () => {
+    const root = formattingCheckout();
+    const outside = mkdtempSync(path.join(os.tmpdir(), "core-edit-hook-out-"));
+    created.push(outside);
+    const escape = path.join(root, "docs", "escape");
+    symlinkSync(outside, escape, "junction");
+    linked.push(escape);
+    writeFileSync(path.join(outside, "notes.md"), unformatted);
+    const result = spawnSync(
+      process.execPath,
+      [path.join(root, HOOK), "claude"],
+      {
+        input: JSON.stringify({
+          tool_input: { file_path: path.join(escape, "notes.md") },
+        }),
+        encoding: "utf8",
+        env: { ...process.env, ASYM_EDIT_HOOK: "format" },
+        timeout: 60_000,
+      },
+    );
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe("");
+    expect(readFileSync(path.join(outside, "notes.md"), "utf8")).toBe(
+      unformatted,
+    );
+  });
+
   it("does nothing when switched off", () => {
     const result = runHook(
       "claude",
@@ -823,6 +1104,11 @@ describe("harness hook configuration", () => {
 
   it("wires Codex's PostToolUse edit hook for apply_patch", () => {
     const hooks = readJson(".codex/hooks.json");
+    // The text shown beside the hook a Codex user is asked to trust says
+    // what it does: it formats and reports, and applies no ESLint fix.
+    expect(hooks.description).toMatch(/Prettier --write/);
+    expect(hooks.description).toMatch(/ESLint/);
+    expect(hooks.description).not.toMatch(/--fix/);
     const found = editHooks(hooks.hooks?.PostToolUse);
     expect(found).toHaveLength(1);
     expect(found[0].matcher).toBe("^apply_patch$");
