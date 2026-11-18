@@ -25,6 +25,7 @@ import {
 import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
 import {
   HOSTED_DEFAULT_PRIVILEGES,
+  pinnedSupabaseCliVersion,
   readReleaseSettings,
   restoreHostedDefaultPrivileges,
 } from "../../../../scripts/release/release-database.mjs";
@@ -264,12 +265,34 @@ describe.skipIf(!adminDatabaseUrl || !harnessAdminUrl)(
 // recovery. The rebuild now puts the platform's defaults back before it
 // resets, from the one file the replay applies.
 
-// What the pinned Supabase CLI's `db reset` does to a hosted database (its
-// drop script, pkg/migration/queries/drop.sql): it drops the extensions and
-// schemas the chain made and every object in `public`, but not `public`
-// itself, so the default privileges held there survive. The platform's own
-// schemas survive too; here the compatibility bootstrap makes them again, as
-// it does for a fresh replay.
+// A model of what the pinned Supabase CLI's `db reset` does to a hosted
+// database: a hand copy of its drop script (pkg/migration/queries/drop.sql)
+// as CLI 2.121.0 ships it. It drops the extensions and schemas the chain made
+// and every object in `public`, but not `public` itself, so the default
+// privileges held there survive. The platform's own schemas survive too; here
+// the compatibility bootstrap makes them again, as it does for a fresh replay.
+//
+// It is a model, and it cannot show (review H6):
+// - a drop.sql that recreates `public`, which would drop the defaults held
+//   there with it;
+// - default privileges in the schemas hosted keeps (`extensions`, `vault`,
+//   `auth`, `storage`): the model drops those schemas and the bootstrap makes
+//   them again without any;
+// - objects the real drop leaves in `public`: it drops routines, views,
+//   materialized views, tables, sequences and types there, and the model
+//   assumes nothing else is left;
+// - a role that is not a superuser: the model runs as the container's
+//   superuser `postgres`, and hosted's `postgres` is not one.
+//
+// The copy is tied to the pin: when scripts/supabase-cli.mjs pins another
+// CLI, the case below fails until someone has read that CLI's drop.sql and
+// brought the model and RESET_MODEL_CLI up to it.
+const RESET_MODEL_CLI = "2.121.0";
+
+it("models the reset of the pinned Supabase CLI, and fails when the pin moves", () => {
+  expect(pinnedSupabaseCliVersion()).toBe(RESET_MODEL_CLI);
+});
+
 const HOSTED_RESET_SQL = String.raw`
 DO $reset$
 DECLARE

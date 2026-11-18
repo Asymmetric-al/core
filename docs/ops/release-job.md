@@ -392,9 +392,12 @@ The file runs in one transaction: if it fails part way, nothing of it
 applies, the rebuild stops and nothing is reset. Both rebuilds check the
 pinned CLI before this step, so a wrong CLI stops them before they touch the
 database. `migrate` never resets and never touches default privileges: the
-chain's own changes to them stand. The release real-stack suite proves the
-rebuild: a database built with the chain, then reset the way the CLI resets
-a hosted one, fingerprints equal to a fresh replay.
+chain's own changes to them stand. The release real-stack suite proves the rebuild against a model of
+the reset: a database built with the chain, then reset by a hand copy of the
+pinned CLI's `drop.sql` (2.121.0; a test fails when the pin moves),
+fingerprints equal to a fresh replay. The model cannot show what a
+non-superuser `postgres` or a different `drop.sql` would do; the hosted
+rebuilds of 18 November 2026 did.
 
 **If the reset fails after this step.** The defaults of `postgres` in
 `public` are then open to `anon` and `authenticated` again. A reset that

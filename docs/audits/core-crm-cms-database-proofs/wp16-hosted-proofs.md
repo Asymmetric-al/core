@@ -425,7 +425,7 @@ All are made before `20261117034926_close_default_privileges_and_demo_grants.sql
 
 **Tests that failed first.**
 
-- A real-stack test builds a database with the chain and puts the defaults back as the rebuild does. It then resets it as the CLI resets a hosted database (every schema but `public`, and every object in `public`), applies the chain, and compares with a fresh flagged replay. Without the step it failed with exactly the 15 functions above.
+- A real-stack test builds a database with the chain and puts the defaults back as the rebuild does. It then resets it with a model of the CLI's reset, a hand copy of the pinned CLI 2.121.0's `drop.sql` (every schema but `public`, and every object in `public`), applies the chain, and compares with a fresh flagged replay. Since review H6 a test fails when the CLI pin moves, and the suite lists what the model cannot show (a `drop.sql` that recreates `public`, defaults in the schemas hosted keeps, objects the real drop leaves, a `postgres` that is not a superuser). Without the step it failed with exactly the 15 functions above.
 - Unit cases: the defaults go back from their file before the reset, in both rebuilds; a failure resets nothing; `migrate` leaves them alone. The last is a guard: it passes before and after.
 - The single-source test names the rebuild as a reader of the file.
 
