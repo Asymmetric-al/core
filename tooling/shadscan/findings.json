@@ -1241,7 +1241,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
-          "sha256": "f647abe2af924f08bbfebef808779249f6d37f0c9b61a9e15f107aea78e6cac9"
+          "sha256": "bef7735b0cce39e120929f13c4f62fb69944c0322c49d5a8e56a00d2c7464f28"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
@@ -1307,7 +1307,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
-          "sha256": "f647abe2af924f08bbfebef808779249f6d37f0c9b61a9e15f107aea78e6cac9"
+          "sha256": "bef7735b0cce39e120929f13c4f62fb69944c0322c49d5a8e56a00d2c7464f28"
         },
         {
           "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
