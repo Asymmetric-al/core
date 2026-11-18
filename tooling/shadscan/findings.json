@@ -437,7 +437,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "3a2ec192c297b85e706a3089677dcd7b53db66e1b68a13b2b2af61141a4caaf5"
+          "sha256": "5addb8de6cc75b73737c3f9ca8572cce4d8ae4a203335f76637e07177fec315e"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",

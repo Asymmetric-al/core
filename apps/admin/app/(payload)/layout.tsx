@@ -36,6 +36,7 @@ import {
 } from "@/src/cms/payload-database-config";
 import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
 import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { webStudioServerFunctions } from "@/src/cms/web-studio-server-functions";
 import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
 import { WebStudioDocument } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
@@ -53,6 +54,8 @@ const serverFunction: ServerFunctionClient = async (args) => {
       ...args,
       config,
       importMap,
+      // form-state without document locks (council C3; document-locks.ts).
+      serverFunctions: webStudioServerFunctions,
     });
   } catch (cause: unknown) {
     const name =

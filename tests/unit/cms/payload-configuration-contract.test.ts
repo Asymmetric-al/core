@@ -108,6 +108,42 @@ describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
   });
 });
 
+describe("Payload's server functions stay inside the organization (AL-2675, council C3)", () => {
+  it("closes the lock collection on start: no write through the API, and no row shown", async () => {
+    // Payload's lock collection grants every signed-in user create, read,
+    // update and delete (payload/dist/locked-documents/config.js).
+    const locks = { config: { access: {} as Record<string, unknown> } };
+    await config.onInit?.({
+      collections: { "payload-locked-documents": locks },
+    } as never);
+    const { access } = locks.config;
+    for (const operation of ["create", "update", "delete"]) {
+      expect((access[operation] as () => unknown)(), operation).toBe(false);
+    }
+    expect((access.read as () => unknown)()).toEqual({ id: { exists: false } });
+  });
+
+  it("dispatches form-state without lock status from the Payload layout", async () => {
+    const { readFileSync } = await import("node:fs");
+    const layout = readFileSync("apps/admin/app/(payload)/layout.tsx", "utf8");
+    expect(layout).toContain("serverFunctions: webStudioServerFunctions");
+    const { webStudioServerFunctions } =
+      await import("../../../apps/admin/src/cms/web-studio-server-functions");
+    expect(Object.keys(webStudioServerFunctions)).toEqual(["form-state"]);
+  });
+
+  it("schedules no publication: the schedule-publish function queues jobs on publish permission alone", () => {
+    for (const collection of config.collections) {
+      const drafts = collection.versions && collection.versions.drafts;
+      const schedulePublish =
+        drafts && typeof drafts === "object"
+          ? drafts.schedulePublish
+          : undefined;
+      expect(Boolean(schedulePublish), collection.slug).toBe(false);
+    }
+  });
+});
+
 describe("Postgres adapter settings", () => {
   it("never lets Payload create a missing database or schema", () => {
     // The adapter keeps its options on the instance that init returns; init

@@ -19,6 +19,7 @@ import { Pages } from "./src/cms/collections/pages";
 import { ProjectPages } from "./src/cms/collections/project-pages";
 import { Tenants } from "./src/cms/collections/tenants";
 import { webStudioCreateFromTemplateEndpoint } from "./src/cms/create-from-template-endpoint";
+import { closeLockedDocumentsApi } from "./src/cms/document-locks";
 import {
   assertPayloadDatabaseConfiguration,
   resolvePayloadDatabaseConfig,
@@ -164,6 +165,10 @@ export default buildConfig({
     MinistryUpdates,
     Media,
   ],
+  // Payload's lock collection admits no API write and shows no lock: its
+  // default access let any signed-in user lock another organization's
+  // document (AL-2675, council C3; src/cms/document-locks.ts).
+  onInit: closeLockedDocumentsApi,
   db: guardedDatabaseAdapter,
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
