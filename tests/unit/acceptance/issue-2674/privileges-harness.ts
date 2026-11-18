@@ -6,7 +6,8 @@
  * database the URL names. `hosted: true` first gives `postgres` the default
  * privileges hosted Supabase gives it in `public` (Supabase, "Securing your
  * API", default privileges), so the chain replays as it would on a hosted
- * project. Lock and statement timeouts make a lock wait fail fast;
+ * project. The statements are the release job's own, from the one file both
+ * read (`HOSTED_DEFAULTS`; WP1.6). Lock and statement timeouts make a lock wait fail fast;
  * DROP DATABASE ... WITH (FORCE) cleans up.
  */
 import { spawn } from "node:child_process";
@@ -19,6 +20,8 @@ import pg from "pg";
 export const ROOT = path.resolve(__dirname, "../../../..");
 export const MIG = "supabase/migrations";
 export const BOOTSTRAP = "scripts/sql/supabase-compat-bootstrap.sql";
+/** The platform's default privileges in `public`, as the release job's replay applies them. */
+export const HOSTED_DEFAULTS = "scripts/sql/hosted-default-privileges.sql";
 export const MANIFEST = "docs/security/field-policies/manifest.json";
 
 /** The manifest's classified columns, and five field_policies rows for each. */
@@ -129,11 +132,6 @@ export const IMAGE_LIMIT = "5242880";
 export const read = (file: string) =>
   readFileSync(path.join(ROOT, file), "utf8");
 
-const HOSTED_DEFAULTS = `
-alter default privileges for role postgres in schema public grant all on tables to anon, authenticated, service_role;
-alter default privileges for role postgres in schema public grant all on sequences to anon, authenticated, service_role;
-alter default privileges for role postgres in schema public grant all on functions to anon, authenticated, service_role;`;
-
 type Row = Record<string, unknown>;
 
 function psql(url: string, args: string[]): Promise<number | null> {
@@ -192,7 +190,8 @@ export class Replay {
     );
     this.created = true;
     await psql(this.url, ["-f", path.join(ROOT, BOOTSTRAP)]);
-    if (this.hosted) await psql(this.url, ["-c", HOSTED_DEFAULTS]);
+    if (this.hosted)
+      await psql(this.url, ["-f", path.join(ROOT, HOSTED_DEFAULTS)]);
     const files = readdirSync(path.join(ROOT, MIG))
       .filter((f) => /^\d{14}_.+\.sql$/.test(f))
       .sort();

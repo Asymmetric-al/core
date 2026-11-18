@@ -728,10 +728,14 @@ jobs:
         with:
           version: ${{ steps.supabase-pin.outputs.version }}
 
+      # Hosted Supabase gives `postgres` default privileges in `public` before
+      # any migration runs; the replay applies the same ones first, or its
+      # access lists never equal the target's and the fingerprint gate stops
+      # every hosted release (WP1.6; scripts/sql/hosted-default-privileges.sql).
       - name: Replay every migration on a fresh database
         env:
           DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
-        run: node scripts/verify/supabase-migrations.mjs
+        run: node scripts/verify/supabase-migrations.mjs --hosted-defaults
       - name: Replay Payload migrations on the fresh database
         env:
           PAYLOAD_DATABASE_URI: ${{ env.REPLAY_DATABASE_URL }}

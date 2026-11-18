@@ -9,12 +9,6 @@ import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
-import {
-  captureFingerprint,
-  diffFingerprints,
-  formatFingerprintDiff,
-} from "../../../../scripts/release/schema-fingerprint.mjs";
 import {
   IN_MIGRATE_JOB,
   adminDatabaseUrl,
@@ -22,18 +16,27 @@ import {
   dropDatabase,
   psql,
 } from "./support/test-database";
+import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
+import {
+  captureFingerprint,
+  diffFingerprints,
+  formatFingerprintDiff,
+} from "../../../../scripts/release/schema-fingerprint.mjs";
+import { Replay } from "../../acceptance/issue-2674/privileges-harness";
 
 const created: string[] = [];
 let first = "";
 let second = "";
 const scratch = mkdtempSync(path.join(tmpdir(), "release-fingerprint-"));
+const harnessAdminUrl =
+  process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL?.trim() ?? "";
 
-function replay(label: string) {
+function replay(label: string, args: string[] = []) {
   const db = createDatabase(label);
   created.push(db.name);
   const result = spawnSync(
     process.execPath,
-    ["scripts/verify/supabase-migrations.mjs"],
+    ["scripts/verify/supabase-migrations.mjs", ...args],
     {
       encoding: "utf8",
       shell: false,
@@ -124,6 +127,91 @@ describe.skipIf(!adminDatabaseUrl)(
       const collided = runCatalogGates({ databaseUrl: first });
       expect(collided.ok).toBe(false);
       expect(collided.report).toContain("donors exists in cms, public");
+    });
+  },
+);
+
+// WP1.6's first hosted run (docs/audits/core-crm-cms-database-proofs/
+// wp16-hosted-proofs.md, section 5): hosted Supabase gives `postgres` default
+// privileges in `public` before any migration runs, so the access lists of a
+// plain replay never equal a hosted database's, and every hosted release
+// stopped at its fingerprint. The release job's replay now applies the same
+// defaults first, from scripts/sql/hosted-default-privileges.sql. The
+// privileges harness, which applies that file before the chain as the
+// platform does, stands in for the platform here; the Local Supabase Stack
+// workflow compares the same replay with Supabase's own image.
+it.runIf(IN_MIGRATE_JOB && !harnessAdminUrl)(
+  "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL for the release suite (fails, never skips)",
+  () => expect(harnessAdminUrl).not.toBe(""),
+);
+
+/** The keys of `changed` whose definitions differ in anything but the ACL. */
+function beyondAcl(
+  a: { entries: [string, string][] },
+  b: { entries: [string, string][] },
+  changed: string[],
+) {
+  const ma = new Map(a.entries);
+  const mb = new Map(b.entries);
+  const strip = (def: string | undefined) => {
+    try {
+      const parsed = JSON.parse(def ?? "") as Record<string, unknown>;
+      delete parsed.acl;
+      return JSON.stringify(parsed);
+    } catch {
+      return def;
+    }
+  };
+  return changed.filter((key) => strip(ma.get(key)) !== strip(mb.get(key)));
+}
+
+describe.skipIf(!adminDatabaseUrl || !harnessAdminUrl)(
+  "schema fingerprint against a database with the platform's default privileges (real stack)",
+  { timeout: 240_000 },
+  () => {
+    let platform: Replay | undefined;
+    let plain = "";
+    let withDefaults = "";
+
+    beforeAll(async () => {
+      platform = await new Replay(harnessAdminUrl, true).build();
+      plain = replay("fp_plain");
+      withDefaults = replay("fp_hosted", ["--hosted-defaults"]);
+    }, 600_000);
+
+    afterAll(async () => {
+      await platform?.close();
+    });
+
+    it("differs from a plain replay in access lists only, and equals a replay made with the hosted defaults", () => {
+      const target = captureFingerprint({ databaseUrl: platform!.url });
+      const oldWay = captureFingerprint({ databaseUrl: plain });
+      const before = diffFingerprints(oldWay, target);
+      expect(before.equal).toBe(false);
+      expect(before.missing).toEqual([]);
+      expect(before.unexpected).toEqual([]);
+      expect(before.changed.length).toBeGreaterThan(0);
+      expect(beyondAcl(oldWay, target, before.changed)).toEqual([]);
+
+      const newWay = captureFingerprint({ databaseUrl: withDefaults });
+      expect(diffFingerprints(newWay, target)).toMatchObject({ equal: true });
+      expect(newWay.digest).toBe(target.digest);
+    });
+
+    it("refuses an argument it does not know, rather than replaying without the defaults", () => {
+      const db = createDatabase("fp_badarg");
+      created.push(db.name);
+      const result = spawnSync(
+        process.execPath,
+        ["scripts/verify/supabase-migrations.mjs", "--hosted-default"],
+        {
+          encoding: "utf8",
+          shell: false,
+          env: { ...process.env, DATABASE_URL: db.url },
+        },
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("--hosted-default");
     });
   },
 );

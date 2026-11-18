@@ -177,6 +177,28 @@ describe("release workflow (plan 7.4)", () => {
     expect(deploy).toContain("environment: release-production");
   });
 
+  // WP1.6 (record D-18): the first hosted run stopped at the fingerprint,
+  // because hosted Supabase gives `postgres` default privileges in `public`
+  // that a plain replay lacks. The replay applies them first, from the one
+  // file the privileges harness reads too.
+  it("replays the chain with hosted Supabase's default privileges before it fingerprints the replay", () => {
+    const database = job("database");
+    const replay = database
+      .split("\n      - ")
+      .find((step) => step.includes("Replay every migration"))!;
+    expect(replay).toContain(
+      "run: node scripts/verify/supabase-migrations.mjs --hosted-defaults",
+    );
+    expect(
+      before(
+        database,
+        "supabase-migrations.mjs --hosted-defaults",
+        "schema-fingerprint.mjs capture",
+      ),
+    ).toBe(true);
+    expect(workflow.match(/supabase-migrations\.mjs/g)).toHaveLength(1);
+  });
+
   it("deploys only through the API stage-check-promote step, never a CLI production deploy", () => {
     expect(workflow).not.toMatch(/vercel(\s+deploy)?\s+--prod/);
     expect(workflow).not.toContain("vercel promote");

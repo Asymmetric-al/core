@@ -202,8 +202,12 @@ describe("qa smoke preview deployment workflow", () => {
       /concurrency:\n\s+group: preview-database\n\s+cancel-in-progress: false\n\s+queue: max/,
     );
     expect(job).toContain("environment: release-preview");
+    // Amended for WP1.6 (record D-18): the first hosted run stopped at the
+    // fingerprint, because hosted Supabase gives `postgres` default privileges
+    // in `public` that a plain replay lacks. The preview replay applies them
+    // first, as the release job's does; the old marker named the script alone.
     const order = [
-      "node scripts/verify/supabase-migrations.mjs",
+      "node scripts/verify/supabase-migrations.mjs --hosted-defaults",
       "schema-fingerprint.mjs capture",
       "release-database.mjs preview-rebuild",
       "release-database.mjs gates",

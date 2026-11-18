@@ -16,6 +16,22 @@ const databaseUrl = process.env.DATABASE_URL?.trim();
 const psqlBin = process.env.PSQL_BIN?.trim() || "psql";
 const foundationMigration = "20260214090000_foundation_1_schema.sql";
 
+// `--hosted-defaults` replays the chain as hosted Supabase applies it: with the
+// default privileges the platform gives `postgres` in `public` before any
+// migration (scripts/sql/hosted-default-privileges.sql). The release job's
+// fingerprint gate compares a hosted database with this replay (WP1.6). Any
+// other argument is refused, so a misspelt flag never replays without them.
+const HOSTED_DEFAULTS = "scripts/sql/hosted-default-privileges.sql";
+const cliArgs = process.argv.slice(2);
+const unknownArgs = cliArgs.filter((arg) => arg !== "--hosted-defaults");
+if (unknownArgs.length > 0) {
+  console.error(
+    `error: Unknown argument ${unknownArgs.join(" ")}. The only argument is --hosted-defaults.`,
+  );
+  process.exit(1);
+}
+const hostedDefaults = cliArgs.includes("--hosted-defaults");
+
 if (!databaseUrl) {
   console.error(
     "error: Missing DATABASE_URL. Point it at a disposable local Postgres database before running this verifier.",
@@ -75,6 +91,16 @@ runPsql("bootstrap Supabase compatibility schemas", [
   "-f",
   bootstrapPath,
 ]);
+
+if (hostedDefaults) {
+  runPsql(`apply hosted Supabase default privileges (${HOSTED_DEFAULTS})`, [
+    databaseUrl,
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-f",
+    path.join(repoRoot, HOSTED_DEFAULTS),
+  ]);
+}
 
 for (const fileName of migrationFiles) {
   const migrationPath = path.join(migrationsRoot, fileName);
