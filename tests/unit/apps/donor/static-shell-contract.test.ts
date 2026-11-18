@@ -228,9 +228,9 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
   it("keeps the dashboard group's Suspense boundary in place", () => {
     const source = read("apps/donor/app/(dashboard)/layout.tsx");
 
-    // The nested donor-dashboard layout awaits getAuthContext(), and a
-    // loading.tsx cannot wrap its own segment's layout, so the boundary has to
-    // stay one level up. Without it that cookie read blocks the whole group.
+    // The nested donor-dashboard layout awaits getAuthContext() behind its own
+    // boundary (WP2b, AL-2675); this group boundary stays as the backstop, as
+    // a loading.tsx cannot wrap its own segment's layout.
     expect(source).toMatch(/<Suspense/);
     expect(source).toMatch(/DashboardShellSkeleton/);
   });
@@ -240,9 +240,10 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
       "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
     );
 
-    // Defence in depth. It renders as a sibling of {children} so the dashboard
-    // still gets a static shell, which is only safe while the edge below is the
-    // primary gate — the two assertions have to move together.
+    // Defence in depth. Since WP2b (AL-2675) it wraps the portal's header and
+    // pages inside the portal's document scope; the footer stays in the static
+    // shell. That is only safe while the edge below is the primary gate — the
+    // two assertions have to move together.
     expect(source).toMatch(/hasAnyContextRole/);
     expect(source).toMatch(/redirect\("\/no-access"\)/);
   });

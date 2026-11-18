@@ -17,8 +17,10 @@ export default function NoAccessPage() {
           Your account does not have permission to view this page.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/donor-dashboard" className={buttonVariants()}>
-            Go to donor home
+          {/* The portal sends the people it refuses here, so the way out is
+              the public site, never back to the portal (AL-2675). */}
+          <Link href="/" className={buttonVariants()}>
+            Go to home
           </Link>
           <Link
             href="/login"

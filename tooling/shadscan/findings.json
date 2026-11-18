@@ -2948,7 +2948,7 @@
         },
         {
           "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
-          "sha256": "304338c490ef8f1edac8a3e843886bc00017a0ec6ccac72393ea67d3789a10b3"
+          "sha256": "41194c633c8552e04a9f112de38f9c27d07ccf3c2287f257a72946eaa06cb91c"
         }
       ]
     }
