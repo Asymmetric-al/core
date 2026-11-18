@@ -7,10 +7,12 @@
  * `rpc("tenant_member_profiles")`
  * answers from fixture memberships joined to profiles by login, as the SQL
  * function does: its filters, ordered by membership id, a page of `p_limit`
- * (1,000 at most) after `p_after_membership_id`. Like the Data API, the
- * client returns at most `DATA_API_MAX_ROWS` rows per response and cuts the
- * rest without an error (council round 1 on WP2a, F7). Every `from` and `rpc`
- * call is recorded.
+ * (1,000 at most) after `p_after_membership_id`. Like the Data API, that RPC
+ * returns at most `maxRows` rows per response (`DATA_API_MAX_ROWS` unless
+ * the test sets a lower cap) and cuts the rest without an error (council
+ * round 1 on WP2a, F7; round 2, R2). The cap applies to that RPC only: `from()`
+ * reads are not capped unless `capFromReads` asks for it. Every `from` and
+ * `rpc` call is recorded.
  */
 type Row = Record<string, unknown>;
 
@@ -42,7 +44,10 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: null }> {
   private ascending = true;
   private mode: "many" | "single" | "maybe" = "many";
 
-  constructor(private rows: Row[]) {}
+  constructor(
+    private rows: Row[],
+    private readonly cap: number | null = null,
+  ) {}
 
   select(_columns?: string) {
     return this;
@@ -111,6 +116,7 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: null }> {
     }
     if (this.bounds) rows = rows.slice(this.bounds[0], this.bounds[1] + 1);
     if (this.max !== null) rows = rows.slice(0, this.max);
+    if (this.cap !== null) rows = rows.slice(0, this.cap);
     if (this.mode === "many") return { data: rows, error: null };
     if (rows.length === 1) return { data: rows[0]!, error: null };
     if (this.mode === "maybe" && rows.length === 0)
@@ -132,13 +138,20 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: null }> {
   }
 }
 
-export function fakeServiceClient(data: FakeServiceData) {
+export function fakeServiceClient(
+  data: FakeServiceData,
+  options: { maxRows?: number; capFromReads?: boolean } = {},
+) {
+  const maxRows = options.maxRows ?? DATA_API_MAX_ROWS;
   const calls: string[] = [];
   const client = {
     calls,
     from(table: string) {
       calls.push(`from:${table}`);
-      return new FakeQuery(data.tables[table] ?? []);
+      return new FakeQuery(
+        data.tables[table] ?? [],
+        options.capFromReads ? maxRows : null,
+      );
     },
     rpc(fn: string, args: Record<string, unknown>) {
       calls.push(`rpc:${fn}`);
@@ -185,7 +198,7 @@ export function fakeServiceClient(data: FakeServiceData) {
           ];
         });
       return Promise.resolve({
-        data: rows.slice(0, Math.min(limit, DATA_API_MAX_ROWS)),
+        data: rows.slice(0, Math.min(limit, maxRows)),
         error: null,
       });
     },
@@ -223,6 +236,19 @@ function directoryRows(data: FakeServiceData, tenantId: string) {
         is_tenant_admin: m.is_tenant_admin,
       } as Row;
     });
+}
+
+/**
+ * A mock `rpc` answer for `tenant_member_profiles`: `rows` as the first page
+ * and an empty page once the reader passes a cursor, as the SQL function
+ * answers. The reader goes on until a page comes back empty (council round 2
+ * on WP2a, R2), so a mock that ignored the cursor would repeat its page.
+ */
+export function memberPages(rows: readonly Row[]) {
+  return async (_fn?: string, args?: Record<string, unknown>) => ({
+    data: args?.p_after_membership_id ? [] : [...rows],
+    error: null,
+  });
 }
 
 /** One `tenant_member_profiles` row, for tests that mock `rpc` directly. */

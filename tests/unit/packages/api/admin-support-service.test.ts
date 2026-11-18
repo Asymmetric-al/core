@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { memberRow } from "../../../fixtures/fake-service-client";
+import { memberPages, memberRow } from "../../../fixtures/fake-service-client";
 
 const { randomUUIDMock } = vi.hoisted(() => ({
   randomUUIDMock: vi.fn(),
@@ -184,10 +184,7 @@ describe("admin support service tenant isolation", () => {
     const from = vi.fn((table: string) =>
       table === "profiles" ? profileQuery : ticketQuery,
     );
-    const rpc = vi.fn(async () => ({
-      data: [memberRow({ profileId: "profile-1" })],
-      error: null,
-    }));
+    const rpc = vi.fn(memberPages([memberRow({ profileId: "profile-1" })]));
     const ticket = await getSupportTicket(
       { from, rpc } as never,
       TENANT_A,

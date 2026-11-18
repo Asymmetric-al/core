@@ -31,7 +31,13 @@ const ADMIN = {
   profile: uuid("bbbbbbbb", 9999),
 };
 
-function largeTenant() {
+function largeTenant(
+  options: {
+    maxRows?: number;
+    capFromReads?: boolean;
+    preferences?: boolean;
+  } = {},
+) {
   const memberships: FakeMembership[] = [];
   const profiles: Record<string, unknown>[] = [];
   for (let n = 1; n <= DONORS; n += 1) {
@@ -68,14 +74,26 @@ function largeTenant() {
     display_name: "Administrator",
     full_name: null,
   });
-  return fakeServiceClient({
-    memberships,
-    tables: {
-      profiles,
-      contribution_approval_notification_preferences: [],
-      eve_notification_recipient_configs: [],
+  return fakeServiceClient(
+    {
+      memberships,
+      tables: {
+        profiles,
+        // One preference row per member when asked; the administrator's
+        // row comes last, after a full Data API response.
+        contribution_approval_notification_preferences: options.preferences
+          ? profiles.map((profile) => ({
+              tenant_id: TENANT,
+              profile_id: profile.id,
+              in_app_enabled: true,
+              email_enabled: profile.id === ADMIN.profile,
+            }))
+          : [],
+        eve_notification_recipient_configs: [],
+      },
     },
-  });
+    { maxRows: options.maxRows, capFromReads: options.capFromReads },
+  );
 }
 
 describe("the tenant's people in bounded pages (council round 1 on WP2a, F7)", () => {
@@ -90,11 +108,26 @@ describe("the tenant's people in bounded pages (council round 1 on WP2a, F7)", (
     expect(members).toHaveLength(DONORS + 1);
     expect(new Set(members.map((m) => m.membershipId)).size).toBe(DONORS + 1);
     expect(members.at(-1)?.profileId).toBe(ADMIN.profile);
+    // Three full pages, then the empty page that ends the read.
     expect(client.calls).toEqual(
-      Array(Math.ceil((DONORS + 1) / TENANT_MEMBER_PAGE_SIZE)).fill(
+      Array(Math.ceil((DONORS + 1) / TENANT_MEMBER_PAGE_SIZE) + 1).fill(
         "rpc:tenant_member_profiles",
       ),
     );
+  });
+
+  // Council round 2 on WP2a, R2: `max_rows` is a dashboard setting on hosted
+  // Supabase. A server that returns fewer rows than a page asks for must not
+  // end the read.
+  it("reads every member when the server's cap is below the page size", async () => {
+    const cap = 300;
+    expect(cap).toBeLessThan(TENANT_MEMBER_PAGE_SIZE);
+    const client = largeTenant({ maxRows: cap });
+    const members = await listTenantMembers(client, TENANT);
+    expect(members).toHaveLength(DONORS + 1);
+    expect(new Set(members.map((m) => m.membershipId)).size).toBe(DONORS + 1);
+    expect(members.at(-1)?.profileId).toBe(ADMIN.profile);
+    expect(client.calls).toHaveLength(Math.ceil((DONORS + 1) / cap) + 1);
   });
 
   it("asks the database for a class and the administrator flag", async () => {
@@ -104,7 +137,11 @@ describe("the tenant's people in bounded pages (council round 1 on WP2a, F7)", (
       tenantAdmin: true,
     });
     expect(admins.map((m) => m.profileId)).toEqual([ADMIN.profile]);
-    expect(client.calls).toEqual(["rpc:tenant_member_profiles"]);
+    // One page of one row, then the empty page.
+    expect(client.calls).toEqual([
+      "rpc:tenant_member_profiles",
+      "rpc:tenant_member_profiles",
+    ]);
   });
 
   it("lists the administrator as an approver", async () => {
@@ -128,6 +165,21 @@ describe("the tenant's people in bounded pages (council round 1 on WP2a, F7)", (
       TENANT,
     );
     expect(approvers.map((a) => a.profileId)).toEqual([ADMIN.profile]);
+  });
+
+  // Council round 2 on WP2a, R2: the approvers' notification preferences
+  // are read to the end as well; nothing bounds that table's rows.
+  it("reads the administrator's approval preference past the Data API's cap", async () => {
+    const approvers = await listEligibleApprovers(
+      largeTenant({ capFromReads: true, preferences: true }) as never,
+      TENANT,
+    );
+    expect(approvers).toEqual([
+      {
+        profileId: ADMIN.profile,
+        preference: { inAppEnabled: true, emailEnabled: true },
+      },
+    ]);
   });
 
   it("lists the administrator as an Eve notification recipient", async () => {

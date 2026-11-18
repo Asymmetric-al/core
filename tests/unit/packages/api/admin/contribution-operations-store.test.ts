@@ -106,10 +106,18 @@ function createSupabaseStub(
   members: string[] = [],
 ): AdminSupabaseClient {
   return {
-    async rpc(fn: string, args: { p_profile_ids: string[] | null }) {
+    async rpc(
+      fn: string,
+      args: {
+        p_profile_ids: string[] | null;
+        p_after_membership_id?: string | null;
+      },
+    ) {
       if (fn !== "tenant_member_profiles") {
         throw new Error(`Unexpected Supabase rpc: ${fn}`);
       }
+      // The reader goes on until a page comes back empty (round 2, R2).
+      if (args.p_after_membership_id) return { data: [], error: null };
       return {
         data: members
           .filter(

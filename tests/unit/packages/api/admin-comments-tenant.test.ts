@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { memberRow } from "../../../fixtures/fake-service-client";
+import { memberPages, memberRow } from "../../../fixtures/fake-service-client";
 
 const { getAdminClientMock, getAuthContextMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
@@ -41,10 +41,9 @@ function authContext(tenantId: string) {
 }
 
 /** The author's membership in tenant A, by login (AL-2675). */
-const authorMembership = vi.fn(async () => ({
-  data: [memberRow({ profileId: "author", userId: "author" })],
-  error: null,
-}));
+const authorMembership = vi.fn(
+  memberPages([memberRow({ profileId: "author", userId: "author" })]),
+);
 
 describe("admin comments tenant isolation", () => {
   beforeEach(() => {
@@ -168,7 +167,9 @@ describe("admin comments tenant isolation", () => {
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "Could not load authors" });
     expect(comments.eq).toHaveBeenCalledWith("post.tenant_id", TENANT_A);
-    expect(authorMembership).toHaveBeenCalledOnce();
+    // One membership read: its page, then the empty page that ends it
+    // (council round 2 on WP2a, R2).
+    expect(authorMembership).toHaveBeenCalledTimes(2);
     expect(profiles.eq).not.toHaveBeenCalled();
   });
 
