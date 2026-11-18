@@ -2,7 +2,7 @@
 
 import { cleanup, render } from "@testing-library/react";
 import { useContext } from "react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { RouterAdapterContext } from "../../../apps/admin/node_modules/@payloadcms/ui/dist/exports/client/index.js";
 import { NextRouterAdapter } from "../../../apps/admin/src/cms/payload-next-router-adapter";
@@ -37,6 +37,12 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("../../../apps/admin/src/cms/web-studio-document-load", () => loads);
 
+// The document is a Web Studio list, as when Payload's list calls the router.
+const LIST = "/web-studio/collections/pages";
+
+beforeEach(() => {
+  window.history.replaceState(null, "", LIST);
+});
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -70,6 +76,35 @@ it("keeps a Web Studio page a client navigation", () => {
     undefined,
   );
   expect(loads.loadDocument).not.toHaveBeenCalled();
+});
+
+// Payload's list search, sort and paging, and its bulk actions, replace the
+// query alone (ListQuery's `router.replace(search)`); a relative address or
+// a hash stays on the page too (council round 2, CR1).
+it.each([
+  ["a query alone", "?page=2&sort=-title"],
+  ["an empty address", ""],
+  ["a relative path", "pages/7"],
+  ["a hash", "#columns"],
+])("keeps %s a client navigation", (_label, href) => {
+  const router = payloadRouter();
+  router.replace(href, { scroll: false });
+  router.push(href);
+
+  expect(next.replace).toHaveBeenCalledWith(href, { scroll: false });
+  expect(next.push).toHaveBeenCalledWith(href, undefined);
+  expect(loads.loadDocument).not.toHaveBeenCalled();
+});
+
+it("loads a relative path that climbs out of Web Studio as a document", () => {
+  const router = payloadRouter();
+  router.push("../../../people");
+
+  expect(loads.loadDocument).toHaveBeenCalledExactlyOnceWith(
+    "../../../people",
+    { replace: false },
+  );
+  expect(next.push).not.toHaveBeenCalled();
 });
 
 it.each([

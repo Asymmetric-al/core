@@ -28,16 +28,22 @@ import type { LinkAdapterProps } from "payload";
  * Web Studio never keeps the old organization's page, even when Payload's
  * leave-without-saving dialog turns a link click into a push (AL-2675,
  * council C1 and C12).
+ *
+ * `href` is resolved against the live address, as the browser resolves it:
+ * Payload's list search, sort and paging and its bulk actions replace the
+ * query alone (`?page=2`), which stays on the page (council round 2, CR1).
  */
-export function isWebStudioPageAddress(href: string, origin: string): boolean {
+export function isWebStudioPageAddress(href: string, current: string): boolean {
   let url: URL;
+  let here: URL;
   try {
-    url = new URL(href, origin);
+    here = new URL(current);
+    url = new URL(href, here);
   } catch {
     return false;
   }
   return (
-    url.origin === origin &&
+    url.origin === here.origin &&
     isWebStudioPath(url.pathname) &&
     !isWebStudioApiPath(url.pathname) &&
     url.pathname !== WEB_STUDIO_CHOOSER_PATH &&
@@ -92,12 +98,12 @@ function NextRouterAdapterProvider({
     () => ({
       back: nextRouter.back,
       push: (href, options) =>
-        isWebStudioPageAddress(href, window.location.origin)
+        isWebStudioPageAddress(href, window.location.href)
           ? nextRouter.push(href, options)
           : loadDocument(href, { replace: false }),
       refresh: nextRouter.refresh,
       replace: (href, options) =>
-        isWebStudioPageAddress(href, window.location.origin)
+        isWebStudioPageAddress(href, window.location.href)
           ? nextRouter.replace(href, options)
           : loadDocument(href, { replace: true }),
     }),

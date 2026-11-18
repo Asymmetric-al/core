@@ -108,22 +108,25 @@ function recordBrowserDialogs(page: Page) {
 }
 
 /**
- * Deletes a test document from a fresh tab in the demo organization. A
+ * Deletes test documents from a fresh tab in the demo organization. A
  * failure here is reported, never thrown over the case's own error.
  */
 async function cleanUp(
   page: Page,
   collection: "pages" | "navigation",
-  id: string,
+  ...ids: string[]
 ) {
   const tab = await page.context().newPage();
   try {
     await switchOrganization(tab, base, DEMO);
-    await tab.request.delete(`${base}/web-studio/api/${collection}/${id}`, {
-      headers: await writeHeaders(tab, base),
-    });
+    const headers = await writeHeaders(tab, base);
+    for (const id of ids) {
+      await tab.request.delete(`${base}/web-studio/api/${collection}/${id}`, {
+        headers,
+      });
+    }
   } catch (error) {
-    console.warn(`cleanup of ${collection}/${id} failed:`, error);
+    console.warn(`cleanup of ${collection} ${ids.join(", ")} failed:`, error);
   } finally {
     await tab.close();
   }
@@ -596,6 +599,70 @@ test("@cms a link clicked in a page opened before another tab switched organizat
     ).toBeVisible();
   } finally {
     await cleanUp(page, "pages", id);
+  }
+});
+
+test("@cms searching, sorting and paging a list stay in the same document", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+  const stamp = `wslist-${Date.now()}`;
+  // Two pages of results at ten rows a page.
+  const ids: string[] = [];
+  for (let n = 1; n <= 12; n += 1) {
+    ids.push(
+      await createDraftPage(
+        page,
+        base,
+        `List ${stamp} ${String(n).padStart(2, "0")}`,
+      ),
+    );
+  }
+
+  try {
+    await page.goto(`${base}/web-studio/collections/pages`);
+    await markDocument(page);
+
+    // Payload's list replaces the query alone; each pause in typing is one
+    // replace, and none may reload the page or lose a keystroke (CR1).
+    const search = page.getByRole("searchbox", { name: "Search pages" });
+    await search.pressSequentially(stamp, { delay: 80 });
+    const row = (n: string) =>
+      page.getByRole("link", { name: `List ${stamp} ${n}`, exact: true });
+    await expect(page).toHaveURL(/[?&]search=/);
+    // Ten of the twelve, in whatever order Payload remembers for this person.
+    await expect(
+      page.getByRole("link", { name: new RegExp(`^List ${stamp} \\d\\d$`) }),
+    ).toHaveCount(10);
+    await expect(search).toHaveValue(stamp);
+    await expect(search).toBeFocused();
+    expect(await sameDocument(page)).toBe(true);
+
+    // The column header turns the order on each click. Click at least once
+    // (the remembered order may already be ascending), then until it is,
+    // waiting for each click to change the address.
+    const title = page.getByRole("button", { name: "Title", exact: true });
+    const sortedBy = () => new URL(page.url()).searchParams.get("sort");
+    for (let turn = 0; turn < 4; turn += 1) {
+      const before = sortedBy();
+      await title.click();
+      await expect.poll(sortedBy).not.toBe(before);
+      if (sortedBy() === "title") break;
+    }
+    expect(sortedBy()).toBe("title");
+    await expect(row("01")).toBeVisible();
+    expect(await sameDocument(page)).toBe(true);
+
+    // By keyboard: a development-only floating button covers the pager's
+    // corner on a dev server.
+    await page.getByRole("button", { name: "Go to next page" }).press("Enter");
+    await expect(page).toHaveURL(/[?&]page=2/);
+    await expect(row("11")).toBeVisible();
+    await expect(row("01")).toHaveCount(0);
+    expect(await sameDocument(page)).toBe(true);
+  } finally {
+    await cleanUp(page, "pages", ...ids);
   }
 });
 
