@@ -100,6 +100,8 @@ export async function createConfirmedUser(
     email: string;
     password: string;
     membership: AuthMailMembership;
+    /** Rows beyond the first, as a person in several organizations holds them. */
+    moreMemberships?: readonly Exclude<AuthMailMembership, { role: "donor" }>[];
   },
 ): Promise<string> {
   const created = await fetch(`${env.supabaseUrl}/auth/v1/admin/users`, {
@@ -118,6 +120,9 @@ export async function createConfirmedUser(
   const { membership } = input;
   if (membership.role !== "donor") {
     await grantMembership(env, id, membership);
+  }
+  for (const more of input.moreMemberships ?? []) {
+    await grantMembership(env, id, more);
   }
   return id;
 }
@@ -153,6 +158,10 @@ async function grantMembership(
 
 /** The demo organization the local stack's seed creates. */
 export const AUTH_MAIL_TENANT_ID = DEMO_TENANT_ID;
+
+/** The seed's second organization (supabase/seed.sql, Harbor Light Mission). */
+export const AUTH_MAIL_SECOND_TENANT_ID =
+  "00000000-0000-0000-0000-000000000002";
 
 /** The login behind an address, through the profile the sign-up trigger made. */
 export async function findUserIdByEmail(
