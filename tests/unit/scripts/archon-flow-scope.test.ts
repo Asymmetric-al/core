@@ -234,6 +234,8 @@ describe("protected paths (boundary-shell-secrets#11)", () => {
       "scripts/agent-hooks/after-edit.mjs",
       "scripts/agent-hooks/**",
       ".codex/hooks.json",
+      // Codex also reads hooks inline from its project configuration.
+      ".codex/config.toml",
       ".cursor/hooks.json",
       ".archon/x",
       "bunfig.toml",
@@ -323,6 +325,7 @@ describe("protected paths (boundary-shell-secrets#11)", () => {
         ".claude/**",
         "scripts/agent-hooks/**",
         ".codex/hooks.json",
+        ".codex/config.toml",
         ".cursor/hooks.json",
         "bunfig.toml",
         ".npmrc",

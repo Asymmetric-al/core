@@ -196,7 +196,8 @@ delivery run unless the run's owner is verifiably gone; it can delete files.
 - `allow-protected` accepts only issues in the current scope and only the exact
   protected globs: `.github/**`, `.husky/**`, `scripts/git/**`,
   `scripts/archon-factory/**`, `.archon/**`, `.claude/**`,
-  `scripts/agent-hooks/**`, `.codex/hooks.json`, `.cursor/hooks.json`,
+  `scripts/agent-hooks/**`, `.codex/hooks.json`, `.codex/config.toml`,
+  `.cursor/hooks.json`,
   `bunfig.toml`, `.npmrc`, `package.json` (the root one) and
   `scripts/verify/ci-*.mjs`. It
   writes `core/scope.allowProtected[<n>]`; approving a new scope keeps grants
