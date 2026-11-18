@@ -389,6 +389,14 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "admin"
         run: bun run test:e2e:boneyard:admin
+      # The tenant in the page address end to end (AL-2675; council round 1,
+      # A14, record D-18): the acceptance lines' proof and D-19's first
+      # condition, on the dev server started above.
+      - name: Tenant address (admin app)
+        timeout-minutes: 15
+        env:
+          CI: "1"
+        run: bun run test:e2e:tenant-address:admin
       - name: Start missionary app
         run: bash scripts/github/e2e-dev-server.sh missionary start 4000
       - name: Wait for missionary health endpoint
@@ -400,6 +408,12 @@ jobs:
           PLAYWRIGHT_BONEYARD_TARGET: "missionary"
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
         run: bun run test:e2e:boneyard:missionary
+      - name: Tenant address (missionary app)
+        timeout-minutes: 15
+        env:
+          CI: "1"
+          PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
+        run: bun run test:e2e:tenant-address:missionary
       - name: Boneyard smoke (donor app)
         timeout-minutes: 5
         env:
