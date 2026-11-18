@@ -585,14 +585,32 @@ page and `merge_group` runs of both workflows start. The round answers WAIT
 is `queued`, and each later round answers WAIT ("Still in the develop merge
 queue") until GitHub merges it; the round after that records MERGED with
 `merged_by: external`, because the queue, not a factory request, made the
-merge commit. The factory never enqueues the same head twice. If the queue
-removes the pull request (a failed `merge_group` check), the factory keeps
-waiting until the issue blocks `feedback-limit`: re-add the pull request with
-**Merge when ready** or merge it by hand, then `issue <n> retry`. If instead
-the issue stops at `PR_READY` with "Required human review pending (0/0)" and
-the round's `readiness-observation` shows `state: blocked`, GitHub reports
-queued-base pull requests as blocked and readiness cannot tell; turn the
-queue off and report it. People merge by hand with **Merge when ready**.
+merge commit. The factory never enqueues the same head twice.
+
+Each of those WAITs is a feedback round, counted in the same budget of 12 as
+the rounds the issue already spent on its pull request's checks and reviews.
+So the issue can block `feedback-limit` while its pull request is still queued
+and healthy, not only after the queue removed it (a failed `merge_group`
+check, or a person). A blocked issue does not notice when the queue merges its
+pull request later. Look at the pull request, then:
+
+- merged or still queued: `issue <n> retry`. The next round records MERGED if
+  the queue has merged it meanwhile, otherwise it waits again with a fresh
+  budget;
+- removed from the queue: re-add it with **Merge when ready**, then
+  `issue <n> retry`. While the ruleset requires the queue, a direct merge is
+  refused, so this is the only way to merge it.
+
+`factory hold-merge`, an issue hold or a stop only keeps the factory from
+enqueueing. None of them takes a pull request out of the queue, and GitHub
+still merges one that is queued. To stop a queued merge, remove its entry on
+the `develop` queue page.
+
+If the issue stops at `PR_READY` instead of being enqueued, with "Required
+human review pending (0/0)", and the round's `readiness-observation` shows
+`state: blocked`, GitHub reports queued-base pull requests as blocked and
+readiness cannot tell; turn the queue off and report it. People merge by hand
+with **Merge when ready**.
 
 Turn it off (restore the rule first, again so `develop` is never unprotected):
 

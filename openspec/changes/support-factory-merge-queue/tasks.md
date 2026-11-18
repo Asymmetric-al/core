@@ -54,6 +54,23 @@
 - [ ] 5.2 Install the release on VM 100 and observe the first factory merge
       through the queue on `develop` (owner action after the queue is on).
 
+## 6. Review follow-up (18 November)
+
+- [x] 6.1 Write failing tests in `tests/unit/scripts/archon-pack-github.test.ts`
+      for an enqueue whose GraphQL errors are a rate limit, carry no type, or
+      mix a rejection with another error (unknown, never retried), and for
+      errors that are all `FORBIDDEN`, `NOT_FOUND` or `UNPROCESSABLE`
+      (refused); then classify in `pack/.shared/github.mjs` and verify the
+      files that import it pass (2 workers). Red on 18 November: 3 failures
+      (each answered `refused`). Green: 80 tests in that file, and 311 across
+      the 11 test files that import `github.mjs` or the merge lane.
+- [x] 6.2 Correct the runbook section "Merge queue on develop" (a healthy
+      queued pull request can also block `feedback-limit`; retry is the
+      recovery; a hold or stop does not dequeue; no direct merge while the
+      queue is required), record the feedback-budget interaction in
+      design.md, and correct the merge attribution and `mergeRequest` fields
+      in `pack/README.md`.
+
 ## Workflow follow-up
 
 - Archive the change after the implementation has merged and the first queued

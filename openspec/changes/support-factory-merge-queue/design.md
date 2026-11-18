@@ -83,9 +83,25 @@ state; supporting a queue configured only in classic branch protection.
    It is the documented way to add a pull request to a queue and binds the
    reviewed head. It goes through the same request path as other writes:
    a lost response or server error is `unknown` and never retried; a client
-   error or GraphQL error is `refused`; an answer without a queue entry is
-   `unknown`. The result is `{ queued: true, mergeQueueEntry }` and has no
-   `merged` field. Alternative: REST `PUT /pulls/{n}/merge-async`, which
+   error is `refused`; an answer without a queue entry is `unknown`. GraphQL
+   reports its errors in a 200 answer, and not every error means the mutation
+   was rejected: a rate limit or a server-side failure may come after it ran.
+   So GraphQL errors are `refused` only when every one carries the type
+   `FORBIDDEN`, `NOT_FOUND` or `UNPROCESSABLE`, and `unknown` otherwise,
+   including an error without a type. GitHub's documentation lists no GraphQL
+   error types (github/docs issue #11071 asked for that list and was moved to
+   an internal tracker), and the type is not part of the schema. On
+   18 November 2026 read-only queries answered `NOT_FOUND` (an unknown node
+   id, a missing repository), `FORBIDDEN` (an admin-only organization field)
+   and also `EXCESSIVE_PAGINATION`, `INVALID_PAGINATION` and an error with no
+   type. GitHub's own clients treat `NOT_FOUND` and `FORBIDDEN` as rejections
+   (cli/cli `pkg/cmd/issue/shared/lookup.go`) and `UNPROCESSABLE` on a
+   mutation as one (github/gh-aw
+   `actions/setup/js/work_queue_issue_api.cjs`, a `createLabel` that already
+   exists). Which type GitHub gives a rejected `enqueuePullRequest` was not
+   observed: no mutation was sent. The result is
+   `{ queued: true, mergeQueueEntry }` and has no `merged` field.
+   Alternative: REST `PUT /pulls/{n}/merge-async`, which
    "merges a pull request into the base branch in the background or adds it to
    a merge queue". It is newer and could serve both cases, but using it for the
    queue-off path would change today's synchronous merge, and the workstream
@@ -114,9 +130,26 @@ state; supporting a queue configured only in classic branch protection.
   person); it then looks the same as a queued one, and the factory does not
   read the queue] → The lane keeps answering WAIT and never enqueues again;
   the issue's feedback-round budget ends the wait as BLOCKED
-  `feedback-limit`. A person re-adds the pull request or merges it, then
-  retries the issue; the next round records MERGED. Nothing is reported
-  merged early.
+  `feedback-limit`. A person re-adds the pull request with Merge when ready
+  (a direct merge is refused while the queue is required), then retries the
+  issue; the next round records MERGED once the queue has merged it. Nothing
+  is reported merged early.
+- [The same budget can end the wait of a pull request that is still queued
+  and healthy] → Each queued round answers WAIT, which `record-logic.mjs`
+  turns into `continue` on the `feedback` route. `workitem.mjs` adds one to
+  `feedbackRounds` for every such round on a polling route and blocks
+  `feedback-limit` once it passes `maxFeedbackRounds`. The counter covers the
+  item's whole life: only `retry` and `reopen` reset it (`resetBudgets`), so
+  rounds already spent on the pull request's own checks and review threads
+  count. `config.mjs` sets 12 rounds and `checkWaitMs` of 10 minutes; the
+  runbook sets the queue's status check timeout to 120 minutes, the whole
+  budget even when no round was spent before. A blocked issue is not
+  followed when the queue merges its pull request later (the intake pass
+  follows only `PR_READY` items), so it stays BLOCKED until a person retries;
+  that retry records MERGED if the queue has merged it, or waits again. Queued
+  waits count against the feedback budget today. Whether they should is a
+  separate decision for the owner and is not changed here; the runbook gives
+  the recovery for both the queued and the removed case.
 - [A queue merge has no receipt for its merge commit] → It closes out as
   MERGED with `merged_by: external`, since factory attribution needs a
   confirmed receipt for the exact merge commit.
