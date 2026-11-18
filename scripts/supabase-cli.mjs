@@ -30,9 +30,26 @@ import {
 
 const PINNED_SUPABASE_CLI_VERSION = "2.121.0";
 const forcePinned = process.env.SUPABASE_CLI_FORCE_PINNED === "1";
-const pinnedVersion =
-  process.env.SUPABASE_CLI_VERSION?.trim() || PINNED_SUPABASE_CLI_VERSION;
+// SUPABASE_CLI_VERSION picks another version for a local run; a forced run
+// (the release job) always runs the repository's pin.
+const pinnedVersion = forcePinned
+  ? PINNED_SUPABASE_CLI_VERSION
+  : process.env.SUPABASE_CLI_VERSION?.trim() || PINNED_SUPABASE_CLI_VERSION;
 const useShell = process.platform === "win32";
+
+/**
+ * npx's arguments for the fallback: npm's project in `npmProject`, outside the
+ * repository. Through a shell (Windows) the path is quoted, so a space in it
+ * does not split it.
+ */
+export function npxFallbackArgs(npmProject, version, shell = useShell) {
+  return [
+    "--prefix",
+    shell ? `"${npmProject}"` : npmProject,
+    "-y",
+    `supabase@${version}`,
+  ];
+}
 
 /** CLI flags that take a value (`db reset` and the global flags), so their values are not commands. */
 const VALUE_FLAGS = new Set([
@@ -175,7 +192,7 @@ function cliInvocation() {
   );
   return (invocation = {
     command: "npx",
-    prefix: ["--prefix", npmProject, "-y", `supabase@${pinnedVersion}`],
+    prefix: npxFallbackArgs(npmProject, pinnedVersion),
     global: false,
   });
 }
