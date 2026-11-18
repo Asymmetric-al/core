@@ -56,11 +56,10 @@ Editing a cited file, even a comment, makes the ledger entry stale and fails
 its gate. Update the ledger entry in the same change after re-reviewing the
 claim; never edit the hash alone to make the gate pass.
 
-| Ledger                                         | Pinned field                                                | Enforced by                                                                           | Kind                                                                                              |
-| ---------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `tooling/shadscan/findings.json`               | each finding's `proof[].sha256`                             | `scripts/verify/shadscan-policy.mjs` via `verify:shadscan` ("Stale evidence: <path>") | Repository-enforced (CI `integrity` job, `ci:preflight`, and `.husky/pre-commit` with `--staged`) |
-| `tooling/shadcn/upstream-review-baseline.json` | `proofSources[].sha256`                                     | `scripts/verify/shadcn-diff.mjs` via `verify:shadcn-diff`                             | Repository-enforced (`ci:preflight`)                                                              |
-| `docs/qa/react-doctor/exceptions.json`         | `sourceFileHash`, `sourceContextHash`, `evidenceFileHashes` | `scripts/react-doctor-ledger.mjs` via `bun run react-doctor:check`                    | Repository-enforced (manual command only; not in CI or `ci:preflight`)                            |
+| Ledger                                         | Pinned field                    | Enforced by                                                                           | Kind                                                                                              |
+| ---------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `tooling/shadscan/findings.json`               | each finding's `proof[].sha256` | `scripts/verify/shadscan-policy.mjs` via `verify:shadscan` ("Stale evidence: <path>") | Repository-enforced (CI `integrity` job, `ci:preflight`, and `.husky/pre-commit` with `--staged`) |
+| `tooling/shadcn/upstream-review-baseline.json` | `proofSources[].sha256`         | `scripts/verify/shadcn-diff.mjs` via `verify:shadcn-diff`                             | Repository-enforced (`ci:preflight`)                                                              |
 
 ## Import-path protection (data-access boundary)
 

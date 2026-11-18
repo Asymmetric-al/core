@@ -90,4 +90,4 @@ Asym Postgres owns CRM truth. Do not add `TWENTY_*`, `CRM_SYNC_*`, or
 `NEXT_PUBLIC_TWENTY_*` variables, and do not restore Twenty clients, routes,
 webhooks, or health checks.
 
-React/Next.js cleanup audits are documented in `docs/guides/development/react-doctor.md`; `bun run react-doctor:check` is the strict acceptance check.
+React/Next.js cleanup audits are documented in `docs/guides/development/react-doctor.md`; `bun run react-doctor:audit` is an advisory report, and `-- --changed-since=origin/develop` lists only your branch's findings.
