@@ -645,10 +645,15 @@ Turn it off (restore the rule first, again so `develop` is never unprotected):
    **Disabled** (or delete it). Read back as in step 4 above: no
    `merge_queue`, `strict` is `true`.
 
-The factory needs no release change to turn the queue off: without the rule
-it merges directly again. An issue it had queued keeps waiting and is not
-merged directly; if the queue did not merge its pull request, merge it by
-hand, then `issue <n> retry` if the issue has blocked.
+The factory resumes direct merges when the queue rule is disabled. A queued
+request keeps the factory waiting for that same head commit. If restoring
+strict checks requires a base update, the factory can publish a new head,
+carry reviews forward, and merge directly once checks pass.
+
+To prevent factory merges during shutdown, activate `factory hold-merge`
+before disabling the queue. If a pull request remains open on the same queued
+head after shutdown, merge it by hand, then run `issue <n> retry` if the issue
+has blocked.
 
 ## Backups, restore and updates
 
