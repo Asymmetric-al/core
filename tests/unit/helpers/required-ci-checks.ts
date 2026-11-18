@@ -307,6 +307,24 @@ function shellSyntax(script: string): string {
   return out.join("");
 }
 
+/** A word after Bash quote removal: `"0"`, `'0'` and `\0` are all `0`. */
+function unquote(word: string): string {
+  let out = "";
+  let quote: string | null = null;
+  for (let i = 0; i < word.length; i += 1) {
+    const ch = word[i]!;
+    if (quote === "'") {
+      if (ch === "'") quote = null;
+      else out += ch;
+    } else if (ch === "\\" && i + 1 < word.length) {
+      out += word[(i += 1)]!;
+    } else if (ch === quote) quote = null;
+    else if (!quote && (ch === "'" || ch === '"')) quote = ch;
+    else out += ch;
+  }
+  return out;
+}
+
 function shellTokens(script: string): ShellToken[] {
   const tokens: ShellToken[] = [];
   const syntax = shellSyntax(script);
@@ -315,11 +333,15 @@ function shellTokens(script: string): ShellToken[] {
     if (/^(?:\|\||&&|;;|[;&|(){}\n])$/.test(text)) {
       tokens.push({ kind: "op", value: text, at: m.index });
     } else if (text.trim()) {
-      tokens.push({
-        kind: "cmd",
-        words: text.trim().split(/\s+/),
-        at: m.index + text.search(/\S/),
+      // Words are split on the blanked syntax, so quoted text stays in one
+      // word; each word's value is its literal text after quote removal.
+      // A `${{ }}` expression keeps its blanked form.
+      const words = [...text.matchAll(/\S+/g)].map((w) => {
+        const start = m.index + w.index;
+        const literal = script.slice(start, start + w[0].length);
+        return literal.includes("${{") ? w[0] : unquote(literal);
       });
+      tokens.push({ kind: "cmd", words, at: m.index + text.search(/\S/) });
     }
   }
   return tokens;

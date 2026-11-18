@@ -208,6 +208,10 @@ describe("requiredCheckProblems (fixtures)", () => {
       // Bash -e does not stop at a failure inside an && list, so a later
       // `; true` does swallow it.
       "bun run start && echo started; true",
+      // #2716 review round 2: quote removal makes these a status of 0.
+      'bun run start || { echo failed; exit "0"; }',
+      'bun run start || exit "0"',
+      "bun run start; exit '0'",
     ])("a smoke step running %j", (run) => {
       const problems = problemsAfter((w) => {
         jobOf(w, CII, "smoke").steps![0]!.run = run;
@@ -223,6 +227,8 @@ describe("requiredCheckProblems (fixtures)", () => {
       // A bare exit first in the group still carries the failed status.
       "bun run start || { exit; }",
       'bun run start || { echo "start failed"; exit 1; }',
+      'bun run start || { echo failed; exit "1"; }',
+      "bun run start || exit '1'",
       "bun run start || {\n  echo start failed\n  exit 1\n}",
       "bun run start || (echo failed; false)",
       'echo "a || true" && bun run start',
