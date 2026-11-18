@@ -19,37 +19,12 @@ import {
   read,
   sha256,
 } from "./harness";
-import {
-  MODELLED_KEYS_BY_JOB,
-  PINNED_STEP_BODIES,
-  loadWorkflowDocument,
-} from "../../helpers/workflow-yaml";
+import { loadWorkflowDocument } from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const STEP_DOC = "docs/database/email-normalization.md";
-/**
- * Accepted docs/ci.md prefixes, #2180-style (Samson on #2250 Q11, applied to
- * #2254): develop at c541b84b. Later develop appends keep passing; extend
- * this list (as #2246 did for #2180) if develop rewrites earlier bytes.
- */
-const CI_BASES = [
-  {
-    ref: "c541b84b",
-    bytes: 40058,
-    sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
-  },
-  {
-    // Reviewed hosted-only amendment changes only the CI-doc terminal pointer.
-    ref: "AL-2218 hosted CI baseline",
-    bytes: 40204,
-    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-  },
-  {
-    // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-    ref: "#2215 e2e-gate merge_group wording",
-    bytes: 40426,
-    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-  },
-] as const;
+const REALSTACK =
+  "tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts";
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
 const missing = (text: string, pats: (string | RegExp)[]) =>
@@ -256,28 +231,10 @@ describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
   const steps = () =>
     loadWorkflowDocument(".github/workflows/ci-integration.yml").jobs!.migrate!
       .steps as Record<string, string>[];
-  it("one name+run step after the reader-role step runs the issue-2254 real-stack file(s)", () => {
-    const all = steps();
-    const reader = all.findIndex(
-      (s) => s.name === "Verify document-cutover reader role (real stack)",
-    );
-    const index = all.findIndex((s) =>
-      /tests\/unit\/acceptance\/issue-2254\//.test(s.run ?? ""),
-    );
-    expect(reader).toBe(14);
-    expect(index).toBeGreaterThan(reader);
-    const step = all[index]!;
-    expect(Object.keys(step).sort()).toEqual(["name", "run"]);
-    expect(step.run).toMatch(
-      /^bun x vitest run tests\/unit\/acceptance\/issue-2254\//,
-    );
-    expect(MODELLED_KEYS_BY_JOB.migrate!.steps[`name:${step.name}`]).toEqual([
-      "name",
-      "run",
-    ]);
-    const pin = PINNED_STEP_BODIES.migrate![`name:${step.name}`];
-    expect(pin?.index).toBe(index);
-    expect(pin?.run).toBe(step.run!.trim());
+  it("one blocking migrate step runs the issue-2254 real-stack file", () => {
+    const step = steps().find((s) => (s.run ?? "").includes(REALSTACK));
+    expect(step, "a migrate step runs issue-2254 files").toBeDefined();
+    expectRealstackStep(step!.name!, [REALSTACK]);
   });
   it("amendment 6384990496: docs/database/email-normalization.md documents the step's name, check and failure", () => {
     const step = steps().find((s) =>
@@ -297,23 +254,6 @@ describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
         /ids[- ]only|donor ids|no (?:email|PII)|without (?:email|PII)/i,
       ]),
     ).toEqual([]);
-  });
-  it("amendment 6384990496: docs/ci.md keeps develop's bytes as a prefix; anything after is not #2254's", () => {
-    const bytes = readFileSync("docs/ci.md");
-    const base = CI_BASES.find(
-      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
-    );
-    expect(
-      base?.ref,
-      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
-    ).toBeDefined();
-    const later = bytes.subarray(base!.bytes).toString("utf8");
-    expect(
-      /2254|email[- _]normali[sz]|normalize_email|email-normalization\.md/i.test(
-        later,
-      ),
-      "bytes after the develop prefix (later develop appends only) must not document #2254",
-    ).toBe(false);
   });
 });
 

@@ -17,10 +17,7 @@ import {
   read,
   statements,
 } from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const MIG = "supabase/migrations";
 const forward = () =>
@@ -134,20 +131,14 @@ describe("#2270 C12 and §7 pins", () => {
   );
 });
 
-describe("#2270 CI step (Samson's ruling: own explicit-path step after #2250's)", () => {
-  it("'Verify authz EXECUTE grants (real stack)' is migrate step 17, immediately after #2250's step 16, with exactly this env and run", () => {
-    const all =
-      workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
-        .migrate?.steps ?? [];
-    const i = all.findIndex(
-      (s) => s.name === "Verify authz EXECUTE grants (real stack)",
+describe("#2270 CI step (Samson's ruling: own explicit-path step)", () => {
+  it("'Verify authz EXECUTE grants (real stack)' is a blocking migrate step that runs #2270's real-stack file", () => {
+    expectRealstackStep(
+      "Verify authz EXECUTE grants (real stack)",
+      [
+        "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts",
+      ],
+      { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
     );
-    expect(i).toBe(17);
-    expect(all[i - 1]?.name).toBe("Verify tenant isolation (real stack)");
-    expect(all[i]).toEqual({
-      name: "Verify authz EXECUTE grants (real stack)",
-      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
-      run: "bun x vitest run tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts",
-    });
   });
 });

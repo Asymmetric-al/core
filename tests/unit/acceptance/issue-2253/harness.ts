@@ -29,19 +29,11 @@ export const MARKER = "-- tenant-rls-catalog-gate:v1";
 export const CII = ".github/workflows/ci-integration.yml";
 export const REALSTACK =
   "tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts";
-/** Lead's ruling: #2253's own migrate step, by exact path; order pinned only relative to AFTER_STEPS. */
+/** Lead's ruling: #2253's own migrate step, by exact path (#2706: its position is not pinned). */
 export const CI_STEP = {
   name: "Verify RLS catalog gate (real stack)",
   env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
-  run: `bun x vitest run ${REALSTACK}`,
 };
-/** #2250's, #2270's, #2251's and (on develop since d1f0af94) #2255's real-stack steps (never absolute indexes). */
-export const AFTER_STEPS = [
-  "Verify tenant isolation (real stack)",
-  "Verify authz EXECUTE grants (real stack)",
-  "Verify tenant table RLS posture (real stack)",
-  "Verify claim tables (real stack)",
-];
 export const FACTORY = "@asym/database/supabase/admin";
 export const KINDS = [
   "admin_client",
