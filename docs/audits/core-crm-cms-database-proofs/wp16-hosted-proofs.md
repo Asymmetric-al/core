@@ -872,3 +872,77 @@ Section 3 of the Web Studio runbook also told a person to run `cms:migrate` agai
 - CI's `migrate` job, on the operator's own Postgres: every step passed. That includes Payload's migrations through the runner, `cms:qualify`, and the release real-stack step (43 passed, 4 skipped).
 
 **On the preview project.** Nothing ran. The release path does not change: the job already sent what the check now requires. The release test that checks the runner accepts what the job passes still passes.
+
+## 24. The fifth review's hardening (phase 12)
+
+The fourth round read L1 to L7: 8/10, accept after fixes, and no blocking finding. The reviewer ran 25 address forms through `databaseUrlProblem` and a hostile environment through the builders, and found no route to another server. Four items remained. One commit each:
+
+| Item | Commit      | What changed                                                                                                                                                                                 | What failed first |
+| ---- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| M1   | `2575dd183` | A password in a hosted address's query is refused by the release check and the CMS check, not passed to the CLI                                                                              | 5 cases           |
+| M2   | `ef5fde7c3` | Every CMS runner command handed an address not on this machine passes the hosted check; a hosted status is read through the release job's `preflight`                                        | 8 cases           |
+| M3   | `9710fcd7a` | One shared list of ambient libpq settings; the CMS check refuses `sslrootcert`; `RELEASE_DATABASE_SSL_CA` is parsed; `projectRefOfDatabaseUrl` is gone; a hosted step needs psql 16 or later | 20 cases          |
+| M4   | `37cc3a167` | The texts name every file under `scripts/` that starts `psql`, and which of them use the shared check                                                                                        | 2 cases           |
+
+**M1.** `password` is on the query allowlist, and `splitPassword` clears only the login part. So `...?sslmode=verify-full&password=X` used to reach `supabase ... --db-url` with `&password=X`.
+
+- Both hosted checks now refuse a query password, read the libpq way, so `pass%77ord` counts too. The message says the password belongs in the login part.
+- A loopback address keeps it.
+- The runbook's secrets table says where the password goes. The owner's step says to edit an already-set `RELEASE_DATABASE_URL` in both release environments.
+
+**M2.** The CMS runner checked migration writes only, so `migrate:status` read through an unchecked `cms_owner` login.
+
+- Every command whose address is not on this machine now passes `assertCmsMigrationTarget`: the project, the role, `verify-full` and the CA. That includes the status read and the generators.
+- The runbook's cutover step 1 reads a hosted status from the release job's `preflight`.
+- The runbook says "no hand-run hosted migration" is a rule for people: the code enforces only that check.
+- A developer whose `.env.local` names a hosted database is now refused by `cms:importmap` too. The local guides already say to rewrite it.
+- A pin of the old condition in `environment-marker.test.ts` was missed when M2 was committed. The phase's first full run caught it, and the fix was folded into M2 with an autosquash.
+
+**M3.**
+
+- **The shared list.** `KEPT_AMBIENT_LIBPQ_ENV` (`PGPASSWORD`, `PGSSLROOTCERT`) sits beside the check, and the three builders use it. The release builder had a deny-list. Under a hostile environment it kept `PGSSLKEY=engine:...`, `PGCHANNELBINDING=disable`, `PGGSSENCMODE`, `PGSSLCERT` and `PGSYSCONFDIR`; it now keeps no ambient `PG*` setting.
+- **One CA route.** The CMS check refuses `sslrootcert` in a hosted address, including `system`.
+- **The CA is parsed.** `RELEASE_DATABASE_SSL_CA` must hold exactly one PEM certificate and nothing else, a CA, valid now. The blocks are counted first, because `X509Certificate` silently reads only the first. A stop says what it found, never the content. No fingerprint is pinned.
+- **The psql floor.** A hosted step stops before it connects unless `psql --version` reports 16 or later, because an older libpq ignores `PGREQUIREAUTH`. The release workflow installs Ubuntu's `postgresql-client` (`scripts/github/install-postgresql-client.sh`) on `ubuntu-latest`. GitHub's Ubuntu 24.04 image (20261111) carries PostgreSQL 16.15, and Ubuntu 24.04's `postgresql-client` is version 16. This machine's psql is 17.11.
+- **The fixtures.** The test certificates are committed as `.crt`, because the repository ignores `*.pem`.
+
+**M4. Who starts `psql`.** Six files under `scripts/` do.
+
+- Three build a connection from an address, with the shared check and the shared list: `scripts/lib/psql.mjs`, `scripts/release/lib/postgres.mjs` and `scripts/cms/lib/postgres.mjs`.
+- `scripts/release/release-database.mjs` runs `psql --version` only.
+- `scripts/verify/backup-restore-proof.mjs` runs `psql`, `pg_dump` and `pg_restore` inside a Docker container it starts, with no address.
+- `scripts/verify/stripe-data-pipeline.mjs` runs `psql` on a hosted `SUPABASE_DB_URL`, with a check and a builder of its own.
+
+`scripts/document-cutover/assess-document-cutover.ts` starts no `psql`. It judges its address with a third check and connects through node-postgres. Both outliers are left as they are; moving either would not be mechanical:
+
+- **The Stripe script.**
+  - No package script or workflow calls it. `docs/guides/operations/stripe-data-pipeline.md` tells an operator to run it by hand, and records the pipeline as not yet configured (21 October 2026).
+  - It sets read-only session defaults through `PGOPTIONS`, which every shared builder drops. Its tests pin its environment.
+- **The document gate.**
+  - `bun run cutover:assess:documents` and the runbooks under `docs/ops/document-cutover/` call it. Its role exists, and CI's migrate job tests it.
+  - Its check allows only `sslmode` in the query, but accepts `require` and `verify-ca` as Node verification against its own store. That is not psql's allowlist.
+
+A test now pins the list. Every file under `scripts/` that names `psql` is one of the six or uses `scripts/lib/psql.mjs`.
+
+**Three checks the reviewer could not make.** These ran on the operator's own Postgres 17.11 with TLS, between 23:21:20 and 23:21:44 UTC on 18 November 2026. The server logged every connection and statement.
+
+- **`db push` and `db reset`.** The Supabase CLI 2.121.0 ran `db push --dry-run` and `db reset --yes` at `verify-full` with another CA. Each was refused with "tls error (unable to verify the first certificate)". The server saw no connection authorized and no statement, and the probe table survived the reset attempt. The control, `db push --dry-run` with the probe's own CA, connected and ran 2 statements.
+- **Node and `NODE_EXTRA_CA_CERTS`.** node-postgres (pg 8.20.0) ran with `NODE_EXTRA_CA_CERTS` naming the probe's CA. An explicit `ca` naming another CA was refused, so an explicit `ca` replaces Node's store, the extra certificates included. Without an explicit `ca` the same client connected, and without `NODE_EXTRA_CA_CERTS` it was refused.
+- **psql.** The version is as given under M3.
+
+**Checks at `37cc3a167`.**
+
+- ESLint on the changed code: 0 errors.
+- Prettier on the changed files: clean. It names the three `.crt` fixtures "no parser could be inferred", which the hook's `--ignore-unknown` and the repository's `prettier . --check` skip.
+- `typecheck`: 16 of 16, not cached.
+- `tests/unit/scripts`, `tests/unit/workflows` and `tests/unit/docs`: 266 files passed and 1 skipped; 6,682 tests passed and 27 skipped. In a wider run under load, two design-system files timed out; both passed alone.
+- CI's `migrate` job, on the operator's own Postgres: every step passed. The release real-stack step: 43 passed, 4 skipped.
+- The release job's replay: `4f39a0198b87…`, 5,898 objects, unchanged.
+
+**On the preview project.** `preflight` ran once at `37cc3a167`, 23:34:51-23:35:10 UTC, and passed. The address was set as the job will use it: `sslmode=verify-full`, with the password in the login part. The CA came from `RELEASE_DATABASE_SSL_CA`, now parsed, and the psql floor was checked. No CA file was left behind. No rebuild or migrate ran.
+
+**Left for later packages, as the coordinator records them.**
+
+- Payload's run-time connection (`payload-database-config.ts`): `no-verify` on a protected deployment, and a host checked by suffix.
+- The Stripe script's own check and builder.
+- The document gate's own check.
