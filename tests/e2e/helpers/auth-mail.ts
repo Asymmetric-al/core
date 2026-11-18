@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
+import pg from "pg";
 
+import { DEMO_TENANT_ID } from "../../../packages/auth/constants";
 import { isLocalHostname } from "../playwright-shared";
 
 /**
@@ -15,6 +17,11 @@ export interface AuthMailEnv {
   serviceRoleKey: string;
   /** Mailpit's base URL, e.g. http://127.0.0.1:54324. */
   mailUrl: string;
+  /**
+   * The stack's database, for the memberships only it holds (authz is not on
+   * the Data API). Set by `bun run test:e2e:auth-mail`.
+   */
+  dbUrl: string | null;
 }
 
 export function readAuthMailEnv(
@@ -27,11 +34,12 @@ export function readAuthMailEnv(
   )?.trim();
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   const mailUrl = env.E2E_AUTH_MAIL_URL?.trim();
+  const dbUrl = env.E2E_AUTH_MAIL_DB_URL?.trim() || null;
   if (!supabaseUrl || !anonKey || !serviceRoleKey || !mailUrl) {
     return null;
   }
 
-  for (const url of [supabaseUrl, mailUrl]) {
+  for (const url of [supabaseUrl, mailUrl, ...(dbUrl ? [dbUrl] : [])]) {
     if (!isLocalHostname(new URL(url).hostname)) {
       throw new Error(
         `Auth mail e2e runs only against a local Supabase stack, not ${new URL(url).host}.`,
@@ -39,7 +47,7 @@ export function readAuthMailEnv(
     }
   }
 
-  return { supabaseUrl, anonKey, serviceRoleKey, mailUrl };
+  return { supabaseUrl, anonKey, serviceRoleKey, mailUrl, dbUrl };
 }
 
 /** A unique address on a reserved domain, so no real mailbox is involved. */
@@ -57,12 +65,29 @@ function serviceHeaders(env: AuthMailEnv) {
 }
 
 /**
- * Creates a confirmed login through the Auth admin API and sets the role on
- * the profile that the sign-up trigger creates.
+ * The membership a journey's person needs: memberships are the only authority
+ * since AL-2675, and each app admits one class of row. A profile role grants
+ * nothing.
+ */
+export type AuthMailMembership =
+  | { role: "donor" }
+  | { role: "missionary"; tenantId: string }
+  | {
+      role: "staff";
+      staffRole: "finance" | "mobilizer" | "development" | "hr" | "member_care";
+      tenantId: string;
+    };
+
+/**
+ * Creates a confirmed login as a real sign-up creates one: through the Auth
+ * admin API, so the sign-up trigger gives it its profile and its donor
+ * membership in the demo organization. A missionary or staff person then gets
+ * that row in the database, as the seed and the membership data step give one
+ * (no application command grants a staff or missionary row before plan 5.4).
  */
 export async function createConfirmedUser(
   env: AuthMailEnv,
-  input: { email: string; password: string; profileRole: string },
+  input: { email: string; password: string; membership: AuthMailMembership },
 ): Promise<string> {
   const created = await fetch(`${env.supabaseUrl}/auth/v1/admin/users`, {
     method: "POST",
@@ -77,18 +102,44 @@ export async function createConfirmedUser(
   expect(created.status, await created.clone().text()).toBe(200);
   const { id } = (await created.json()) as { id: string };
 
-  const profile = await fetch(
-    `${env.supabaseUrl}/rest/v1/profiles?user_id=eq.${id}`,
-    {
-      method: "PATCH",
-      headers: { ...serviceHeaders(env), Prefer: "return=representation" },
-      body: JSON.stringify({ role: input.profileRole }),
-    },
-  );
-  expect(profile.status, await profile.clone().text()).toBe(200);
-  expect(await profile.json()).toHaveLength(1);
+  const { membership } = input;
+  if (membership.role !== "donor") {
+    await grantMembership(env, id, membership);
+  }
   return id;
 }
+
+async function grantMembership(
+  env: AuthMailEnv,
+  userId: string,
+  membership: Exclude<AuthMailMembership, { role: "donor" }>,
+) {
+  if (!env.dbUrl) {
+    throw new Error(
+      "A missionary or staff journey needs the stack's database: run it with `bun run test:e2e:auth-mail`.",
+    );
+  }
+  const db = new pg.Client({ connectionString: env.dbUrl });
+  await db.connect();
+  try {
+    const { rowCount } = await db.query(
+      `insert into authz.memberships (user_id, tenant_id, role, staff_role)
+       values ($1, $2, $3, $4)`,
+      [
+        userId,
+        membership.tenantId,
+        membership.role,
+        membership.role === "staff" ? membership.staffRole : null,
+      ],
+    );
+    expect(rowCount).toBe(1);
+  } finally {
+    await db.end();
+  }
+}
+
+/** The demo organization the local stack's seed creates. */
+export const AUTH_MAIL_TENANT_ID = DEMO_TENANT_ID;
 
 /** The login behind an address, through the profile the sign-up trigger made. */
 export async function findUserIdByEmail(
@@ -168,7 +219,7 @@ export async function warmUpAuthMailer(env: AuthMailEnv) {
   const userId = await createConfirmedUser(env, {
     email,
     password: "warm up phrase",
-    profileRole: "donor",
+    membership: { role: "donor" },
   });
   try {
     for (let attempt = 0; attempt < 3; attempt += 1) {

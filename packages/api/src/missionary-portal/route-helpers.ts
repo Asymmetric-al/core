@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -27,7 +27,7 @@ export async function runMissionaryPortalOperation(
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["missionary"]);
+    requireRoleClass(auth, ["missionary"]);
 
     return handler({ supabaseAdmin, auth });
   } catch (error) {

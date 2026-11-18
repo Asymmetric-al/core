@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 
 type Row = Record<string, unknown>;
 const m = vi.hoisted(() => ({
@@ -34,10 +35,10 @@ function fakeAdmin() {
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () => ({ client: fakeAdmin(), error: null }),
 }));
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: async () => m.ctx,
   requireAuth: () => undefined,
-  hasContextRole: (ctx: Row, role: string) => ctx.role === role,
 }));
 vi.mock(
   "../../../../../packages/api/src/profile/image-url",
@@ -64,7 +65,15 @@ const STORED_AVATAR = "https://images.unsplash.com/photo-1?w=400";
 const STORED_COVER = `${ORIGIN}/storage/v1/object/public/profiles/covers/${U}-1.webp`;
 
 async function patch(body: Row, role = "missionary") {
-  m.ctx = { userId: U, tenantId: T, profileId: "p-1", role };
+  // AL-2675: the class is read from the membership the request acts under.
+  m.ctx = {
+    userId: U,
+    tenantId: T,
+    profileId: "p-1",
+    role,
+    isAuthenticated: true,
+    memberships: membershipsForRole(role, T),
+  };
   const res = await PATCH(
     new NextRequest("https://app.test/api/profile", {
       method: "PATCH",

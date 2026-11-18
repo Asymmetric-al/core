@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  AUTH_MAIL_TENANT_ID,
   createConfirmedUser,
   deleteUser,
   passwordSignInStatus,
@@ -10,6 +11,7 @@ import {
   waitForHydratedForm,
   warmUpAuthMailer,
   warmUpRoutes,
+  type AuthMailMembership,
 } from "./helpers/auth-mail";
 
 /**
@@ -18,10 +20,31 @@ import {
  * stack and its mail catcher; skipped anywhere else.
  */
 
-const SURFACES: Record<string, { profileRole: string; homePath: string }> = {
-  "auth-mail-donor": { profileRole: "donor", homePath: "/donor-dashboard" },
-  "auth-mail-admin": { profileRole: "staff", homePath: "/" },
-  "auth-mail-missionary": { profileRole: "missionary", homePath: "/" },
+/**
+ * Each app's person holds the membership that app admits, in the demo
+ * organization: memberships are the only authority since AL-2675, and a
+ * profile role grants nothing.
+ */
+const SURFACES: Record<
+  string,
+  { membership: AuthMailMembership; homePath: string }
+> = {
+  "auth-mail-donor": {
+    membership: { role: "donor" },
+    homePath: "/donor-dashboard",
+  },
+  "auth-mail-admin": {
+    membership: {
+      role: "staff",
+      staffRole: "development",
+      tenantId: AUTH_MAIL_TENANT_ID,
+    },
+    homePath: "/",
+  },
+  "auth-mail-missionary": {
+    membership: { role: "missionary", tenantId: AUTH_MAIL_TENANT_ID },
+    homePath: "/",
+  },
 };
 
 const env = readAuthMailEnv();
@@ -50,13 +73,13 @@ test("a recovery email round trip ends signed in with the new password", async (
   test.skip(!env, "Needs a local Supabase stack and its mail catcher.");
   if (!surface || !env || !baseURL) return;
 
-  const email = uniqueTestEmail(`wp0b-recovery-${surface.profileRole}`);
+  const email = uniqueTestEmail(`wp0b-recovery-${surface.membership.role}`);
   const oldPassword = "old recovery phrase";
   const newPassword = "new recovery phrase";
   const userId = await createConfirmedUser(env, {
     email,
     password: oldPassword,
-    profileRole: surface.profileRole,
+    membership: surface.membership,
   });
   const home = new URL(surface.homePath, baseURL).toString();
 

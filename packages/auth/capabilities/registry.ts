@@ -126,6 +126,71 @@ export const CAPABILITY_REGISTRY = deepFreeze({
     domain: "permissions",
     source: "code",
   },
+  "people.manage_members": {
+    label: "Manage members",
+    description:
+      "Invite members, change a member's role or administrator flag, and revoke a membership.",
+    domain: "people",
+    source: "code",
+  },
+  "people.erase": {
+    label: "Erase a person",
+    description: "Erase a person's records in this organization.",
+    domain: "people",
+    source: "code",
+  },
+  "sites.manage": {
+    label: "Manage Sites",
+    description:
+      "Create, deactivate and reactivate Sites, verify domains and set the account brand.",
+    domain: "sites",
+    source: "code",
+  },
+  "payments.manage_account": {
+    label: "Manage the payment account",
+    description: "Start payment-account onboarding.",
+    domain: "payments",
+    source: "code",
+  },
+  "web_studio.edit": {
+    label: "Edit in Web Studio",
+    description: "Edit drafts, upload media and delete media assets.",
+    domain: "web_studio",
+    source: "code",
+  },
+  "web_studio.publish": {
+    label: "Publish in Web Studio",
+    description: "Publish and withdraw content, and contain media.",
+    domain: "web_studio",
+    source: "code",
+  },
+  "updates.review": {
+    label: "Review updates",
+    description:
+      "Approve or reject missionary updates and profile revisions, and withdraw others'.",
+    domain: "updates",
+    source: "code",
+  },
+  "safety.restrict_publication": {
+    label: "Restrict publication",
+    description:
+      "Restrict a worker's publication or lift it, set a worker's identity, and change the publication policy.",
+    domain: "safety",
+    source: "code",
+  },
+  "care.access": {
+    label: "Member care",
+    description: "Read and write member-care notes.",
+    domain: "care",
+    source: "code",
+  },
+  "imports.commit": {
+    label: "Run imports",
+    description:
+      "Issue import uploads, start dry runs, and commit or reverse import batches.",
+    domain: "imports",
+    source: "code",
+  },
 } as const satisfies Record<string, CapabilityMeta>);
 
 export type Capability = keyof typeof CAPABILITY_REGISTRY;

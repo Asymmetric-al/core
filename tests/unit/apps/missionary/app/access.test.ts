@@ -5,18 +5,23 @@ import {
   MISSIONARY_ALLOWED_ROLES,
 } from "../../../../../apps/missionary/app/access";
 
+/**
+ * AL-2675 (WP2a; plan 5.1): the missionary workspace acts on the missionary
+ * row. Staff and administrators work in Mission Control; a person who is
+ * both staff and a missionary enters here under their missionary row. The
+ * elevated support roles this list used to carry are gone (decision table,
+ * docs/audits/core-crm-cms-database-proofs/wp2a-membership-decision-table.md).
+ */
 describe("apps/missionary/app/access", () => {
-  it("keeps elevated support roles in the missionary allowlist", () => {
-    expect(MISSIONARY_ALLOWED_ROLES).toEqual(
-      expect.arrayContaining(["missionary", "admin", "staff", "super_admin"]),
-    );
+  it("allows only the missionary role", () => {
+    expect(MISSIONARY_ALLOWED_ROLES).toEqual(["missionary"]);
   });
 
-  it("allows admin and staff access alongside missionary roles", () => {
+  it("refuses staff, administrators, platform roles and donors", () => {
     expect(canAccessMissionaryApp("missionary")).toBe(true);
-    expect(canAccessMissionaryApp("admin")).toBe(true);
-    expect(canAccessMissionaryApp("staff")).toBe(true);
-    expect(canAccessMissionaryApp("super_admin")).toBe(true);
+    expect(canAccessMissionaryApp("admin")).toBe(false);
+    expect(canAccessMissionaryApp("staff")).toBe(false);
+    expect(canAccessMissionaryApp("super_admin")).toBe(false);
     expect(canAccessMissionaryApp("donor")).toBe(false);
     expect(canAccessMissionaryApp(null)).toBe(false);
   });

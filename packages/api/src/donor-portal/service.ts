@@ -174,8 +174,9 @@ export async function resolveDonorPortalContext(
     (await supabaseAdmin
       .from("profiles")
       .select(PROFILE_SELECT)
+      // The person's own profile, by id. Their donor row in this tenant,
+      // below, is what ties them to it (AL-2675, NR-68).
       .eq("id", profileId)
-      .eq("tenant_id", tenantId)
       .single()) as SupabaseResult<DonorPortalProfileRow>,
     "Donor profile not found",
   );

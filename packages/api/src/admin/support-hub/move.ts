@@ -34,8 +34,6 @@ const retrySchema = z
   })
   .strict();
 
-const SUPPORT_AGENT_ROLES = ["admin", "staff", "super_admin"] as const;
-
 /**
  * Explicit audited Support Hub conversation move. Tenant scoping, reason
  * validation, retention rules, markers, and audit live in the move service.
@@ -72,7 +70,7 @@ export const POST = withOperation(
 
     return NextResponse.json(result);
   },
-  { roles: [...SUPPORT_AGENT_ROLES] },
+  { capability: "admin.dashboard.access" },
 );
 
 export const bulkMovePOST = withOperation(
@@ -98,7 +96,7 @@ export const bulkMovePOST = withOperation(
 
     return NextResponse.json(result);
   },
-  { roles: [...SUPPORT_AGENT_ROLES] },
+  { capability: "admin.dashboard.access" },
 );
 
 export const retryPOST = withOperation(
@@ -122,5 +120,5 @@ export const retryPOST = withOperation(
 
     return NextResponse.json(result);
   },
-  { roles: [...SUPPORT_AGENT_ROLES] },
+  { capability: "admin.dashboard.access" },
 );

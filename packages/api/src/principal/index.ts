@@ -1,14 +1,14 @@
 import "server-only";
 
 export {
+  AssignmentReaderError,
   PrincipalDeniedError,
-  pickDefaultAssignment,
+  createRpcAssignmentReader,
   resolveActiveAssignment,
   resolveActivePrincipal,
-} from "./assignment";
+} from "@asym/auth/principal";
+export type { AssignmentRpcClient } from "@asym/auth/principal";
 export { toHumanProjectionAssignment } from "./projection";
-export { AssignmentReaderError, createRpcAssignmentReader } from "./reader";
-export type { AssignmentRpcClient } from "./reader";
 export type {
   ActiveAssignment,
   AssignmentDenyReason,
@@ -22,6 +22,7 @@ export type {
   PrincipalKind,
   ResolveAssignmentInput,
   ResolveAssignmentResult,
+  RoleClass,
   ServiceAccountPrincipal,
   SessionIdentity,
 } from "./types";

@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { isE2EAuthBypassEnabled } from "@asym/auth/e2e-auth";
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     void request.headers.get("cookie");
 
     const authContext = await getAuthContext(request);
-    requireRole(authContext, ["donor"]);
+    requireRoleClass(authContext, ["donor"]);
     const auth = authContext as AuthenticatedContext;
 
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
@@ -145,8 +145,9 @@ export const PATCH = withOperation(
       const { error } = await supabaseAdmin
         .from("profiles")
         .update({ ...profileUpdate, updated_at: now })
-        .eq("id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId);
+        // The caller's own profile; the tenant is the resolved donor
+        // assignment's. A profile's tenant column is no authority (AL-2675).
+        .eq("id", ctx.profileId);
 
       if (error) {
         console.error("[donor-portal] Profile update failed", error);
@@ -182,5 +183,5 @@ export const PATCH = withOperation(
 
     return NextResponse.json({ portal });
   },
-  { roles: ["donor"] },
+  { roleClasses: ["donor"] },
 );

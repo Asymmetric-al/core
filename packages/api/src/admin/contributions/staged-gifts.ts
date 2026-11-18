@@ -273,7 +273,7 @@ export const GET = withOperation(
       return toErrorResponse(error, "Failed to load staged gifts.", requestId);
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );
 
 export const PATCH = withOperation(
@@ -434,7 +434,7 @@ export const PATCH = withOperation(
       return toErrorResponse(error, "Failed to update staged gift.", requestId);
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "contributions.apply_corrections" },
 );
 
 export const POST_APPROVE = withOperation(
@@ -463,7 +463,7 @@ export const POST_APPROVE = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "contributions.apply_corrections" },
 );
 
 export const POST_RETRY = withOperation(
@@ -477,7 +477,7 @@ export const POST_RETRY = withOperation(
       return toErrorResponse(error, "Failed to retry staged gift.", requestId);
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "contributions.retry_crm_post" },
 );
 
 export const POST_RECEIPT = withOperation(
@@ -528,5 +528,5 @@ export const POST_RECEIPT = withOperation(
       return toErrorResponse(error, "Failed to send gift receipt.", requestId);
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "contributions.manage_receipts" },
 );

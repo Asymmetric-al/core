@@ -1,6 +1,10 @@
 -- Deterministic demo seed for Supabase
 -- - Idempotent by design (reset + deterministic inserts)
--- - Exactly one profile identity
+-- - Two tenants (AL-2675): the demo organization, which holds the demo
+--   dataset, and a second organization as a fixture, so every suite and the
+--   seeded application have two tenants
+-- - Three profile identities: the demo owner, the second organization's
+--   administrator, and one donor who gives to both organizations
 -- - Relationally valid across all public app tables
 
 BEGIN;
@@ -39,9 +43,10 @@ DELETE FROM public.locations;
 DELETE FROM public.profiles;
 DELETE FROM public.tenants;
 
--- Remove prior demo auth users so the seed always lands on one profile row.
+-- Remove prior fixture auth users so the seed always lands on the same profiles.
 DELETE FROM auth.users
 WHERE email LIKE '%@givehope.test'
+   OR email LIKE '%@harborlight.test'
    OR email LIKE '%@donors.test'
    OR email LIKE '%@partners.test';
 
@@ -185,7 +190,7 @@ SET
   last_sign_in_at = EXCLUDED.last_sign_in_at,
   updated_at = EXCLUDED.updated_at;
 
--- Trigger-backed profile row (single identity for the whole demo dataset).
+-- Trigger-backed profile row: the demo owner, who owns the demo dataset.
 INSERT INTO public.profiles (
   id,
   user_id,
@@ -229,41 +234,250 @@ SET
   tenant_id = EXCLUDED.tenant_id,
   updated_at = EXCLUDED.updated_at;
 
+-- ---------------------------------------------------------------------------
+-- 1b) Second tenant (AL-2675): a fixture organization with its administrator
+--     and one donor who gives to both organizations. It holds no business
+--     data; it exists so tenant isolation and membership rules are exercised
+--     against the seeded application. Logins use the demo password, like the
+--     demo owner, and exist only in seeded local and disposable databases.
+-- ---------------------------------------------------------------------------
+INSERT INTO public.tenants (
+  id,
+  name,
+  slug,
+  org_post_visibility,
+  org_settings,
+  billing_email,
+  default_timezone,
+  locale,
+  created_at,
+  updated_at
+)
+VALUES (
+  '00000000-0000-0000-0000-000000000002',
+  'Harbor Light Mission',
+  'harbor-light-mission',
+  'all_donors',
+  '{"demo":true,"fixture":"second-tenant","theme":"zinc"}'::jsonb,
+  'ops@harborlight.test',
+  'Europe/London',
+  'en-GB',
+  '2026-11-17T09:00:00Z'::timestamptz,
+  '2026-11-17T09:00:00Z'::timestamptz
+)
+ON CONFLICT (id) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  slug = EXCLUDED.slug,
+  org_post_visibility = EXCLUDED.org_post_visibility,
+  org_settings = EXCLUDED.org_settings,
+  billing_email = EXCLUDED.billing_email,
+  default_timezone = EXCLUDED.default_timezone,
+  locale = EXCLUDED.locale,
+  updated_at = EXCLUDED.updated_at;
+
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  confirmation_token,
+  recovery_token,
+  email_change_token_new,
+  email_change,
+  last_sign_in_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  is_super_admin,
+  created_at,
+  updated_at,
+  phone_change,
+  phone_change_token,
+  email_change_token_current,
+  email_change_confirm_status,
+  reauthentication_token,
+  is_sso_user,
+  is_anonymous
+)
+SELECT
+  fixture.id,
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated',
+  'authenticated',
+  fixture.email,
+  extensions.crypt('demo-password'::text, extensions.gen_salt('bf'::text)),
+  '2026-11-17T09:00:00Z'::timestamptz,
+  '',
+  '',
+  '',
+  '',
+  NULL,
+  jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email'), 'tenant_id', fixture.tenant_id),
+  jsonb_build_object('first_name', fixture.first_name, 'last_name', fixture.last_name, 'full_name', fixture.first_name || ' ' || fixture.last_name),
+  false,
+  '2026-11-17T09:00:00Z'::timestamptz,
+  '2026-11-17T09:00:00Z'::timestamptz,
+  '',
+  '',
+  '',
+  0,
+  '',
+  false,
+  false
+FROM (
+  VALUES
+    ('33333333-3333-3333-3333-333333333333'::uuid, 'admin@harborlight.test', '00000000-0000-0000-0000-000000000002', 'Morgan', 'Reyes'),
+    ('44444444-4444-4444-4444-444444444444'::uuid, 'two-organizations@donors.test', '00000000-0000-0000-0000-000000000001', 'Riley', 'Okafor')
+) AS fixture (id, email, tenant_id, first_name, last_name)
+ON CONFLICT (id) DO UPDATE
+SET
+  email = EXCLUDED.email,
+  encrypted_password = EXCLUDED.encrypted_password,
+  email_confirmed_at = EXCLUDED.email_confirmed_at,
+  raw_app_meta_data = EXCLUDED.raw_app_meta_data,
+  raw_user_meta_data = EXCLUDED.raw_user_meta_data,
+  updated_at = EXCLUDED.updated_at;
+
+INSERT INTO auth.identities (
+  id,
+  provider_id,
+  user_id,
+  identity_data,
+  provider,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+SELECT
+  fixture.identity_id,
+  fixture.user_id::text,
+  fixture.user_id,
+  jsonb_build_object('sub', fixture.user_id::text, 'email', fixture.email, 'email_verified', true, 'phone_verified', false),
+  'email',
+  NULL,
+  '2026-11-17T09:00:00Z'::timestamptz,
+  '2026-11-17T09:00:00Z'::timestamptz
+FROM (
+  VALUES
+    ('33333333-3333-3333-3333-333333333334'::uuid, '33333333-3333-3333-3333-333333333333'::uuid, 'admin@harborlight.test'),
+    ('44444444-4444-4444-4444-444444444445'::uuid, '44444444-4444-4444-4444-444444444444'::uuid, 'two-organizations@donors.test')
+) AS fixture (identity_id, user_id, email)
+ON CONFLICT (provider_id, provider) DO UPDATE
+SET
+  user_id = EXCLUDED.user_id,
+  identity_data = EXCLUDED.identity_data,
+  updated_at = EXCLUDED.updated_at;
+
+-- Profile rows keep the legacy role and tenant columns as they were written
+-- before WP2a, so the decision table can compare the old rules with the new.
+-- Neither column is authority any more.
+INSERT INTO public.profiles (
+  id,
+  user_id,
+  email,
+  first_name,
+  last_name,
+  full_name,
+  display_name,
+  role,
+  tenant_id,
+  created_at,
+  updated_at
+)
+VALUES
+  (
+    '33333333-3333-3333-3333-333333333333',
+    '33333333-3333-3333-3333-333333333333',
+    'admin@harborlight.test',
+    'Morgan',
+    'Reyes',
+    'Morgan Reyes',
+    'Morgan Reyes',
+    'admin',
+    '00000000-0000-0000-0000-000000000002',
+    '2026-11-17T09:00:00Z'::timestamptz,
+    '2026-11-17T09:00:00Z'::timestamptz
+  ),
+  (
+    '44444444-4444-4444-4444-444444444444',
+    '44444444-4444-4444-4444-444444444444',
+    'two-organizations@donors.test',
+    'Riley',
+    'Okafor',
+    'Riley Okafor',
+    'Riley Okafor',
+    'donor',
+    '00000000-0000-0000-0000-000000000001',
+    '2026-11-17T09:00:00Z'::timestamptz,
+    '2026-11-17T09:00:00Z'::timestamptz
+  )
+ON CONFLICT (id) DO UPDATE
+SET
+  email = EXCLUDED.email,
+  first_name = EXCLUDED.first_name,
+  last_name = EXCLUDED.last_name,
+  full_name = EXCLUDED.full_name,
+  display_name = EXCLUDED.display_name,
+  role = EXCLUDED.role,
+  tenant_id = EXCLUDED.tenant_id,
+  updated_at = EXCLUDED.updated_at;
+
+-- ---------------------------------------------------------------------------
+-- 1c) Memberships: the only authority (plan 5.1). The seed owns every row, so
+--     it first clears the donor rows the sign-up trigger added for the users
+--     above. The demo owner is the demo organization's tenant administrator
+--     on a development staff row (no staff row keeps member care by default),
+--     and also a donor and a missionary there. Morgan Reyes administers the
+--     second organization. Riley Okafor is a donor in both, so the donor
+--     portal refuses them until WP3 resolves the portal host.
+-- ---------------------------------------------------------------------------
+DELETE FROM authz.memberships;
+
 INSERT INTO authz.memberships (
   user_id,
   tenant_id,
   role,
   staff_role,
-  is_active
+  is_active,
+  created_at,
+  updated_at
 )
 VALUES
-  (
-    '11111111-1111-1111-1111-111111111111',
-    '00000000-0000-0000-0000-000000000001',
-    'staff',
-    'member_care',
-    true
-  ),
-  (
-    '11111111-1111-1111-1111-111111111111',
-    '00000000-0000-0000-0000-000000000001',
-    'donor',
-    NULL,
-    true
-  ),
-  (
-    '11111111-1111-1111-1111-111111111111',
-    '00000000-0000-0000-0000-000000000001',
-    'missionary',
-    NULL,
-    true
-  )
-ON CONFLICT (user_id, tenant_id, role, staff_role)
-DO UPDATE
-SET
-  is_active = true,
-  updated_at = TIMESTAMPTZ '2026-11-11T00:00:00Z';
+  ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'staff', 'development', true, TIMESTAMPTZ '2026-11-11T00:00:00Z', TIMESTAMPTZ '2026-11-11T00:00:00Z'),
+  ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'donor', NULL, true, TIMESTAMPTZ '2026-11-11T00:00:00Z', TIMESTAMPTZ '2026-11-11T00:00:00Z'),
+  ('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000001', 'missionary', NULL, true, TIMESTAMPTZ '2026-11-11T00:00:00Z', TIMESTAMPTZ '2026-11-11T00:00:00Z'),
+  ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000002', 'staff', 'development', true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
+  ('44444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000001', 'donor', NULL, true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z'),
+  ('44444444-4444-4444-4444-444444444444', '00000000-0000-0000-0000-000000000002', 'donor', NULL, true, TIMESTAMPTZ '2026-11-17T09:00:00Z', TIMESTAMPTZ '2026-11-17T09:00:00Z');
 
+-- The tenant-administrator flag on both administrators' staff rows. Some
+-- acceptance suites apply this seed to the schema as it stood before their own
+-- migration, which has no flag column yet, so the column is named only when it
+-- exists.
+DO $seed$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+      FROM information_schema.columns
+     WHERE table_schema = 'authz'
+       AND table_name = 'memberships'
+       AND column_name = 'is_tenant_admin'
+  ) THEN
+    EXECUTE $flag$
+      UPDATE authz.memberships
+         SET is_tenant_admin = true
+       WHERE role = 'staff'
+         AND user_id IN (
+           '11111111-1111-1111-1111-111111111111',
+           '33333333-3333-3333-3333-333333333333'
+         )
+    $flag$;
+  END IF;
+END
+$seed$;
 -- ---------------------------------------------------------------------------
 -- 2) Missionaries, donors, funds (projects)
 -- ---------------------------------------------------------------------------

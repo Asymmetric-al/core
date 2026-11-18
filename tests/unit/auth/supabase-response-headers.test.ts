@@ -11,12 +11,23 @@ vi.mock("@asym/auth", () => ({
   E2E_AUTH_COOKIE_NAME: "asym_e2e_auth",
   isE2EAuthBypassEnabled: () => false,
 }));
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: async () => ({
     isAuthenticated: true,
     userId: "user-123",
     tenantId: "tenant-123",
     role: "admin",
+    // AL-2675: an administrator is the flagged staff row.
+    memberships: [
+      {
+        tenantId: "tenant-123",
+        role: "staff",
+        staffRole: "development",
+        isActive: true,
+        isTenantAdmin: true,
+      },
+    ],
   }),
   hasAnyContextRole: () => true,
 }));

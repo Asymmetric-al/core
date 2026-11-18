@@ -7,7 +7,21 @@ import {
   E2E_AUTH_COOKIE_NAMES,
 } from "../../../packages/auth/e2e-auth";
 
-import type { RoleSnapshot } from "../../../packages/auth/permissions";
+import type {
+  AuthMembership,
+  RoleSnapshot,
+} from "../../../packages/auth/permissions";
+
+/** One live membership of a class, as the proxies' resolver returns it (AL-2675). */
+function membershipFor(role: "donor" | "staff" | "missionary"): AuthMembership {
+  return {
+    tenantId: "tenant_1",
+    role,
+    staffRole: role === "staff" ? "development" : null,
+    isActive: true,
+    isTenantAdmin: false,
+  };
+}
 
 type MockCookieToSet = {
   name: string;
@@ -156,6 +170,53 @@ describe("createAuthMiddleware", () => {
     );
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(response.cookies.get("sb-session.0")?.value).toBe("fresh");
+  });
+
+  it.each(["/donor-dashboard", "/api/donor-portal/summary"])(
+    "sets the surface's role class on %s, overwriting a client-sent value (AL-2675)",
+    async (pathname) => {
+      mockConfigWithUser();
+      const resolveUserRole = vi.fn(async () => ({
+        memberships: [membershipFor("donor")],
+      }));
+      const request = new NextRequest(`https://example.org${pathname}`, {
+        headers: { "x-asym-role-class": "staff" },
+      });
+
+      const response = await createAuthMiddleware({
+        protectedRoutePrefixes: ["/donor-dashboard"],
+        roleClass: "donor",
+        allowedRoles: ["donor"],
+        resolveUserRole,
+      })(request);
+
+      expect(response.status).toBe(200);
+      expect(
+        response.headers.get("x-middleware-request-x-asym-role-class"),
+      ).toBe("donor");
+      if (pathname.startsWith("/api/"))
+        expect(resolveUserRole).not.toHaveBeenCalled();
+      else
+        expect(resolveUserRole).toHaveBeenCalledWith(
+          expect.objectContaining({ roleClass: "donor" }),
+        );
+    },
+  );
+
+  it("removes a client-sent role class when the proxy has none", async () => {
+    mockConfigWithUser();
+    const request = new NextRequest("https://example.org/anything", {
+      headers: { "x-asym-role-class": "staff" },
+    });
+
+    const response = await createAuthMiddleware()(request);
+
+    expect(
+      response.headers.get("x-middleware-request-x-asym-role-class"),
+    ).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-asym-pathname")).toBe(
+      "/anything",
+    );
   });
 
   it("redirects unauthenticated page requests to login with next param", async () => {
@@ -493,8 +554,7 @@ describe("createAuthMiddleware", () => {
       unauthorizedRedirectTo: "/no-access",
       allowedRoles: ["staff", "admin", "super_admin"],
       resolveUserRole: async () => ({
-        profileRole: "donor",
-        memberships: [],
+        memberships: [membershipFor("donor")],
       }),
     });
 
@@ -638,8 +698,7 @@ describe("preview role-gate diagnostics", () => {
         },
       ];
       const middleware = middlewareFor({
-        profileRole: "donor",
-        memberships: [],
+        memberships: [membershipFor("donor")],
       });
 
       const response = await middleware(
@@ -678,8 +737,7 @@ describe("preview role-gate diagnostics", () => {
         },
       ];
       const middleware = middlewareFor({
-        profileRole: "donor",
-        memberships: [],
+        memberships: [membershipFor("donor")],
       });
       const response = await middleware(createRequest(pathname));
       expect(response.status).toBe(307);
@@ -698,8 +756,7 @@ describe("preview role-gate diagnostics", () => {
     async (pathname) => {
       vi.stubEnv("VERCEL_ENV", "production");
       const middleware = middlewareFor({
-        profileRole: "donor",
-        memberships: [],
+        memberships: [membershipFor("donor")],
       });
       const response = await middleware(createRequest(pathname));
       expect(response.status).toBe(307);
@@ -714,8 +771,7 @@ describe("preview role-gate diagnostics", () => {
     "preserves allowed and unresolved behavior on %s without a role-denial event",
     async (pathname) => {
       const allowed = await middlewareFor({
-        profileRole: "staff",
-        memberships: [],
+        memberships: [membershipFor("staff")],
       })(createRequest(pathname));
       expect(allowed.status).toBe(pathname === "/login" ? 307 : 200);
       expect(allowed.headers.get("location")).toBe(
@@ -743,8 +799,7 @@ describe("edge role enforcement", () => {
       allowedRoles: ["staff", "admin", "super_admin"],
       unauthorizedRedirectTo: "/no-access",
       resolveUserRole: async () => ({
-        profileRole: "donor",
-        memberships: [],
+        memberships: [membershipFor("donor")],
       }),
     });
 
@@ -762,8 +817,7 @@ describe("edge role enforcement", () => {
       allowedRoles: ["staff", "admin", "super_admin"],
       unauthorizedRedirectTo: "/no-access",
       resolveUserRole: async () => ({
-        profileRole: "staff",
-        memberships: [],
+        memberships: [membershipFor("staff")],
       }),
     });
 
@@ -778,19 +832,20 @@ describe("edge role enforcement", () => {
       allowedRoles: ["donor"],
       unauthorizedRedirectTo: "/no-access",
       resolveUserRole: async () => ({
-        profileRole: "staff",
         memberships: [
           {
             tenantId: "tenant_1",
             role: "donor",
             staffRole: null,
             isActive: true,
+            isTenantAdmin: false,
           },
           {
             tenantId: "tenant_1",
             role: "staff",
-            staffRole: null,
+            staffRole: "hr",
             isActive: true,
+            isTenantAdmin: false,
           },
         ],
       }),
@@ -807,10 +862,7 @@ describe("edge role enforcement", () => {
    * because the public check returns before authentication runs.
    */
   const missionaryLikeMiddleware = (
-    resolveUserRole: () => Promise<{
-      profileRole: "missionary" | "donor";
-      memberships: [];
-    }>,
+    resolveUserRole: () => Promise<RoleSnapshot>,
   ) =>
     createAuthMiddleware({
       publicRoutes: ["/login", "/register", "/no-access"],
@@ -825,8 +877,7 @@ describe("edge role enforcement", () => {
   it("sends an anonymous visitor on a protected home page to login", async () => {
     mockConfigWithUser(null);
     const middleware = missionaryLikeMiddleware(async () => ({
-      profileRole: "missionary",
-      memberships: [],
+      memberships: [membershipFor("missionary")],
     }));
 
     const response = await middleware(createRequest("/"));
@@ -841,8 +892,7 @@ describe("edge role enforcement", () => {
 
   it("sends a wrong-role visitor on a protected home page to a terminal page", async () => {
     const middleware = missionaryLikeMiddleware(async () => ({
-      profileRole: "donor",
-      memberships: [],
+      memberships: [membershipFor("donor")],
     }));
 
     const response = await middleware(createRequest("/"));
@@ -856,8 +906,7 @@ describe("edge role enforcement", () => {
 
   it("still serves a protected home page to an allowed role", async () => {
     const middleware = missionaryLikeMiddleware(async () => ({
-      profileRole: "missionary",
-      memberships: [],
+      memberships: [membershipFor("missionary")],
     }));
 
     expect((await middleware(createRequest("/"))).status).toBe(200);
