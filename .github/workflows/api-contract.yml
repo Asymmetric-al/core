@@ -5,7 +5,9 @@ name: API Contract
 # Builds the database the way ci-integration.yml's migrate job does (plain
 # Postgres 17, compat bootstrap, every migration, the demo seed), starts
 # PostgREST on it with the schemas and row cap supabase/config.toml declares,
-# and runs tests/integration/api-contract with tokens minted for this run:
+# and runs tests/integration/api-contract with tokens minted for this run (the
+# project also runs the check's pure tests in tests/unit/api-contract, which
+# the required unit run covers too):
 #
 # - every statically resolvable packages/api select runs through the Data
 #   API, so a phantom column, embed or unexposed schema fails by file and
@@ -41,6 +43,7 @@ on:
       - .github/workflows/api-contract.yml
       - scripts/api-contract/**
       - tests/integration/api-contract/**
+      - tests/unit/api-contract/**
       - packages/**
       - supabase/migrations/**
       - supabase/seed.sql

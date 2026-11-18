@@ -4,8 +4,14 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { KNOWN_SELECT_DEFECTS, type KnownSelectDefect } from "./known-defects";
-import { triageFailures, type SelectFailure } from "./select-failures";
+import {
+  KNOWN_SELECT_DEFECTS,
+  type KnownSelectDefect,
+} from "../../integration/api-contract/known-defects";
+import {
+  triageFailures,
+  type SelectFailure,
+} from "../../integration/api-contract/select-failures";
 
 const FILE = "packages/api/src/admin/comments/comment.ts";
 const PGRST200_MESSAGE =

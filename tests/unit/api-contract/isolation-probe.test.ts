@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { isRefusalOf } from "./isolation-probe";
+import { isRefusalOf } from "../../integration/api-contract/isolation-probe";
 
 const donors = { schema: "public", table: "donors" };
 const denied = (message: string) => ({ code: "42501", message });
