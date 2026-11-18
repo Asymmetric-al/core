@@ -147,12 +147,20 @@ state; supporting a queue configured only in classic branch protection.
   followed when the queue merges its pull request later (the intake pass
   follows only `PR_READY` items), so it stays BLOCKED until a person retries;
   that retry records MERGED if the queue has merged it, or waits again. Queued
-  waits count against the feedback budget today. Whether they should is a
-  separate decision for the owner and is not changed here; the runbook gives
-  the recovery for both the queued and the removed case.
+  waits count against the feedback budget, and that stays so. Asked about
+  this on 2026-11-18, the owner said the factory "will not be fully central
+  to how we are building anymore, it's not irrelevant, it's juts not central"
+  and left the choice to the implementer. The budget logic is unchanged: the
+  stop fails safe, one retry recovers it, and exempting queued rounds would
+  mean changing the work-item state machine for a system that is no longer
+  central. The runbook gives the recovery for both the queued and the removed
+  case.
 - [A queue merge has no receipt for its merge commit] → It closes out as
   MERGED with `merged_by: external`, since factory attribution needs a
-  confirmed receipt for the exact merge commit.
+  confirmed receipt for the exact merge commit. This also stays so, under the
+  same 2026-11-18 ruling: it is a label only (the merge, close-out and issue
+  close are correct), and the work item still records that the factory queued
+  that head.
 - [A release without this change sends a direct merge while the queue is on]
   → GitHub refuses it and the issue blocks `merge-refused`; it is never
   reported merged. The runbook holds merging until the release is installed.
