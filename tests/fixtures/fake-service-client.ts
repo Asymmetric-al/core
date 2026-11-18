@@ -4,7 +4,11 @@
  * filters fixture rows (`eq`, `neq`, `in`, `is`, `not … is null`, `order`,
  * `range`, `limit`, `single`, `maybeSingle`); `rpc("tenant_member_profiles")`
  * answers from fixture memberships joined to profiles by login, as the SQL
- * function does. Every `from` and `rpc` call is recorded.
+ * function does: its filters, ordered by membership id, a page of `p_limit`
+ * (1,000 at most) after `p_after_membership_id`. Like the Data API, the
+ * client returns at most `DATA_API_MAX_ROWS` rows per response and cuts the
+ * rest without an error (council round 1 on WP2a, F7). Every `from` and `rpc`
+ * call is recorded.
  */
 type Row = Record<string, unknown>;
 
@@ -24,6 +28,9 @@ export interface FakeServiceData {
 }
 
 type Filter = (row: Row) => boolean;
+
+/** `max_rows` in supabase/config.toml: the Data API's cut on any response. */
+export const DATA_API_MAX_ROWS = 1000;
 
 class FakeQuery implements PromiseLike<{ data: unknown; error: null }> {
   private filters: Filter[] = [];
@@ -131,12 +138,20 @@ export function fakeServiceClient(data: FakeServiceData) {
         return { data: null, error: { message: `unknown rpc ${fn}` } };
       const profileIds = args.p_profile_ids as string[] | null;
       const userIds = args.p_user_ids as string[] | null;
+      const role = (args.p_role ?? null) as string | null;
+      const tenantAdmin = (args.p_tenant_admin ?? null) as boolean | null;
+      const after = (args.p_after_membership_id ?? null) as string | null;
+      const limit = Math.min(Math.max(Number(args.p_limit ?? 1000), 1), 1000);
       const profiles = data.tables.profiles ?? [];
-      const rows = data.memberships
+      const rows = [...data.memberships]
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
         .filter(
           (m) =>
             m.tenant_id === args.p_tenant_id &&
-            (args.p_include_revoked === true || m.is_active),
+            (args.p_include_revoked === true || m.is_active) &&
+            (role === null || m.role === role) &&
+            (tenantAdmin === null || m.is_tenant_admin === tenantAdmin) &&
+            (after === null || m.id > after),
         )
         .flatMap((m) => {
           const profile = profiles.find((p) => p.user_id === m.user_id);
@@ -156,7 +171,10 @@ export function fakeServiceClient(data: FakeServiceData) {
             },
           ];
         });
-      return { data: rows, error: null };
+      return {
+        data: rows.slice(0, Math.min(limit, DATA_API_MAX_ROWS)),
+        error: null,
+      };
     },
   };
   return client;

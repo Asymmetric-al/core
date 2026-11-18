@@ -24,6 +24,7 @@ vi.mock("@asym/auth/context", () => ({
 
 import { GET } from "../../../../packages/api/src/admin/comments/index";
 import { PATCH } from "../../../../packages/api/src/admin/comments/comment";
+import { TENANT_MEMBER_PAGE_SIZE } from "../../../../packages/api/src/shared/tenant-members";
 
 const TENANT_A = "00000000-0000-0000-0000-0000000000aa";
 const TENANT_B = "00000000-0000-0000-0000-0000000000bb";
@@ -114,6 +115,10 @@ describe("admin comments tenant isolation", () => {
         p_profile_ids: null,
         p_user_ids: ["author"],
         p_include_revoked: true,
+        p_role: null,
+        p_tenant_admin: null,
+        p_after_membership_id: null,
+        p_limit: TENANT_MEMBER_PAGE_SIZE,
       });
       expect(profiles.eq).not.toHaveBeenCalled();
       expect(profiles.in).toHaveBeenCalledWith("id", ["author"]);

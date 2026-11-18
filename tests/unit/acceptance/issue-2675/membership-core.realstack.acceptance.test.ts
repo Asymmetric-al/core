@@ -575,6 +575,88 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
           expect(r.code, role).toBe("42501");
         }
       }));
+
+    // Council round 1 on WP2a, F7: the caller asks for a class and the flag,
+    // and reads in pages ordered by membership id, 1,000 rows at most a call.
+    const FILTERED = (
+      tenant: string,
+      role: string | null,
+      admin: boolean | null,
+      after: string | null = null,
+      limit: number | null = null,
+    ) =>
+      READER(
+        tenant,
+        `, null, null, false, ${role ? `'${role}'` : "null"}, ${admin ?? "null"}, ${after ? `'${after}'::uuid` : "null"}, ${limit ?? "null"}`,
+      );
+
+    it("narrows by class and by the administrator flag", () =>
+      tx(async () => {
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", "staff", null))),
+        ).toEqual(["mAdm", "mCare", "mDev", "mFin"]);
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", "staff", true))),
+        ).toEqual(["mAdm"]);
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", "donor", null))),
+        ).toEqual(["mDonA"]);
+        expect(
+          keys(await as("service_role", {}, FILTERED("TA", null, false))),
+        ).toEqual(["mCare", "mDev", "mDonA", "mFin"]);
+      }));
+
+    it("pages by membership id: each row once, in order, to the end", () =>
+      tx(async () => {
+        const all = await as("service_role", {}, READER("TA"));
+        const ordered = all.rows.map((row) => String(row.membership_id));
+        expect(ordered).toEqual([...ordered].sort());
+        const seen: string[] = [];
+        let after: string | null = null;
+        for (let call = 0; call < 10; call += 1) {
+          const page = await as(
+            "service_role",
+            {},
+            FILTERED("TA", null, null, after, 2),
+          );
+          expect(page.code, page.message).toBeNull();
+          expect(page.rows.length).toBeLessThanOrEqual(2);
+          seen.push(...page.rows.map((row) => String(row.membership_id)));
+          if (page.rows.length < 2) break;
+          after = seen.at(-1)!;
+        }
+        expect(seen).toEqual(ordered);
+      }));
+
+    it("returns 1,000 rows at most in one call, whatever the caller asks", () =>
+      tx(async () => {
+        await db.query(
+          `insert into auth.users (id, raw_app_meta_data)
+           select gen_random_uuid(), jsonb_build_object('tenant_id', $1::text)
+             from generate_series(1, 1001)`,
+          [id.TB],
+        );
+        const first = await as(
+          "service_role",
+          {},
+          FILTERED("TB", "donor", null, null, 5000),
+        );
+        expect(first.code, first.message).toBeNull();
+        expect(first.rows).toHaveLength(1000);
+        const rest = await as(
+          "service_role",
+          {},
+          FILTERED(
+            "TB",
+            "donor",
+            null,
+            String(first.rows.at(-1)!.membership_id),
+            5000,
+          ),
+        );
+        // 1,001 sign-ups and mDonB.
+        expect(rest.rows).toHaveLength(2);
+      }));
   });
 
   describe("the data step (WP2 'Data', 5.1)", () => {

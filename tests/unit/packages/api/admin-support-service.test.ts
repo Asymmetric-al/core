@@ -16,6 +16,7 @@ import {
   getSupportTicket,
   listSupportTickets,
 } from "../../../../packages/api/src/admin/support/service";
+import { TENANT_MEMBER_PAGE_SIZE } from "../../../../packages/api/src/shared/tenant-members";
 
 const TENANT_A = "00000000-0000-0000-0000-0000000000aa";
 
@@ -198,6 +199,10 @@ describe("admin support service tenant isolation", () => {
       p_profile_ids: ["profile-1"],
       p_user_ids: null,
       p_include_revoked: true,
+      p_role: null,
+      p_tenant_admin: null,
+      p_after_membership_id: null,
+      p_limit: TENANT_MEMBER_PAGE_SIZE,
     });
     expect(profileQuery.eq).not.toHaveBeenCalledWith(
       "tenant_id",

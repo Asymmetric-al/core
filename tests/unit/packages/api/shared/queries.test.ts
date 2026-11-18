@@ -6,6 +6,7 @@ import {
   findProfileById,
   findProfileByUserId,
 } from "../../../../../packages/api/src/shared/queries";
+import { TENANT_MEMBER_PAGE_SIZE } from "../../../../../packages/api/src/shared/tenant-members";
 import { memberRow } from "../../../../fixtures/fake-service-client";
 
 function createSingleChainMock<T>(result: {
@@ -35,6 +36,10 @@ const memberRead = (args: Record<string, unknown>) => [
     p_profile_ids: null,
     p_user_ids: null,
     p_include_revoked: false,
+    p_role: null,
+    p_tenant_admin: null,
+    p_after_membership_id: null,
+    p_limit: TENANT_MEMBER_PAGE_SIZE,
     ...args,
   },
 ];
