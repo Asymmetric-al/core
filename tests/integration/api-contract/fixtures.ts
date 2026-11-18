@@ -5,9 +5,11 @@
  * and missionary there and owns the seeded donors, tasks and gifts.
  * Tenant B is written here per run, with random ids, mirroring that user:
  * an auth user (the profile comes from the auth trigger), staff, donor and
- * missionary memberships, a missionaries row, a donor and a task. Rows are
- * written as the database owner through only the columns that exist today
- * (upsertFixture) and removed afterwards.
+ * missionary memberships, a missionaries row, a donor and a task, plus the
+ * rows that give tenant A something to leak in the isolation sweep: a gift,
+ * a pledge, and a draft post and draft location that no ruling makes public.
+ * Rows are written as the database owner through only the columns that exist
+ * today (upsertFixture) and removed afterwards.
  */
 import { randomUUID } from "node:crypto";
 
@@ -25,6 +27,10 @@ export type TenantFixture = {
   missionaryId: string;
   donorId: string;
   taskId: string;
+  donationId: string;
+  pledgeId: string;
+  draftPostId: string;
+  draftLocationId: string;
 };
 
 export async function createTenantFixture(
@@ -36,6 +42,10 @@ export async function createTenantFixture(
     missionaryId: randomUUID(),
     donorId: randomUUID(),
     taskId: randomUUID(),
+    donationId: randomUUID(),
+    pledgeId: randomUUID(),
+    draftPostId: randomUUID(),
+    draftLocationId: randomUUID(),
   };
   const short = fixture.tenantId.slice(0, 8);
   const email = `api-contract-${short}@tenant-b.test`;
@@ -112,6 +122,43 @@ export async function createTenantFixture(
     donor_id: fixture.donorId,
     title: "Tenant B task",
   });
+  await upsertFixture(db, "public.donor_pledges", {
+    id: fixture.pledgeId,
+    tenant_id: fixture.tenantId,
+    donor_id: fixture.donorId,
+    missionary_id: fixture.missionaryId,
+    amount: 2500,
+    currency: "usd",
+    frequency: "monthly",
+    status: "active",
+  });
+  await upsertFixture(db, "public.donations", {
+    id: fixture.donationId,
+    tenant_id: fixture.tenantId,
+    donor_id: fixture.donorId,
+    missionary_id: fixture.missionaryId,
+    amount: 2500,
+    currency: "usd",
+    status: "completed",
+    donation_type: "one_time",
+  });
+  await upsertFixture(db, "public.posts", {
+    id: fixture.draftPostId,
+    tenant_id: fixture.tenantId,
+    missionary_id: fixture.userId,
+    title: "Tenant B draft",
+    content: "Not published: no ruling makes this readable outside tenant B.",
+    visibility: "public",
+    status: "draft",
+  });
+  await upsertFixture(db, "public.locations", {
+    id: fixture.draftLocationId,
+    tenant_id: fixture.tenantId,
+    title: "Tenant B draft location",
+    lat: 0,
+    lng: 0,
+    status: "draft",
+  });
   return fixture;
 }
 
@@ -122,6 +169,10 @@ export async function removeTenantFixture(
 ): Promise<string[]> {
   const problems: string[] = [];
   const steps: [string, string, unknown][] = [
+    ["public.donations", "tenant_id", fixture.tenantId],
+    ["public.donor_pledges", "tenant_id", fixture.tenantId],
+    ["public.posts", "tenant_id", fixture.tenantId],
+    ["public.locations", "tenant_id", fixture.tenantId],
     ["public.missionary_tasks", "missionary_id", fixture.userId],
     ["public.donors", "tenant_id", fixture.tenantId],
     ["public.missionaries", "tenant_id", fixture.tenantId],
