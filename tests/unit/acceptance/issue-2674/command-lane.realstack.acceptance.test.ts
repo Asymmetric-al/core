@@ -28,7 +28,10 @@ import { randomBytes, randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { laneCheckProblem } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
+import {
+  callsIntoCommandSchemas,
+  laneCheckProblem,
+} from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 import {
   ADMIN_URL,
   COMMAND_LANE_MIGRATION,
@@ -316,24 +319,51 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
         }
       }));
 
+    /**
+     * Every public function whose code, comments removed, calls a
+     * tenant_guard function signed-in users may not execute. Amended by
+     * council round 3 (lens 1 A4; record D-18): the raw-text match counted a
+     * call named only in a comment.
+     */
+    async function publicWorkers() {
+      const humans = byConvention(
+        await laneRows(db, "tenant_guard"),
+        "tenant_guard",
+      ).map((fn) => fn.slice(0, fn.indexOf("(")));
+      const r = await db.query(
+        `select 'public.' || regexp_replace(p.oid::regprocedure::text, '^public\\.', '') fn,
+                p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '') body
+           from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+          where n.nspname = 'public'
+            and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~* 'tenant_guard'
+          order by 1`,
+      );
+      return (r.rows as { fn: string; body: string }[])
+        .filter((row) =>
+          callsIntoCommandSchemas(row.body).some(
+            (t: string) => t.startsWith("tenant_guard.") && !humans.includes(t),
+          ),
+        )
+        .map((row) => row.fn);
+    }
+
+    it("a public function whose comment names a worker is not a worker wrapper; one that calls it still is", () =>
+      tx(async () => {
+        await db.query(
+          `create function public.acc2674_comment_only() returns int language plpgsql set search_path = ''
+             as $$ begin -- tenant_guard.acquire_workflow_work_claim(...) is not called here
+             return 1; end $$;
+           create function public.acc2674_calls_worker(p_tenant_id uuid) returns jsonb language sql set search_path = ''
+             as $$ select tenant_guard/**/.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;`,
+        );
+        const workers = await publicWorkers();
+        expect(workers).not.toContain("public.acc2674_comment_only()");
+        expect(workers).toContain("public.acc2674_calls_worker(uuid)");
+      }));
+
     it("the public worker wrappers refuse a signed-in caller too", () =>
       tx(async () => {
-        // Every public function that calls a tenant_guard function signed-in
-        // users may not execute.
-        const humans = byConvention(
-          await laneRows(db, "tenant_guard"),
-          "tenant_guard",
-        ).map((fn) => fn.slice(0, fn.indexOf("(")));
-        const r = await db.query(
-          `select 'public.' || regexp_replace(p.oid::regprocedure::text, '^public\\.', '') fn,
-                  array(select distinct lower(m[1]) from regexp_matches(p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), ''),
-                        '(tenant_guard\\.[a-z_][a-z0-9_$]*)\\s*\\(', 'gi') m) targets
-             from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname = 'public' order by 1`,
-        );
-        const workers = (r.rows as { fn: string; targets: string[] }[])
-          .filter((row) => row.targets.some((t) => !humans.includes(t)))
-          .map((row) => row.fn);
+        const workers = await publicWorkers();
         expect(workers).toEqual(
           expect.arrayContaining([
             "public.acquire_workflow_work_claim(uuid,text,text,text,integer)",

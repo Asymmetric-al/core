@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
 import {
+  countPublishedLogins,
   readReleaseHealth,
   readReleaseSettings,
   replaceSeededLoginPasswords,
@@ -221,6 +222,8 @@ describe.skipIf(!adminDatabaseUrl)(
         RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
       });
       const password = randomBytes(30).toString("base64url");
+      // Council round 3, lens 2 I2: the release preflight counts such logins.
+      expect(countPublishedLogins({ settings })).toBe(1);
       const before = psql(
         db.url,
         "SELECT string_agg(id || '=' || encrypted_password, ',' ORDER BY id) FROM auth.users WHERE id <> 1;",
@@ -244,6 +247,7 @@ describe.skipIf(!adminDatabaseUrl)(
       expect(
         replaceSeededLoginPasswords({ settings, password, log: () => {} }),
       ).toEqual({ seeded_logins: 0, published: 0 });
+      expect(countPublishedLogins({ settings })).toBe(0);
     });
   },
 );

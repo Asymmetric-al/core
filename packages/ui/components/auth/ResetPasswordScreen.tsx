@@ -160,7 +160,15 @@ function NewPasswordForm({
   // time left the server gave. The server checks the window only when the
   // page renders, so a form left open past it stops here.
   const deadline = React.useRef<number | null>(null);
+  // The time left that the deadline was counted from. React runs this Effect
+  // again when a page that Next kept hidden is shown again (back and forward,
+  // a soft navigation away and back), with the same time left as before.
+  // Counting again from then would start the window over, so the deadline is
+  // set once for each value the server gives.
+  const countedFrom = React.useRef<number | null>(null);
   React.useEffect(() => {
+    if (countedFrom.current === secondsLeft) return;
+    countedFrom.current = secondsLeft;
     deadline.current = Date.now() + secondsLeft * 1000;
   }, [secondsLeft]);
   // Generated ids: a hidden, still-mounted earlier screen may use the same names.

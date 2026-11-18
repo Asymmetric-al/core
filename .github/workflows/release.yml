@@ -12,6 +12,9 @@
 #   set-environment-marker  move the marker forward (owner's approval)
 #   first-rebuild           the one-off rebuild of a database with no marker
 #   set-cms-role-passwords  set cms_owner and cms_runtime from the secrets
+#   replace-seeded-login-passwords
+#                           give seeded logins that still carry a password the
+#                           repository publishes the release secret instead
 #
 # The marker change and the first rebuild wait for the owner's approval in the
 # GitHub environment release-owner-approval (plan 7.5), which has a required
@@ -33,6 +36,7 @@ on:
           - set-environment-marker
           - first-rebuild
           - set-cms-role-passwords
+          - replace-seeded-login-passwords
       environment:
         description: Release environment (preview is the disposable preview project)
         required: true
@@ -71,7 +75,10 @@ env:
   NODE_VERSION: "24.22.3"
 
 jobs:
-  # The owner approves a marker change or a first rebuild here (plan 7.5).
+  # The owner approves a marker change or a first rebuild here (plan 7.5),
+  # for this run attempt only: "Re-run failed jobs", or a re-run of one job,
+  # keeps this job's earlier success, so it records the attempt it approved
+  # and the jobs that change the database run only in that attempt.
   owner-approval:
     name: owner-approval
     if: >-
@@ -81,24 +88,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: release-owner-approval
+    outputs:
+      attempt: ${{ steps.approve.outputs.attempt }}
     steps:
       - name: Record the approval
+        id: approve
         env:
           OPERATION: ${{ inputs.operation }}
           TARGET: ${{ inputs.environment }}
-        run: echo "Approved ${OPERATION} on the ${TARGET} database."
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          echo "Approved ${OPERATION} on the ${TARGET} database for run attempt ${ATTEMPT}."
+          echo "attempt=${ATTEMPT}" >> "$GITHUB_OUTPUT"
 
   database:
     name: release-database
     needs: owner-approval
     # A release (no approval job) runs as before; a first rebuild runs only
-    # once the owner approved it.
+    # once the owner approved it, in this run attempt.
     if: >-
       !cancelled() &&
       (github.event_name == 'push' ||
        inputs.operation == 'release' ||
        (inputs.operation == 'first-rebuild' &&
-        needs.owner-approval.result == 'success'))
+        needs.owner-approval.result == 'success' &&
+        needs.owner-approval.outputs.attempt == github.run_attempt))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
@@ -247,7 +261,12 @@ jobs:
   marker:
     name: set-environment-marker
     needs: owner-approval
-    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'set-environment-marker'
+    # Only once the owner approved it, in this run attempt.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.operation == 'set-environment-marker' &&
+      needs.owner-approval.result == 'success' &&
+      needs.owner-approval.outputs.attempt == github.run_attempt
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
@@ -302,3 +321,35 @@ jobs:
           RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
           RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
         run: node scripts/release/release-database.mjs cms-role-passwords
+
+  # The repair after a rebuild that stopped between its seed and the
+  # replacement of the seed's published password (record D-24): every release
+  # stops at its preflight until this has run. It resets nothing and changes
+  # only logins that carry a published password.
+  seeded-login-passwords:
+    name: replace-seeded-login-passwords
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'replace-seeded-login-passwords'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
+    steps:
+      - name: Require the production branch
+        if: github.ref != 'refs/heads/production'
+        run: |
+          echo "::error::The release job runs only from the production branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Replace the published password of seeded logins
+        env:
+          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+          RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
+        run: node scripts/release/release-database.mjs replace-seeded-login-passwords

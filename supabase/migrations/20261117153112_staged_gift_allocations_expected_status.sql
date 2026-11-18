@@ -14,19 +14,21 @@
 -- writer of the gift and then sees its committed status. A call that names no
 -- status is refused with 22023.
 --
--- One function and no overload: the three-argument version is dropped and the
--- four-argument one created in this transaction. Its owner (the migration
--- runner, postgres), SECURITY INVOKER, `SET search_path TO public` and its
--- grants (EXECUTE for service_role only; PUBLIC, anon and authenticated
--- revoked by name) are as before. The edit handler is its only caller and
--- passes the new argument in the same change.
+-- This migration expands and does not contract (plan 7.4: every migration is
+-- safe for the release already running). The four-argument function is new,
+-- with the owner (the migration runner, postgres), SECURITY INVOKER,
+-- `SET search_path TO public` and grants (EXECUTE for service_role only;
+-- PUBLIC, anon and authenticated revoked by name) of the one before it. The
+-- edit handler of this release calls only the new one. The three-argument
+-- function stays as 20260707220134_atomic_staged_gift_allocation_replace.sql
+-- made it, with its body, owner and grants, because the release still running
+-- before this one is promoted, after a promotion that fails part way, or after
+-- an Instant Rollback, calls it. It is dropped by the package that retires the
+-- legacy review route (execution record, section 9), not here.
 --
 -- Down (run by hand, in one transaction): drop
--- public.replace_staged_gift_allocations(UUID, UUID, JSONB, TEXT), then run
--- the body and grants of 20260707220134_atomic_staged_gift_allocation_replace.sql
--- again, together with a revert of the handler.
-
-DROP FUNCTION IF EXISTS public.replace_staged_gift_allocations(UUID, UUID, JSONB);
+-- public.replace_staged_gift_allocations(UUID, UUID, JSONB, TEXT), together
+-- with a revert of the handler.
 
 CREATE FUNCTION public.replace_staged_gift_allocations(
   p_tenant_id UUID,
