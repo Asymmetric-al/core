@@ -2,6 +2,7 @@ import {
   SUPABASE_POOLER_HOST,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
+  libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
 import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
 
@@ -33,6 +34,14 @@ export function assertCmsMigrationTarget({
 
   if (isLoopbackDatabaseUrl(database)) return;
   const hostname = database.hostname.replace(/^\[|\]$/g, "");
+
+  // Review M1: the release check's rule. A secret has one place, the login
+  // part; a password in the query is refused, not moved.
+  if (libpqQueryEntries(databaseUrl).some(([key]) => key === "password")) {
+    throw new Error(
+      "A hosted CMS migration address carries a password in its query (password=...). Put the password in the login part instead (<role>.<ref>:<password>@<host>), percent-encoded.",
+    );
+  }
 
   let ref;
   try {

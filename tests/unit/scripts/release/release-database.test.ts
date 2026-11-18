@@ -1278,6 +1278,30 @@ describe("release database steps", () => {
     }
   });
 
+  // Review M1: a password in the address's query would reach the CLI's
+  // --db-url. The release stops at its target check, before any command.
+  it("stops a release whose address carries its password in the query, before any command runs", () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    const query = vi.fn();
+    const withQueryPassword = readReleaseSettings({
+      RELEASE_ENVIRONMENT: "production",
+      RELEASE_SUPABASE_PROJECT_REF: ref,
+      RELEASE_DATABASE_URL: `${databaseUrl}&password=query-secret`,
+      RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+      RELEASE_DATABASE_SSL_CA: CA,
+    });
+    expect(() =>
+      migrate({
+        settings: withQueryPassword,
+        query,
+        runCommand,
+        log: silent,
+      }),
+    ).toThrow(/password in its query.*login part/);
+    expect(query).not.toHaveBeenCalled();
+    expect(runCommand).not.toHaveBeenCalled();
+  });
+
   it("stops Payload's migration of a TLS target when the release environment holds no CA", () => {
     const runCommand = vi.fn(() => ({ status: 0 }));
     const noCa = { ...settings(), databaseCa: undefined };

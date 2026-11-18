@@ -397,6 +397,8 @@ function runChecked(runCommand, label, command, args, env) {
 /**
  * The pinned Supabase CLI reads the password of a `--db-url` that carries
  * none from PGPASSWORD (checked on 2.121.0), so it stays off the command line.
+ * splitPassword clears the login part's password only; the target check
+ * refuses a hosted address with a password in its query (review M1).
  * It reads the CA file the address names (withDatabaseCaFile) and, under
  * sslmode=verify-full, verifies the chain to it and the host name (its
  * TypeScript connection layer on node-postgres; checked on 2.121.0).

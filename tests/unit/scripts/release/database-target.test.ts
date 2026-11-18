@@ -117,6 +117,37 @@ describe("release database target", () => {
     }
   });
 
+  // Review M1: one place for a secret. The CLI gets the address as --db-url
+  // with only the login part's password cleared, so a password in the query
+  // would reach its arguments. Refused, not moved; the message says where the
+  // password belongs. A loopback address keeps what local flows need.
+  it.each(["&password=X", "&pass%77ord=X"])(
+    "refuses a hosted address whose query adds %s, and says the password belongs in the login part",
+    (extra) => {
+      for (const base of [pooled, direct]) {
+        expect(() =>
+          assertDatabaseTarget({
+            databaseUrl: `${base}${extra}`,
+            projectRef: ref,
+            role: "postgres",
+          }),
+        ).toThrow(/password in its query.*login part/);
+      }
+    },
+  );
+
+  it("leaves a loopback address's query password as it was", () => {
+    expect(() =>
+      assertDatabaseTarget({
+        databaseUrl:
+          "postgresql://postgres@127.0.0.1:57432/wp13r_x?password=postgres",
+        projectRef: ref,
+        role: "postgres",
+        allowLoopback: true,
+      }),
+    ).not.toThrow();
+  });
+
   it("refuses a project the environment must never touch", () => {
     expect(() =>
       assertDatabaseTarget({

@@ -298,6 +298,32 @@ describe("CMS migration target", () => {
     },
   );
 
+  // Review M1: the release check's rule on the same seam. A password in a
+  // hosted address's query is refused, not moved; a loopback one is kept.
+  it.each(["&password=X", "&pass%77ord=X"])(
+    "refuses a hosted address whose query adds %s, and says the password belongs in the login part",
+    (extra) => {
+      for (const base of [pooled, direct]) {
+        expect(() =>
+          assertCmsMigrationTarget({
+            ...hosted,
+            databaseUrl: `${base}?sslmode=verify-full${extra}`,
+          }),
+        ).toThrow(/password in its query.*login part/);
+      }
+    },
+  );
+
+  it("leaves a loopback address's query password as it was", () => {
+    expect(() =>
+      assertCmsMigrationTarget({
+        databaseUrl:
+          "postgresql://postgres@127.0.0.1:54322/postgres?password=postgres",
+        environment: {},
+      }),
+    ).not.toThrow();
+  });
+
   it("leaves a loopback address's sslmode and CA as they were", () => {
     for (const query of [
       "",
