@@ -7,14 +7,24 @@ name: API Contract
 # PostgREST on it with the schemas and row cap supabase/config.toml declares,
 # and runs tests/integration/api-contract with tokens minted for this run:
 #
-# - every resolvable packages/api select runs through the Data API, so a
-#   phantom column, embed or unexposed schema fails by file and line;
+# - every statically resolvable packages/api select runs through the Data
+#   API, so a phantom column, embed or unexposed schema fails by file and
+#   line; selects built at run time are listed as not verified;
 # - the real missionary-portal reads run for two tenants;
-# - every tenant table is read as a user of each tenant and as anon.
+# - a read matching more rows than max_rows returns exactly the cap;
+# - every tenant table is probed as a user of each of two tenants and as
+#   anon. What that proves is printed per caller: tables evidenced (readable
+#   and holding rows the caller must not read; donors, donations,
+#   donor_pledges, profiles, missionaries, posts and locations must be), tables
+#   readable but unevidenced, and tables refused for lack of privilege. Plain
+#   Postgres lacks hosted Supabase's default grants, so a refused table proves
+#   nothing about its row policy on a hosted project.
 #
 # Its own workflow, so no file of ci.yml or ci-integration.yml changes. Not a
-# required check. It uses no repository secrets: the JWT secret and database
-# passwords are random per run.
+# required check: promoting it needs an unfiltered pull_request trigger and a
+# merge_group trigger, since a filtered required check never reports on the
+# pull requests it skips. It uses no repository secrets: the JWT secret and
+# database passwords are random per run.
 #
 # Local run: node scripts/api-contract/stack.mjs up && node
 # scripts/api-contract/stack.mjs test; node scripts/api-contract/stack.mjs down
@@ -22,17 +32,24 @@ name: API Contract
 on:
   workflow_dispatch:
   pull_request:
+    # Everything that can change the result; tests/integration/api-contract/
+    # workflow-paths.test.ts derives the inputs and fails when one is missing.
     paths:
       - .github/workflows/api-contract.yml
       - scripts/api-contract/**
       - tests/integration/api-contract/**
-      - packages/api/**
-      - packages/database/**
+      - packages/**
       - supabase/migrations/**
       - supabase/seed.sql
       - supabase/config.toml
       - scripts/sql/supabase-compat-bootstrap.sql
       - scripts/verify/supabase-migrations.mjs
+      - scripts/github/install-canvas-deps.sh
+      - scripts/github/install-postgresql-client.sh
+      - vitest.config.mts
+      - vitest.*.mts
+      - tests/setup/**
+      - tests/mocks/**
       - package.json
       - bun.lock
   push:
