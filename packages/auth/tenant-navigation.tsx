@@ -390,6 +390,30 @@ function anchorAddress(anchor: HTMLAnchorElement): string | null {
 }
 
 /**
+ * Whether this document has begun loading another for a crossing. Until that
+ * load replaces it, a `refresh()` would render the old address again on the
+ * old document: on a sign-in screen, a soft redirect into the segment that
+ * the guard blanks, and server renders for nothing (council round 2, AR3).
+ * Over when the browser shows this document again from its back-forward
+ * cache.
+ */
+let crossingLoadBegun = false;
+
+function loadCrossing(address: string, replace: boolean): void {
+  if (!crossingLoadBegun) {
+    crossingLoadBegun = true;
+    window.addEventListener(
+      "pageshow",
+      (event) => {
+        if (event.persisted) crossingLoadBegun = false;
+      },
+      { once: true },
+    );
+  }
+  loadDocument(address, { replace });
+}
+
+/**
  * `next/link` with the document's tenant prefix on internal page addresses.
  * A link that crosses the tenant segment's boundary loads its address as a
  * new document instead of a client-side transition, and is not prefetched.
@@ -420,7 +444,7 @@ export function TenantLink({
         const address = anchorAddress(event.currentTarget);
         if (address === null) return;
         event.preventDefault();
-        loadDocument(address, { replace: replace === true });
+        loadCrossing(address, replace === true);
       }}
       {...props}
     >
@@ -434,7 +458,7 @@ type AppRouter = ReturnType<typeof useRouter>;
 /**
  * `useRouter` whose `push`, `replace` and `prefetch` carry the prefix. A
  * target across the tenant segment's boundary is loaded as a new document,
- * and not prefetched.
+ * and not prefetched; once such a load has begun, `refresh` does nothing.
  */
 export function useTenantRouter(): AppRouter {
   const router = useRouter();
@@ -445,17 +469,20 @@ export function useTenantRouter(): AppRouter {
       ...router,
       push: (href, ...options) => {
         const target = toHref(href);
-        if (crosses(target)) loadDocument(target, { replace: false });
+        if (crosses(target)) loadCrossing(target, false);
         else router.push(target, ...options);
       },
       replace: (href, ...options) => {
         const target = toHref(href);
-        if (crosses(target)) loadDocument(target, { replace: true });
+        if (crosses(target)) loadCrossing(target, true);
         else router.replace(target, ...options);
       },
       prefetch: (href, ...options) => {
         const target = toHref(href);
         if (!crosses(target)) router.prefetch(target, ...options);
+      },
+      refresh: () => {
+        if (!crossingLoadBegun) router.refresh();
       },
     }),
     [router, toHref, crosses],

@@ -18,6 +18,7 @@ const nav = vi.hoisted(() => ({
   replace: vi.fn(),
   prefetch: vi.fn(),
   back: vi.fn(),
+  refresh: vi.fn(),
 }));
 const reloadDocument = vi.hoisted(() => vi.fn());
 const loadDocument = vi.hoisted(() => vi.fn());
@@ -30,7 +31,7 @@ vi.mock("next/navigation", () => ({
     prefetch: nav.prefetch,
     back: nav.back,
     forward: vi.fn(),
-    refresh: vi.fn(),
+    refresh: nav.refresh,
   }),
 }));
 vi.mock("next/link", async () => {
@@ -93,6 +94,7 @@ beforeEach(() => {
   nav.push.mockReset();
   nav.replace.mockReset();
   nav.prefetch.mockReset();
+  nav.refresh.mockReset();
   reloadDocument.mockReset();
   loadDocument.mockReset();
   // One tab's memory of the reload it already tried (A12).
@@ -656,6 +658,84 @@ describe("TenantSegmentBoundary: a crossing is a document load", () => {
     // this site's /web-studio.
     act(() => link.click());
     expect(loadDocument).not.toHaveBeenCalled();
+  });
+
+  // Council round 2, AR3: the sign-in screens call `replace(target)` and then
+  // `refresh()`. When the replace crosses into the segment it is a document
+  // load, and a refresh would render the sign-in page again on the old
+  // document while that load is pending: a soft redirect into the segment,
+  // which the guard blanks, and more server renders for nothing.
+  it("does not refresh once the tenant router has begun a document load", async () => {
+    const mod = await boundaryLoadedAt("/login");
+    cleanup();
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return null;
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <Page />
+      </mod.TenantSegmentBoundary>,
+    );
+
+    // Between two outside pages the router stays soft, and refresh works.
+    act(() => router!.replace("/register"));
+    act(() => router!.refresh());
+    expect(nav.refresh).toHaveBeenCalledTimes(1);
+
+    act(() => router!.replace("/tasks"));
+    expect(loadDocument).toHaveBeenLastCalledWith("/tasks", { replace: true });
+    act(() => router!.refresh());
+    expect(nav.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh once a TenantLink has begun a document load", async () => {
+    const mod = await boundaryLoadedAt(`${scopeA.addressPrefix}/contributions`);
+    cleanup();
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return <mod.TenantLink href="/web-studio">Web Studio</mod.TenantLink>;
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <mod.TenantDocument scope={scopeA}>
+          <Page />
+        </mod.TenantDocument>
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => screen.getByText("Web Studio").click());
+    expect(loadDocument).toHaveBeenCalledTimes(1);
+    act(() => router!.refresh());
+    expect(nav.refresh).not.toHaveBeenCalled();
+  });
+
+  it("refreshes again when the browser shows the document from its back-forward cache", async () => {
+    const mod = await boundaryLoadedAt("/login");
+    cleanup();
+    let router: ReturnType<typeof mod.useTenantRouter> | null = null;
+    function Page() {
+      router = mod.useTenantRouter();
+      return null;
+    }
+    render(
+      <mod.TenantSegmentBoundary>
+        <Page />
+      </mod.TenantSegmentBoundary>,
+    );
+
+    act(() => router!.replace("/tasks"));
+    act(() => router!.refresh());
+    expect(nav.refresh).not.toHaveBeenCalled();
+
+    // The person came back to this document, so the load it began is over.
+    const restored = new Event("pageshow") as PageTransitionEvent;
+    Object.defineProperty(restored, "persisted", { value: true });
+    act(() => window.dispatchEvent(restored));
+    act(() => router!.refresh());
+    expect(nav.refresh).toHaveBeenCalledTimes(1);
   });
 
   it("makes a link from an outside page into the segment load a document", async () => {
