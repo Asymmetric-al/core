@@ -1,6 +1,45 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-17
+Last updated: 2026-11-18
+
+## Next.js skill import - 2026-11-18 (AL-2713)
+
+Imported the three official Next.js skills that Core lacked, so all six skills
+the Next.js AI-agents guide names are installed:
+`next-partial-prefetching-optimizer`, `next-partial-prefetching-adoption` and
+`next-bundle-optimizer`. The source is `vercel/next.js` tag `v16.4.5`
+(`4e5335a00314be7fbb2aace5e9be56a88e64e5a8`), which matches the `next@16.4.5`
+installed in every app. `skills@1.5.7` staged each skill from a sparse local
+checkout of that commit in a scratch directory; each staged tree is
+byte-identical to the checkout. All files are mode 100644 and the import ran
+no upstream code. The three skills already installed from `684cf7ea` are
+file-for-file identical to the same tag, so all six now match the installed
+release; they were not refreshed.
+
+| Skill                              | Upstream tree | Raw `SKILL.md` / lock hash                                         | Core overlay |
+| ---------------------------------- | ------------- | ------------------------------------------------------------------ | ------------ |
+| next-partial-prefetching-optimizer | `a3818456`    | `876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345` | none         |
+| next-partial-prefetching-adoption  | `ae20d672`    | `258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b` | yes          |
+| next-bundle-optimizer              | `cbd1253f`    | `250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c` | yes          |
+
+The installed `next-cache-components-optimizer` hands off to
+`next-partial-prefetching-optimizer`, and `next-cache-components-adoption`
+names `next-partial-prefetching-adoption` as its follow-up; both now resolve
+to installed skills. The adoption overlay records that every app already runs
+`partialPrefetching: true` and rules out the skill's unpinned
+`@next/codemod@latest` and `@canary` commands, `npx skills add` from `canary`,
+`--force` and `git stash`. The bundle overlay limits `next analyze` to the
+three Turbopack apps (`apps/factory-console` builds with webpack), maps its
+`pnpm` commands to Bun, and keeps analyzer output out of the repository. No
+upstream sentence was edited. All three stay model-invocable, like the other
+three Next.js skills: the bundle optimizer defaults to audit mode, and the
+other two act only on a named navigation or on a Partial Prefetching task.
+
+The Skills CLI wrote `local` lock entries with the scratch path and its folder
+hash. The lock instead records the GitHub source, upstream path and raw
+`SKILL.md` hash, the same form as the other `vercel/next.js` entries. Counts
+moved from 237 to 240 runtime skills per client and from 197 to 200 lock
+entries.
 
 ## Agent guidance modernization - 2026-11-17 (AL-2695)
 
