@@ -147,6 +147,11 @@ defects. Each was checked against the files before it was fixed.
   instead of `bunx shadcn@latest info --json`.
 - `agent-browser` told agents to run `bunx agent-browser`, which its
   `allowed-tools` did not cover. A replacement adds `Bash(bunx agent-browser:*)`.
+- `create-agent/reference.md` still pointed at a repository-root
+  `node_modules/eve/docs/` in three places, one of them the comment template
+  agents copy into generated code. All three now name
+  `packages/eve-runtime/node_modules/eve/docs/`, and the template names the
+  installed `tools/overview.mdx` instead of a `tools.md` eve does not ship.
 
 ## Next.js skill import - 2026-11-18 (AL-2713)
 

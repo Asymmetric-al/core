@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -136,6 +136,27 @@ describe("skill-quality repairs", () => {
       expect(skill, skillName).not.toMatch(/\bnpx eve\b/);
       expect(skill, skillName).not.toContain("eve@latest");
       expect(skill, skillName).not.toMatch(/\bpnpm\b/);
+    }
+
+    // reference.md carries the docs bridge and the comment template agents
+    // copy into generated code; Core has no repository-root eve install.
+    const reference = read("docs/ai/skills/create-agent/reference.md");
+    const rootRelative = /(?<!packages\/eve-runtime\/)node_modules\/eve\//;
+    for (const relativePath of [
+      "docs/ai/skills/eve/SKILL.md",
+      "docs/ai/skills/create-agent/SKILL.md",
+      "docs/ai/skills/create-agent/reference.md",
+    ]) {
+      expect(read(relativePath), relativePath).not.toMatch(rootRelative);
+    }
+    const docPaths = [
+      ...reference.matchAll(
+        /packages\/eve-runtime\/node_modules\/eve\/docs\/[\w./-]*/g,
+      ),
+    ].map((match) => match[0]);
+    expect(docPaths.length).toBeGreaterThanOrEqual(4);
+    for (const docPath of docPaths) {
+      expect(existsSync(path.join(repoRoot, docPath)), docPath).toBe(true);
     }
   });
 
