@@ -371,6 +371,39 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         expect(none.message).toMatch(/several live assignments/);
       }));
 
+    // PR #2720 review: with no x-asym-assignment header the preamble counts
+    // every live row of the caller in the tenant, whatever the class, and
+    // refuses more than one; the application's resolver counts only the rows
+    // of the surface's class. The request names its row with the header,
+    // which every page request does from WP2b's first release. This pins
+    // today's rule; the count does not change.
+    it("refuses a person with a staff row and a donor row when no header names one, and admits either row the header names", () =>
+      tx(async () => {
+        const donor = await one(
+          "insert into authz.memberships (user_id, tenant_id, role, is_active) values ($1, $2, 'donor', true) returning id",
+          [id.UDEV, id.TA],
+        );
+        const none = await as(
+          "tenant_guard",
+          { sub: "UDEV" },
+          begin("TA", null),
+        );
+        expect(none.code).toBe("42501");
+        expect(none.message).toBe(
+          "tenant_guard: the caller has several live assignments in this tenant and the request names none",
+        );
+        for (const row of [id.mDev!, String(donor.id)]) {
+          const named = await as(
+            "tenant_guard",
+            { sub: "UDEV", headers: header(row) },
+            begin("TA", null),
+          );
+          expect(named.code, named.message).toBeNull();
+          expect(named.rows[0]!.assignment_id).toBe(row);
+          expect(keyOf(named.rows[0]!.entered)).toBe("TA");
+        }
+      }));
+
     it("refuses a revoked row, named or not, and a revocation takes effect at the next call", () =>
       tx(async () => {
         const named = await as(
