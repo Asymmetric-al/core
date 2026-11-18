@@ -247,6 +247,49 @@ for (const width of [375, 1280]) {
       await expect(button(page, "Filters")).toBeFocused();
       expect(errors).toEqual([]);
     });
+
+    test(`keeps the popover open for a pointer in the help at ${width}px (motion: ${reducedMotion})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.emulateMedia({ reducedMotion });
+      const errors = await mount(page);
+      // A corner of the page, clear of the popover and of the help's popup.
+      const corner = { x: width - 8, y: 792 };
+
+      await button(page, "Filters").click();
+      const popover = page.locator('[data-slot="popover-content"]');
+      await expect(popover).toBeVisible();
+      await button(page, "Clear filters").focus();
+      await page.keyboard.press("Shift+?");
+      await expect(help(page)).toBeVisible();
+
+      // A press on the help's own text is not a press outside the popover.
+      await help(page)
+        .getByRole("heading", { name: "Keyboard shortcuts" })
+        .click();
+      await settle(page);
+      await expect(popover).toHaveAttribute("data-open", "");
+
+      // Closing the help with its Close button goes back into the popover.
+      await help(page).getByRole("button", { name: "Close" }).click();
+      await expect(help(page)).toBeHidden();
+      await expect(popover).toHaveAttribute("data-open", "");
+      await expect(button(page, "Clear filters")).toBeFocused();
+
+      // So does a press on the help's backdrop.
+      await page.keyboard.press("Shift+?");
+      await expect(help(page)).toBeVisible();
+      await page.mouse.click(corner.x, corner.y);
+      await expect(help(page)).toBeHidden();
+      await expect(popover).toHaveAttribute("data-open", "");
+      await expect(button(page, "Clear filters")).toBeFocused();
+
+      // A press on the page outside both still closes the popover.
+      await page.mouse.click(corner.x, corner.y);
+      await expect(popover).toBeHidden();
+      expect(errors).toEqual([]);
+    });
   }
 }
 
