@@ -27,9 +27,21 @@
 - [x] 5.2 Record the CI-minute estimate, the run command and any product defects found in the workstream report.
 - [ ] 5.3 Observe the first pull-request run of the workflow on GitHub and record its duration (needs the branch pushed by the integrator).
 
+## 6. Review fixes (#2708, review e)
+
+- [x] 6.1 Harness safety: refuse host-overriding connection-string parameters, never remove a same-named container or network the state file does not record, bind PostgREST to loopback on the host network; verify with `stack-config.test.ts` red then green and a dummy same-named container surviving `up`.
+- [x] 6.2 Known defects: each entry names text specific to its select; an entry matching more than one failing select fails; verify with `select-failures.test.ts` red then green and a scratch break of `admin/comments/comment.ts:29` that the previous sweep hid and the new one names.
+- [x] 6.3 Count a 42501 as refused only when it names the swept relation; verify with `isolation-probe.test.ts` red then green and a scratch policy calling a non-executable function.
+- [x] 6.4 Identity guard: own profile by id and an own-tenant row outside the ruled reads; verify a token for an unknown subject fails it (red against the previous guard).
+- [x] 6.5 Column-grant probe, ruled rows by predicate, required evidence on core tables both ways, tables listed by name; verify red on the previous probe (missionaries never evidenced; scratch `USING (true)` on missionaries, posts and locations left it green) and green now, with the same scratch policies failing by name.
+- [x] 6.6 Row cap served live: verify the test fails when the declared cap differs from the served one (scratch `max_rows = 999`, restored) and passes otherwise.
+- [x] 6.7 Workflow filter covers every input; verify `workflow-paths.test.ts` red on the previous filter then green, and the workflow-convention tests pass.
+- [x] 6.8 Reword the workflow header, proposal, spec and design to what the check proves, and correct the inexact seam rows; verify with `bun run openspec -- validate add-api-contract-verification --strict` and `bun run verify:openspec-deltas`.
+
 ## Workflow follow-up
 
 - Add a `test:api-contract` package script and a `docs/ci.md` entry after workstreams A and B merge (outside this pass's fence).
 - Consider moving the job onto the AL-2673 local Supabase stack once it lands.
 - Add money-path tests (duplicate and out-of-order events, refunds, 1,001-gift history) against the WP8 commands when they exist.
+- Before promotion to a required check: drop the pull-request path filter (or report success on skipped runs) and add a `merge_group` trigger.
 - Archive after merge and an owner decision on promotion.

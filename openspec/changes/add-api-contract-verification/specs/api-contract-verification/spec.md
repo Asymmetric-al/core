@@ -4,7 +4,8 @@
 
 Verify on a disposable migrated database, in CI, that application reads match
 the schema as the Supabase Data API serves it and that the Data API never
-returns one tenant's rows to another tenant or to an anonymous caller.
+returns one tenant's rows to another tenant or to an anonymous caller, and
+report exactly which tables each run proved that on.
 
 ## ADDED Requirements
 
@@ -24,9 +25,28 @@ policy or grant that the product ships.
 
 #### Scenario: A read spans more rows than the row cap
 
-- **GIVEN** the declared row cap is 1,000
-- **WHEN** the check issues a read that matches more rows
-- **THEN** PostgREST returns at most the declared cap, as the hosted Data API does
+- **GIVEN** the declared row cap is N and one tenant holds N + 1 rows in a table
+- **WHEN** the check reads those rows through the Data API
+- **THEN** exactly N rows come back while the exact count reports N + 1, and the check fails if the served cap differs from the declared one
+
+### Requirement: The harness touches only the disposable stack it started
+
+The harness MUST refuse a database connection string that is not a Postgres
+URL on the loopback interface or that carries a parameter able to override its
+host. It MUST NOT remove a container or network that it did not start, and
+SHALL serve PostgREST on the loopback interface only.
+
+#### Scenario: A connection string points away from loopback
+
+- **GIVEN** a database URL whose hostname is loopback but whose `host`, `hostaddr` or `service` parameter names another server
+- **WHEN** the harness prepares the database
+- **THEN** it refuses before connecting
+
+#### Scenario: A container with the harness's name belongs to someone else
+
+- **GIVEN** a container or network with the harness's name exists that the run's state file does not record
+- **WHEN** the harness starts its stack
+- **THEN** it refuses and leaves that container or network untouched
 
 ### Requirement: Every resolvable application select runs against the migrated schema
 
@@ -54,6 +74,25 @@ API's error. Selects it cannot resolve SHALL be listed, not silently dropped.
 - **WHEN** the check inventories the selects
 - **THEN** it reports that select as unresolved with its location and does not count it as verified
 
+### Requirement: A known select defect excuses only its own select
+
+A failing select listed as a known product defect SHALL be reported instead of
+failing the check only when its entry names text specific to that select. An
+entry that matches more than one failing select, or no failing select, MUST
+fail the check.
+
+#### Scenario: A second select fails in a file with a known defect
+
+- **GIVEN** a known-defect entry names one select of a file and table
+- **WHEN** a different select of the same file and table fails with the same error code
+- **THEN** the check fails and names the second select
+
+#### Scenario: A known defect is fixed
+
+- **GIVEN** a known-defect entry whose select no longer fails
+- **WHEN** the check runs
+- **THEN** it fails and asks for the entry to be deleted
+
 ### Requirement: Application read paths return only their own tenant's rows
 
 The check SHALL run real application read functions with a real Data API
@@ -69,30 +108,60 @@ returned row belongs to a tenant other than the one requested.
 
 ### Requirement: Signed-in users read no other tenant's rows through the Data API
 
-For every table in the exposed schemas that carries a tenant column, the check
-SHALL read as a signed-in user of each tenant, using tokens it mints for that
-run, and MUST fail when a row of another tenant is returned. A read refused for
-lack of privilege counts as no rows. The check MUST prove that its tokens reach
-the database as the intended user before it treats empty results as evidence.
+For every exposed table with a tenant column, the check SHALL read as a
+signed-in user of each of two tenants, with tokens it mints per run, and MUST
+fail when a row of another tenant comes back that no ruling makes public. Only
+a refusal of that table for lack of privilege counts as no rows; any other
+error MUST fail the check, and column privileges left on a refused table MUST
+still be probed.
 
 #### Scenario: A policy admits another tenant's rows
 
-- **GIVEN** a policy on a tenant table admits rows of any tenant to signed-in users
+- **GIVEN** a policy on a tenant table the caller can read admits rows of any tenant to signed-in users
 - **WHEN** the check reads that table as a user of the other tenant
-- **THEN** it fails and names the table, the caller's tenant and the leaked rows' tenant
+- **THEN** it fails and names the table, the number of rows and a sample of the leaked rows' tenants
+
+#### Scenario: A table grants only some columns to signed-in users
+
+- **GIVEN** a tenant table grants signed-in users only some columns, including its primary key, and a policy admits rows of any tenant
+- **WHEN** the check reads that table as a user of the other tenant
+- **THEN** it reads the primary key, resolves the rows' tenants and fails naming the table
+
+#### Scenario: A permission error is not the table's
+
+- **GIVEN** a policy raises a permission error on a function or another table
+- **WHEN** the check reads the table
+- **THEN** it fails with that error instead of counting the table as refused
+
+### Requirement: The isolation sweep shows what it proved
+
+The check MUST prove that each token reaches the database as its user before
+it treats empty results as evidence. It MUST require evidence, a table the
+caller can read that holds rows the caller must not read, on the core tenant
+tables in both directions, and SHALL list each run's evidenced, readable but
+unevidenced, and refused tables by name.
 
 #### Scenario: Tokens do not reach the database as the user
 
-- **GIVEN** a minted token is not resolved to its user by the database
+- **GIVEN** a minted token whose subject is not the user it claims to be
 - **WHEN** the check verifies the caller before the isolation sweep
-- **THEN** it fails instead of reporting empty reads as isolation
+- **THEN** the verification fails, because the user's own profile and its tenant's non-public rows are not visible
+
+#### Scenario: A core table holds no row to leak
+
+- **GIVEN** a core tenant table that the caller cannot read, or that holds no row of another tenant
+- **WHEN** the check sweeps as that caller
+- **THEN** it fails and names the table as not evidenced
 
 ### Requirement: Anonymous callers read no tenant rows outside ruled public reads
 
 The check SHALL read every tenant table through the Data API without a user
-token and MUST fail when rows come back from a table that no owner ruling makes
-publicly readable. The ruled public reads SHALL be listed in one place, each
-with the ruling or document that allows it.
+token and MUST fail when a row comes back that no owner ruling makes publicly
+readable. The ruled public reads SHALL be listed in one place, each with the
+rows its ruling makes public (as a row condition the database owner
+evaluates) and the ruling or document that allows it. A row of a ruled table
+that its ruling does not make public MUST fail the check when an anonymous
+caller or a user of another tenant reads it.
 
 #### Scenario: An anonymous read of a tenant table returns rows
 
@@ -100,14 +169,27 @@ with the ruling or document that allows it.
 - **WHEN** the check reads it anonymously and rows come back
 - **THEN** it fails and names the table and the number of rows returned
 
+#### Scenario: An unpublished row of a ruled table becomes readable
+
+- **GIVEN** a policy change lets anonymous callers or other tenants read draft posts or unpublished locations
+- **WHEN** the check reads those tables
+- **THEN** it fails and names the table and the rows outside the ruling
+
 ### Requirement: The check is advisory and safe for forks
 
 The check SHALL run as its own workflow on pull requests and on the default
 branch, MUST NOT be a required status check until the owner promotes it, MUST
 hold read-only repository permissions, MUST pin every action and image by
-digest, and MUST NOT use repository secrets.
+digest, and MUST NOT use repository secrets. Its pull-request trigger SHALL
+cover every repository input that can change its result.
 
 #### Scenario: A pull request from a fork
 
 - **WHEN** the workflow runs for a pull request from a fork
 - **THEN** it runs with no repository secrets and read-only permissions
+
+#### Scenario: A pull request changes a package the reads import
+
+- **GIVEN** a pull request changes a workspace package that `packages/api` depends on, or the Vitest configuration the tests load
+- **WHEN** pull-request workflows are selected
+- **THEN** the API contract workflow runs

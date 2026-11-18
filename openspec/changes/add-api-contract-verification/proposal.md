@@ -29,8 +29,14 @@ name; a mocked one cannot.
     the select string and PostgREST's error;
   - run real `packages/api` missionary-portal read functions with a real
     `supabase-js` client against two tenants and assert on the rows returned;
-  - read every tenant table as a user of each tenant and as `anon`, and fail
-    when any row of another tenant comes back.
+  - check that a read matching more rows than the declared row cap returns
+    exactly the cap;
+  - probe every tenant table as a user of each of two tenants and as `anon`,
+    fail when a row comes back that is another tenant's and no ruling makes
+    public, require evidence on the core tenant tables in both directions, and
+    list per run which tables were evidenced, readable without evidence, or
+    refused for lack of privilege (which proves nothing on plain Postgres,
+    where hosted default grants are absent).
 - Not a required check. It runs on pull requests and on `develop`, and is
   promoted only after it has run cleanly for a while (a later owner decision).
 
@@ -58,7 +64,10 @@ active constriction of the supabase database/rls/auth at the moment." and
 
 Scope taken from that ruling for this change: the PostgREST check and its
 read-path and tenant-isolation tests. The money-path tests are deferred (see
-Non-goals) because the in-flight database work replaces that code.
+Non-goals) because the in-flight database work replaces that code. The
+review-fix pass of 2026-11-18 (#2708, independent review "REVIEW e") stays
+inside that scope: it makes the same tests fail when what they name is broken
+and words them to what they prove; it needs no new ruling.
 
 ## Non-goals
 
@@ -80,7 +89,10 @@ Non-goals) because the in-flight database work replaces that code.
 - New files only: the workflow, a harness script under `scripts/`, the tests
   and their Vitest configuration under `tests/integration/api-contract/`, and
   this change.
-- CI cost: one hosted job per pull request and `develop` push, about the
-  `migrate` job's database build plus under a minute of tests.
+- CI cost: one hosted job per matching pull request and `develop` push, about
+  the `migrate` job's database build plus under a minute of tests. The
+  pull-request filter covers every input that can change the result,
+  including `packages/**`, so most pull requests that touch shared code run
+  it.
 - Rollback: delete the workflow file (nothing depends on it), then the test
   directory and the harness script. No data, schema or runtime state changes.
