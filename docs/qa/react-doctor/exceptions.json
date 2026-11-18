@@ -2398,32 +2398,33 @@
       "title": "Tailwind animation ignores reduced motion",
       "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 285,
+      "line": 281,
       "column": 15,
-      "offset": 9230,
+      "offset": 9175,
       "length": 135,
-      "endLine": 289,
+      "endLine": 285,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "4dd1162638ad2fafef8d891d217eebb39cf22927429eb0fc2c9e1a24568b7322",
-      "id": "app/(dashboard)/donor-dashboard/pledges/page-client.tsx::285:15::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "id": "app/(dashboard)/donor-dashboard/pledges/page-client.tsx::281:15::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "app/(dashboard)/donor-dashboard/pledges/page-client.tsx",
       "tags": [],
       "target": "apps/donor",
       "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
       "evidence": [
-        "SNAPSHOT SOURCE apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:285-288: exact animation utility from this diagnostic.",
+        "SNAPSHOT SOURCE apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:281-284: exact animation utility from this diagnostic.",
         "SOURCE packages/ui/styles/globals.css:405-424: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:135; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:128. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:275:15. The reason was rechecked against the current source: the billing-portal pending Loader2 (animate-spin) is at pledges/page-client.tsx:275-277 and is still a status spinner, shown only while the portal request is pending; since the last requalification this branch only replaced the page's inline retry focus effect with the shared useLoadRetry hook (a busy Try again whose repeat failure is announced again), which moved the spinner up 11 lines without touching it; the reduced-motion block is now at globals.css:405-424. Stale at base before this branch: hashes for apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx, packages/ui/styles/globals.css no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
         "REQUALIFICATION 2026-11-17 (UI SDK integration, round 10): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:285:15. The reason was rechecked against the current source: the diagnostic is still the Loader2 animate-spin status spinner on the billing-portal button, shown only while that request is pending (page-client.tsx:284-288); round 10 changed only the page's offline loading gate and its load-error focus hand-off above it. Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound."
+        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:281:15. The reason was rechecked against the current source: the diagnostic is still the Loader2 animate-spin status spinner on the billing-portal button, shown only while that request is pending (page-client.tsx:280-285); only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks), above it. The fingerprint, message and source context are unchanged; the finding's position and the whole-file hash are rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "eadf7268dd0d511ebb6e316c2f52b46ebb12af5afbe4c67a3d3d7b1229976e81",
-      "sourceFileHash": "e4a645639f0225c98bd1d5e35a9a988e0d158d1ae35e6ab4caf37708a37332a5",
+      "sourceFileHash": "3aab46d56dad06c38bbd5412b91a1b3d48c4d33ebefc9caf862fd077127009ba",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -2440,21 +2441,21 @@
       "title": "Tailwind animation ignores reduced motion",
       "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 304,
+      "line": 297,
       "column": 17,
-      "offset": 9398,
+      "offset": 9217,
       "length": 61,
-      "endLine": 304,
+      "endLine": 297,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "a5ca19a073f5b848bb8d59d31f7aa819574bed61390587e0c46a88b1dd6b7878",
-      "id": "app/(dashboard)/donor-dashboard/settings/page-client.tsx::304:17::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "id": "app/(dashboard)/donor-dashboard/settings/page-client.tsx::297:17::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "app/(dashboard)/donor-dashboard/settings/page-client.tsx",
       "tags": [],
       "target": "apps/donor",
       "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
       "evidence": [
-        "SNAPSHOT SOURCE apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:304: exact animation utility from this diagnostic.",
+        "SNAPSHOT SOURCE apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:297: exact animation utility from this diagnostic.",
         "SOURCE packages/ui/styles/globals.css:405-424: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:419; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
@@ -2462,11 +2463,12 @@
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:252:17. The reason was rechecked against the current source: the saving Loader2 (animate-spin) is at settings/page-client.tsx:252 and is still a status spinner; the reduced-motion block is now at globals.css:405-424. Stale at base before this branch: hashes for apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx, packages/ui/styles/globals.css no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration, after the ledger pass): React Doctor 0.9.18 still reports this diagnostic at apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:292:17 with a byte-identical source context; the coordinator's later edit renamed DetailsCard's pending prop and added the settings API's maxLength limits to its inputs, which does not touch the reviewed claim. Since the last requalification this branch only added the shared SettingsRetryProvider (one useLoadRetry for the profile and email tabs) and a busy, re-announcing TabError above DetailsCard, which moved the saving Loader2 (animate-spin, shown only while a save is pending) from :252 to :292 without touching it. Identity and whole-file hashes are rebound.",
         "REQUALIFICATION 2026-11-17 (UI SDK integration, round 10): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:304:17. The reason was rechecked against the current source: the diagnostic is still the Loader2 animate-spin status spinner inside the Save changes button while the profile save is pending (page-client.tsx:303-306); round 10 changed only the tabs' offline loading gate and moved their load-error focus hand-off to the shared owner. Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound."
+        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx:297:17. The reason was rechecked against the current source: the diagnostic is still the Loader2 animate-spin status spinner inside the Save changes button while the profile save is pending (page-client.tsx:295-299); only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks), in the shared settings retry provider and its tab error view. The fingerprint, message and source context are unchanged; the finding's position and the whole-file hash are rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "a5ca19a073f5b848bb8d59d31f7aa819574bed61390587e0c46a88b1dd6b7878",
-      "sourceFileHash": "5051fae294f52cb0a74ff188fcacb3a2bba3dbc98b5493b64fc7a7c8d5d5a792",
+      "sourceFileHash": "f9cb6a187c7e17f81c11db62100f44023d531f22b8aa37006412d3da63227389",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -3433,7 +3435,7 @@
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
       "line": 262,
       "column": 15,
-      "offset": 8683,
+      "offset": 8660,
       "length": 48,
       "endLine": 262,
       "category": "Accessibility",
@@ -3452,11 +3454,12 @@
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/missionary/app/feed/worker-feed-page-client.tsx:646. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:245:15. The reason was rechecked against the current source: the publish-pending Loader2 (animate-spin) is at worker-feed-page-client.tsx:245 and is still a status spinner; the reduced-motion block is now at globals.css:405-424. The other animation diagnostic in this file (:225) is not covered by this record. Stale at base before this branch: hashes for apps/missionary/app/feed/worker-feed-page-client.tsx, packages/ui/styles/globals.css no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
         "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:262:15. The reason was rechecked against the current source: the publish-pending Loader2 (animate-spin) is at worker-feed-page-client.tsx:262 and is still an aria-hidden status spinner beside the sr-only \"Publishing update\" label; since the last requalification this branch only pointed the composer controls at the read-only notice and moved the Drafts Try again button's ref from the retry hook to this page. The draft-pending spinner diagnostic in this file (:241) is not covered by this record. Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound."
+        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:262:15. The reason was rechecked against the current source: the diagnostic is still the same Loader2 animate-spin status spinner at worker-feed-page-client.tsx:262; only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks) for the drafts tab's error view, further down the file. The fingerprint, message and source context are unchanged; the finding's position and the whole-file hash are rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "3c9a7e987496cc0a5f799e1c07f2eb328115d79bb73c0c02c0bc8d6376f0fa00",
-      "sourceFileHash": "baa002eef1c1316d422e0ca234e8fc81046652602d975769137d6434c9267928",
+      "sourceFileHash": "ef4ffd85dd06ff4fdeabf8916315ac7918f68da013b13e13c94b72b8c2a83f01",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",
@@ -3488,11 +3491,12 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/missionary/app/feed/worker-feed-page-client.tsx:724; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/missionary/app/feed/worker-feed-page-client.tsx:692. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:97:7. The reason was rechecked against the current source: PostComposerActions is the named export at worker-feed-page-client.tsx:97, rendered in-file at :352 and by tests/unit/apps/missionary/worker-feed-composer-actions.test.tsx (passed in this requalification). Stale at base before this branch: hashes for apps/missionary/app/feed/worker-feed-page-client.tsx, tests/unit/apps/missionary/worker-feed-composer-actions.test.tsx no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:100:7. The reason was rechecked against the current source: PostComposerActions is the named export at worker-feed-page-client.tsx:100, rendered in-file at :392 and by tests/unit/apps/missionary/worker-feed-composer-actions.test.tsx (unchanged since the last requalification; passed in this requalification); this branch only added its optional readOnlyNoticeId prop (and, elsewhere in the file, moved the Drafts Try again button's ref from the retry hook to this page). Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:100:7. The reason was rechecked against the current source: PostComposerActions is the named export at worker-feed-page-client.tsx:100, rendered in-file at :392 and by tests/unit/apps/missionary/worker-feed-composer-actions.test.tsx (unchanged since the last requalification; passed in this requalification); this branch only added its optional readOnlyNoticeId prop (and, elsewhere in the file, moved the Drafts Try again button's ref from the retry hook to this page). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at apps/missionary/app/feed/worker-feed-page-client.tsx:100:7. The reason was rechecked against the current source: PostComposerActions is still the named export at worker-feed-page-client.tsx:100 and its test consumer (worker-feed-composer-actions.test.tsx) is unchanged; only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks) for the drafts tab's error view, further down the file. The fingerprint, message and source context are unchanged; the whole-file hash is rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if this exact consumer is removed or redirected, or the test seam/export is intentionally migrated.",
       "sourceContextHash": "b055dfc6c351aa56835bf2803fb180c5b389089d3f821441a449ec9a22c4c5a2",
-      "sourceFileHash": "baa002eef1c1316d422e0ca234e8fc81046652602d975769137d6434c9267928",
+      "sourceFileHash": "ef4ffd85dd06ff4fdeabf8916315ac7918f68da013b13e13c94b72b8c2a83f01",
       "evidenceFileHashes": {
         "tests/unit/apps/missionary/worker-feed-composer-actions.test.tsx": "460cb28794e0c07e558604c72e374cf2f03c1a3322cafb8abbda27f87d6f97de"
       }
@@ -3588,7 +3592,7 @@
       "help": "Pair `onClick` with a key handler so keyboard users can trigger it.",
       "line": 591,
       "column": 10,
-      "offset": 17269,
+      "offset": 17308,
       "length": 10,
       "endLine": 602,
       "category": "Accessibility",
@@ -3604,11 +3608,12 @@
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at apps/missionary/app/tasks/page-client.tsx:595; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context apps/missionary/app/tasks/page-client.tsx:552. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at apps/missionary/app/tasks/page-client.tsx:569:10. The reason was rechecked against the current source: the list container at tasks/page-client.tsx:569-573 still uses onClickCapture/onFocusCapture={rememberTaskAction}, and rememberTaskAction (:991-997) only stores the closest descendant button for delete-recovery focus; tests/unit/apps/missionary/app/tasks/task-delete-recovery.test.tsx passed in this requalification. Stale at base before this branch: hashes for apps/missionary/app/tasks/page-client.tsx, tests/unit/apps/missionary/app/tasks/task-delete-recovery.test.tsx, packages/missionary/components/task-row.tsx no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at apps/missionary/app/tasks/page-client.tsx:591:10. The reason was rechecked against the current source: the list container (motion.div) at tasks/page-client.tsx:591-595 still uses onClickCapture/onFocusCapture={rememberTaskAction}, and rememberTaskAction (:1013-1019) only stores the closest descendant button for delete-recovery focus; since the last requalification this branch only changed the load-error retry above it (including moving its Try again button's ref from the retry hook to this page). tests/unit/apps/missionary/app/tasks/task-delete-recovery.test.tsx passed in this requalification. Identity, source-context, whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-16 (UI SDK integration, after review rounds 6-8): React Doctor 0.9.18 reports this finding at apps/missionary/app/tasks/page-client.tsx:591:10. The reason was rechecked against the current source: the list container (motion.div) at tasks/page-client.tsx:591-595 still uses onClickCapture/onFocusCapture={rememberTaskAction}, and rememberTaskAction (:1013-1019) only stores the closest descendant button for delete-recovery focus; since the last requalification this branch only changed the load-error retry above it (including moving its Try again button's ref from the retry hook to this page). tests/unit/apps/missionary/app/tasks/task-delete-recovery.test.tsx passed in this requalification. Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at apps/missionary/app/tasks/page-client.tsx:591:10. The reason was rechecked against the current source: the list container at tasks/page-client.tsx:591-595 still uses onClickCapture and onFocusCapture only to remember the task action button for recovery focus; only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks) for the task list's error view, above it. The fingerprint, message and source context are unchanged; the finding's position and the whole-file hash are rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if this capture handler gains an action or native button/keyboard focus ownership changes.",
       "sourceContextHash": "9f505b495a921ef11bc42d53be6e65ac85c94c7b08d73069a13b94a23c3512e6",
-      "sourceFileHash": "f0ecd6852d413d8d9eb2732ee7c33fa5444ebe72729966ae03e18c5d90a1472a",
+      "sourceFileHash": "79677a3c05812ac2b0e4b368eee5d00e09b0a15a4e7bffddc099c5d90a32a80b",
       "evidenceFileHashes": {
         "tests/unit/apps/missionary/app/tasks/task-delete-recovery.test.tsx": "079a02fbdd2ed532f1d5e640b15e3bfe62a68149daa64336190c1b6d4f47bd30",
         "packages/missionary/components/task-row.tsx": "f00a7dfad314d869a43c12f074d3a1f2b32f61def475ddb378ca3c1923ecdb0a"
@@ -3704,18 +3709,19 @@
       "evidence": [
         "SNAPSHOT SOURCE packages/database/hooks/donor-portal.ts:222-239: POST session creation returns url/stripeManaged.",
         "SOURCE packages/api/src/donor-portal/billing.ts: resolves authorized tenant/customer, creates billingPortal.sessions.create and returns its URL; no donor record mutation.",
-        "SOURCE apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:233-234: window.location.assign(url) performs full navigation.",
+        "SOURCE apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx:229-230: window.location.assign(url) performs full navigation.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/database/hooks/donor-portal.ts:163; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
         "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/database/hooks/donor-portal.ts:163. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
         "REQUALIFICATION 2026-11-16 (UI SDK dashboard integration): React Doctor 0.9.18 reports this finding at packages/database/hooks/donor-portal.ts:226:10. The reason was rechecked against the current source: useCreateDonorBillingPortalSession (donor-portal.ts:222-239) still only POSTs for the portal URL, and the pledges page (pledges/page-client.tsx:222-223) navigates the document to it; this branch changed only the pledges page's loading and retry presentation, and since the last requalification only moved that retry into the shared useLoadRetry hook (11 lines fewer above openPaymentSettings), leaving the mutation, billing.ts and the full navigation unchanged. Stale at base before this branch: hashes for packages/database/hooks/donor-portal.ts, packages/api/src/donor-portal/billing.ts, apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx no longer matched base bddbe6a3b; its recorded location no longer matched the base diagnostic (develop changed those files after the last rebind). Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-17 (UI SDK integration, round 10): React Doctor 0.9.18 reports this finding at packages/database/hooks/donor-portal.ts:226:10. The reason was rechecked against the current source: the mutation still only creates the billing-portal URL, and its Pledges caller still navigates the document with window.location.assign(url) (pledges/page-client.tsx:233); round 10 changed only that page's offline loading gate and load-error focus hand-off, which is why its supporting hash moved. The finding identity and source context are unchanged; whole-file and supporting hashes are rebound to the current files."
+        "REQUALIFICATION 2026-11-17 (UI SDK integration, round 10): React Doctor 0.9.18 reports this finding at packages/database/hooks/donor-portal.ts:226:10. The reason was rechecked against the current source: the mutation still only creates the billing-portal URL, and its Pledges caller still navigates the document with window.location.assign(url) (pledges/page-client.tsx:233); round 10 changed only that page's offline loading gate and load-error focus hand-off, which is why its supporting hash moved. The finding identity and source context are unchanged; whole-file and supporting hashes are rebound to the current files.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at packages/database/hooks/donor-portal.ts:226:10. The reason was rechecked against the current source: the mutation still only creates the billing-portal URL, and its Pledges caller still navigates the document with window.location.assign(url) (pledges/page-client.tsx:229); only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks), which is why its supporting hash moved. The fingerprint, message and source context are unchanged; the supporting hash of apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx is rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if the mutation begins updating cached data, its caller stops full navigation, or return-to-app behavior becomes client-side.",
       "sourceContextHash": "45e72adacdc04799a3953a1eba6d326b4828031a7e8636e61fddd700dd230f68",
       "sourceFileHash": "d8ff5e510ff69b5469ed94e751e52ed03380931433056f89f75ae7f2558c8d17",
       "evidenceFileHashes": {
         "packages/api/src/donor-portal/billing.ts": "3c2273423f823d45aaab9f3698f7b503b5d220ee0779310f59632e7d67972c8b",
-        "apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx": "e4a645639f0225c98bd1d5e35a9a988e0d158d1ae35e6ab4caf37708a37332a5"
+        "apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx": "3aab46d56dad06c38bbd5412b91a1b3d48c4d33ebefc9caf862fd077127009ba"
       }
     },
     {
@@ -6965,14 +6971,14 @@
       "title": "Props spread onto element",
       "message": "You can't tell what props reach this element when you spread them.",
       "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 11,
-      "column": 53,
-      "offset": 333,
+      "line": 24,
+      "column": 7,
+      "offset": 791,
       "length": 10,
-      "endLine": 11,
+      "endLine": 24,
       "category": "Maintainability",
       "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "id": "components/shadcn/popover.tsx::11:53::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "id": "components/shadcn/popover.tsx::24:7::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
       "normalizedFilePath": "components/shadcn/popover.tsx",
       "tags": [],
       "target": "packages/ui",
@@ -6981,13 +6987,14 @@
         "SNAPSHOT SOURCE packages/ui/components/shadcn/popover.tsx:10-11: Popover accepts { ...props }: PopoverPrimitive.Root.Props and forwards `props` to `PopoverPrimitive.Root`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/popover.tsx:11; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/popover.tsx:11. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/popover.tsx:11. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-11-18 (AL-2696): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/popover.tsx:24:7. The reason was rechecked against the current source: Popover now consumes onOpenChange, wraps it so a press inside the open Shift+? help does not close the popover, and forwards every other typed root prop to PopoverPrimitive.Root as before. Identity, whole-file and supporting hashes are rebound; the source context is unchanged."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "sourceFileHash": "585fbe08ffbb34cf684fd173bf05f4c7bbfa9140757d9b34273db6fd30a02a38",
+      "sourceFileHash": "125809a4e76e42623740eda1fe53af51a1ac4a2cb55354dd64c4da6cbe081e04",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
@@ -9072,30 +9079,31 @@
       "title": "Tailwind animation ignores reduced motion",
       "message": "This Tailwind animation runs even when the user requests reduced motion. Gate it with motion-safe or add a motion-reduce animation alternative.",
       "help": "Gate motion with motion-safe or provide a motion-reduce animation override that preserves the same information without spatial movement.",
-      "line": 293,
+      "line": 289,
       "column": 19,
-      "offset": 9884,
+      "offset": 9895,
       "length": 61,
-      "endLine": 293,
+      "endLine": 289,
       "category": "Accessibility",
       "matchByOccurrence": true,
       "fingerprint": "a5ca19a073f5b848bb8d59d31f7aa819574bed61390587e0c46a88b1dd6b7878",
-      "id": "app/(dashboard)/donor-dashboard/wallet/page-client.tsx::293:19::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
+      "id": "app/(dashboard)/donor-dashboard/wallet/page-client.tsx::289:19::react-doctor/no-ungated-tailwind-animation::45ea7ed8010cf3057efefd065d228fac83ae42a422cfb72dec7537a6262cef37",
       "normalizedFilePath": "app/(dashboard)/donor-dashboard/wallet/page-client.tsx",
       "tags": [],
       "target": "apps/donor",
       "reason": "This exact Tailwind CSS animation is covered by Core's global reduced-motion policy, which the local class-only scanner does not follow across stylesheet imports.",
       "evidence": [
-        "SNAPSHOT SOURCE apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx:293: exact animation utility from this diagnostic: the \"View payment methods in Stripe\" button shows a Loader2 animate-spin status spinner only while the billing-portal request is pending.",
+        "SNAPSHOT SOURCE apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx:289: exact animation utility from this diagnostic: the \"View payment methods in Stripe\" button shows a Loader2 animate-spin status spinner only while the billing-portal request is pending.",
         "SOURCE packages/ui/styles/globals.css:405-424: reduced-motion media query applies animation-duration 0.01ms, iteration-count 1, transition-duration 0.01ms and scroll-behavior auto with !important to *, *::before and *::after. The named spinner-essential exemption is confined to status spinners; this does not justify decorative-pulse or JavaScript Motion rules.",
         "SOURCE apps/admin/app/globals.css:1 and apps/donor/app/globals.css:1 import shared globals; apps/missionary/app/globals.css:1 imports packages/missionary/styles.css, whose line 2 imports shared globals. Shared component consumers require this stylesheet.",
         "ADDED 2026-11-16 (UI SDK dashboard integration): this branch added the pending spinner to the wallet's \"View payment methods in Stripe\" button. It is the same Tailwind-class finding, behind the same shared stylesheet chain, as the other reviewed no-ungated-tailwind-animation records; the other animation diagnostic in this file (the header Manage payment methods spinner, now :208) predates this branch and is not covered by this record. Since the last review this branch only replaced the page's inline retry focus effect with the shared useLoadRetry hook, which moved this spinner from :291 to wallet/page-client.tsx:284:19 without touching it; it still shows only while the billing-portal request is pending.",
         "REQUALIFICATION 2026-11-17 (UI SDK integration, round 10): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx:293:19. The reason was rechecked against the current source: the diagnostic is still the Loader2 animate-spin status spinner on the View payment methods in Stripe button while the billing-portal request is pending (page-client.tsx:292-294); round 10 changed only the page's offline loading gate and its load-error focus hand-off. Identity, source-context, whole-file and supporting hashes are rebound to the current files.",
-        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound."
+        "REQUALIFICATION 2026-11-17 (merge of develop into AL-2690): packages/ui/styles/globals.css changed only in comments (develop's comment cleanup); its reduced-motion rule is still at :405-424. Only that supporting hash is rebound.",
+        "REQUALIFICATION 2026-11-18 (AL-2698, one shared load-retry hook): React Doctor 0.9.18 reports this finding at apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx:289:19. The reason was rechecked against the current source: the diagnostic is still the Loader2 animate-spin status spinner on the View payment methods in Stripe button while the billing-portal request is pending (page-client.tsx:288-290); only the page's load-retry wiring changed (the old app-local hook replaced by the shared useLoadRetry from @asym/ui/hooks), above it. The fingerprint, message and source context are unchanged; the finding's position and the whole-file hash are rebound to the current files."
       ],
       "reconsiderWhen": "Reconsider if the shared reduced-motion rule, its cascade/import chain, an animation implementation, or the spinner-essential contract changes. This exception does not cover Motion, canvas, or decorative-animation quality rules.",
       "sourceContextHash": "a5ca19a073f5b848bb8d59d31f7aa819574bed61390587e0c46a88b1dd6b7878",
-      "sourceFileHash": "16cffdbbc02003817f510fba96b6f33278049c04ae174f8b94e98ad7fefc848d",
+      "sourceFileHash": "bfc988d54a452726a5fc1eb763ac3bd6b87f9c64e5a9134291942d2e30b710ba",
       "evidenceFileHashes": {
         "packages/ui/styles/globals.css": "c2137e72a678f6ca25e0027e6d207d464c62aa5df0ee99569448fc1edcd162e2",
         "apps/admin/app/globals.css": "890411249baf83308ddde59299fa489a69916b4b43c397ad7e23b689e18f8439",

@@ -2,7 +2,6 @@
 
 import { useMediaQuery } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { useLoadRetry } from "@asym/missionary/hooks/use-load-retry";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
@@ -34,6 +33,7 @@ import {
   InputGroupInput,
 } from "@asym/ui/components/shadcn/input-group";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
+import { focusIsLost, useLoadRetry } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { Search, Filter, ArrowDownUp, X } from "lucide-react";
 import * as React from "react";
@@ -628,13 +628,13 @@ function DonorRosterResults({
   /** The error view's Try again; the roster owns it for Load more too. */
   retryRef: React.RefObject<HTMLButtonElement | null>;
 }) {
-  const loadRetry = useLoadRetry({
+  const { failureView, ...loadRetry } = useLoadRetry({
     retryRef,
     error,
     loading: isLoading,
     onRetry: refreshDonors,
-    landing: (button) =>
-      button
+    landing: (from) =>
+      from
         ?.closest('[data-slot="card"]')
         ?.querySelector<HTMLElement>('[role="heading"]'),
   });
@@ -642,6 +642,7 @@ function DonorRosterResults({
     <div className="flex-1 min-h-0">
       {loadRetry.error ? (
         <ErrorState
+          ref={failureView}
           message={loadRetry.error}
           onRetry={loadRetry.retry}
           retrying={loadRetry.retrying}
@@ -724,11 +725,6 @@ function DonorRosterResults({
       )}
     </div>
   );
-}
-
-function focusIsLost() {
-  const active = document.activeElement;
-  return !active || active === document.body;
 }
 
 /**

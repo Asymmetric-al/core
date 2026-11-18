@@ -6,9 +6,24 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { mergeBaseUIClassName } from "../../lib/base-ui";
+import { isPressInShortcutHelp } from "../primitives/shortcut-help-layer";
 
-function Popover({ ...props }: PopoverPrimitive.Root.Props) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
+function Popover({ onOpenChange, ...props }: PopoverPrimitive.Root.Props) {
+  return (
+    <PopoverPrimitive.Root
+      data-slot="popover"
+      onOpenChange={(open, details) => {
+        // The Shift+? help opens over a popover without belonging to it, so a
+        // press inside the help must not close the popover beneath it.
+        if (!open && isPressInShortcutHelp(details)) {
+          details.cancel();
+          return;
+        }
+        onOpenChange?.(open, details);
+      }}
+      {...props}
+    />
+  );
 }
 
 function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {

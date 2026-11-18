@@ -7,10 +7,6 @@ import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
-import {
-  pageHeading,
-  useLoadRetry,
-} from "@asym/missionary/hooks/use-load-retry";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
@@ -53,6 +49,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@asym/ui/components/shadcn/toggle-group";
+import { pageHeading, useLoadRetry } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { isToday, isPast } from "date-fns";
 import {
@@ -518,7 +515,7 @@ function TasksContent({
   showDeferredInList,
 }: TasksContentProps) {
   const loadRetryButton = React.useRef<HTMLButtonElement>(null);
-  const loadRetry = useLoadRetry({
+  const { failureView, ...loadRetry } = useLoadRetry({
     retryRef: loadRetryButton,
     error,
     loading,
@@ -528,7 +525,10 @@ function TasksContent({
   return (
     <AnimatePresence mode="wait">
       {loadRetry.error ? (
-        <div className="flex flex-col items-center gap-4 py-8">
+        <div
+          ref={failureView}
+          className="flex flex-col items-center gap-4 py-8"
+        >
           <Alert
             key={loadRetry.failedRetries}
             variant="destructive"
