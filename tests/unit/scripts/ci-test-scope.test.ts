@@ -1,4 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { spawnSync } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   FULL_RUN_TRIGGERS,
@@ -339,5 +350,159 @@ describe("instant-navigation selection", () => {
   it("names its inputs explicitly", () => {
     expect(INSTANT_NAVIGATION_INPUTS).toContain("apps/donor/**");
     expect(INSTANT_NAVIGATION_INPUTS).toContain("packages/**");
+  });
+});
+
+const REPO_ROOT = path.resolve(import.meta.dirname, "../../..");
+const SCOPE_SCRIPT = "scripts/verify/ci-test-scope.mjs";
+
+function git(cwd: string, ...args: string[]) {
+  const result = spawnSync(
+    "git",
+    [
+      "-c",
+      "user.name=ci-test-scope",
+      "-c",
+      "user.email=ci-test-scope@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      ...args,
+    ],
+    { cwd, encoding: "utf8", shell: false },
+  );
+  if (result.status !== 0)
+    throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
+  return result.stdout.trim();
+}
+
+/** A throwaway repository with one base commit and one head commit. */
+function repositoryWithChange(root: string, changed: string[]) {
+  const repo = mkdtempSync(path.join(root, "repo-"));
+  git(repo, "init", "--quiet");
+  writeFileSync(path.join(repo, "README.md"), "# base\n");
+  git(repo, "add", "--all");
+  git(repo, "commit", "--quiet", "-m", "base");
+  const base = git(repo, "rev-parse", "HEAD");
+  for (const file of changed) {
+    mkdirSync(path.dirname(path.join(repo, file)), { recursive: true });
+    writeFileSync(path.join(repo, file), "changed\n");
+  }
+  git(repo, "add", "--all");
+  git(repo, "commit", "--quiet", "-m", "head");
+  return { repo, base, head: git(repo, "rev-parse", "HEAD") };
+}
+
+/**
+ * Runs `node scripts/verify/ci-test-scope.mjs --instant-navigation` the way
+ * the instant-nav job does, and returns what it wrote to GITHUB_OUTPUT. Every
+ * GitHub variable comes from the case, never from the host, so the test
+ * behaves the same inside a GitHub Actions run.
+ */
+function runInstantNavigationCli(
+  root: string,
+  cwd: string,
+  script: string,
+  vars: Record<string, string>,
+) {
+  const output = path.join(mkdtempSync(path.join(root, "out-")), "output");
+  writeFileSync(output, "");
+  const env: NodeJS.ProcessEnv = {};
+  for (const [name, value] of Object.entries(process.env))
+    if (!/^(GITHUB_|CI_BASE_SHA$|CI_HEAD_SHA$)/.test(name)) env[name] = value;
+  const result = spawnSync(process.execPath, [script, "--instant-navigation"], {
+    cwd,
+    encoding: "utf8",
+    shell: false,
+    env: { ...env, ...vars, GITHUB_OUTPUT: output },
+  });
+  return { result, written: readFileSync(output, "utf8") };
+}
+
+describe("the instant-nav scope CLI as the workflow runs it", () => {
+  let root = "";
+  let docsOnly: ReturnType<typeof repositoryWithChange>;
+  let donor: ReturnType<typeof repositoryWithChange>;
+  beforeAll(() => {
+    root = mkdtempSync(path.join(os.tmpdir(), "ci-test-scope-cli-"));
+    docsOnly = repositoryWithChange(root, ["docs/notes.md"]);
+    donor = repositoryWithChange(root, ["apps/donor/app/page.tsx"]);
+  });
+  afterAll(() => rmSync(root, { recursive: true, force: true }));
+
+  const pullRequest = (
+    baseRef: string,
+    change: { base: string; head: string },
+  ) => ({
+    GITHUB_EVENT_NAME: "pull_request",
+    GITHUB_BASE_REF: baseRef,
+    CI_BASE_SHA: change.base,
+    CI_HEAD_SHA: change.head,
+  });
+
+  it.each([
+    ["a production pull request", () => pullRequest("production", docsOnly)],
+    [
+      "a production push",
+      () => ({ GITHUB_EVENT_NAME: "push", GITHUB_BASE_REF: "" }),
+    ],
+    [
+      "a manual dispatch",
+      () => ({ GITHUB_EVENT_NAME: "workflow_dispatch", GITHUB_BASE_REF: "" }),
+    ],
+    [
+      "a develop pull request without SHAs",
+      () => ({
+        GITHUB_EVENT_NAME: "pull_request",
+        GITHUB_BASE_REF: "develop",
+        CI_BASE_SHA: "",
+        CI_HEAD_SHA: "",
+      }),
+    ],
+    [
+      "a develop pull request whose SHAs are not in the checkout",
+      () => pullRequest("develop", { base: BASE, head: HEAD }),
+    ],
+    [
+      "a develop pull request that changes donor",
+      () => pullRequest("develop", donor),
+    ],
+  ])("writes run=true for %s", (_label, vars) => {
+    const { result, written } = runInstantNavigationCli(
+      root,
+      docsOnly.repo,
+      path.join(REPO_ROOT, SCOPE_SCRIPT),
+      vars(),
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toMatch(/^instant-nav scope: /);
+    expect(written).toBe("run=true\n");
+  });
+
+  it("writes run=false only for a develop pull request that cannot affect the guards", () => {
+    const { result, written } = runInstantNavigationCli(
+      root,
+      docsOnly.repo,
+      path.join(REPO_ROOT, SCOPE_SCRIPT),
+      pullRequest("develop", docsOnly),
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toMatch(/no changed file can affect/);
+    expect(written).toBe("run=false\n");
+  });
+
+  it("writes its output when started by the workflow's relative path from the repository root", () => {
+    for (const vars of [
+      { GITHUB_EVENT_NAME: "push", GITHUB_BASE_REF: "" },
+      { GITHUB_EVENT_NAME: "pull_request", GITHUB_BASE_REF: "develop" },
+    ]) {
+      const { result, written } = runInstantNavigationCli(
+        root,
+        REPO_ROOT,
+        SCOPE_SCRIPT,
+        vars,
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(written).toBe("run=true\n");
+    }
   });
 });

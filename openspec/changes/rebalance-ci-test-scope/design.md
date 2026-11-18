@@ -223,7 +223,17 @@ build. Cost: nothing on a green build; one extra app build on a red one.
 
 The job's `if` adds same-repository pull requests into `develop`. A first step
 asks the selection module whether the change set can affect the guards; if
-not, every later step is skipped and the log says why. Inputs: `apps/donor/**`,
+not, every later step is skipped and the log says why. Each later step runs
+unless the event is a pull request into `develop` and the step's output is
+exactly `false`
+(`github.event_name != 'pull_request' || github.base_ref != 'develop' || steps.scope.outputs.run != 'false'`).
+So the production guards never depend on the script, and on `develop` a
+script that writes nothing (GitHub reads a missing output as `''`) runs them.
+A first draft gated the steps on `run == 'true'`, which would have let a
+broken script skip every production guard while `e2e-gate` saw a successful
+job. A unit test runs the script exactly as the job does, with a temporary
+`GITHUB_OUTPUT`, and the workflow test evaluates every step condition for each
+event and for the outputs `true`, `false` and missing. Inputs: `apps/donor/**`,
 `packages/**`, `tooling/**`, `vendor/**`, `scripts/**` (the donor Next.js
 configuration imports several root scripts), `tests/e2e/**`,
 `playwright*.config.ts`, the root manifests and lockfile, `turbo.json`, root

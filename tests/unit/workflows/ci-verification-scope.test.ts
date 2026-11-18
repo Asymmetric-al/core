@@ -115,28 +115,59 @@ describe("instant-nav runs on develop pull requests as a non-required job", () =
     },
   );
 
+  const steps = stepsOf(job);
+  const scope = steps.find((s) =>
+    s.run?.includes("scripts/verify/ci-test-scope.mjs --instant-navigation"),
+  );
+  // Every step after the scope step does the guards' work, except the report
+  // upload, which runs always().
+  const work = steps
+    .slice(steps.indexOf(scope!) + 1)
+    .filter((step) => step.if !== "always()");
+
   it("decides from the change set before building, with full history", () => {
-    const steps = stepsOf(job);
-    const scope = steps.find((s) =>
-      s.run?.includes("scripts/verify/ci-test-scope.mjs --instant-navigation"),
-    );
     expect(scope?.id).toBeTruthy();
     expect(scope?.env).toMatchObject(PR_SHAS);
     expect(checkoutOf(job)?.with?.["fetch-depth"]).toBe(0);
-    const gated = `steps.${scope?.id}.outputs.run == 'true'`;
-    for (const name of [
-      "Install Playwright Chromium",
-      "Build donor with the testing API exposed",
-      "Start donor production server",
-      "Instant navigation guards",
-    ])
-      expect(steps.find((s) => s.name === name)?.if, name).toBe(gated);
-    expect(steps.indexOf(scope!)).toBeLessThan(
-      steps.findIndex(
-        (s) => s.name === "Build donor with the testing API exposed",
-      ),
+    expect(work.map((step) => step.name)).toEqual(
+      expect.arrayContaining([
+        "Install Playwright Chromium",
+        "Build donor with the testing API exposed",
+        "Start donor production server",
+        "Instant navigation guards",
+      ]),
     );
   });
+
+  // GitHub renders a step output that was never written as '' ("If you
+  // attempt to dereference a nonexistent property, it will evaluate to an
+  // empty string"), so '' models a scope step that wrote nothing.
+  const RUNS_JOB = EVENT_SCENARIOS.filter((scenario) =>
+    evaluateIfCondition(job.if, scenarioContext(scenario, {})),
+  );
+  it.each(
+    RUNS_JOB.flatMap((scenario) =>
+      ["true", "false", ""].map(
+        (output) => [scenario.label, JSON.stringify(output), scenario] as const,
+      ),
+    ),
+  )(
+    "%s with run=%s: only a develop pull request the script clears skips the guards",
+    (_label, output, scenario) => {
+      const { event_name, base_ref } = github(scenario);
+      const ctx = scenarioContext(scenario, {});
+      ctx.contexts.steps = {
+        [scope!.id!]: { outputs: { run: JSON.parse(output) as string } },
+      };
+      const expected = !(
+        event_name === "pull_request" &&
+        base_ref === "develop" &&
+        output === '"false"'
+      );
+      for (const step of work)
+        expect(evaluateIfCondition(step.if, ctx), step.name).toBe(expected);
+    },
+  );
 
   it("feeds no develop gate; only the production e2e-gate needs it", () => {
     for (const [id, other] of Object.entries(CII))

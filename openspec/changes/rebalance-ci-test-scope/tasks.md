@@ -100,3 +100,11 @@
 - [ ] 9.2 Add an acceptance stage to the local preflight (pre-push
       workstream, `scripts/verify/ci-preflight.mjs`), and update its comment
       that `verify:shadcn-config` runs only locally.
+
+## 10. Review fixes (review round 6, sections c1 and c2)
+
+- [x] 10.1 Red first: the workflow test evaluates every `instant-nav` work
+      step for each event and for the outputs `true`, `false` and missing; a
+      CLI test runs the scope script as the job does with a temporary
+      `GITHUB_OUTPUT`. Then make the production guards independent of the
+      script and run on `develop` unless the output is exactly `false`.
