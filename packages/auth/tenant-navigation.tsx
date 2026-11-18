@@ -3,7 +3,7 @@
 import { loadDocument, reloadDocument } from "@asym/database/document-reload";
 import {
   DocumentScopeProvider,
-  getDocumentScope,
+  isDocumentScopeFixed,
   useDocumentScope,
   type DocumentScope,
 } from "@asym/database/document-scope";
@@ -239,9 +239,13 @@ export function TenantDocument({
   );
 }
 
-/** Whether this document has fixed no scope yet: always on the server, which keeps none. */
+/**
+ * Whether this document has fixed no scope yet: always on the server, which
+ * keeps none. Not `getDocumentScope()`, which is also `null` once the address
+ * has left the segment of a scope the document did fix (A6, A8).
+ */
 function neverFixedScope(): boolean {
-  return typeof window === "undefined" || getDocumentScope() === null;
+  return !isDocumentScopeFixed();
 }
 
 /**

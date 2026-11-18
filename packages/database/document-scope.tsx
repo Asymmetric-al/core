@@ -18,8 +18,27 @@ import type { ReactNode } from "react";
  * storage carry the person and the tenant.
  *
  * Signed-in pages of Mission Control and the missionary workspace always have
- * one. Everything else (sign-in, the chooser, Web Studio, the donor portal)
- * has none: `useDocumentScope()` and `getDocumentScope()` return `null`.
+ * one. Everything else (sign-in, the chooser, account screens, Web Studio,
+ * the donor portal) has none.
+ *
+ * When each function returns `null` (council round 1, A8):
+ * - `useDocumentScope()` returns the scope only inside the `TenantDocument`
+ *   that fixed it, so `null` on every page outside the tenant segment.
+ * - `getDocumentScope()` returns the scope only in the browser, only once a
+ *   signed-in page has fixed it, and only while the address is inside that
+ *   scope's segment (`<prefix>` or `<prefix>/…`). It is `null` on the
+ *   server, before a scope is fixed, and on any address outside the segment,
+ *   another tenant's or another sub-role's included.
+ * Neither ever returns a scope other than the one the document was loaded
+ * with.
+ *
+ * Crossing the tenant segment's boundary is always a document load: into it
+ * from outside, out of it, and from one tenant or sub-role to another. The
+ * helpers in `@asym/auth/tenant-navigation` load a document for such a
+ * navigation; `TenantSegmentBoundary` reloads when one happens softly anyway;
+ * `TenantDocument` reloads a document that entered the segment without a
+ * load. So a scope always starts in a new document, with an empty query
+ * cache. Inside one tenant's segment navigation stays soft.
  */
 export interface DocumentScope {
   /** The signed-in person: their Supabase user id. */
@@ -99,11 +118,30 @@ export function useDocumentScope(): DocumentScope | null {
   return useContext(DocumentScopeContext);
 }
 
+/** Whether `pathname` is in the tenant segment of `addressPrefix`. */
+function inSegment(pathname: string, addressPrefix: string): boolean {
+  return pathname === addressPrefix || pathname.startsWith(`${addressPrefix}/`);
+}
+
 /**
  * The document's scope for code outside React, such as the browser client
- * and the fetch wrapper. Browser only: always `null` on the server, and
- * `null` until a signed-in page has rendered its provider.
+ * and the fetch wrapper. Browser only: always `null` on the server, `null`
+ * until a signed-in page has rendered its provider, and `null` while the
+ * address is outside that scope's tenant segment, so a page outside it never
+ * acts in the document's tenant, even before the crossing's document load.
+ * The address only withholds the scope; it never supplies one.
  */
 export function getDocumentScope(): DocumentScope | null {
-  return typeof window === "undefined" ? null : fixedScope;
+  if (typeof window === "undefined" || fixedScope === null) return null;
+  return inSegment(window.location.pathname, fixedScope.addressPrefix)
+    ? fixedScope
+    : null;
+}
+
+/**
+ * Whether this browser document has fixed a scope, wherever its address is
+ * now. `false` on the server, which keeps none.
+ */
+export function isDocumentScopeFixed(): boolean {
+  return typeof window !== "undefined" && fixedScope !== null;
 }

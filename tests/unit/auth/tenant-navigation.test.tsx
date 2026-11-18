@@ -232,6 +232,8 @@ describe("TenantDocument: the guard", () => {
       return <p>{useDocumentScope()?.assignmentId}</p>;
     }
 
+    // The page is served at its tenant address.
+    window.history.replaceState(null, "", `${scopeA.addressPrefix}/care`);
     render(
       <TenantDocument scope={scopeA}>
         <Probe />
@@ -240,6 +242,10 @@ describe("TenantDocument: the guard", () => {
 
     expect(screen.getByText(scopeA.assignmentId)).toBeTruthy();
     expect(getDocumentScope()).toEqual(scopeA);
+    // Outside the segment the data layer has no scope (A8).
+    window.history.replaceState(null, "", "/web-studio");
+    expect(getDocumentScope()).toBeNull();
+    window.history.replaceState(null, "", "/");
   });
 });
 
