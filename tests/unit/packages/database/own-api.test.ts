@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
+import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { renderDocumentScope } from "./scope-fixture";
 
 /**
  * The own-API fetch wrapper (plan 5.2, "Calls from a page to the app's own
@@ -15,10 +18,7 @@ const SCOPE = {
 
 async function load() {
   vi.resetModules();
-  const store =
-    await import("../../../../packages/database/document-scope-store");
-  const ownApi = await import("../../../../packages/database/own-api");
-  return { ...store, ...ownApi };
+  return import("../../../../packages/database/own-api");
 }
 
 const fetchMock = vi.fn();
@@ -30,6 +30,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  cleanup();
   vi.unstubAllGlobals();
 });
 
@@ -39,8 +40,8 @@ function sentHeaders(call = 0): Headers {
 
 describe("ownApiFetch", () => {
   it("sends the document's tenant and assignment on a call to the app's own API", async () => {
-    const { fixDocumentScope, ownApiFetch } = await load();
-    fixDocumentScope(SCOPE);
+    const { ownApiFetch } = await load();
+    await renderDocumentScope(SCOPE);
 
     await ownApiFetch("/api/admin/funds?limit=200", {
       headers: { Accept: "application/json" },
@@ -55,8 +56,8 @@ describe("ownApiFetch", () => {
   });
 
   it("replaces any tenant or assignment the caller names with the document's", async () => {
-    const { fixDocumentScope, ownApiFetch } = await load();
-    fixDocumentScope(SCOPE);
+    const { ownApiFetch } = await load();
+    await renderDocumentScope(SCOPE);
 
     await ownApiFetch("/api/posts", {
       method: "POST",
@@ -83,8 +84,8 @@ describe("ownApiFetch", () => {
   });
 
   it("never takes a response from the HTTP cache, which keys by address alone", async () => {
-    const { fixDocumentScope, ownApiFetch } = await load();
-    fixDocumentScope(SCOPE);
+    const { ownApiFetch } = await load();
+    await renderDocumentScope(SCOPE);
 
     await ownApiFetch("/api/admin/crm/records", { cache: "force-cache" });
 
@@ -100,8 +101,8 @@ describe("ownApiFetch", () => {
   ])(
     "refuses %s before any request, so the headers never leave the app",
     async (path) => {
-      const { fixDocumentScope, ownApiFetch, OwnApiPathError } = await load();
-      fixDocumentScope(SCOPE);
+      const { ownApiFetch, OwnApiPathError } = await load();
+      await renderDocumentScope(SCOPE);
 
       expect(() => ownApiFetch(path)).toThrow(OwnApiPathError);
       expect(fetchMock).not.toHaveBeenCalled();
@@ -111,8 +112,8 @@ describe("ownApiFetch", () => {
 
 describe("ownApiDownload", () => {
   it("fetches the file with the document's scope and hands it to the browser", async () => {
-    const { fixDocumentScope, ownApiDownload } = await load();
-    fixDocumentScope(SCOPE);
+    const { ownApiDownload } = await load();
+    await renderDocumentScope(SCOPE);
     fetchMock.mockResolvedValue(
       new Response("a,b\n", {
         status: 200,

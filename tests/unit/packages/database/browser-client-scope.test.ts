@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { renderDocumentScope } from "./scope-fixture";
+
 /**
  * The browser client sends the document's tenant and assignment on its Data
  * API requests (plan 5.2, "The browser data layer is scoped…": the browser
@@ -47,11 +49,9 @@ function requestTo(path: string) {
 
 describe("the browser client", () => {
   it("sends the document's tenant and assignment on every Data API request", async () => {
-    const { fixDocumentScope } =
-      await import("../../../../packages/database/document-scope-store");
     const { createClient } =
       await import("../../../../packages/database/supabase/client");
-    fixDocumentScope(SCOPE);
+    await renderDocumentScope(SCOPE);
     const supabase = createClient();
 
     await supabase.from("donors").select("id");

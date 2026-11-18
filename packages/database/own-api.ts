@@ -1,4 +1,4 @@
-import { getDocumentScope } from "./document-scope-store";
+import { getDocumentScope } from "./document-scope";
 import { applyRequestScopeHeaders } from "./request-scope-headers";
 
 /**
@@ -6,13 +6,19 @@ import { applyRequestScopeHeaders } from "./request-scope-headers";
  * a page to the app's own API carry the tenant too"; WP2b, AL-2675).
  *
  * It sends the document's tenant and assignment as the `x-asym-tenant` and
- * `x-asym-assignment` request headers, taken from the document scope and
- * never from the live address, and `getAuthContext` passes them to the
- * resolver as the expected tenant and the proposed assignment. Without them
- * the resolver refuses a person who belongs to two organizations, or holds
- * two staff rows in one, because it never guesses. A page with no document
- * scope (sign-in, the chooser, the public website) sends neither, and a value
- * the caller set for either header is always replaced.
+ * `x-asym-assignment` request headers, read from `getDocumentScope()` when
+ * each call is made, and from nothing else: never the live address, never a
+ * remembered value. `getAuthContext` passes them to the resolver as the
+ * expected tenant and the proposed assignment, which it checks against the
+ * caller's own live rows; they are proposals and nothing on the server trusts
+ * them without that check. Without them the resolver refuses a person who
+ * belongs to two organizations, or holds two staff rows in one, because it
+ * never guesses.
+ *
+ * When the document has no scope (sign-in, the chooser, the public website,
+ * any page outside the tenant segment that renders no scope of its own) the
+ * call sends neither header. A value the caller set for either header is
+ * always removed.
  *
  * It lives in `@asym/database`, beside the document scope it reads, because
  * this is the lowest workspace package and every caller (the three apps,

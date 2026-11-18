@@ -1,6 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-import { getDocumentScope } from "../document-scope-store";
+import { getDocumentScope } from "../document-scope";
 import { applyRequestScopeHeaders } from "../request-scope-headers";
 import { getSupabasePublicConfig } from "./config";
 

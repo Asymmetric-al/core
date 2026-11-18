@@ -1,6 +1,6 @@
 import { QueryClient, hashKey, isServer } from "@tanstack/react-query";
 
-import { getDocumentScope } from "../document-scope-store";
+import { getDocumentScope } from "../document-scope";
 
 import type { QueryKey } from "@tanstack/react-query";
 

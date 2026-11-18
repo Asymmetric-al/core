@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { renderDocumentScope } from "./scope-fixture";
+
+afterEach(cleanup);
 
 /**
  * The browser query cache is keyed by the document scope (plan 5.2, "The
@@ -24,17 +29,15 @@ const KEY = ["admin", "crm", "records", "infinite"] as const;
 
 async function load() {
   vi.resetModules();
-  const store =
-    await import("../../../../packages/database/document-scope-store");
   const { getQueryClient } =
     await import("../../../../packages/database/providers/query-client");
-  return { ...store, queryClient: getQueryClient() };
+  return { queryClient: getQueryClient() };
 }
 
 describe("the browser query cache", () => {
   it("keys every query by the document's person, tenant and assignment", async () => {
-    const { fixDocumentScope, queryClient } = await load();
-    fixDocumentScope(A);
+    const { queryClient } = await load();
+    await renderDocumentScope(A);
 
     queryClient.setQueryData(KEY, [{ id: "donor-a" }]);
 
@@ -46,17 +49,17 @@ describe("the browser query cache", () => {
   });
 
   it("never serves a scoped page a row cached before its scope was fixed", async () => {
-    const { fixDocumentScope, queryClient } = await load();
+    const { queryClient } = await load();
     queryClient.setQueryData(KEY, [{ id: "donor-cached-unscoped" }]);
 
-    fixDocumentScope(A);
+    await renderDocumentScope(A);
 
     expect(queryClient.getQueryData(KEY)).toBeUndefined();
   });
 
   it("keeps prefix invalidation working across scoped keys", async () => {
-    const { fixDocumentScope, queryClient } = await load();
-    fixDocumentScope(A);
+    const { queryClient } = await load();
+    await renderDocumentScope(A);
     queryClient.setQueryData(KEY, [{ id: "donor-a" }]);
 
     await queryClient.invalidateQueries({ queryKey: ["admin", "crm"] });
