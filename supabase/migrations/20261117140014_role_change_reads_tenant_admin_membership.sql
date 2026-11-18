@@ -28,7 +28,21 @@
 --     that tenant's restricted notes, or strip another tenant's administrator
 --     of them. This refusal goes with the package that moves the note
 --     policies off `profiles.role` (WP2b's second release) or the one that
---     deletes the mutation (WP2c), whichever comes first.
+--     deletes the mutation (WP2c), whichever comes first. Stage 1's
+--     20261117040237 makes the same refusal in the same words.
+--     What it does not cover (council round 2 on WP2a, R4):
+--     - The other order. The refusal is checked when the role changes. An
+--       administrator of tenant A can promote a person who belongs only to
+--       A, and tenant B can later give that person a staff row; B's
+--       restricted notes then open through the global `profiles.role`.
+--       Nothing in this tree can grant a staff row today: the sign-up
+--       trigger writes a donor row, and the backfill and the seed are the
+--       only other writers. So no code changes here.
+--     - A concurrent grant. The check takes no lock against a membership
+--       that commits in another tenant at the same moment.
+--     The rule that follows: the restricted-note policies move off
+--     `profiles.role` (WP2b's second release) before any command can grant
+--     a staff row (WP2c).
 -- Every refusal raises 42501 and changes nothing. The signature, the audit row
 -- and the return value are unchanged. What the command writes is unchanged
 -- too: the target's `profiles.role`, which grants nothing since WP2a but the

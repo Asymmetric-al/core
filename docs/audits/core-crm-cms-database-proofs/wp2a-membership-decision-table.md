@@ -109,6 +109,11 @@ Nothing here runs on a hosted project: both stay untouched until the owner answe
    - Refusing someone who is not eligible now reads "not a tenant administrator of this tenant" instead of "not a platform owner".
    - WP2c decides whether platform owners on its operator list join the recipients or replace them.
 
+9. The role-change command refuses a target who is a live member of another tenant (council round 1, F2; stage 1's 20261117040237 in the same words), because it writes the person's one global `profiles.role`, which every tenant's restricted-note policies still read. What the refusal does not cover (council round 2, R4):
+   - **The other order.** The refusal is checked when the role changes. Tenant A's administrator can promote a person who belongs only to A; tenant B can later give that person a staff row, and B's restricted notes then open through the global `profiles.role`. Nothing in this tree can grant a staff row today: the sign-up trigger writes a donor row, and the backfill and the seed are the only other writers. So no code changes now.
+   - **A concurrent grant.** The check takes no lock against a membership that commits in another tenant at the same moment.
+   - **The rule that follows:** the restricted-note policies move off `profiles.role` (WP2b's second release) before any command can grant a staff row (WP2c).
+
 ## 7. SQL that checks an actor against the profile (council round 2, R1)
 
 The application resolves a person's authority from a live membership row since WP2a. SQL that takes an actor from the application and judged it by `profiles.role` or `profiles.tenant_id` therefore disagreed with it. The list below is every function and trigger in the chain's final state that decides an actor's authority that way. It was found by listing each function whose body names `profiles` (17 in `public`, `private`, `authz` and `tenant_guard`, one in `platform`), then each one's callers in SQL and in the application. Row-level policies are not in it: they keep today's helpers until WP2b's second release. "A live row" is a membership row of the profile's login in that tenant, active and not revoked. `20261118093000_eve_actor_checks_read_membership.sql` makes the changes; `tests/unit/acceptance/issue-2675/eve-actor-membership.realstack.acceptance.test.ts` proves them.
