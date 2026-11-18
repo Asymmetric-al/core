@@ -949,6 +949,31 @@ describe("CRM records workspace", () => {
       ).not.toHaveBeenCalled();
     });
 
+    // Council round 2, AR1: the route path has no tenant prefix; the address
+    // written is the live one, prefix included, or the document reloads.
+    it("writes list changes to the live address, keeping the tenant prefix", async () => {
+      const tenantCrm = "/00000000-0000-0000-0000-000000000002/crm";
+      window.history.pushState(null, "", tenantCrm);
+      try {
+        const replaceState = followReplaceState();
+        grid.hook.mockReturnValue(
+          gridState({ columnFilters: [{ id: "displayName", value: "hale" }] }),
+        );
+        renderWorkspace();
+
+        await waitFor(() =>
+          expect(replaceState).toHaveBeenLastCalledWith(
+            null,
+            "",
+            `${tenantCrm}?q=hale`,
+          ),
+        );
+      } finally {
+        vi.restoreAllMocks();
+        window.history.pushState(null, "", "/crm");
+      }
+    });
+
     it("follows Back and Forward to another list state", async () => {
       const state = gridState();
       grid.hook.mockReturnValue(state);

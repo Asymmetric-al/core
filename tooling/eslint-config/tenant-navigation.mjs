@@ -14,6 +14,15 @@
 // entries for a matching file (see restricted-imports.mjs), so an entry for
 // these files would drop the cross-app, Supabase and table-engine bans in
 // one config or another; and it does not see `require` or `import()`.
+//
+// Council round 2, AR1: a write through the history API keeps the address
+// only when it is taken from the live location (`window.location`, or a
+// variable built from it), is a fragment or a query on it, or is built by the
+// tenant helper (`useTenantHref()`'s function); any other address is
+// reported. `next/form` and a literal internal `<form action>` are reported
+// too. Not covered: a `<form action>` or a `router`-like call whose address
+// is computed at run time from something else; the helpers and review cover
+// those.
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +30,7 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 const NEXT_LINK = "next/link";
+const NEXT_FORM = "next/form";
 const NEXT_NAVIGATION = "next/navigation";
 const NAVIGATION_MODULE = "@asym/auth/tenant-navigation";
 const SERVER_MODULE = "@asym/auth/tenant-server";
@@ -130,6 +140,9 @@ const noPrefixlessNavigation = {
       href: "A literal internal href on <{{element}}> drops the tenant prefix: render it through TenantLink, as the element or as its `render`.",
       location:
         "Writing window.location bypasses the tenant helpers: use loadDocument from @asym/database/document-reload, or the tenant router.",
+      history:
+        "A history write whose address is not the live location's drops the tenant prefix: build it from window.location (or a URL made from it), or with useTenantHref().",
+      form: "{{what}} submits to an address without the tenant prefix: navigate through the tenant router.",
     },
   },
   create(context) {
@@ -164,6 +177,75 @@ const noPrefixlessNavigation = {
         memberName(node) === "location" &&
         node.object.type === "Identifier" &&
         ["window", "document", "globalThis", "self"].includes(node.object.name)
+      );
+    }
+
+    // Local names of the function useTenantHref() returns.
+    const tenantHrefNames = new Set();
+
+    /** Whether an expression reads the live location anywhere inside it. */
+    function readsLocation(node, depth = 0) {
+      if (!node || typeof node !== "object" || depth > 2) return false;
+      if (isGlobalLocation(node)) return true;
+      if (node.type === "Identifier") {
+        // One step through a local variable: const url = new URL(location.href)
+        let scope = sourceCode.getScope(node);
+        while (scope) {
+          const variable = scope.set.get(node.name);
+          if (variable) {
+            return variable.defs.some(
+              (def) =>
+                def.node.type === "VariableDeclarator" &&
+                readsLocation(def.node.init, depth + 1),
+            );
+          }
+          scope = scope.upper;
+        }
+        return false;
+      }
+      for (const [key, value] of Object.entries(node)) {
+        if (key === "parent" || key === "loc" || key === "range") continue;
+        if (Array.isArray(value)) {
+          if (value.some((child) => readsLocation(child, depth))) return true;
+        } else if (value && typeof value.type === "string") {
+          if (readsLocation(value, depth)) return true;
+        }
+      }
+      return false;
+    }
+
+    /** Whether a history write's address keeps the document's prefix. */
+    function keepsAddress(url) {
+      if (!url) return true;
+      if (url.type === "Literal" && url.value == null) return true;
+      if (url.type === "Identifier" && url.name === "undefined") return true;
+      const prefix = staticPrefix(url);
+      if (typeof prefix === "string" && /^[?#]/.test(prefix)) return true;
+      if (
+        url.type === "CallExpression" &&
+        url.callee.type === "Identifier" &&
+        tenantHrefNames.has(url.callee.name)
+      ) {
+        return true;
+      }
+      return readsLocation(url);
+    }
+
+    function isGlobalHistory(node) {
+      if (node.type === "Identifier" && node.name === "history") {
+        let scope = sourceCode.getScope(node);
+        while (scope) {
+          const variable = scope.set.get("history");
+          if (variable && variable.defs.length > 0) return false;
+          scope = scope.upper;
+        }
+        return true;
+      }
+      return (
+        node.type === "MemberExpression" &&
+        memberName(node) === "history" &&
+        node.object.type === "Identifier" &&
+        ["window", "globalThis", "self"].includes(node.object.name)
       );
     }
 
@@ -205,6 +287,14 @@ const noPrefixlessNavigation = {
         if (node.importKind === "type") return;
         if (source === NEXT_LINK) {
           context.report({ node, messageId: "link" });
+          return;
+        }
+        if (source === NEXT_FORM) {
+          context.report({
+            node,
+            messageId: "form",
+            data: { what: "next/form" },
+          });
           return;
         }
         if (source !== NEXT_NAVIGATION) return;
@@ -273,6 +363,17 @@ const noPrefixlessNavigation = {
           }
           return;
         }
+        // history.pushState(state, "", url), window.history.replaceState(...)
+        if (
+          node.callee.type === "MemberExpression" &&
+          ["pushState", "replaceState"].includes(memberName(node.callee)) &&
+          isGlobalHistory(node.callee.object)
+        ) {
+          if (!keepsAddress(node.arguments[2])) {
+            context.report({ node, messageId: "history" });
+          }
+          return;
+        }
         // location.assign("/x"), window.location.replace("/x")
         if (
           node.callee.type === "MemberExpression" &&
@@ -298,7 +399,35 @@ const noPrefixlessNavigation = {
           context.report({ node, messageId: "location" });
         }
       },
+      VariableDeclarator(node) {
+        // const toHref = useTenantHref();
+        if (
+          node.id.type === "Identifier" &&
+          node.init?.type === "CallExpression" &&
+          node.init.callee.type === "Identifier" &&
+          node.init.callee.name === "useTenantHref"
+        ) {
+          tenantHrefNames.add(node.id.name);
+        }
+      },
       JSXOpeningElement(node) {
+        // <form action="/search">: a literal internal action.
+        if (node.name.type === "JSXIdentifier" && node.name.name === "form") {
+          const action = node.attributes.find(
+            (attribute) =>
+              attribute.type === "JSXAttribute" &&
+              attribute.name.type === "JSXIdentifier" &&
+              attribute.name.name === "action",
+          );
+          if (action && isInternalAbsolute(staticPrefix(action.value))) {
+            context.report({
+              node: action,
+              messageId: "form",
+              data: { what: "<form action>" },
+            });
+          }
+          return;
+        }
         const href = node.attributes.find(
           (attribute) =>
             attribute.type === "JSXAttribute" &&

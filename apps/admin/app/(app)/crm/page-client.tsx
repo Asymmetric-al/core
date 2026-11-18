@@ -101,17 +101,16 @@ function useSupportHubEmailSearch(
 /**
  * Keeps the list's search, filters, sort and view in the address (so reload,
  * a shared link and Back restore them) without feedback loops: whichever side
- * moved since the last sync wins. Writes use `history.replaceState`, which
- * Next.js folds into `useSearchParams` without a server round trip.
+ * moved since the last sync wins. Writes use `history.replaceState` on the
+ * live address, which Next.js folds into `useSearchParams` without a server
+ * round trip.
  */
 function useCrmUrlStateSync({
   searchParams,
-  pathname,
   state,
   apply,
 }: {
   searchParams: URLSearchParams;
-  pathname: string;
   state: CrmUrlState;
   apply: (state: CrmUrlState) => void;
 }) {
@@ -128,10 +127,15 @@ function useCrmUrlStateSync({
     if (stateKey !== syncedKeyRef.current) {
       syncedKeyRef.current = stateKey;
       const query = writeCrmUrlState(searchParams, state).toString();
+      // The live address, tenant prefix included: the route path has none,
+      // and Next.js takes a history write as the new address, so writing it
+      // would reload the document at an address without its tenant (council
+      // round 2, AR1).
+      const address = window.location.pathname;
       window.history.replaceState(
         null,
         "",
-        query ? `${pathname}?${query}` : pathname,
+        query ? `${address}?${query}` : address,
       );
       return;
     }
@@ -202,7 +206,6 @@ export default function MissionControlCRM() {
   const { onFiltersChange, onSortingChange } = gridState;
   useCrmUrlStateSync({
     searchParams,
-    pathname,
     state: {
       columnFilters: gridState.columnFilters ?? [],
       sorting: gridState.sorting ?? [],
