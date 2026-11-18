@@ -191,6 +191,7 @@ describe("changed-file reading", () => {
       git("init", "-q", "-b", "develop");
       git("config", "user.email", "test@example.invalid");
       git("config", "user.name", "Test");
+      git("config", "commit.gpgsign", "false");
       git("config", "core.quotePath", "true");
       write("docs/base.md", "base\n");
       git("add", "-A");

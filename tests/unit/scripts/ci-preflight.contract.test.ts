@@ -631,19 +631,33 @@ describe("fast profile stages scoped to their inputs", () => {
   });
 
   it("scopes only stages a required CI job also runs on every pull request", () => {
-    const ci = readFileSync(".github/workflows/ci.yml", "utf8");
-    const required = ["integrity", "lint"].flatMap((job) => {
-      const lines = ci.split(/\r?\n/);
+    const lines = readFileSync(".github/workflows/ci.yml", "utf8").split(
+      /\r?\n/,
+    );
+    const jobLines = (job: string) => {
       const start = lines.indexOf(`  ${job}:`);
+      expect(start, job).toBeGreaterThanOrEqual(0);
       const end = lines.findIndex(
         (line, index) => index > start && /^  \S[^:]*:\s*$/.test(line),
       );
-      return lines
-        .slice(start + 1, end)
-        .join("\n")
-        .split(/^ {6}- /m)
-        .slice(1)
-        .filter((step) => !/(?:^|\n)\s*(?:if|continue-on-error):/.test(step));
+      return lines.slice(start + 1, end < 0 ? undefined : end).join("\n");
+    };
+    // The jobs ci-gate (the check develop requires) waits for.
+    const needs = /^ {4}needs:\s*\[([^\]]*)\]/m.exec(jobLines("ci-gate"));
+    expect(needs).not.toBeNull();
+    const gated = (needs?.[1] ?? "")
+      .split(",")
+      .map((job) => job.trim())
+      .filter(Boolean);
+    expect(gated.length).toBeGreaterThan(1);
+    const required = gated.flatMap((job) => {
+      const [header, ...steps] = jobLines(job).split(/^ {6}- /m);
+      // A job that can skip itself or report success after failing does not
+      // count, whatever its steps run.
+      if (/^ {4}(?:if|continue-on-error):/m.test(header)) return [];
+      return steps.filter(
+        (step) => !/(?:^|\n)\s*(?:if|continue-on-error):/.test(step),
+      );
     });
     const scoped = fastStages(["README.md"]).filter(
       (candidate) => candidate.skip && candidate.id !== "format",

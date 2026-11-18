@@ -87,6 +87,10 @@ function findScopedAgentsFiles(root: string = REPO_ROOT): string[] {
   const listed = execFileSync(
     "git",
     [
+      // --exclude-standard also reads the user's core.excludesFile; an empty
+      // value leaves only the repository's .gitignore files and info/exclude.
+      "-c",
+      "core.excludesFile=",
       "ls-files",
       "-z",
       "--cached",
@@ -356,6 +360,42 @@ describe("agent instruction routing fixtures", () => {
         ".github/AGENTS.md",
       ]);
     } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("lists AGENTS.md files whatever the user's own git excludes say", () => {
+    // A developer's global excludes file (core.excludesFile) must not hide
+    // instruction files; the repository's .gitignore and info/exclude still
+    // apply.
+    const root = mkdtempSync(join(tmpdir(), "agents-user-excludes-"));
+    const previous = process.env.GIT_CONFIG_GLOBAL;
+    try {
+      const write = (relativePath: string, content: string) => {
+        mkdirSync(dirname(join(root, relativePath)), { recursive: true });
+        writeFileSync(join(root, relativePath), content);
+      };
+      execFileSync("git", ["init", "-q"], { cwd: root, stdio: "ignore" });
+      write("AGENTS.md", "# Root\n");
+      write("apps/example/AGENTS.md", "# New, not yet added\n");
+      write(".gitignore", "ignored-by-repo/\n");
+      write("ignored-by-repo/AGENTS.md", "# Ignored by the repository\n");
+      write(".git/info/exclude", "excluded-locally/\n");
+      write("excluded-locally/AGENTS.md", "# Excluded by info/exclude\n");
+      write("user/ignore", "AGENTS.md\nCLAUDE.md\n");
+      write(
+        "user/gitconfig",
+        `[core]\n\texcludesFile = ${join(root, "user", "ignore").replaceAll("\\", "/")}\n`,
+      );
+      process.env.GIT_CONFIG_GLOBAL = join(root, "user", "gitconfig");
+
+      expect(findScopedAgentsFiles(root).sort()).toEqual([
+        "AGENTS.md",
+        "apps/example/AGENTS.md",
+      ]);
+    } finally {
+      if (previous === undefined) delete process.env.GIT_CONFIG_GLOBAL;
+      else process.env.GIT_CONFIG_GLOBAL = previous;
       rmSync(root, { recursive: true, force: true });
     }
   });
