@@ -152,6 +152,10 @@ defects. Each was checked against the files before it was fixed.
   agents copy into generated code. All three now name
   `packages/eve-runtime/node_modules/eve/docs/`, and the template names the
   installed `tools/overview.mdx` instead of a `tools.md` eve does not ship.
+- The new provenance files for `react-email` and `web-design-guidelines` said
+  `last_reviewed: 2026-11-18`, but they were written from the commit the
+  2026-10-22 audit (AL-2186) examined, with no fresh upstream comparison. They
+  now give 2026-10-22 and say so.
 
 ## Next.js skill import - 2026-11-18 (AL-2713)
 

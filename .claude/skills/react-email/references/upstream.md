@@ -6,7 +6,7 @@ upstream_path: skills/react-email/SKILL.md
 reviewed_commit: e0561e164e9c28859d24373804e30b364931ee77
 skills_lock_hash: 5d989d8109068b40bfc00111013d8488b577c21d8973013f0e810e946a670987
 license: MIT
-last_reviewed: 2026-11-18
+last_reviewed: 2026-10-22
 status: reviewed
 ownership: ecosystem
 ---
@@ -14,7 +14,7 @@ ownership: ecosystem
 # Upstream: react-email
 
 Reviewed source: https://github.com/resend/react-email/tree/e0561e164e9c28859d24373804e30b364931ee77/skills/react-email
-The commit is the one `docs/ai/skill-source-audit.json` records as examined. The lock hash above is the `skills-lock.json` value. License notices are preserved in `UPSTREAM-LICENSE`.
+The commit is the one `docs/ai/skill-source-audit.json` records as examined in the 2026-10-22 installed-skill audit (AL-2186), which is the date above. This file was written on 2026-11-18 (AL-2715) from that audit record and the `skills-lock.json` value above; no fresh upstream comparison was made then. License notices are preserved in `UPSTREAM-LICENSE`.
 
 ## Core adaptations
 
