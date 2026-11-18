@@ -20,20 +20,23 @@
 //   PAYLOAD_QUALIFICATION_ADMIN_URL=postgresql://postgres:<pw>@127.0.0.1:<port>/postgres \
 //     node scripts/cms/qualify-payload-pin.mjs --database=<new_name> [--keep] [--report=<file>]
 //
-// The admin URL must be a superuser on a loopback server. The database must
+// The admin URL must be a superuser on a server on this machine, as the
+// repository's one local-database decision (isLoopbackDatabaseUrl) admits it:
+// 127.0.0.1, localhost or [::1], with no routing override. The database must
 // not exist yet; it is dropped afterwards unless --keep is given. Both CMS
 // roles get a random password for the run and lose it afterwards.
 import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import pg from "pg";
 
+import { isLoopbackDatabaseUrl } from "../lib/psql.mjs";
 import { adminAppDir, cmsScriptsDir, repoRoot } from "./lib/paths.mjs";
 
 const RESULT_PREFIX = "PAYLOAD_QUALIFICATION_RESULT ";
-const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]", "::1"]);
 const DATABASE_NAME = /^[a-z][a-z0-9_]{0,62}$/;
 const PUSH_PROBE_COLUMN = { table: "pages", column: "summary" };
 
@@ -51,6 +54,15 @@ function parseArgs(argv) {
   return options;
 }
 
+const NOT_LOCAL =
+  "Payload qualification runs only against a database on this machine: a Postgres URL on 127.0.0.1, localhost or [::1] with no routing override (host, hostaddr, port, dbname, user or service) in its query.";
+
+/**
+ * The admin server URL, admitted by the repository's one local-database
+ * decision before anything connects. The decision is made on the very string
+ * the maintenance client connects with, so a query key that node-postgres
+ * would follow instead of the host shown is refused here, not followed later.
+ */
 function adminServerUrl() {
   const raw = process.env.PAYLOAD_QUALIFICATION_ADMIN_URL?.trim();
   if (!raw) {
@@ -64,14 +76,11 @@ function adminServerUrl() {
   } catch {
     throw new Error("PAYLOAD_QUALIFICATION_ADMIN_URL is not a valid URL.");
   }
-  if (!LOOPBACK_HOSTS.has(url.hostname)) {
-    throw new Error(
-      "Payload qualification runs only against a loopback database server.",
-    );
-  }
+  if (!isLoopbackDatabaseUrl(url.toString())) throw new Error(NOT_LOCAL);
   return url;
 }
 
+/** A URL for `database` on the admitted server, admitted again as built. */
 function databaseUrl(server, database, login) {
   const url = new URL(server.toString());
   url.pathname = `/${database}`;
@@ -80,7 +89,9 @@ function databaseUrl(server, database, login) {
     url.password = login.password;
   }
   url.search = "";
-  return url.toString();
+  const built = url.toString();
+  if (!isLoopbackDatabaseUrl(built)) throw new Error(NOT_LOCAL);
+  return built;
 }
 
 const results = [];
@@ -194,8 +205,9 @@ function forbidden(check) {
   return check?.ok === false && check.status === 403;
 }
 
-async function main() {
-  const options = parseArgs(process.argv.slice(2));
+/** Runs the qualification with the command-line arguments `argv`. */
+export async function main(argv = process.argv.slice(2)) {
+  const options = parseArgs(argv);
   const server = adminServerUrl();
   const maintenance = new pg.Client({ connectionString: server.toString() });
   const ownerLogin = {
@@ -653,7 +665,8 @@ async function main() {
   process.exitCode = failed.length === 0 && results.length > 0 ? 0 : 1;
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
-});
+if (path.resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url))
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });

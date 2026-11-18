@@ -26,14 +26,14 @@ Use this doc when editing or running:
 
 Every script that resets or reseeds a database reads its environment marker first and refuses anything not marked `disposable` (plan 7.5): `scripts/lib/environment-marker.mjs` (`requireDisposableDatabase`), `node scripts/db/require-disposable-database.mjs --local | --url-env NAME` for shell scripts, and the reset guard inside `scripts/supabase-cli.mjs` for every `bun run supabase -- db reset`. A database with no marker, or whose marker cannot be read, is refused, and there is no override flag. A local stack without a marker is recovered once with `bun run supabase -- stop --no-backup` and `bun run supabase -- start` (see `supabase/AGENTS.md`, "Reset rule").
 
-Scripts that run `psql` against a database URL use `scripts/lib/psql.mjs`, which passes the password in `PGPASSWORD`, never in the argument list, and holds the one list of loopback hosts.
+One seam decides and connects: `isLoopbackDatabaseUrl` (`packages/env/src/database-url.mjs`, re-exported by `scripts/lib/psql.mjs`) is the only test that a database URL names this machine (a Postgres URL on `127.0.0.1`, `localhost` or `[::1]` with no routing override in its query), and `psql` starts only through `scripts/lib/psql.mjs` (`runPsqlQuery`, `spawnPsql`, or `psqlConnection` for a script's own spawn), which makes the URL the whole target, drops every ambient `PG*` setting and passes the password in `PGPASSWORD`; shell scripts reach both through `node scripts/lib/local-database.mjs admit|psql <ENV_VARIABLE>`.
 
 ## Seed script
 
 - `scripts/seed-demo.sh`
   - `local`: runs `bun run supabase -- db reset --local` (migrations + seed).
   - `hosted`: retired (WP0, audit finding NA-03). It always refuses and touches no database: `supabase/seed.sql` deletes every organization's rows before it reseeds. A hosted database is seeded only by the release job's one-off first rebuild (`docs/ops/release-job.md`).
-  - `verify`: runs table row-count and single-profile checks via SQL against a loopback `SUPABASE_DB_URL`.
+  - `verify`: runs table row-count and single-profile checks via SQL against a `SUPABASE_DB_URL` that `isLoopbackDatabaseUrl` admits, through the shared psql runner.
 
 ## Agent skill maintenance
 

@@ -16,7 +16,16 @@ BEGIN;
 --     A platform role, or any other value, is never granted;
 --   * the target to be someone other than the caller;
 --   * the target not to hold the platform role, which is not a tenant's to
---     change.
+--     change;
+--   * the target to hold no active membership (authz.memberships.is_active)
+--     in any other tenant. `profiles.role` is the person's one role
+--     everywhere (`profiles.user_id` is unique), and the restricted-note
+--     policies on crm_notes admit `profiles.role` admin with no tenant
+--     condition beside a staff membership in the note's tenant, so this write
+--     is global: one tenant's administrator could otherwise grant, or take
+--     away, access in another tenant (PR #2714 review). The refusal stays
+--     until the note policies move off `profiles.role` (WP2b's second
+--     release) or the mutation is deleted (WP2c).
 -- Every refusal raises SQLSTATE 42501 and changes nothing. The signature, the
 -- not-found error (P0002), the audit row and the return value are unchanged.
 
@@ -75,6 +84,17 @@ BEGIN
 
   IF v_old_role = 'super_admin' THEN
     RAISE EXCEPTION 'A platform role cannot be changed by an organization administrator'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM authz.memberships AS m
+    WHERE m.user_id = v_target_user_id
+      AND m.tenant_id <> p_tenant_id
+      AND m.is_active
+  ) THEN
+    RAISE EXCEPTION 'This person also belongs to another organization; their role cannot be changed here'
       USING ERRCODE = '42501';
   END IF;
 
