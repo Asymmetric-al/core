@@ -18,6 +18,13 @@
  *
  * Auth's own endpoint still answers differently to a caller who uses the
  * public key directly; only Supabase can change that.
+ *
+ * One answer is left to differ on purpose. A send that fails at Auth's mailer
+ * (a 500 or a 504) reaches only an address Auth would have mailed, and the
+ * screen shows it as a failure. An outage must not read as "sent" (plan
+ * principle PR12), a caller of Auth's endpoint gets the same answer whatever
+ * the screen says, and the difference in response time cannot be closed in
+ * the browser (council round 3).
  */
 
 /** Refusals that only an address with an account can produce. */

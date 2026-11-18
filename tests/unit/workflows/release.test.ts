@@ -65,6 +65,32 @@ describe("release workflow (plan 7.4)", () => {
     );
   });
 
+  // Council round 3, lens 2 I1: "Re-run failed jobs" or a re-run of one job
+  // starts the database or marker job again and keeps owner-approval's earlier
+  // success. The approval names the run attempt it was given for, and the
+  // destructive jobs run only in that attempt, so a re-run asks again.
+  it("takes the owner's approval for one run attempt only", () => {
+    const approval = job("owner-approval");
+    expect(approval).toMatch(
+      /outputs:\n\s+attempt: \$\{\{ steps\.approve\.outputs\.attempt \}\}/,
+    );
+    expect(approval).toMatch(/- name: Record the approval\n\s+id: approve\n/);
+    expect(approval).toContain("ATTEMPT: ${{ github.run_attempt }}");
+    expect(approval).toContain('echo "attempt=${ATTEMPT}" >> "$GITHUB_OUTPUT"');
+    const sameAttempt =
+      "needs.owner-approval.result == 'success' &&\\s+needs.owner-approval.outputs.attempt == github.run_attempt";
+    expect(job("database")).toMatch(
+      new RegExp(
+        `\\(inputs\\.operation == 'first-rebuild' &&\\s+${sameAttempt.replaceAll(".", "\\.")}\\)`,
+      ),
+    );
+    expect(job("marker")).toMatch(
+      new RegExp(
+        `inputs\\.operation == 'set-environment-marker' &&\\s+${sameAttempt.replaceAll(".", "\\.")}`,
+      ),
+    );
+  });
+
   // Council round 2, A5 and A6a.
   it("hands the steps that need them the seeded-login password and the project's CA, and no other step", () => {
     const steps = job("database").split("\n      - ");
@@ -79,8 +105,38 @@ describe("release workflow (plan 7.4)", () => {
     expect(step("release-database.mjs migrate")).toContain(
       "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
     );
+    // Amended by council round 3 (lens 2 I2; record D-18): the seed password
+    // has a second holder, the repair operation below. Each holder is named,
+    // so no other step can gain it unseen.
     expect(workflow.split("RELEASE_SEED_LOGIN_PASSWORD: ${{").length - 1).toBe(
-      1,
+      2,
+    );
+    expect(job("seeded-login-passwords")).toContain(
+      "RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}",
+    );
+  });
+
+  // Council round 3, lens 2 I2: a rebuild that stopped between its seed and
+  // the replacement leaves the published password live, and every release
+  // then stops at preflight. The repair is an operation the job offers.
+  it("offers the repair of seeded logins that keep a published password, from the production branch, with the secrets it needs only", () => {
+    expect(workflow).toMatch(
+      /options:\n(\s+- [a-z-]+\n)*\s+- replace-seeded-login-passwords\n/,
+    );
+    const repair = job("seeded-login-passwords");
+    expect(repair).toContain(
+      "if: github.event_name == 'workflow_dispatch' && inputs.operation == 'replace-seeded-login-passwords'",
+    );
+    expect(repair).toContain("if: github.ref != 'refs/heads/production'");
+    expect(repair).toContain(
+      "run: node scripts/release/release-database.mjs replace-seeded-login-passwords",
+    );
+    expect(repair.match(/secrets\.[A-Z_]+/g)?.sort()).toEqual([
+      "secrets.RELEASE_DATABASE_URL",
+      "secrets.RELEASE_SEED_LOGIN_PASSWORD",
+    ]);
+    expect(repair).toContain(
+      "environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}",
     );
   });
 

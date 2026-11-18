@@ -2435,11 +2435,11 @@
         },
         {
           "path": "packages/ui/components/auth/ResetPasswordScreen.tsx",
-          "sha256": "cbc85d75c9035e45907fa9b10c5bce53febb5e5f5e0bb461bb244f3ae21b4efe"
+          "sha256": "8498c9c59ad4fdb8fa96fa37c509e779ed656fba8d9c720d3a2ed4b8cbe7cdc6"
         },
         {
           "path": "tests/unit/packages/ui/password-recovery-screens.test.tsx",
-          "sha256": "c876ca1fb3621d23441910ed3e657fd3e05730b871305dd5fbddb79ed9fc17e4"
+          "sha256": "6d6774651ccc900d77c606165993749fb144981adc0ab5f37574a52b59e65033"
         }
       ]
     },

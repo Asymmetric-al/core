@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // The database half of the release job (plan 7.4, 7.5; WP1). One environment
-// per run. In fixed order: preflight (target identity, environment marker,
-// migration order), migrate (Supabase, then Payload), gates (catalog gates and
-// the schema fingerprint against CI's fresh replay), record-heads. A
-// dispatched run can instead set the marker, rebuild a database, or set the
-// CMS role passwords.
+// per run. In fixed order: preflight (target identity, environment marker, no
+// login with a published password, migration order), migrate (Supabase, then
+// Payload), gates (catalog gates and the schema fingerprint against CI's fresh
+// replay), record-heads. A dispatched run can instead set the marker, rebuild
+// a database, set the CMS role passwords, or replace the published password of
+// seeded logins.
 //
 //   node scripts/release/release-database.mjs <step>
 //
@@ -276,6 +277,14 @@ export function preflight({
       `The ${settings.environment} release refuses a database marked ${health.environment}.`,
     );
   }
+  // A rebuild that stopped between its seed and the replacement of the seed's
+  // password leaves that published password live (record D-24).
+  const published = countPublishedLogins({ settings, root, query });
+  if (published > 0) {
+    stop(
+      `${published} login(s) carry a password published in the repository: a rebuild stopped between its seed and the replacement of that password. Nothing was migrated or deployed. ${PUBLISHED_PASSWORD_REPAIR}, then release again.`,
+    );
+  }
   const { checks } = checkLedgers({
     databaseUrl: settings.databaseUrl,
     root,
@@ -337,19 +346,10 @@ export function pinnedSupabaseCliVersion(root = repoRoot) {
 }
 
 /**
- * The one reset that does not go through `bun run supabase`. That wrapper
- * refuses to reset a database not marked disposable (WP1.1), and the first
- * rebuild of a hosted database has no marker by definition: it is the named
- * exception of plan 7.5. It runs only here, in the release job's dispatched
- * first-rebuild step, after the checks in rebuild(): the target project, a
- * database with no marker, the owner's census sign-off (or a provably empty
- * new project) and the typed confirmation. It uses the same pinned CLI: the
- * one the release workflow installs with supabase/setup-cli, never one fetched
- * at run time (npx inside the repository stops on the root package.json's
- * overrides). A CLI on the PATH that reports another version stops the
- * rebuild before it resets anything.
+ * Stops, before anything is reset, unless the CLI on the PATH reports the
+ * version scripts/supabase-cli.mjs pins.
  */
-function firstRebuildReset(runCommand, settings) {
+function requirePinnedSupabaseCli(runCommand) {
   const pinned = pinnedSupabaseCliVersion();
   const probe = runCommand("supabase", ["--version"], {
     env: childEnvironment(),
@@ -362,6 +362,21 @@ function firstRebuildReset(runCommand, settings) {
     stop(
       `The first rebuild needs the Supabase CLI ${pinned} on the PATH (found ${found || "none"}); the release workflow installs it with supabase/setup-cli. Nothing was reset.`,
     );
+}
+
+/**
+ * The one reset that does not go through `bun run supabase`. That wrapper
+ * refuses to reset a database not marked disposable (WP1.1), and the first
+ * rebuild of a hosted database has no marker by definition: it is the named
+ * exception of plan 7.5. It runs only here, in the release job's dispatched
+ * first-rebuild step, after the checks in rebuild(): the target project, a
+ * database with no marker, the owner's census sign-off (or a provably empty
+ * new project) and the typed confirmation. It uses the same pinned CLI: the
+ * one the release workflow installs with supabase/setup-cli, never one fetched
+ * at run time (npx inside the repository stops on the root package.json's
+ * overrides). requirePinnedSupabaseCli checks it before anything is reset.
+ */
+function firstRebuildReset(runCommand, settings) {
   const { url, password } = splitPassword(settings.databaseUrl);
   runChecked(
     runCommand,
@@ -426,6 +441,72 @@ export function payloadMigrate({ settings, runCommand = spawnSync }) {
 }
 
 /**
+ * A login of auth.users (alias u) whose bcrypt hash matches one of the
+ * published passwords in the psql variable :'published' (a JSON array). Only
+ * the server compares; the published passwords are public anyway.
+ */
+const PUBLISHED_LOGIN = `u.encrypted_password LIKE '$2%'
+    AND EXISTS (SELECT 1 FROM pg_catalog.jsonb_array_elements_text(:'published'::jsonb) AS p(value)
+                 WHERE extensions.crypt(p.value, u.encrypted_password) = u.encrypted_password)`;
+
+/** What to do about a database whose logins carry a published password. */
+export const PUBLISHED_PASSWORD_REPAIR =
+  'Dispatch Release with operation replace-seeded-login-passwords for this environment (docs/ops/release-job.md, "If seeded logins keep a published password")';
+
+/**
+ * How many logins carry a password the repository publishes. A database with
+ * no auth.users table has no login, so none.
+ */
+export function countPublishedLogins({
+  settings,
+  root = repoRoot,
+  query = queryJson,
+}) {
+  const { published_logins: count } = query({
+    databaseUrl: settings.databaseUrl,
+    label: "find logins with a published password",
+    variables: {
+      RELEASE_PUBLISHED_PASSWORDS: JSON.stringify(
+        publishedLoginPasswords(root),
+      ),
+    },
+    sql: `\\getenv published RELEASE_PUBLISHED_PASSWORDS
+SELECT to_regclass('auth.users') IS NOT NULL AS has_logins \\gset
+\\if :has_logins
+SELECT json_build_object('published_logins',
+  (SELECT count(*) FROM auth.users AS u WHERE ${PUBLISHED_LOGIN}))::text;
+\\else
+SELECT json_build_object('published_logins', 0)::text;
+\\endif`,
+  });
+  return count;
+}
+
+/**
+ * The dispatched operation replace-seeded-login-passwords: repairs a database
+ * whose seeded logins still carry a password the repository publishes, which
+ * a rebuild that stopped between its seed and the replacement leaves behind.
+ * It gives those logins RELEASE_SEED_LOGIN_PASSWORD, as the rebuild would
+ * have, resets nothing and touches no other login.
+ */
+export function repairSeededLoginPasswords({
+  settings,
+  env = process.env,
+  root = repoRoot,
+  query = queryJson,
+  log = console.log,
+}) {
+  assertTarget(settings);
+  const password = env.RELEASE_SEED_LOGIN_PASSWORD;
+  try {
+    assertLoginPassword(password, "RELEASE_SEED_LOGIN_PASSWORD");
+  } catch (error) {
+    stop(error.message);
+  }
+  return replaceSeededLoginPasswords({ settings, password, root, query, log });
+}
+
+/**
  * Gives every login the seed created with a password published in the
  * repository (scripts/lib/published-passwords.mjs) the password of
  * RELEASE_SEED_LOGIN_PASSWORD instead (record D-24). Only an Argon2id
@@ -441,9 +522,7 @@ export function replaceSeededLoginPasswords({
   log = console.log,
 }) {
   const published = publishedLoginPasswords(root);
-  const matches = `u.encrypted_password LIKE '$2%'
-    AND EXISTS (SELECT 1 FROM pg_catalog.jsonb_array_elements_text(:'published'::jsonb) AS p(value)
-                 WHERE extensions.crypt(p.value, u.encrypted_password) = u.encrypted_password)`;
+  const matches = PUBLISHED_LOGIN;
   const result = query({
     databaseUrl: settings.databaseUrl,
     label: "replace the seeded login passwords",
@@ -707,22 +786,37 @@ export async function rebuild({
       `${error.message} A hosted rebuild gives every seeded login that password in place of the one published in the repository; nothing was reset.`,
     );
   }
+  if (mode === "first") requirePinnedSupabaseCli(runCommand);
   log(
     `Rebuilding ${settings.projectRef} from source (${mode}${mode === "first" ? `, sign-off ${signoff}` : ""}).`,
   );
-  if (mode === "first") {
-    firstRebuildReset(runCommand, settings);
-  } else {
-    // The wrapper applies WP1.1's reset rule again on its own.
-    supabaseCli(runCommand, "Supabase reset", ["db", "reset"], settings);
+  let resetFailure = null;
+  try {
+    if (mode === "first") {
+      firstRebuildReset(runCommand, settings);
+    } else {
+      // The wrapper applies WP1.1's reset rule again on its own.
+      supabaseCli(runCommand, "Supabase reset", ["db", "reset"], settings);
+    }
+  } catch (error) {
+    resetFailure = error;
   }
-  // At once, before anything else reads or uses the database.
-  replaceSeededLoginPasswords({
-    settings,
-    password: seedLoginPassword,
-    query,
-    log,
-  });
+  // At once, before anything else reads or uses the database, and after any
+  // reset that was attempted, whatever its outcome: a reset that failed after
+  // its seed has left the published password live.
+  try {
+    replaceSeededLoginPasswords({
+      settings,
+      password: seedLoginPassword,
+      query,
+      log,
+    });
+  } catch (error) {
+    stop(
+      `${resetFailure ? `The reset failed (${resetFailure.message}), and the` : "The"} replacement of the seeded logins' password failed: ${error.message} Seeded logins may still carry the password published in the repository, and anyone who knows it could sign in: do not use the database. Fix the cause, then ${PUBLISHED_PASSWORD_REPAIR.replace(/^D/, "d")}; until then every release of this database stops at its preflight.`,
+    );
+  }
+  if (resetFailure) throw resetFailure;
   // The marker migration writes `disposable` when public.profiles,
   // public.donors and public.donations are empty, as they are right after the
   // reset drops and recreates them. Anything else is a failed rebuild.
@@ -830,6 +924,8 @@ const STEPS = {
     }),
   "cms-role-passwords": ({ settings, env }) =>
     setCmsRolePasswords({ settings, env }),
+  "replace-seeded-login-passwords": ({ settings, env }) =>
+    repairSeededLoginPasswords({ settings, env }),
 };
 
 export async function runStep(step, env = process.env) {
