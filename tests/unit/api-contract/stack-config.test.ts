@@ -1,8 +1,10 @@
 /**
  * #2708: the harness reads the Data API surface from supabase/config.toml and
- * hands it to PostgREST unchanged. Pure: no Docker, no database.
+ * hands it to PostgREST unchanged, stays on loopback, and removes only the
+ * Docker resources it started. Pure: no Docker, no database.
  */
 import { readFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -10,6 +12,8 @@ import { describe, expect, it } from "vitest";
 import {
   assertLoopbackDatabaseUrl,
   containerAction,
+  defaultStateFile,
+  planRemoval,
   postgrestBinding,
   postgrestEnvironment,
   readApiSettings,
@@ -139,23 +143,146 @@ describe("assertLoopbackDatabaseUrl", () => {
   });
 });
 
+const OURS = "a".repeat(64);
+const THEIRS = "b".repeat(64);
+
 describe("containerAction", () => {
   it("creates a container that does not exist", () => {
-    expect(containerAction({ name: "x-pg", exists: false, recorded: [] })).toBe(
-      "create",
-    );
+    expect(
+      containerAction({ name: "x-pg", existingId: null, recorded: [] }),
+    ).toBe("create");
   });
 
-  it("replaces only a container this stack's state file records", () => {
+  it("replaces only the container whose id this stack's state file records", () => {
     expect(
-      containerAction({ name: "x-pg", exists: true, recorded: ["x-pg"] }),
+      containerAction({
+        name: "x-pg",
+        existingId: OURS,
+        recorded: [{ name: "x-pg", id: OURS }],
+      }),
     ).toBe("replace");
   });
 
   it("refuses a same-named container this stack did not start", () => {
     expect(() =>
-      containerAction({ name: "x-pg", exists: true, recorded: ["x-rest"] }),
+      containerAction({
+        name: "x-pg",
+        existingId: THEIRS,
+        recorded: [{ name: "x-rest", id: OURS }],
+      }),
     ).toThrow(/x-pg.*not start|state file/);
+  });
+
+  it("refuses a container that took a recorded name after this stack's was removed", () => {
+    // The name matches the state file, the id does not: another session's.
+    expect(() =>
+      containerAction({
+        name: "x-pg",
+        existingId: THEIRS,
+        recorded: [{ name: "x-pg", id: OURS }],
+      }),
+    ).toThrow(/x-pg.*not start|state file/);
+  });
+
+  it("refuses a name recorded without an id (an older state file)", () => {
+    expect(() =>
+      containerAction({ name: "x-pg", existingId: OURS, recorded: ["x-pg"] }),
+    ).toThrow(/x-pg.*not start|state file/);
+  });
+});
+
+describe("planRemoval", () => {
+  const current = (entries: Record<string, string | null>) => (name: string) =>
+    entries[name] ?? null;
+
+  it("removes, by id, each recorded resource that still has its recorded id", () => {
+    expect(
+      planRemoval({
+        prefix: "x",
+        recorded: [{ name: "x-pg", id: OURS }],
+        currentId: current({ "x-pg": OURS }),
+      }),
+    ).toEqual({ remove: [{ name: "x-pg", id: OURS }], skipped: [] });
+  });
+
+  it("leaves a same-named resource with another id alone", () => {
+    const plan = planRemoval({
+      prefix: "x",
+      recorded: [{ name: "x-pg", id: OURS }],
+      currentId: current({ "x-pg": THEIRS }),
+    });
+    expect(plan.remove).toEqual([]);
+    expect(plan.skipped).toEqual([
+      { name: "x-pg", reason: expect.stringMatching(/another|not the one/) },
+    ]);
+  });
+
+  it("ignores a recorded name outside the configured prefix", () => {
+    const plan = planRemoval({
+      prefix: "x",
+      recorded: [
+        { name: "supabase_db_core", id: OURS },
+        { name: "xy-pg", id: OURS },
+      ],
+      currentId: current({ supabase_db_core: OURS, "xy-pg": OURS }),
+    });
+    expect(plan.remove).toEqual([]);
+    expect(plan.skipped.map((s) => s.name)).toEqual([
+      "supabase_db_core",
+      "xy-pg",
+    ]);
+    expect(plan.skipped[0]!.reason).toMatch(/prefix/);
+  });
+
+  it("removes nothing it has no recorded id for (an older state file)", () => {
+    const plan = planRemoval({
+      prefix: "x",
+      recorded: ["x-pg"],
+      currentId: current({ "x-pg": OURS }),
+    });
+    expect(plan.remove).toEqual([]);
+    expect(plan.skipped).toEqual([
+      { name: "x-pg", reason: expect.stringMatching(/no recorded id/) },
+    ]);
+  });
+
+  it("has nothing to do for a resource that is already gone", () => {
+    expect(
+      planRemoval({
+        prefix: "x",
+        recorded: [{ name: "x-pg", id: OURS }],
+        currentId: current({}),
+      }),
+    ).toEqual({ remove: [], skipped: [] });
+  });
+});
+
+describe("defaultStateFile", () => {
+  const tempDir = os.tmpdir();
+
+  it("is specific to the checkout, so two worktrees never share one", () => {
+    const a = defaultStateFile({
+      name: "core-api-contract",
+      repoRoot: path.join(tempDir, "worktrees", "a"),
+      tempDir,
+    });
+    const b = defaultStateFile({
+      name: "core-api-contract",
+      repoRoot: path.join(tempDir, "worktrees", "b"),
+      tempDir,
+    });
+    expect(a).not.toBe(b);
+    expect(path.dirname(a)).toBe(tempDir);
+    expect(path.basename(a)).toMatch(/^core-api-contract-/);
+  });
+
+  it("is stable for one checkout", () => {
+    const options = {
+      name: "core-api-contract",
+      repoRoot: path.join(tempDir, "worktrees", "a"),
+      tempDir,
+    };
+    expect(defaultStateFile(options)).toBe(defaultStateFile(options));
   });
 });
 

@@ -20,7 +20,15 @@
  *   API_CONTRACT_NAME            container prefix (default core-api-contract)
  *   API_CONTRACT_PG_PORT         `up` Postgres port on 127.0.0.1 (default 54400)
  *   API_CONTRACT_REST_PORT       PostgREST port on 127.0.0.1 (default 54401)
- *   API_CONTRACT_STATE_FILE      where the run's state is kept (default: temp dir)
+ *   API_CONTRACT_STATE_FILE      where the run's state is kept (default: a file
+ *                                in the temp dir named after the prefix and a
+ *                                hash of this checkout's path)
+ *
+ * The state file records each container and network by the id Docker returned
+ * when this script created it. `up` and `prepare` replace only a resource whose
+ * name and id the state file records and refuse any other of the same name;
+ * `down` removes, by id, only recorded resources under the configured prefix
+ * that still hold their recorded id.
  *
  * The database preparation is local test setup, never a migration: it gives
  * `authenticator` a login with a random password and defines auth.uid() and
@@ -29,7 +37,7 @@
  * and never printed.
  */
 import { spawnSync } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
@@ -81,17 +89,81 @@ export function assertLoopbackDatabaseUrl(value) {
 }
 
 /**
- * What to do with a container name before `docker run`: create it when absent,
- * replace it only when this stack's state file records it (a previous run of
- * this script started it), and refuse otherwise, so a same-named container
- * that another session owns is never removed.
+ * The state file records each container and network this stack started as
+ * `{ name, id }`, the id Docker returned when it created it. Older state files
+ * recorded bare names; those carry no id and are never trusted.
  */
-export function containerAction({ name, exists, recorded }) {
-  if (!exists) return "create";
-  if (recorded.includes(name)) return "replace";
+const recordedEntry = (entry) =>
+  typeof entry === "string"
+    ? { name: entry, id: null }
+    : { name: entry?.name ?? "", id: entry?.id || null };
+
+/**
+ * What to do with a container or network name before creating it: create it
+ * when absent; replace (a container) or reuse (a network) it only when the
+ * state file records that name with the id it has now, so a previous run of
+ * this script started it; refuse otherwise. A same-named resource that another
+ * session started, even under a name this state file once recorded, is never
+ * removed.
+ */
+export function containerAction({ name, existingId, recorded }) {
+  if (!existingId) return "create";
+  const ours = recorded
+    .map(recordedEntry)
+    .some((entry) => entry.name === name && entry.id === existingId);
+  if (ours) return "replace";
   throw new Error(
-    `A container or network named ${name} exists, but this stack did not start it (its state file does not list it). Remove it yourself or set API_CONTRACT_NAME to another prefix.`,
+    `A container or network named ${name} exists, but this stack did not start it (its state file does not record that name with its id). Remove it yourself or set API_CONTRACT_NAME to another prefix.`,
   );
+}
+
+/**
+ * What `down` removes: each recorded resource under the configured prefix
+ * whose name still resolves to the id recorded when this stack created it,
+ * removed by that id. A name outside the prefix, an entry without an id, or a
+ * name that now belongs to another resource is left alone and reported; a
+ * resource that is already gone needs nothing.
+ */
+export function planRemoval({ prefix, recorded, currentId }) {
+  const plan = { remove: [], skipped: [] };
+  for (const { name, id } of recorded.map(recordedEntry)) {
+    if (!name.startsWith(`${prefix}-`)) {
+      plan.skipped.push({
+        name,
+        reason: `outside the configured prefix ${prefix}-`,
+      });
+      continue;
+    }
+    if (!id) {
+      plan.skipped.push({
+        name,
+        reason: "no recorded id (an older state file); remove it yourself",
+      });
+      continue;
+    }
+    const now = currentId(name);
+    if (!now) continue;
+    if (now === id) plan.remove.push({ name, id });
+    else
+      plan.skipped.push({
+        name,
+        reason: "now another resource, not the one this stack started",
+      });
+  }
+  return plan;
+}
+
+/**
+ * The default state file: one per checkout (keyed by a hash of the repository
+ * root) and prefix, so two worktrees running the default prefix never read or
+ * remove each other's recorded resources.
+ */
+export function defaultStateFile({ name, repoRoot: root, tempDir }) {
+  const checkout = createHash("sha256")
+    .update(path.resolve(root))
+    .digest("hex")
+    .slice(0, 12);
+  return path.join(tempDir, `${name}-${checkout}-api-contract-state.json`);
 }
 
 /**
@@ -234,10 +306,11 @@ function options() {
     restPort: Number(process.env.API_CONTRACT_REST_PORT || 54401),
     stateFile:
       process.env.API_CONTRACT_STATE_FILE?.trim() ||
-      path.join(
-        process.env.RUNNER_TEMP || os.tmpdir(),
-        `${name}-api-contract-state.json`,
-      ),
+      defaultStateFile({
+        name,
+        repoRoot,
+        tempDir: process.env.RUNNER_TEMP || os.tmpdir(),
+      }),
   };
 }
 
@@ -279,30 +352,61 @@ function docker(args, { env, allowFailure } = {}) {
   return result;
 }
 
-/**
- * Makes `name` free for this stack (containerAction): removes a container a
- * previous run recorded, refuses one it did not, and records the name in the
- * state file before anything is started under it.
- */
-function claimContainer(name, state, stateFile) {
-  const exists =
-    docker(["container", "inspect", name], { allowFailure: true }).status === 0;
-  if (
-    containerAction({ name, exists, recorded: state.containers }) === "replace"
-  )
-    docker(["rm", "-f", name]);
-  state.containers = [...new Set([...state.containers, name])];
+/** The id of the container or network called `name`, or null when none exists. */
+function currentId(kind, name) {
+  const result = docker([kind, "inspect", "--format", "{{.Id}}", name], {
+    allowFailure: true,
+  });
+  return result.status === 0 ? result.stdout.trim() || null : null;
+}
+
+/** Records `{ name, id }` under `key` in the state file, replacing that name. */
+function record(state, stateFile, key, name, id) {
+  state[key] = [
+    ...state[key].filter((entry) => recordedEntry(entry).name !== name),
+    { name, id },
+  ];
   writeState(stateFile, state);
 }
 
-/** Creates `name` unless a previous run recorded it; refuses anyone else's. */
+/**
+ * Makes `name` free for this stack (containerAction): removes, by id, the
+ * container a previous run recorded, refuses one it did not, and forgets the
+ * removed entry. Call `startContainer` next.
+ */
+function claimContainer(name, state, stateFile) {
+  const existingId = currentId("container", name);
+  if (
+    containerAction({ name, existingId, recorded: state.containers }) ===
+    "replace"
+  ) {
+    docker(["rm", "-f", existingId]);
+    state.containers = state.containers.filter(
+      (entry) => recordedEntry(entry).name !== name,
+    );
+    writeState(stateFile, state);
+  }
+}
+
+/** `docker run -d` with `args`, recording the id Docker returns for `name`. */
+function startContainer(name, args, env, state, stateFile) {
+  const id = docker(args, { env }).stdout.trim();
+  if (!/^[0-9a-f]{12,64}$/.test(id))
+    throw new Error(`docker run did not return a container id for ${name}`);
+  record(state, stateFile, "containers", name, id);
+}
+
+/** Creates `name` unless a previous run recorded it with its id; refuses anyone else's. */
 function claimNetwork(name, state, stateFile) {
-  const exists =
-    docker(["network", "inspect", name], { allowFailure: true }).status === 0;
-  if (containerAction({ name, exists, recorded: state.networks }) === "create")
-    docker(["network", "create", name]);
-  state.networks = [...new Set([...state.networks, name])];
-  writeState(stateFile, state);
+  const existingId = currentId("network", name);
+  if (
+    containerAction({ name, existingId, recorded: state.networks }) !== "create"
+  )
+    return;
+  const id = docker(["network", "create", name]).stdout.trim();
+  if (!/^[0-9a-f]{12,64}$/.test(id))
+    throw new Error(`docker network create did not return an id for ${name}`);
+  record(state, stateFile, "networks", name, id);
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -396,7 +500,13 @@ async function prepare({ databaseUrl, restDbHost, restDbPort, network }) {
   // appears in the docker command line.
   for (const key of Object.keys(environment)) args.push("-e", key);
   args.push(POSTGREST_IMAGE);
-  docker(args, { env: { ...process.env, ...environment } });
+  startContainer(
+    restName,
+    args,
+    { ...process.env, ...environment },
+    state,
+    opts.stateFile,
+  );
 
   const postgrestUrl = `http://127.0.0.1:${opts.restPort}`;
   writeState(opts.stateFile, {
@@ -423,7 +533,8 @@ async function up() {
 
   claimNetwork(network, state, opts.stateFile);
   claimContainer(pgName, state, opts.stateFile);
-  docker(
+  startContainer(
+    pgName,
     [
       "run",
       "-d",
@@ -441,7 +552,9 @@ async function up() {
       `POSTGRES_DB=${database}`,
       POSTGRES_IMAGE,
     ],
-    { env: { ...process.env, POSTGRES_PASSWORD: password } },
+    { ...process.env, POSTGRES_PASSWORD: password },
+    state,
+    opts.stateFile,
   );
 
   const databaseUrl = `postgresql://postgres:${password}@127.0.0.1:${opts.pgPort}/${database}`;
@@ -472,17 +585,40 @@ async function up() {
   await prepare({ databaseUrl, restDbHost: pgName, restDbPort: 5432, network });
 }
 
+/**
+ * Removes, by id, what this stack recorded under the configured prefix and
+ * still holds its recorded id (planRemoval); reports anything it leaves.
+ */
 function down() {
   const opts = options();
   const state = readState(opts.stateFile);
-  for (const container of state.containers)
-    docker(["rm", "-f", container], { allowFailure: true });
-  for (const network of state.networks)
-    docker(["network", "rm", network], { allowFailure: true });
-  rmSync(opts.stateFile, { force: true });
-  console.log(
-    `==> removed ${[...state.containers, ...state.networks].join(", ") || "nothing"}`,
-  );
+  const removed = [];
+  const skipped = [];
+  const failed = [];
+  for (const [kind, key, remove] of [
+    ["container", "containers", ["rm", "-f"]],
+    ["network", "networks", ["network", "rm"]],
+  ]) {
+    const plan = planRemoval({
+      prefix: opts.name,
+      recorded: state[key],
+      currentId: (name) => currentId(kind, name),
+    });
+    skipped.push(...plan.skipped);
+    for (const { name, id } of plan.remove) {
+      if (docker([...remove, id], { allowFailure: true }).status === 0)
+        removed.push(name);
+      else failed.push(name);
+    }
+  }
+  if (failed.length === 0) rmSync(opts.stateFile, { force: true });
+  console.log(`==> removed ${removed.join(", ") || "nothing"}`);
+  for (const { name, reason } of skipped)
+    console.log(`==> left ${name}: ${reason}`);
+  if (failed.length > 0)
+    throw new Error(
+      `could not remove ${failed.join(", ")}; the state file ${opts.stateFile} is kept`,
+    );
 }
 
 function test(extraArgs) {
