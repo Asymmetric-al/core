@@ -231,9 +231,14 @@ jobs:
         run: node scripts/verify/ci-build-policy.mjs --build
       # Diagnostics only: rebuild the app whose next build failed with
       # --debug-prerender (server source maps, every failing route). Vercel
-      # runs the normal build command, which never carries the flag.
+      # runs the normal build command, which never carries the flag. Its own
+      # limit keeps it inside the job's budget (setup about 1.5 min, compile
+      # up to about 5), so the job ends failed with the compile error, not
+      # cancelled at 15 minutes. It runs only after a failure, so it cannot
+      # turn the job green.
       - name: Rebuild failed apps with prerender diagnostics
         if: failure()
+        timeout-minutes: 6
         run: node scripts/verify/ci-build.mjs --debug-prerender
 
   test-unit:

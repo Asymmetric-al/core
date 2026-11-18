@@ -77,6 +77,17 @@ describe("a failed build prints prerender diagnostics", () => {
   it("never adds the flag to the compile step Vercel shares", () => {
     expect(steps[compile]?.run).not.toContain("debug-prerender");
   });
+
+  // Review round 6 (c2.2): without its own limit the rebuild could use up the
+  // job's budget, so the job would end cancelled at its limit instead of
+  // failed with the compile step's error.
+  it("bounds the rebuild by its own timeout, at most half the job's budget", () => {
+    const stepLimit = steps[debug]?.["timeout-minutes"];
+    const jobLimit = CI.build?.["timeout-minutes"];
+    expect(Number.isInteger(stepLimit)).toBe(true);
+    expect(stepLimit as number).toBeGreaterThan(0);
+    expect(2 * (stepLimit as number)).toBeLessThanOrEqual(jobLimit as number);
+  });
 });
 
 describe("the required browser smoke starts beside migrate", () => {

@@ -263,7 +263,11 @@ outside GitHub Actions. The `build` job gains one step with `if: failure()`
 that runs this mode; it does nothing when the failure happened before an app
 build (for example in shared packages). The normal build command never carries
 the flag, so Vercel, which runs `bun run build:<app>`, cannot deploy a debug
-build. Cost: nothing on a green build; one extra app build on a red one.
+build. The step has its own `timeout-minutes: 6` (review round 6, c2.2):
+setup takes about 1.5 minutes and the compile step up to about 5 on recent
+runs, so the rebuild ends inside the 15-minute job limit and the job ends
+failed with the compile error, not cancelled at the limit. Cost: nothing on a
+green build; one extra app build, at most 6 minutes, on a red one.
 
 ### 7. `instant-nav` on develop pull requests
 

@@ -122,3 +122,5 @@
       and show them failing under a fail-open mutation.
 - [x] 10.6 Red first: arguments that merely contain "acceptance" keep the
       exclusion. Then drop it only for a path inside `tests/unit/acceptance`.
+- [x] 10.7 Red first: the debug-prerender rebuild must have its own timeout of
+      at most half the build job budget. Then give it `timeout-minutes: 6`.
