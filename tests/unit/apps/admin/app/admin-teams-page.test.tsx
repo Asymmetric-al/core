@@ -137,6 +137,110 @@ describe("Staff directory and real staff", () => {
       ),
     ).toBe(true);
   });
+  it("names each person's sub-role, which the member directory returns beside the membership class", async () => {
+    // The users list answers `role: "staff"` (or `"admin"` for the flagged
+    // row) with the sub-role in `staff_role` (pull request #2720 review).
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      json: async () => ({
+        users: url.includes("role=staff")
+          ? [
+              {
+                id: "s-fin",
+                display_name: "Fin Ance",
+                role: "staff",
+                staff_role: "finance",
+              },
+              {
+                id: "s-care",
+                display_name: "Cara Care",
+                role: "staff",
+                staff_role: "member_care",
+              },
+              {
+                id: "s-dev",
+                display_name: "Dev Elop",
+                role: "staff",
+                staff_role: "development",
+              },
+              {
+                id: "s-mob",
+                display_name: "Mo Bilizer",
+                role: "staff",
+                staff_role: "mobilizer",
+              },
+              {
+                id: "s-hr",
+                display_name: "Hana Resources",
+                role: "staff",
+                staff_role: "hr",
+              },
+              {
+                id: "s-plain",
+                display_name: "Pat Plain",
+                role: "staff",
+                staff_role: null,
+              },
+            ]
+          : url.includes("role=admin")
+            ? [
+                {
+                  id: "a-1",
+                  display_name: "Ada Admin",
+                  role: "admin",
+                  staff_role: "finance",
+                  is_tenant_admin: true,
+                },
+              ]
+            : [],
+      }),
+    }));
+    const view = show();
+    const roleBeside = async (name: string) => {
+      const cell = await view.findByText(name);
+      return cell.closest('tr,[role="row"]')?.textContent ?? "";
+    };
+    expect(await roleBeside("Fin Ance")).toContain("Finance");
+    expect(await roleBeside("Cara Care")).toContain("Member care");
+    expect(await roleBeside("Dev Elop")).toContain("Fundraising");
+    expect(await roleBeside("Mo Bilizer")).toContain("Mobilizers");
+    expect(await roleBeside("Hana Resources")).toContain("HR");
+    // A staff member with no sub-role is Staff, and an administrator is named
+    // as one whatever their sub-role.
+    expect(await roleBeside("Pat Plain")).toMatch(/Staff$/);
+    expect(await roleBeside("Ada Admin")).toContain("Administrator");
+    expect(await roleBeside("Ada Admin")).not.toContain("Finance");
+  });
+  it("finds people by the sub-role the directory shows", async () => {
+    fetchMock.mockImplementation(async (url: string) => ({
+      ok: true,
+      json: async () => ({
+        users: url.includes("role=staff")
+          ? [
+              {
+                id: "s-fin",
+                display_name: "Fin Ance",
+                role: "staff",
+                staff_role: "finance",
+              },
+              {
+                id: "s-care",
+                display_name: "Cara Care",
+                role: "staff",
+                staff_role: "member_care",
+              },
+            ]
+          : [],
+      }),
+    }));
+    const view = show();
+    await view.findByText("Fin Ance");
+    fireEvent.change(view.getByLabelText("Search people"), {
+      target: { value: "member care" },
+    });
+    await waitFor(() => expect(view.queryByText("Fin Ance")).toBeNull());
+    expect(view.getByText("Cara Care")).toBeTruthy();
+  });
   it("distinguishes a failed staff load from no accounts and retries", async () => {
     fetchMock.mockResolvedValue({ ok: false });
     const view = show();

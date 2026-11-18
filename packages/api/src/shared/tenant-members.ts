@@ -12,6 +12,9 @@ import type { MembershipRole, StaffSubrole } from "@asym/database/types";
  * administrator flag in SQL, and answers in pages ordered by membership id.
  * `listTenantMembers` reads every page, so a tenant with more members than
  * the Data API returns in one response (`max_rows`) is never cut silently.
+ * It reads until a page comes back empty (council round 2 on WP2a, R2):
+ * `max_rows` is a dashboard setting on hosted Supabase, so a short page does
+ * not prove the end.
  */
 export interface TenantMember {
   membershipId: string;
@@ -36,9 +39,10 @@ export interface TenantMemberQuery {
 }
 
 /**
- * Rows asked for per call. The function returns 1,000 at most, the Data
- * API's `max_rows` (supabase/config.toml); asking for fewer keeps every page
- * under that cut, so a short page is the last one.
+ * Rows asked for per call. The function returns 1,000 at most; the Data
+ * API may return fewer (`max_rows`, 1,000 in supabase/config.toml, a
+ * dashboard setting on hosted Supabase). The reader goes on after the last
+ * row it received until a page comes back empty, so neither cap can cut it.
  */
 export const TENANT_MEMBER_PAGE_SIZE = 500;
 
@@ -104,8 +108,8 @@ export async function listTenantMembers(
       throw new Error("tenant_member_profiles returned a non-array result");
     }
     const page = data as MemberRow[];
+    if (page.length === 0) break;
     rows.push(...page);
-    if (page.length < TENANT_MEMBER_PAGE_SIZE) break;
     const last = page[page.length - 1]!.membership_id;
     if (last === after) {
       throw new Error("tenant_member_profiles returned the same page twice");

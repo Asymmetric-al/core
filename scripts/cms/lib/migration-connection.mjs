@@ -1,3 +1,4 @@
+import { isLoopbackDatabaseUrl } from "../../../packages/env/src/database-url.mjs";
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
 
 /** The role that owns schema cms and runs Payload migrations (plan 7.2). */
@@ -5,8 +6,6 @@ export const CMS_MIGRATION_ROLE = "cms_owner";
 
 /** Set only in the release job's CMS migration step, never in an app runtime. */
 export const CMS_MIGRATION_DATABASE_ENV_KEY = "PAYLOAD_MIGRATION_DATABASE_URI";
-
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 function nonEmpty(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -27,10 +26,6 @@ function parsePostgresUrl(value, label) {
     throw new Error(`${label} must be a valid Postgres URL.`);
   }
   return url;
-}
-
-function isLoopback(url) {
-  return LOOPBACK_HOSTS.has(url.hostname.replace(/^\[|\]$/g, ""));
 }
 
 /**
@@ -78,9 +73,11 @@ export function resolveCmsMigrationDatabaseUrl(
     };
   }
 
-  if (!isLoopback(runtime)) {
+  // The repository's one local-database decision: a loopback host and no
+  // routing override in the query, which node-postgres would follow instead.
+  if (!isLoopbackDatabaseUrl(runtime)) {
     throw new Error(
-      `Set ${CMS_MIGRATION_DATABASE_ENV_KEY} to the ${CMS_MIGRATION_ROLE} connection before migrating a hosted CMS schema. Payload's run-time connection cannot change the schema.`,
+      `PAYLOAD_DATABASE_URI does not name a database on this machine (a loopback host with no routing override). Set ${CMS_MIGRATION_DATABASE_ENV_KEY} to the ${CMS_MIGRATION_ROLE} connection before migrating a hosted CMS schema. Payload's run-time connection cannot change the schema.`,
     );
   }
 

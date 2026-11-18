@@ -66,17 +66,21 @@ This keeps durable project context, intended behavior, and active change scope v
      `package.json` and `bun.lock`, the tag in
      `scripts/refresh-upstream-skills.mjs`, the seven imported skills through
      that script's scoped refresh, their source-review records in
-     `docs/ai/skill-source-audit.json`, and the pin constants in
-     `tests/unit/docs/openspec-modernization.test.ts`. Try the new release in
-     a scratch checkout first. Do not relax `--strict` to get there.
+     `docs/ai/skill-source-audit.json`, the pin constants in
+     `tests/unit/docs/openspec-modernization.test.ts`, and the `package.json`
+     proof hash in `tooling/shadscan/findings.json`. Try the new release in a
+     scratch checkout first. Do not relax `--strict` to get there.
 
 4. **Keep repo-owned instruction files hand-maintained.**
-   - Do not run `openspec update` against this live customized repository.
-     OpenSpec 2.0 tells users to run it. Tried on 2.0.0 in a scratch copy, it
-     kept Core's seven overlaid skills and added only its marker file,
-     `.agents/skills/.openspec-target`. It also asks to migrate and delete
+   - Do not run `openspec update` or `openspec init` against this live
+     customized repository. OpenSpec 2.x tells users to run the updater. From
+     2.1 it replaces each built-in skill folder whole, which would drop Core's
+     overlays, and in a terminal it offers to move the project's skills to a
+     per-machine install. It also asks to migrate and delete
      `openspec/project.md`, which Core keeps as its index. Refresh the skills
      through `scripts/refresh-upstream-skills.mjs` instead.
+     `skillsScope: project` in `openspec/config.yaml` records that the skills
+     stay in this repository; it does not make the updater safe.
    - This repository owns `AGENTS.md`, Cursor rule and command files, and
      Copilot instruction files.
    - Canonical OpenSpec skills are imported under `docs/ai/skills/openspec-*`

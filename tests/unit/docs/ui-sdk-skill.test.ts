@@ -37,13 +37,17 @@ describe("ui-sdk agent skill", () => {
   const skill = read(`${skillDir}/SKILL.md`);
   const overlay = overlayOf(skill);
 
-  it("routes Core UI work to UI SDK only for gaps Base UI leaves", () => {
+  it("routes Core UI work to UI SDK as an approved choice, shared reuse first", () => {
     const frontmatter = /^---\n([\s\S]*?)\n---\n/.exec(skill)?.[1] ?? "";
     expect(frontmatter).toMatch(/^name: ui-sdk$/m);
     const description = /^description: (.+)$/m.exec(frontmatter)?.[1] ?? "";
     expect(description).toMatch(/Base UI/);
     expect(description).toMatch(/@asym\/ui/);
     expect(description).toMatch(/@ui-sdk\/\*/);
+    expect(description).toMatch(/both approved/);
+    expect(description).toMatch(
+      /Not needed merely because the SDK is installed/,
+    );
     expect(description.length).toBeLessThan(1024);
     expect(frontmatter).not.toMatch(/disable-model-invocation/);
 
@@ -54,9 +58,17 @@ describe("ui-sdk agent skill", () => {
     expect(overlay).toMatch(
       /Apache-2\.0\)\. Modified by\s+Asymmetric-al\/core/,
     );
-    expect(overlay).toContain("does not override these components");
-    expect(overlay).toContain("Combobox (including multi-select tag chips)");
-    expect(overlay).toMatch(/never mix Base UI and\s+UI SDK/);
+    // Both libraries are approved; the overlay must not restore the old
+    // rule that UI SDK may only fill gaps.
+    expect(overlay).toMatch(/Reuse first, then choose/);
+    expect(overlay).toMatch(/does not rule it out/);
+    expect(overlay).toMatch(
+      /do not mix Base UI and\s+UI SDK parts in one control/,
+    );
+    expect(overlay).toMatch(
+      /does not require replacing existing shared\s+components/,
+    );
+    expect(overlay).not.toMatch(/only for a gap/);
   });
 
   it("points agents at the installed-version docs and the bundled skill", () => {

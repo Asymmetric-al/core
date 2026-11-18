@@ -128,6 +128,22 @@ it("keeps focus on Try again while partners reload, then lands on the list headi
   );
 });
 
+// The error view is a motion element, whose ref passes the hand-off's cleanup on.
+it("lands on the list heading when partners recover on their own while an unpressed Try again has focus", () => {
+  const view = render(page());
+  const button = screen.getByRole("button", { name: "Try again" });
+  act(() => button.focus());
+  // A refetch on reconnect, not a press, loads the partners.
+  fixture.error = null;
+  fixture.rows = [partner];
+  view.rerender(page());
+  expect(button.isConnected).toBe(false);
+  expect(screen.getByText("Avery Stone")).toBeTruthy();
+  expect(document.activeElement).toBe(
+    screen.getByRole("heading", { name: /All partners/ }),
+  );
+});
+
 it("leaves focus on Try again when partners still can't load", () => {
   const { view, button } = startRetry();
   fixture.isLoading = false;

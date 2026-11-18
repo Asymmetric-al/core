@@ -121,7 +121,7 @@ There is no default between classes: a staff row is never preferred over a donor
 
 `createRpcAssignmentReader(client)` is the only reader. It takes a user-JWT client, calls `public.current_user_assignments()` with no arguments, and throws on an error or a non-array result. It never uses an admin client or a service-role key.
 
-The RPC is `SECURITY INVOKER`, `STABLE` and `SET search_path = ''`, with no parameters. It returns `id, user_id, tenant_id, role, staff_role, is_tenant_admin, updated_at` for `authz.memberships` rows where `user_id = auth.uid()` and `is_active`, so the existing "select own" policy and grants bound it as well. Its EXECUTE grants are revoked by name from `PUBLIC`, `anon`, `authenticated` and `service_role`, then granted to `authenticated` only (see `docs/security/function-execute-grants.md`). It was created by `20261025120700_current_user_assignments_rpc.sql` and gained the flag in `20261117065007_membership_lifecycle_and_tenant_admin_flag.sql`, which also added it to `public.current_user_memberships(uuid)`.
+The RPC is `SECURITY INVOKER`, `STABLE` and `SET search_path = ''`, with no parameters. It returns `id, user_id, tenant_id, role, staff_role, is_tenant_admin, updated_at` for `authz.memberships` rows where `user_id = auth.uid()` and `is_active`, so the existing "select own" policy and grants bound it as well. Its EXECUTE grants are revoked by name from `PUBLIC`, `anon`, `authenticated` and `service_role`, then granted to `authenticated` only (see `docs/security/function-execute-grants.md`). It was created by `20261025120700_current_user_assignments_rpc.sql` and gained the flag in `20261117160000_membership_lifecycle_and_tenant_admin_flag.sql`, which also added it to `public.current_user_memberships(uuid)`.
 
 ### The membership row since AL-2675
 
@@ -143,5 +143,5 @@ The RPC is `SECURITY INVOKER`, `STABLE` and `SET search_path = ''`, with no para
 - `packages/auth/permissions.ts`
 - `packages/auth/context.ts`
 - `packages/auth/middleware.ts`
-- `packages/auth/principal/` (the resolver; `packages/api/src/principal/` re-exports it), `supabase/migrations/20261025120700_current_user_assignments_rpc.sql` and `supabase/migrations/20261117065007_membership_lifecycle_and_tenant_admin_flag.sql`
-- `packages/auth/capabilities/` and `supabase/migrations/20261117065016_assignment_capability_function.sql`
+- `packages/auth/principal/` (the resolver; `packages/api/src/principal/` re-exports it), `supabase/migrations/20261025120700_current_user_assignments_rpc.sql` and `supabase/migrations/20261117160000_membership_lifecycle_and_tenant_admin_flag.sql`
+- `packages/auth/capabilities/` and `supabase/migrations/20261117160100_assignment_capability_function.sql`

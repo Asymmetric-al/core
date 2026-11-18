@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "Finish resetting your Mission Control password.",
 };
 
-// Streams behind `(auth)/loading.tsx`: the recovery session is read per request.
+// Streams behind `loading.tsx`: the recovery session is read per request.
 export default async function ResetPasswordPage() {
   const recovery = await readPasswordRecovery();
   return <ResetPasswordScreen appId="admin" recovery={recovery} />;

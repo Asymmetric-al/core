@@ -28,3 +28,30 @@ export function databaseUrlRoutingOverrides(databaseUrl) {
   const url = databaseUrl instanceof URL ? databaseUrl : new URL(databaseUrl);
   return DATABASE_URL_ROUTING_KEYS.filter((key) => url.searchParams.has(key));
 }
+
+/** Hostnames, as `new URL(...).hostname` reports them for a Postgres URL, that name this machine. */
+export const LOOPBACK_DATABASE_HOSTS = Object.freeze([
+  "127.0.0.1",
+  "localhost",
+  "[::1]",
+]);
+
+/**
+ * Whether `databaseUrl` names a database on this machine: a postgres:// or
+ * postgresql:// URL whose host is in LOOPBACK_DATABASE_HOSTS and whose query
+ * carries no routing override. False for anything else, a value that is not a
+ * URL included. Every local-only database tool decides with this function.
+ */
+export function isLoopbackDatabaseUrl(databaseUrl) {
+  let url;
+  try {
+    url = databaseUrl instanceof URL ? databaseUrl : new URL(databaseUrl);
+  } catch {
+    return false;
+  }
+  return (
+    ["postgres:", "postgresql:"].includes(url.protocol) &&
+    LOOPBACK_DATABASE_HOSTS.includes(url.hostname) &&
+    databaseUrlRoutingOverrides(url).length === 0
+  );
+}

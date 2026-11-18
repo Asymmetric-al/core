@@ -7,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
 } from "@asym/ui/components/shadcn/card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
@@ -17,25 +18,38 @@ function StatCard({
   label,
   value,
   detail,
+  loading = false,
   onClick,
   isActive,
 }: {
   label: string;
   value: string | number;
   detail: string;
+  /** Its numbers have not loaded: show placeholders, not zeros. */
+  loading?: boolean;
   onClick?: () => void;
   isActive?: boolean;
 }) {
   const content = (
-    <Card className="h-full">
+    <Card className="h-full" aria-busy={loading || undefined}>
       <CardHeader>
         <CardDescription>{label}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        <p className="text-xl font-semibold tracking-tight tabular-nums text-foreground sm:text-2xl">
-          {value}
-        </p>
-        <p className="text-sm text-muted-foreground">{detail}</p>
+        {loading ? (
+          <>
+            <span className="sr-only">Loading…</span>
+            <Skeleton className="h-7 w-12 sm:h-8" />
+            <Skeleton className="h-5 w-28" />
+          </>
+        ) : (
+          <>
+            <p className="text-xl font-semibold tracking-tight tabular-nums text-foreground sm:text-2xl">
+              {value}
+            </p>
+            <p className="text-sm text-muted-foreground">{detail}</p>
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -69,6 +83,7 @@ export function DonorsPageStats() {
   const { statusFilter, pledgeFilter, setStatusFilter, setPledgeFilter } =
     view.filters;
   const { applyStatFilter } = view.actions;
+  const rosterLoading = view.status.isLoading;
   // Each tile is a toggle: pressing it again clears only its own filter.
   const monthlyActive = pledgeFilter === "Active";
   const attentionActive = statusFilter === "Needs Attention";
@@ -84,7 +99,12 @@ export function DonorsPageStats() {
   const loaded = hasMoreDonors ? " (loaded so far)" : "";
   // Committed support comes from the same source as Home, so the two agree
   // and anonymous partners' gifts are counted.
-  const support = useMissionaryPortalSnapshot().data?.support;
+  const portalQuery = useMissionaryPortalSnapshot();
+  const support = portalQuery.data?.support;
+  // Offline, a load with nothing cached waits for the connection: pending
+  // and paused, not `isLoading`. It has not answered, so it still loads.
+  const portalLoading =
+    portalQuery.isLoading || (portalQuery.isPending && portalQuery.isPaused);
   const monthlyPartners = support?.monthlyPartnerCount ?? activePledgeCount;
   const committedAmount = formatCurrency(
     support?.recurringMonthlyCents,
@@ -103,15 +123,19 @@ export function DonorsPageStats() {
         label="Partners"
         value={hasMoreDonors ? `${donorRows.length}+` : donorRows.length}
         detail={`${activeCount} active${loaded}`}
+        loading={rosterLoading}
       />
       <StatCard
         label="Given, all time"
         value={formatCurrency(totalGiven, null)}
         detail="Lifetime giving is unavailable because its currency is unknown."
+        loading={rosterLoading}
       />
       <StatCard
         label="Monthly partners"
         value={monthlyPartners}
+        // Without the snapshot's support, the count falls back to the roster.
+        loading={portalLoading || (!support && rosterLoading)}
         detail={
           committedAmount === "Unavailable"
             ? "Committed amount unavailable: currencies are mixed or unknown."
@@ -128,6 +152,7 @@ export function DonorsPageStats() {
         label="Need attention"
         value={atRiskCount + lapsedCount}
         detail={`${atRiskCount} at risk · ${lapsedCount} lapsed${loaded}`}
+        loading={rosterLoading}
         onClick={() =>
           attentionActive
             ? setStatusFilter("All")

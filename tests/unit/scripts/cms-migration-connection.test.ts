@@ -87,6 +87,22 @@ describe("CMS migration connection (plan 7.2)", () => {
     ).toThrow("session role");
   });
 
+  // PR #2714 review: the loopback decision is the repository's one
+  // (isLoopbackDatabaseUrl), so a run-time URL whose query routes elsewhere is
+  // never rewritten into a cms_owner session.
+  it.each([
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?host=db.abcdefghijklmnopqrst.supabase.co",
+    "postgresql://postgres:postgres@localhost:54322/postgres?hostaddr=10.0.0.5",
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?user=postgres.abcdefghijklmnopqrst",
+  ])(
+    "refuses to migrate through a loopback-looking URL with a routing override: %s",
+    (url) => {
+      expect(() =>
+        resolveCmsMigrationDatabaseUrl({ PAYLOAD_DATABASE_URI: url }),
+      ).toThrow("PAYLOAD_MIGRATION_DATABASE_URI");
+    },
+  );
+
   it("lets a read-only status check use the run-time connection", () => {
     expect(
       resolveCmsMigrationDatabaseUrl(

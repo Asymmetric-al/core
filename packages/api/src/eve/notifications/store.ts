@@ -176,6 +176,13 @@ export async function listEveNotificationRecipients(input: {
           .in("id", adminIds)
           .not("email", "is", null)
       : Promise.resolve({ data: [], error: null }),
+    // Bounded, not paged (council round 2 on WP2a, R2): the table's key is
+    // (tenant_id, profile_id), and its trigger
+    // (validate_eve_notification_recipient) admits only a super_admin profile
+    // of the tenant with an email, so it holds one row at most per platform
+    // operator of the tenant, a handful. Its only writer, the recipient
+    // PATCH, is closed until WP2c; page this read when WP2c opens recipients
+    // to every tenant administrator.
     input.supabaseAdmin
       .from("eve_notification_recipient_configs")
       .select("profile_id, enabled, opted_out")

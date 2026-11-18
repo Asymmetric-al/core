@@ -35,7 +35,7 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { TabsContent } from "@asym/ui/components/shadcn/tabs";
-import { useRetainedDraft } from "@asym/ui/hooks";
+import { useLoadRetry, useRetainedDraft } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { Loader2, Lock, Mail, UserRound } from "lucide-react";
 import React, {
@@ -47,8 +47,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-
-import { useFocusHandoff, useLoadRetry } from "@/features/donor/focus-recovery";
 
 type TabId = "profile" | "email" | "security";
 
@@ -104,19 +102,24 @@ type SettingsRetry = ReturnType<typeof useLoadRetry>;
 
 const SettingsRetryContext = createContext<SettingsRetry | null>(null);
 
+// The tab panel a TabError, or its pressed Try again, is in.
+function tabPanel(from: HTMLElement | null) {
+  return from?.closest<HTMLElement>('[role="tabpanel"]');
+}
+
 // Try again for settings that failed to load. The profile and email tabs show
 // the same settings, so they share one retry: a retry pressed in one tab is
-// busy in the other too, and never runs twice. Each tab keeps focus in its
-// panel when the settings recover (focusTabPanel), so the retry has no
-// heading of its own to move focus to.
+// busy in the other too, and never runs twice. When the settings recover,
+// however that happened, focus on a TabError stays in its tab panel instead
+// of dropping to the page.
 function SettingsRetryProvider({ children }: { children: React.ReactNode }) {
   const snapshot = useDonorPortalSnapshot();
-  const noHeading = useRef<HTMLElement>(null);
-  const retry = useLoadRetry(
-    noHeading,
-    Boolean(snapshot.error) || !snapshot.data,
-    snapshot.refetch,
-  );
+  const retry = useLoadRetry({
+    error: Boolean(snapshot.error) || !snapshot.data,
+    loading: settingsLoading(snapshot),
+    onRetry: snapshot.refetch,
+    landing: tabPanel,
+  });
   return <SettingsRetryContext value={retry}>{children}</SettingsRetryContext>;
 }
 
@@ -126,23 +129,13 @@ function useSettingsRetry(): SettingsRetry {
   return retry;
 }
 
-// For useFocusHandoff: when the settings recover, however that happened,
-// focus on the removed TabError stays in its tab panel instead of dropping
-// to the page.
-function focusTabPanel(from: HTMLElement) {
-  from.closest<HTMLElement>('[role="tabpanel"]')?.focus();
-  return true;
-}
-
 function TabError({
-  retry,
-  ref,
+  retry: { failureView, ...retry },
 }: {
   retry: SettingsRetry;
-  ref: React.Ref<HTMLDivElement>;
 }) {
   return (
-    <Card ref={ref}>
+    <Card ref={failureView}>
       <CardContent className="space-y-3 p-6">
         <p
           key={retry.failedRetries}
@@ -386,7 +379,6 @@ function ProfileTab() {
   const snapshot = useDonorPortalSnapshot();
   const update = useUpdateDonorPortal();
   const retry = useSettingsRetry();
-  const errorView = useFocusHandoff(focusTabPanel);
 
   const retained =
     useRetainedDraft<Omit<ProfileFormFields, "email">>("donor-profile");
@@ -475,7 +467,7 @@ function ProfileTab() {
   if (settingsLoading(snapshot) && !retry.retrying)
     return <TabLoading label="Loading profile" />;
   if (snapshot.error || !snapshot.data || retry.retrying)
-    return <TabError retry={retry} ref={errorView} />;
+    return <TabError retry={retry} />;
 
   const initials =
     `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase() || "··";
@@ -562,12 +554,11 @@ function EmailPrivacyTab() {
   const queue = useRef<Promise<void>>(Promise.resolve());
   const latest = useRef<Partial<Record<"news" | "showName", number>>>({});
   const retry = useSettingsRetry();
-  const errorView = useFocusHandoff(focusTabPanel);
 
   if (settingsLoading(snapshot) && !retry.retrying)
     return <TabLoading label="Loading email settings" />;
   if (snapshot.error || !snapshot.data || retry.retrying) {
-    return <TabError retry={retry} ref={errorView} />;
+    return <TabError retry={retry} />;
   }
 
   const donor = snapshot.data.donor;

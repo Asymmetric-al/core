@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { useOwnApiDownload } from "@asym/ui/hooks";
+import { useLoadRetry, useOwnApiDownload } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { ChevronDown, Download, Search } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -46,11 +46,6 @@ import { GIFT_TYPE_LABELS, type Transaction } from "./types";
 
 import type { MonthlyGivingPoint } from "./monthly-giving-chart";
 
-import {
-  focusHeadingIfLost,
-  useFocusHandoff,
-  useLoadRetry,
-} from "@/features/donor/focus-recovery";
 import { makeDisplayDate } from "@/lib/dates";
 
 // Recharts loads only when the summary chart is on screen.
@@ -490,13 +485,15 @@ export default function DonorHistoryPage() {
     createDefaultHistoryFilters,
   );
   const transactionsQuery = useDonorHistoryTransactions();
-  // The collection keeps its error status until a refetch succeeds.
+  // The collection keeps its error status until a refetch succeeds. However
+  // the gifts recover, focus on the error view moves to the heading.
   const pageRef = useRef<HTMLDivElement>(null);
-  const historyRetry = useLoadRetry(pageRef, transactionsQuery.isError, () =>
-    transactionsQuery.collection.utils.refetch(),
-  );
-  // However the gifts recover, focus on the error view moves to the heading.
-  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
+  const { failureView, ...historyRetry } = useLoadRetry({
+    error: transactionsQuery.isError,
+    loading: transactionsQuery.isLoading,
+    onRetry: () => transactionsQuery.collection.utils.refetch(),
+    landing: () => pageRef.current?.querySelector("h1"),
+  });
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
   const currentYear = getHistoryYearOptions()[0]!;
   const transactions = useMemo(
@@ -560,7 +557,7 @@ export default function DonorHistoryPage() {
       </PageHeader>
 
       {transactionsQuery.isError ? (
-        <Card ref={errorView}>
+        <Card ref={failureView}>
           <CardContent className="flex flex-col items-start gap-3">
             <p
               key={historyRetry.failedRetries}

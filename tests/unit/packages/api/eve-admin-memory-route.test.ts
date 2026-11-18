@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { memberRow } from "../../../fixtures/fake-service-client";
+import { memberPages, memberRow } from "../../../fixtures/fake-service-client";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { NextRequest } from "next/server";
@@ -170,10 +170,11 @@ describe("Eve admin-memory route tenant binding", () => {
     });
     getAuthContextMock.mockResolvedValue(superAdminAuth);
     createAuditLoggerMock.mockReturnValue({});
-    profileSingleMock.mockResolvedValue({
-      data: [memberRow({ profileId, userId: "user_1", isTenantAdmin: true })],
-      error: null,
-    });
+    profileSingleMock.mockImplementation(
+      memberPages([
+        memberRow({ profileId, userId: "user_1", isTenantAdmin: true }),
+      ]),
+    );
     loadViewMock.mockResolvedValue({ entries: [], history: [], settings: [] });
     createMemoryMock.mockResolvedValue({
       stored: true,

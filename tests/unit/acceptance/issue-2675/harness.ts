@@ -80,7 +80,9 @@ export function fixtureIds() {
  * The fixture. Inserting a login fires the sign-up trigger, which adds a
  * profile and a donor membership in the demo tenant; the fixture removes those
  * memberships so each person holds exactly the rows above, and names the
- * profiles. Profiles keep no tenant, as sign-up leaves them since AL-2675.
+ * profiles. Each profile keeps the demo tenant that sign-up writes to its
+ * tenant column (council round 1 on WP2a, F3); nothing here reads it as
+ * authority.
  */
 export function fixtureSql(id: Record<string, string>) {
   const q = (k: string) => `'${id[k]}'`;
