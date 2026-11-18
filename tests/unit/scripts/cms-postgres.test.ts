@@ -185,3 +185,74 @@ describe("CMS PostgreSQL command connection", () => {
     ).toThrow(/host/);
   });
 });
+
+/**
+ * Review M3: every ambient libpq setting a hostile environment could hold.
+ * Only PGPASSWORD and PGSSLROOTCERT may survive a builder, and a builder that
+ * sets either from the address overrides the ambient one.
+ */
+const HOSTILE_PG_ENV = {
+  PGHOST: "evil.example",
+  PGHOSTADDR: "203.0.113.9",
+  PGPORT: "1",
+  PGDATABASE: "evil",
+  PGUSER: "evil",
+  PGSERVICE: "evil",
+  PGSERVICEFILE: "/evil/pg_service.conf",
+  PGSYSCONFDIR: "/evil",
+  PGPASSFILE: "/evil/pgpass",
+  PGOPTIONS: "-c role=postgres",
+  PGSSLMODE: "disable",
+  PGSSLKEY: "engine:evil:key",
+  PGSSLCERT: "/evil/client.crt",
+  PGSSLCRL: "/evil/crl.pem",
+  PGSSLCRLDIR: "/evil/crls",
+  PGSSLSNI: "0",
+  PGSSLNEGOTIATION: "direct",
+  PGSSLCOMPRESSION: "1",
+  PGSSLMINPROTOCOLVERSION: "TLSv1",
+  PGSSLMAXPROTOCOLVERSION: "TLSv1",
+  PGCHANNELBINDING: "disable",
+  PGGSSENCMODE: "require",
+  PGGSSLIB: "sspi",
+  PGKRBSRVNAME: "evil",
+  PGREQUIREAUTH: "password",
+  PGTARGETSESSIONATTRS: "read-only",
+  PGLOADBALANCEHOSTS: "random",
+  PGAPPNAME: "evil",
+  PGCONNECT_TIMEOUT: "999",
+  PGCLIENTENCODING: "SQL_ASCII",
+  PGDATESTYLE: "evil",
+  PGTZ: "evil",
+  PGGEQO: "off",
+  PGLOCALEDIR: "/evil",
+  PGPASSWORD: "ambient-password",
+  PGSSLROOTCERT: "/ambient/ca.crt",
+};
+const pgOnly = (env: Record<string, string | undefined>) =>
+  Object.fromEntries(
+    Object.entries(env).filter(([key]) => key.startsWith("PG")),
+  );
+
+describe("the CMS builder's ambient settings (review M3)", () => {
+  it("keeps nothing of a hostile environment but the shared list", () => {
+    for (const [key, value] of Object.entries(HOSTILE_PG_ENV))
+      vi.stubEnv(key, value);
+    spawnSync.mockReturnValue({ status: 0, stdout: "1\n", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl:
+        "postgresql://cms_owner.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full",
+    });
+    const [, , options] = spawnSync.mock.calls.at(-1)!;
+    expect(pgOnly(options.env)).toEqual({
+      PGHOST: "aws-0-us-west-2.pooler.supabase.com",
+      PGPORT: "5432",
+      PGDATABASE: "postgres",
+      PGUSER: "cms_owner.abcdefghijklmnopqrst",
+      PGPASSWORD: "pw",
+      PGSSLMODE: "verify-full",
+      PGSSLROOTCERT: "/ambient/ca.crt",
+      PGREQUIREAUTH: "scram-sha-256",
+    });
+  });
+});

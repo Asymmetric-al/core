@@ -69,3 +69,72 @@ describe("the release job's psql connection refuses what the one check refuses",
     expect(() => connectionEnvironment(url, {})).toThrow(/refused/);
   });
 });
+
+/**
+ * Review M3: every ambient libpq setting a hostile environment could hold.
+ * Only PGPASSWORD and PGSSLROOTCERT may survive a builder, and a builder that
+ * sets either from the address overrides the ambient one.
+ */
+const HOSTILE_PG_ENV = {
+  PGHOST: "evil.example",
+  PGHOSTADDR: "203.0.113.9",
+  PGPORT: "1",
+  PGDATABASE: "evil",
+  PGUSER: "evil",
+  PGSERVICE: "evil",
+  PGSERVICEFILE: "/evil/pg_service.conf",
+  PGSYSCONFDIR: "/evil",
+  PGPASSFILE: "/evil/pgpass",
+  PGOPTIONS: "-c role=postgres",
+  PGSSLMODE: "disable",
+  PGSSLKEY: "engine:evil:key",
+  PGSSLCERT: "/evil/client.crt",
+  PGSSLCRL: "/evil/crl.pem",
+  PGSSLCRLDIR: "/evil/crls",
+  PGSSLSNI: "0",
+  PGSSLNEGOTIATION: "direct",
+  PGSSLCOMPRESSION: "1",
+  PGSSLMINPROTOCOLVERSION: "TLSv1",
+  PGSSLMAXPROTOCOLVERSION: "TLSv1",
+  PGCHANNELBINDING: "disable",
+  PGGSSENCMODE: "require",
+  PGGSSLIB: "sspi",
+  PGKRBSRVNAME: "evil",
+  PGREQUIREAUTH: "password",
+  PGTARGETSESSIONATTRS: "read-only",
+  PGLOADBALANCEHOSTS: "random",
+  PGAPPNAME: "evil",
+  PGCONNECT_TIMEOUT: "999",
+  PGCLIENTENCODING: "SQL_ASCII",
+  PGDATESTYLE: "evil",
+  PGTZ: "evil",
+  PGGEQO: "off",
+  PGLOCALEDIR: "/evil",
+  PGPASSWORD: "ambient-password",
+  PGSSLROOTCERT: "/ambient/ca.crt",
+};
+const pgOnly = (env: Record<string, string | undefined>) =>
+  Object.fromEntries(
+    Object.entries(env).filter(([key]) => key.startsWith("PG")),
+  );
+
+describe("the release builder's ambient settings (review M3)", () => {
+  it("keeps nothing of a hostile environment but what the address sets", () => {
+    const env = connectionEnvironment(
+      "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Fjob%2Froot.crt",
+      { ...HOSTILE_PG_ENV, DATABASE_URL: "postgresql://evil", KEEP: "1" },
+    );
+    expect(pgOnly(env)).toEqual({
+      PGHOST: "aws-0-us-west-2.pooler.supabase.com",
+      PGPORT: "5432",
+      PGDATABASE: "postgres",
+      PGUSER: "postgres.abcdefghijklmnopqrst",
+      PGPASSWORD: "pw",
+      PGSSLMODE: "verify-full",
+      PGSSLROOTCERT: "/job/root.crt",
+      PGREQUIREAUTH: "scram-sha-256",
+    });
+    expect(env.DATABASE_URL).toBeUndefined();
+    expect(env.KEEP).toBe("1");
+  });
+});

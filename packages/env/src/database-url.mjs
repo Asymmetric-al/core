@@ -237,6 +237,34 @@ export const HOSTED_LIBPQ_ENV = Object.freeze({
   PGREQUIREAUTH: "scram-sha-256",
 });
 
+/**
+ * The ambient libpq settings a builder may keep (review M3), with the reason
+ * for each: the one list the three builders that start psql apply
+ * (scripts/lib/psql.mjs, scripts/release/lib/postgres.mjs and
+ * scripts/cms/lib/postgres.mjs). Every other PG* variable is dropped: the
+ * address is the whole target, and an ambient setting could otherwise fill in
+ * or change the host, the login, its options, the client key, channel
+ * binding, GSS encryption, the authentication it accepts, or where libpq
+ * reads its service and system files. A builder that sets one of these from
+ * the address overrides the ambient value, and may keep less than the list.
+ */
+export const KEPT_AMBIENT_LIBPQ_ENV = Object.freeze({
+  PGPASSWORD:
+    "a caller may keep the password out of the address (the Supabase CLI wrapper's reset guard, local scripts); a password in the address wins",
+  PGSSLROOTCERT:
+    "the CA file the release job hands the CMS runner's psql (release-database.mjs, payloadMigrate); an address's own sslrootcert wins where a builder takes one",
+});
+
+/** `env` without any PG* variable but those KEPT_AMBIENT_LIBPQ_ENV names. */
+export function keptAmbientLibpqEnv(env) {
+  return Object.fromEntries(
+    Object.entries(env).filter(
+      ([key]) =>
+        !key.startsWith("PG") || Object.hasOwn(KEPT_AMBIENT_LIBPQ_ENV, key),
+    ),
+  );
+}
+
 const HOST_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 /**

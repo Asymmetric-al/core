@@ -5,18 +5,10 @@ import {
   HOSTED_LIBPQ_ENV,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
+  keptAmbientLibpqEnv,
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
-
-/**
- * Ambient PG* settings the runner keeps (review L2). The address is the whole
- * target: any other ambient PG* setting could fill in or change the host, the
- * port, the database, the login or its options. The release job hands this
- * runner the project's CA as PGSSLROOTCERT (release-database.mjs,
- * payloadMigrate), and a caller may keep the password out of the address.
- */
-const KEPT_AMBIENT = new Set(["PGSSLROOTCERT", "PGPASSWORD"]);
 
 function getPsqlConnection(databaseUrl) {
   let connection;
@@ -47,11 +39,10 @@ function getPsqlConnection(databaseUrl) {
   } catch {
     throw new Error("CMS database connection must be a valid Postgres URL.");
   }
-  const env = Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([key]) => !key.startsWith("PG") || KEPT_AMBIENT.has(key),
-    ),
-  );
+  // Reviews L2 and M3: the address is the whole target. The runner keeps
+  // only the shared list of ambient settings: the CA file the release job
+  // hands it as PGSSLROOTCERT, and a password kept out of the address.
+  const env = keptAmbientLibpqEnv(process.env);
   for (const [key, value] of Object.entries(fields)) {
     if (value) env[key] = value;
   }

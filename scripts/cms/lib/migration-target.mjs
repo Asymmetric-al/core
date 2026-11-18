@@ -95,6 +95,15 @@ export function assertCmsMigrationTarget({
       "A hosted CMS migration address must set sslmode=verify-full, once, in the address itself; PGSSLMODE does not count. no-verify, require and verify-ca are refused: they do not check both the server's certificate and its host name.",
     );
   }
+  // Review M3: one CA route. An address's sslrootcert would override
+  // PGSSLROOTCERT for the runner's psql (lib/postgres.mjs), while Payload
+  // refuses it beside PAYLOAD_DATABASE_SSL_CA; sslrootcert=system would trust
+  // the machine's own store.
+  if (libpqQueryEntries(databaseUrl).some(([key]) => key === "sslrootcert")) {
+    throw new Error(
+      "A hosted CMS migration address names its own CA (sslrootcert). Leave it out: Payload reads the CA from PAYLOAD_DATABASE_SSL_CA and the runner's psql from PGSSLROOTCERT.",
+    );
+  }
   // No CA, no connection. Payload checks the server against
   // PAYLOAD_DATABASE_SSL_CA (apps/admin/src/cms/payload-database-config.ts),
   // and the runner's psql against the file PGSSLROOTCERT names.

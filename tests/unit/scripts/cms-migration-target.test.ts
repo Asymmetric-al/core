@@ -314,6 +314,30 @@ describe("CMS migration target", () => {
     },
   );
 
+  // Review M3: an address's sslrootcert would override PGSSLROOTCERT for
+  // the runner's psql while Payload refuses the same address; one CA route.
+  it.each(["&sslrootcert=%2Fother%2Fca.crt", "&sslrootcert=system"])(
+    "refuses a hosted address whose query adds %s",
+    (extra) => {
+      expect(() =>
+        assertCmsMigrationTarget({
+          ...hosted,
+          databaseUrl: `${hosted.databaseUrl}${extra}`,
+        }),
+      ).toThrow(/names its own CA \(sslrootcert\).*PGSSLROOTCERT/);
+    },
+  );
+
+  it("leaves a loopback address's sslrootcert as it was", () => {
+    expect(() =>
+      assertCmsMigrationTarget({
+        databaseUrl:
+          "postgresql://postgres@127.0.0.1:54322/postgres?sslmode=verify-full&sslrootcert=system",
+        environment: {},
+      }),
+    ).not.toThrow();
+  });
+
   it("leaves a loopback address's query password as it was", () => {
     expect(() =>
       assertCmsMigrationTarget({

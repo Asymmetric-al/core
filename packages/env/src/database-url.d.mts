@@ -23,6 +23,15 @@ export declare const SUPABASE_POOLER_HOST: RegExp;
 
 export declare const HOSTED_LIBPQ_ENV: Readonly<{ PGREQUIREAUTH: string }>;
 
+export declare const KEPT_AMBIENT_LIBPQ_ENV: Readonly<{
+  PGPASSWORD: string;
+  PGSSLROOTCERT: string;
+}>;
+
+export declare function keptAmbientLibpqEnv(
+  env: Record<string, string | undefined>,
+): Record<string, string | undefined>;
+
 export declare function databaseUrlHostProblem(
   databaseUrl: string | URL,
 ): string | null;

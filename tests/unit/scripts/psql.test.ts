@@ -660,3 +660,78 @@ describe("the allowlist holds only what the repository uses (review L3)", () => 
     );
   });
 });
+
+/**
+ * Review M3: every ambient libpq setting a hostile environment could hold.
+ * Only PGPASSWORD and PGSSLROOTCERT may survive a builder, and a builder that
+ * sets either from the address overrides the ambient one.
+ */
+const HOSTILE_PG_ENV = {
+  PGHOST: "evil.example",
+  PGHOSTADDR: "203.0.113.9",
+  PGPORT: "1",
+  PGDATABASE: "evil",
+  PGUSER: "evil",
+  PGSERVICE: "evil",
+  PGSERVICEFILE: "/evil/pg_service.conf",
+  PGSYSCONFDIR: "/evil",
+  PGPASSFILE: "/evil/pgpass",
+  PGOPTIONS: "-c role=postgres",
+  PGSSLMODE: "disable",
+  PGSSLKEY: "engine:evil:key",
+  PGSSLCERT: "/evil/client.crt",
+  PGSSLCRL: "/evil/crl.pem",
+  PGSSLCRLDIR: "/evil/crls",
+  PGSSLSNI: "0",
+  PGSSLNEGOTIATION: "direct",
+  PGSSLCOMPRESSION: "1",
+  PGSSLMINPROTOCOLVERSION: "TLSv1",
+  PGSSLMAXPROTOCOLVERSION: "TLSv1",
+  PGCHANNELBINDING: "disable",
+  PGGSSENCMODE: "require",
+  PGGSSLIB: "sspi",
+  PGKRBSRVNAME: "evil",
+  PGREQUIREAUTH: "password",
+  PGTARGETSESSIONATTRS: "read-only",
+  PGLOADBALANCEHOSTS: "random",
+  PGAPPNAME: "evil",
+  PGCONNECT_TIMEOUT: "999",
+  PGCLIENTENCODING: "SQL_ASCII",
+  PGDATESTYLE: "evil",
+  PGTZ: "evil",
+  PGGEQO: "off",
+  PGLOCALEDIR: "/evil",
+  PGPASSWORD: "ambient-password",
+  PGSSLROOTCERT: "/ambient/ca.crt",
+};
+const pgOnly = (env: Record<string, string | undefined>) =>
+  Object.fromEntries(
+    Object.entries(env).filter(([key]) => key.startsWith("PG")),
+  );
+
+describe("the ambient libpq settings a builder may keep (review M3)", () => {
+  it("is one list, PGPASSWORD and PGSSLROOTCERT, each with its reason", async () => {
+    const shared = await import("../../../packages/env/src/database-url.mjs");
+    expect(Object.keys(shared.KEPT_AMBIENT_LIBPQ_ENV)).toEqual([
+      "PGPASSWORD",
+      "PGSSLROOTCERT",
+    ]);
+    for (const reason of Object.values(shared.KEPT_AMBIENT_LIBPQ_ENV))
+      expect(reason.length).toBeGreaterThan(30);
+  });
+
+  it("psqlConnection keeps nothing else of a hostile environment", () => {
+    const { connection, env } = psqlConnection(
+      "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Fjob%2Froot.crt",
+      { ...HOSTILE_PG_ENV, KEEP: "1" },
+    );
+    expect(pgOnly(env)).toEqual({
+      PGPASSWORD: "pw",
+      PGSSLROOTCERT: "/ambient/ca.crt",
+      PGREQUIREAUTH: "scram-sha-256",
+    });
+    expect(env.KEEP).toBe("1");
+    // The address's CA file is a keyword, which wins over the ambient one.
+    expect(connection).toContain("sslrootcert='/job/root.crt'");
+  });
+});

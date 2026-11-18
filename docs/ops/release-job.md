@@ -476,8 +476,16 @@ in the runner's temporary directory that only the job can read. It adds the
 file to the address as `sslrootcert`, and removes it when the step ends,
 whether the step passed or failed. A step stops before it connects if a
 hosted release has no `RELEASE_DATABASE_SSL_CA`, or if `RELEASE_DATABASE_URL`
-names a CA file of its own. Each client checks the chain to that CA and the
-host name:
+names a CA file of its own. It reads the CA first (review M3): the secret
+must hold exactly one PEM certificate and nothing else, a CA, valid now. A
+stop says what it found (how many certificates, the subject, the dates, the
+SHA-256 fingerprint), never the content. The job pins no fingerprint: the
+owner compares it with the one in the step that sets the secrets, and a CA
+that Supabase rotates is set again without a release of ours. A hosted step
+also stops unless its `psql` is version 16 or later, because an older libpq
+ignores `PGREQUIREAUTH` without a word. The workflow installs Ubuntu's
+`postgresql-client` on `ubuntu-latest`, whose image carries PostgreSQL 16.
+Each client checks the chain to that CA and the host name:
 
 - The job's own psql and the reset guard's marker read: libpq, with the file
   as `sslrootcert`.

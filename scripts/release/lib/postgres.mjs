@@ -8,6 +8,7 @@ import {
   HOSTED_LIBPQ_ENV,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
+  keptAmbientLibpqEnv,
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
 
@@ -19,15 +20,6 @@ const URL_FIELDS = {
   PGUSER: (url) => decodeURIComponent(url.username),
   PGPASSWORD: (url) => decodeURIComponent(url.password),
 };
-// Ambient libpq settings that could redirect the connection.
-const AMBIENT = [
-  "PGSERVICE",
-  "PGSERVICEFILE",
-  "PGHOSTADDR",
-  "PGPASSFILE",
-  "PGOPTIONS",
-  "DATABASE_URL",
-];
 
 export function redact(text) {
   return String(text ?? "")
@@ -52,8 +44,11 @@ export function connectionEnvironment(databaseUrl, base = process.env) {
   const problem = databaseUrlProblem(databaseUrl, { forPsql: true });
   if (problem !== null)
     throw new Error(`The database connection is refused: ${problem}.`);
-  const env = { ...base };
-  for (const key of AMBIENT) delete env[key];
+  // Review M3: the shared allow-list, not a deny-list; then the address's
+  // own parts and query replace even the kept ones, so this builder keeps no
+  // ambient PG* setting at all.
+  const env = keptAmbientLibpqEnv(base);
+  delete env.DATABASE_URL;
   for (const key of Object.keys(URL_FIELDS)) delete env[key];
   for (const key of Object.values(DATABASE_URL_QUERY_ENV)) delete env[key];
   for (const [key, read] of Object.entries(URL_FIELDS)) {

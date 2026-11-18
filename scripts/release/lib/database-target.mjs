@@ -35,22 +35,6 @@ function parse(databaseUrl) {
   return url;
 }
 
-/** The project ref a hosted connection string addresses, or null. */
-export function projectRefOfDatabaseUrl(databaseUrl) {
-  const url = parse(databaseUrl);
-  const host = url.hostname;
-  const direct = /^db\.([a-z0-9]{20})\.supabase\.co$/.exec(host)?.[1];
-  if (direct) return direct;
-  if (host.endsWith(".pooler.supabase.com")) {
-    return (
-      /^[a-z_][a-z0-9_]*\.([a-z0-9]{20})$/.exec(
-        decodeURIComponent(url.username),
-      )?.[1] ?? null
-    );
-  }
-  return null;
-}
-
 export function assertDatabaseTarget({
   databaseUrl,
   projectRef,

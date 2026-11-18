@@ -5,6 +5,7 @@ import {
   readdirSync,
   rmSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -27,6 +28,7 @@ import {
   readReleaseSettings,
   rebuild,
   recordHeads,
+  requirePsqlForHostedRelease,
   runStep,
   repairSeededLoginPasswords,
   roleDatabaseUrl,
@@ -39,6 +41,10 @@ const ref = "abcdefghijklmnopqrst";
 const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full`;
 const source = listSourceMigrations({ root: process.cwd() });
 const CA = "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----";
+/** Review M3: real certificates, for the steps that parse the CA. */
+const fixture = (name: string) =>
+  readFileSync(`tests/unit/scripts/release/fixtures/ca/${name}`, "utf8");
+const REAL_CA = fixture("ca.crt");
 // The platform's default privileges, read from their one file (WP1.6).
 const DEFAULTS_SQL = readFileSync(HOSTED_DEFAULT_PRIVILEGES, "utf8");
 
@@ -1601,14 +1607,14 @@ describe("the CA file of a hosted release", () => {
         RELEASE_ENVIRONMENT: "production",
         RELEASE_SUPABASE_PROJECT_REF: ref,
         RELEASE_DATABASE_URL: withQuery,
-        RELEASE_DATABASE_SSL_CA: CA,
+        RELEASE_DATABASE_SSL_CA: REAL_CA,
       });
       const ca = withDatabaseCaFile(base, { tempRoot: root });
       const [before, added] = ca.settings.databaseUrl.split("&sslrootcert=");
       expect(before).toBe(withQuery);
       const file = decodeURIComponent(added!);
       expect(path.dirname(path.dirname(file))).toBe(root);
-      expect(readFileSync(file, "utf8")).toBe(CA);
+      expect(readFileSync(file, "utf8")).toBe(REAL_CA);
       expect(statSync(file).mode & 0o777).toBe(0o600);
       expect(ca.settings.cmsOwnerDatabaseUrl).toBe(base.cmsOwnerDatabaseUrl);
       ca.remove();
@@ -1628,7 +1634,7 @@ describe("the CA file of a hosted release", () => {
       "whose address names its own CA file",
       {
         RELEASE_DATABASE_URL: `${databaseUrl}&sslrootcert=%2Ftmp%2Fother.crt`,
-        RELEASE_DATABASE_SSL_CA: CA,
+        RELEASE_DATABASE_SSL_CA: REAL_CA,
       },
       /names its own CA file \(sslrootcert\)/,
     ],
@@ -1677,7 +1683,7 @@ describe("the CA file of a hosted release", () => {
         RELEASE_ENVIRONMENT: "production",
         RELEASE_SUPABASE_PROJECT_REF: ref,
         RELEASE_DATABASE_URL: databaseUrl,
-        RELEASE_DATABASE_SSL_CA: CA,
+        RELEASE_DATABASE_SSL_CA: REAL_CA,
       };
       await expect(runStep("preflight", env)).rejects.toThrow(
         /could not run psql \(ENOENT\)/,
@@ -1693,4 +1699,161 @@ describe("the CA file of a hosted release", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+});
+
+// Review M3: RELEASE_DATABASE_SSL_CA is parsed before anything is written:
+// exactly one certificate, a CA, valid now. A message says what was found,
+// never the content. No fingerprint is pinned: Supabase may rotate its CA.
+describe("the project's CA, as the job reads it", () => {
+  const settingsWith = (pem: string) =>
+    readReleaseSettings({
+      RELEASE_ENVIRONMENT: "production",
+      RELEASE_SUPABASE_PROJECT_REF: ref,
+      RELEASE_DATABASE_URL: databaseUrl,
+      RELEASE_DATABASE_SSL_CA: pem,
+    });
+  const body = (pem: string) =>
+    pem.split("\n").find((line) => line.length > 40 && !line.startsWith("-"))!;
+
+  it.each([
+    [
+      "no certificate",
+      () => "not a certificate",
+      undefined,
+      /holds no PEM certificate/,
+    ],
+    [
+      "a certificate that is not a CA",
+      () => fixture("leaf.crt"),
+      undefined,
+      /not a CA.*CN=db\.fixture\.test.*SHA-256/,
+    ],
+    [
+      "two certificates",
+      () => fixture("two-cas.crt"),
+      undefined,
+      /holds 2 certificates; it must hold exactly one/,
+    ],
+    [
+      "a certificate and something else",
+      () =>
+        `${REAL_CA}\n-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----\n`,
+      undefined,
+      /something besides one certificate/,
+    ],
+    [
+      "an expired CA",
+      () => REAL_CA,
+      new Date("2200-01-01T00:00:00Z"),
+      /expired on .*2126/,
+    ],
+    [
+      "a CA not valid yet",
+      () => REAL_CA,
+      new Date("1999-01-01T00:00:00Z"),
+      /not valid until/,
+    ],
+  ])(
+    "stops on %s, and says what it found, never the content",
+    (_case, pem, now, words) => {
+      const root = mkdtempSync(path.join(os.tmpdir(), "m3-ca-"));
+      try {
+        let message = "";
+        try {
+          withDatabaseCaFile(settingsWith(pem()), { tempRoot: root, now });
+        } catch (error) {
+          message = (error as Error).message;
+        }
+        expect(message).toMatch(words);
+        expect(message).toMatch(/RELEASE_DATABASE_SSL_CA/);
+        for (const certificate of [REAL_CA, fixture("leaf.crt")])
+          expect(message).not.toContain(body(certificate));
+        expect(readdirSync(root)).toEqual([]);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("takes a CA whose PEM has Windows line ends or blank lines around it", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "m3-ca-"));
+    try {
+      const ca = withDatabaseCaFile(
+        settingsWith(`\n${REAL_CA.replace(/\n/g, "\r\n")}\n\n`),
+        { tempRoot: root },
+      );
+      ca.remove();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+// Review M3: PGREQUIREAUTH, which every hosted libpq connection relies on, is
+// silently ignored by a libpq older than 16.
+describe("the psql a hosted release needs", () => {
+  const run = (stdout: string) =>
+    vi.fn(() => ({ status: 0, stdout, stderr: "" }));
+
+  it.each([
+    "psql (PostgreSQL) 16.4 (Ubuntu 16.4-0ubuntu0.24.04.2)",
+    "psql (PostgreSQL) 17.11",
+    "psql (PostgreSQL) 18beta1",
+  ])("accepts %s", (stdout) => {
+    expect(() =>
+      requirePsqlForHostedRelease({ psqlBin: "psql", run: run(stdout) }),
+    ).not.toThrow();
+  });
+
+  it.each([
+    ["psql (PostgreSQL) 15.8", /psql 15\.8.*16 or later.*PGREQUIREAUTH/],
+    ["psql (PostgreSQL) 9.6.24", /psql 9\.6.*16 or later/],
+    ["something else", /could not read the version of psql/],
+  ])("stops on %s", (stdout, words) => {
+    expect(() =>
+      requirePsqlForHostedRelease({ psqlBin: "psql", run: run(stdout) }),
+    ).toThrow(words);
+  });
+
+  it("stops when psql cannot run", () => {
+    const missing = vi.fn(() => ({
+      error: Object.assign(new Error("x"), { code: "ENOENT" }),
+    }));
+    expect(() =>
+      requirePsqlForHostedRelease({ psqlBin: "psql", run: missing }),
+    ).toThrow(/could not run psql \(ENOENT\)/);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "stops a hosted step on an older psql before it connects, and removes the CA file",
+    async () => {
+      const root = mkdtempSync(path.join(os.tmpdir(), "m3-psql-"));
+      const temp = mkdtempSync(path.join(os.tmpdir(), "m3-temp-"));
+      const bin = path.join(root, "psql");
+      const connected = path.join(root, "connected");
+      writeFileSync(
+        bin,
+        `#!/bin/sh\nif [ "$1" = "--version" ]; then echo "psql (PostgreSQL) 15.8"; exit 0; fi\ntouch "${connected}"\nexit 2\n`,
+        { mode: 0o755 },
+      );
+      vi.stubEnv("RUNNER_TEMP", temp);
+      vi.stubEnv("PSQL_BIN", bin);
+      try {
+        await expect(
+          runStep("preflight", {
+            RELEASE_ENVIRONMENT: "production",
+            RELEASE_SUPABASE_PROJECT_REF: ref,
+            RELEASE_DATABASE_URL: databaseUrl,
+            RELEASE_DATABASE_SSL_CA: REAL_CA,
+          }),
+        ).rejects.toThrow(/psql 15\.8.*16 or later/);
+        expect(existsSync(connected)).toBe(false);
+        expect(readdirSync(temp)).toEqual([]);
+      } finally {
+        vi.unstubAllEnvs();
+        rmSync(root, { recursive: true, force: true });
+        rmSync(temp, { recursive: true, force: true });
+      }
+    },
+  );
 });

@@ -6,7 +6,8 @@
 // that check. Three files start psql, and each refuses what the check
 // refuses: this one (runPsqlQuery, spawnPsql, or psqlConnection for a caller's
 // own spawn: the parsed parts as libpq keywords, never the raw string, -X,
-// every ambient PG* setting dropped, the password in PGPASSWORD);
+// every ambient PG* setting dropped but the shared list KEPT_AMBIENT_LIBPQ_ENV,
+// the password in PGPASSWORD);
 // scripts/release/lib/postgres.mjs, the release job's own SQL, through PG*
 // variables built from the parsed address; and scripts/cms/lib/postgres.mjs,
 // the CMS runner, the same way. The catalog gate, the field-policy gate, the
@@ -19,6 +20,7 @@ import {
   HOSTED_LIBPQ_ENV,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
+  keptAmbientLibpqEnv,
   libpqQueryEntries,
   libpqUrlMismatch,
 } from "../../packages/env/src/database-url.mjs";
@@ -46,10 +48,12 @@ const conninfoValue = (value) =>
  * quoted, so no value can add a keyword. Every other PG* setting is dropped: the URL is the whole target,
  * and an ambient PGHOSTADDR (which overrides the URL's host), PGSERVICE,
  * PGOPTIONS or a default for a part the URL leaves out could otherwise send
- * the connection, or the role it runs as, somewhere else. An ambient
- * PGPASSWORD is kept for a URL that carries none, so a caller can keep the
- * password out of the URL as well; a password in the URL, in its login or its
- * query, wins and never reaches the argument.
+ * the connection, or the role it runs as, somewhere else. Only the shared
+ * list KEPT_AMBIENT_LIBPQ_ENV survives (review M3): an ambient PGPASSWORD,
+ * for a URL that carries none, so a caller can keep the password out of the
+ * URL as well (a password in the URL, in its login or its query, wins and
+ * never reaches the argument); and an ambient PGSSLROOTCERT, which the URL's
+ * own sslrootcert keyword overrides.
  */
 export function psqlConnection(databaseUrl, baseEnv = process.env) {
   let url;
@@ -68,11 +72,8 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   const problem = databaseUrlProblem(databaseUrl, { forPsql: true });
   if (problem !== null)
     throw new Error(`the database URL is refused for psql: ${problem}`);
-  const env = Object.fromEntries(
-    Object.entries(baseEnv).filter(
-      ([key]) => !key.startsWith("PG") || key === "PGPASSWORD",
-    ),
-  );
+  // Review M3: the shared list of ambient settings a builder may keep.
+  const env = keptAmbientLibpqEnv(baseEnv);
   const query = libpqQueryEntries(databaseUrl);
   const settings = query.filter(([key]) => key !== "password");
   const queryPassword = query.find(([key]) => key === "password");

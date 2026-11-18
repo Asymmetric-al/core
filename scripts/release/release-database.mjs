@@ -29,6 +29,7 @@
 // command line. The job's own psql queries (lib/postgres.mjs) take the
 // connection from PG* variables and the values they need from named variables.
 import { spawnSync } from "node:child_process";
+import { X509Certificate } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -176,9 +177,63 @@ export function readReleaseSettings(env = process.env) {
  * (payloadMigrate). The rest of the address is left as it was, byte for byte.
  * A loopback address is left alone. `remove` deletes the file.
  */
+const PEM_CERTIFICATE =
+  /-----BEGIN CERTIFICATE-----\n[\s\S]*?\n-----END CERTIFICATE-----/g;
+
+/**
+ * Review M3: what RELEASE_DATABASE_SSL_CA holds, read before anything is
+ * written: exactly one PEM certificate and nothing else, a CA, valid now.
+ * Node's X509Certificate reads only the first certificate of a bundle, so the
+ * blocks are counted first. A stop says what was found (how many, the
+ * subject, the dates, the SHA-256 fingerprint), never the content. No
+ * fingerprint is pinned here: the runbook gives it for the owner to compare,
+ * and a rotation by Supabase must not need a release of ours. Returns the one
+ * certificate as a PEM block.
+ */
+export function readDatabaseCa(pem, { now = new Date() } = {}) {
+  const text = String(pem ?? "")
+    .replace(/\r\n/g, "\n")
+    .trim();
+  const blocks = text.match(PEM_CERTIFICATE) ?? [];
+  if (blocks.length === 0)
+    stop(
+      "RELEASE_DATABASE_SSL_CA holds no PEM certificate. Set it to the project's CA certificate, the PEM from its Database settings.",
+    );
+  if (blocks.length > 1)
+    stop(
+      `RELEASE_DATABASE_SSL_CA holds ${blocks.length} certificates; it must hold exactly one, the project's CA.`,
+    );
+  if (text !== blocks[0])
+    stop(
+      "RELEASE_DATABASE_SSL_CA holds something besides one certificate. It must hold the project's CA certificate and nothing else.",
+    );
+  let certificate;
+  try {
+    certificate = new X509Certificate(blocks[0]);
+  } catch (error) {
+    stop(
+      `RELEASE_DATABASE_SSL_CA's certificate cannot be read (${error?.code ?? "not a certificate"}).`,
+    );
+  }
+  const found = `subject ${certificate.subject.replace(/\n/g, ", ")}, SHA-256 ${certificate.fingerprint256}`;
+  if (!certificate.ca)
+    stop(
+      `RELEASE_DATABASE_SSL_CA holds a certificate that is not a CA (${found}). Set it to the project's CA certificate from its Database settings.`,
+    );
+  if (now < new Date(certificate.validFrom))
+    stop(
+      `RELEASE_DATABASE_SSL_CA's CA is not valid until ${certificate.validFrom} (${found}).`,
+    );
+  if (now > new Date(certificate.validTo))
+    stop(
+      `RELEASE_DATABASE_SSL_CA's CA expired on ${certificate.validTo} (${found}). Supabase may have rotated it: take the current one from the project's Database settings and compare its fingerprint with the runbook's.`,
+    );
+  return `${blocks[0]}\n`;
+}
+
 export function withDatabaseCaFile(
   settings,
-  { tempRoot = process.env.RUNNER_TEMP || os.tmpdir() } = {},
+  { tempRoot = process.env.RUNNER_TEMP || os.tmpdir(), now = new Date() } = {},
 ) {
   const unchanged = { settings, remove() {} };
   let url;
@@ -196,13 +251,15 @@ export function withDatabaseCaFile(
     stop(
       "RELEASE_DATABASE_SSL_CA is not set. A hosted release verifies the database's certificate and host name against the project's CA: set it to the PEM of the CA certificate in the project's Database settings.",
     );
+  const ca = readDatabaseCa(settings.databaseCa, { now });
   const dir = mkdtempSync(path.join(tempRoot, "release-ca-"));
   const file = path.join(dir, "root.crt");
-  writeFileSync(file, settings.databaseCa, { mode: 0o600 });
+  writeFileSync(file, ca, { mode: 0o600 });
   const separator = settings.databaseUrl.includes("?") ? "&" : "?";
   return {
     settings: {
       ...settings,
+      databaseCa: ca,
       databaseUrl: `${settings.databaseUrl}${separator}sslrootcert=${encodeURIComponent(file)}`,
     },
     remove: () => rmSync(dir, { recursive: true, force: true }),
@@ -1360,12 +1417,52 @@ const STEPS = {
     repairSeededLoginPasswords({ settings, env }),
 };
 
+/** Review M3: the oldest psql whose libpq honours PGREQUIREAUTH. */
+export const MIN_PSQL_MAJOR = 16;
+
+/**
+ * Review M3: every hosted libpq connection the job opens requires SCRAM
+ * through PGREQUIREAUTH (HOSTED_LIBPQ_ENV), which a libpq older than 16
+ * ignores without a word. A hosted step stops, before it connects, unless the
+ * psql it runs reports 16 or later. The release workflow installs Ubuntu's
+ * postgresql-client (scripts/github/install-postgresql-client.sh) on
+ * ubuntu-latest, whose image carries PostgreSQL 16.
+ */
+export function requirePsqlForHostedRelease({
+  psqlBin = process.env.PSQL_BIN?.trim() || "psql",
+  run = spawnSync,
+} = {}) {
+  const result = run(psqlBin, ["--version"], {
+    encoding: "utf8",
+    shell: false,
+    env: childEnvironment(),
+  });
+  if (result.error)
+    stop(
+      `psql version check: could not run psql (${result.error.code ?? "error"}).`,
+    );
+  const version = /PostgreSQL\)\s+(\d+)((?:\.\d+)*)/.exec(
+    String(result.stdout ?? ""),
+  );
+  if (result.status !== 0 || !version)
+    stop(
+      `The release job could not read the version of psql (psql --version). A hosted release needs psql ${MIN_PSQL_MAJOR} or later.`,
+    );
+  if (Number(version[1]) < MIN_PSQL_MAJOR)
+    stop(
+      `The release job found psql ${version[1]}${version[2]}; a hosted release needs psql ${MIN_PSQL_MAJOR} or later, whose libpq honours PGREQUIREAUTH. An older libpq ignores it, and a server could then ask for the password in clear text. Install postgresql-client ${MIN_PSQL_MAJOR} or later.`,
+    );
+}
+
 export async function runStep(step, env = process.env) {
   const handler = STEPS[step];
   if (!handler)
     stop(`Unknown step ${step}. Steps: ${Object.keys(STEPS).join(", ")}.`);
-  const ca = withDatabaseCaFile(readReleaseSettings(env));
+  const settings = readReleaseSettings(env);
+  const ca = withDatabaseCaFile(settings);
   try {
+    if (!isLoopbackDatabaseUrl(settings.databaseUrl))
+      requirePsqlForHostedRelease();
     return await handler({ settings: ca.settings, env });
   } finally {
     ca.remove();

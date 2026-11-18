@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   KNOWN_PROJECT_REFS,
   assertDatabaseTarget,
-  projectRefOfDatabaseUrl,
 } from "../../../../scripts/release/lib/database-target.mjs";
 
 const ref = "abcdefghijklmnopqrst";
@@ -26,8 +25,6 @@ describe("release database target", () => {
         role: "postgres",
       }),
     ).not.toThrow();
-    expect(projectRefOfDatabaseUrl(pooled)).toBe(ref);
-    expect(projectRefOfDatabaseUrl(direct)).toBe(ref);
   });
 
   it("refuses another project, another role, an unencrypted link or routing overrides", () => {
