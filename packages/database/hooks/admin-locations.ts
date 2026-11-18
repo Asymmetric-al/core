@@ -7,6 +7,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
 
 import {
   adminLocationsCollection,
@@ -47,9 +48,25 @@ async function invalidateAdminLocationCaches(
   ]);
 }
 
+const emptySubscribe = () => () => {};
+
 export function useLocations() {
-  const query = useLiveQuery(adminLocationsCollection);
-  return { ...query, refetch: () => adminLocationsCollection.utils.refetch() };
+  // The collection is process-wide and fetches a relative route, so it starts
+  // only in the browser: the server and the hydration render both show loading.
+  const isHydrated = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+  const query = useLiveQuery(() =>
+    isHydrated ? adminLocationsCollection : null,
+  );
+  return {
+    ...query,
+    isLoading: query.isLoading || !query.isEnabled,
+    isReady: query.isReady && query.isEnabled,
+    refetch: () => adminLocationsCollection.utils.refetch(),
+  };
 }
 
 export function useLinkedEntities() {

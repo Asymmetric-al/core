@@ -6,6 +6,10 @@ import {
   type NavSubItem,
   type Role,
 } from "@asym/config/navigation";
+import {
+  useShortcut,
+  useShortcutHint,
+} from "@asym/ui/components/primitives/shortcut";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CommandDialog,
@@ -17,15 +21,9 @@ import {
 } from "@asym/ui/components/shadcn/command";
 import { Kbd } from "@asym/ui/components/shadcn/kbd";
 import { Search } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useRef, useState } from "react";
 
-const subscribePlatform = () => () => {};
+const SEARCH_SHORTCUT = "mod+k";
 
 export function MissionControlNavigationSearch({
   role,
@@ -40,11 +38,7 @@ export function MissionControlNavigationSearch({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const items: (NavItem & { keywords?: readonly string[] })[] =
     getNavItemsByRole(role);
-  const shortcut = useSyncExternalStore(
-    subscribePlatform,
-    () => (/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K"),
-    () => "Ctrl K",
-  );
+  const shortcut = useShortcutHint(SEARCH_SHORTCUT);
 
   const openSearch = useCallback((origin: HTMLElement | null) => {
     returnFocus.current = origin;
@@ -52,34 +46,11 @@ export function MissionControlNavigationSearch({
     setOpen(true);
   }, []);
 
-  useEffect(() => {
-    const handleShortcut = (event: KeyboardEvent) => {
-      if (
-        event.defaultPrevented ||
-        event.isComposing ||
-        event.repeat ||
-        event.altKey ||
-        event.shiftKey ||
-        !(event.metaKey || event.ctrlKey) ||
-        event.key.toLowerCase() !== "k"
-      )
-        return;
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target.closest("input, textarea, select, [contenteditable]"))
-      )
-        return;
-      const popup =
-        target instanceof HTMLElement
-          ? target.closest(
-              '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]',
-            )
-          : null;
-      if (popup && popup !== inputRef.current?.closest('[role="dialog"]'))
-        return;
-      event.preventDefault();
+  // Support's container and Care's document handlers take their own keys
+  // first; typing and other dialogs or menus keep theirs too.
+  useShortcut(
+    SEARCH_SHORTCUT,
+    () => {
       if (open) {
         setOpen(false);
         return;
@@ -89,12 +60,9 @@ export function MissionControlNavigationSearch({
           ? document.activeElement
           : null,
       );
-    };
-    // Support's container and Care's document listeners own their local keys
-    // first. The window listener sees their preventDefault before acting.
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, [open, openSearch]);
+    },
+    { description: "Search Mission Control pages", overlay: inputRef },
+  );
 
   return (
     <>
@@ -104,14 +72,14 @@ export function MissionControlNavigationSearch({
           size="sm"
           className="w-full"
           aria-label="Open Mission Control search"
-          aria-keyshortcuts="Control+k Meta+k"
+          aria-keyshortcuts={shortcut.ariaKeyshortcuts}
           onClick={(event) => openSearch(event.currentTarget)}
         >
           <span className="flex flex-1 items-center gap-2 text-muted-foreground">
             <Search aria-hidden className="size-4" />
             Search pages…
           </span>
-          <Kbd aria-hidden>{shortcut}</Kbd>
+          <Kbd aria-hidden>{shortcut.text}</Kbd>
         </Button>
       </div>
       <div className="sm:hidden">
@@ -119,7 +87,7 @@ export function MissionControlNavigationSearch({
           variant="ghost"
           size="icon-sm"
           aria-label="Open Mission Control search"
-          aria-keyshortcuts="Control+k Meta+k"
+          aria-keyshortcuts={shortcut.ariaKeyshortcuts}
           onClick={(event) => openSearch(event.currentTarget)}
         >
           <Search aria-hidden />

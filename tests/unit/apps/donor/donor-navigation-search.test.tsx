@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { setPlatform } from "@ui-sdk/core/testing";
 import {
   act,
   cleanup,
@@ -47,6 +48,7 @@ vi.mock("@asym/lib/hooks", () => ({
 import { DonorPortalHeader } from "../../../../apps/donor/features/donor/components/donor-portal-header";
 
 beforeEach(() => {
+  setPlatform("other");
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
     value: vi.fn(),
@@ -178,13 +180,21 @@ it("searches owned donor routes and navigates through the app router", async () 
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });
 
-it.each(["ctrlKey", "metaKey"] as const)(
-  "opens donor navigation with %s and restores focus after Escape",
-  async (modifier) => {
+it.each([
+  ["other", "ctrlKey", "metaKey"],
+  ["apple", "metaKey", "ctrlKey"],
+] as const)(
+  "on an %s platform opens donor navigation with %s and restores focus after Escape",
+  async (platform, modifier, otherPlatformModifier) => {
+    setPlatform(platform);
     render(<DonorPortalHeader />);
     const trigger = screen.getByRole("button", { name: "Search donor pages" });
     trigger.focus();
-    expect(fireEvent.keyDown(window, { key: "k", [modifier]: true })).toBe(
+    expect(
+      fireEvent.keyDown(trigger, { key: "k", [otherPlatformModifier]: true }),
+    ).toBe(true);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(fireEvent.keyDown(trigger, { key: "k", [modifier]: true })).toBe(
       false,
     );
     const search = await screen.findByRole("combobox", {

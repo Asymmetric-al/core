@@ -1,8 +1,11 @@
 "use client";
 
+import { useShortcutHint } from "@asym/ui/components/primitives/shortcut";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Loader2, Save, Send, StickyNote } from "lucide-react";
 import { useId } from "react";
+
+import { COMPOSER_PRIMARY_SHORTCUT } from "./use-composer-hotkeys";
 
 import type {
   ComposerMode,
@@ -38,6 +41,7 @@ export function ComposerActions({
   beforeSend,
 }: ComposerActionsProps) {
   const pendingActionLabelId = useId();
+  const sendShortcut = useShortcutHint(COMPOSER_PRIMARY_SHORTCUT);
 
   const isReply = mode === "reply";
   const isSending = pendingAction === "send";
@@ -53,7 +57,7 @@ export function ComposerActions({
         {beforeSend}
         {!beforeSend ? (
           <span aria-hidden className="text-muted-foreground">
-            Ctrl or ⌘ + Enter to send
+            {sendShortcut.text} to send
           </span>
         ) : null}
       </div>
@@ -93,7 +97,7 @@ export function ComposerActions({
           size="sm"
           disabled={isPending || !isDirty}
           aria-busy={isSending}
-          aria-keyshortcuts="Control+Enter Meta+Enter"
+          aria-keyshortcuts={sendShortcut.ariaKeyshortcuts}
           onClick={onSend}
         >
           <ComposerSendIcon isReply={isReply} isSending={isSending} />

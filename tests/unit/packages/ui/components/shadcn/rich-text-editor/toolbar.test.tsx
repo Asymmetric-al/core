@@ -1,15 +1,17 @@
 /** @vitest-environment jsdom */
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
 import React from "react";
 import { flushSync } from "react-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { toastError } = vi.hoisted(() => ({
   toastError: vi.fn(),
@@ -37,6 +39,11 @@ vi.mock("sonner", async (importOriginal) => {
   return actual;
 });
 
+import {
+  listShortcuts,
+  useShortcut,
+} from "../../../../../../../packages/ui/components/primitives/shortcut";
+import { EditorContext } from "../../../../../../../packages/ui/components/shadcn/rich-text-editor/editor-context";
 import { EditorToolbar } from "../../../../../../../packages/ui/components/shadcn/rich-text-editor/toolbar";
 
 type ChainMock = {
@@ -120,10 +127,29 @@ function createEditorMock(overrides?: {
   return { editor, calls };
 }
 
+beforeEach(() => setPlatform("other"));
+
 afterEach(() => {
   cleanup();
+  setPlatform("other");
+  document.body.replaceChildren();
   toastError.mockReset();
 });
+
+/** Mounts the mock editor's text so a key press reaches the document from it. */
+function focusEditorText(editor: { view: { dom: HTMLElement } }) {
+  const dom = editor.view.dom;
+  dom.contentEditable = "true";
+  dom.tabIndex = 0;
+  document.body.append(dom);
+  dom.focus();
+  return dom;
+}
+
+function PageSearchShortcut({ onRun }: { onRun: () => void }) {
+  useShortcut("mod+k", onRun, { description: "Search pages" });
+  return null;
+}
 
 describe("rich-text-editor/toolbar", () => {
   it("provides one named toolbar with arrow navigation across control groups", async () => {
@@ -200,7 +226,7 @@ describe("rich-text-editor/toolbar", () => {
         tools={["bold", "heading", "bulletList", "redo"]}
       />,
     );
-    // jsdom reports a non-Apple platform, so shortcuts use Control.
+    // The tests pin a non-Apple platform, so shortcuts use Control.
     expect(
       screen
         .getByRole("button", { name: "Bold" })
@@ -460,10 +486,90 @@ describe("rich-text-editor/toolbar", () => {
   it("opens the link form with Ctrl+K from the text", async () => {
     const { editor } = createEditorMock();
     render(<EditorToolbar editor={editor as never} tools={["link"]} />);
+    const text = focusEditorText(editor);
 
-    fireEvent.keyDown(editor.view.dom, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(text, { key: "k", metaKey: true });
+    expect(screen.queryByLabelText("Link URL")).toBeNull();
+
+    expect(fireEvent.keyDown(text, { key: "k", ctrlKey: true })).toBe(false);
 
     expect(await screen.findByLabelText("Link URL")).toBeTruthy();
+  });
+
+  it("registers the link key on the shared owner, outranking the page's mod+K in the text only", async () => {
+    const pageSearch = vi.fn();
+    const { editor } = createEditorMock();
+    render(
+      <>
+        <PageSearchShortcut onRun={pageSearch} />
+        <EditorToolbar editor={editor as never} tools={["link"]} />
+      </>,
+    );
+    const outside = document.createElement("button");
+    document.body.append(outside);
+    outside.focus();
+    fireEvent.keyDown(outside, { key: "k", ctrlKey: true });
+    expect(pageSearch).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText("Link URL")).toBeNull();
+
+    const text = focusEditorText(editor);
+    expect(
+      listShortcuts().find(({ keys }) => keys === "mod+k")?.description,
+    ).toBe("Add or edit link");
+    fireEvent.keyDown(text, { key: "k", ctrlKey: true });
+    expect(await screen.findByLabelText("Link URL")).toBeTruthy();
+    expect(pageSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the page's mod+K working while the editor view is not mounted", () => {
+    const pageSearch = vi.fn();
+    const { editor } = createEditorMock();
+    // Tiptap's view throws until the editor mounts, and reports destroyed.
+    Object.defineProperty(editor, "view", {
+      get: () => {
+        throw new Error("The editor view is not available.");
+      },
+    });
+    editor.isDestroyed = true;
+    render(
+      <>
+        <PageSearchShortcut onRun={pageSearch} />
+        <EditorToolbar editor={editor as never} tools={["link"]} />
+      </>,
+    );
+    const outside = document.createElement("button");
+    document.body.append(outside);
+    outside.focus();
+
+    fireEvent.keyDown(outside, { key: "k", ctrlKey: true });
+
+    expect(pageSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Ctrl+K alone while the editor cannot be edited", () => {
+    const { editor } = createEditorMock({ editable: false });
+    render(<EditorToolbar editor={editor as never} tools={["link"]} />);
+    const text = focusEditorText(editor);
+
+    expect(fireEvent.keyDown(text, { key: "k", ctrlKey: true })).toBe(true);
+    expect(screen.queryByLabelText("Link URL")).toBeNull();
+  });
+
+  it("writes shortcut hints the way the shared owner does on Apple platforms", () => {
+    setPlatform("apple");
+    const { editor } = createEditorMock();
+    render(<EditorToolbar editor={editor as never} tools={["bold", "link"]} />);
+
+    expect(
+      screen
+        .getByRole("button", { name: "Bold" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Meta+B");
+    expect(
+      screen
+        .getByRole("button", { name: "Add link" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Meta+K");
   });
 
   it("draws its divider above the content when placed at the bottom", () => {
@@ -486,5 +592,95 @@ describe("rich-text-editor/toolbar", () => {
     );
     expect(bar().className.split(" ")).toContain("border-t");
     expect(bar().className.split(" ")).not.toContain("sticky");
+  });
+
+  describe("read-only", () => {
+    function renderInEditor(
+      editor: unknown,
+      readOnly: boolean,
+      toolbar: React.ReactElement,
+    ) {
+      return (
+        <EditorContext.Provider
+          value={{ editor: editor as never, readOnly: readOnly || undefined }}
+        >
+          {toolbar}
+        </EditorContext.Provider>
+      );
+    }
+
+    it("shows nothing when there are no actions to keep", () => {
+      const { editor } = createEditorMock({ editable: false });
+      const { container } = render(
+        renderInEditor(editor, true, <EditorToolbar tools={["bold"]} />),
+      );
+      expect(container.innerHTML).toBe("");
+    });
+
+    it("keeps the actions row and drops only the formatting controls", () => {
+      const { editor } = createEditorMock({ editable: false });
+      const { container } = render(
+        renderInEditor(
+          editor,
+          true,
+          <EditorToolbar
+            tools={["bold", "link", "undo"]}
+            position="bottom"
+            actions={<button type="button">Save draft</button>}
+          />,
+        ),
+      );
+
+      expect(screen.queryByRole("toolbar")).toBeNull();
+      expect(screen.queryByRole("button", { name: "Bold" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Add link" })).toBeNull();
+      const save = screen.getByRole("button", { name: "Save draft" });
+      const bar = container.querySelector(
+        '[data-slot="editor-toolbar"]',
+      ) as HTMLElement;
+      expect(bar.contains(save)).toBe(true);
+      // One divider above the row: the bar's own, not a second one for the actions.
+      expect(bar.className.split(" ")).toContain("border-t");
+      expect(container.querySelectorAll(".border-t")).toHaveLength(1);
+    });
+
+    it("leaves the page's mod+K alone, since no link control is shown", () => {
+      const { editor } = createEditorMock({ editable: false });
+      render(
+        renderInEditor(
+          editor,
+          true,
+          <EditorToolbar
+            tools={["link"]}
+            actions={<button type="button">Publish</button>}
+          />,
+        ),
+      );
+      expect(
+        listShortcuts().filter((shortcut) => shortcut.keys === "mod+k"),
+      ).toHaveLength(0);
+    });
+
+    it("keeps the same action, and its focus, when the editor turns read-only", () => {
+      const { editor } = createEditorMock();
+      const toolbar = (
+        <EditorToolbar
+          tools={["bold"]}
+          position="bottom"
+          actions={<button type="button">Save draft</button>}
+        />
+      );
+      const { rerender } = render(renderInEditor(editor, false, toolbar));
+      expect(
+        screen.getByRole("toolbar", { name: "Text formatting" }),
+      ).toBeTruthy();
+      const save = screen.getByRole("button", { name: "Save draft" });
+      act(() => save.focus());
+
+      rerender(renderInEditor(editor, true, toolbar));
+      expect(screen.queryByRole("toolbar")).toBeNull();
+      expect(screen.getByRole("button", { name: "Save draft" })).toBe(save);
+      expect(document.activeElement).toBe(save);
+    });
   });
 });

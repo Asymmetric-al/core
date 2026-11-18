@@ -169,6 +169,37 @@ describe("Inbox rule editor", () => {
     ).toBeTruthy();
   });
 
+  it("moves focus to a neighbouring row, or the Add button, as rows are removed", () => {
+    render(
+      <AutomationRuleForm rule={rule} onSaved={vi.fn()} onCancel={vi.fn()} />,
+    );
+    const remove = (name: RegExp) => {
+      const button = screen.getByRole("button", { name });
+      button.focus();
+      fireEvent.click(button);
+    };
+
+    const nextCondition = screen.getByRole("combobox", {
+      name: "Condition 2 type",
+    });
+    remove(/^Remove condition 1:/);
+    expect(document.activeElement).toBe(nextCondition);
+    remove(/^Remove condition 1:/);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Add condition" }),
+    );
+
+    const previousAction = screen.getByRole("combobox", {
+      name: "Action 1 type",
+    });
+    remove(/^Remove action 2:/);
+    expect(document.activeElement).toBe(previousAction);
+    remove(/^Remove action 1:/);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Add action" }),
+    );
+  });
+
   it("saves once every row is complete", () => {
     render(
       <AutomationRuleForm

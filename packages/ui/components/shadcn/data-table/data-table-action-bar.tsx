@@ -13,7 +13,9 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { SelectionBarToolbar } from "../../data-grid-panel/data-grid-selection-bar";
 import { Button } from "../button";
+import { ToolbarButton } from "../toolbar";
 import {
   areChromeTablePropsInterchangeable,
   areDataTableChromeActionsEqual,
@@ -81,59 +83,70 @@ function DataTableActionBarImpl<TData extends RowData>({
           animate={{ opacity: 1, y: 0 }}
           exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
           transition={reduceMotion ? { duration: 0 } : transitionStandard}
-          role="toolbar"
-          aria-label="Selected record actions"
           className={cn(
-            "fixed inset-x-4 bottom-6 z-50 mx-auto w-fit max-w-full",
-            "flex flex-wrap items-center justify-center gap-3 px-4 py-3",
+            "fixed inset-x-4 bottom-6 z-50 mx-auto w-fit max-w-full px-4 py-3",
             "bg-invert text-invert-foreground",
             "rounded-2xl shadow-2xl",
             className,
           )}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">{selectedCount}</span>
-            <span className="text-sm">selected</span>
-          </div>
-          {hasActions && (
-            <>
-              <span
-                aria-hidden="true"
-                className="h-5 w-px bg-invert-foreground/20"
-              />
-              <div className="flex flex-wrap items-center justify-center gap-1">
-                {visibleActions.map((action) => (
-                  <Button
-                    key={action.label}
-                    variant={
-                      action.variant === "destructive"
-                        ? "ghost-inverse-destructive"
-                        : "ghost-inverse"
-                    }
-                    size="sm"
-                    onClick={() => action.onClick(selectedOriginalRows)}
-                  >
-                    {action.icon && (
-                      <action.icon className="size-4" aria-hidden="true" />
-                    )}
-                    {action.label}
-                  </Button>
-                ))}
+          {/* Design-system lint keeps box and layout classes off the shared
+              Toolbar: the animated element draws the bar, the div lays it out. */}
+          <SelectionBarToolbar aria-label="Selected record actions">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">{selectedCount}</span>
+                <span className="text-sm">selected</span>
               </div>
-              <span
-                aria-hidden="true"
-                className="h-5 w-px bg-invert-foreground/20"
-              />
-            </>
-          )}
-          <Button
-            variant="ghost-inverse"
-            size="icon-sm"
-            onClick={() => table.toggleAllPageRowsSelected(false)}
-          >
-            <X className="size-4" aria-hidden="true" />
-            <span className="sr-only">Clear selection</span>
-          </Button>
+              {hasActions && (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="h-5 w-px bg-invert-foreground/20"
+                  />
+                  <div className="flex flex-wrap items-center justify-center gap-1">
+                    {visibleActions.map((action) => (
+                      <ToolbarButton
+                        key={action.label}
+                        render={
+                          <Button
+                            variant={
+                              action.variant === "destructive"
+                                ? "ghost-inverse-destructive"
+                                : "ghost-inverse"
+                            }
+                            size="sm"
+                            onClick={() => action.onClick(selectedOriginalRows)}
+                          />
+                        }
+                      >
+                        {action.icon && (
+                          <action.icon className="size-4" aria-hidden="true" />
+                        )}
+                        {action.label}
+                      </ToolbarButton>
+                    ))}
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="h-5 w-px bg-invert-foreground/20"
+                  />
+                </>
+              )}
+              <ToolbarButton
+                render={
+                  <Button
+                    variant="ghost-inverse"
+                    size="icon-sm"
+                    onClick={() => table.toggleAllPageRowsSelected(false)}
+                  />
+                }
+              >
+                <X className="size-4" aria-hidden="true" />
+                <span className="sr-only">Clear selection</span>
+              </ToolbarButton>
+            </div>
+          </SelectionBarToolbar>
         </m.div>
       </AnimatePresence>
     </LazyMotion>

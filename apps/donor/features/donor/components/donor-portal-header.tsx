@@ -7,6 +7,10 @@ import { useAuth } from "@asym/lib/hooks";
 import { AccountMenu } from "@asym/ui/components/app-shell/account-menu";
 import { MobileTabBar } from "@asym/ui/components/app-shell/mobile-tab-bar";
 import { NavigationCommandPalette } from "@asym/ui/components/primitives/navigation-command-palette";
+import {
+  ShortcutHelp,
+  ShortcutHelpMenuItem,
+} from "@asym/ui/components/primitives/shortcut-help";
 import { ButtonLink, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
@@ -171,6 +175,7 @@ export function DonorPortalHeader() {
               items={[...SECTIONS, { label: "Settings", href: SETTINGS_HREF }]}
               onNavigate={(href) => router.push(href)}
             />
+            <ShortcutHelp />
             <Link href="/workers" className={buttonVariants({ size: "sm" })}>
               <Heart aria-hidden data-icon="inline-start" />
               Give
@@ -211,7 +216,9 @@ export function DonorPortalHeader() {
                   icon: ExternalLink,
                 },
               ]}
-            />
+            >
+              <ShortcutHelpMenuItem />
+            </AccountMenu>
           </div>
         </div>
         <span role="status" className="sr-only">

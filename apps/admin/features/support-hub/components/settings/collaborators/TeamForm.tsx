@@ -1,5 +1,6 @@
 "use client";
 
+import { FieldError } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import * as React from "react";
@@ -22,6 +23,9 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
   const [slug] = React.useState(team?.slug ?? "");
   const [initials, setInitials] = React.useState(team?.initials ?? "");
   const [description, setDescription] = React.useState(team?.description ?? "");
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const [submitted, setSubmitted] = React.useState(false);
+  const nameMissing = submitted && !name.trim();
   const isDirty =
     !team ||
     name !== team.name ||
@@ -29,9 +33,10 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
     description !== (team.description ?? "");
 
   const handleSave = async () => {
+    setSubmitted(true);
     const trimmedName = name.trim();
     if (!trimmedName) {
-      toast.info("Give the team a name first.");
+      requestAnimationFrame(() => nameRef.current?.focus());
       return;
     }
     try {
@@ -61,7 +66,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
   return (
     <SettingsEditorForm
       draft={{ name, initials, description }}
-      canSave={isDirty && name.trim().length > 0}
+      canSave={isDirty}
       isNew={!team}
       isSaving={saveTeam.isPending}
       noun="team"
@@ -72,11 +77,17 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
         <div className="space-y-1.5">
           <Label htmlFor="team-name">Name</Label>
           <Input
+            ref={nameRef}
             id="team-name"
+            aria-invalid={nameMissing}
+            aria-describedby={nameMissing ? "team-name-error" : undefined}
             value={name}
             onChange={(event) => setName(event.target.value)}
             maxLength={60}
           />
+          {nameMissing ? (
+            <FieldError id="team-name-error">Enter a name.</FieldError>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="team-initials">Initials</Label>

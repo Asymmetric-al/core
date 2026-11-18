@@ -19,6 +19,10 @@ export interface KeyboardNavigationState {
 }
 
 export interface UseDataTableKeyboardReturn {
+  /** Whether rows take keyboard focus and the arrow keys move between them. */
+  enabled: boolean;
+  /** The row in the tab order; `null` while navigation is off. */
+  tabStopRowIndex: number | null;
   focusedRowIndex: number | null;
   focusedCellIndex: number | null;
   setFocusedRowIndex: (index: number | null) => void;
@@ -29,8 +33,8 @@ export interface UseDataTableKeyboardReturn {
     "data-focused": boolean;
     ref: (el: HTMLElement | null) => void;
     onKeyDown: (e: React.KeyboardEvent) => void;
-    onFocus: () => void;
-    onBlur: () => void;
+    onFocus: (e: React.FocusEvent) => void;
+    onBlur: (e: React.FocusEvent) => void;
   };
   getCellProps: (
     rowIndex: number,
@@ -40,6 +44,37 @@ export interface UseDataTableKeyboardReturn {
     "data-cell-focused": boolean;
   };
   resetFocus: () => void;
+}
+
+// The same controls `DataGridPanel` leaves alone inside a row.
+const ROW_CONTROL_SELECTOR = [
+  "a[href]",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "summary",
+  '[role="button"]',
+  '[role="checkbox"]',
+  '[role="combobox"]',
+  '[role="link"]',
+  '[role="menuitem"]',
+  '[role="switch"]',
+  "[contenteditable]",
+].join(",");
+
+// React also hands the row keys pressed on a control inside it, and in a menu
+// or dialog that control opened in a portal. Those keys belong to the control.
+function isRowKey(event: React.KeyboardEvent) {
+  const row = event.currentTarget;
+  const target = event.target as Element | null;
+  if (target === row) return true;
+  if (typeof target?.closest !== "function" || !row.contains(target)) {
+    return false;
+  }
+  const control = target.closest(ROW_CONTROL_SELECTOR);
+  return !control || !row.contains(control);
 }
 
 export function useDataTableKeyboard<TData extends RowData>(
@@ -59,6 +94,7 @@ export function useDataTableKeyboard<TData extends RowData>(
     null,
   );
   const [focusedCellIndex, setFocusedCellIndex] = useState<number | null>(null);
+  const [rowHasFocus, setRowHasFocus] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<Map<number, HTMLElement>>(new Map());
 
@@ -89,7 +125,7 @@ export function useDataTableKeyboard<TData extends RowData>(
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent, rowIndex: number) => {
-      if (!enabled) return;
+      if (!enabled || !isRowKey(e)) return;
 
       const currentRow = rows[rowIndex];
       if (!currentRow) return;
@@ -145,10 +181,11 @@ export function useDataTableKeyboard<TData extends RowData>(
           break;
         }
         case "Escape": {
-          e.preventDefault();
-          setFocusedRowIndex(null);
+          // The row keeps the tab stop, and Escape stays with a dialog or
+          // sheet around the table unless the table handles it itself.
           setFocusedCellIndex(null);
           if (onEscapeRow) {
+            e.preventDefault();
             onEscapeRow();
           }
           break;
@@ -224,13 +261,23 @@ export function useDataTableKeyboard<TData extends RowData>(
     ],
   );
 
+  // Roving tab stop: the last focused row, or the first row until one is.
+  const tabStopRowIndex = enabled ? (validatedFocusedRowIndex ?? 0) : null;
+
   const getRowProps = useCallback(
     (rowIndex: number) => ({
-      tabIndex: validatedFocusedRowIndex === rowIndex ? 0 : -1,
-      "data-focused": validatedFocusedRowIndex === rowIndex,
+      tabIndex: tabStopRowIndex === rowIndex ? 0 : -1,
+      // The ring marks the row only while the row itself holds focus, so it
+      // neither lingers after focus leaves nor doubles a focused control's.
+      "data-focused": rowHasFocus && validatedFocusedRowIndex === rowIndex,
       onKeyDown: (e: React.KeyboardEvent) => handleKeyDown(e, rowIndex),
-      onFocus: () => setFocusedRowIndex(rowIndex),
-      onBlur: () => {},
+      onFocus: (e: React.FocusEvent) => {
+        setFocusedRowIndex(rowIndex);
+        setRowHasFocus(e.target === e.currentTarget);
+      },
+      onBlur: (e: React.FocusEvent) => {
+        if (e.target === e.currentTarget) setRowHasFocus(false);
+      },
       ref: (el: HTMLElement | null) => {
         if (el) {
           rowRefs.current.set(rowIndex, el);
@@ -239,7 +286,13 @@ export function useDataTableKeyboard<TData extends RowData>(
         }
       },
     }),
-    [validatedFocusedRowIndex, handleKeyDown, setFocusedRowIndex],
+    [
+      tabStopRowIndex,
+      rowHasFocus,
+      validatedFocusedRowIndex,
+      handleKeyDown,
+      setFocusedRowIndex,
+    ],
   );
 
   const getCellProps = useCallback(
@@ -260,6 +313,8 @@ export function useDataTableKeyboard<TData extends RowData>(
   }, [setFocusedRowIndex]);
 
   return {
+    enabled,
+    tabStopRowIndex,
     focusedRowIndex: validatedFocusedRowIndex,
     focusedCellIndex,
     setFocusedRowIndex,

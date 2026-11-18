@@ -7,6 +7,10 @@ import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
+import {
+  pageHeading,
+  useLoadRetry,
+} from "@asym/missionary/hooks/use-load-retry";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
@@ -30,9 +34,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Empty,
@@ -44,6 +49,10 @@ import {
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import { isToday, isPast } from "date-fns";
 import {
@@ -258,26 +267,28 @@ function TasksPageActions({
 }: TasksPageActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1 rounded-lg border border-border p-1">
-        <Button
-          aria-label="Board view"
-          aria-pressed={viewMode === "board"}
-          variant={viewMode === "board" ? "secondary" : "ghost"}
-          size="icon"
-          onClick={() => setViewMode("board")}
+      <div className="rounded-lg border border-border p-1">
+        <ToggleGroup
+          aria-label="Task view"
+          spacing={1}
+          value={[viewMode]}
+          // Pressing the active view sends an empty list; one view stays on.
+          onValueChange={(next) => {
+            const view = next[0];
+            if (view === "board" || view === "list") setViewMode(view);
+          }}
         >
-          <LayoutGrid className="size-4" />
-        </Button>
-        <Button
-          ref={listViewRef}
-          aria-label="List view"
-          aria-pressed={viewMode === "list"}
-          variant={viewMode === "list" ? "secondary" : "ghost"}
-          size="icon"
-          onClick={() => setViewMode("list")}
-        >
-          <List className="size-4" />
-        </Button>
+          <ToggleGroupItem value="board" aria-label="Board view">
+            <LayoutGrid className="size-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            ref={listViewRef}
+            value="list"
+            aria-label="List view"
+          >
+            <List className="size-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
       <Button
         variant="outline"
@@ -396,34 +407,45 @@ function TasksFilterBar({
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Task type</DropdownMenuLabel>
-                {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
-                  <DropdownMenuCheckboxItem
-                    key={value}
-                    checked={typeFilter === value}
-                    onCheckedChange={() => setTypeFilter(value as TaskType)}
-                  >
-                    <config.icon
-                      className={cn("size-3.5 mr-2", config.color)}
-                    />
-                    {config.label}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                <DropdownMenuRadioGroup
+                  value={typeFilter}
+                  onValueChange={(value: TaskType | "all") =>
+                    setTypeFilter(value)
+                  }
+                >
+                  <DropdownMenuRadioItem value="all">
+                    All types
+                  </DropdownMenuRadioItem>
+                  {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
+                    <DropdownMenuRadioItem key={value} value={value}>
+                      <config.icon
+                        className={cn("size-3.5 mr-2", config.color)}
+                      />
+                      {config.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Priority</DropdownMenuLabel>
-                {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
-                  <DropdownMenuCheckboxItem
-                    key={value}
-                    checked={priorityFilter === value}
-                    onCheckedChange={() =>
-                      setPriorityFilter(value as TaskPriority)
-                    }
-                  >
-                    <Flag className={cn("size-3.5 mr-2", config.color)} />
-                    {config.label}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                {/* "None" below is a real priority; "all" is no filter. */}
+                <DropdownMenuRadioGroup
+                  value={priorityFilter}
+                  onValueChange={(value: TaskPriority | "all") =>
+                    setPriorityFilter(value)
+                  }
+                >
+                  <DropdownMenuRadioItem value="all">
+                    All priorities
+                  </DropdownMenuRadioItem>
+                  {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
+                    <DropdownMenuRadioItem key={value} value={value}>
+                      <Flag className={cn("size-3.5 mr-2", config.color)} />
+                      {config.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -446,9 +468,10 @@ type TasksContentProps = {
   refresh: () => void | Promise<void>;
   moveTask: React.ComponentProps<typeof TaskKanbanBoard>["onMoveTask"];
   handleEdit: (task: Task) => void;
-  handleComplete: (task: Task) => void | Promise<void>;
+  handleComplete: (task: Task) => void | Promise<boolean>;
   handleDeleteClick: (task: Task) => void;
   rememberTaskAction: (event: React.SyntheticEvent<HTMLDivElement>) => void;
+  listRef: React.RefObject<HTMLDivElement | null>;
   handleCreateInStatus: (status: TaskStatus) => void;
   setTaskDialogOpen: (value: React.SetStateAction<boolean>) => void;
   showDeferredInList: () => void;
@@ -489,22 +512,41 @@ function TasksContent({
   handleComplete,
   handleDeleteClick,
   rememberTaskAction,
+  listRef,
   handleCreateInStatus,
   setTaskDialogOpen,
   showDeferredInList,
 }: TasksContentProps) {
+  const loadRetryButton = React.useRef<HTMLButtonElement>(null);
+  const loadRetry = useLoadRetry({
+    retryRef: loadRetryButton,
+    error,
+    loading,
+    onRetry: refresh,
+    landing: pageHeading,
+  });
   return (
     <AnimatePresence mode="wait">
-      {error ? (
+      {loadRetry.error ? (
         <div className="flex flex-col items-center gap-4 py-8">
-          <Alert variant="destructive" role="alert">
+          <Alert
+            key={loadRetry.failedRetries}
+            variant="destructive"
+            role="alert"
+          >
             <AlertCircle aria-hidden />
             <AlertTitle>We couldn’t load your tasks</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{loadRetry.error}</AlertDescription>
           </Alert>
-          <Button onClick={refresh} variant="outline">
+          <Button
+            ref={loadRetryButton}
+            onClick={loadRetry.retry}
+            variant="outline"
+            disabled={loadRetry.retrying}
+            focusableWhenDisabled
+          >
             <RefreshCw aria-hidden data-icon="inline-start" />
-            Try again
+            {loadRetry.retrying ? "Trying again…" : "Try again"}
           </Button>
         </div>
       ) : loading && displayedTasks.length === 0 ? (
@@ -548,6 +590,7 @@ function TasksContent({
       ) : displayedTasks.length > 0 ? (
         <motion.div
           key={`list-view-${viewFilter}`}
+          ref={listRef}
           onClickCapture={rememberTaskAction}
           onFocusCapture={rememberTaskAction}
           initial={{ opacity: 0 }}
@@ -685,6 +728,14 @@ function useTasksPageController() {
   const cancelDeleteRef = React.useRef<HTMLButtonElement | null>(null);
   const deleteReturnFocus = React.useRef<HTMLButtonElement | null>(null);
   const deleteReturnTaskId = React.useRef<string | null>(null);
+  const listRef = React.useRef<HTMLDivElement | null>(null);
+  const completionFocus = React.useRef<{
+    taskId: string;
+    status: TaskStatus;
+    index: number;
+    row: Element | null;
+    control: string;
+  } | null>(null);
 
   const [state, setState] = useState<TasksPageState>({
     viewFilter: "active",
@@ -881,12 +932,63 @@ function useTasksPageController() {
   );
 
   const handleComplete = async (task: Task) => {
-    if (task.status === "completed") {
-      await reopenTask(task.id);
-    } else {
-      await completeTask(task.id);
+    const index = displayedTasks.findIndex(({ id }) => id === task.id);
+    if (viewMode === "list" && index !== -1) {
+      completionFocus.current = {
+        taskId: task.id,
+        status: task.status,
+        index,
+        row: listRef.current?.children[index] ?? null,
+        // The row menu returns focus to its trigger, so the next row's trigger.
+        control: document.activeElement?.closest('[role="menuitem"]')
+          ? '[data-slot="dropdown-menu-trigger"]'
+          : '[data-slot="checkbox"]',
+      };
     }
+    const saved =
+      task.status === "completed"
+        ? await reopenTask(task.id)
+        : await completeTask(task.id);
+    if (!saved && completionFocus.current?.taskId === task.id) {
+      completionFocus.current = null;
+    }
+    return saved;
   };
+
+  // A completed or reopened row usually leaves the filtered list and takes the
+  // focused control with it; focus the same control in the row now in its place.
+  React.useLayoutEffect(() => {
+    const pending = completionFocus.current;
+    if (!pending) return;
+    if (viewMode !== "list") {
+      completionFocus.current = null;
+      return;
+    }
+    const stayed = displayedTasks.findIndex(({ id }) => id === pending.taskId);
+    if (stayed !== -1 && displayedTasks[stayed]?.status === pending.status) {
+      return;
+    }
+    completionFocus.current = null;
+    const active = document.activeElement;
+    const focusLost =
+      !active ||
+      active === document.body ||
+      !active.isConnected ||
+      // The exiting list stays mounted during its exit animation.
+      (stayed === -1 && Boolean(pending.row?.contains(active)));
+    if (!focusLost) return;
+    const target =
+      stayed !== -1
+        ? stayed
+        : Math.min(pending.index, displayedTasks.length - 1);
+    const control =
+      target === -1
+        ? null
+        : listRef.current?.children[target]?.querySelector<HTMLElement>(
+            pending.control,
+          );
+    (control ?? addTaskRef.current)?.focus();
+  }, [displayedTasks, viewMode]);
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
@@ -1036,6 +1138,7 @@ function useTasksPageController() {
     handleComplete,
     handleDeleteClick,
     rememberTaskAction,
+    listRef,
     handleCreateInStatus,
     deleteDialogOpen,
     taskToDelete,
@@ -1082,6 +1185,7 @@ function TasksPageView() {
     handleComplete,
     handleDeleteClick,
     rememberTaskAction,
+    listRef,
     handleCreateInStatus,
     deleteDialogOpen,
     taskToDelete,
@@ -1142,6 +1246,7 @@ function TasksPageView() {
           handleComplete={handleComplete}
           handleDeleteClick={handleDeleteClick}
           rememberTaskAction={rememberTaskAction}
+          listRef={listRef}
           handleCreateInStatus={handleCreateInStatus}
           setTaskDialogOpen={setTaskDialogOpen}
           showDeferredInList={showDeferredInList}

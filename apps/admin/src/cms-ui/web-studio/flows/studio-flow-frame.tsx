@@ -253,7 +253,12 @@ export function StudioSelectField({
         disabled={disabled}
         placeholder={placeholder}
       />
-      {noteId ? <div id={noteId}>{children}</div> : null}
+      {noteId ? (
+        // A disabled select cannot take focus; its note explains why instead.
+        <div id={noteId} tabIndex={disabled ? -1 : undefined}>
+          {children}
+        </div>
+      ) : null}
       <StudioFieldError fieldId={id} message={error} />
     </div>
   );

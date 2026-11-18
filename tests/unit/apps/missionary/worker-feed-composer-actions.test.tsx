@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
@@ -233,12 +234,77 @@ it("names the attached-media removal action and preserves the remaining order", 
     />,
   );
   fireEvent.click(
-    screen.getAllByRole("button", { name: "Remove attached media" })[0]!,
+    screen.getByRole("button", { name: "Remove attached photo 1" }),
   );
   const update = setSelectedMedia.mock.calls[0]![0] as (
     items: (typeof first)[],
   ) => (typeof first)[];
   expect(update([first, second])).toEqual([second]);
+});
+
+type AttachedMedia = { url: string; type: "image" | "video" };
+
+function AttachedMediaComposer({ initial }: { initial: AttachedMedia[] }) {
+  const [media, setMedia] = React.useState(initial);
+  return (
+    <PostComposerActions
+      {...baseProps}
+      selectedMedia={media}
+      setSelectedMedia={setMedia}
+      handlePost={vi.fn()}
+    />
+  );
+}
+
+it("names each remove button after its photo", () => {
+  render(
+    <AttachedMediaComposer
+      initial={[1, 2, 3].map((n) => ({
+        url: `/test-${n}.png`,
+        type: "image",
+      }))}
+    />,
+  );
+  for (const n of [1, 2, 3]) {
+    expect(screen.getByAltText(`Attached photo ${n}`)).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: `Remove attached photo ${n}` }),
+    ).toBeTruthy();
+  }
+});
+
+it("keeps focus on a remove button, then the audience control, as photos are removed", async () => {
+  render(
+    <AttachedMediaComposer
+      initial={[1, 2, 3].map((n) => ({
+        url: `/test-${n}.png`,
+        type: "image",
+      }))}
+    />,
+  );
+  const removeButton = (n: number) =>
+    screen.getByRole("button", { name: `Remove attached photo ${n}` });
+
+  // The next photo takes the removed one's place, so its button gets focus.
+  removeButton(2).focus();
+  fireEvent.click(removeButton(2));
+  await waitFor(() => expect(document.activeElement).toBe(removeButton(2)));
+  expect(screen.getByAltText("Attached photo 2").getAttribute("src")).toBe(
+    "/test-3.png",
+  );
+
+  // With no next photo, the previous photo's button gets focus.
+  fireEvent.click(removeButton(2));
+  await waitFor(() => expect(document.activeElement).toBe(removeButton(1)));
+
+  // With no photos left, focus moves to the audience control beside them.
+  fireEvent.click(removeButton(1));
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /Public/ }),
+    ),
+  );
+  expect(screen.queryByAltText(/Attached photo/)).toBeNull();
 });
 
 it("offers no stand-in media control that attaches stock images", () => {

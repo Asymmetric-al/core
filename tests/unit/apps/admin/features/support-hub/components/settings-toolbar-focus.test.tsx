@@ -31,10 +31,48 @@ it("retains the initiating save action as focusable while blocking repeat activa
   expect(document.activeElement).toBe(save);
   fireEvent.click(save);
   expect(onSave).toHaveBeenCalledOnce();
-  expect(screen.getByRole("button", { name: "Discard" })).toHaveProperty(
-    "disabled",
-    true,
+  expect(
+    screen
+      .getByRole("button", { name: "Discard" })
+      .getAttribute("aria-disabled"),
+  ).toBe("true");
+});
+
+it("keeps focus on Save once the save completes and the form is clean", () => {
+  const onSave = vi.fn();
+  const props = { onSave, onCancel: vi.fn() };
+  const { rerender } = render(
+    <SettingsToolbar isDirty isSaving={false} {...props} />,
   );
+  const save = screen.getByRole("button", { name: "Save changes" });
+  save.focus();
+  fireEvent.click(save);
+  rerender(<SettingsToolbar isDirty isSaving {...props} />);
+  rerender(<SettingsToolbar isDirty={false} isSaving={false} {...props} />);
+  expect(save.hasAttribute("disabled")).toBe(false);
+  expect(save.getAttribute("aria-disabled")).toBe("true");
+  expect(document.activeElement).toBe(save);
+  fireEvent.click(save);
+  expect(onSave).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status").textContent).toBe("Saved");
+});
+
+it("keeps focus on Discard after discarding the changes", () => {
+  const onCancel = vi.fn();
+  const props = { onSave: vi.fn(), onCancel };
+  const { rerender } = render(
+    <SettingsToolbar isDirty isSaving={false} {...props} />,
+  );
+  const discard = screen.getByRole("button", { name: "Discard" });
+  discard.focus();
+  fireEvent.click(discard);
+  expect(onCancel).toHaveBeenCalledOnce();
+  rerender(<SettingsToolbar isDirty={false} isSaving={false} {...props} />);
+  expect(discard.hasAttribute("disabled")).toBe(false);
+  expect(discard.getAttribute("aria-disabled")).toBe("true");
+  expect(document.activeElement).toBe(discard);
+  fireEvent.click(discard);
+  expect(onCancel).toHaveBeenCalledOnce();
 });
 
 it("announces the save status: saved, unsaved changes, then saving", () => {

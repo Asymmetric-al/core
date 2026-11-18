@@ -94,6 +94,9 @@ describe("Eve governance admin view", () => {
     expect(view.getByRole("status").textContent).toContain(
       "Updating All automation…",
     );
+    expect(
+      view.getByRole("button", { name: "Updating… All automation" }),
+    ).toBeTruthy();
     for (const control of view.getAllByRole("button"))
       expect(control).toHaveProperty("disabled", true);
   });
@@ -274,7 +277,9 @@ describe("Eve governance admin view", () => {
       expect(view.getByText(label)).toBeTruthy();
     }
 
-    fireEvent.click(view.getAllByRole("button", { name: "Engage" })[2]!);
+    fireEvent.click(
+      view.getByRole("button", { name: "Engage: GitHub actions" }),
+    );
     expect(onSetKillSwitch).not.toHaveBeenCalled();
     fireEvent.click(view.getByRole("button", { name: "Confirm engage" }));
     expect(onSetKillSwitch).toHaveBeenCalledWith("github_actions", true);

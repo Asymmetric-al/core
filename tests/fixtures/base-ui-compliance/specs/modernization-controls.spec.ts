@@ -124,7 +124,7 @@ test("task details have native keyboard activation and child actions remain isol
   await expect(
     page.getByRole("status", { name: "Task status count" }),
   ).toHaveText("1");
-  await table.getByRole("button", { name: "Open actions" }).click();
+  await table.getByRole("button", { name: "Actions for Call partner" }).click();
   await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
   await expect(
     page.getByRole("status", { name: "Task edit count" }),

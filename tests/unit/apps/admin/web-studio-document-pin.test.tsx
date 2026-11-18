@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -33,11 +34,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function setup(stored: Array<{ id: string | number; collectionSlug: string }>) {
+function setup(
+  stored: Array<{ id: string | number; collectionSlug: string }>,
+  save?: Promise<void>,
+) {
   let items = stored;
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     expect(url).toBe("/api/payload-preferences/pinned-documents");
     if (init?.method === "POST") {
+      await save;
       items = (JSON.parse(String(init.body)) as { value: { items: [] } }).value
         .items;
       return Response.json({});
@@ -55,7 +60,7 @@ function setup(stored: Array<{ id: string | number; collectionSlug: string }>) {
       </TooltipProvider>
     </QueryClientProvider>,
   );
-  return { items: () => items };
+  return { fetchMock, items: () => items };
 }
 
 it("pins the open document in Payload's pinned-documents preference", async () => {
@@ -83,4 +88,29 @@ it("unpins a document that is already pinned", async () => {
   await waitFor(() =>
     expect(toggle.getAttribute("aria-pressed")).toBe("false"),
   );
+});
+
+it("keeps focus on the toggle while the pin saves", async () => {
+  const save = Promise.withResolvers<void>();
+  const { fetchMock, items } = setup([], save.promise);
+  const toggle = screen.getByRole("button", { name: "Pin to Studio home" });
+  await waitFor(() => expect(toggle.hasAttribute("disabled")).toBe(false));
+  toggle.focus();
+  fireEvent.click(toggle);
+  await waitFor(() =>
+    expect(toggle.getAttribute("aria-disabled")).toBe("true"),
+  );
+  expect(toggle.hasAttribute("disabled")).toBe(false);
+  expect(document.activeElement).toBe(toggle);
+  // A second press while saving does nothing.
+  fireEvent.click(toggle);
+
+  await act(async () => save.resolve());
+  await waitFor(() => expect(toggle.getAttribute("aria-pressed")).toBe("true"));
+  expect(items()).toEqual([{ id: 7, collectionSlug: "pages" }]);
+  expect(
+    fetchMock.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
+  expect(toggle.getAttribute("aria-disabled")).not.toBe("true");
+  expect(document.activeElement).toBe(toggle);
 });

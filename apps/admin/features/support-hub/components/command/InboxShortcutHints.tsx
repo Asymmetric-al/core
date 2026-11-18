@@ -1,13 +1,29 @@
 "use client";
 
-import { Kbd } from "@asym/ui/components/shadcn/kbd";
+import {
+  ShortcutHint,
+  useShortcutHint,
+} from "@asym/ui/components/primitives/shortcut";
 
 import { SUPPORT_INBOX_KEYMAP } from "../../lib/keymap";
+
+function InboxShortcut({ label, keys }: { label: string; keys: string }) {
+  const { ariaKeyshortcuts } = useShortcutHint(keys);
+  return (
+    <li className="flex items-center justify-between gap-2">
+      <span>{label}</span>
+      {/* The chord is drawn for the eye; screen readers hear the key names. */}
+      <span className="sr-only">{ariaKeyshortcuts}</span>
+      <ShortcutHint keys={keys} />
+    </li>
+  );
+}
 
 /**
  * Small footer rendered inside the command palette so agents can discover
  * the inbox keyboard shortcuts. Kept compact — pulls straight from the
- * keymap so the table stays in one place.
+ * keymap so the table stays in one place, with each chord written the way
+ * this platform writes it.
  */
 export function InboxShortcutHints() {
   return (
@@ -17,13 +33,11 @@ export function InboxShortcutHints() {
       </p>
       <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {SUPPORT_INBOX_KEYMAP.map((entry) => (
-          <li
+          <InboxShortcut
             key={entry.action}
-            className="flex items-center justify-between gap-2"
-          >
-            <span>{entry.label}</span>
-            <Kbd>{entry.chord}</Kbd>
-          </li>
+            label={entry.label}
+            keys={entry.keys}
+          />
         ))}
       </ul>
     </div>

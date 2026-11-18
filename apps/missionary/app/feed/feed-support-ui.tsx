@@ -2,6 +2,10 @@
 
 import { useLastSynced } from "@asym/lib/hooks";
 import { motion } from "@asym/lib/motion";
+import {
+  pageHeading,
+  useLoadRetry,
+} from "@asym/missionary/hooks/use-load-retry";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
@@ -14,8 +18,7 @@ import {
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Clock, Globe, TriangleAlert } from "lucide-react";
-
-import type { ElementType, ReactNode } from "react";
+import { type ElementType, type ReactNode, type Ref, useRef } from "react";
 
 export function LastSyncedDisplay() {
   const lastSynced = useLastSynced();
@@ -92,9 +95,13 @@ export function EmptyState({
 function FeedLoadErrorState({
   message,
   onRetry,
+  retrying,
+  retryRef,
 }: {
   message: string;
   onRetry?: () => void;
+  retrying: boolean;
+  retryRef: Ref<HTMLButtonElement>;
 }) {
   return (
     <div role="alert">
@@ -104,8 +111,15 @@ function FeedLoadErrorState({
         description={message}
         action={
           onRetry ? (
-            <Button type="button" variant="outline" onClick={onRetry}>
-              Try again
+            <Button
+              ref={retryRef}
+              type="button"
+              variant="outline"
+              disabled={retrying}
+              focusableWhenDisabled
+              onClick={onRetry}
+            >
+              {retrying ? "Trying again…" : "Try again"}
             </Button>
           ) : null
         }
@@ -127,7 +141,17 @@ export function PublishedFeedPane({
   isLoading: boolean;
   onRetry?: () => void;
 }) {
-  if (isLoading) {
+  const loadRetryButton = useRef<HTMLButtonElement>(null);
+  const loadRetry = useLoadRetry({
+    retryRef: loadRetryButton,
+    error: hasPosts || isLoading ? null : feedError,
+    loading: isLoading,
+    onRetry,
+    landing: (button) =>
+      button?.closest<HTMLElement>('[role="tabpanel"]') ?? pageHeading(button),
+  });
+
+  if (isLoading && !loadRetry.retrying) {
     return <LoadingState />;
   }
 
@@ -135,8 +159,15 @@ export function PublishedFeedPane({
     return children;
   }
 
-  if (feedError) {
-    return <FeedLoadErrorState message={feedError} onRetry={onRetry} />;
+  if (loadRetry.error) {
+    return (
+      <FeedLoadErrorState
+        message={loadRetry.error}
+        onRetry={onRetry ? loadRetry.retry : undefined}
+        retrying={loadRetry.retrying}
+        retryRef={loadRetryButton}
+      />
+    );
   }
 
   return (

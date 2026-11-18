@@ -94,3 +94,30 @@ it("names kanban creation and editing controls independently of their icons", ()
   fireEvent.click(screen.getByRole("button", { name: "Edit Follow up" }));
   expect(onEditTask).toHaveBeenCalledWith(task);
 });
+
+it.each([
+  ["not_started", "Mark done", "Mark done: Follow up"],
+  ["completed", "Reopen", "Reopen: Follow up"],
+] as const)(
+  "keeps the visible %s complete control text at the start of its task name",
+  (status, visible, name) => {
+    const onCompleteTask = vi.fn();
+    render(
+      <TaskKanbanBoard
+        tasks={[{ ...task, status }]}
+        onEditTask={vi.fn()}
+        onMoveTask={vi.fn().mockResolvedValue(true)}
+        onCompleteTask={onCompleteTask}
+        onDeleteTask={vi.fn()}
+        onCreateTask={vi.fn()}
+      />,
+    );
+    // WCAG 2.5.3: speech users say the words they see.
+    const control = screen.getByRole("button", { name });
+    expect(control.textContent).toBe(visible);
+    fireEvent.click(control);
+    expect(onCompleteTask).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "task-1" }),
+    );
+  },
+);

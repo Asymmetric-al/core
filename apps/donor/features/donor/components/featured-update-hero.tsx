@@ -9,7 +9,7 @@ import {
   postTitle,
 } from "@asym/database/hooks";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
   Empty,
@@ -25,6 +25,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+import type { useLoadRetry } from "../focus-recovery";
 import type { DonorFeedPost } from "@asym/database/hooks";
 
 /**
@@ -35,14 +36,25 @@ export function FeaturedUpdateHero({
   post,
   isLoading,
   error,
+  retry,
+  retryRef,
 }: {
   post: DonorFeedPost | null;
   isLoading: boolean;
   error?: unknown;
+  retry?: Pick<
+    ReturnType<typeof useLoadRetry>,
+    "retry" | "retrying" | "failedRetries"
+  >;
+  /** On Try again, so a recovery that removes it can hand focus off. */
+  retryRef?: React.Ref<HTMLButtonElement>;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const retrying = retry?.retrying ?? false;
 
-  if (isLoading) {
+  // A retry with nothing cached loads afresh; the error view stays so Try
+  // again keeps focus.
+  if (isLoading && !retrying) {
     return (
       <Skeleton
         role="status"
@@ -52,8 +64,8 @@ export function FeaturedUpdateHero({
     );
   }
 
-  if (error || !post) {
-    const failed = Boolean(error);
+  if (error || retrying || !post) {
+    const failed = Boolean(error) || retrying;
     return (
       <Card className="h-full">
         <CardContent className="flex h-full items-center justify-center">
@@ -62,11 +74,13 @@ export function FeaturedUpdateHero({
               <EmptyMedia variant="icon">
                 {failed ? <TriangleAlert aria-hidden /> : <Rss aria-hidden />}
               </EmptyMedia>
-              <EmptyTitle>
-                {failed
-                  ? "Updates couldn't load right now"
-                  : "No ministry updates yet"}
-              </EmptyTitle>
+              {failed ? (
+                <EmptyTitle key={retry?.failedRetries} role="alert">
+                  Updates couldn&apos;t load right now
+                </EmptyTitle>
+              ) : (
+                <EmptyTitle>No ministry updates yet</EmptyTitle>
+              )}
               <EmptyDescription>
                 {failed
                   ? "Your latest story will appear here once updates load again."
@@ -74,12 +88,25 @@ export function FeaturedUpdateHero({
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Link
-                href="/donor-dashboard/feed"
-                className={buttonVariants({ variant: "outline" })}
-              >
-                Go to Updates
-              </Link>
+              <div className="flex flex-wrap justify-center gap-2">
+                {failed && retry ? (
+                  <Button
+                    ref={retryRef}
+                    variant="outline"
+                    disabled={retrying}
+                    focusableWhenDisabled
+                    onClick={retry.retry}
+                  >
+                    {retrying ? "Trying again…" : "Try again"}
+                  </Button>
+                ) : null}
+                <Link
+                  href="/donor-dashboard/feed"
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  Go to Updates
+                </Link>
+              </div>
             </EmptyContent>
           </Empty>
         </CardContent>

@@ -250,7 +250,7 @@ export function DonorsPageDetailRecurring() {
                       </div>
                       <Progress
                         value={progress.percent}
-                        aria-label="Recurring gift progress"
+                        aria-label={`Recurring gift progress, ${formatCurrency(recurring.amount, recurring.currency)} ${recurring.frequency.toLowerCase()}`}
                       />
                     </>
                   ) : (

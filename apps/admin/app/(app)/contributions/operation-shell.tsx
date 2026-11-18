@@ -964,7 +964,6 @@ function OperationFormActions({
   detail,
   availability,
   hasBackgroundConflict,
-  handleSubmit,
   phase,
   operation,
   requirementHint,
@@ -984,7 +983,6 @@ function OperationFormActions({
       >["actionAvailability"][number]
     | null;
   hasBackgroundConflict: boolean;
-  handleSubmit: () => Promise<void>;
   phase: ShellPhase;
   operation: OperationDefinition;
 }) {
@@ -1005,11 +1003,17 @@ function OperationFormActions({
             : requirementHint}
       </p>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button variant="outline" disabled={submitting} onClick={onClose}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={submitting}
+          onClick={onClose}
+        >
           {needsStaleDraftRecovery ? "Discard draft" : "Cancel"}
         </Button>
         {needsStaleDraftRecovery ? (
           <Button
+            type="button"
             disabled={detailQuery.isFetching}
             focusableWhenDisabled={detailQuery.isFetching}
             aria-labelledby={`${confirmId}-reload-label`}
@@ -1033,10 +1037,11 @@ function OperationFormActions({
               hasBackgroundConflict
             }
             // Focus stays on the submit while it works, and is on Retry if
-            // the request fails.
+            // the request fails. A disabled submit-type Button is never
+            // focusable, so it is a plain button only while submitting.
+            type={submitting ? "button" : "submit"}
             focusableWhenDisabled={submitting}
             aria-busy={submitting || undefined}
-            onClick={() => void handleSubmit()}
           >
             {submitting ? (
               <>
@@ -1791,7 +1796,16 @@ function ContributionOperationDialog({
             // stops above the row instead of under it (WCAG 2.4.11). The row
             // stacks on phones, so it needs more room. The dialog re-reveals
             // the focused field after focus moves and on every resize.
-            <div className="flex min-w-0 flex-col gap-5 [&>:not([data-slot=operation-form-actions])_*]:scroll-mb-48 sm:[&>:not([data-slot=operation-form-actions])_*]:scroll-mb-28">
+            <form
+              className="flex min-w-0 flex-col gap-5 [&>:not([data-slot=operation-form-actions])_*]:scroll-mb-48 sm:[&>:not([data-slot=operation-form-actions])_*]:scroll-mb-28"
+              onSubmit={(event) => {
+                event.preventDefault();
+                // Enter in the amount field submits even while Reload
+                // replaces the submit; a stale draft is never resent.
+                if (needsStaleDraftRecovery || detailQuery.isPending) return;
+                void handleSubmit();
+              }}
+            >
               {/* Fields only: the pinned actions row stays outside, so the
                 focused submit is not disabled and blurred with them. */}
               <fieldset
@@ -1879,12 +1893,11 @@ function ContributionOperationDialog({
                 detail={detail}
                 availability={availability}
                 hasBackgroundConflict={hasBackgroundConflict}
-                handleSubmit={handleSubmit}
                 phase={phase}
                 operation={operation}
                 requirementHint={requirementHint}
               />
-            </div>
+            </form>
           )}
 
           {phase.name === "success" && (

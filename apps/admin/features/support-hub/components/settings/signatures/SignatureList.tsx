@@ -12,6 +12,7 @@ import {
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
 import { Pencil, PenLine, Plus, Star, Trash2 } from "lucide-react";
+import * as React from "react";
 import { toast } from "sonner";
 
 import { SignatureForm } from "./SignatureForm";
@@ -49,6 +50,7 @@ export function SignatureList() {
   const setDefault = useSetDefaultSupportSignature();
   const editor = useSettingsEditor<SupportSignature>();
   const editingRow = editor.record;
+  const rowActionsRefs = React.useRef(new Map<string, HTMLDivElement>());
 
   const ownerName = (ownerAgentId: string | null): string => {
     if (!ownerAgentId) return "Workspace";
@@ -77,6 +79,11 @@ export function SignatureList() {
   };
 
   const handleMakeDefault = async (row: SupportSignature) => {
+    // Make default is disabled while this saves and leaves the row once it
+    // works, so focus moves to the row's Edit button, its first action.
+    const actions = rowActionsRefs.current.get(row.id);
+    if (actions?.contains(document.activeElement))
+      actions.querySelector("button")?.focus();
     try {
       await setDefault.mutateAsync({ id: row.id });
       toast.success(
@@ -147,7 +154,12 @@ export function SignatureList() {
                       {ownerName(row.ownerAgentId)} · {row.bodyText}
                     </ItemDescription>
                   </ItemContent>
-                  <ItemActions>
+                  <ItemActions
+                    ref={(element) => {
+                      if (element) rowActionsRefs.current.set(row.id, element);
+                      else rowActionsRefs.current.delete(row.id);
+                    }}
+                  >
                     <SettingsIconButton
                       label={`Edit ${row.name}`}
                       tooltip="Edit"

@@ -12,6 +12,8 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { fadeInUp, smoothTransition } from "./donors-page-motion";
 
+import type * as React from "react";
+
 export function DonorListSkeleton() {
   return (
     <div
@@ -42,9 +44,15 @@ export function DonorListSkeleton() {
 export function ErrorState({
   message,
   onRetry,
+  retrying = false,
+  retryRef,
+  failedRetries = 0,
 }: {
   message: string;
   onRetry: () => void;
+  retrying?: boolean;
+  retryRef?: React.Ref<HTMLButtonElement>;
+  failedRetries?: number;
 }) {
   return (
     <motion.div
@@ -54,20 +62,28 @@ export function ErrorState({
       transition={smoothTransition}
       className="flex flex-col items-center justify-center h-64 text-center p-6 gap-4"
     >
-      <Alert variant="destructive" role="alert" className="max-w-sm text-left">
+      <Alert
+        key={failedRetries}
+        variant="destructive"
+        role="alert"
+        className="max-w-sm text-left"
+      >
         <AlertCircle />
         <AlertTitle>Something went wrong</AlertTitle>
         <AlertDescription>{message}</AlertDescription>
       </Alert>
       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Button
+          ref={retryRef}
           variant="outline"
           size="sm"
           onClick={onRetry}
+          disabled={retrying}
+          focusableWhenDisabled
           className="h-9 rounded-2xl border-border bg-card font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           <RefreshCw data-icon="inline-start" />
-          Try again
+          {retrying ? "Trying again…" : "Try again"}
         </Button>
       </motion.div>
     </motion.div>

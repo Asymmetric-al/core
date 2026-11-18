@@ -24,21 +24,33 @@ test("a pointer move to an empty Waiting column submits exactly one move", async
   );
   const viewport = page.viewportSize()!;
   if ((await target.boundingBox())!.x > viewport.width - 50) {
-    // Keep the pointer inside the viewport while the real board auto-scrolls.
-    await page.mouse.move(viewport.width - 22, start.y + start.height / 2, {
-      steps: 12,
-    });
+    // The real board auto-scrolls while the pointer is in the outer fifth of
+    // its scroll area, faster towards the edge. Hold the pointer just inside
+    // that band so the board scrolls slowly enough to stop on the column even
+    // when the machine is loaded.
+    const area = (await target.locator("xpath=..").boundingBox())!;
+    await page.mouse.move(
+      area.x + area.width * 0.8 + 8,
+      start.y + start.height / 2,
+      { steps: 12 },
+    );
     await expect
-      .poll(async () => (await target.boundingBox())!.x, { intervals: [16] })
+      .poll(async () => (await target.boundingBox())!.x, {
+        intervals: [16],
+        timeout: 15_000,
+      })
       .toBeLessThan(viewport.width / 2 - 30);
     await page.mouse.move(viewport.width / 2, start.y + start.height / 2);
   }
   const end = (await target.boundingBox())!;
-  await page.mouse.move(
-    Math.max(80, Math.min(end.x + end.width / 2, viewport.width - 100)),
-    end.y + 115,
-    { steps: 16 },
+  const dropX = Math.max(
+    80,
+    Math.min(end.x + end.width / 2, viewport.width - 100),
   );
+  // The pointer releases over the Waiting column itself.
+  expect(dropX).toBeGreaterThan(end.x + 24);
+  expect(dropX).toBeLessThan(end.x + end.width - 24);
+  await page.mouse.move(dropX, end.y + 115, { steps: 16 });
   await page.mouse.up();
   await expect(
     page.getByLabel("Submitted task moves", { exact: true }),
@@ -77,6 +89,52 @@ test("keyboard sorting keeps order, the final index and focus", async ({
     page.getByLabel("Submitted task moves", { exact: true }),
   ).toHaveText('[{"taskId":"call","status":"not_started","index":1}]');
   await expect(handle).toBeFocused();
+});
+
+test("a keyboard move announces the task, its column and its position politely", async ({
+  page,
+}) => {
+  const announcer = page.locator(
+    '[role="status"][aria-live="polite"][id^="dnd-kit-announcement"]',
+  );
+  const handle = page.getByRole("button", {
+    name: "Move Call Anna",
+    exact: true,
+  });
+  await handle.focus();
+  await page.keyboard.press("Space");
+  await expect(announcer).toHaveCount(1);
+  await expect(announcer).toHaveAttribute("aria-atomic", "true");
+  await expect(announcer).toHaveText(
+    "Picked up Call Anna. To do, position 1 of 2.",
+  );
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page
+      .getByRole("region", { name: "In progress", exact: true })
+      .getByRole("heading", { level: 4 }),
+  ).toHaveText(["Call Anna", "Review support"]);
+  // Moves are announced once the keyboard rests on a place.
+  await expect(announcer).toHaveText(
+    "Call Anna is in In progress, position 1 of 2.",
+  );
+  await page.keyboard.press("Space");
+  await expect(announcer).toHaveText(
+    "Dropped Call Anna in In progress, position 1 of 2.",
+  );
+  await expect(
+    page.getByLabel("Submitted task moves", { exact: true }),
+  ).toHaveText('[{"taskId":"call","status":"in_progress","index":0}]');
+  await expect(
+    page.getByRole("heading", { name: "In progress 2", exact: true }),
+  ).toBeVisible();
+  // The saved move remounts the card in its new column; its handle keeps focus.
+  await expect(
+    page
+      .getByRole("region", { name: "In progress", exact: true })
+      .getByRole("button", { name: "Move Call Anna", exact: true }),
+  ).toBeFocused();
+  await expect(handle).toHaveCount(1);
 });
 
 test("Escape restores a cross-column keyboard preview without a mutation", async ({

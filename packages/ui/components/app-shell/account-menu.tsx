@@ -33,6 +33,8 @@ export type AccountMenuProps = {
   detail?: string;
   avatarUrl?: string | null;
   links: AccountMenuLink[];
+  /** Menu items that act rather than link, after `links`. */
+  children?: React.ReactNode;
   onSignOut: () => void;
   signingOut?: boolean;
   /** Show the name beside the avatar on wide screens. */
@@ -60,6 +62,7 @@ export function AccountMenu({
   detail,
   avatarUrl,
   links,
+  children,
   onSignOut,
   signingOut = false,
   showName = true,
@@ -126,6 +129,7 @@ export function AccountMenu({
               </DropdownMenuItem>
             );
           })}
+          {children}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

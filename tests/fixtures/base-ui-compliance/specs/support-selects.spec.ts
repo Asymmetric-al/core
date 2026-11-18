@@ -132,7 +132,7 @@ test.describe("Support controls at narrow widths", () => {
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
-    await menu.getByRole("menuitem", { name: /Lastname/ }).click();
+    await menu.getByRole("menuitemradio", { name: /Lastname/ }).click();
     await expect(page.locator("#support-layout-result")).toHaveText(
       "Assigned agent-a",
     );
@@ -183,7 +183,9 @@ test.describe("Support controls at narrow widths", () => {
       bounds!.x + bounds!.width / 2,
       bounds!.y + bounds!.height - 2,
     );
-    await page.getByRole("menuitem", { name: "Rename / scope" }).click();
+    await page
+      .getByRole("menuitem", { name: "Rename or change scope", exact: true })
+      .click();
     await expect(page.locator("#support-layout-result")).toHaveText(
       "Renamed priority",
     );

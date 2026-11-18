@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { useMissionControlAutomationsMock } = vi.hoisted(() => ({
@@ -706,6 +706,127 @@ describe("apps/admin/app/(app)/automations/page-client", () => {
     expect(
       view.queryByText("Showing rules that failed in the last 24 hours"),
     ).toBeNull();
+  });
+
+  it("moves focus to the rules heading when the toolbar's Show all rules removes itself", () => {
+    const view = render(
+      <AutomationsPageView
+        automationRules={[
+          createAutomationRule({
+            id: "rule_failing",
+            name: "Failing rule",
+            runs24h: 2,
+            failedRuns24h: 1,
+            lastFailureAt: "2026-11-10T12:00:00.000Z",
+          }),
+          createAutomationRule({ id: "rule_clean", name: "Clean rule" }),
+        ]}
+        isError={false}
+        isLoading={false}
+        summary={{ ...emptySummary, executions24h: 4, failedRuns24h: 1 }}
+      />,
+    );
+    fireEvent.click(
+      view.getByRole("button", { name: "Show the failing rule" }),
+    );
+    const toolbarShowAll = view.getAllByRole("button", {
+      name: "Show all rules",
+    })[1]!;
+    act(() => toolbarShowAll.focus());
+    fireEvent.click(toolbarShowAll);
+
+    expect(toolbarShowAll.isConnected).toBe(false);
+    expect(document.activeElement).toBe(
+      view.getByRole("heading", { level: 2, name: "Automation rules" }),
+    );
+  });
+
+  it("moves focus to the rules heading once Retry loads the automations", () => {
+    const onRetry = vi.fn();
+    const props = {
+      automationRules: [],
+      errorMessage: "Unable to reach automations",
+      hasLoadedData: false,
+      isLoading: false,
+      onRetry,
+    };
+    const view = render(<AutomationsPageView {...props} isError />);
+    const retry = view.getByRole("button", { name: "Retry" });
+    act(() => retry.focus());
+    fireEvent.click(retry);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+
+    // A failed retry keeps the alert and its button where focus already is.
+    view.rerender(<AutomationsPageView {...props} isError />);
+    expect(document.activeElement).toBe(retry);
+
+    view.rerender(
+      <AutomationsPageView
+        {...props}
+        hasLoadedData
+        isError={false}
+        summary={emptySummary}
+      />,
+    );
+    expect(view.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(document.activeElement).toBe(
+      view.getByRole("heading", { level: 2, name: "Automation rules" }),
+    );
+  });
+
+  it("forgets a failed retry so a later background load does not take focus", async () => {
+    const props = {
+      automationRules: [],
+      hasLoadedData: false,
+      isLoading: false,
+      onRetry: vi.fn().mockResolvedValue({ isError: true }),
+    };
+    const view = render(<AutomationsPageView {...props} isError />);
+    const retry = view.getByRole("button", { name: "Retry" });
+    act(() => retry.focus());
+    fireEvent.click(retry);
+    await act(async () => {});
+    act(() => retry.blur());
+
+    view.rerender(
+      <AutomationsPageView
+        {...props}
+        hasLoadedData
+        isError={false}
+        summary={emptySummary}
+      />,
+    );
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("does not take focus back after a retry when the person moved on", () => {
+    const props = {
+      automationRules: [],
+      hasLoadedData: false,
+      isLoading: false,
+      onRetry: vi.fn(),
+    };
+    const view = render(
+      <>
+        <button type="button">Elsewhere</button>
+        <AutomationsPageView {...props} isError />
+      </>,
+    );
+    fireEvent.click(view.getByRole("button", { name: "Retry" }));
+    const elsewhere = view.getByRole("button", { name: "Elsewhere" });
+    act(() => elsewhere.focus());
+    view.rerender(
+      <>
+        <button type="button">Elsewhere</button>
+        <AutomationsPageView
+          {...props}
+          hasLoadedData
+          isError={false}
+          summary={emptySummary}
+        />
+      </>,
+    );
+    expect(document.activeElement).toBe(elsewhere);
   });
 
   it("reads missing per-rule runs as not reported, never as no runs", () => {

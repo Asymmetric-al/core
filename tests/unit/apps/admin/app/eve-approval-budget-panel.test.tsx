@@ -157,7 +157,7 @@ describe("Eve approval budget overrides", () => {
     vi.stubGlobal("fetch", fetchMock);
     renderPanel();
     const [initiator, peer] = await screen.findAllByRole("button", {
-      name: "Add one request for 1 hour",
+      name: /^Add one request for 1 hour to /,
     });
     if (!initiator || !peer)
       throw new Error("The test requires two allowance buttons");
@@ -188,7 +188,7 @@ describe("Eve approval budget overrides", () => {
 
     fireEvent.click(
       await screen.findByRole("button", {
-        name: "Add one request for 1 hour",
+        name: "Add one request for 1 hour to model_role: review",
       }),
     );
 
@@ -243,4 +243,70 @@ it("requests approval for the selected action", async () => {
       targetKey: "review:tracer",
     });
   });
+});
+
+describe("Eve policy tracer form", () => {
+  it("submits the tracer with Enter from the target key", async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) => response(view),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    const target = await screen.findByRole("textbox", {
+      name: "Non-sensitive target key",
+    });
+    expect(target.closest("form")).not.toBeNull();
+    fireEvent.submit(target);
+    await waitFor(() => {
+      const post = fetchMock.mock.calls.find(
+        ([, init]) => init?.method === "POST",
+      );
+      expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({
+        action: "execute",
+        actionId: "engineering.review_artifact.write",
+        targetKey: "review:tracer",
+      });
+    });
+  });
+
+  it.each([
+    ["", "Enter a target key."],
+    [
+      "review tracer",
+      "Use only letters, numbers, colons, underscores and hyphens.",
+    ],
+  ])(
+    "reports target key %j on the field instead of sending it",
+    async (value, message) => {
+      const fetchMock = vi.fn(
+        async (_input: RequestInfo | URL, _init?: RequestInit) =>
+          response(view),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+      renderPanel();
+      const target = await screen.findByRole("textbox", {
+        name: "Non-sensitive target key",
+      });
+      fireEvent.change(target, { target: { value } });
+      for (const name of [
+        "Consult and execute tracer",
+        "Request required approval",
+      ]) {
+        const button = screen.getByRole("button", { name });
+        expect(button.hasAttribute("disabled")).toBe(false);
+        await act(async () => {
+          fireEvent.click(button);
+        });
+        expect(target.getAttribute("aria-invalid")).toBe("true");
+        expect(
+          document.getElementById(target.getAttribute("aria-describedby") ?? "")
+            ?.textContent,
+        ).toBe(message);
+        expect(document.activeElement).toBe(target);
+      }
+      expect(
+        fetchMock.mock.calls.filter(([, init]) => init?.method === "POST"),
+      ).toHaveLength(0);
+    },
+  );
 });

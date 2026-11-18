@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { TaskDialog } from "../../../../packages/missionary/components/task-dialog";
@@ -107,3 +108,47 @@ it.each([
     expect(onSuccess).toHaveBeenCalledTimes(1);
   },
 );
+
+/** Opens the dialog and waits for its first field to take focus. */
+async function openTaskDialog() {
+  render(<TaskDialog open onOpenChange={vi.fn()} />);
+  const title = screen.getByRole("textbox", { name: /Title/ });
+  await waitFor(() => expect(document.activeElement).toBe(title));
+  return title;
+}
+
+it("parks focus on the form while saving, then returns it to Create Task on failure", async () => {
+  let finish!: (value: { data: null; error: { message: string } }) => void;
+  mutation.single.mockReturnValueOnce(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const title = await openTaskDialog();
+  fireEvent.change(title, { target: { value: task.title } });
+  const save = screen.getByRole("button", { name: "Create Task", exact: true });
+  save.focus();
+  fireEvent.click(save);
+  await screen.findByRole("button", { name: "Creating task…", exact: true });
+  const form = screen.getByRole("dialog").querySelector("form");
+  expect(document.activeElement).toBe(form);
+  expect(form?.tabIndex).toBe(-1);
+  await act(async () => {
+    finish({ data: null, error: { message: "Fixture rejected task" } });
+  });
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Create Task", exact: true }),
+    ),
+  );
+});
+
+it("moves focus to the title when validation stops the save", async () => {
+  const title = await openTaskDialog();
+  const save = screen.getByRole("button", { name: "Create Task", exact: true });
+  save.focus();
+  fireEvent.click(save);
+  await waitFor(() => expect(document.activeElement).toBe(title));
+  expect(title.getAttribute("aria-invalid")).toBe("true");
+  expect(mutation.write).not.toHaveBeenCalled();
+});

@@ -3,7 +3,12 @@
 import { useAuth, useDonationMetrics } from "@asym/lib/hooks";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { MONEY_UNAVAILABLE } from "@asym/missionary/components/money-units";
+import {
+  pageHeading,
+  useLoadRetry,
+} from "@asym/missionary/hooks/use-load-retry";
 import { PageHeader } from "@asym/ui/components/page-header";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -84,9 +89,12 @@ function StatRegion({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        <p className="text-3xl font-semibold tracking-tight tabular-nums text-foreground">
-          {value}
-        </p>
+        {/* 11.5rem holds a six-figure total ("$126,790.10") at text-3xl in Inter; a narrower card steps down rather than clip it. */}
+        <div className="@container/stat">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums text-foreground @min-[11.5rem]/stat:text-3xl">
+            {value}
+          </p>
+        </div>
         <p className="text-sm text-muted-foreground">{comparison}</p>
       </CardContent>
     </Card>
@@ -206,8 +214,9 @@ function AnalyticsContent({ gifts }: { gifts: AnalyticsGift[] }) {
     mixTotal > 0 ? Math.round((cents / mixTotal) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-3">
+    <div className="@container/stats flex flex-col gap-6">
+      {/* Three across only when the column, not the viewport, is wide enough: the expanded sidebar takes 13rem at md. */}
+      <div className="grid gap-4 md:@2xl/stats:grid-cols-3">
         <StatRegion
           title="Given in the last 12 months"
           value={formatMoney(year.last12Cents, year.currency)}
@@ -325,6 +334,14 @@ export default function AnalyticsPage() {
   const { profile, loading } = useAuth();
   const metrics = useDonationMetrics(loading ? "" : (profile?.id ?? ""));
   const gifts = metrics.gifts ?? [];
+  const loadRetryButton = React.useRef<HTMLButtonElement>(null);
+  const loadRetry = useLoadRetry({
+    retryRef: loadRetryButton,
+    error: metrics.error,
+    loading: loading || metrics.isLoading,
+    onRetry: metrics.retry,
+    landing: pageHeading,
+  });
 
   return (
     <div
@@ -337,28 +354,42 @@ export default function AnalyticsPage() {
         title="Analytics"
         description="How your support has changed over the last year."
       />
-      {loading || metrics.isLoading ? (
+      {/* The error view stays up while Try again runs, keeping its focus. */}
+      {loadRetry.error ? (
+        <Card>
+          <CardContent className="flex flex-col items-start gap-3">
+            <p
+              key={loadRetry.failedRetries}
+              role="alert"
+              className="text-sm font-medium text-foreground"
+            >
+              We couldn’t load your giving history.
+            </p>
+            <Button
+              ref={loadRetryButton}
+              variant="outline"
+              size="sm"
+              disabled={loadRetry.retrying}
+              focusableWhenDisabled
+              onClick={loadRetry.retry}
+            >
+              {loadRetry.retrying ? "Trying again…" : "Try again"}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : loading || metrics.isLoading ? (
         <div
           role="status"
           aria-label="Loading analytics"
-          className="flex flex-col gap-6"
+          className="@container/stats flex flex-col gap-6"
         >
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:@2xl/stats:grid-cols-3">
             {[0, 1, 2].map((key) => (
               <Skeleton key={key} className="h-32 rounded-xl" />
             ))}
           </div>
           <Skeleton className="h-96 rounded-xl" />
         </div>
-      ) : metrics.error ? (
-        <Card>
-          <CardContent>
-            <p role="alert" className="text-sm text-foreground">
-              We couldn’t load your giving history. Refresh the page to try
-              again.
-            </p>
-          </CardContent>
-        </Card>
       ) : (
         <AnalyticsContent gifts={gifts} />
       )}
