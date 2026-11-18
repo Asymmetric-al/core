@@ -1,6 +1,6 @@
 ---
 name: moai-library-shadcn
-description: "Build UI with Core's shadcn/Base UI system. Use for selecting, installing, composing, or customizing shadcn/ui, registry items, themes, and wrappers. Always preserve exact style `base-maia`, Zinc-oriented semantic CSS-variable tokens, and Base UI primitives. Do not use to switch styles, run `shadcn init`, or introduce Radix/React Aria. Pair with `packages/ui/AGENTS.md`."
+description: "Build UI with Core's shadcn/Base UI system. Use for selecting, installing, composing, or customizing shadcn/ui, registry items, themes, and wrappers. Always preserve exact style `base-maia`, Zinc-oriented semantic CSS-variable tokens, and Base UI primitives in shadcn components. Do not use to switch styles, run `shadcn init`, or switch the component base to Radix or React Aria. Pair with `packages/ui/AGENTS.md`."
 ---
 
 ## This repository (Asymmetric-al/core)
@@ -14,8 +14,10 @@ before running `bun run skills:sync`.
 - Use for selecting, installing, composing, or customizing shadcn/ui, registry
   items, themes, and wrappers in this repo.
 - Use together with `packages/ui/AGENTS.md` and `docs/ai/rules/frontend.md`.
-- Do not use to switch styles, run `shadcn init` / `shadcn create`, or introduce
-  Radix or React Aria. Never run `shadcn init`. Do not switch Core to
+- Do not use to switch styles, run `shadcn init` / `shadcn create`, or switch
+  the component base to Radix or React Aria. Prefer Base UI over Radix; a
+  narrow Radix need goes through review, as `packages/ui/AGENTS.md` says.
+  Never run `shadcn init`. Do not switch Core to
   `base-nova`, `base-luma`, `base-mira`, `base-rhea`, `base-sera`,
   `base-vega`, `base-lyra`, a Radix-based style, or a React Aria-based style.
 
@@ -25,7 +27,8 @@ before running `bun run skills:sync`.
    `tailwind.baseColor: "zinc"`, `tailwind.cssVariables: true`.
 2. Run `bunx shadcn@latest info --json` from `packages/ui` (never from an app).
 3. Search existing `@asym/ui` components before adding anything new.
-4. For registry or generated components, inspect CLI output, adapt to Maia, and
+4. For registry or generated components, inspect CLI output and its actual
+   dependencies (take the Base UI build, not Radix), adapt to Maia, and
    review the full diff. Never `--overwrite` without reviewing customizations.
 5. Use Base UI `render` (not Radix `asChild`). Prefer semantic tokens over
    literal `zinc-*` or hardcoded colors.
@@ -41,7 +44,8 @@ before running `bun run skills:sync`.
 - [ ] Exact `base-maia` / Zinc / CSS variables remain unchanged
 - [ ] Shared ownership stays in `packages/ui`
 - [ ] Registry output adapted to Core tokens, radii, and primitives
-- [ ] No `shadcn init`, preset-switch, Radix, or React Aria
+- [ ] No `shadcn init`, preset-switch or React Aria base, and no new Radix
+      dependency without a reviewed need
 - [ ] Overlay reconciled before `bun run skills:sync`
 
 # shadcn/ui in Core
@@ -54,7 +58,7 @@ Use this skill whenever selecting, installing, composing, or customizing shadcn/
 - **Where components live:** shadcn components are copied into `packages/ui/components/shadcn/` (the `ui` alias `@/components/shadcn` in `packages/ui/components.json`) and are first-party code. Apps import them as `@asym/ui/components/shadcn/<name>`. Shared wrappers and UI SDK behavior wrappers live in `packages/ui/components/primitives/`.
 - **No app-local forks:** Do not copy a shared component into an app to make a local variation; add a variant, slot, or composition wrapper in `packages/ui`.
 - **Prefer install over reinvention:** Use CLI/registry install paths for base components, then adapt the output to Maia.
-- **Behavior primitives stay intact:** Keep accessibility and keyboard behavior from the Base UI-backed internals (Base UI is the only primitive base; UI SDK fills only interactions no shared component provides, per `packages/ui/AGENTS.md`).
+- **Behavior primitives stay intact:** Keep accessibility and keyboard behavior from the Base UI-backed internals. UI SDK-backed components follow "Choosing a library" in `packages/ui/AGENTS.md`.
 - **Tokens over one-offs:** Use semantic tokens for color, radius, spacing, and typography; avoid hardcoded one-off styles.
 - **Composable APIs:** Keep props minimal, use Base UI's `render` prop (no `asChild`), and avoid boolean-prop explosion.
 

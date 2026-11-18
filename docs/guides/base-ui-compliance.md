@@ -10,9 +10,9 @@ The current index has 37 component pages, six handbook pages, four utilities, an
 
 Each component below has a reviewed interaction model. Using the complete library means preserving applicable behavior and choosing the right primitive for actual workflows; it does not require mounting dormant APIs or adding a second owner for form state, notifications, or specialist editors.
 
-## Complementary behavior library
+## UI SDK alongside Base UI
 
-UI SDK (`@ui-sdk/react` and `@ui-sdk/core`, exact-pinned in `packages/ui`) is the one approved library for interactions that neither Base UI nor an existing shared integration provides. It reaches product code only through Maia-styled wrappers in `packages/ui/components/primitives/`, so each control keeps a single behavior owner. Base UI and the existing specialist integrations (Calendar, Command, Sonner and others) stay the owners wherever they cover the interaction, including controls UI SDK also ships. Adopted wrappers: `rating.tsx` (a whole-star score; Base UI has no rating). The contract is "UI SDK" in `packages/ui/AGENTS.md`.
+UI SDK (`@ui-sdk/react` and `@ui-sdk/core`, exact-pinned in `packages/ui`) is approved alongside Base UI for shared components. It reaches product code only through Maia-styled wrappers in `packages/ui/components/primitives/`, and one library owns each control's internal behavior. It is chosen for a concrete benefit; Base UI and the specialist integrations (Calendar, Command, Sonner and others) are not replaced merely because UI SDK ships an equivalent. Adopted wrappers: `rating.tsx` (a whole-star score; Base UI has no rating). The contract is "Choosing a library" in `packages/ui/AGENTS.md`.
 
 ## Component coverage map
 
