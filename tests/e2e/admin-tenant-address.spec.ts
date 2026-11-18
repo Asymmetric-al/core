@@ -425,6 +425,48 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
 test.describe("production build", () => {
   test.skip(!production, "Measured on a production build only");
 
+  test("a person who signs in through the form reaches Web Studio from Mission Control without an error page", async ({
+    page,
+  }) => {
+    // Council round 1, A6. The form signs in with a soft navigation, so the
+    // document stays the one loaded at /login; Mission Control then fixes the
+    // document's scope, and Web Studio lies outside the tenant segment.
+    const person = fixturePerson("demoAdmin");
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    await page.context().clearCookies();
+    const documents = trackDocumentLoads(page);
+    await page.goto("/login");
+    await page.waitForLoadState("networkidle");
+    await page.getByLabel("Email").fill(`${person.userId}@example.test`);
+    await page.getByLabel("Password", { exact: true }).fill("stub-password");
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL(new RegExp(`/${DEMO}$`));
+    await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+    const signedIn = [...documents];
+
+    await page
+      .getByRole("link", { name: "Web Studio", exact: true })
+      .first()
+      .click();
+    await page.waitForURL(/\/web-studio(\/|$)/);
+    await page.waitForLoadState("networkidle");
+    test.info().annotations.push({
+      type: "documents",
+      description: `after sign-in: ${signedIn.join(" ")}; after Web Studio: ${documents.slice(signedIn.length).join(" ") || "(none: a soft navigation)"}`,
+    });
+    await expect(
+      page.getByRole("heading", { name: "Something went wrong" }),
+    ).toHaveCount(0);
+    expect(await page.title()).not.toBe("Admin error");
+    expect(
+      pageErrors.filter((message) =>
+        message.includes("does not match the document's scope"),
+      ),
+    ).toEqual([]);
+    await expect(page.locator("body")).not.toBeEmpty();
+  });
+
   test("every tenant receives the route's one prerendered shell", async ({
     page,
   }) => {

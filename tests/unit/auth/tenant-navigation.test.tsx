@@ -170,6 +170,32 @@ describe("TenantDocument: the guard", () => {
     expect(reloadDocument).toHaveBeenCalledTimes(1);
   });
 
+  it("renders nothing instead of throwing when the address leaves the segment of a document that fixed its scope, loaded outside it (council round 1, A6)", async () => {
+    const { TenantDocument } = await load();
+    // Signed in through the form: a soft navigation, so the navigation entry
+    // is still /login, outside the tenant segment.
+    loadDocumentAt("/login");
+    const view = render(
+      <TenantDocument scope={scopeA}>
+        <p>page</p>
+      </TenantDocument>,
+    );
+    expect(screen.getByText("page")).toBeTruthy();
+
+    // A hidden (Activity) copy of the signed-in layout renders again with
+    // the address of an outside page, such as Web Studio.
+    nav.pathname = "/web-studio";
+    expect(() =>
+      view.rerender(
+        <TenantDocument scope={scopeA}>
+          <p>page</p>
+        </TenantDocument>,
+      ),
+    ).not.toThrow();
+    expect(screen.queryByText("page")).toBeNull();
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+  });
+
   it("fails loudly when a document is served under one address with another scope", async () => {
     const { TenantDocument } = await load();
     const errors = vi.spyOn(console, "error").mockImplementation(() => {});

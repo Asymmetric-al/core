@@ -3,6 +3,7 @@
 import { reloadDocument } from "@asym/database/document-reload";
 import {
   DocumentScopeProvider,
+  getDocumentScope,
   useDocumentScope,
   type DocumentScope,
 } from "@asym/database/document-scope";
@@ -73,7 +74,11 @@ export function TenantDocument({
   const addressPrefix =
     parseTenantAddress(usePathname() ?? "/")?.prefix ?? null;
   const mismatch = addressPrefix !== scope.addressPrefix;
-  if (mismatch && isAtLoadedAddress(addressPrefix)) {
+  // A server fault only where this document never fixed a scope: once it
+  // has, a mismatch is a navigation, which a hidden (Activity) copy of the
+  // layout sees too, and the effect below reloads (effects do not run while
+  // hidden). Council round 1, A6.
+  if (mismatch && neverFixedScope() && isAtLoadedAddress(addressPrefix)) {
     throw new TenantScopeMismatchError(addressPrefix, scope.addressPrefix);
   }
 
@@ -93,6 +98,11 @@ export function TenantDocument({
       {children}
     </DocumentScopeProvider>
   );
+}
+
+/** Whether this document has fixed no scope yet: always on the server, which keeps none. */
+function neverFixedScope(): boolean {
+  return typeof window === "undefined" || getDocumentScope() === null;
 }
 
 /**
