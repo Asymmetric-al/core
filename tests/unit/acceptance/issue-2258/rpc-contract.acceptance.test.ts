@@ -615,6 +615,18 @@ describe("#2258 pins (criteria 12, 13)", () => {
         46788,
         "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
       ],
+      // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
+      // stack workflow" section gains one bullet, and its count of what it
+      // guards goes from two to three. The workflow now also replays the chain
+      // on plain Postgres as the release job does (`--hosted-defaults`) and
+      // fails unless that replay fingerprints exactly as the stack does, so a
+      // change of Supabase's default privileges fails a pull request rather
+      // than a release. Nothing else in the file changes.
+      // Pinned on that exact reviewed whole file.
+      [
+        47141,
+        "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,
