@@ -89,8 +89,8 @@
       "source": "a5c-ai/babysitter-cursor",
       "sourceType": "github",
       "skillPath": "skills/babysit/SKILL.md",
-      "computedHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
-      "treeHash": "0f7abd7ee020c906b44ab13b3716d96e4e7555f55abc73eada53a94b1843bc13"
+      "computedHash": "d787edc432d7bf2cb6d3b40805b68a9fd62243899c0e356ad8b2cf1f99cf611d",
+      "treeHash": "96d281460ab25a312b71cb08518e597db2d127c56b1cbd5c2c5c21d23b5198e4"
     },
     "bats-testing-patterns": {
       "source": "wshobson/agents",
@@ -272,8 +272,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/deslop/SKILL.md",
-      "computedHash": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
-      "treeHash": "740038c614fc7fdef772806e59f7bd901d7b7184cf0a74022f7de8a6462d35e5"
+      "computedHash": "395e35c4c66c0e83d4e9cd696572df7dca629c870cf03991459befe77cecb457",
+      "treeHash": "44d0dcc53b81335e70b2182467e9b11fdaf566a61c3e8eb7da8cbba72528c862"
     },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
@@ -472,8 +472,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
-      "computedHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "treeHash": "948910bcbc9f39e24e8c85fde2577c94f06a8808eaa361723276afef7ac7d579"
+      "computedHash": "3cedc36803d90b2f0977facb9f6e44b490cd106af2f1e12a99324dc09d90a58f",
+      "treeHash": "4810973a1be3ed61ef3e33ff77eef5d68bfcf58fc9ab6c7be18f169a73ff7db2"
     },
     "maintain-verification-skill": {
       "source": "uzairansaruzi/p3-stack",
@@ -517,8 +517,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
-      "computedHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
-      "treeHash": "6669b419736af5f002039b6d52268a53a97a447c83521cfa1abaae7ff4a65d51"
+      "computedHash": "02a4c8a12ef41c36894635e1ebcc9eca9a979ef5cf4e42277755d6fb6752d320",
+      "treeHash": "f9f027919006b8ed4597243f902b83188d66f1976bde8ca9788e5c24e236e981"
     },
     "next-bundle-optimizer": {
       "source": "vercel/next.js",
@@ -900,8 +900,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/review-and-ship/SKILL.md",
-      "computedHash": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
-      "treeHash": "ba1584f6cae047eb365bf1f5e2855621970de43b8b7efe3964724011c229e5af"
+      "computedHash": "985bc492e0aa356d1ca352f3bb7e2c941647aca89f0538e749226344999b06a8",
+      "treeHash": "2e9c7bf03edfe552abe55cf85ec66e4f7bf8c4361f5c94fc2391ba47ef08be20"
     },
     "review-animations": {
       "source": "emilkowalski/skills",
@@ -914,8 +914,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/run-smoke-tests/SKILL.md",
-      "computedHash": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
-      "treeHash": "3a309ee6563c2792792a9fbd72f0c347c8e8192c9c9d03bf750ece47536772dc"
+      "computedHash": "b515fb0563602965efd04d1a8416df786788bee782b5bf6bb4ae4633fc0971bc",
+      "treeHash": "86d1da59ca63edcaf441e3fae78155f47b715f944ad774abb906e4a7268a76f4"
     },
     "security-audit": {
       "source": "cloudflare/security-audit-skill",

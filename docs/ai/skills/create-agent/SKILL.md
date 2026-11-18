@@ -71,7 +71,7 @@ Write `agent/EVE-BRIEF.md` using the template in [reference.md](reference.md#eve
 
 ### 0. Read eve docs (required before any implementation)
 
-After `eve` is installed, **must** read bundled docs at `node_modules/eve/docs/` before writing agent code:
+**must** read the bundled docs before writing agent code. In Core, eve is installed in `packages/eve-runtime`, so they are at `packages/eve-runtime/node_modules/eve/docs/README.md` (not the repository root). Read `packages/eve-runtime/AGENTS.md` too: product-runtime eve stays disabled by default and gains models, tools or effects only through an accepted OpenSpec change.
 
 1. Introduction and Getting Started
 2. Every surface page listed in the brief (tools, channels, connections, etc.)
@@ -85,7 +85,7 @@ Before scaffolding, inspect the repo:
 
 | Situation                      | Action                                                                                           |
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| No `agent/` directory anywhere | `npx eve@latest init <dir>` (standalone) or `npx eve@latest init .` (add to existing app)        |
+| No `agent/` directory anywhere | From `packages/eve-runtime`: `bunx eve init <dir>`, which runs the installed, pinned eve CLI     |
 | One existing eve agent         | Mirror its project structure (package.json scripts, tsconfig, env pattern)                       |
 | Multiple eve agents (monorepo) | Inventory siblings; mirror naming, workspace deps, and folder conventions from the nearest agent |
 
@@ -96,7 +96,8 @@ Do not assume a specific monorepo shape. Discover conventions from the codebase.
 **No eve project yet:**
 
 ```bash
-npx eve@latest init <agent-dir>
+cd packages/eve-runtime
+bunx eve init <agent-dir>
 ```
 
 `init` installs deps and may start the dev server — run in a controllable process and **stop the server** before editing files.
@@ -104,8 +105,8 @@ npx eve@latest init <agent-dir>
 **Existing project, no `agent/` directory:**
 
 ```bash
-cd <project-root>
-npx eve@latest init .
+cd packages/eve-runtime
+bunx eve init .
 ```
 
 **eve already present:** skip init; ensure `agent/agent.ts` and `agent/instructions.md` exist.
@@ -127,7 +128,7 @@ Minimum bar for every agent:
 - `.env.example` with `AI_GATEWAY_API_KEY=` and every env var for real integrations
 - README with clone-and-run steps
 
-Implement only surfaces listed in the brief. For each surface, read the matching page in `node_modules/eve/docs/` and follow patterns from the nearest existing agent in the repo when one exists.
+Implement only surfaces listed in the brief. For each surface, read the matching page in `packages/eve-runtime/node_modules/eve/docs/` and follow patterns from the nearest existing agent in the repo when one exists.
 
 **Teaching comments (required):**
 
@@ -137,7 +138,7 @@ See [reference.md — Teaching comments](reference.md#teaching-comments) for the
 
 - **File header** on every `agent/**/*.ts` file: which eve surface this file belongs to, how eve discovers/loads it, and what role it plays in a turn.
 - **Section blocks** before each logical unit (imports, schema, handler, export): explain the eve concept (e.g. tool identity from path, `defineAgent` slots, channel request lifecycle).
-- **Inline comments** on eve-specific APIs, config keys, and conventions the user would not know from TypeScript alone — link to the matching doc page under `node_modules/eve/docs/` when helpful.
+- **Inline comments** on eve-specific APIs, config keys, and conventions the user would not know from TypeScript alone — link to the matching doc page under `packages/eve-runtime/node_modules/eve/docs/` when helpful.
 - **`instructions.md`**: short callouts above each major section explaining how system instructions shape model behavior in eve.
 - **README**: a "How this agent is structured" section that maps files → eve surfaces and points to the most-commented files to read first.
 
@@ -156,7 +157,7 @@ Do not strip comments eve `init` generated if they teach a concept. Prefer addin
 If the repo already hosts multiple eve agents under a shared parent directory:
 
 1. Update any existing agent index or catalog the repo maintains — for ship-eve, add a row to both `agents/README.md` and the root `README.md` with **Eve surfaces** and **Eve capabilities demonstrated** (use labels from the capabilities key in `agents/README.md`)
-2. Register the new package in the workspace manifest (`pnpm-workspace.yaml`, `package.json` workspaces, etc.)
+2. Register the new package in the root `package.json` workspaces (Core uses Bun workspaces)
 3. Match package naming and shared config from sibling agents
 
 Skip this step for standalone projects.
@@ -164,12 +165,12 @@ Skip this step for standalone projects.
 ### 6. Verify
 
 ```bash
-pnpm install   # or npm install
-pnpm typecheck # if available
-pnpm build     # eve build
+bun install --frozen-lockfile   # bun install when you changed a manifest
+bun run --cwd packages/eve-runtime typecheck
+bun run --cwd packages/eve-runtime build
 ```
 
-Tell the user how to run `pnpm dev`, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
+Tell the user how to run the agent with `bunx eve` from `packages/eve-runtime`, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
 
 ---
 

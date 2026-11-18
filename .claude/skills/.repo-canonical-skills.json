@@ -251,6 +251,7 @@
     ],
     "babysit": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md",
       "versions.json"
     ],

@@ -108,7 +108,8 @@ my-agent/
 Scaffold:
 
 ```bash
-npx eve@latest init my-agent
+# In Core: run the installed, pinned CLI from packages/eve-runtime
+bunx eve init my-agent
 ```
 
 ### Existing monorepo
@@ -133,10 +134,11 @@ Do not invent a monorepo layout. Copy what the repo already does.
 
 ## Docs discovery
 
-Before implementing any eve surface, read the bundled docs:
+Before implementing any eve surface, read the bundled docs. In Core they are
+under `packages/eve-runtime`, not the repository root:
 
 ```
-node_modules/eve/docs/
+packages/eve-runtime/node_modules/eve/docs/
 ```
 
 **Minimum read list:**

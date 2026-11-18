@@ -22,4 +22,8 @@ Canonical copy in this repo: `docs/ai/skills/migrate-to-shoehorn/` (mirrored to 
 3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
+## Core adaptations
+
+- Install with `bun add --dev --exact`, not npm, and only after the user confirms the dependency decision; Core does not depend on shoehorn today (AL-2715). Reapply this after reconciling an upstream copy.
+
 This skill is **not** updated by `bun run skills:refresh-upstream`.

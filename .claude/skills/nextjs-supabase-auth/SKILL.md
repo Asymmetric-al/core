@@ -1,6 +1,6 @@
 ---
 name: nextjs-supabase-auth
-description: Integrate Supabase Auth with Next.js App Router using middleware, callback handling, protected routes, and server/client client boundaries.
+description: Integrate Supabase Auth with Next.js App Router using each app's proxy.ts (Next.js 16 Proxy, formerly middleware), callback handling, protected routes, and server/client client boundaries.
 metadata:
   owner: "skills-steward"
   last_updated: 2026-02-18
@@ -22,7 +22,7 @@ Use this skill for authentication work in Next.js App Router with Supabase Auth.
 Use this skill when:
 
 - Implementing login/signup/logout and session flows
-- Protecting routes with middleware
+- Protecting routes in `proxy.ts`
 - Handling auth callback exchanges
 - Wiring auth checks in Server Components, Server Actions, and route handlers
 - Debugging cookie/session desync between server and client
