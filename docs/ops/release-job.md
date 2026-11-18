@@ -40,8 +40,9 @@ and none is ever cancelled.
    out of order, and an applied migration that source does not have is drift.
    Either stops the release before anything is migrated or deployed.
 3. **Migrate.** `supabase db push` (pinned CLI), then the two CMS role
-   passwords are set from the job's secrets (plan 7.5: after the role
-   migration), then the Payload migrations run as `cms_owner` through
+   passwords are made those of the job's secrets (plan 7.5: after the role
+   migration; see [The CMS role passwords](#the-cms-role-passwords)), then
+   the Payload migrations run as `cms_owner` through
    `scripts/cms/run-payload-command.mjs`, with the `cms_owner` login in
    `PAYLOAD_MIGRATION_DATABASE_URI`: the only source that runner accepts for a
    hosted database, set in this step and nowhere else. That login uses
@@ -138,7 +139,7 @@ Run from the Actions tab, workflow **Release**, branch `production`:
 | `release`                        | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                         |
 | `set-environment-marker`         | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                             |
 | `first-rebuild`                  | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
-| `set-cms-role-passwords`         | `environment`                                                  | Sets `cms_owner` and `cms_runtime` from the secrets and proves each can log in. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                          |
+| `set-cms-role-passwords`         | `environment`                                                  | Makes `cms_owner` and `cms_runtime` log in with the secrets: a role whose secret already logs in is left alone, and one refused for its password is set and verified within the bound. For rotation and after a restore (plan 8.5)                                                                                                                                                   |
 | `replace-seeded-login-passwords` | `environment`                                                  | Gives every login that still carries a password the repository publishes `RELEASE_SEED_LOGIN_PASSWORD` instead. Resets nothing and changes no other login. The repair after a rebuild that stopped between its seed and that replacement ([below](#if-seeded-logins-keep-a-published-password))                                                                                      |
 
 The marker change and the first rebuild run only after a required reviewer of
@@ -163,6 +164,38 @@ promptly, or reject it, before anything else must release.
 Only SCRAM-SHA-256 verifiers computed on the runner reach the database for
 the CMS roles, and only an Argon2id verifier for the seeded logins; the plain
 passwords never appear in SQL, argv or logs.
+
+### The CMS role passwords
+
+The shared pooler of a hosted project caches each role's credentials for a
+while. A login right after `ALTER ROLE ... PASSWORD` can be refused although
+the new password is right, and repeated refusals trip the pooler's circuit
+breaker, which blocks the client (Supabase, "Supavisor error: password
+authentication failed after rotating database password"; Supavisor blocks a
+client IP for 120 seconds after 10 refused logins in 150 seconds). Setting the
+same passwords again on every release made this happen: the second rebuild of
+the preview project stopped at "password authentication failed for user
+cms_owner", and the same login succeeded 80 seconds later.
+
+So the step first logs in as each role with its secret.
+
+- The login works: the password is already right, and nothing changes. This
+  is every ordinary release.
+- The login is refused for the password ("password authentication failed",
+  or the pooler's "(EAUTHQUERY) unsupported or invalid secret format" for a
+  role made without one): the step sets the password once, from a verifier
+  computed on the runner, then logs in again at once, after 30 seconds and
+  after 90 seconds (`ROLE_LOGIN_VERIFICATION` in
+  `scripts/release/release-database.mjs`). That is a rotation, a restore from
+  backup (plan 8.5) or a role just made. One role costs at most four refused
+  logins, the two roles of a run at most eight.
+- The login is refused for any other reason (no route, TLS, the role's
+  connection limit, the circuit breaker): the step stops at once and changes
+  nothing.
+
+If the new password is still refused after 90 seconds, the step stops and
+says so. Wait two minutes, then dispatch `set-cms-role-passwords`; do not
+retry in a loop.
 
 ### Seeded logins on a hosted rebuild
 
@@ -432,7 +465,8 @@ below follow those decisions.
    ([What the first rebuild does not remove](#what-the-first-rebuild-does-not-remove)).
    Check: the run is green, and its log says the rebuild is complete, the
    seeded logins' password was replaced, the database is marked disposable
-   and both role passwords were verified. Signing in as
+   and each role password was either already right or set and verified.
+   Signing in as
    `demo-owner@givehope.test` with `demo-password` fails, and with the secret
    succeeds.
    Undo: none after the reset (forward only, plan 7.5); before it, cancel
@@ -554,8 +588,17 @@ the replay carries the hosted defaults.
 Two pooler behaviours bear on the CMS roles' limits. The pooler keeps a
 client's server connection open for about two minutes after the client
 leaves, and that connection counts against the role's limit, so `cms_owner`'s
-limit of 2 can be full while no client is connected. In transaction mode a
-client beyond the limit loses its connection rather than waiting.
+limit of 2 can be full while no client is connected. A later client of the
+same role in the same mode reuses that held connection, so the job's CMS
+steps, which run one after another on the session pooler, stay within the
+limit. In transaction mode a client beyond the limit loses its connection
+rather than waiting, and connections held in one mode are not available to
+the other.
+
+The pooler also caches each role's credentials: a login right after a
+password change can be refused (above, "The CMS role passwords"). Seen on the
+second rebuild of the preview project, and the reason the password step now
+changes a password only when its secret is refused.
 
 Not yet run against a hosted service: Vercel creating a staged production
 deployment through the API and promoting it; a gitSource deployment into the
