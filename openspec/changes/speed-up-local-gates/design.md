@@ -138,10 +138,37 @@ all.
   upstream CLI reads through `createUpstreamSourceView` (the root manifest,
   lock and tsconfig files, and the UI package's manifest, `components.json`,
   tsconfig, `components`, `lib`, `hooks` and `styles`), which now uses the
-  same exported lists. An unreadable baseline runs it. It calls the public
-  registry for every component and took 889 s on the loaded host (it passed),
-  so it does not take the shared inputs; it runs whenever `bun.lock` or the
-  root manifest changes because the CLI reads both.
+  same exported lists, and the files the `extends` chain of
+  `packages/ui/tsconfig.json` reaches through the linked `node_modules`
+  (`shadcnTsconfigChain`: today `tooling/typescript-config/package.json`,
+  `library-transitional.json` and `base.json`). An unreadable baseline or
+  an unresolvable chain runs it. It calls the public registry for every
+  component and took 889 s on the loaded host (it passed), so it does not
+  take the shared inputs.
+- **The root manifest and lock select `verify:shadcn-diff` by content.** The
+  CLI reads the root `package.json` only for the package manager
+  (`packageManager`, `devEngines`) and the workspaces, and `bun.lock` only
+  for its existence; read from the installed CLI (`@shadcn/registry`'s
+  package-manager and monorepo detection). Their content matters through what
+  Bun installs for the CLI. So `scripts/verify/ci-preflight-shadcn.mjs`
+  compares each file at the merge base with the working tree: in the
+  manifest, everything except scripts, `lint-staged`, metadata, `engines`
+  and dependency entries other than `shadcn`; in the lock, its top-level
+  settings (overrides, patches, versions), the root `shadcn` entries, the UI
+  workspace's entries, and every package in the CLI's own dependency tree as
+  Bun resolves it (nested key first, then each ancestor, then hoisted). An
+  unknown manifest key, an absent side or unreadable text counts as a change.
+  It lives outside `shadcn-diff.mjs` because the verifier must run on its
+  own without imports (a test copies it alone). Replayed over the 141 of
+  develop's last 300 first-parent commits whose lock already carried
+  `shadcn`, the stage is selected by 32 instead of 48: 14 of 23 lock changes
+  and 6 of 30 root manifest changes still select it. Over all 300 it is 71
+  instead of 97, because older locks without a `shadcn` entry cannot be
+  judged.
+- **An empty change list is uncertain.** The hook checks the checked-out
+  tree, which may not be the pushed ref, so an empty diff runs every scoped
+  stage (formatting has no file to check, and lint and typecheck keep Turbo's
+  own selection).
 - `verify:bun-lock-drift` and `verify:shadcn-config` stay unscoped: each took
   under a second.
 
@@ -173,13 +200,24 @@ stage headers stay, because the factory reads them to name a failed stage.
 - Codex `PostToolUse` (`apply_patch`, also matched by `Edit|Write`): the
   patch text in `tool_input.command`; paths come from its `*** Add File:`,
   `*** Update File:` and `*** Move to:` lines, relative to `cwd`. Headers
-  match only at the start of a line: a content or context line carries a
-  `+`, `-` or space prefix, so one that only reads like a header is not
-  taken as an edited file.
+  follow the grammar Codex's `apply_patch` accepts (openai/codex
+  `codex-rs/apply-patch/src/streaming_parser.rs`, `process_line`, read
+  2026-11-18 at `a05444bb`): nothing before `*** Begin Patch` or after
+  `*** End Patch` counts; after `*** Begin Patch`, `*** Add File` and
+  `*** Delete File` a header is matched on the trimmed line, so it may be
+  indented; inside an `*** Update File` hunk only trailing whitespace is
+  removed, so an indented header there is a context line, and
+  `*** Move to:` counts only before the hunk's first change line. Content
+  and context lines (`+`, `-`, space) are never headers.
 - Cursor `afterFileEdit`: `file_path`.
 
-It acts only on files inside the checkout that holds the script itself
-(`HOOK_ROOT`). Each harness starts the checkout's own copy (Claude Code's
+It acts only on files whose real path is inside the checkout that holds the
+script itself (`HOOK_ROOT`, a real path). Both sides are compared as real
+paths (the nearest existing ancestor's real path for a file not yet on
+disk), so a checkout reached through a symlink or junction is handled, and a
+link inside the checkout that leads elsewhere is outside. The tools get the
+real paths, and the script compares the real path of its own `argv[1]` with
+its module URL before running. Each harness starts the checkout's own copy (Claude Code's
 project directory, the Codex repository top level, Cursor's project root), so
 a session in a worktree runs that worktree's hook and tools; a file in any
 other tree is skipped, even one that holds `tooling/eslint-config/lint.mjs`,
@@ -191,8 +229,12 @@ Prettier ignores.
 For one edit it starts at most two processes, from the checkout root, with
 Node directly (never a `.cmd` shim, so it works on Windows):
 
-1. `node node_modules/prettier/bin/prettier.cjs --ignore-unknown --write`
-   over every handled file;
+1. Prettier (`node node_modules/prettier/bin/prettier.cjs`) with
+   `--ignore-unknown --write --list-different` over every handled file. With
+   `--write`, Prettier 3.9 then prints each file it rewrote and keeps exit 0;
+   the hook reports each one as "reformatted by Prettier; re-read it before
+   the next edit", because the harness still holds the text the agent wrote
+   and a later edit taken from it would not match;
 2. then ESLint `--format json` over the source files among them (under
    `apps/`, `packages/` or `tooling/`, the lint-staged glob), with exactly the
    arguments `tooling/eslint-config/lint.mjs` builds from the repository root
@@ -248,8 +290,14 @@ Every harness kills the hook at 120 s. The hook stops at 100 s
 (`HOOK_BUDGET_MS`): each tool gets only the time left, a tool is not started
 with less than 5 s left, and a tool that runs out is killed. The hook then
 names the files it did not format or lint, says pre-commit and CI still
-check them, and exits 0. An ESLint exit 2 (a configuration or internal
-failure) is reported the same way rather than passing as a clean file.
+check them, and exits 0. A tool that could not start (`ENOENT`, a command
+line too long), overflowed its 16 MB output buffer (`ENOBUFS`) or was
+killed is named the same way. ESLint 10 exits 2 both for a configuration or
+internal failure and, after printing complete results, when an edit leaves a
+suppression count above what it suppresses (review d2b.1, read from
+`lib/cli.js` of the installed 10.13.0). So the hook reports any readable
+results with ESLint's reason on exit 2, and says the files were not linted
+only when no readable result list came back.
 Measured on the loaded Windows host (100% CPU, about 110 node and bun
 processes), lint on: one file 10.8-12.3 s, a five-file Codex patch
 10.9-15.1 s; format only: about 1 s either way. The first version, one
@@ -319,8 +367,11 @@ worktree without `node_modules` or network, the hook finds no tools and exits 0.
 - [`verify:shadcn-diff` has no CI job] → The fast profile runs it whenever a
   push changes one of its derived inputs, and the full profile and the
   production release always run it. It needs the network and took 889 s on
-  the loaded host, and every `bun.lock` change selects it, so such a push is
-  slow and fails offline.
+  the loaded host, so a push that selects it is slow and fails offline. The
+  root manifest and lock now select it only by content (32 of 141 recent
+  develop commits instead of 48). A connect timeout, reset or DNS retry
+  error gets up to three attempts within the existing deadline, and a
+  failure names the component and the CLI's reason in one line.
 - [A traced verifier reads a path its input list misses] → The fast profile
   then skips a check it should have run; the required `integrity` or `lint`
   job still runs it on the pull request. A change to a verifier's own script

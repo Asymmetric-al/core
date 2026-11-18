@@ -41,10 +41,12 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
   formatting of the changed files, lint and typecheck of the affected
   workspaces, and the verifiers whose inputs the push changed (it prints a
   skip line for the others). It runs no unit, acceptance or build stage;
-  required CI runs those on every pull request. Only a push that changes a
-  shadcn upstream-review input needs the network. A push to `production`
-  runs `-- --full`, and
-  `ASYM_PRE_PUSH_PROFILE=full` selects the full profile for any push.
+  required CI runs those on every pull request. It needs the network only
+  for the shadcn upstream review, which runs for a push that changes one of
+  its inputs, an empty or unreadable branch diff, or a review baseline or
+  tsconfig chain that cannot be read. A push to `production` runs
+  `-- --full`, and `ASYM_PRE_PUSH_PROFILE=full` selects the full profile for
+  any push.
 - A failed stage prints the command that re-runs it alone; run that, fix,
   then rerun the whole profile.
 - `docs/ci.md` owns the exact stage order of both profiles and the dated live
@@ -57,10 +59,12 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - Agent harnesses (Claude Code, Codex, Cursor) format and lint each edited file
   through `scripts/agent-hooks/after-edit.mjs`. It applies no ESLint fixes
   (pre-commit does, once the code is complete). In Claude Code and Codex, lint
-  errors and fixable problems come back as hook context; Cursor's edit hook
-  has no channel to the agent, so there they surface at commit. It lints with
-  the root configuration, so a clean hook does not mean `turbo run lint` is
-  clean. `ASYM_EDIT_HOOK=format` skips its lint step and `off` skips it.
+  errors, fixable problems, each file Prettier reformatted (re-read it before
+  the next edit) and any tool that did not run come back as hook context;
+  Cursor's edit hook has no channel to the agent, so there they surface at
+  commit. It lints with the root configuration, so a clean hook does not mean
+  `turbo run lint` is clean. `ASYM_EDIT_HOOK=format` skips its lint step and
+  `off` skips it.
 - If `next build` or `next dev` stops with a Next.js upgrade recommendation,
   rerun the same command once within five minutes, report the recommendation,
   and don't upgrade unasked.

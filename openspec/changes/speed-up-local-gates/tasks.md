@@ -89,6 +89,28 @@
 - [x] 7.7 Run the fast profile on this Windows host and record per-stage
       timings and machine state.
 
+## 8. Final fixes (review round 7, 2026-11-18)
+
+- [x] 8.1 Select `verify:shadcn-diff` for the root `package.json` and
+      `bun.lock` only when what the shadcn CLI resolves can change
+      (`scripts/verify/ci-preflight-shadcn.mjs`), add the `extends` chain
+      of `packages/ui/tsconfig.json` to its derived inputs, and treat an
+      empty change list as uncertain; test first.
+- [x] 8.2 Retry public-registry connect timeouts, `ECONNRESET`,
+      `ETIMEDOUT` and `EAI_AGAIN` within the existing deadline, and print
+      one redacted line naming the component and the CLI's reason; test
+      first.
+- [x] 8.3 Report a skipped `--only` stage as not run and count the fast
+      stages that ran and were skipped; test first.
+- [x] 8.4 Edit hook: report ESLint's results on exit 2, name each file
+      Prettier reformatted, name a tool that did not run, compare real paths,
+      and match Codex's `apply_patch` header grammar; correct the Codex hook
+      description; test first.
+- [x] 8.5 Protect `.codex/config.toml` in the factory scope validator.
+- [x] 8.6 Keep the temp-repository and routing tests free of user git
+      configuration, and derive the CI-coverage test's jobs from `ci-gate`.
+- [ ] 8.7 Run `bun run ci:preflight -- --fast` once on this Windows host.
+
 ## Workflow follow-up
 
 - Archive the change after the pull request merges.

@@ -2,13 +2,15 @@
 
 ## ADDED Requirements
 
-### Requirement: Routine Pushes Run A Fast Deterministic Profile
+### Requirement: Routine Pushes Run A Fast Scoped Profile
 
 A push that does not target `production` and is not selected for the full
-profile SHALL run a fast profile of deterministic checks, scoped to what the
-branch changed. The fast profile MUST NOT run unit, acceptance or build
-stages, which required CI runs on every pull request, and MUST NOT need the
-network unless the push changes an input of the shadcn upstream review.
+profile SHALL run a fast profile of checks scoped to what the branch changed.
+It MUST NOT run unit, acceptance or build stages, which required CI runs on
+every pull request. It MUST NOT need the network except for the shadcn
+upstream review, which runs for a push that changes one of its inputs, an
+empty or unreadable branch diff, or a review baseline or tsconfig chain that
+cannot be read.
 
 #### Scenario: A developer or agent pushes a feature branch
 
@@ -26,6 +28,12 @@ network unless the push changes an input of the shadcn upstream review.
   development base
 - **THEN** it checks formatting of the whole repository and runs every
   verifier instead of skipping them
+
+#### Scenario: The branch diff is empty
+
+- **WHEN** the changed files against the development base are an empty list
+- **THEN** the fast profile treats the change set as uncertain and runs every
+  scoped verifier, the shadcn upstream review included
 
 #### Scenario: The fast profile runs on native Windows
 
@@ -51,9 +59,42 @@ runs, SHALL take its inputs from its own verifier and review baseline.
 
 #### Scenario: A push changes a shared shadcn primitive
 
-- **WHEN** a push changes a file the shadcn upstream review hashes or its
-  review baseline, as the verifier derives them
+- **WHEN** a push changes a file the shadcn upstream review hashes, its
+  review baseline, or a file in the `extends` chain of the UI package's
+  tsconfig, as the verifier derives them
 - **THEN** the fast profile runs the shadcn upstream review
+
+#### Scenario: A push changes the root manifest or lock
+
+- **WHEN** a push changes the root `package.json` or `bun.lock` only in
+  scripts, other dependencies or packages outside the shadcn CLI's own
+  dependency tree
+- **THEN** the shadcn upstream review prints that it was skipped
+- **AND** a change to the `shadcn` entry or its dependency tree, the UI
+  workspace's entries, the package manager, workspaces or resolution
+  settings, or a change that cannot be read, runs it
+
+### Requirement: The Shadcn Upstream Review Rides Out Brief Registry Outages
+
+The shadcn upstream review SHALL retry a public registry read that fails with
+HTTP 502, 503 or 504, a connect timeout, `ECONNRESET`, `ETIMEDOUT` or
+`EAI_AGAIN`, at most three attempts within its existing deadline, and MUST
+NOT accept failed output as coverage. A failed read SHALL print one line
+naming the component and the CLI's own reason, with URL credentials and proxy
+userinfo redacted.
+
+#### Scenario: A registry read times out once
+
+- **WHEN** one read of a component times out while connecting and the next
+  attempt succeeds
+- **THEN** the review continues with the second attempt's output
+
+#### Scenario: The registry stays unreachable
+
+- **WHEN** every attempt of a read fails, or it fails for a reason that is not
+  retried
+- **THEN** the review fails with one line naming the component and the CLI's
+  reason, and prints none of the CLI's other output
 
 ### Requirement: The Full Preflight Stays One Explicit Command
 
@@ -106,7 +147,9 @@ unknown profile selection MUST block the push.
 
 When a push-gate stage fails, the gate SHALL stop and print the stage name,
 the exact command that re-runs that stage alone, and the last lines of its
-output. A passing run SHALL print which profile ran.
+output. A passing run SHALL print which profile ran and, for the fast
+profile, how many stages ran and how many were skipped. A stage selected
+alone that the profile skipped SHALL be reported as not run, never as passed.
 
 #### Scenario: Lint fails during a push
 
@@ -114,6 +157,13 @@ output. A passing run SHALL print which profile ran.
 - **THEN** the final lines of the output name the lint stage, give the
   command that re-runs it, and repeat the end of the lint output
 - **AND** no later stage runs
+
+#### Scenario: A skipped stage is selected alone
+
+- **WHEN** `--fast --only <stage>` names a scoped stage the push does not
+  select
+- **THEN** the output says the stage did not run and gives the command that
+  runs it, and prints no PASS line for it
 
 ### Requirement: Agent Harnesses Format And Lint Each Edited File
 
@@ -164,11 +214,37 @@ pre-commit's lint fix SHALL remain the step that applies those fixes.
   fixable
 - **AND** misordered imports are reported, not reordered
 
+### Requirement: The Edit Hook Reports Every Outcome
+
+The edit hook SHALL name each file the formatter rewrote, so the agent
+re-reads it before its next edit, and SHALL say when a tool could not start,
+overflowed its output or was stopped. It SHALL report the results ESLint
+printed even when ESLint exits 2, and SHALL say files were not linted only
+when no readable results came back.
+
+#### Scenario: The formatter rewrites an edited file
+
+- **WHEN** Prettier changes a file the agent just edited
+- **THEN** the report names that file and says to re-read it before the next
+  edit
+
+#### Scenario: ESLint exits 2 after printing its results
+
+- **WHEN** ESLint prints complete results and exits 2, for example because an
+  edit left a suppression count too high
+- **THEN** the hook reports those results and ESLint's reason
+
+#### Scenario: A tool cannot run
+
+- **WHEN** a tool fails to start, overflows its output buffer or is killed
+- **THEN** the report names the files that tool did not check
+
 ### Requirement: The Edit Hook Stays Inside Its Checkout And Its Time Budget
 
-The edit hook SHALL act only on files inside the checkout that holds it, and
-SHALL stop within a time budget below the harness timeout, naming what it did
-not check and still exiting successfully.
+The edit hook SHALL act only on files whose real path is inside the checkout
+that holds it, comparing real paths on both sides, and SHALL stop within a
+time budget below the harness timeout, naming what it did not check and still
+exiting successfully.
 
 #### Scenario: A multi-file patch outruns the time budget
 
@@ -182,6 +258,13 @@ not check and still exiting successfully.
 - **WHEN** the edited file is outside the checkout that holds the hook, even
   inside another tree with its own lint runner and tools
 - **THEN** the hook runs no tool for it
+
+#### Scenario: A link leads into or out of the checkout
+
+- **WHEN** the hook or the edited file is reached through a symlink or
+  junction
+- **THEN** the hook acts on a file whose real path is in its checkout and
+  runs no tool for one whose real path leaves it
 
 ### Requirement: Next.js App Instructions Require Runtime Verification
 

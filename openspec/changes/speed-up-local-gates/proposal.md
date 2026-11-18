@@ -32,17 +32,19 @@ guide.
 ## What Changes
 
 - **BREAKING (workflow):** a push that does not target `production` runs a
-  fast profile instead of the full preflight. The fast profile is
-  deterministic: the runtime check, Prettier on the files the branch changed,
-  lint and typecheck of the affected workspaces (the same `turbo --affected`
-  selection CI uses), the two verifiers that take under a second, and each
+  fast profile instead of the full preflight. The fast profile runs the
+  runtime check, Prettier on the files the branch changed, lint and typecheck
+  of the affected workspaces (the same `turbo --affected` selection CI
+  uses), the two verifiers that take under a second, and each
   other repository verifier only when the push changes its inputs (the phase
   projection checks, strict OpenSpec validation and delta checks, the data
   boundary, CMS sole-entry and workspace contract checks, and the shadcn
   upstream review). It runs no unit, acceptance or build stage, and leaves
   `skills:verify` and `verify:eslint` to the full profile because they took
-  183 s and 54 s on the loaded Windows host. It needs the network only when a
-  push changes an input of the shadcn upstream review.
+  183 s and 54 s on the loaded Windows host. It needs the network only for
+  the shadcn upstream review, which runs for a push that changes one of its
+  inputs, an empty or unreadable branch diff, or a review baseline or
+  tsconfig chain that cannot be read.
 - `bun run ci:preflight` keeps running the full profile, now with the
   acceptance suite as its own stage. `bun run ci:preflight -- --full` keeps
   its meaning (full profile plus compilation of every app).

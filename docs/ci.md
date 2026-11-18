@@ -117,12 +117,16 @@ production-targeting push always select full mode:
 
 A push that does not target `production` runs the fast profile unless the
 pushing environment sets `ASYM_PRE_PUSH_PROFILE=full`. Any other value of that
-variable blocks the push. The fast profile is deterministic and checks what
-the branch changed against `origin/develop` (working tree included), in the
-full profile's order. Stages marked _scoped_ run only when the push changes
-one of their inputs and otherwise print `==> SKIP <stage> (no change to its
-inputs; …)`; when the branch diff cannot be read, every stage runs on the
-whole repository:
+variable blocks the push. The fast profile checks what the branch changed
+against `origin/develop` (working tree included), in the full profile's
+order. Stages marked _scoped_ run only when the push changes one of their
+inputs and otherwise print `==> SKIP <stage> (no change to its inputs; …)`.
+When the branch diff cannot be read, every stage runs on the whole
+repository; when it is empty, every scoped stage runs. Every stage except
+`verify:shadcn-diff` runs without the network, so the fast profile needs it
+only when that stage runs: for a push that changes one of its inputs, an
+empty or unreadable branch diff, or a review baseline or tsconfig chain that
+cannot be read:
 
 1. `verify:node-version`
 2. Prettier `--check` on the changed files that still exist
@@ -142,9 +146,17 @@ The scoped verifiers' input lists are in `scripts/verify/ci-preflight.mjs`
 inputs such as `bun.lock` and any `package.json`). Each also runs in the
 required `integrity` or `lint` job. `verify:shadcn-diff`, which no CI job
 runs, takes the inputs its own verifier derives (`shadcnDiffInputs`: the
-review baseline, every file it hashes, and what the upstream CLI reads,
-`bun.lock` and the root `package.json` included). It is the one fast stage
-that needs the network, and it can take many minutes.
+review baseline, every file it hashes, what the upstream CLI reads, and the
+`extends` chain of `packages/ui/tsconfig.json`). The root `package.json` and
+`bun.lock` select it only when they change what the CLI resolves: the
+`shadcn` entry and its dependency tree, the UI workspace's entries, the
+package manager, workspaces or resolution settings
+(`scripts/verify/ci-preflight-shadcn.mjs`); a script addition or an
+unrelated lock change does not. It can take many minutes. A registry read
+that fails with a connect timeout, `ECONNRESET`, `ETIMEDOUT` or
+`EAI_AGAIN` gets up to three attempts within the same deadline, and a
+failure prints one line naming the component and the CLI's reason, with
+credentials redacted.
 
 It leaves out the stages that are slow. Required CI covers each of them on
 every pull request:
@@ -161,8 +173,10 @@ A failed stage in either profile ends with `==> FAIL <stage>`, the exact
 command that re-runs that stage alone (`bun run <script>` for a plain script
 stage, `bun run ci:preflight -- [--fast] --only <stage>` for one whose
 command or environment the preflight builds), and the last 40 lines of its
-output, then stops. A pass names the profile; only a complete full profile
-prints `==> PASS ci:preflight`.
+output, then stops. A pass names the profile and, for the fast profile,
+counts the stages that ran and those skipped; `--only` on a stage the
+profile skipped says it did not run. Only a complete full profile prints
+`==> PASS ci:preflight`.
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
