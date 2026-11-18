@@ -128,9 +128,10 @@ const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
  * platform, the request can reach a process that does not know this value:
  * there the marker is deleted as a forgery, the inner path has no tenant
  * prefix, and the proxy lands it with a 307 on the tenant address (or the
- * chooser), so the browser sees a redirect loop instead of this 500. A page still never
- * renders without its tenant, but the failure is not named. A rewrite to
- * another origin never gets this far: the own-origin check refuses it first.
+ * chooser), so the browser sees a redirect loop instead of this 500. A page
+ * still never renders without its tenant, but the failure is not named. A
+ * rewrite to another origin never gets this far: the own-origin check
+ * refuses it first.
  * The hosted proof is a preview deployment where a tenant page answers 200
  * with its scope, no response carries this header, and the `//` form is
  * refused (the hosted smoke suite, `tests/e2e/development-smoke`).
