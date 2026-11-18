@@ -41,6 +41,12 @@ check, and SHALL NOT impose score floors or score targets.
 - **AND** no score is presented as current or passing
 - **AND** required checks are unaffected
 
+#### Scenario: A newer push cancels the scan
+
+- **WHEN** a newer push to a pull request cancels the run that is scanning the earlier head
+- **THEN** the cancelled run publishes neither scores nor an unavailable-evidence statement
+- **AND** the report comment is left for the run of the newer head
+
 ### Requirement: UI Audit Findings Are Triaged By Review
 
 Reported findings SHALL be triaged by a reviewer instead of being recorded in

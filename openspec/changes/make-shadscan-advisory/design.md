@@ -136,9 +136,9 @@ lose floor and classification columns and keep the
 place. The `develop` tracking issue stays, with the same content as the
 comment.
 
-When dependency installation or the audit step fails, the publisher still
-runs with `if: always()` in an explicit unavailable mode. Unavailable mode
-does not load a report and does not require an audit summary file:
+When a setup step, dependency installation or the audit step fails, the
+publisher still runs, in an explicit unavailable mode. Unavailable mode does
+not load a report and does not require an audit summary file:
 
 - It writes the "evidence unavailable" statement, naming the head commit, to
   the job summary.
@@ -148,11 +148,29 @@ does not load a report and does not require an audit summary file:
 
 The job's own red status remains the primary signal. The audit step records
 its outcome and does not use `continue-on-error`, which would let the job
-finish green. The publisher and a final step both use `if: always()`, so a
-failed installation does not skip them. The final step exits non-zero when
-installation or the audit failed. Tests check the final step's condition
-and exit, the job summary, and the replaced marker comment for both
-failures.
+finish green. Both publishers and a final step have conditions that start
+with `!cancelled()`, so a failed setup step or installation does not skip
+them. The final step exits
+non-zero when installation or the audit did not succeed. The unavailable
+statement names the cause: dependency installation failed, a setup step
+failed before installation (installation is then skipped, not failed), or
+the audit produced no valid report. Tests check the final step's condition
+and exit, the job summary, and the replaced marker comment for these
+failures. D8 records what reads the red status.
+
+A cancelled run publishes nothing. `ci.yml` cancels a pull request's
+in-progress run when a newer push arrives. Under `always()`, the first
+implementation of this decision, the cancelled run still published: it
+rewrote the comment as "evidence unavailable", blamed installation or the
+audit, and could land after the newer run's report. `!cancelled()` runs after
+a failure but not after a cancellation, so the newer run owns the comment.
+The 2026-11-18 review of the implementation found this; the condition
+changed before merge.
+
+A job that reaches its own 30-minute limit is cancelled too, and would then
+publish nothing. Installation therefore has a 15-minute step limit, and the
+audit keeps its 10-minute one. A hung step fails inside the job's limit and
+still publishes unavailable evidence.
 
 Pull requests from forks keep the current security model. The
 `pull_request` token is read-only for forks, so the publisher already
@@ -258,6 +276,39 @@ history. The contract section
 `openspec/contracts/ui-quality-audits.md#contract-7aab1c5a8227bf2da9b4`
 also stays as history. Per `openspec/contracts/README.md`, an unreferenced
 section imposes no present behavior.
+
+### D8. A red report job may turn the CI check suite red
+
+`shadscan-report` runs inside the `CI` workflow run. When D2's final step
+fails the job, that run's GitHub Actions check suite concludes `failure`,
+although every required check passed. Branch protection reads required
+checks only, so the merge itself is unaffected. On 2026-11-18 the two
+automations that might read a suite's conclusion were checked:
+
+- **Factory readiness** (`scripts/archon-factory/pack/.shared/readiness.mjs`)
+  evaluates only the checks that branch protection or rulesets mark
+  required (`requiredChecksFromRules`). `shadscan-report` is not required,
+  so a red report job never holds a factory merge.
+- **Eve strict auto-merge** starts on a completed check suite only when its
+  conclusion is `success` (`authorizeEveGithubCheckSuite` in
+  `packages/eve-runtime/src/github/authorize-trigger.ts`, called from
+  `packages/eve-runtime/agent/channels/github.ts`). A red report job would
+  therefore suppress that automatic start for an `eve/issue-*` pull request
+  into `develop`. The feature is documented as inert while its master release
+  switch is off (`docs/guides/operations/eve-strict-auto-merge.md`). A
+  maintainer mention can still request an evaluation, and its merge policy
+  reads required checks only (`packages/api/src/eve/strict-auto-merge/policy.ts`).
+
+The red status stays, as task 2.4 specifies. It fires only when no evidence
+exists: a failed setup, installation or audit, never a score or a finding.
+Nothing that acts today reads the suite's conclusion. **Revisit** this
+decision before the Eve strict auto-merge release switch is turned on: then
+either let the job finish green in unavailable mode or make the check-suite
+trigger ignore non-required checks.
+
+- **Rejected for now: finish green in unavailable mode.** The job summary and
+  comment would still say evidence is unavailable, but the run list would show
+  a passing job for a scan that did not happen.
 
 ## Risks / Trade-offs
 
