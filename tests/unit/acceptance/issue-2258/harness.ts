@@ -41,8 +41,10 @@ export const UNEDITED: Record<string, string> = {
   // #2402 27cd6961 adds the REVOKE ALL ON SCHEMA private expectation.
   "tests/unit/security/authz-definer-execute-grants.test.ts":
     "596a3626eb8f864bd56cb8baf367b8f8f110e73b",
+  // AL-2674 (plan 5.4, NR-13) adds tenant_guard to the expected EXECUTE
+  // grantees of the two authz membership helpers, and nothing else.
   "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
-    "3cb0512009db80f11c5043c63727e601d909ebe0",
+    "d8d167fc3f6a764836d5e7bca8bada29b35be72d",
   "tests/unit/acceptance/issue-2270/harness.ts":
     "e9e7201350e5d1f90f85c266f762d450ca3637d5",
   "tests/unit/acceptance/issue-2270/static.acceptance.test.ts":

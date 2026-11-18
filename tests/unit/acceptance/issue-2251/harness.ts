@@ -188,8 +188,8 @@ const S_PATHS: Record<string, string> = {
 export const S = Object.fromEntries(
   Object.entries(S_PATHS).map(([t, f]) => [t, words(f)]),
 );
+// AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry.
 export const D = words(`
-  backup_notification_queue_orphans_20260214
   contribution_operation_prompt_settings
   contribution_operation_user_preferences crm_table_preference_audit_events
   currency_rate_snapshots donor_merge_audit donor_merge_candidates

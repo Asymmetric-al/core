@@ -117,7 +117,6 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: requireInProtectedDeployments(
       "SUPABASE_SERVICE_ROLE_KEY",
     ),
-    SUPABASE_DB_URL: z.string().url().optional(),
     DEMO_ADMIN_EMAIL: z.string().email().optional(),
     DEMO_MISSIONARY_EMAIL: z.string().email().optional(),
     DEMO_DONOR_EMAIL: z.string().email().optional(),
@@ -300,7 +299,6 @@ export const env = createEnv({
     NEXT_PUBLIC_VERCEL_TARGET_ENV:
       publicVercelClientSignals.NEXT_PUBLIC_VERCEL_TARGET_ENV,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
     DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL,
     DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL,
     DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL,

@@ -163,7 +163,8 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
         expect(existsSync(codePathFile(p)), `${x.table}: ${p}`).toBe(true);
   });
 
-  it("contains the 67 §3 S tables (with a §3 code path) and the 18 D tables, and no F table", () => {
+  // AL-2674 (D09) drops backup_notification_queue_orphans_20260214 with its exception entry: 18 D tables became 17.
+  it("contains the 67 §3 S tables (with a §3 code path) and the 17 D tables, and no F table", () => {
     const by = new Map(exceptions().map((x) => [x.table, x]));
     const wrong: string[] = [];
     for (const [t, files] of Object.entries(S)) {
@@ -178,7 +179,7 @@ describe("#2251 In 2: docs/security/rls-deny-by-default-exceptions.json", () => 
       if (by.get(t)?.outcome !== "deny_by_default")
         wrong.push(`${t}: not deny_by_default`);
     for (const t of F) if (by.has(t)) wrong.push(`${t}: F table listed`);
-    expect(Object.keys(S).length + D.length + F.length).toBe(143);
+    expect(Object.keys(S).length + D.length + F.length).toBe(142);
     expect(wrong).toEqual([]);
   });
 });

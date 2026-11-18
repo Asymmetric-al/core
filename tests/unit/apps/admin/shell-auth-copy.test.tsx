@@ -4,16 +4,16 @@ import { describe, expect, it } from "vitest";
 import ForgotPasswordPage from "../../../../apps/admin/app/(auth)/forgot-password/page";
 
 describe("admin sign-in guidance", () => {
-  it("uses shared auth-adjacent cards and a real sign-in destination", () => {
+  it("offers a self-service reset on the shared auth card", () => {
     const html = renderToStaticMarkup(<ForgotPasswordPage />);
     expect(html).toContain('data-slot="card"');
-    expect(html).toContain(
-      "Ask a Mission Control administrator to reset your access.",
-    );
+    expect(html).toContain("Reset your password");
+    expect(html).toContain("Send reset link");
+    expect(html).not.toContain("not available");
     expect(html).toContain('href="/login"');
     expect(html).toContain("Back to sign in");
   });
-  it("explains invitation-only accounts and retains hidden unavailable links", () => {
+  it("explains invitation-only accounts and links to password reset", () => {
     const source = readFileSync(
       new URL(
         "../../../../apps/admin/app/(auth)/login/page.tsx",
@@ -22,8 +22,9 @@ describe("admin sign-in guidance", () => {
       "utf8",
     );
     expect(source).toContain("Access is by invitation.");
-    expect(source).toContain("or to reset your password.");
-    expect(source).toContain("forgotPasswordHref={null}");
+    expect(source).not.toContain("reset your password");
+    // The default link points at /forgot-password, which now works.
+    expect(source).not.toContain("forgotPasswordHref");
     expect(source).toContain("showRegisterLink={false}");
   });
 });

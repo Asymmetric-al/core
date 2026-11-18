@@ -72,11 +72,11 @@ Every clause in `openspec/contracts/identity-and-access.md#contract-1b5c3c717cb6
 
 Unclassified fields, unknown or dotted field keys and unregistered surfaces MUST be omitted from donor, missionary, public and export projections.
 
-Every clause in `openspec/contracts/identity-and-access.md#contract-ee56b32263df54a7d4e3` MUST apply without exception.
+Every clause in `openspec/contracts/identity-and-access.md#contract-055842524c3df2ad80c0` MUST apply without exception.
 
 #### Scenario: The canonical receipt source is absent
 
-- **GIVEN** the exact reviewed live inventory has no canonical receipt source
+- **GIVEN** the repository classification manifest, checked against the migrated schema, has no canonical receipt source
 - **WHEN** any surface requests a reserved receipt field, including Mission Control
 - **THEN** visibility, editability and exportability remain denied
 - **AND** prototype aliases, permissive stored rows and donation fallbacks cannot enable access

@@ -176,6 +176,43 @@ const CI_BASES = [
     bytes: 39806,
     sha256: "af12ddc582cf7ac044d5c51d796cd5fbad45f3c3a33d08f969514e30c4e623c2",
   },
+  {
+    // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
+    // release workflow, the preview database job and the two new migrate
+    // steps (an Overview paragraph, the production release guard, the migrate
+    // section, a "Release workflow" section and the development checkpoints
+    // line), and its field-policy paragraph describes the classification
+    // manifest that replaced the AL-491 census. Pinned on that exact reviewed
+    // content. Ends before the EOF runner section, which is unchanged.
+    ref: "AL-2674 release workflow",
+    bytes: 43557,
+    sha256: "8f5298b7a83ab59e59771e07259498838e58a19a9daf3df96b584e7f0fd27b62",
+  },
+  {
+    // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
+    // .node-version to 24.22.3, its migrate real-stack bullet describes the
+    // three AL-2674 steps (the program-wide suite glob, the release and CMS
+    // role suites, the Payload qualification), its migrate summary names the
+    // seed-count check and supabase/seed-expectations.json, and its release
+    // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
+    // reviewed content. Ends before the EOF runner section, which is unchanged.
+    ref: "AL-2674 Node 24.22.3 and program steps",
+    bytes: 44468,
+    sha256: "2775f6ef1aea46e8033bd70779eded926b40e8b3098c655cb07d94f19ac3a770",
+  },
+  {
+    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
+    // gains one section, "Local Supabase stack workflow", after the release
+    // workflow section. It documents `.github/workflows/local-supabase.yml`,
+    // which applies the chain and the seed to the real Supabase image and runs
+    // the auth email round trips, a workflow of its own so that ci.yml and
+    // ci-integration.yml do not change. Nothing else in the file changes.
+    // Pinned on that exact reviewed content. Ends before the EOF runner
+    // section, which is unchanged.
+    ref: "AL-2673 local Supabase stack workflow",
+    bytes: 46168,
+    sha256: "5d02d56a1a354e230b91199c0d9c7831d309414e6db6c8b7e75f8ef191a301e6",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

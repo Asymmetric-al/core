@@ -1,172 +1,226 @@
 /**
- * #2254 criterion 9 (spec r1 In 3/In 4): the field-policy census against a
- * fake psql whose database is the spec's oracle (171 live + v1 column + the
- * 10 In 4 rows + #2256's 10 v3 person_id rows), then mutation-proven: one
- * flag, a dropped v2 supplement and edited migration bytes each fail; v1's
- * source binding still bites.
- * Runs on a temp copy of the repo files; git objects come from GIT_DIR.
- * Owned by Acceptance; implementers must not edit.
+ * #2254 criterion 9 (spec r1 In 3/In 4): the field-policy gate against the
+ * spec's oracle database (171 live + v1 column + the 10 In 4 rows + #2256's
+ * 10 v3 person_id rows), then mutation-proven: one flag, the v2 classification
+ * removed and edited migration bytes each fail; v1's source binding still bites.
+ *
+ * Rewritten by AL-2674 (WP1, plan 7.1; audit NR-19). The census's dated
+ * capture of the hosted schema is replaced by the classification manifest
+ * docs/security/field-policies/manifest.json, so the census script and its
+ * supplement chain no longer exist to run. The oracle is unchanged and still
+ * independent of the gate: it is built from the approved AL-491 census, the v1
+ * supplement, the In 4 table and #2256's rows. Each mutation maps to its
+ * manifest equivalent: the v2 artifact's flag becomes the manifest entry's
+ * flag, a dropped v2 supplement becomes the v2 entries removed, and edited
+ * migration bytes fail the manifest's pinned-source check. The gate's
+ * functions are driven directly (no fake psql), on a temp copy of the files
+ * it reads; the real-stack suites run the script itself.
+ *
+ * Amended by AL-2674 council round 1 (F1): a later package may add or drop a
+ * classified column by the field-policy README, so the gate is run on the
+ * columns the manifest and the oracle both still have (`align`). Today they
+ * are the same 176 columns, so nothing is dropped from either side; the
+ * oracle's own 176 columns and 880 rows stay pinned, and every mutation still
+ * fails. A change to an oracle column's classification still fails here.
  */
-import { spawnSync } from "node:child_process";
 import {
   appendFileSync,
-  chmodSync,
   cpSync,
   mkdtempSync,
   readFileSync,
   rmSync,
-  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { FP, MIGRATIONS, NEW_ROWS, ROOT, migrationFile } from "./harness";
 import { NEW_ROWS as V3_ROWS } from "../issue-2256/harness";
-import { FP, MIGRATIONS, NEW_ROWS, ROOT, V2, migrationFile } from "./harness";
+
+type Row = Record<string, unknown>;
+type Manifest = {
+  record_types: Record<string, Record<string, Record<string, unknown>>>;
+};
+type Catalog = {
+  relations: string[];
+  columns: Row[];
+  reserved_present: string[];
+  rows: Row[];
+};
+type Gate = {
+  loadManifest(root?: string): Manifest;
+  manifestProblems(m: Manifest, options?: { root?: string }): string[];
+  catalogProblems(m: Manifest, c: Catalog): string[];
+};
 
 const temps: string[] = [];
+let gate: Gate;
+beforeAll(async () => {
+  gate = (await import(
+    pathToFileURL(path.join(ROOT, "scripts/verify/field-policy-census.mjs"))
+      .href
+  )) as Gate;
+});
 afterAll(() =>
   temps.forEach((d) => rmSync(d, { recursive: true, force: true })),
 );
-const GIT_DIR = spawnSync("git", ["rev-parse", "--absolute-git-dir"], {
-  encoding: "utf8",
-}).stdout.trim();
 const json = (file: string) => JSON.parse(readFileSync(file, "utf8"));
 
-/** Oracle DB: live columns + v1 supplement column + In 4 rows (never read from v2) + #2256 v3 rows (#2256 harness). */
-function oracle() {
+/** Oracle DB: live columns + v1 column + In 4 rows + #2256 v3 rows, with the spec's column shapes. */
+function oracle(): Catalog {
   const census = json(path.join(ROOT, FP, "census-v1.json"));
   const v1 = json(path.join(ROOT, FP, "repository-supplement-v1.json")).column;
-  const cols = [
-    ...census.relations
-      .filter((r: { disposition: string }) => r.disposition === "present")
-      .flatMap((r: { record_type: string; columns: object[] }) =>
-        r.columns.map((c) => ({ recordType: r.record_type, ...c })),
-      ),
-    v1,
-  ];
+  const live = census.relations
+    .filter((r: { disposition: string }) => r.disposition === "present")
+    .flatMap((r: { record_type: string; columns: Row[] }) =>
+      r.columns.map((c) => ({ recordType: r.record_type, ...c })),
+    );
   const rows = [
-    ...cols.flatMap((c) =>
+    ...[...live, v1].flatMap((c: Row) =>
       census.surfaces.map((surface: string) => ({
         record_type: c.recordType,
         field_key: c.name,
         surface,
         tenant_id: null,
-        ...c.policies[surface],
+        ...(c.policies as Record<string, Row>)[surface],
         sensitivity_category: c.category,
       })),
     ),
     ...[...NEW_ROWS, ...V3_ROWS].map((r) => ({ ...r })),
   ];
-  const keys = (rs: { record_type: string; field_key: string }[]) => [
-    ...new Map(
-      rs.map((r) => [
-        `${r.record_type}.${r.field_key}`,
-        { record_type: r.record_type, field_key: r.field_key },
-      ]),
-    ).values(),
+  const column = (
+    record_type: string,
+    field_key: string,
+    type: string,
+    nullable: boolean,
+    generated: string | null = null,
+    defaultValue: string | null = null,
+  ) => ({
+    record_type,
+    field_key,
+    type,
+    nullable,
+    generated,
+    default: defaultValue,
+  });
+  const columns = [
+    ...live.map((c: Row) =>
+      column(
+        String(c.recordType),
+        String(c.name),
+        String(c.type),
+        Boolean(c.nullable),
+      ),
+    ),
+    column(
+      "donations",
+      "stripe_refund_ids",
+      "text[]",
+      false,
+      null,
+      "'{}'::text[]",
+    ),
+    // In 1: the generated normalized email and the nullable verification time.
+    column(
+      "donors",
+      "email_normalized",
+      "text",
+      true,
+      "normalize_email(email)",
+    ),
+    column("donors", "email_verified_at", "timestamp with time zone", true),
+    // #2256: the two inert person_id seams.
+    column("missionaries", "person_id", "uuid", true),
+    column("profiles", "person_id", "uuid", true),
   ];
-  return { rows, schema: keys(rows) };
-}
-
-/** Every {query,result} pair in any supplement artifact answers that exact SQL. */
-function catalogs(dir: string): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  const walk = (v: unknown): void => {
-    if (!v || typeof v !== "object") return;
-    const o = v as Record<string, unknown>;
-    if (typeof o.query === "string" && "result" in o) out[o.query] = o.result;
-    Object.values(o).forEach(walk);
+  return {
+    relations: [...new Set(columns.map((c) => c.record_type))].sort(),
+    columns,
+    reserved_present: [],
+    rows,
   };
-  for (const ref of json(path.join(dir, FP, "census-v1.json"))
-    .repository_supplements ?? [])
-    try {
-      walk(json(path.join(dir, FP, ref.artifact)));
-    } catch {
-      /* missing artifact: the census must fail on its own */
-    }
-  return out;
 }
 
-type Mutate = (dir: string, db: ReturnType<typeof oracle>) => void;
-function runCensus(mutate: Mutate = () => {}) {
-  const dir = mkdtempSync(path.join(os.tmpdir(), "acc-2254-census-"));
+type Mutate = (dir: string, m: Manifest, db: Catalog) => void;
+
+/** Keeps, on both sides, only the columns both the manifest and the oracle classify. */
+function align(m: Manifest, db: Catalog) {
+  const key = (t: unknown, c: unknown) => `${t}.${c}`;
+  const inOracle = new Set(
+    db.columns.map((c) => key(c.record_type, c.field_key)),
+  );
+  for (const [t, columns] of Object.entries(m.record_types)) {
+    for (const c of Object.keys(columns))
+      if (!inOracle.has(key(t, c))) delete columns[c];
+    if (!Object.keys(columns).length) delete m.record_types[t];
+  }
+  const inManifest = new Set(
+    Object.entries(m.record_types).flatMap(([t, columns]) =>
+      Object.keys(columns).map((c) => key(t, c)),
+    ),
+  );
+  db.columns = db.columns.filter((c) =>
+    inManifest.has(key(c.record_type, c.field_key)),
+  );
+  db.rows = db.rows.filter((r) =>
+    inManifest.has(key(r.record_type, r.field_key)),
+  );
+  db.relations = [
+    ...new Set(db.columns.map((c) => String(c.record_type))),
+  ].sort();
+}
+/** Runs the gate's checks on a temp copy of the files it reads. */
+function runGate(mutate: Mutate = () => {}) {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "acc-2254-gate-"));
   temps.push(dir);
-  for (const rel of ["scripts", FP, MIGRATIONS])
+  for (const rel of [FP, MIGRATIONS])
     cpSync(path.join(ROOT, rel), path.join(dir, rel), { recursive: true });
+  const manifest = structuredClone(gate.loadManifest(ROOT));
   const db = oracle();
-  mutate(dir, db);
-  const psql = path.join(dir, "psql.cjs");
-  writeFileSync(
-    psql,
-    `#!/usr/bin/env node
-const data = ${JSON.stringify({ ...db, catalogs: catalogs(dir) })};
-const sql = process.argv[process.argv.indexOf("-c") + 1];
-if (sql in data.catalogs) console.log(JSON.stringify(data.catalogs[sql]));
-else if (sql.includes("public.field_policies")) console.log(JSON.stringify(data.rows));
-else console.log(JSON.stringify(data.schema));
-`,
-  );
-  chmodSync(psql, 0o755);
-  return spawnSync(
-    process.execPath,
-    [path.join(dir, "scripts/verify/field-policy-census.mjs")],
-    {
-      cwd: dir,
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        GIT_DIR,
-        DATABASE_URL: "postgresql://postgres@127.0.0.1:5432/acc_2254",
-        PSQL_BIN: psql,
-      },
-    },
-  );
+  align(manifest, db);
+  mutate(dir, manifest, db);
+  return [
+    ...gate.manifestProblems(manifest, { root: dir }),
+    ...gate.catalogProblems(manifest, db),
+  ];
 }
-let clean: ReturnType<typeof runCensus> | undefined;
-const cleanRun = () => (clean ??= runCensus());
 
-describe("#2254 criterion 9: census", () => {
-  it("passes on the In 4 oracle and reports 171 live / 176 candidate / 880 rows", () => {
-    const r = cleanRun();
-    expect(r.status, r.stderr).toBe(0);
-    expect(r.stdout).toContain("171 exact whole columns");
-    expect(r.stdout).toContain("all 880 database seed rows exactly equal");
-    expect(r.stdout).toContain("exactly 176 candidate columns");
+describe("#2254 criterion 9: field-policy gate", () => {
+  it("passes on the In 4 oracle: 176 columns and 880 rows", () => {
+    const db = oracle();
+    expect(db.columns).toHaveLength(176);
+    expect(db.rows).toHaveLength(880);
+    expect(runGate()).toEqual([]);
   });
 
-  const flip: Mutate = (_d, db) => {
-    const row = db.rows.find(
-      (r) => r.field_key === "email_verified_at" && r.surface === "missionary",
-    )!;
-    row.visible = true;
-  };
-  const v2Ref: Mutate = (dir) => {
-    const file = path.join(dir, FP, "census-v1.json");
-    const census = json(file);
-    census.repository_supplements = census.repository_supplements.filter(
-      (s: { artifact: string }) => s.artifact !== V2,
-    );
-    writeFileSync(file, JSON.stringify(census, null, 2) + "\n");
-  };
-  it.each<[string, Mutate]>([
-    ["one database flag flipped", flip],
+  it.each<[string, Mutate, string]>([
     [
-      "one v2 artifact flag flipped",
-      (dir) => {
-        const file = path.join(dir, FP, V2);
-        writeFileSync(
-          file,
-          readFileSync(file, "utf8").replace(
-            /("exportable"\s*:\s*)false/,
-            "$1true",
-          ),
-        );
+      "one database flag flipped",
+      (_d, _m, db) => {
+        db.rows.find(
+          (r) =>
+            r.field_key === "email_verified_at" && r.surface === "missionary",
+        )!.visible = true;
       },
+      "ROW_DRIFT donors|email_verified_at|missionary|",
     ],
-    ["v2 supplement dropped from census-v1.json", v2Ref],
-    ["v2 supplement artifact deleted", (dir) => rmSync(path.join(dir, FP, V2))],
+    [
+      "one v2 manifest flag flipped",
+      (_d, m) => {
+        m.record_types.donors!.email_normalized!.mission_control = "v-x";
+      },
+      "ROW_DRIFT donors|email_normalized|mission_control|",
+    ],
+    [
+      "the v2 classification removed from the manifest",
+      (_d, m) => {
+        delete m.record_types.donors!.email_normalized;
+        delete m.record_types.donors!.email_verified_at;
+      },
+      "UNCLASSIFIED donors.email_normalized",
+    ],
     [
       "new migration bytes edited (hash mismatch)",
       (dir) =>
@@ -174,6 +228,7 @@ describe("#2254 criterion 9: census", () => {
           path.join(dir, MIGRATIONS, migrationFile()),
           "\n-- edited\n",
         ),
+      `PINNED ${MIGRATIONS}/${migrationFile()} changed`,
     ],
     [
       "v1 source bytes edited (v1 check kept)",
@@ -186,15 +241,28 @@ describe("#2254 criterion 9: census", () => {
           ),
           "\n-- edited\n",
         ),
+      `PINNED ${MIGRATIONS}/20260702090000_donation_stripe_refund_ids.sql changed`,
     ],
     [
       "an extra uncensused donors column",
-      (_d, db) =>
-        db.schema.push({ record_type: "donors", field_key: "uncensused_2254" }),
+      (_d, _m, db) => {
+        db.columns.push({
+          record_type: "donors",
+          field_key: "uncensused_2254",
+          type: "text",
+          nullable: true,
+          generated: null,
+          default: null,
+        });
+      },
+      "UNCLASSIFIED donors.uncensused_2254",
     ],
-  ])("fails when %s", (_name, mutate) => {
-    expect(cleanRun().status, "clean baseline must pass first").toBe(0);
-    const r = runCensus(mutate);
-    expect(r.status).not.toBe(0);
+  ])("fails when %s", (_name, mutate, expected) => {
+    expect(runGate(), "clean baseline must pass first").toEqual([]);
+    const problems = runGate(mutate);
+    expect(
+      problems.some((p) => p.startsWith(expected)),
+      problems.join("\n"),
+    ).toBe(true);
   });
 });

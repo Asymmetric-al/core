@@ -103,8 +103,8 @@ if (smokeEmail && smokePassword) {
   if (error) {
     console.warn(
       `WARN: password sign-in failed for ${smokeEmail}: ${error.message}. ` +
-        `Hosted projects need a matching auth user (run \`bash ./scripts/seed-demo.sh hosted\` after migrations, or set AUTH_SMOKE_EMAIL / AUTH_SMOKE_PASSWORD to a real test user). ` +
-        `Repo seed default is demo-owner@givehope.test / demo-password when seed has been applied.`,
+        `Hosted projects need a matching auth user: set AUTH_SMOKE_EMAIL / AUTH_SMOKE_PASSWORD to a real test user (the hosted seed is retired). ` +
+        `A local stack seeded with \`bun run seed:demo:local\` has demo-owner@givehope.test / demo-password.`,
     );
   } else if (data.session) {
     console.log(

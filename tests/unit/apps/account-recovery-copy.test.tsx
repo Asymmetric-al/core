@@ -8,6 +8,8 @@ vi.mock("@asym/auth/auth-screen", () => ({
 }));
 vi.mock("@asym/env", () => ({ serverEnv: { DEMO_ONLY_LOGIN: false } }));
 
+// eslint-disable-next-line no-restricted-imports -- AL-2673: The admin recovery page is the unit under test.
+import AdminForgotPasswordPage from "../../../apps/admin/app/(auth)/forgot-password/page";
 // eslint-disable-next-line no-restricted-imports -- AL-1931: The donor recovery page is the unit under test.
 import DonorForgotPasswordPage from "../../../apps/donor/app/(auth)/forgot-password/page";
 // eslint-disable-next-line no-restricted-imports -- AL-1931: The missionary login page decides whether to offer registration.
@@ -18,36 +20,23 @@ import { FullLoginCard } from "../../../packages/ui/components/auth/FullLoginCar
 
 afterEach(cleanup);
 
-// Neither app can reset a password by email yet, and neither has a support
-// inbox or phone line. Each recovery page says what the person can do next
-// instead of pointing at a support contact that doesn't exist.
+// Every app resets a password by email through Supabase Auth (WP0b, A09).
+// None has a support inbox or phone line, so no recovery page points at one.
 describe("account recovery", () => {
-  it("tells a missionary who can get them back in", () => {
-    render(<MissionaryForgotPasswordPage />);
+  it.each([
+    ["Mission Control", AdminForgotPasswordPage],
+    ["the donor portal", DonorForgotPasswordPage],
+    ["the missionary portal", MissionaryForgotPasswordPage],
+  ])("lets a person on %s ask for a reset link", (_surface, Page) => {
+    render(<Page />);
     expect(
-      screen.getByRole("heading", { name: "Can’t sign in?" }),
+      screen.getByRole("heading", { name: "Reset your password" }),
     ).toBeTruthy();
+    expect(screen.getByLabelText("Email")).toBeTruthy();
     expect(
-      screen.getByText(
-        /your organization’s administrator manages missionary accounts/i,
-      ),
+      screen.getByRole("button", { name: "Send reset link" }),
     ).toBeTruthy();
-    expect(screen.queryByText(/contact support/i)).toBeNull();
-    expect(
-      screen
-        .getByRole("link", { name: "Back to sign in" })
-        .getAttribute("href"),
-    ).toBe("/login");
-  });
-
-  it("gives a donor steps they can take", () => {
-    render(<DonorForgotPasswordPage />);
-    expect(
-      screen.getByRole("heading", { name: "Can’t sign in?" }),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(/the email address your gift receipts go to/i),
-    ).toBeTruthy();
+    expect(screen.queryByText(/isn’t available|not available/i)).toBeNull();
     expect(screen.queryByText(/contact support/i)).toBeNull();
     expect(
       screen

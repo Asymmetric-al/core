@@ -172,6 +172,10 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "CI runner fallback", hash: "89fce96b9365d5a9" },
     // Hosted-CI amendment: only build/test-unit runs-on become literal ubuntu-latest.
     { ref: "Hosted CI baseline", hash: "cbe3c295f9dd6832" },
+    // Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): only NODE_VERSION
+    // moved from 24.22.1 to 24.22.3 (.node-version). With that line put back,
+    // the fingerprint is the entry above.
+    { ref: "AL-2674 Node 24.22.3", hash: "ab279b66def51683" },
   ] as const;
   const CII_PRINTS = [
     // develop
@@ -214,6 +218,19 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     { ref: "CI runner fallback after #2407a", hash: "d5c4968b54a5018b" },
     // Hosted-CI amendment: only the five heavy jobs' runs-on become literal ubuntu-latest.
     { ref: "Hosted CI baseline after #2407a", hash: "e2884b2dac1415b3" },
+    // Amended by AL-2674 (stage 1 of the AL-2671 program, plan 7.1), the file
+    // stage 1 ends on. From the entry above: NODE_VERSION moved from 24.22.1
+    // to 24.22.3 (.node-version, Payload 4.0.0-beta.9); migrate step 13
+    // ("Verify seed counts") runs scripts/verify/seed-counts.mjs, which reads
+    // the expected counts from supabase/seed-expectations.json, so a seed
+    // change no longer changes this file; step 22 runs the AL-2671 program's
+    // real-stack suites (one glob over issue-2670 to issue-2689), step 23 the
+    // release job's suites with Payload's database-role suite and its URL, and
+    // step 24 the Payload qualification (plan 6.7). Each step is pinned
+    // exactly in tests/unit/helpers/workflow-yaml.ts. Council round 2 (A8d)
+    // removed the two intermediate states of stage 1's integration, which
+    // develop never held.
+    { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

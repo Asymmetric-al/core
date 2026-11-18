@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
+          "sha256": "e033637b946600c7cd20327e119706664c50a62b094aeaa616ebe666e9bd3083"
         }
       ]
     },
@@ -441,7 +441,7 @@
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "19ae9f934e430a1ee9fb539ab1bb5265c4feb79c877f37f88694bc297ef0f730"
+          "sha256": "0b3a95e7ceb21588272cacbd28465dec489395d5185712192a209c18a559277f"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -555,7 +555,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -583,7 +583,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -728,7 +728,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "6b6ed5894850b545afad289c679062f7719c93b0bd0cc1c36353f038906f8850"
+          "sha256": "b68d8fedd76920178f728596df3ff823c2fd2ec44ec734bae94ba288075bad37"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
@@ -757,7 +757,7 @@
         },
         {
           "path": "apps/donor/next.config.ts",
-          "sha256": "c1519f5f84bc3b859169e51e8fb274e3d5286d5f1a99f1a50ed28b3d3911704b"
+          "sha256": "76dbcb5e18e3ed6038cb17d35a1a094a4a0bd8f9676de794d740feee358486e4"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -874,7 +874,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -902,7 +902,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1221,7 +1221,7 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "234b2c633b683948ad9d5f5f284a2994867bb1a1c39fcf718248411e491cfb3e"
+          "sha256": "e3a23019219d23d5baca1759df80550f0ca1565ec3529b3cf631337b91127acf"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
@@ -1287,7 +1287,7 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "234b2c633b683948ad9d5f5f284a2994867bb1a1c39fcf718248411e491cfb3e"
+          "sha256": "e3a23019219d23d5baca1759df80550f0ca1565ec3529b3cf631337b91127acf"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
@@ -1516,7 +1516,7 @@
         },
         {
           "path": "apps/missionary/next.config.ts",
-          "sha256": "dcbc4acbf0c30e2cb5007160a1f307af1d29aa9632603cc9e65da7e9febbc4ed"
+          "sha256": "b9f50d29662528a9012fa69773315b92244350ef7c45c174ee786536230cd6c7"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -1624,7 +1624,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1652,7 +1652,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1673,7 +1673,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1690,7 +1690,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1707,7 +1707,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1724,7 +1724,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1741,7 +1741,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1758,7 +1758,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1775,7 +1775,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1792,7 +1792,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -1809,7 +1809,7 @@
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "7c93cf9478c94cc1af4b462abc3ab66a6958b1c34374efb1d424566f995b2b0a"
+          "sha256": "b0497821fbc069a82d10c55a191543c9b84737aab758262696e531b4ded10db6"
         }
       ]
     },
@@ -2439,12 +2439,13 @@
       "project": "packages/ui",
       "rule": "async-action-pending-state",
       "classification": "scanner-limitation",
-      "rationale": "FullLoginCard passes isLoading to AuthButton loading. AuthButton renders a Spinner, disables the Base UI button, and keeps submit controls natively disabled. The actual LoginScreen deferred-submission test verifies duplicate suppression, disabled state, failure recovery and retry; loading-button tests separately verify the shared primitive. This is unit evidence, not a browser run.",
+      "rationale": "The scanner stops at the first auth form whose AuthButton it cannot resolve: now ForgotPasswordScreen, which passes isSubmitting to AuthButton loading exactly as FullLoginCard passes isLoading (ResetPasswordScreen passes isSaving the same way). AuthButton renders a Spinner, disables the Base UI button, and keeps submit controls natively disabled. The password-recovery screen test verifies one request for a double submit and a disabled submit while pending; the LoginScreen deferred-submission test verifies duplicate suppression, disabled state, failure recovery and retry; loading-button tests verify the shared primitive. This is unit evidence, not a browser run.",
       "verificationTests": [
         "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-        "tests/unit/packages/ui/base-ui-loading-button.test.tsx"
+        "tests/unit/packages/ui/base-ui-loading-button.test.tsx",
+        "tests/unit/packages/ui/password-recovery-screens.test.tsx"
       ],
-      "evidenceFingerprint": "fd340f323b85ed2b1e8e6c72fd32a00293e02c08d26e18ce31add77195a4c61f",
+      "evidenceFingerprint": "8ecb7cf96a64682fd347ee245d9d03f6727afb364e73c9e75eb788f701ef83ac",
       "proof": [
         {
           "path": "packages/ui/components/auth/FullLoginCard.tsx",
@@ -2456,11 +2457,23 @@
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
+          "sha256": "30b2641e06ba44f53ab9a55f899eed4b2f4d4cb576bf21cd3d840d3dc8131bb1"
         },
         {
           "path": "tests/unit/packages/ui/base-ui-loading-button.test.tsx",
           "sha256": "e2afa17416abbf5c99e7c3827180db0203817510a327d97a77c8e31e20cca112"
+        },
+        {
+          "path": "packages/ui/components/auth/ForgotPasswordScreen.tsx",
+          "sha256": "c7f667a32f1d54ff5f3c130e66be2900e1e0effbe7a7ed787412742de45daec8"
+        },
+        {
+          "path": "packages/ui/components/auth/ResetPasswordScreen.tsx",
+          "sha256": "8498c9c59ad4fdb8fa96fa37c509e779ed656fba8d9c720d3a2ed4b8cbe7cdc6"
+        },
+        {
+          "path": "tests/unit/packages/ui/password-recovery-screens.test.tsx",
+          "sha256": "6d6774651ccc900d77c606165993749fb144981adc0ab5f37574a52b59e65033"
         }
       ]
     },
@@ -2477,7 +2490,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2494,7 +2507,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2538,7 +2551,7 @@
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
+          "sha256": "30b2641e06ba44f53ab9a55f899eed4b2f4d4cb576bf21cd3d840d3dc8131bb1"
         }
       ]
     },
@@ -2555,7 +2568,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2572,7 +2585,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2671,7 +2684,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2699,7 +2712,7 @@
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
+          "sha256": "30b2641e06ba44f53ab9a55f899eed4b2f4d4cb576bf21cd3d840d3dc8131bb1"
         }
       ]
     },
@@ -2716,7 +2729,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2733,7 +2746,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
+          "sha256": "f31a197eb581f03c74773bf5d469b32186e87151233e0a11d8264ac84ffb900d"
         }
       ]
     },
@@ -2844,7 +2857,7 @@
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
-          "sha256": "2b47af70ec570bc0ef17efd9e8ed08218ced03c1675e14c4ee7377d7f2617183"
+          "sha256": "30b2641e06ba44f53ab9a55f899eed4b2f4d4cb576bf21cd3d840d3dc8131bb1"
         },
         {
           "path": "tests/unit/packages/ui/change-password-form.test.tsx",
