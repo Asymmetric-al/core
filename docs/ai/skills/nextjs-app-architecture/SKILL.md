@@ -113,13 +113,13 @@ Inspect the diff against every invariant — each is checkable by reading the ch
 - [ ] Every component has its real `*Skeleton` in the same file, at the end; no tiny skeleton aliases just to pass props.
 - [ ] Skeleton and content are the same height (measured), section headings sit outside the boundary, and sections that can be empty reserve their space.
 - [ ] Sections below a variable-height section are nested sibling boundaries inside it, not awaited by it and not passed through it as children.
-- [ ] `unstable_prefetch()` / `unstable_navigation()` are awaited in the component before its query call; no wrapper query exists just to hold the gate.
+- [ ] `prefetch()` / `navigation()` are awaited in the component before its query call; no wrapper query exists just to hold the gate.
 - [ ] Every `*-queries.ts` starts with `import 'server-only'`; every `*-actions.ts` with `'use server'`. **(CORE: skip file creation. A new `*-queries.ts` / `*-actions.ts` under `apps/*/features/` means the change is wrong.)**
 - [ ] With `cacheComponents: true`, reusable reads use `'use cache'` / `cacheTag` / `cacheLife`, or `'use cache: private'` / `'use cache: remote'` when appropriate; any dynamic read is intentional and justified.
 - [ ] A personalized shared-cache scope receives trusted, normalized identity values from an uncached feature wrapper; it never reads request APIs or trusts a client-provided identity inside the cache scope.
 - [ ] Reads whose every write calls `updateTag()` use `cacheLife('max')`; a shorter profile is reserved for data that changes outside the app's actions.
 - [ ] Mutations touching cached reads call `updateTag()` / `revalidateTag(..., 'max')` for the matching tags; `refresh()` is not a substitute for tag invalidation.
-- [ ] `prefetch={true}` is reserved for links users predictably follow, or for rows whose per-link prefetch was made cheap by gating the heavy part behind `unstable_navigation()`.
+- [ ] `prefetch={true}` is reserved for links users predictably follow, or for rows whose per-link prefetch was made cheap by gating the heavy part behind `navigation()`.
 - [ ] Action files are named `<folder>-actions.ts`; no entity-owned sub-concept spawned its own folder, and cross-domain product features do not take ownership of entity queries/actions. **(CORE: skip file creation.)**
 - [ ] Features with both server tags and client query keys define them once in a pure `<domain>-cache.ts`; queries, actions, hydration, query options, and hooks import from it. **(CORE: server tags/invalidators stay API-owned; browser keys stay client-owned, and coordination never requires `packages/api` to import an app feature or duplicate server tag strings.)**
 - [ ] Feature-local client-support files sit in the smallest fitting place: query options at the feature root, `use-*` hook wrappers in `hooks/`, leaf components in `components/`, and shared support only after real cross-feature reuse.

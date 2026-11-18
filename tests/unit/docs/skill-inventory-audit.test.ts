@@ -14,8 +14,20 @@ const retainedSnapshots = new Set([
   "better-forms",
   "clean-code",
   "remotion-best-practices",
-  "tailwind-v4-shadcn",
   "pdf",
+]);
+
+// Retired 2026-11-17 (AL-2695). Their upstream deleted them as superseded or
+// personal, or their guidance conflicts with Core's stack. The maintenance
+// log records each source, last hash and replacement.
+const retiredSkillNames = new Set([
+  "design-an-interface",
+  "edit-article",
+  "obsidian-vault",
+  "qa",
+  "request-refactor-plan",
+  "tailwind-v4-shadcn",
+  "ubiquitous-language",
 ]);
 
 // Skills at reviewed baseline c4d36cb029121641b8882237632d0d6da434049e.
@@ -602,7 +614,7 @@ const p3StackSkillNames = [
 ] as const;
 
 const expectedNames = [
-  ...baselineSkillNames,
+  ...baselineSkillNames.filter((name) => !retiredSkillNames.has(name)),
   "security-audit",
   "council",
   // vercel-labs/ui skill bundled with the installed @ui-sdk/core release.
@@ -628,6 +640,25 @@ describe("reviewed installed skill inventory", () => {
         canonical || Object.hasOwn(skills, name) || retainedSnapshots.has(name),
         "unowned installed skill: " + name,
       ).toBe(true);
+    }
+  });
+
+  it("keeps retired skills out of every source, mirror, lock and audit", () => {
+    const { skills } = readLock();
+    const audit = JSON.parse(
+      readFileSync(
+        path.join(repoRoot, "docs/ai/skill-source-audit.json"),
+        "utf8",
+      ),
+    ) as { skills: Array<{ name: string }> };
+    const audited = new Set(audit.skills.map((skill) => skill.name));
+
+    for (const name of retiredSkillNames) {
+      for (const root of ["docs/ai/skills", ...runtimeRoots]) {
+        expect(existsSync(path.join(repoRoot, root, name)), root).toBe(false);
+      }
+      expect(Object.hasOwn(skills, name), name).toBe(false);
+      expect(audited.has(name), name).toBe(false);
     }
   });
 
