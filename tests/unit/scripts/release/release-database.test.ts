@@ -6,6 +6,7 @@ import { resolveCmsMigrationDatabaseUrl } from "../../../../scripts/cms/lib/migr
 import { assertCmsMigrationTarget } from "../../../../scripts/cms/lib/migration-target.mjs";
 import { listSourceMigrations } from "../../../../scripts/release/migration-heads.mjs";
 import {
+  HOSTED_DEFAULT_PRIVILEGES,
   RELEASE_ENVIRONMENTS,
   ROLE_LOGIN_VERIFICATION,
   ReleaseStop,
@@ -26,6 +27,8 @@ const ref = "abcdefghijklmnopqrst";
 const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
 const source = listSourceMigrations({ root: process.cwd() });
 const CA = "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----";
+// The platform's default privileges, read from their one file (WP1.6).
+const DEFAULTS_SQL = readFileSync(HOSTED_DEFAULT_PRIVILEGES, "utf8");
 
 function settings(environment: "production" | "preview" = "production") {
   return readReleaseSettings({
@@ -61,6 +64,7 @@ describe("release settings", () => {
 
 /** A fake target database answering the queries the release steps send. */
 function fakeDatabase(state: {
+  defaultsFail?: string;
   healthFunction?: boolean;
   environment?: string | null;
   supabase?: string[];
@@ -89,6 +93,7 @@ function fakeDatabase(state: {
     publishedLeft: 0,
     publishedLogins: 0,
     replacementFails: undefined as string | undefined,
+    defaultsFail: undefined as string | undefined,
     cmsLogins: [] as string[],
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
@@ -140,12 +145,17 @@ function fakeDatabase(state: {
   );
   const run = vi.fn(
     ({
-      variables,
+      variables = {},
       sql,
     }: {
-      variables: Record<string, string>;
+      databaseUrl?: string;
+      variables?: Record<string, string>;
       sql?: string;
     }) => {
+      if (sql === DEFAULTS_SQL) {
+        events.push("default privileges");
+        if (db.defaultsFail) throw new Error(db.defaultsFail);
+      }
       if ("RELEASE_ROLE_VERIFIER" in variables) {
         events.push("role password");
         const role = /ALTER ROLE (\w+)/.exec(sql ?? "")?.[1];
@@ -374,6 +384,7 @@ describe("release database steps", () => {
       log: silent,
     });
     expect(order).toEqual([
+      "default privileges",
       "db reset",
       "seeded logins",
       "role password",
@@ -381,6 +392,80 @@ describe("release database steps", () => {
       "payload",
     ]);
   });
+
+  // WP1.6, the second rebuild of the preview project: a hosted reset keeps
+  // the default privileges postgres holds in public, so a rebuild started
+  // from the previous chain's end state, not where a fresh project starts.
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild: puts the platform's default privileges back, from their one file, before the reset",
+    async (mode) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+      });
+      const runCommand = vi.fn((command: string, args: string[]) => {
+        if (command === "supabase" && args[0] === "--version")
+          return { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` };
+        if (args.includes("reset")) {
+          fake.events.push("reset");
+          fake.db.environment = "disposable";
+        }
+        return { status: 0 };
+      });
+      await rebuild({
+        settings: settings(mode === "first" ? "production" : "preview"),
+        mode,
+        signoff: "https://github.com/Asymmetric-al/core/issues/1",
+        confirmation: `rebuild ${ref}`,
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+        log: silent,
+      });
+      expect(fake.events.slice(0, 2)).toEqual(["default privileges", "reset"]);
+      const applied = fake.run.mock.calls.filter(
+        ([call]) => call.sql === DEFAULTS_SQL,
+      );
+      expect(applied).toHaveLength(1);
+      expect(applied[0]![0]).toMatchObject({ databaseUrl });
+    },
+  );
+
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild: stops, and resets nothing, when the default privileges cannot be put back",
+    async (mode) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+        defaultsFail: "permission denied for schema public",
+      });
+      const runCommand = vi.fn((command: string, args: string[]) =>
+        command === "supabase" && args[0] === "--version"
+          ? { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` }
+          : { status: 0 },
+      );
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        }),
+      ).rejects.toThrow(
+        /default privileges could not be put back.*permission denied for schema public.*nothing was reset/s,
+      );
+      expect(
+        runCommand.mock.calls.some(([, args]) => args.includes("reset")),
+      ).toBe(false);
+      expect(fake.events).toEqual(["default privileges"]);
+    },
+  );
 
   // Council round 2, A5 (record D-24): a hosted database never carries a
   // password published in the repository.
@@ -407,6 +492,7 @@ describe("release database steps", () => {
           }),
         ).rejects.toThrow(/RELEASE_SEED_LOGIN_PASSWORD .*nothing was reset/);
         expect(runCommand).not.toHaveBeenCalled();
+        expect(fake.run).not.toHaveBeenCalled();
       }
     },
   );
@@ -460,7 +546,9 @@ describe("release database steps", () => {
       }),
     ).rejects.toThrow(/still carry a password published in the repository/);
     expect(runCommand).toHaveBeenCalledTimes(1);
-    expect(fake.run).not.toHaveBeenCalled();
+    expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
+      DEFAULTS_SQL,
+    ]);
   });
 
   // Council round 3, lens 2 I2: a rebuild that fails between its seed and the
@@ -497,9 +585,11 @@ describe("release database steps", () => {
           log: silent,
         }),
       ).rejects.toThrow(/reset.* failed \(exit 1\)/);
-      expect(fake.events).toEqual(["seeded logins"]);
+      expect(fake.events).toEqual(["default privileges", "seeded logins"]);
       expect(fake.db.publishedLogins).toBe(0);
-      expect(fake.run).not.toHaveBeenCalled();
+      expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
+        DEFAULTS_SQL,
+      ]);
     },
   );
 
@@ -531,7 +621,9 @@ describe("release database steps", () => {
         );
         if (resetStatus)
           await expect(failure).rejects.toThrow(/The reset failed/);
-        expect(fake.run).not.toHaveBeenCalled();
+        expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
+          DEFAULTS_SQL,
+        ]);
       }
     },
   );
@@ -713,7 +805,9 @@ describe("release database steps", () => {
         }),
       ).rejects.toThrow(/not marked disposable after the migrations/);
       expect(commands).toHaveLength(1);
-      expect(fake.run).not.toHaveBeenCalled();
+      expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
+        DEFAULTS_SQL,
+      ]);
     }
   });
 
@@ -821,6 +915,28 @@ describe("release database steps", () => {
       "--yes",
     ]);
     expect(calls[1]).toEqual(["bun", "run", "cms:migrate"]);
+  });
+
+  // WP1.6: only the two rebuild operations put the platform's defaults
+  // back; a release that migrates in place keeps the chain's own.
+  it("leaves default privileges alone when it migrates", () => {
+    const fake = fakeDatabase({ cmsLogins: ["cms_owner", "cms_runtime"] });
+    const runCommand = vi.fn((_command: string, _args: string[]) => ({
+      status: 0,
+    }));
+    migrate({
+      settings: settings(),
+      env: passwords,
+      query: fake.query,
+      run: fake.run,
+      runCommand,
+      log: silent,
+    });
+    expect(fake.events).not.toContain("default privileges");
+    for (const [call] of fake.run.mock.calls)
+      expect(call.sql ?? "").not.toMatch(/default privileges/i);
+    for (const [, args] of runCommand.mock.calls)
+      expect(args.join(" ")).not.toContain(HOSTED_DEFAULT_PRIVILEGES);
   });
 
   // Council round 2, A6a and A6b.

@@ -559,8 +559,10 @@ export function migrate({
   preflight({ settings, root, query, log });
   supabaseCli(runCommand, "Supabase migrations", ["db", "push"], settings);
   // Plan 7.5: after the role migration, before Payload logs in as cms_owner.
-  // Every release sets them, so a restore (whose backup drops custom role
-  // passwords, plan 8.5) is repaired by the next release too.
+  // Every release makes the secrets log in, so a restore (whose backup drops
+  // custom role passwords, plan 8.5) is repaired by the next release too.
+  // Default privileges stay as the chain left them: only a rebuild, which
+  // resets, puts the platform's back.
   setCmsRolePasswords({ settings, env, query, run, log });
   payloadMigrate({ settings, runCommand });
   const { checks } = checkLedgers({
@@ -693,6 +695,51 @@ SELECT ${RELEASE_DATABASE_CONTRACT.advanceMarkerFunction}(:'marker');`,
   log(`Environment marker of ${settings.projectRef}: ${current} -> ${marker}.`);
 }
 
+/**
+ * The platform's default privileges for `postgres` in `public`: the one file
+ * the replay applies before the chain (scripts/verify/supabase-migrations.mjs
+ * --hosted-defaults) and a rebuild applies before its reset.
+ */
+export const HOSTED_DEFAULT_PRIVILEGES =
+  "scripts/sql/hosted-default-privileges.sql";
+
+/**
+ * Puts the platform's default privileges back before a rebuild resets the
+ * database. A hosted reset (the pinned CLI's `db reset`) drops the schemas the
+ * chain made and every object in `public`, but not `public` itself, so it
+ * keeps the default privileges `postgres` holds there as the chain left them,
+ * and the chain changes them (stage 1 closes them for anon and authenticated).
+ * Without this, a rebuild of a rebuilt project starts from the chain's end
+ * state rather than where a fresh project starts: the functions made before
+ * that change lack the grants a fresh project gives them, and the fingerprint
+ * gate stops the release (WP1.6, the second rebuild of the preview project).
+ * Every statement of the file runs as the release login, `postgres`: the
+ * defaults are its own, and as the database's owner it may grant on `public`.
+ * Only the two rebuilds call this; `migrate` never resets, so it keeps the
+ * chain's own defaults.
+ */
+export function restoreHostedDefaultPrivileges({
+  settings,
+  root = repoRoot,
+  run = runPsql,
+  log = console.log,
+}) {
+  try {
+    run({
+      databaseUrl: settings.databaseUrl,
+      sql: readFileSync(path.join(root, HOSTED_DEFAULT_PRIVILEGES), "utf8"),
+      label: "put back the platform's default privileges",
+    });
+  } catch (error) {
+    stop(
+      `The platform's default privileges could not be put back (${error.message}); nothing was reset.`,
+    );
+  }
+  log(
+    `Put back the platform's default privileges in public (${HOSTED_DEFAULT_PRIVILEGES}).`,
+  );
+}
+
 const CENSUS_SIGNOFF =
   /^https:\/\/github\.com\/Asymmetric-al\/core\/(issues|pull)\/\d+(#issuecomment-\d+)?$/;
 const EMPTY_SQL = `SELECT json_build_object(
@@ -702,9 +749,9 @@ const EMPTY_SQL = `SELECT json_build_object(
 )::text;`;
 
 /**
- * Rebuilds a database from source: drop what migrations made, apply every
- * migration, seed, give the seeded logins the release environment's password,
- * then Payload migrations. The gates and the heads follow as the release's
+ * Rebuilds a database from source: put the platform's default privileges
+ * back, drop what migrations made, apply every migration, seed, give the
+ * seeded logins the release environment's password, then Payload migrations. The gates and the heads follow as the release's
  * next steps.
  *
  * - mode "first": the one-off first rebuild of a database with no marker
@@ -788,6 +835,9 @@ export async function rebuild({
   log(
     `Rebuilding ${settings.projectRef} from source (${mode}${mode === "first" ? `, sign-off ${signoff}` : ""}).`,
   );
+  // Before the reset, which keeps them: the rebuild starts where a fresh
+  // project starts, as CI's replay does.
+  restoreHostedDefaultPrivileges({ settings, run, log });
   let resetFailure = null;
   try {
     if (mode === "first") {

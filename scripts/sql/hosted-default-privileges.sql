@@ -9,8 +9,16 @@
 -- The one copy in the repository. Read by:
 --   - scripts/verify/supabase-migrations.mjs --hosted-defaults, the replay of
 --     the release job, of the preview-database job and of a direct run;
+--   - scripts/release/release-database.mjs, whose two rebuilds put these
+--     defaults back before the reset: a hosted reset keeps public, and with it
+--     the default privileges the chain left there, so without them a rebuild
+--     of a rebuilt project would not start where a fresh one starts (the
+--     second rebuild of the preview project, same report);
 --   - tests/unit/acceptance/issue-2674/privileges-harness.ts, the real-stack
 --     replay "as on a hosted project".
+-- On a hosted project every statement runs as `postgres`, the chain's own
+-- role: the three defaults are its own, and it owns the database, so it may
+-- grant on public (owned by pg_database_owner).
 -- The Local Supabase Stack workflow compares a replay made with this file
 -- against Supabase's own image, so a change of the platform's defaults fails
 -- CI rather than a release.

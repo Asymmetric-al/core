@@ -1,13 +1,17 @@
 // WP1.6's first hosted run: hosted Supabase gives `postgres` default
 // privileges in `public` before any migration runs, and a replay without them
 // never fingerprints equal to a hosted database (docs/audits/
-// core-crm-cms-database-proofs/wp16-hosted-proofs.md, section 5). The
-// statements live in one file, which every replay and the real-stack
-// privileges harness read, so the release job and the harness cannot drift.
+// core-crm-cms-database-proofs/wp16-hosted-proofs.md, section 5). A hosted
+// reset keeps them as the chain left them, so the release job's rebuild puts
+// them back before it resets (the second rebuild of the preview project). The
+// statements live in one file, which every replay, the rebuild and the
+// real-stack privileges harness read, so none of them can drift.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
+
+import { HOSTED_DEFAULT_PRIVILEGES } from "../../../../scripts/release/release-database.mjs";
 
 const FILE = "scripts/sql/hosted-default-privileges.sql";
 const KINDS = ["tables", "sequences", "functions"];
@@ -25,10 +29,11 @@ describe("hosted Supabase default privileges (one source)", () => {
     );
   });
 
-  it("is read by the replay script and by the privileges harness", () => {
+  it("is read by the replay script, the release job's rebuild and the privileges harness", () => {
     expect(
       readFileSync("scripts/verify/supabase-migrations.mjs", "utf8"),
     ).toContain(FILE);
+    expect(HOSTED_DEFAULT_PRIVILEGES).toBe(FILE);
     expect(
       readFileSync(
         "tests/unit/acceptance/issue-2674/privileges-harness.ts",
