@@ -1,16 +1,19 @@
 /**
  * Structural guard: a required status check must not be able to pass while
- * the work it stands for failed. Pure over parsed workflow documents so it can
- * be exercised against fixtures and against the real workflows.
+ * the work it stands for failed. It reads parsed workflow documents, so it can
+ * be exercised against fixtures and against the real workflows; the one thing
+ * it runs is `e2e-smoke-gate`'s shell script, under bash, once per outcome of
+ * the jobs it gates.
  *
- * It is a heuristic: it reads run scripts as text and evaluates conditions
- * only for the events in {@link EVENT_SCENARIOS}. The exact step pins in
+ * It is a heuristic: it reads other run scripts as text and evaluates
+ * conditions only for the events in {@link EVENT_SCENARIOS}. The exact step pins in
  * `workflow-yaml.ts` (`PINNED_STEP_BODIES`, `PINNED_JOB_IFS`) remain the
  * backstop for the `migrate` job.
  */
 import {
   EVENT_SCENARIOS,
   evaluateIfCondition,
+  gateEnforcementProblems,
   ifExpression,
   isAlwaysExpression,
   jobCallsReusableWorkflow,
@@ -45,6 +48,15 @@ type Gate = {
   gates: "every-other-job" | readonly string[];
   /** Jobs of the workflow that are advisory by design and may stay ungated. */
   advisory?: readonly string[];
+  /**
+   * Run the gate's script for each outcome of the jobs it gates
+   * ({@link gateEnforcementProblems}): it must pass when they all succeeded
+   * and fail when any one failed, was cancelled or was skipped. A result read
+   * only in a log line does not count. `ci-gate` is not run here: its policy
+   * script allows planned skips, and issue-2153 and the ci-build-policy tests
+   * run it.
+   */
+  failsUnlessAllSucceed?: true;
 };
 
 /** Gate jobs and the jobs each one exists to gate. */
@@ -57,6 +69,7 @@ export const GATES: Readonly<Record<string, Gate>> = {
   "e2e-smoke-gate": {
     workflow: CII,
     gates: ["migrate", "smoke", "test-e2e-smoke"],
+    failsUnlessAllSucceed: true,
   },
 };
 
@@ -130,11 +143,15 @@ function blockingProblems(
   return problems;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 /** Same-repo events whose results branch protection on `develop` reads. */
 const DEVELOP_EVENTS: readonly EventScenario[] = EVENT_SCENARIOS.filter(
   (scenario) => {
     if (scenario.fork) return false;
-    const github = scenario.github as Record<string, unknown>;
+    const github = scenario.github;
+    if (!isRecord(github)) return false;
     const ref = String(github.ref ?? "");
     switch (github.event_name) {
       case "pull_request":
@@ -171,8 +188,9 @@ function skipProblems(file: string, id: string, job: WorkflowJob): string[] {
         scenarioContext(scenario, healthyNeeds(job)),
       );
     } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
       return [
-        `${file} ${id}: job if cannot be shown to run on develop (${(error as Error).message})`,
+        `${file} ${id}: job if cannot be shown to run on develop (${reason})`,
       ];
     }
     if (!runs) {
@@ -210,14 +228,25 @@ const NO_OP = new Set(["true", ":", "/bin/true", "/usr/bin/true"]);
 /** Commands that only report, then exit 0. */
 const MESSAGE = new Set(["echo", "printf", "/bin/echo", "/usr/bin/echo"]);
 
-const isNoOp = (words: readonly string[]): boolean =>
-  NO_OP.has(words[0]!) ||
-  ((words[0] === "exit" || words[0] === "return") && words[1] === "0");
+const isExit = (words: readonly string[]): boolean =>
+  words[0] === "exit" || words[0] === "return";
 
-/** `exit` or `return` with no status or a non-zero one, or `false`. */
-const fails = (words: readonly string[]): boolean =>
-  ((words[0] === "exit" || words[0] === "return") && words[1] !== "0") ||
-  ["false", "/bin/false", "/usr/bin/false"].includes(words[0]!);
+const isNoOp = (words: readonly string[]): boolean =>
+  NO_OP.has(words[0]!) || (isExit(words) && words[1] === "0");
+
+/**
+ * A `{ }` or `( )` fallback group that fails: it runs `false`, or `exit` or
+ * `return` with a status other than 0. A bare `exit` returns the status of
+ * the command before it, so it fails only as the group's first command,
+ * where that is the command that failed.
+ */
+const groupFails = (commands: readonly string[][]): boolean =>
+  commands.some(
+    (words, i) =>
+      (isExit(words) && words[1] !== undefined && words[1] !== "0") ||
+      (isExit(words) && words[1] === undefined && i === 0) ||
+      ["false", "/bin/false", "/usr/bin/false"].includes(words[0]!),
+  );
 
 /** `set +e`, `set +ex`, `set +o errexit`: later failures stop failing the step. */
 const disablesErrexit = (words: readonly string[]): boolean =>
@@ -338,7 +367,7 @@ export function swallowedFailures(script: string): string[] {
         next.kind === "cmd"
           ? isNoOp(next.words) || MESSAGE.has(next.words[0]!)
           : (next.value === "{" || next.value === "(") &&
-            !groupCommands(tokens, j).some(fails);
+            !groupFails(groupCommands(tokens, j));
       if (swallowed) found.add(lineAt(token.at));
     } else if (token.value === ";") {
       const next = tokens[i + 1];
@@ -364,12 +393,25 @@ function gateProblems(
   }
   const needs = new Set(needsList(job));
   const text = stringsOf(job.steps).join("\n");
-  for (const id of gatedJobs(gate, gateId, jobs)) {
+  const gated = gatedJobs(gate, gateId, jobs);
+  for (const id of gated) {
     if (!needs.has(id)) {
       problems.push(`${at}: ${gateId} does not need ${id}`);
     } else if (!readsResult(text, id)) {
       problems.push(`${at}: ${gateId} never reads needs.${id}.result`);
     }
+  }
+  // Run the script only once its structure is sound (a job-level
+  // continue-on-error is reported by blockingProblems), so each defect is
+  // reported once. Each problem is reported once for all develop events.
+  if (
+    gate.failsUnlessAllSucceed &&
+    problems.length === 0 &&
+    isFalseOrUnset(job["continue-on-error"])
+  ) {
+    const ran = gateEnforcementProblems(job, gated, DEVELOP_EVENTS);
+    const outcomes = ran.map((p) => p.slice(p.indexOf(": ") + 2));
+    problems.push(...[...new Set(outcomes)].map((p) => `${at}: ${p}`));
   }
   return problems;
 }

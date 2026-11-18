@@ -16,6 +16,7 @@ import {
   loadWorkflowDocument,
   parseWorkflowSource,
   type WorkflowJob,
+  type WorkflowStep,
 } from "../helpers/workflow-yaml";
 
 const CI_FIXTURE = `
@@ -201,6 +202,12 @@ describe("requiredCheckProblems (fixtures)", () => {
       "bun run start ||\n  true",
       "bun run start \\\n  || true",
       "bun run start 2>&1 || true",
+      // #2716 review: a bare exit after a command that succeeded exits 0.
+      "bun run start || { echo failed; exit; }",
+      "bun run start || (echo failed; exit)",
+      // Bash -e does not stop at a failure inside an && list, so a later
+      // `; true` does swallow it.
+      "bun run start && echo started; true",
     ])("a smoke step running %j", (run) => {
       const problems = problemsAfter((w) => {
         jobOf(w, CII, "smoke").steps![0]!.run = run;
@@ -213,6 +220,8 @@ describe("requiredCheckProblems (fixtures)", () => {
     it.each([
       "bun run start || exit 1",
       "bun run start || exit",
+      // A bare exit first in the group still carries the failed status.
+      "bun run start || { exit; }",
       'bun run start || { echo "start failed"; exit 1; }',
       "bun run start || {\n  echo start failed\n  exit 1\n}",
       "bun run start || (echo failed; false)",
@@ -237,14 +246,14 @@ describe("requiredCheckProblems (fixtures)", () => {
   });
 
   describe("a step or a required job can be skipped", () => {
-    it.each<[string, unknown]>([
+    it.each<[string, WorkflowStep["if"]]>([
       ["if: false", false],
       ["if: ${{ false }}", "${{ false }}"],
       ["a condition no modelled event meets", "github.event_name == 'release'"],
       ["!always()", "${{ !always() }}"],
     ])("a real-stack step with %s never runs", (_label, condition) => {
       const problems = problemsAfter((w) => {
-        jobOf(w, CII, "migrate").steps![2]!.if = condition as string;
+        jobOf(w, CII, "migrate").steps![2]!.if = condition;
       });
       expect(problems).toEqual([
         expect.stringMatching(/migrate.*Verify tenant isolation.*never runs/),
@@ -269,14 +278,14 @@ describe("requiredCheckProblems (fixtures)", () => {
       expect(problems).toEqual([]);
     });
 
-    it.each<[string, unknown]>([
+    it.each<[string, WorkflowJob["if"]]>([
       ["if: false", false],
       ["pull requests only", "github.event_name == 'pull_request'"],
       ["no merge queue", "github.event_name != 'merge_group'"],
       ["an unmodelled context", "vars.RUN_MIGRATE == 'true'"],
     ])("a job-level %s on migrate", (_label, condition) => {
       const problems = problemsAfter((w) => {
-        jobOf(w, CII, "migrate").if = condition as string;
+        jobOf(w, CII, "migrate").if = condition;
       });
       expect(problems).toEqual([expect.stringMatching(/migrate.*job if/)]);
     });
@@ -335,6 +344,28 @@ describe("requiredCheckProblems (fixtures)", () => {
       expect(problems).toEqual([
         expect.stringMatching(/ci-gate never reads needs\.lint\.result/),
       ]);
+    });
+
+    // #2716 review: reading a result in a log line does not make the gate
+    // fail. The gate script is run for each outcome of the jobs it gates.
+    it.each([
+      [
+        "only logs the results",
+        'echo "migrate: ${{ needs.migrate.result }}"\necho "smoke: ${{ needs.smoke.result }}"\necho "test-e2e-smoke: ${{ needs[\'test-e2e-smoke\'].result }}"',
+      ],
+      [
+        "tests a result but never exits non-zero",
+        '[ "${{ needs.migrate.result }}" = success ] || exit 1\n[ "${{ needs.smoke.result }}" = success ] || exit 1\nif [ "${{ needs[\'test-e2e-smoke\'].result }}" != success ]; then echo "E2E smoke failed"; fi',
+      ],
+    ])("e2e-smoke-gate %s", (_label, run) => {
+      const problems = problemsAfter((w) => {
+        jobOf(w, CII, "e2e-smoke-gate").steps![0]!.run = run;
+      });
+      expect(problems).toContainEqual(
+        expect.stringMatching(
+          /e2e-smoke-gate: gate passes when test-e2e-smoke failure/,
+        ),
+      );
     });
 
     it("e2e-smoke-gate drops test-e2e-smoke", () => {
