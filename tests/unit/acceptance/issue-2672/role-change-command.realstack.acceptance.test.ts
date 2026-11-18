@@ -102,16 +102,37 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
       );
       await db.query("reset role");
       await db.query("release savepoint call");
-      return { code: null, result: result.rows[0]?.result as unknown };
+      return {
+        code: null,
+        message: null,
+        result: result.rows[0]?.result as unknown,
+      };
     } catch (error) {
       await db.query("rollback to savepoint call");
       await db.query("reset role");
       return {
         code: (error as { code?: string }).code ?? String(error),
+        message: (error as { message?: string }).message ?? null,
         result: null,
       };
     }
   }
+
+  /** Gives `person` another membership, beside the one the new-user trigger made. */
+  async function addMembership(
+    person: string,
+    tenant: string,
+    kind: "staff" | "donor",
+    isActive = true,
+  ) {
+    await db.query(
+      "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_active) values ($1, $2, $3::authz.membership_role, $4::authz.staff_role, $5)",
+      [person, tenant, kind, kind === "staff" ? "member_care" : null, isActive],
+    );
+  }
+
+  const OTHER_ORGANIZATION =
+    "This person also belongs to another organization; their role cannot be changed here";
 
   async function roleOf(profileId: string) {
     const r = await db.query("select role from public.profiles where id = $1", [
@@ -251,6 +272,106 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
         ]);
       }),
   );
+
+  // PR #2714 review (role change across organizations): profiles.role is the
+  // person's one role in every organization (profiles.user_id is unique), and
+  // the restricted-note policies on crm_notes admit profiles.role 'admin' with
+  // no tenant condition beside a staff membership in the note's tenant. So an
+  // administrator of one organization never changes the role of someone with
+  // an active membership in another: that would grant, or take away, access
+  // there.
+  it("(a) refuses to make admin someone who is also staff in another organization", () =>
+    tx(async () => {
+      await addMembership(people.donorA, tenantB, "staff");
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.donorA,
+        tenant: tenantA,
+        role: "admin",
+      });
+      expect(outcome.code).toBe("42501");
+      expect(outcome.message).toBe(OTHER_ORGANIZATION);
+      expect(await roleOf(people.donorA)).toBe("donor");
+      expect(await roleChangeAudits(people.donorA)).toEqual([]);
+    }));
+
+  it("(b) refuses to take admin away from an admin of this organization who is staff in another", () =>
+    tx(async () => {
+      await addMembership(people.secondAdminA, tenantB, "staff");
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.secondAdminA,
+        tenant: tenantA,
+        role: "donor",
+      });
+      expect(outcome.code).toBe("42501");
+      expect(outcome.message).toBe(OTHER_ORGANIZATION);
+      expect(await roleOf(people.secondAdminA)).toBe("admin");
+      expect(await roleChangeAudits(people.secondAdminA)).toEqual([]);
+    }));
+
+  it("refuses for an active membership of any kind in another organization", () =>
+    tx(async () => {
+      await addMembership(people.donorA, tenantB, "donor");
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.donorA,
+        tenant: tenantA,
+        role: "staff",
+      });
+      expect(outcome.code).toBe("42501");
+      expect(outcome.message).toBe(OTHER_ORGANIZATION);
+      expect(await roleOf(people.donorA)).toBe("donor");
+      expect(await roleChangeAudits(people.donorA)).toEqual([]);
+    }));
+
+  it.each(["donor", "missionary", "staff", "admin"])(
+    "(c) still grants %s to someone whose memberships are all in this organization",
+    (role) =>
+      tx(async () => {
+        await addMembership(people.staffA, tenantA, "staff");
+        const tenants = await db.query(
+          "select distinct tenant_id from authz.memberships where user_id = $1",
+          [people.staffA],
+        );
+        expect(tenants.rows).toEqual([{ tenant_id: tenantA }]);
+        const outcome = await changeRole({
+          actor: people.adminA,
+          target: people.staffA,
+          tenant: tenantA,
+          role,
+        });
+        expect(outcome.code).toBeNull();
+        expect(await roleOf(people.staffA)).toBe(role);
+        expect(await roleChangeAudits(people.staffA)).toEqual([
+          {
+            tenant_id: tenantA,
+            user_id: people.adminA,
+            details: { oldRole: "staff", newRole: role },
+          },
+        ]);
+      }),
+  );
+
+  it("(d) does not refuse for an inactive membership in another organization", () =>
+    tx(async () => {
+      await addMembership(people.donorA, tenantB, "staff", false);
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.donorA,
+        tenant: tenantA,
+        role: "admin",
+      });
+      expect(outcome.code).toBeNull();
+      expect(await roleOf(people.donorA)).toBe("admin");
+      expect(await roleChangeAudits(people.donorA)).toEqual([
+        {
+          tenant_id: tenantA,
+          user_id: people.adminA,
+          details: { oldRole: "donor", newRole: "admin" },
+        },
+      ]);
+    }));
 
   it("lets an admin demote another admin of the same tenant", () =>
     tx(async () => {
