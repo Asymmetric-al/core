@@ -1,6 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  analyzeGroupTests,
+  readChangedFiles,
+  unitTestScope,
+} from "./ci-test-scope.mjs";
+
 const vitestCli = fileURLToPath(
   new URL("../../node_modules/vitest/vitest.mjs", import.meta.url),
 );
@@ -70,11 +76,33 @@ function defaultOptionName(argument) {
     : null;
 }
 
+/**
+ * Exclusions for scoped test groups a pull request provably cannot affect
+ * (see ./ci-test-scope.mjs). Any failure runs every test.
+ */
+export function scopedExclusions({
+  env = process.env,
+  readChanges = readChangedFiles,
+  analyze = analyzeGroupTests,
+  log = console.log,
+} = {}) {
+  try {
+    const scope = unitTestScope({ env, readChanges, analyze });
+    for (const line of scope.lines) log(line);
+    return scope.excludeArgs;
+  } catch (error) {
+    log(
+      `unit-test scope: selection failed (${error instanceof Error ? error.message : error}): every test runs`,
+    );
+    return [];
+  }
+}
+
 export function runUnitTests(
   platform = process.platform,
   spawn = spawnSync,
   args = [],
-  _options = {},
+  options = {},
 ) {
   if (platform === "win32") {
     const status = runBunVersionGuard(spawn);
@@ -107,7 +135,12 @@ export function runUnitTests(
     (argument) => !explicit.has(defaultOptionName(argument)),
   );
   return runVitest(
-    [...retained, ...acceptanceExclusion(args), ...args],
+    [
+      ...retained,
+      ...acceptanceExclusion(args),
+      ...scopedExclusions(options),
+      ...args,
+    ],
     spawn,
     platform,
   );

@@ -220,6 +220,63 @@ describe("acceptance tests run once", () => {
   );
 });
 
+describe("input-scoped selection", () => {
+  const pullRequest = {
+    GITHUB_EVENT_NAME: "pull_request",
+    GITHUB_BASE_REF: "develop",
+    CI_BASE_SHA: "a".repeat(40),
+    CI_HEAD_SHA: "b".repeat(40),
+  };
+
+  it("excludes a skipped group and says so in the log", () => {
+    const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
+    const log = vi.fn();
+    runUnitTests("linux", spawn, [], {
+      env: pullRequest,
+      readChanges: () => ["docs/ci.md"],
+      analyze: () => ({
+        scoped: ["tests/unit/scripts/archon-a.test.ts"],
+        unscoped: [],
+      }),
+      log,
+    });
+    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+    expect(args).toContain("tests/unit/scripts/archon-a.test.ts");
+    expect(args).toContain(ACCEPTANCE_EXCLUDE);
+    expect(log.mock.calls.flat().join(" ")).toMatch(
+      /skipping 1 files of the factory group/,
+    );
+  });
+
+  it("runs every test when the selection fails", () => {
+    const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
+    const log = vi.fn();
+    runUnitTests("linux", spawn, [], {
+      env: pullRequest,
+      readChanges: () => {
+        throw new Error("boom");
+      },
+      log,
+    });
+    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+    expect(args).not.toContain("tests/unit/scripts/archon-*.test.ts");
+    expect(log.mock.calls.flat().join(" ")).toMatch(
+      /selection failed.*every test runs/,
+    );
+  });
+
+  it("runs every test on a push to develop", () => {
+    const spawn = vi.fn((_command: string, _args: string[]) => ({ status: 0 }));
+    runUnitTests("linux", spawn, [], {
+      env: { ...pullRequest, GITHUB_EVENT_NAME: "push", GITHUB_BASE_REF: "" },
+      readChanges: () => ["docs/ci.md"],
+      log: () => {},
+    });
+    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+    expect(args).not.toContain("tests/unit/scripts/archon-*.test.ts");
+  });
+});
+
 describe("installed Vitest dispatch", () => {
   it.each(["linux", "win32"])(
     "uses the frozen local CLI without a shell on %s",
