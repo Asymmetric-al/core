@@ -15,7 +15,17 @@ plan by avoiding debug loops on the production branch.
    bun run release:production
    ```
 
-5. After Vercel finishes, verify the exact commit:
+5. The push starts the **Release** workflow (`.github/workflows/release.yml`).
+   Vercel's Git integration deploys nothing. After the owner
+   [switches the job on](./release-job.md#switching-it-on), the run migrates
+   the database, runs the catalog gates and the schema fingerprint, records
+   the expected migration heads, then stages each affected app, checks its
+   `/api/health/migrations` and promotes it without a rebuild. **Until then
+   the run stops at its preflight and nothing deploys:** the database has no
+   release health function and no environment marker, and production keeps
+   serving its current deployment. See
+   [the release job runbook](./release-job.md).
+6. After the Release run is green, verify the exact commit:
 
    ```bash
    bun run verify:vercel-production -- --commit <sha>
@@ -95,7 +105,10 @@ gh label create release-blocker --repo Asymmetric-al/core --color B60205 --descr
   branch protection, GitHub workflows, or release scripts.
 - Run `bun run verify:vercel-build-controls` after changing Vercel monorepo
   build controls, affected-project settings, or app `vercel.json` commands.
-- `vercel promote` is not the build-cost escape hatch for this repo's first
-  release model. Use Git-based releases for now; evaluate
-  `vercel build --prod` plus `vercel deploy --prebuilt --prod` later if Build
-  CPU remains the dominant cost.
+- Production builds run on Vercel from the exact commit, created through the
+  API by the Release workflow and promoted without a rebuild once their health
+  check passes. Only apps whose files changed since the commit each production
+  domain serves are built.
+- Migrations reach a hosted database only through the Release workflow.
+  `bun run db:migrate:hosted` refuses; the workflow is the only holder of
+  migration credentials.

@@ -29,14 +29,18 @@ not call the function) by name, then grant the exact list.
 
 After the migration, on any database whatever its default privileges:
 
-| Function                                               | Security | EXECUTE grantees (exact)                            |
-| ------------------------------------------------------ | -------- | --------------------------------------------------- |
-| `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                 |
-| `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role` |
-| `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role` |
-| `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role` |
+| Function                                               | Security | EXECUTE grantees (exact)                                            |
+| ------------------------------------------------------ | -------- | ------------------------------------------------------------------- |
+| `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role`                 |
+| `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
+| `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 
 - No row has a `PUBLIC` or an `anon` entry.
+- `tenant_guard` gained EXECUTE on the two membership helpers in AL-2674
+  (`20261117034638_command_lane_human_entry_points.sql`), for the human-command
+  preamble. Its other grants are listed in `docs/security/tenant-guard.md`,
+  "Command lane".
 - `service_role` has no EXECUTE on `current_user_memberships`. Both callers
   (`packages/auth/resolve-user-role.ts`, `packages/auth/context.ts`) use the
   request's session client, and for `service_role` `auth.uid()` is NULL.
@@ -209,18 +213,24 @@ need the service-role caller.
 
 ## Same pattern, not fixed here
 
-Under hosted default privileges, 20 of the `public` functions gain EXECUTE for
-`anon` and/or `service_role` because their migrations revoke only `PUBLIC` (or
-`PUBLIC`, `anon` and `authenticated`). They are outside #2270. (#2402 fixed
-the five SECURITY DEFINER CRM table-preference writes; see above.)
+Under hosted default privileges, 20 of the `public` functions gained EXECUTE
+for `anon` and/or `service_role` because their migrations revoked only `PUBLIC`
+(or `PUBLIC`, `anon` and `authenticated`). They were outside #2270. (#2402
+fixed the five SECURITY DEFINER CRM table-preference writes; see above.)
 
-`anon` widened, beyond `current_user_memberships`:
+`anon` widened, beyond `current_user_memberships`, and fixed since by AL-2674:
 
 - SECURITY INVOKER: `apply_crm_view_settings_patch`
   (`20260611160000_crm_table_preferences.sql`), `normalize_currency_code`,
   `normalize_money_currency` (`20261003051630_currency_foundation.sql`).
+  `20261117034926_close_default_privileges_and_demo_grants.sql` revokes
+  `PUBLIC`, `anon` and `authenticated` on all three by name, and asserts that
+  neither `anon` nor `authenticated` can execute them. The same migration
+  removes `postgres`'s default privileges in `public` for `anon` and
+  `authenticated`, so new functions there get no grant to either by default.
 
-`service_role` widened only (low risk, since `service_role` bypasses RLS), from
+`service_role` widened only (low risk, since `service_role` bypasses RLS), and
+still open, from
 `20260718013531_eve_admin_memory_tracer.sql`,
 `20260718015747_eve_approval_budget_policy.sql`,
 `20260718093000_eve_email_discord_notifications.sql` and

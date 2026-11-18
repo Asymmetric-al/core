@@ -23,6 +23,37 @@ const isUrl = (value) => {
 const isPostgresUrl = (value) =>
   value.startsWith("postgres://") || value.startsWith("postgresql://");
 
+/**
+ * A Postgres URL that logs in as `role` on a Supabase project, directly or
+ * through the session pooler. Plan 7.2: no application runtime holds
+ * `postgres`; Payload's runtime logs in as cms_runtime.
+ */
+export const isRoleLoginUrl = (role) => (value) => {
+  if (!isPostgresUrl(value)) return false;
+  try {
+    const user = decodeURIComponent(new URL(value).username);
+    return user === role || user.startsWith(`${role}.`);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Names that carry a Postgres connection string. No application environment
+ * may hold one (plan 7.2 and the WP1 exit): migrations run only in the release
+ * job. The POSTGRES_* names are the ones the Vercel Supabase integration adds.
+ */
+export const FORBIDDEN_RUNTIME_ENV_NAMES = Object.freeze([
+  "SUPABASE_DB_URL",
+  "DATABASE_URL",
+  "DIRECT_URL",
+  "DB_URL",
+  "POSTGRES_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "POSTGRES_PRISMA_URL",
+  "POSTGRES_PASSWORD",
+]);
+
 const required = (key, reason = "must be set", validate = isNonEmpty) => ({
   key,
   reason,
@@ -75,8 +106,11 @@ export const PROJECTS = [
     healthUrl: "https://admin.asymmetric.al/api/health",
     requiredEnv: [
       ...COMMON_REQUIRED_ENV,
-      required("SUPABASE_DB_URL", "must be a Postgres URL", isPostgresUrl),
-      required("PAYLOAD_DATABASE_URI", "must be a Postgres URL", isPostgresUrl),
+      required(
+        "PAYLOAD_DATABASE_URI",
+        "must be a Postgres URL that logs in as cms_runtime",
+        isRoleLoginUrl("cms_runtime"),
+      ),
       required("PAYLOAD_SECRET"),
       required("NEXT_PUBLIC_DONOR_URL", "must be a URL", isUrl),
       required("DONOR_APP_URL", "must be a URL", isUrl),
@@ -303,7 +337,7 @@ export function summarizeProjectReadiness({
   commit,
   health,
   productionBranch,
-  productionBranchEnabled = true,
+  productionGitDeployments = false,
 }) {
   const resolvedEnvValues =
     envValues ??
@@ -338,14 +372,20 @@ export function summarizeProjectReadiness({
     !health?.releaseCommit ||
     health.releaseCommit === "unknown" ||
     health.releaseCommit === commit;
+  // Production deploys only through the release job, so Vercel's Git
+  // integration must not deploy the production branch.
   const productionBranchReady =
-    isNonEmpty(productionBranch) && productionBranchEnabled;
+    isNonEmpty(productionBranch) && productionGitDeployments === false;
+  const forbiddenEnv = FORBIDDEN_RUNTIME_ENV_NAMES.filter((name) =>
+    resolvedEnvKeys.includes(name),
+  ).sort();
 
   return {
     key: project.key,
     project: project.project,
     ready:
       productionBranchReady &&
+      forbiddenEnv.length === 0 &&
       missingEnv.length === 0 &&
       invalidEnv.length === 0 &&
       Boolean(deploymentForCommit) &&
@@ -354,12 +394,13 @@ export function summarizeProjectReadiness({
     missingEnv,
     invalidEnv,
     unreadableEnv,
+    forbiddenEnv,
     deploymentForCommit: deploymentForCommit ?? null,
     latestDeployment,
     health: health ?? null,
     healthReleaseMatches,
     productionBranch: productionBranch ?? "",
-    productionBranchEnabled,
+    productionGitDeployments,
     vercelConfigPath: project.vercelConfigPath,
   };
 }
@@ -400,6 +441,14 @@ export function formatReadinessReport({ commit, reports }) {
       lines.push("");
     }
 
+    if (report.forbiddenEnv.length > 0) {
+      lines.push("Postgres connection strings in the application environment:");
+      for (const key of report.forbiddenEnv) {
+        lines.push(`- \`${key}\` (remove it; only the release job migrates)`);
+      }
+      lines.push("");
+    }
+
     if (report.unreadableEnv.length > 0) {
       lines.push("Present but unreadable by Vercel CLI:");
       for (const key of report.unreadableEnv) {
@@ -410,7 +459,7 @@ export function formatReadinessReport({ commit, reports }) {
 
     if (report.productionBranch) {
       lines.push(
-        `Production branch: \`${report.productionBranch}\` (${report.productionBranchEnabled ? "enabled" : "disabled"} by \`${report.vercelConfigPath}\`)`,
+        `Production branch: \`${report.productionBranch}\`; Git deployments ${report.productionGitDeployments ? "ENABLED" : "disabled"} by \`${report.vercelConfigPath}\` (${report.productionGitDeployments ? "must be off: they bypass the release job" : "the release job deploys"})`,
       );
     } else {
       lines.push("Production branch: unknown");
@@ -692,7 +741,7 @@ async function main() {
         commit,
         health,
         productionBranch: projectDetails.productionBranch,
-        productionBranchEnabled: isBranchDeploymentEnabled(
+        productionGitDeployments: isBranchDeploymentEnabled(
           vercelConfig,
           projectDetails.productionBranch,
         ),

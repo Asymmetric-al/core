@@ -1,11 +1,12 @@
 # Core public Payload v4 compatibility
 
-This reference follows Core's installed public `4.0.0-beta.3` cohort. Recheck it when changing that cohort. The [versioned migration guide](https://github.com/payloadcms/payload/blob/v4.0.0-beta.3/docs/migration-guide/v4.mdx), installed declarations, and actual Core integration take precedence over generic v3 examples.
+This reference follows Core's installed public `4.0.0-beta.9` cohort. Recheck it when changing that cohort, and run `bun run cms:qualify` (see `docs/guides/development/web-studio-runbook.md`). The [versioned migration guide](https://github.com/payloadcms/payload/blob/v4.0.0-beta.9/docs/migration-guide/v4.mdx), installed declarations, and actual Core integration take precedence over generic v3 examples.
 
 ## Requests, access, and relationships
 
 - Create a request with public `createPayloadRequest`; `createLocalReq` was removed. Pass the verified authenticated user and preserve `req` through nested operations and hooks.
 - Local API access is enforced by default (`overrideAccess: false`). Explicitly set `true` only for an owned trusted operation whose input and tenant scope are already governed. Supplying a user does not authorize privileged access.
+- Version reads inherit the collection's `read` access when `readVersions` is not set, including any query constraint it returns. Core's read functions refuse an anonymous caller and constrain the public reader to published documents of its tenant, so anonymous version reads are refused and the public reader sees no draft version; a new public `read` rule must keep that true.
 - Default relationship depth is 1. Use explicit depth where the response contract needs it; `depth: 0` returns relationship IDs. The authenticated preview intentionally uses depth 2.
 - Collection defaults changed. Preserve Core's explicit versions and `authorship: false` settings rather than adding unreviewed history or author relationships.
 - Core's tenant access functions and published-content resolver remain authoritative. A serializer formats already-authorized content; it does not authorize a tenant.

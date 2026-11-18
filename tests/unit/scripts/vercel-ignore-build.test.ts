@@ -160,6 +160,7 @@ describe.each([false, true])(
       const env = { ...fixtureEnv };
       delete env.VERCEL_GIT_PREVIOUS_SHA;
       delete env.CORE_QA_FORCE_BUILD_SHA;
+      delete env.CORE_RELEASE_FORCE_BUILD_SHA;
       delete env.VERCEL_GIT_COMMIT_SHA;
       delete env.VERCEL_ENV;
       if (previous !== undefined) env.VERCEL_GIT_PREVIOUS_SHA = previous;
@@ -307,6 +308,47 @@ describe.each([false, true])(
         "[vercel-ignore] skipping admin: changed files do not affect this Vercel app\n",
       );
     });
+    it.each(appNames)(
+      "builds %s when the release job's marker matches the production provider SHA and Git HEAD",
+      (app) => {
+        const head = git("rev-parse", "HEAD");
+        const result = check(
+          product,
+          {
+            VERCEL_ENV: "production",
+            VERCEL_GIT_COMMIT_SHA: head,
+            CORE_RELEASE_FORCE_BUILD_SHA: head,
+          },
+          app,
+        );
+        expect(result.status).toBe(1);
+        expect(result.stdout).toBe(
+          "[vercel-ignore] release job marker matched\n",
+        );
+      },
+    );
+    it.each([
+      ["preview", { VERCEL_ENV: "preview" }],
+      ["mismatched provider SHA", { VERCEL_GIT_COMMIT_SHA: "f".repeat(40) }],
+      [
+        "malformed marker",
+        { CORE_RELEASE_FORCE_BUILD_SHA: "release-marker-value" },
+      ],
+    ])(
+      "keeps the ordinary decision when the release marker does not match (%s)",
+      (_label, patch) => {
+        const head = git("rev-parse", "HEAD");
+        const result = check(product, {
+          VERCEL_ENV: "production",
+          VERCEL_GIT_COMMIT_SHA: head,
+          CORE_RELEASE_FORCE_BUILD_SHA: head,
+          ...patch,
+        });
+        expect(result.status).toBe(0);
+        expect(result.stdout).not.toContain("release-marker-value");
+        expect(result.stdout).toContain("skipping admin");
+      },
+    );
     it("does not force an unknown app and retains its ordinary decision", () => {
       const head = git("rev-parse", "HEAD");
       const normal = check(product, {}, "unknown");

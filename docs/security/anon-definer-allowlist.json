@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "rule": "Plan 5.4 (AL-2674): anon may execute a SECURITY DEFINER function only when it is listed here. Each listed function is a public read function: STABLE or IMMUTABLE, SET search_path = '', an explicit projection, no dynamic SQL, and its own host, Site, tenant and subject admission; anon still holds no grant on any table or view beneath it. Each entry names the function as the catalog gate prints it (schema.name(identity arguments)), with a reason and its reviewer. scripts/verify/tenant-rls-catalog.mjs enforces the list both ways.",
+  "entries": []
+}

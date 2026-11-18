@@ -55,4 +55,6 @@ occurrence. The lane runs on the ratified full Stripe Connect substrate (Phase
 - Consciously accepted: the online `card.moto` REST flag is absent from the
   public reference and needs a Stripe-support/test-probe confirmation at build.
 - Overlaps Phase 13's ratified-but-unwritten Connect topology — a
-  program-level ADR gap to close, not a fresh P15 decision.
+  program-level ADR gap to close, not a fresh P15 decision. _Closed 2026-11-17:
+  [ADR-0234](0234-stripe-connect-direct-charges-on-tenant-owned-accounts.md)
+  writes down that topology (AL-2688) and makes no new decision._

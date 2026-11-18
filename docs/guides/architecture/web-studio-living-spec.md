@@ -39,8 +39,9 @@
 ### Public Payload v4 checkpoint
 
 The current implementation selects the complete official public
-`4.0.0-beta.3` cohort, including the Sharp upload transformer. The prior internal
-spike is superseded. This is an approved pinned beta, with release qualification
+`4.0.0-beta.9` cohort, including the Sharp upload transformer (moved from
+`4.0.0-beta.3` for its security fixes; audit C01). The prior internal spike is
+superseded. This is an approved pinned beta, with release qualification
 tracked in [the modernization checkpoint](../../maintenance/modernization/payload.md);
 source selection does not establish production admission or Phase 22–24 acceptance.
 

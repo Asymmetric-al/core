@@ -88,9 +88,8 @@ describe("Supabase auth callback redirects", () => {
     );
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://donor.example/donor-dashboard",
-    );
+    // Relative, so the browser stays on the host it used (see below).
+    expect(response.headers.get("location")).toBe("/donor-dashboard");
     expect(fixture.writes).toContainEqual(
       expect.objectContaining({
         name: "sb-callback-fixture-auth-token",
@@ -110,8 +109,8 @@ describe("Supabase auth callback redirects", () => {
   });
 
   it.each([
-    ["%2Fprofile", "https://donor.example/profile"],
-    ["https%3A%2F%2Fother.example%2F", "https://donor.example/"],
+    ["%2Fprofile", "/profile"],
+    ["https%3A%2F%2Fother.example%2F", "/"],
   ])(
     "keeps the fallback destination safe and private for next=%s",
     async (next, destination) => {
@@ -140,12 +139,29 @@ describe("Supabase auth callback redirects", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://donor.example/login?error=Could%20not%20authenticate",
+      "/login?error=Could%20not%20authenticate",
     );
     expect(fixture.writes).toEqual([]);
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(response.headers.get("expires")).toBe("0");
     expect(response.headers.get("pragma")).toBe("no-cache");
+  });
+
+  it("keeps the browser on the host it used when the server names another", async () => {
+    // The Next dev server reports a request to 127.0.0.1 as localhost in
+    // request.url. Session cookies belong to the browser's host, so an
+    // absolute redirect built from request.url signed the person out.
+    vi.stubGlobal("fetch", fakeAuthFetch());
+
+    const response = await GET(
+      new Request("http://localhost:3105/auth/callback?code=fixture-code", {
+        headers: { host: "127.0.0.1:3105" },
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+    expect(location).toBe("/donor-dashboard");
+    expect(location).not.toMatch(/^[a-z]+:/i);
   });
 
   it("returns a private failure redirect without exchanging a missing code", async () => {

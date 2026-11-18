@@ -335,6 +335,20 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     { ref: "CI runner fallback", hash: "ade0c213dc9896db" },
     // Hosted-only amendment: only the five heavy jobs' runs-on changed.
     { ref: "AL-2218 hosted CI baseline", hash: "58e813e659a30660" },
+    // Amended by AL-2674 (stage 1 of the AL-2671 program, plan 7.1), the
+    // surface stage 1 ends on. From the entry above: NODE_VERSION moved from
+    // 24.22.1 to 24.22.3 (.node-version, Payload 4.0.0-beta.9); migrate step 13
+    // ("Verify seed counts") runs scripts/verify/seed-counts.mjs, which reads
+    // the expected counts from supabase/seed-expectations.json, so a seed
+    // change no longer changes this file; step 22 runs the AL-2671 program's
+    // real-stack suites (one glob over issue-2670 to issue-2689), step 23 the
+    // release job's database and fingerprint suites with Payload's
+    // database-role suite and its URL, and step 24 the Payload qualification
+    // (plan 6.7). Each step is pinned exactly in
+    // tests/unit/helpers/workflow-yaml.ts. Council round 2 (A8d) removed the
+    // two intermediate states of stage 1's integration, which develop never
+    // held.
+    { ref: "AL-2674 seed counts and program steps", hash: "c0e17f294078fd87" },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

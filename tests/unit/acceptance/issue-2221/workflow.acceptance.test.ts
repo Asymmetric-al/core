@@ -33,16 +33,22 @@ const ENV_ALLOWLIST = [
  * a200250f pins. BASE_CI_BYTES, BASE_CI_SHA256 and BASE_CI_DOC_SHA256 are
  * re-pinned for the reviewed hosted-only amendment, which changes only
  * the build and test-unit runs-on (docs/ops/self-hosted-runners.md).
+ *
+ * Amended by AL-2674 (WP1.2, Payload 4.0.0-beta.9): BASE_CI_SHA256 and
+ * BASE_CI_DOC_SHA256 are re-pinned because the workflow's NODE_VERSION moved
+ * from 24.22.1 to 24.22.3 (.node-version), the same length, so BASE_CI_BYTES
+ * holds. With that line put back they are the reviewed 4136be27… and
+ * 878cedd5….
  */
 const BASE_CI_BYTES = 13562;
 const BASE_CI_SHA256 =
-  "4136be27f347a4cfe5c5dd79d61ede2f5856816ca934b5f7bf027d0fcf5d91ba";
+  "7325c821d083b0d7b15e3e454702fc6cc15f7a1ea9effdcde474926de158d787";
 const BASE_CI_GATE_BLOCK_SHA256 =
   "d82da3b08054eae6565a662c59d7cef03646e90a07003929977f2b7244e087b4";
 const BASE_CI_GATE_JSON_SHA256 =
   "7bf95665df5eed573004bce53b71548f4f3815d68cbc4b6eb6a579b42fe20bfc";
 const BASE_CI_DOC_SHA256 =
-  "878cedd5e347aee42aa56472b2dec4e0b79715243f05e1e39dbfe8f84ec2516f";
+  "03b3c755195264d6ab90b563dff5f9b4b00f0e5456dd6bc1b05e36882e3d149d";
 const BASE_CI_GATE_NEEDS = [
   "compilation-plan",
   "format",
