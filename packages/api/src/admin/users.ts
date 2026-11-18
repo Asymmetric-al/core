@@ -1,5 +1,4 @@
 import { requestScopeOf } from "@asym/auth/context";
-import { ASSIGNMENT_HEADER } from "@asym/auth/request-headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { adminUsersListQuerySchema } from "../schemas/admin";
@@ -31,7 +30,6 @@ interface DirectoryQuery extends PromiseLike<DirectoryResult> {
     options: { ascending: boolean; nullsFirst?: boolean },
   ): DirectoryQuery;
   range(from: number, to: number): DirectoryQuery;
-  setHeader(name: string, value: string): DirectoryQuery;
 }
 interface DirectoryClient {
   rpc(
@@ -69,7 +67,8 @@ export const GET = withOperation(
     if (!filters) return NextResponse.json({ users: [] });
 
     // Every request of the session client carries the resolved tenant and
-    // assignment (WP2b, AL-2675); the header set below names the same row.
+    // assignment (WP2b, AL-2675), so the directory reads the row the
+    // resolver selected.
     const session = (await createRequestSessionClient(
       request,
       requestScopeOf(ctx),
@@ -77,9 +76,6 @@ export const GET = withOperation(
     let query = session.rpc("tenant_member_directory", {
       p_tenant_id: ctx.tenantId,
     });
-    if (ctx.assignment) {
-      query = query.setHeader(ASSIGNMENT_HEADER, ctx.assignment.assignmentId);
-    }
     for (const [column, value] of filters) query = query.eq(column, value);
     const { data, error } = await query
       .order("display_name", { ascending: true, nullsFirst: false })

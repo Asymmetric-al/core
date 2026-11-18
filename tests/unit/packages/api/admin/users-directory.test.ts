@@ -121,9 +121,14 @@ describe("the Mission Control users list (council round 1 on WP2a, F8)", () => {
     const response = await list("role=admin&limit=10&offset=20");
 
     expect(response.status).toBe(200);
+    // WP2b, AL-2675 (council round 1 on slice B, SB15): the resolved row's
+    // `x-asym-assignment` header goes out on every request of the session
+    // client, which is built with the resolved scope (asserted below; the
+    // session client's own suite proves the scope becomes the two headers).
+    // The handler no longer sets the same header a second time by hand, so
+    // the query carries no `setHeader` call.
     expect(session.calls).toEqual([
       ["rpc", "tenant_member_directory", { p_tenant_id: TENANT }],
-      ["setHeader", "x-asym-assignment", ROW],
       ["eq", "role", "staff"],
       ["eq", "is_tenant_admin", true],
       ["order", "display_name", { ascending: true, nullsFirst: false }],
@@ -131,7 +136,7 @@ describe("the Mission Control users list (council round 1 on WP2a, F8)", () => {
       ["range", 20, 29],
     ]);
     expect(h.serviceKeyUsed).not.toHaveBeenCalled();
-    // WP2b, AL-2675: the session client sends the resolved tenant and row.
+    // The header goes out: the session client sends the resolved tenant and row.
     expect(h.session).toHaveBeenCalledWith(expect.any(Request), {
       tenantId: TENANT,
       assignmentId: ROW,
