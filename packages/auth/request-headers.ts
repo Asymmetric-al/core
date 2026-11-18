@@ -8,9 +8,15 @@ import type { RoleClass } from "./principal/types";
  *   its own configuration: staff for Mission Control and Web Studio,
  *   missionary for the missionary workspace, donor for the donor portal.
  *   Each proxy runs on every path its app can answer, pages and API routes,
- *   whatever the path ends in; it skips only Next.js's own assets and real
- *   static files (the `matcher` in each app's `proxy.ts`). So no page and no
- *   API route reads a class the client chose.
+ *   whatever the path ends in. The `matcher` in each app's `proxy.ts` skips
+ *   exactly three kinds of path, and its comment names what answers each:
+ *   `/_next/*` (Next.js's own assets); `/maplibre/*` in Mission Control and
+ *   the donor portal (the files of `public/maplibre`, the one public folder);
+ *   and one file name at the root with a static extension. On those the app
+ *   answers with an asset, a public file, a metadata route, the global
+ *   not-found page, or, in the donor portal, the public CMS pages'
+ *   catch-all; none of them reads these headers. So no page and no API route
+ *   reads a class the client chose (council round 2, AR7).
  * - `x-asym-tenant`: the tenant the request acts in. On a page request the
  *   proxy sets it from the page address after its membership decision; on an
  *   API request the shared own-API fetch wrapper sends the page's tenant.
@@ -24,9 +30,10 @@ import type { RoleClass } from "./principal/types";
  *   rows; the database reads the same header
  *   (`tenant_guard.request_assignment_id()`).
  *
- * Every page request runs the proxy, which deletes every copy of the tenant,
- * assignment and address headers the client sent before it decides, so a
- * forged header never selects anything. Behind it, the server reads only
+ * Every page request that can read them runs the proxy (the donor portal's
+ * CMS catch-all, the one page on a skipped path, reads none), and the proxy
+ * deletes every copy of the tenant, assignment and address headers the
+ * client sent before it decides, so a forged header never selects anything. Behind it, the server reads only
  * what holds together: `readAddressPrefix` takes a value that is exactly a
  * prefix, and `readDocumentScope` requires the resolved row to be in the
  * address's tenant and, under a suffix, to be that staff row.

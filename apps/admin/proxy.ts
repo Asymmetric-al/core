@@ -37,12 +37,16 @@ export const config = {
     // alike, whatever the path ends in: a dynamic route answers
     // `/contributions/x.json` and `/api/x/y.json` too, and a request that
     // skipped the proxy would keep the scope headers the client sent (plan
-    // 5.1, 5.2; council round 1: WP2a F5 and WP2b A3). Only Next.js's own
-    // assets and real static files are skipped: `/_next/*`, the public
-    // folders (`/maplibre/*`, `/images/*`), and one file name at the root
-    // with a static extension (`/favicon.ico`, `/icon.svg`, `/robots.txt`,
-    // `/sitemap.xml`, a manifest, a public image). A root file name is never
-    // a page here: no page route has a dynamic segment at the root.
-    "/((?!_next/|maplibre/|images/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
+    // 5.1, 5.2; council round 1: WP2a F5 and WP2b A3). Exactly these paths
+    // answer without it (council round 2, AR7):
+    // - `/_next/*`: Next.js's own assets;
+    // - `/maplibre/*`: the files of `public/maplibre`, the app's one public
+    //   folder, and the global not-found page for any other path there;
+    // - one file name at the root with a static extension: the app icon
+    //   (`/icon.svg`), and the global not-found page for any other
+    //   (`/favicon.ico`, `/robots.txt`, `/x.json`): no page route has a
+    //   dynamic segment at the root.
+    // None of them renders a layout or reads a header the proxy sets.
+    "/((?!_next/|maplibre/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };
