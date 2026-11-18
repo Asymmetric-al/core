@@ -27,7 +27,8 @@
     "./tenant-address": "./tenant-address.ts",
     "./tenant-navigation": "./tenant-navigation.tsx",
     "./tenant-server": "./tenant-server.ts",
-    "./tenant-address-decisions": "./tenant-address-decisions.ts"
+    "./tenant-address-decisions": "./tenant-address-decisions.ts",
+    "./web-studio": "./web-studio.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
