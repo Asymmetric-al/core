@@ -381,6 +381,32 @@ describe("a REST call from a Web Studio document", () => {
     }
   });
 
+  it("over GraphQL must name its document like a REST write, until WP6 removes the route (council C4)", async () => {
+    const { strategy, payload, b, cookie } = await setup();
+
+    const unnamed = req("POST");
+    const refused = await strategy.authenticate({
+      headers: new Headers({ cookie }),
+      payload,
+      req: unnamed,
+      isGraphQL: true,
+    });
+    expect(refused.user).toBeNull();
+    expect(readWebStudioRefusal(unnamed)).toBe("scope_mismatch");
+
+    const named = await strategy.authenticate({
+      headers: new Headers({
+        cookie,
+        "x-asym-tenant": TB,
+        "x-asym-assignment": b.id,
+      }),
+      payload,
+      req: req("POST"),
+      isGraphQL: true,
+    });
+    expect(named.user).toMatchObject({ publicTenantId: TB });
+  });
+
   it("may read without naming a document, as an image or a link does", async () => {
     const { strategy, payload, cookie } = await setup();
 

@@ -274,10 +274,11 @@ const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * write must name its document. A read need not, as an image or a link does
  * not, but one that names a document must name this one.
  *
- * Only a REST call has a request here; Payload's page renders and server
- * functions authenticate without one and act in the cookie's organization.
- * GraphQL is not called by Web Studio documents and is left as it was (WP6
- * removes it).
+ * Only a REST or GraphQL call has a request here; Payload's page renders and
+ * server functions authenticate without one and act in the cookie's
+ * organization. Nothing in Core calls Payload's GraphQL route, which WP6
+ * removes; until then every GraphQL call counts as a write, so a mutation
+ * that names no document is refused.
  */
 function isFromCurrentDocument(
   {
@@ -287,11 +288,13 @@ function isFromCurrentDocument(
   }: { headers: Headers; req?: PayloadRequest; isGraphQL?: boolean },
   assignment: ActiveAssignment,
 ): boolean {
-  if (!req || isGraphQL) return true;
+  if (!req) return true;
   const tenantId = headers.get(TENANT_HEADER)?.trim() || null;
   const assignmentId = headers.get(ASSIGNMENT_HEADER)?.trim() || null;
   if (tenantId === null && assignmentId === null) {
-    return !WRITE_METHODS.has((req.method ?? "GET").toUpperCase());
+    return (
+      !isGraphQL && !WRITE_METHODS.has((req.method ?? "GET").toUpperCase())
+    );
   }
   return (
     tenantId === assignment.tenantId && assignmentId === assignment.assignmentId
