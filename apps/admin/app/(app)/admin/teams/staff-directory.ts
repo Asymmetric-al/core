@@ -7,18 +7,30 @@ export interface StaffAccount {
   last_name?: string | null;
   email?: string | null;
   role: string;
+  staff_role?: string | null;
 }
 
 export const STAFF_ROLE_LABELS: Record<string, string> = {
   super_admin: "Platform administrator",
   admin: "Administrator",
   staff: "Staff",
+  development: "Development",
   finance: "Finance",
   fundraising: "Fundraising",
   member_care: "Member care",
+  mobilizer: "Mobilizer",
   mobilizers: "Mobilizers",
+  hr: "HR",
   events: "Events",
 };
+
+export function staffRoleLabel(account: StaffAccount) {
+  const role =
+    account.role === "staff" && account.staff_role
+      ? account.staff_role
+      : account.role;
+  return STAFF_ROLE_LABELS[role] ?? role;
+}
 
 export function staffName(account: StaffAccount) {
   return (
