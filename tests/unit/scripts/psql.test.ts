@@ -228,6 +228,7 @@ describe("every local-database decision calls the one helper", () => {
     "apps/admin/src/cms/payload-schema-push.ts",
     "scripts/cms/lib/migration-connection.mjs",
     "scripts/cms/lib/migration-target.mjs",
+    "scripts/cms/qualify-payload-pin.mjs",
     "scripts/release/lib/database-target.mjs",
   ])("%s calls isLoopbackDatabaseUrl and lists no host", (file) => {
     const source = readFileSync(file, "utf8");
