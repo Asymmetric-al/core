@@ -212,6 +212,15 @@ describe("ci-integration workflow contract", () => {
     expect(scripts["test:e2e:request-scope:donor"]).toContain(
       "tests/e2e/donor-request-scope.spec.ts --project=chromium",
     );
+    // No retries (council round 2, the coordinator's note on slice B): under
+    // `CI` Playwright retries twice, so a race that fails once and then
+    // passes would be reported as flaky and the step would pass, hiding the
+    // races these specs exist to catch.
+    for (const app of ["admin", "missionary", "donor"]) {
+      expect(scripts[`test:e2e:request-scope:${app}`]).toMatch(
+        / --retries=0(?: |$)/,
+      );
+    }
   });
 
   it("keeps auth, production, and CMS run artifacts distinct with retry diagnostics", () => {
