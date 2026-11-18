@@ -21,7 +21,7 @@ describe("hosted Supabase default privileges (one source)", () => {
     const sql = readFileSync(FILE, "utf8").toLowerCase();
     for (const kind of KINDS) {
       expect(sql).toContain(
-        `alter default privileges for role postgres in schema public grant all on ${kind} to anon, authenticated, service_role;`,
+        `alter default privileges for role postgres in schema public grant all on ${kind} to postgres, anon, authenticated, service_role;`,
       );
     }
     expect(sql).toContain(

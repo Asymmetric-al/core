@@ -8,7 +8,10 @@
 // differ between a hosted project and CI's bootstrap without any migration
 // causing it. Policies are read from every schema, because migrations write
 // policies on Supabase's tables too (storage.objects). Rows are not read:
-// ledgers, markers and data are not schema.
+// ledgers, markers and data are not schema. Version 2 adds the default
+// privileges of `postgres`, the role that runs the chain, in those schemas:
+// they decide the access lists of what a later migration creates, and a
+// hosted reset keeps the ones in `public` (review H1).
 //
 //   node scripts/release/schema-fingerprint.mjs capture \
 //     --database-url-env DATABASE_URL --out fingerprint.json
@@ -20,7 +23,7 @@ import { fileURLToPath } from "node:url";
 
 import { queryJson } from "./lib/postgres.mjs";
 
-export const FINGERPRINT_VERSION = 1;
+export const FINGERPRINT_VERSION = 2;
 
 export const EXCLUDED_SCHEMA_PATTERN =
   "^(pg_.*|information_schema|_.*|auth|storage|realtime|extensions|graphql|graphql_public|pgbouncer|pgsodium.*|vault|supabase_.*|net|cron|pgtle|repack|topology|tiger.*)$";
@@ -141,6 +144,14 @@ items(key, def) AS (
     coalesce(pg_get_expr(pr.prqual, pr.prrelid), '')
   FROM pg_publication_rel pr JOIN pg_publication pub ON pub.oid = pr.prpubid
   JOIN rel r ON r.oid = pr.prrelid
+  UNION ALL
+  SELECT 'default privileges ' || pg_get_userbyid(d.defaclrole) || ' in ' || n.nspname
+      || ' on ' || CASE d.defaclobjtype WHEN 'r' THEN 'tables' WHEN 'S' THEN 'sequences'
+                   WHEN 'f' THEN 'functions' WHEN 'T' THEN 'types' WHEN 'n' THEN 'schemas'
+                   ELSE d.defaclobjtype::text END,
+    json_build_object('acl', ${acl("d.defaclacl")})::text
+  FROM pg_default_acl d JOIN ns n ON n.oid = d.defaclnamespace
+  WHERE d.defaclrole = 'postgres'::regrole
 )
 SELECT coalesce(json_agg(json_build_array(key, def) ORDER BY key), '[]'::json)::text
 FROM items;`;

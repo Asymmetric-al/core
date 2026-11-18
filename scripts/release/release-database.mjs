@@ -358,7 +358,7 @@ function requirePinnedSupabaseCli(runCommand) {
     !probe.error && probe.status === 0 ? String(probe.stdout ?? "").trim() : "";
   if (found !== pinned)
     stop(
-      `The first rebuild needs the Supabase CLI ${pinned} on the PATH (found ${found || "none"}); the release workflow installs it with supabase/setup-cli. Nothing was reset.`,
+      `A rebuild needs the Supabase CLI ${pinned} on the PATH (found ${found || "none"}); the release workflow installs it with supabase/setup-cli. Nothing was reset.`,
     );
 }
 
@@ -727,7 +727,8 @@ export const HOSTED_DEFAULT_PRIVILEGES =
  * Every statement of the file runs as the release login, `postgres`: the
  * defaults are its own, and as the database's owner it may grant on `public`.
  * Only the two rebuilds call this; `migrate` never resets, so it keeps the
- * chain's own defaults.
+ * chain's own defaults. The file runs in one transaction, so a failure part
+ * way applies nothing (review H1.2).
  */
 export function restoreHostedDefaultPrivileges({
   settings,
@@ -736,9 +737,13 @@ export function restoreHostedDefaultPrivileges({
   log = console.log,
 }) {
   try {
+    const defaults = readFileSync(
+      path.join(root, HOSTED_DEFAULT_PRIVILEGES),
+      "utf8",
+    );
     run({
       databaseUrl: settings.databaseUrl,
-      sql: readFileSync(path.join(root, HOSTED_DEFAULT_PRIVILEGES), "utf8"),
+      sql: `BEGIN;\n${defaults.endsWith("\n") ? defaults : `${defaults}\n`}COMMIT;\n`,
       label: "put back the platform's default privileges",
     });
   } catch (error) {
@@ -844,7 +849,9 @@ export async function rebuild({
       `${error.message} A hosted rebuild gives every seeded login that password in place of the one published in the repository; nothing was reset.`,
     );
   }
-  if (mode === "first") requirePinnedSupabaseCli(runCommand);
+  // Both rebuilds, before anything touches the database: the preview rebuild's
+  // wrapper checks the CLI too, but only after the defaults are back (H1.1).
+  requirePinnedSupabaseCli(runCommand);
   log(
     `Rebuilding ${settings.projectRef} from source (${mode}${mode === "first" ? `, sign-off ${signoff}` : ""}).`,
   );
@@ -877,7 +884,14 @@ export async function rebuild({
       `${resetFailure ? `The reset failed (${resetFailure.message}), and the` : "The"} replacement of the seeded logins' password failed: ${error.message} Seeded logins may still carry the password published in the repository, and anyone who knows it could sign in: do not use the database. Fix the cause, then ${PUBLISHED_PASSWORD_REPAIR.replace(/^D/, "d")}; until then every release of this database stops at its preflight.`,
     );
   }
-  if (resetFailure) throw resetFailure;
+  // Review H1.3: the defaults are open again, and a reset that failed before
+  // it dropped anything leaves the whole chain under them. migrate would then
+  // create every new table, sequence and function in public open to both.
+  if (resetFailure) {
+    stop(
+      `The reset failed (${resetFailure.message}) after the platform's default privileges were put back. The database may still hold the whole chain, and the default privileges of postgres in public are open to anon and authenticated again, so anything created there now would be open to both. Rebuild it again; never run migrate on it until a rebuild has passed (docs/ops/release-job.md, "What a reset keeps of the default privileges").`,
+    );
+  }
   // The marker migration writes `disposable` when public.profiles,
   // public.donors and public.donations are empty, as they are right after the
   // reset drops and recreates them. Anything else is a failed rebuild.

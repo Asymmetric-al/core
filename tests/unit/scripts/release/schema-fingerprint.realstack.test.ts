@@ -3,7 +3,13 @@
 // fingerprint equality between CI's replay and development"). Needs
 // RELEASE_IT_ADMIN_DATABASE_URL; see support/test-database.ts.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -18,6 +24,7 @@ import {
 } from "./support/test-database";
 import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
 import {
+  HOSTED_DEFAULT_PRIVILEGES,
   readReleaseSettings,
   restoreHostedDefaultPrivileges,
 } from "../../../../scripts/release/release-database.mjs";
@@ -98,7 +105,8 @@ describe.skipIf(!adminDatabaseUrl)(
         second,
         `ALTER TABLE public.tenants ADD COLUMN fingerprint_planted integer;
        ALTER TABLE public.tenants ALTER COLUMN name DROP NOT NULL;
-       CREATE POLICY fingerprint_planted ON public.tenants FOR SELECT TO anon USING (true);`,
+       CREATE POLICY fingerprint_planted ON public.tenants FOR SELECT TO anon USING (true);
+       ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE ON TYPES TO anon;`,
       );
       const a = captureFingerprint({ databaseUrl: first });
       const b = captureFingerprint({ databaseUrl: second });
@@ -111,6 +119,11 @@ describe.skipIf(!adminDatabaseUrl)(
         ]),
       );
       expect(diff.changed).toContain("column public.tenants.name");
+      // Review H1.4: the gate sees the default privileges of postgres, which
+      // decide the access lists of what a later migration creates.
+      expect([...diff.unexpected, ...diff.changed]).toContain(
+        "default privileges postgres in public on types",
+      );
       expect(
         formatFingerprintDiff(diff, {
           expectedLabel: "replay",
@@ -205,8 +218,12 @@ describe.skipIf(!adminDatabaseUrl || !harnessAdminUrl)(
       const oldWay = captureFingerprint({ databaseUrl: plain });
       const before = diffFingerprints(oldWay, target);
       expect(before.equal).toBe(false);
-      expect(before.missing).toEqual([]);
-      expect(before.unexpected).toEqual([]);
+      // Since review H1.4 the fingerprint holds postgres's default privileges,
+      // which the plain replay lacks; everything else differs in access only.
+      const objects = (keys: string[]) =>
+        keys.filter((key) => !key.startsWith("default privileges "));
+      expect(objects(before.missing)).toEqual([]);
+      expect(objects(before.unexpected)).toEqual([]);
       expect(before.changed.length).toBeGreaterThan(0);
       expect(beyondAcl(oldWay, target, before.changed)).toEqual([]);
 
@@ -286,6 +303,15 @@ BEGIN
 END
 $reset$;`;
 
+function loopbackSettings(url: string) {
+  return readReleaseSettings({
+    RELEASE_ENVIRONMENT: "preview",
+    RELEASE_SUPABASE_PROJECT_REF: "wp16rebuildtestrefxx",
+    RELEASE_DATABASE_URL: url,
+    RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+  });
+}
+
 const PUBLIC_DEFAULTS_SQL = `SELECT coalesce(string_agg(defaclobjtype::text || '=' || defaclacl::text, ';' ORDER BY defaclobjtype), '')
 FROM pg_default_acl
 WHERE defaclrole = 'postgres'::regrole AND defaclnamespace = 'public'::regnamespace;`;
@@ -302,12 +328,7 @@ describe.skipIf(!adminDatabaseUrl)(
       // The rebuild, as the release job runs it: the platform's defaults
       // back first...
       restoreHostedDefaultPrivileges({
-        settings: readReleaseSettings({
-          RELEASE_ENVIRONMENT: "preview",
-          RELEASE_SUPABASE_PROJECT_REF: "wp16rebuildtestrefxx",
-          RELEASE_DATABASE_URL: rebuilt,
-          RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
-        }),
+        settings: loopbackSettings(rebuilt),
         log: () => {},
       });
       // ...then the reset, which keeps them...
@@ -327,6 +348,44 @@ describe.skipIf(!adminDatabaseUrl)(
           actualLabel: "rebuild",
         }),
       ).toBe(true);
+    });
+  },
+);
+
+// Review H1.2: the restore runs in one transaction, so a defaults file that
+// fails part way changes nothing.
+describe.skipIf(!adminDatabaseUrl)(
+  "putting the platform's default privileges back (real stack)",
+  { timeout: 300_000 },
+  () => {
+    it("applies nothing when the defaults file fails part way", () => {
+      const db = createDatabase("defaults_tx");
+      created.push(db.name);
+      psql(
+        db.url,
+        readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+      );
+      const before = psql(db.url, PUBLIC_DEFAULTS_SQL);
+      const root = mkdtempSync(path.join(tmpdir(), "defaults-root-"));
+      try {
+        mkdirSync(path.join(root, "scripts", "sql"), { recursive: true });
+        writeFileSync(
+          path.join(root, HOSTED_DEFAULT_PRIVILEGES),
+          `${readFileSync(HOSTED_DEFAULT_PRIVILEGES, "utf8")}\nSELECT 1 / 0;\n`,
+        );
+        expect(() =>
+          restoreHostedDefaultPrivileges({
+            settings: loopbackSettings(db.url),
+            root,
+            log: () => {},
+          }),
+        ).toThrow(
+          /could not be put back.*division by zero.*nothing was reset/s,
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+      expect(psql(db.url, PUBLIC_DEFAULTS_SQL)).toBe(before);
     });
   },
 );

@@ -154,7 +154,7 @@ function fakeDatabase(state: {
       variables?: Record<string, string>;
       sql?: string;
     }) => {
-      if (sql === DEFAULTS_SQL) {
+      if (sql?.includes(DEFAULTS_SQL)) {
         events.push("default privileges");
         if (db.defaultsFail) throw new Error(db.defaultsFail);
       }
@@ -185,6 +185,23 @@ const passwords = {
 };
 
 const silent = () => {};
+
+/**
+ * A runCommand fake that answers the pinned CLI's version probe, which both
+ * rebuilds make before they touch the database (review H1.1), and hands every
+ * other command to `rest`.
+ */
+const isCliProbe = (command: string, args: string[]) =>
+  command === "supabase" && args[0] === "--version";
+function withPinnedCli(
+  rest: (command: string, args: string[]) => { status: number | null },
+) {
+  return vi.fn((command: string, args: string[]) =>
+    isCliProbe(command, args)
+      ? { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` }
+      : rest(command, args),
+  );
+}
 
 describe("release database steps", () => {
   it("stops before migrating, and so before deploying, when a release carries an out-of-order migration", () => {
@@ -368,7 +385,7 @@ describe("release database steps", () => {
   it("rebuilds a disposable preview database: reset, seeded logins, role passwords, Payload, then checks the marker", async () => {
     const fake = fakeDatabase({});
     const order = fake.events;
-    const runCommand = vi.fn((command: string, args: string[]) => {
+    const runCommand = withPinnedCli((command: string, args: string[]) => {
       order.push(command === "bun" ? "payload" : args.slice(1, 3).join(" "));
       return { status: 0 };
     });
@@ -426,11 +443,13 @@ describe("release database steps", () => {
         log: silent,
       });
       expect(fake.events.slice(0, 2)).toEqual(["default privileges", "reset"]);
-      const applied = fake.run.mock.calls.filter(
-        ([call]) => call.sql === DEFAULTS_SQL,
+      const applied = fake.run.mock.calls.filter(([call]) =>
+        call.sql?.includes(DEFAULTS_SQL),
       );
       expect(applied).toHaveLength(1);
       expect(applied[0]![0]).toMatchObject({ databaseUrl });
+      // Review H1.2: one transaction, so a failure part way applies nothing.
+      expect(applied[0]![0].sql).toMatch(/^BEGIN;\n[\s\S]*\nCOMMIT;\n?$/);
     },
   );
 
@@ -509,7 +528,7 @@ describe("release database steps", () => {
       env: passwords,
       query: fake.query,
       run: fake.run,
-      runCommand: vi.fn(() => ({ status: 0 })),
+      runCommand: withPinnedCli(() => ({ status: 0 })),
       requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
       log: (line: string) => logs.push(line),
     });
@@ -533,7 +552,7 @@ describe("release database steps", () => {
 
   it("stops, before the role passwords and Payload, when a login still carries a published password", async () => {
     const fake = fakeDatabase({ publishedLeft: 1 });
-    const runCommand = vi.fn(() => ({ status: 0 }));
+    const runCommand = withPinnedCli(() => ({ status: 0 }));
     await expect(
       rebuild({
         settings: settings("preview"),
@@ -547,10 +566,12 @@ describe("release database steps", () => {
         log: silent,
       }),
     ).rejects.toThrow(/still carry a password published in the repository/);
-    expect(runCommand).toHaveBeenCalledTimes(1);
-    expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
-      DEFAULTS_SQL,
-    ]);
+    expect(
+      runCommand.mock.calls.filter(([c, a]) => !isCliProbe(c, a)),
+    ).toHaveLength(1);
+    expect(
+      fake.run.mock.calls.map(([call]) => call.sql?.includes(DEFAULTS_SQL)),
+    ).toEqual([true]);
   });
 
   // Council round 3, lens 2 I2: a rebuild that fails between its seed and the
@@ -655,12 +676,15 @@ describe("release database steps", () => {
           requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
           log: silent,
         }),
-      ).rejects.toThrow(/reset.* failed \(exit 1\)/);
+      ).rejects.toThrow(
+        // Review H1.3: the defaults are open again and the chain may remain.
+        /reset.* failed \(exit 1\).*open to anon and authenticated.*Rebuild it again; never run migrate on it until a rebuild has passed/s,
+      );
       expect(fake.events).toEqual(["default privileges", "seeded logins"]);
       expect(fake.db.publishedLogins).toBe(0);
-      expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
-        DEFAULTS_SQL,
-      ]);
+      expect(
+        fake.run.mock.calls.map(([call]) => call.sql?.includes(DEFAULTS_SQL)),
+      ).toEqual([true]);
     },
   );
 
@@ -675,7 +699,7 @@ describe("release database steps", () => {
     async (_name, state) => {
       for (const resetStatus of [0, 1]) {
         const fake = fakeDatabase(state);
-        const runCommand = vi.fn(() => ({ status: resetStatus }));
+        const runCommand = withPinnedCli(() => ({ status: resetStatus }));
         const failure = rebuild({
           settings: settings("preview"),
           mode: "disposable",
@@ -692,9 +716,9 @@ describe("release database steps", () => {
         );
         if (resetStatus)
           await expect(failure).rejects.toThrow(/The reset failed/);
-        expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
-          DEFAULTS_SQL,
-        ]);
+        expect(
+          fake.run.mock.calls.map(([call]) => call.sql?.includes(DEFAULTS_SQL)),
+        ).toEqual([true]);
       }
     },
   );
@@ -757,7 +781,7 @@ describe("release database steps", () => {
       env: passwords,
       query: fake.query,
       run: fake.run,
-      runCommand: vi.fn((command: string, args: string[]) => {
+      runCommand: withPinnedCli((command: string, args: string[]) => {
         commands.push([command, ...args.slice(0, 3)]);
         return { status: 0 };
       }),
@@ -815,20 +839,36 @@ describe("release database steps", () => {
     expect(pinnedSupabaseCliVersion()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
+  // Review H1.1: the preview rebuild checked the CLI only inside the wrapper,
+  // after the platform's defaults were back; both rebuilds now check it first.
   it.each([
-    ["another version", { status: 0, stdout: "2.119.0\n" }, "2.119.0"],
-    ["no CLI", { status: null, error: new Error("ENOENT") }, "none"],
-  ])(
-    "first rebuild: stops before it resets anything when the PATH has %s instead of the pinned CLI",
-    async (_name, probe, found) => {
-      const fake = fakeDatabase({ environment: null });
+    ["first", "another version", { status: 0, stdout: "2.119.0\n" }, "2.119.0"],
+    ["first", "no CLI", { status: null, error: new Error("ENOENT") }, "none"],
+    [
+      "disposable",
+      "another version",
+      { status: 0, stdout: "2.119.0\n" },
+      "2.119.0",
+    ],
+    [
+      "disposable",
+      "no CLI",
+      { status: null, error: new Error("ENOENT") },
+      "none",
+    ],
+  ] as const)(
+    "%s rebuild: stops before it puts the defaults back or resets anything when the PATH has %s instead of the pinned CLI",
+    async (mode, _name, probe, found) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+      });
       const runCommand = vi.fn((_command: string, args: string[]) =>
         args[0] === "--version" ? probe : { status: 0 },
       );
       await expect(
         rebuild({
-          settings: settings(),
-          mode: "first",
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
           signoff:
             "https://github.com/Asymmetric-al/core/issues/2690#issuecomment-1",
           confirmation: `rebuild ${ref}`,
@@ -836,6 +876,7 @@ describe("release database steps", () => {
           query: fake.query,
           run: fake.run,
           runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
           log: silent,
         }),
       ).rejects.toThrow(
@@ -876,9 +917,9 @@ describe("release database steps", () => {
         }),
       ).rejects.toThrow(/not marked disposable after the migrations/);
       expect(commands).toHaveLength(1);
-      expect(fake.run.mock.calls.map(([call]) => call.sql)).toEqual([
-        DEFAULTS_SQL,
-      ]);
+      expect(
+        fake.run.mock.calls.map(([call]) => call.sql?.includes(DEFAULTS_SQL)),
+      ).toEqual([true]);
     }
   });
 

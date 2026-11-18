@@ -19,13 +19,18 @@
 -- On a hosted project every statement runs as `postgres`, the chain's own
 -- role: the three defaults are its own, and it owns the database, so it may
 -- grant on public (owned by pg_database_owner).
+-- The platform names `postgres` itself among the grantees: on the preview
+-- project, read on 18 November 2026, each of its rows starts `postgres=`.
+-- That changes no object's access list (an owner holds those privileges
+-- anyway), but since review H1 the schema fingerprint reads these rows, so
+-- this file names `postgres` too.
 -- The Local Supabase Stack workflow compares a replay made with this file
 -- against Supabase's own image, so a change of the platform's defaults fails
 -- CI rather than a release.
 --
 -- Applied after scripts/sql/supabase-compat-bootstrap.sql, which creates the
 -- API roles, and before the first migration.
-alter default privileges for role postgres in schema public grant all on tables to anon, authenticated, service_role;
-alter default privileges for role postgres in schema public grant all on sequences to anon, authenticated, service_role;
-alter default privileges for role postgres in schema public grant all on functions to anon, authenticated, service_role;
+alter default privileges for role postgres in schema public grant all on tables to postgres, anon, authenticated, service_role;
+alter default privileges for role postgres in schema public grant all on sequences to postgres, anon, authenticated, service_role;
+alter default privileges for role postgres in schema public grant all on functions to postgres, anon, authenticated, service_role;
 grant usage on schema public to postgres, anon, authenticated, service_role;

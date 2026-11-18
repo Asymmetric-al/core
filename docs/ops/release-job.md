@@ -380,11 +380,23 @@ Both rebuilds therefore put the platform's default privileges back before
 the reset, from `scripts/sql/hosted-default-privileges.sql`, the file the
 replay applies before the chain. Every statement in it runs as `postgres`,
 which owns those defaults and owns the database, so it may grant on `public`.
-If that step fails, the rebuild stops and resets nothing. `migrate` never
-resets and never touches default privileges: the chain's own changes to them
-stand. The release real-stack suite proves the rebuild: a database built with
-the chain, then reset the way the CLI resets a hosted one, fingerprints equal
-to a fresh replay.
+The file runs in one transaction: if it fails part way, nothing of it
+applies, the rebuild stops and nothing is reset. Both rebuilds check the
+pinned CLI before this step, so a wrong CLI stops them before they touch the
+database. `migrate` never resets and never touches default privileges: the
+chain's own changes to them stand. The release real-stack suite proves the
+rebuild: a database built with the chain, then reset the way the CLI resets
+a hosted one, fingerprints equal to a fresh replay.
+
+**If the reset fails after this step.** The defaults of `postgres` in
+`public` are then open to `anon` and `authenticated` again. A reset that
+failed before it dropped anything (the wrapper could not read the marker, no
+route) leaves the whole chain under them, and anything created in `public`
+from then on would be open to both roles. The rebuild stops and says so. Fix
+the cause and rebuild again. Never run `migrate` on that database until a
+rebuild has passed. Since review H1 the gate reads these default privileges
+(the schema fingerprint, version 2), so a release would stop at its gates
+rather than deploy over them.
 
 ### Pull requests that carry a migration
 
