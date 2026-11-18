@@ -199,10 +199,13 @@ The pinned merger uses a delta's Purpose only to create a missing spec. When
 the spec already exists with a different Purpose, it warns, and
 `verify:openspec-deltas` fails on that warning. This change therefore uses
 `make-shadscan-advisory`'s Purpose word for word, so those two can archive in
-either order. `modernize-shadscan-readiness` already carries a different
-Purpose than `make-shadscan-advisory`. That conflict exists without this
-change, and `make-shadscan-advisory`'s planned amendment of that change is
-where it gets resolved.
+either order. `modernize-shadscan-readiness` carries a different Purpose
+again, and no planned task in either Shadscan change aligns it, so the rule
+for this change is simple: whichever change archives later matches the
+Purpose that is already there. Task 4.4 does that for this change before it
+archives. If `openspec/specs/ui-quality-audits/spec.md` exists by then, this
+delta's Purpose is made byte-identical to that spec's, and
+`verify:openspec-deltas` must pass before the archive.
 
 ## Risks / Trade-offs
 
