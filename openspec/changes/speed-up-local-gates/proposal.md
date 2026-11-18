@@ -53,7 +53,7 @@ guide.
   and the last lines of its output, then stops. A pass names the profile.
 - One shared edit hook (`scripts/agent-hooks/after-edit.mjs`) runs ESLint
   (fix) and then Prettier (write) on the one file an agent edited, with the
-  same commands the pre-commit hook uses, and reports remaining lint errors
+  same configuration the pre-commit hook uses, and reports remaining lint errors
   in a few lines. It is wired as one hook per harness: Claude Code
   (`.claude/settings.json`, `PostToolUse`), Codex (`.codex/hooks.json`,
   `PostToolUse`) and Cursor (`.cursor/hooks.json`, `afterFileEdit`).

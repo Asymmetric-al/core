@@ -97,7 +97,7 @@ output. A passing run SHALL print which profile ran.
 
 Each supported agent harness (Claude Code, Codex and Cursor) SHALL run one
 shared edit hook after an agent edits a file. The hook SHALL fix lint and
-format that one file with the commands the pre-commit hook uses, and report
+format that one file with the configuration the pre-commit hook uses, and report
 remaining lint errors to the agent in a few lines. It MUST never block or
 fail an edit because a tool is missing.
 

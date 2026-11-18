@@ -125,25 +125,39 @@ main checkout still uses a worktree's own tools. It skips paths outside a
 checkout, deleted files, generated, mirrored and vendored trees from
 `docs/ai/protected-paths.md`, `.next`, `.next-docs` and `.agents`, and files
 Prettier ignores. For source files under `apps/`, `packages/` or `tooling/`
-it runs `node tooling/eslint-config/lint.mjs --fix <file>`, then for every
+(the lint-staged glob) it runs ESLint `--fix --format json` with exactly the
+arguments `tooling/eslint-config/lint.mjs` builds from the repository root
+(root `eslint.config.mjs`, the shared suppressions file), then for every
 handled file `node node_modules/prettier/bin/prettier.cjs --ignore-unknown
---write <file>`, both from the checkout root: the pre-commit commands for one
-file. It invokes Node directly, never a `.cmd` shim, so it works on Windows.
+--write <file>`, both from the checkout root. A unit test compares the ESLint
+arguments with `lintInvocation`, so the two cannot drift. It skips
+`lint.mjs`'s design-system health probe, which pre-commit and CI still run:
+on the loaded Windows host the probe added about 6 s to one file (18 s
+through `lint.mjs`, 12 s direct). It invokes Node directly, never a `.cmd`
+shim, so it works on Windows.
 
-When the lint fix leaves errors, the hook reports up to 12 lines: Claude Code
-and Codex receive them on stderr with exit code 2, which both document as
-feedback after the tool already ran. Cursor's `afterFileEdit` has no
-documented channel back to the agent, so its errors go to the hook log and
-the hook exits 0; the agent meets them at commit. A missing tool, a timeout
-or an unexpected error exits 0 quietly.
+ESLint is the slow part. Loading the root configuration alone took about 8 s
+on the loaded host, and one file took 12 to 28 s, against under a second for
+Prettier. Lint stays on by default because the owner's ruling asks for format
+and lint on edit; `ASYM_EDIT_HOOK=format` skips the lint step and
+`ASYM_EDIT_HOOK=off` skips the hook, for slow machines.
+
+When the lint fix leaves errors, the hook reports up to ten lines per file.
+Claude Code and Codex receive them as `PostToolUse`
+`hookSpecificOutput.additionalContext` with exit 0, which both add next to the
+tool result without replacing it (Codex replaces the tool result on exit 2 or
+`decision: "block"`, which would hide the patch result). Cursor's
+`afterFileEdit` has no documented channel back to the agent, so its errors go
+to the hook log and the hook exits 0; the agent meets them at commit. A
+missing tool, a timeout or an unexpected error exits 0 quietly.
 
 Configurations (one hook each, as documented on 2026-11-18):
 
 - Claude Code (<https://code.claude.com/docs/en/hooks>): exec form
   `"command": "node", "args": ["${CLAUDE_PROJECT_DIR}/scripts/agent-hooks/after-edit.mjs", "claude"]`,
-  matcher `Edit|Write`, timeout 30.
+  matcher `Edit|Write`, timeout 120.
 - Codex (<https://learn.chatgpt.com/docs/hooks>): `.codex/hooks.json`,
-  `PostToolUse`, matcher `apply_patch|Edit|Write`, command
+  `PostToolUse`, matcher `^apply_patch$`, timeout 120, command
   `node "$(git rev-parse --show-toplevel)/scripts/agent-hooks/after-edit.mjs" codex`
   as the page recommends for repository hooks. Codex runs a project hook only
   after the user trusts it with `/hooks`.
