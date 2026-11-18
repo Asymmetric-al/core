@@ -6,7 +6,10 @@
 -- the first hosted run (docs/audits/core-crm-cms-database-proofs/
 -- wp16-hosted-proofs.md, section 5).
 --
--- The one copy in the repository. Read by:
+-- The one copy of the platform's defaults in the repository. The
+-- compatibility bootstrap's SELECT on tables for service_role is the plain
+-- replay's own minimal grant, not a statement about hosted (review H2).
+-- Read by:
 --   - scripts/verify/supabase-migrations.mjs --hosted-defaults, the replay of
 --     the release job, of the preview-database job and of a direct run;
 --   - scripts/release/release-database.mjs, whose two rebuilds put these

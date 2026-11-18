@@ -320,7 +320,7 @@ The release job's replay, in `release.yml` and in the preview-database job, appl
 
 The replay is now made like the platform (commits `eb7646f5e` and `172bd89f0`):
 
-- `scripts/sql/hosted-default-privileges.sql` is the one copy of the platform's default privileges in `public`. It holds the three `alter default privileges` statements and the `public` schema's USAGE grants.
+- `scripts/sql/hosted-default-privileges.sql` is the one copy of the platform's default privileges in `public`. The compatibility bootstrap's SELECT on tables for `service_role` is not one: it is the plain replay's own minimal grant, which the chain needs on plain Postgres (review H2, section 18). It holds the three `alter default privileges` statements and the `public` schema's USAGE grants.
 - `scripts/verify/supabase-migrations.mjs --hosted-defaults` applies that file after the compatibility bootstrap and before the first migration. Any other argument is refused, so a misspelt flag never replays without the defaults.
 - The real-stack privileges harness reads the same file in place of its own copy.
 - `release.yml` and the `preview-database` job of `qa-smoke-preview-deploy.yml` pass the flag.
@@ -523,6 +523,7 @@ For the coordinator:
 - **Plan 7.5 and 8.5.** "Every release sets the CMS role passwords" becomes "every release makes the secrets log in: it changes a password only when its secret is refused, then waits up to 90 seconds for the pooler". A rotation is a new secret, then a release or `set-cms-role-passwords`.
 - **Plan 7.5, the rebuild.** A hosted reset keeps `public` and the default privileges held there. So a rebuild first puts the platform's defaults back, from the replay's file.
 - **Plan 7.4.** The ledgers check versions only. An applied migration edited in place shows only in the fingerprint, which is what enforces the rule that applied migrations are never edited.
+- **Record, for WP4a.** CI's `migrate` job replays without the hosted defaults, so its database is not privilege-identical to a hosted one: `service_role` holds SELECT on the chain's tables in `public` there, and every privilege on hosted. Whether it should be identical is a question for WP4a (review H2).
 - **Plan 9.3.** `cms_owner`'s limit of 2 holds for the job's own steps, which run one after another in session mode (section 11). Overlap with a person's CMS migration would exceed it.
 - **`docs/ci.md`, "Local Supabase stack workflow".** Done: the line was added in `51f30dfa2`, with the six frozen suites that pin the file's bytes (issues 2180, 2250, 2254, 2258, 2260 and 2312) re-taken under D-18, and corrected after review H7, with the pins re-taken again.
 

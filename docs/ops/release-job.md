@@ -22,10 +22,14 @@ and none is ever cancelled.
    Payload migrations), and its schema fingerprint is captured
    (`scripts/release/schema-fingerprint.mjs`). Before the first migration the
    replay gives `postgres` the default privileges hosted Supabase gives it in
-   `public` (`scripts/sql/hosted-default-privileges.sql`, the one copy, which
+   `public` (`scripts/sql/hosted-default-privileges.sql`, the one copy of the
+   platform's defaults, which
    both rebuilds put back before their reset, see
    [What a reset keeps of the default privileges](#what-a-reset-keeps-of-the-default-privileges),
-   and the real-stack privileges harness reads too). Without them every table,
+   and the real-stack privileges harness reads too). The compatibility
+   bootstrap's SELECT on tables for `service_role` is not one of them: it
+   is the plain replay's own minimal grant, without which the chain does
+   not apply on plain Postgres. Without the platform's defaults every table,
    sequence and function the chain creates has another access list than on
    the hosted target, and step 4 stops every hosted release, as it stopped the
    first hosted run (WP1.6). When a pull request changes one of its listed
