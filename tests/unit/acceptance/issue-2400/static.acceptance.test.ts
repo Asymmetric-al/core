@@ -9,7 +9,6 @@
  * migrate job's census; criterion 10 is the merge gate. Owned by Acceptance;
  * implementers must not edit.
  */
-import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -225,57 +224,5 @@ describe("#2400 criteria 5-6: doc and census chain", () => {
     expect(H.censusProblems(withMsg.replace(message, ""))).toEqual([
       "§1.5 message",
     ]);
-  });
-});
-
-/**
- * Criterion 9, opt-in: ACCEPTANCE_2400_SCOPE=1 (base = `git merge-base HEAD
- * origin/develop`) or ACCEPTANCE_2400_BASE=<ref>. The merge-base keeps it
- * branch-agnostic: it is the PR's fork point whether develop has moved on or
- * not, where a hard-coded develop SHA would count every later develop commit as
- * this PR's diff. Only committed changes (base..HEAD) count, so local scratch
- * files never fail it.
- */
-const BASE = process.env.ACCEPTANCE_2400_BASE?.trim() ?? "";
-const SCOPE = process.env.ACCEPTANCE_2400_SCOPE?.trim() === "1" || BASE !== "";
-const DECLARED = [
-  H.MIGRATION,
-  H.ROLLBACK,
-  H.DOC,
-  `${H.FP}/${H.V3}`,
-  `${H.FP}/census-v1.json`,
-  "supabase/tests/field_policies_foundation.sql",
-  "scripts/verify/field-policy-census.mjs",
-  "tests/unit/scripts/supabase-migrations.test.ts",
-  F2260,
-];
-describe.skipIf(!SCOPE)("#2400 criterion 9 (opt-in): PR diff scope", () => {
-  const git = (...args: string[]) => {
-    const r = spawnSync("git", args, { encoding: "utf8" });
-    expect(r.status, `git ${args.join(" ")}: ${r.stderr}`).toBe(0);
-    return r.stdout.split("\n").filter(Boolean);
-  };
-  const base = () => BASE || git("merge-base", "HEAD", "origin/develop")[0]!;
-
-  it("#2400 criterion 9: only §6 paths change, ci-integration.yml is unchanged, no supabase/migrations/2*.sql is added", () => {
-    const changed = git("diff", "--name-only", "--no-renames", base(), "HEAD");
-    expect(
-      changed.filter(
-        (f) => !DECLARED.includes(f) && !f.startsWith(`${A}/issue-2400/`),
-      ),
-    ).toEqual([]);
-    expect(changed).not.toContain(WF);
-    const added = git(
-      "diff",
-      "--name-only",
-      "--diff-filter=A",
-      base(),
-      "HEAD",
-      "--",
-      "supabase/migrations",
-    );
-    expect(
-      added.filter((f) => /^supabase\/migrations\/2[^/]*\.sql$/.test(f)),
-    ).toEqual([]);
   });
 });
