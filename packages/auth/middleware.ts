@@ -275,6 +275,11 @@ function withSearch(request: NextRequest, pathname: string) {
  * round 1, A2). `parseTenantAddress` already refuses an inner path that
  * starts another authority (A1); this refusal stands if a parse ever lets
  * one through.
+ *
+ * On a Node server the raw tab is refused and the double slash is redirected
+ * before the proxy sees it, so the proxy's own refusal is the defence on a
+ * platform whose front differs, and it is proved by the tests
+ * (`tests/unit/auth/tenant-address-rewrite-*.test.ts`).
  */
 function ownOriginUrl(request: NextRequest, path: string): URL | null {
   if (!path.startsWith("/")) return null;
