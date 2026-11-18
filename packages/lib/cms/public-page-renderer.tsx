@@ -1,3 +1,5 @@
+import { sanitizePublicCmsHref } from "./public-page";
+
 import type { ReactNode } from "react";
 
 type LexicalNode = {
@@ -8,8 +10,6 @@ type LexicalNode = {
   type?: unknown;
   url?: unknown;
 };
-
-const SAFE_LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
 export function renderPublicCmsPageContent(
   content: unknown,
@@ -66,7 +66,9 @@ function renderLexicalNode(node: LexicalNode, key: string): ReactNode {
       return <br key={key} />;
     case "link":
       return (
-        <a key={key} href={sanitizePublicCmsHref(node.url)}>
+        // One rule for every stored link: the blocks' parse step uses the
+        // same function. A link it refuses goes nowhere.
+        <a key={key} href={sanitizePublicCmsHref(node.url) ?? "#"}>
           {renderChildren(node, key)}
         </a>
       );
@@ -106,29 +108,6 @@ function renderHeading(node: LexicalNode, key: string) {
     default:
       return <h2 key={key}>{children}</h2>;
   }
-}
-
-function sanitizePublicCmsHref(value: unknown) {
-  if (typeof value !== "string") {
-    return "#";
-  }
-
-  const href = value.trim();
-  if (!href || href.startsWith("//")) {
-    return "#";
-  }
-
-  if (href.startsWith("/") || href.startsWith("#")) {
-    return href;
-  }
-
-  const protocolMatch = /^([a-zA-Z][a-zA-Z0-9+.-]*):/.exec(href);
-  if (!protocolMatch) {
-    return "#";
-  }
-
-  const protocol = protocolMatch[1]?.toLowerCase();
-  return protocol && SAFE_LINK_PROTOCOLS.has(`${protocol}:`) ? href : "#";
 }
 
 function isLexicalNode(value: unknown): value is LexicalNode {

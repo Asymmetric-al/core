@@ -291,6 +291,31 @@ function withSearch(request: NextRequest, pathname: string) {
   return `${pathname}${request.nextUrl.search}`;
 }
 
+/**
+ * `path` as a URL on the request's own origin, or null when it would resolve
+ * anywhere else. Every rewrite target and every redirect the proxy builds
+ * from the page address goes through this. Next.js fetches a rewrite to
+ * another origin itself, with the request headers the proxy set, the session
+ * cookie among them, so such a target is refused, never followed (council
+ * round 1, A2). `parseTenantAddress` already refuses an inner path that
+ * starts another authority (A1); this refusal stands if a parse ever lets
+ * one through.
+ */
+function ownOriginUrl(request: NextRequest, path: string): URL | null {
+  if (!path.startsWith("/")) return null;
+  const url = new URL(path, request.nextUrl.origin);
+  return url.origin === request.nextUrl.origin ? url : null;
+}
+
+/**
+ * The answer to an address the proxy will not serve: no page, as for an API
+ * route under a tenant prefix. Nothing in it comes from the address, and it
+ * carries no session cookie.
+ */
+function refusedAddress(): NextResponse {
+  return new NextResponse(null, { status: 404 });
+}
+
 function chooserUrl(
   request: NextRequest,
   tenantId: string | null,
@@ -398,9 +423,8 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     // Sign-in, the chooser, Web Studio and the public pages stay outside the
     // tenant segment: an address that puts one inside it loses the prefix.
     if (address && (isExplicitlyPublic || isOutsideTenantSegment(pathname))) {
-      return NextResponse.redirect(
-        new URL(withSearch(request, pathname), request.nextUrl.origin),
-      );
+      const target = ownOriginUrl(request, withSearch(request, pathname));
+      return target ? NextResponse.redirect(target) : refusedAddress();
     }
 
     // A tenant address is a signed-in page by definition.
@@ -647,18 +671,19 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         }
         const target =
           landing.kind === "enter"
-            ? new URL(
+            ? ownOriginUrl(
+                request,
                 withSearch(
                   request,
                   `${landing.prefix}${pathname === "/" ? "" : pathname}`,
                 ),
-                request.nextUrl.origin,
               )
             : chooserUrl(
                 request,
                 landing.tenantId,
                 withSearch(request, pathname),
               );
+        if (!target) return refusedAddress();
         return redirectWithCookies(target, supabaseResponse);
       }
 
@@ -675,17 +700,17 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             buildRedirectUrl(request, unauthorizedRedirectTo),
             supabaseResponse,
           );
-        case "canonical":
-          return redirectWithCookies(
-            new URL(
-              withSearch(
-                request,
-                `${decision.prefix}${pathname === "/" ? "" : pathname}`,
-              ),
-              request.nextUrl.origin,
+        case "canonical": {
+          const target = ownOriginUrl(
+            request,
+            withSearch(
+              request,
+              `${decision.prefix}${pathname === "/" ? "" : pathname}`,
             ),
-            supabaseResponse,
           );
+          if (!target) return refusedAddress();
+          return redirectWithCookies(target, supabaseResponse);
+        }
         case "choose":
           return redirectWithCookies(
             chooserUrl(
@@ -696,6 +721,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             supabaseResponse,
           );
         case "allow": {
+          // The rewrite target keeps the request's origin, so Next serves it
+          // from this server; anything else is refused before a header is
+          // set (A2), and the marker catches a same-origin rewrite that Next
+          // still sends out (D-19).
+          const target = ownOriginUrl(request, withSearch(request, pathname));
+          if (!target) return refusedAddress();
           requestHeaders.set(TENANT_HEADER, decision.assignment.tenantId);
           requestHeaders.set(
             ASSIGNMENT_HEADER,
@@ -703,13 +734,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           );
           requestHeaders.set(ADDRESS_PREFIX_HEADER, decision.prefix);
           requestHeaders.set(TENANT_REWRITE_HEADER, TENANT_REWRITE_MARKER);
-          // The rewrite target keeps the request's origin, so Next serves it
-          // from this server; the marker catches it if it ever does not.
           return withSessionFrom(
-            NextResponse.rewrite(
-              new URL(withSearch(request, pathname), request.nextUrl.origin),
-              { request: { headers: requestHeaders } },
-            ),
+            NextResponse.rewrite(target, {
+              request: { headers: requestHeaders },
+            }),
             supabaseResponse,
           );
         }

@@ -40,7 +40,10 @@ function choicePath(next: string | null | undefined): string {
   const url = new URL(safe, "http://localhost");
   const pathname = stripTenantAddress(url.pathname);
   if (isOutsideTenantSegment(pathname)) return "/";
-  return `${pathname}${url.search}${url.hash}`;
+  // What is left once the prefix is gone is an address of its own, so it
+  // passes the same check again before any href is built from it (council
+  // round 1, A1).
+  return safeNextParam(`${pathname}${url.search}${url.hash}`) ?? "/";
 }
 
 function fallbackName(tenantId: string) {

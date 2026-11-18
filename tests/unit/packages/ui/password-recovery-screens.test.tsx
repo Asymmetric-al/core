@@ -9,6 +9,7 @@ import {
   within,
 } from "@testing-library/react";
 import { AuthApiError } from "@supabase/supabase-js";
+import { Activity } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const auth = vi.hoisted(() => ({
@@ -350,6 +351,74 @@ describe("choosing a new password", () => {
         screen.getByRole("button", { name: "Save new password" }),
       );
       await waitFor(() => expect(auth.updateUser).toHaveBeenCalledTimes(1));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // Council round 3: Next keeps a page it navigated away from mounted and
+  // hidden in <Activity>, and React runs its Effects again when it is shown
+  // again. The window counts from the time left the server gave, once; coming
+  // back to the form must not start it over.
+  it("does not start the time over when the form is hidden and shown again", async () => {
+    const start = 1_800_000_000_000;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(start);
+    try {
+      const form = (mode: "visible" | "hidden") => (
+        <Activity mode={mode}>
+          <ResetPasswordScreen
+            appId="donor"
+            recovery={{ email: "ada@example.com", secondsLeft: 120 }}
+          />
+        </Activity>
+      );
+      const { rerender } = render(form("visible"));
+      type("New password", "long enough phrase");
+      type("Confirm new password", "long enough phrase");
+
+      vi.setSystemTime(start + 121_000);
+      rerender(form("hidden"));
+      rerender(form("visible"));
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save new password" }),
+      );
+
+      const alert = await screen.findByRole("alert");
+      expect(alert.textContent).toContain("This link has expired");
+      expect(auth.updateUser).not.toHaveBeenCalled();
+      expect(router.replace).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("counts from the new time left when the server gives one", async () => {
+    const start = 1_800_000_000_000;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(start);
+    try {
+      const form = (secondsLeft: number) => (
+        <ResetPasswordScreen
+          appId="donor"
+          recovery={{ email: "ada@example.com", secondsLeft }}
+        />
+      );
+      const { rerender } = render(form(120));
+      type("New password", "long enough phrase");
+      type("Confirm new password", "long enough phrase");
+
+      // The page is read again 100 seconds in, and the server reports 20 left.
+      vi.setSystemTime(start + 100_000);
+      rerender(form(20));
+      vi.setSystemTime(start + 121_000);
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save new password" }),
+      );
+
+      const alert = await screen.findByRole("alert");
+      expect(alert.textContent).toContain("This link has expired");
+      expect(auth.updateUser).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }
