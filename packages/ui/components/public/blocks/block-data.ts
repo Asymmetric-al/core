@@ -4,8 +4,12 @@
  * Stored blocks are untrusted: a draft can be half filled and a stored value
  * can have any shape. Each reader keeps what is usable and drops the rest, so
  * an incomplete draft still previews. Text stays text: nothing here is ever
- * rendered as markup.
+ * rendered as markup. A link is kept only when `sanitizePublicCmsHref`
+ * accepts it (a site path, an anchor, or http, https, mailto or tel), so no
+ * surface is handed a script or protocol-relative link.
  */
+
+import { sanitizePublicCmsHref } from "@asym/lib/cms/public-page";
 
 export type RawBlock = Readonly<Record<string, unknown>>;
 
@@ -66,7 +70,7 @@ const DEFAULT_ACTION_LABEL = "Open";
 
 export function parseHeroBlock(raw: RawBlock): HeroBlockData {
   const label = readText(raw.primaryCtaLabel);
-  const href = readText(raw.primaryCtaHref);
+  const href = sanitizePublicCmsHref(raw.primaryCtaHref);
   return {
     eyebrow: readText(raw.eyebrow),
     headline: readText(raw.headline),
@@ -91,7 +95,7 @@ export function parseMediaFeatureBlock(raw: RawBlock): MediaFeatureBlockData {
 }
 
 export function parseCallToActionBlock(raw: RawBlock): CallToActionBlockData {
-  const href = readText(raw.buttonHref);
+  const href = sanitizePublicCmsHref(raw.buttonHref);
   return {
     headline: readText(raw.headline),
     copy: readText(raw.copy),

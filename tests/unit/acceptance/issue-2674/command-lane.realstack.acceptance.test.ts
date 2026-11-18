@@ -12,6 +12,15 @@
  * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL (see ./harness.ts). The
  * reset-script cases create one throwaway database named after the target
  * database (`<name>_nomarker_<hex>`) and drop it afterwards.
+ *
+ * Amended by council round 2 (A4; plan 7.1): proofs 2 and 3 typed out the
+ * human entry points and the platform commands, so the first command of a
+ * later package failed them. Both lists are now derived from the convention:
+ * what signed-in users may execute in tenant_guard must equal the
+ * guard-owned definers whose first statement is the human preamble, and in
+ * platform the postgres-owned definers that start with the operator check.
+ * Each derived list must be non-empty where WP1 ships an entry, and every
+ * other function in the schema must refuse a signed-in caller, as before.
  */
 import { spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -19,13 +28,12 @@ import { randomBytes, randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { laneCheckProblem } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 import {
   ADMIN_URL,
   COMMAND_LANE_MIGRATION,
   GUARD_CLI,
-  HUMAN_ENTRY_POINTS,
   IN_MIGRATE_JOB,
-  PLATFORM_COMMANDS,
   PLATFORM_MIGRATION,
   asRole,
   fixtureIds,
@@ -34,6 +42,49 @@ import {
   nullCall,
   postAssert,
 } from "./harness";
+
+type LaneRow = {
+  fn: string;
+  owner: string;
+  definer: boolean;
+  language: string;
+  body: string;
+  authenticated: boolean;
+};
+
+/** Every function in a command schema, with what the lane rules read. */
+async function laneRows(db: pg.Client, schema: "tenant_guard" | "platform") {
+  const r = await db.query(
+    `select p.oid::regprocedure::text fn, p.proowner::regrole::text owner, p.prosecdef definer,
+            l.lanname language, p.prosrc body,
+            has_function_privilege('authenticated', p.oid, 'EXECUTE') authenticated
+       from pg_proc p join pg_namespace n on n.oid = p.pronamespace join pg_language l on l.oid = p.prolang
+      where n.nspname = $1 order by 1`,
+    [schema],
+  );
+  return r.rows as LaneRow[];
+}
+
+/**
+ * The entry points the convention defines in a schema: in tenant_guard a
+ * guard-owned definer whose first statement is the human preamble; in
+ * platform a postgres-owned definer that starts with the operator check.
+ */
+function byConvention(rows: LaneRow[], schema: "tenant_guard" | "platform") {
+  const owner = schema === "tenant_guard" ? "tenant_guard" : "postgres";
+  return rows
+    .filter(
+      (row) =>
+        row.owner === owner &&
+        row.definer &&
+        laneCheckProblem({ schema, language: row.language, body: row.body }) ===
+          null,
+    )
+    .map((row) => row.fn);
+}
+
+const signedIn = (rows: LaneRow[]) =>
+  rows.filter((row) => row.authenticated).map((row) => row.fn);
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL (fails, never skips)",
@@ -225,13 +276,15 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
   });
 
   describe("proof 2: a signed-in caller can execute nothing else in the command schema", () => {
-    it("authenticated may execute exactly the human entry points in tenant_guard", () =>
+    it("authenticated may execute exactly the human entry points in tenant_guard, derived from the convention", () =>
       tx(async () => {
-        const r = await db.query(
-          `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname = 'tenant_guard' and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1`,
+        const rows = await laneRows(db, "tenant_guard");
+        const humans = byConvention(rows, "tenant_guard");
+        expect(signedIn(rows)).toEqual(humans);
+        // WP1's proof command is one of them, so the comparison is not vacuous.
+        expect(humans).toContain(
+          "tenant_guard.resolve_command_assignment(uuid)",
         );
-        expect(r.rows.map((x) => x.fn)).toEqual(HUMAN_ENTRY_POINTS);
         const usage = await one(
           `select has_schema_privilege('authenticated', 'tenant_guard', 'USAGE') a,
                   has_schema_privilege('anon', 'tenant_guard', 'USAGE') n`,
@@ -241,21 +294,18 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("every other tenant_guard function, the worker entry points included, refuses a signed-in caller", () =>
       tx(async () => {
-        const r = await db.query(
-          `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname = 'tenant_guard' order by 1`,
-        );
-        const others = r.rows
-          .map((x) => x.fn as string)
-          .filter((fn) => !HUMAN_ENTRY_POINTS.includes(fn));
-        expect(others).toEqual(
+        const rows = await laneRows(db, "tenant_guard");
+        const humans = byConvention(rows, "tenant_guard");
+        const others = rows
+          .map((row) => row.fn)
+          .filter((fn) => !humans.includes(fn));
+        // By name: a later package may change a helper's arguments.
+        expect(others.map((fn) => fn.slice(0, fn.indexOf("(")))).toEqual(
           expect.arrayContaining([
-            "tenant_guard.acquire_workflow_work_claim(uuid,text,text,text,integer)",
-            "tenant_guard.release_workflow_work_claim(uuid,uuid,text)",
-            // AL-2675: the preamble takes the capability as a defaulted
-            // second argument.
-            "tenant_guard.begin_human_command(uuid,text)",
-            "tenant_guard.enter(uuid)",
+            "tenant_guard.acquire_workflow_work_claim",
+            "tenant_guard.release_workflow_work_claim",
+            "tenant_guard.begin_human_command",
+            "tenant_guard.enter",
           ]),
         );
         for (const fn of others) {
@@ -268,10 +318,29 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("the public worker wrappers refuse a signed-in caller too", () =>
       tx(async () => {
-        for (const fn of [
-          "public.acquire_workflow_work_claim(uuid,text,text,text,integer)",
-          "public.release_workflow_work_claim(uuid,uuid,text)",
-        ]) {
+        // Every public function that calls a tenant_guard function signed-in
+        // users may not execute.
+        const humans = byConvention(
+          await laneRows(db, "tenant_guard"),
+          "tenant_guard",
+        ).map((fn) => fn.slice(0, fn.indexOf("(")));
+        const r = await db.query(
+          `select 'public.' || regexp_replace(p.oid::regprocedure::text, '^public\\.', '') fn,
+                  array(select distinct lower(m[1]) from regexp_matches(p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), ''),
+                        '(tenant_guard\\.[a-z_][a-z0-9_$]*)\\s*\\(', 'gi') m) targets
+             from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'public' order by 1`,
+        );
+        const workers = (r.rows as { fn: string; targets: string[] }[])
+          .filter((row) => row.targets.some((t) => !humans.includes(t)))
+          .map((row) => row.fn);
+        expect(workers).toEqual(
+          expect.arrayContaining([
+            "public.acquire_workflow_work_claim(uuid,text,text,text,integer)",
+            "public.release_workflow_work_claim(uuid,uuid,text)",
+          ]),
+        );
+        for (const fn of workers) {
           const out = await as(
             "authenticated",
             { sub: "U1" },
@@ -317,8 +386,14 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
 
     it("signed-in users may use the schema and execute the platform commands and nothing else (none ship in WP1)", () =>
       tx(async () => {
-        expect(await commands()).toEqual(PLATFORM_COMMANDS);
-        expect(await everyCommandRefuses()).toEqual(PLATFORM_COMMANDS);
+        // The commands are what the convention defines, derived from the
+        // catalog; the probe below makes the loop non-vacuous.
+        const platformCommands = byConvention(
+          await laneRows(db, "platform"),
+          "platform",
+        );
+        expect(await commands()).toEqual(platformCommands);
+        expect(await everyCommandRefuses()).toEqual(platformCommands);
         const usage = await one(
           `select has_schema_privilege('authenticated', 'platform', 'USAGE') a,
                   has_schema_privilege('anon', 'platform', 'USAGE') n,
@@ -330,7 +405,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
             where n.nspname = 'platform' order by 1`,
         );
         for (const { fn } of all.rows as { fn: string }[]) {
-          if (PLATFORM_COMMANDS.includes(fn)) continue;
+          if (platformCommands.includes(fn)) continue;
           const out = await as(
             "authenticated",
             { sub: "U1", aal: "aal2" },
@@ -344,10 +419,11 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
     it("a command that follows the convention refuses every non-operator, so the loop above is not vacuous", () =>
       tx(async () => {
         await db.query(PROBE);
-        expect(await commands()).toEqual([
-          ...PLATFORM_COMMANDS,
-          "platform.acc2674_probe(text)",
-        ]);
+        const withProbe = await commands();
+        expect(withProbe).toContain("platform.acc2674_probe(text)");
+        expect(withProbe).toEqual(
+          byConvention(await laneRows(db, "platform"), "platform"),
+        );
         await everyCommandRefuses();
         const noSession = await as(
           "authenticated",
@@ -659,13 +735,23 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
   });
 
   describe("the guard role's new privileges (NR-13)", () => {
-    it("tenant_guard may use auth and authz and their helpers, and reads only the session caller's memberships", () =>
+    // Amended by AL-2674 A9 (plan 15.2): the guard holds nothing on `auth`. On
+    // Supabase's own image no migration role can grant it any, so the guard
+    // reads the caller and the claims from the request's settings itself.
+    it("tenant_guard may use authz and its helpers and the claims helpers, holds no grant on auth, and reads only the session caller's memberships", () =>
       tx(async () => {
         const p = await one(
-          `select has_schema_privilege('tenant_guard', 'auth', 'USAGE') auth_usage,
+          `select (select count(*)::int from pg_namespace n, aclexplode(n.nspacl) a
+                     where n.nspname = 'auth' and a.grantee = 'tenant_guard'::regrole)
+                + (select count(*)::int from pg_proc f, aclexplode(f.proacl) a
+                     where f.pronamespace = 'auth'::regnamespace and a.grantee = 'tenant_guard'::regrole)
+                + (select count(*)::int from pg_class c, aclexplode(c.relacl) a
+                     where c.relnamespace = 'auth'::regnamespace and a.grantee = 'tenant_guard'::regrole) auth_grants,
                   has_schema_privilege('tenant_guard', 'authz', 'USAGE') authz_usage,
-                  has_function_privilege('tenant_guard', 'auth.uid()', 'EXECUTE') uid,
-                  has_function_privilege('tenant_guard', 'auth.jwt()', 'EXECUTE') jwt,
+                  has_function_privilege('tenant_guard', 'tenant_guard.caller_id()', 'EXECUTE') caller,
+                  has_function_privilege('tenant_guard', 'tenant_guard.request_claims()', 'EXECUTE') claims,
+                  has_function_privilege('authenticated', 'tenant_guard.caller_id()', 'EXECUTE')
+                    or has_function_privilege('authenticated', 'tenant_guard.request_claims()', 'EXECUTE') signed_in,
                   has_function_privilege('tenant_guard', 'authz.has_membership(uuid, authz.membership_role[])', 'EXECUTE') has_membership,
                   has_function_privilege('tenant_guard', 'authz.has_staff_membership(uuid, authz.staff_role[])', 'EXECUTE') has_staff,
                   has_function_privilege('tenant_guard', 'authz.is_super_admin()', 'EXECUTE') super_admin,
@@ -673,10 +759,11 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
                   has_table_privilege('tenant_guard', 'authz.memberships', 'INSERT, UPDATE, DELETE, TRUNCATE') write`,
         );
         expect(p).toEqual({
-          auth_usage: true,
+          auth_grants: 0,
           authz_usage: true,
-          uid: true,
-          jwt: true,
+          caller: true,
+          claims: true,
+          signed_in: false,
           has_membership: true,
           has_staff: true,
           super_admin: false,
@@ -710,6 +797,130 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
       }));
   });
 
+  // AL-2674 A9 (plan 15.2): the guard reads the caller and the claims from the
+  // request's settings, with the precedence and the result of the installed
+  // auth.uid() and auth.jwt() (supabase/auth migrations 20220224000811 and
+  // 20220531120530; CI's compat bootstrap defines auth.uid() the same way).
+  describe("the caller and the claims come from the request's claims settings", () => {
+    const U1 = "11111111-1111-4111-8111-111111111111";
+    const U2 = "22222222-2222-4222-8222-222222222222";
+    /** A value, or the SQLSTATE the expression raised. */
+    async function outcome(sql: string) {
+      await db.query("savepoint acc2674_claims");
+      try {
+        return { value: (await db.query(sql)).rows[0]!.v ?? null };
+      } catch (e) {
+        return { code: (e as { code?: string }).code };
+      } finally {
+        await db.query("rollback to savepoint acc2674_claims");
+      }
+    }
+    async function setClaims(sub: string, claims: string, claim = "") {
+      await db.query(
+        `select set_config('request.jwt.claim.sub', $1, true),
+                set_config('request.jwt.claims', $2, true),
+                set_config('request.jwt.claim', $3, true)`,
+        [sub, claims, claim],
+      );
+    }
+
+    it.each<
+      [string, string, string, { value: string | null } | { code: string }]
+    >([
+      ["no claim", "", "", { value: null }],
+      ["the single-claim setting alone", U1, "", { value: U1 }],
+      [
+        "the JSON setting alone",
+        "",
+        JSON.stringify({ sub: U2 }),
+        { value: U2 },
+      ],
+      [
+        "both, the single-claim setting first",
+        U1,
+        JSON.stringify({ sub: U2 }),
+        { value: U1 },
+      ],
+      [
+        "a JSON setting without sub",
+        "",
+        JSON.stringify({ role: "authenticated" }),
+        { value: null },
+      ],
+      ["a malformed single-claim value", "not-a-uuid", "", { code: "22P02" }],
+      [
+        "a malformed sub in the JSON setting",
+        "",
+        JSON.stringify({ sub: "not-a-uuid" }),
+        { code: "22P02" },
+      ],
+      [
+        "an empty sub in the JSON setting",
+        "",
+        JSON.stringify({ sub: "" }),
+        { code: "22P02" },
+      ],
+      ["a JSON setting that is not JSON", "", "{not json", { code: "22P02" }],
+    ])(
+      "tenant_guard.caller_id() equals auth.uid() for %s",
+      (_name, sub, claims, expected) =>
+        tx(async () => {
+          await setClaims(sub, claims);
+          const guard = await outcome("select tenant_guard.caller_id() v");
+          const auth = await outcome("select auth.uid() v");
+          expect(guard).toEqual(auth);
+          expect(guard).toEqual(expected);
+        }),
+    );
+
+    it.each<[string, string, string, unknown]>([
+      ["no claim", "", "", { value: null }],
+      [
+        "the JSON setting",
+        "",
+        JSON.stringify({ sub: U1, aal: "aal2" }),
+        { value: { sub: U1, aal: "aal2" } },
+      ],
+      [
+        "the single JSON setting first",
+        JSON.stringify({ aal: "aal2" }),
+        JSON.stringify({ aal: "aal1" }),
+        { value: { aal: "aal2" } },
+      ],
+      ["a setting that is not JSON", "", "{not json", { code: "22P02" }],
+    ])(
+      "tenant_guard.request_claims() reads %s as auth.jwt() does",
+      (_name, claim, claims, expected) =>
+        tx(async () => {
+          await setClaims("", claims, claim);
+          expect(
+            await outcome("select tenant_guard.request_claims() v"),
+          ).toEqual(expected);
+        }),
+    );
+
+    it("a human command resolves the caller from either claims setting alone, as authenticated, with no grant on auth", () =>
+      tx(async () => {
+        await db.query("savepoint acc2674_lane");
+        try {
+          for (const [sub, claims] of [
+            ["", JSON.stringify({ sub: id.U1, role: "authenticated" })],
+            [id.U1!, ""],
+          ] as const) {
+            await db.query("set local role authenticated");
+            await setClaims(sub, claims);
+            const r = await db.query(
+              `select public.resolve_command_assignment('${id.TA}') r`,
+            );
+            expect((r.rows[0]!.r as { actor_id: string }).actor_id).toBe(id.U1);
+            await db.query("reset role");
+          }
+        } finally {
+          await db.query("rollback to savepoint acc2674_lane");
+        }
+      }));
+  });
+
   // Council round 1, B1: a GRANT by a role without the grant option only
   // warns ("no privileges were granted") and the migration would commit.
   describe("the guard's privileges are asserted in the migration, not assumed", () => {
@@ -724,40 +935,31 @@ describe.skipIf(!ADMIN_URL)("AL-2674 command lane (real stack)", () => {
     it("a refused grant only warns, and the post-assert then fails the migration", () =>
       tx(async () => {
         await db.query(
-          `revoke usage on schema auth from tenant_guard;
+          `revoke usage on schema authz from tenant_guard;
            create role acc2674_grantor nologin;
-           grant usage on schema auth to acc2674_grantor;`,
+           grant usage on schema authz to acc2674_grantor;`,
         );
         await db.query("set local role acc2674_grantor");
         // No grant option: Postgres warns and grants nothing.
-        await db.query("grant usage on schema auth to tenant_guard");
+        await db.query("grant usage on schema authz to tenant_guard");
         await db.query("reset role");
         expect(
           (
             await one(
-              "select has_schema_privilege('tenant_guard', 'auth', 'USAGE') u",
+              "select has_schema_privilege('tenant_guard', 'authz', 'USAGE') u",
             )
           ).u,
         ).toBe(false);
         await expect(db.query(ASSERT())).rejects.toMatchObject({
           code: "42501",
-          message: expect.stringContaining("USAGE on schema auth"),
+          message: expect.stringContaining("USAGE on schema authz"),
         });
       }));
 
     it.each<[string, string]>([
-      ["USAGE on schema auth", "revoke usage on schema auth from tenant_guard"],
       [
         "USAGE on schema authz",
         "revoke usage on schema authz from tenant_guard",
-      ],
-      [
-        "EXECUTE on auth.uid()",
-        "revoke execute on function auth.uid() from tenant_guard, public",
-      ],
-      [
-        "EXECUTE on auth.jwt()",
-        "revoke execute on function auth.jwt() from tenant_guard, public",
       ],
       [
         "EXECUTE on authz.has_membership(uuid, authz.membership_role[])",

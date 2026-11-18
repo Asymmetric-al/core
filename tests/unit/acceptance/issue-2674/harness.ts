@@ -4,7 +4,9 @@
  * (a PG17 superuser URL, as in CI's `migrate` job); without it they skip,
  * except in that job, where they fail. Every check is one transaction that is
  * always rolled back. Callers are emulated as PostgREST does it: SET LOCAL
- * ROLE plus request.jwt.claims, request.jwt.claim.sub and request.headers.
+ * ROLE plus request.jwt.claims and request.headers. The single-claim setting
+ * request.jwt.claim.sub, which current PostgREST no longer sets, stays empty,
+ * so the guard resolves the caller from the JSON claims setting (AL-2674 A9).
  */
 import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -22,13 +24,6 @@ export const HYGIENE_MIGRATION = `${MIG}/20261117034708_definer_execute_hygiene.
 export const DEFAULTS_MIGRATION = `${MIG}/20261117034926_close_default_privileges_and_demo_grants.sql`;
 export const GUARD_CLI = "scripts/db/require-disposable-database.mjs";
 export const CATALOG = "scripts/verify/tenant-rls-catalog.mjs";
-
-/** The human entry points in tenant_guard: exactly what signed-in users may execute there. */
-export const HUMAN_ENTRY_POINTS = [
-  "tenant_guard.resolve_command_assignment(uuid)",
-];
-/** Platform commands signed-in users may execute. None ship in WP1; WP3 adds the first. */
-export const PLATFORM_COMMANDS: string[] = [];
 
 export const read = (file: string) =>
   existsSync(file) ? readFileSync(file, "utf8") : "";
@@ -120,9 +115,9 @@ export function asRole(db: pg.Client, id: Record<string, string>) {
         : "";
       await db.query(
         `select set_config('request.jwt.claims', $1, true),
-                set_config('request.jwt.claim.sub', $2, true),
-                set_config('request.headers', $3, true)`,
-        [claims, sub, caller.headers ? JSON.stringify(caller.headers) : ""],
+                set_config('request.jwt.claim.sub', '', true),
+                set_config('request.headers', $2, true)`,
+        [claims, caller.headers ? JSON.stringify(caller.headers) : ""],
       );
       const r = await db.query(sql);
       return {

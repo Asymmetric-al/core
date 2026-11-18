@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This document is the canonical reference for how environments are defined and operated across the Asymmetric.al platform. Production handles real donor data and live Stripe transactions, so strict environment discipline is required for every release and operational action. For companion procedures that are out of scope here, see [production release controls](./production-release.md) and the [deploy checklist](./deploy-checklist.md). Each deployment needs its own reviewed rollback/forward-fix plan; this repository does not supply a universal database rollback procedure.
+This document is the canonical reference for how environments are defined and operated across the Asymmetric.al platform. Production is where real donor data and live Stripe transactions will live, so strict environment discipline is required for every release and operational action. Today neither hosted Supabase project holds real donor data: the [database census](../audits/core-crm-cms-database-census.md) of 17 November 2026 found demo data, test personas and a few team members' logins in both, and the owner has classed all of it as fixtures (decision D-15 in the [implementation record](../audits/core-crm-cms-database-implementation-record.md)). For companion procedures that are out of scope here, see [production release controls](./production-release.md) and the [deploy checklist](./deploy-checklist.md). Each deployment needs its own reviewed rollback/forward-fix plan; this repository does not supply a universal database rollback procedure.
 
 ## 2. Four-Environment Matrix
 
@@ -200,11 +200,11 @@ Asymmetrical Supabase organization. Its dashboard display name should be
 `development`; if the Supabase dashboard still shows `develop`, rename only the
 display name and keep the project ref unchanged.
 
-| Environment | Supabase project | Project ref            | Project URL                                | Policy                                |
-| ----------- | ---------------- | ---------------------- | ------------------------------------------ | ------------------------------------- |
-| Development | `development`    | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                   |
-| Production  | `production`     | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Real donor/auth/payment-adjacent data |
-| Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted    |
+| Environment | Supabase project | Project ref            | Project URL                                | Policy                                           |
+| ----------- | ---------------- | ---------------------- | ------------------------------------------ | ------------------------------------------------ |
+| Development | `development`    | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                              |
+| Production  | `production`     | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Fixtures only (census); frozen, replaced in WP11 |
+| Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted               |
 
 Do not point development at the Vercel-managed Supabase project ref
 `uarazyactrqlxzmeygmr`. It was created by the Vercel/Supabase integration and
@@ -359,12 +359,16 @@ that exposure is acceptable.
 
 ## 5.7 Production Vercel requirements
 
-Production deploys only through the Release workflow (`.github/workflows/release.yml`;
-[runbook](./release-job.md)), which stages, health-checks and promotes each app.
-App-level `vercel.json` disables Git deployments for every branch, `production`
-included (`bun run verify:deployment-discipline` enforces this), and custom
-production domains are not auto-assigned. No application environment holds a
-Postgres connection string (`bun run verify:runtime-connection-strings`).
+After the owner [switches the release job on](./release-job.md#switching-it-on),
+production deploys only through the Release workflow (`.github/workflows/release.yml`),
+which stages, health-checks and promotes each app; custom production domains
+are not auto-assigned; and no application environment holds a Postgres
+connection string (`bun run verify:runtime-connection-strings`). Each of these
+holds only once the matching switch-on step is done. Until then, app-level
+`vercel.json` already disables Git deployments for every branch, `production`
+included (`bun run verify:deployment-discipline` enforces this), so a push to
+`production` that carries it deploys nothing, and its Release run stops at
+preflight.
 
 If the team later migrates Production away from `production`, change the Vercel
 project Production Branch for `admin`, `donor`, and `missionary`, ensure the

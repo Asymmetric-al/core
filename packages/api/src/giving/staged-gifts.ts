@@ -489,11 +489,21 @@ export async function approveStagedGiftForFinance(
       last_error_message: null,
       updated_at: new Date().toISOString(),
     })
+    // Conditional on the state that was checked: a gift refunded, posted or
+    // otherwise moved since it was read matches no row and keeps its state.
     .eq("id", gift.id)
+    .eq("tenant_id", gift.tenantId)
+    .eq("status", gift.status)
     .select("*")
-    .single();
+    .maybeSingle();
 
   requireNoError(error, "Failed to approve staged gift.");
+  if (!isRecord(data)) {
+    throw new ApiHttpError(
+      409,
+      "The staged gift changed while it was being approved. Reload it and try again.",
+    );
+  }
 
   await appendGiftAuditEvent({
     supabaseAdmin: input.supabaseAdmin,
@@ -507,7 +517,7 @@ export async function approveStagedGiftForFinance(
     },
   });
 
-  return toStagedGiftRow((data ?? {}) as JsonRecord);
+  return toStagedGiftRow(data);
 }
 
 export function rejectRetiredCrmPostingRetry(): never {

@@ -1,6 +1,6 @@
 # Fresh reset/rebuild procedure — Phase 18 document cutover
 
-**Procedure version:** 2
+**Procedure version:** 3
 **Owner:** Phase 18 Generated Documents (`docs/prds/sitestacker-parity/phase-18-receipt-pdf-template-system.md`, D17)
 **Consumed by:** `scripts/document-cutover/assess-document-cutover.ts` (presence + digest verified; never executed by the gate)
 
@@ -25,8 +25,10 @@ the document; it never executes it.
 1. Stop all app deployments targeting the environment (`vercel` pause or branch
    gate) so no writer races the reset.
 2. Reset the database to the migration baseline:
-   - Local: `supabase db reset` (applies `supabase/migrations` from scratch and
-     re-seeds `supabase/seed.sql`).
+   - Local: `bun run supabase -- db reset --local` (applies
+     `supabase/migrations` from scratch and re-seeds `supabase/seed.sql`).
+     Always through the repository runner: it refuses a database not marked
+     `disposable` (plan 7.5), a check that a plain `supabase db reset` skips.
    - Hosted pre-production: restore the project to a clean snapshot or recreate
      the branch database, then migrate it through the release job only
      (`.github/workflows/release.yml`: its dispatched `release` operation for
@@ -41,8 +43,9 @@ the document; it never executes it.
 1. Apply the current migration set end-to-end and confirm the latest applied
    version matches the `schemaVersion` recorded in the proof, or newer only via
    the canonical migration chain.
-2. Re-seed demo data with `bun run seed:demo:local` (or `seed:demo:hosted`;
-   the hosted identity checks inside `scripts/seed-demo.sh` still apply).
+2. Re-seed demo data with `bun run seed:demo:local`. The hosted seed is
+   retired and always refuses; a hosted database is seeded only by the release
+   job's one-off first rebuild (`docs/ops/release-job.md`).
 3. Run `bun run check` and the supabase migration verify gate
    (`scripts/verify/supabase-migrations.mjs`) before reopening deployments.
 

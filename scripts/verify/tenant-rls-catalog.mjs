@@ -16,12 +16,15 @@
 // anon. A function elsewhere that calls into a command schema is a SECURITY
 // INVOKER wrapper with a fixed search path, closed to PUBLIC and anon, and
 // open to signed-in users only when it calls human entry points or platform
-// commands. In `public`, no table grant goes to PUBLIC, none of TRUNCATE,
-// REFERENCES, TRIGGER or MAINTAIN goes to anon or authenticated, and their
-// SELECT, INSERT, UPDATE and DELETE grants are each admitted by a policy (the
-// end state of migration 20261117034926). Run by supabase-migrations.mjs after
-// the field-policy census; #516 reuses this module. See
-// docs/security/tenant-guard.md.
+// commands; no function outside the command schemas has one on its search
+// path, and no function in them names the auth schema. Function text includes
+// a SQL-standard body. In `public`, no table or
+// column grant goes to PUBLIC, none of TRUNCATE, REFERENCES, TRIGGER or
+// MAINTAIN goes to anon or authenticated, they hold nothing on a view, and
+// their SELECT, INSERT, UPDATE and DELETE grants are each admitted by a policy
+// (the end state of migration 20261117034926, widened to views and columns).
+// Run by supabase-migrations.mjs after the field-policy census; #516 reuses
+// this module. See docs/security/tenant-guard.md.
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,16 +76,45 @@ const PUBLIC_EXECUTE = `exists (select 1 from aclexplode(coalesce(p.proacl, acld
         where a.grantee = 0 and a.privilege_type = 'EXECUTE')`;
 const SIGNATURE = `format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid))`;
 const SEARCH_PATH = `(select substr(c, 13) from unnest(p.proconfig) c where c like 'search_path=%' limit 1)`;
+/**
+ * A function's text: its source, and the deparsed body of a SQL-standard
+ * function (`BEGIN ATOMIC ... END` or `RETURN ...`), whose `prosrc` is empty.
+ * The deparse qualifies a name the gate's session cannot see unqualified, and
+ * `tenant_guard` and `platform` are never on that session's search path.
+ */
+const BODY = `(p.prosrc || coalesce(E'\\n' || pg_get_function_sqlbody(p.oid), ''))`;
+const COMMAND_SCHEMA_PATTERN = COMMAND_SCHEMAS.join("|");
+
+/** A row-security policy admits role `a.grantee` for the command of `a.privilege_type` on relation `c`. */
+const POLICY_ADMITS = `exists (
+         select 1 from pg_policy p
+          where c.relrowsecurity
+            and p.polrelid = c.oid
+            and p.polcmd in ('*', case a.privilege_type
+              when 'SELECT' then 'r' when 'INSERT' then 'a'
+              when 'UPDATE' then 'w' when 'DELETE' then 'd' end::"char")
+            and (p.polroles @> array[0::oid] or p.polroles @> array[a.grantee]))`;
+/** The grant rule shared by table and column grants of PUBLIC, anon and authenticated. */
+const UNADMITTED = `a.grantee in (0, 'anon'::regrole, 'authenticated'::regrole)
+     and (
+       a.privilege_type in (${quoted(UNSAFE_TABLE_PRIVILEGES)})
+       or a.grantee = 0
+       or c.relkind not in ('r', 'p')
+       or not ${POLICY_ADMITS}
+     )`;
 
 /**
- * Grants in `public` that no use admits: any table privilege of PUBLIC; any of
- * the unsafe privileges for anon or authenticated; and their SELECT, INSERT,
- * UPDATE or DELETE on a table where no row-security policy admits that role
- * for that command. The same predicate as the post-assert of migration
+ * Grants in `public` that no use admits, on a relation or on one of its
+ * columns: any privilege of PUBLIC; any of the unsafe privileges for anon or
+ * authenticated; any of their privileges on a view, materialized view or
+ * foreign table, which row security does not bind (a view runs with its
+ * owner's rights); and their SELECT, INSERT, UPDATE or DELETE on a table where
+ * no row-security policy admits that role for that command. The table-level
+ * part is the post-assert of migration
  * 20261117034926_close_default_privileges_and_demo_grants.sql, which closed
- * them once; this keeps them closed.
+ * those grants once; council round 2 (A3d) added views and column grants.
  */
-export const UNADMITTED_TABLE_GRANTS_SQL = `select c.relname as relation,
+export const UNADMITTED_TABLE_GRANTS_SQL = `select c.relname as relation, null::text as "column", c.relkind::text as kind,
          case a.grantee when 0 then 'PUBLIC' else a.grantee::regrole::text end as grantee,
          a.privilege_type as privilege
     from pg_class c
@@ -90,20 +122,18 @@ export const UNADMITTED_TABLE_GRANTS_SQL = `select c.relname as relation,
     cross join lateral aclexplode(c.relacl) a
    where n.nspname = 'public'
      and c.relkind in ('r', 'p', 'v', 'm', 'f')
-     and a.grantee in (0, 'anon'::regrole, 'authenticated'::regrole)
-     and (
-       a.privilege_type in (${quoted(UNSAFE_TABLE_PRIVILEGES)})
-       or a.grantee = 0
-       or (c.relkind in ('r', 'p') and not exists (
-         select 1 from pg_policy p
-          where c.relrowsecurity
-            and p.polrelid = c.oid
-            and p.polcmd in ('*', case a.privilege_type
-              when 'SELECT' then 'r' when 'INSERT' then 'a'
-              when 'UPDATE' then 'w' when 'DELETE' then 'd' end::"char")
-            and (p.polroles @> array[0::oid] or p.polroles @> array[a.grantee])
-       ))
-     )`;
+     and ${UNADMITTED}
+  union all
+  select c.relname, att.attname::text, c.relkind::text,
+         case a.grantee when 0 then 'PUBLIC' else a.grantee::regrole::text end,
+         a.privilege_type
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    join pg_attribute att on att.attrelid = c.oid and att.attnum > 0 and not att.attisdropped
+    cross join lateral aclexplode(att.attacl) a
+   where n.nspname = 'public'
+     and c.relkind in ('r', 'p', 'v', 'm', 'f')
+     and ${UNADMITTED}`;
 
 export const TENANT_RLS_CATALOG_SQL = `-- tenant-rls-catalog-gate:v1
 select jsonb_build_object(
@@ -145,7 +175,7 @@ select jsonb_build_object(
       'owner', r.rolname,
       'definer', p.prosecdef,
       'language', l.lanname,
-      'body', p.prosrc,
+      'body', ${BODY},
       'authenticated', has_function_privilege('authenticated', p.oid, 'EXECUTE'),
       'service_role', has_function_privilege('service_role', p.oid, 'EXECUTE'),
       'anon', has_function_privilege('anon', p.oid, 'EXECUTE'),
@@ -163,7 +193,7 @@ select jsonb_build_object(
       'schema', n.nspname,
       'definer', p.prosecdef,
       'search_path', ${SEARCH_PATH},
-      'body', p.prosrc,
+      'body', ${BODY},
       'authenticated', has_function_privilege('authenticated', p.oid, 'EXECUTE'),
       'anon', has_function_privilege('anon', p.oid, 'EXECUTE'),
       'public_execute', ${PUBLIC_EXECUTE}) order by n.nspname, p.proname, p.oid)
@@ -172,7 +202,8 @@ select jsonb_build_object(
     where p.prokind in ('f', 'p')
       and n.nspname not in (${quoted(COMMAND_SCHEMAS)}, 'pg_catalog', 'information_schema')
       and n.nspname not like 'pg\\_toast%'
-      and p.prosrc ~* '(${COMMAND_SCHEMAS.join("|")})"?\\s*\\.'), '[]'::jsonb),
+      and (${BODY} ~* '(${COMMAND_SCHEMA_PATTERN})"?\\s*\\.'
+        or ${SEARCH_PATH} ~* '(${COMMAND_SCHEMA_PATTERN})')), '[]'::jsonb),
   'grants', coalesce((
     select jsonb_agg(to_jsonb(g) order by g.relation, g.grantee, g.privilege)
     from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb)
@@ -242,8 +273,27 @@ export function stripComments(body, { blankStrings = false } = {}) {
 
 const HUMAN_FIRST_STATEMENT =
   /^\s*(?:PERFORM\s+|[A-Za-z_][A-Za-z0-9_]*\s*:=\s*)tenant_guard\.begin_human_command\s*\(/i;
+// The operator check is the whole initialiser: `... := platform.require_operator();`.
 const OPERATOR_INITIALISER =
-  /(?::=|=|\bDEFAULT\b)\s*platform\.require_operator\s*\(\s*\)/i;
+  /(?::=|=|\bDEFAULT\b)\s*platform\.require_operator\s*\(\s*\)\s*;/i;
+
+/**
+ * The index of the parenthesis that closes the one at `open`, or -1. String
+ * contents are already blank; a quoted identifier is skipped whole.
+ */
+function closingParenthesis(text, open) {
+  let depth = 0;
+  for (let i = open; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === '"') {
+      i = text.indexOf('"', i + 1);
+      while (i >= 0 && text[i + 1] === '"') i = text.indexOf('"', i + 2);
+      if (i < 0) return -1;
+    } else if (ch === "(") depth += 1;
+    else if (ch === ")" && --depth === 0) return i;
+  }
+  return -1;
+}
 
 /**
  * Whether the outer block of `main` (the text after its BEGIN) has an
@@ -283,9 +333,15 @@ export function laneCheckProblem({ schema, language, body }) {
   if (schema === "platform")
     return /^\s*DECLARE\b/i.test(declare) && OPERATOR_INITIALISER.test(declare)
       ? null
-      : `does not initialise a variable from ${COMMAND_PREAMBLES.platform}) in its DECLARE section`;
-  if (!HUMAN_FIRST_STATEMENT.test(main))
+      : `does not initialise a variable from ${COMMAND_PREAMBLES.platform}) alone in its DECLARE section`;
+  const first = HUMAN_FIRST_STATEMENT.exec(main);
+  if (!first)
     return `does not call ${COMMAND_PREAMBLES.tenant_guard}...) as its first statement`;
+  // The statement ends right after the call: `PERFORM ... WHERE false`, or a
+  // call inside a larger expression, need not call it at all.
+  const close = closingParenthesis(main, first.index + first[0].length - 1);
+  if (close < 0 || !/^\s*;/.test(main.slice(close + 1)))
+    return `does not end its first statement right after the call to ${COMMAND_PREAMBLES.tenant_guard}...)`;
   if (outerBlockHasHandler(main))
     return "has an EXCEPTION section that encloses the preamble";
   return null;
@@ -302,6 +358,31 @@ export function callsIntoCommandSchemas(body) {
   for (const [, schema, name] of text.matchAll(re))
     calls.add(`${schema.toLowerCase()}.${name.toLowerCase()}`);
   return [...calls].sort();
+}
+
+/** `auth.` (or `"auth".`) as a qualifier, not the tail of a longer name. */
+const AUTH_QUALIFIER = /(?<![\w$."])"?auth"?\s*\.\s*"?[A-Za-z_]/i;
+
+/**
+ * Whether a function body names the `auth` schema: comments are ignored,
+ * strings are not, so a call through dynamic SQL counts (AL-2674 A9).
+ */
+export function namesAuthSchema(body) {
+  return AUTH_QUALIFIER.test(stripComments(String(body ?? "")));
+}
+
+/**
+ * The schema names of a `search_path` setting as the catalog stores it
+ * (`tenant_guard, public`, `"Odd Name", public`, `""`), unquoted.
+ */
+export function searchPathSchemas(searchPath) {
+  if (typeof searchPath !== "string") return [];
+  return (searchPath.match(/(?:"(?:[^"]|"")*"|[^,"])+/g) ?? [])
+    .map((part) => part.trim())
+    .map((part) =>
+      /^"[\s\S]*"$/.test(part) ? part.slice(1, -1).replaceAll('""', '"') : part,
+    )
+    .filter(Boolean);
 }
 
 /** Why a search path is not fixed, or null: unset; not empty in a command schema; naming "$user" elsewhere. */
@@ -496,6 +577,12 @@ export function evaluateTenantRlsCatalog(
         c.function,
         "both authenticated (human lane) and service_role (worker lane) may execute it",
       );
+    if (namesAuthSchema(c.body))
+      failFn(
+        "COMMAND_READS_AUTH",
+        c.function,
+        `a function in the ${c.schema} schema names the auth schema, which the guard cannot be granted on Supabase's own image; read the caller with tenant_guard.caller_id() and the claims with tenant_guard.request_claims()`,
+      );
     if (!c.authenticated) continue;
     if (c.schema === "tenant_guard") {
       const problem = !c.definer
@@ -534,6 +621,17 @@ export function evaluateTenantRlsCatalog(
   }
   let wrappers = 0;
   for (const w of snapshot.wrappers ?? []) {
+    // On the search path, a command schema lets the body call into it
+    // unqualified, where no rule below would see the call.
+    const onPath = searchPathSchemas(w.search_path).filter((schema) =>
+      COMMAND_SCHEMAS.includes(schema),
+    );
+    if (onPath.length)
+      failFn(
+        "COMMAND_SCHEMA_ON_SEARCH_PATH",
+        w.function,
+        `its search path names ${onPath.join(", ")}: a function outside the command schemas calls into them by qualified name only, with SET search_path = ''`,
+      );
     const targets = callsIntoCommandSchemas(w.body);
     if (!targets.length) continue;
     wrappers += 1;
@@ -571,11 +669,17 @@ export function evaluateTenantRlsCatalog(
         ? ["GRANT_TO_PUBLIC", "PUBLIC holds no table privilege in public"]
         : UNSAFE_TABLE_PRIVILEGES.includes(g.privilege)
           ? ["GRANT_UNSAFE_PRIVILEGE", "no Data API role holds it"]
-          : [
-              "GRANT_WITHOUT_POLICY",
-              "no row-security policy admits that role for that command",
-            ];
-    fail(code, g.relation, `${g.grantee} holds ${g.privilege}: ${why}`);
+          : g.kind && !["r", "p"].includes(g.kind)
+            ? [
+                "GRANT_ON_VIEW",
+                "row security does not bind a view, materialized view or foreign table; reach it through a reviewed function",
+              ]
+            : [
+                "GRANT_WITHOUT_POLICY",
+                "no row-security policy admits that role for that command",
+              ];
+    const on = g.column ? ` on column ${g.column}` : "";
+    fail(code, g.relation, `${g.grantee} holds ${g.privilege}${on}: ${why}`);
   }
 
   const counts = {
@@ -644,7 +748,10 @@ function assertSnapshotShape(snapshot) {
     )
       throw incomplete("wrapper", w);
   for (const g of snapshot.grants)
-    if (![g?.relation, g?.grantee, g?.privilege].every(isText))
+    if (
+      ![g?.relation, g?.grantee, g?.privilege, g?.kind].every(isText) ||
+      !(g.column === null || isText(g.column))
+    )
       throw incomplete("grant", g);
 }
 

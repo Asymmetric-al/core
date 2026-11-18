@@ -432,6 +432,34 @@ the secrets it needs by name and the owner's steps to switch it on, is
   `preview` Supabase project, deploy into the `preview-database` custom
   environment, check, smoke. Other pull requests keep the per-PR group.
 
+## Local Supabase stack workflow (`local-supabase.yml`)
+
+Starts a local Supabase stack from source and runs the Supabase Auth email
+round trips against it. A workflow of its own, so `ci.yml` and
+`ci-integration.yml` do not change. Not a required check. It guards two
+things:
+
+- _The migration chain and the seed on the real Supabase image._ It is the
+  only job that applies them with Supabase's roles and grants and a `postgres`
+  that is not a superuser. Every other job applies them to plain Postgres as a
+  superuser, which hid two stage 1 migrations that the real image refuses
+  (council round 2). So every pull request that changes
+  `supabase/migrations/**`, `supabase/seed.sql`, `supabase/config.toml` or the
+  CLI pin in `scripts/supabase-cli.mjs` starts the stack.
+- _The email round trips of WP0b and WP1.4:_ a password recovery email in each
+  app, and a sign-up confirmation that lands signed in on the host it was asked
+  from, on two hosts of the donor portal. Pull requests that change the auth
+  screens (`packages/ui/components/auth/**`, the apps' auth routes), the auth
+  packages (`packages/auth/**`, `packages/api/src/auth/**`), the three proxies,
+  the missionary route policy or the suite itself run them too, and so does
+  manual dispatch.
+- _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
+  pins, starts the stack with `bun run supabase -- start` (every migration and
+  the seed, then Auth, PostgREST and Mailpit), then runs
+  `bun run test:e2e:auth-mail` with Playwright's dev servers. A chain or seed
+  the real image refuses fails the "Start the local Supabase stack" step.
+- _Run it locally:_ `tests/e2e/README.md`, "Auth email round trips".
+
 ## Branch protection
 
 Workflow YAML is the source of truth for the jobs Core emits. GitHub's

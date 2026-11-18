@@ -1,3 +1,4 @@
+import { databaseUrlRoutingOverrides } from "@asym/env/database-url";
 import { isProtectedDeployment } from "@asym/env/target-env";
 
 export const DEFAULT_LOCAL_PAYLOAD_DATABASE_URL =
@@ -41,6 +42,7 @@ export type PayloadDatabaseConfigIssueCode =
   | "migration-credential-in-runtime"
   | "missing-protected-database-url"
   | "invalid-protected-database-url"
+  | "database-url-routing-override"
   | "non-runtime-database-role"
   | "direct-supabase-host"
   | "supavisor-ssl-mode";
@@ -317,8 +319,18 @@ function combineWarnings(...warnings: Array<null | string>) {
   return filteredWarnings.join(" ");
 }
 
+/** Whether the URL's query overrides the host, port, database or login its authority names. */
+function hasRoutingOverride(connectionString: string) {
+  try {
+    return databaseUrlRoutingOverrides(connectionString).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function getPayloadDatabaseConfigurationIssue(input: {
   hasMigrationCredential: boolean;
+  hasRoutingOverride: boolean;
   host: string | null;
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
@@ -352,6 +364,15 @@ function getPayloadDatabaseConfigurationIssue(input: {
     return {
       code: "invalid-protected-database-url",
       message: `Payload database configuration from ${input.source} is not a valid Postgres URL. Replace it with the Supavisor session pooler Postgres URL before opening Web Studio.`,
+    };
+  }
+
+  // node-postgres follows the query's host and user over the URL's own, so
+  // the role and host checks below hold only for a URL without them.
+  if (input.hasRoutingOverride) {
+    return {
+      code: "database-url-routing-override",
+      message: `Payload database configuration from ${input.source} sets the host, port, database or user in its query, which would replace the ones the URL names. Remove those query parameters from the ${PAYLOAD_RUNTIME_DATABASE_ROLE} Supavisor session pooler URL before opening Web Studio.`,
     };
   }
 
@@ -424,6 +445,7 @@ export function resolvePayloadDatabaseConfig(
     hasMigrationCredential: Boolean(
       env[PAYLOAD_MIGRATION_DATABASE_ENV_KEY]?.trim(),
     ),
+    hasRoutingOverride: hasRoutingOverride(connectionString),
     host,
     isDefaultLocal,
     isDirectSupabaseHost,

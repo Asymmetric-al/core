@@ -16,6 +16,9 @@ import path from "node:path";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { resolveCmsMigrationDatabaseUrl } from "../../../scripts/cms/lib/migration-connection.mjs";
+import { requireDisposableDatabase } from "../../../scripts/lib/environment-marker.mjs";
+
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
   process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "migrate";
@@ -38,6 +41,35 @@ function loginUrl(role: string, password: string) {
   url.username = role;
   url.password = password;
   return url.toString();
+}
+
+function databaseUrl(database: string, login?: [string, string]) {
+  const url = new URL(ADMIN_URL);
+  url.pathname = `/${database}`;
+  if (login) [url.username, url.password] = login;
+  return url.toString();
+}
+
+/**
+ * The role migration with its two roles renamed, so that a case can start
+ * from a cluster where they do not exist, or plant a state, without touching
+ * the cms_owner and cms_runtime that other suites on this cluster use.
+ */
+function renamedRoleMigrationSql(prefix: string) {
+  return roleMigrationSql()
+    .replaceAll("cms_runtime", `${prefix}_runtime`)
+    .replaceAll("cms_owner", `${prefix}_owner`);
+}
+
+/** Drops throwaway databases, then throwaway roles, ignoring what is gone. */
+async function dropAll(
+  admin: pg.Client,
+  databases: string[],
+  roles: string[] = [],
+) {
+  for (const name of databases)
+    await admin.query(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
+  for (const name of roles) await admin.query(`DROP ROLE IF EXISTS ${name}`);
 }
 
 async function errorCode(run: () => Promise<unknown>) {
@@ -347,6 +379,150 @@ describe.skipIf(!ADMIN_URL)("CMS database roles (real stack)", () => {
       }
     }
   }, 120_000);
+
+  // Council round 2, A2b. The roles are renamed so that they do not exist
+  // when the four databases race to create them.
+  it("applies to several databases of one cluster at once when the roles do not exist yet", async () => {
+    const prefix = `${PROBE}_fresh`;
+    const sql = renamedRoleMigrationSql(prefix);
+    const names = Array.from({ length: 4 }, (_, i) => `${prefix}_db_${i}`);
+    const clients: pg.Client[] = [];
+    try {
+      for (const name of names) {
+        await admin.query(`CREATE DATABASE ${name} TEMPLATE template0`);
+        const client = new pg.Client({ connectionString: databaseUrl(name) });
+        await client.connect();
+        clients.push(client);
+      }
+      const results = await Promise.allSettled(
+        clients.map((client) => client.query(sql)),
+      );
+      expect(
+        results.flatMap((result) =>
+          result.status === "rejected"
+            ? [String((result.reason as Error).message)]
+            : [],
+        ),
+      ).toEqual([]);
+      const { rows } = await admin.query(
+        `SELECT rolname FROM pg_roles WHERE rolname LIKE $1 ORDER BY 1`,
+        [`${prefix}\\_%`],
+      );
+      expect(rows.map((row) => row.rolname)).toEqual([
+        `${prefix}_owner`,
+        `${prefix}_runtime`,
+      ]);
+    } finally {
+      await Promise.all(
+        clients.map((client) => client.end().catch(() => undefined)),
+      );
+      await dropAll(admin, names, [`${prefix}_owner`, `${prefix}_runtime`]);
+    }
+  }, 120_000);
+
+  // Council round 2, A2a. Hosted Supabase's postgres holds CREATEROLE but is
+  // not a superuser. On Postgres 16 and later the roles it creates give it
+  // an ADMIN-only membership, without INHERIT or SET, and handing the schema
+  // to the owner role needs SET.
+  it("applies as a runner that holds CREATEROLE, owns the database and is not a superuser", async () => {
+    const prefix = `${PROBE}_hosted`;
+    const runner = `${prefix}_runner`;
+    const password = randomBytes(24).toString("hex");
+    const database = `${prefix}_db`;
+    const client = new pg.Client({
+      connectionString: databaseUrl(database, [runner, password]),
+    });
+    try {
+      await admin.query(
+        `CREATE ROLE ${runner} LOGIN CREATEROLE NOSUPERUSER PASSWORD ${admin.escapeLiteral(password)}`,
+      );
+      await admin.query(
+        `CREATE DATABASE ${database} OWNER ${runner} TEMPLATE template0`,
+      );
+      await client.connect();
+      const sql = renamedRoleMigrationSql(prefix);
+      for (const round of ["first", "again"]) {
+        expect(
+          await errorCode(() => client.query(sql)),
+          `${round} application`,
+        ).toBe("succeeded");
+      }
+      const { rows } = await client.query(
+        `SELECT pg_has_role(current_user, $1, 'USAGE') AS usage,
+                pg_has_role(current_user, $1, 'SET') AS set,
+                (SELECT pg_get_userbyid(nspowner) FROM pg_namespace
+                  WHERE nspname = 'cms') AS schema_owner`,
+        [`${prefix}_owner`],
+      );
+      expect(rows).toEqual([
+        { usage: true, set: true, schema_owner: `${prefix}_owner` },
+      ]);
+    } finally {
+      await client.end().catch(() => undefined);
+      await dropAll(
+        admin,
+        [database],
+        [`${prefix}_owner`, `${prefix}_runtime`, runner],
+      );
+    }
+  }, 120_000);
+
+  // Council round 2, A2c.
+  it("refuses a CMS role that another role is a member of", async () => {
+    const prefix = `${PROBE}_member`;
+    const database = `${prefix}_db`;
+    const client = new pg.Client({ connectionString: databaseUrl(database) });
+    try {
+      await admin.query(`CREATE ROLE ${prefix}_owner LOGIN NOINHERIT`);
+      await admin.query(`CREATE ROLE ${prefix}_runtime LOGIN NOINHERIT`);
+      await admin.query(`CREATE ROLE ${prefix}_other NOLOGIN`);
+      await admin.query(`GRANT ${prefix}_runtime TO ${prefix}_other`);
+      await admin.query(`CREATE DATABASE ${database} TEMPLATE template0`);
+      await client.connect();
+      await expect(
+        client.query(renamedRoleMigrationSql(prefix)),
+      ).rejects.toThrow(
+        `role ${prefix}_runtime has a member other than the migration runner`,
+      );
+    } finally {
+      await client.end().catch(() => undefined);
+      await dropAll(
+        admin,
+        [database],
+        [`${prefix}_other`, `${prefix}_owner`, `${prefix}_runtime`],
+      );
+    }
+  }, 120_000);
+
+  // Council round 2, A7c: Payload's rollback and reset commands read the
+  // environment marker first. On a loopback database they migrate as the
+  // run-time login with `-c role=cms_owner`, and cms_owner cannot read
+  // `platform`, so the marker has to be read without that role.
+  it("reads a loopback migration target's marker without the cms_owner session role", async () => {
+    // The cause: as cms_owner the marker cannot be read.
+    const asOwner = await errorCode(async () => {
+      await admin.query("BEGIN");
+      try {
+        await admin.query("SET LOCAL ROLE cms_owner");
+        await admin.query("SELECT platform.environment_kind()");
+      } finally {
+        await admin.query("ROLLBACK");
+      }
+    });
+    expect(asOwner).toBe(INSUFFICIENT_PRIVILEGE);
+    // So the migration URL cannot read it (psql also takes the URL's
+    // `-c+role` literally and fails to connect), and the marker URL can.
+    const { databaseUrl, markerUrl } = resolveCmsMigrationDatabaseUrl({
+      PAYLOAD_DATABASE_URI: ADMIN_URL,
+    });
+    expect(databaseUrl).toContain("role%3Dcms_owner");
+    expect(() =>
+      requireDisposableDatabase({ databaseUrl, action: "probe" }),
+    ).toThrow(/could not read the environment marker/);
+    expect(
+      requireDisposableDatabase({ databaseUrl: markerUrl, action: "probe" }),
+    ).toMatchObject({ ok: true, kind: "disposable" });
+  });
 
   it("stops the eleventh cms_runtime connection at the role's limit", async () => {
     const extra: pg.Client[] = [];

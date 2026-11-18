@@ -16,10 +16,14 @@ plan by avoiding debug loops on the production branch.
    ```
 
 5. The push starts the **Release** workflow (`.github/workflows/release.yml`).
-   It migrates the database, runs the catalog gates and the schema
-   fingerprint, records the expected migration heads, then stages each
-   affected app, checks its `/api/health/migrations` and promotes it without a
-   rebuild. Vercel's Git integration deploys nothing. See
+   Vercel's Git integration deploys nothing. After the owner
+   [switches the job on](./release-job.md#switching-it-on), the run migrates
+   the database, runs the catalog gates and the schema fingerprint, records
+   the expected migration heads, then stages each affected app, checks its
+   `/api/health/migrations` and promotes it without a rebuild. **Until then
+   the run stops at its preflight and nothing deploys:** the database has no
+   release health function and no environment marker, and production keeps
+   serving its current deployment. See
    [the release job runbook](./release-job.md).
 6. After the Release run is green, verify the exact commit:
 

@@ -1,6 +1,7 @@
 // Ties a migration connection string to the Supabase project the release
 // environment names, before anything writes to it. Errors never repeat the
 // connection string.
+import { databaseUrlRoutingOverrides } from "../../../packages/env/src/database-url.mjs";
 
 /** Hosted projects named in docs/ops/environments.md. */
 export const KNOWN_PROJECT_REFS = Object.freeze({
@@ -63,8 +64,7 @@ export function assertDatabaseTarget({
     );
   }
   const url = parse(databaseUrl);
-  const routing = ["host", "hostaddr", "service", "user", "dbname", "port"];
-  if (routing.some((key) => url.searchParams.has(key))) {
+  if (databaseUrlRoutingOverrides(url).length > 0) {
     throw new Error(
       "The release database connection carries routing overrides.",
     );

@@ -33,6 +33,7 @@ describe("CMS migration connection (plan 7.2)", () => {
       }),
     ).toEqual({
       databaseUrl: HOSTED_MIGRATION,
+      markerUrl: HOSTED_MIGRATION,
       source: "PAYLOAD_MIGRATION_DATABASE_URI",
     });
   });
@@ -63,6 +64,8 @@ describe("CMS migration connection (plan 7.2)", () => {
     expect(parsed.user).toBe("postgres");
     expect(parsed.database).toBe("wp12_fixture");
     expect(parsed.options).toBe("-c role=cms_owner");
+    // The marker is read as the login itself (council round 2, A7c).
+    expect(resolved.markerUrl).toBe(local);
   });
 
   it("keeps other loopback startup options beside the session role", () => {
@@ -90,7 +93,11 @@ describe("CMS migration connection (plan 7.2)", () => {
         { PAYLOAD_DATABASE_URI: HOSTED_RUNTIME },
         { readOnly: true },
       ),
-    ).toEqual({ databaseUrl: HOSTED_RUNTIME, source: "PAYLOAD_DATABASE_URI" });
+    ).toEqual({
+      databaseUrl: HOSTED_RUNTIME,
+      markerUrl: HOSTED_RUNTIME,
+      source: "PAYLOAD_DATABASE_URI",
+    });
   });
 
   it("rejects an invalid migration connection without echoing it", () => {

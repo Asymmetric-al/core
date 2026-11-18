@@ -1,3 +1,4 @@
+import { databaseUrlRoutingOverrides } from "../../../packages/env/src/database-url.mjs";
 import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
 
 export function assertCmsMigrationTarget({
@@ -19,9 +20,7 @@ export function assertCmsMigrationTarget({
   }
 
   if (
-    ["host", "hostaddr", "service", "user", "dbname"].some((key) =>
-      database.searchParams.has(key),
-    ) ||
+    databaseUrlRoutingOverrides(database).length > 0 ||
     environment.PGHOSTADDR ||
     environment.PGSERVICE
   ) {

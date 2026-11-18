@@ -34,8 +34,22 @@ and none is ever cancelled.
    migration), then the Payload migrations run as `cms_owner` through
    `scripts/cms/run-payload-command.mjs`, with the `cms_owner` login in
    `PAYLOAD_MIGRATION_DATABASE_URI`: the only source that runner accepts for a
-   hosted database, set in this step and nowhere else. Both ledgers must then
-   hold every source migration.
+   hosted database, set in this step and nowhere else. That login uses
+   `sslmode=verify-full` against the project's CA (`RELEASE_DATABASE_SSL_CA`,
+   handed to Payload as `PAYLOAD_DATABASE_SSL_CA`): node-postgres reads
+   `sslmode=require` as full verification against Node's own CA store, which
+   does not hold Supabase's CA. Both ledgers must then hold every source
+   migration. Neither the Supabase CLI nor Payload's migrations inherit a
+   `RELEASE_*` variable, and the Supabase CLI gets the database password in
+   `PGPASSWORD`, never on its command line (the pinned CLI, 2.121.0, reads it
+   for a `--db-url` that carries none). The job installs that CLI with
+   `supabase/setup-cli`, the version read from `scripts/supabase-cli.mjs` (the
+   repository's one pin), and runs only it: the wrapper, under
+   `SUPABASE_CLI_FORCE_PINNED=1`, never fetches a CLI and stops if the one on
+   the `PATH` reports another version. `npx supabase@<pin>` run inside the
+   repository stops on the root `package.json`'s `overrides` (npm
+   `EOVERRIDE`); the wrapper's local fallback gives npm an empty project
+   outside the repository instead.
 4. **Gates.** The tenant RLS catalog gate, the cross-schema name-collision
    gate (one recorded exception, `cms.tenants`, until WP6) and the schema
    fingerprint, which must equal the replay's exactly.
@@ -49,8 +63,10 @@ and none is ever cancelled.
    With custom-domain auto-assignment off, the deployment is staged: it
    serves no production domain. The job then calls each staged deployment's
    `/api/health/migrations`, and only when every one answers `ok`, built from
-   this commit, against the expected Supabase project, does it promote them
-   all. Promotion does not rebuild. A failed build or check promotes nothing.
+   this commit, against the expected Supabase project, does it promote them.
+   Promotion does not rebuild. A failed build or check promotes nothing.
+   Promotion is one call per app, one after the other, so it is not all or
+   nothing: see [If a promotion fails part way](#if-a-promotion-fails-part-way).
    Finally each production domain must serve the commit and pass.
 7. **Register job functions** (optional, `RELEASE_REGISTER_JOB_FUNCTIONS`):
    a `PUT` to the admin app's Inngest serve route, because Git deployment no
@@ -76,22 +92,64 @@ ceiling are unchanged, and #2308 pins the file's bytes.
 | Build carries no heads           | `503`, `status: "unknown"` | Not promoted                                    |
 | Function missing or call fails   | `503`, `status: "error"`   | Not promoted; only a PostgREST error code shown |
 
-The body also names the Supabase project ref the app reads, the environment
-marker, and the commit.
+The route is public and uncached. Any caller gets the status alone, with its
+`200` or `503`. The detail (the Supabase project ref the app reads, the
+environment marker, the heads and the commit) goes only to a caller whose
+`x-vercel-protection-bypass` header equals the deployment's
+`VERCEL_AUTOMATION_BYPASS_SECRET`, the system variable Vercel sets at build and
+run time once the project has a Protection Bypass for Automation secret. The
+job sends that header to the staged deployments and to the production
+domains, and stops if a healthy answer comes back without its detail.
+
+### If a promotion fails part way
+
+The job promotes the apps one after the other. If the promotion of a later
+app fails, the apps promoted before it serve the new commit and the rest the
+previous one. The database is already migrated, and every migration is safe
+for the release still running (plan 7.4: expand, then contract), so each app
+still works. To recover, dispatch **Release** with operation `release`: it
+plans the apps whose domain does not serve the commit, stages, checks and
+promotes them. If that fails again, roll the promoted apps back with Vercel's
+_Instant Rollback_ to their previous production deployment, so that all three
+serve the previous commit, and fix the cause before the next release. The job
+has no rollback of its own.
 
 ### Dispatched operations
 
 Run from the Actions tab, workflow **Release**, branch `production`:
 
-| Operation                | Inputs                                                         | What it does                                                                                                                                                                                                                                                                        |
-| ------------------------ | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `release`                | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                        |
-| `set-environment-marker` | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. The owner approves each change (plan 7.5)                                                                                                                                                                        |
-| `first-rebuild`          | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: drop what migrations made, apply every migration, seed, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty |
-| `set-cms-role-passwords` | `environment`                                                  | Sets `cms_owner` and `cms_runtime` from the secrets and proves each can log in. For rotation and after a restore (plan 8.5)                                                                                                                                                         |
+| Operation                | Inputs                                                         | What it does                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `release`                | `environment: production`                                      | Re-runs the release of the `production` head                                                                                                                                                                                                                                                                                                                                         |
+| `set-environment-marker` | `environment`, `marker`, `confirmation: <ref>:<marker>`        | Moves the marker forward only: disposable to shared to production. Waits for the owner's approval in the environment `release-owner-approval` (plan 7.5)                                                                                                                                                                                                                             |
+| `first-rebuild`          | `environment`, `census_signoff`, `confirmation: rebuild <ref>` | The one-off rebuild of a database with no marker: drop what migrations made, apply every migration, seed, replace the seeded logins' password, Payload migrations, gates, heads. Takes the owner's census sign-off (a link to the issue or comment), or `empty-project` for a new project, which the job checks is empty. Waits for the owner's approval in `release-owner-approval` |
+| `set-cms-role-passwords` | `environment`                                                  | Sets `cms_owner` and `cms_runtime` from the secrets and proves each can log in. For rotation and after a restore (plan 8.5)                                                                                                                                                                                                                                                          |
 
-Only SCRAM-SHA-256 verifiers computed on the runner reach the database; the
-plain passwords never appear in SQL, argv or logs.
+The marker change and the first rebuild run only after a required reviewer of
+the GitHub environment `release-owner-approval` approves the run's
+`owner-approval` job. That environment holds no secret; the job that does the
+work starts only once it is approved, and a rejected approval skips it.
+
+Only SCRAM-SHA-256 verifiers computed on the runner reach the database for
+the CMS roles, and only an Argon2id verifier for the seeded logins; the plain
+passwords never appear in SQL, argv or logs.
+
+### Seeded logins on a hosted rebuild
+
+`supabase/seed.sql` creates logins (today `demo-owner@givehope.test`) whose
+password is published in the repository. Local and CI databases keep it. A
+hosted database never does (record D-24): every hosted rebuild, the first
+rebuild and the preview rebuild alike, stops before it resets anything unless
+`RELEASE_SEED_LOGIN_PASSWORD` holds 32 to 72 printable ASCII characters, and
+right after the reset and seed, before anything else uses the database, gives
+every login whose stored hash matches a password the seed publishes the
+release environment's password instead (`replaceSeededLoginPasswords` in
+`scripts/release/release-database.mjs`). Only an Argon2id verifier computed on
+the runner reaches the server, in the form Supabase Auth verifies; logins
+that do not carry a published password are left alone. The step stops if any
+login still carries one. Anyone who signs in as a seeded login on a hosted
+project uses that secret. `bun run seed:demo:users` refuses a published
+password for a hosted project too.
 
 ### Why the first rebuild alone may reset an unmarked database
 
@@ -106,8 +164,9 @@ The one-off first rebuild cannot: a hosted database that predates WP1 has no
 marker by definition. It is the one exception plan 7.5 names ("the first
 rebuild of each … is a named one-off step of the job that takes the census
 sign-off as its input"). So `first-rebuild` runs the pinned Supabase CLI
-directly (`npx supabase@<pin> db reset --db-url …`, the version read from
-`scripts/supabase-cli.mjs`), and nothing else does. It exists only in the
+directly (`supabase db reset --db-url …`, the CLI the job installed, after
+checking that it reports the version `scripts/supabase-cli.mjs` pins), and
+nothing else does. It exists only in the
 release job's dispatched `first-rebuild` step, from the `production`
 branch, and runs only after all of these hold:
 
@@ -118,7 +177,10 @@ branch, and runs only after all of these hold:
 - the input is the owner's census sign-off, a link to the issue or comment in
   `Asymmetric-al/core`, or `empty-project` for a new project, which the job
   checks holds no table and no migration ledger;
-- the operator typed `rebuild <ref>`.
+- the operator typed `rebuild <ref>`;
+- the owner approved the run in the environment `release-owner-approval`;
+- `RELEASE_SEED_LOGIN_PASSWORD` is set, so the seeded logins never keep the
+  password published in the repository.
 
 Right after the migrations the job reads the marker. The marker migration
 writes `disposable` when `public.profiles`, `public.donors` and
@@ -147,20 +209,24 @@ ends. The job holds only the preview project's credentials.
 
 Names only. Values live in GitHub environments and never in the repository.
 
-| Where                              | Name                                                       | Kind     | Value                                                                                                                          |
-| ---------------------------------- | ---------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Environment `release-production`   | `RELEASE_SUPABASE_PROJECT_REF`                             | variable | The project production-target deployments use. Until WP11: development, `pnmlrbgjiqzzsthsoikm`                                 |
-|                                    | `RELEASE_DATABASE_URL`                                     | secret   | `postgres` on that project's **session pooler** (`postgres.<ref>@aws-0-<region>.pooler.supabase.com:5432`), `?sslmode=require` |
-|                                    | `RELEASE_CMS_OWNER_PASSWORD`                               | secret   | 32 to 256 printable ASCII characters, no spaces                                                                                |
-|                                    | `RELEASE_CMS_RUNTIME_PASSWORD`                             | secret   | As above, different from the owner's; the same value goes into the admin app's `PAYLOAD_DATABASE_URI`                          |
-| Environment `release-preview`      | the same four names                                        |          | The `preview` project's values                                                                                                 |
-| Repository (exist today)           | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                      |
-|                                    | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                      |
-|                                    | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                            |
-| Repository or `release-production` | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                               |
+| Where                                | Name                                                       | Kind     | Value                                                                                                                          |
+| ------------------------------------ | ---------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Environment `release-production`     | `RELEASE_SUPABASE_PROJECT_REF`                             | variable | The project production-target deployments use. Until WP11: development, `pnmlrbgjiqzzsthsoikm`                                 |
+|                                      | `RELEASE_DATABASE_URL`                                     | secret   | `postgres` on that project's **session pooler** (`postgres.<ref>@aws-0-<region>.pooler.supabase.com:5432`), `?sslmode=require` |
+|                                      | `RELEASE_CMS_OWNER_PASSWORD`                               | secret   | 32 to 256 printable ASCII characters, no spaces                                                                                |
+|                                      | `RELEASE_CMS_RUNTIME_PASSWORD`                             | secret   | As above, different from the owner's; the same value goes into the admin app's `PAYLOAD_DATABASE_URI`                          |
+|                                      | `RELEASE_DATABASE_SSL_CA`                                  | secret   | The project's CA certificate, the PEM from its Database settings (the same value as the admin app's `PAYLOAD_DATABASE_SSL_CA`) |
+|                                      | `RELEASE_SEED_LOGIN_PASSWORD`                              | secret   | 32 to 72 printable ASCII characters, no spaces: the password every seeded login gets on a hosted rebuild                       |
+| Environment `release-preview`        | the same six names                                         |          | The `preview` project's values                                                                                                 |
+| Environment `release-owner-approval` | none                                                       |          | Holds no secret. Its required reviewer (the owner) approves each marker change and each first rebuild                          |
+| Repository (exist today)             | `VERCEL_TOKEN`, `VERCEL_ORG_ID`                            | secret   | Unchanged                                                                                                                      |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_PROJECT_ID`               | secret   | Unchanged                                                                                                                      |
+|                                      | `VERCEL_{ADMIN,DONOR,MISSIONARY}_AUTOMATION_BYPASS_SECRET` | secret   | Unchanged; used as a header to reach staged and preview deployments                                                            |
+| Repository or `release-production`   | `RELEASE_REGISTER_JOB_FUNCTIONS`                           | variable | `true` once Inngest is configured in production; unset otherwise                                                               |
 
 The cms_owner login is derived from `RELEASE_DATABASE_URL` (same host,
-`cms_owner.<ref>`), so the job holds one connection string per environment.
+`cms_owner.<ref>`, `sslmode=verify-full`), so the job holds one connection
+string per environment.
 The job hands it to Payload's migrations as `PAYLOAD_MIGRATION_DATABASE_URI`
 with `CMS_HOSTED_MIGRATION_REF` set to the project ref; the runner checks that
 the user is `cms_owner.<ref>` on that project's pooler and that the connection
@@ -208,16 +274,25 @@ hosted data are fixtures; the production-named project is replaced in WP11,
 not rebuilt in place; and the production deployments point at the
 development database until WP11. The steps below follow those decisions.
 
-1. **Create the GitHub environment `release-production`.** Settings,
-   Environments, New environment. Deployment branches and tags: _Selected
-   branches_, rule `production`. Optionally add yourself as a required
-   reviewer, which makes every release wait for approval.
-   Check: `gh api repos/Asymmetric-al/core/environments/release-production --jq .deployment_branch_policy`.
-   Undo: delete the environment.
-2. **Add its secrets and variable** from the table above. Generate the two
-   CMS passwords; they are new and used nowhere yet.
-   Check: `gh secret list --env release-production` and
-   `gh variable list --env release-production` show the four names.
+1. **Create the GitHub environments `release-production` and
+   `release-owner-approval`.** Settings, Environments, New environment. For
+   both, deployment branches and tags: _Selected branches_, rule
+   `production`. `release-owner-approval` must have you as a required
+   reviewer, and holds no secret: every marker change and every first rebuild
+   waits there for your approval (plan 7.5). Leave _Prevent self-review_ off
+   if you dispatch those runs yourself, and turn off the administrators'
+   bypass of its protection rules, so that the approval cannot be skipped.
+   On `release-production` a required reviewer is optional, and makes every
+   release wait for approval.
+   Check: `gh api repos/Asymmetric-al/core/environments/release-owner-approval --jq '[.protection_rules[].type, .deployment_branch_policy]'`
+   lists `required_reviewers`; `gh api repos/Asymmetric-al/core/environments/release-production --jq .deployment_branch_policy`.
+   Undo: delete the environments.
+2. **Add the secrets and the variable of `release-production`** from the
+   table above. Generate the two CMS passwords and the seeded-login password;
+   they are new and used nowhere yet. `RELEASE_DATABASE_SSL_CA` is the PEM of
+   the project's CA certificate (Database settings, SSL configuration).
+   Check: `gh secret list --env release-production` shows the five secrets and
+   `gh variable list --env release-production` the variable.
    Undo: delete them.
 3. **Stage production deployments.** Turn off _Auto-assign Custom Production
    Domains_ for admin, donor and missionary (Vercel, Project Settings,
@@ -243,13 +318,17 @@ development database until WP11. The steps below follow those decisions.
    **Release** with operation `first-rebuild`, environment `production`,
    `census_signoff` a link to the issue, pull request or comment in
    `Asymmetric-al/core` that records D-15 (the job accepts no other link),
-   confirmation `rebuild pnmlrbgjiqzzsthsoikm`. It resets the database with the pinned
+   confirmation `rebuild pnmlrbgjiqzzsthsoikm`. Approve the run's
+   `owner-approval` job when GitHub asks. It resets the database with the pinned
    CLI directly (the named exception above), applies every migration, which
-   creates the marker as `disposable` and the CMS roles, checks the marker,
-   seeds, sets the CMS role passwords, runs Payload's migrations, the gates and
-   the heads.
+   creates the marker as `disposable` and the CMS roles, seeds, gives the
+   seeded logins `RELEASE_SEED_LOGIN_PASSWORD`, checks the marker, sets the
+   CMS role passwords, runs Payload's migrations, the gates and the heads.
    Check: the run is green, and its log says the rebuild is complete, the
-   database is marked disposable and both role passwords were verified.
+   seeded logins' password was replaced, the database is marked disposable
+   and both role passwords were verified. Signing in as
+   `demo-owner@givehope.test` with `demo-password` fails, and with the secret
+   succeeds.
    Undo: none after the reset (forward only, plan 7.5); before it, cancel
    the run.
 6. **Point the applications at that database, without a `postgres` login.**
@@ -291,10 +370,17 @@ development database until WP11. The steps below follow those decisions.
    does not decide it).
    Create a project named `preview` in the organization. Create the GitHub
    environment `release-preview` with no branch rule and no required
-   reviewer (pull-request runs use it), and give it the four names with the
-   preview project's values. Dispatch **Release** with operation
+   reviewer (pull-request runs use it), and give it the six names with the
+   preview project's values, except `RELEASE_SEED_LOGIN_PASSWORD`, which
+   takes the same value as in `release-production`. Set the repository
+   secrets `QA_PREVIEW_TEST_EMAIL` to `demo-owner@givehope.test` and
+   `QA_PREVIEW_TEST_PASSWORD` to that value: the preview smoke runs, on the
+   development database and on the preview database alike, sign in with that
+   pair, and a rebuilt database holds only the seeded logins, with that
+   password. Dispatch **Release** with operation
    `first-rebuild`, environment `preview`, `census_signoff: empty-project`,
-   confirmation `rebuild <preview ref>`. In each Vercel project create the
+   confirmation `rebuild <preview ref>`, and approve its `owner-approval`
+   job. In each Vercel project create the
    custom environment `preview-database` with no branch tracking, holding
    the Preview environment's variables but with the preview project's
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
@@ -333,4 +419,32 @@ custom environment (the job fails closed if Vercel ignores the environment);
 `supabase db push` and `db reset --db-url` on a hosted project; custom login
 roles through the session pooler; fingerprint equality with development after
 its first rebuild; and the preview group's queueing under GitHub's
-`queue: max` (a documented key of `jobs.<job_id>.concurrency`).
+`queue: max` (documented for `jobs.<job_id>.concurrency` and for the
+workflow-level `concurrency` the release workflow now uses too).
+
+Added by council round 2, each also still to be seen on a hosted run:
+
+- The CMS role migration applied by hosted `postgres`, which holds
+  CREATEROLE but is not a superuser. Proved locally on Supabase's own
+  Postgres image (17.11.0.004, `createrole_self_grant` empty): the earlier
+  migration stopped at `ALTER SCHEMA cms OWNER TO cms_owner` with "must be
+  able to SET ROLE", and this one applies, twice.
+- Payload's migrations as `cms_owner` over `sslmode=verify-full` against
+  `RELEASE_DATABASE_SSL_CA` through the session pooler. Only a hosted run can
+  show that the pooler's certificate chains to that CA and names the pooler
+  host.
+- The pinned CLI reading the password from `PGPASSWORD` against the hosted
+  pooler (proved locally against Postgres with 2.121.0).
+- Signing in as a seeded login with `RELEASE_SEED_LOGIN_PASSWORD` after a
+  rebuild: the Argon2id verifier matches Supabase Auth's documented format
+  and limits (unit test), and the replacement runs on Postgres (real-stack
+  test), but Supabase Auth itself has not verified one here.
+- The detail of `/api/health/migrations`: that Vercel passes the
+  `x-vercel-protection-bypass` header through to the route, on staged
+  deployments and on the production domains, and sets
+  `VERCEL_AUTOMATION_BYPASS_SECRET` at run time. If it does not, every check
+  fails closed with "answered without its detail" and nothing is promoted.
+- The `owner-approval` job: that a dispatched marker change or first rebuild
+  waits for the required reviewer, that a rejection skips the work, and that
+  a push still runs the database and deploy jobs although the approval job
+  is skipped (both carry a status function for that reason).

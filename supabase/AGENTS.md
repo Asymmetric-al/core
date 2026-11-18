@@ -56,8 +56,10 @@ The migration writes `disposable` only on a database whose profiles, donors and 
   refuses, and no application environment holds a migration connection string.
 - Always go through `bun run supabase --`: `scripts/supabase-cli.mjs` uses a global CLI only when its
   version equals the repository pin and otherwise runs the pinned version.
-- Hosted seed:
-  - `bash ./scripts/seed-demo.sh hosted`
+- Hosted seed: retired. `bash ./scripts/seed-demo.sh hosted` always refuses,
+  because `supabase/seed.sql` deletes every organization's rows. A hosted
+  database is seeded only by the release job's one-off first rebuild
+  (`docs/ops/release-job.md`).
 - Row-count verification:
   - `bash ./scripts/seed-demo.sh verify`
 

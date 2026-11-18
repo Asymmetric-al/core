@@ -92,8 +92,11 @@ plan's decision 6 (section 11.2) is to take a census, then rebuild from source.
   marker and stays not disposable: an explicit insert of `disposable` is refused,
   and the release job's dispatched step only moves the marker forward. Only a
   rebuild from source, the release job's one-off first rebuild of decision 7,
-  gives such a database its marker. The two marker triggers fire always, so the
-  replica role or a data-only restore cannot move a marker back. A local stack
+  gives such a database its marker. The two marker triggers are ALWAYS
+  triggers, so the replica role does not skip them. They do not stop the
+  table's owner, which can disable them (as a data-only restore with disabled
+  triggers does) and re-enable them as ordinary triggers; only the owner
+  (`postgres`) or a superuser can. A local stack
   that already held data is recovered once by recreating it from source. The
   implementation record lists this as deviation D-13.
 
