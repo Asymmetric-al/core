@@ -1815,7 +1815,7 @@
         },
         {
           "path": "packages/database/hooks/admin-crm-detail.ts",
-          "sha256": "5228f0cb1156c38e5269e504a0fd4ffea173d27579dbee8ec9f7e80cbc7f4755"
+          "sha256": "8183ca2e8f7645d8d68cde5d26170d8ad5faa38c199b594048a97328ec75b28d"
         },
         {
           "path": "tests/unit/packages/database/shadscan-mutation-contract.test.tsx",
@@ -2533,7 +2533,7 @@
       "proof": [
         {
           "path": "packages/ui/components/auth/LoginScreen.tsx",
-          "sha256": "5820787812b0dda113677dc086d4e2529b3de86befc5e6a1e0060da46e192f89"
+          "sha256": "973dfdc5bd2772fa1980668ab8059426f9b358c8cf355a3409736568ebd691f0"
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
@@ -2694,7 +2694,7 @@
         },
         {
           "path": "packages/ui/components/auth/LoginScreen.tsx",
-          "sha256": "5820787812b0dda113677dc086d4e2529b3de86befc5e6a1e0060da46e192f89"
+          "sha256": "973dfdc5bd2772fa1980668ab8059426f9b358c8cf355a3409736568ebd691f0"
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",

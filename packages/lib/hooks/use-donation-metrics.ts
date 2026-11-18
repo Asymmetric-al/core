@@ -1,5 +1,6 @@
 "use client";
 
+import { ownApiFetch } from "@asym/database/own-api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export interface ChartDataPoint {
@@ -281,7 +282,7 @@ export function useDonationMetrics(
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(
+        const response = await ownApiFetch(
           `/api/missionaries/${missionaryId}/metrics${query}`,
           { signal: controller.signal },
         );

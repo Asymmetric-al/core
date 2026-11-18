@@ -8,6 +8,8 @@ import {
 import { useInfiniteQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import type { AdminCrmListResponse, CrmGridRow } from "@asym/database/types";
 import type { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
@@ -141,7 +143,7 @@ async function fetchCrmPage({
     sorting,
     after,
   });
-  const response = await fetch(`/api/admin/crm/records?${searchParams}`, {
+  const response = await ownApiFetch(`/api/admin/crm/records?${searchParams}`, {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",

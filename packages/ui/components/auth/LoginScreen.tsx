@@ -6,6 +6,7 @@ import {
   safeNextParam,
   type AppId,
 } from "@asym/auth/demo-login";
+import { ownApiFetch } from "@asym/database/own-api";
 import { createBrowserClient } from "@asym/database/supabase";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useQuery } from "@tanstack/react-query";
@@ -85,7 +86,7 @@ export function LoginScreen({
     enabled: !demoOnly,
     staleTime: 60_000,
     queryFn: async () => {
-      const response = await fetch("/api/auth/demo-account", {
+      const response = await ownApiFetch("/api/auth/demo-account", {
         method: "GET",
         cache: "no-store",
       });
@@ -120,7 +121,7 @@ export function LoginScreen({
     setIsDemoSubmitting(true);
 
     try {
-      const response = await fetch("/api/auth/demo-account", {
+      const response = await ownApiFetch("/api/auth/demo-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: demoRole }),

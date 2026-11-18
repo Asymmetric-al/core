@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { parseJsonResponse } from "../http/parse-json-response";
 import { getQueryClient } from "../providers/query-client";
 
@@ -106,7 +108,7 @@ export type MissionaryPortalSnapshot = {
 const MISSIONARY_PORTAL_QUERY_KEY = ["missionary", "portal"] as const;
 
 export async function fetchMissionaryPortalSnapshot(): Promise<MissionaryPortalSnapshot> {
-  const response = await fetch("/api/missionary/portal", {
+  const response = await ownApiFetch("/api/missionary/portal", {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
@@ -143,11 +145,14 @@ export function usePendingFollowRequestCount({
     enabled,
     queryKey: PENDING_FOLLOW_REQUESTS_QUERY_KEY,
     queryFn: async () => {
-      const response = await fetch("/api/follower-requests?status=pending", {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-        method: "GET",
-      });
+      const response = await ownApiFetch(
+        "/api/follower-requests?status=pending",
+        {
+          credentials: "same-origin",
+          headers: { Accept: "application/json" },
+          method: "GET",
+        },
+      );
       const payload = await parseJsonResponse<{ requests?: unknown[] }>(
         response,
       );

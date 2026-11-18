@@ -8,6 +8,8 @@ import {
 } from "@tanstack/react-query";
 import * as React from "react";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 import { parseJsonResponse } from "../http/parse-json-response";
 import { getAdminSurfaceQueryKey } from "../query-keys";
 
@@ -131,7 +133,7 @@ async function invalidateMemberCareCaches(
 }
 
 async function fetchMemberCareDashboard(): Promise<MemberCareDashboardResponse> {
-  const response = await fetch("/api/admin/member-care/dashboard", {
+  const response = await ownApiFetch("/api/admin/member-care/dashboard", {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
@@ -145,7 +147,7 @@ async function fetchMemberCareDashboard(): Promise<MemberCareDashboardResponse> 
 async function fetchMemberCareDetail(
   personnelId: string,
 ): Promise<MemberCareDetailResponse> {
-  const response = await fetch(
+  const response = await ownApiFetch(
     `/api/admin/member-care/directory/${personnelId}`,
     {
       credentials: "same-origin",
@@ -173,7 +175,7 @@ async function requestMutation<TInput>(
   method: "POST" | "PATCH",
   input: TInput,
 ): Promise<MutationResponse> {
-  const response = await fetch(endpoint, {
+  const response = await ownApiFetch(endpoint, {
     body: JSON.stringify(input),
     credentials: "same-origin",
     headers: {

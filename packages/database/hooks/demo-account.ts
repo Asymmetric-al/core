@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { ownApiFetch } from "@asym/database/own-api";
+
 export type DemoRole = "admin" | "missionary" | "donor";
 
 export type DemoAvailability = Record<DemoRole, boolean>;
@@ -29,7 +31,7 @@ function toDemoAvailability(
 }
 
 export async function fetchDemoAvailability(): Promise<DemoAvailability> {
-  const response = await fetch("/api/auth/demo-account");
+  const response = await ownApiFetch("/api/auth/demo-account");
   if (!response.ok) {
     throw new Error("Demo status unavailable");
   }
