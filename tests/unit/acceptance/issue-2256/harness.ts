@@ -59,8 +59,9 @@ export const NEW_ROWS = SEAMS.flatMap(([record_type]) =>
  * trigger functions test membership instead of `profiles.tenant_id` and leave
  * the set. The member directory, `tenant_member_directory`, reads profiles
  * beside `authz.memberships.tenant_id`, not the profile's tenant, and the
- * lexical scan of criterion 6 matches it. `handle_new_user` now writes NULL
- * there.
+ * lexical scan of criterion 6 matches it. `handle_new_user` writes the donor
+ * membership's tenant there too, for the release already running (council
+ * round 1 on WP2a, F3).
  *
  * Amended by the WP2a sweep (AL-2675; plan WP2a paragraph): the scan covers
  * `private` too. `private.profile_in_tenant` and the service-key reader
@@ -119,7 +120,16 @@ export const READER_APPS: string[] = [];
  * - a `.from("profiles")` chain (to its statement's end or the next query) that filters
  *   `tenant_id` or `role` (`eq`, `neq`, `in`, `is`, `filter`, `match`, `or`),
  * - the same filter applied later to a variable that holds such a chain,
- * - a generic tenant-row helper called with the `profiles` table.
+ * - a generic tenant-row helper called with the `profiles` table,
+ * - a filter on `profiles` joined from another table: a dotted column
+ *   (`.eq("profiles.tenant_id", …)`) or a `referencedTable` / `foreignTable:
+ *   "profiles"` option beside a `tenant_id` or `role` condition (council
+ *   round 1 on WP2a, F14).
+ * Limit, by name: `.from()` with a table name that is not a literal (a
+ * variable or an expression) is not followed, so a generic helper handed
+ * "profiles" through a variable it then filters by tenant is not seen. Closing
+ * it would flag every generic `.from(table)` helper; criterion 6's property
+ * scan and the helper rule above cover the forms the code base uses.
  * Returns `file:line text` per finding.
  */
 export function profileQueryFilterHits(file: string, text: string): string[] {
@@ -154,6 +164,15 @@ export function profileQueryFilterHits(file: string, text: string): string[] {
   }
   for (const m of text.matchAll(
     /\b\w*[Tt]enant\w*\(\s*[^,()]+,\s*["'`]profiles["'`]/g,
+  ))
+    report(m.index!, m[0]);
+  // A filter on profiles joined from another table.
+  for (const m of text.matchAll(
+    /\.(?:eq|neq|in|is|filter|not)\(\s*["'`]profiles\.(?:tenant_id|role)["'`]/g,
+  ))
+    report(m.index!, m[0]);
+  for (const m of text.matchAll(
+    /\.or\(\s*(["'`])[^"'`]*\b(?:tenant_id|role)\.[^"'`]*\1\s*,\s*\{[^}]*\b(?:referencedTable|foreignTable)\s*:\s*["'`]profiles["'`]/g,
   ))
     report(m.index!, m[0]);
   return hits;
