@@ -44,6 +44,16 @@ export function getDefaultPostLoginPathForApp(appId: AppId): string {
  * - Auth endpoints are blocked to avoid post-login loops and callback abuse.
  * - Invalid values return `null` so callers can fall back to a safe default.
  */
+function hasEmptySegmentOrBackslash(pathname: string): boolean {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return true;
+  }
+  return [pathname, decoded].some((form) => /\/\/|\\/.test(form));
+}
+
 export function safeNextParam(value: string | null): string | null {
   if (!value) return null;
 
@@ -64,7 +74,12 @@ export function safeNextParam(value: string | null): string | null {
   }
 
   if (parsed.origin !== "http://localhost") return null;
-  if (parsed.pathname.startsWith("//")) return null;
+  // No empty path segment and no backslash, as written or decoded once: the
+  // parser has already turned backslashes into slashes and dropped tabs and
+  // newlines, so `/<tenant>/\evil.example` arrives here as `//evil.example`
+  // after the prefix, which a caller that strips the prefix would follow to
+  // another host (council round 1, A1).
+  if (hasEmptySegmentOrBackslash(parsed.pathname)) return null;
   if (isBlockedNextPath(parsed.pathname)) return null;
 
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;

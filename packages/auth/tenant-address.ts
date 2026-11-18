@@ -58,11 +58,29 @@ export interface TenantAddress {
   innerPathname: string;
 }
 
+/**
+ * Whether what follows a tenant prefix starts another authority: two slashes
+ * or backslashes, once the tab and newline characters a URL parser drops are
+ * removed, as written or percent-encoded once. As an inner path it would make
+ * the proxy's rewrite target, and any address built from it, another origin
+ * (council round 1, A1 and A2).
+ */
+function startsAnotherAuthority(rest: string): boolean {
+  const forms = [rest];
+  try {
+    forms.push(decodeURIComponent(rest));
+  } catch {
+    // A malformed escape: only the form as written can be read.
+  }
+  return forms.some((form) => /^[/\\]{2}/.test(form.replace(/[\t\n\r]/g, "")));
+}
+
 export function parseTenantAddress(pathname: string): TenantAddress | null {
   const match = TENANT_SEGMENT.exec(pathname);
   if (!match) return null;
   const [prefix, tenantId, subRole] = match;
   const rest = pathname.slice(prefix.length);
+  if (startsAnotherAuthority(rest)) return null;
   return {
     tenantId: tenantId!,
     subRole: (subRole as StaffSubrole | undefined) ?? null,
