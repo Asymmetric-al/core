@@ -1169,9 +1169,9 @@
       "path": "components/shadcn/popover.tsx",
       "diffComponent": "popover",
       "owners": ["popover"],
-      "localSha256": "585fbe08ffbb34cf684fd173bf05f4c7bbfa9140757d9b34273db6fd30a02a38",
-      "diffSha256": "adc45e259deef162a95a1be3639645d8b9123a2dfff168736d70edbc8bd51f0d",
-      "reason": "Preserve Base UI positioner/portal state callbacks and Core motion/popup parts; upstream changes styling rather than a verified behavior defect. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "125809a4e76e42623740eda1fe53af51a1ac4a2cb55354dd64c4da6cbe081e04",
+      "diffSha256": "1c49b31adb31c012577768823d98ac38529fffad7ad1da79d62eb29bbee6a9a7",
+      "reason": "Preserve Base UI positioner/portal state callbacks and Core motion/popup parts; upstream changes styling rather than a verified behavior defect. Core preserves functional className state callbacks through mergeBaseUIClassName. Popover's root also cancels an outside press that lands inside the open Shift+? help (isPressInShortcutHelp), which opens over a popover outside its floating tree; every other change reaches the caller's onOpenChange unchanged.",
       "proofs": [
         "packages/ui/components/shadcn/popover.tsx",
         "docs/ai/rules/frontend.md"
@@ -2433,7 +2433,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/popover.tsx",
-      "sha256": "585fbe08ffbb34cf684fd173bf05f4c7bbfa9140757d9b34273db6fd30a02a38"
+      "sha256": "125809a4e76e42623740eda1fe53af51a1ac4a2cb55354dd64c4da6cbe081e04"
     },
     {
       "path": "packages/ui/components/shadcn/progress.tsx",

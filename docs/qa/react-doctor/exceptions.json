@@ -6965,14 +6965,14 @@
       "title": "Props spread onto element",
       "message": "You can't tell what props reach this element when you spread them.",
       "help": "List each prop explicitly so consumers can see the component API instead of receiving hidden spread props.",
-      "line": 11,
-      "column": 53,
-      "offset": 333,
+      "line": 24,
+      "column": 7,
+      "offset": 791,
       "length": 10,
-      "endLine": 11,
+      "endLine": 24,
       "category": "Maintainability",
       "fingerprint": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "id": "components/shadcn/popover.tsx::11:53::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
+      "id": "components/shadcn/popover.tsx::24:7::react-doctor/jsx-props-no-spreading::8b18cfbdf65050797fb35c3e4fde0ff16f9475fddebb1d47da811634adb865e0",
       "normalizedFilePath": "components/shadcn/popover.tsx",
       "tags": [],
       "target": "packages/ui",
@@ -6981,13 +6981,14 @@
         "SNAPSHOT SOURCE packages/ui/components/shadcn/popover.tsx:10-11: Popover accepts { ...props }: PopoverPrimitive.Root.Props and forwards `props` to `PopoverPrimitive.Root`. Domain-only props are consumed before the remaining typed host/primitive/framework props reach their owner.",
         "EXECUTED READ-ONLY TYPESCRIPT AST CHECK: spread expression, nearest function kind and complete typed parameter signatures match the earlier reviewed physical snapshot; all 97 prior forwarding sites passed.",
         "PR INTEGRATION REVIEW 2026-10-06: current supported CLI diagnostic at packages/ui/components/shadcn/popover.tsx:11; hashes bind current context, whole source and supporting files. Earlier line references are historical; current-base contract review and verification are in pr-validation.md.",
-        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/popover.tsx:11. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md."
+        "REQUALIFICATION 2026-10-21: React Doctor0.9.18 exact current context packages/ui/components/shadcn/popover.tsx:11. The original reason and actual supporting owners were independently rechecked; earlier line references describe historical source. See docs/maintenance/modernization/react-doctor-requalification.md.",
+        "REQUALIFICATION 2026-11-18 (AL-2696): React Doctor 0.9.18 reports this finding at packages/ui/components/shadcn/popover.tsx:24:7. The reason was rechecked against the current source: Popover now consumes onOpenChange, wraps it so a press inside the open Shift+? help does not close the popover, and forwards every other typed root prop to PopoverPrimitive.Root as before. Identity, whole-file and supporting hashes are rebound; the source context is unchanged."
       ],
       "reconsiderWhen": "Reconsider if the forwarding type, underlying host/primitive/framework API, prop filtering, ref/event composition, or public wrapper contract changes.",
       "sourceContextHash": "d1f11af18a8c469f6772fb75db963103c578ebadc89e23f537fbe6d0bba5b711",
-      "sourceFileHash": "585fbe08ffbb34cf684fd173bf05f4c7bbfa9140757d9b34273db6fd30a02a38",
+      "sourceFileHash": "125809a4e76e42623740eda1fe53af51a1ac4a2cb55354dd64c4da6cbe081e04",
       "evidenceFileHashes": {
-        "packages/ui/package.json": "da7121681b3df3607b402b1077cdb6c93fd1f5b753f83882328ca5db9999a577"
+        "packages/ui/package.json": "b58e0c0517c72c6a2a7bd9bb9e844dc4f7623ff378eb7b8c5fcf68dc327d4c1a"
       }
     },
     {
