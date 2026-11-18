@@ -18,7 +18,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { AlertTriangle, CircleAlert, RotateCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   parseWorkflowStatusFilter,
@@ -37,6 +37,12 @@ export default function WorkflowsPageClient() {
   const [data, setData] = useState<SummariesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const summaryRef = useRef<HTMLParagraphElement>(null);
+  const retryRef = useRef<HTMLButtonElement>(null);
+  const focusAfterRetry = useRef(false);
+  const focusFilterOnUrgent = useRef(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -69,8 +75,32 @@ export default function WorkflowsPageClient() {
     };
   }, [attempt]);
 
+  // Retry swaps the alert for the loading state, then for the runs or a new
+  // alert; each swap removes the focused element, so focus follows it unless
+  // the person has already moved on.
+  useEffect(() => {
+    if (!focusAfterRetry.current) return;
+    if (data || error) focusAfterRetry.current = false;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    (data ? summaryRef : error ? retryRef : loadingRef).current?.focus();
+  }, [data, error]);
+
+  // Focus the filter only once it shows Urgent, so it is announced with the
+  // new value rather than the old one.
+  useEffect(() => {
+    if (status !== "urgent" || !focusFilterOnUrgent.current) return;
+    focusFilterOnUrgent.current = false;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    contentRef.current
+      ?.querySelector<HTMLElement>('[aria-label="Filter by status"]')
+      ?.focus();
+  }, [status]);
+
   const counts = summarizeWorkflowRuns(data?.summaries ?? []);
   function retry() {
+    focusAfterRetry.current = true;
     setError(null);
     setData(null);
     setAttempt((value) => value + 1);
@@ -82,14 +112,19 @@ export default function WorkflowsPageClient() {
       density="compact"
       description="Background work for gifts, receipts and email. Urgent runs need staff attention."
     >
-      <div className="flex flex-col gap-6">
+      <div ref={contentRef} className="flex flex-col gap-6">
         {error ? (
           <Alert variant="warning">
             <AlertTriangle aria-hidden="true" />
             <AlertTitle>Couldn&apos;t load workflow runs</AlertTitle>
             <AlertDescription>
               <p>{error}</p>
-              <Button variant="outline" size="sm" onClick={retry}>
+              <Button
+                ref={retryRef}
+                variant="outline"
+                size="sm"
+                onClick={retry}
+              >
                 <RotateCw aria-hidden="true" />
                 Retry
               </Button>
@@ -97,7 +132,11 @@ export default function WorkflowsPageClient() {
           </Alert>
         ) : data ? (
           <>
-            <p className="text-sm text-muted-foreground">
+            <p
+              ref={summaryRef}
+              tabIndex={-1}
+              className="text-sm text-muted-foreground outline-none"
+            >
               Showing the latest {data.summaries.length}{" "}
               {data.summaries.length === 1 ? "run" : "runs"}, up to 50. Figures
               cover these runs before list filters, not all workflow history.
@@ -119,7 +158,10 @@ export default function WorkflowsPageClient() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setStatus("urgent")}
+                      onClick={() => {
+                        focusFilterOnUrgent.current = true;
+                        setStatus("urgent");
+                      }}
                     >
                       Show urgent runs
                     </Button>
@@ -159,9 +201,11 @@ export default function WorkflowsPageClient() {
           </>
         ) : (
           <div
+            ref={loadingRef}
             role="status"
             aria-label="Loading workflow summaries"
-            className="flex flex-col gap-3"
+            tabIndex={-1}
+            className="flex flex-col gap-3 outline-none"
           >
             <span className="sr-only">Loading workflow summaries…</span>
             {Array.from({ length: 4 }, (_, index) => (

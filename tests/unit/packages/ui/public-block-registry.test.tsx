@@ -226,3 +226,41 @@ describe("public block registry", () => {
     expect(isPublicBlockType(undefined)).toBe(false);
   });
 });
+
+// Council round 2, B6: stored hrefs are untrusted. The parse step keeps only
+// what `sanitizePublicCmsHref` accepts, so no surface, today's preview or
+// WP7's public renderer, is ever handed a script or off-site link.
+describe("stored links", () => {
+  function actionsFor(href: string) {
+    const rendered = renderPublicBlocks(
+      [
+        { ...EXAMPLE_BLOCKS.hero, primaryCtaHref: href },
+        { ...EXAMPLE_BLOCKS["call-to-action"], buttonHref: href },
+      ],
+      { keyPrefix: "links", surface },
+    );
+    render(<div>{rendered}</div>);
+    const links = screen
+      .queryAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    cleanup();
+    return links;
+  }
+
+  it.each([
+    ["a javascript: URL", "javascript:alert(1)"],
+    ["a javascript: URL with spacing and case", "  JavaScript:alert(1)"],
+    ["a protocol-relative URL", "//evil.example/give"],
+    ["a data: URL", "data:text/html,<script>alert(1)</script>"],
+  ])("drops %s", (_label, href) => {
+    expect(actionsFor(href)).toEqual([]);
+  });
+
+  it.each([
+    ["a site path", "/give/monthly"],
+    ["an https URL", "https://example.org/more"],
+    ["an anchor", "#ways-to-give"],
+  ])("keeps %s", (_label, href) => {
+    expect(actionsFor(href)).toEqual([href, href]);
+  });
+});

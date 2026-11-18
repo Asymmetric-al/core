@@ -3,6 +3,7 @@
 
 import { QueryProvider } from "@asym/database/providers";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -10,6 +11,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { checkPattern } from "@ui-sdk/core/testing";
 import {
   afterEach,
   beforeAll,
@@ -225,6 +227,22 @@ describe("CRM record drawer", () => {
     // The summary stat prefers the detail total over the grid row's.
     expect(within(dialog).getByText("$3,150.50")).toBeTruthy();
     expect(within(dialog).queryByText("$315,050.00")).toBeNull();
+  });
+
+  it("names the record's section tabs and keeps the tabs pattern", async () => {
+    const dialog = renderDrawer();
+    const list = within(dialog).getByRole("tablist", {
+      name: "CRM record sections",
+    });
+    // The sheet lands focus on its close button after it opens; checking
+    // before that would race it.
+    const close = within(dialog).getByRole("button", {
+      name: "Close CRM record details",
+    });
+    await waitFor(() => expect(document.activeElement).toBe(close));
+    await act(async () => {
+      await checkPattern(list.closest('[data-slot="tabs"]')!, "tabs");
+    });
   });
 
   it("leads Properties support status with commitments, not the repeated total", async () => {
@@ -1083,21 +1101,78 @@ describe("CRM gift history rows", () => {
     };
   }
 
-  function renderRows(
+  const newestFirst = {
+    sortField: "giftDate",
+    sortDirection: "desc",
+    paymentStatus: "all",
+    issue: "all",
+  };
+
+  function rowsElement(
     rows: ReturnType<typeof giftRow>[],
-    { statusLine = true }: { statusLine?: boolean } = {},
+    {
+      statusLine = true,
+      filtersSort = newestFirst,
+    }: { statusLine?: boolean; filtersSort?: Record<string, string> } = {},
   ) {
-    return render(
+    return (
       <GiftHistoryRows
         giftRows={rows as never}
         onOpenGift={vi.fn()}
         onPinRowAction={vi.fn()}
         onRunOperation={vi.fn()}
         tablePreferences={undefined}
-        viewSettings={{ columns: { designation: true, statusLine } } as never}
-      />,
+        viewSettings={
+          { columns: { designation: true, statusLine }, filtersSort } as never
+        }
+      />
     );
   }
+
+  function renderRows(
+    rows: ReturnType<typeof giftRow>[],
+    options: { statusLine?: boolean } = {},
+  ) {
+    return render(rowsElement(rows, options));
+  }
+
+  it("announces one short summary of the list, never its rows", () => {
+    const first = giftRow("gift-1", "sent", null);
+    const second = giftRow("gift-2", "sent", null);
+    const view = render(rowsElement([first, second]));
+    const list = view.getByRole("list");
+    // Re-sorted, filtered or updated rows must not be read aloud.
+    expect(list.closest("[aria-live]")).toBeNull();
+    expect(list.querySelector("[aria-live], [role='status']")).toBeNull();
+    const status = view.getByRole("status");
+    expect(status.contains(list)).toBe(false);
+    expect(status.textContent).toBe("Showing 2 gifts, newest first");
+
+    // The same region announces a re-sort, a filter and an empty view.
+    view.rerender(
+      rowsElement([second], {
+        filtersSort: { ...newestFirst, sortField: "amountCents" },
+      }),
+    );
+    expect(view.getByRole("status")).toBe(status);
+    expect(status.textContent).toBe("Showing 1 gift, largest amount first");
+    view.rerender(
+      rowsElement([first], {
+        filtersSort: { ...newestFirst, sortDirection: "asc" },
+      }),
+    );
+    expect(status.textContent).toBe("Showing 1 gift, oldest first");
+
+    view.rerender(rowsElement([]));
+    expect(view.queryByRole("list")).toBeNull();
+    expect(view.getByRole("status")).toBe(status);
+    expect(status.textContent).toBe("No gifts match the current view filters.");
+    // The empty message is the visible status, not a second copy of it.
+    expect(
+      view.getAllByText("No gifts match the current view filters."),
+    ).toHaveLength(1);
+    expect(status.className).not.toContain("sr-only");
+  });
 
   function withShared(
     row: ReturnType<typeof giftRow>,
@@ -1266,7 +1341,10 @@ describe("CRM gift history rows", () => {
           } as never
         }
         viewSettings={
-          { columns: { designation: true, statusLine: true } } as never
+          {
+            columns: { designation: true, statusLine: true },
+            filtersSort: newestFirst,
+          } as never
         }
       />,
     );

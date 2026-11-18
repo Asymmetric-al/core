@@ -37,7 +37,7 @@ for (const width of [320, 1440]) {
     await expect(creation).toHaveCount(0);
     await expect(add).toBeFocused();
     const actions = page.getByRole("button", {
-      name: "Open actions",
+      name: "Actions for Call partner",
       exact: true,
     });
     await actions.press("Enter");

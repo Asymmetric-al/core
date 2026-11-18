@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { resolveCmsMigrationDatabaseUrl } from "../../../../scripts/cms/lib/migration-connection.mjs";
@@ -7,6 +9,7 @@ import {
   RELEASE_ENVIRONMENTS,
   ReleaseStop,
   migrate,
+  payloadMigrate,
   preflight,
   pinnedSupabaseCliVersion,
   readReleaseSettings,
@@ -19,6 +22,7 @@ import {
 const ref = "abcdefghijklmnopqrst";
 const databaseUrl = `postgresql://postgres.${ref}:pw@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
 const source = listSourceMigrations({ root: process.cwd() });
+const CA = "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----";
 
 function settings(environment: "production" | "preview" = "production") {
   return readReleaseSettings({
@@ -26,6 +30,7 @@ function settings(environment: "production" | "preview" = "production") {
     RELEASE_SUPABASE_PROJECT_REF: ref,
     RELEASE_DATABASE_URL: databaseUrl,
     RELEASE_CMS_OWNER_PASSWORD: "owner-password-fixture",
+    RELEASE_DATABASE_SSL_CA: CA,
   });
 }
 
@@ -35,7 +40,10 @@ describe("release settings", () => {
     expect(url.username).toBe(`cms_owner.${ref}`);
     expect(url.password).toBe("owner-password-fixture");
     expect(url.host).toBe("aws-0-us-east-1.pooler.supabase.com:5432");
-    expect(url.searchParams.get("sslmode")).toBe("require");
+    // Council round 2, A6a: Payload verifies the pooler against the
+    // project's CA (node-postgres reads require as full verification against
+    // Node's own store, which lacks Supabase's CA).
+    expect(url.searchParams.get("sslmode")).toBe("verify-full");
     expect(
       roleDatabaseUrl(
         `postgresql://postgres:pw@db.${ref}.supabase.co:5432/postgres?sslmode=require`,
@@ -56,6 +64,7 @@ function fakeDatabase(state: {
   payload?: string[];
   devMarker?: boolean;
   heads?: { supabase: string | null; payload: string | null };
+  publishedLeft?: number;
 }) {
   const db = {
     healthFunction: true,
@@ -63,6 +72,7 @@ function fakeDatabase(state: {
     supabase: [...source.supabase],
     payload: [...source.payload],
     devMarker: false,
+    publishedLeft: 0,
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
       payload: string | null;
@@ -89,6 +99,10 @@ function fakeDatabase(state: {
         return { names: db.payload, devMarker: db.devMarker };
       }
       if (sql.includes("FROM pg_roles")) return ["cms_owner", "cms_runtime"];
+      if (sql.includes("UPDATE auth.users")) {
+        events.push("seeded logins");
+        return { seeded_logins: 1, published: db.publishedLeft ?? 0 };
+      }
       if (sql.includes("current_user")) {
         const user = decodeURIComponent(new URL(databaseUrl).username);
         return { user: user.split(".")[0] };
@@ -115,6 +129,7 @@ function fakeDatabase(state: {
 const passwords = {
   RELEASE_CMS_OWNER_PASSWORD: "o".repeat(40),
   RELEASE_CMS_RUNTIME_PASSWORD: "r".repeat(40),
+  RELEASE_SEED_LOGIN_PASSWORD: "s".repeat(40),
 };
 
 const silent = () => {};
@@ -228,9 +243,9 @@ describe("release database steps", () => {
     expect(runCommand).not.toHaveBeenCalled();
   });
 
-  it("rebuilds a disposable preview database: reset, role passwords, Payload, then checks the marker", async () => {
+  it("rebuilds a disposable preview database: reset, seeded logins, role passwords, Payload, then checks the marker", async () => {
     const fake = fakeDatabase({});
-    const order: string[] = [];
+    const order = fake.events;
     const runCommand = vi.fn((command: string, args: string[]) => {
       order.push(command === "bun" ? "payload" : args.slice(1, 3).join(" "));
       return { status: 0 };
@@ -252,10 +267,92 @@ describe("release database steps", () => {
     });
     expect(order).toEqual([
       "db reset",
+      "seeded logins",
       "role password",
       "role password",
       "payload",
     ]);
+  });
+
+  // Council round 2, A5 (record D-24): a hosted database never carries a
+  // password published in the repository.
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild: stops before it resets anything when RELEASE_SEED_LOGIN_PASSWORD is missing or weak",
+    async (mode) => {
+      for (const seed of [undefined, "", "demo-password", "x".repeat(73)]) {
+        const fake = fakeDatabase({
+          environment: mode === "first" ? null : "disposable",
+        });
+        const runCommand = vi.fn(() => ({ status: 0 }));
+        await expect(
+          rebuild({
+            settings: settings(mode === "first" ? "production" : "preview"),
+            mode,
+            signoff: "https://github.com/Asymmetric-al/core/issues/1",
+            confirmation: `rebuild ${ref}`,
+            env: { ...passwords, RELEASE_SEED_LOGIN_PASSWORD: seed },
+            query: fake.query,
+            run: fake.run,
+            runCommand,
+            requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+            log: silent,
+          }),
+        ).rejects.toThrow(/RELEASE_SEED_LOGIN_PASSWORD .*nothing was reset/);
+        expect(runCommand).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it("replaces every seeded login's published password right after the reset, sending only a verifier", async () => {
+    const fake = fakeDatabase({});
+    const logs: string[] = [];
+    await rebuild({
+      settings: settings("preview"),
+      mode: "disposable",
+      confirmation: `rebuild ${ref}`,
+      env: passwords,
+      query: fake.query,
+      run: fake.run,
+      runCommand: vi.fn(() => ({ status: 0 })),
+      requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+      log: (line: string) => logs.push(line),
+    });
+    const call = fake.query.mock.calls.find(([options]) =>
+      options.sql.includes("UPDATE auth.users"),
+    )![0] as { sql: string; variables: Record<string, string> };
+    expect(call.variables.RELEASE_LOGIN_VERIFIER).toMatch(
+      /^\$argon2id\$v=19\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/,
+    );
+    // The seed's published password is matched on the server; the new one
+    // appears nowhere but inside its verifier.
+    expect(JSON.parse(call.variables.RELEASE_PUBLISHED_PASSWORDS!)).toEqual([
+      "demo-password",
+    ]);
+    const secret = passwords.RELEASE_SEED_LOGIN_PASSWORD;
+    expect(call.sql).not.toContain(secret);
+    expect(JSON.stringify(call.variables)).not.toContain(secret);
+    expect(logs.join("\n")).not.toContain(secret);
+    expect(logs.join("\n")).toContain("seeded login");
+  });
+
+  it("stops, before the role passwords and Payload, when a login still carries a published password", async () => {
+    const fake = fakeDatabase({ publishedLeft: 1 });
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    await expect(
+      rebuild({
+        settings: settings("preview"),
+        mode: "disposable",
+        confirmation: `rebuild ${ref}`,
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+        log: silent,
+      }),
+    ).rejects.toThrow(/still carry a password published in the repository/);
+    expect(runCommand).toHaveBeenCalledTimes(1);
+    expect(fake.run).not.toHaveBeenCalled();
   });
 
   it("resets a disposable preview database through the repository wrapper, never the direct CLI", async () => {
@@ -288,13 +385,13 @@ describe("release database steps", () => {
     const fake = fakeDatabase({ environment: null });
     const order: string[] = [];
     const runCommand = vi.fn((command: string, args: string[]) => {
-      if (command === "npx") {
-        expect(args.slice(0, 4)).toEqual([
-          "-y",
-          `supabase@${pinnedSupabaseCliVersion()}`,
-          "db",
-          "reset",
-        ]);
+      // AL-2674 A10: the CLI the workflow installed, never npx, which stops
+      // on the root package.json's overrides inside the repository.
+      expect(command).not.toBe("npx");
+      if (command === "supabase" && args[0] === "--version")
+        return { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` };
+      if (command === "supabase") {
+        expect(args.slice(0, 2)).toEqual(["db", "reset"]);
         expect(args).toContain("--yes");
         // The migrations write the marker on the emptied database.
         fake.db.environment = "disposable";
@@ -326,6 +423,37 @@ describe("release database steps", () => {
     expect(pinnedSupabaseCliVersion()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
+  it.each([
+    ["another version", { status: 0, stdout: "2.119.0\n" }, "2.119.0"],
+    ["no CLI", { status: null, error: new Error("ENOENT") }, "none"],
+  ])(
+    "first rebuild: stops before it resets anything when the PATH has %s instead of the pinned CLI",
+    async (_name, probe, found) => {
+      const fake = fakeDatabase({ environment: null });
+      const runCommand = vi.fn((_command: string, args: string[]) =>
+        args[0] === "--version" ? probe : { status: 0 },
+      );
+      await expect(
+        rebuild({
+          settings: settings(),
+          mode: "first",
+          signoff:
+            "https://github.com/Asymmetric-al/core/issues/2690#issuecomment-1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          log: silent,
+        }),
+      ).rejects.toThrow(
+        `needs the Supabase CLI ${pinnedSupabaseCliVersion()} on the PATH (found ${found})`,
+      );
+      expect(runCommand).toHaveBeenCalledTimes(1);
+      expect(fake.run).not.toHaveBeenCalled();
+    },
+  );
+
   it("stops loudly, before the role passwords and Payload, when the migrations leave no disposable marker", async () => {
     for (const [mode, start, signoff] of [
       ["first", null, "https://github.com/Asymmetric-al/core/issues/1"],
@@ -342,7 +470,10 @@ describe("release database steps", () => {
           env: passwords,
           query: fake.query,
           run: fake.run,
-          runCommand: vi.fn((command: string) => {
+          runCommand: vi.fn((command: string, args: string[]) => {
+            // The first rebuild checks the installed CLI's version first.
+            if (args[0] === "--version")
+              return { status: 0, stdout: pinnedSupabaseCliVersion() };
             commands.push(command);
             // The reset ran, but the marker migration wrote nothing.
             fake.db.environment = null;
@@ -461,6 +592,87 @@ describe("release database steps", () => {
       "--yes",
     ]);
     expect(calls[1]).toEqual(["bun", "run", "cms:migrate"]);
+  });
+
+  // Council round 2, A6a and A6b.
+  it("keeps the database password off every command line, and every RELEASE_ variable and ambient PG* setting out of every child", () => {
+    vi.stubEnv("RELEASE_DATABASE_URL", databaseUrl);
+    vi.stubEnv(
+      "RELEASE_CMS_OWNER_PASSWORD",
+      passwords.RELEASE_CMS_OWNER_PASSWORD,
+    );
+    vi.stubEnv(
+      "RELEASE_CMS_RUNTIME_PASSWORD",
+      passwords.RELEASE_CMS_RUNTIME_PASSWORD,
+    );
+    vi.stubEnv("PGHOSTADDR", "10.9.9.9");
+    try {
+      const { query, run } = fakeDatabase({});
+      const children: Array<{
+        command: string;
+        args: string[];
+        env: Record<string, string>;
+        ca?: string;
+      }> = [];
+      migrate({
+        settings: settings(),
+        env: passwords,
+        query,
+        run,
+        runCommand: vi.fn(
+          (
+            command: string,
+            args: string[],
+            options: { env: Record<string, string> },
+          ) => {
+            const ca = options.env.PGSSLROOTCERT
+              ? readFileSync(options.env.PGSSLROOTCERT, "utf8")
+              : undefined;
+            children.push({ command, args, env: options.env, ca });
+            return { status: 0 };
+          },
+        ),
+        log: silent,
+      });
+      const [cli, payload] = children;
+      expect(cli!.args).toContain(
+        `postgresql://postgres.${ref}@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`,
+      );
+      expect(cli!.args.join(" ")).not.toContain(":pw@");
+      expect(cli!.env.PGPASSWORD).toBe("pw");
+      for (const child of children) {
+        expect(
+          Object.keys(child.env).filter(
+            (key) =>
+              key.startsWith("RELEASE_") ||
+              (key.startsWith("PG") &&
+                !["PGPASSWORD", "PGSSLROOTCERT"].includes(key)),
+          ),
+          child.command,
+        ).toEqual([]);
+      }
+      // Payload verifies the pooler against the project's CA, and the
+      // runner's psql check reads the same CA from a file that is gone after.
+      expect(
+        new URL(payload!.env.PAYLOAD_MIGRATION_DATABASE_URI!).searchParams.get(
+          "sslmode",
+        ),
+      ).toBe("verify-full");
+      expect(payload!.env.PAYLOAD_DATABASE_SSL_CA).toBe(CA);
+      expect(payload!.ca).toBe(CA);
+      expect(existsSync(payload!.env.PGSSLROOTCERT!)).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("stops Payload's migration of a TLS target when the release environment holds no CA", () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    const noCa = { ...settings(), databaseCa: undefined };
+    expect(() => payloadMigrate({ settings: noCa, runCommand })).toThrow(
+      /RELEASE_DATABASE_SSL_CA is not set/,
+    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("records the heads the database holds, so an older release never lowers them", () => {

@@ -39,8 +39,11 @@ describe("reading a password recovery session", () => {
       error: null,
     });
 
+    // The time left goes to the screen, which refuses to save after it
+    // (council round 2, B2).
     await expect(readPasswordRecovery()).resolves.toEqual({
       email: "recover@example.com",
+      secondsLeft: 60 * 60 - 30,
     });
   });
 

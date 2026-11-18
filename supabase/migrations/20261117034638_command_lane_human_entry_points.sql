@@ -30,21 +30,30 @@
 -- matrix and every gate code: docs/security/tenant-guard.md, "Command lane".
 --
 -- The guard gains what the preamble needs and nothing more (NR-13): USAGE on
--- `auth` and EXECUTE on `auth.uid()` and `auth.jwt()`; USAGE on `authz` and
--- EXECUTE on its two membership helpers; SELECT on `authz.memberships`
--- through a policy that shows the guard only the session caller's own rows.
--- `authz.is_super_admin()` is deliberately not granted: commands never take
--- a platform-role branch (plan 5.4, "No super_admin branch").
+-- `authz` and EXECUTE on its two membership helpers; SELECT on
+-- `authz.memberships` through a policy that shows the guard only the session
+-- caller's own rows. `authz.is_super_admin()` is deliberately not granted:
+-- commands never take a platform-role branch (plan 5.4, "No super_admin
+-- branch").
 --
--- Hosted Supabase: `auth` belongs to `supabase_auth_admin`. A GRANT made by a
--- role that lacks the grant option does not fail: Postgres warns that no
--- privileges were granted and the transaction commits, and every human command
--- would then fail at run time. The post-assert at the end of this migration
--- therefore checks that `tenant_guard` holds each privilege below and raises
--- otherwise, so a refused grant fails the migration as a whole. The fallback
--- the plan names (15.2) is to change the body of `tenant_guard.caller_id()` to
--- read the request's claims setting and drop the two `auth` grants (and their
--- rows in the post-assert). The WP1 hosted proof settles which applies.
+-- The guard holds nothing on `auth` (plan 15.2, "Definer functions owned by a
+-- non-bypass role on hosted Supabase", settled by the fallback the plan
+-- names). On Supabase's own Postgres image `auth` belongs to
+-- `supabase_auth_admin`, and `postgres`, which runs migrations and is not a
+-- superuser there, holds USAGE on it and EXECUTE on `auth.uid()` and
+-- `auth.jwt()` without the grant option: a GRANT of them to the guard only
+-- warns and grants nothing, and every human command would fail. So the guard
+-- reads the caller from the request's claims settings itself, in
+-- `tenant_guard.caller_id()` and `tenant_guard.request_claims()`, with the
+-- precedence and the result of the installed `auth.uid()` and `auth.jwt()`
+-- (supabase/auth migration 20220224000811 and 20220531120530). The catalog
+-- gate fails any function in a command schema whose body names `auth.`.
+--
+-- A GRANT made by a role that lacks the grant option does not fail: Postgres
+-- warns that no privileges were granted and the transaction commits. The
+-- post-assert at the end of this migration therefore checks that
+-- `tenant_guard` holds each privilege below and raises otherwise, so a
+-- refused grant fails the migration as a whole.
 --
 -- No tenant has a status column yet (WP3 adds it), and there is no SQL
 -- capability function yet (WP2a). `begin_human_command` therefore checks the
@@ -56,39 +65,23 @@
 --   DROP FUNCTION tenant_guard.resolve_command_assignment(UUID);
 --   DROP FUNCTION tenant_guard.begin_human_command(UUID);
 --   DROP TYPE tenant_guard.command_context;
---   DROP FUNCTION tenant_guard.request_assignment_id();
---   DROP FUNCTION tenant_guard.caller_id();
 --   DROP POLICY tenant_guard_own_assignments ON authz.memberships;
+--   DROP FUNCTION tenant_guard.request_assignment_id();
+--   DROP FUNCTION tenant_guard.request_claims();
+--   DROP FUNCTION tenant_guard.caller_id();
 --   REVOKE SELECT ON authz.memberships FROM tenant_guard;
 --   REVOKE EXECUTE ON FUNCTION authz.has_membership(UUID, authz.membership_role[]),
 --     authz.has_staff_membership(UUID, authz.staff_role[]) FROM tenant_guard;
 --   REVOKE USAGE ON SCHEMA authz FROM tenant_guard;
---   REVOKE EXECUTE ON FUNCTION auth.uid(), auth.jwt() FROM tenant_guard;
---   REVOKE USAGE ON SCHEMA auth FROM tenant_guard;
 --   REVOKE USAGE ON SCHEMA tenant_guard FROM authenticated;
 
 BEGIN;
 
--- 1. What the guard role may use to identify the caller and judge membership.
-GRANT USAGE ON SCHEMA auth TO tenant_guard;
-GRANT EXECUTE ON FUNCTION auth.uid() TO tenant_guard;
-GRANT EXECUTE ON FUNCTION auth.jwt() TO tenant_guard;
-
+-- 1. What the guard role may use to judge membership.
 GRANT USAGE ON SCHEMA authz TO tenant_guard;
 GRANT EXECUTE ON FUNCTION authz.has_membership(UUID, authz.membership_role[]) TO tenant_guard;
 GRANT EXECUTE ON FUNCTION authz.has_staff_membership(UUID, authz.staff_role[]) TO tenant_guard;
-
--- The preamble reads the caller's own membership rows, in every tenant,
--- before any tenant is entered, so this policy is keyed on the session caller
--- and not on the guard tenant. A worker call has no session caller and sees no
--- row. Later commands that write memberships bring their own guard policy.
 GRANT SELECT ON TABLE authz.memberships TO tenant_guard;
-DROP POLICY IF EXISTS tenant_guard_own_assignments ON authz.memberships;
-CREATE POLICY tenant_guard_own_assignments
-  ON authz.memberships
-  FOR SELECT
-  TO tenant_guard
-  USING (user_id = (SELECT auth.uid()));
 
 -- 2. Signed-in users may reach the schema; EXECUTE stays per function.
 GRANT USAGE ON SCHEMA tenant_guard TO authenticated;
@@ -97,8 +90,10 @@ GRANT USAGE ON SCHEMA tenant_guard TO authenticated;
 -- inside a guard-owned command they run as tenant_guard. EXECUTE for
 -- tenant_guard only.
 
--- The session caller. The one place the hosted fallback (claims setting
--- instead of auth.uid()) would change.
+-- The session caller, read from the request's claims settings as the
+-- installed auth.uid() reads them: the single-claim setting first, then `sub`
+-- of the JSON claims setting. An empty or absent setting is NULL; a value that
+-- is not a UUID raises (22P02), never NULL. PostgREST sets the JSON setting.
 CREATE OR REPLACE FUNCTION tenant_guard.caller_id()
 RETURNS UUID
 LANGUAGE sql
@@ -106,8 +101,38 @@ STABLE
 SECURITY INVOKER
 SET search_path = ''
 AS $$
-  SELECT auth.uid();
+  SELECT COALESCE(
+    NULLIF(pg_catalog.current_setting('request.jwt.claim.sub', true), ''),
+    NULLIF(pg_catalog.current_setting('request.jwt.claims', true), '')::JSONB ->> 'sub'
+  )::UUID;
 $$;
+
+-- The request's JWT claims, as the installed auth.jwt() reads them: the
+-- single JSON setting first, then the JSON claims setting; NULL when neither
+-- is set. For a command that reads the assurance level or another claim.
+CREATE OR REPLACE FUNCTION tenant_guard.request_claims()
+RETURNS JSONB
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  SELECT COALESCE(
+    NULLIF(pg_catalog.current_setting('request.jwt.claim', true), ''),
+    NULLIF(pg_catalog.current_setting('request.jwt.claims', true), '')
+  )::JSONB;
+$$;
+
+-- The preamble reads the caller's own membership rows, in every tenant,
+-- before any tenant is entered, so this policy is keyed on the session caller
+-- and not on the guard tenant. A worker call has no session caller and sees no
+-- row. Later commands that write memberships bring their own guard policy.
+DROP POLICY IF EXISTS tenant_guard_own_assignments ON authz.memberships;
+CREATE POLICY tenant_guard_own_assignments
+  ON authz.memberships
+  FOR SELECT
+  TO tenant_guard
+  USING (user_id = (SELECT tenant_guard.caller_id()));
 
 -- The membership row the request selects, from the Data API's request
 -- headers (lowercased by PostgREST; '' once a transaction has ended). NULL
@@ -227,12 +252,15 @@ END;
 $$;
 
 ALTER FUNCTION tenant_guard.caller_id() OWNER TO postgres;
+ALTER FUNCTION tenant_guard.request_claims() OWNER TO postgres;
 ALTER FUNCTION tenant_guard.request_assignment_id() OWNER TO postgres;
 ALTER FUNCTION tenant_guard.begin_human_command(UUID) OWNER TO postgres;
 REVOKE ALL ON FUNCTION tenant_guard.caller_id() FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION tenant_guard.request_claims() FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION tenant_guard.request_assignment_id() FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION tenant_guard.begin_human_command(UUID) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION tenant_guard.caller_id() TO tenant_guard;
+GRANT EXECUTE ON FUNCTION tenant_guard.request_claims() TO tenant_guard;
 GRANT EXECUTE ON FUNCTION tenant_guard.request_assignment_id() TO tenant_guard;
 GRANT EXECUTE ON FUNCTION tenant_guard.begin_human_command(UUID) TO tenant_guard;
 
@@ -301,14 +329,8 @@ BEGIN
   SELECT pg_catalog.string_agg(g.item, ', ' ORDER BY g.item)
     INTO v_missing
     FROM (VALUES
-      ('USAGE on schema auth',
-        pg_catalog.has_schema_privilege('tenant_guard', 'auth', 'USAGE')),
       ('USAGE on schema authz',
         pg_catalog.has_schema_privilege('tenant_guard', 'authz', 'USAGE')),
-      ('EXECUTE on auth.uid()',
-        pg_catalog.has_function_privilege('tenant_guard', 'auth.uid()', 'EXECUTE')),
-      ('EXECUTE on auth.jwt()',
-        pg_catalog.has_function_privilege('tenant_guard', 'auth.jwt()', 'EXECUTE')),
       ('EXECUTE on authz.has_membership(uuid, authz.membership_role[])',
         pg_catalog.has_function_privilege('tenant_guard',
           'authz.has_membership(uuid, authz.membership_role[])', 'EXECUTE')),

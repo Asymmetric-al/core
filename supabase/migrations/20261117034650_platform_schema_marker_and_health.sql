@@ -34,8 +34,12 @@
 -- disposable. The value moves only forward, through
 -- `platform.advance_environment()`, which only the owner (the release job's
 -- dispatched step) can call, and which never writes `disposable`. Its two
--- triggers fire always, so neither `session_replication_role = replica` nor a
--- data-only restore with triggers disabled can move it back.
+-- triggers are ALWAYS triggers, so `session_replication_role = replica`, which
+-- skips ordinary triggers, does not skip them. That is all ALWAYS stops: the
+-- table's owner can still disable them (ALTER TABLE ... DISABLE TRIGGER, as a
+-- data-only restore with --disable-triggers does) and, on re-enabling them
+-- with a plain ENABLE TRIGGER, gets ordinary triggers back. Only the owner
+-- (postgres) or a superuser can do either.
 --
 -- This migration writes `disposable` only on a database whose profiles,
 -- donors and donations are empty, that is, one being built from source. It
@@ -288,7 +292,10 @@ $$;
 
 -- The first statement of every platform command. Returns the operator's user
 -- id, or refuses (42501): no signed-in caller, a caller not on the operator
--- list, or a session without a second factor (aal2).
+-- list, or a session without a second factor (aal2). It reads the caller and
+-- the assurance level from the request's claims settings through the guard's
+-- helpers, as every command does: nothing in a command schema uses `auth`
+-- (20261117034638_command_lane_human_entry_points.sql, plan 15.2).
 CREATE OR REPLACE FUNCTION platform.require_operator()
 RETURNS UUID
 LANGUAGE plpgsql
@@ -297,7 +304,7 @@ SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
-  v_actor UUID := auth.uid();
+  v_actor UUID := tenant_guard.caller_id();
 BEGIN
   IF v_actor IS NULL THEN
     RAISE EXCEPTION 'platform: a platform command needs a signed-in caller'
@@ -309,7 +316,7 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  IF COALESCE(auth.jwt() ->> 'aal', '') <> 'aal2' THEN
+  IF COALESCE(tenant_guard.request_claims() ->> 'aal', '') <> 'aal2' THEN
     RAISE EXCEPTION 'platform: a platform command needs a session verified with a second factor'
       USING ERRCODE = '42501';
   END IF;

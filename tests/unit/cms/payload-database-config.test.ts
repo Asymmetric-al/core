@@ -384,6 +384,37 @@ describe("Payload runtime confinement to cms_runtime (plan 7.2)", () => {
     expect(config.issue?.message).not.toContain("super-secret");
   });
 
+  // Council round 2, A7b: node-postgres lets the query's `user` and `host`
+  // override the URL's own, so a cms_runtime-looking URL could log in as
+  // postgres, or reach another server.
+  it.each([
+    [
+      "a user override",
+      `${SUPAVISOR_POOLER_URL}&user=postgres.btewedpsxwsjczvmegby`,
+    ],
+    [
+      "a host override",
+      `${SUPAVISOR_POOLER_URL}&host=db.btewedpsxwsjczvmegby.supabase.co`,
+    ],
+    ["a hostaddr override", `${SUPAVISOR_POOLER_URL}&hostaddr=10.0.0.9`],
+    ["a port override", `${SUPAVISOR_POOLER_URL}&port=6543`],
+  ])(
+    "blocks a protected deployment whose cms_runtime URL carries %s",
+    (_label, url) => {
+      const config = resolvePayloadDatabaseConfig({
+        PAYLOAD_DATABASE_URI: url,
+        VERCEL_ENV: "production",
+      });
+
+      expect(config.issue?.code).toBe("database-url-routing-override");
+      expect(config.issue?.message).not.toContain("super-secret");
+      expect(config.issue?.message).not.toContain("btewedpsxwsjczvmegby");
+      expect(() => assertPayloadDatabaseConfiguration(config)).toThrow(
+        PayloadDatabaseConfigurationError,
+      );
+    },
+  );
+
   it("leaves local development free to use the local superuser", () => {
     const config = resolvePayloadDatabaseConfig({
       NODE_ENV: "development",

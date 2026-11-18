@@ -19,8 +19,12 @@ export function isLoopbackDatabaseUrl(databaseUrl) {
 
 /**
  * psql's connection argument (the URL without its password) and an
- * environment that carries the password in PGPASSWORD. PGSERVICE is dropped
- * so that a service file cannot redirect the connection.
+ * environment that carries the password in PGPASSWORD. Every other PG*
+ * setting is dropped: the URL is the whole target, and an ambient PGHOSTADDR
+ * (which overrides the URL's host), PGSERVICE, PGOPTIONS or a default for a
+ * part the URL leaves out could otherwise send the connection, or the role it
+ * runs as, somewhere else. An ambient PGPASSWORD is kept for a URL that
+ * carries none, so a caller can keep the password out of the URL as well.
  */
 export function psqlConnection(databaseUrl, baseEnv = process.env) {
   let url;
@@ -31,8 +35,11 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   }
   if (!["postgres:", "postgresql:"].includes(url.protocol))
     throw new Error("the database URL must use postgres:// or postgresql://");
-  const env = { ...baseEnv };
-  delete env.PGSERVICE;
+  const env = Object.fromEntries(
+    Object.entries(baseEnv).filter(
+      ([key]) => !key.startsWith("PG") || key === "PGPASSWORD",
+    ),
+  );
   if (url.password) {
     env.PGPASSWORD = decodeURIComponent(url.password);
     url.password = "";

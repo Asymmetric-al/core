@@ -387,6 +387,8 @@ export function useRetainedDraft<Value>(resource: string) {
     revokeWrite,
     revokeRead,
     dirty: store.isDirty(resource),
+    /** A session owns the drafts. Revoking a resource leaves this true. */
+    active: store.isActive(),
     canRead: store.canRead(resource),
     canWrite: store.canWrite(resource),
     canAutosave: store.canAutosave(resource),

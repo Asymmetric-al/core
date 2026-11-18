@@ -5,6 +5,7 @@ import {
   assertStagingEnabled,
   checkDeploymentHealth,
   deployRelease,
+  runCli,
   selectReleaseApps,
   stageDeployment,
 } from "../../../../scripts/release/vercel-release.mjs";
@@ -188,7 +189,41 @@ describe("release job: Vercel steps", () => {
     expect((adminCheck[1] as RequestInit).headers).toEqual({
       "x-vercel-protection-bypass": "bypass",
     });
+    // Council round 2, A6f: the route gives its detail only to the bypass
+    // header, so the production domain's check sends it too.
+    const liveCheck = request.mock.calls.find(([input]) =>
+      String(input).includes(PRODUCTION_HOSTS.admin),
+    )!;
+    expect((liveCheck[1] as RequestInit).headers).toEqual({
+      "x-vercel-protection-bypass": "bypass",
+    });
   });
+
+  it("stops, and does not promote, when a health route answers without its detail", async () => {
+    await expect(
+      checkDeploymentHealth({
+        url: "https://x.vercel.app",
+        bypassSecret: "bypass",
+        sha,
+        projectRef: ref,
+        request: fakeHealth({ "*": { status: 200, body: { status: "ok" } } }),
+        sleep: noSleep,
+        attempts: 1,
+      }),
+    ).rejects.toThrow(/without its detail/);
+  });
+
+  // Council round 2, A6g: nothing called the single-app steps.
+  it.each(["stage", "promote", "verify-live", "anything"])(
+    "offers no %s step",
+    async (step) => {
+      await expect(
+        runCli([step, "--app", "admin"], { VERCEL_TOKEN: "token-fixture" }),
+      ).rejects.toThrow(
+        "Usage: vercel-release.mjs plan|preflight|deploy|check|register-jobs",
+      );
+    },
+  );
 
   it("rejects a staged deployment that reads another Supabase project or another commit", async () => {
     await expect(

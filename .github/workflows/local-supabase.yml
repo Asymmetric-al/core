@@ -1,0 +1,117 @@
+name: Local Supabase Stack
+
+# Starts a local Supabase stack from source, then runs the Supabase Auth email
+# round trips against it. Two guards in one job (docs/ci.md, "Local Supabase
+# stack workflow"):
+#
+# - The migration chain and the seed on the real Supabase image. This is the
+#   only job that applies them there, with Supabase's roles and grants and a
+#   `postgres` that is not a superuser; every other job uses plain Postgres as
+#   a superuser, which hid two stage 1 migrations that the real image refuses
+#   (council round 2). So every pull request that changes the chain, the seed,
+#   the stack's configuration or the CLI pin starts the stack.
+# - The email round trips of WP0b and WP1.4: password recovery in all three
+#   apps and sign-up confirmation on two hosts of the donor portal, through
+#   the stack's Auth server and mail catcher (council round 2, B4).
+#
+# Its own workflow, so that no frozen suite of ci.yml or ci-integration.yml
+# changes. Not a required check.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/local-supabase.yml
+      # The chain, the seed, the stack's configuration and the CLI pin.
+      - supabase/migrations/**
+      - supabase/seed.sql
+      - supabase/config.toml
+      - scripts/supabase-cli.mjs
+      # The auth screens, packages, routes and proxies the round trips cover.
+      - packages/ui/components/auth/**
+      - packages/auth/**
+      - packages/api/src/auth/**
+      - apps/*/proxy.ts
+      - apps/missionary/lib/route-policy.ts
+      - apps/*/app/(auth)/**
+      - apps/*/app/auth/**
+      - apps/missionary/app/forgot-password/**
+      - apps/missionary/app/register/**
+      # The round trips themselves.
+      - playwright.auth-mail.config.ts
+      - tests/e2e/auth-password-recovery.spec.ts
+      - tests/e2e/auth-signup-confirmation.spec.ts
+      - tests/e2e/helpers/auth-mail.ts
+      - scripts/e2e/run-auth-mail.mjs
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: "1.4.3"
+  NODE_VERSION: "24.22.3"
+
+concurrency:
+  group: local-supabase-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-supabase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Reject fork pull requests
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "fork PRs need a maintainer to run CI"
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install dependencies
+        run: bun ci --no-cache --backend=copyfile
+      # One pin for the repository: the version scripts/supabase-cli.mjs pins.
+      # With it installed, the wrapper runs it rather than its npx fallback.
+      - name: Read the pinned Supabase CLI version
+        id: supabase-pin
+        run: |
+          version="$(sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: ${{ steps.supabase-pin.outputs.version }}
+      # Applies every migration and the seed to a real Supabase stack (roles,
+      # Auth, PostgREST, Mailpit), which CI's plain Postgres does not have.
+      - name: Start the local Supabase stack
+        run: >-
+          bun run supabase -- start
+          -x studio,edge-runtime,logflare,vector,imgproxy,postgres-meta,supavisor
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Run the auth email round trips
+        timeout-minutes: 40
+        env:
+          CI: "1"
+          PLAYWRIGHT_REUSE_EXISTING_SERVER: "0"
+        run: bun run test:e2e:auth-mail
+      - name: Show Auth logs on failure
+        if: failure()
+        run: docker logs --tail 200 "$(docker ps --filter name=supabase_auth_ --format '{{.Names}}' | head -n 1)" || true
+      - name: Upload artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: local-supabase-results
+          path: test-results/auth-mail/
+          retention-days: 7

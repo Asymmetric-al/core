@@ -23,9 +23,10 @@ interface SupportInboxEmptyStateProps {
 
 /**
  * Inbox empty state. The default copy is for filters that match nothing;
- * `SupportInbox` passes `resetState` as `onResetFilters`, which clears every
- * inbox search param at once. For an inbox with no conversations at all the
- * caller overrides the copy and links to inbox settings instead.
+ * `SupportInbox` passes an `onResetFilters` that moves focus to the inbox
+ * search field (this view unmounts) and then clears every inbox search param
+ * at once. For an inbox with no conversations at all the caller overrides
+ * the copy and links to inbox settings instead.
  */
 export function SupportInboxEmptyState({
   onResetFilters,

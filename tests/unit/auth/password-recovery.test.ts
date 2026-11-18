@@ -1,25 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  PASSWORD_RECOVERY_PATHS,
   PASSWORD_RECOVERY_WINDOW_SECONDS,
-  isRecentPasswordRecovery,
   passwordRecoveryRedirectUrl,
+  passwordRecoverySecondsLeft,
 } from "../../../packages/auth/password-recovery";
 
 const NOW = 1_800_000_000;
 
+// That the proxies serve every recovery step, and nothing wider, is tested
+// through the proxies themselves: password-recovery-proxies.test.ts.
 describe("password recovery addresses", () => {
-  it("keeps every recovery step under the public forgot-password route", () => {
-    // Each app's proxy and the missionary role gate already treat
-    // /forgot-password and its descendants as public.
-    for (const path of Object.values(PASSWORD_RECOVERY_PATHS)) {
-      expect(
-        path === "/forgot-password" || path.startsWith("/forgot-password/"),
-      ).toBe(true);
-    }
-  });
-
   it.each([
     ["http://localhost:3130", "http://localhost:3130/forgot-password/callback"],
     ["http://127.0.0.1:3105", "http://127.0.0.1:3105/forgot-password/callback"],
@@ -38,13 +29,13 @@ describe("password recovery addresses", () => {
 describe("recovery session check", () => {
   it("accepts a session the recovery link created within the window", () => {
     expect(
-      isRecentPasswordRecovery(
+      passwordRecoverySecondsLeft(
         [{ method: "recovery", timestamp: NOW - 60 }],
         NOW,
       ),
-    ).toBe(true);
+    ).toBe(PASSWORD_RECOVERY_WINDOW_SECONDS - 60);
     expect(
-      isRecentPasswordRecovery(
+      passwordRecoverySecondsLeft(
         [
           { method: "password", timestamp: NOW - 7200 },
           {
@@ -54,7 +45,7 @@ describe("recovery session check", () => {
         ],
         NOW,
       ),
-    ).toBe(true);
+    ).toBe(0);
   });
 
   it.each([
@@ -77,6 +68,50 @@ describe("recovery session check", () => {
     ["a missing claim", undefined],
     ["a malformed entry", [null, { method: "recovery" }]],
   ])("refuses %s", (_label, amr) => {
-    expect(isRecentPasswordRecovery(amr, NOW)).toBe(false);
+    expect(passwordRecoverySecondsLeft(amr, NOW)).toBeNull();
+  });
+});
+
+describe("time left to choose the new password (council round 2, B2)", () => {
+  it("counts from the latest recovery within the window", () => {
+    expect(
+      passwordRecoverySecondsLeft(
+        [
+          { method: "recovery", timestamp: NOW - 1800 },
+          { method: "password", timestamp: NOW - 10 },
+          { method: "recovery", timestamp: NOW - 60 },
+        ],
+        NOW,
+      ),
+    ).toBe(PASSWORD_RECOVERY_WINDOW_SECONDS - 60);
+  });
+
+  it("never gives more than the window, even for a timestamp a little ahead", () => {
+    expect(
+      passwordRecoverySecondsLeft(
+        [{ method: "recovery", timestamp: NOW + 30 }],
+        NOW,
+      ),
+    ).toBe(PASSWORD_RECOVERY_WINDOW_SECONDS);
+  });
+
+  it("gives nothing for a session that recovery did not create within the window", () => {
+    expect(
+      passwordRecoverySecondsLeft(
+        [
+          {
+            method: "recovery",
+            timestamp: NOW - PASSWORD_RECOVERY_WINDOW_SECONDS - 1,
+          },
+        ],
+        NOW,
+      ),
+    ).toBeNull();
+    expect(
+      passwordRecoverySecondsLeft(
+        [{ method: "password", timestamp: NOW }],
+        NOW,
+      ),
+    ).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { ShortcutHelp } from "@asym/ui/components/primitives/shortcut-help";
 import {
   act,
   cleanup,
@@ -47,7 +48,10 @@ vi.mock("@asym/ui/components/shadcn/sidebar", async () => {
 
 import { SidebarAccountMenu } from "../../../../apps/missionary/components/sidebar-account-menu";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 // Sign-out lives in the account menu (the workspace bar has none). It stays
 // pending until the session operation finishes.
@@ -95,4 +99,40 @@ it("offers settings and help from the account menu", async () => {
       .getByRole("menuitem", { name: "About this app" })
       .getAttribute("href"),
   ).toBe("/help/about");
+});
+
+it("opens the keyboard shortcuts from the account menu, showing their Shift+? key", async () => {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  render(
+    <>
+      <SidebarAccountMenu roleLabel="Missionary" />
+      <ShortcutHelp />
+    </>,
+  );
+  const trigger = screen.getByRole("button", {
+    name: "Account menu for Jordan Hale",
+  });
+  trigger.focus();
+  fireEvent.click(trigger);
+  const item = await screen.findByRole("menuitem", {
+    name: "Keyboard shortcuts",
+  });
+  expect(item.getAttribute("aria-keyshortcuts")).toBe("Shift+?");
+  expect(item.querySelector("kbd")?.textContent).toContain("Shift+?");
+
+  fireEvent.click(item);
+  const help = await screen.findByRole("dialog", {
+    name: "Keyboard shortcuts",
+  });
+  expect(help.textContent).toContain("Show keyboard shortcuts");
+  fireEvent.keyDown(help, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(trigger));
 });

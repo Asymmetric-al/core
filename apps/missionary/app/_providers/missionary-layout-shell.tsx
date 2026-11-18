@@ -2,6 +2,7 @@
 
 import { PASSWORD_RECOVERY_PATHS } from "@asym/auth/password-recovery";
 import { useRoutePathname } from "@asym/auth/tenant-navigation";
+import { ShortcutHelp } from "@asym/ui/components/primitives/shortcut-help";
 
 import type { ReactNode } from "react";
 
@@ -9,22 +10,18 @@ import { AppShell } from "@/components/app-shell";
 import { MissionaryNavigationSearch } from "@/components/navigation-search";
 import { isMissionaryWorkspacePath } from "@/lib/route-policy";
 
-/** Account screens own their full-page frame and main landmark. */
-const ACCOUNT_SCREEN_PATHS = [
+/**
+ * Account screens own their full-page frame and main landmark. Every password
+ * recovery step sits under the request path, so it is an account screen too,
+ * and so is the organization chooser.
+ */
+const ACCOUNT_ROUTES = [
   "/login",
   "/register",
+  PASSWORD_RECOVERY_PATHS.request,
   "/no-access",
   "/choose-organization",
 ];
-
-/** Every password recovery step is an account screen too. */
-function isAccountScreenPath(pathname: string) {
-  return (
-    ACCOUNT_SCREEN_PATHS.includes(pathname) ||
-    pathname === PASSWORD_RECOVERY_PATHS.request ||
-    pathname.startsWith(`${PASSWORD_RECOVERY_PATHS.request}/`)
-  );
-}
 
 /**
  * Chooses the frame for a route. Account screens and the boneyard capture
@@ -52,13 +49,20 @@ export function MissionaryLayoutShell({
       </div>
     );
   }
-  // Account screens own their full-page frame and main landmark. This is a
-  // presentation boundary only; public access and workspace search stay separate.
-  if (isAccountScreenPath(pathname)) return children;
+  // Account screens (and their sub-routes) own their full-page frame and main
+  // landmark. This is a presentation boundary only; public access and
+  // workspace search stay separate.
+  if (
+    ACCOUNT_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
+  ) {
+    return children;
+  }
   return workspace;
 }
 
-/** The workspace chrome: sidebar, header and navigation search. */
+/** The workspace chrome: sidebar, header, navigation search and shortcut help. */
 export function MissionaryWorkspaceChrome({
   children,
 }: {
@@ -75,6 +79,7 @@ export function MissionaryWorkspaceChrome({
       }
     >
       {children}
+      <ShortcutHelp />
     </AppShell>
   );
 }

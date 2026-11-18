@@ -11,6 +11,7 @@ import { listSourceMigrations } from "../../../../scripts/release/migration-head
 import {
   readReleaseHealth,
   readReleaseSettings,
+  replaceSeededLoginPasswords,
   setCmsRolePasswords,
 } from "../../../../scripts/release/release-database.mjs";
 import {
@@ -196,6 +197,53 @@ describe.skipIf(!adminDatabaseUrl)(
           `DROP ROLE IF EXISTS ${owner}; DROP ROLE IF EXISTS ${runtime};`,
         );
       }
+    });
+
+    // Council round 2, A5 (record D-24). Supabase's auth.users is reduced to
+    // the columns the step reads and writes.
+    it("gives each login holding the seed's published password the release password, as an Argon2id verifier, and no other login", () => {
+      const db = database("logins");
+      psql(
+        db.url,
+        `CREATE SCHEMA extensions; CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
+         CREATE SCHEMA auth;
+         CREATE TABLE auth.users (id int PRIMARY KEY, encrypted_password text, updated_at timestamptz);
+         INSERT INTO auth.users VALUES
+           (1, extensions.crypt('demo-password', extensions.gen_salt('bf')), NULL),
+           (2, extensions.crypt('someone-else', extensions.gen_salt('bf')), NULL),
+           (3, '', NULL),
+           (4, '$argon2id$v=19$m=19456,t=2,p=1$c2FsdHNhbHQ$aGFzaGhhc2g', NULL);`,
+      );
+      const settings = readReleaseSettings({
+        RELEASE_ENVIRONMENT: "preview",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_DATABASE_URL: db.url,
+        RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+      });
+      const password = randomBytes(30).toString("base64url");
+      const before = psql(
+        db.url,
+        "SELECT string_agg(id || '=' || encrypted_password, ',' ORDER BY id) FROM auth.users WHERE id <> 1;",
+      );
+      expect(
+        replaceSeededLoginPasswords({ settings, password, log: () => {} }),
+      ).toEqual({ seeded_logins: 1, published: 0 });
+      const seeded = psql(
+        db.url,
+        "SELECT encrypted_password FROM auth.users WHERE id = 1;",
+      );
+      expect(seeded).toMatch(/^\$argon2id\$v=19\$/);
+      expect(seeded).not.toContain(password);
+      expect(
+        psql(
+          db.url,
+          "SELECT string_agg(id || '=' || encrypted_password, ',' ORDER BY id) FROM auth.users WHERE id <> 1;",
+        ),
+      ).toBe(before);
+      // A second pass finds nothing left to replace.
+      expect(
+        replaceSeededLoginPasswords({ settings, password, log: () => {} }),
+      ).toEqual({ seeded_logins: 0, published: 0 });
     });
   },
 );

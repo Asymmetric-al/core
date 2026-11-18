@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
@@ -73,6 +74,7 @@ const scrollDescriptor = Object.getOwnPropertyDescriptor(
   "scrollIntoView",
 );
 beforeEach(() => {
+  setPlatform("other");
   navigation.pathname = "/login";
   vi.stubGlobal("innerWidth", 390);
   vi.stubGlobal(
@@ -188,7 +190,7 @@ const accountScreens = [
     "/forgot-password/reset",
     <ResetPasswordScreen
       appId="missionary"
-      recovery={{ email: "missionary@example.com" }}
+      recovery={{ email: "missionary@example.com", secondsLeft: 3600 }}
     />,
   ],
   ["/forgot-password/reset", <ResetPasswordLoading />],
@@ -228,6 +230,24 @@ it.each(accountScreens)(
     }
   },
 );
+
+it.each([
+  "/login/anything",
+  "/register/step",
+  "/forgot-password/sent",
+  "/no-access/anything",
+])("keeps the account sub-route %s outside the workspace shell", (pathname) => {
+  navigation.pathname = pathname;
+  const view = render(
+    compose(
+      <main>
+        <h1>Account page</h1>
+      </main>,
+    ),
+  );
+  expectStandalone(view);
+  expect(view.container.firstElementChild).toBe(view.getByRole("main"));
+});
 
 it.each([
   "/",
@@ -291,7 +311,7 @@ it.each(["palette", "sidebar"])(
         bubbles: true,
         cancelable: true,
       });
-      fireEvent(window, shortcut);
+      fireEvent(document.body, shortcut);
       expect(shortcut.defaultPrevented).toBe(false);
     }
 
@@ -303,7 +323,7 @@ it.each(["palette", "sidebar"])(
       bubbles: true,
       cancelable: true,
     });
-    fireEvent(window, shortcut);
+    fireEvent(document.body, shortcut);
     expect(shortcut.defaultPrevented).toBe(true);
     await view.findByRole("dialog", { name: "Missionary navigation" });
     fireEvent.click(view.getByRole("option", { name: "Home" }));

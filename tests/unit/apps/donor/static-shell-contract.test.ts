@@ -137,8 +137,11 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
     const source = read("packages/ui/components/public/navbar-client.tsx");
 
     // usePathname() in shared chrome is request data: it blocks prerendering
-    // for every public route with a dynamic param.
-    expect(source).not.toMatch(/usePathname/);
+    // for every public route with a dynamic param. The current-page mark reads
+    // it only in a reader mounted after hydration; shadscan-navbar.test.tsx
+    // proves the server render makes no read.
+    expect(source.match(/usePathname\(/g)).toHaveLength(1);
+    expect(source).toMatch(/isHydrated \? <CurrentPathname /);
     expect(source).not.toMatch(/HERO_PAGES/);
     expect(source).toMatch(/variant === "hero"/);
   });

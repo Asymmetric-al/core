@@ -1,14 +1,9 @@
 "use client";
 
 import { Search } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useRef, useState } from "react";
 
+import { ShortcutHint, useShortcut, useShortcutHint } from "./shortcut";
 import { Button } from "../shadcn/button";
 import {
   CommandDialog,
@@ -18,7 +13,6 @@ import {
   CommandItem,
   CommandList,
 } from "../shadcn/command";
-import { Kbd } from "../shadcn/kbd";
 
 export interface NavigationCommandItem {
   label: string;
@@ -33,22 +27,7 @@ export interface NavigationCommandPaletteProps {
   onNavigate: (href: string) => void;
 }
 
-const subscribeToPlatform = () => () => {};
-
-/**
- * The search shortcut for this device only ("⌘ K" on Apple devices, "Ctrl K"
- * elsewhere). Null while server rendering, so the hint never mismatches.
- */
-function useShortcutLabel() {
-  return useSyncExternalStore(
-    subscribeToPlatform,
-    () =>
-      /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
-        ? "⌘ K"
-        : "Ctrl K",
-    () => null,
-  );
-}
+const SEARCH_SHORTCUT = "mod+k";
 
 export function NavigationCommandPalette({
   title,
@@ -65,70 +44,36 @@ export function NavigationCommandPalette({
     setOpen(true);
   }, []);
 
-  useEffect(() => {
-    const handleShortcut = (event: KeyboardEvent) => {
-      if (
-        event.defaultPrevented ||
-        event.isComposing ||
-        event.repeat ||
-        event.altKey ||
-        event.shiftKey ||
-        !(event.metaKey || event.ctrlKey) ||
-        event.key.toLowerCase() !== "k"
-      )
-        return;
-
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target.closest(
-            'input, textarea, select, [contenteditable]:not([contenteditable="false"])',
-          ))
-      )
-        return;
-
-      const popup =
-        target instanceof HTMLElement
-          ? target.closest(
-              '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]',
-            )
-          : null;
-      if (popup && popup !== inputRef.current?.closest('[role="dialog"]'))
-        return;
-
-      event.preventDefault();
-      if (open) setOpen(false);
-      else openSearch();
-    };
-    // Local workspace handlers receive the shortcut before this global listener.
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, [open, openSearch]);
-
-  const shortcutLabel = useShortcutLabel();
+  // Typing, another dialog or menu, and local handlers keep the key.
+  useShortcut(SEARCH_SHORTCUT, () => (open ? setOpen(false) : openSearch()), {
+    description: searchLabel,
+    overlay: inputRef,
+  });
+  const shortcut = useShortcutHint(SEARCH_SHORTCUT);
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        aria-label={triggerLabel}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-keyshortcuts="Control+k Meta+k"
-        onClick={openSearch}
-      >
-        <Search aria-hidden data-icon="inline-start" />
-        {/* The accessible name comes from aria-label; the visible word yields
-            its width to page context on narrow screens. */}
-        <span className="max-sm:hidden">Search</span>
-        {shortcutLabel ? (
-          <span className="hidden md:inline-flex" aria-hidden>
-            <Kbd>{shortcutLabel}</Kbd>
+      {/* Icon-only on phones, so touch needs the 44px width the global
+          coarse-pointer rule leaves out; `contents` adds no layout box. */}
+      <span className="contents pointer-coarse:*:min-w-11">
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={triggerLabel}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-keyshortcuts={shortcut.ariaKeyshortcuts}
+          onClick={openSearch}
+        >
+          <Search aria-hidden data-icon="inline-start" />
+          {/* The accessible name comes from aria-label; the visible word yields
+              its width to page context on narrow screens. */}
+          <span className="max-sm:hidden">Search</span>
+          <span className="hidden md:inline-flex">
+            <ShortcutHint keys={SEARCH_SHORTCUT} />
           </span>
-        ) : null}
-      </Button>
+        </Button>
+      </span>
       <CommandDialog
         title={title}
         description="Find a page in your workspace."

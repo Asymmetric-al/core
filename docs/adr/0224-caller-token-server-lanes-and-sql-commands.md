@@ -80,7 +80,27 @@ caller's own token with SQL command functions. It chose the third (plan, decisio
 - If hosted Supabase refuses the guard role use of the `auth` schema, a command
   reads the caller from the request's claims setting instead. The WP1 platform
   proof decides which (plan section 15.2). A failed platform proof with no named
-  fallback stops its package and returns to the owner.
+  fallback stops its package and returns to the owner. Settled on 2026-11-17;
+  see the amendment below.
+
+## Amendments
+
+### 2026-11-17: the guard reads the caller from the request's claims settings (AL-2674)
+
+The fallback of the last consequence applies. On Supabase's own Postgres image
+`postgres`, which runs the migrations, is not a superuser and holds USAGE on
+`auth` and EXECUTE on `auth.uid()` and `auth.jwt()` without the grant option,
+so a grant of them to `tenant_guard` only warns and grants nothing; the local
+stack would not start, and a hosted rebuild would fail the same way. So the
+guard holds nothing on `auth`. `tenant_guard.caller_id()` reads the caller from
+the request's claims settings with the precedence and the result of the
+installed `auth.uid()`, `tenant_guard.request_claims()` returns the claims as
+`auth.jwt()` does, and the guard's membership policy and the platform operator
+check use them. The catalog gate fails any function in `tenant_guard` or
+`platform` that names `auth`. The cost is one more place that knows how
+PostgREST hands a request's claims to the database; the tests compare it with
+`auth.uid()` case by case. See docs/security/tenant-guard.md, "What the guard
+role holds".
 
 ## Source
 

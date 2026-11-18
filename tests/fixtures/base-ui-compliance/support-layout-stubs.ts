@@ -55,6 +55,16 @@ export function useSupportAgents() {
   return { data: agents };
 }
 
+export function useSupportTeams() {
+  return {
+    data: [],
+    isError: false,
+    isLoading: false,
+    isReady: true,
+    refetch: () => Promise.resolve(),
+  };
+}
+
 export function useSupportInboxes() {
   return { data: [] };
 }
@@ -68,7 +78,23 @@ export function LabelManagerDialog() {
 }
 
 export function useSupportMacros() {
-  return { data: macros };
+  return {
+    data: macros,
+    isError: false,
+    isLoading: false,
+    isReady: true,
+    refetch: () => Promise.resolve(),
+  };
+}
+
+export function useSupportCannedResponses() {
+  return {
+    data: [],
+    isError: false,
+    isLoading: false,
+    isReady: true,
+    refetch: () => Promise.resolve(),
+  };
 }
 
 export function useRunSupportMacro() {
@@ -90,6 +116,17 @@ export function useAssignSupportConversation() {
     mutate({ assigneeAgentId }: { assigneeAgentId: string | null }) {
       const result = document.getElementById("support-layout-result");
       if (result) result.textContent = "Assigned " + assigneeAgentId;
+    },
+  };
+}
+
+export function useApplyRoundRobinAssignment() {
+  return {
+    isPending: false,
+    mutateAsync() {
+      const result = document.getElementById("support-layout-result");
+      if (result) result.textContent = "Round-robin requested";
+      return Promise.resolve(null);
     },
   };
 }

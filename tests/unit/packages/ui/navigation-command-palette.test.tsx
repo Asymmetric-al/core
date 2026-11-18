@@ -8,14 +8,24 @@ import {
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { setPlatform } from "@ui-sdk/core/testing";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+
+import { touchTargetSizes } from "../../helpers/coarse-touch-target";
 
 const scrollDescriptor = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
   "scrollIntoView",
 );
 
+/** A real key press goes to the focused element. */
+function pressOn(target: HTMLElement, init: KeyboardEventInit) {
+  target.focus();
+  return fireEvent.keyDown(target, init);
+}
+
 beforeEach(() => {
+  setPlatform("other");
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
     value: vi.fn(),
@@ -32,6 +42,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  setPlatform("other");
   vi.unstubAllGlobals();
   if (scrollDescriptor)
     Object.defineProperty(
@@ -107,9 +118,13 @@ it("restores the opening control and starts a fresh search after Escape", async 
   expect(view.getByRole("option", { name: "Overview" })).toBeTruthy();
 });
 
-it.each(["Control", "Meta"])(
-  "opens with %s+K and restores the focused workspace control",
-  async (modifier) => {
+it.each([
+  ["other", "Control"],
+  ["apple", "Meta"],
+] as const)(
+  "on an %s platform opens with %s+K and restores the focused workspace control",
+  async (platform, modifier) => {
+    setPlatform(platform);
     const view = render(
       <>
         <button type="button">Workspace action</button>
@@ -125,8 +140,14 @@ it.each(["Control", "Meta"])(
     const trigger = view.getByRole("button", {
       name: "Open workspace navigation search",
     });
-    origin.focus();
-    fireEvent.keyDown(origin, {
+    // The other platform's modifier is not this platform's shortcut.
+    pressOn(origin, {
+      key: "k",
+      ctrlKey: modifier !== "Control",
+      metaKey: modifier !== "Meta",
+    });
+    expect(view.queryByRole("dialog")).toBeNull();
+    pressOn(origin, {
       key: "k",
       ctrlKey: modifier === "Control",
       metaKey: modifier === "Meta",
@@ -135,7 +156,7 @@ it.each(["Control", "Meta"])(
       name: "Search workspace navigation",
     });
     await waitFor(() => expect(document.activeElement).toBe(search));
-    expect(trigger.getAttribute("aria-keyshortcuts")).toBe("Control+k Meta+k");
+    expect(trigger.getAttribute("aria-keyshortcuts")).toBe(`${modifier}+K`);
     fireEvent.keyDown(search, { key: "Escape" });
     await waitFor(() => expect(document.activeElement).toBe(origin));
   },
@@ -164,7 +185,7 @@ it("preserves editing, composition, modifier and locally handled keyboard owners
     view.getByLabelText("Workspace editor"),
     view.getByRole("button", { name: "Local shortcut" }),
   ]) {
-    fireEvent.keyDown(target, { key: "k", ctrlKey: true });
+    pressOn(target, { key: "k", ctrlKey: true });
   }
   for (const extra of [
     { isComposing: true },
@@ -174,7 +195,7 @@ it("preserves editing, composition, modifier and locally handled keyboard owners
     { ctrlKey: false },
     { key: "l" },
   ]) {
-    fireEvent.keyDown(window, { key: "k", ctrlKey: true, ...extra });
+    fireEvent.keyDown(document.body, { key: "k", ctrlKey: true, ...extra });
   }
   expect(view.queryByRole("dialog")).toBeNull();
 });
@@ -222,6 +243,49 @@ it("removes the global shortcut when its workspace unmounts", () => {
     bubbles: true,
     cancelable: true,
   });
-  window.dispatchEvent(event);
+  document.body.dispatchEvent(event);
   expect(event.defaultPrevented).toBe(false);
+});
+
+it("closes with the same shortcut while focus is in its search box", async () => {
+  const view = render(
+    <NavigationCommandPalette
+      title="Workspace navigation"
+      triggerLabel="Open workspace navigation search"
+      items={[{ label: "Overview", href: "/workspace" }]}
+      onNavigate={vi.fn()}
+    />,
+  );
+  fireEvent.click(
+    view.getByRole("button", { name: "Open workspace navigation search" }),
+  );
+  const search = await view.findByRole("combobox", {
+    name: "Search workspace navigation",
+  });
+  await waitFor(() => expect(document.activeElement).toBe(search));
+  expect(pressOn(search, { key: "k", ctrlKey: true })).toBe(false);
+  await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
+});
+
+// On phones the trigger is icon-only (the word Search is hidden), so its
+// width has to come from the coarse-pointer touch-target rule.
+it("keeps its name and shortcut and gives touch users a 44px target", async () => {
+  const view = render(
+    <NavigationCommandPalette
+      title="Workspace navigation"
+      triggerLabel="Open workspace navigation search"
+      items={[{ label: "Overview", href: "/workspace" }]}
+      onNavigate={vi.fn()}
+    />,
+  );
+  const trigger = view.getByRole("button", {
+    name: "Open workspace navigation search",
+  });
+  expect(trigger.getAttribute("aria-keyshortcuts")).toBe("Control+K");
+  expect(trigger.getAttribute("data-size")).toBe("sm");
+  const sizes = await touchTargetSizes(trigger, view.container);
+  expect(sizes.coarse.minWidth).toBeGreaterThanOrEqual(44);
+  expect(sizes.coarse.minHeight).toBeGreaterThanOrEqual(44);
+  // Fine pointers keep the small ghost button.
+  expect(sizes.fine.minWidth).toBe(0);
 });

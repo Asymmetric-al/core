@@ -1,5 +1,6 @@
 "use client";
 
+import { useParkedSubmit } from "@asym/missionary/hooks/use-parked-submit";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -66,6 +67,7 @@ export function EditDonorDialog({
   open,
 }: EditDonorDialogProps) {
   const pendingActionLabelId = React.useId();
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const initialValues = React.useMemo(
     () => createInitialEditDonorFormValues(donor),
@@ -108,7 +110,9 @@ export function EditDonorDialog({
         </DialogHeader>
 
         <form
-          className="space-y-6 py-4"
+          ref={formRef}
+          tabIndex={-1}
+          className="space-y-6 py-4 outline-none"
           onSubmit={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -173,27 +177,54 @@ export function EditDonorDialog({
               })}
             >
               {({ canSubmit, isSubmitting }) => (
-                <Button
-                  aria-labelledby={`${pendingActionLabelId}-22`}
-                  focusableWhenDisabled={isSubmitting}
-                  disabled={!canSubmit || isSubmitting}
-                  type="submit"
-                >
-                  <span id={`${pendingActionLabelId}-22`} className="sr-only">
-                    {isSubmitting ? "Saving…" : "Save Changes"}
-                  </span>
-                  {isSubmitting ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    "Save Changes"
-                  )}
-                </Button>
+                <EditDonorSaveButton
+                  canSubmit={canSubmit}
+                  isSubmitting={isSubmitting}
+                  formRef={formRef}
+                  labelId={`${pendingActionLabelId}-22`}
+                />
               )}
             </form.Subscribe>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EditDonorSaveButton({
+  canSubmit,
+  isSubmitting,
+  formRef,
+  labelId,
+}: {
+  canSubmit: boolean;
+  isSubmitting: boolean;
+  formRef: React.RefObject<HTMLFormElement | null>;
+  labelId: string;
+}) {
+  const disabled = !canSubmit || isSubmitting;
+  const saveRef = useParkedSubmit({
+    formRef,
+    disabled,
+    pending: isSubmitting,
+  });
+  return (
+    <Button
+      ref={saveRef}
+      aria-labelledby={labelId}
+      disabled={disabled}
+      type="submit"
+    >
+      <span id={labelId} className="sr-only">
+        {isSubmitting ? "Saving…" : "Save Changes"}
+      </span>
+      {isSubmitting ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : (
+        "Save Changes"
+      )}
+    </Button>
   );
 }
 

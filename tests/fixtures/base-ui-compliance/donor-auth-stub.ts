@@ -1,4 +1,4 @@
-/** A signed-in donor for the donor portal header fixture. */
+/** A signed-in person for the donor header and missionary sidebar fixtures. */
 export function useAuth() {
   return {
     user: null,

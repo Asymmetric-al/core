@@ -51,6 +51,10 @@ import {
   ItemTitle,
 } from "@asym/ui/components/shadcn/item";
 import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
+import {
   Activity,
   ArrowLeft,
   HandCoins,
@@ -102,6 +106,8 @@ import {
 
 /** Estimated relationship row height (name plus a secondary line). */
 const RELATIONSHIP_ROW_HEIGHT = 56;
+
+const ALL_DOMAINS = "all";
 
 /** Server sort choices for phones, where the table headers are not shown. */
 const CRM_RELATIONSHIP_SORT_LABELS: Record<string, string> = {
@@ -310,31 +316,48 @@ export function CrmRelationshipsFilters({
         searchBox
       )}
       {/* Wrapped, so every type stays in view (two rows on phones). */}
-      <div
-        role="group"
+      <ToggleGroup
+        multiple
         aria-label="Relationship types"
-        className="flex flex-wrap items-center gap-1.5"
+        spacing={1.5}
+        value={domains.length ? domains : [ALL_DOMAINS]}
+        onValueChange={(next) => {
+          if (next.includes(ALL_DOMAINS) && domains.length > 0) {
+            clearDomains();
+            return;
+          }
+          // One press changes one chip; pressing All while it is on sends
+          // no domain change, so All stays on.
+          const changed =
+            CRM_RELATIONSHIP_DOMAIN_OPTIONS.find(
+              (option) =>
+                next.includes(option.value) !== domains.includes(option.value),
+            )?.value ?? null;
+          if (changed) onDomainToggle(changed);
+        }}
+        className="w-auto flex-wrap"
       >
-        <Button
-          variant={domains.length === 0 ? "default" : "outline"}
-          size="sm"
-          aria-pressed={domains.length === 0}
-          onClick={clearDomains}
-        >
-          All
-        </Button>
-        {CRM_RELATIONSHIP_DOMAIN_OPTIONS.map((option) => (
-          <Button
+        {[
+          { label: "All", value: ALL_DOMAINS },
+          ...CRM_RELATIONSHIP_DOMAIN_OPTIONS,
+        ].map((option) => (
+          <ToggleGroupItem
             key={option.value}
-            variant={domains.includes(option.value) ? "default" : "outline"}
-            size="sm"
-            aria-pressed={domains.includes(option.value)}
-            onClick={() => onDomainToggle(option.value)}
+            value={option.value}
+            // The item brings the toggle behavior; Button keeps the chip look.
+            render={(props, state) => (
+              <Button
+                {...props}
+                className={undefined}
+                size="sm"
+                variant={state.pressed ? "default" : "outline"}
+              />
+            )}
           >
             {option.label}
-          </Button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroup>
     </>
   );
 }

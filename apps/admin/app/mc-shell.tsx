@@ -15,6 +15,14 @@ import {
 import { MCProvider, useMC } from "@asym/lib/mission-control/context";
 import { ROLE_LABELS } from "@asym/lib/mission-control/roles";
 import {
+  AgentBridge,
+  type AgentPermission,
+} from "@asym/ui/components/primitives/agent-bridge";
+import {
+  ShortcutHelp,
+  ShortcutHelpMenuItem,
+} from "@asym/ui/components/primitives/shortcut-help";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -82,6 +90,15 @@ import {
 import { MissionControlNavigationSearch } from "@/features/mission-control/components/navigation-search";
 
 type NavDestination = NonNullable<ReturnType<typeof findNavDestination>>;
+
+// What an agent may do in Mission Control's (app) routes: reorder Support's
+// macro actions, the one UI SDK sortable list there. The label pins the grant
+// to that list. No `confirm` yet, so a step under `data-agent-confirm` stays
+// with the person. Web Studio renders outside this shell; the Payload layout
+// mounts its bridge (`WEB_STUDIO_AGENT_PERMISSIONS`).
+const AGENT_PERMISSIONS: AgentPermission[] = [
+  { component: "sortable-list", label: "Macro actions", actions: ["move"] },
+];
 
 const ABOUT_MENU_ITEM: ProfileDropdownMenuItem = {
   label: "About",
@@ -436,7 +453,9 @@ function AppHeader() {
                 void signOut();
               });
             }}
-          />
+          >
+            <ShortcutHelpMenuItem />
+          </ProfileDropdown>
         </div>
       </div>
     </header>
@@ -484,6 +503,8 @@ export function MCShell({
       ) : (
         <ShellNavigationProvider>
           <ApplicationShell>{children}</ApplicationShell>
+          <AgentBridge allow={AGENT_PERMISSIONS} />
+          <ShortcutHelp />
         </ShellNavigationProvider>
       )}
     </MCProvider>

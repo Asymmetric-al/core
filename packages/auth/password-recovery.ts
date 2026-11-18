@@ -4,7 +4,8 @@
  * Flow: the request screen asks Supabase to email a link that returns to the
  * callback on the host the screen was opened on. The callback exchanges the
  * link's code for a session and sends the person to the reset screen, which
- * accepts a new password only from a session that recovery created.
+ * offers a new password only to a session that recovery created, and only
+ * within the window below.
  *
  * Every step sits under `/forgot-password`, which each app's proxy and the
  * missionary role gate already treat as public, so recovery adds no new
@@ -21,10 +22,13 @@ export const PASSWORD_RECOVERY_PATHS = {
 } as const;
 
 /**
- * How long after following the email link the new password may be set. The
- * recovery session lasts as long as any other session, so without this limit
- * a recovered session left open could change the password later without the
- * current one, which the ordinary change-password form refuses.
+ * How long after following the email link the reset screen lets the person
+ * set a new password. The recovery session lasts as long as any other
+ * session, so the screen stops offering the form after this.
+ *
+ * This is a rule of the reset screen, not a protection of the password: any
+ * signed-in session can still change its password by calling Supabase Auth
+ * directly, because `secure_password_change` is off (`supabase/config.toml`).
  */
 export const PASSWORD_RECOVERY_WINDOW_SECONDS = 60 * 60;
 
@@ -41,33 +45,45 @@ export function passwordRecoveryRedirectUrl(origin: string): string {
 }
 
 /**
- * True when the session's `amr` claim records a recovery within the window.
- * Takes the claim as verified by `auth.getClaims()`. Fails closed on any
- * other shape, including the timestamp-less string form a custom access
- * token hook can emit.
+ * Seconds left in the window, counted from the latest recovery the session's
+ * `amr` claim records, or null when it records none within the window. Takes
+ * the claim as verified by `auth.getClaims()`. Fails closed on any other
+ * shape, including the timestamp-less string form a custom access token hook
+ * can emit.
  */
-export function isRecentPasswordRecovery(
+export function passwordRecoverySecondsLeft(
   amr: unknown,
   nowSeconds: number,
-): boolean {
+): number | null {
   if (!Array.isArray(amr)) {
-    return false;
+    return null;
   }
 
-  return amr.some((entry: unknown) => {
+  let latest: number | null = null;
+  for (const entry of amr as unknown[]) {
     if (!entry || typeof entry !== "object") {
-      return false;
+      continue;
     }
-
     const { method, timestamp } = entry as {
       method?: unknown;
       timestamp?: unknown;
     };
-    return (
+    if (
       method === "recovery" &&
       typeof timestamp === "number" &&
       timestamp <= nowSeconds + CLOCK_SKEW_SECONDS &&
-      nowSeconds - timestamp <= PASSWORD_RECOVERY_WINDOW_SECONDS
-    );
-  });
+      nowSeconds - timestamp <= PASSWORD_RECOVERY_WINDOW_SECONDS &&
+      (latest === null || timestamp > latest)
+    ) {
+      latest = timestamp;
+    }
+  }
+
+  if (latest === null) {
+    return null;
+  }
+  return Math.min(
+    PASSWORD_RECOVERY_WINDOW_SECONDS,
+    latest + PASSWORD_RECOVERY_WINDOW_SECONDS - nowSeconds,
+  );
 }

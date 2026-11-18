@@ -170,3 +170,54 @@ describe("Eve model-policy scope control", () => {
     ).toBeNull();
   });
 });
+
+describe("Eve emergency override form", () => {
+  it("reports missing scope and reason on the fields instead of a disabled review", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => response(view)),
+    );
+    renderPanel();
+    const scopeId = await screen.findByLabelText("Scope identifier");
+    fireEvent.change(scopeId, { target: { value: " " } });
+    const review = screen.getByRole("button", {
+      name: "Review emergency override",
+    });
+    expect(review.hasAttribute("disabled")).toBe(false);
+    expect(review.getAttribute("type")).toBe("submit");
+
+    fireEvent.click(review);
+
+    const reason = screen.getByLabelText("Reason");
+    await waitFor(() => expect(document.activeElement).toBe(scopeId));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    for (const [field, message] of [
+      [scopeId, "Enter a scope identifier."],
+      [reason, "Enter a reason."],
+    ] as const) {
+      expect(field.getAttribute("aria-invalid")).toBe("true");
+      expect(
+        document.getElementById(field.getAttribute("aria-describedby") ?? "")
+          ?.textContent,
+      ).toBe(message);
+    }
+  });
+
+  it("opens the confirmation with Enter from a filled field and returns focus on cancel", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => response(view)),
+    );
+    renderPanel();
+    const reason = await screen.findByLabelText("Reason");
+    fireEvent.change(reason, { target: { value: "Bounded review allowance" } });
+    reason.focus();
+    fireEvent.submit(reason);
+
+    expect(await screen.findByRole("alertdialog")).toBeTruthy();
+    expect(screen.getByText(/This applies only to role agent/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).not.toBe(document.body));
+  });
+});

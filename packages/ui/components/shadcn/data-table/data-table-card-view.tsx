@@ -7,6 +7,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Badge } from "../badge";
+import { Button } from "../button";
 import { Card, CardContent } from "../card";
 import { Checkbox } from "../checkbox";
 import { DataTableRowActions } from "./data-table-row-actions";
@@ -116,10 +117,12 @@ function DataTableCardSelection<TData extends RowData>({
   row,
   isSelected,
   enableRowSelection,
+  primaryLabelValue,
 }: {
   row: Row<TData>;
   isSelected: boolean;
   enableRowSelection: boolean;
+  primaryLabelValue: string;
 }) {
   if (!enableRowSelection) {
     return null;
@@ -130,7 +133,9 @@ function DataTableCardSelection<TData extends RowData>({
       <Checkbox
         checked={isSelected}
         onCheckedChange={(checked) => row.toggleSelected(!!checked)}
-        aria-label="Select row"
+        aria-label={
+          primaryLabelValue ? `Select ${primaryLabelValue}` : "Select row"
+        }
         onClick={(e) => e.stopPropagation()}
       />
     </div>
@@ -162,22 +167,61 @@ function DataTableCardAvatar({ avatarValue }: { avatarValue: string }) {
   );
 }
 
+function DataTableCardLine({
+  className,
+  onOpen,
+  children,
+}: {
+  className: string;
+  onOpen?: () => void;
+  children: string;
+}) {
+  if (!onOpen) {
+    return <p className={cn(className, "truncate")}>{children}</p>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        className,
+        "block max-w-full truncate rounded-md text-start outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+      )}
+      onClick={(event) => {
+        // The card's own pointer click would open the row a second time.
+        event.stopPropagation();
+        onOpen();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 function DataTableCardIdentity({
   primaryValue,
   secondaryValue,
+  onOpen,
 }: {
   primaryValue: string;
   secondaryValue: string;
+  onOpen?: () => void;
 }) {
+  const hasPrimary = primaryValue.trim() !== "";
   return (
     <div className="min-w-0 flex-1">
-      {primaryValue && (
-        <p className="font-medium text-sm truncate">{primaryValue}</p>
+      {hasPrimary && (
+        <DataTableCardLine className="font-medium text-sm" onOpen={onOpen}>
+          {primaryValue}
+        </DataTableCardLine>
       )}
-      {secondaryValue && (
-        <p className="text-sm text-muted-foreground truncate">
+      {secondaryValue.trim() && (
+        <DataTableCardLine
+          className="text-sm text-muted-foreground"
+          onOpen={hasPrimary ? undefined : onOpen}
+        >
           {secondaryValue}
-        </p>
+        </DataTableCardLine>
       )}
     </div>
   );
@@ -189,13 +233,16 @@ function DataTableCardTrailing<TData extends RowData>({
   rowActions,
   rowActionAriaLabel,
   onRowClick,
+  onOpenFallback,
 }: {
   badgeValue: string;
   row: Row<TData>;
   rowActions?: DataTableInteractiveRowAction<TData>[];
   rowActionAriaLabel?: (row: Row<TData>) => string;
   onRowClick?: (row: Row<TData>) => void;
+  onOpenFallback?: () => void;
 }) {
+  const hasRowActions = Boolean(rowActions && rowActions.length > 0);
   return (
     <div className="flex items-center gap-2 shrink-0">
       {badgeValue && (
@@ -203,13 +250,28 @@ function DataTableCardTrailing<TData extends RowData>({
           {badgeValue}
         </Badge>
       )}
-      {rowActions && rowActions.length > 0 ? (
+      {rowActions && hasRowActions && (
         <DataTableRowActions
           row={row}
           actions={rowActions}
           getAriaLabel={rowActionAriaLabel}
         />
+      )}
+      {onOpenFallback ? (
+        // No card text to carry the row's control, so the chevron becomes it.
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Open row"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenFallback();
+          }}
+        >
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </Button>
       ) : (
+        !hasRowActions &&
         onRowClick && <ChevronRight className="size-4 text-muted-foreground" />
       )}
     </div>
@@ -237,25 +299,13 @@ function DataTableCardItem<TData extends RowData>({
   const avatarValue = cardField(original, avatarField);
   const isRowClickable = Boolean(onRowClick);
   const primaryLabelValue = primaryValue.trim();
+  const openRow = onRowClick ? () => onRowClick(row) : undefined;
+  const hasCardText = primaryLabelValue !== "" || secondaryValue.trim() !== "";
   const contextualRowActionAriaLabel = primaryLabelValue
     ? () => `Row actions for ${primaryLabelValue}`
     : undefined;
   const rowActionAriaLabel =
     getRowActionAriaLabel ?? contextualRowActionAriaLabel;
-
-  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!onRowClick) {
-      return;
-    }
-    if (event.target !== event.currentTarget) {
-      return;
-    }
-
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onRowClick(row);
-    }
-  };
 
   return (
     <Card
@@ -265,10 +315,9 @@ function DataTableCardItem<TData extends RowData>({
         isRowClickable &&
           "press-feedback cursor-pointer [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md [@media(hover:hover)_and_(pointer:fine)]:hover:border-primary/20",
       )}
+      // Pointer convenience only: the primary text is the row's keyboard and
+      // screen-reader control, so the card's checkbox and actions stay operable.
       onClick={() => onRowClick?.(row)}
-      onKeyDown={handleCardKeyDown}
-      role={isRowClickable ? "button" : undefined}
-      tabIndex={isRowClickable ? 0 : undefined}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
@@ -276,6 +325,7 @@ function DataTableCardItem<TData extends RowData>({
             row={row}
             isSelected={isSelected}
             enableRowSelection={enableRowSelection}
+            primaryLabelValue={primaryLabelValue}
           />
           <DataTableCardAvatar avatarValue={avatarValue} />
           <div className="flex-1 min-w-0 space-y-1">
@@ -283,6 +333,7 @@ function DataTableCardItem<TData extends RowData>({
               <DataTableCardIdentity
                 primaryValue={primaryValue}
                 secondaryValue={secondaryValue}
+                onOpen={openRow}
               />
               <DataTableCardTrailing
                 badgeValue={badgeValue}
@@ -290,6 +341,7 @@ function DataTableCardItem<TData extends RowData>({
                 rowActions={rowActions}
                 rowActionAriaLabel={rowActionAriaLabel}
                 onRowClick={onRowClick}
+                onOpenFallback={hasCardText ? undefined : openRow}
               />
             </div>
             {tertiaryValue && (

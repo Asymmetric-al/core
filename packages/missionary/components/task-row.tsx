@@ -319,7 +319,7 @@ function TaskRowMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open actions"
+        aria-label={`Actions for ${task.title}`}
         render={
           <Button variant="ghost" size="icon-sm">
             <MoreHorizontal className="size-4" />
@@ -402,8 +402,10 @@ export function TaskRow({
       )}
     >
       <div className="mt-1 relative">
+        {/* One name in both states: the checked state says it is done, so
+            unchecking is what reopens the task. */}
         <Checkbox
-          aria-label={`Complete ${task.title}`}
+          aria-label={`Mark ${task.title} complete`}
           checked={isCompleted}
           onCheckedChange={onComplete}
         />

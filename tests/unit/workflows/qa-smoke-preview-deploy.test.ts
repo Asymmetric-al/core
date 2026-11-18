@@ -219,6 +219,45 @@ describe("qa smoke preview deployment workflow", () => {
     expect(job).not.toContain("SUPABASE_DB_URL");
   });
 
+  // Council round 2, A5 (record D-24) and A6a: the rebuild replaces the
+  // seed's published login password, and Payload verifies the pooler.
+  it("hands the preview rebuild the seeded-login password and the project's CA", () => {
+    const job = workflow.split("\n  preview-database:")[1]!;
+    const rebuild = job
+      .split("\n      - ")
+      .find((step) => step.includes("release-database.mjs preview-rebuild"))!;
+    expect(rebuild).toContain(
+      "RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}",
+    );
+    expect(rebuild).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+  });
+
+  // AL-2674 A10: the preview rebuild runs the wrapper with
+  // SUPABASE_CLI_FORCE_PINNED, which never fetches a CLI (npx inside the
+  // repository stops on the root package.json's overrides), so the job
+  // installs the wrapper's pin first.
+  it("installs the wrapper's pinned Supabase CLI before the preview rebuild", () => {
+    const job = workflow
+      .split("\n  preview-database:")[1]!
+      .split(/\n  [a-z-]+:\n/)[0]!;
+    const pinned = /^const PINNED_SUPABASE_CLI_VERSION = "([0-9.]*)";$/m.exec(
+      readFileSync("scripts/supabase-cli.mjs", "utf8"),
+    )?.[1];
+    expect(pinned).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(job).toContain(
+      String.raw`version="$(sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs)"`,
+    );
+    expect(job).toMatch(
+      /- uses: supabase\/setup-cli@[0-9a-f]{40} # v\d+\.\d+\.\d+\n\s+with:\n\s+version: \$\{\{ steps\.supabase-pin\.outputs\.version \}\}/,
+    );
+    expect(job.indexOf("supabase/setup-cli@")).toBeLessThan(
+      job.indexOf("release-database.mjs preview-rebuild"),
+    );
+    expect(job).not.toMatch(/npx[^\n]*supabase@/);
+  });
+
   it("does not use bypass query parameters", () => {
     expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
     expect(workflow).not.toContain("?x-vercel-protection-bypass");

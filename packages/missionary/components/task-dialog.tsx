@@ -56,6 +56,7 @@ import {
   toMissionaryTaskPayload,
 } from "./task-form-model";
 import { TaskPartnerSelect } from "./task-partner-select";
+import { useParkedSubmit } from "../hooks/use-parked-submit";
 
 import type { TaskPartner } from "./task-partner-select";
 import type { Task, TaskPriority, TaskStatus, TaskType } from "../types";
@@ -547,6 +548,7 @@ export function TaskDialog({
   const [donors, setDonors] = React.useState<TaskPartner[]>([]);
   const [loadingDonors, setLoadingDonors] = React.useState(false);
   const [donorSearchOpen, setDonorSearchOpen] = React.useState(false);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const isEditing = !!task;
   const initialFormValues = React.useMemo(
@@ -637,6 +639,9 @@ export function TaskDialog({
           </DialogDescription>
         </DialogHeader>
         <form
+          ref={formRef}
+          tabIndex={-1}
+          className="outline-none"
           onSubmit={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -694,22 +699,12 @@ export function TaskDialog({
                 })}
               >
                 {({ canSubmit, isSubmitting }) => (
-                  <Button
-                    disabled={!canSubmit || isSubmitting}
-                    type="submit"
-                    aria-busy={isSubmitting || undefined}
-                  >
-                    {isSubmitting ? (
-                      <Loader2 aria-hidden className="size-4 animate-spin" />
-                    ) : null}
-                    {isSubmitting
-                      ? isEditing
-                        ? "Updating task…"
-                        : "Creating task…"
-                      : isEditing
-                        ? "Update Task"
-                        : "Create Task"}
-                  </Button>
+                  <TaskSaveButton
+                    canSubmit={canSubmit}
+                    isSubmitting={isSubmitting}
+                    isEditing={isEditing}
+                    formRef={formRef}
+                  />
                 )}
               </form.Subscribe>
             </div>
@@ -717,5 +712,43 @@ export function TaskDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function TaskSaveButton({
+  canSubmit,
+  isSubmitting,
+  isEditing,
+  formRef,
+}: {
+  canSubmit: boolean;
+  isSubmitting: boolean;
+  isEditing: boolean;
+  formRef: React.RefObject<HTMLFormElement | null>;
+}) {
+  const disabled = !canSubmit || isSubmitting;
+  const saveRef = useParkedSubmit({
+    formRef,
+    disabled,
+    pending: isSubmitting,
+  });
+  return (
+    <Button
+      ref={saveRef}
+      disabled={disabled}
+      type="submit"
+      aria-busy={isSubmitting || undefined}
+    >
+      {isSubmitting ? (
+        <Loader2 aria-hidden className="size-4 animate-spin" />
+      ) : null}
+      {isSubmitting
+        ? isEditing
+          ? "Updating task…"
+          : "Creating task…"
+        : isEditing
+          ? "Update Task"
+          : "Create Task"}
+    </Button>
   );
 }

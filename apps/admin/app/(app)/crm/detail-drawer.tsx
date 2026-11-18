@@ -52,7 +52,7 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -374,19 +374,47 @@ function DetailDrawerNoteComposer({
   onSave: () => void;
 }) {
   const hintId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
+  const fieldRef = useRef<HTMLTextAreaElement>(null);
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const parkedRef = useRef(false);
+  const saveDisabled = isSaving || !noteBody.trim();
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSave();
   };
+  // A disabled submit button drops focus to the page, so focus waits on the
+  // busy form, then goes to Save, or to the note box a saved note emptied.
+  // Only parked focus moves on: Safari focuses the form on a button click.
+  useLayoutEffect(() => {
+    const save = saveRef.current;
+    if (saveDisabled && document.activeElement === save) {
+      if (isSaving) {
+        formRef.current?.focus({ preventScroll: true });
+        parkedRef.current = true;
+      } else {
+        fieldRef.current?.focus();
+      }
+      return;
+    }
+    if (isSaving || !parkedRef.current) return;
+    parkedRef.current = false;
+    if (document.activeElement !== formRef.current) return;
+    (saveDisabled ? fieldRef.current : save)?.focus();
+  }, [isSaving, saveDisabled]);
 
   return (
     <form
+      ref={formRef}
+      tabIndex={-1}
+      aria-busy={isSaving}
       onSubmit={handleSubmit}
-      className="flex flex-col gap-2 rounded-lg border p-3"
+      className="flex flex-col gap-2 rounded-lg border p-3 outline-none"
     >
       <Field>
         <FieldLabel htmlFor={noteFieldId}>Add a note</FieldLabel>
         <Textarea
+          ref={fieldRef}
           id={noteFieldId}
           placeholder="Log a note, call, or meeting…"
           value={noteBody}
@@ -401,9 +429,10 @@ function DetailDrawerNoteComposer({
       </Field>
       <div className="flex items-center justify-end gap-3">
         <Button
+          ref={saveRef}
           type="submit"
           size="sm"
-          disabled={isSaving || !noteBody.trim()}
+          disabled={saveDisabled}
           focusableWhenDisabled={isSaving}
         >
           {isSaving ? <Spinner /> : null}
@@ -898,7 +927,7 @@ export function DetailDrawer({
               />
 
               <Tabs defaultValue="activity">
-                <TabsList variant="line">
+                <TabsList variant="line" aria-label="CRM record sections">
                   <TabsTrigger value="activity">Activity</TabsTrigger>
                   <TabsTrigger value="properties">Properties</TabsTrigger>
                 </TabsList>

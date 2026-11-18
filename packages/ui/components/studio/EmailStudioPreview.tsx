@@ -87,7 +87,7 @@ export function EmailStudioPreviewDialog({
           className="min-h-0 flex-1 overflow-hidden px-5 pb-5"
         >
           <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-            <TabsList>
+            <TabsList aria-label="Preview format">
               <TabsTrigger value="rendered">
                 <Monitor />
                 Rendered

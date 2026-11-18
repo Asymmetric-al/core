@@ -128,77 +128,87 @@ export function EveNotificationsPanel() {
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {(query.data?.channels ?? []).map((channel) => (
-              <section key={channel.channel} className="rounded-lg border p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-medium capitalize">
-                      {channel.channel}
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {channel.channel === "email"
-                        ? "Eligible platform owners only"
-                        : "Urgent alerts via a server-only webhook"}
-                    </p>
+            {(query.data?.channels ?? []).map((channel) => {
+              const channelLabel = formatStatusLabel(channel.channel);
+              const headingId = `eve-notification-channel-${channel.channel}`;
+              return (
+                <section
+                  key={channel.channel}
+                  aria-labelledby={headingId}
+                  className="rounded-lg border p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 id={headingId} className="font-medium capitalize">
+                        {channel.channel}
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {channel.channel === "email"
+                          ? "Eligible platform owners only"
+                          : "Urgent alerts via a server-only webhook"}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={
+                        channel.enabled && !channel.paused
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {!channel.enabled
+                        ? "Disabled"
+                        : channel.paused
+                          ? "Paused"
+                          : "Enabled"}
+                    </Badge>
                   </div>
-                  <Badge
-                    variant={
-                      channel.enabled && !channel.paused
-                        ? "default"
-                        : "secondary"
-                    }
-                  >
-                    {!channel.enabled
-                      ? "Disabled"
-                      : channel.paused
-                        ? "Paused"
-                        : "Enabled"}
-                  </Badge>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    focusableWhenDisabled={
-                      mutation.isPending &&
-                      mutation.variables?.kind === "channel" &&
-                      mutation.variables.channel === channel.channel &&
-                      mutation.variables.enabled !== undefined
-                    }
-                    disabled={mutation.isPending}
-                    onClick={() =>
-                      mutation.mutate({
-                        kind: "channel",
-                        channel: channel.channel,
-                        enabled: !channel.enabled,
-                      })
-                    }
-                  >
-                    {channel.enabled ? "Disable" : "Enable"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    focusableWhenDisabled={
-                      mutation.isPending &&
-                      mutation.variables?.kind === "channel" &&
-                      mutation.variables.channel === channel.channel &&
-                      mutation.variables.paused !== undefined
-                    }
-                    disabled={mutation.isPending || !channel.enabled}
-                    onClick={() =>
-                      mutation.mutate({
-                        kind: "channel",
-                        channel: channel.channel,
-                        paused: !channel.paused,
-                      })
-                    }
-                  >
-                    {channel.paused ? "Resume" : "Pause"}
-                  </Button>
-                </div>
-              </section>
-            ))}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      aria-label={`${channel.enabled ? "Disable" : "Enable"}: ${channelLabel}`}
+                      focusableWhenDisabled={
+                        mutation.isPending &&
+                        mutation.variables?.kind === "channel" &&
+                        mutation.variables.channel === channel.channel &&
+                        mutation.variables.enabled !== undefined
+                      }
+                      disabled={mutation.isPending}
+                      onClick={() =>
+                        mutation.mutate({
+                          kind: "channel",
+                          channel: channel.channel,
+                          enabled: !channel.enabled,
+                        })
+                      }
+                    >
+                      {channel.enabled ? "Disable" : "Enable"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      aria-label={`${channel.paused ? "Resume" : "Pause"}: ${channelLabel}`}
+                      focusableWhenDisabled={
+                        mutation.isPending &&
+                        mutation.variables?.kind === "channel" &&
+                        mutation.variables.channel === channel.channel &&
+                        mutation.variables.paused !== undefined
+                      }
+                      disabled={mutation.isPending || !channel.enabled}
+                      onClick={() =>
+                        mutation.mutate({
+                          kind: "channel",
+                          channel: channel.channel,
+                          paused: !channel.paused,
+                        })
+                      }
+                    >
+                      {channel.paused ? "Resume" : "Pause"}
+                    </Button>
+                  </div>
+                </section>
+              );
+            })}
           </div>
         )}
         <p className="text-xs text-muted-foreground">
@@ -210,43 +220,48 @@ export function EveNotificationsPanel() {
             Platform-owner email recipients
           </h3>
           <ul className="mt-3 divide-y rounded-lg border px-4">
-            {(query.data?.recipients ?? []).map((recipient) => (
-              <li
-                key={recipient.profileId}
-                className="flex flex-wrap items-center justify-between gap-3 py-3"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {recipient.displayName ?? recipient.email}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {recipient.email}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  focusableWhenDisabled={
-                    mutation.isPending &&
-                    mutation.variables?.kind === "recipient" &&
-                    mutation.variables.profileId === recipient.profileId
-                  }
-                  disabled={mutation.isPending}
-                  onClick={() =>
-                    mutation.mutate({
-                      kind: "recipient",
-                      profileId: recipient.profileId,
-                      enabled: !recipient.enabled,
-                      optedOut: recipient.enabled,
-                    })
-                  }
+            {(query.data?.recipients ?? []).map((recipient) => {
+              const verb =
+                recipient.enabled && !recipient.optedOut
+                  ? "Remove recipient"
+                  : "Enable recipient";
+              return (
+                <li
+                  key={recipient.profileId}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3"
                 >
-                  {recipient.enabled && !recipient.optedOut
-                    ? "Remove recipient"
-                    : "Enable recipient"}
-                </Button>
-              </li>
-            ))}
+                  <div>
+                    <p className="text-sm font-medium">
+                      {recipient.displayName ?? recipient.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {recipient.email}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    aria-label={`${verb}: ${recipient.email}`}
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "recipient" &&
+                      mutation.variables.profileId === recipient.profileId
+                    }
+                    disabled={mutation.isPending}
+                    onClick={() =>
+                      mutation.mutate({
+                        kind: "recipient",
+                        profileId: recipient.profileId,
+                        enabled: !recipient.enabled,
+                        optedOut: recipient.enabled,
+                      })
+                    }
+                  >
+                    {verb}
+                  </Button>
+                </li>
+              );
+            })}
             {query.isSuccess && query.data.recipients.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">
                 <EveSectionEmpty

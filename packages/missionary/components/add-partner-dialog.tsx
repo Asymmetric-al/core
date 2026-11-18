@@ -21,6 +21,7 @@ import {
   partnerSchema,
   toPartnerInsertPayload,
 } from "./add-partner-form-model";
+import { useParkedSubmit } from "../hooks/use-parked-submit";
 
 export interface AddPartnerDialogProps {
   missionaryId: string;
@@ -43,6 +44,39 @@ const PARTNER_FREQUENCY_OPTIONS = [
   { label: "Irregular", value: "Irregular" },
 ] as const;
 
+function AddPartnerButton({
+  canSubmit,
+  isSubmitting,
+  formRef,
+}: {
+  canSubmit: boolean;
+  isSubmitting: boolean;
+  formRef: React.RefObject<HTMLFormElement | null>;
+}) {
+  const saveRef = useParkedSubmit({
+    formRef,
+    disabled: !canSubmit || isSubmitting,
+    pending: isSubmitting,
+  });
+  return (
+    <Button
+      ref={saveRef}
+      aria-busy={isSubmitting}
+      disabled={!canSubmit || isSubmitting}
+      type="submit"
+    >
+      {isSubmitting ? (
+        <>
+          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+          <span className="sr-only">Adding partner</span>
+        </>
+      ) : (
+        "Add Partner"
+      )}
+    </Button>
+  );
+}
+
 export function AddPartnerDialog({
   missionaryId,
   onSuccess,
@@ -56,6 +90,7 @@ export function AddPartnerDialog({
   const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
 
   const supabase = React.useMemo(() => createBrowserClient(), []);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const form = useAsymForm({
     defaultValues: createInitialPartnerFormValues(),
@@ -113,7 +148,9 @@ export function AddPartnerDialog({
         </DialogHeader>
 
         <form
-          className="flex flex-col gap-6"
+          ref={formRef}
+          tabIndex={-1}
+          className="flex flex-col gap-6 outline-none"
           onSubmit={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -194,23 +231,11 @@ export function AddPartnerDialog({
               })}
             >
               {({ canSubmit, isSubmitting }) => (
-                <Button
-                  aria-busy={isSubmitting}
-                  disabled={!canSubmit || isSubmitting}
-                  type="submit"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2
-                        aria-hidden="true"
-                        className="size-4 animate-spin"
-                      />
-                      <span className="sr-only">Adding partner</span>
-                    </>
-                  ) : (
-                    "Add Partner"
-                  )}
-                </Button>
+                <AddPartnerButton
+                  canSubmit={canSubmit}
+                  isSubmitting={isSubmitting}
+                  formRef={formRef}
+                />
               )}
             </form.Subscribe>
           </div>

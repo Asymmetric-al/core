@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -100,4 +101,57 @@ it("preserves tenant-server recovery for failed inbound attachments", async () =
     ),
   );
   expect(await screen.findByText("Attachments retrying")).toBeTruthy();
+});
+it("announces the retry and moves focus to the message when Retry goes away", async () => {
+  let finish: ((response: { ok: boolean }) => void) | undefined;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    ),
+  );
+  render(
+    <EmailMessage
+      message={message({
+        inboundEmailId: "inbound-1",
+        inboundAttachmentStatus: "failed",
+      })}
+    />,
+  );
+  const status = screen.getByRole("status");
+  expect(status.textContent).toBe("Attachments unavailable");
+  // The badge itself is the live region, so no wrapper line box resizes the row.
+  expect(status.getAttribute("data-slot")).toBe("badge");
+  const retry = screen.getByRole("button", { name: "Retry" });
+  retry.focus();
+  fireEvent.click(retry);
+  expect(document.activeElement).toBe(retry);
+  await act(async () => finish?.({ ok: true }));
+  expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+  expect(screen.getByRole("status")).toBe(status);
+  expect(status.textContent).toBe("Attachments retrying");
+  expect(document.activeElement).toBe(
+    screen.getByRole("article", { name: "Inbound email" }),
+  );
+});
+it("keeps focus on Retry when the retry fails", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+  render(
+    <EmailMessage
+      message={message({
+        inboundEmailId: "inbound-1",
+        inboundAttachmentStatus: "failed",
+      })}
+    />,
+  );
+  const retry = screen.getByRole("button", { name: "Retry" });
+  retry.focus();
+  fireEvent.click(retry);
+  expect(
+    await screen.findByRole("button", { name: "Retry failed — try again" }),
+  ).toBe(retry);
+  expect(document.activeElement).toBe(retry);
 });

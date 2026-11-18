@@ -25,6 +25,65 @@ describe("release workflow (plan 7.4)", () => {
     expect(workflow).not.toContain("cancel-in-progress: true");
   });
 
+  // Council round 2, A6e: by default a newer pending run replaces the one
+  // waiting before it. The preview job's group queues, so this one does too.
+  it("queues waiting runs in the workflow's group, as the preview-database job does in the same group", () => {
+    expect(workflow).toContain(
+      "concurrency:\n  group: ${{ inputs.environment == 'preview' && 'preview-database' || 'release-production' }}\n  cancel-in-progress: false\n  queue: max\n",
+    );
+    const preview = readFileSync(
+      ".github/workflows/qa-smoke-preview-deploy.yml",
+      "utf8",
+    );
+    expect(preview).toContain(
+      "    concurrency:\n      group: preview-database\n      cancel-in-progress: false\n      queue: max\n",
+    );
+  });
+
+  // Council round 2, A6c (plan 7.5: the marker changes on the owner's
+  // approval): an environment with a required reviewer gates the marker
+  // change and the first rebuild, and holds no secret.
+  it("runs the marker change and the first rebuild only after the owner's approval", () => {
+    const approval = job("owner-approval");
+    expect(approval).toContain("environment: release-owner-approval");
+    expect(approval).toContain("inputs.operation == 'set-environment-marker'");
+    expect(approval).toContain("inputs.operation == 'first-rebuild'");
+    expect(approval).not.toContain("inputs.operation == 'release'");
+    expect(approval).not.toContain("secrets.");
+    expect(job("marker")).toContain("needs: owner-approval");
+    // The marker job has no status function, so it runs only on success.
+    expect(job("marker")).not.toMatch(/always\(\)|!cancelled\(\)/);
+    const database = job("database");
+    expect(database).toContain("needs: owner-approval");
+    expect(database).toMatch(
+      /inputs\.operation == 'first-rebuild' &&\s+needs\.owner-approval\.result == 'success'/,
+    );
+    // The deploy job follows a successful database job even though the
+    // approval job before it was skipped.
+    expect(job("deploy")).toMatch(
+      /!cancelled\(\) &&\s+needs\.database\.result == 'success'/,
+    );
+  });
+
+  // Council round 2, A5 and A6a.
+  it("hands the steps that need them the seeded-login password and the project's CA, and no other step", () => {
+    const steps = job("database").split("\n      - ");
+    const step = (name: string) => steps.find((s) => s.includes(name))!;
+    const rebuild = step("release-database.mjs first-rebuild");
+    expect(rebuild).toContain(
+      "RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}",
+    );
+    expect(rebuild).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+    expect(step("release-database.mjs migrate")).toContain(
+      "RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}",
+    );
+    expect(workflow.split("RELEASE_SEED_LOGIN_PASSWORD: ${{").length - 1).toBe(
+      1,
+    );
+  });
+
   it("migrates, gates and records heads before any deployment, in that order", () => {
     const database = job("database");
     expect(
@@ -113,4 +172,44 @@ describe("release workflow (plan 7.4)", () => {
       expect(job(name)).toContain("if: github.ref != 'refs/heads/production'");
     }
   });
+
+  // AL-2674 A10: `npx supabase@<pin>` stops inside the repository on the root
+  // package.json's overrides (EOVERRIDE), so the job installs the pinned CLI
+  // and the release steps run only that one.
+  it("installs the wrapper's pinned Supabase CLI before any step that runs it", () => {
+    const database = job("database");
+    expect(supabaseCliInstall(database)).toBe(true);
+    expect(
+      before(database, "supabase/setup-cli@", "release-database.mjs migrate"),
+    ).toBe(true);
+    expect(
+      before(
+        database,
+        "supabase/setup-cli@",
+        "release-database.mjs first-rebuild",
+      ),
+    ).toBe(true);
+  });
 });
+
+/**
+ * Whether a job reads the pin from scripts/supabase-cli.mjs with the sed line
+ * the workflows share, and installs exactly that version with the pinned
+ * supabase/setup-cli action. The sed pattern is checked against the wrapper.
+ */
+function supabaseCliInstall(jobText: string) {
+  const sed = String.raw`sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs`;
+  const wrapper = readFileSync("scripts/supabase-cli.mjs", "utf8");
+  const pinned = /^const PINNED_SUPABASE_CLI_VERSION = "([0-9.]*)";$/m.exec(
+    wrapper,
+  )?.[1];
+  return (
+    /^\d+\.\d+\.\d+$/.test(pinned ?? "") &&
+    jobText.includes(`version="$(${sed})"`) &&
+    jobText.includes('echo "version=$version" >> "$GITHUB_OUTPUT"') &&
+    /- uses: supabase\/setup-cli@[0-9a-f]{40} # v\d+\.\d+\.\d+\n\s+with:\n\s+version: \$\{\{ steps\.supabase-pin\.outputs\.version \}\}/.test(
+      jobText,
+    ) &&
+    !/npx[^\n]*supabase@/.test(jobText)
+  );
+}

@@ -14,6 +14,12 @@ import {
   MapStyleToggle,
   MapLegend,
 } from "@asym/ui/components/primitives/map";
+import {
+  ShortcutHint,
+  useShortcut,
+  useShortcutHint,
+} from "@asym/ui/components/primitives/shortcut";
+import { ShortcutHelp } from "@asym/ui/components/primitives/shortcut-help";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -52,7 +58,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+
+import type { RefObject } from "react";
 
 const MARKER_COLORS = {
   missionary: {
@@ -87,12 +95,16 @@ const MARKER_COLORS = {
   },
 };
 
+const SEARCH_SHORTCUT = "mod+k";
+
 function LocationSearchCommand({
+  inputRef,
   locations,
   onSelect,
   open,
   onOpenChange,
 }: {
+  inputRef: RefObject<HTMLInputElement | null>;
   locations: Location[];
   onSelect: (loc: Location) => void;
   open: boolean;
@@ -114,8 +126,13 @@ function LocationSearchCommand({
             Find missionaries and projects around the world
           </DialogDescription>
         </DialogHeader>
-        <Command>
-          <CommandInput placeholder="Search locations, workers, projects…" />
+        {/* Ctrl+K closes this search again; cmdk's Ctrl+J/K item keys would
+            swallow it in the search box. The arrow keys still move. */}
+        <Command vimBindings={false}>
+          <CommandInput
+            ref={inputRef}
+            placeholder="Search locations, workers, projects…"
+          />
           <CommandList>
             <CommandEmpty>
               <div className="flex flex-col items-center gap-2">
@@ -606,6 +623,7 @@ function MapHeaderControls({
   searchOpen: boolean;
   projectCount: number;
 }) {
+  const shortcut = useShortcutHint(SEARCH_SHORTCUT);
   return (
     <>
       <div className="absolute top-20 left-4 z-30 flex items-center gap-3">
@@ -634,6 +652,7 @@ function MapHeaderControls({
             size="lg"
             aria-haspopup="dialog"
             aria-expanded={searchOpen}
+            aria-keyshortcuts={shortcut.ariaKeyshortcuts}
             onClick={onOpenSearch}
             className="w-full"
           >
@@ -641,9 +660,9 @@ function MapHeaderControls({
             <span className="text-sm text-muted-foreground font-medium">
               Search locations…
             </span>
-            <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground ml-auto">
-              <span className="text-xs">⌘</span>K
-            </kbd>
+            <span className="ml-auto hidden sm:inline-flex">
+              <ShortcutHint keys={SEARCH_SHORTCUT} />
+            </span>
           </Button>
         </motion.div>
       </div>
@@ -770,16 +789,14 @@ export function WhereWeWorkMap() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setUiState((prev) => ({ ...prev, searchOpen: !prev.searchOpen }));
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  // `overlay` lets the same keys close search from its own field; the location
+  // detail dialog or sheet pauses them.
+  useShortcut(
+    SEARCH_SHORTCUT,
+    () => setUiState((prev) => ({ ...prev, searchOpen: !prev.searchOpen })),
+    { description: "Search locations", overlay: searchInputRef },
+  );
 
   const selectedLocation = useMemo(() => {
     if (!selectionState.selectedId || !locations) return null;
@@ -928,6 +945,7 @@ export function WhereWeWorkMap() {
 
       {locations && (
         <LocationSearchCommand
+          inputRef={searchInputRef}
           locations={locations}
           onSelect={handleSelectLocation}
           open={uiState.searchOpen}
@@ -952,6 +970,9 @@ export function WhereWeWorkMap() {
           onClose={handleCloseDetail}
         />
       )}
+
+      {/* The public site has no app shell to mount the list Shift+? opens. */}
+      <ShortcutHelp />
     </div>
   );
 }

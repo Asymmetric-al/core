@@ -841,3 +841,50 @@ describe("unsaved writing", () => {
     expect(result.current.hasUnsavedWriting).toBe(true);
   });
 });
+
+describe("a refused save", () => {
+  function serveSave(status: number) {
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url === "/api/posts" && init?.method === "POST") {
+        return jsonResponse(status, { error: "refused" });
+      }
+      if (url.startsWith("/api/posts")) return jsonResponse(200, { posts: [] });
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+  }
+
+  it("says the updates are read-only and the draft is kept, instead of asking for a retry, when writing is refused", async () => {
+    serveSave(403);
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => result.current.setPostContent("<p>Rainy season</p>"));
+
+    await act(() => result.current.handlePost("published"));
+
+    expect(result.current.canWrite).toBe(false);
+    expect(result.current.postContent).toBe("<p>Rainy season</p>");
+    expect(toast.error).toHaveBeenCalledOnce();
+    const [message] = vi.mocked(toast.error).mock.calls[0]!;
+    expect(message).toMatch(/read-only/);
+    expect(message).toMatch(/draft is kept/);
+    expect(message).not.toMatch(/Try again/);
+  });
+
+  it("still asks for a retry when the save fails for another reason", async () => {
+    serveSave(500);
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => result.current.setPostContent("<p>Rainy season</p>"));
+
+    await act(() => result.current.handlePost("published"));
+
+    expect(result.current.canWrite).toBe(true);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Couldn’t save your update. Try again.",
+    );
+  });
+});

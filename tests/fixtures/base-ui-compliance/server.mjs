@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import tailwind from "@tailwindcss/postcss";
 import react from "@vitejs/plugin-react";
@@ -13,6 +13,10 @@ import {
 
 const fixtureDirectory = fileURLToPath(new URL(".", import.meta.url));
 const repositoryRoot = resolve(fixtureDirectory, "../../..");
+// Stub ids use forward slashes so a stub aliased from a workspace import and the
+// same stub imported relatively by an entry stay one module on Windows too.
+const fixturePath = (file) =>
+  resolve(fixtureDirectory, file).replaceAll("\\", "/");
 const outputDirectory = resolve(
   repositoryRoot,
   "test-results/base-ui-compliance/assets",
@@ -20,12 +24,17 @@ const outputDirectory = resolve(
 const cssPath = resolve(repositoryRoot, "packages/ui/styles/globals.css");
 const compiledCssPath = resolve(outputDirectory, "globals.css");
 // Use the repository's installed dependency graph without adding another Vite or PostCSS version.
+// Resolved paths become file URLs so the ESM loader accepts Windows drive paths.
 const vitestRequire = createRequire(import.meta.resolve("vitest"));
-const { build, preview } = await import(vitestRequire.resolve("vite"));
+const { build, preview } = await import(
+  pathToFileURL(vitestRequire.resolve("vite")).href
+);
 const postcssRequire = createRequire(
   import.meta.resolve("@tailwindcss/postcss"),
 );
-const { default: postcss } = await import(postcssRequire.resolve("postcss"));
+const { default: postcss } = await import(
+  pathToFileURL(postcssRequire.resolve("postcss")).href
+);
 await mkdir(outputDirectory, { recursive: true });
 const compiled = await postcss([tailwind()]).process(
   await readFile(cssPath, "utf8"),
@@ -48,11 +57,18 @@ await build({
         const workspaceFile = importer?.replaceAll("\\", "/");
         if (
           (source === "@tanstack/react-query" &&
-            workspaceFile?.endsWith(
+            (workspaceFile?.endsWith(
               "/web-studio/flows/MissionariesHubView.tsx",
-            )) ||
+            ) ||
+              workspaceFile?.endsWith(
+                "/web-studio/flows/studio-missionaries.ts",
+              ))) ||
           (source === "@asym/lib/mission-control/context" &&
-            workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
+            [
+              "/admin/app/eve/global-panel.tsx",
+              "/admin/app/(app)/admin/page-client.tsx",
+              "/mission-control/components/tiles/tile-card.tsx",
+            ].some((file) => workspaceFile?.endsWith(file))) ||
           (source === "eve/react" &&
             workspaceFile?.endsWith("/admin/app/eve/global-panel.tsx")) ||
           (source === "next/navigation" &&
@@ -60,12 +76,12 @@ await build({
           (source === "@payloadcms/ui" &&
             workspaceFile?.includes("/admin/src/cms-ui/web-studio/"))
         )
-          return resolve(fixtureDirectory, "admin-shell-runtime-stub.tsx");
+          return fixturePath("admin-shell-runtime-stub.tsx");
         if (
           source === "next/navigation" &&
           workspaceFile?.endsWith("/admin/src/cms-ui/web-studio/routing.ts")
         )
-          return resolve(fixtureDirectory, "admin-shell-runtime-stub.tsx");
+          return fixturePath("admin-shell-runtime-stub.tsx");
         // The fixture consumes the same public adapter as the UI workspace.
         // Resolve from that owner without adding unused root dependencies.
         if (
@@ -84,29 +100,37 @@ await build({
         );
         if (
           source === "@asym/lib/hooks" &&
-          workspaceFile?.endsWith("/donor/components/donor-portal-header.tsx")
+          (workspaceFile?.endsWith(
+            "/donor/components/donor-portal-header.tsx",
+          ) ||
+            workspaceFile?.endsWith(
+              "/missionary/components/sidebar-account-menu.tsx",
+            ))
         )
-          return resolve(fixtureDirectory, "donor-auth-stub.ts");
+          return fixturePath("donor-auth-stub.ts");
         if (
           source === "@asym/database/hooks" &&
-          workspaceFile?.endsWith("/donor/components/donor-portal-header.tsx")
+          (workspaceFile?.endsWith(
+            "/donor/components/donor-portal-header.tsx",
+          ) ||
+            workspaceFile?.endsWith("/missionary/components/app-sidebar.tsx"))
         )
-          return resolve(fixtureDirectory, "donor-portal-stub.ts");
+          return fixturePath("donor-portal-stub.ts");
         if (source === "@asym/lib/hooks" && usesAnalytics)
-          return resolve(fixtureDirectory, "analytics-metrics-stub.ts");
+          return fixturePath("analytics-metrics-stub.ts");
         if (source === "next/dynamic" && usesAnalytics)
-          return resolve(fixtureDirectory, "analytics-chart-stub.ts");
+          return fixturePath("analytics-chart-stub.ts");
         const usesTaskToolbarHooks =
           workspaceFile?.endsWith("/missionary/app/tasks/page-client.tsx") ||
           workspaceFile?.endsWith("/missionary/app/donors/donor-tasks.tsx") ||
           workspaceFile?.endsWith("/missionary/components/task-dialog.tsx");
         if (source === "@asym/lib/hooks" && usesTaskToolbarHooks)
-          return resolve(fixtureDirectory, "task-toolbar-hooks-stub.ts");
+          return fixturePath("task-toolbar-hooks-stub.ts");
         if (
           source === "@asym/database/supabase" &&
           workspaceFile?.endsWith("/missionary/components/task-dialog.tsx")
         )
-          return resolve(fixtureDirectory, "task-toolbar-supabase-stub.ts");
+          return fixturePath("task-toolbar-supabase-stub.ts");
         const usesMissionaryLayout = workspaceFile?.endsWith(
           "/missionary/app/_providers/missionary-layout-shell.tsx",
         );
@@ -126,12 +150,14 @@ await build({
             importer,
             { skipSelf: true },
           );
-        const usesWorkspaceSession =
-          workspaceFile?.endsWith(
-            "/donor/components/donor-portal-header.tsx",
-          ) || workspaceFile?.endsWith("/missionary/components/app-header.tsx");
+        const usesWorkspaceSession = [
+          "/donor/components/donor-portal-header.tsx",
+          "/missionary/components/app-header.tsx",
+          "/missionary/components/sidebar-account-menu.tsx",
+          "/ui/hooks/retained-draft.tsx",
+        ].some((file) => workspaceFile?.endsWith(file));
         if (source === "@asym/auth/client-session" && usesWorkspaceSession)
-          return resolve(fixtureDirectory, "workspace-session-stub.ts");
+          return fixturePath("workspace-session-stub.ts");
         if (
           source === "next/navigation" &&
           (workspaceFile?.endsWith(
@@ -139,16 +165,18 @@ await build({
           ) ||
             usesMissionaryLayout ||
             workspaceFile?.endsWith("/missionary/components/app-sidebar.tsx") ||
+            workspaceFile?.endsWith("/missionary/components/app-shell.tsx") ||
             workspaceFile?.endsWith(
               "/missionary/components/navigation-search.tsx",
             ))
         )
-          return resolve(fixtureDirectory, "workspace-navigation-stub.ts");
+          return fixturePath("workspace-navigation-stub.ts");
         if (
           source === "@asym/env" &&
-          importer?.replaceAll("\\", "/").endsWith("/view-transitions/flags.ts")
+          (workspaceFile?.endsWith("/view-transitions/flags.ts") ||
+            workspaceFile?.endsWith("/config/site-client.ts"))
         ) {
-          return resolve(fixtureDirectory, "view-transition-env-stub.ts");
+          return fixturePath("view-transition-env-stub.ts");
         }
         // Next Image's framework module is outside this standalone Vite
         // fixture. Only the legacy search block's static demo imagery uses
@@ -159,7 +187,7 @@ await build({
             ?.replaceAll("\\", "/")
             .endsWith("/shadcn-studio/blocks/dialog-search.tsx")
         ) {
-          return resolve(fixtureDirectory, "search-demo-image-stub.tsx");
+          return fixturePath("search-demo-image-stub.tsx");
         }
         if (
           importer
@@ -167,21 +195,21 @@ await build({
             .endsWith("/where-we-work/map-wrapper.tsx")
         ) {
           if (source === "@asym/database/hooks")
-            return resolve(fixtureDirectory, "shadscan-locations-stub.ts");
+            return fixturePath("shadscan-locations-stub.ts");
           if (source === "@asym/ui/components/primitives/map")
-            return resolve(fixtureDirectory, "shadscan-map-stub.tsx");
+            return fixturePath("shadscan-map-stub.tsx");
         }
         if (
           source === "@asym/lib/view-transitions" &&
           importer?.replaceAll("\\", "/").endsWith("/primitives/page-shell.tsx")
         ) {
-          return resolve(fixtureDirectory, "support-navigation-stub.ts");
+          return fixturePath("support-navigation-stub.ts");
         }
         if (
           source === "@asym/api/admin/support/loaders" &&
           importer?.replaceAll("\\", "/").endsWith("/support/tickets/page.tsx")
         ) {
-          return resolve(fixtureDirectory, "support-loader-stub.ts");
+          return fixturePath("support-loader-stub.ts");
         }
         if (
           workspaceFile?.match(
@@ -191,14 +219,14 @@ await build({
             source,
           )
         ) {
-          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+          return fixturePath("support-layout-stubs.ts");
         }
         if (
           workspaceFile?.endsWith("/toolbar/LabelFilter.tsx") &&
           (source === "../../hooks/use-support-labels" ||
             source === "../labels/LabelManagerDialog")
         ) {
-          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+          return fixturePath("support-layout-stubs.ts");
         }
         if (
           workspaceFile?.endsWith("/macros/RunMacroPopover.tsx") &&
@@ -206,7 +234,23 @@ await build({
             source === "../../hooks/use-support-mutations" ||
             source === "../../lib/current-agent")
         ) {
-          return resolve(fixtureDirectory, "support-layout-stubs.ts");
+          return fixturePath("support-layout-stubs.ts");
+        }
+        if (
+          workspaceFile?.endsWith("/macros/MacroPreviewLine.tsx") &&
+          (source === "../../hooks/use-support-agents" ||
+            source === "../../hooks/use-support-canned-responses" ||
+            source === "../../hooks/use-support-labels")
+        ) {
+          return fixturePath("support-layout-stubs.ts");
+        }
+        // The Support composer fixture signs in one user, whom the real
+        // current-agent hook matches to a seeded agent by email.
+        if (
+          source === "@asym/lib/mission-control/context" &&
+          workspaceFile?.endsWith("/support-hub/lib/current-agent.ts")
+        ) {
+          return fixturePath("support-composer-identity-stub.ts");
         }
         // This real form's mutation stub records the submitted
         // value for assertions without issuing a request to an application API.
@@ -214,7 +258,7 @@ await build({
           source === "../../hooks/use-support-mutations" &&
           importer?.replaceAll("\\", "/").endsWith("/labels/LabelForm.tsx")
         ) {
-          return resolve(fixtureDirectory, "label-mutation-stub.ts");
+          return fixturePath("label-mutation-stub.ts");
         }
       },
     },
@@ -238,6 +282,7 @@ await build({
         uiUtilities: resolve(fixtureDirectory, "ui-utilities.html"),
         kanban: resolve(fixtureDirectory, "kanban.html"),
         support: resolve(fixtureDirectory, "support.html"),
+        supportComposer: resolve(fixtureDirectory, "support-composer.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
         faq: resolve(fixtureDirectory, "faq.html"),

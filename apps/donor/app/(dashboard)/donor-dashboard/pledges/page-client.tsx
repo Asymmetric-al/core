@@ -27,7 +27,13 @@ import {
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRef } from "react";
 
+import {
+  focusHeadingIfLost,
+  useFocusHandoff,
+  useLoadRetry,
+} from "@/features/donor/focus-recovery";
 import { todayDateInputValue } from "@/lib/dates";
 
 const ACTIVE = new Set(["active", "processing", "trialing"]);
@@ -208,6 +214,18 @@ export default function DonorPledgesPage() {
   const snapshot = useDonorPortalSnapshot();
   const wallet = useDonorWallet();
   const billingPortal = useCreateDonorBillingPortalSession();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const giftsRetry = useLoadRetry(
+    pageRef,
+    Boolean(snapshot.error),
+    snapshot.refetch,
+  );
+  // However the gifts recover, focus on the error view moves to the heading.
+  const errorView = useFocusHandoff(() => focusHeadingIfLost(pageRef.current));
+  // Offline, a first load waits for the connection without fetching; it is
+  // still loading, not empty.
+  const loading =
+    snapshot.isLoading || (snapshot.isPending && snapshot.isPaused);
 
   const openPaymentSettings = async () => {
     try {
@@ -249,7 +267,10 @@ export default function DonorPledgesPage() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-20">
+    <div
+      ref={pageRef}
+      className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-20"
+    >
       <PageHeader
         title="Recurring gifts"
         description="Gifts that repeat on a schedule. You can change the amount, card or date, or stop a gift, at any time."
@@ -278,27 +299,36 @@ export default function DonorPledgesPage() {
         </p>
       ) : null}
 
-      {snapshot.isLoading ? (
+      {/* With nothing cached, a retry loads afresh; the error view stays so
+          Try again keeps focus. */}
+      {loading && !giftsRetry.retrying ? (
         <div
           className="flex flex-col gap-4"
+          role="status"
           aria-busy="true"
           aria-label="Loading recurring gifts"
         >
           <Skeleton className="h-24 w-full rounded-xl" />
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
-      ) : snapshot.error ? (
-        <Card>
+      ) : snapshot.error || giftsRetry.retrying ? (
+        <Card ref={errorView}>
           <CardContent className="flex flex-col items-start gap-3">
-            <p role="alert" className="text-sm text-foreground">
+            <p
+              key={giftsRetry.failedRetries}
+              role="alert"
+              className="text-sm text-foreground"
+            >
               We couldn’t load your recurring gifts.
             </p>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => snapshot.refetch()}
+              disabled={giftsRetry.retrying}
+              focusableWhenDisabled
+              onClick={giftsRetry.retry}
             >
-              Try again
+              {giftsRetry.retrying ? "Trying again…" : "Try again"}
             </Button>
           </CardContent>
         </Card>

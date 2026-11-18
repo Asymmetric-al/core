@@ -5,7 +5,7 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useSupportTeams } from "../../../hooks/use-support-agents";
 import { useSupportReport } from "../../../hooks/use-support-reports";
 import { useSupportReportRouteState } from "../../../lib/report-state";
-import { combineReportStatus } from "../../../lib/report-status";
+import { useReportStatus } from "../../../lib/report-status";
 import { ReportBarChart } from "../ReportBarChart";
 import { ReportExportMenu } from "../ReportExportMenu";
 import { ReportFilters } from "../ReportFilters";
@@ -17,10 +17,10 @@ export function TeamsReport() {
   const report = useSupportReport(request("team-mix"));
   const teams = useSupportTeams();
   const series = report.data;
-  const reportStatus = combineReportStatus([report, teams]);
+  const { rootRef, ...reportStatus } = useReportStatus([report, teams]);
   if (reportStatus.isError || reportStatus.isLoading)
     return (
-      <div className="flex flex-col gap-6">
+      <div ref={rootRef} className="flex flex-col gap-6">
         <ReportFilters
           kinds={["all", "inbox", "agent", "label"]}
           hideGroupBy
@@ -38,7 +38,11 @@ export function TeamsReport() {
           }
         />
         {reportStatus.isError ? (
-          <ReportLoadError onRetry={reportStatus.retry} />
+          <ReportLoadError
+            onRetry={reportStatus.retry}
+            isRetrying={reportStatus.isRetrying}
+            failedRetries={reportStatus.failedRetries}
+          />
         ) : (
           <div role="status" aria-label="Loading report">
             <Skeleton className="h-64 w-full" />
@@ -48,7 +52,7 @@ export function TeamsReport() {
       </div>
     );
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={rootRef} className="flex flex-col gap-6">
       {/* Team counts are conversations created in the window, per team: no
           periods to group, no message times to clip to business hours. */}
       <ReportFilters
