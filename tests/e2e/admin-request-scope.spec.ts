@@ -12,6 +12,7 @@ import {
   softNavigate,
   TENANTS,
   tenantPath,
+  trackDocumentLoads,
 } from "./helpers/tenant-address";
 
 /**
@@ -66,15 +67,18 @@ type CareScope = { tenant: string; rows: ReturnType<typeof personnel> | null };
 /**
  * Serves member care by the request's scope. `scopes` maps an assignment id
  * to its tenant and its rows (`null`: the assignment may not read care).
- * Returns every request's scope headers, in order.
+ * Returns every request's scope headers, in order; with `hold`, `heldSettled`
+ * resolves once the held request's answer has been delivered or has failed
+ * because its document is gone.
  */
 async function serveScopedMemberCare(
   page: Page,
   scopes: Record<string, CareScope>,
   hold?: { path: RegExp; until: Promise<void> },
 ) {
-  const seen: Array<{ path: string; tenant?: string; assignment?: string }> =
-    [];
+  const seen: Array<{ path: string; tenant?: string; assignment?: string }> & {
+    heldSettled?: Promise<"delivered" | "failed">;
+  } = [];
   const answer = async (route: Route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -115,9 +119,16 @@ async function serveScopedMemberCare(
       },
     });
   };
-  await page.route("**/api/admin/member-care/**", (route) =>
-    answer(route).catch(() => undefined),
-  );
+  await page.route("**/api/admin/member-care/**", (route) => {
+    const handled = answer(route).then(
+      () => "delivered" as const,
+      () => "failed" as const,
+    );
+    if (hold && hold.path.test(new URL(route.request().url()).pathname)) {
+      seen.heldSettled = handled;
+    }
+    return handled;
+  });
   return seen;
 }
 
@@ -181,10 +192,20 @@ test("switching organization shows no row cached from the previous one", async (
   await expect(page.getByText(/Second Person/)).toHaveCount(0);
 });
 
+/*
+ * What carries this line is the document load: switching assignment loads a
+ * new document, so the care document's late answer has no page to land in,
+ * and every cache and client of the care scope is gone with it. The case
+ * asserts that load, lets the held answer settle before it looks for care
+ * rows, and reads the finance document's own requests (council round 1 on
+ * slice B, SB6). It fails if the switch is made soft, and if the page keeps
+ * the scope it read first.
+ */
 test("care data loaded, a switch to the finance assignment, then a late care response: neither shows", async ({
   page,
 }) => {
   const [finance, care] = fixturePerson("twoRows").memberships;
+  const documents = trackDocumentLoads(page);
   let release!: () => void;
   const late = new Promise<void>((resolve) => {
     release = resolve;
@@ -213,14 +234,21 @@ test("care data loaded, a switch to the finance assignment, then a late care res
   await held;
 
   // The switch to the finance assignment loads a new document.
+  const loadsBeforeSwitch = documents.length;
   await softNavigate(page, tenantPath(DEMO, "/care/directory", "finance"));
   await page.waitForURL(`**/${DEMO}~finance/care/directory`);
+  await expect
+    .poll(() => documents.slice(loadsBeforeSwitch))
+    .toContain(`/${DEMO}~finance/care/directory`);
   await expect
     .poll(async () => (await documentScope(page)).assignment)
     .toBe(finance!.id);
 
-  // Now the late care response arrives, for a document that is gone.
+  // Now the late care response arrives, for a document that is gone, and is
+  // given time to land before anything is checked.
   release();
+  expect(seen.heldSettled, "the care record request was held").toBeDefined();
+  await seen.heldSettled;
 
   // The finance document's own requests name the finance assignment, which
   // reads no care, and nothing from the care document shows.
