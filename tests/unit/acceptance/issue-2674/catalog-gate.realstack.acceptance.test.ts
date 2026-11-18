@@ -29,6 +29,7 @@ import {
   TENANT_RLS_EXCEPTIONS_PATH,
   evaluateTenantRlsCatalog,
   runTenantRlsCatalogGate,
+  stripComments,
 } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
@@ -361,28 +362,79 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
   // users may execute in each command schema, and the functions elsewhere
   // whose text calls into one. The clean run passes the missionaries column
   // grant, which a policy admits.
+  /**
+   * The suite's own counts: the functions signed-in users may execute in each
+   * command schema, and the functions elsewhere whose code calls into one.
+   * Amended by council round 3 (lens 1 A4; record D-18): the wrappers are
+   * counted on their text with comments removed, by this suite's own call
+   * pattern, so a comment that names `tenant_guard.x(` is not a call.
+   */
+  async function ownCounts() {
+    const { rows } = await db.query(
+      `select count(*) filter (where n.nspname = 'tenant_guard' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int human,
+              count(*) filter (where n.nspname = 'platform' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int platform,
+              coalesce(array_agg(p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), ''))
+                filter (where n.nspname not in ('tenant_guard', 'platform', 'pg_catalog', 'information_schema')
+                  and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~* '(tenant_guard|platform)'), '{}') bodies
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace`,
+    );
+    const CALL =
+      /(?:^|[^A-Za-z0-9_$."])"?(?:tenant_guard|platform)"?\s*\.\s*"?[a-z_][a-z0-9_$]*"?\s*\(/i;
+    return {
+      human: rows[0].human as number,
+      platform: rows[0].platform as number,
+      wrappers: (rows[0].bodies as string[]).filter((body) =>
+        CALL.test(stripComments(body)),
+      ).length,
+    };
+  }
+
   it("the migrated database passes the gate's runner, and its counts match the catalog", async () => {
     const r = runTenantRlsCatalogGate({ databaseUrl: ADMIN_URL });
     expect(r.failures).toEqual([]);
     expect(r.ok).toBe(true);
-    const { rows } = await db.query(
-      `select count(*) filter (where n.nspname = 'tenant_guard' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int human,
-              count(*) filter (where n.nspname = 'platform' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))::int platform,
-              count(*) filter (where n.nspname not in ('tenant_guard', 'platform', 'pg_catalog', 'information_schema')
-                and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~* '(tenant_guard|platform)"?\\s*\\.\\s*"?[a-z_][a-z0-9_$]*"?\\s*\\(')::int wrappers
-         from pg_proc p join pg_namespace n on n.oid = p.pronamespace`,
-    );
+    const own = await ownCounts();
     expect(r.counts).toMatchObject({
       anonAllowed: (json(ANON_DEFINER_ALLOWLIST_PATH) as { entries: unknown[] })
         .entries.length,
-      humanEntryPoints: rows[0].human,
-      platformCommands: rows[0].platform,
-      wrappers: rows[0].wrappers,
+      humanEntryPoints: own.human,
+      platformCommands: own.platform,
+      wrappers: own.wrappers,
     });
     // WP1 ships the proof command and its wrapper, the claim pair's two
     // wrappers and the health wrapper, so neither count is vacuous.
-    expect(rows[0].human).toBeGreaterThanOrEqual(1);
-    expect(rows[0].wrappers).toBeGreaterThanOrEqual(4);
+    expect(own.human).toBeGreaterThanOrEqual(1);
+    expect(own.wrappers).toBeGreaterThanOrEqual(4);
+  });
+
+  // Council round 3, lens 1 A4: the counts match code, not comments.
+  it("counts a function that calls into a command schema as a wrapper, and not one that names it only in a comment", async () => {
+    await db.query("begin");
+    try {
+      const before = await ownCounts();
+      await db.query(
+        `create function public.acc2674_comment_only() returns int language plpgsql set search_path = ''
+           as $$ begin -- tenant_guard.acquire_workflow_work_claim(...) is not called here
+           return 1; end $$;
+         revoke all on function public.acc2674_comment_only() from public, anon, authenticated, service_role;
+         create function public.acc2674_calls_worker(p_tenant_id uuid) returns jsonb language sql set search_path = ''
+           as $$ select tenant_guard/**/.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;
+         revoke all on function public.acc2674_calls_worker(uuid) from public, anon, authenticated, service_role;
+         grant execute on function public.acc2674_calls_worker(uuid) to service_role;`,
+      );
+      const after = await ownCounts();
+      expect(after.wrappers).toBe(before.wrappers + 1);
+      const r = await db.query(TENANT_RLS_CATALOG_SQL);
+      const gate = evaluateTenantRlsCatalog(
+        JSON.parse(Object.values(r.rows[0] as object)[0] as string),
+        json(TENANT_RLS_EXCEPTIONS_PATH),
+        json(ANON_DEFINER_ALLOWLIST_PATH),
+      );
+      expect(gate.failures).toEqual([]);
+      expect(gate.counts.wrappers).toBe(after.wrappers);
+    } finally {
+      await db.query("rollback");
+    }
   });
 
   it("the anon allowlist ships empty: no SECURITY DEFINER function is open to anon", () => {

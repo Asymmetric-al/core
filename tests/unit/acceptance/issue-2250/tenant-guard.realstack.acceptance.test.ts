@@ -56,12 +56,25 @@ const ins = (t: string, s: string) =>
   `insert into public.workflow_work_claims (tenant_id, subject_type, subject_id, claimed_by, expires_at) values (${t}, 'acc2250', '${s}', 'acc', pg_catalog.now() + interval '1 hour')`;
 const CLAIMS = "public.workflow_work_claims";
 /**
- * The functions of criteria 14/15: every function in tenant_guard and every
- * public wrapper into it, derived from the catalog (no overloads allowed).
+ * The candidates for criteria 14/15: every function in tenant_guard and every
+ * public function whose text mentions it (no overloads allowed). Which public
+ * ones are wrappers is decided on their text with comments removed
+ * (`isGuardFunction`): amended by council round 3 (lens 1 A4; record D-18),
+ * because a raw-text match made a public function whose comment names
+ * `tenant_guard.x(` fail this suite for no safety reason. The candidate set is
+ * wider than before, so a call with a comment inside its qualified name is
+ * still found.
  */
-const FN = `select n.nspname || '.' || p.proname f, p.* from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+const FN = `select n.nspname || '.' || p.proname f, p.*, p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '') body
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'tenant_guard'
-     or (n.nspname = 'public' and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~ 'tenant_guard"?\\s*\\.')`;
+     or (n.nspname = 'public' and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~ 'tenant_guard')`;
+/** A function of criteria 14/15: in tenant_guard, or a public function whose code calls into it. */
+const isGuardFunction = (fn: { f: string; body: string }) =>
+  fn.f.startsWith("tenant_guard.") ||
+  callsIntoCommandSchemas(fn.body).some((t: string) =>
+    t.startsWith("tenant_guard."),
+  );
 const SP_OK = `(proconfig && array['search_path=""', 'search_path=pg_catalog', 'search_path=pg_catalog, public'])`;
 const TG_ACQ = "tenant_guard.acquire_workflow_work_claim";
 const TG_REL = "tenant_guard.release_workflow_work_claim";
@@ -228,26 +241,32 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
     expect(await v(sql)).toBe(want),
   );
 
-  it("14/15: every function in tenant_guard, and every public wrapper into it, keeps the invariants of its lane", async () => {
+  /**
+   * Each function of criteria 14/15 that does not keep the invariants of its
+   * lane, as "name: shape", and the names checked.
+   */
+  async function laneProblems() {
     const fns = (
-      await db.query(
-        `select f, pg_get_userbyid(proowner) owner, prosecdef definer, coalesce(${SP_OK}, false) sp,
-                proacl is not null acl, ${GRANTEES} grantees,
-                prosrc || coalesce(pg_get_function_sqlbody(oid), '') body
-           from (${FN}) x order by f`,
-      )
-    ).rows as {
-      f: string;
-      owner: string;
-      definer: boolean;
-      sp: boolean;
-      acl: boolean;
-      grantees: string;
-      body: string;
-    }[];
+      (
+        await db.query(
+          `select f, pg_get_userbyid(proowner) owner, prosecdef definer, coalesce(${SP_OK}, false) sp,
+                  proacl is not null acl, ${GRANTEES} grantees, body
+             from (${FN}) x order by f`,
+        )
+      ).rows as {
+        f: string;
+        owner: string;
+        definer: boolean;
+        sp: boolean;
+        acl: boolean;
+        grantees: string;
+        body: string;
+      }[]
+    ).filter(isGuardFunction);
     const lane = new Map(fns.map((fn) => [fn.f, fn.grantees]));
     const shape = (fn: (typeof fns)[number]) =>
       `${fn.owner} ${fn.definer ? "definer" : "invoker"} sp=${fn.sp} acl=${fn.acl} ${fn.grantees}`;
+    const problems: string[] = [];
     for (const fn of fns) {
       let expected: string[];
       if (fn.f.startsWith("tenant_guard.") && fn.owner === "tenant_guard")
@@ -259,11 +278,11 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
         // A helper: only the guard runs it.
         expected = ["postgres invoker sp=true acl=true tenant_guard"];
       else {
-        // A wrapper: the lane of what it calls in tenant_guard.
+        // A wrapper: the lane of what it calls in tenant_guard, read from
+        // its code with comments removed.
         const targets = callsIntoCommandSchemas(fn.body).filter((t: string) =>
           t.startsWith("tenant_guard."),
         );
-        expect(targets.length, fn.f).toBeGreaterThan(0);
         const human = targets.every(
           (t: string) => lane.get(t) === "authenticated",
         );
@@ -271,29 +290,73 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
           `postgres invoker sp=true acl=true ${human ? "authenticated" : "service_role"}`,
         ];
       }
-      expect(expected, fn.f).toContain(shape(fn));
+      if (!expected.includes(shape(fn))) problems.push(`${fn.f}: ${shape(fn)}`);
     }
+    return { problems, names: fns.map((fn) => fn.f) };
+  }
+
+  it("14/15: every function in tenant_guard, and every public wrapper into it, keeps the invariants of its lane", async () => {
+    const { problems, names } = await laneProblems();
+    expect(problems).toEqual([]);
     // The derivation is not vacuous: #2250's four functions are among them.
-    expect(fns.map((fn) => fn.f)).toEqual(
+    expect(names).toEqual(
       expect.arrayContaining(CLAIM_FNS.replaceAll("'", "").split(", ")),
     );
   });
 
-  it("14: function bodies are schema-qualified under the empty search_path", async () => {
+  // Council round 3, lens 1 A4: the suite matches code, not comments.
+  it("14/15: a public function whose comment names a guard function is not a wrapper; one that calls it still is", async () => {
+    await db.query("begin");
+    try {
+      await db.query(
+        `create function public.acc2250_comment_only() returns int language plpgsql set search_path = ''
+           as $$ begin -- tenant_guard.acquire_workflow_work_claim(...) is not called here
+           return 1; end $$;
+         create function public.acc2250_definer_call(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+           as $$ select tenant_guard/**/.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;
+         revoke all on function public.acc2250_definer_call(uuid) from public, anon, authenticated, service_role;
+         grant execute on function public.acc2250_definer_call(uuid) to authenticated;`,
+      );
+      const { problems, names } = await laneProblems();
+      expect(names).not.toContain("public.acc2250_comment_only");
+      expect(problems).toEqual([
+        "public.acc2250_definer_call: postgres definer sp=true acl=true authenticated",
+      ]);
+      const bodies = await schemaQualifiedProblems();
+      expect(bodies.names).not.toContain("public.acc2250_comment_only");
+      expect(bodies.names).toContain("public.acc2250_definer_call");
+    } finally {
+      await db.query("rollback");
+    }
+  });
+
+  /** The functions of criteria 14/15 whose bodies are not schema-qualified. */
+  async function schemaQualifiedProblems() {
     const fns = (
       await db.query(
-        `select f, prosrc, coalesce(proargnames, '{}') a from (${FN}) x`,
+        `select f, prosrc, body, coalesce(proargnames, '{}') a from (${FN}) x`,
       )
-    ).rows;
-    expect(fns.map((f) => f.f)).toEqual(
+    ).rows.filter(isGuardFunction);
+    const problems: string[] = [];
+    for (const f of fns) {
+      for (const target of bareTargets(f.prosrc, f.a))
+        problems.push(`${f.f}: bare ${target}`);
+      if (
+        /(?<![\w.])(enter|current_tenant_id|set_config|current_setting)\s*\(/i.test(
+          f.prosrc,
+        )
+      )
+        problems.push(`${f.f}: unqualified guard helper or setting`);
+    }
+    return { problems, names: fns.map((f) => f.f as string) };
+  }
+
+  it("14: function bodies are schema-qualified under the empty search_path", async () => {
+    const { problems, names } = await schemaQualifiedProblems();
+    expect(problems).toEqual([]);
+    expect(names).toEqual(
       expect.arrayContaining(CLAIM_FNS.replaceAll("'", "").split(", ")),
     );
-    for (const f of fns) {
-      expect(bareTargets(f.prosrc, f.a), f.f).toEqual([]);
-      expect(f.prosrc, f.f).not.toMatch(
-        /(?<![\w.])(enter|current_tenant_id|set_config|current_setting)\s*\(/i,
-      );
-    }
   });
 
   it("1: after enter(A) an unfiltered read sees only A; with the GUC unset it sees 0 rows", async () => {
