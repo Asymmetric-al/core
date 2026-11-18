@@ -51,7 +51,7 @@ export function PortalDocument({
   );
 
   return (
-    <DocumentScopeProvider scope={scope} boundary={DONOR_PORTAL_PATH}>
+    <DocumentScopeProvider scope={scope} segment={DONOR_PORTAL_PATH}>
       {/* What the end-to-end suites read; it renders nothing visible. */}
       <span
         hidden

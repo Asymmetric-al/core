@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createE2EAuthCookieValue,
@@ -188,12 +188,82 @@ describe("a tenant address: the membership decision before the page shell", () =
     }
   });
 
+  // Council round 1, A13: one list of the addresses outside the tenant
+  // segment. A public route that list does not cover would get a prefix from
+  // the helpers and a redirect back from the proxy, so a proxy with one is
+  // refused when it is built.
+  it("refuses a public route that the one list of outside addresses does not cover", () => {
+    expect(() =>
+      createAuthMiddleware({
+        publicRoutes: ["/login", "/ways-to-give"],
+        protectedRoutePrefixes: ["/"],
+        loginPath: "/login",
+        unauthorizedRedirectTo: "/no-access",
+        roleClass: "staff",
+        allowedRoles: ["staff"],
+        resolveUserRole: resolveUserRoleFromDatabase,
+        tenantAddress: true,
+      }),
+    ).toThrow(/\/ways-to-give.*OUTSIDE_TENANT_SEGMENT_ROOTS/);
+    // Without a tenant address (the donor portal) there is no segment.
+    expect(() =>
+      createAuthMiddleware({
+        publicRoutes: ["/", "/ways-to-give"],
+        roleClass: "donor",
+        allowedRoles: ["donor"],
+        resolveUserRole: resolveUserRoleFromDatabase,
+      }),
+    ).not.toThrow();
+  });
+
+  it("builds both apps' proxies, whose public routes are all outside the segment", async () => {
+    await expect(import("../../../apps/admin/proxy")).resolves.toBeTruthy();
+    await expect(
+      import("../../../apps/missionary/proxy"),
+    ).resolves.toBeTruthy();
+  });
+
   it("refuses when the membership read fails", async () => {
     state.rpcError = { code: "42501" };
 
     const response = await adminProxy()(request(`/${TA}/care`));
 
     expect(location(response)).toBe("/no-access");
+  });
+
+  // Council round 1, A5: the cause of a failed read reaches the server log,
+  // as the preview access diagnostic the resolver already writes (literal
+  // fields and a safe error code only), and the person's answer is the same.
+  it("logs the cause of a failed membership read, with no personal data, and still refuses", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("VERCEL_TARGET_ENV", "preview");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      state.rpcError = {
+        code: "42501",
+        message: `permission denied for function current_user_assignments (${USER})`,
+        details: `tenant ${TA}`,
+        hint: "sb-access-token=secret-token",
+      };
+
+      const response = await adminProxy()(request(`/${TA}/care`));
+
+      expect(location(response)).toBe("/no-access");
+      expect(warn).toHaveBeenCalledExactlyOnceWith({
+        event: "auth_access_diagnostic",
+        stage: "membership_read",
+        outcome: "query_failed",
+        code: "42501",
+      });
+      const logged = JSON.stringify(warn.mock.calls);
+      for (const secret of [USER, TA, "secret-token", "permission denied"]) {
+        expect(logged).not.toContain(secret);
+      }
+    } finally {
+      warn.mockRestore();
+      vi.unstubAllEnvs();
+    }
   });
 
   it("drops a suffix for a person with one row, keeping the page and query", async () => {
@@ -400,6 +470,47 @@ describe("the rewrite stays inside the server (record D-19)", () => {
     expect(rewriteTarget(second)).toBeNull();
     expect(errors).toHaveBeenCalled();
     errors.mockRestore();
+  });
+
+  // Council round 1, A4: the limit of the guard, pinned so the record states
+  // what is true. Another process (another instance, or the proxy in its own
+  // function) does not know the marker: it deletes it as a forgery and lands
+  // the bare inner path on its tenant address. The browser then sees a
+  // redirect loop, not the 500, and still never a page without its tenant.
+  it("in another process the marker means nothing: the inner path is landed with a 307, not rendered", async () => {
+    state.rows = [row(TA, "staff", "finance")];
+    const first = await adminProxy()(request(`/${TA}/care`));
+    const marker = forwarded(first, "x-asym-tenant-rewrite");
+    expect(marker).toMatch(/\S/);
+
+    vi.resetModules();
+    const other = await import("../../../packages/auth/middleware");
+    const otherResolve =
+      await import("../../../packages/auth/resolve-user-role");
+    const otherProxy = other.createAuthMiddleware({
+      publicRoutes: ["/auth/callback", "/login", "/no-access"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/",
+      unauthorizedRedirectTo: "/no-access",
+      roleClass: "staff",
+      allowedRoles: ["staff", "admin"],
+      resolveUserRole: otherResolve.resolveUserRoleFromDatabase,
+      tenantAddress: true,
+    });
+
+    const second = await otherProxy(
+      request("/care", {
+        "x-asym-tenant": TA,
+        "x-asym-address-prefix": `/${TA}`,
+        "x-asym-tenant-rewrite": marker!,
+      }),
+    );
+
+    expect(second.status).toBe(307);
+    expect(location(second)).toMatch(new RegExp(`^/${TA}(~finance)?/care$`));
+    expect(rewriteTarget(second)).toBeNull();
+    expect(forwarded(second, "x-asym-tenant-rewrite")).toBeNull();
   });
 });
 

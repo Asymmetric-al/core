@@ -34,9 +34,16 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Every API path, whatever it ends in, so the proxy always fixes the
-    // role class (plan 5.1): a dynamic route answers `/api/x/y.json` too.
-    "/api/:path*",
-    "/((?!_next/static|_next/image|_next/data|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
+    // Every path the app can answer runs the proxy, pages and API routes
+    // alike, whatever the path ends in: a dynamic route answers
+    // `/donors/x.json` and `/api/x/y.json` too, and a request that skipped
+    // the proxy would keep the scope headers the client sent (plan 5.1, 5.2;
+    // council round 1: WP2a F5 and WP2b A3). Only Next.js's own assets and
+    // real static files are skipped: `/_next/*`, the public folders
+    // (`/maplibre/*`, `/images/*`), and one file name at the root with a
+    // static extension (`/favicon.ico`, `/icon.svg`, `/robots.txt`,
+    // `/sitemap.xml`, the manifest, a public image). A root file name is
+    // never a page here: no page route has a dynamic segment at the root.
+    "/((?!_next/|maplibre/|images/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

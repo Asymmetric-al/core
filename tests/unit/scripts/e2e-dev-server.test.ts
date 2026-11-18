@@ -182,6 +182,57 @@ describe("e2e-dev-server.sh", () => {
       expect(command).toContain("--port 3030 --hostname 0.0.0.0");
       expect(nodeOptions).toBe("NODE_OPTIONS=--max-http-header-size=16384");
     }, 60_000);
+
+    // Council round 1, A4. Next normalizes every loopback IP literal in the
+    // proxy's rewrite to localhost (`next/dist/server/web/next-url.js`), so a
+    // server bound to any of them sends the rewrite out and the proxy answers
+    // 500. Only 127.0.0.1 can be served from `localhost`: resolving it IPv6
+    // first does not reach ::1 where `localhost` has no IPv6 address (Ubuntu's
+    // default /etc/hosts), so the script refuses the others by name.
+    it.each([
+      ["admin", "3030", "::1"],
+      ["admin", "3030", "[::1]"],
+      ["admin", "3030", "0:0:0:0:0:0:0:1"],
+      ["admin", "3030", "127.0.0.2"],
+      ["missionary", "4000", "::1"],
+      ["missionary", "4000", "127.1.2.3"],
+    ])(
+      "refuses to bind %s (port %s) to the loopback literal %s, with the reason (record D-19)",
+      (app, port, host) => {
+        const dir = mkdtempSync(path.join(tmpdir(), "e2e-dev-server-refuse-"));
+        try {
+          const record = path.join(dir, "launch.txt");
+          const bin = path.join(dir, "bin");
+          spawnSync("mkdir", [bin]);
+          writeFileSync(
+            path.join(bin, "setsid"),
+            `#!/usr/bin/env bash\necho started > "${record}"\n`,
+            { mode: 0o755 },
+          );
+          const result = runScript([app, "start", port, host], {
+            PATH: `${bin}:${process.env.PATH ?? ""}`,
+            RUNNER_TEMP: dir,
+            ASYM_E2E_REQUIRE_HERMETIC_SUPABASE: "",
+          });
+          expect(result.status).not.toBe(0);
+          expect(result.stderr).toContain(
+            `Refusing to start ${app} on ${host}`,
+          );
+          expect(result.stderr).toContain("record D-19");
+          expect(result.stderr).toContain("use 127.0.0.1 or localhost");
+          spawnSync("sleep", ["0.5"]);
+          expect(existsSync(record)).toBe(false);
+        } finally {
+          rmSync(dir, { recursive: true, force: true });
+        }
+      },
+      60_000,
+    );
+
+    it("keeps the donor app on ::1, which its proxy never rewrites", () => {
+      const { command } = launchRecord("donor", ["3005", "::1"]);
+      expect(command).toContain("--port 3005 --hostname ::1");
+    }, 60_000);
   });
 
   describe("readiness wait and process files", () => {

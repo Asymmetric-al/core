@@ -143,6 +143,36 @@ describe("ci-integration workflow contract", () => {
     expect(e2eGate).not.toContain("develop");
   });
 
+  // Council round 1, A14 (record D-18): the tenant-address specs carry every
+  // acceptance line's end-to-end proof of the tenant in the page address, and
+  // D-19's first condition; no workflow ran them. They run in the end-to-end
+  // job, each after its app's dev server is ready. This workflow change was
+  // allowed for this item only.
+  it("runs both tenant-address specs in the end-to-end job, after their apps start", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const steps = stepNames(testE2e);
+    for (const [app, wait] of [
+      ["admin", "Wait for admin health endpoint"],
+      ["missionary", "Wait for missionary health endpoint"],
+    ] as const) {
+      const step = `Tenant address (${app} app)`;
+      expect(steps).toContain(step);
+      expect(steps.indexOf(step)).toBeGreaterThan(steps.indexOf(wait));
+      expect(testE2e).toContain(`run: bun run test:e2e:tenant-address:${app}`);
+    }
+    const scripts = (
+      JSON.parse(readFileSync("package.json", "utf8")) as {
+        scripts: Record<string, string>;
+      }
+    ).scripts;
+    expect(scripts["test:e2e:tenant-address:admin"]).toContain(
+      "-c playwright.admin.config.ts tests/e2e/admin-tenant-address.spec.ts --project=admin-boneyard",
+    );
+    expect(scripts["test:e2e:tenant-address:missionary"]).toContain(
+      "-c playwright.missionary.config.ts tests/e2e/missionary-tenant-address.spec.ts --project=missionary-boneyard",
+    );
+  });
+
   it("keeps auth, production, and CMS run artifacts distinct with retry diagnostics", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     expect(testE2e).toContain(

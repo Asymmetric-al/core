@@ -32,6 +32,9 @@ async function loadDocument(scope: typeof A | null) {
   vi.resetModules();
   const { DocumentScopeProvider } =
     await import("../../../../packages/database/document-scope");
+  // A scope is valid only inside its segment (council round 1, A8 and SB2), so
+  // the page is at an address in it, as a signed-in page is.
+  window.history.replaceState(null, "", scope ? scope.addressPrefix : "/");
   if (scope) render(createElement(DocumentScopeProvider, { scope }, null));
   const [filters, resizing] = await Promise.all([
     import("../../../../packages/ui/components/shadcn/data-table/filters/saved-filters"),

@@ -3,6 +3,7 @@ import "server-only";
 import { getSignedInAssignments } from "@asym/auth/context";
 import { safeNextParam } from "@asym/auth/demo-login";
 import {
+  CHOOSER_PATH,
   isOutsideTenantSegment,
   stripTenantAddress,
   withTenantAddress,
@@ -27,7 +28,24 @@ export interface OrganizationChoice {
 export type OrganizationChoices =
   | { kind: "ok"; organizations: OrganizationChoice[] }
   | { kind: "signed_out" }
-  | { kind: "unavailable" };
+  /** The read failed; `retryHref` is the chooser again, for the same choice. */
+  | { kind: "unavailable"; retryHref: string };
+
+/**
+ * The chooser's own address with the same tenant and next page. The path is
+ * fixed and the values are query parameters, so no `next` value can turn it
+ * into another address; the chooser checks `next` again when it reads it.
+ */
+function chooserRetryHref(input: {
+  tenantId?: string | null;
+  next?: string | null;
+}): string {
+  const query = new URLSearchParams();
+  if (input.tenantId) query.set("tenant", input.tenantId);
+  if (input.next) query.set("next", input.next);
+  const search = query.toString();
+  return search ? `${CHOOSER_PATH}?${search}` : CHOOSER_PATH;
+}
 
 /**
  * Where a choice leads: the page in `next`, without any tenant prefix it
@@ -69,6 +87,9 @@ export async function loadOrganizationChoices(input: {
   next?: string | null;
 }): Promise<OrganizationChoices> {
   const signedIn = await getSignedInAssignments();
+  if (signedIn.kind === "unavailable") {
+    return { kind: "unavailable", retryHref: chooserRetryHref(input) };
+  }
   if (signedIn.kind !== "signed_in") return { kind: signedIn.kind };
 
   const choices = listAddressChoices({

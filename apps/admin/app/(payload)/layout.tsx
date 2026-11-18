@@ -13,7 +13,7 @@ import { RootProviders } from "@payloadcms/ui";
 import { RenderServerComponent } from "@payloadcms/ui/elements/RenderServerComponent";
 import { getRootLayoutData } from "@payloadcms/ui/layouts/Root/getRootLayoutData";
 import { headers as nextHeaders } from "next/headers";
-import Link from "next/link";
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { connection } from "next/server";
 import {
   createPayloadRequest,

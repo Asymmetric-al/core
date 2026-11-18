@@ -1,3 +1,5 @@
+import { TenantLink as Link } from "@asym/auth/tenant-navigation";
+import { redirectInTenant } from "@asym/auth/tenant-server";
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
 import {
   renderPublicBlocks,
@@ -12,8 +14,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, ButtonLink } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { createPayloadRequest } from "payload";
 
@@ -60,7 +61,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
   const auth = await payload.auth({ headers: headerStore, req });
 
   if (!auth.user) {
-    redirect(
+    return redirectInTenant(
       `/login?next=${encodeURIComponent(
         `/web-studio/preview/${collection}/${id}`,
       )}`,

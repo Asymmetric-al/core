@@ -140,7 +140,8 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
     // for every public route with a dynamic param. The current-page mark reads
     // it only in a reader mounted after hydration; shadscan-navbar.test.tsx
     // proves the server render makes no read.
-    expect(source.match(/usePathname\(/g)).toHaveLength(1);
+    // The read goes through the tenant helper (council round 1, A10).
+    expect(source.match(/useRoutePathname\(/g)).toHaveLength(1);
     expect(source).toMatch(/isHydrated \? <CurrentPathname /);
     expect(source).not.toMatch(/HERO_PAGES/);
     expect(source).toMatch(/variant === "hero"/);

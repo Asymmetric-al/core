@@ -84,6 +84,27 @@ describe("readDocumentScope", () => {
   });
 });
 
+describe("the prefix and suffix a request carries (council round 1, A3)", () => {
+  it.each([
+    ["trailing text after the prefix", `/${TA}/contributions`],
+    ["trailing text after the suffix", `/${TA}~finance/x`],
+    ["characters glued to the prefix", `/${TA}evil`],
+  ])("refuses a prefix header with %s", async (_label, forged) => {
+    requestHeaders.set("x-asym-address-prefix", forged);
+    await expect(readDocumentScope(auth)).resolves.toBeNull();
+  });
+
+  it("refuses a sub-role suffix the resolved row does not carry", async () => {
+    requestHeaders.set("x-asym-address-prefix", `/${TA}~finance`);
+    await expect(
+      readDocumentScope({
+        ...auth,
+        assignment: { ...assignment, staffRole: "member_care" as const },
+      }),
+    ).rejects.toThrow(/does not match/);
+  });
+});
+
 describe("redirectInTenant", () => {
   it("keeps the document's prefix on a server redirect", async () => {
     requestHeaders.set("x-asym-address-prefix", `/${TA}`);

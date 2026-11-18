@@ -9,6 +9,7 @@ import {
 } from "@asym/eslint-config/own-api.mjs";
 import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
 import { reuiDataGridFiles } from "@asym/eslint-config/reui-data-grid-exceptions.mjs";
+import { tenantNavigationConfig } from "@asym/eslint-config/tenant-navigation.mjs";
 
 const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
 
@@ -22,6 +23,9 @@ const tableEngineImportRestriction = [
 
 const eslintConfig = defineConfig([
   ...designSystemConfig(),
+  // One way to build an address across both apps and the shared packages
+  // (AL-2675; council round 1, A10).
+  ...tenantNavigationConfig(),
   // Root fallback/orchestrator config.
   // Individual apps/packages should define local eslint.config.mjs files.
   ...baseConfig,

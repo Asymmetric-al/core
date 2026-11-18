@@ -231,6 +231,16 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // removed the two intermediate states of stage 1's integration, which
     // develop never held.
     { ref: "AL-2674 seed counts and program steps", hash: "bf3afd9e9950a9f5" },
+    // Amended by AL-2675 (WP2b slice A, council round 1, A14; record D-18):
+    // the test-e2e job runs the two tenant-address specs, one step after each
+    // app's boneyard smoke (bun run test:e2e:tenant-address:admin and
+    // :missionary), pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
+    // workflow change was allowed for that item only.
+    {
+      ref: "AL-2675 tenant-address specs in test-e2e",
+      hash: "9375602b94258e4b",
+    },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

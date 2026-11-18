@@ -58,6 +58,36 @@ describe("the auth email suite's environment", () => {
     ).toThrow(/DB_URL is not on this machine/);
   });
 
+  // Council round 1, A18: libpq and node-postgres let the query replace the
+  // host, so `127.0.0.1/postgres?host=db.example.com` connects elsewhere while
+  // its hostname reads local. The journeys insert memberships through this
+  // URL, so a routing override is refused, by the runner and by the journeys.
+  it.each(["host", "hostaddr", "port", "dbname", "user", "service"])(
+    "refuses a database URL whose query routes it elsewhere (%s)",
+    async (key) => {
+      const routed = `postgresql://postgres:postgres@127.0.0.1:25322/postgres?${key}=db.example.com`;
+      expect(() =>
+        authMailEnvFromStatus(
+          STATUS.replace(
+            "postgresql://postgres:postgres@127.0.0.1:25322/postgres",
+            routed,
+          ),
+        ),
+      ).toThrow(new RegExp(`DB_URL.*${key}`));
+
+      const { readAuthMailEnv } = await import("../../e2e/helpers/auth-mail");
+      expect(() =>
+        readAuthMailEnv({
+          NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:25321",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+          SUPABASE_SERVICE_ROLE_KEY: "service",
+          E2E_AUTH_MAIL_URL: "http://127.0.0.1:25324",
+          E2E_AUTH_MAIL_DB_URL: routed,
+        }),
+      ).toThrow(new RegExp(key));
+    },
+  );
+
   it("reads the default stack, or the one AUTH_MAIL_SUPABASE_WORKDIR names", () => {
     expect(statusArguments({})).toEqual(["status", "-o", "env"]);
     expect(

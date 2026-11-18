@@ -1,7 +1,7 @@
 import { getDefaultPostLoginPathForApp } from "@asym/auth/demo-login";
+import { redirectInTenant } from "@asym/auth/tenant-server";
 import { createClient } from "@asym/database/supabase/server";
 import { RegisterScreen } from "@asym/ui/components/auth/RegisterScreen";
-import { redirect } from "next/navigation";
 
 import type { Metadata } from "next";
 
@@ -14,7 +14,7 @@ export default async function RegisterPage() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect(getDefaultPostLoginPathForApp("admin"));
+    return redirectInTenant(getDefaultPostLoginPathForApp("admin"));
   }
 
   return (

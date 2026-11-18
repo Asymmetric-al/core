@@ -12,6 +12,8 @@ import {
   TENANTS,
   tenantPath,
   trackDocumentLoads,
+  tenantFreeShellProblems,
+  withServerBoundToLoopbackLiteral,
 } from "./helpers/tenant-address";
 
 /**
@@ -207,8 +209,92 @@ test("sign-in, the callback's landing and the recovery steps keep the browser's 
   }
 });
 
+/**
+ * Council round 1, A7: a document loaded outside the tenant segment never
+ * shows a workspace page without its document scope. Both ways in start at
+ * an account screen, whose document rendered the layout's public branch.
+ */
+test("a refused deep link's way home enters the workspace with its one document scope", async ({
+  page,
+}) => {
+  const [row] = fixturePerson("missionary").memberships;
+  await signInAs(page, "missionary", "missionary", baseURL());
+  await page.goto(tenantPath(FOREIGN, "/tasks"));
+  await page.waitForURL(/\/no-access$/);
+
+  await page.getByRole("link", { name: "Go to home" }).click();
+  await page.waitForURL(new RegExp(`/${DEMO}$`));
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+  expect(await documentScope(page)).toEqual({
+    prefix: `/${DEMO}`,
+    assignment: row!.id,
+  });
+});
+
+test("the chooser's way in for a person with one row enters the workspace with its one document scope", async ({
+  page,
+}) => {
+  const [row] = fixturePerson("missionary").memberships;
+  await signInAs(page, "missionary", "missionary", baseURL());
+  await page.goto("/choose-organization");
+  await page.waitForURL(new RegExp(`/${DEMO}$`));
+  await expect(page.locator("[data-tenant-scope]")).toHaveCount(1);
+  expect(await documentScope(page)).toEqual({
+    prefix: `/${DEMO}`,
+    assignment: row!.id,
+  });
+});
+
+// Council round 1, A11: under the tenant address the two retired pages had
+// become redirects streamed with status 200. They answer a real 308 again,
+// keeping the tenant in the address.
+test("the retired update pages answer a real permanent redirect to the feed", async ({
+  page,
+}) => {
+  await signInAs(page, "missionary", "missionary", baseURL());
+
+  for (const [from, to] of [
+    [tenantPath(DEMO, "/ministry-updates"), tenantPath(DEMO, "/feed")],
+    [tenantPath(DEMO, "/email-studio"), tenantPath(DEMO, "/feed")],
+    ["/ministry-updates", "/feed"],
+    ["/email-studio", "/feed"],
+  ] as const) {
+    const response = await page.request.get(from, { maxRedirects: 0 });
+    expect(response.status(), from).toBe(308);
+    expect(
+      new URL(response.headers()["location"]!, baseURL()).pathname,
+      from,
+    ).toBe(to);
+  }
+});
+
 test.describe("production build", () => {
   test.skip(!signsInThroughStub, "Measured on a production build only");
+
+  // Record D-19, council round 1, A19: see the same test in
+  // admin-tenant-address.spec.ts.
+  test("a server bound to 127.0.0.1 answers a tenant page with the guard's 500, the one bound by name renders it", async ({
+    page,
+  }) => {
+    const home = tenantPath(DEMO, "/tasks");
+    const literalPort = Number(new URL(baseURL()).port) + 1;
+    await withServerBoundToLoopbackLiteral(
+      "missionary",
+      literalPort,
+      async (literal) => {
+        await signInAs(page, "missionary", "missionary", literal);
+        const refused = await page.request.get(`${literal}${home}`, {
+          maxRedirects: 0,
+        });
+        expect(refused.status()).toBe(500);
+        expect(await refused.text()).toMatch(/rewrite left the server/);
+      },
+    );
+
+    await signInAs(page, "missionary", "missionary", baseURL());
+    const rendered = await page.request.get(home, { maxRedirects: 0 });
+    expect(rendered.status()).toBe(200);
+  });
 
   test("every organization receives the route's one prerendered shell", async ({
     page,
@@ -217,11 +303,14 @@ test.describe("production build", () => {
       path.join(process.cwd(), "apps/missionary/.next/server/app/tasks.html"),
       "utf8",
     );
+    // The one shell holds no tenant at all (A15).
+    expect(tenantFreeShellProblems(shell)).toEqual([]);
     for (const tenant of [DEMO, SECOND]) {
       await signInAs(page, "missionary", "twoTenantMissionary", baseURL());
       const response = await page.request.get(tenantPath(tenant, "/tasks"));
       expect(response.status()).toBe(200);
       expect(response.headers()["x-nextjs-prerender"]).toBe("1");
+      expect(response.headers()["x-nextjs-postponed"]).toBe("1");
       expect((await response.text()).startsWith(shell)).toBe(true);
     }
   });

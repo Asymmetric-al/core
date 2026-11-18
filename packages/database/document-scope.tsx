@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useSyncExternalStore,
+} from "react";
 
 import { reloadDocument } from "./document-reload";
 
@@ -19,12 +25,34 @@ import type { ReactNode } from "react";
  *
  * Signed-in pages of Mission Control and the missionary workspace always have
  * one, and so does the donor portal, from the person's one live donor
- * membership (`PortalDocument` in `@asym/auth/portal-document`; WP2b). The
- * portal's address names no tenant, so its scope is fixed with a boundary,
- * the portal's path: outside it `getDocumentScope()` returns `null`, and
- * leaving it is a document load (record D-41). Everything else (sign-in, the
- * chooser, Web Studio, the public website) has none: `useDocumentScope()` and
- * `getDocumentScope()` return `null`.
+ * membership (`PortalDocument` in `@asym/auth/portal-document`; WP2b).
+ * Everything else (sign-in, the chooser, account screens, Web Studio, the
+ * public website) has none.
+ *
+ * A scope is valid inside its own segment and nowhere else (council round 1:
+ * slice A's A8, slice B's SB2, record D-41). The segment is a tenant's address
+ * segment (`<prefix>` or `<prefix>/…`) for Mission Control and the missionary
+ * workspace, and the portal's path `/donor-dashboard` for the donor portal,
+ * whose address names no tenant. So:
+ * - `useDocumentScope()` returns the scope only inside the provider that fixed
+ *   it (`TenantDocument`, or `PortalDocument`), so `null` on every page outside
+ *   the segment.
+ * - `getDocumentScope()` returns the scope only in the browser, only once a
+ *   signed-in page has fixed it, and only while the address is inside its
+ *   segment. It is `null` on the server, before a scope is fixed, and on any
+ *   address outside the segment: another tenant's or another sub-role's, and
+ *   for the portal the public site.
+ * Neither ever returns a scope other than the one the document was loaded
+ * with.
+ *
+ * Crossing a segment's boundary is always a document load: into it from
+ * outside, out of it, and from one tenant or sub-role to another. The helpers
+ * in `@asym/auth/tenant-navigation` load a document for such a navigation;
+ * `TenantSegmentBoundary` reloads when one happens softly anyway;
+ * `TenantDocument` reloads a document that entered the segment without a
+ * load; `PortalDocument` reloads when the portal unmounts at an address
+ * outside it. So a scope always starts in a new document, with an empty query
+ * cache. Inside one segment navigation stays soft.
  */
 export interface DocumentScope {
   /** The signed-in person: their Supabase user id. */
@@ -36,7 +64,11 @@ export interface DocumentScope {
    * `x-asym-assignment` header carries it.
    */
   readonly assignmentId: string;
-  /** The page address prefix: `/<tenant>` or `/<tenant>~<sub-role>`. */
+  /**
+   * The page address prefix: `/<tenant>` or `/<tenant>~<sub-role>`. Empty for
+   * a document whose address names no tenant (the donor portal), whose links
+   * are not prefixed.
+   */
   readonly addressPrefix: string;
 }
 
@@ -45,17 +77,8 @@ const DocumentScopeContext = createContext<DocumentScope | null>(null);
 /** Browser only: the scope this document was loaded with, once fixed. */
 let fixedScope: DocumentScope | null = null;
 
-/**
- * Browser only: the path the fixed scope applies under, for a document whose
- * address names no tenant (the donor portal's `/donor-dashboard`), or `null`.
- */
-let fixedBoundary: string | null = null;
-
-function insideBoundary(): boolean {
-  if (fixedBoundary === null) return true;
-  const path = window.location.pathname;
-  return path === fixedBoundary || path.startsWith(`${fixedBoundary}/`);
-}
+/** Browser only: the address segment the fixed scope is valid in. */
+let fixedSegment = "";
 
 function sameScope(a: DocumentScope, b: DocumentScope): boolean {
   return (
@@ -67,18 +90,15 @@ function sameScope(a: DocumentScope, b: DocumentScope): boolean {
 }
 
 /**
- * Fixes `scope` as the document's on its first call in the browser. `false`
- * when the document already holds another scope. A no-op on the server,
- * where module state would be shared by every request.
+ * Fixes `scope` as the document's on its first call in the browser, valid in
+ * `segment`. `false` when the document already holds another scope. A no-op
+ * on the server, where module state would be shared by every request.
  */
-function fixDocumentScope(
-  scope: DocumentScope,
-  boundary: string | null,
-): boolean {
+function fixDocumentScope(scope: DocumentScope, segment: string): boolean {
   if (typeof window === "undefined") return true;
   if (fixedScope === null) {
     fixedScope = Object.freeze({ ...scope });
-    fixedBoundary = boundary;
+    fixedSegment = segment;
     return true;
   }
   return sameScope(fixedScope, scope);
@@ -93,26 +113,31 @@ function fixDocumentScope(
  *
  * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation`, which also
  * guards the page address, and by `PortalDocument` in
- * `@asym/auth/portal-document`, with the portal's path as `boundary`; apps do
+ * `@asym/auth/portal-document`, with the portal's path as `segment`; apps do
  * not render it directly.
  */
 export function DocumentScopeProvider({
   scope,
-  boundary,
+  segment,
   children,
 }: {
   scope: DocumentScope;
   /**
-   * For a document whose address names no tenant: the path the scope applies
-   * under. Outside it `getDocumentScope()` returns `null`.
+   * The address segment the scope is valid in, for a document whose address
+   * names no tenant (the donor portal's `/donor-dashboard`). By default the
+   * scope's own address prefix, a tenant's segment.
    */
-  boundary?: string;
+  segment?: string;
   children: ReactNode;
 }) {
-  const fixed = fixDocumentScope(scope, boundary ?? null);
+  const fixed = fixDocumentScope(scope, segment ?? scope.addressPrefix);
 
   useEffect(() => {
     if (!fixed) reloadDocument();
+  }, [fixed]);
+  // Tell readers above this provider (retained drafts) the scope is fixed.
+  useLayoutEffect(() => {
+    if (fixed) fixedScopeListeners.forEach((listener) => listener());
   }, [fixed]);
 
   if (!fixed) return null;
@@ -123,18 +148,55 @@ export function DocumentScopeProvider({
   );
 }
 
-/** The document's scope, or `null` on a page outside the tenant segment. */
+/** The document's scope, or `null` on a page outside its segment. */
 export function useDocumentScope(): DocumentScope | null {
   return useContext(DocumentScopeContext);
+}
+
+/** Whether `pathname` is in `segment`: the segment itself or below it. */
+function inSegment(pathname: string, segment: string): boolean {
+  return pathname === segment || pathname.startsWith(`${segment}/`);
 }
 
 /**
  * The document's scope for code outside React, such as the browser client
  * and the fetch wrapper. Browser only: always `null` on the server, `null`
  * until a signed-in page has rendered its provider, and `null` while the
- * address is outside the scope's boundary, if it has one.
+ * address is outside that scope's segment, so a page outside it never acts
+ * in the document's tenant, even before the crossing's document load. The
+ * address only withholds the scope; it never supplies one.
  */
 export function getDocumentScope(): DocumentScope | null {
   if (typeof window === "undefined" || fixedScope === null) return null;
-  return insideBoundary() ? fixedScope : null;
+  return inSegment(window.location.pathname, fixedSegment) ? fixedScope : null;
+}
+
+/**
+ * Whether this browser document has fixed a scope, wherever its address is
+ * now. `false` on the server, which keeps none.
+ */
+export function isDocumentScopeFixed(): boolean {
+  return typeof window !== "undefined" && fixedScope !== null;
+}
+
+const fixedScopeListeners = new Set<() => void>();
+
+function subscribeFixedScope(listener: () => void) {
+  fixedScopeListeners.add(listener);
+  return () => {
+    fixedScopeListeners.delete(listener);
+  };
+}
+
+const readFixedScope = () =>
+  typeof window === "undefined" ? null : fixedScope;
+const readNoScope = () => null;
+
+/**
+ * The scope this document fixed, for React code above the provider that
+ * fixed it, such as retained drafts in the root layout (council round 1,
+ * A13); `null` on the server and until a signed-in page has rendered.
+ */
+export function useFixedDocumentScope(): DocumentScope | null {
+  return useSyncExternalStore(subscribeFixedScope, readFixedScope, readNoScope);
 }

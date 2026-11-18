@@ -126,6 +126,15 @@ implementation task.
 - Deeper per-link prefetching is opt-in: `<Link prefetch={true}>` + `'use cache'`. The `prefetch` segment export accepts only `'auto'` (default), `'partial'` (redundant here: every app sets `partialPrefetching: true`) and `'force-disabled'`; Next.js 16.4 rejects any other value at build time.
 - Add `instant()` assertions from `@next/playwright` for navigation-critical routes (pattern: `tests/e2e/instant-navigation.spec.ts`).
 
+### The tenant in the page address
+
+- Signed-in pages of Mission Control and the missionary workspace live under `/<tenant>[~<sub-role>]` (plan 5.2). The proxy decides membership for that address before the page shell and rewrites it onto the page files, so a page's route params never hold the tenant.
+- Build every link, redirect and active-navigation check through the helpers: `TenantLink`, `useTenantRouter`, `useRoutePathname` (`@asym/auth/tenant-navigation`), `redirectInTenant`, `permanentRedirectInTenant` (`@asym/auth/tenant-server`) and `loadDocument` (`@asym/database/document-reload`). Outside the segment they act as the Next.js originals, so use them everywhere. ESLint enforces this across both apps and the shared packages (`tenant-navigation/no-prefixless-navigation` in `tooling/eslint-config/tenant-navigation.mjs`).
+- A navigation that crosses the segment's boundary (into it, out of it, between tenants or sub-roles) is a document load, and the helpers make it one; inside one tenant's segment navigation stays soft. Outside the segment `useDocumentScope()` and `getDocumentScope()` return `null` (`packages/database/document-scope.tsx`).
+- A page outside the segment (sign-in, the chooser, Web Studio, an API route) belongs in the one list, `OUTSIDE_TENANT_SEGMENT_ROOTS` in `packages/auth/tenant-address.ts`. A proxy's `publicRoutes` must lie in it, or the proxy refuses to build.
+- Signed-in page code does not use `'use cache'`: the tenant reaches a cached read only as an argument, in a `packages/api` read that takes it (`tenant-navigation/no-tenantless-cache`).
+- Servers of these two apps bind the loopback name `localhost`, never a loopback IP literal such as `127.0.0.1` or `::1`: there Next sends the proxy's rewrite out of the server and the proxy answers 500 (record D-19).
+
 ### Frontend testing
 
 - Follow `docs/ai/rules/testing.md` for Playwright/a11y/perf expectations.

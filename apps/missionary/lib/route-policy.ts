@@ -1,18 +1,16 @@
-/** Public routes consumed by the missionary proxy, including descendants. */
+/**
+ * Public routes consumed by the missionary proxy, including descendants. Each
+ * lies outside the tenant segment (OUTSIDE_TENANT_SEGMENT_ROOTS, the one
+ * list; the proxy refuses to build otherwise). The workspace has no public
+ * site pages (about, FAQ, financials, giving, workers, checkout) and no
+ * signing page, and the matcher never runs on a root file such as
+ * /robots.txt, so those entries went (council round 1, A13).
+ */
 export const MISSIONARY_PUBLIC_ROUTES = [
-  "/about",
   "/auth/callback",
-  "/faq",
-  "/financials",
   "/register",
   "/forgot-password",
-  "/ways-to-give",
-  "/workers",
-  "/checkout",
-  "/sign",
   "/api/auth/demo-account",
-  "/sitemap.xml",
-  "/robots.txt",
   "/no-access",
   "/boneyard",
 ] as const;

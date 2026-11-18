@@ -13,6 +13,7 @@
     "./library.mjs": "./library.mjs",
     "./own-api.mjs": "./own-api.mjs",
     "./restricted-imports.mjs": "./restricted-imports.mjs",
+    "./tenant-navigation.mjs": "./tenant-navigation.mjs",
     "./reui-data-grid-exceptions.mjs": "./reui-data-grid-exceptions.mjs"
   },
   "files": [
@@ -29,7 +30,8 @@
     "nextjs.mjs",
     "library.mjs",
     "own-api.mjs",
-    "restricted-imports.mjs"
+    "restricted-imports.mjs",
+    "tenant-navigation.mjs"
   ],
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "*",

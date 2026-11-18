@@ -31,7 +31,7 @@ async function loadPortalDocument(path: string) {
   render(
     createElement(
       scopeModule.DocumentScopeProvider,
-      { scope: SCOPE, boundary: "/donor-dashboard" } as never,
+      { scope: SCOPE, segment: "/donor-dashboard" },
       null,
     ),
   );

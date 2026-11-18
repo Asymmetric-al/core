@@ -15,6 +15,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { databaseUrlRoutingOverrides } from "../../packages/env/src/database-url.mjs";
 import { LOOPBACK_HOSTS } from "../lib/psql.mjs";
 
 const repoRoot = path.resolve(
@@ -64,6 +65,14 @@ export function authMailEnvFromStatus(output) {
         `${name} is not on this machine; the auth email journeys run only against a local Supabase stack.`,
       );
     }
+  }
+  // The query can replace the host a database URL shows (council round 1,
+  // A18), so the hostname above holds only for a URL with no routing key.
+  const overrides = databaseUrlRoutingOverrides(reported.DB_URL);
+  if (overrides.length > 0) {
+    throw new Error(
+      `DB_URL carries routing overrides in its query (${overrides.join(", ")}); the auth email journeys run only against a local Supabase stack.`,
+    );
   }
 
   return Object.fromEntries(

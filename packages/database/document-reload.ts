@@ -7,3 +7,16 @@
 export function reloadDocument(): void {
   window.location.reload();
 }
+
+/**
+ * Loads `href` as a new document: what a navigation that crosses the tenant
+ * segment's boundary does instead of a client-side transition (AL-2675,
+ * council round 1).
+ */
+export function loadDocument(
+  href: string,
+  options: { replace?: boolean } = {},
+): void {
+  if (options.replace) window.location.replace(href);
+  else window.location.assign(href);
+}

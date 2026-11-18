@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 
+import { legacyRedirects } from "./lib/legacy-redirects";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { migrationHeadsBuildEnv } from "../../scripts/release/migration-heads.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
@@ -25,6 +26,11 @@ const nextConfig: NextConfig & {
   env: migrationHeadsBuildEnv(WORKSPACE_ROOT),
   cacheComponents: true,
   partialPrefetching: true,
+  // Retired addresses answer a real 308 before the proxy runs (council
+  // round 1, A11; lib/legacy-redirects.ts).
+  async redirects() {
+    return legacyRedirects;
+  },
   reactCompiler: {
     compilationMode: "annotation",
   },

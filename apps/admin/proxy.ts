@@ -2,18 +2,17 @@ import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 
 export const proxy = createAuthMiddleware({
+  // Each lies outside the tenant segment (OUTSIDE_TENANT_SEGMENT_ROOTS, the
+  // one list; the proxy refuses to build otherwise). Mission Control has no
+  // giving, worker or checkout pages, and the matcher never runs on a root
+  // file such as /robots.txt, so those entries went (council round 1, A13).
   publicRoutes: [
     "/auth/callback",
     "/login",
     "/register",
     "/forgot-password",
-    "/ways-to-give",
-    "/workers",
-    "/checkout",
     "/api/auth/demo-account",
     "/api/cms/public",
-    "/sitemap.xml",
-    "/robots.txt",
     "/no-access",
     "/boneyard",
   ],
@@ -34,9 +33,16 @@ export const proxy = createAuthMiddleware({
 
 export const config = {
   matcher: [
-    // Every API path, whatever it ends in, so the proxy always fixes the
-    // role class (plan 5.1): a dynamic route answers `/api/x/y.json` too.
-    "/api/:path*",
-    "/((?!_next/static|_next/image|_next/data|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
+    // Every path the app can answer runs the proxy, pages and API routes
+    // alike, whatever the path ends in: a dynamic route answers
+    // `/contributions/x.json` and `/api/x/y.json` too, and a request that
+    // skipped the proxy would keep the scope headers the client sent (plan
+    // 5.1, 5.2; council round 1: WP2a F5 and WP2b A3). Only Next.js's own
+    // assets and real static files are skipped: `/_next/*`, the public
+    // folders (`/maplibre/*`, `/images/*`), and one file name at the root
+    // with a static extension (`/favicon.ico`, `/icon.svg`, `/robots.txt`,
+    // `/sitemap.xml`, a manifest, a public image). A root file name is never
+    // a page here: no page route has a dynamic segment at the root.
+    "/((?!_next/|maplibre/|images/|[^/]+\\.(?:ico|svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

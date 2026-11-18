@@ -71,6 +71,9 @@ vi.mock("next/navigation", async (importOriginal) => ({
     throw Object.assign(new Error("NEXT_REDIRECT"), { to });
   },
 }));
+// `redirectInTenant` reads the request's address prefix; these pages and
+// gates have none, so it is the plain redirect (council round 1, A10).
+vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 vi.mock("@asym/database/supabase/config", () => ({
   getSupabasePublicConfig: () => ({
     url: "https://example.supabase.co",
