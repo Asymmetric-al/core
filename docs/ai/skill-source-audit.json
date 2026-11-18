@@ -6119,7 +6119,7 @@
       "rawSkillHash": "804902c52be09d48429a4e67f95d4243fce6b198dea2012ba41d1fe0f1622cba",
       "lockHash": "a1a7f767f90a4b9cafcefb4ee0a7462abf71f0b3c999c1e53ce1a69917db397f",
       "entrypointHash": "36cdcd5f13e25cc17d134e2506872bbd10841a01257c8550615a09312122c517",
-      "treeHash": "00f06a0bcfdd19f20f3e37737c93c9a83e11644f29693be8b18813ad7eb39f11",
+      "treeHash": "fc1c7829ce9997942cca46aa4ce4bbaaa4d35dbae762430e81a725d200490e4d",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8861,8 +8861,8 @@
       "sourcePath": "docs/ai/skills/samson-factory/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "79b1f5f3a37f26d0295c75871b01e374c70b99b325ce65fcbe02d760c29898ba",
-      "treeHash": "c39ab0aaac036a39493d4a3df559aee0be5fcdb00fd01bb9a0325d53e63b3c34",
+      "entrypointHash": "36ca8e0b674ff29fd8f466bdc1e63b2bd732d9aa8132777a831b15fe15104e98",
+      "treeHash": "3817a3a5b7340a1114765f86aa28dcae4365b46e2febde2c12ab80487a69d051",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",

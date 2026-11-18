@@ -120,7 +120,7 @@ Use Bun and the scripts declared in the current root `package.json`.
 - Individual gates: `bun run lint`, `bun run typecheck`, `bun run test:unit`, `bun run format:check`
 - Workspace contract: `bun run verify:workspace-contract`
 - Docs, skills and specs: `bun run skills:verify`, `bun run openspec:validate`, `bun run verify:openspec-deltas`, then `bunx vitest run tests/unit/docs`
-- PR/push readiness: `bun run ci:preflight`
+- PR readiness: `bun run ci:preflight` (full profile); `git push` runs its fast profile, `bun run ci:preflight -- --fast`
 
 Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Avoid repeating passed checks unless new edits, failures, unresolved risk, or required workflow gates justify it. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.
 

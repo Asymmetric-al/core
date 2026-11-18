@@ -33,15 +33,32 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ### CI gate
 
-- Canonical PR/push readiness: `bun run ci:preflight` with conditional development compilation. Use `bun run ci:preflight -- --full` for explicit QA/release checkpoints. Routine develop merges do not trigger Vercel deployments.
-- `docs/ci.md` owns the exact stage order and dated live GitHub required-context
-  inventory.
+- Canonical PR readiness: `bun run ci:preflight`, the full profile, with
+  conditional development compilation. Use `bun run ci:preflight -- --full`
+  for explicit QA/release checkpoints. Routine develop merges do not trigger
+  Vercel deployments.
+- Push gate: `git push` runs the fast profile (`bun run ci:preflight -- --fast`):
+  formatting of the changed files, lint and typecheck of the affected
+  workspaces, and the verifiers that take seconds. It runs no unit,
+  acceptance, build or network stage; required CI runs those on every pull
+  request. A push to `production` runs `-- --full`, and
+  `ASYM_PRE_PUSH_PROFILE=full` selects the full profile for any push.
+- A failed stage prints the command that re-runs it alone; run that, fix,
+  then rerun the whole profile.
+- `docs/ci.md` owns the exact stage order of both profiles and the dated live
+  GitHub required-context inventory.
 - Run focused commands while iterating. Fix formatting with `bun run format`,
   then prove the final result with `bun run ci:preflight`.
 - Documentation-only changes iterate on structural checks:
   `bunx prettier --check <files>`, plus `bunx vitest run tests/unit/docs` when
-  an instruction, rulebook or skill changes. `git push` still runs
-  `bun run ci:preflight`, so the PR gate is unchanged.
+  an instruction, rulebook or skill changes. The PR gate is unchanged.
+- Agent harnesses (Claude Code, Codex, Cursor) format and lint each edited file
+  through `scripts/agent-hooks/after-edit.mjs`; remaining lint errors come back
+  as hook context. `ASYM_EDIT_HOOK=format` skips its lint step and `off` skips
+  it.
+- If `next build` or `next dev` stops with a Next.js upgrade recommendation,
+  rerun the same command once within five minutes, report the recommendation,
+  and don't upgrade unasked.
 
 ### File hygiene
 
@@ -70,7 +87,8 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 ### PR checklist
 
 - [ ] Branch is not a direct production push to `production`
-- [ ] `bun run ci:preflight` passes
+- [ ] `bun run ci:preflight` (full profile) passes; the push hook's fast
+      profile alone is not PR readiness
 - [ ] Changes are minimal and scoped
 
 ## Minimal examples

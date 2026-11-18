@@ -189,13 +189,16 @@ directories only for tools that require app-local env files.
 | -------------------------------- | ------------------------------------------------------------------------------- |
 | `bun run check`                  | Standard code gate: lint, typecheck, unit tests                                 |
 | `bun run format:check`           | Prettier check over the repository                                              |
-| `bun run ci:preflight`           | PR and push readiness; mirrors the blocking CI stages                           |
+| `bun run ci:preflight`           | PR readiness (full profile); mirrors the blocking CI stages                     |
+| `bun run ci:preflight -- --fast` | Fast profile that `git push` runs: changed-file format, affected lint/typecheck |
 | `bun run ci:preflight -- --full` | Full QA or release checkpoint, including compilation of all apps                |
 | `bun run test:e2e`               | Playwright suite with CI env defaults                                           |
 | `bun run build:<app>`            | Production build of one app (`admin`, `donor`, `missionary`, `factory-console`) |
 
-Husky runs `lint-staged` on commit, and
-`bun run ci:preflight` on push (`--full` for pushes that target `production`).
+Husky runs `lint-staged` on commit, and the fast profile
+(`bun run ci:preflight -- --fast`) on push; a push that targets `production`
+runs `bun run ci:preflight -- --full`. Agent harnesses format and lint each
+edited file through `scripts/agent-hooks/after-edit.mjs`.
 CI jobs and branch protection are described in [docs/ci.md](docs/ci.md).
 
 Core does not automatically deploy merges into `develop`. Use an explicit `qa:smoke` preview when a feature is ready to review; the preview compiles on GitHub and uploads prebuilt output to Vercel. Routine PRs keep correctness checks without compiling all three apps. Full compilation remains required for production releases. Existing development URLs serve the last successful deployment until explicitly refreshed. See [CI policy](docs/ci.md#development-deployment-checkpoints-al-1921).

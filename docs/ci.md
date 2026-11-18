@@ -70,15 +70,27 @@ bunx --no-install turbo prune @asym/donor --docker
 - **Turbo cache keys** in `ci.yml` include `bun-${{ env.BUN_VERSION }}` so cache restores do not cross Bun upgrades.
 - **Local parity:** match the pin (`bun run verify:bun-version`). That command also fails if a first-party `.github/workflows/*.{yml,yaml}` `BUN_VERSION` or `oven-sh/setup-bun` pin disagrees with `packageManager`. Reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
 
-## Local CI parity (pre-push)
+## Local CI parity and the pre-push gate
 
-Use the local preflight command to mirror blocking GitHub checks before pushing:
+The local preflight has two profiles in one script
+(`scripts/verify/ci-preflight.mjs`):
 
-```bash
-bun run ci:preflight
-```
+| Command                                     | Profile                         | Who runs it                                                                                    |
+| ------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `bun run ci:preflight -- --fast`            | fast                            | `.husky/pre-push` on every push that does not target `production`                              |
+| `bun run ci:preflight`                      | full                            | You, before a pull request is ready; the factory's publish step (`ASYM_PRE_PUSH_PROFILE=full`) |
+| `bun run ci:preflight -- --full`            | full, every app compiled        | The release command and any authorized push to `production`                                    |
+| `bun run ci:preflight -- [--fast] --only X` | one stage of the chosen profile | A failed stage prints this command so you can repeat it alone                                  |
 
-`ci:preflight` runs the correctness stage order below. Its build stage is conditional under the same development policy as `.github/workflows/ci.yml`; app-specific build inputs select `build:<app>`. Use `bun run ci:preflight -- --full` for a complete QA/release checkpoint. The release command and any authorized production-targeting push always select full mode:
+### Full profile
+
+`bun run ci:preflight` mirrors the blocking GitHub checks in the stage order
+below and prints `==> PASS ci:preflight` only when every stage passed (the
+factory reads that line). Its build stage is conditional under the same
+development policy as `.github/workflows/ci.yml`; app-specific build inputs
+select `build:<app>`. Use `bun run ci:preflight -- --full` for a complete
+QA/release checkpoint. The release command and any authorized
+production-targeting push always select full mode:
 
 1. `verify:node-version` (Node 24 at or above `.node-version`; other majors fail)
 2. `format:check`
@@ -99,6 +111,43 @@ bun run ci:preflight
 17. `typecheck`
 18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
 19. `test:unit`
+20. `test:acceptance` (`node scripts/verify/acceptance-tests.mjs`), as its own stage
+
+### Fast profile (what a push runs)
+
+A push that does not target `production` runs the fast profile unless the
+pushing environment sets `ASYM_PRE_PUSH_PROFILE=full`. Any other value of that
+variable blocks the push. The fast profile is deterministic, needs no network
+and checks what the branch changed against `origin/develop` (working tree
+included), in the full profile's order:
+
+1. `verify:node-version`
+2. Prettier `--check` on the changed files that still exist (the whole
+   repository when the branch diff cannot be read)
+3. `verify:phase25-spec`, `verify:phase27-spec`, `verify:phase28-spec`
+4. `openspec:validate`, `verify:openspec-deltas`
+5. Lint of the affected workspaces (`turbo run lint --affected` with
+   `TURBO_SCM_BASE=origin/develop`, as pull-request CI runs it)
+6. `verify:data-boundary`, `verify:cms-public-sole-entry`,
+   `verify:workspace-contract`, `verify:bun-lock-drift`, `verify:shadcn-config`
+7. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
+
+It leaves out the stages that are slow or need the network. Required CI
+covers each of them on every pull request, except `verify:shadcn-diff`:
+
+| Left out of the fast profile | Why                                           | Covered by                                                 |
+| ---------------------------- | --------------------------------------------- | ---------------------------------------------------------- |
+| `skills:verify`              | 183 s alone on a loaded Windows host          | `integrity` job (required through `ci-gate`)               |
+| `verify:eslint`              | 54 s alone on the same host                   | `lint` job (required through `ci-gate`)                    |
+| `verify:shadcn-diff`         | Calls the shadcn registry                     | No CI job; run `bun run ci:preflight` before a PR is ready |
+| Compilation                  | Minutes per app                               | `build` job when the compilation plan selects apps         |
+| `test:unit`                  | The longest stage                             | `test-unit` job (required through `ci-gate`)               |
+| `test:acceptance`            | Runs after the unit suite in the full profile | `acceptance-tests` job (required through `ci-gate`)        |
+
+A failed stage in either profile ends with `==> FAIL <stage>`, the exact
+command that re-runs that stage alone, and the last 40 lines of its output,
+then stops. A pass names the profile; only a complete full profile prints
+`==> PASS ci:preflight`.
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
@@ -109,12 +158,13 @@ links. It never executes the supplied reference scripts or claims runtime
 qualification. It is a scoped documentation check in addition to the unchanged
 preflight stage sequence.
 
-Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
-`tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
+Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage
+order of both profiles, scoping and output), `tests/unit/scripts/pre-push-handoffs.test.ts`
+(profile selection), `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
 `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` (app unit smoke paths).
 
-The `.husky/pre-push` coordinator preserves the production push guard and runs
-normal CI preflight. Commit authors, committers, names, emails, and signatures
+The `.husky/pre-push` coordinator applies the production push guard first,
+then runs the selected profile. Commit authors, committers, names, emails, and signatures
 are not development gates. GitHub access authorizes people and approved
 automation; see `docs/ops/github-access.md` for agent command authorization.
 

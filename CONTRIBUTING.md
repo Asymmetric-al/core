@@ -62,8 +62,17 @@ without repairing it. Setup does not start an issue trial.
 - **GitHub operations:** internal Windows developers may use their authenticated
   Windows `gh` for normal issue, pull-request, review, check, and Actions work;
   see `docs/guides/development/contributing.md`.
-- **Required local PR/push-readiness gate:** `bun run ci:preflight` (conditional development compilation; exact stages
-  and focused debugging commands are documented in `docs/ci.md`).
+- **Required local PR-readiness gate:** `bun run ci:preflight`, the full
+  profile (conditional development compilation; exact stages and focused
+  debugging commands are documented in `docs/ci.md`).
+- **Push gate:** `git push` runs the fast profile
+  (`bun run ci:preflight -- --fast`): formatting of changed files, affected
+  lint and typecheck, and the quick verifiers. It does not replace the full
+  profile before a pull request is ready.
+- **Agent edit hook:** Claude Code, Codex and Cursor format and lint each file
+  an agent edits through `scripts/agent-hooks/after-edit.mjs`. Codex runs it
+  after you trust it once with `/hooks`. Set `ASYM_EDIT_HOOK=format` to skip
+  its lint step on a slow machine, or `off` to skip it.
 - **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with
   Playwright Chromium installed. See [shared font maintenance](packages/ui/fonts/README.md)
   for the exact asset, license, subset and preload contract.

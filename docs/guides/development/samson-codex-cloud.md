@@ -99,7 +99,8 @@ Samson maintains the native Steps plan with role/stage labels, current handoffs,
 review results, repairs, blockers and approval waits. Concurrent reviewers share
 one active step. Progress updates identify the branch, candidate SHA and PR.
 
-The assigned worker pushes normally through `ci:preflight`, opens a PR to
+The assigned worker pushes normally with `ASYM_PRE_PUSH_PROFILE=full` (so the
+pre-push hook runs the full `ci:preflight`), opens a PR to
 `develop`, resolves feedback and returns DELIVERY_READY with the exact candidate,
 acceptance revision, independent reviews, final PASS and current-head required
 checks. It stops before merge. David, the root coordinator, refreshes protections,
