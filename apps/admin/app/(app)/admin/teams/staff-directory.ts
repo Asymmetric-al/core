@@ -1,5 +1,7 @@
 export interface StaffAccount {
   id: string;
+  /** The member directory's display name (council round 1 on WP2a, F8). */
+  display_name?: string | null;
   full_name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
@@ -20,6 +22,7 @@ export const STAFF_ROLE_LABELS: Record<string, string> = {
 
 export function staffName(account: StaffAccount) {
   return (
+    account.display_name?.trim() ||
     account.full_name?.trim() ||
     [account.first_name, account.last_name].filter(Boolean).join(" ").trim() ||
     account.email ||

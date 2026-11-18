@@ -270,5 +270,7 @@ before granting. `tenant_member_profiles`, added by the WP2a sweep, is the
 service-key reader of a tenant's memberships joined to profiles: the server
 code that needs a tenant's members, approvers or notification recipients
 reads them there, never by filtering `profiles` on `tenant_id` or `role`
-(NR-68). Signed-in staff use the member directory instead. `begin_human_command` replaces the one-argument function of
+(NR-68). It returns named columns and serves the server's own notification,
+approval and history work. Mission Control's users list reads the member
+directory instead, on the caller's own token (council round 1 on WP2a, F8). `begin_human_command` replaces the one-argument function of
 AL-2674; its second argument, the capability, defaults to NULL.

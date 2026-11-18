@@ -491,6 +491,51 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         expect(anon.code).toBe("42501");
       }));
 
+    // Council round 1 on WP2a, F8: Mission Control's users list reads the
+    // directory on the caller's token. It names its columns, each one Mission
+    // Control may see (profiles.email is "vex" there in the field-policy
+    // manifest), and shows a person who belongs to two tenants only by the
+    // row of the tenant asked about.
+    it("names its columns, the email among them, and shows a two-tenant member only by that tenant's row", () =>
+      tx(async () => {
+        await db.query(
+          "update public.profiles set email = 'drew@example.org' where user_id = $1",
+          [id.UDON],
+        );
+        const r = await as(
+          "authenticated",
+          { sub: "UB" },
+          `select * from public.tenant_member_directory('${id.TB}')`,
+        );
+        expect(r.code, r.message).toBeNull();
+        expect(Object.keys(r.rows[0]!).sort()).toEqual([
+          "display_name",
+          "email",
+          "is_tenant_admin",
+          "membership_id",
+          "profile_id",
+          "role",
+          "staff_role",
+          "user_id",
+        ]);
+        const profile = await one(
+          "select id from public.profiles where user_id = $1",
+          [id.UDON],
+        );
+        expect(r.rows.filter((row) => row.user_id === id.UDON)).toEqual([
+          {
+            membership_id: id.mDonB,
+            user_id: id.UDON,
+            profile_id: profile.id,
+            display_name: DISPLAY.UDON,
+            email: "drew@example.org",
+            role: "donor",
+            staff_role: null,
+            is_tenant_admin: false,
+          },
+        ]);
+      }));
+
     it("refuses at the next request once the caller's row is revoked", () =>
       tx(async () => {
         expect(

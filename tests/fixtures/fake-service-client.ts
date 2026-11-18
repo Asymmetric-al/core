@@ -2,7 +2,9 @@
  * AL-2675 (WP2a sweep): an in-memory stand-in for the service-key Supabase
  * client, enough for the queries the sweep moved to membership. `from(table)`
  * filters fixture rows (`eq`, `neq`, `in`, `is`, `not … is null`, `order`,
- * `range`, `limit`, `single`, `maybeSingle`); `rpc("tenant_member_profiles")`
+ * `range`, `limit`, `single`, `maybeSingle`, `setHeader`);
+ * `rpc("tenant_member_directory")` answers as the member directory does, and
+ * `rpc("tenant_member_profiles")`
  * answers from fixture memberships joined to profiles by login, as the SQL
  * function does: its filters, ordered by membership id, a page of `p_limit`
  * (1,000 at most) after `p_after_membership_id`. Like the Data API, the
@@ -86,6 +88,12 @@ class FakeQuery implements PromiseLike<{ data: unknown; error: null }> {
     this.mode = "single";
     return this;
   }
+  /** Request headers the query would send (`x-asym-assignment`). */
+  readonly headers: Record<string, string> = {};
+  setHeader(name: string, value: string) {
+    this.headers[name] = value;
+    return this;
+  }
   maybeSingle() {
     this.mode = "maybe";
     return this;
@@ -132,10 +140,15 @@ export function fakeServiceClient(data: FakeServiceData) {
       calls.push(`from:${table}`);
       return new FakeQuery(data.tables[table] ?? []);
     },
-    async rpc(fn: string, args: Record<string, unknown>) {
+    rpc(fn: string, args: Record<string, unknown>) {
       calls.push(`rpc:${fn}`);
+      if (fn === "tenant_member_directory")
+        return new FakeQuery(directoryRows(data, args.p_tenant_id as string));
       if (fn !== "tenant_member_profiles")
-        return { data: null, error: { message: `unknown rpc ${fn}` } };
+        return Promise.resolve({
+          data: null,
+          error: { message: `unknown rpc ${fn}` },
+        });
       const profileIds = args.p_profile_ids as string[] | null;
       const userIds = args.p_user_ids as string[] | null;
       const role = (args.p_role ?? null) as string | null;
@@ -171,13 +184,45 @@ export function fakeServiceClient(data: FakeServiceData) {
             },
           ];
         });
-      return {
+      return Promise.resolve({
         data: rows.slice(0, Math.min(limit, DATA_API_MAX_ROWS)),
         error: null,
-      };
+      });
     },
   };
   return client;
+}
+
+/**
+ * `public.tenant_member_directory(tenant)`'s rows, as the SQL function
+ * returns them on the caller's token: every live member of the tenant with
+ * its profile's display name and email (council round 1 on WP2a, F8). The
+ * function's check of the caller's staff row is proved on the real stack.
+ */
+function directoryRows(data: FakeServiceData, tenantId: string) {
+  const profiles = data.tables.profiles ?? [];
+  const text = (value: unknown) =>
+    typeof value === "string" && value.trim() ? value.trim() : null;
+  return data.memberships
+    .filter((m) => m.tenant_id === tenantId && m.is_active)
+    .map((m) => {
+      const profile = profiles.find((p) => p.user_id === m.user_id);
+      return {
+        membership_id: m.id,
+        user_id: m.user_id,
+        profile_id: (profile?.id as string | undefined) ?? null,
+        display_name:
+          text(profile?.display_name) ??
+          text(profile?.full_name) ??
+          text(
+            [profile?.first_name, profile?.last_name].filter(Boolean).join(" "),
+          ),
+        email: (profile?.email as string | undefined) ?? null,
+        role: m.role,
+        staff_role: m.staff_role,
+        is_tenant_admin: m.is_tenant_admin,
+      } as Row;
+    });
 }
 
 /** One `tenant_member_profiles` row, for tests that mock `rpc` directly. */

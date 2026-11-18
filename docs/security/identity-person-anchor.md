@@ -156,9 +156,14 @@ tests, is:
   takes the tenant of the request's resolved assignment, and
   `packages/ui/hooks/retained-draft.tsx` scopes drafts by the page's tenant.
 - App code that filters `profiles` by tenant or role: none. The WP2a sweep
-  moved every such query to membership (`tenant_member_profiles`) or the
-  member directory, because a profile holds one tenant at most and a person
-  may hold memberships in two (NR-68). The reader manifest's filter half
+  moved every such query to membership, because a profile holds one tenant
+  at most and a person may hold memberships in two (NR-68). Server code that
+  needs a tenant's members, approvers, notification recipients, or the
+  authors and assignees it shows reads `tenant_member_profiles` with the
+  service key; Mission Control's users list reads the member directory
+  (`tenant_member_directory`) on the caller's own token, which checks the
+  caller's staff row and returns named columns only (council round 1 on
+  WP2a, F8). The reader manifest's filter half
   (criterion 6b) fails on any query filter of the profile's tenant or role,
   the generic tenant-row helper's call included.
 

@@ -9,7 +9,10 @@
  *
  * The real query code runs against an in-memory service client whose
  * `tenant_member_profiles` RPC answers as the SQL function does (the
- * function itself is proved on the real stack in membership-core).
+ * function itself is proved on the real stack in membership-core). The users
+ * list reads the member directory on the caller's token (council round 1 on
+ * WP2a, F8); the same in-memory client stands in for that token's client and
+ * answers the directory as the SQL function does.
  */
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,6 +34,9 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 vi.mock("@asym/lib/audit/logger", () => ({
   createAuditLogger: vi.fn(() => ({})),
+}));
+vi.mock("../../../../packages/api/src/shared/request-session-client", () => ({
+  createRequestSessionClient: async () => h.client,
 }));
 
 import { listEligibleApprovers } from "../../../../packages/api/src/admin/contribution-operations/approval-notifications";
@@ -177,13 +183,33 @@ describe("AL-2675 sweep: each tenant's people come from that tenant's membership
         users: { id: string; tenant_id: string; role: string }[];
       };
       for (const user of body.users) expect(user.tenant_id).toBe(t);
+      lastUsers = body.users;
       return sorted(body.users.map((u) => u.id));
     };
+    let lastUsers: Record<string, unknown>[] = [];
     expect(await list(TA)).toEqual(sorted([P.admA, P.finA, P.both, P.riley]));
     expect(await list(TB)).toEqual(sorted([P.admB, P.both, P.riley]));
     expect(await list(TB, "&role=admin")).toEqual(sorted([P.admB, P.both]));
     expect(await list(TA, "&role=staff")).toEqual([P.finA]);
     expect(await list(TB, "&role=super_admin")).toEqual([]);
+
+    // Council round 1 on WP2a, F8: tenant B sees the two-tenant donor through
+    // B's row and the directory's named columns only; nothing of the profile
+    // that names tenant A (its tenant column, its stale role) comes back.
+    await list(TB, "&role=donor");
+    expect(lastUsers).toEqual([
+      {
+        id: P.riley,
+        membership_id: "m7",
+        display_name: "riley",
+        email: "riley@example.test",
+        tenant_id: TB,
+        role: "donor",
+        staff_role: null,
+        is_tenant_admin: false,
+      },
+    ]);
+    expect(client.calls).not.toContain("from:profiles");
   });
 
   it("an assignee is named in a tenant only when they belong to it", async () => {

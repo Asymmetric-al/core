@@ -28,10 +28,15 @@
 --    `actor_is_super_admin` to `actor_can_manage_defaults`, and the
 --    tenant-default wrapper reads the new name. A delegated manager is still
 --    decided by the original body.
--- 5. `public.tenant_member_directory(tenant)`: display name and role of every
---    live member of the tenant, for a caller whose selected live staff row is
---    in that tenant (1). Staff screens and tenant administrators use it.
---    Definer, postgres-owned, executable by signed-in users only.
+-- 5. `public.tenant_member_directory(tenant)`: display name, email and role
+--    of every live member of the tenant, for a caller whose selected live
+--    staff row is in that tenant (1). Staff screens and tenant administrators
+--    use it on their own token; the Mission Control users list reads it there
+--    (council round 1 on WP2a, F8). It returns named columns only, each one
+--    the field-policy manifest lets Mission Control see (`profiles.email` is
+--    visible there), and nothing of a member's profile that names another
+--    tenant beyond those. Definer, postgres-owned, executable by signed-in
+--    users only.
 -- 6. Sign-up (`public.handle_new_user`): it keeps assigning the demo tenant,
 --    or the tenant in the login's app metadata as before, as a donor
 --    membership, until WP5 replaces it. It also keeps writing that tenant to
@@ -585,6 +590,7 @@ RETURNS TABLE (
   user_id UUID,
   profile_id UUID,
   display_name TEXT,
+  email TEXT,
   role TEXT,
   staff_role TEXT,
   is_tenant_admin BOOLEAN
@@ -610,6 +616,7 @@ BEGIN
         NULLIF(pg_catalog.btrim(p.full_name), ''),
         NULLIF(pg_catalog.btrim(pg_catalog.concat_ws(' ', p.first_name, p.last_name)), '')
       ),
+      p.email,
       m.role::TEXT,
       m.staff_role::TEXT,
       m.is_tenant_admin
@@ -623,7 +630,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.tenant_member_directory(UUID) IS
-  'Display name and role of every live member of a tenant, for a caller whose '
+  'Display name, email and role of every live member of a tenant, for a caller whose '
   'selected live staff row is in that tenant (plan 5.1, AL-2675).';
 
 ALTER FUNCTION public.tenant_member_directory(UUID) OWNER TO postgres;
