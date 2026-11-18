@@ -131,6 +131,11 @@ describe("the Mission Control users list (council round 1 on WP2a, F8)", () => {
       ["range", 20, 29],
     ]);
     expect(h.serviceKeyUsed).not.toHaveBeenCalled();
+    // WP2b, AL-2675: the session client sends the resolved tenant and row.
+    expect(h.session).toHaveBeenCalledWith(expect.any(Request), {
+      tenantId: TENANT,
+      assignmentId: ROW,
+    });
     const body = (await response.json()) as { users: unknown[] };
     expect(body.users).toEqual([
       {

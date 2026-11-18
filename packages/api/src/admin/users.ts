@@ -1,3 +1,4 @@
+import { requestScopeOf } from "@asym/auth/context";
 import { ASSIGNMENT_HEADER } from "@asym/auth/request-headers";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -67,8 +68,11 @@ export const GET = withOperation(
     const filters = roleLabelFilters(role);
     if (!filters) return NextResponse.json({ users: [] });
 
+    // Every request of the session client carries the resolved tenant and
+    // assignment (WP2b, AL-2675); the header set below names the same row.
     const session = (await createRequestSessionClient(
       request,
+      requestScopeOf(ctx),
     )) as unknown as DirectoryClient;
     let query = session.rpc("tenant_member_directory", {
       p_tenant_id: ctx.tenantId,
