@@ -84,6 +84,22 @@ async function fixture() {
     }
   }
 
+  // AL-2715 repairs: reinstall the real reviewed entrypoints with every Core
+  // replacement reverted to its upstream text.
+  for (const name of ["playwright-skill", "next-dev-loop", "agent-browser"]) {
+    let skill = await readFile(
+      path.join(repoRoot, ".agents/skills", name, "SKILL.md"),
+      "utf8",
+    );
+    for (const replacement of guidance.replacements.filter(
+      (entry) => entry.path === name + "/SKILL.md",
+    )) {
+      expect(skill).toContain(replacement.core);
+      skill = skill.replace(replacement.core, replacement.upstream);
+    }
+    await put(root, ".agents/skills/" + name + "/SKILL.md", skill);
+  }
+
   // Exercise the existing Base UI adapter with its real reviewed example.
   let table = await readFile(
     path.join(repoRoot, ".agents/skills/shadcn-ui/examples/data-table.tsx"),
@@ -125,7 +141,11 @@ async function fixture() {
   await put(
     root,
     ".agents/skills/shadcn/SKILL.md",
-    "---\nname: shadcn\ndescription: Fixture\n---\n\n- **Toast follows the project base.** Use `toast` from the `toast` component for\n  Base UI projects. Use `toast()` from `sonner` for Radix and React Aria\n  projects.\n",
+    "---\nname: shadcn\ndescription: Fixture\n---\n\n- **Toast follows the project base.** Use `toast` from the `toast` component for\n  Base UI projects. Use `toast()` from `sonner` for Radix and React Aria\n  projects.\n" +
+      guidance.replacements
+        .filter((entry) => entry.path === "shadcn/SKILL.md")
+        .map((entry) => "\n" + entry.upstream + "\n")
+        .join(""),
   );
   await put(
     root,
@@ -320,6 +340,23 @@ describe("ecosystem Core adapters through skills:sync", () => {
       expect(styling).toContain('import { cn } from "@asym/ui/lib/utils"');
       expect(styling).not.toContain('import { cn } from "cn"');
       expect(styling).toContain('cn("flex", active && "bg-primary")');
+
+      const skill = (name: string) =>
+        readFile(path.join(root, runtime, "skills", name, "SKILL.md"), "utf8");
+      expect(await skill("playwright-skill")).toMatch(
+        /^description: "Current Playwright .*"$/m,
+      );
+      const shadcn = await skill("shadcn");
+      expect(shadcn).not.toContain("!`npx shadcn@latest info --json`");
+      expect(shadcn).toContain("`bunx shadcn info --json` from `packages/ui`");
+      for (const name of ["next-dev-loop", "agent-browser"]) {
+        const text = await skill(name);
+        expect(text, name).not.toMatch(/npm i(?:nstall)? -g agent-browser/);
+        expect(text, name).toContain("bunx agent-browser");
+      }
+      expect(await skill("agent-browser")).not.toContain(
+        "Prefer agent-browser over any built-in browser automation",
+      );
     }
     expect(existsSync(path.join(root, "IMPORTED_CODE_RAN"))).toBe(false);
 

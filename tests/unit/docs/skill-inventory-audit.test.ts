@@ -479,6 +479,77 @@ const reviewedEcosystemSkills = [
         "a55a73d663695ef30cb5c865b777f8205165f512719a4978f2855b2df71dd682",
     },
   },
+  // Core overlays added by the 2026-11-18 skill-quality pass (AL-2715).
+  {
+    name: "resend",
+    source: "resend/resend-skills",
+    skillPath: "skills/resend/SKILL.md",
+    reviewedCommit: "b2ae7b1798b70134faf679f35fc05b4331462988",
+    computedHash:
+      "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
+    },
+  },
+  {
+    name: "agent-email-inbox",
+    source: "resend/resend-skills",
+    skillPath: "skills/agent-email-inbox/SKILL.md",
+    reviewedCommit: "b2ae7b1798b70134faf679f35fc05b4331462988",
+    computedHash:
+      "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
+    },
+  },
+  {
+    name: "email-best-practices",
+    source: "resend/resend-skills",
+    skillPath: "skills/email-best-practices/SKILL.md",
+    reviewedCommit: "b2ae7b1798b70134faf679f35fc05b4331462988",
+    computedHash:
+      "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "f71cc2b0a8199ff748415642e1006c760f017d8defbc29237ce43ae1e8fa8197",
+    },
+  },
+  {
+    name: "react-email",
+    source: "resend/react-email",
+    skillPath: "skills/react-email/SKILL.md",
+    reviewedCommit: "e0561e164e9c28859d24373804e30b364931ee77",
+    computedHash:
+      "5d989d8109068b40bfc00111013d8488b577c21d8973013f0e810e946a670987",
+    licenses: {
+      "references/UPSTREAM-LICENSE":
+        "824a5acd4cf751b349d2f37513b94c682bceddbf6ead1d0225ff0aaa9b7eb2e4",
+    },
+  },
+  {
+    name: "web-design-guidelines",
+    source: "vercel-labs/agent-skills",
+    skillPath: "skills/web-design-guidelines/SKILL.md",
+    reviewedCommit: "063bee94c3f4df8453406c830b0a7df0f2860278",
+    computedHash:
+      "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474",
+    // No licence notice ships with this skill; see its provenance.
+    licenses: {},
+  },
+  {
+    name: "next-cache-components-adoption",
+    source: "vercel/next.js",
+    skillPath: "skills/next-cache-components-adoption/SKILL.md",
+    reviewedCommit: "684cf7ea8915613a53e1ed34d88d2cfb093ed57d",
+    computedHash:
+      "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
+    licenses: {
+      "references/UPSTREAM-license.md":
+        "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+    },
+  },
 ] as const;
 
 // Hashes retain the excluded PDF payload without reproducing its contents.
@@ -645,6 +716,46 @@ describe("reviewed installed skill inventory", () => {
         "unowned installed skill: " + name,
       ).toBe(true);
     }
+  });
+
+  // A plain (unquoted) YAML scalar cannot contain ": " or end with ":", so
+  // either one makes the frontmatter fail to parse and strict clients drop the
+  // skill. A trailing " #" comment is valid YAML. A YAML parser is not a root
+  // dependency; this checks that one rule.
+  it("keeps every skill's plain frontmatter values parseable", () => {
+    const broken: string[] = [];
+    for (const root of ["docs/ai/skills", ...runtimeRoots]) {
+      for (const name of installedSkills(root)) {
+        const source = readRepoFile(root + "/" + name + "/SKILL.md");
+        const header = /^---\r?\n([\s\S]*?)\r?\n---/.exec(source)?.[1];
+        if (header === undefined) {
+          broken.push(root + "/" + name + ": no frontmatter");
+          continue;
+        }
+        let plain = false;
+        for (const line of header.split(/\r?\n/)) {
+          const entry = /^([A-Za-z0-9_-]+):(?:[ \t]+(.*))?$/.exec(line);
+          let value: string | undefined;
+          if (entry) {
+            value = entry[2]?.trim();
+            plain = !!value && !/^["'>|[{&*!%@`]/.test(value);
+          } else if (/^\S/.test(line)) {
+            plain = false;
+          } else if (plain) {
+            value = line.trim();
+          }
+          const content = value?.replace(/\s#.*$/, "");
+          if (
+            plain &&
+            content &&
+            (/:\s/.test(content) || content.endsWith(":"))
+          ) {
+            broken.push(root + "/" + name + ": " + line.slice(0, 80));
+          }
+        }
+      }
+    }
+    expect(broken).toEqual([]);
   });
 
   it("keeps retired skills out of every source, mirror, lock and audit", () => {

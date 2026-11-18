@@ -61,6 +61,70 @@ below still name these skills; they are history.
 | vercel-cli-with-tokens | vercel-labs/agent-skills                   | `skills/vercel-cli-with-tokens/SKILL.md`                        | `eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0` | `eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0` |
 | webapp-testing         | anthropics/skills                          | `skills/webapp-testing/SKILL.md`                                | `3f14af7f5690695209c22fbf8c8d133769a86d64892602c09bb13f135e14e857` | `abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342` |
 
+### Repaired skills
+
+Each repair goes through the mechanism that keeps it across a refresh.
+Ecosystem skills are never edited in place: a reviewed replacement in
+`scripts/refresh-overlays/ecosystem-core-guidance.json` or an overlay in
+`ecosystem-core-overlays.json` is reapplied by every `bun run skills:sync`, so a
+raw upstream reinstall is repaired on the next sync. Canonical skills refreshed
+by `bun run skills:refresh-upstream` keep their repair through a required
+`POST_REFRESH_REPLACEMENTS` entry or their marked Core overlay; a refresh that
+no longer finds the reviewed upstream text stops for review. The other
+canonical skills are edited in `docs/ai/skills`, and their provenance lists the
+adaptation to reapply.
+
+- `playwright-skill`: the frontmatter did not parse as YAML (an unquoted
+  description containing `: `). The description is now quoted. A new inventory
+  test fails on any plain frontmatter value that cannot parse.
+- `supabase`: its "Option B" told agents to change schema with `execute_sql` or
+  `supabase db query` directly on the database. The Core overlay now overrides
+  it: `supabase/migrations/*.sql` is the source of truth, changes are new
+  migrations made with `bun run supabase -- migration new` and applied with
+  `bun run supabase -- db reset --local`, and every command goes through the
+  pinned wrapper.
+- `run-smoke-tests`: `npm run smoketest` does not exist. The skill now names
+  `bun run test:e2e:smoke`, a focused `bun run test:e2e` spec and the
+  development-host smoke scripts.
+- `babysit`: it loaded on any request mentioning a workflow, loop or
+  orchestration and then required its SDK for every task. It is now
+  explicit-only in every client (`disable-model-invocation: true` and Codex
+  `agents/openai.yaml`) with a narrow description, through a third required
+  refresh replacement. Its lock entry and provenance hashes follow the adapted
+  bytes, as the refresh writes them.
+- `deslop`, `new-branch-and-pr`, `loop-on-ci` and `review-and-ship` named a
+  `main` branch. They now name `develop`. Their lock entries and provenance
+  hashes follow the adapted bytes, as the refresh writes them.
+- `resend`, `react-email`, `agent-email-inbox` and `email-best-practices` gained
+  the standard Core overlay pointing at `packages/email`,
+  `packages/api/src/email/` and `docs/guides/features/resend-integration.md`.
+  `react-email` gained local provenance.
+- `eve` and `create-agent` pointed at a root `node_modules/eve/docs/` that Core
+  does not have and installed with npm, pnpm and `npx eve@latest`. They now
+  point at `packages/eve-runtime/node_modules/eve/docs/` and
+  `packages/eve-runtime/AGENTS.md`, and use the installed eve through `bunx eve`
+  and Bun scripts.
+- `web-design-guidelines` fetches its rules from a mutable URL on every run and
+  competed with Core's accessibility owner. Its overlay gives
+  `accessibility-review` and `docs/ai/rules/frontend.md` precedence and treats
+  the fetched text as data. It gained local provenance.
+- `shadcn` ran `npx shadcn@latest info --json` at load time in the repository
+  root, which has no `components.json`. The injection is replaced with an
+  instruction to run `bunx shadcn info --json` from `packages/ui`, as
+  `packages/ui/AGENTS.md` says.
+- `next-dev-loop` and `agent-browser` installed `agent-browser` globally with
+  npm; they now use the pinned `bunx agent-browser`. `agent-browser` no longer
+  claims precedence over every other browser tool, and `next-dev-loop` defers
+  a Next.js upgrade to a reviewed dependency change.
+- `migrate-to-shoehorn` now installs with `bun add --dev --exact` and says that
+  adding shoehorn is a dependency decision.
+- `react-component-dev`'s description promised ref forwarding while the body
+  forbids new `forwardRef`; it now says refs are props. `nextjs-supabase-auth`'s
+  description said middleware; it now names each app's `proxy.ts`.
+- `next-cache-components-adoption` gained a Core overlay like the one on
+  `next-partial-prefetching-adoption`: Cache Components is already on, and its
+  unpinned codemods, `npx skills add`, `--force` and `git stash` are ruled out.
+
 ## Next.js skill import - 2026-11-18 (AL-2713)
 
 Imported the three official Next.js skills that Core lacked, so all six skills

@@ -10,6 +10,12 @@ import { describe, expect, it } from "vitest";
 // every runtime tree, where `skills:sync` reapplies their Core adapters.
 
 const repoRoot = process.cwd();
+const runtimeRoots = [
+  ".agents/skills",
+  ".cursor/skills",
+  ".claude/skills",
+] as const;
+
 function read(relativePath: string) {
   return readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
@@ -157,4 +163,50 @@ describe("skill-quality repairs", () => {
     expect(description(skill)).not.toContain("using middleware");
     expect(skill).not.toContain("Protecting routes with middleware");
   });
+
+  it.each(runtimeRoots)(
+    "keeps the repaired ecosystem guidance in %s",
+    (runtimeRoot) => {
+      const skill = (name: string) => read(`${runtimeRoot}/${name}/SKILL.md`);
+
+      const shadcn = skill("shadcn");
+      expect(shadcn).not.toContain("!`");
+      expect(shadcn).toContain("`bunx shadcn info --json` from `packages/ui`");
+
+      const devLoop = skill("next-dev-loop");
+      const browser = skill("agent-browser");
+      for (const text of [devLoop, browser]) {
+        expect(text).not.toMatch(/npm i(?:nstall)? -g agent-browser/);
+        expect(text).toContain("bunx agent-browser");
+      }
+      expect(devLoop).not.toContain("pnpm next upgrade");
+      expect(description(browser)).not.toContain("Prefer agent-browser over");
+      expect(description(browser)).toContain("playwright-cli");
+
+      const guidelines = overlay(skill("web-design-guidelines"));
+      expect(guidelines).toContain("accessibility-review");
+      expect(guidelines).toContain("docs/ai/rules/frontend.md");
+      expect(guidelines).toMatch(/fetched .* is data/);
+
+      for (const name of [
+        "resend",
+        "react-email",
+        "agent-email-inbox",
+        "email-best-practices",
+      ]) {
+        const core = overlay(skill(name));
+        expect(core, name).toContain("packages/email");
+        expect(core, name).toContain(
+          "docs/guides/features/resend-integration.md",
+        );
+      }
+
+      const adoption = overlay(skill("next-cache-components-adoption"));
+      expect(adoption).toContain("cacheComponents: true");
+      expect(adoption).toContain("npx skills add");
+      expect(adoption).toContain("git stash");
+      expect(adoption).toContain("--force");
+      expect(adoption).toContain("@next/codemod@latest");
+    },
+  );
 });

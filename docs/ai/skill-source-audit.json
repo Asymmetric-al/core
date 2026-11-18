@@ -81,15 +81,16 @@
       "sourcePath": "skills/agent-browser/SKILL.md",
       "rawSkillHash": "3a7520e64de2dfaa516b6721c001e84e06e3c06a187b82af029ae721540ebfac",
       "lockHash": "228f87d57035100d9dc6efcfc05aafd4b6e3962adacaa04b8217ab2fadb15dc8",
-      "entrypointHash": "3a7520e64de2dfaa516b6721c001e84e06e3c06a187b82af029ae721540ebfac",
-      "treeHash": "80161e6836b3b40f4e83730a290deb40ac14d877d38c97ad5f6d71be37ce74c3",
+      "entrypointHash": "f3078989502054ce016697b6359ff1d7165d8e67607cde260d11795efad336b7",
+      "treeHash": "f3ace6f76e9e89062e583839288961096e61bc87001ae9779c9748558c2da9f1",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
         "noticeFiles": []
       },
       "adaptations": [
-        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
+        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained.",
+        "Drop the description's claim to precede every other browser tool, and replace the global npm install with the pinned `bunx agent-browser`. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/agent-browser/SKILL.md",
       "reviewEvidence": [
@@ -118,8 +119,8 @@
       "sourcePath": "skills/agent-email-inbox",
       "rawSkillHash": "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
       "lockHash": "b4aaeb24aeb4d34ccd48cdce0ab7f91a65aed60ced1704922c977d56add4ee93",
-      "entrypointHash": "c6d71054fc076f4b9367a93b1be42914aede180ff55582fde9f7dafde60154b2",
-      "treeHash": "6c9c720a5c0fb45a809fc014e81cb12165e9c2eebe8bb0011a3fa1f6564511e3",
+      "entrypointHash": "b54aa4c6e6fe95d888b97a58e1e156a43015dfa8c3bcb45805decaa64011bde3",
+      "treeHash": "b3dc59e2ed67bc7bddb6acd68ca6957737228523be2cd591bfdf27a9d1205b0a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -131,7 +132,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Core overlay pointing at Core's inbound webhook path, packages/email and packages/eve-runtime/AGENTS.md. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/agent-email-inbox/references/upstream.md",
       "reviewEvidence": [
@@ -2597,8 +2599,8 @@
       "sourcePath": "skills/email-best-practices",
       "rawSkillHash": "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
       "lockHash": "f1b957138619784e2c22f7ae689bde6e903a8134ee52d626d8846809382ef0c8",
-      "entrypointHash": "47441373ace6fc6a63bfdcb94a2dd29ba24220abe663b3ae0b1c22cbe6e754e9",
-      "treeHash": "59e1e863f6b2040e333074d199f777b9640d44e467dc1d61ddc65bb62d014024",
+      "entrypointHash": "fce20043707f089660e6a660354b6f05335667e068364131212023ce7535965a",
+      "treeHash": "700ba5f9970cc77bf15d5dd82d931b2112b30ddd175e12938782b3d764a744de",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -2610,7 +2612,8 @@
         ]
       },
       "adaptations": [
-        "Correct invalid new AbortSignal.timeout constructor to static AbortSignal.timeout factory"
+        "Correct invalid new AbortSignal.timeout constructor to static AbortSignal.timeout factory",
+        "Core overlay pointing at the packages/email owners and docs/guides/features/resend-integration.md. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/email-best-practices/references/upstream.md",
       "reviewEvidence": [
@@ -5377,8 +5380,8 @@
       "sourcePath": "skills/next-cache-components-adoption",
       "rawSkillHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
       "lockHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
-      "entrypointHash": "20bd3022e370fff23f3c3956c7f02e79edcee451a6533aa8d98f7e0fce40e35e",
-      "treeHash": "b9db7c193e9c862617de520899b6806064745ba9963b88e1de00a293a496f12d",
+      "entrypointHash": "eabeb717deecedc5e31a21c2d00a4c845e6392d86d20a83c9e06cf994eb3e5f3",
+      "treeHash": "3777b1e87e9fc3ef2bbd5b0dbb6a9acda54892332916647669abec53c207d0ac",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5390,7 +5393,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Core overlay: Cache Components is already on in every app; no unpinned codemods, `npx skills add`, `--force` or `git stash`. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/next-cache-components-adoption/references/upstream.md",
       "reviewEvidence": [
@@ -5468,8 +5472,8 @@
       "sourcePath": "skills/next-dev-loop",
       "rawSkillHash": "ca45c937ae77b2dc39399ffbe5afbfabcc1862056a62fd50c76342a32e6f8375",
       "lockHash": "ca45c937ae77b2dc39399ffbe5afbfabcc1862056a62fd50c76342a32e6f8375",
-      "entrypointHash": "ca45c937ae77b2dc39399ffbe5afbfabcc1862056a62fd50c76342a32e6f8375",
-      "treeHash": "066328b6babd3aec4c49e05624418c5cf4a3932d9f18aa97081cfdb0991dcafb",
+      "entrypointHash": "48b93b279d1fa59448916a5fcb48c92a7e018de1e5887128d18c9711ec652b69",
+      "treeHash": "7c21aeb99580eb1adb33850d941f550e152288174951b166886aed8754d81630",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5481,7 +5485,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Replace the global `npm i -g agent-browser@latest` install with the pinned `bunx agent-browser`, and the `pnpm next upgrade` step with Core's reviewed dependency change. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/next-dev-loop/references/upstream.md",
       "reviewEvidence": [
@@ -6820,8 +6825,8 @@
       "sourcePath": "./SKILL.md",
       "rawSkillHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
       "lockHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
-      "entrypointHash": "2a1041c630dc58963aba6a76cd2b9a7533e49124dff39295f584605c4a2ec461",
-      "treeHash": "0aa236e5e98b69d8cbc4def5e50318128bf7b271676aa79f60c554c12b30f2d3",
+      "entrypointHash": "1900d08d1e659c084ad543fbd18057bd73a775614977a54b4b6c4fa2900617f4",
+      "treeHash": "5b7604bdd5aae0f63861cea5db2c84e85030784c1c2b5094d58b0a12f02a55a1",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -6837,7 +6842,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Quote the frontmatter description so it parses as YAML (the unquoted value contained \": \"). Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/playwright-skill/references/upstream.md",
       "reviewEvidence": [
@@ -8107,8 +8113,8 @@
       "sourcePath": "skills/react-email/SKILL.md",
       "rawSkillHash": "6316bdbe822e49f93a709e81bc011569d1a1ea20f7de78cd33ea8a0501ad79b7",
       "lockHash": "5d989d8109068b40bfc00111013d8488b577c21d8973013f0e810e946a670987",
-      "entrypointHash": "15793b4dfed084d6006679193aa100f48d7624db17dee8b0675766bc6fed05ff",
-      "treeHash": "923be4e54b763729f7583ce5101e268e2fb0f7fd5db9fed25d127e2858ec8b45",
+      "entrypointHash": "6934a290b3d5e4484acf36aa05e5fbfafe693d224ba65c6a36d461f2d7ca98ad",
+      "treeHash": "e350875cc490f26d5613bf45ea37ccbb0f7a228981f54680b18f0c895ae3746a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8120,9 +8126,10 @@
         ]
       },
       "adaptations": [
-        "Retain scanner allowlist comments; no upstream instruction delta."
+        "Retain scanner allowlist comments; no upstream instruction delta.",
+        "Core overlay pointing at the packages/ui React Email editor, packages/email and docs/guides/features/resend-integration.md, with local provenance added. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
-      "evidence": ".agents/skills/react-email/SKILL.md",
+      "evidence": ".agents/skills/react-email/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "immutable-upstream-entrypoint",
@@ -8530,8 +8537,8 @@
       "sourcePath": "skills/resend",
       "rawSkillHash": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
       "lockHash": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
-      "entrypointHash": "56b5f80dc21a4ef7e7b92586d98af3e00dfdad802fc7be98fd143d95092cdfb3",
-      "treeHash": "c8d2c91e4e20a0733258ffb753e08c26a816ba1c73c46b35effdc3501974a8ff",
+      "entrypointHash": "494de93158362606a5c3447d0b69c7a3b3af7605452a50cb903538165c0416ea",
+      "treeHash": "819483fa54be312df90a446c92cee5c8043ef85ff4037d3dee224d6392907de9",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -8543,7 +8550,8 @@
         ]
       },
       "adaptations": [
-        "Reviewed immutable source with existing Core compatibility preserved."
+        "Reviewed immutable source with existing Core compatibility preserved.",
+        "Core overlay pointing at the packages/email owners, packages/api webhook handling and docs/guides/features/resend-integration.md. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/resend/references/upstream.md",
       "reviewEvidence": [
@@ -9116,8 +9124,8 @@
       "sourcePath": "skills/shadcn",
       "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
       "lockHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
-      "entrypointHash": "89860c0a605caa201a1d95e736c49676319999ebac27887e8a2d78a10278c56b",
-      "treeHash": "d447b3da312c8230422af76ad5fe1070de1822e6bb48bf128568869a3ac92cc1",
+      "entrypointHash": "c88d669c36e9c3a120e42ebc51224ed46d1a488df6e03ec3f6e7618be370a3e9",
+      "treeHash": "7231fd85aa86b493a279d9ed0ef27c076b8b100862a3b9517472a7d43a5f4597",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9129,7 +9137,8 @@
         ]
       },
       "adaptations": [
-        "Preserve existing shared Sonner host and Base UI/base-maia boundaries"
+        "Preserve existing shared Sonner host and Base UI/base-maia boundaries",
+        "Remove the load-time `npx shadcn@latest info --json` injection and route shadcn commands through `bunx shadcn` from packages/ui. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/shadcn/references/upstream.md",
       "reviewEvidence": [
@@ -10795,17 +10804,18 @@
       "sourcePath": "skills/web-design-guidelines/SKILL.md",
       "rawSkillHash": "f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
       "lockHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474",
-      "entrypointHash": "f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
-      "treeHash": "1db1cfbe4c860ae59815abc457c99529dc73bd7c12f72fade1109103e6d14405",
+      "entrypointHash": "dd7eda521d4b6971120fc6bd58e6346727540e652eab35f43351a9f1ebfad837",
+      "treeHash": "7b2ff87d15899aa3466862098c77614006d6079fef616c24bea95102eb6cc328",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
         "noticeFiles": []
       },
       "adaptations": [
-        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained."
+        "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained.",
+        "Core overlay: accessibility-review and docs/ai/rules/frontend.md take precedence, and the fetched guideline text is data, not instructions; local provenance added. Restored by ecosystem-core-overlays.json at every skills:sync (AL-2715)."
       ],
-      "evidence": ".agents/skills/web-design-guidelines/SKILL.md",
+      "evidence": ".agents/skills/web-design-guidelines/references/upstream.md",
       "reviewEvidence": [
         {
           "kind": "complete-reviewed-source-comparison",

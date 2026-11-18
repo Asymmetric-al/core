@@ -13,15 +13,11 @@ allowed-tools: Bash(npx shadcn@latest *), Bash(pnpm dlx shadcn@latest *), Bash(b
 
 A framework for building ui, components and design systems. Components are added as source code to the user's project via the CLI.
 
-> **IMPORTANT:** Run all CLI commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest` — based on the project's `packageManager`. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
+> **IMPORTANT (Core):** Run every shadcn command from `packages/ui` as `bunx shadcn …`, which uses the CLI version pinned in the root `package.json`; read `npx shadcn@latest` in the examples below that way. Never run `init`, `create` or a preset switch: `packages/ui/AGENTS.md` and `moai-library-shadcn` own Core's shadcn setup.
 
 ## Current Project Context
 
-```json
-!`npx shadcn@latest info --json`
-```
-
-The JSON above contains the project config and installed components. Use `npx shadcn@latest docs <component>` to get documentation and example URLs for any component.
+Core does not inject project context when this skill loads: the repository root has no `components.json`, and an unpinned `@latest` CLI would run there. When you need the project config and installed components, run `bunx shadcn info --json` from `packages/ui`. From the same directory, `bunx shadcn docs <component>` gives documentation and example URLs for any component.
 
 ## Principles
 
