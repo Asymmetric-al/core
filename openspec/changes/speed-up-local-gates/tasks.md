@@ -48,7 +48,7 @@
 
 ## 5. Documents
 
-- [ ] 5.1 Update every document that describes the push gate (`docs/ci.md`,
+- [x] 5.1 Update every document that describes the push gate (`docs/ci.md`,
       `CONTRIBUTING.md`, `README.md`, `contribution-workflow.md`,
       `docs/ai/rules/general.md` with the upgrade-stop line,
       `docs/ai/rules/testing.md`, `docs/ai/protected-paths.md`,
@@ -59,11 +59,11 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Run the fast profile three times on this Windows host and record
+- [x] 6.1 Run the fast profile three times on this Windows host and record
       stage timings and machine state.
-- [ ] 6.2 In a restored scratch state, show the fast profile stops a push for
+- [x] 6.2 In a restored scratch state, show the fast profile stops a push for
       a formatting error, a lint error and a type error.
-- [ ] 6.3 `bun run openspec -- validate speed-up-local-gates --strict` and
+- [x] 6.3 `bun run openspec -- validate speed-up-local-gates --strict` and
       `bun run verify:openspec-deltas` pass.
 
 ## Workflow follow-up
