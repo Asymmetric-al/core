@@ -46,6 +46,10 @@ import {
   WEB_STUDIO_TENANT_COOKIE,
   type WebStudioCookieState,
 } from "./web-studio";
+import {
+  refreshWebStudioApiSession,
+  webStudioChooserUrl,
+} from "./web-studio-proxy";
 
 import type { AssignmentRpcClient } from "./principal/reader";
 import type { ActiveAssignment, RoleClass } from "./principal/types";
@@ -103,12 +107,11 @@ export interface AuthMiddlewareOptions {
   /**
    * Web Studio (plan 5.2, "One stated exception: Web Studio"; AL-2675).
    * Payload's REST routes under `/web-studio/api` only have their session
-   * cookies refreshed: no role lookup and never a redirect, so Payload's
-   * strategy answers an expired or unauthorized call with JSON. Web Studio's
-   * pages take the organization from the signed Web Studio cookie, which only
+   * refreshed: no role lookup and never a redirect, so Payload's strategy
+   * answers an expired or unauthorized call with JSON. Web Studio's pages
+   * take the organization from the signed Web Studio cookie, which only
    * narrows: the person's live staff rows decide, and a person with several
-   * and no usable selection goes to the Web Studio chooser. Requires the
-   * staff `roleClass`.
+   * and no usable selection goes to the Web Studio chooser. Staff only.
    */
   webStudio?: {
     /** Reads and verifies the Web Studio cookie's value. */
@@ -299,101 +302,6 @@ function chooserUrl(
   return url;
 }
 
-function webStudioChooserUrl(request: NextRequest, next: string) {
-  const url = new URL(WEB_STUDIO_CHOOSER_PATH, request.nextUrl.origin);
-  url.searchParams.set("next", next);
-  return url;
-}
-
-/**
- * A request-scoped Supabase client whose refreshed session cookies, and the
- * cache headers that go with them, land on `response()`: the pass-through
- * response, rebuilt with the refreshed cookies on the forwarded request.
- */
-function createProxySessionClient(
-  request: NextRequest,
-  requestHeaders: Headers,
-  url: string,
-  key: string,
-) {
-  let supabaseResponse = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-  const refreshHeaders = new Headers();
-
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(
-        cookiesToSet: {
-          name: string;
-          value: string;
-          options?: Record<string, unknown>;
-        }[],
-        cacheHeaders: Record<string, string> = {},
-      ) {
-        cookiesToSet.forEach(({ name, value }) => {
-          request.cookies.set(name, value);
-        });
-        const cookieHeader = request.headers.get("cookie");
-        if (cookieHeader === null) requestHeaders.delete("cookie");
-        else requestHeaders.set("cookie", cookieHeader);
-        const previousCookies = supabaseResponse.cookies.getAll();
-        supabaseResponse = NextResponse.next({
-          request: { headers: requestHeaders },
-        });
-        previousCookies.forEach((cookie) => {
-          supabaseResponse.cookies.set(cookie);
-        });
-        cookiesToSet.forEach(({ name, value, options }) => {
-          supabaseResponse.cookies.set(
-            name,
-            value,
-            options as Record<string, unknown>,
-          );
-        });
-        Object.entries(cacheHeaders).forEach(([name, value]) => {
-          refreshHeaders.set(name, value);
-        });
-        refreshHeaders.forEach((value, name) => {
-          supabaseResponse.headers.set(name, value);
-        });
-      },
-    },
-  });
-
-  return { supabase, response: () => supabaseResponse };
-}
-
-/**
- * Payload's REST routes under `/web-studio/api` (plan 5.2; C09): the session
- * cookies are refreshed and the request passes on. No role lookup and never a
- * redirect: Payload's strategy resolves the caller and answers an expired or
- * unauthorized call with JSON. The document's tenant and assignment headers
- * stay, as claims the server compares with the Web Studio cookie.
- */
-async function refreshSessionOnly(
-  request: NextRequest,
-  pathname: string,
-  roleClass: RoleClass | null,
-) {
-  const requestHeaders = forwardedRequestHeaders(
-    request,
-    pathname,
-    roleClass,
-    true,
-  );
-  const { url, key } = getSupabasePublicConfig();
-  if (!url || !key) {
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  }
-  const session = createProxySessionClient(request, requestHeaders, url, key);
-  await session.supabase.auth.getUser();
-  return session.response();
-}
-
 /**
  * Shared auth proxy middleware for all app surfaces.
  *
@@ -472,10 +380,11 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return withPathHeader(request, pathname, roleClass);
     }
 
+    // Payload's REST routes under `/web-studio/api` (plan 5.2): the session
+    // is refreshed and nothing else. Never inside the tenant segment.
     if (webStudio && isWebStudioApiPath(pathname)) {
-      // Web Studio is outside the tenant segment, and so are its routes.
       if (address) return new NextResponse(null, { status: 404 });
-      return refreshSessionOnly(request, pathname, roleClass);
+      return refreshWebStudioApiSession(request, pathname, roleClass);
     }
 
     const config = getSupabasePublicConfig();
@@ -525,8 +434,53 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       roleClass,
       false,
     );
-    const session = createProxySessionClient(request, requestHeaders, url, key);
-    const { supabase } = session;
+    let supabaseResponse = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    const refreshHeaders = new Headers();
+
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(
+          cookiesToSet: {
+            name: string;
+            value: string;
+            options?: Record<string, unknown>;
+          }[],
+          cacheHeaders: Record<string, string> = {},
+        ) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+          const cookieHeader = request.headers.get("cookie");
+          if (cookieHeader === null) requestHeaders.delete("cookie");
+          else requestHeaders.set("cookie", cookieHeader);
+          const previousCookies = supabaseResponse.cookies.getAll();
+          supabaseResponse = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
+          previousCookies.forEach((cookie) => {
+            supabaseResponse.cookies.set(cookie);
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              options as Record<string, unknown>,
+            );
+          });
+          Object.entries(cacheHeaders).forEach(([name, value]) => {
+            refreshHeaders.set(name, value);
+          });
+          refreshHeaders.forEach((value, name) => {
+            supabaseResponse.headers.set(name, value);
+          });
+        },
+      },
+    });
 
     const {
       data: { user },
@@ -572,7 +526,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
-      return session.response();
+      return supabaseResponse;
     }
 
     if (isAuthRoute) {
@@ -600,7 +554,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             }
             return redirectWithCookies(
               buildRedirectUrl(request, unauthorizedRedirectTo),
-              session.response(),
+              supabaseResponse,
             );
           }
         }
@@ -610,11 +564,11 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         );
         return redirectWithCookies(
           buildRedirectUrl(request, requestedNext ?? redirectAuthenticatedTo),
-          session.response(),
+          supabaseResponse,
         );
       }
 
-      return session.response();
+      return supabaseResponse;
     }
 
     if (isProtectedPath && !userId) {
@@ -624,17 +578,17 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           loginPath,
           unauthenticatedRedirects,
         ),
-        session.response(),
+        supabaseResponse,
       );
     }
 
-    // Web Studio's pages (plan 5.2, "One stated exception"): outside the
-    // tenant segment, the organization comes from the signed Web Studio
-    // cookie, judged against the person's live staff rows. It replaces the
-    // role check there, which would refuse a person in two organizations.
-    // The chooser itself only needs a signed-in person.
+    // Web Studio's pages (plan 5.2): outside the tenant segment, the
+    // organization comes from the signed Web Studio cookie, judged against
+    // the person's live staff rows, in place of the role check, which would
+    // refuse a person in two organizations. The chooser needs only a
+    // signed-in person.
     if (webStudio && userId && isProtectedPath && isWebStudioPath(pathname)) {
-      if (pathname === WEB_STUDIO_CHOOSER_PATH) return session.response();
+      if (pathname === WEB_STUDIO_CHOOSER_PATH) return supabaseResponse;
       const assignments = await readSurfaceAssignments(
         user?.id ?? null,
         bypassSession,
@@ -648,21 +602,16 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             ),
           })
         : ({ kind: "refuse" } as const);
-      switch (decision.kind) {
-        case "allow":
-          return session.response();
-        case "choose":
-          return redirectWithCookies(
-            webStudioChooserUrl(request, withSearch(request, pathname)),
-            session.response(),
-          );
-        case "refuse":
-          if (assignments) reportAccessDiagnostic("no_assignment");
-          return redirectWithCookies(
-            buildRedirectUrl(request, unauthorizedRedirectTo),
-            session.response(),
-          );
+      if (decision.kind === "allow") return supabaseResponse;
+      if (decision.kind === "refuse" && assignments) {
+        reportAccessDiagnostic("no_assignment");
       }
+      return redirectWithCookies(
+        decision.kind === "choose"
+          ? webStudioChooserUrl(request, withSearch(request, pathname))
+          : buildRedirectUrl(request, unauthorizedRedirectTo),
+        supabaseResponse,
+      );
     }
 
     // The tenant in the page address (plan 5.2): the membership decision,
@@ -683,7 +632,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       if (!assignments) {
         return redirectWithCookies(
           buildRedirectUrl(request, unauthorizedRedirectTo),
-          session.response(),
+          supabaseResponse,
         );
       }
 
@@ -693,7 +642,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           reportAccessDiagnostic("no_assignment");
           return redirectWithCookies(
             buildRedirectUrl(request, unauthorizedRedirectTo),
-            session.response(),
+            supabaseResponse,
           );
         }
         const target =
@@ -710,7 +659,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
                 landing.tenantId,
                 withSearch(request, pathname),
               );
-        return redirectWithCookies(target, session.response());
+        return redirectWithCookies(target, supabaseResponse);
       }
 
       const decision = decideTenantAddress({
@@ -724,7 +673,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           reportAccessDiagnostic("no_assignment");
           return redirectWithCookies(
             buildRedirectUrl(request, unauthorizedRedirectTo),
-            session.response(),
+            supabaseResponse,
           );
         case "canonical":
           return redirectWithCookies(
@@ -735,7 +684,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
               ),
               request.nextUrl.origin,
             ),
-            session.response(),
+            supabaseResponse,
           );
         case "choose":
           return redirectWithCookies(
@@ -744,7 +693,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
               decision.tenantId,
               withSearch(request, pathname),
             ),
-            session.response(),
+            supabaseResponse,
           );
         case "allow": {
           requestHeaders.set(TENANT_HEADER, decision.assignment.tenantId);
@@ -761,7 +710,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
               new URL(withSearch(request, pathname), request.nextUrl.origin),
               { request: { headers: requestHeaders } },
             ),
-            session.response(),
+            supabaseResponse,
           );
         }
       }
@@ -801,12 +750,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         }
         return redirectWithCookies(
           buildRedirectUrl(request, unauthorizedRedirectTo),
-          session.response(),
+          supabaseResponse,
         );
       }
     }
 
-    return session.response();
+    return supabaseResponse;
   };
 }
 
