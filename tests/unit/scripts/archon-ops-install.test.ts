@@ -36,6 +36,7 @@ import {
   systemdUnits,
 } from "../../../scripts/archon-factory/installation/install-logic.mjs";
 import { createAssignment } from "../../../scripts/archon-factory/pack/.shared/workitem.mjs";
+import { validateNodeVersion } from "../../../scripts/verify/node-version.mjs";
 
 import { joinWrappedStatements } from "./support/source-statements";
 
@@ -534,6 +535,71 @@ describe("installed pieces are hash-verified", () => {
       /renameSync\(staged, ARCHON\);\s*\n\s*if \(fileSha\(ARCHON\) !== PIN\.archon\)/,
     );
     expect(installer).not.toContain("reuse-home");
+  });
+});
+
+describe("the factory runs the repository's Node", () => {
+  // The repository's own gate (scripts/verify/node-version.mjs) reads only
+  // .node-version. Every check of a candidate runs in the pinned image, and the
+  // pre-push gate starts with that gate, so a factory Node below the
+  // repository's floor fails every publication.
+  const version = PIN.nodeVersion.replace(/^v/, "");
+  const read = (file: string) =>
+    readFileSync(path.resolve("scripts/archon-factory", file), "utf8");
+
+  it("pins a Node that passes the repository's own Node gate", () => {
+    const approved = readFileSync(".node-version", "utf8").trim();
+    expect(() => validateNodeVersion(PIN.nodeVersion, approved)).not.toThrow();
+  });
+
+  it("pins Node 24.22.3 from the signed release", () => {
+    // bin/node of node-v24.22.3-linux-x64.tar.xz. The archive's SHA-256
+    // (4f2b175a…fcfb) is the one nodejs.org lists in SHASUMS256.txt, whose
+    // detached signature by release key 5BE8A3F6…D356 verified on 18
+    // November 2026.
+    expect(PIN.nodeVersion).toBe("v24.22.3");
+    expect(PIN.node).toBe(
+      "a7ec1b37e6ff9d187e4198c5b6df9a4eb1c74dd31804fb3bac55cc4ceca1ac01",
+    );
+  });
+
+  it("pins the check image rebuilt on that Node and qualified on VM 100", () => {
+    // core-archon-checks:node24.22.3-bun1.4.3-jq, built on VM 100 on 18
+    // November 2026 from node:24.22.3-bookworm (index sha256:9d266751…7496)
+    // with the qualified image's Bun 1.4.3 copied byte for byte.
+    expect(PIN.checkImage).toBe(
+      "sha256:59adfc724df4dbb7739813fa76a055361969ed878805f4e4f1986d7e63353859",
+    );
+  });
+
+  it("names that Node wherever the factory names its Node or its check image", () => {
+    const mentions = (text: string) =>
+      [...text.matchAll(/node-?v?(\d+\.\d+\.\d+)/g)].map((match) => match[1]);
+    const files = {
+      "installation/install.mjs": read("installation/install.mjs"),
+      "installation/install-logic.mjs": read("installation/install-logic.mjs"),
+      "installation/core-factory-console.service": read(
+        "installation/core-factory-console.service",
+      ),
+      "README.check-executor.md": read("README.check-executor.md"),
+    };
+    for (const [file, text] of Object.entries(files)) {
+      expect(mentions(text), file).not.toHaveLength(0);
+      expect(new Set(mentions(text)), file).toEqual(new Set([version]));
+    }
+    expect(installer).toContain(
+      `const NODE = "/opt/node-${PIN.nodeVersion}-linux-x64/bin/node";`,
+    );
+    expect(installer).toContain(
+      `const IMAGE_TAG = "core-archon-checks:node${version}-bun1.4.3-jq";`,
+    );
+    expect(files["README.check-executor.md"]).toContain(
+      `core-archon-checks:node${version}-bun1.4.3-jq`,
+    );
+    // The live qualification asserts the Node the image runs.
+    expect(read("qualification/check-executor.mjs")).toContain(
+      `assert.equal(process.version, '${PIN.nodeVersion}');`,
+    );
   });
 });
 
