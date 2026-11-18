@@ -75,7 +75,10 @@ On a loopback database, `cms:migrate` reuses `PAYLOAD_DATABASE_URI` with the
 session role set to `cms_owner`, so local and CI migrations create objects
 owned by `cms_owner` with no stored password; the login must be a member of
 `cms_owner`, which the role migration grants to the Supabase migration runner.
-`migrate:status` may read through the run-time connection.
+On this machine `migrate:status` may read through the run-time connection.
+Every command of the runner that is handed an address not on this machine,
+`migrate:status` and the generators included, goes through the same hosted
+check as a migration.
 
 A hosted CMS schema is migrated only by the release job
 ([`docs/ops/release-job.md`](../../ops/release-job.md); plan 7.4 and 7.5).
@@ -86,7 +89,9 @@ routing overrides. It also requires `sslmode=verify-full` in the address and
 the project's CA: `PAYLOAD_DATABASE_SSL_CA` and `PGSSLROOTCERT`, which the job
 sets from `RELEASE_DATABASE_SSL_CA`. There is no hand-run hosted migration.
 This section described one until stage 1 of the CRM and CMS program; those
-instructions are withdrawn. Keep schema push disabled, and never use a local
+instructions are withdrawn. That is a rule for people: the code enforces only
+the runner's hosted check, which a person who holds the release job's
+`cms_owner` login, its CA and the project's approval would still pass. Keep schema push disabled, and never use a local
 reset or demo seed to set up a hosted database. Payload's run-time certificate
 setup is described below.
 
@@ -109,8 +114,11 @@ statement it sends, checks Local API access defaults and version-read access,
 and confirms that a start with push on, or against a missing database, fails
 and changes nothing. It drops the database unless `--keep` is given.
 
-1. Verify the actual database/project and its migration status
-   (`bun run cms:migrate:status`, which only reads). Preserve a pre-cutover
+1. Verify the actual database/project and its migration status. On a hosted
+   database, that is the release job's `preflight`, the first step of every
+   release: its ledger check reads Payload's ledger over the verified
+   connection ([`docs/ops/release-job.md`](../../ops/release-job.md)). On
+   this machine, `bun run cms:migrate:status`. Preserve a pre-cutover
    database backup and media assets; restore the
    backup into an isolated database and compare counts and relationships. Inspect
    custom `sizes`/`variants` field collisions, additional media metadata and the

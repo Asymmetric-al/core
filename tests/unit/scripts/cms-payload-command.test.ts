@@ -129,11 +129,15 @@ describe("Payload CLI migration preflight", () => {
     ["--no-json", "migrate:status"],
     ["--cron", "0 * * * *", "migrate:status"],
   ])(
-    "allows a status check without hosted write approval for argv %j",
+    // Review M2: a status read on a hosted address passes the same hosted
+    // check as a migration; it used to read through the cms_owner login
+    // unchecked.
+    "refuses a hosted status check without the hosted approval for argv %j",
     (...args) => {
       const result = runCommand(args);
-      expect(result.status, result.stderr).toBe(0);
-      expect(result.childSpawned).toBe(true);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("CMS_HOSTED_MIGRATION_REF");
+      expect(result.childSpawned).toBe(false);
     },
   );
 
@@ -217,13 +221,73 @@ describe("Payload CLI migration preflight", () => {
     },
   );
 
-  it("reads hosted status through the run-time connection when no migration connection is set", () => {
+  // Review M2: every command handed an address that is not on this machine
+  // goes through the hosted check, verify-full and the CA included.
+  it.each([
+    [
+      "a status read through the run-time connection",
+      ["migrate:status"],
+      {
+        PAYLOAD_MIGRATION_DATABASE_URI: "",
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+      },
+    ],
+    [
+      "a status read at require, approved",
+      ["migrate:status"],
+      {
+        ...CA_ENV,
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        PAYLOAD_MIGRATION_DATABASE_URI: HOSTED_MIGRATION_URL.replace(
+          "verify-full",
+          "require",
+        ),
+      },
+    ],
+    [
+      "a status read with no CA, approved",
+      ["migrate:status"],
+      {
+        CMS_HOSTED_MIGRATION_REF: "fixture",
+        PAYLOAD_DATABASE_SSL_CA: "",
+        PGSSLROOTCERT: "",
+      },
+    ],
+    [
+      "the import map on the run-time connection",
+      ["generate:importmap"],
+      { PAYLOAD_MIGRATION_DATABASE_URI: "" },
+    ],
+  ])(
+    "refuses %s on a hosted address, and never starts Payload",
+    (_case, args, env) => {
+      const result = runCommand(args, env);
+      expect(result.status).toBe(1);
+      expect(result.childSpawned).toBe(false);
+    },
+  );
+
+  it("reads hosted status only through the checked cms_owner connection", () => {
     const result = runCommand(["migrate:status"], {
-      PAYLOAD_MIGRATION_DATABASE_URI: "",
+      ...CA_ENV,
+      CMS_HOSTED_MIGRATION_REF: "fixture",
     });
     expect(result.status, result.stderr).toBe(0);
-    expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_RUNTIME_URL);
+    expect(result.payloadSpawn?.payloadDatabaseUri).toBe(HOSTED_MIGRATION_URL);
   });
+
+  it.each([["migrate:status"], ["generate:importmap"]])(
+    "leaves %s on this machine as it was",
+    (command) => {
+      const result = runCommand([command], {
+        PAYLOAD_DATABASE_URI:
+          "postgresql://postgres:postgres@127.0.0.1:57432/wp12_fixture",
+        PAYLOAD_MIGRATION_DATABASE_URI: "",
+      });
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.childSpawned).toBe(true);
+    },
+  );
 
   it("migrates a loopback database as cms_owner without a password", () => {
     const result = runCommand(["migrate"], {
