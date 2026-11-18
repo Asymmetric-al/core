@@ -7,11 +7,12 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   type Column,
   type ColumnDef,
 } from "@asym/ui/components/shadcn/data-table/tanstack";
+import { useOwnApiDownload } from "@asym/ui/hooks";
 import { format } from "date-fns";
 import { ArrowDown, ArrowUp, ChevronsUpDown, Download } from "lucide-react";
 import Link from "next/link";
@@ -68,21 +69,28 @@ function receiptLabel(tx: Transaction) {
   return `Download receipt for ${tx.recipient}, ${date}, ${formatCurrency(tx.amount)}`;
 }
 
-/** Only paid gifts have a receipt; a refunded gift's receipt no longer counts. */
+/**
+ * Only paid gifts have a receipt; a refunded gift's receipt no longer counts.
+ * The receipt route is the app's own API, so it is downloaded through the
+ * own-API wrapper with the document's scope, not opened as a page (plan 5.2;
+ * WP2b, AL-2675).
+ */
 export function ReceiptLink({ tx }: { tx: Transaction }) {
+  const { download, pending } = useOwnApiDownload();
   if (tx.status !== "Paid") {
     return <span className="sr-only">No receipt</span>;
   }
   return (
-    <a
-      href={tx.receiptUrl}
-      download
+    <Button
+      variant="ghost"
+      size="sm"
       aria-label={receiptLabel(tx)}
-      className={buttonVariants({ variant: "ghost", size: "sm" })}
+      disabled={pending}
+      onClick={() => void download(tx.receiptUrl)}
     >
       <Download data-icon="inline-start" aria-hidden />
       Receipt
-    </a>
+    </Button>
   );
 }
 

@@ -21,6 +21,17 @@ import {
   vi,
 } from "vitest";
 
+// WP2b, AL-2675: these calls go through the own-API wrapper, whose own suite
+// (tests/unit/packages/database/own-api.test.ts) proves what it adds: the
+// document's tenant and assignment, and no HTTP cache. Here it passes each
+// call through unchanged, so the assertions below still read exactly the
+// request the caller sends.
+vi.mock("@asym/database/own-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/database/own-api")>()),
+  ownApiFetch: (path: string, init?: RequestInit) =>
+    globalThis.fetch(path, init),
+}));
+
 type CheckoutPageClientComponent =
   (typeof import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client"))["CheckoutPageClient"]; // eslint-disable-line @typescript-eslint/consistent-type-imports -- Keep the component import deferred until after mocks are registered.
 type CheckoutSearchParams =

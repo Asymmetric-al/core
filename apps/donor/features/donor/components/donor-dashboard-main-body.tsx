@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useOwnApiDownload } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { CircleAlert, Download } from "lucide-react";
 import Link from "next/link";
@@ -295,6 +296,7 @@ export function DonorDashboardMainBody() {
   const year = givenThisYear(portal);
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
+  const { download, pending: statementPending } = useOwnApiDownload();
   const giveAgain = lastSupported(portal);
   // Both retries, and any recovery, land on the same page heading.
   const pageRef = React.useRef<HTMLDivElement>(null);
@@ -332,13 +334,17 @@ export function DonorDashboardMainBody() {
         description="Your giving, what’s coming up, and news from the field."
       >
         {statementYear ? (
-          <a
-            href={`/api/donor/statements/${statementYear}`}
-            className={buttonVariants({ variant: "outline" })}
+          // An own-API download with the document's scope (WP2b, AL-2675).
+          <Button
+            variant="outline"
+            disabled={statementPending}
+            onClick={() =>
+              void download(`/api/donor/statements/${statementYear}`)
+            }
           >
             <Download data-icon="inline-start" aria-hidden />
             {`${statementYear} giving statement`}
-          </a>
+          </Button>
         ) : null}
         <Link
           href={giveAgain ? giveHref(giveAgain.id) : "/workers"}

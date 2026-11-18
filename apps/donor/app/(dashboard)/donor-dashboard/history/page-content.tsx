@@ -4,7 +4,7 @@ import { useDonorHistoryTransactions } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageHeader } from "@asym/ui/components/page-header";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useOwnApiDownload } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { ChevronDown, Download, Search } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -290,6 +291,8 @@ function YearSummaryCard({
       : `Download ${year} statement`;
   const series = monthlyGivingSeries(transactions, year);
   const chartName = `Paid gifts by month in ${year}`;
+  // The statement is an own-API download with the document's scope (WP2b).
+  const { download, pending: statementPending } = useOwnApiDownload();
 
   return (
     <Card>
@@ -309,16 +312,15 @@ function YearSummaryCard({
             </p>
           ) : null}
           {hasPaid ? (
-            <a
-              href={`/api/donor/statements/${year}`}
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "self-start",
-              )}
+            <Button
+              variant="outline"
+              className="self-start"
+              disabled={statementPending}
+              onClick={() => void download(`/api/donor/statements/${year}`)}
             >
               <Download data-icon="inline-start" aria-hidden />
               {statementLabel}
-            </a>
+            </Button>
           ) : null}
         </div>
         <div className="h-28 sm:h-40 lg:col-span-3">

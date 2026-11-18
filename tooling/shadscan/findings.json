@@ -728,7 +728,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "b68d8fedd76920178f728596df3ff823c2fd2ec44ec734bae94ba288075bad37"
+          "sha256": "3f6af7242215a661e6715707d0af8c4298343461cfb91fcae0ed9199b568de22"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
@@ -1381,7 +1381,7 @@
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
-          "sha256": "b4a338520d3007a970c442739fd8415f50ae17273e031adf6a6c6247384da50e"
+          "sha256": "67bfb7a81dfbcd586eba01595bf4eab12e982a6f8705e0a18337b92b776d43f0"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
