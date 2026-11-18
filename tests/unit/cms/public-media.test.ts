@@ -9,9 +9,9 @@ const CMS_BASE_URL = "http://127.0.0.1:3030";
 const PUBLIC_MEDIA = {
   id: "44",
   alt: "Jane in field",
-  url: "/api/media/file/jane.jpg",
-  thumbnailURL: "/api/media/file/jane-320.jpg",
-  cardURL: "/api/media/file/jane-960.jpg",
+  url: "/web-studio/api/media/file/jane.jpg",
+  thumbnailURL: "/web-studio/api/media/file/jane-320.jpg",
+  cardURL: "/web-studio/api/media/file/jane-960.jpg",
   width: 1200,
   height: 800,
   mimeType: "image/jpeg",
@@ -22,17 +22,32 @@ const PUBLIC_MEDIA = {
 describe("resolvePublicCmsMediaUrl", () => {
   it("joins admin-relative media paths to the CMS base origin", () => {
     expect(
-      resolvePublicCmsMediaUrl("/api/media/file/jane.jpg", CMS_BASE_URL),
-    ).toBe("http://127.0.0.1:3030/api/media/file/jane.jpg");
+      resolvePublicCmsMediaUrl(
+        "/web-studio/api/media/file/jane.jpg",
+        CMS_BASE_URL,
+      ),
+    ).toBe("http://127.0.0.1:3030/web-studio/api/media/file/jane.jpg");
   });
 
   it("passes absolute URLs through only on the CMS media origin", () => {
     expect(
       resolvePublicCmsMediaUrl(
-        "http://127.0.0.1:3030/api/media/file/x.jpg",
+        "http://127.0.0.1:3030/web-studio/api/media/file/x.jpg",
         CMS_BASE_URL,
       ),
-    ).toBe("http://127.0.0.1:3030/api/media/file/x.jpg");
+    ).toBe("http://127.0.0.1:3030/web-studio/api/media/file/x.jpg");
+  });
+
+  it("rejects Payload's old media route: nothing of Payload's answers under /api since AL-2675", () => {
+    expect(
+      resolvePublicCmsMediaUrl("/api/media/file/jane.jpg", CMS_BASE_URL),
+    ).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl(
+        "http://127.0.0.1:3030/api/media/file/jane.jpg",
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
   });
 
   it("rejects CMS-origin URLs outside the media file route", () => {
@@ -109,13 +124,20 @@ describe("resolvePublicCmsMediaUrl", () => {
   });
 
   it("resolves nothing when the CMS base URL is missing or not http(s)", () => {
-    expect(resolvePublicCmsMediaUrl("/api/media/file/x.jpg", null)).toBeNull();
-    expect(resolvePublicCmsMediaUrl("/api/media/file/x.jpg", "")).toBeNull();
     expect(
-      resolvePublicCmsMediaUrl("/api/media/file/x.jpg", "ftp://cms.example"),
+      resolvePublicCmsMediaUrl("/web-studio/api/media/file/x.jpg", null),
     ).toBeNull();
     expect(
-      resolvePublicCmsMediaUrl("/api/media/file/x.jpg", "not a url"),
+      resolvePublicCmsMediaUrl("/web-studio/api/media/file/x.jpg", ""),
+    ).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl(
+        "/web-studio/api/media/file/x.jpg",
+        "ftp://cms.example",
+      ),
+    ).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl("/web-studio/api/media/file/x.jpg", "not a url"),
     ).toBeNull();
   });
 });
@@ -124,7 +146,7 @@ describe("resolveRenderablePublicCmsImage", () => {
   it("resolves a fully serialized public media object", () => {
     expect(resolveRenderablePublicCmsImage(PUBLIC_MEDIA, CMS_BASE_URL)).toEqual(
       {
-        src: "http://127.0.0.1:3030/api/media/file/jane.jpg",
+        src: "http://127.0.0.1:3030/web-studio/api/media/file/jane.jpg",
         alt: "Jane in field",
         width: 1200,
         height: 800,

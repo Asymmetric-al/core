@@ -7,6 +7,7 @@ import { sharpTransformer } from "@payloadcms/transformer-sharp";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
+import { webStudioRefusalAfterError } from "./src/cms/auth/web-studio-refusal";
 import { CmsUsers } from "./src/cms/collections/cms-users";
 import { Media } from "./src/cms/collections/media";
 import { MinistryUpdates } from "./src/cms/collections/ministry-updates";
@@ -27,6 +28,7 @@ import {
   resolvePayloadEmailAdapter,
 } from "./src/cms/payload-runtime-integrations";
 import { resolvePayloadSchemaPush } from "./src/cms/payload-schema-push";
+import { resolvePayloadSecret } from "./src/cms/payload-secret";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -63,23 +65,6 @@ const guardedDatabaseAdapter: typeof postgresDatabaseAdapter = {
     return postgresDatabaseAdapter.init(args);
   },
 };
-
-function resolvePayloadSecret() {
-  if (process.env.PAYLOAD_SECRET) {
-    return process.env.PAYLOAD_SECRET;
-  }
-
-  if (
-    process.env.NODE_ENV === "development" ||
-    process.env.NODE_ENV === "test"
-  ) {
-    return "payload-local-dev-secret";
-  }
-
-  throw new Error(
-    "PAYLOAD_SECRET must be configured outside local development.",
-  );
-}
 
 export default buildConfig({
   admin: {
@@ -150,6 +135,12 @@ export default buildConfig({
     },
   },
   endpoints: [webStudioCreateFromTemplateEndpoint],
+  hooks: {
+    // A Web Studio REST call the strategy signed nobody in for is answered
+    // with JSON that says why: 401 for an ended session, 409 for a page
+    // opened for another organization (plan 5.2; auth/web-studio-refusal.ts).
+    afterError: [webStudioRefusalAfterError],
+  },
   i18n: {
     translations: {
       en: {
@@ -179,6 +170,10 @@ export default buildConfig({
   llmInstructions: false,
   routes: {
     admin: "/web-studio",
+    // Payload's REST routes sit under Web Studio's path (plan 5.2), so the
+    // Web Studio tenant cookie, scoped to `/web-studio`, reaches them and
+    // never reaches Mission Control's own `/api` routes.
+    api: "/web-studio/api",
   },
   secret: resolvePayloadSecret(),
   storage: createPayloadStorageAdapters(),

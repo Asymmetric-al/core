@@ -93,6 +93,21 @@ describe("Web Studio display conventions", () => {
   });
 });
 
+describe("Payload's REST routes (AL-2675, WP2b slice C; plan 5.2)", () => {
+  it("answer under /web-studio/api, inside Web Studio's path and outside Mission Control's /api", () => {
+    expect(config.routes.admin).toBe("/web-studio");
+    expect(config.routes.api).toBe("/web-studio/api");
+    // GraphQL follows the setting; WP6 removes it.
+    expect(config.routes.graphQL).toBe("/graphql");
+  });
+
+  it("answer an anonymous Web Studio refusal with JSON that says why", async () => {
+    const { webStudioRefusalAfterError } =
+      await import("../../../apps/admin/src/cms/auth/web-studio-refusal");
+    expect(config.hooks?.afterError).toContain(webStudioRefusalAfterError);
+  });
+});
+
 describe("Postgres adapter settings", () => {
   it("never lets Payload create a missing database or schema", () => {
     // The adapter keeps its options on the instance that init returns; init

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildPublicCmsImageRemotePatterns } from "../../../scripts/cms/public-media-remote-pattern.mjs";
 
-const CMS_MEDIA_FILE_PATHNAME = "/api/media/file/**";
+const CMS_MEDIA_FILE_PATHNAME = "/web-studio/api/media/file/**";
 
 const VERCEL_BLOB_PUBLIC_PATTERN = {
   protocol: "https" as const,

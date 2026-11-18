@@ -237,7 +237,8 @@ export const publishedPublicReadAccess = (
 /**
  * Media `read` access: document reads follow the standard public-read policy
  * (public marker → resolved tenant's documents; staff behavior otherwise),
- * while static-file requests (`/api/media/file/<filename>`) are publicly
+ * while static-file requests (`/web-studio/api/media/file/<filename>`) are
+ * publicly
  * readable for that filename only.
  *
  * Payload runs collection `read` access before serving file bytes

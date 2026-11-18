@@ -34,7 +34,7 @@ const CMS_BASE_URL = "http://127.0.0.1:3030";
 const PUBLIC_MEDIA = {
   id: "44",
   alt: "Jane in field",
-  url: "/api/media/file/jane.jpg",
+  url: "/web-studio/api/media/file/jane.jpg",
   thumbnailURL: null,
   cardURL: null,
   width: 1200,
@@ -109,7 +109,7 @@ describe("PublicCmsPageMedia", () => {
     );
 
     expect(markup).toContain(
-      'src="http://127.0.0.1:3030/api/media/file/jane.jpg"',
+      'src="http://127.0.0.1:3030/web-studio/api/media/file/jane.jpg"',
     );
     expect(markup).toContain('alt="Jane in field"');
     expect(markup).toContain('width="1200"');
