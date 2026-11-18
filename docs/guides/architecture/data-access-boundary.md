@@ -80,6 +80,38 @@ a generic provider adapter. Retained compatibility identifiers such as
 authorize vendor calls. External provider cleanup proof stays with
 `openspec/changes/complete-twenty-crm-retirement` task 4.5 (#602).
 
+## Calls from a page to the app's own API
+
+Page code calls the app's `/api` routes only through `ownApiFetch` in
+`@asym/database/own-api` (plan 5.2; WP2b, AL-2675). It sends the document's
+tenant and assignment as `x-asym-tenant` and `x-asym-assignment`, read from
+the document scope when each call is made, and sends neither when the
+document has no scope. A file an own-API route serves is downloaded with
+`ownApiDownload` (or `useOwnApiDownload` from `@asym/ui/hooks`), never linked
+or opened as a page, because a page load carries no header.
+
+The server treats both headers as proposals: `getAuthContext` passes them to
+the resolver, which checks them against the caller's own live rows. Nothing
+else on the server reads them. The server's session clients send the result,
+not the proposal: `createClient(scope)` from `@asym/database/supabase/server`
+and `createRequestSessionClient(request, scope)` from `packages/api` take
+`requestScopeOf(auth)`, the tenant and membership row the resolver selected.
+Pass `null` only for a client that reads no tenant table (sign-in, the
+callback, recovery, the health probe).
+
+The browser client sends the same two headers on its Data API requests, the
+browser query cache keys every query by the document's person, tenant and
+assignment, and keys in browser storage carry the person and the tenant
+(`documentStorageKey` in `@asym/database/document-storage`).
+
+ESLint enforces the first rule: `own-api/no-direct-call`
+(`tooling/eslint-config/own-api.mjs`) refuses a direct `fetch`, beacon, event
+source, request object, XMLHttpRequest or navigation to an own-API path in
+the three product apps and in `@asym/auth`, `@asym/database`, `@asym/lib`,
+`@asym/missionary` and `@asym/ui`, through each workspace's own lint config,
+so `bun run lint` runs it. It has no exemption: a call that cannot move onto
+the wrapper is a finding to raise, not a rule to switch off.
+
 ## Missionaries reads
 
 `public.missionaries` is server-only (#2364,
