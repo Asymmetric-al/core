@@ -11,6 +11,10 @@
 --    held before revives that same row, because the unique key covers revoked
 --    rows too: `is_active` returns and `revoked_at` clears, and the writer sets
 --    the new `granted_by`. The helpers that test `is_active` stay correct.
+--    A row that is not live never carries the tenant-administrator flag: the
+--    trigger clears it on revocation, so a re-grant brings no administration
+--    back unless the re-granting statement sets the flag itself (council
+--    round 1 on WP2a, F1).
 -- 3. The active-membership index (plan 9.4) covers the lookups every helper
 --    makes: the caller's live rows in a tenant, by class and sub-role.
 -- 4. Data. No staff row keeps the member-care sub-role by default: each such
@@ -88,6 +92,13 @@ BEGIN
     NEW.revoked_at := NULL;
   ELSIF NEW.revoked_at IS NULL THEN
     NEW.revoked_at := pg_catalog.now();
+  END IF;
+
+  -- A row that is not live holds no administration, so a revocation takes
+  -- the flag with it and a re-grant does not bring it back. A writer that
+  -- re-grants with the flag sets it in the statement that makes the row live.
+  IF NOT NEW.is_active THEN
+    NEW.is_tenant_admin := false;
   END IF;
 
   RETURN NEW;

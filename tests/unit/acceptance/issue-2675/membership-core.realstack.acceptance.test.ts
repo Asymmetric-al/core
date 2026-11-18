@@ -152,6 +152,54 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         });
       }));
 
+    // Council round 1 on WP2a, F1: a revocation must take the administration
+    // with it, or the pinned re-grant above brings it back.
+    it("revoking a flagged row clears the flag, so a re-grant with the same upsert brings no administration back", () =>
+      tx(async () => {
+        await db.query(
+          "update authz.memberships set is_active = false where id = $1",
+          [id.mAdm],
+        );
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: false,
+          is_tenant_admin: false,
+        });
+        const regrant = await one(
+          `insert into authz.memberships (user_id, tenant_id, role, staff_role, granted_by)
+           values ($1, $2, 'staff', 'development', $3)
+           on conflict (user_id, tenant_id, role, staff_role)
+           do update set is_active = true, granted_by = excluded.granted_by
+           returning id`,
+          [id.UADM, id.TA, id.UDEV],
+        );
+        expect(keyOf(regrant.id)).toBe("mAdm");
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: true,
+          revoked_at: null,
+          is_tenant_admin: false,
+        });
+      }));
+
+    it("keeps the flag on a row granted with it in the statement that makes the row live", () =>
+      tx(async () => {
+        await db.query(
+          "update authz.memberships set revoked_at = now() where id = $1",
+          [id.mAdm],
+        );
+        await db.query(
+          `insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, granted_by)
+           values ($1, $2, 'staff', 'development', true, $3)
+           on conflict (user_id, tenant_id, role, staff_role)
+           do update set is_active = true, is_tenant_admin = excluded.is_tenant_admin, granted_by = excluded.granted_by`,
+          [id.UADM, id.TA, id.UDEV],
+        );
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: true,
+          revoked_at: null,
+          is_tenant_admin: true,
+        });
+      }));
+
     it("refuses the flag on a row that is not staff, and a live row that carries revoked_at", () =>
       tx(async () => {
         await db.query("savepoint s");
