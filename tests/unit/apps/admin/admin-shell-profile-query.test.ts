@@ -72,7 +72,7 @@ describe("admin shell identity", () => {
   it("reads on a session client that sends the resolved tenant and assignment (WP2b, AL-2675)", async () => {
     profileQuery.mockResolvedValue({ data: null });
     tenantQuery.mockResolvedValue({ data: null });
-    await getProtectedShellState("/");
+    await getTenantShell("/");
     expect(clientScopes).toEqual([
       { tenantId: "tenant-1", assignmentId: "assignment-1" },
     ]);

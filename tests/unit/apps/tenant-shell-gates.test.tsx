@@ -26,7 +26,10 @@ const state = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 vi.mock("@asym/ui/fonts", () => ({ fontVariables: "" }));
-vi.mock("@asym/auth/context", () => ({
+// The shell's reads take their request scope from the real `requestScopeOf`
+// (slice B, AL-2675); only the session and the role check are stubbed.
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: async () => state.auth,
   hasAnyContextRole: () => state.allowed,
 }));
