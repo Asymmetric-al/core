@@ -79,7 +79,7 @@ Signed-in users have USAGE on both schemas, so that a `public` invoker wrapper c
 `tenant_guard` stays NOLOGIN, NOBYPASSRLS, NOSUPERUSER and NOINHERIT (contract item 7). It holds:
 
 - USAGE on schemas `public`, `tenant_guard` and `authz`;
-- EXECUTE on `authz.has_membership(uuid, authz.membership_role[])` and `authz.has_staff_membership(uuid, authz.staff_role[])`, and on the `tenant_guard` helpers below. `authz.is_super_admin()` is deliberately not granted: a command never takes a platform-role branch. Both membership helpers are SECURITY DEFINER functions owned by `postgres`, so they read `auth.uid()` as `postgres`, never as the guard;
+- EXECUTE on `authz.has_membership(uuid, authz.membership_role[])` and `authz.has_staff_membership(uuid, authz.staff_role[])`, and on the `tenant_guard` helpers below. `authz.is_super_admin()` is deliberately not granted: a command never takes a platform-role branch. Both membership helpers are SECURITY DEFINER functions owned by `postgres`, so they read `auth.uid()` as `postgres`, never as the guard. Since WP2a (AL-2675) it also holds EXECUTE on `authz.assignment_capabilities(uuid)`, which `begin_human_command(uuid, text)` calls to check the capability a command requires: an invoker owned by `postgres` that reads only `authz.memberships`, through the policy below, and names nothing in `auth`;
 - SELECT on `authz.memberships`, through the policy `tenant_guard_own_assignments`, which shows the guard only the session caller's own rows (`user_id = tenant_guard.caller_id()`; a worker call, with no session caller, sees none);
 - `SELECT, INSERT, UPDATE` on `public.workflow_work_claims`, through `tenant_guard_isolation`.
 
@@ -96,7 +96,7 @@ EXECUTE besides the owner, on the migrated chain:
 | `tenant_guard.caller_id()`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`  |
 | `tenant_guard.request_claims()`                                                                                                                          | `postgres`     | INVOKER  | `tenant_guard`  |
 | `tenant_guard.request_assignment_id()`                                                                                                                   | `postgres`     | INVOKER  | `tenant_guard`  |
-| `tenant_guard.begin_human_command(uuid)`                                                                                                                 | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.begin_human_command(uuid, text)`                                                                                                           | `postgres`     | INVOKER  | `tenant_guard`  |
 | `tenant_guard.resolve_command_assignment(uuid)`                                                                                                          | `tenant_guard` | DEFINER  | `authenticated` |
 | `tenant_guard.acquire_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`  |
 | `tenant_guard.release_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`  |

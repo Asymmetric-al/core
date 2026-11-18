@@ -28,13 +28,30 @@ function authContext(
     email: "finance@example.com",
     tenantId: "tenant_1",
     role: "staff",
-    profileRole: "staff",
     memberships: [],
     profileId: "profile_1",
     isAuthenticated: true,
     ...overrides,
   };
 }
+
+/**
+ * AL-2675 (WP2a sweep): contribution operations' own role-keyed table is
+ * retired; these capabilities come from the registry, by the one membership
+ * the request acts under. An administrator is a staff row with the flag.
+ */
+const ADMIN: Partial<AuthenticatedContext> = {
+  role: "admin",
+  memberships: [
+    {
+      tenantId: "tenant_1",
+      role: "staff",
+      staffRole: "development",
+      isActive: true,
+      isTenantAdmin: true,
+    },
+  ],
+};
 
 describe("contribution operations permissions", () => {
   it("allows finance staff to perform direct correction actions", () => {
@@ -58,7 +75,7 @@ describe("contribution operations permissions", () => {
   });
 
   it("allows admins to perform high-risk contribution actions", () => {
-    const auth = authContext({ role: "admin", profileRole: "admin" });
+    const auth = authContext(ADMIN);
 
     expect(() =>
       assertContributionActionPermission(auth, "donor_relink"),
@@ -86,7 +103,7 @@ describe("contribution operations permissions", () => {
   });
 
   it("requires granular capability for low-risk contribution actions", () => {
-    const nonMember = authContext({ role: "staff", profileRole: "staff" });
+    const nonMember = authContext({ role: "staff" });
     const financeStaff = authContext({
       memberships: [
         {
@@ -156,7 +173,7 @@ describe("contribution operations permissions", () => {
           },
         ],
       });
-      const admin = authContext({ role: "admin", profileRole: "admin" });
+      const admin = authContext(ADMIN);
 
       expect(() =>
         assertContributionActionPermission(donorCare, actionType, {
@@ -172,7 +189,7 @@ describe("contribution operations permissions", () => {
   );
 
   it("still blocks correction request actions without tenant staff membership", () => {
-    const nonMember = authContext({ role: "staff", profileRole: "staff" });
+    const nonMember = authContext({ role: "staff" });
 
     expect(() =>
       assertContributionActionPermission(nonMember, "amount_correction", {
@@ -187,7 +204,6 @@ describe("contribution operations permissions", () => {
     const donorCare = resolveContributionCapabilities(
       authContext({
         role: "staff",
-        profileRole: "staff",
         memberships: [
           {
             tenantId: "tenant_1",
@@ -219,23 +235,24 @@ describe("contribution operations permissions", () => {
     expect(financeStaff).toContain("contributions.manage_receipts");
     expect(financeStaff).not.toContain("contributions.approve_corrections");
 
-    const approver = resolveContributionCapabilities(
-      authContext({ role: "admin", profileRole: "admin" }),
-    );
-    expect(approver).toContain("contributions.approve_corrections");
-    expect(approver).toContain("contributions.run_refunds");
-    expect(approver).not.toContain("contributions.manage_settings");
+    // AL-2675: the tenant administrator holds the contribution-settings set
+    // the retired platform_admin grant held (plan 5.1).
+    const admin = resolveContributionCapabilities(authContext(ADMIN));
+    expect(admin).toContain("contributions.approve_corrections");
+    expect(admin).toContain("contributions.run_refunds");
+    expect(admin).toContain("contributions.manage_settings");
+    expect(admin).toContain("crm.gift_history.manage_view_defaults");
 
+    // A role name grants nothing without a membership behind it.
     const superAdmin = resolveContributionCapabilities(
-      authContext({ role: "super_admin", profileRole: "super_admin" }),
+      authContext({ role: "super_admin", memberships: [] }),
     );
-    expect(superAdmin).toContain("contributions.manage_settings");
-    expect(superAdmin).toContain("crm.gift_history.manage_view_defaults");
+    expect(superAdmin).toEqual([]);
   });
 
   it("does not grant contribution capabilities without tenant membership", () => {
     const capabilities = resolveContributionCapabilities(
-      authContext({ role: "staff", profileRole: "staff", memberships: [] }),
+      authContext({ role: "staff", memberships: [] }),
     );
 
     expect(capabilities).toEqual([]);
@@ -245,7 +262,6 @@ describe("contribution operations permissions", () => {
     const donorCapabilities = resolveContributionCapabilities(
       authContext({
         role: "donor",
-        profileRole: "donor",
         memberships: [
           {
             tenantId: "tenant_1",
@@ -259,7 +275,6 @@ describe("contribution operations permissions", () => {
     const missionaryCapabilities = resolveContributionCapabilities(
       authContext({
         role: "missionary",
-        profileRole: "missionary",
         memberships: [
           {
             tenantId: "tenant_1",

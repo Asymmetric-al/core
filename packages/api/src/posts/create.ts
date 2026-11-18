@@ -30,7 +30,6 @@ export async function createMissionaryPost({
   const { data: profile } = await findProfileByUserId(
     supabaseAdmin,
     auth.userId,
-    auth.tenantId,
   );
   if (!profile) {
     return { ok: false, status: 404, error: "Profile not found" };

@@ -6,6 +6,7 @@ const actor = {
   action: "crm.person.create",
   authTenantId: "tenant-1",
   isSuperAdmin: false,
+  isTenantAdministrator: false,
   profileId: "profile-1",
   role: "staff",
   tenantId: "tenant-1",

@@ -30,6 +30,11 @@ const {
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
+  requireAuth: () => undefined,
 }));
 
 vi.mock("../../../../../packages/api/src/email/template-store", () => ({

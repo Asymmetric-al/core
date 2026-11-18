@@ -205,7 +205,7 @@ export const GET = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );
 
@@ -237,7 +237,7 @@ export const PUT = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );
 
@@ -310,7 +310,7 @@ export const PUT_TENANT_DEFAULT = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );
 
@@ -336,7 +336,7 @@ export const GET_NAMED_VIEWS = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );
 
@@ -370,7 +370,7 @@ export const POST_NAMED_VIEW = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );
 
@@ -409,7 +409,7 @@ export const PUT_NAMED_VIEW = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );
 
@@ -446,6 +446,6 @@ export const DELETE_NAMED_VIEW = withOperation(
     }
   },
   {
-    roles: ["staff", "admin", "super_admin"],
+    capability: "admin.crm.manage",
   },
 );

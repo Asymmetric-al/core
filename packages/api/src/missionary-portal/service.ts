@@ -175,8 +175,9 @@ export async function resolveMissionaryPortalContext(input: {
     (await input.supabaseAdmin
       .from("profiles")
       .select(PROFILE_SELECT)
+      // The person's own profile, by id. Their missionary row in this
+      // tenant, below, is what ties them to it (AL-2675, NR-68).
       .eq("id", input.profileId)
-      .eq("tenant_id", input.tenantId)
       .single()) as SupabaseResult<MissionaryPortalProfileRow>,
     "Missionary profile not found",
   );

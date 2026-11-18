@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../../fixtures/auth-memberships";
 
 const getAuthContextMock = vi.hoisted(() => vi.fn());
-const hasAnyContextRoleMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
-  hasAnyContextRole: hasAnyContextRoleMock,
 }));
 
 vi.mock(
@@ -30,14 +30,13 @@ import { POST } from "../../../../../../apps/admin/app/api/admin/support/convers
 
 beforeEach(() => {
   __resetInMemorySupportHubStore();
-  hasAnyContextRoleMock.mockReturnValue(true);
   getAuthContextMock.mockResolvedValue({
     userId: "auth-user-admin",
     email: "admin@givehope.org",
     tenantId: SUPPORT_HUB_DEMO_TENANT_ID,
     role: "admin",
-    profileRole: "admin",
-    memberships: [],
+    // AL-2675: the tenant administrator is the flagged staff row.
+    memberships: membershipsForRole("admin", SUPPORT_HUB_DEMO_TENANT_ID),
     profileId: "profile-admin",
     isAuthenticated: true,
   });

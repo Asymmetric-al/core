@@ -9,7 +9,6 @@ const auth = {
   tenantId: "00000000-0000-4000-8000-000000000001",
   profileId: "00000000-0000-4000-8000-000000000002",
   role: "admin",
-  profileRole: "admin",
   memberships: [],
   isAuthenticated: true,
 } as AuthenticatedContext;
@@ -17,7 +16,6 @@ const auth = {
 const superAdminAuth = {
   ...auth,
   role: "super_admin",
-  profileRole: "super_admin",
 } as AuthenticatedContext;
 
 describe("Eve retention controls", () => {

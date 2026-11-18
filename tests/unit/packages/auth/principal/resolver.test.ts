@@ -13,12 +13,14 @@ import {
 } from "./fixtures";
 import {
   PrincipalDeniedError,
-  pickDefaultAssignment,
   resolveActiveAssignment,
   resolveActivePrincipal,
-} from "../../../../../packages/api/src/principal/assignment";
+} from "../../../../../packages/auth/principal/assignment";
 
-import type { AssignmentRow } from "../../../../../packages/api/src/principal/types";
+import type {
+  AssignmentRow,
+  RoleClass,
+} from "../../../../../packages/auth/principal/types";
 
 const ok = (r: AssignmentRow, selection: string) => ({
   ok: true,
@@ -27,15 +29,15 @@ const ok = (r: AssignmentRow, selection: string) => ({
 });
 const no = (reason: string) => ({ ok: false, reason });
 
-describe("resolveActiveAssignment: proposals (rules 2 and 4)", () => {
+describe("resolveActiveAssignment: proposals (the chosen row)", () => {
   const STAFF = row(TA, "staff", "finance");
   const DONOR_TB = row(TB, "donor");
 
-  it("accepts an owned, active proposal as 'proposed'", async () => {
+  it("accepts an owned, live proposal of the surface's class as 'proposed'", async () => {
     const reader = fakeReader([STAFF, DONOR_TB]);
     await expect(
       resolveActiveAssignment(
-        { userId: U1, proposedAssignmentId: DONOR_TB.id },
+        { userId: U1, roleClass: "donor", proposedAssignmentId: DONOR_TB.id },
         reader,
       ),
     ).resolves.toEqual(ok(DONOR_TB, "proposed"));
@@ -45,11 +47,11 @@ describe("resolveActiveAssignment: proposals (rules 2 and 4)", () => {
   it.each([
     ["a random id", row(TA, "donor").id],
     ["another user's id", row(TA, "donor", null, U2).id],
-    ["an inactive id (absent from the active rows)", row(TB, "missionary").id],
+    ["an inactive id (absent from the live rows)", row(TB, "missionary").id],
   ])("denies %s as not_owned_or_inactive", async (_name, proposed) => {
     await expect(
       resolveActiveAssignment(
-        { userId: U1, proposedAssignmentId: proposed },
+        { userId: U1, roleClass: "staff", proposedAssignmentId: proposed },
         fakeReader([STAFF, DONOR_TB]),
       ),
     ).resolves.toEqual(no("not_owned_or_inactive"));
@@ -61,7 +63,7 @@ describe("resolveActiveAssignment: proposals (rules 2 and 4)", () => {
       const reader = fakeReader([STAFF]);
       await expect(
         resolveActiveAssignment(
-          { userId: U1, proposedAssignmentId: proposed },
+          { userId: U1, roleClass: "staff", proposedAssignmentId: proposed },
           reader,
         ),
       ).resolves.toEqual(no("not_owned_or_inactive"));
@@ -72,31 +74,60 @@ describe("resolveActiveAssignment: proposals (rules 2 and 4)", () => {
   it("denies a proposal outside expectedTenantId as tenant_mismatch", async () => {
     await expect(
       resolveActiveAssignment(
-        { userId: U1, proposedAssignmentId: STAFF.id, expectedTenantId: TB },
+        {
+          userId: U1,
+          roleClass: "staff",
+          proposedAssignmentId: STAFF.id,
+          expectedTenantId: TB,
+        },
         fakeReader([STAFF, DONOR_TB]),
       ),
     ).resolves.toEqual(no("tenant_mismatch"));
   });
 
-  it("lets a proposal override the staff default (17i)", async () => {
+  it("denies the person's own donor row proposed on a staff surface as role_class_mismatch", async () => {
     const donor = row(TA, "donor");
     await expect(
       resolveActiveAssignment(
-        { userId: U1, proposedAssignmentId: donor.id },
+        { userId: U1, roleClass: "staff", proposedAssignmentId: donor.id },
         fakeReader([STAFF, donor]),
       ),
-    ).resolves.toEqual(ok(donor, "proposed"));
+    ).resolves.toEqual(no("role_class_mismatch"));
+  });
+
+  it("takes the chosen staff row of a person with several staff rows in a tenant", async () => {
+    const care = row(TA, "staff", "member_care");
+    await expect(
+      resolveActiveAssignment(
+        { userId: U1, roleClass: "staff", proposedAssignmentId: care.id },
+        fakeReader([STAFF, care]),
+      ),
+    ).resolves.toEqual(ok(care, "proposed"));
   });
 });
 
-describe("resolveActiveAssignment: reader failures and malformed rows (rules 1 and 3)", () => {
+describe("resolveActiveAssignment: reader failures and malformed rows", () => {
   it.each(["u1", "", TA.toUpperCase()])(
     "a non-canonical userId %j is reader_error with no read",
     async (userId) => {
       const reader = fakeReader([row(TA, "donor")]);
       await expect(
-        resolveActiveAssignment({ userId }, reader),
+        resolveActiveAssignment({ userId, roleClass: "donor" }, reader),
       ).resolves.toEqual(no("reader_error"));
+      expect(reader.calls).toBe(0);
+    },
+  );
+
+  it.each(["admin", "super_admin", "", "constructor"])(
+    "an unknown role class %j is no_assignment with no read",
+    async (roleClass) => {
+      const reader = fakeReader([row(TA, "donor")]);
+      await expect(
+        resolveActiveAssignment(
+          { userId: U1, roleClass: roleClass as RoleClass },
+          reader,
+        ),
+      ).resolves.toEqual(no("no_assignment"));
       expect(reader.calls).toBe(0);
     },
   );
@@ -105,7 +136,10 @@ describe("resolveActiveAssignment: reader failures and malformed rows (rules 1 a
     "a reader rejection (%s) is reader_error, never a throw",
     async (error) => {
       await expect(
-        resolveActiveAssignment({ userId: U1 }, failingReader(error)),
+        resolveActiveAssignment(
+          { userId: U1, roleClass: "staff" },
+          failingReader(error),
+        ),
       ).resolves.toEqual(no("reader_error"));
     },
   );
@@ -117,7 +151,7 @@ describe("resolveActiveAssignment: reader failures and malformed rows (rules 1 a
         listActiveAssignments: async () => result as unknown as AssignmentRow[],
       };
       await expect(
-        resolveActiveAssignment({ userId: U1 }, reader),
+        resolveActiveAssignment({ userId: U1, roleClass: "staff" }, reader),
       ).resolves.toEqual(no("reader_error"));
     },
   );
@@ -137,6 +171,15 @@ describe("resolveActiveAssignment: reader failures and malformed rows (rules 1 a
     ["staff_role on a donor row", row(TA, "donor", "finance")],
     ["staff_role undefined", { ...row(TA, "donor"), staff_role: undefined }],
     [
+      "missing is_tenant_admin",
+      (({ is_tenant_admin: _f, ...rest }) => rest)(row(TA, "donor")),
+    ],
+    [
+      "string is_tenant_admin",
+      { ...row(TA, "staff", "hr"), is_tenant_admin: "true" },
+    ],
+    ["the flag on a donor row", row(TA, "donor", null, U1, true)],
+    [
       "missing updated_at",
       (({ updated_at: _u, ...rest }) => rest)(row(TA, "donor")),
     ],
@@ -152,9 +195,13 @@ describe("resolveActiveAssignment: reader failures and malformed rows (rules 1 a
         [bad, valid],
       ]) {
         for (const input of [
-          { userId: U1 },
-          { userId: U1, proposedAssignmentId: valid.id },
-          { userId: U1, expectedTenantId: TA },
+          { userId: U1, roleClass: "staff" as const },
+          {
+            userId: U1,
+            roleClass: "staff" as const,
+            proposedAssignmentId: valid.id,
+          },
+          { userId: U1, roleClass: "staff" as const, expectedTenantId: TA },
         ]) {
           await expect(
             resolveActiveAssignment(input, fakeReader(rows)),
@@ -165,129 +212,156 @@ describe("resolveActiveAssignment: reader failures and malformed rows (rules 1 a
   );
 });
 
-describe("resolveActiveAssignment: default selection (rule 5, criterion 17 S)", () => {
+describe("resolveActiveAssignment: the surface's role class (plan 5.1)", () => {
   const D = row(TA, "donor");
   const M = row(TA, "missionary");
   const S1 = row(TA, "staff", "finance");
   const S2 = row(TA, "staff", "member_care");
   const DB = row(TB, "donor");
   const SB = row(TB, "staff", "hr");
+  const ADM = row(TA, "staff", "development", U1, true);
 
-  it.each<[string, AssignmentRow[], { expectedTenantId?: string }, unknown]>([
-    ["0 rows → no_assignment", [], {}, no("no_assignment")],
-    ["1 row → sole", [M], {}, ok(M, "sole")],
+  it.each<
+    [string, RoleClass, AssignmentRow[], { expectedTenantId?: string }, unknown]
+  >([
+    ["0 rows → no_assignment", "staff", [], {}, no("no_assignment")],
+    ["1 row of the class → sole", "missionary", [M], {}, ok(M, "sole")],
     [
-      "expectedTenantId TA over TA+TB → the TA row, sole",
-      [S1, DB],
-      { expectedTenantId: TA },
-      ok(S1, "sole"),
-    ],
-    [
-      "expectedTenantId with no row → no_assignment",
-      [S1, DB],
-      { expectedTenantId: TC },
+      "no row of the class → no_assignment",
+      "missionary",
+      [S1, D],
+      {},
       no("no_assignment"),
     ],
     [
-      "(a) staff + donor → staff, default_staff",
+      "staff + donor on the staff surface → the staff row",
+      "staff",
       [S1, D],
       {},
-      ok(S1, "default_staff"),
+      ok(S1, "sole"),
     ],
     [
-      "(b) staff + missionary → staff, default_staff",
-      [M, S1],
+      "staff + donor on the donor portal → the donor row, never the staff row",
+      "donor",
+      [S1, D],
       {},
-      ok(S1, "default_staff"),
+      ok(D, "sole"),
     ],
     [
-      "(c) staff + donor + missionary → staff, default_staff",
+      "staff + donor + missionary in the workspace → the missionary row",
+      "missionary",
       [D, S1, M],
       {},
-      ok(S1, "default_staff"),
+      ok(M, "sole"),
     ],
     [
-      "(d) case (a) reversed → the same row",
-      [D, S1],
+      "two staff rows in one tenant → ambiguous, until WP2b's chooser",
+      "staff",
+      [S1, S2],
       {},
-      ok(S1, "default_staff"),
+      no("ambiguous"),
     ],
-    ["(e) two staff roles → ambiguous", [S1, S2], {}, no("ambiguous")],
-    ["(e') two staff + donor → ambiguous", [S1, D, S2], {}, no("ambiguous")],
-    ["(f) donor + missionary → ambiguous", [D, M], {}, no("ambiguous")],
-    ["(g) staff TA + donor TB → ambiguous (5a)", [S1, DB], {}, no("ambiguous")],
     [
-      "(g') staff in both tenants → ambiguous (5a)",
+      "two staff rows and a donor row → ambiguous",
+      "staff",
+      [S1, D, S2],
+      {},
+      no("ambiguous"),
+    ],
+    [
+      "donor rows in two tenants → ambiguous: never guesses a tenant",
+      "donor",
+      [D, DB],
+      {},
+      no("ambiguous"),
+    ],
+    [
+      "staff rows in two tenants → ambiguous",
+      "staff",
       [S1, SB],
       {},
       no("ambiguous"),
     ],
     [
-      "(h) case (g) narrowed to TB → the donor row, sole",
-      [S1, DB],
+      "staff in TA and a donor row in TB on the staff surface → the staff row",
+      "staff",
+      [DB, S1],
+      {},
+      ok(S1, "sole"),
+    ],
+    [
+      "donor rows in two tenants narrowed to TB → the TB row",
+      "donor",
+      [D, DB],
       { expectedTenantId: TB },
       ok(DB, "sole"),
     ],
     [
-      "narrowed to TA with staff + donor + a TB row → default_staff",
-      [DB, D, S1],
-      { expectedTenantId: TA },
-      ok(S1, "default_staff"),
+      "narrowed to a tenant with no row of the class → no_assignment",
+      "staff",
+      [S1, DB],
+      { expectedTenantId: TC },
+      no("no_assignment"),
     ],
-  ])("%s", async (_name, rows, extra, want) => {
+    [
+      "the flagged staff row resolves with its flag",
+      "staff",
+      [ADM, D],
+      {},
+      ok(ADM, "sole"),
+    ],
+  ])("%s", async (_name, roleClass, rows, extra, want) => {
     await expect(
-      resolveActiveAssignment({ userId: U1, ...extra }, fakeReader(rows)),
+      resolveActiveAssignment(
+        { userId: U1, roleClass, ...extra },
+        fakeReader(rows),
+      ),
     ).resolves.toEqual(want);
-  });
-
-  it("pickDefaultAssignment needs exactly one tenant and exactly one staff row", () => {
-    const a = (r: AssignmentRow) => asAssignment(r);
-    expect(pickDefaultAssignment([a(D), a(S1)])).toEqual(a(S1));
-    expect(pickDefaultAssignment([a(S1), a(S2)])).toBeNull();
-    expect(pickDefaultAssignment([a(D), a(M)])).toBeNull();
-    expect(pickDefaultAssignment([a(S1), a(DB)])).toBeNull();
-    expect(pickDefaultAssignment([])).toBeNull();
   });
 });
 
-describe("resolveActiveAssignment: no default tenant, no cache (criteria 4 and 5)", () => {
-  it("a super_admin profile with a NULL tenant and no membership gets no_assignment and no tenant", async () => {
-    const res = await resolveActiveAssignment({ userId: U1 }, fakeReader([]));
+describe("resolveActiveAssignment: no default tenant, no cache", () => {
+  it("a person with no membership gets no_assignment and no tenant", async () => {
+    const res = await resolveActiveAssignment(
+      { userId: U1, roleClass: "staff" },
+      fakeReader([]),
+    );
     expect(res).toEqual(no("no_assignment"));
     expect(JSON.stringify(res)).not.toMatch(/tenant/i);
   });
 
-  it("re-reads on every call: a membership deactivated between calls denies the second", async () => {
+  it("re-reads on every call: a membership revoked between calls denies the second", async () => {
     const staff = row(TA, "staff", "finance");
     const reader = fakeReader([staff], []);
-    const input = { userId: U1, proposedAssignmentId: staff.id };
-    await expect(resolveActiveAssignment(input, reader)).resolves.toEqual(
-      ok(staff, "proposed"),
-    );
-    await expect(resolveActiveAssignment(input, reader)).resolves.toEqual(
-      no("not_owned_or_inactive"),
-    );
+    await expect(
+      resolveActiveAssignment({ userId: U1, roleClass: "staff" }, reader),
+    ).resolves.toEqual(ok(staff, "sole"));
+    await expect(
+      resolveActiveAssignment({ userId: U1, roleClass: "staff" }, reader),
+    ).resolves.toEqual(no("no_assignment"));
     expect(reader.calls).toBe(2);
   });
 
   it("returns staffRole null (not undefined) for non-staff rows, and a frozen assignment", async () => {
     const res = await resolveActiveAssignment(
-      { userId: U1 },
+      { userId: U1, roleClass: "donor" },
       fakeReader([row(TA, "donor")]),
     );
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.assignment.staffRole).toBeNull();
+    expect(res.assignment.isTenantAdmin).toBe(false);
     expect(Object.isFrozen(res.assignment)).toBe(true);
   });
 });
 
 describe("resolveActivePrincipal", () => {
-  it("returns a human principal for the resolved hat", async () => {
+  it("returns a human principal for the surface's one assignment", async () => {
     const staff = row(TA, "staff", "finance");
     await expect(
       resolveActivePrincipal(
         { userId: U1 },
+        "staff",
         undefined,
         fakeReader([staff, row(TA, "donor")]),
       ),
@@ -298,25 +372,28 @@ describe("resolveActivePrincipal", () => {
     });
   });
 
-  it.each<[string, string | undefined, AssignmentRow[], string]>([
-    ["no rows", undefined, [], "no_assignment"],
+  it.each<[string, RoleClass, string | undefined, AssignmentRow[], string]>([
+    ["no rows", "staff", undefined, [], "no_assignment"],
     [
       "two tenants",
+      "donor",
       undefined,
       [row(TA, "donor"), row(TB, "donor")],
       "ambiguous",
     ],
     [
       "a foreign proposal",
+      "donor",
       row(TA, "donor", null, U2).id,
       [row(TA, "donor")],
       "not_owned_or_inactive",
     ],
   ])(
     "throws PrincipalDeniedError on %s",
-    async (_name, proposed, rows, reason) => {
+    async (_name, roleClass, proposed, rows, reason) => {
       const err = await resolveActivePrincipal(
         { userId: U1 },
+        roleClass,
         proposed,
         fakeReader(rows),
       ).catch((e: unknown) => e);

@@ -24,7 +24,7 @@ export const GET = withOperation(
 
     return NextResponse.json({ overrides: data?.overrides ?? {} });
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 /**
@@ -64,5 +64,5 @@ export const PUT = withOperation(
 
     return NextResponse.json({ saved: true, overrides: parsed.data });
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

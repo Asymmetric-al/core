@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -8,8 +8,6 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupportTicket } from "./service";
 import { toErrorResponse } from "../../shared/http-errors";
-
-const SUPPORT_ADMIN_ROLES = ["staff", "admin", "super_admin"] as const;
 
 interface SupportTicketRouteParams {
   params: Promise<{ id: string }>;
@@ -31,7 +29,7 @@ export async function GET(
   try {
     const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
-    requireRole(auth, [...SUPPORT_ADMIN_ROLES]);
+    requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const { id } = await params;
     const ticket = await getSupportTicket(supabaseAdmin, ctx.tenantId, id);
