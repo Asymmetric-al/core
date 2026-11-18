@@ -113,10 +113,24 @@ const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
  * A value only this server process knows, set on every rewritten tenant
  * address. Next fetches an external rewrite over HTTP with the forwarded
  * request headers, so the proxy then sees its own marker come back: on a
- * server bound to `127.0.0.1` it treats the rewrite as external and would
- * otherwise render the page with no tenant and no error (record D-19). A
- * client that forges the header cannot know the value, so its copy is simply
- * deleted.
+ * server bound to a loopback IP literal (`127.0.0.1`, `::1`) Next treats the
+ * rewrite as external and would otherwise render the page with no tenant and
+ * no error (record D-19). A client that forges the header cannot know the
+ * value, so its copy is simply deleted.
+ *
+ * What it detects, and what it cannot (council round 1, A4): it fires only
+ * when the rewritten request comes back to the same process, which is the
+ * case for `next dev`, `next start` and a standalone server. With several
+ * instances, or with the proxy in a function of its own as on a hosted
+ * platform, the request can reach a process that does not know this value:
+ * there the marker is deleted as a forgery, the inner path has no tenant
+ * prefix, and the proxy lands it with a 307 on the tenant address (or the
+ * chooser), so the browser sees a redirect loop instead of this 500. A page still never
+ * renders without its tenant, but the failure is not named. A rewrite to
+ * another origin never gets this far: the own-origin check refuses it first.
+ * The hosted proof is a preview deployment where a tenant page answers 200
+ * with its scope, no response carries this header, and the `//` form is
+ * refused (the hosted smoke suite, `tests/e2e/development-smoke`).
  */
 const TENANT_REWRITE_MARKER = crypto.randomUUID();
 
@@ -252,7 +266,8 @@ function rewriteLeftServerResponse(pathname: string) {
   const message =
     "Tenant address rewrite left the server: the proxy received its own " +
     `rewritten request for "${pathname}". Next treats a rewrite as external ` +
-    "when the server is bound to a loopback IP address such as 127.0.0.1; " +
+    "when the server is bound to a loopback IP address such as 127.0.0.1 " +
+    "or ::1; " +
     "bind it to localhost (record D-19).";
   console.error(`[auth] ${message}`);
   return new NextResponse(message, {

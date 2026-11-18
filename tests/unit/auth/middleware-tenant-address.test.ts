@@ -401,6 +401,47 @@ describe("the rewrite stays inside the server (record D-19)", () => {
     expect(errors).toHaveBeenCalled();
     errors.mockRestore();
   });
+
+  // Council round 1, A4: the limit of the guard, pinned so the record states
+  // what is true. Another process (another instance, or the proxy in its own
+  // function) does not know the marker: it deletes it as a forgery and lands
+  // the bare inner path on its tenant address. The browser then sees a
+  // redirect loop, not the 500, and still never a page without its tenant.
+  it("in another process the marker means nothing: the inner path is landed with a 307, not rendered", async () => {
+    state.rows = [row(TA, "staff", "finance")];
+    const first = await adminProxy()(request(`/${TA}/care`));
+    const marker = forwarded(first, "x-asym-tenant-rewrite");
+    expect(marker).toMatch(/\S/);
+
+    vi.resetModules();
+    const other = await import("../../../packages/auth/middleware");
+    const otherResolve =
+      await import("../../../packages/auth/resolve-user-role");
+    const otherProxy = other.createAuthMiddleware({
+      publicRoutes: ["/auth/callback", "/login", "/no-access"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/",
+      unauthorizedRedirectTo: "/no-access",
+      roleClass: "staff",
+      allowedRoles: ["staff", "admin"],
+      resolveUserRole: otherResolve.resolveUserRoleFromDatabase,
+      tenantAddress: true,
+    });
+
+    const second = await otherProxy(
+      request("/care", {
+        "x-asym-tenant": TA,
+        "x-asym-address-prefix": `/${TA}`,
+        "x-asym-tenant-rewrite": marker!,
+      }),
+    );
+
+    expect(second.status).toBe(307);
+    expect(location(second)).toMatch(new RegExp(`^/${TA}(~finance)?/care$`));
+    expect(rewriteTarget(second)).toBeNull();
+    expect(forwarded(second, "x-asym-tenant-rewrite")).toBeNull();
+  });
 });
 
 describe("an E2E bypass identity is judged by the rows its signed cookie names", () => {
