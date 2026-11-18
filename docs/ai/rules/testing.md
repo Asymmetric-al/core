@@ -37,7 +37,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
   when building or changing navigation-critical routes.
 - **Local CI parity:** Run `bun run ci:preflight` (the full profile) before a PR is ready; development compilation is conditional on dependency/build inputs. Use `bun run ci:preflight -- --full` for full QA/release parity.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
-- **Pre-push gate:** `git push` runs the fast profile (`bun run ci:preflight -- --fast`): changed-file formatting, affected lint and typecheck, and the quick verifiers, with no unit, acceptance, build or network stage. Stages and coverage: `docs/ci.md`.
+- **Pre-push gate:** `git push` runs the fast profile (`bun run ci:preflight -- --fast`): changed-file formatting, affected lint and typecheck, and the verifiers whose inputs the push changed, with no unit, acceptance or build stage. Stages and coverage: `docs/ci.md`.
 - **Full mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit` and `test:acceptance`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
 
 ## What a check proves

@@ -39,9 +39,11 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
   Vercel deployments.
 - Push gate: `git push` runs the fast profile (`bun run ci:preflight -- --fast`):
   formatting of the changed files, lint and typecheck of the affected
-  workspaces, and the verifiers that take seconds. It runs no unit,
-  acceptance, build or network stage; required CI runs those on every pull
-  request. A push to `production` runs `-- --full`, and
+  workspaces, and the verifiers whose inputs the push changed (it prints a
+  skip line for the others). It runs no unit, acceptance or build stage;
+  required CI runs those on every pull request. Only a push that changes a
+  shadcn upstream-review input needs the network. A push to `production`
+  runs `-- --full`, and
   `ASYM_PRE_PUSH_PROFILE=full` selects the full profile for any push.
 - A failed stage prints the command that re-runs it alone; run that, fix,
   then rerun the whole profile.
@@ -53,9 +55,12 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
   `bunx prettier --check <files>`, plus `bunx vitest run tests/unit/docs` when
   an instruction, rulebook or skill changes. The PR gate is unchanged.
 - Agent harnesses (Claude Code, Codex, Cursor) format and lint each edited file
-  through `scripts/agent-hooks/after-edit.mjs`; remaining lint errors come back
-  as hook context. `ASYM_EDIT_HOOK=format` skips its lint step and `off` skips
-  it.
+  through `scripts/agent-hooks/after-edit.mjs`. It applies no ESLint fixes
+  (pre-commit does, once the code is complete). In Claude Code and Codex, lint
+  errors and fixable problems come back as hook context; Cursor's edit hook
+  has no channel to the agent, so there they surface at commit. It lints with
+  the root configuration, so a clean hook does not mean `turbo run lint` is
+  clean. `ASYM_EDIT_HOOK=format` skips its lint step and `off` skips it.
 - If `next build` or `next dev` stops with a Next.js upgrade recommendation,
   rerun the same command once within five minutes, report the recommendation,
   and don't upgrade unasked.

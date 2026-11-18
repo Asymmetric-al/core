@@ -67,10 +67,11 @@ without repairing it. Setup does not start an issue trial.
   debugging commands are documented in `docs/ci.md`).
 - **Push gate:** `git push` runs the fast profile
   (`bun run ci:preflight -- --fast`): formatting of changed files, affected
-  lint and typecheck, and the quick verifiers. It does not replace the full
-  profile before a pull request is ready.
+  lint and typecheck, and the verifiers whose inputs changed. It does not
+  replace the full profile before a pull request is ready.
 - **Agent edit hook:** Claude Code, Codex and Cursor format and lint each file
-  an agent edits through `scripts/agent-hooks/after-edit.mjs`. Codex runs it
+  an agent edits through `scripts/agent-hooks/after-edit.mjs`; it reports
+  lint problems instead of fixing them. Codex runs it
   after you trust it once with `/hooks`. Set `ASYM_EDIT_HOOK=format` to skip
   its lint step on a slow machine, or `off` to skip it.
 - **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with

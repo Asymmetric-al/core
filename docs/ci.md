@@ -80,7 +80,7 @@ The local preflight has two profiles in one script
 | `bun run ci:preflight -- --fast`            | fast                            | `.husky/pre-push` on every push that does not target `production`                              |
 | `bun run ci:preflight`                      | full                            | You, before a pull request is ready; the factory's publish step (`ASYM_PRE_PUSH_PROFILE=full`) |
 | `bun run ci:preflight -- --full`            | full, every app compiled        | The release command and any authorized push to `production`                                    |
-| `bun run ci:preflight -- [--fast] --only X` | one stage of the chosen profile | A failed stage prints this command so you can repeat it alone                                  |
+| `bun run ci:preflight -- [--fast] --only X` | one stage of the chosen profile | You, to repeat one stage alone (a failed stage prints its own re-run command)                  |
 
 ### Full profile
 
@@ -117,37 +117,52 @@ production-targeting push always select full mode:
 
 A push that does not target `production` runs the fast profile unless the
 pushing environment sets `ASYM_PRE_PUSH_PROFILE=full`. Any other value of that
-variable blocks the push. The fast profile is deterministic, needs no network
-and checks what the branch changed against `origin/develop` (working tree
-included), in the full profile's order:
+variable blocks the push. The fast profile is deterministic and checks what
+the branch changed against `origin/develop` (working tree included), in the
+full profile's order. Stages marked _scoped_ run only when the push changes
+one of their inputs and otherwise print `==> SKIP <stage> (no change to its
+inputs; …)`; when the branch diff cannot be read, every stage runs on the
+whole repository:
 
 1. `verify:node-version`
-2. Prettier `--check` on the changed files that still exist (the whole
-   repository when the branch diff cannot be read)
+2. Prettier `--check` on the changed files that still exist
 3. `verify:phase25-spec`, `verify:phase27-spec`, `verify:phase28-spec`
-4. `openspec:validate`, `verify:openspec-deltas`
+   (scoped)
+4. `openspec:validate`, `verify:openspec-deltas` (scoped)
 5. Lint of the affected workspaces (`turbo run lint --affected` with
    `TURBO_SCM_BASE=origin/develop`, as pull-request CI runs it)
 6. `verify:data-boundary`, `verify:cms-public-sole-entry`,
-   `verify:workspace-contract`, `verify:bun-lock-drift`, `verify:shadcn-config`
-7. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
+   `verify:workspace-contract` (scoped); `verify:bun-lock-drift`,
+   `verify:shadcn-config`
+7. `verify:shadcn-diff` (scoped; calls the public shadcn registry)
+8. Typecheck of the affected workspaces (`turbo run typecheck --affected`)
 
-It leaves out the stages that are slow or need the network. Required CI
-covers each of them on every pull request, except `verify:shadcn-diff`:
+The scoped verifiers' input lists are in `scripts/verify/ci-preflight.mjs`
+(`STAGE_INPUTS`, taken from a trace of the files each one reads, plus shared
+inputs such as `bun.lock` and any `package.json`). Each also runs in the
+required `integrity` or `lint` job. `verify:shadcn-diff`, which no CI job
+runs, takes the inputs its own verifier derives (`shadcnDiffInputs`: the
+review baseline, every file it hashes, and what the upstream CLI reads,
+`bun.lock` and the root `package.json` included). It is the one fast stage
+that needs the network, and it can take many minutes.
 
-| Left out of the fast profile | Why                                           | Covered by                                                 |
-| ---------------------------- | --------------------------------------------- | ---------------------------------------------------------- |
-| `skills:verify`              | 183 s alone on a loaded Windows host          | `integrity` job (required through `ci-gate`)               |
-| `verify:eslint`              | 54 s alone on the same host                   | `lint` job (required through `ci-gate`)                    |
-| `verify:shadcn-diff`         | Calls the shadcn registry                     | No CI job; run `bun run ci:preflight` before a PR is ready |
-| Compilation                  | Minutes per app                               | `build` job when the compilation plan selects apps         |
-| `test:unit`                  | The longest stage                             | `test-unit` job (required through `ci-gate`)               |
-| `test:acceptance`            | Runs after the unit suite in the full profile | `acceptance-tests` job (required through `ci-gate`)        |
+It leaves out the stages that are slow. Required CI covers each of them on
+every pull request:
+
+| Left out of the fast profile | Why                                           | Covered by                                          |
+| ---------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| `skills:verify`              | 183 s alone on a loaded Windows host          | `integrity` job (required through `ci-gate`)        |
+| `verify:eslint`              | 54 s alone on the same host                   | `lint` job (required through `ci-gate`)             |
+| Compilation                  | Minutes per app                               | `build` job when the compilation plan selects apps  |
+| `test:unit`                  | The longest stage                             | `test-unit` job (required through `ci-gate`)        |
+| `test:acceptance`            | Runs after the unit suite in the full profile | `acceptance-tests` job (required through `ci-gate`) |
 
 A failed stage in either profile ends with `==> FAIL <stage>`, the exact
-command that re-runs that stage alone, and the last 40 lines of its output,
-then stops. A pass names the profile; only a complete full profile prints
-`==> PASS ci:preflight`.
+command that re-runs that stage alone (`bun run <script>` for a plain script
+stage, `bun run ci:preflight -- [--fast] --only <stage>` for one whose
+command or environment the preflight builds), and the last 40 lines of its
+output, then stops. A pass names the profile; only a complete full profile
+prints `==> PASS ci:preflight`.
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
