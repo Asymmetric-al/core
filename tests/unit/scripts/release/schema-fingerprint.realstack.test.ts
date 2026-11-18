@@ -168,8 +168,12 @@ describe.skipIf(!adminDatabaseUrl)(
 // stopped at its fingerprint. The release job's replay now applies the same
 // defaults first, from scripts/sql/hosted-default-privileges.sql. The
 // privileges harness, which applies that file before the chain as the
-// platform does, stands in for the platform here; the Local Supabase Stack
-// workflow compares the same replay with Supabase's own image.
+// platform does, stands in for the platform here. That stand-in is itself a
+// replay that applies the same file (privileges-harness.ts), so this suite
+// proves the file is applied at the same point, not that the file equals the
+// platform (review H7). What proves the file right is the comparison with
+// Supabase's image on a local stack and the hosted gates of 18 November 2026
+// (report, sections 5 and 10).
 it.runIf(IN_MIGRATE_JOB && !harnessAdminUrl)(
   "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL for the release suite (fails, never skips)",
   () => expect(harnessAdminUrl).not.toBe(""),

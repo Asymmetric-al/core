@@ -33,7 +33,7 @@ The release job's own script ran the CLI's reset, the 109 migrations, the seed, 
 The first hosted run did not get there. Its fingerprint gate failed, and that failure is the main finding.
 
 - **The cause.** Hosted Supabase gives `postgres` default privileges in `public` before any migration runs. The release job replayed the chain on plain Postgres, which has none. So 106 objects differed in their access lists, and the release job would have stopped at its gates on every hosted project, development included.
-- **The fix.** The replay is now made like the platform. It applies the same default privileges first, from one file that the real-stack harness reads too. The Local Supabase Stack workflow proves on every pull request that such a replay fingerprints exactly as Supabase's own image does.
+- **The fix.** The replay is now made like the platform. It applies the same default privileges first, from one file that the real-stack harness reads too. When a pull request changes one of its listed paths, the Local Supabase Stack workflow checks that such a replay fingerprints exactly as the image the pinned CLI starts. It is not a required check, and it compares with that image, not with hosted: a change of the defaults on hosted is caught by the release's gates.
 
 The legacy engine's leftovers, which the CLI's reset spares, were removed by hand.
 
@@ -120,7 +120,7 @@ Numbers follow section 6 of the hosted plan.
 - The census sign-off, https://github.com/Asymmetric-al/core/issues/2671#issuecomment-6945037135.
 - The confirmation `rebuild btewedpsxwsjczvmegby`.
 - The five secrets, each from its own file.
-- The replay fingerprint, made exactly as `release.yml` makes it, on the shared test Postgres (17.10): `1bdbe4d4…` (5,893 objects) for the first run, from a plain replay; `14e4dd8eac71b3db38d91990d11446d0aa08daaeecd61d6b79b64a6beef1446c` (5,893 objects) for the passing run, from the fixed replay in the database `wp16_release_replay_hd`.
+- The replay fingerprint, made as `release.yml` makes it but on the shared test Postgres 17.10, where `release.yml` uses 17.11: `1bdbe4d4…` (5,893 objects) for the first run, from a plain replay; `14e4dd8eac71b3db38d91990d11446d0aa08daaeecd61d6b79b64a6beef1446c` (5,893 objects) for the passing run, from the fixed replay in the database `wp16_release_replay_hd`.
 
 **What `first-rebuild` printed**, less the 109 "Applying migration" lines, the 14 lines that skip a rollback file and Payload's own log, which is condensed to one line:
 
@@ -324,11 +324,11 @@ The replay is now made like the platform (commits `eb7646f5e` and `172bd89f0`):
 - `scripts/verify/supabase-migrations.mjs --hosted-defaults` applies that file after the compatibility bootstrap and before the first migration. Any other argument is refused, so a misspelt flag never replays without the defaults.
 - The real-stack privileges harness reads the same file in place of its own copy.
 - `release.yml` and the `preview-database` job of `qa-smoke-preview-deploy.yml` pass the flag.
-- The Local Supabase Stack workflow replays the chain on plain Postgres with the flag, fingerprints both its stack and the replay, and fails when they differ. So a change of the platform's defaults fails a pull request, not a release.
+- The Local Supabase Stack workflow replays the chain on plain Postgres with the flag, fingerprints both its stack and the replay, and fails when they differ. It runs only when a pull request changes one of its listed paths, it is not a required check, and it compares with the image the pinned CLI starts, not with hosted. A change of the defaults on hosted is caught by the release's gates.
 
 **Tests that failed first.**
 
-- In `tests/unit/scripts/release/schema-fingerprint.realstack.test.ts`, the harness's hosted replay stands in for the platform. A plain replay differs from it in access lists only. A replay with the flag equals it. An unknown argument is refused.
+- In `tests/unit/scripts/release/schema-fingerprint.realstack.test.ts`, the harness's hosted replay stands in for the platform. A plain replay differs from it in access lists only. A replay with the flag equals it. An unknown argument is refused. That "platform" is itself a replay that applies the same file (`privileges-harness.ts`), so the test proves the file is applied at the same point, not that the file equals the platform. What proves the file right is the comparison with Supabase's image on a local stack (below) and the hosted gates of 18 November.
 - `tests/unit/scripts/release/hosted-default-privileges.test.ts`: the file holds the statements, both the replay and the harness read it, and no second copy exists in code, tests or workflows.
 - `tests/unit/workflows/release.test.ts` and `qa-smoke-preview-deploy.test.ts` pin the flag in both replay steps. The changed assertion carries its reason (record D-18).
 - `tests/unit/workflows/local-supabase.test.ts` pins the new comparison.
@@ -524,12 +524,15 @@ For the coordinator:
 - **Plan 7.5, the rebuild.** A hosted reset keeps `public` and the default privileges held there. So a rebuild first puts the platform's defaults back, from the replay's file.
 - **Plan 7.4.** The ledgers check versions only. An applied migration edited in place shows only in the fingerprint, which is what enforces the rule that applied migrations are never edited.
 - **Plan 9.3.** `cms_owner`'s limit of 2 holds for the job's own steps, which run one after another in session mode (section 11). Overlap with a person's CMS migration would exceed it.
-- **`docs/ci.md`, "Local Supabase stack workflow".** The section should gain one line for the new comparison. Six frozen suites pin that file's bytes (issues 2180, 2250, 2254, 2258, 2260 and 2312), so the line belongs in a change that updates them under D-18.
+- **`docs/ci.md`, "Local Supabase stack workflow".** Done: the line was added in `51f30dfa2`, with the six frozen suites that pin the file's bytes (issues 2180, 2250, 2254, 2258, 2260 and 2312) re-taken under D-18, and corrected after review H7, with the pins re-taken again.
 
 ## 14. What did not run
 
 - **Everything that needs a deployment:** Vercel staging and promotion through the job, the health route's detail behind the bypass header, a gitSource deployment into `preview-database`, the deployed Payload's role, and the preview group's queueing. These wait for Vercel.
 - **`supabase db push` on hosted,** which runs in a `release`.
+- **`release.yml` on GitHub.** The release workflow has never run there; every hosted step here ran its script directly.
+- **The Local Supabase Stack workflow's new comparison step on GitHub.** It ran only as its parts, by hand.
+- **The `preview-database` job** of `qa-smoke-preview-deploy.yml`. It has never run.
 - **Fingerprint equality with development,** after its first rebuild.
 
 ## 15. How to repeat

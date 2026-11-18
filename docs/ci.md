@@ -456,8 +456,9 @@ things:
 - _The release job's replay against the image (WP1.6):_ the job replays the
   chain on plain Postgres as the release job does
   (`scripts/verify/supabase-migrations.mjs --hosted-defaults`) and fails
-  unless that replay fingerprints exactly as the stack does, so a change of
-  Supabase's default privileges fails a pull request rather than a release.
+  unless that replay fingerprints exactly as the stack does. It compares
+  with the image the pinned CLI starts, not with hosted; a change of the
+  defaults on hosted is caught by the release's gates.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs

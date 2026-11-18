@@ -28,9 +28,11 @@ and none is ever cancelled.
    and the real-stack privileges harness reads too). Without them every table,
    sequence and function the chain creates has another access list than on
    the hosted target, and step 4 stops every hosted release, as it stopped the
-   first hosted run (WP1.6). The Local Supabase Stack workflow proves on every
-   pull request that changes the chain or the replay that such a replay
-   fingerprints exactly as Supabase's own image does.
+   first hosted run (WP1.6). When a pull request changes one of its listed
+   paths, the Local Supabase Stack workflow checks that such a replay
+   fingerprints exactly as the image the pinned CLI starts. It is not a
+   required check, and it compares with that image, not with hosted: a
+   change of the defaults on hosted is caught by step 4's gates.
 2. **Preflight** (`scripts/release/release-database.mjs`, first part of
    `migrate`). The connection must address the configured Supabase project as
    `postgres`, over TLS, and never a project its environment refuses: the

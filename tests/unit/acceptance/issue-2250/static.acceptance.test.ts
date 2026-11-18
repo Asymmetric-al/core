@@ -115,6 +115,17 @@ const CI_BASES = [
     bytes: 47141,
     sha256: "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
   },
+  {
+    // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
+    // docs/ci.md's "Local Supabase stack workflow" section no longer says
+    // that a change of Supabase's default privileges fails a pull request
+    // rather than a release. It says the job compares with the image the
+    // pinned CLI starts, not with hosted, and that the release's gates catch
+    // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
+    ref: "AL-2674 WP1.6 review H7, the drift guard's limits",
+    bytes: 47190,
+    sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
+  },
 ] as const;
 /** "label :: regex" lines docs/security/tenant-guard.md must match (criteria 7, 11, 12, 14, 15, 17). */
 const DOC_RULES = String.raw`

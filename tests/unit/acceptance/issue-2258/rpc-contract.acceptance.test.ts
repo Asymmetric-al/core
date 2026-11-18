@@ -627,6 +627,16 @@ describe("#2258 pins (criteria 12, 13)", () => {
         47141,
         "a1e298892caec8406bdeef31e41814f9532bf3527e2d77436104d052d1d4ad37",
       ],
+      // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
+      // docs/ci.md's "Local Supabase stack workflow" section no longer says
+      // that a change of Supabase's default privileges fails a pull request
+      // rather than a release. It says the job compares with the image the
+      // pinned CLI starts, not with hosted, and that the release's gates catch
+      // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed whole file.
+      [
+        47190,
+        "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
+      ],
     ];
     expect(REVIEWED).toContainEqual([
       b.length,

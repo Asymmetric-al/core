@@ -5,8 +5,9 @@
 // 18 November 2026 the image (17.11.0.004) and the hosted preview project
 // carried the same default privileges, and the stack's fingerprint equalled
 // such a replay's (docs/audits/core-crm-cms-database-proofs/
-// wp16-hosted-proofs.md). A change of the platform's defaults then fails this
-// job instead of a release.
+// wp16-hosted-proofs.md). This job runs only when a listed path changes, and
+// it compares with the image the pinned CLI starts, not with hosted; a change
+// of the defaults on hosted is caught by the release's gates.
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";

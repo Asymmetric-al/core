@@ -18,8 +18,9 @@ name: Local Supabase Stack
 #   Supabase's default privileges (scripts/sql/hosted-default-privileges.sql),
 #   and stops when a hosted database differs from it. The stack runs
 #   Supabase's own image, so the same replay must fingerprint exactly as the
-#   stack does: a change of the platform's defaults fails this job, not a
-#   release.
+#   stack does. This job runs only when a listed path changes, and it compares
+#   with the image the pinned CLI starts, not with hosted: a change of the
+#   defaults on hosted is caught by the release's gates.
 #
 # Its own workflow, so that no frozen suite of ci.yml or ci-integration.yml
 # changes. Not a required check.

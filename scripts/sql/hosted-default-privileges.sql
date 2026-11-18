@@ -24,9 +24,10 @@
 -- That changes no object's access list (an owner holds those privileges
 -- anyway), but since review H1 the schema fingerprint reads these rows, so
 -- this file names `postgres` too.
--- The Local Supabase Stack workflow compares a replay made with this file
--- against Supabase's own image, so a change of the platform's defaults fails
--- CI rather than a release.
+-- When a pull request changes this file, the chain or the replay, the Local
+-- Supabase Stack workflow compares a replay made with this file against the
+-- image the pinned CLI starts. That is not a required check, and it is not
+-- hosted: a change of the defaults on hosted is caught by the release's gates.
 --
 -- Applied after scripts/sql/supabase-compat-bootstrap.sql, which creates the
 -- API roles, and before the first migration.
