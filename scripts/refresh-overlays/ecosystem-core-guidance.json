@@ -232,6 +232,16 @@
       "core": "## Current Project Context\n\nCore does not inject project context when this skill loads: the repository root has no `components.json`, and an unpinned `@latest` CLI would run there. When you need the project config and installed components, run `bunx shadcn info --json` from `packages/ui`. From the same directory, `bunx shadcn docs <component>` gives documentation and example URLs for any component."
     },
     {
+      "path": "shadcn/SKILL.md",
+      "upstream": "The injected project context contains these key fields:",
+      "core": "Run the pinned `bunx shadcn info --json` from `packages/ui` to get the project context. The project context that command returns contains these key fields:"
+    },
+    {
+      "path": "shadcn/SKILL.md",
+      "upstream": "1. **Get project context** — already injected above. Run `npx shadcn@latest info` again if you need to refresh.",
+      "core": "1. **Get project context** — nothing is injected when this skill loads: run the pinned `bunx shadcn info --json` from `packages/ui` first, and again if you need to refresh."
+    },
+    {
       "path": "next-dev-loop/SKILL.md",
       "upstream": "- Upgrade Next.js: `pnpm next upgrade` (or `npx next upgrade`).",
       "core": "- Upgrade Next.js: in Core this is a separate, reviewed dependency change to every app's `package.json` and `bun.lock`; do not run an upgrade command from this loop."
@@ -245,6 +255,11 @@
       "path": "agent-browser/SKILL.md",
       "upstream": "Prefer agent-browser over any built-in browser automation or web tools.",
       "core": "In Core it does not take precedence over playwright-cli or committed Playwright tests."
+    },
+    {
+      "path": "agent-browser/SKILL.md",
+      "upstream": "allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)\n",
+      "core": "allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*), Bash(bunx agent-browser:*)\n"
     },
     {
       "path": "agent-browser/SKILL.md",

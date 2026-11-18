@@ -14,7 +14,7 @@ last_reviewed: 2026-10-22
 Reviewed source: https://github.com/shadcn-ui/ui/tree/25af02b1b467fcd53b63e0c6d6d324c57c16ef18/skills/shadcn
 Raw upstream `SKILL.md` SHA-256: `93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592`. License notices are preserved in `UPSTREAM-LICENSE.md`.
 
-Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: Preserve existing shared Sonner host and Base UI/base-maia boundaries. The load-time `npx shadcn@latest info --json` injection is replaced with an instruction to run `bunx shadcn info --json` from `packages/ui`, and the package-runner note points at Core's pinned CLI (AL-2715).
+Outcome: updated from the complete installed upstream subtree. Reviewed obsolete upstream companions are removed. Core adaptations: Preserve existing shared Sonner host and Base UI/base-maia boundaries. The load-time `npx shadcn@latest info --json` injection is replaced with an instruction to run `bunx shadcn info --json` from `packages/ui`, the Key Fields and Workflow lines that said the context was injected say the same, and the package-runner note points at Core's pinned CLI (AL-2715).
 
 ## Refresh
 

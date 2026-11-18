@@ -81,8 +81,8 @@
       "sourcePath": "skills/agent-browser/SKILL.md",
       "rawSkillHash": "3a7520e64de2dfaa516b6721c001e84e06e3c06a187b82af029ae721540ebfac",
       "lockHash": "228f87d57035100d9dc6efcfc05aafd4b6e3962adacaa04b8217ab2fadb15dc8",
-      "entrypointHash": "f3078989502054ce016697b6359ff1d7165d8e67607cde260d11795efad336b7",
-      "treeHash": "f3ace6f76e9e89062e583839288961096e61bc87001ae9779c9748558c2da9f1",
+      "entrypointHash": "1d347c7b344056656e65783278a4a76a798abe014963f636d8777b418dff9328",
+      "treeHash": "d295f9a0fce705dbe42bdc83a638fcf17a0e12eceeaacd7c5e3349190206b1f0",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -90,7 +90,7 @@
       },
       "adaptations": [
         "Complete installed payload matches reviewed source after repository formatting; local provenance or Core sync notes are retained.",
-        "Drop the description's claim to precede every other browser tool, and replace the global npm install with the pinned `bunx agent-browser`. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
+        "Drop the description's claim to precede every other browser tool, replace the global npm install with the pinned `bunx agent-browser`, and add `Bash(bunx agent-browser:*)` to allowed-tools so the prescribed form is pre-approved. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/agent-browser/SKILL.md",
       "reviewEvidence": [
@@ -4915,8 +4915,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "b7175a50a0874b05994a7961b7e929f550bde89544271a72a73133719e598f39",
-      "treeHash": "24fec74432f9ef3b14402164cc8a9c01b738ee7f9fd73627cf2758375dfb0a23",
+      "entrypointHash": "4e19e9bc50128a7143cd9ce25d5c63ef1b4f929d9e8f620dbc3abfcdae02b9b8",
+      "treeHash": "c31efcdd75d0b4f2a7d2b66df87333f734ca5b0cc45722d2fa0c5013575a6334",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -9124,8 +9124,8 @@
       "sourcePath": "skills/shadcn",
       "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
       "lockHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
-      "entrypointHash": "c88d669c36e9c3a120e42ebc51224ed46d1a488df6e03ec3f6e7618be370a3e9",
-      "treeHash": "7231fd85aa86b493a279d9ed0ef27c076b8b100862a3b9517472a7d43a5f4597",
+      "entrypointHash": "4cd72f1b92dcf23d0fa99b5eb79fb5f1955f1f5e6cbef8fee94cced951a561b0",
+      "treeHash": "122361545a64553c200db10830a0b17a78ea82d7c442afd50f0d08da1d305d4e",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -9138,7 +9138,7 @@
       },
       "adaptations": [
         "Preserve existing shared Sonner host and Base UI/base-maia boundaries",
-        "Remove the load-time `npx shadcn@latest info --json` injection and route shadcn commands through `bunx shadcn` from packages/ui. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
+        "Remove the load-time `npx shadcn@latest info --json` injection and route shadcn commands through `bunx shadcn` from packages/ui; the Key Fields and Workflow lines that said the context was injected now tell the agent to run `bunx shadcn info --json` from packages/ui. Restored by ecosystem-core-guidance.json at every skills:sync (AL-2715)."
       ],
       "evidence": ".agents/skills/shadcn/references/upstream.md",
       "reviewEvidence": [
@@ -9149,7 +9149,7 @@
           "rawSkillHash": "93951e5e83f616a3e046491c00d770bd54c0a64164706cd1191822a233d27592",
           "sourceFileHashes": null,
           "adaptedFileHashes": {
-            "SKILL.md": "89860c0a605caa201a1d95e736c49676319999ebac27887e8a2d78a10278c56b",
+            "SKILL.md": "4cd72f1b92dcf23d0fa99b5eb79fb5f1955f1f5e6cbef8fee94cced951a561b0",
             "agents/openai.yml": "35db91b1eef58b2abe01da9b88577de5a44e233b740cd93d692ddeeadd2afe4d",
             "assets/shadcn-small.png": "0ecc62d682727f68fc4937eed19960c706714fa084d44f63028d611ae02bf3d7",
             "assets/shadcn.png": "7d60ad6fec4d89a0d44ba5a3c9283d2fea0047af5467f9227040e20d927d39b7",
@@ -9163,7 +9163,7 @@
             "evals/evals.json": "e82c747326a5c21e37a1c962274d36b1bfebb3e6602ee368b98e2dba5db18369",
             "mcp.md": "8d696b4e45b7d0e337367248513bd9acebe8f3bcfd7b748c775e5a337c8f38c8",
             "references/UPSTREAM-LICENSE.md": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
-            "references/upstream.md": "600bb96472cdca50f8ce42c33cfc4476bf70e76a69fb435a0b0ea32127495ccd",
+            "references/upstream.md": "81a936574fda5a48e8ba26b4b3bb35a7978fb272a4c4748985925156ee7eebd9",
             "registry.md": "4f239be36bd2b58e17047db1ca80ab7da00e15a8b73242e5e4d50d113c4caa05",
             "rules/base-vs-radix.md": "2b2deb47d004285220c1fc6b38bb2edc2d0ccbcdafd031b0b189d5d8ed0d1ba8",
             "rules/chat.md": "4b4610d487ddc9751f3cfe0c554a06560ac723fcc2460abad77a1d3c7c9a4b95",

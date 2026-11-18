@@ -139,6 +139,14 @@ defects. Each was checked against the files before it was fixed.
   They now match the lock. The AL-2654 explicit-only change (2026-11-13) took
   the other path and left the lock alone; the refresh rewrites it either way.
   An inventory test now fails when any audit `lockHash` differs from the lock.
+- `shadcn` still said, in its Key Fields and Workflow sections, that the
+  project context was injected. Two more replacements in
+  `ecosystem-core-guidance.json` tell the agent to run the pinned
+  `bunx shadcn info --json` from `packages/ui` and describe the fields that
+  command returns. `moai-library-shadcn` now runs the same pinned command
+  instead of `bunx shadcn@latest info --json`.
+- `agent-browser` told agents to run `bunx agent-browser`, which its
+  `allowed-tools` did not cover. A replacement adds `Bash(bunx agent-browser:*)`.
 
 ## Next.js skill import - 2026-11-18 (AL-2713)
 

@@ -349,6 +349,14 @@ describe("ecosystem Core adapters through skills:sync", () => {
       const shadcn = await skill("shadcn");
       expect(shadcn).not.toContain("!`npx shadcn@latest info --json`");
       expect(shadcn).toContain("`bunx shadcn info --json` from `packages/ui`");
+      expect(shadcn).not.toContain("The injected project context");
+      expect(shadcn).not.toContain("already injected above");
+      expect(shadcn).toContain(
+        "The project context that command returns contains these key fields:",
+      );
+      expect(await skill("agent-browser")).toContain(
+        "Bash(npx agent-browser:*), Bash(bunx agent-browser:*)\n",
+      );
       for (const name of ["next-dev-loop", "agent-browser"]) {
         const text = await skill(name);
         expect(text, name).not.toMatch(/npm i(?:nstall)? -g agent-browser/);

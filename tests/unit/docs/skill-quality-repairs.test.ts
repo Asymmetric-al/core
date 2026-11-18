@@ -139,6 +139,16 @@ describe("skill-quality repairs", () => {
     }
   });
 
+  it("runs the pinned shadcn info command in moai-library-shadcn", () => {
+    const skill = read("docs/ai/skills/moai-library-shadcn/SKILL.md");
+
+    expect(skill).not.toContain("shadcn@latest info");
+    expect(skill).toContain("Run `bunx shadcn info --json` from `packages/ui`");
+    expect(read("packages/ui/AGENTS.md")).toContain(
+      "run `bunx shadcn info --json` from `packages/ui`",
+    );
+  });
+
   it("installs shoehorn with bun only as a reviewed dependency decision", () => {
     const skill = read("docs/ai/skills/migrate-to-shoehorn/SKILL.md");
 
@@ -172,6 +182,14 @@ describe("skill-quality repairs", () => {
       const shadcn = skill("shadcn");
       expect(shadcn).not.toContain("!`");
       expect(shadcn).toContain("`bunx shadcn info --json` from `packages/ui`");
+      // Nothing is injected at load, so no line may say context was injected.
+      expect(shadcn).not.toMatch(/\binjected (?:project context|above)/);
+      expect(shadcn).toContain(
+        "Run the pinned `bunx shadcn info --json` from `packages/ui` to get the project context. The project context that command returns contains these key fields:",
+      );
+      expect(shadcn).toContain(
+        "1. **Get project context** — nothing is injected when this skill loads: run the pinned `bunx shadcn info --json` from `packages/ui` first",
+      );
 
       const devLoop = skill("next-dev-loop");
       const browser = skill("agent-browser");
@@ -179,6 +197,10 @@ describe("skill-quality repairs", () => {
         expect(text).not.toMatch(/npm i(?:nstall)? -g agent-browser/);
         expect(text).toContain("bunx agent-browser");
       }
+      // The body prescribes `bunx agent-browser`; its allow-list must cover it.
+      expect(frontmatter(browser)).toMatch(
+        /^allowed-tools: .*Bash\(bunx agent-browser:\*\)/m,
+      );
       expect(devLoop).not.toContain("pnpm next upgrade");
       expect(description(browser)).not.toContain("Prefer agent-browser over");
       expect(description(browser)).toContain("playwright-cli");
