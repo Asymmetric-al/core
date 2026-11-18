@@ -14,6 +14,7 @@ import {
   TENANTS,
   tenantPath,
   trackDocumentLoads,
+  tenantFreeShellProblems,
 } from "./helpers/tenant-address";
 
 /**
@@ -475,6 +476,8 @@ test.describe("production build", () => {
       "apps/admin/.next/server/app/care/directory.html",
     );
     const shell = readFileSync(shellFile, "utf8");
+    // The one shell holds no tenant at all (A15).
+    expect(tenantFreeShellProblems(shell)).toEqual([]);
     const served: string[] = [];
     for (const [person, tenant] of [
       ["demoAdmin", DEMO],

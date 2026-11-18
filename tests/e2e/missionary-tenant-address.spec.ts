@@ -12,6 +12,7 @@ import {
   TENANTS,
   tenantPath,
   trackDocumentLoads,
+  tenantFreeShellProblems,
 } from "./helpers/tenant-address";
 
 /**
@@ -276,11 +277,14 @@ test.describe("production build", () => {
       path.join(process.cwd(), "apps/missionary/.next/server/app/tasks.html"),
       "utf8",
     );
+    // The one shell holds no tenant at all (A15).
+    expect(tenantFreeShellProblems(shell)).toEqual([]);
     for (const tenant of [DEMO, SECOND]) {
       await signInAs(page, "missionary", "twoTenantMissionary", baseURL());
       const response = await page.request.get(tenantPath(tenant, "/tasks"));
       expect(response.status()).toBe(200);
       expect(response.headers()["x-nextjs-prerender"]).toBe("1");
+      expect(response.headers()["x-nextjs-postponed"]).toBe("1");
       expect((await response.text()).startsWith(shell)).toBe(true);
     }
   });

@@ -186,3 +186,22 @@ export async function softNavigate(page: Page, href: string) {
     next.router.push(target);
   }, href);
 }
+
+/**
+ * A route's prerendered shell is the same for every tenant, and it must hold
+ * no tenant at all: two tenants could otherwise receive the same leaked
+ * value, a read cached without its tenant argument or a default tenant id,
+ * and still share one shell (record D-19, second condition; council round 1,
+ * A15). So no fixture tenant id, no organization name and no document scope.
+ */
+export function tenantFreeShellProblems(shell: string): string[] {
+  const problems: string[] = [];
+  for (const tenantId of Object.values(fixtures.tenants)) {
+    if (shell.includes(tenantId)) problems.push(`tenant id ${tenantId}`);
+  }
+  for (const name of Object.values(fixtures.tenantNames)) {
+    if (shell.includes(name)) problems.push(`organization name ${name}`);
+  }
+  if (shell.includes("data-tenant-scope")) problems.push("a document scope");
+  return problems;
+}
