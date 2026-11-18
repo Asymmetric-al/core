@@ -5,7 +5,10 @@ import {
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { reportAccessDiagnostic } from "./access-diagnostics";
+import {
+  reportAccessDiagnostic,
+  withReadErrorCause,
+} from "./access-diagnostics";
 import { safeNextParam } from "./demo-login";
 import {
   assertSupabaseDatasourceAllowedForE2EBypass,
@@ -750,12 +753,14 @@ async function readSurfaceAssignments(
   if (!userId) {
     return bypassSession ? listE2EAuthAssignments(bypassSession) : null;
   }
-  const read = await readActiveAssignments(
-    userId,
+  const { reader, readError } = withReadErrorCause(
     createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
   );
+  const read = await readActiveAssignments(userId, reader);
   if (!read.ok) {
-    reportAccessDiagnostic("membership_query_failed");
+    // The cause goes to the server log as a safe error code; the person's
+    // answer is the same refusal (council round 1, A5).
+    reportAccessDiagnostic("membership_query_failed", readError());
     return null;
   }
   return read.assignments;

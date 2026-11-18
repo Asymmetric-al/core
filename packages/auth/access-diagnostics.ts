@@ -3,6 +3,10 @@ import {
   resolveDeploymentEnvironment,
 } from "@asym/env/target-env";
 
+import { AssignmentReaderError } from "./principal/reader";
+
+import type { AssignmentReader } from "./principal/types";
+
 const DIAGNOSTICS = {
   no_role_class: { stage: "surface", outcome: "no_role_class" },
   membership_query_failed: {
@@ -35,6 +39,35 @@ function safeErrorCode(error: unknown) {
     // Even an unreadable error property must not affect access resolution.
     return "other";
   }
+}
+
+/**
+ * `reader`, keeping the cause of a failed read for the `membership_query_failed`
+ * diagnostic, which logs only its safe error code. The resolver and the
+ * proxy's membership read both say only `reader_error`; without this the
+ * cause is lost (council round 1, A5). The read and its result are unchanged.
+ */
+export function withReadErrorCause(reader: AssignmentReader): {
+  readonly reader: AssignmentReader;
+  readonly readError: () => unknown;
+} {
+  let readError: unknown;
+  return {
+    reader: {
+      async listActiveAssignments() {
+        try {
+          return await reader.listActiveAssignments();
+        } catch (error) {
+          readError =
+            error instanceof AssignmentReaderError && error.cause !== undefined
+              ? error.cause
+              : error;
+          throw error;
+        }
+      },
+    },
+    readError: () => readError,
+  };
 }
 
 /** Fixed preview metadata only; diagnostics never participate in authorization. */

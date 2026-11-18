@@ -1,14 +1,14 @@
-import { reportAccessDiagnostic } from "./access-diagnostics";
-import { resolveActiveAssignment } from "./principal/assignment";
 import {
-  AssignmentReaderError,
-  createRpcAssignmentReader,
-} from "./principal/reader";
+  reportAccessDiagnostic,
+  withReadErrorCause,
+} from "./access-diagnostics";
+import { resolveActiveAssignment } from "./principal/assignment";
+import { createRpcAssignmentReader } from "./principal/reader";
 
 import type { SupabaseUserRoleReader } from "./middleware";
 import type { RoleSnapshot } from "./permissions";
 import type { AssignmentRpcClient } from "./principal/reader";
-import type { AssignmentReader, RoleClass } from "./principal/types";
+import type { RoleClass } from "./principal/types";
 
 /**
  * Resolves a signed-in user's role snapshot for `createAuthMiddleware`, from
@@ -43,30 +43,14 @@ export async function resolveUserRoleFromDatabase({
   }
 
   try {
-    // Keep the failed read's error for the diagnostic code; the resolver
-    // itself only says `reader_error`.
-    let readError: unknown;
-    const rpcReader = createRpcAssignmentReader(
-      supabase as unknown as AssignmentRpcClient,
+    const { reader, readError } = withReadErrorCause(
+      createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
     );
-    const reader: AssignmentReader = {
-      async listActiveAssignments() {
-        try {
-          return await rpcReader.listActiveAssignments();
-        } catch (error) {
-          readError =
-            error instanceof AssignmentReaderError && error.cause !== undefined
-              ? error.cause
-              : error;
-          throw error;
-        }
-      },
-    };
     const result = await resolveActiveAssignment({ userId, roleClass }, reader);
 
     if (!result.ok) {
       if (result.reason === "reader_error") {
-        reportAccessDiagnostic("membership_query_failed", readError);
+        reportAccessDiagnostic("membership_query_failed", readError());
       } else {
         reportAccessDiagnostic("no_assignment");
       }

@@ -196,6 +196,41 @@ describe("a tenant address: the membership decision before the page shell", () =
     expect(location(response)).toBe("/no-access");
   });
 
+  // Council round 1, A5: the cause of a failed read reaches the server log,
+  // as the preview access diagnostic the resolver already writes (literal
+  // fields and a safe error code only), and the person's answer is the same.
+  it("logs the cause of a failed membership read, with no personal data, and still refuses", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("VERCEL_TARGET_ENV", "preview");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      state.rpcError = {
+        code: "42501",
+        message: `permission denied for function current_user_assignments (${USER})`,
+        details: `tenant ${TA}`,
+        hint: "sb-access-token=secret-token",
+      };
+
+      const response = await adminProxy()(request(`/${TA}/care`));
+
+      expect(location(response)).toBe("/no-access");
+      expect(warn).toHaveBeenCalledExactlyOnceWith({
+        event: "auth_access_diagnostic",
+        stage: "membership_read",
+        outcome: "query_failed",
+        code: "42501",
+      });
+      const logged = JSON.stringify(warn.mock.calls);
+      for (const secret of [USER, TA, "secret-token", "permission denied"]) {
+        expect(logged).not.toContain(secret);
+      }
+    } finally {
+      warn.mockRestore();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("drops a suffix for a person with one row, keeping the page and query", async () => {
     state.rows = [row(TA, "staff", "development")];
 
