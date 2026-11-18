@@ -31,17 +31,29 @@ changes; other hashed ledgers; exact job inventories (semantic, kept).
    workstream report.
 2. **Semantic replacement for CI steps.** A real-stack verification step is
    asserted to exist once in `migrate`, to set no `continue-on-error` and no
-   `if:`, and to run `bun x vitest run` with the issue's own files. Its
-   position and the other issues' files in the same `run:` line are not
-   asserted.
+   `if:`, to run after `Apply migrations`, and to run `bun x vitest run`
+   with the issue's own files. Every word after the command must be a plain
+   test path that exists, so no operator, comment, flag or variable can make
+   the step pass while its tests fail, and a mistyped path cannot be skipped
+   silently. Its position and which other files share the `run:` line are
+   not asserted. A shared test names all real-database acceptance files,
+   checks the list against the files on disk, and asserts that one such step
+   runs each file with the database URL variable the file reads.
 3. **Structural guard lives outside issue folders.**
    `tests/unit/workflows/required-ci-checks.test.ts` with a pure helper in
    `tests/unit/helpers/required-ci-checks.ts`. The required set is develop's
    live contexts from `docs/ci.md` § Branch protection: `ci-gate`,
    `e2e-smoke-gate`, `migrate`, `smoke`. Each required job and its transitive
-   `needs` must not be `continue-on-error`, and their run lines must not end
-   in `|| true`, `|| :` or `|| exit 0`, except in steps whose condition is
-   exactly `failure()` (they run only after the job has already failed).
+   `needs` must not be `continue-on-error` or call a reusable workflow, and
+   their run scripts must not swallow failure: an `||` fallback that is a
+   no-op, a message or a group with no failing exit, `; true`, or `set +e`.
+   Quoted text, comments and `${{ }}` expressions are ignored. No step may
+   have a condition that is false for every modelled event, and `migrate`
+   and `smoke` may not have a job condition that skips them on a develop
+   pull request, push or merge-queue run once their needs succeeded
+   (unevaluable conditions fail closed there). Steps whose condition is
+   exactly `failure()` are exempt (they run only after the job has already
+   failed).
    `ci-gate` must need and read the result of every other `ci.yml` job except
    jobs downstream of it and the explicit advisory `shadscan-report`;
    `e2e-smoke-gate` must need and read `migrate`, `smoke` and
@@ -60,6 +72,15 @@ changes; other hashed ledgers; exact job inventories (semantic, kept).
   harmful edit from a harmless one.
 - The guard's required set is a constant. A branch-protection change must
   update it; the test names the job it is missing.
+- The guard is a heuristic. It reads run scripts as text (heredocs, pipes
+  without `pipefail` and custom `shell:` templates are not modelled) and
+  evaluates conditions only for the events in the shared event model. The
+  exact `migrate` pins in `tests/unit/helpers/workflow-yaml.ts`
+  (`PINNED_STEP_BODIES`, `PINNED_JOB_IFS`) remain the backstop, and the
+  real-database steps are also asserted directly by the acceptance suites.
+- Kept hashes are listed with their reason in the workstream reports:
+  applied migrations, image digests, evidence chains, and the ADR-0001 body
+  above its amendments.
 
 ## Migration Plan
 

@@ -40,3 +40,20 @@
       restore exactly.
 - [x] 5.3 `bun run openspec -- validate retire-acceptance-byte-pins --strict`
       and `bun run verify:openspec-deltas` pass.
+
+## 6. Review fixes
+
+- [x] 6.1 Assert that CI runs the issue-2364 real-stack file, and that one
+      blocking `migrate` step runs every named real-database acceptance
+      file with the database URL it reads (red first in a scratch edit).
+- [x] 6.2 Reject anything but plain test paths after `bun x vitest run` in
+      the real-stack step check (fixture cases red first).
+- [x] 6.3 Widen the structural guard to swallowed failures, steps that never
+      run, skippable required jobs and reusable-workflow calls (fixture cases
+      red first); say in `docs/ai/rules/testing.md` that it is a heuristic.
+- [x] 6.4 State the hash exception in the spec delta and the exact authority
+      in the proposal; correct the #2308 ceiling comment; date-note the
+      #2068 and #2154 runtime checklists.
+- [ ] 6.5 Owner confirms on the pull request that #2706 covers the
+      diff-scope, step-position and blob-pin removals as well as the
+      fingerprint comparisons.

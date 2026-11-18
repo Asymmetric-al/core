@@ -70,9 +70,11 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  // #2706: the byte hash became the invariant it stood for. The allowlist may
-  // shrink or move `lines`, never grow: at the #2419 shrink it held 117
-  // entries and 181 service-role sites.
+  // #2706: the byte hash was retired. This test bounds only the totals: at
+  // the #2419 shrink the allowlist held 117 entries and 181 service-role
+  // sites. The per-entry shrink-only rule (no new entry, no entry above its
+  // frozen count) lives in CEILING_ROWS of
+  // scripts/verify/service-role-client-gate.mjs, which the C12 test above runs.
   it("C12: frozen service-role allowlist does not grow past the #2419 shrink", () => {
     const { entries } = JSON.parse(
       read("docs/security/service-role-client-allowlist.json"),

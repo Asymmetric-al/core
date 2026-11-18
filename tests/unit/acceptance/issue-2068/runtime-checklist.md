@@ -4,6 +4,8 @@ Spec: [rev 1 comment](https://github.com/Asymmetric-al/core/issues/2068#issuecom
 
 These checks run during final acceptance on the implementation PR. The automated tests in this directory do not cover them.
 
+> 2026-11-18: #2706 retired the opt-in automation named under done criteria 2, 3 (exact gate set) and 7; `criterion-2-pin-history`, `criterion-7-diff-scope` and the `ACCEPTANCE_2068_*` switches no longer exist, so those items are checked in review.
+
 ## Done criterion 2 (opt-in automation available)
 
 - [ ] Run `ACCEPTANCE_2068_HISTORY=1 bunx vitest run tests/unit/acceptance/issue-2068/criterion-2-pin-history.acceptance.test.ts` on the PR head.
