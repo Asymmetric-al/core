@@ -29,6 +29,32 @@ export function databaseUrlRoutingOverrides(databaseUrl) {
   return DATABASE_URL_ROUTING_KEYS.filter((key) => url.searchParams.has(key));
 }
 
+/**
+ * Why libpq would read a Postgres URL as another target than WHATWG `URL`
+ * does, or null when both read it alike (PR #2714 review, H11). WHATWG
+ * parsing alone is not enough: `URL` ends the authority at the first `/`, `?`
+ * or `#` and takes the last `@` before it as the end of the login, while libpq
+ * (`conninfo_uri_parse_options` in fe-connect.c) takes the first `@` before
+ * the first `/` and knows no fragment. So `postgres://localhost?x=@elsewhere/db`
+ * is localhost to `URL` and `elsewhere` to psql 17, and so is the same URL
+ * with `#` for `?`. Both read a URL alike only when the authority holds at
+ * most one `@` and is followed by `/` or nothing, and no `@` or `#` comes
+ * after it.
+ */
+export function libpqUrlMismatch(databaseUrl) {
+  const raw = String(databaseUrl);
+  const match = /^postgres(?:ql)?:\/\/([^/?#]*)([\s\S]*)$/i.exec(raw);
+  if (!match) return "it is not a postgres:// or postgresql:// URL";
+  const [, authority, rest] = match;
+  if (raw.includes("#")) return "it has a fragment";
+  if (rest !== "" && !rest.startsWith("/"))
+    return "something other than / follows the host and port";
+  if ((authority.match(/@/g) ?? []).length > 1)
+    return "its login part holds more than one @";
+  if (rest.includes("@")) return "an @ follows the host";
+  return null;
+}
+
 /** Hostnames, as `new URL(...).hostname` reports them for a Postgres URL, that name this machine. */
 export const LOOPBACK_DATABASE_HOSTS = Object.freeze([
   "127.0.0.1",
@@ -38,9 +64,10 @@ export const LOOPBACK_DATABASE_HOSTS = Object.freeze([
 
 /**
  * Whether `databaseUrl` names a database on this machine: a postgres:// or
- * postgresql:// URL whose host is in LOOPBACK_DATABASE_HOSTS and whose query
- * carries no routing override. False for anything else, a value that is not a
- * URL included. Every local-only database tool decides with this function.
+ * postgresql:// URL whose host is in LOOPBACK_DATABASE_HOSTS, whose query
+ * carries no routing override, and which libpq reads as `URL` does
+ * (libpqUrlMismatch). False for anything else, a value that is not a URL
+ * included. Every local-only database tool decides with this function.
  */
 export function isLoopbackDatabaseUrl(databaseUrl) {
   let url;
@@ -49,6 +76,7 @@ export function isLoopbackDatabaseUrl(databaseUrl) {
   } catch {
     return false;
   }
+  if (libpqUrlMismatch(databaseUrl) !== null) return false;
   return (
     ["postgres:", "postgresql:"].includes(url.protocol) &&
     LOOPBACK_DATABASE_HOSTS.includes(url.hostname) &&

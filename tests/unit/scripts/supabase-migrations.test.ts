@@ -272,7 +272,9 @@ itPosix(
     expect(
       result.calls.every(
         (args: string[]) =>
-          args[0] === "postgresql://postgres@127.0.0.1:5432/disposable_test",
+          args[0] ===
+            "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'" &&
+          args[1] === "-X",
       ),
     ).toBe(true);
   },
@@ -374,8 +376,9 @@ itPosix(
       expect(result.environments[index]).toEqual({
         PGPASSWORD: "s3cret-verify",
       });
+      // H11: the URL's parsed parts, never the raw string.
       expect(args[0]).toBe(
-        "postgresql://postgres@127.0.0.1:5432/disposable_test",
+        "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
       );
       expect(JSON.stringify(args)).not.toContain("s3cret-verify");
     }
@@ -414,9 +417,9 @@ itPosix(
     expect(firstMigration).toBe(defaults + 1);
     const call = result.calls[defaults]!;
     expect(call[0]).toBe(
-      "postgresql://postgres@127.0.0.1:5432/disposable_test",
+      "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
     );
-    expect(call.filter((arg) => arg.startsWith("postgresql:"))).toHaveLength(1);
+    expect(call.filter((arg) => arg.startsWith("host="))).toHaveLength(1);
     expect(JSON.stringify(call)).not.toContain("s3cret-verify");
     expect(result.environments[defaults]).toEqual({
       PGPASSWORD: "s3cret-verify",

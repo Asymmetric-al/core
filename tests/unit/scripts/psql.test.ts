@@ -22,6 +22,7 @@ import {
   isLoopbackDatabaseUrl,
   psqlConnection,
   runPsqlQuery,
+  spawnPsql,
 } from "../../../scripts/lib/psql.mjs";
 
 const itPosix = process.platform === "win32" ? it.skip : it;
@@ -97,6 +98,21 @@ describe("isLoopbackDatabaseUrl", () => {
     },
   );
 
+  // PR #2714, last review before the merge (H11): libpq takes the login's @
+  // as the first one before the first /, and knows no fragment, while WHATWG
+  // URL ends the authority at /, ? or #. Each of these is localhost to URL,
+  // and psql 17 connects to the host after the @.
+  it.each([
+    "postgres://localhost?x=@probe-target.invalid/db",
+    "postgres://localhost#@probe-target.invalid/db",
+    "postgres://localhost?u=:PW@db.abcdefghijklmnopqrst.supabase.co:5432/postgres?user=postgres",
+    "postgres://localhost/db#x",
+    "postgres://u@localhost/db?application_name=@x",
+    "postgres://a@b@localhost/db",
+  ])("is false for %s, which libpq reads as another host", (url) => {
+    expect(isLoopbackDatabaseUrl(url)).toBe(false);
+  });
+
   it.each([
     "http://127.0.0.1:5432/postgres",
     "mysql://root@localhost/postgres",
@@ -120,8 +136,9 @@ describe("psqlConnection", () => {
       "postgresql://postgres:p%40ss%2Fw0rd@db.example:6543/postgres?sslmode=require",
       { PGSERVICE: "prod", KEEP: "1" },
     );
+    // H11: libpq gets the parsed parts as keywords, never the raw string.
     expect(connection).toBe(
-      "postgresql://postgres@db.example:6543/postgres?sslmode=require",
+      "host='db.example' port='6543' dbname='postgres' user='postgres' sslmode='require'",
     );
     expect(env).toEqual({ KEEP: "1", PGPASSWORD: "p@ss/w0rd" });
   });
@@ -158,11 +175,44 @@ describe("psqlConnection", () => {
     ).toBe("from-url");
   });
 
-  it("leaves a URL without a password as it is", () => {
+  it("hands libpq the parsed parts of a URL without a password", () => {
     expect(
       psqlConnection("postgresql://postgres@127.0.0.1:5432/disposable_test", {})
         .connection,
-    ).toBe("postgresql://postgres@127.0.0.1:5432/disposable_test");
+    ).toBe(
+      "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
+    );
+    expect(psqlConnection("postgres://u%20x@[::1]/d%27b", {}).connection).toBe(
+      "host='::1' dbname='d\\'b' user='u x'",
+    );
+  });
+
+  // H11: what the code admits is what libpq connects to.
+  it.each([
+    "postgres://localhost?x=@probe-target.invalid/db",
+    "postgres://localhost#@probe-target.invalid/db",
+    "postgres://localhost?u=:PW@db.abcdefghijklmnopqrst.supabase.co:5432/postgres?user=postgres",
+  ])("refuses %s, which libpq would read as another host", (url) => {
+    expect(() => psqlConnection(url, {})).toThrow(
+      /libpq would read it differently/,
+    );
+  });
+
+  it.each([
+    "postgresql://postgres@127.0.0.1:5432/postgres?host=db.example.supabase.co",
+    "postgresql://postgres@127.0.0.1:5432/postgres?user=postgres.abcdefghijklmnopqrst",
+  ])("refuses %s, whose query would route libpq elsewhere", (url) => {
+    expect(() => psqlConnection(url, {})).toThrow(/routing override/);
+  });
+
+  it("moves a password from the query into PGPASSWORD too", () => {
+    const { connection, env } = psqlConnection(
+      "postgresql://postgres@127.0.0.1:5432/d?password=s3cret&sslmode=disable",
+      {},
+    );
+    expect(connection).not.toContain("s3cret");
+    expect(connection).toContain("sslmode='disable'");
+    expect(env.PGPASSWORD).toBe("s3cret");
   });
 
   it.each(["not a url", "mysql://u:p@h/d"])("refuses %s", (url) => {
@@ -185,7 +235,7 @@ describe("runPsqlQuery", () => {
       expect(call.password).toBe("s3cret");
       expect(call.service).toBeNull();
       expect(call.args).toEqual([
-        "postgresql://postgres@127.0.0.1:5432/d",
+        "host='127.0.0.1' port='5432' dbname='d' user='postgres'",
         "-X",
         "-q",
         "-v",
@@ -208,6 +258,32 @@ describe("runPsqlQuery", () => {
       }),
     ).toThrow("FATAL: injected failure");
   });
+
+  // H11: what psql is actually started with.
+  itPosix(
+    "spawnPsql starts psql with the parsed parts, -X, and the password only in its environment",
+    () => {
+      const psql = fakePsql("");
+      const result = spawnPsql({
+        databaseUrl: "postgresql://postgres:s3cret@127.0.0.1:54322/postgres",
+        args: ["-v", "ON_ERROR_STOP=1", "-f", "migration.sql"],
+        psqlBin: psql.bin,
+        baseEnv: { PATH: process.env.PATH ?? "", PGHOST: "elsewhere" },
+      });
+      expect(result.status).toBe(0);
+      const call = psql.call();
+      expect(call.args).toEqual([
+        "host='127.0.0.1' port='54322' dbname='postgres' user='postgres'",
+        "-X",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-f",
+        "migration.sql",
+      ]);
+      expect(call.password).toBe("s3cret");
+      expect(JSON.stringify(call.args)).not.toContain("s3cret");
+    },
+  );
 
   it("throws when psql cannot be started", () => {
     expect(() =>

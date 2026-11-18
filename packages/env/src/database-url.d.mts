@@ -6,6 +6,10 @@ export declare function databaseUrlRoutingOverrides(
   databaseUrl: string | URL,
 ): string[];
 
+export declare function libpqUrlMismatch(
+  databaseUrl: string | URL | null | undefined,
+): string | null;
+
 export declare const LOOPBACK_DATABASE_HOSTS: readonly (
   "127.0.0.1" | "localhost" | "[::1]"
 )[];
