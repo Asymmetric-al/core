@@ -2,13 +2,18 @@
  * The forward-migration order rule (#2406 criterion 1, kept general after
  * #2706 removed the merge-base comparison) and the CI base commit it reads.
  */
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterAll, describe, expect, it } from "vitest";
 
-import { ciBaseCommit, outOfOrderMigrations } from "./migration-order";
+import {
+  ciBaseCommit,
+  migrationsAt,
+  outOfOrderMigrations,
+} from "./migration-order";
 
 const BASE = [
   "20261027100000_profiles_bucket_owner_folders.sql",
@@ -90,5 +95,33 @@ describe("ciBaseCommit", () => {
     ],
   ])("knows no base %s", (_label, env) => {
     expect(ciBaseCommit(env)).toBeUndefined();
+  });
+});
+
+// #2716 review round 2: git quotes a non-ASCII name unless it prints with -z.
+describe("migrationsAt", () => {
+  const repo = mkdtempSync(path.join(tmpdir(), "migration-order-git-"));
+  afterAll(() => rmSync(repo, { recursive: true, force: true }));
+  const git = (args: string[], input?: string) => {
+    const r = spawnSync("git", args, { cwd: repo, encoding: "utf8", input });
+    expect(r.status, r.stderr).toBe(0);
+    return r.stdout.trim();
+  };
+  const NEWEST = "20261118100000_café.sql";
+
+  it("lists a non-ASCII base migration verbatim, so it still sets the newest version", () => {
+    git(["init", "-q"]);
+    const blob = git(["hash-object", "-w", "--stdin"], "select 1;\n");
+    const migrations = git(
+      ["mktree"],
+      `100644 blob ${blob}\t20261118090000_plain.sql\n100644 blob ${blob}\t${NEWEST}\n`,
+    );
+    const supabase = git(["mktree"], `040000 tree ${migrations}\tmigrations\n`);
+    const root = git(["mktree"], `040000 tree ${supabase}\tsupabase\n`);
+    const onBase = migrationsAt(root, repo);
+    expect(onBase).toEqual(["20261118090000_plain.sql", NEWEST]);
+    expect(
+      outOfOrderMigrations(onBase, [...onBase, "20261118095000_late.sql"]),
+    ).toEqual(["20261118095000_late.sql"]);
   });
 });

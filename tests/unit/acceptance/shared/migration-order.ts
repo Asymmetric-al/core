@@ -40,19 +40,24 @@ export function ciBaseCommit(
   return typeof sha === "string" && sha !== "" ? sha : undefined;
 }
 
-/** Migration file names on `commit`; throws when git cannot read that commit. */
-export function migrationsAt(commit: string): string[] {
+/**
+ * Migration file names on `commit` (in the repository at `cwd`); throws when
+ * git cannot read that commit.
+ */
+export function migrationsAt(commit: string, cwd?: string): string[] {
   const r = spawnSync(
     "git",
-    ["ls-tree", "--name-only", `${commit}:${MIGRATIONS}`],
-    { encoding: "utf8" },
+    ["ls-tree", "-z", "--name-only", `${commit}:${MIGRATIONS}`],
+    { cwd, encoding: "utf8" },
   );
   if (r.status !== 0) {
     throw new Error(
       `cannot list ${MIGRATIONS} at base ${commit} (the checkout needs fetch-depth: 0): ${r.stderr.trim()}`,
     );
   }
-  return r.stdout.split("\n").filter(Boolean);
+  // -z prints each name verbatim and NUL-terminated; without it git quotes a
+  // name with a non-ASCII or special character, which FORWARD then rejects.
+  return r.stdout.split("\0").filter(Boolean);
 }
 
 /**
