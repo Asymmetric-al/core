@@ -15,6 +15,7 @@ import {
   FULL_RUN_TRIGGERS,
   INSTANT_NAVIGATION_INPUTS,
   SCOPED_TEST_GROUPS,
+  derivedFullRunTriggers,
   matchesGlob,
   readChangedFiles,
   selectInstantNavigation,
@@ -238,6 +239,83 @@ describe("unit-test scope for the runner", () => {
     const scope = unitTestScope({ env, readChanges: () => null, analyze });
     expect(scope.excludeArgs).toEqual([]);
     expect(scope.lines.join("\n")).toMatch(/could not be computed/);
+  });
+
+  // Review round 6 (c1.2): tests/setup/unit-env.ts runs before every test
+  // and imports scripts/git/environment.mjs.
+  it("runs everything when a module the Vitest setup file imports changes", () => {
+    const scope = unitTestScope({
+      env,
+      readChanges: () => ["scripts/git/environment.mjs"],
+      analyze,
+    });
+    expect(scope.excludeArgs).toEqual([]);
+    expect(scope.lines.join("\n")).toMatch(
+      /scripts\/git\/environment\.mjs changed: every test runs/,
+    );
+  });
+});
+
+describe("full-run triggers derived from imports", () => {
+  const roots: string[] = [];
+  afterAll(() => {
+    for (const root of roots.splice(0))
+      rmSync(root, { recursive: true, force: true });
+  });
+  function fixture(files: Record<string, string>) {
+    const root = mkdtempSync(path.join(os.tmpdir(), "ci-test-scope-triggers-"));
+    roots.push(root);
+    for (const [file, text] of Object.entries(files)) {
+      mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+      writeFileSync(path.join(root, file), text);
+    }
+    return root;
+  }
+
+  it("adds every module a trigger imports, transitively", () => {
+    const root = fixture({
+      "vitest.config.mts": 'import { a } from "./vitest.alias.mts";\n',
+      "vitest.alias.mts": 'import { b } from "./tooling/alias-lib.mjs";\n',
+      "tooling/alias-lib.mjs": "export const b = 1;\n",
+      "tests/setup/env.ts": [
+        'import { env } from "../../scripts/git/environment.mjs";',
+        'import path from "node:path";',
+      ].join("\n"),
+      "scripts/git/environment.mjs": 'export * from "./shared.mjs";\n',
+      "scripts/git/shared.mjs": "export const env = {};\n",
+      "scripts/git/unrelated.mjs": "export const x = 1;\n",
+    });
+    expect(derivedFullRunTriggers({ root })).toEqual([
+      "scripts/git/environment.mjs",
+      "scripts/git/shared.mjs",
+      "tooling/alias-lib.mjs",
+    ]);
+  });
+
+  it("does not read an import out of a comment", () => {
+    const root = fixture({
+      "vitest.pin.mts": [
+        "/**",
+        ' * Without the pin, `vi.mock("@asym/ui")` patches another copy, and',
+        " * `await import(name)` would load the wrong one.",
+        " */",
+        '// import { x } from "@asym/database";',
+        '/** see vi.mock("@asym/ui") */ import { y } from "./tooling/pin.mjs";',
+      ].join("\n"),
+      "tooling/pin.mjs": "export const y = 1;\n",
+    });
+    expect(derivedFullRunTriggers({ root })).toEqual(["tooling/pin.mjs"]);
+  });
+
+  it("makes every change a full run when a trigger imports something it cannot follow", () => {
+    const root = fixture({
+      "tests/setup/env.ts": "await import(process.env.SETUP_EXTRA);\n",
+    });
+    expect(derivedFullRunTriggers({ root })).toEqual(["**"]);
+  });
+
+  it("follows the real setup file", () => {
+    expect(derivedFullRunTriggers()).toContain("scripts/git/environment.mjs");
   });
 });
 

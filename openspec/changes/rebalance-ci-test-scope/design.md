@@ -82,9 +82,17 @@ a full-run trigger. Full-run triggers: root `package.json`, `bun.lock`,
 `bun.lockb`, `bunfig.toml`, `.bun-version`, `.node-version`, `.nvmrc`,
 `.npmrc`, root `tsconfig*.json`, `tooling/typescript-config/**`, the Vitest
 configuration files and `tests/setup/**`, `tests/mocks/**`, the unit runner,
-the selection module, and `.github/workflows/ci.yml`. The `test-unit` job
-already checks out full history (`fetch-depth: 0`); a shallow checkout would
-select everything, never nothing.
+the selection module, and `.github/workflows/ci.yml`; and every module those
+files import, transitively. That last set is derived on each selection
+(`derivedFullRunTriggers`), not listed: today it is
+`scripts/git/environment.mjs`, which the setup file `tests/setup/unit-env.ts`
+imports to clear checkout-local `GIT_*` variables before every test (review
+round 6, c1.2). An import the derivation cannot follow (a computed specifier,
+a workspace package, a missing relative file) makes every change a full run;
+comment lines are skipped so prose such as `vi.mock("@asym/...")` in a doc
+comment is not read as an import. The `test-unit` job already checks out full
+history (`fetch-depth: 0`); a shallow checkout would select everything, never
+nothing.
 
 The factory group is `tests/unit/scripts/archon-*.test.ts` and
 `tests/unit/scripts/factory-*.test.ts` (74 files, 44.8 s of test time, 3.9% of

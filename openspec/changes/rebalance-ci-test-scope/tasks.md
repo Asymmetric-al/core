@@ -113,3 +113,6 @@
       segments, non-relative alias), plus computed imports and child-process
       paths. Then extend `analyzeGroupTests` and make `design.md` §2 and the
       spec say exactly what it covers and what it cannot see.
+- [x] 10.3 Red first: a change to `scripts/git/environment.mjs`, which the
+      setup file imports, must run everything. Derive the full-run triggers'
+      import closure on each selection instead of listing it.

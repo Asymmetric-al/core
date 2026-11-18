@@ -120,7 +120,12 @@ const matchesAny = (file, patterns) =>
  * Why the change set cannot narrow anything, or null when it can: only a
  * known, non-empty change set of a pull request into develop narrows.
  */
-function fullRunReason({ event, baseRef, changedFiles }) {
+function fullRunReason({
+  event,
+  baseRef,
+  changedFiles,
+  triggers = FULL_RUN_TRIGGERS,
+}) {
   if (event !== "pull_request")
     return `${event ? `${event} event` : "no pull request context"}: every test runs`;
   if (baseRef !== "develop")
@@ -129,16 +134,18 @@ function fullRunReason({ event, baseRef, changedFiles }) {
     return "the pull request's changed files could not be computed: every test runs";
   if (changedFiles.length === 0)
     return "the pull request's change set is empty: every test runs";
-  const trigger = changedFiles.find((file) =>
-    matchesAny(file, FULL_RUN_TRIGGERS),
-  );
+  const trigger = changedFiles.find((file) => matchesAny(file, triggers));
   if (trigger) return `${trigger} changed: every test runs`;
   return null;
 }
 
-/** Pure selection: which scoped groups run for this event and change set. */
-export function selectUnitTests({ event, baseRef, changedFiles }) {
-  const full = fullRunReason({ event, baseRef, changedFiles });
+/**
+ * Pure selection: which scoped groups run for this event and change set.
+ * `triggers` defaults to FULL_RUN_TRIGGERS; the runner adds the modules they
+ * import (derivedFullRunTriggers).
+ */
+export function selectUnitTests({ event, baseRef, changedFiles, triggers }) {
+  const full = fullRunReason({ event, baseRef, changedFiles, triggers });
   const groups = SCOPED_TEST_GROUPS.map((group) => {
     if (full)
       return { id: group.id, tests: group.tests, run: true, reason: full };
@@ -250,6 +257,109 @@ const literalsIn = (text) =>
   [...text.matchAll(STRING_LITERAL)].map((match) => literalValue(match) ?? "");
 
 /**
+ * The source without comment lines: a line that starts with `//` goes, and a
+ * line that starts with `/*` or `*` loses everything up to its `*\/`. Prose
+ * such as `vi.mock("@asym/...")` in a doc comment is then not read as an
+ * import. Code after a comment on the same line is kept.
+ */
+function withoutCommentLines(source) {
+  return source
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith("//")) return "";
+      if (!trimmed.startsWith("/*") && !trimmed.startsWith("*")) return line;
+      const end = trimmed.indexOf("*/");
+      return end === -1 ? "" : trimmed.slice(end + 2);
+    })
+    .join("\n");
+}
+
+/** A module's literal specifiers, and whether it also loads a computed one. */
+function moduleSpecifiers(text) {
+  const source = withoutCommentLines(text);
+  const specifiers = [];
+  for (const pattern of SPECIFIER_PATTERNS)
+    for (const match of source.matchAll(pattern))
+      specifiers.push(literalValue(match) ?? "");
+  let computed = false;
+  for (const match of source.matchAll(MODULE_CALL)) {
+    const argument = CALL_LITERAL_ARGUMENT.exec(
+      source.slice(match.index + match[0].length),
+    );
+    if (argument) specifiers.push(literalValue(argument) ?? "");
+    else computed = true;
+  }
+  return { specifiers, computed };
+}
+
+/** Resolves relative specifiers to repository-relative paths under `root`. */
+function importResolver(root) {
+  const relativeTarget = (from, specifier) =>
+    toPosix(
+      path.relative(
+        root,
+        path.resolve(path.dirname(path.join(root, from)), specifier),
+      ),
+    );
+  const resolveImport = (from, specifier) => {
+    const target = relativeTarget(from, specifier);
+    for (const suffix of RESOLVE_SUFFIXES) {
+      const candidate = `${target}${suffix}`;
+      const absolute = path.join(root, candidate);
+      if (
+        CODE_FILE.test(candidate) &&
+        existsSync(absolute) &&
+        statSync(absolute).isFile()
+      )
+        return candidate;
+    }
+    return target;
+  };
+  return { relativeTarget, resolveImport };
+}
+
+/**
+ * Modules the full-run triggers import, transitively, such as what the Vitest
+ * setup file imports: a change to one can alter every test, so it runs
+ * everything too. Derived on every selection, so nothing needs listing. An
+ * import it cannot follow (a computed specifier, a workspace package, a
+ * relative path that does not exist) makes every change a full run ("**").
+ * Bare package imports change only with the manifests or the lockfile, which
+ * are triggers already.
+ */
+export function derivedFullRunTriggers({ root = REPO_ROOT } = {}) {
+  const { resolveImport } = importResolver(root);
+  const pending = FULL_RUN_TRIGGERS.flatMap((pattern) =>
+    globSync(pattern, { cwd: root }).map(toPosix),
+  ).filter(
+    (file) => CODE_FILE.test(file) && statSync(path.join(root, file)).isFile(),
+  );
+  const seen = new Set();
+  const derived = new Set();
+  while (pending.length > 0) {
+    const file = pending.pop();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const { specifiers, computed } = moduleSpecifiers(
+      readFileSync(path.join(root, file), "utf8"),
+    );
+    if (computed) return ["**"];
+    for (const specifier of specifiers) {
+      if (specifier.startsWith("@asym/")) return ["**"];
+      if (!specifier.startsWith(".")) continue;
+      const target = resolveImport(file, specifier);
+      if (!existsSync(path.join(root, target))) return ["**"];
+      derived.add(target);
+      if (CODE_FILE.test(target)) pending.push(target);
+    }
+  }
+  return [...derived]
+    .filter((file) => !matchesAny(file, FULL_RUN_TRIGGERS))
+    .sort();
+}
+
+/**
  * Splits a group's test files into those whose imports and repository reads
  * provably stay inside the group's inputs ("scoped", safe to skip when the
  * inputs did not change) and those that must stay in every run, with the
@@ -309,27 +419,7 @@ export function analyzeGroupTests(group, { root = REPO_ROOT } = {}) {
     const name = PACKAGE_NAME.exec(specifier)?.[0];
     return Boolean(name) && existsSync(path.join(root, "node_modules", name));
   };
-  const relativeTarget = (from, specifier) =>
-    toPosix(
-      path.relative(
-        root,
-        path.resolve(path.dirname(path.join(root, from)), specifier),
-      ),
-    );
-  const resolveImport = (from, specifier) => {
-    const target = relativeTarget(from, specifier);
-    for (const suffix of RESOLVE_SUFFIXES) {
-      const candidate = `${target}${suffix}`;
-      const absolute = path.join(root, candidate);
-      if (
-        CODE_FILE.test(candidate) &&
-        existsSync(absolute) &&
-        statSync(absolute).isFile()
-      )
-        return candidate;
-    }
-    return target;
-  };
+  const { relativeTarget, resolveImport } = importResolver(root);
 
   const modules = new Map();
   const analyzeModule = (file) => {
@@ -364,16 +454,9 @@ export function analyzeGroupTests(group, { root = REPO_ROOT } = {}) {
       else if (CODE_FILE.test(target) && existsSync(path.join(root, target)))
         result.imports.push(target);
     };
-    for (const pattern of SPECIFIER_PATTERNS)
-      for (const match of source.matchAll(pattern))
-        followSpecifier(literalValue(match) ?? "");
-    for (const match of source.matchAll(MODULE_CALL)) {
-      const argument = CALL_LITERAL_ARGUMENT.exec(
-        source.slice(match.index + match[0].length),
-      );
-      if (argument) followSpecifier(literalValue(argument) ?? "");
-      else result.problems.push(`${file} imports a computed specifier`);
-    }
+    const { specifiers, computed } = moduleSpecifiers(source);
+    for (const specifier of specifiers) followSpecifier(specifier);
+    if (computed) result.problems.push(`${file} imports a computed specifier`);
     // `fileURLToPath(import.meta.url)` compared with process.argv[1] only
     // asks "am I the entry point?"; it reads nothing.
     result.readsRoot = ROOT_ACCESS.test(
@@ -511,8 +594,16 @@ export function unitTestScope({
   env = process.env,
   readChanges = readChangedFiles,
   analyze = analyzeGroupTests,
+  deriveTriggers = derivedFullRunTriggers,
 } = {}) {
-  const selection = selectUnitTests(changeContext(env, readChanges));
+  const context = changeContext(env, readChanges);
+  // Only a known change set can narrow anything, so only then is it worth
+  // following the triggers' imports.
+  const triggers =
+    Array.isArray(context.changedFiles) && context.changedFiles.length > 0
+      ? [...FULL_RUN_TRIGGERS, ...deriveTriggers()]
+      : FULL_RUN_TRIGGERS;
+  const selection = selectUnitTests({ ...context, triggers });
   const excludeArgs = [];
   const lines = [];
   for (const group of selection.groups) {

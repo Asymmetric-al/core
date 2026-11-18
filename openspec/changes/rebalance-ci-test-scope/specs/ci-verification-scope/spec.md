@@ -125,6 +125,13 @@ trigger changes.
   TypeScript base configuration, or the CI workflow
 - **THEN** every unit test runs
 
+#### Scenario: A module the setup or configuration imports changes
+
+- **WHEN** a pull request changes a module that one of those files imports,
+  directly or transitively, such as a helper the Vitest setup file loads
+  before every test
+- **THEN** every unit test runs, without that module being listed anywhere
+
 ### Requirement: Required integration checks run in parallel where independent
 
 The required browser smoke job SHALL start without waiting for the dev-server
