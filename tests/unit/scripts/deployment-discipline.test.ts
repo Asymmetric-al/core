@@ -39,7 +39,7 @@ const localConfig = {
     deploymentEnabled: {
       "*": false,
       develop: false,
-      production: true,
+      production: false,
       main: false,
     },
   },
@@ -75,6 +75,7 @@ const vercelSettings = {
     productionBranch: "production",
   },
   previewDeploymentsDisabled: true,
+  autoAssignCustomDomains: false,
   enableAffectedProjectsDeployments: true,
   resourceConfig: {
     buildQueue: {
@@ -130,13 +131,47 @@ describe("deployment discipline verifier", () => {
     }
   });
 
-  it("accepts local Vercel config with ignored builds and only automatic production deployments", () => {
+  it("accepts local Vercel config with ignored builds and no Git deployments at all", () => {
     const checks = validateLocalVercelConfig({ project, config: localConfig });
 
     expect(checks).toEqual(
       expect.arrayContaining([expect.objectContaining({ ok: true })]),
     );
     expect(checks.every((item) => item.ok)).toBe(true);
+  });
+
+  it("detects a production branch that Git still deploys outside the release job", () => {
+    const checks = validateLocalVercelConfig({
+      project,
+      config: {
+        ...localConfig,
+        git: {
+          deploymentEnabled: {
+            ...localConfig.git.deploymentEnabled,
+            production: true,
+          },
+        },
+      },
+    });
+
+    expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
+      expect.arrayContaining([
+        "admin disables production Git deployments (the release job deploys)",
+      ]),
+    );
+  });
+
+  it("requires staged production deployments, so the release job promotes after its health check", () => {
+    const checks = validateVercelProjectSettings({
+      project,
+      settings: { ...vercelSettings, autoAssignCustomDomains: true },
+    });
+
+    expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
+      [
+        "admin production deployments are staged (custom domains not auto-assigned)",
+      ],
+    );
   });
 
   it("detects bad local Vercel gates", () => {

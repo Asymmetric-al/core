@@ -20,9 +20,14 @@ const sql = () => {
   expect(existsSync(H.MIGRATION), `${H.MIGRATION} must exist`).toBe(true);
   return H.code(H.read(H.MIGRATION));
 };
-/** sha256 of the 85 other exceptions entry lines at develop 0727d810, trimmed, "\n"-joined. */
+/**
+ * sha256 of the other exceptions entry lines, trimmed, "\n"-joined. It was
+ * 9b004012... for the 85 lines at develop 0727d810; AL-2674 (D09) drops the
+ * backup_notification_queue_orphans_20260214 table and its entry, and this is
+ * the digest of those same lines without that one.
+ */
 const OTHERS_SHA =
-  "9b004012247680c8b1bb83b2f3838752251789e71ea5b2cdb4e2c9d682d4e151";
+  "866842f870309fb9a6e47f9d9a138c3ba4a612c0b08cca3ce49b335dee76d1f9";
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;
 
@@ -53,14 +58,14 @@ describe("#2260 static (17-20)", () => {
     for (const g of body.match(/\bGRANT\b[^;]*;/gi) ?? [])
       expect(g).not.toMatch(/\b(DELETE|ALL|TRUNCATE)\b/i);
   });
-  it("18: exceptions JSON drops only donor_feed_preferences: 85 entries (67 S + 18 D), others byte-identical, sorted", () => {
+  it("18: exceptions JSON drops only donor_feed_preferences: 84 entries (67 S + 17 D, after AL-2674), others byte-identical, sorted", () => {
     const raw = H.read(H.EXCEPTIONS);
     const e = (
       JSON.parse(raw) as { entries: { table: string; outcome: string }[] }
     ).entries;
     const n = (o: string) => e.filter((x) => x.outcome === o).length;
     expect([e.length, n("service_role_needed"), n("deny_by_default")]).toEqual([
-      85, 67, 18,
+      84, 67, 17,
     ]);
     const lines = raw
       .split("\n")

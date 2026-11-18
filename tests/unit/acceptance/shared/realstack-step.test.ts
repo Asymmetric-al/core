@@ -3,21 +3,24 @@
  * past as the exact `run:` strings it replaced: a required real-database step
  * cannot be skipped, made non-blocking, or made to pass while its tests fail.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
+  expectRealstackStep,
   migrateJob,
   migrateSteps,
   realstackStepProblems,
-  runWords,
+  stepTestPaths,
 } from "./realstack-step";
 
 import type { WorkflowStep } from "../../helpers/workflow-yaml";
 
 const A = "tests/unit/acceptance";
 const F2250 = `${A}/issue-2250/tenant-guard.realstack.acceptance.test.ts`;
+const F2260 = `${A}/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts`;
 const F2364 = `${A}/issue-2364/missionaries-reads.realstack.acceptance.test.ts`;
 const STEP = "Verify tenant isolation (real stack)";
 const ENV = { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" };
@@ -165,64 +168,139 @@ describe("realstackStepProblems (fixtures)", () => {
       ).toEqual([]);
     });
   });
+
+  // #2714 runs its program's suites with one Bash glob. Bash expands it to
+  // the matching files before vitest starts, so each match is a test path.
+  describe("a Bash glob on the run line", () => {
+    const GLOB = `${A}/issue-22[56]0/*.realstack.acceptance.test.ts`;
+    const globProblems = (run: string, files: readonly string[]) =>
+      realstackStepProblems(stepsWith(run), STEP, files, ENV);
+
+    it("counts each file the glob matches as run", () => {
+      expect(globProblems(`bun x vitest run ${GLOB}`, [F2250, F2260])).toEqual(
+        [],
+      );
+      expect(
+        stepTestPaths({ run: `bun x vitest run ${GLOB} ${F2364}` }),
+      ).toEqual([F2250, F2260, F2364]);
+    });
+
+    it("rejects a glob that does not match an expected file", () => {
+      expect(globProblems(`bun x vitest run ${GLOB}`, [F2364])).toEqual([
+        expect.stringMatching(/does not run .*issue-2364/),
+      ]);
+    });
+
+    it("rejects a glob that matches no file (Bash would pass it on as text)", () => {
+      expect(
+        globProblems(
+          `bun x vitest run ${A}/issue-99[0-9]9/*.realstack.acceptance.test.ts`,
+          [],
+        ),
+      ).toEqual([expect.stringMatching(/matches no file/)]);
+    });
+
+    it("rejects a glob that matches a file that is not a test", () => {
+      expect(
+        globProblems(`bun x vitest run ${A}/shared/realstack-step.*`, []),
+      ).toEqual([expect.stringMatching(/realstack-step\.ts, not a test path/)]);
+    });
+
+    it.each([
+      `bun x vitest run ${A}/issue-{2250,2260}/*.realstack.acceptance.test.ts`,
+      `bun x vitest run ${A}/issue-22[56]0/*.realstack.acceptance.test.ts || true`,
+      `bun x vitest run ${A}/issue-22[5/*.realstack.acceptance.test.ts`,
+      `bun x vitest run "${GLOB}"`,
+    ])("rejects %j", (run) => {
+      expect(globProblems(run, [])).toContainEqual(
+        expect.stringMatching(/not a plain test path/),
+      );
+    });
+
+    it("finds no test paths in a step that does not run vitest", () => {
+      expect(stepTestPaths({ run: `node scripts/x.mjs ${F2250}` })).toEqual([]);
+    });
+  });
 });
 
 /**
- * Every real-database acceptance file, by name. Each skips without its
- * database URL, so dropping one from CI would pass silently.
+ * Every real-database test file, by name. Each skips without its database
+ * URL, so dropping one from CI would pass silently.
  */
 const REAL_DATABASE_FILES = [
-  "issue-2067/reader-role.integration",
-  "issue-2250/tenant-guard.realstack",
-  "issue-2251/rls-posture.realstack",
-  "issue-2252/donor-spine-fk.realstack",
-  "issue-2253/rls-catalog-gate.realstack",
-  "issue-2254/identity.realstack",
-  "issue-2255/claim-tables.realstack",
-  "issue-2256/person-anchor.realstack",
-  "issue-2258/current-user-assignments.realstack",
-  "issue-2260/donor-feed-preferences.realstack",
-  "issue-2269/donations-embed.realstack",
-  "issue-2270/authz-execute-grants.realstack",
-  "issue-2312/public-reads.realstack",
-  "issue-2364/missionaries-reads.realstack",
-  "issue-2402/crm-table-preferences.realstack",
-  "issue-2406/profiles-storage.realstack",
-  "issue-2407/editor-images.realstack",
-].map((f) => `${A}/${f}.acceptance.test.ts`);
+  ...[
+    "issue-2067/reader-role.integration",
+    "issue-2250/tenant-guard.realstack",
+    "issue-2251/rls-posture.realstack",
+    "issue-2252/donor-spine-fk.realstack",
+    "issue-2253/rls-catalog-gate.realstack",
+    "issue-2254/identity.realstack",
+    "issue-2255/claim-tables.realstack",
+    "issue-2256/person-anchor.realstack",
+    "issue-2258/current-user-assignments.realstack",
+    "issue-2260/donor-feed-preferences.realstack",
+    "issue-2269/donations-embed.realstack",
+    "issue-2270/authz-execute-grants.realstack",
+    "issue-2312/public-reads.realstack",
+    "issue-2364/missionaries-reads.realstack",
+    "issue-2402/crm-table-preferences.realstack",
+    "issue-2406/profiles-storage.realstack",
+    "issue-2407/editor-images.realstack",
+    // #2714 (AL-2671 stage 1): run by the program step's glob.
+    "issue-2672/role-change-command.realstack",
+    "issue-2672/staged-gift-allocations.realstack",
+    "issue-2674/catalog-gate.realstack",
+    "issue-2674/command-lane.realstack",
+    "issue-2674/privileges-manifest.realstack",
+  ].map((f) => `${A}/${f}.acceptance.test.ts`),
+  // #2714: the release job's database suites and Payload's CMS roles.
+  "tests/unit/cms/cms-database-roles.realstack.test.ts",
+  "tests/unit/scripts/release/release-database.realstack.test.ts",
+  "tests/unit/scripts/release/schema-fingerprint.realstack.test.ts",
+];
 
-/** Real-database acceptance files on disk, so a new one cannot go unwired. */
+/** A real-database test by its name: `*.realstack.*` or `*.integration.acceptance.*`. */
+const REAL_DATABASE_NAME =
+  /\.(?:realstack(?:\.acceptance)?|integration\.acceptance)\.test\.tsx?$/;
+
+/** Real-database test files on disk, so a new one cannot go unwired. */
 const discovered = (): string[] =>
-  readdirSync(A, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .flatMap((d) =>
-      readdirSync(`${A}/${d.name}`)
-        .filter((f) =>
-          /\.(?:realstack|integration)\.acceptance\.test\.tsx?$/.test(f),
-        )
-        .map((f) => `${A}/${d.name}/${f}`),
-    )
+  readdirSync("tests/unit", { recursive: true, encoding: "utf8" })
+    .map((f) => `tests/unit/${f.split(path.sep).join("/")}`)
+    .filter((f) => REAL_DATABASE_NAME.test(f))
     .sort();
 
-/** The `process.env.*DATABASE_URL` a real-database file needs to run at all. */
+/** A file's text and that of the `./` modules it imports (its harness). */
+const withLocalImports = (file: string): string[] => {
+  const text = readFileSync(file, "utf8");
+  const local = [...text.matchAll(/from\s+"(\.\/[^"]+)"/g)]
+    .map((m) => path.join(path.dirname(file), `${m[1]!}.ts`))
+    .filter((f) => existsSync(f));
+  return [text, ...local.map((f) => readFileSync(f, "utf8"))];
+};
+
+/**
+ * The `process.env.*DATABASE_URL` a real-database file needs to run at all,
+ * read in the file or in a `./` module it imports.
+ */
 const databaseUrlVariable = (file: string): string[] => [
   ...new Set(
-    [
-      ...readFileSync(file, "utf8").matchAll(
-        /process\.env\.([A-Z_]*DATABASE_URL)\b/g,
+    withLocalImports(file).flatMap((text) =>
+      [...text.matchAll(/process\.env\.([A-Z_]*DATABASE_URL)\b/g)].map(
+        (m) => m[1]!,
       ),
-    ].map((m) => m[1]!),
+    ),
   ),
 ];
 
-describe("every real-database acceptance file runs in a blocking migrate step (#2706)", () => {
+describe("every real-database test file runs in a blocking migrate step (#2706)", () => {
   it("the named files are exactly the real-database files on disk", () => {
     expect(discovered()).toEqual([...REAL_DATABASE_FILES].sort());
   });
 
   it.each(REAL_DATABASE_FILES)("%s", (file) => {
     const steps = migrateSteps();
-    const running = steps.filter((s) => runWords(s).includes(file));
+    const running = steps.filter((s) => stepTestPaths(s).includes(file));
     expect(
       running.map((s) => s.name),
       "migrate steps that run it",
@@ -242,6 +320,27 @@ describe("every real-database acceptance file runs in a blocking migrate step (#
     const jobEnv = migrateJob()?.env as Record<string, unknown> | undefined;
     expect(jobEnv?.DATABASE_URL, "migrate job sets DATABASE_URL").toEqual(
       expect.stringMatching(/\S/),
+    );
+  });
+});
+
+describe("#2714's real-stack steps (AL-2671 stage 1)", () => {
+  const MIGRATED = "${{ env.DATABASE_URL }}";
+  it("the program step runs every issue-2670..2689 real-stack suite", () => {
+    expectRealstackStep(
+      "Verify AL-2671 program suites, issues 2670-2689 (real stack)",
+      REAL_DATABASE_FILES.filter((f) => /\/issue-26[78]\d\//.test(f)),
+      { TENANT_GUARD_IT_ADMIN_DATABASE_URL: MIGRATED },
+    );
+  });
+  it("the release step runs the release database and CMS role suites", () => {
+    expectRealstackStep(
+      "Verify release job database steps, schema fingerprint and CMS roles (real stack)",
+      REAL_DATABASE_FILES.filter((f) => !f.startsWith(`${A}/`)),
+      {
+        RELEASE_IT_ADMIN_DATABASE_URL: MIGRATED,
+        TENANT_GUARD_IT_ADMIN_DATABASE_URL: MIGRATED,
+      },
     );
   });
 });

@@ -157,8 +157,10 @@ export function sanitizePublicCmsHref(value: unknown) {
     return null;
   }
 
-  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
-    return trimmed;
+  if (trimmed.startsWith("/")) {
+    // A second slash, or a backslash that browsers read as one, makes the
+    // address protocol-relative: it would leave the site.
+    return /^\/[/\\]/.test(trimmed) ? null : trimmed;
   }
 
   if (trimmed.startsWith("#")) {

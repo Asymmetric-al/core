@@ -1,0 +1,355 @@
+# The release job (plan 7.4, 7.5; WP1; runbook docs/ops/release-job.md).
+#
+# A push to the production branch releases: Supabase migrations, Payload
+# migrations, catalog gates and the schema fingerprint against a fresh replay,
+# the expected migration heads, then each affected app staged, health-checked
+# and promoted without a rebuild. Vercel's Git integration deploys nothing
+# (apps/*/vercel.json); this workflow is the only production deployment path
+# and the only holder of migration credentials.
+#
+# Manually dispatched operations, from the production branch only:
+#   release                 re-run a release of the production branch head
+#   set-environment-marker  move the marker forward (owner's approval)
+#   first-rebuild           the one-off rebuild of a database with no marker
+#   set-cms-role-passwords  set cms_owner and cms_runtime from the secrets
+#   replace-seeded-login-passwords
+#                           give seeded logins that still carry a password the
+#                           repository publishes the release secret instead
+#
+# The marker change and the first rebuild wait for the owner's approval in the
+# GitHub environment release-owner-approval (plan 7.5), which has a required
+# reviewer and holds no secret; the job that does the work runs only after it.
+name: Release
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: What to run
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+          - set-environment-marker
+          - first-rebuild
+          - set-cms-role-passwords
+          - replace-seeded-login-passwords
+      environment:
+        description: Release environment (preview is the disposable preview project)
+        required: true
+        default: production
+        type: choice
+        options: [production, preview]
+      marker:
+        description: set-environment-marker only (ignored otherwise)
+        required: false
+        default: shared
+        type: choice
+        options: [shared, production]
+      census_signoff:
+        description: first-rebuild only - link to the owner's census sign-off, or empty-project
+        required: false
+        type: string
+      confirmation:
+        description: Marker change <ref>:<marker>; first rebuild "rebuild <ref>"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# One release at a time per database, never cancelled mid-migration, and
+# never dropped while pending: as in the preview workflow's preview-database
+# job, which shares the preview group, waiting runs queue instead of the
+# newest replacing the one before it.
+concurrency:
+  group: ${{ inputs.environment == 'preview' && 'preview-database' || 'release-production' }}
+  cancel-in-progress: false
+  queue: max
+
+env:
+  BUN_VERSION: "1.4.3"
+  NODE_VERSION: "24.22.3"
+
+jobs:
+  # The owner approves a marker change or a first rebuild here (plan 7.5),
+  # for this run attempt only: "Re-run failed jobs", or a re-run of one job,
+  # keeps this job's earlier success, so it records the attempt it approved
+  # and the jobs that change the database run only in that attempt.
+  owner-approval:
+    name: owner-approval
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.operation == 'set-environment-marker' ||
+       inputs.operation == 'first-rebuild')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: release-owner-approval
+    outputs:
+      attempt: ${{ steps.approve.outputs.attempt }}
+    steps:
+      - name: Record the approval
+        id: approve
+        env:
+          OPERATION: ${{ inputs.operation }}
+          TARGET: ${{ inputs.environment }}
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          echo "Approved ${OPERATION} on the ${TARGET} database for run attempt ${ATTEMPT}."
+          echo "attempt=${ATTEMPT}" >> "$GITHUB_OUTPUT"
+
+  database:
+    name: release-database
+    needs: owner-approval
+    # A release (no approval job) runs as before; a first rebuild runs only
+    # once the owner approved it, in this run attempt.
+    if: >-
+      !cancelled() &&
+      (github.event_name == 'push' ||
+       inputs.operation == 'release' ||
+       (inputs.operation == 'first-rebuild' &&
+        needs.owner-approval.result == 'success' &&
+        needs.owner-approval.outputs.attempt == github.run_attempt))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
+    env:
+      RELEASE_ENVIRONMENT: ${{ inputs.environment || 'production' }}
+      RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+      REPLAY_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/release_replay
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: release_replay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Require the production branch
+        if: github.ref != 'refs/heads/production'
+        run: |
+          echo "::error::The release job runs only from the production branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install dependencies
+        run: bun ci --no-cache --backend=copyfile
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      # One pin for the repository: the version scripts/supabase-cli.mjs pins.
+      # The release steps run only this installed CLI and never fetch one: npx
+      # inside the repository stops on the root package.json's overrides.
+      - name: Read the pinned Supabase CLI version
+        id: supabase-pin
+        run: |
+          version="$(sed -n 's/^const PINNED_SUPABASE_CLI_VERSION = "\([0-9.]*\)";$/\1/p' scripts/supabase-cli.mjs)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: ${{ steps.supabase-pin.outputs.version }}
+      - name: Replay every migration on a fresh database
+        env:
+          DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
+        run: node scripts/verify/supabase-migrations.mjs
+      - name: Replay Payload migrations on the fresh database
+        env:
+          PAYLOAD_DATABASE_URI: ${{ env.REPLAY_DATABASE_URL }}
+          PAYLOAD_SECRET: release-replay-payload-secret # pragma: allowlist secret
+          SKIP_ENV_VALIDATION: "1"
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+        run: bun run cms:migrate
+      - name: Fingerprint the replay
+        run: >-
+          node scripts/release/schema-fingerprint.mjs capture
+          --database-url-env REPLAY_DATABASE_URL
+          --out "$RUNNER_TEMP/replay-fingerprint.json"
+      - name: Migrate (Supabase, CMS role passwords, then Payload as cms_owner)
+        if: github.event_name == 'push' || inputs.operation == 'release'
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
+          RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
+        run: node scripts/release/release-database.mjs migrate
+      - name: First rebuild (one-off, on the census sign-off)
+        if: inputs.operation == 'first-rebuild'
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
+          RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
+          RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
+          RELEASE_CENSUS_SIGNOFF: ${{ inputs.census_signoff }}
+          RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
+        run: node scripts/release/release-database.mjs first-rebuild
+      - name: Catalog gates and schema fingerprint against the replay
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_REPLAY_FINGERPRINT: ${{ runner.temp }}/replay-fingerprint.json
+        run: node scripts/release/release-database.mjs gates
+      - name: Record the expected migration heads
+        env:
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+        run: node scripts/release/release-database.mjs record-heads
+
+  deploy:
+    name: release-deploy
+    needs: database
+    # A status function, so that the skipped approval job before database
+    # does not skip this one.
+    if: >-
+      !cancelled() &&
+      needs.database.result == 'success' &&
+      (github.event_name == 'push' || inputs.operation == 'release') &&
+      (inputs.environment || 'production') == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: release-production
+    env:
+      RELEASE_SHA: ${{ github.sha }}
+      RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Require staged production deployments
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/release/vercel-release.mjs preflight
+      - name: Choose the apps this release builds
+        id: plan
+        run: node scripts/release/vercel-release.mjs plan
+      - name: Stage, health-check and promote
+        env:
+          RELEASE_APPS: ${{ steps.plan.outputs.apps }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/release/vercel-release.mjs deploy
+      - name: Register job functions
+        if: vars.RELEASE_REGISTER_JOB_FUNCTIONS == 'true' && contains(steps.plan.outputs.apps, 'admin')
+        run: node scripts/release/vercel-release.mjs register-jobs
+
+  marker:
+    name: set-environment-marker
+    needs: owner-approval
+    # Only once the owner approved it, in this run attempt.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.operation == 'set-environment-marker' &&
+      needs.owner-approval.result == 'success' &&
+      needs.owner-approval.outputs.attempt == github.run_attempt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
+    steps:
+      - name: Require the production branch
+        if: github.ref != 'refs/heads/production'
+        run: |
+          echo "::error::The release job runs only from the production branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Move the environment marker forward
+        env:
+          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+          RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_MARKER: ${{ inputs.marker }}
+          RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
+        run: node scripts/release/release-database.mjs set-marker
+
+  cms-role-passwords:
+    name: set-cms-role-passwords
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'set-cms-role-passwords'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
+    steps:
+      - name: Require the production branch
+        if: github.ref != 'refs/heads/production'
+        run: |
+          echo "::error::The release job runs only from the production branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Set and verify the CMS role passwords
+        env:
+          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+          RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_CMS_OWNER_PASSWORD: ${{ secrets.RELEASE_CMS_OWNER_PASSWORD }}
+          RELEASE_CMS_RUNTIME_PASSWORD: ${{ secrets.RELEASE_CMS_RUNTIME_PASSWORD }}
+        run: node scripts/release/release-database.mjs cms-role-passwords
+
+  # The repair after a rebuild that stopped between its seed and the
+  # replacement of the seed's published password (record D-24): every release
+  # stops at its preflight until this has run. It resets nothing and changes
+  # only logins that carry a published password.
+  seeded-login-passwords:
+    name: replace-seeded-login-passwords
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'replace-seeded-login-passwords'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment == 'preview' && 'release-preview' || 'release-production' }}
+    steps:
+      - name: Require the production branch
+        if: github.ref != 'refs/heads/production'
+        run: |
+          echo "::error::The release job runs only from the production branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install PostgreSQL client
+        run: bash scripts/github/install-postgresql-client.sh
+      - name: Replace the published password of seeded logins
+        env:
+          RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+          RELEASE_SUPABASE_PROJECT_REF: ${{ vars.RELEASE_SUPABASE_PROJECT_REF }}
+          RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_SEED_LOGIN_PASSWORD: ${{ secrets.RELEASE_SEED_LOGIN_PASSWORD }}
+        run: node scripts/release/release-database.mjs replace-seeded-login-passwords

@@ -1,407 +1,414 @@
-import assert from "node:assert/strict";
+// Field-policy classification gate (AL-2674). The manifest at
+// docs/security/field-policies/manifest.json is the classification of record:
+// one entry per column of each classified record type, with its category and
+// its flags on the five surfaces. It replaces the AL-491 census, which asserted
+// a dated capture of the hosted schema by checksum and so let no column be
+// added or dropped. The gate checks:
+//   1. the manifest alone: shape, the five surfaces, the six categories,
+//      same-name category floors, processor-identifier locks, reserved receipt
+//      record types and the pinned source migrations;
+//   2. the migrated schema: the columns of every classified table equal the
+//      manifest's entries (name, type, nullability, generation, pinned
+//      defaults), and canonical receipts do not exist;
+//   3. the seed: every row of public.field_policies equals a manifest flag.
+// A later package that adds a column to a classified table adds its manifest
+// entry and its five field_policies rows in the same change; one that drops a
+// column deletes both. See docs/security/field-policies/README.md.
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const root = path.resolve(
+import { isLoopbackDatabaseUrl, runPsqlQuery } from "../lib/psql.mjs";
+
+export const MANIFEST_PATH = "docs/security/field-policies/manifest.json";
+export const SURFACES = [
+  "mission_control",
+  "donor",
+  "missionary",
+  "public",
+  "export",
+];
+export const CATEGORIES = [
+  "public",
+  "contact",
+  "internal",
+  "financial",
+  "care",
+  "security",
+];
+const IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
+const FLAGS = /^[v-][e-][x-]$/;
+const COLUMN_KEYS = new Set([
+  "type",
+  "nullable",
+  "generated",
+  "default",
+  "category",
+  "semantic_category",
+  "processor_identifier",
+  ...SURFACES,
+]);
+const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const artifactRoot = path.join(root, "docs/security/field-policies");
-const census = JSON.parse(
-  readFileSync(path.join(artifactRoot, "census-v1.json"), "utf8"),
-);
-const hash = (file) =>
-  createHash("sha256")
-    .update(readFileSync(path.join(artifactRoot, file)))
-    .digest("hex");
-assert.equal(
-  hash("live-schema-response.json"),
-  census.provenance.live_capture_sha256,
-);
-assert.equal(
-  hash("live-tables-response.json"),
-  census.provenance.relation_capture_sha256,
-);
-const capture = JSON.parse(
-  readFileSync(path.join(artifactRoot, "live-schema-response.json"), "utf8"),
-);
-const payload = JSON.parse(capture.result.content[0].text).result;
-const metadata = JSON.parse(
-  payload.slice(
-    payload.indexOf("\n[") + 1,
-    payload.indexOf("\n</untrusted-data-"),
-  ),
-)[0];
-assert.equal(metadata.captured_at, census.provenance.captured_at);
-assert.equal(
-  metadata.latest_migration,
-  census.provenance.latest_live_migration,
-);
-assert.equal(capture.repository_sha, census.provenance.repository_base_sha);
-assert.equal(capture.query, census.provenance.query);
-const present = census.relations.filter(
-  (relation) => relation.disposition === "present",
-);
-const columns = present.flatMap((relation) =>
-  relation.columns.map((column) => ({
-    recordType: relation.record_type,
-    ...column,
-  })),
-);
-assert.equal(columns.length, 171);
-assert.deepEqual(
-  present.map((relation) => ({
-    schema: relation.schema,
-    relation: relation.record_type,
-    kind: relation.kind,
-    columns: relation.columns.map(({ name, ordinal, type, nullable }) => ({
-      name,
-      ordinal,
-      type,
-      nullable,
-    })),
-  })),
-  metadata.inventory,
-);
-const receipts = census.relations.find(
-  (relation) => relation.record_type === "receipts",
-);
-assert.equal(receipts.disposition, "absent/reserved");
-assert.deepEqual(receipts.columns, []);
-assert.equal(receipts.positive_seed_rows, 0);
-// Reviewed supplements, in order: v1 is bound to its source at the census base
-// SHA; v2 (#2254) and v3 (#2256) postdate that SHA and are bound to their
-// working-tree hashes.
-assert.deepEqual(
-  census.repository_supplements.map((ref) => ref.artifact),
-  [
-    "repository-supplement-v1.json",
-    "repository-supplement-v2-donor-identity.json",
-    "repository-supplement-v3-person-anchor.json",
-  ],
-);
-for (const ref of census.repository_supplements)
-  assert.equal(hash(ref.artifact), ref.sha256);
-const [supplementRef, identityRef, personRef] = census.repository_supplements;
-const supplement = JSON.parse(
-  readFileSync(path.join(artifactRoot, supplementRef.artifact), "utf8"),
-);
-assert.equal(
-  supplement.source_path,
-  "supabase/migrations/20260702090000_donation_stripe_refund_ids.sql",
-);
-assert.equal(
-  supplement.source_sha256,
-  "2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda",
-);
-assert.equal(
-  supplement.repository_base_sha,
-  census.provenance.repository_base_sha,
-);
-const source = readFileSync(path.join(root, supplement.source_path));
-assert.equal(
-  createHash("sha256").update(source).digest("hex"),
-  supplement.source_sha256,
-);
-const baseSource = spawnSync(
-  "git",
-  ["show", `${supplement.repository_base_sha}:${supplement.source_path}`],
-  { cwd: root, shell: false },
-);
-if (baseSource.error) throw baseSource.error;
-assert.equal(baseSource.status, 0);
-assert.deepEqual(baseSource.stdout, source);
-assert.deepEqual(supplement.column, {
-  recordType: "donations",
-  name: "stripe_refund_ids",
-  ordinal: 29,
-  type: "text[]",
-  nullable: false,
-  default: "'{}'::text[]",
-  semantic_category: "financial",
-  category: "financial",
-  processor_identifier: true,
-  policies: Object.fromEntries(
-    census.surfaces.map((surface) => [
-      surface,
-      {
-        visible: surface === "mission_control",
-        editable: false,
-        exportable: false,
-      },
-    ]),
-  ),
-});
-const identity = JSON.parse(
-  readFileSync(path.join(artifactRoot, identityRef.artifact), "utf8"),
-);
-assert.equal(
-  identity.source_path,
-  "supabase/migrations/20261024140000_identity_email_normalizer_and_donor_keys.sql",
-);
-assert.equal(
-  createHash("sha256")
-    .update(readFileSync(path.join(root, identity.source_path)))
-    .digest("hex"),
-  identity.source_sha256,
-);
-const identityPolicies = (visibleOn) =>
-  Object.fromEntries(
-    census.surfaces.map((surface) => [
-      surface,
-      {
-        visible: visibleOn.includes(surface),
-        editable: false,
-        exportable: false,
-      },
-    ]),
-  );
-const identityColumn = (name, ordinal, type, extra, visibleOn) => ({
-  recordType: "donors",
-  name,
-  ordinal,
-  type,
-  nullable: true,
-  ...extra,
-  semantic_category: "contact",
-  category: "contact",
-  processor_identifier: false,
-  policies: identityPolicies(visibleOn),
-});
-assert.deepEqual(identity.columns, [
-  identityColumn(
-    "email_normalized",
-    43,
-    "text",
-    { generated: "normalize_email(email)" },
-    ["mission_control", "donor", "missionary"],
-  ),
-  identityColumn("email_verified_at", 44, "timestamp with time zone", {}, [
-    "mission_control",
-    "donor",
-  ]),
-]);
-const person = JSON.parse(
-  readFileSync(path.join(artifactRoot, personRef.artifact), "utf8"),
-);
-assert.equal(
-  person.source_path,
-  "supabase/migrations/20261025110000_person_anchor.sql",
-);
-assert.equal(
-  createHash("sha256")
-    .update(readFileSync(path.join(root, person.source_path)))
-    .digest("hex"),
-  person.source_sha256,
-  `field-policy census: v3 source_sha256 mismatch for ${person.source_path}`,
-);
-// #2256 (Q11, OQ6): both person_id seams are security, denied on every surface.
-const personColumn = (recordType, ordinal) => ({
-  recordType,
-  name: "person_id",
-  ordinal,
-  type: "uuid",
-  nullable: true,
-  semantic_category: "security",
-  category: "security",
-  processor_identifier: false,
-  policies: identityPolicies([]),
-});
-assert.deepEqual(person.columns, [
-  personColumn("missionaries", 22),
-  personColumn("profiles", 14),
-]);
-const candidateExpectedColumns = [
-  ...columns,
-  supplement.column,
-  ...identity.columns,
-  ...person.columns,
-];
-assert.equal(census.column_count, 171);
-assert.equal(census.candidate_column_count, 176);
-assert.equal(candidateExpectedColumns.length, 176);
-assert.equal(census.baseline_row_count, 880);
-const floors = new Map();
-for (const column of candidateExpectedColumns) {
-  const prior = floors.get(column.name);
-  if (prior)
-    assert.equal(
-      column.category,
-      prior,
-      `Same-name category mismatch: ${column.name}`,
-    );
-  floors.set(column.name, column.category);
-  assert.deepEqual(Object.keys(column.policies), census.surfaces);
-  for (const [surface, operations] of Object.entries(column.policies)) {
-    assert.equal(typeof operations.visible, "boolean");
-    assert.equal(typeof operations.editable, "boolean");
-    assert.equal(typeof operations.exportable, "boolean");
-    if (column.processor_identifier) {
-      assert.equal(operations.exportable, false);
-      if (surface !== "mission_control")
-        assert.deepEqual(operations, {
-          visible: false,
-          editable: false,
-          exportable: false,
-        });
-    }
-  }
-}
-console.log(
-  "PASS: immutable live provenance, 171 exact whole columns, same-name floors, five explicit surfaces, reserved receipts and processor locks.",
-);
 
-const databaseUrl = process.env.DATABASE_URL;
-if (
-  !databaseUrl ||
-  !new Set(["localhost", "127.0.0.1", "[::1]"]).has(
-    new URL(databaseUrl).hostname,
-  )
-) {
-  throw new Error(
-    "DATABASE_URL must identify a disposable local database for census verification.",
+export function loadManifest(root = repoRoot) {
+  return JSON.parse(readFileSync(path.join(root, MANIFEST_PATH), "utf8"));
+}
+
+/** The manifest's columns, flattened: { recordType, name, ...entry }. */
+export function manifestColumns(manifest) {
+  return Object.entries(manifest.record_types ?? {}).flatMap(
+    ([recordType, columns]) =>
+      Object.entries(columns ?? {}).map(([name, entry]) => ({
+        recordType,
+        name,
+        ...entry,
+      })),
   );
 }
-function query(sql) {
-  const result = spawnSync(
-    process.env.PSQL_BIN || "psql",
-    [databaseUrl, "-X", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql],
-    { cwd: root, encoding: "utf8", shell: false },
-  );
-  if (result.error) throw result.error;
-  if (result.status !== 0)
-    throw new Error(result.stderr || "Census database query failed");
-  return JSON.parse(result.stdout.trim());
-}
-const expectedRows = candidateExpectedColumns.flatMap((column) =>
-  census.surfaces.map((surface) => ({
-    record_type: column.recordType,
-    field_key: column.name,
-    surface,
-    tenant_id: null,
-    ...column.policies[surface],
-    sensitivity_category: column.category,
-  })),
-);
-const actualRows = query(
-  "select coalesce(jsonb_agg(to_jsonb(p)), '[]'::jsonb) from public.field_policies p",
-);
-const sortRows = (rows) =>
-  rows.sort((a, b) =>
-    JSON.stringify([a.record_type, a.field_key, a.surface]).localeCompare(
-      JSON.stringify([b.record_type, b.field_key, b.surface]),
-    ),
-  );
-assert.deepEqual(sortRows(actualRows), sortRows(expectedRows));
-console.log(
-  "PASS: all 880 database seed rows exactly equal the reviewed census categories and explicit flags.",
-);
-const names = present.map((relation) => `'${relation.record_type}'`).join(",");
-const candidateColumns = query(
-  `select jsonb_agg(jsonb_build_object('record_type', table_name, 'field_key', column_name) order by table_name, ordinal_position) from information_schema.columns where table_schema='public' and table_name in (${names})`,
-);
-const sortColumns = (rows) =>
-  rows.sort((a, b) =>
-    JSON.stringify([a.record_type, a.field_key]).localeCompare(
-      JSON.stringify([b.record_type, b.field_key]),
-    ),
-  );
-assert.deepEqual(
-  sortColumns(candidateColumns),
-  sortColumns(
-    candidateExpectedColumns.map((column) => ({
+
+const flagsOf = (value) => ({
+  visible: value[0] === "v",
+  editable: value[1] === "e",
+  exportable: value[2] === "x",
+});
+
+/** The baseline public.field_policies rows the manifest requires. */
+export function expectedFieldPolicyRows(manifest) {
+  return manifestColumns(manifest).flatMap((column) =>
+    SURFACES.map((surface) => ({
       record_type: column.recordType,
       field_key: column.name,
+      surface,
+      tenant_id: null,
+      ...flagsOf(column[surface]),
+      sensitivity_category: column.category,
     })),
-  ),
-  "Candidate schema must equal the 171 live columns plus the exact reviewed supplements; arbitrary drift is forbidden.",
-);
-console.log(
-  "PASS: exactly 176 candidate columns equal immutable live171 plus the reviewed source-bound supplements.",
-);
+  );
+}
 
-assert.deepEqual(
-  query(supplement.local_catalog.query),
-  supplement.local_catalog.result,
-);
-assert.deepEqual(supplement.local_catalog.result, {
-  schema: "public",
-  record_type: "donations",
-  field_key: "stripe_refund_ids",
-  ordinal: 29,
-  data_type: "ARRAY",
-  udt_name: "_text",
-  nullable: false,
-  default: "'{}'::text[]",
-});
-console.log(
-  "PASS: supplement base source hash and exact local TEXT[]/NOT NULL/default metadata.",
-);
+/** Problems found in the manifest alone, without a database. */
+export function manifestProblems(manifest, { root = repoRoot } = {}) {
+  const problems = [];
+  const fail = (code, detail) => problems.push(`${code} ${detail}`);
+  if (JSON.stringify(manifest.surfaces) !== JSON.stringify(SURFACES))
+    fail("SURFACES", `must be exactly ${SURFACES.join(", ")}`);
+  if (JSON.stringify(manifest.categories) !== JSON.stringify(CATEGORIES))
+    fail("CATEGORIES", `must be exactly ${CATEGORIES.join(", ")}`);
+  const processors = new Set(manifest.processor_identifiers ?? []);
+  if (processors.size !== 6)
+    fail("PROCESSORS", "processor_identifiers must list the six Stripe fields");
+  const reserved = manifest.reserved_record_types ?? {};
+  if (!reserved.receipts?.physically_absent)
+    fail("RESERVED", "receipts must stay reserved and physically absent");
+  const recordTypes = Object.keys(manifest.record_types ?? {});
+  if (recordTypes.length === 0) fail("EMPTY", "no record types classified");
+  for (const recordType of recordTypes) {
+    if (!IDENTIFIER.test(recordType))
+      fail("NAME", `record type ${JSON.stringify(recordType)}`);
+    if (recordType in reserved)
+      fail("RESERVED", `${recordType} is reserved and may not be classified`);
+  }
+  const floors = new Map();
+  for (const column of manifestColumns(manifest)) {
+    const key = `${column.recordType}.${column.name}`;
+    if (!IDENTIFIER.test(column.name))
+      fail("NAME", `column ${JSON.stringify(key)}`);
+    for (const field of Object.keys(column))
+      if (field !== "recordType" && field !== "name" && !COLUMN_KEYS.has(field))
+        fail("FIELD", `${key} has unknown key ${JSON.stringify(field)}`);
+    if (typeof column.type !== "string" || column.type === "")
+      fail("FIELD", `${key} needs a type`);
+    if (typeof column.nullable !== "boolean")
+      fail("FIELD", `${key} needs nullable true or false`);
+    if ("generated" in column && typeof column.generated !== "string")
+      fail("FIELD", `${key} generated must be the expression text`);
+    if (
+      "default" in column &&
+      column.default !== null &&
+      typeof column.default !== "string"
+    )
+      fail("FIELD", `${key} default must be text or null`);
+    if (!CATEGORIES.includes(column.category))
+      fail(
+        "CATEGORY",
+        `${key} has category ${JSON.stringify(column.category)}`,
+      );
+    if (
+      "semantic_category" in column &&
+      !CATEGORIES.includes(column.semantic_category)
+    )
+      fail(
+        "CATEGORY",
+        `${key} has semantic_category ${column.semantic_category}`,
+      );
+    for (const surface of SURFACES)
+      if (typeof column[surface] !== "string" || !FLAGS.test(column[surface]))
+        fail("FLAGS", `${key} ${surface} must match [v-][e-][x-]`);
+    const prior = floors.get(column.name);
+    if (prior && prior.category !== column.category)
+      fail(
+        "FLOOR",
+        `${key} is ${column.category} but ${prior.key} is ${prior.category}; one column name has one category`,
+      );
+    if (!prior) floors.set(column.name, { key, category: column.category });
+    const processor = column.processor_identifier === true;
+    if ("processor_identifier" in column && !processor)
+      fail("PROCESSOR", `${key} processor_identifier may only be true`);
+    if (processor !== processors.has(column.name))
+      fail(
+        "PROCESSOR",
+        `${key} must ${processors.has(column.name) ? "" : "not "}be flagged processor_identifier`,
+      );
+    if (processor)
+      for (const surface of SURFACES) {
+        const value = column[surface] ?? "";
+        if (value[2] !== "-")
+          fail("PROCESSOR", `${key} is never exportable (${surface})`);
+        if (surface !== "mission_control" && value !== "---")
+          fail("PROCESSOR", `${key} is denied on ${surface}`);
+      }
+  }
+  for (const source of manifest.pinned_sources ?? []) {
+    if (!/^supabase\/migrations\/[^/]+\.sql$/.test(source.path ?? "")) {
+      fail("PINNED", `${JSON.stringify(source.path)} is not a migration`);
+      continue;
+    }
+    let digest = "";
+    try {
+      digest = createHash("sha256")
+        .update(readFileSync(path.join(root, source.path)))
+        .digest("hex");
+    } catch {
+      fail("PINNED", `${source.path} is missing`);
+      continue;
+    }
+    if (digest !== source.sha256)
+      fail("PINNED", `${source.path} changed (sha256 ${digest})`);
+  }
+  return problems;
+}
 
-assert.deepEqual(
-  query(identity.local_catalog.query),
-  identity.local_catalog.result,
-);
-const identityCatalog = (
-  field_key,
-  ordinal,
-  data_type,
-  udt_name,
-  generated,
-) => ({
-  schema: "public",
-  record_type: "donors",
-  field_key,
-  ordinal,
-  data_type,
-  udt_name,
-  nullable: true,
-  default: null,
-  generated: generated ? "ALWAYS" : "NEVER",
-  generation_expression: generated,
-});
-assert.deepEqual(identity.local_catalog.result, [
-  identityCatalog(
-    "email_normalized",
-    43,
-    "text",
-    "text",
-    "normalize_email(email)",
-  ),
-  identityCatalog(
-    "email_verified_at",
-    44,
-    "timestamp with time zone",
-    "timestamptz",
-    null,
-  ),
-]);
-console.log(
-  "PASS: identity supplement working-tree source hash and exact local generated TEXT/TIMESTAMPTZ metadata.",
-);
+/** One catalog read: classified relations, their columns, reserved relations and the rows. */
+export function catalogSql(manifest) {
+  const names = Object.keys(manifest.record_types ?? {}).filter((name) =>
+    IDENTIFIER.test(name),
+  );
+  const absent = Object.entries(manifest.reserved_record_types ?? {})
+    .filter(
+      ([name, entry]) => entry?.physically_absent && IDENTIFIER.test(name),
+    )
+    .map(([name]) => name);
+  const list = (values) =>
+    `array[${values.map((value) => `'${value}'`).join(",")}]::text[]`;
+  return `-- field-policy-manifest-gate:v1
+select jsonb_build_object(
+  'relations', coalesce((
+    select jsonb_agg(c.relname order by c.relname)
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind in ('r', 'p', 'v', 'm', 'f')
+      and c.relname = any(${list(names)})), '[]'::jsonb),
+  'columns', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'record_type', c.relname,
+      'field_key', a.attname,
+      'type', format_type(a.atttypid, a.atttypmod),
+      'nullable', not a.attnotnull,
+      'generated', case when a.attgenerated <> '' then pg_get_expr(d.adbin, d.adrelid) end,
+      'default', case when a.attgenerated = '' then pg_get_expr(d.adbin, d.adrelid) end
+    ) order by c.relname, a.attnum)
+    from pg_attribute a
+    join pg_class c on c.oid = a.attrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    left join pg_attrdef d on d.adrelid = a.attrelid and d.adnum = a.attnum
+    where n.nspname = 'public' and c.relkind in ('r', 'p', 'v', 'm', 'f')
+      and c.relname = any(${list(names)})
+      and a.attnum > 0 and not a.attisdropped), '[]'::jsonb),
+  'reserved_present', coalesce((
+    select jsonb_agg(c.relname order by c.relname)
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relname = any(${list(absent)})), '[]'::jsonb),
+  'rows', coalesce((
+    select jsonb_agg(to_jsonb(p) order by p.record_type, p.field_key, p.surface)
+    from public.field_policies p), '[]'::jsonb)
+)::text;`;
+}
 
-assert.deepEqual(
-  query(person.local_catalog.query),
-  person.local_catalog.result,
-);
-assert.deepEqual(
-  person.local_catalog.result,
-  person.columns.map(({ recordType, ordinal }) => ({
-    schema: "public",
-    record_type: recordType,
-    field_key: "person_id",
-    ordinal,
-    data_type: "uuid",
-    udt_name: "uuid",
-    nullable: true,
-    default: null,
-    generated: "NEVER",
-    generation_expression: null,
-  })),
-);
-console.log(
-  "PASS: person anchor supplement working-tree source hash and exact local nullable UUID metadata.",
-);
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Problems between the manifest and one catalog read. */
+export function catalogProblems(manifest, catalog) {
+  const problems = [];
+  const fail = (code, detail) => problems.push(`${code} ${detail}`);
+  const present = new Set(catalog.relations ?? []);
+  for (const recordType of Object.keys(manifest.record_types ?? {}))
+    if (!present.has(recordType))
+      fail(
+        "MISSING_TABLE",
+        `${recordType}: no public relation; remove its manifest entries and field_policies rows if it was dropped`,
+      );
+  for (const name of catalog.reserved_present ?? [])
+    fail(
+      "RESERVED",
+      `public.${name} exists but is reserved and must be absent`,
+    );
+
+  const actual = new Map(
+    (catalog.columns ?? []).map((column) => [
+      `${column.record_type}.${column.field_key}`,
+      column,
+    ]),
+  );
+  const expected = new Map(
+    manifestColumns(manifest).map((column) => [
+      `${column.recordType}.${column.name}`,
+      column,
+    ]),
+  );
+  for (const [key, column] of actual)
+    if (!expected.has(key))
+      fail(
+        "UNCLASSIFIED",
+        `${key} (${column.type}): add its entry to ${MANIFEST_PATH} and its five field_policies rows in the migration that adds it`,
+      );
+  for (const [key, entry] of expected) {
+    const column = actual.get(key);
+    if (!column) {
+      if (present.has(entry.recordType))
+        fail(
+          "STALE",
+          `${key}: the column does not exist; remove its manifest entry and its field_policies rows`,
+        );
+      continue;
+    }
+    const want = {
+      type: entry.type,
+      nullable: entry.nullable,
+      generated: entry.generated ?? null,
+      ...("default" in entry ? { default: entry.default } : {}),
+    };
+    const got = {
+      type: column.type,
+      nullable: column.nullable,
+      generated: column.generated ?? null,
+      ...("default" in entry ? { default: column.default ?? null } : {}),
+    };
+    if (!same(want, got))
+      fail(
+        "SHAPE",
+        `${key}: manifest ${JSON.stringify(want)} but schema ${JSON.stringify(got)}; reclassify the column and update its entry`,
+      );
+  }
+
+  const rowKey = (row) =>
+    [row.record_type, row.field_key, row.surface, row.tenant_id ?? ""].join(
+      "|",
+    );
+  const wantRows = new Map(
+    expectedFieldPolicyRows(manifest).map((row) => [rowKey(row), row]),
+  );
+  const gotRows = new Map(
+    (catalog.rows ?? []).map((row) => [rowKey(row), row]),
+  );
+  for (const [key, row] of gotRows) {
+    const want = wantRows.get(key);
+    if (!want)
+      fail(
+        "ROW_UNEXPECTED",
+        `${key} is in public.field_policies but not in the manifest`,
+      );
+    else if (
+      !same(
+        [row.visible, row.editable, row.exportable, row.sensitivity_category],
+        [
+          want.visible,
+          want.editable,
+          want.exportable,
+          want.sensitivity_category,
+        ],
+      )
+    )
+      fail(
+        "ROW_DRIFT",
+        `${key}: database ${JSON.stringify([row.visible, row.editable, row.exportable, row.sensitivity_category])} but manifest ${JSON.stringify([want.visible, want.editable, want.exportable, want.sensitivity_category])}`,
+      );
+  }
+  for (const key of wantRows.keys())
+    if (!gotRows.has(key))
+      fail("ROW_MISSING", `${key} is not in public.field_policies`);
+  return problems;
+}
+
+function readCatalog(manifest, { databaseUrl, psqlBin }) {
+  return JSON.parse(
+    runPsqlQuery({ databaseUrl, sql: catalogSql(manifest), psqlBin }).trim(),
+  );
+}
+
+/** Whether a URL names a database on this machine (the one loopback list). */
+export const isLocalDatabaseUrl = isLoopbackDatabaseUrl;
+
+/** Runs all three checks; returns { ok, problems, lines }. */
+export function runFieldPolicyGate({
+  root = repoRoot,
+  databaseUrl = process.env.DATABASE_URL,
+  psqlBin = process.env.PSQL_BIN || "psql",
+} = {}) {
+  const manifest = loadManifest(root);
+  const columns = manifestColumns(manifest);
+  const recordTypes = Object.keys(manifest.record_types ?? {}).length;
+  const lines = [];
+  const staticProblems = manifestProblems(manifest, { root });
+  if (staticProblems.length)
+    return { ok: false, problems: staticProblems, lines };
+  lines.push(
+    `PASS: field-policy manifest: ${recordTypes} record types, ${columns.length} columns, five surfaces, same-name floors, processor locks, reserved receipts and pinned sources.`,
+  );
+  if (!databaseUrl || !isLocalDatabaseUrl(databaseUrl))
+    throw new Error(
+      "DATABASE_URL must identify a disposable local database for field-policy verification.",
+    );
+  const problems = catalogProblems(
+    manifest,
+    readCatalog(manifest, { databaseUrl, psqlBin }),
+  );
+  if (problems.length) return { ok: false, problems, lines };
+  lines.push(
+    `PASS: the migrated columns of the ${recordTypes} classified record types equal the manifest's ${columns.length} entries; canonical receipts are absent.`,
+    `PASS: all ${columns.length * SURFACES.length} public.field_policies rows equal the manifest's flags and categories.`,
+  );
+  return { ok: true, problems, lines };
+}
+
+const invokedDirectly = () => {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(process.argv[1]) ===
+      realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return false;
+  }
+};
+
+if (invokedDirectly()) {
+  let result;
+  try {
+    result = runFieldPolicyGate();
+  } catch (error) {
+    console.error(`error: field-policy gate: ${error.message}`);
+    process.exit(1);
+  }
+  for (const line of result.lines) console.log(line);
+  if (!result.ok) {
+    for (const problem of result.problems) console.error(problem);
+    console.error(
+      `error: field-policy gate failed (${result.problems.length} problems). See docs/security/field-policies/README.md.`,
+    );
+    process.exit(1);
+  }
+}

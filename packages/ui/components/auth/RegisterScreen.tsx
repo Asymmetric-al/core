@@ -1,9 +1,11 @@
 "use client";
 
+import { answerReadsAsSent } from "@asym/auth/auth-email-request";
 import {
   getDefaultPostLoginPathForApp,
   type AppId,
 } from "@asym/auth/demo-login";
+import { signUpConfirmationRedirectUrl } from "@asym/auth/sign-up-confirmation";
 import { createBrowserClient } from "@asym/database/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,14 +33,36 @@ export interface RegisterScreenProps {
   loginHref?: string;
 }
 
-function toRegistrationErrorMessage(error: unknown): string {
-  if (!(error instanceof Error)) {
-    return "Unable to create account.";
-  }
+const MIN_PASSWORD_LENGTH = 8;
 
-  const message = error.message.trim();
-  if (!message) return "Unable to create account.";
-  return message;
+const REGISTRATION_FAILED_MESSAGE =
+  "Your account couldn’t be created. Try again in a moment.";
+
+/**
+ * Auth's refusals that describe what was typed. They read the same for every
+ * address, so their wording is shown; any other refusal gets a general
+ * message, because its wording can differ for an address with an account.
+ */
+const INPUT_PROBLEM_CODES: ReadonlySet<string> = new Set([
+  "weak_password",
+  "email_address_invalid",
+  "validation_failed",
+]);
+
+function toRegistrationErrorMessage(error: unknown): string {
+  const { code, message } = (error ?? {}) as {
+    code?: unknown;
+    message?: unknown;
+  };
+  if (
+    typeof code === "string" &&
+    INPUT_PROBLEM_CODES.has(code) &&
+    typeof message === "string" &&
+    message.trim()
+  ) {
+    return message;
+  }
+  return REGISTRATION_FAILED_MESSAGE;
 }
 
 export function RegisterScreen({
@@ -71,15 +95,24 @@ export function RegisterScreen({
         setError(null);
         setNotice(null);
 
-        if (password.length < 8) {
-          throw new Error("Password must be at least 8 characters.");
+        if (password.length < MIN_PASSWORD_LENGTH) {
+          setError(
+            `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+          );
+          return;
         }
 
+        const address = email.trim().toLowerCase();
         const supabase = createBrowserClient();
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim().toLowerCase(),
+          email: address,
           password,
           options: {
+            // The confirmation returns to this host, where the person is
+            // then signed in: session cookies belong to one host.
+            emailRedirectTo: signUpConfirmationRedirectUrl(
+              window.location.origin,
+            ),
             data: {
               first_name: firstName.trim(),
               last_name: lastName.trim(),
@@ -87,19 +120,27 @@ export function RegisterScreen({
           },
         });
 
-        if (signUpError) throw new Error(signUpError.message);
+        if (!answerReadsAsSent(signUpError)) {
+          setError(toRegistrationErrorMessage(signUpError));
+          return;
+        }
 
-        if (data.session) {
+        // Only a project with confirmation switched off returns a session.
+        if (data?.session) {
           replace(defaultPostLoginPath);
           refresh();
           return;
         }
 
+        // The same answer whether or not the address already had an account
+        // (plan 5.4): Auth answers a confirmed address "already registered",
+        // and an unconfirmed one asked again within the email frequency with
+        // a rate limit (`answerReadsAsSent`).
         setNotice(
-          "Account created. Check your email for verification before signing in.",
+          `Check your email: we’ve sent a link to ${address}. Open it in this browser to confirm the address and sign in. If nothing arrives in a few minutes, try again, or sign in if you already have an account.`,
         );
-      } catch (cause) {
-        setError(toRegistrationErrorMessage(cause));
+      } catch {
+        setError(REGISTRATION_FAILED_MESSAGE);
       } finally {
         submissionInFlight.current = false;
         setIsSubmitting(false);
@@ -170,7 +211,7 @@ export function RegisterScreen({
                   type="password"
                   autoComplete="new-password"
                   // Matches the length check in handleSubmit.
-                  minLength={8}
+                  minLength={MIN_PASSWORD_LENGTH}
                   aria-describedby={passwordHintId}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}

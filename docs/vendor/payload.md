@@ -2,31 +2,22 @@
 
 Runtime packages come from the exact official public cohort in
 `apps/admin/package.json`, resolved by `bun.lock`. Core currently selects public
-`4.0.0-beta.3`; this prerelease is qualified through the
-[modernization checkpoint](../maintenance/modernization/payload.md).
+`4.0.0-beta.9`; this prerelease is qualified through the
+[modernization checkpoint](../maintenance/modernization/payload.md) and
+`bun run cms:qualify`.
 
-## Frozen historical reference subset
+## Retired upstream copy
 
-`vendor/payload-upstream` is a non-runnable historical upstream reference. It is
-not imported by first-party application code and does not describe the installed
-v4 APIs. The obsolete `examples/` tree (812 tracked files, including 17 manifests)
-was removed after checking first-party consumers. The retained upstream
-`create-payload-app` reference still names local examples/templates; it must not
-be executed as an installation source.
+`vendor/payload-upstream`, a copy of Payload 3.77.0, was removed in AL-2674
+(WP1 of the CRM, CMS and database plan; audit finding NA-05): read for v4
+behaviour it gave wrong answers. No first-party code, script or test used it.
+Git history keeps the snapshot, so dated research citations of its paths
+resolve at their own commits; read them as v3 evidence. The earlier
+[retirement provenance](../maintenance/modernization/payload-vendor-provenance.json)
+of its `examples/` tree stays as a dated record.
 
-The [retirement provenance](../maintenance/modernization/payload-vendor-provenance.json)
-records the previous Core commit, immutable vendor/example Git trees, every
-removed path/blob/content hash, and retained license notice. Git history preserves
-the full snapshot. Retained docs/packages and localization fixtures continue to
-support dated research citations. The opaque `payload.db` is outside this
-retirement: preserve it without reading, materializing, copying or modifying it.
-
-Do not subtree-pull this partial reference or install its example dependencies.
-That would reintroduce retired software. If a retained research citation needs a
-new upstream version, select an exact official source commit, preserve its
-license and provenance, update the citation explicitly and review a bounded
-reference refresh. Current API guidance comes from the installed public exports,
-the [versioned migration guide](https://github.com/payloadcms/payload/blob/v4.0.0-beta.3/docs/migration-guide/v4.mdx)
+Do not restore or subtree-pull it. Current API guidance comes from the installed
+public exports, the [versioned migration guide](https://github.com/payloadcms/payload/blob/v4.0.0-beta.9/docs/migration-guide/v4.mdx)
 and Core's `docs/ai/skills/payload/reference/PUBLIC-V4.md`.
 
 ## Runtime upgrade workflow

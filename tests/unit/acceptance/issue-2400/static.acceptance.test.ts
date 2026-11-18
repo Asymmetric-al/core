@@ -191,38 +191,36 @@ describe("#2400 criteria 5-6: doc and census chain", () => {
     forward: Buffer.from(H.read(H.MIGRATION)),
     v3: Buffer.from(H.read(`${H.FP}/${H.V3}`)),
     census: H.read(`${H.FP}/census-v1.json`),
-    foundation: H.read("supabase/tests/field_policies_foundation.sql"),
+    manifest: H.read(`${H.FP}/manifest.json`),
   });
-  it("#2400 criterion 6: forward SHA -> v3 source_sha256 -> v3 SHA -> census-v1, and both SQL literals, agree", () =>
+  it("#2400 criterion 6: forward SHA -> v3 source_sha256 -> v3 SHA -> census-v1, and the manifest pin, agree", () =>
     expect(H.chainProblems(chain())).toEqual([]));
 
   it("#2400 criterion 6 (M5): an unrehashed comment edit breaks the chain at each link", () => {
     const c = chain();
     const forward = Buffer.concat([c.forward, Buffer.from("-- edited\n")]);
+    // AL-2674: the manifest's pin replaces the SQL test's literals as the
+    // second link that the edit breaks.
     expect(H.chainProblems({ ...c, forward })).toHaveLength(2);
     const v3 = Buffer.from(
       c.v3.toString().replace(H.sha(c.forward), H.sha(forward)),
     );
     expect(H.chainProblems({ ...c, forward, v3 })).toEqual([
       "census-v1 v3 sha256",
-      "foundation SQL literals",
+      "manifest pinned_sources v3",
     ]);
   });
 
-  it("#2400 criteria 5/6: the census v3 hash assert carries the §1.5 message; PASS lines equal a8fbab2f", () =>
+  // AL-2674 (plan 7.1): the census became the manifest gate; the §1.5 message
+  // is its pinned-source failure, and the PASS lines are the gate's.
+  it("#2400 criteria 5/6: the gate's pinned-source failure names the file; PASS lines equal the manifest gate's", () =>
     expect(H.censusProblems(H.read(CENSUS))).toEqual([]));
 
-  it("#2400 (M8): a census with the message passes; the same census without it fails", () => {
+  it("#2400 (M8): the gate with the message passes; the same gate without it fails", () => {
     const mjs = H.read(CENSUS);
-    const message =
-      /["'`]field-policy census: v3 source_sha256 mismatch for [^"'`]+["'`],?/g;
-    const msg = JSON.stringify(`${H.MISMATCH}${H.MIGRATION}`);
-    const withMsg = message.test(mjs)
-      ? mjs
-      : mjs.replace("person.source_sha256,", `person.source_sha256, ${msg},`);
-    expect(H.censusProblems(withMsg)).toEqual([]);
-    expect(H.censusProblems(withMsg.replace(message, ""))).toEqual([
-      "§1.5 message",
-    ]);
+    expect(H.censusProblems(mjs)).toEqual([]);
+    expect(
+      H.censusProblems(mjs.replaceAll(H.MISMATCH, '"PINNED", `${source.path}')),
+    ).toEqual(["§1.5 message"]);
   });
 });

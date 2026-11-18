@@ -56,7 +56,6 @@ apps/admin/payload-types.ts
 .traycer
 .local-secrets
 ~
-vendor/payload-upstream
 vendor/react-pdf-packages/*/
 
 # keep command docs but skip bundled skill libraries

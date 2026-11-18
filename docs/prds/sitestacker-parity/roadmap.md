@@ -5945,6 +5945,76 @@ Each decision needs an accountable owner, concrete selected behavior, evidence a
 
 ---
 
+## CRM, CMS and database foundation sequencing (2026-11-17)
+
+Recorded under [AL-2688](https://github.com/Asymmetric-al/core/issues/2688) on
+the owner's instruction of 17 November 2026 to implement the
+[CRM, CMS and database plan](../../audits/core-crm-cms-database-target-architecture.md),
+which ratifies the roadmap disposition in its
+[section 14](../../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions).
+The phase inventory, numbering and slugs above are unchanged. Nothing here is
+implementation evidence; the
+[implementation record](../../audits/core-crm-cms-database-implementation-record.md)
+says what exists.
+
+**Accepted decisions for unbuilt phases are target intent.** A phase's ratified
+decisions describe what that phase must deliver when it is built. They do not
+show that it is built, and an implementing package may deliver a first slice of
+a phase only under that phase's own rules.
+
+**Sequencing.** The plan's work packages WP0 to WP14 come before further phase
+grooming, in the dependency order of plan section 12, tracked in
+[#2671](https://github.com/Asymmetric-al/core/issues/2671). WP11, the production
+database, waits for the owner's census decision and for WP10, WP12, WP13 and
+WP14. Grooming of a phase that a package touches resumes from the package's
+delivered state.
+
+**Packages that deliver part of a phase.**
+
+| Package                     | Phase it belongs to                                                              | Delivers                                                                                                                          | Rules that govern it                                       |
+| --------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| WP5 (three fields) and WP14 | Phase 10 (Sensitive-Data Classification & Restricted-Ministry Safety Foundation) | WP5 the security level, public alias and do-not-publish flag on the Party and `party_restricted`; WP14 the rest of the foundation | The Phase 10 PRD as amended on 2026-11-17                  |
+| WP12                        | Phase 16 (Pledges & Recurring Commitments)                                       | First slice: monthly gifts by card with the donor's controls                                                                      | ADR-0012 to ADR-0017 and the `donation-lifecycle` contract |
+| WP13                        | Phase 30 (Imports & Migration Tools)                                             | First slice: one tenant's donors, workers, funds and historical gifts from a validated file                                       | The Phase 30 spec and ADR-IM-018                           |
+
+ADR-0003 and ADR-0012 to ADR-0017 are kept unchanged.
+
+**Financial decision records by release.** Foundations now: ADR-0002, ADR-0003,
+ADR-0044, ADR-0108 (assignment separation only), ADR-0206, ADR-0207, ADR-0208.
+With offline giving: ADR-0007 to ADR-0010. Before recurring giving: ADR-0012 to
+ADR-0017. With statements: ADR-0040 to ADR-0042. The rest follow the roadmap.
+
+**Launch items beyond the plan, placed against their owning phases.** None is
+built by WP0 to WP14. Which of them also gate the first real tenant is the
+owner's choice; with no choice, none does beyond the packages (plan section 15.1,
+council record C.8 reservation 2).
+
+| Launch item                                                                                                                                                                                                                                     | Owning phase or source                                                                                                                                                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Email to followers when an update is approved; communication history screens and further senders                                                                                                                                                | Phase 6 (Shared Communication Event Model) and Phase 17 (System Messages & Template Management); ADR-0217 to ADR-0223                                                        |
+| Delivery of support replies                                                                                                                                                                                                                     | Phase 26 (Support Hub & Conversation Management)                                                                                                                             |
+| Offline gifts and batches                                                                                                                                                                                                                       | Phase 15 (Offline Gift & Batch Entry); ADR-0007 to ADR-0010                                                                                                                  |
+| Official year-end statements                                                                                                                                                                                                                    | Phase 19 (Year-End Statement Operations); ADR-0040 to ADR-0042                                                                                                               |
+| Households, organizations and merge execution                                                                                                                                                                                                   | Phase 9 (Full CRM Depth & Relationship Graph); ADR-0216                                                                                                                      |
+| Scheduled publishing, localization and whole-Site launches                                                                                                                                                                                      | Phase 24 (Full Multi-Site, Language & Currency Management); ADR-0145                                                                                                         |
+| Sitemap, structured data and the search-and-share manifest                                                                                                                                                                                      | `public-ministry-pages` contract, D14                                                                                                                                        |
+| A redirect when a Listed page changes path; reach defaults by Legal Entity, Site and page family                                                                                                                                                | ADR-0119                                                                                                                                                                     |
+| Malware disposition and sandboxed decoding of uploads                                                                                                                                                                                           | ADR-0126 and ADR-0171                                                                                                                                                        |
+| Gifts through donor-advised funds and churches, and soft credit                                                                                                                                                                                 | Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) and Phase 14 (Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts); ADR-0003 |
+| Accounting exports and deposit reconciliation                                                                                                                                                                                                   | Phase 20 (Accounting Exports & Reconciliation)                                                                                                                               |
+| Missionary Field Accounts and support balances                                                                                                                                                                                                  | Phase 21 (Missionary Field Accounts & Support Balances)                                                                                                                      |
+| Support-raising tools beyond updates and the support view                                                                                                                                                                                       | Phase 28 (Missionary Workspace Depth & Support-Raising CRM)                                                                                                                  |
+| One checkout that pays several Legal Entities; a giving cart for several designations; giving campaigns, tagged links and reporting by source; Designations as the giving target                                                                | Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart); ADR-0124                                                                                                |
+| Carrying an organization's active monthly gifts over from its previous platform                                                                                                                                                                 | Phase 16 (Pledges & Recurring Commitments) and Phase 30 (Imports & Migration Tools)                                                                                          |
+| The rest of imports: relationships, custom fields, files and content                                                                                                                                                                            | Phase 30 (Imports & Migration Tools)                                                                                                                                         |
+| Monthly gifts by bank debit; the recurring recovery schedule, reminders, other cadences, offline recurring gifts and fixed-total pledges; one line on its own date, pause or payment method; a guest stopping a monthly gift without an account | Phase 16 (Pledges & Recurring Commitments); ADR-0013 to ADR-0017                                                                                                             |
+| Sign-up confirmation and password-recovery mail under the organization's brand                                                                                                                                                                  | Phase 4 (Identity & Account-Claiming Foundation), Phase 6 and Phase 17                                                                                                       |
+| Donor sign-in with Google, Apple or Facebook                                                                                                                                                                                                    | Phase 4 (Identity & Account-Claiming Foundation); ADR-0215                                                                                                                   |
+| Mobilization, applications and onboarding                                                                                                                                                                                                       | Phase 41 (Mobilization, Applications & Onboarding)                                                                                                                           |
+| Tenant purge after the retention period                                                                                                                                                                                                         | Phase 21 D26 records policy and Phase 29 (File Manager & Document Management) physical lifecycle; ADR-0038; the owner's retention decision                                   |
+| Roles and permission grants that a tenant configures                                                                                                                                                                                            | Phase 12 (Full Role & Permission Configuration); ADR-0210                                                                                                                    |
+| AI assistance on the four surfaces                                                                                                                                                                                                              | `platform-product-intent`; ADR-0238                                                                                                                                          |
+
 ## Governance — how this roadmap changes
 
 Update this roadmap, phase-map and structured phase inventory together. Preserve

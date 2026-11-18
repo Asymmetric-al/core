@@ -19,6 +19,7 @@ import {
   assertPayloadRuntimeRequirements,
   compareNodeVersions,
   isPayloadV4Version,
+  PAYLOAD_V4_NODE_RANGE,
   parseNodeVersion,
 } from "../../../scripts/cms/lib/payload-runtime.mjs";
 
@@ -33,36 +34,69 @@ function readEnvValue(filePath: string, key: string) {
 
 describe("local CMS setup scripts", () => {
   it("guards Payload 4 CMS commands behind the required Node runtime", () => {
-    expect(parseNodeVersion("v24.15.0")).toEqual({
+    expect(parseNodeVersion("v24.22.3")).toEqual({
       major: 24,
-      minor: 15,
-      patch: 0,
+      minor: 22,
+      patch: 3,
     });
-    expect(compareNodeVersions("24.15.0", "24.14.9")).toBe(1);
-    expect(compareNodeVersions("24.15.0", "24.15.0")).toBe(0);
-    expect(compareNodeVersions("24.14.0", "24.15.0")).toBe(-1);
-    expect(isPayloadV4Version("4.0.0-internal.1f9ae9a")).toBe(true);
+    expect(compareNodeVersions("24.22.3", "24.22.2")).toBe(1);
+    expect(compareNodeVersions("24.22.3", "24.22.3")).toBe(0);
+    expect(compareNodeVersions("24.15.0", "24.22.3")).toBe(-1);
+    expect(isPayloadV4Version("4.0.0-beta.9")).toBe(true);
     expect(isPayloadV4Version("^3.84.1")).toBe(false);
 
-    expect(() =>
-      assertPayloadRuntimeRequirements({
-        nodeVersion: "24.14.0",
-        payloadVersion: "4.0.0-internal.1f9ae9a",
-      }),
-    ).toThrow(/requires Node\.js 24\.15\.0\+/);
+    for (const nodeVersion of [
+      "24.15.0",
+      "24.22.1",
+      "24.22.2",
+      "25.9.0",
+      "26.0.0",
+      "26.13.0",
+      "22.22.2",
+    ]) {
+      expect(
+        () =>
+          assertPayloadRuntimeRequirements({
+            nodeVersion,
+            payloadVersion: "4.0.0-beta.9",
+          }),
+        nodeVersion,
+      ).toThrow(/requires Node\.js \^24\.22\.3 \|\| >=26\.13\.1/);
+    }
 
-    expect(() =>
-      assertPayloadRuntimeRequirements({
-        nodeVersion: "24.15.0",
-        payloadVersion: "4.0.0-internal.1f9ae9a",
-      }),
-    ).not.toThrow();
+    for (const nodeVersion of ["24.22.3", "24.23.0", "26.13.1", "27.0.0"]) {
+      expect(
+        () =>
+          assertPayloadRuntimeRequirements({
+            nodeVersion,
+            payloadVersion: "4.0.0-beta.9",
+          }),
+        nodeVersion,
+      ).not.toThrow();
+    }
     expect(() =>
       assertPayloadRuntimeRequirements({
         nodeVersion: "24.11.1",
         payloadVersion: "^3.84.1",
       }),
     ).not.toThrow();
+  });
+
+  it("encodes the Node range that the installed Payload declares", () => {
+    const payloadManifest = JSON.parse(
+      fs.readFileSync(
+        path.join(
+          process.cwd(),
+          "apps",
+          "admin",
+          "node_modules",
+          "payload",
+          "package.json",
+        ),
+        "utf8",
+      ),
+    );
+    expect(payloadManifest.engines.node).toBe(PAYLOAD_V4_NODE_RANGE);
   });
 
   it("parses Supabase status env output for local key repair", () => {

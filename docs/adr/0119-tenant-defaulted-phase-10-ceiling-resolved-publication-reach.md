@@ -1,6 +1,6 @@
 # ADR-0119: Tenant-defaulted, Phase-10-ceiling-resolved Publication Reach
 
-**Status:** Accepted (founder ruling, Phase 22 grill session — D2)
+**Status:** Accepted (founder ruling, Phase 22 grill session — D2; two first-release narrowings recorded 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -21,6 +21,11 @@ tenant-owned immutable policy version supplies the prospective default for one
 exact Tenant × Legal Entity × Site × typed Page Family. Absence of a saved
 tenant policy fails safely to Not public and does not pretend the tenant chose
 that fallback.
+
+_First-release narrowing recorded 2026-11-17 (see below): the first release
+holds one reach default per tenant, not per Legal Entity, Site and Page Family;
+a publish request names its reach or takes that default, and with neither it is
+refused._
 
 Every released page and locale records one immutable requested reach—sourced
 from the exact policy version or an explicit authorized request—and one
@@ -45,6 +50,10 @@ link and restricted/direct-link routes retain this ADR's nonredirecting
 tombstone. Every tombstone and unknown route uses the same real privacy-safe
 `404`; resolver unavailability is a non-cacheable `503`, never false
 nonexistence.
+
+_First-release narrowing recorded 2026-11-17 (see below): the first release
+builds no D8 redirect. A Listed page that changes path leaves no redirect, and
+its old path returns the same `404`._
 
 Anonymous traffic reaches only the Phase 5 host/site/tenant choke point and a
 privacy-minimized Phase 10-safe runtime projection. It never reads raw
@@ -118,6 +127,55 @@ rechecks that epoch plus the exact complete current D2 release-head-set digest;
 a concurrent locale release therefore invalidates stale activation proof rather
 than allowing a mixed family generation. D27 adds no new Publication Reach,
 D2 release head, per-Page visibility switch, or cross-locale publication action.
+
+## First-release record — 2026-11-17 (AL-2688)
+
+**Authority.** The owner's instruction of 17 November 2026 to implement the CRM,
+CMS and database plan ratifies the disposition its
+[section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+lists for this record: keep it, and record two first-release narrowings. This
+record states intent, not implementation.
+
+**Kept, and how the first release meets it.** Current admission is read before
+any cached content is served, as this record and the `public-ministry-pages`
+contract (D18) require: one read function, never cached across requests, returns
+the live head, its reach and whether the tenant, the Site and the subject may be
+served now, before any release body is read
+([ADR-0229](0229-per-page-releases-and-two-publish-commands.md)). A release
+carries a reach, listed or link-only, and a page with no live release is not
+public. Directory and index reads return listed releases only, and the proxy
+sets `X-Robots-Tag: noindex` on a link-only page. Exposure narrows at once and
+widens only through a newly reviewed release.
+
+**Restriction withdraws by command.** A restriction of a worker withdraws every
+live release about any of that Party's ministry assignments and marks the
+approved profile revision of each withdrawn, in the same transaction. A lift
+restores no release and no revision: a worker's photo and story return only with
+a fresh approval. Erasing a worker withdraws the same way, one way
+([ADR-0239](0239-tenant-erasure-is-distinct-from-account-closure.md)).
+
+**Narrowing 1 — no redirect.** A Listed page that changes path gets no redirect
+in the first release; the old path returns `404`. The D8 direct `308` stays the
+target.
+
+**Narrowing 2 — one reach default per tenant.** The reach default is held per
+tenant, as one setting of the tenant's publication policy changed by a tenant
+administrator, not per Legal Entity, Site and Page Family. The keyed policy
+version stays the target.
+
+**Also narrowed for the first release (`public-ministry-pages` D14).** The search
+and share manifest, structured data and the sitemap are not built. A later
+sitemap lists Listed pages only, passes admission on every request and replaces
+the donor app's day-long cache rule for `/sitemap.xml`. The D14 contract text
+itself, in the active `add-public-ministry-pages` change, is unchanged because
+it states the target.
+
+**What each security level does first.** Do-not-publish blocks publication and
+withdraws; a change to restricted or high risk withdraws, and a new release about
+that worker is made under the alias and may be link-only, never Listed, until the
+reach ceilings of the rest of the Phase 10 foundation exist (WP14); standard and
+sensitive change nothing yet. This is the plan section 15.1 default taken under
+the implementation record (D-08), not a fresh owner ruling.
 
 ## Related decisions
 

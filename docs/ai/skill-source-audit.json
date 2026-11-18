@@ -6231,8 +6231,8 @@
       "sourcePath": "skills/payload/SKILL.md",
       "rawSkillHash": "050fc66234ef54906e34a1c0f5209ad7558f9adc59a7a0efd4db342f81427e20",
       "lockHash": "4a17a9529d4533545edb8191159c9134120774acdd042172877291a25929e7a1",
-      "entrypointHash": "905d5493386d591f4258fe04bad48b21950c5a78501acb0623d0850893ff2bab",
-      "treeHash": "923cdea86e600bc9a284fcee051687b20d6bb1e7cb21930e7054a0b1a5ae0fb5",
+      "entrypointHash": "bcf9c058bfc5bb32b2c74580c0d46f854f438461e02c34ed875df11115d52c02",
+      "treeHash": "cd20b2e2884b4b3cb727363638b426e7dd77bf355349bcf67f69a759f77ade82",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
