@@ -153,4 +153,70 @@ describe("ownApiDownload", () => {
       "Forbidden",
     );
   });
+
+  it("rejects with the status, so the page can say in plain words what went wrong", async () => {
+    const { ownApiDownload, OwnApiDownloadError } = await load();
+    fetchMock.mockResolvedValue(new Response("", { status: 401 }));
+
+    const failure = await ownApiDownload("/api/donor/statements/2026").catch(
+      (error: unknown) => error,
+    );
+
+    expect(failure).toBeInstanceOf(OwnApiDownloadError);
+    expect((failure as { status: number }).status).toBe(401);
+  });
+
+  describe("the file's address (council round 1 on slice B, SB4)", () => {
+    function stubFiles() {
+      let next = 0;
+      const createObjectURL = vi.fn(() => `blob:own-api-${(next += 1)}`);
+      const revokeObjectURL = vi.fn();
+      vi.stubGlobal(
+        "URL",
+        Object.assign(URL, { createObjectURL, revokeObjectURL }),
+      );
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(() => {});
+      fetchMock.mockImplementation(async () => new Response("a,b\n"));
+      return { revokeObjectURL, restore: () => click.mockRestore() };
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("stays readable for a minute after the click, as WebKit can still be reading it", async () => {
+      vi.useFakeTimers();
+      const { ownApiDownload } = await load();
+      const files = stubFiles();
+
+      await ownApiDownload("/api/donor/statements/2026");
+      await vi.advanceTimersByTimeAsync(59_000);
+      expect(files.revokeObjectURL).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1_000);
+      expect(files.revokeObjectURL).toHaveBeenCalledWith("blob:own-api-1");
+      files.restore();
+    });
+
+    it("is revoked when the next download starts, so files do not pile up", async () => {
+      vi.useFakeTimers();
+      const { ownApiDownload } = await load();
+      const files = stubFiles();
+
+      await ownApiDownload("/api/donor/statements/2026");
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(files.revokeObjectURL).not.toHaveBeenCalled();
+
+      await ownApiDownload("/api/donor/statements/2025");
+      expect(files.revokeObjectURL).toHaveBeenCalledTimes(1);
+      expect(files.revokeObjectURL).toHaveBeenCalledWith("blob:own-api-1");
+
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(files.revokeObjectURL).toHaveBeenCalledTimes(2);
+      expect(files.revokeObjectURL).toHaveBeenLastCalledWith("blob:own-api-2");
+      files.restore();
+    });
+  });
 });

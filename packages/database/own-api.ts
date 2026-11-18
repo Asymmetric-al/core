@@ -86,12 +86,53 @@ function fileNameFrom(response: Response, fallback: string): string {
 }
 
 /**
+ * A refused download. `message` is the route's own error text, for logs;
+ * `status` lets a page tell the person in plain words what went wrong.
+ */
+export class OwnApiDownloadError extends Error {
+  readonly status: number;
+
+  constructor(status: number, routeMessage: string | null) {
+    super(routeMessage ?? `Download failed with status ${status}`);
+    this.name = "OwnApiDownloadError";
+    this.status = status;
+  }
+}
+
+/**
+ * How long a downloaded file's `blob:` address stays readable after the click
+ * (council round 1 on slice B, SB4). WebKit can still be reading it after the
+ * click returns; a minute is long past that. The next download revokes the
+ * previous address at once, so at most one stays.
+ */
+const FILE_ADDRESS_LIFETIME_MS = 60_000;
+
+let lastFile: { url: string; timer: ReturnType<typeof setTimeout> } | null =
+  null;
+
+function releaseLastFile(): void {
+  if (!lastFile) return;
+  clearTimeout(lastFile.timer);
+  URL.revokeObjectURL(lastFile.url);
+  lastFile = null;
+}
+
+function keepFileAddress(url: string): void {
+  releaseLastFile();
+  const timer = setTimeout(() => {
+    if (lastFile?.url === url) lastFile = null;
+    URL.revokeObjectURL(url);
+  }, FILE_ADDRESS_LIFETIME_MS);
+  lastFile = { url, timer };
+}
+
+/**
  * Downloads a file an own-API route serves, through `ownApiFetch`. A link or
  * `window.open` to the route would be a page load, which carries no tenant
  * header, so a person in two organizations would be refused.
  *
- * Resolves once the browser has been handed the file; rejects with the
- * route's error message when it refuses.
+ * Resolves once the browser has been handed the file; rejects with an
+ * `OwnApiDownloadError` (the route's status and message) when it refuses.
  */
 export async function ownApiDownload(
   path: string,
@@ -104,10 +145,11 @@ export async function ownApiDownload(
     const payload = (await response.json().catch(() => null)) as {
       error?: unknown;
     } | null;
-    throw new Error(
+    throw new OwnApiDownloadError(
+      response.status,
       typeof payload?.error === "string" && payload.error
         ? payload.error
-        : `Download failed with status ${response.status}`,
+        : null,
     );
   }
   const blob = await response.blob();
@@ -122,7 +164,6 @@ export async function ownApiDownload(
     link.click();
     link.remove();
   } finally {
-    // Let the click start the download before the address goes.
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    keepFileAddress(url);
   }
 }
