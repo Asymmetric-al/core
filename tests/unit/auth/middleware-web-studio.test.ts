@@ -204,8 +204,23 @@ describe("Payload's REST routes under /web-studio/api", () => {
     expect(location(response)).toBe(
       "/web-studio/organization?next=%2Fweb-studio%2Fapi",
     );
-    expect(forwarded(response, "x-asym-tenant")).toBeNull();
     expect(state.rpcCalls).toBe(1);
+
+    // Passed on as a page (one staff row needs no choice), it does not carry
+    // a scope header the browser sent: those are an API request's only
+    // (council r2: the redirect above forwards nothing, so it proved nothing).
+    state.rows = [row(TA, "staff", "development")];
+    const page = await adminProxy()(
+      request("/web-studio/api", {
+        "x-asym-tenant": TB,
+        "x-asym-assignment": "00000000-0000-4000-8000-0000000000bb",
+      }),
+    );
+    expect(page.headers.get("x-middleware-next")).toBe("1");
+    expect(forwarded(page, "x-asym-tenant")).not.toBe(TB);
+    expect(forwarded(page, "x-asym-assignment")).not.toBe(
+      "00000000-0000-4000-8000-0000000000bb",
+    );
   });
 
   it("never answer inside the tenant segment", async () => {
