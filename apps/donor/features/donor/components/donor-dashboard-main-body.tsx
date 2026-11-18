@@ -296,7 +296,7 @@ export function DonorDashboardMainBody() {
   const year = givenThisYear(portal);
   const next = nextScheduledGift(portal);
   const statementYear = statementPromptYear(portal);
-  const { download, pending: statementPending } = useOwnApiDownload();
+  const { download, buttonProps: statementButtonProps } = useOwnApiDownload();
   const giveAgain = lastSupported(portal);
   // Both retries, and any recovery, land on the same page heading.
   const pageRef = React.useRef<HTMLDivElement>(null);
@@ -337,7 +337,7 @@ export function DonorDashboardMainBody() {
           // An own-API download with the document's scope (WP2b, AL-2675).
           <Button
             variant="outline"
-            disabled={statementPending}
+            {...statementButtonProps}
             onClick={() =>
               void download(`/api/donor/statements/${statementYear}`)
             }

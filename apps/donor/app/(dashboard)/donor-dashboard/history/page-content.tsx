@@ -292,7 +292,7 @@ function YearSummaryCard({
   const series = monthlyGivingSeries(transactions, year);
   const chartName = `Paid gifts by month in ${year}`;
   // The statement is an own-API download with the document's scope (WP2b).
-  const { download, pending: statementPending } = useOwnApiDownload();
+  const { download, buttonProps: statementButtonProps } = useOwnApiDownload();
 
   return (
     <Card>
@@ -315,7 +315,7 @@ function YearSummaryCard({
             <Button
               variant="outline"
               className="self-start"
-              disabled={statementPending}
+              {...statementButtonProps}
               onClick={() => void download(`/api/donor/statements/${year}`)}
             >
               <Download data-icon="inline-start" aria-hidden />

@@ -16,12 +16,12 @@ export function ReceiptSnapshotDownload({
 }: {
   snapshotId: string;
 }) {
-  const { download, pending } = useOwnApiDownload();
+  const { download, buttonProps } = useOwnApiDownload();
   return (
     <Button
       variant="link"
       size="xs"
-      disabled={pending}
+      {...buttonProps}
       onClick={() => void download(receiptSnapshotPdfUrl(snapshotId))}
     >
       Download updated receipt PDF

@@ -76,7 +76,7 @@ function receiptLabel(tx: Transaction) {
  * WP2b, AL-2675).
  */
 export function ReceiptLink({ tx }: { tx: Transaction }) {
-  const { download, pending } = useOwnApiDownload();
+  const { download, buttonProps } = useOwnApiDownload();
   if (tx.status !== "Paid") {
     return <span className="sr-only">No receipt</span>;
   }
@@ -85,7 +85,7 @@ export function ReceiptLink({ tx }: { tx: Transaction }) {
       variant="ghost"
       size="sm"
       aria-label={receiptLabel(tx)}
-      disabled={pending}
+      {...buttonProps}
       onClick={() => void download(tx.receiptUrl)}
     >
       <Download data-icon="inline-start" aria-hidden />

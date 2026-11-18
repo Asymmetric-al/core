@@ -178,7 +178,7 @@ export function ReportsPageView({
 }) {
   const exportReasonId = useId();
   // The export is an own-API call with the document's scope, not a link.
-  const { download, pending: exportPending } = useOwnApiDownload();
+  const { download, buttonProps: exportButtonProps } = useOwnApiDownload();
   const group = reportGroupLabels(report);
   const exportReason = isError
     ? "Load the report successfully before exporting."
@@ -241,7 +241,7 @@ export function ReportsPageView({
             <Button
               variant="outline"
               size="sm"
-              disabled={exportPending}
+              {...exportButtonProps}
               onClick={() => void download(crmReportExportHref(report!))}
             >
               Export CSV

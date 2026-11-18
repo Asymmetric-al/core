@@ -252,7 +252,7 @@ function CrmDonorReportLink({
 }) {
   const hintId = useId();
   const hint = unavailable ?? CRM_DONOR_REPORT_HINT;
-  const { download, pending } = useOwnApiDownload();
+  const { download, buttonProps } = useOwnApiDownload();
   const content = (
     <>
       <Download aria-hidden="true" />
@@ -281,7 +281,7 @@ function CrmDonorReportLink({
               <Button
                 variant="outline"
                 size={compact ? "icon-sm" : "sm"}
-                disabled={pending}
+                {...buttonProps}
                 onClick={() => void download(CRM_DONOR_EXPORT_PATH)}
                 aria-label={compact ? "Export donor report" : undefined}
                 aria-describedby={hintId}
