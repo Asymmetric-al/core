@@ -225,6 +225,27 @@ export function createAuditSnapshot({
   return snapshot;
 }
 
+// One target scans in a few minutes even on a loaded machine. The limit only
+// stops a hung scanner from hanging the audit; it is not a performance budget.
+export const REACT_DOCTOR_SCAN_TIMEOUT_MS = 15 * 60 * 1000;
+
+export function reactDoctorScanSpawnOptions(
+  snapshot,
+  environment = process.env,
+) {
+  return {
+    cwd: snapshot,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: REACT_DOCTOR_SCAN_TIMEOUT_MS,
+    env: {
+      ...environment,
+      REACT_DOCTOR_NO_TELEMETRY: "1",
+      REACT_DOCTOR_NO_CACHE: "1",
+    },
+  };
+}
+
 function scanTargetWithCli({ directory, snapshot }) {
   const command = createSpawnCommand(
     createReactDoctorCommand(directory, [
@@ -237,16 +258,11 @@ function scanTargetWithCli({ directory, snapshot }) {
       "--no-cache",
     ]),
   );
-  return spawnSync(command.command, command.args, {
-    cwd: snapshot,
-    encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
-    env: {
-      ...process.env,
-      REACT_DOCTOR_NO_TELEMETRY: "1",
-      REACT_DOCTOR_NO_CACHE: "1",
-    },
-  });
+  return spawnSync(
+    command.command,
+    command.args,
+    reactDoctorScanSpawnOptions(snapshot),
+  );
 }
 
 function gitOutput(root, args, failure) {
@@ -502,6 +518,8 @@ export function runReactDoctorAudit({
       "Audit output already contains evidence; choose a fresh, empty output directory.",
     );
   mkdirSync(output, { recursive: true });
+  // Said first, so a run that fails later still names where its logs are.
+  log(`Evidence directory: ${output}`);
   // Scan outside the checkout: ancestor ignore patterns can otherwise hide a
   // physically complete snapshot placed under an ignored evidence directory.
   const snapshotBase = mkdtempSync(
@@ -543,6 +561,10 @@ export function runReactDoctorAudit({
       path.join(output, `${target.replaceAll("/", "-")}.stderr.log`),
       result.stderr ?? "",
     );
+    if (result.error?.code === "ETIMEDOUT")
+      throw new Error(
+        `React Doctor did not finish ${target} within ${REACT_DOCTOR_SCAN_TIMEOUT_MS / 60_000} minutes.`,
+      );
     if (result.error || result.status !== 0)
       throw new Error(
         `React Doctor could not complete ${target}: ${result.error?.message ?? result.status}`,

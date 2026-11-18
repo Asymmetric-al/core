@@ -17,6 +17,8 @@ import {
   assertCompleteReactDoctorScans,
   createReactDoctorReport,
   parseReactDoctorAuditArgs,
+  REACT_DOCTOR_SCAN_TIMEOUT_MS,
+  reactDoctorScanSpawnOptions,
   resolveChangedSince,
   runReactDoctorAudit,
   runReactDoctorAuditCommand,
@@ -249,11 +251,15 @@ function fakeScanner(
   };
 }
 
-function runCommand(
-  args: string[],
-  root: string,
-  scanTarget: ReturnType<typeof fakeScanner>,
-) {
+type ScanResult = {
+  status: number | null;
+  stdout: string;
+  stderr: string;
+  error?: Error;
+};
+type Scanner = (input: { target: string; directory: string }) => ScanResult;
+
+function runCommand(args: string[], root: string, scanTarget: Scanner) {
   const logs: string[] = [];
   const errors: string[] = [];
   const exitCode = runReactDoctorAuditCommand(args, {
@@ -373,6 +379,21 @@ describe("React Doctor advisory exit rules", () => {
     expect(() =>
       parseReactDoctorAuditArgs(["--changed-since=a", "--changed-since=b"]),
     ).toThrow(/--changed-since/);
+    expect(() =>
+      parseReactDoctorAuditArgs(["--changed-since", "origin/develop"]),
+    ).toThrow("Unknown audit arguments: --changed-since, origin/develop");
+  });
+
+  it("gives each target scan a time limit, so a hung scanner cannot hang the audit", () => {
+    const options = reactDoctorScanSpawnOptions("/snapshot", { KEPT: "1" });
+    expect(REACT_DOCTOR_SCAN_TIMEOUT_MS).toBeGreaterThan(0);
+    expect(options.timeout).toBe(REACT_DOCTOR_SCAN_TIMEOUT_MS);
+    expect(options.cwd).toBe("/snapshot");
+    expect(options.env).toEqual({
+      KEPT: "1",
+      REACT_DOCTOR_NO_TELEMETRY: "1",
+      REACT_DOCTOR_NO_CACHE: "1",
+    });
   });
 });
 
@@ -436,6 +457,35 @@ describe("React Doctor findings and summary", () => {
         .findings.profile,
     ).toBe("raw");
   });
+
+  it("orders findings by code unit, so findings.json does not depend on the locale", () => {
+    const report = createReactDoctorReport({
+      scans: completeScans({
+        "apps/admin": ["b.tsx", "a.tsx", "_z.tsx", "B.tsx"].map((file) =>
+          diagnostic(file),
+        ),
+      }),
+      configHash,
+    });
+    expect(report.findings.findings.map((finding) => finding.file)).toEqual([
+      "apps/admin/B.tsx",
+      "apps/admin/_z.tsx",
+      "apps/admin/a.tsx",
+      "apps/admin/b.tsx",
+    ]);
+  });
+
+  it.each(["../../outside.tsx", "/etc/outside.tsx", "C:\\outside.tsx", ""])(
+    "refuses a finding whose file is outside its target (%j)",
+    (filePath) => {
+      expect(() =>
+        createReactDoctorReport({
+          scans: completeScans({ "apps/admin": [diagnostic(filePath)] }),
+          configHash,
+        }),
+      ).toThrow(/apps\/admin diagnostic names a file outside its target/);
+    },
+  );
 
   it("gives the totals per target and per rule", () => {
     const report = createReactDoctorReport({ scans: scans(), configHash });
@@ -583,7 +633,7 @@ describe("React Doctor audit run", () => {
   it("reports a scan with skipped checks as unavailable evidence and writes no summary", () => {
     const root = sharedRepository();
     const output = path.join(tempRoot("core-doctor-output-"), "audit");
-    const { exitCode, errors } = runCommand(
+    const { exitCode, logs, errors } = runCommand(
       [`--output=${output}`],
       root,
       fakeScanner(findingsInEveryFixtureFile(), {
@@ -597,6 +647,105 @@ describe("React Doctor audit run", () => {
     );
     expect(existsSync(path.join(output, "findings.json"))).toBe(false);
     expect(existsSync(path.join(output, "summary.md"))).toBe(false);
+    // A failed run still says where its stderr logs and raw reports are.
+    expect(logs).toContain(`Evidence directory: ${output}`);
+  });
+
+  const timedOut = Object.assign(new Error("spawnSync node ETIMEDOUT"), {
+    code: "ETIMEDOUT",
+  });
+  it.each<[string, ScanResult, RegExp]>([
+    [
+      "a scanner that exits non-zero",
+      { status: 1, stdout: "", stderr: "scanner crashed" },
+      /: React Doctor could not complete apps\/admin: 1$/,
+    ],
+    [
+      "a scanner that cannot start",
+      {
+        status: null,
+        stdout: "",
+        stderr: "",
+        error: new Error("spawn node ENOENT"),
+      },
+      /: React Doctor could not complete apps\/admin: spawn node ENOENT$/,
+    ],
+    [
+      "a scanner that runs past its time limit",
+      { status: null, stdout: "", stderr: "", error: timedOut },
+      new RegExp(
+        `: React Doctor did not finish apps/admin within ${REACT_DOCTOR_SCAN_TIMEOUT_MS / 60_000} minutes\\.$`,
+      ),
+    ],
+    [
+      "scanner output that is not JSON",
+      { status: 0, stdout: "not json", stderr: "" },
+      /: React Doctor returned an unreadable report for apps\/admin\.$/,
+    ],
+  ])(
+    "reports %s as unavailable evidence and writes no report",
+    (_case, result, reason) => {
+      const root = sharedRepository();
+      const output = path.join(tempRoot("core-doctor-output-"), "audit");
+      const scanned: string[] = [];
+      const { exitCode, errors } = runCommand(
+        [`--output=${output}`],
+        root,
+        ({ target }) => {
+          scanned.push(target);
+          return result;
+        },
+      );
+      expect(exitCode).toBe(1);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toMatch(
+        /^React Doctor audit evidence is unavailable: /,
+      );
+      expect(errors[0]).toMatch(reason);
+      // The audit stops at the first target it cannot complete.
+      expect(scanned).toEqual([REACT_DOCTOR_TARGETS[0]]);
+      expect(existsSync(path.join(output, "findings.json"))).toBe(false);
+      expect(existsSync(path.join(output, "summary.md"))).toBe(false);
+    },
+  );
+
+  it("reports a finding outside its target as unavailable evidence and writes no report", () => {
+    const root = sharedRepository();
+    const output = path.join(tempRoot("core-doctor-output-"), "audit");
+    const { exitCode, errors } = runCommand(
+      [`--output=${output}`],
+      root,
+      fakeScanner({ "apps/admin": [diagnostic("../../outside.tsx")] }),
+    );
+    expect(exitCode).toBe(1);
+    expect(errors[0]).toMatch(
+      /^React Doctor audit evidence is unavailable: A apps\/admin diagnostic names a file outside its target: \.\.\/\.\.\/outside\.tsx$/,
+    );
+    expect(existsSync(path.join(output, "findings.json"))).toBe(false);
+    expect(existsSync(path.join(output, "summary.md"))).toBe(false);
+  });
+
+  it("refuses an output directory that already holds evidence, before any scan", () => {
+    const root = sharedRepository();
+    const output = path.join(tempRoot("core-doctor-output-"), "audit");
+    write(output, "findings.json", "{}\n");
+    const scanned: string[] = [];
+    const { exitCode, errors } = runCommand(
+      [`--output=${output}`],
+      root,
+      ({ target }) => {
+        scanned.push(target);
+        return { status: 1, stdout: "", stderr: "" };
+      },
+    );
+    expect(exitCode).toBe(1);
+    expect(errors).toEqual([
+      "React Doctor audit evidence is unavailable: Audit output already contains evidence; choose a fresh, empty output directory.",
+    ]);
+    expect(scanned).toEqual([]);
+    expect(readFileSync(path.join(output, "findings.json"), "utf8")).toBe(
+      "{}\n",
+    );
   });
 
   it("reports source drift during the scan as unavailable evidence", () => {

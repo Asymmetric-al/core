@@ -11,11 +11,11 @@ bun run react-doctor:raw
 bun run test:react-cleanup
 ```
 
-`react-doctor:audit` scans all eight targets with the applicable rule profile and reports every finding. It exits 0 whenever every target scans completely, however many findings it reports. It exits 1 only when audit evidence is unavailable: the CLI errors or exits non-zero, a report is unreadable or outside the supported report contract, a target skips checks, is missing or is repeated, or the source changes during the run. It then prints `React Doctor audit evidence is unavailable: <reason>` and writes no `findings.json` or `summary.md`, so a failed run never reads as a clean one. An unknown argument fails the same way before any scan. On a heavily loaded machine React Doctor can exceed its own lint batch budget and return a partial project; the reason then names the target and the scanner's `lint:partial` message, and a rerun on a quieter machine completes.
+`react-doctor:audit` scans all eight targets with the applicable rule profile and reports every finding. It exits 0 whenever every target scans completely, however many findings it reports. It exits 1 only when audit evidence is unavailable: the CLI errors or exits non-zero, one target's scan runs past its 15-minute limit, a report is unreadable or outside the supported report contract, a target skips checks, is missing or is repeated, or the source changes during the run. It then prints `React Doctor audit evidence is unavailable: <reason>` and writes no `findings.json` or `summary.md`, so a failed run never reads as a clean one. An unknown argument fails the same way before any scan. On a heavily loaded machine React Doctor can exceed its own lint batch budget and return a partial project; the reason then names the target and the scanner's `lint:partial` message, and a rerun on a quieter machine completes.
 
 `react-doctor:raw` runs the same audit with the obsolete classic JSX import check re-enabled, to keep the fully unsuppressed inventory. It writes the same files, labeled as the raw profile.
 
-Each run prints its evidence directory. Next to each target's JSON report and stderr log, `scans.json`, `snapshot.json` and `integrity.json`, it writes:
+Each run prints its evidence directory before it scans, so a run that fails still names where its logs are. Next to each target's JSON report and stderr log, `scans.json`, `snapshot.json` and `integrity.json`, it writes:
 
 - `summary.md`: the findings per target and per rule, then the listed findings grouped by file. Start here.
 - `findings.json`: every finding with its target, repository-relative file, line, column, plugin, rule, severity and message, plus the React Doctor version, the `doctor.config.json` SHA-256 and the base revision, if one was given.
