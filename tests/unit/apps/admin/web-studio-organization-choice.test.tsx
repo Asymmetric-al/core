@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
-import { render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   readWebStudioCookie,
@@ -23,11 +30,16 @@ const B = "00000000-0000-4000-8000-0000000000b1";
 const state = vi.hoisted(() => ({
   signedIn: {} as unknown,
   set: [] as Array<Record<string, unknown>>,
+  choices: {} as unknown,
 }));
 
 vi.mock("@asym/auth/context", () => ({
   getSignedInAssignments: async () => state.signedIn,
 }));
+vi.mock("@asym/api/auth/organization-choices", () => ({
+  loadWebStudioOrganizationChoices: async () => state.choices,
+}));
+vi.mock("next/server", () => ({ connection: async () => undefined }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
     set: (cookie: Record<string, unknown>) => state.set.push(cookie),
@@ -48,6 +60,8 @@ const { chooseWebStudioOrganization } =
   await import("../../../../apps/admin/app/(auth)/web-studio/organization/actions");
 const { OrganizationChooser } =
   await import("../../../../packages/ui/components/auth/organization-chooser");
+const { default: WebStudioOrganizationPage } =
+  await import("../../../../apps/admin/app/(auth)/web-studio/organization/page");
 
 function row(id: string, tenantId: string, membershipRole = "staff") {
   return {
@@ -89,7 +103,43 @@ beforeEach(() => {
     organizationNames: new Map(),
   };
   state.set = [];
+  state.choices = {
+    kind: "choices",
+    organizations: [
+      {
+        tenantId: TA,
+        name: "Alpha Mission",
+        options: [{ subRole: null, assignmentId: A }],
+      },
+      {
+        tenantId: TB,
+        name: "Bravo Mission",
+        options: [{ subRole: null, assignmentId: B }],
+      },
+    ],
+  };
 });
+
+afterEach(cleanup);
+
+/**
+ * Renders the chooser page as Next would: its Suspense boundary holds the
+ * async part, which is called here like the server component it is.
+ */
+async function openChooserPage(params: Record<string, string>) {
+  const page = WebStudioOrganizationPage({
+    searchParams: Promise.resolve(params),
+  }) as React.ReactElement<{ children: React.ReactElement }>;
+  const choices = page.props.children as React.ReactElement<object> & {
+    type: (props: object) => Promise<React.ReactElement>;
+  };
+  try {
+    return await choices.type(choices.props);
+  } catch (error) {
+    if (error instanceof RedirectError) return error.target;
+    throw error;
+  }
+}
 
 describe("choosing an organization inside Web Studio", () => {
   it("sets the signed cookie for a row the person holds, scoped to /web-studio, and returns to the page", async () => {
@@ -123,8 +173,10 @@ describe("choosing an organization inside Web Studio", () => {
       { tenant: TA, assignment: B },
       { tenant: "acme", assignment: "x" },
     ]) {
+      // Back to the chooser, which says the choice did not go through
+      // (council C11).
       expect(await choose({ ...fields, next: "/web-studio" })).toBe(
-        "/web-studio/organization?next=%2Fweb-studio",
+        "/web-studio/organization?next=%2Fweb-studio&refused=1",
       );
     }
     expect(state.set).toEqual([]);
@@ -152,11 +204,53 @@ describe("choosing an organization inside Web Studio", () => {
     }
   });
 
-  it("sends a signed-out person to sign in", async () => {
+  it("sends a signed-out person to sign in and back to this choice and page", async () => {
     state.signedIn = { kind: "signed_out" };
     expect(
-      await choose({ tenant: TA, assignment: A, next: "/web-studio" }),
-    ).toBe("/login?next=%2Fweb-studio%2Forganization");
+      await choose({
+        tenant: TA,
+        assignment: A,
+        next: "/web-studio/collections/pages",
+      }),
+    ).toBe(
+      `/login?next=${encodeURIComponent(
+        "/web-studio/organization?next=%2Fweb-studio%2Fcollections%2Fpages",
+      )}`,
+    );
+  });
+});
+
+describe("the chooser page (council C11)", () => {
+  it("keeps the return address when it sends a signed-out person to sign in", async () => {
+    state.choices = { kind: "signed_out" };
+    expect(
+      await openChooserPage({ next: "/web-studio/collections/pages?limit=10" }),
+    ).toBe(
+      `/login?next=${encodeURIComponent(
+        "/web-studio/organization?next=%2Fweb-studio%2Fcollections%2Fpages%3Flimit%3D10",
+      )}`,
+    );
+    // A return address outside Web Studio is dropped, as everywhere else.
+    expect(await openChooserPage({ next: "//evil.example" })).toBe(
+      `/login?next=${encodeURIComponent("/web-studio/organization?next=%2Fweb-studio")}`,
+    );
+  });
+
+  it("says when the last choice did not go through", async () => {
+    const chooser = await openChooserPage({
+      next: "/web-studio",
+      refused: "1",
+    });
+    render(chooser as React.ReactElement);
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toMatch(/That choice didn’t go through/);
+    expect(alert.textContent).toMatch(/Choose again/);
+  });
+
+  it("shows no such message on a first visit", async () => {
+    const chooser = await openChooserPage({ next: "/web-studio" });
+    render(chooser as React.ReactElement);
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 
@@ -198,5 +292,39 @@ describe("the chooser's Web Studio form", () => {
       next: "/web-studio/collections/pages",
     });
     expect(within(formElement).queryByRole("link")).toBeNull();
+  });
+
+  it("shows that a posted choice is opening and takes no second press", async () => {
+    // The action never settles, as while the server is still answering.
+    const action = vi.fn(() => new Promise<void>(() => {}));
+    render(
+      <OrganizationChooser
+        organizations={[
+          {
+            tenantId: TA,
+            name: "Alpha Mission",
+            options: [{ subRole: null, assignmentId: A }],
+          },
+          {
+            tenantId: TB,
+            name: "Bravo Mission",
+            options: [{ subRole: null, assignmentId: B }],
+          },
+        ]}
+        choose={{ action, next: "/web-studio" }}
+      />,
+    );
+    const bravo = screen.getByRole<HTMLButtonElement>("button", {
+      name: /Bravo Mission/,
+    });
+    expect(bravo.disabled).toBe(false);
+    fireEvent.click(bravo);
+
+    await waitFor(() => expect(bravo.disabled).toBe(true));
+    expect(bravo.getAttribute("aria-busy")).toBe("true");
+    expect(bravo.querySelector("svg")).not.toBeNull();
+    expect(action).toHaveBeenCalledTimes(1);
+    fireEvent.click(bravo);
+    expect(action).toHaveBeenCalledTimes(1);
   });
 });

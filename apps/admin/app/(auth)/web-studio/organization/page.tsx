@@ -1,7 +1,8 @@
 import { loadWebStudioOrganizationChoices } from "@asym/api/auth/organization-choices";
 import {
   safeWebStudioNext,
-  WEB_STUDIO_CHOOSER_PATH,
+  WEB_STUDIO_REFUSED_PARAM,
+  webStudioChooserAddress,
 } from "@asym/auth/web-studio";
 import { AuthScreenSkeleton } from "@asym/ui/components/auth/AuthScreenSkeleton";
 import { OrganizationChooser } from "@asym/ui/components/auth/organization-chooser";
@@ -54,9 +55,13 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
   // static shell is prerendered.
   await connection();
   const params = await searchParams;
+  const next = safeWebStudioNext(first(params.next));
   const choices = await loadWebStudioOrganizationChoices();
   if (choices.kind === "signed_out") {
-    redirect(`/login?next=${encodeURIComponent(WEB_STUDIO_CHOOSER_PATH)}`);
+    // Back to this choice, and then to the page, once signed in.
+    redirect(
+      `/login?next=${encodeURIComponent(webStudioChooserAddress(next))}`,
+    );
   }
   if (choices.kind === "unavailable") {
     return (
@@ -81,7 +86,9 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
       organizations={choices.organizations}
       choose={{
         action: chooseWebStudioOrganization,
-        next: safeWebStudioNext(first(params.next)),
+        next,
+        // The action refused the last choice (council C11).
+        refused: first(params[WEB_STUDIO_REFUSED_PARAM]) === "1",
       }}
     />
   );

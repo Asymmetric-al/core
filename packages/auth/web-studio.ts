@@ -103,6 +103,24 @@ export function safeWebStudioNext(next: string | null | undefined): string {
   return `${url.pathname}${url.search}`;
 }
 
+/** The chooser's flag for a choice it refused (council C11). */
+export const WEB_STUDIO_REFUSED_PARAM = "refused";
+
+/**
+ * The chooser's own address: where Web Studio returns after the choice
+ * (`next`, made safe by `safeWebStudioNext`) and, when the last choice was
+ * refused, the flag that has the chooser say so. Sign-in returns here too,
+ * so a person who signs in again still lands on the page they were on.
+ */
+export function webStudioChooserAddress(
+  next: string | null | undefined,
+  options: { refused?: boolean } = {},
+): string {
+  const params = new URLSearchParams({ next: safeWebStudioNext(next) });
+  if (options.refused) params.set(WEB_STUDIO_REFUSED_PARAM, "1");
+  return `${WEB_STUDIO_CHOOSER_PATH}?${params.toString()}`;
+}
+
 function utf8(value: string): Uint8Array<ArrayBuffer> {
   return new Uint8Array(new TextEncoder().encode(value));
 }

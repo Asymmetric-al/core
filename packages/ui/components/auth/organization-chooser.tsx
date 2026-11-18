@@ -1,4 +1,6 @@
-import { Button, ButtonLink } from "../shadcn/button";
+import { OrganizationChoiceSubmit } from "./organization-choice-submit";
+import { Alert, AlertDescription, AlertTitle } from "../shadcn/alert";
+import { ButtonLink } from "../shadcn/button";
 import {
   Card,
   CardContent,
@@ -50,6 +52,8 @@ type OrganizationChooserProps =
       choose: {
         action: (formData: FormData) => void | Promise<void>;
         next: string;
+        /** The last choice posted was refused: the chooser says so. */
+        refused?: boolean;
       };
     };
 
@@ -87,7 +91,16 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
           </CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-5">
+          {props.choose?.refused ? (
+            <Alert variant="destructive">
+              <AlertTitle>That choice didn’t go through</AlertTitle>
+              <AlertDescription>
+                You may no longer hold that role, or it changed after this page
+                opened. Choose again from the list below.
+              </AlertDescription>
+            </Alert>
+          ) : null}
           <ul className="flex flex-col gap-5">
             {organizations.map((organization) => (
               <li key={organization.tenantId} className="flex flex-col gap-2">
@@ -116,16 +129,12 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
                               name="next"
                               value={props.choose.next}
                             />
-                            <Button
-                              type="submit"
-                              variant="outline"
-                              className="w-full"
-                            >
+                            <OrganizationChoiceSubmit>
                               <span className="sr-only">
                                 {organization.name}:
                               </span>{" "}
                               {optionLabel(organization.name, option.subRole)}
-                            </Button>
+                            </OrganizationChoiceSubmit>
                           </form>
                         </li>
                       ))

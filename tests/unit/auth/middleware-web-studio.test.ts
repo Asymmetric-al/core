@@ -290,6 +290,17 @@ describe("Web Studio's pages", () => {
     expect(location(signedOut)).toBe(
       "/login?next=%2Fweb-studio%2Forganization",
     );
+    // The chooser's own return address survives sign-in (council C11).
+    const withNext = await adminProxy()(
+      request(
+        "/web-studio/organization?next=%2Fweb-studio%2Fcollections%2Fpages",
+      ),
+    );
+    expect(location(withNext)).toBe(
+      `/login?next=${encodeURIComponent(
+        "/web-studio/organization?next=%2Fweb-studio%2Fcollections%2Fpages",
+      )}`,
+    );
   });
 
   it("judge an E2E bypass identity by the same rule", async () => {
