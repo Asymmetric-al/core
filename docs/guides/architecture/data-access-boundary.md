@@ -150,6 +150,13 @@ own functions. It does not see:
 - HTTP clients other than axios, ky and ofetch, and a router other than
   Next.js's `useRouter()`.
 
+End to end, the request-scope specs (`bun run test:e2e:request-scope:admin`,
+`:missionary` and `:donor`) prove that each app's own-API calls carry the
+document's scope, and the donor portal's leave the portal without it. They run
+in CI's `test-e2e` job, which reports on every pull request and blocks
+promotion to `production` through `e2e-gate`, while `develop` is gated by the
+smoke-level jobs.
+
 ## Missionaries reads
 
 `public.missionaries` is server-only (#2364,

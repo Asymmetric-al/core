@@ -173,6 +173,47 @@ describe("ci-integration workflow contract", () => {
     );
   });
 
+  // Council round 1 on slice B, SB1 (record D-18): the request-scope specs
+  // carry the end-to-end proof that every request a page makes names its
+  // tenant and assignment. They run in the end-to-end job, as the
+  // tenant-address specs do, on the servers the job already started: admin
+  // and missionary right after their tenant-address step, donor right after
+  // its boneyard smoke. This workflow change was allowed for that item only.
+  it("runs the three request-scope specs in the end-to-end job, after their apps' own steps", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const steps = stepNames(testE2e);
+    for (const [app, before] of [
+      ["admin", "Tenant address (admin app)"],
+      ["missionary", "Tenant address (missionary app)"],
+      ["donor", "Boneyard smoke (donor app)"],
+    ] as const) {
+      const step = `Request scope (${app} app)`;
+      expect(steps).toContain(step);
+      expect(steps.indexOf(step)).toBe(steps.indexOf(before) + 1);
+      expect(testE2e).toContain(`run: bun run test:e2e:request-scope:${app}`);
+    }
+    // One server start for each app: the specs use the job's servers.
+    for (const app of ["donor", "admin", "missionary"]) {
+      expect(steps.filter((name) => name === `Start ${app} app`)).toHaveLength(
+        1,
+      );
+    }
+    const scripts = (
+      JSON.parse(readFileSync("package.json", "utf8")) as {
+        scripts: Record<string, string>;
+      }
+    ).scripts;
+    expect(scripts["test:e2e:request-scope:admin"]).toContain(
+      "-c playwright.admin.config.ts tests/e2e/admin-request-scope.spec.ts --project=admin-boneyard",
+    );
+    expect(scripts["test:e2e:request-scope:missionary"]).toContain(
+      "-c playwright.missionary.config.ts tests/e2e/missionary-request-scope.spec.ts --project=missionary-boneyard",
+    );
+    expect(scripts["test:e2e:request-scope:donor"]).toContain(
+      "tests/e2e/donor-request-scope.spec.ts --project=chromium",
+    );
+  });
+
   it("keeps auth, production, and CMS run artifacts distinct with retry diagnostics", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     expect(testE2e).toContain(

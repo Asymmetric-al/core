@@ -241,6 +241,18 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
       ref: "AL-2675 tenant-address specs in test-e2e",
       hash: "9375602b94258e4b",
     },
+    // Amended by AL-2675 (WP2b slice B, council round 1, SB1; record D-18):
+    // from the entry above, the test-e2e job also runs the three
+    // request-scope specs on the servers it already started, admin and
+    // missionary each right after its tenant-address step and donor right
+    // after its boneyard smoke (bun run test:e2e:request-scope:admin,
+    // :missionary and :donor), pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
+    // workflow change was allowed for that item only.
+    {
+      ref: "AL-2675 request-scope specs in test-e2e",
+      hash: "cb735f990a7b6f42",
+    },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {
     const prints = [CI, CII].map((file) => {

@@ -359,6 +359,18 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
       ref: "AL-2675 tenant-address specs in test-e2e",
       hash: "d14393547b0e5925",
     },
+    // Amended by AL-2675 (WP2b slice B, council round 1, SB1; record D-18):
+    // from the entry above, the test-e2e job also runs the three
+    // request-scope specs on the servers it already started, admin and
+    // missionary each right after its tenant-address step and donor right
+    // after its boneyard smoke (bun run test:e2e:request-scope:admin,
+    // :missionary and :donor), pinned in
+    // tests/unit/scripts/ci-integration-workflow.contract.test.ts. The
+    // workflow change was allowed for that item only.
+    {
+      ref: "AL-2675 request-scope specs in test-e2e",
+      hash: "573979f581ef1462",
+    },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {
     expect(

@@ -397,6 +397,14 @@ jobs:
         env:
           CI: "1"
         run: bun run test:e2e:tenant-address:admin
+      # The tenant and the assignment on every request a page makes
+      # (AL-2675; council round 1 on slice B, SB1; record D-18), on the dev
+      # server started above.
+      - name: Request scope (admin app)
+        timeout-minutes: 15
+        env:
+          CI: "1"
+        run: bun run test:e2e:request-scope:admin
       - name: Start missionary app
         run: bash scripts/github/e2e-dev-server.sh missionary start 4000
       - name: Wait for missionary health endpoint
@@ -414,6 +422,12 @@ jobs:
           CI: "1"
           PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
         run: bun run test:e2e:tenant-address:missionary
+      - name: Request scope (missionary app)
+        timeout-minutes: 15
+        env:
+          CI: "1"
+          PLAYWRIGHT_MISSIONARY_BASE_URL: "http://127.0.0.1:4000"
+        run: bun run test:e2e:request-scope:missionary
       - name: Boneyard smoke (donor app)
         timeout-minutes: 5
         env:
@@ -421,6 +435,11 @@ jobs:
           PLAYWRIGHT_BONEYARD_TARGET: "donor"
           PLAYWRIGHT_DONOR_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:boneyard:donor
+      - name: Request scope (donor app)
+        timeout-minutes: 15
+        env:
+          CI: "1"
+        run: bun run test:e2e:request-scope:donor
       - name: Run Playwright CMS E2E
         timeout-minutes: 10
         env:
