@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  AUTH_MAIL_TENANT_ID,
   createConfirmedUser,
   deleteUser,
   passwordSignInStatus,
@@ -10,7 +11,9 @@ import {
   waitForHydratedForm,
   warmUpAuthMailer,
   warmUpRoutes,
+  type AuthMailMembership,
 } from "./helpers/auth-mail";
+import { buildTenantPrefix } from "../../packages/auth/tenant-address";
 
 /**
  * WP0b acceptance: a password recovery email round trip succeeds in each
@@ -18,10 +21,32 @@ import {
  * stack and its mail catcher; skipped anywhere else.
  */
 
-const SURFACES: Record<string, { profileRole: string; homePath: string }> = {
-  "auth-mail-donor": { profileRole: "donor", homePath: "/donor-dashboard" },
-  "auth-mail-admin": { profileRole: "staff", homePath: "/" },
-  "auth-mail-missionary": { profileRole: "missionary", homePath: "/" },
+/**
+ * Each app's person holds the membership that app admits, in the demo
+ * organization. Mission Control and the missionary workspace land a person
+ * with one row of their class on that organization's tenant address (AL-2675).
+ */
+const TENANT_HOME = buildTenantPrefix(AUTH_MAIL_TENANT_ID, null);
+const SURFACES: Record<
+  string,
+  { membership: AuthMailMembership; homePath: string }
+> = {
+  "auth-mail-donor": {
+    membership: { role: "donor" },
+    homePath: "/donor-dashboard",
+  },
+  "auth-mail-admin": {
+    membership: {
+      role: "staff",
+      staffRole: "development",
+      tenantId: AUTH_MAIL_TENANT_ID,
+    },
+    homePath: TENANT_HOME,
+  },
+  "auth-mail-missionary": {
+    membership: { role: "missionary", tenantId: AUTH_MAIL_TENANT_ID },
+    homePath: TENANT_HOME,
+  },
 };
 
 const env = readAuthMailEnv();
@@ -50,13 +75,13 @@ test("a recovery email round trip ends signed in with the new password", async (
   test.skip(!env, "Needs a local Supabase stack and its mail catcher.");
   if (!surface || !env || !baseURL) return;
 
-  const email = uniqueTestEmail(`wp0b-recovery-${surface.profileRole}`);
+  const email = uniqueTestEmail(`wp0b-recovery-${surface.membership.role}`);
   const oldPassword = "old recovery phrase";
   const newPassword = "new recovery phrase";
   const userId = await createConfirmedUser(env, {
     email,
     password: oldPassword,
-    profileRole: surface.profileRole,
+    membership: surface.membership,
   });
   const home = new URL(surface.homePath, baseURL).toString();
 
