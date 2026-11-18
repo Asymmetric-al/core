@@ -38,6 +38,10 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
   inventory.
 - Run focused commands while iterating. Fix formatting with `bun run format`,
   then prove the final result with `bun run ci:preflight`.
+- Documentation-only changes iterate on structural checks:
+  `bunx prettier --check <files>`, plus `bunx vitest run tests/unit/docs` when
+  an instruction, rulebook or skill changes. `git push` still runs
+  `bun run ci:preflight`, so the PR gate is unchanged.
 
 ### File hygiene
 

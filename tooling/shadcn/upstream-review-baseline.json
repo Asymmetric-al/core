@@ -2169,7 +2169,7 @@
   "proofSources": [
     {
       "path": "docs/ai/rules/frontend.md",
-      "sha256": "31650bb8ab0f5b587facb22d27e49e9513864e81ce1fec286f859f8c9aeae826"
+      "sha256": "4a88af7cbdd79e9f4439e003d7f1bcee178f91c8366483391138233ad57f4bb0"
     },
     {
       "path": "packages/lib/hooks/use-mobile.ts",
@@ -2177,7 +2177,7 @@
     },
     {
       "path": "packages/ui/AGENTS.md",
-      "sha256": "47569c48058bd047f4d4ed2d4208b2b1d30f98bd08a1badce5bb0a2ee6a56a0d"
+      "sha256": "9d3da85768d99cf907309487a4e2c59ec981c1f7ccd16f3d224504fdf8d1c015"
     },
     {
       "path": "packages/ui/components/primitives/RichTextEditor.tsx",
