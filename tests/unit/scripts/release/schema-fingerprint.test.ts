@@ -7,6 +7,9 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
 import {
+  EXCLUDED_DEFAULT_ACL_ROLES,
+  FINGERPRINT_SQL,
+  FINGERPRINT_VERSION,
   buildFingerprint,
   diffFingerprints,
   runCli,
@@ -40,5 +43,22 @@ describe("schema fingerprint comparison", () => {
     expect(() => runCli(["compare", a, b], { log: () => {} })).toThrow(
       /holds no objects/,
     );
+  });
+});
+
+// Review L4: every role's default privileges are fingerprinted, but for the
+// named platform roles a replay cannot reproduce. The list is pinned, each
+// with its reason, and the query names each one.
+describe("the default privileges the fingerprint leaves out", () => {
+  it("names supabase_admin only, with its reason", () => {
+    expect(Object.keys(EXCLUDED_DEFAULT_ACL_ROLES)).toEqual(["supabase_admin"]);
+    for (const reason of Object.values(EXCLUDED_DEFAULT_ACL_ROLES))
+      expect(reason.length).toBeGreaterThan(40);
+    expect(FINGERPRINT_SQL).toContain("'supabase_admin'");
+    expect(FINGERPRINT_SQL).not.toContain("defaclrole = 'postgres'::regrole");
+  });
+
+  it("is version 3, which reads every role's default privileges", () => {
+    expect(FINGERPRINT_VERSION).toBe(3);
   });
 });

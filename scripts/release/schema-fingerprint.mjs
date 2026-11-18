@@ -12,7 +12,8 @@
 // privileges of `postgres`, the role that runs the chain, in those schemas
 // and for every schema (review K2): they decide the access lists of what a
 // later migration creates, and a hosted reset keeps the ones in `public`
-// (review H1).
+// (review H1). Version 3 reads every role's but the named platform roles of
+// EXCLUDED_DEFAULT_ACL_ROLES (review L4).
 //
 //   node scripts/release/schema-fingerprint.mjs capture \
 //     --database-url-env DATABASE_URL --out fingerprint.json
@@ -24,7 +25,22 @@ import { fileURLToPath } from "node:url";
 
 import { queryJson } from "./lib/postgres.mjs";
 
-export const FINGERPRINT_VERSION = 2;
+export const FINGERPRINT_VERSION = 3;
+
+/**
+ * The roles whose default privileges the fingerprint leaves out, each with
+ * its reason (review L4). Every other role's are in it, in the schemas it
+ * covers and for every schema. Version 3 reads every role's; version 2 read
+ * only those of postgres, and missed cms_owner's in cms.
+ */
+export const EXCLUDED_DEFAULT_ACL_ROLES = Object.freeze({
+  supabase_admin:
+    "the platform's own role: hosted Supabase gives it default privileges in public that grant anon and authenticated (read on the preview project and on development on 18 November 2026), it runs no migration of the chain, and a plain replay has no such role, so its rows can neither come from the chain nor be reproduced by the replay.",
+});
+
+const EXCLUDED_ROLES_SQL = Object.keys(EXCLUDED_DEFAULT_ACL_ROLES)
+  .map((role) => `'${role}'`)
+  .join(", ");
 
 export const EXCLUDED_SCHEMA_PATTERN =
   "^(pg_.*|information_schema|_.*|auth|storage|realtime|extensions|graphql|graphql_public|pgbouncer|pgsodium.*|vault|supabase_.*|net|cron|pgtle|repack|topology|tiger.*)$";
@@ -152,7 +168,7 @@ items(key, def) AS (
                    ELSE d.defaclobjtype::text END,
     json_build_object('acl', ${acl("d.defaclacl")})::text
   FROM pg_default_acl d JOIN ns n ON n.oid = d.defaclnamespace
-  WHERE d.defaclrole = 'postgres'::regrole
+  WHERE pg_get_userbyid(d.defaclrole) <> ALL (ARRAY[${EXCLUDED_ROLES_SQL}])
   UNION ALL
   -- A default for every schema (defaclnamespace 0) covers all of the above
   -- and everything else postgres creates (review K2).
@@ -162,7 +178,8 @@ items(key, def) AS (
                    ELSE d.defaclobjtype::text END,
     json_build_object('acl', ${acl("d.defaclacl")})::text
   FROM pg_default_acl d
-  WHERE d.defaclrole = 'postgres'::regrole AND d.defaclnamespace = 0
+  WHERE d.defaclnamespace = 0
+    AND pg_get_userbyid(d.defaclrole) <> ALL (ARRAY[${EXCLUDED_ROLES_SQL}])
 )
 SELECT coalesce(json_agg(json_build_array(key, def) ORDER BY key), '[]'::json)::text
 FROM items;`;

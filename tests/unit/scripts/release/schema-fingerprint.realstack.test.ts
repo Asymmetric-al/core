@@ -37,6 +37,8 @@ import {
 import { Replay } from "../../acceptance/issue-2674/privileges-harness";
 
 const created: string[] = [];
+/** A throwaway role of review L4's cases; dropped once its databases are. */
+const FP_ROLE = "wp13r_fp_owner";
 let first = "";
 let second = "";
 const scratch = mkdtempSync(path.join(tmpdir(), "release-fingerprint-"));
@@ -76,6 +78,9 @@ function flaggedReplay() {
 
 afterAll(() => {
   for (const name of created) dropDatabase(name);
+  // The throwaway role of review L4's cases, once its databases are gone.
+  if (adminDatabaseUrl)
+    psql(adminDatabaseUrl, `DROP ROLE IF EXISTS ${FP_ROLE};`);
   rmSync(scratch, { recursive: true, force: true });
 });
 
@@ -150,6 +155,50 @@ describe.skipIf(!adminDatabaseUrl)(
     // Review K2: a default privilege of postgres for every schema
     // (defaclnamespace 0) decides the access list of everything it creates
     // anywhere, so the fingerprint holds it too.
+    // Review L4: the chain writes defaults for cms_owner in cms, and Payload
+    // creates cms objects as cms_owner, so the fingerprint holds every role's
+    // default privileges, not only those of postgres. A throwaway role stands
+    // in for cms_owner, in a schema the fingerprint covers.
+    it.each([
+      [
+        "in a schema the fingerprint covers",
+        `CREATE SCHEMA IF NOT EXISTS fpcase;
+         ALTER DEFAULT PRIVILEGES FOR ROLE ${FP_ROLE} IN SCHEMA fpcase GRANT SELECT ON TABLES TO anon;`,
+        `default privileges ${FP_ROLE} in fpcase on tables`,
+      ],
+      [
+        "for every schema",
+        `ALTER DEFAULT PRIVILEGES FOR ROLE ${FP_ROLE} GRANT SELECT ON TABLES TO anon;`,
+        `default privileges ${FP_ROLE} in every schema on tables`,
+      ],
+    ])(
+      "tells apart two databases that differ only in another role's default privilege %s",
+      (_case, plant, key) => {
+        psql(
+          adminDatabaseUrl,
+          `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${FP_ROLE}') THEN CREATE ROLE ${FP_ROLE} NOLOGIN; END IF; END $$;`,
+        );
+        const pair = ["fp_role_a", "fp_role_b"].map((label) => {
+          const db = createDatabase(label);
+          created.push(db.name);
+          psql(
+            db.url,
+            `${readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8")}
+             CREATE SCHEMA IF NOT EXISTS fpcase;`,
+          );
+          return db;
+        });
+        psql(pair[1]!.url, plant);
+        const diff = diffFingerprints(
+          captureFingerprint({ databaseUrl: pair[0]!.url }),
+          captureFingerprint({ databaseUrl: pair[1]!.url }),
+        );
+        expect([...diff.missing, ...diff.unexpected, ...diff.changed]).toEqual([
+          key,
+        ]);
+      },
+    );
+
     it("tells apart two databases that differ only in a default privilege for every schema", () => {
       const pair = ["fp_global_a", "fp_global_b"].map((label) => {
         const db = createDatabase(label);
