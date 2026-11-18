@@ -374,6 +374,20 @@ describe("requiredCheckProblems (fixtures)", () => {
       );
     });
 
+    // #2716 review round 2: the positive control. A gate that always fails
+    // reads every result but blocks a healthy merge.
+    it("e2e-smoke-gate fails even when every job it gates succeeded", () => {
+      const problems = problemsAfter((w) => {
+        const step = jobOf(w, CII, "e2e-smoke-gate").steps![0]!;
+        step.run = `${String(step.run)}\nexit 1`;
+      });
+      expect(problems).toEqual([
+        expect.stringMatching(
+          /e2e-smoke-gate: gate does not pass when every need succeeded/,
+        ),
+      ]);
+    });
+
     it("e2e-smoke-gate drops test-e2e-smoke", () => {
       const problems = problemsAfter((w) => {
         jobOf(w, CII, "e2e-smoke-gate").needs = ["migrate", "smoke"];

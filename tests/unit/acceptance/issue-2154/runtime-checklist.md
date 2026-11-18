@@ -11,7 +11,7 @@ Spec: [rev 1 comment](https://github.com/Asymmetric-al/core/issues/2154#issuecom
 
 ## Done criterion 6 (review)
 
-- [ ] The PR's changed files (`gh pr diff <n> -R Asymmetric-al/core --name-only`) are only under `docs/ai/**`, `docs/agents/**`, `.agents/**`, `.claude/**`, `.cursor/**`, or are `tests/unit/scripts/factory-startup-guidance.contract.test.ts` ([addendum 2](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357881867)); nothing under `docs/guides/**` or `openspec/**` changes (#2199).
+- [ ] The PR's changed files (`git diff --name-only --no-renames <base>...<head>`, as the retired scope check ran it, so a moved file shows as a deleted path and an added path and both are checked) are only under `docs/ai/**`, `docs/agents/**`, `.agents/**`, `.claude/**`, `.cursor/**`, or are `tests/unit/scripts/factory-startup-guidance.contract.test.ts` ([addendum 2](https://github.com/Asymmetric-al/core/issues/2154#issuecomment-6357881867)); nothing under `docs/guides/**` or `openspec/**` changes (#2199).
 
 ## Done criterion 7
 

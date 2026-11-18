@@ -16,7 +16,7 @@ These checks run during final acceptance on the implementation PR. The automated
 
 ## Done criterion 7 (review)
 
-- [ ] The PR's changed files are only under `packages/api/src/generated-documents/purpose-catalog/`, `tests/unit/packages/api/document-purpose-*.test.ts` and this acceptance directory (`gh pr diff <n> -R Asymmetric-al/core --name-only`).
+- [ ] The PR's changed files are only under `packages/api/src/generated-documents/purpose-catalog/`, `tests/unit/packages/api/document-purpose-*.test.ts` and this acceptance directory. List them with `git diff --name-only --no-renames <base>...<head>`, as the retired `criterion-7-diff-scope` test did: a moved file then shows as a deleted path and an added path, and both must be in that list of places.
 
 ## Done criterion 8
 

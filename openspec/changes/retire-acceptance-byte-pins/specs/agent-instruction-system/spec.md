@@ -92,6 +92,8 @@ be asserted directly by acceptance tests.
   `migrate`, `smoke` or `test-e2e-smoke`
 - **OR** `e2e-smoke-gate`'s script passes when one of those jobs failed, was
   cancelled or was skipped
+- **OR** `e2e-smoke-gate`'s script fails when all three of those jobs
+  succeeded
 - **OR** a gate job can be skipped because its condition is not `always()`
 - **THEN** the structural test fails and names the gate and the job
 
