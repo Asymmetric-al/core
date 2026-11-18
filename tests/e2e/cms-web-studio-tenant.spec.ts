@@ -58,8 +58,15 @@ const rowIn = (tenant: string) =>
 const STALE_MESSAGE =
   "This page was opened for a different organization. Reload the page to continue; nothing was saved.";
 
+// Each case's own limit (council r2 CR4). CI retries a failed case twice and
+// the whole CMS step has a fixed limit, so a case that hangs must stop well
+// before it can use the step up. Measured on a development server under the
+// bypass at load 15 to 25: the slowest case after the first took 30 s warm
+// and 49 s cold. The step's own limit and the retry count are set elsewhere.
+const CASE_LIMIT = 120_000;
+
 test.beforeEach(async () => {
-  test.setTimeout(240_000);
+  test.setTimeout(CASE_LIMIT);
   if (signsInThroughStub) await stubControl("reset");
 });
 
@@ -182,6 +189,10 @@ async function holdOwnCalls(page: Page) {
 test("@cms a person in two organizations sees each one's pages, documents and media only while it is selected", async ({
   page,
 }) => {
+  // Creates and uploads in two organizations and switches four times: 66 s
+  // warm. As the first Web Studio case it also pays for compiling the list,
+  // document and upload views on a server that has not shown them yet.
+  test.setTimeout(180_000);
   await signIn(page);
   const stamp = `wsten-${Date.now()}`;
   const created: Array<[string, "pages" | "media", string]> = [];
