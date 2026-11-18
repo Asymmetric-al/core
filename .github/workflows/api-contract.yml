@@ -32,8 +32,11 @@ name: API Contract
 on:
   workflow_dispatch:
   pull_request:
-    # Everything that can change the result; tests/integration/api-contract/
-    # workflow-paths.test.ts derives the inputs and fails when one is missing.
+    # The inputs workflow-paths.test.ts derives: the files the steps run and
+    # what they import, spawn or read by a literal path, the project's tests
+    # and their imports, the Vitest configuration chain and the workspace
+    # packages the swept code needs. It fails when one is missing. Paths
+    # built at run time are not derived.
     paths:
       - .github/workflows/api-contract.yml
       - scripts/api-contract/**
@@ -43,9 +46,17 @@ on:
       - supabase/seed.sql
       - supabase/config.toml
       - scripts/sql/supabase-compat-bootstrap.sql
+      - scripts/sql/postgres17-upgrade-readiness.sql
       - scripts/verify/supabase-migrations.mjs
+      - scripts/verify/tenant-rls-catalog.mjs
+      - scripts/verify/field-policy-census.mjs
+      - scripts/lib/postgres-upgrade-preflight.mjs
+      - tests/integration/supabase/postgres17-upgrade-readiness-verification.sql
+      - docs/security/rls-deny-by-default-exceptions.json
+      - docs/security/field-policies/**
       - scripts/github/install-canvas-deps.sh
       - scripts/github/install-postgresql-client.sh
+      - scripts/github/prepare-apt.sh
       - vitest.config.mts
       - vitest.*.mts
       - tests/setup/**
