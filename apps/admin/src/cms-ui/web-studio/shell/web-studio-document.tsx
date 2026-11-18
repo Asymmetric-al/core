@@ -7,6 +7,7 @@ import {
 import { createContext, useContext } from "react";
 
 import { installWebStudioDocumentFetch } from "./web-studio-document-fetch";
+import { WebStudioRefusalDialog } from "./web-studio-refusal-dialog";
 
 import type { ReactNode } from "react";
 
@@ -28,7 +29,8 @@ const WebStudioOrganizationContext =
  *
  * It also has the document's calls to Payload's REST routes name that scope
  * (`web-studio-document-fetch.ts`), and gives the Studio chrome the
- * organization's name and whether the person can switch.
+ * organization's name and whether the person can switch. When one of those
+ * calls is refused, it asks the person to reload, once (council C2).
  */
 export function WebStudioDocument({
   scope,
@@ -52,6 +54,7 @@ export function WebStudioDocument({
           data-web-studio-assignment={scope.assignmentId}
         />
         {children}
+        <WebStudioRefusalDialog />
       </WebStudioOrganizationContext.Provider>
     </DocumentScopeProvider>
   );

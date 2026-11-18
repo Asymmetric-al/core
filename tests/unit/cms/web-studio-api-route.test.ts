@@ -117,23 +117,30 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
     refusal: Parameters<typeof markWebStudioRefusal>[1] | null,
     error = forbidden,
   ) {
-    const req = { context: {} as Record<string, unknown> };
+    const req: {
+      context: Record<string, unknown>;
+      responseHeaders?: Headers;
+    } = { context: {} };
     if (refusal) markWebStudioRefusal(req, refusal);
-    return webStudioRefusalAfterError({
+    const result = webStudioRefusalAfterError({
       error,
       req,
       context: req.context,
     } as never);
+    return Object.assign({}, result, {
+      header: req.responseHeaders?.get("x-asym-web-studio-refusal") ?? null,
+    });
   }
 
   it("is a JSON 401 for an expired session, never a redirect", () => {
+    const message = "Your session has ended. Sign in again to continue.";
     expect(refusalFor("no_session")).toEqual({
       status: 401,
-      response: {
-        errors: [
-          { message: "Your session has ended. Sign in again to continue." },
-        ],
-      },
+      // A top-level message for any reader, Payload's errors for its own
+      // screens, and a header the Web Studio document recognizes the
+      // refusal by (council C2).
+      response: { message, errors: [{ message }] },
+      header: "no_session",
     });
   });
 
@@ -141,22 +148,27 @@ describe("an anonymous refusal on a Web Studio REST call", () => {
     expect(refusalFor("scope_mismatch")).toMatchObject({
       status: 409,
       response: {
+        message: expect.stringMatching(/Reload the page/),
         errors: [{ message: expect.stringMatching(/Reload the page/) }],
       },
+      header: "scope_mismatch",
     });
   });
 
   it("stays a 403 without a usable organization", () => {
-    expect(refusalFor("no_selection")).toMatchObject({ status: 403 });
+    expect(refusalFor("no_selection")).toMatchObject({
+      status: 403,
+      header: "no_selection",
+    });
   });
 
   it("leaves every other error, and a refusal of a signed-in caller, as Payload made it", () => {
-    expect(refusalFor(null)).toBeUndefined();
+    expect(refusalFor(null)).toEqual({ header: null });
     expect(
       refusalFor(
         "no_session",
         Object.assign(new Error("x"), { name: "ValidationError" }),
       ),
-    ).toBeUndefined();
+    ).toEqual({ header: null });
   });
 });

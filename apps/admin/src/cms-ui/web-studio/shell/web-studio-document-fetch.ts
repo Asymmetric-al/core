@@ -2,6 +2,9 @@ import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
 import { isWebStudioApiPath } from "@asym/auth/web-studio";
 import { getDocumentScope } from "@asym/database/document-scope";
 
+import { noticeWebStudioRefusal } from "./web-studio-refusal-notice";
+import { WEB_STUDIO_REFUSAL_HEADER } from "../../../cms/auth/web-studio-refusal";
+
 /**
  * Every call a Web Studio document makes to Payload's REST routes names the
  * tenant and membership row the document was rendered for (plan 5.2; AL-2675,
@@ -15,6 +18,10 @@ import { getDocumentScope } from "@asym/database/document-scope";
  * helper, forms, uploads); nothing else reaches it, so the document wraps
  * `fetch` once. Only same-origin calls under `/web-studio/api` change; Mission
  * Control's own `/api` routes are scoped by slice B's shared fetch wrapper.
+ *
+ * A response the server marks as a Web Studio refusal is reported to the
+ * document, which asks the person to reload once (council C2); the response
+ * itself reaches Payload unchanged.
  */
 
 const WRAPPED = Symbol.for("asym.webStudio.documentFetch");
@@ -53,7 +60,10 @@ export function installWebStudioDocumentFetch(
     );
     headers.set(TENANT_HEADER, scope.tenantId);
     headers.set(ASSIGNMENT_HEADER, scope.assignmentId);
-    return original(input, { ...init, headers });
+    return original(input, { ...init, headers }).then((response) => {
+      noticeWebStudioRefusal(response.headers.get(WEB_STUDIO_REFUSAL_HEADER));
+      return response;
+    });
   };
   target[WRAPPED] = true;
 }

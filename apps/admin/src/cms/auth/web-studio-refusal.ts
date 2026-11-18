@@ -17,12 +17,31 @@ import type { AfterErrorHook } from "payload";
  *   the person switched organization in another tab is never retargeted;
  * - `no_selection`: no usable organization (none chosen among several, or a
  *   cookie that names a row the person does not hold live): 403.
+ *
+ * The answer carries the message at the top level and in Payload's `errors`,
+ * and names the refusal in the `x-asym-web-studio-refusal` header, by which
+ * the Web Studio document recognizes it on any screen and asks the person to
+ * reload (council C2; `web-studio-refusal-dialog.tsx`).
  */
 export type WebStudioRefusal = "no_session" | "no_selection" | "scope_mismatch";
 
+/** The response header that names a Web Studio refusal. */
+export const WEB_STUDIO_REFUSAL_HEADER = "x-asym-web-studio-refusal";
+
 const CONTEXT_KEY = "asymWebStudioRefusal";
 
-type RequestWithContext = { context?: Record<string, unknown> | null };
+export function isWebStudioRefusal(value: unknown): value is WebStudioRefusal {
+  return (
+    value === "no_session" ||
+    value === "no_selection" ||
+    value === "scope_mismatch"
+  );
+}
+
+type RequestWithContext = {
+  context?: Record<string, unknown> | null;
+  responseHeaders?: Headers;
+};
 
 export function markWebStudioRefusal(
   req: RequestWithContext | null | undefined,
@@ -37,11 +56,7 @@ export function readWebStudioRefusal(
   req: RequestWithContext | null | undefined,
 ): WebStudioRefusal | null {
   const value = req?.context?.[CONTEXT_KEY];
-  return value === "no_session" ||
-    value === "no_selection" ||
-    value === "scope_mismatch"
-    ? value
-    : null;
+  return isWebStudioRefusal(value) ? value : null;
 }
 
 export const WEB_STUDIO_REFUSAL_MESSAGES: Record<WebStudioRefusal, string> = {
@@ -62,8 +77,13 @@ const STATUS: Record<WebStudioRefusal, number> = {
 export const webStudioRefusalAfterError: AfterErrorHook = ({ error, req }) => {
   const refusal = readWebStudioRefusal(req);
   if (!refusal || error.name !== "Forbidden") return;
+  // Payload merges the request's response headers into its error response.
+  const request = req as RequestWithContext;
+  request.responseHeaders ??= new Headers();
+  request.responseHeaders.set(WEB_STUDIO_REFUSAL_HEADER, refusal);
+  const message = WEB_STUDIO_REFUSAL_MESSAGES[refusal];
   return {
     status: STATUS[refusal],
-    response: { errors: [{ message: WEB_STUDIO_REFUSAL_MESSAGES[refusal] }] },
+    response: { message, errors: [{ message }] },
   };
 };
