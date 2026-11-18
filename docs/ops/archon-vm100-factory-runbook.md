@@ -131,7 +131,7 @@ export CORE_FACTORY_CONFIG=/srv/core-factory/control/core-factory.json
 export ARCHON_HOME=/srv/core-factory/archon ARCHON_USER_ID=core-factory
 export HOME=/home/admin CLAUDE_CONFIG_DIR=/home/admin/.claude
 C=.archon/workflows/core-factory/.shared/control.mjs
-N=/opt/node-v24.22.1-linux-x64/bin/node
+N=/opt/node-v24.22.3-linux-x64/bin/node
 $N $C status
 ```
 
@@ -590,6 +590,22 @@ manifest.
 
 ### Updates
 
+**Before any install: the release name.** A release is named after the digest
+of `pack/` alone (`policyRevision`). An install that changes nothing under
+`pack/` keeps the installed release's name: it reuses that release's directory
+and overwrites its `release.json`. When such an install changes a setting or
+a binary that the release binds (the role settings, `/etc/claude-code`,
+`ARCHON_HOME/config.yaml`, Node, native Claude and its launcher, the engine or
+the provider plugin), every retained item is then refused `identity-drift`,
+and `adopt-policy` refuses it as `policy-current`, so nothing can move it. Do
+not run such an install until this is fixed. Compare the staged pack's
+digest (`stageIdentity(<stage>).packDigest` from
+`installation/install-logic.mjs`) with `policyRevision` in
+`/srv/core-factory/control/.archon/core-factory-release.json` first. The
+Node 24.22.3 install planned for 19 November 2026 is not such an install:
+`pack/` at that change digests to `19218b95…`, and the installed release is
+`d4ef3329…`.
+
 1. Pause intake (`factory pause-intake`, or `factory drain` to let admitted work
    continue) and inspect every retained assignment (`$N $C status`). A policy
    switch requires every assignment to be settled: MERGED, PR_READY, BLOCKED or
@@ -616,7 +632,7 @@ manifest.
    git rev-parse <commit> > "$S/scripts/archon-factory/SOURCE_COMMIT"
    # On the VM, as root:
    cd "$S/scripts/archon-factory"
-   sudo /opt/node-v24.22.1-linux-x64/bin/node installation/install.mjs \
+   sudo /opt/node-v24.22.3-linux-x64/bin/node installation/install.mjs \
      --stage "$S/scripts/archon-factory"
    sudo systemctl daemon-reload && sudo systemctl restart core-archon.service
    ```
@@ -630,8 +646,22 @@ manifest.
    The installer needs network access to GitHub releases (the pinned launcher
    downloads the engine server and web UI and verifies them against its
    embedded checksums, and adds any missing provider or forge plugin the same
-   way) and the check image `core-archon-checks:node24.22.1-bun1.4.3-jq` with
+   way) and the check image `core-archon-checks:node24.22.3-bun1.4.3-jq` with
    the exact pinned image ID.
+
+   Which Node runs what. The pins name Node 24.22.3
+   (`/opt/node-v24.22.3-linux-x64`, on VM 100 since 18 November 2026); Node
+   24.22.1 (`/opt/node-v24.22.1-linux-x64`) stays installed. The controls
+   (`$N $C`) and the installer do not depend on the Node that runs them: the
+   controls' identity checks hash the Node that the installed release record
+   names (`node` in `core-factory-release.json`), and the installer checks its
+   own pinned path. So `$N` above runs the controls before and after the install, as long
+   as both directories stay. The install moves everything it writes to the new
+   Node at once: before it, the engine's `PATH`, the intake pass, the backup,
+   the guard hook, the check MCP server and the native Claude launcher use
+   24.22.1, and every check runs in `core-archon-checks:node24.22.1-bun1.4.3-jq`;
+   after it, with `daemon-reload` and the engine restart, they use 24.22.3 and
+   the image above. Do not remove 24.22.1: earlier releases' records name it.
 
    Without `SOURCE_COMMIT` the release is recorded with no source. The
    installer records the commit you declare and does not check it against Git.

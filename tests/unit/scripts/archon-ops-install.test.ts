@@ -554,19 +554,23 @@ describe("the factory runs the repository's Node", () => {
 
   it("pins Node 24.22.3 from the signed release", () => {
     // bin/node of node-v24.22.3-linux-x64.tar.xz. The archive's SHA-256
-    // (4f2b175a…fcfb) is the one nodejs.org lists in SHASUMS256.txt, whose
-    // detached signature by release key 5BE8A3F6…D356 verified on 18
-    // November 2026.
+    // (4f2b175a…fcfb) is the one nodejs.org lists in SHASUMS256.txt. That
+    // list's signature by release key 5BE8A3F6…D356 verified on 18 November
+    // 2026: the detached SHASUMS256.txt.sig and the clearsigned
+    // SHASUMS256.txt.asc.
     expect(PIN.nodeVersion).toBe("v24.22.3");
     expect(PIN.node).toBe(
       "a7ec1b37e6ff9d187e4198c5b6df9a4eb1c74dd31804fb3bac55cc4ceca1ac01",
     );
   });
 
-  it("pins the check image rebuilt on that Node and qualified on VM 100", () => {
+  it("pins the check image rebuilt on that Node", () => {
     // core-archon-checks:node24.22.3-bun1.4.3-jq, built on VM 100 on 18
     // November 2026 from node:24.22.3-bookworm (index sha256:9d266751…7496)
-    // with the qualified image's Bun 1.4.3 copied byte for byte.
+    // with the previous image's Bun 1.4.3 copied byte for byte. On VM 100 so
+    // far: qualification/check-executor.mjs and verify:node-version passed;
+    // qualification/publication.mjs (the full pre-push gate in the executor)
+    // has not run on it yet and runs after the install, before intake resumes.
     expect(PIN.checkImage).toBe(
       "sha256:59adfc724df4dbb7739813fa76a055361969ed878805f4e4f1986d7e63353859",
     );
@@ -600,6 +604,27 @@ describe("the factory runs the repository's Node", () => {
     expect(read("qualification/check-executor.mjs")).toContain(
       `assert.equal(process.version, '${PIN.nodeVersion}');`,
     );
+    // The runbook's live commands, and only those: dated readbacks and
+    // history keep the versions they recorded.
+    const node = /const NODE = "([^"]+)";/.exec(installer)?.[1];
+    const image = /const IMAGE_TAG = "([^"]+)";/.exec(installer)?.[1];
+    const runbook = readFileSync(
+      path.resolve("docs/ops/archon-vm100-factory-runbook.md"),
+      "utf8",
+    );
+    const all = (pattern: RegExp) =>
+      [...runbook.matchAll(pattern)].map((match) => match[1]);
+    // Controls: the Node every control command runs with.
+    expect(all(/^N=(\S+)$/gm), "runbook: N=").toEqual([node]);
+    // Updates, step 2: the Node that runs the installer and the image it needs.
+    expect(
+      all(/^\s*sudo (\S+) installation\/install\.mjs\b/gm),
+      "runbook: installer",
+    ).toEqual([node]);
+    expect(
+      all(/the check image\s+`([^`]+)`\s+with\s+the exact pinned image ID/g),
+      "runbook: check image",
+    ).toEqual([image]);
   });
 });
 

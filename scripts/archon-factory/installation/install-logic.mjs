@@ -37,16 +37,20 @@ export const PIN = {
   // packages/adapters/src/sources/standard-webhooks/source-plugin.ts bundled
   // with `bun build --target=bun` from commit 8def159a (reproduced byte-for-byte).
   webhooks: "182b4ab528d49ea9b7aae7469c3de6a9bfdc9cf6876a22cdeee3d927a6a8e6ea",
-  // Inspected image ID of the qualified check executor; a rebuilt image needs
+  // Inspected image ID of the check executor; a rebuilt image needs
   // requalification and a reviewed pin change, never a silent tag swap.
-  // Rebuilt on VM 100 for Node 24.22.3 on 18 November 2026
+  // Rebuilt on VM 100 for Node 24.22.3 on 18 November 2026. On it so far:
+  // qualification/check-executor.mjs and the repository's verify:node-version,
+  // both passed. qualification/publication.mjs (the real pre-push ci:preflight
+  // in the executor) runs after the install, before intake resumes
   // (docs/ops/archon-vm100-commissioning.md).
   checkImage:
     "sha256:59adfc724df4dbb7739813fa76a055361969ed878805f4e4f1986d7e63353859",
   // The Node binary that runs the guard hook, check MCP server and timers:
   // bin/node from node-v24.22.3-linux-x64.tar.xz, whose archive hash matched
-  // nodejs.org SHASUMS256.txt (4f2b175a…fcfb), itself verified against its
-  // detached signature by release key 5BE8A3F6…D356, on 18 November 2026.
+  // nodejs.org SHASUMS256.txt (4f2b175a…fcfb). That list's signature by
+  // release key 5BE8A3F6…D356 verified on 18 November 2026, both the
+  // detached SHASUMS256.txt.sig and the clearsigned SHASUMS256.txt.asc.
   node: "a7ec1b37e6ff9d187e4198c5b6df9a4eb1c74dd31804fb3bac55cc4ceca1ac01",
   nodeVersion: "v24.22.3",
 };
