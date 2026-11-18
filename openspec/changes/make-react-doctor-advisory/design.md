@@ -113,6 +113,13 @@ audit's own completeness check. Delete
 `docs/qa/react-doctor/exceptions.json`. Git history keeps every record and
 its reasoning.
 
+`reviewReactDoctorFindings` also rejects any diagnostic whose severity is not
+`warning` or `error`, or whose `fingerprint`, `plugin` or `rule` is not a
+non-empty string. `parseReactDoctorReport` does not check those fields today.
+Those checks move into `parseReactDoctorReport`, so a malformed diagnostic
+still fails the audit before any summary is written. The report tests gain
+one case per field.
+
 `docs/qa/react-doctor/native-exceptions.json` is unrelated to the ledger. It
 documents one native ESLint false positive and is not read by the audit, so
 it stays.
@@ -123,11 +130,22 @@ it stays.
   acceptance" and "Exact exception ledger" with how to run the audit, read
   `summary.md`, use `--changed-since`, and triage findings (a confirmed defect
   is fixed with a behavior test or tracked as an issue; a false positive needs
-  no record; rules are not disabled to hide findings). Keep "Source
-  boundaries", "Rule configuration", "Historical audits" and
-  "2026-09-19 Cleanup Decisions" word for word.
-  `tests/unit/apps/react-doctor-config-contracts.test.ts` pins sentences in
-  those sections.
+  no record; rules are not disabled to hide findings). Rewrite every other
+  sentence that requires the strict check, zero findings, exact exceptions or
+  the ledger: in "Rule configuration" the line about previous exceptions, in
+  "Verification" the strict warning-level audits and the retained ledger, and
+  in "Historical audits" the closing pointer to the current ledger. Add the
+  accepted patterns from D7. Keep "2026-09-19 Cleanup Decisions" word for word,
+  because `tests/unit/apps/react-doctor-config-contracts.test.ts` pins its
+  sentences, and keep "Source boundaries" as it is.
+- `CONTRIBUTING.md`: replace the "React diagnostics" bullet, which says
+  `react-doctor:check` enforces the profile and exact exceptions, with the
+  advisory audit and a pointer to the guide.
+- `docs/ai/skills/no-comments/SKILL.md`: drop
+  `docs/qa/react-doctor/exceptions.json` from its list of hash-checked
+  ledgers and keep `tooling/shadscan/findings.json`. Sync the mirrors and
+  update that skill's hashes in `docs/ai/skill-source-audit.json`, as for the
+  React Doctor skill below.
 - `docs/ai/skills/react-doctor/SKILL.md`: run the audit with
   `--changed-since` after React edits, triage the changed files' findings, fix
   confirmed defects with tests, and report remaining findings without
@@ -165,9 +183,26 @@ Shadscan 0.17.0's `theme-hydration-safe` rule reads the dependency from each
 app's own `package.json` and reports "not applicable" without it. Removing the
 declaration would drop that hydration check from both apps' Shadscan audits.
 React Doctor's `unused-dependency` finding for it becomes an ordinary
-reported finding that a reviewer recognizes as accepted. Once Shadscan stops
-being consulted, or detects workspace-owned providers, the declarations can
-be removed in their own change.
+reported finding. Deleting the ledger also deletes the only working-tree copy
+of that reason, and an unused-dependency finding invites exactly the removal
+that would break the Shadscan check. So the guide gains a short "Accepted
+patterns" list, starting with this one: what the finding is, why it stays,
+and when to revisit it. That list records patterns whose obvious fix breaks
+something else, not individual findings, and nothing validates it. Once
+Shadscan stops being consulted, or detects workspace-owned providers, the
+declarations can be removed in their own change.
+
+### D8. The shared `ui-quality-audits` Purpose
+
+`ui-quality-audits` does not exist yet, and three active changes add to it.
+The pinned merger uses a delta's Purpose only to create a missing spec. When
+the spec already exists with a different Purpose, it warns, and
+`verify:openspec-deltas` fails on that warning. This change therefore uses
+`make-shadscan-advisory`'s Purpose word for word, so those two can archive in
+either order. `modernize-shadscan-readiness` already carries a different
+Purpose than `make-shadscan-advisory`. That conflict exists without this
+change, and `make-shadscan-advisory`'s planned amendment of that change is
+where it gets resolved.
 
 ## Risks / Trade-offs
 

@@ -2,9 +2,8 @@
 
 ## Purpose
 
-Defines how Core runs and reports quality audits of its first-party UI and
-React source, so real defects are found and fixed without bookkeeping that
-unrelated changes must maintain.
+Defines how Core reports third-party UI audit results and how it enforces
+accessibility, so real defects block regressions without score bookkeeping.
 
 ## ADDED Requirements
 
@@ -37,14 +36,19 @@ or CI check SHALL run the audit or depend on its result.
 ### Requirement: React Source Audit Reports Can Focus On A Change
 
 The React source audit SHALL accept a base revision and then list only the
-findings in files that changed since that revision, while still reporting the
-total findings for every target.
+findings in files the current branch changed since its merge base with that
+revision, while still reporting the total findings for every target.
 
 #### Scenario: An author reviews the findings in their own change
 
-- **WHEN** a developer runs the audit with a base revision their branch descends from
-- **THEN** the listed findings are only those in files added or modified since that revision
+- **WHEN** a developer runs the audit with a base revision
+- **THEN** the listed findings are only those in files that the working tree adds, modifies or renames relative to the merge base of the current branch and that revision, or that are untracked and not ignored
 - **AND** the report still gives the total findings for every target
+
+#### Scenario: The base branch moves on after the branch was cut
+
+- **WHEN** the base revision has gained commits that the current branch does not contain
+- **THEN** findings in files changed only by those commits are not listed
 
 #### Scenario: The base revision cannot be resolved
 
@@ -76,3 +80,8 @@ hidden by narrowing the applicable rule profile.
 - **WHEN** a reviewer judges a finding a scanner false positive or an accepted pattern
 - **THEN** no exception record is added for it
 - **AND** the rule stays enabled, so the finding keeps appearing in later reports
+
+#### Scenario: The obvious fix for a finding would break something else
+
+- **WHEN** a reported finding is accepted because acting on it would break another tool or behavior, such as removing a dependency declaration another audit reads
+- **THEN** the React source audit guide states that pattern and why it stays, without recording the individual finding

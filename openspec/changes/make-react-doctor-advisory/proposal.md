@@ -55,10 +55,12 @@ retire the hashed ledger.
 - Reviewers triage findings. A confirmed defect is repaired at its owner with a
   focused behavior test, or tracked as an issue. A false positive or accepted
   pattern needs no repository record.
-- Rewrite the React Doctor guide and skill for advisory use. Keep the guide's
-  dated history sections that existing contract tests pin. Remove the ledger
-  row from `docs/ai/protected-paths.md` and the strict-check line from the
-  getting-started guide.
+- Rewrite the React Doctor guide and skill, the "React diagnostics" bullet in
+  `CONTRIBUTING.md`, and the ledger list in the `no-comments` skill for
+  advisory use. Keep the guide's 2026-09-19 section that a contract test pins,
+  and add a short list of accepted patterns whose obvious fix would break
+  something else. Remove the ledger row from `docs/ai/protected-paths.md` and
+  the strict-check line from the getting-started guide.
 - Keep unchanged: the pinned React Doctor version, `doctor.config.json` and its
   applicable rule profile, `react-doctor:raw`, `react-doctor:first-party`,
   `test:react-cleanup`, `docs/qa/react-doctor/native-exceptions.json`, and the
@@ -78,7 +80,8 @@ retire the hashed ledger.
   Shadscan 0.17.0 rule `theme-hydration-safe` reads that declaration from each
   app's own `package.json` and is not applicable without it. React Doctor's
   matching `unused-dependency` finding becomes an ordinary reported finding
-  instead of ledger records 89 and 100.
+  instead of ledger records 89 and 100, and the guide's accepted-patterns list
+  keeps the reason.
 - Editing dated QA, maintenance or OpenSpec evidence that cites the ledger.
 
 ## Authority
@@ -100,7 +103,9 @@ ratification.
   can focus on one change, and that findings are triaged by review without a
   hashed ledger. No durable spec exists at this path yet. The active
   `make-shadscan-advisory` and `modernize-shadscan-readiness` changes also
-  propose ADDED requirements here, under different names.
+  propose ADDED requirements here, under different names. This delta uses
+  `make-shadscan-advisory`'s Purpose word for word, so the two can archive in
+  either order (design D8).
 
 ### Modified Capabilities
 
@@ -118,10 +123,10 @@ None.
   and the changed-file view.
   `tests/unit/apps/react-doctor-config-contracts.test.ts` and
   `tests/unit/scripts/react-doctor-snapshot.test.ts` still pass as they are.
-- **Docs and skills:** the React Doctor guide; the canonical skill and its three
-  generated mirrors; `docs/ai/skill-source-audit.json` (the skill's
-  hashes); `docs/ai/protected-paths.md`;
-  `docs/guides/development/getting-started.md`.
+- **Docs and skills:** the React Doctor guide; `CONTRIBUTING.md`; the
+  `react-doctor` and `no-comments` skills with their generated mirrors;
+  `docs/ai/skill-source-audit.json` (both skills' hashes);
+  `docs/ai/protected-paths.md`; `docs/guides/development/getting-started.md`.
 - **Removed data:** `docs/qa/react-doctor/exceptions.json`. Git history keeps
   it. Dated review scripts under `docs/qa/admin-workspaces-hillclimb/` that
   read it remain as history and are not re-run.

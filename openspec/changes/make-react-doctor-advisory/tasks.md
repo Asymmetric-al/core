@@ -11,12 +11,14 @@
   - a missing or repeated target and a scan with skipped checks fail with an "evidence unavailable" error;
   - `findings.json` carries the version, the config hash, the base revision and every finding's target, file, line, column, plugin, rule, severity and message;
   - `summary.md` gives the totals per target and per rule;
-  - with a base revision, the listing keeps only findings in files added, modified, renamed or untracked since the merge base, including a target's `package.json`, while the totals still cover every finding;
-  - an unresolvable revision fails before any scan and names the revision.
+  - with a base revision, the listing keeps only findings in files the working tree adds, modifies or renames relative to the merge base, or that are untracked and not ignored, including a target's `package.json`, while the totals still cover every finding;
+  - files changed only by base commits after the merge base are not listed;
+  - an unresolvable revision fails before any scan and names the revision;
+  - the report parser rejects a diagnostic whose severity is not `warning` or `error`, or whose `fingerprint`, `plugin` or `rule` is missing or empty (design D3).
 
   Build the changed-file cases in a temporary Git repository with a branch that diverges from its base after the base moves on. Verify that each new test fails before the implementation and passes after it
 
-- [ ] 2.2 Move `parseReactDoctorReport` and the config-hash helper into `scripts/react-doctor-report.mjs`. Rename `tests/unit/scripts/react-doctor-ledger.test.ts` to `react-doctor-report.test.ts`, keeping its supported CLI report boundary cases byte-identical. Move the "fails closed when any required project or check is absent" case to the audit's completeness check. Verify that the renamed file and `tests/unit/scripts/react-doctor-snapshot.test.ts` pass unchanged
+- [ ] 2.2 Move `parseReactDoctorReport` and the config-hash helper into `scripts/react-doctor-report.mjs`. Rename `tests/unit/scripts/react-doctor-ledger.test.ts` to `react-doctor-report.test.ts`, keeping its supported CLI report boundary cases byte-identical. Move the "fails closed when any required project or check is absent" case to the audit's completeness check, and move the per-diagnostic severity, fingerprint, plugin and rule checks from `reviewReactDoctorFindings` into `parseReactDoctorReport`. Verify that the renamed file and `tests/unit/scripts/react-doctor-snapshot.test.ts` pass unchanged
 - [ ] 2.3 Implement design D1 and D2 in `scripts/react-doctor-audit.mjs`:
   - the summary files for both the default and raw modes;
   - `--changed-since=<revision>`;
@@ -30,9 +32,9 @@
 
 ## 3. Guide, skill and registries
 
-- [ ] 3.1 Rewrite `docs/guides/development/react-doctor.md` per design D4, keeping "Source boundaries", "Rule configuration", "Historical audits" and "2026-09-19 Cleanup Decisions" word for word. Verify that `tests/unit/apps/react-doctor-config-contracts.test.ts` passes, that `bun run format:check` passes, and that every command the guide documents runs as written
-- [ ] 3.2 Update `docs/ai/skills/react-doctor/SKILL.md` for advisory use per design D4. Run `bun run skills:sync`, and update the skill's hashes in `docs/ai/skill-source-audit.json`. Verify that `bun run skills:verify` and `tests/unit/docs/skill-inventory-audit.test.ts` pass, and that the three mirrors match the canonical file
-- [ ] 3.3 Remove the `exceptions.json` row from `docs/ai/protected-paths.md`, and replace the strict-check line in `docs/guides/development/getting-started.md`. Verify that `git grep -n -E "qa/react-doctor/exceptions\.json|react-doctor:check" -- . ':!docs/qa/' ':!docs/maintenance/' ':!openspec/' ':!GOAL_LOG.md'` prints nothing (the excluded paths are the dated evidence in design D6)
+- [ ] 3.1 Rewrite `docs/guides/development/react-doctor.md` per design D4: replace the strict acceptance and ledger sections, rewrite the strict and ledger sentences in "Rule configuration", "Verification" and "Historical audits", add the "Accepted patterns" list with the donor and missionary `next-themes` declarations (design D7), and keep "2026-09-19 Cleanup Decisions" word for word. Verify that `grep -n -i -E "ledger|exact exception|react-doctor:check" docs/guides/development/react-doctor.md` matches nothing that tells a reader to run the strict check or maintain the ledger, and that `tests/unit/apps/react-doctor-config-contracts.test.ts` passes, that `bun run format:check` passes, and that every command the guide documents runs as written
+- [ ] 3.2 Update `docs/ai/skills/react-doctor/SKILL.md` for advisory use, and drop `docs/qa/react-doctor/exceptions.json` from the ledger list in `docs/ai/skills/no-comments/SKILL.md`, per design D4. Run `bun run skills:sync`, and update both skills' hashes in `docs/ai/skill-source-audit.json`. Verify that `bun run skills:verify` and `tests/unit/docs/skill-inventory-audit.test.ts` pass, and that each skill's three mirrors match its canonical file
+- [ ] 3.3 Remove the `exceptions.json` row from `docs/ai/protected-paths.md`, replace the strict-check line in `docs/guides/development/getting-started.md`, and replace the "React diagnostics" bullet in `CONTRIBUTING.md`. Verify that `git grep -n -E "qa/react-doctor/exceptions\.json|react-doctor:check" -- . ':!docs/qa/' ':!docs/maintenance/' ':!docs/features/' ':!openspec/' ':!GOAL_LOG.md'` prints nothing (the excluded paths are the dated evidence in design D6)
 
 ## 4. Integration verification
 
