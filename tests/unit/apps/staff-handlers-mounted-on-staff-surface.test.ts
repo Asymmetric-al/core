@@ -40,7 +40,8 @@ const EXT = [".ts", ".tsx", ".js", ".mjs"];
  * Routes left as they are, with the reason. GraphQL in the donor app: its
  * staff and missionary branches and `updateUserRole` are unreachable from the
  * donor surface; WP2c deletes the mutation, and the WP2a decision table names
- * it. Nothing else may be listed.
+ * it. Nothing else may be listed. The last case below keeps GraphQL in the
+ * donor app and nowhere else (PR #2720 review).
  */
 const LEFT_UNTIL_WP2C = new Set(["apps/donor/app/api/graphql/route.ts"]);
 
@@ -232,6 +233,33 @@ describe("staff handlers are mounted on the staff surface (AL-2675 F9)", () => {
     expect(
       existsSync(join(root, "apps/donor/app/api/donate/outbox/route.ts")),
     ).toBe(false);
+  });
+
+  // PR #2720 review (AL-2675): GraphQL's `updateUserRole` runs
+  // `atomic_update_user_role_with_audit`, which changes `profiles.role` and
+  // nothing else; since WP2a that grants and revokes no application access.
+  // No person can run it only because GraphQL is mounted in the donor app,
+  // whose proxy fixes the donor class, and a donor row holds no
+  // `people.manage_members` (tests/unit/apps/donor/graphql-update-user-role-
+  // unreachable.test.ts). Mounted on a staff surface, the command would be
+  // reachable while changing the profile role without the membership, and the
+  // check above would not see it: a staff row can hold that capability. So
+  // every route of every app that reaches the handler is listed here. WP2c
+  // deletes the mutation and builds plan 5.4's membership command.
+  it("mounts GraphQL in the donor app and nowhere else, until WP2c", () => {
+    const graphql = new Set([
+      "packages/graphql/index.ts",
+      "packages/graphql/handler.ts",
+    ]);
+    const routes = globSync("apps/*/app/**/route.{ts,tsx,js,mjs}", {
+      cwd: root,
+    }).map((p) => p.replaceAll("\\", "/"));
+    expect(routes.length).toBeGreaterThan(100);
+    expect(
+      routes
+        .filter((route) => handlerSources(route).some((f) => graphql.has(f)))
+        .sort(),
+    ).toEqual(["apps/donor/app/api/graphql/route.ts"]);
   });
 
   it("leaves only GraphQL in the donor app, until WP2c", () => {
