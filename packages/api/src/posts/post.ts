@@ -68,7 +68,6 @@ export async function PATCH(
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
       ctx.userId,
-      ctx.tenantId,
     );
 
     if (!profile) {
@@ -175,7 +174,6 @@ export async function DELETE(
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
       ctx.userId,
-      ctx.tenantId,
     );
 
     if (!profile) {

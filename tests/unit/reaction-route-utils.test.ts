@@ -64,7 +64,7 @@ describe("reaction route utils", () => {
         c.supabase,
         Promise.resolve({ postId: "not-a-uuid" }),
       ),
-    ).rejects.toBeInstanceOf(Error);
+    ).rejects.toThrow("Invalid post ID");
     expect(c.from).not.toHaveBeenCalled();
   });
 

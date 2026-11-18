@@ -19,6 +19,13 @@
  * admitted, a revoked flagged row is refused, and a target whose profile's
  * tenant column names the other tenant is found by its membership.
  *
+ * Council round 1 on WP2a (F2): the role written is the person's global
+ * `profiles.role`, which every tenant's restricted-note policies still read,
+ * so a target who is a live member of another tenant is refused. Three cases:
+ * promoting a member who is staff elsewhere and stripping another tenant's
+ * administrator are refused and change nothing; a revoked row elsewhere does
+ * not block the change.
+ *
  * Runs against the migrated database named by
  * TENANT_GUARD_IT_ADMIN_DATABASE_URL; without it the block skips, except in
  * the CI `migrate` job, where it fails. The function is called as
@@ -353,6 +360,59 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
       });
       expect(outcome.code).toBeNull();
       expect(await roleOf(people.donorA)).toBe("missionary");
+    }));
+
+  // Council round 1 on WP2a, F2: the command writes the person's global
+  // `profiles.role`, which the restricted-note policies of every tenant still
+  // read, so it refuses a target who is a live member of another tenant too.
+  it("refuses to promote a member of the tenant who is also staff in another tenant, and changes nothing (WP2a F2)", () =>
+    tx(async () => {
+      await db.query(
+        "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active) values ($1, $2, 'staff', 'development', false, true)",
+        [people.donorA, tenantB],
+      );
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.donorA,
+        tenant: tenantA,
+        role: "admin",
+      });
+      expect(outcome.code).toBe("42501");
+      expect(await roleOf(people.donorA)).toBe("donor");
+      expect(await roleChangeAudits(people.donorA)).toEqual([]);
+    }));
+
+  it("refuses to strip another tenant's administrator who is also a member of the tenant, and changes nothing (WP2a F2)", () =>
+    tx(async () => {
+      await db.query(
+        "insert into authz.memberships (user_id, tenant_id, role, is_active) values ($1, $2, 'donor', true)",
+        [people.adminB, tenantA],
+      );
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.adminB,
+        tenant: tenantA,
+        role: "donor",
+      });
+      expect(outcome.code).toBe("42501");
+      expect(await roleOf(people.adminB)).toBe("admin");
+      expect(await roleChangeAudits(people.adminB)).toEqual([]);
+    }));
+
+  it("still changes the role of a member whose only row in another tenant is revoked (WP2a F2)", () =>
+    tx(async () => {
+      await db.query(
+        "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active) values ($1, $2, 'staff', 'development', false, false)",
+        [people.donorA, tenantB],
+      );
+      const outcome = await changeRole({
+        actor: people.adminA,
+        target: people.donorA,
+        tenant: tenantA,
+        role: "staff",
+      });
+      expect(outcome.code).toBeNull();
+      expect(await roleOf(people.donorA)).toBe("staff");
     }));
 
   it("stays callable only by service_role, with a fixed search path", async () => {
