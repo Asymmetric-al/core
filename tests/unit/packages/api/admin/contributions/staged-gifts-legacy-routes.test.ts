@@ -32,6 +32,8 @@ vi.mock("../../../../../../packages/api/src/giving/receipts", () => ({
   sendStagedGiftReceipt: seams.sendStagedGiftReceipt,
 }));
 
+import { revalidateTag } from "next/cache";
+
 import * as legacy from "../../../../../../packages/api/src/admin/contributions/staged-gifts";
 
 type Row = Record<string, unknown>;
@@ -282,6 +284,13 @@ const routes = {
     legacy.POST_RECEIPT(request(`/${GIFT}/receipt`, "POST", {})),
 };
 
+/** The `details` of each review audit row written, in order. */
+function auditDetails() {
+  return writes
+    .filter((write) => write.table === "staged_gift_audit_events")
+    .map((write) => write.values.details);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   resetDatabase();
@@ -510,9 +519,55 @@ describe("legacy edit checks the staged gift's state (NV-03)", () => {
     expect(tables.get("staged_gifts")?.[0]).not.toHaveProperty(
       "allocation_status",
     );
+    // Council round 3: the edit's first write is saved by then, so the edit
+    // is audited, with what became of the split, and the lists are refreshed.
+    expect(auditDetails()).toEqual([
+      expect.objectContaining({ allocationCount: 2, split: "refused" }),
+    ]);
+    expect(revalidateTag).toHaveBeenCalled();
+  });
+
+  // Council round 3: a donor relink and a status change that the edit saved
+  // before its split was refused are still audited.
+  it("audits the relink and the status it saved when the split is then refused", async () => {
+    beforeRpc = () => {
+      const gift = tables.get("staged_gifts")?.[0];
+      if (gift) gift.status = "refunded";
+    };
+    const response = await routes.PATCH({
+      donorId: DONOR,
+      status: "ready_to_post",
+      note: "Matched by finance",
+      allocations: [{ fundId: FUND, amount: 10_000 }],
+    });
+    expect(response.status).toBe(409);
+    expect(tables.get("staged_gifts")?.[0]).toMatchObject({
+      donor_id: DONOR,
+      donor_match_status: "corrected",
+      review_reason: "Matched by finance",
+      status: "refunded",
+    });
+    expect(tables.get("staged_gift_allocations")).toEqual([
+      { tenant_id: TENANT, staged_gift_id: GIFT, amount: 10_000 },
+    ]);
     expect(
       writes.filter((write) => write.table === "staged_gift_audit_events"),
-    ).toEqual([]);
+    ).toEqual([
+      expect.objectContaining({
+        values: expect.objectContaining({
+          action: "staged_gift_review_updated",
+          actor_profile_id: "profile-1",
+          note: "Matched by finance",
+          details: {
+            donorCorrected: true,
+            allocationCount: 1,
+            status: "ready_to_post",
+            split: "refused",
+          },
+        }),
+      }),
+    ]);
+    expect(revalidateTag).toHaveBeenCalled();
   });
 
   it("passes the status the edit left the gift in", async () => {
@@ -546,9 +601,32 @@ describe("legacy edit checks the staged gift's state (NV-03)", () => {
     expect(tables.get("staged_gifts")?.[0]).not.toHaveProperty(
       "allocation_status",
     );
-    expect(
-      writes.filter((write) => write.table === "staged_gift_audit_events"),
-    ).toEqual([]);
+    // Council round 3: the new split is saved by then, so it is audited as
+    // replaced on a gift that has since moved.
+    expect(tables.get("staged_gift_allocations")).toEqual([
+      { tenant_id: TENANT, staged_gift_id: GIFT, amount: 6_000 },
+      { tenant_id: TENANT, staged_gift_id: GIFT, amount: 4_000 },
+    ]);
+    expect(auditDetails()).toEqual([
+      expect.objectContaining({
+        allocationCount: 2,
+        split: "replaced_gift_moved",
+      }),
+    ]);
+    expect(revalidateTag).toHaveBeenCalled();
+  });
+
+  it("audits a replaced split as replaced", async () => {
+    const response = await routes.PATCH({
+      allocations: [
+        { fundId: FUND, amount: 6_000 },
+        { missionaryId: MISSIONARY, amount: 4_000 },
+      ],
+    });
+    expect(response.status).toBe(200);
+    expect(auditDetails()).toEqual([
+      expect.objectContaining({ allocationCount: 2, split: "replaced" }),
+    ]);
   });
 
   it("records the split with the state check on the gift's tenant", async () => {

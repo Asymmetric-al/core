@@ -15,6 +15,7 @@ import {
   readReleaseSettings,
   rebuild,
   recordHeads,
+  repairSeededLoginPasswords,
   roleDatabaseUrl,
   setEnvironmentMarker,
 } from "../../../../scripts/release/release-database.mjs";
@@ -64,7 +65,12 @@ function fakeDatabase(state: {
   payload?: string[];
   devMarker?: boolean;
   heads?: { supabase: string | null; payload: string | null };
+  /** Logins the replacement leaves with a published password. */
   publishedLeft?: number;
+  /** Logins that carry a published password now (preflight reads it). */
+  publishedLogins?: number;
+  /** The replacement's query fails with this message. */
+  replacementFails?: string;
 }) {
   const db = {
     healthFunction: true,
@@ -73,6 +79,8 @@ function fakeDatabase(state: {
     payload: [...source.payload],
     devMarker: false,
     publishedLeft: 0,
+    publishedLogins: 0,
+    replacementFails: undefined as string | undefined,
     heads: { supabase: null, payload: null } as {
       supabase: string | null;
       payload: string | null;
@@ -101,8 +109,12 @@ function fakeDatabase(state: {
       if (sql.includes("FROM pg_roles")) return ["cms_owner", "cms_runtime"];
       if (sql.includes("UPDATE auth.users")) {
         events.push("seeded logins");
+        if (db.replacementFails) throw new Error(db.replacementFails);
+        db.publishedLogins = db.publishedLeft ?? 0;
         return { seeded_logins: 1, published: db.publishedLeft ?? 0 };
       }
+      if (sql.includes("'published_logins'"))
+        return { published_logins: db.publishedLogins };
       if (sql.includes("current_user")) {
         const user = decodeURIComponent(new URL(databaseUrl).username);
         return { user: user.split(".")[0] };
@@ -353,6 +365,127 @@ describe("release database steps", () => {
     ).rejects.toThrow(/still carry a password published in the repository/);
     expect(runCommand).toHaveBeenCalledTimes(1);
     expect(fake.run).not.toHaveBeenCalled();
+  });
+
+  // Council round 3, lens 2 I2: a rebuild that fails between its seed and the
+  // replacement must not leave the published password live with no repair.
+  const pinnedCli = (command: string, args: string[]) =>
+    command === "supabase" && args[0] === "--version"
+      ? { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` }
+      : null;
+
+  it.each(["first", "disposable"] as const)(
+    "%s rebuild: a reset that fails after seeding still replaces the seeded logins' password, then fails",
+    async (mode) => {
+      const fake = fakeDatabase({
+        environment: mode === "first" ? null : "disposable",
+      });
+      const runCommand = vi.fn((command: string, args: string[]) => {
+        const probe = pinnedCli(command, args);
+        if (probe) return probe;
+        // The reset seeded the logins and then failed.
+        fake.db.publishedLogins = 1;
+        return { status: 1 };
+      });
+      await expect(
+        rebuild({
+          settings: settings(mode === "first" ? "production" : "preview"),
+          mode,
+          signoff: "https://github.com/Asymmetric-al/core/issues/1",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        }),
+      ).rejects.toThrow(/reset.* failed \(exit 1\)/);
+      expect(fake.events).toEqual(["seeded logins"]);
+      expect(fake.db.publishedLogins).toBe(0);
+      expect(fake.run).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    [
+      "the replacement is refused",
+      { replacementFails: "permission denied for table users" },
+    ],
+    ["logins still carry the password afterwards", { publishedLeft: 1 }],
+  ])(
+    "when %s, the rebuild says seeded logins may keep the published password and how to repair it",
+    async (_name, state) => {
+      for (const resetStatus of [0, 1]) {
+        const fake = fakeDatabase(state);
+        const runCommand = vi.fn(() => ({ status: resetStatus }));
+        const failure = rebuild({
+          settings: settings("preview"),
+          mode: "disposable",
+          confirmation: `rebuild ${ref}`,
+          env: passwords,
+          query: fake.query,
+          run: fake.run,
+          runCommand,
+          requireDisposable: vi.fn(() => ({ ok: true, kind: "disposable" })),
+          log: silent,
+        });
+        await expect(failure).rejects.toThrow(
+          /may still carry the password published in the repository.*do not use the database.*replace-seeded-login-passwords/s,
+        );
+        if (resetStatus)
+          await expect(failure).rejects.toThrow(/The reset failed/);
+        expect(fake.run).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it("stops a release, before it migrates anything, on a database whose logins carry a published password", () => {
+    const fake = fakeDatabase({ publishedLogins: 2 });
+    const runCommand = vi.fn();
+    expect(() =>
+      migrate({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        run: fake.run,
+        runCommand,
+        log: silent,
+      }),
+    ).toThrow(
+      /2 login\(s\) carry a password published in the repository.*replace-seeded-login-passwords/s,
+    );
+    expect(runCommand).not.toHaveBeenCalled();
+    expect(fake.run).not.toHaveBeenCalled();
+  });
+
+  it("repairs such a database with the replace-seeded-login-passwords operation, after which a release passes preflight", () => {
+    const fake = fakeDatabase({ publishedLogins: 1 });
+    expect(() =>
+      preflight({ settings: settings(), query: fake.query, log: silent }),
+    ).toThrow(/carry a password published in the repository/);
+    for (const seed of [undefined, "demo-password"])
+      expect(() =>
+        repairSeededLoginPasswords({
+          settings: settings(),
+          env: { RELEASE_SEED_LOGIN_PASSWORD: seed },
+          query: fake.query,
+          log: silent,
+        }),
+      ).toThrow(/RELEASE_SEED_LOGIN_PASSWORD must be 32 to 72/);
+    expect(fake.events).toEqual([]);
+    expect(
+      repairSeededLoginPasswords({
+        settings: settings(),
+        env: passwords,
+        query: fake.query,
+        log: silent,
+      }),
+    ).toEqual({ seeded_logins: 1, published: 0 });
+    expect(fake.events).toEqual(["seeded logins"]);
+    expect(
+      preflight({ settings: settings(), query: fake.query, log: silent }),
+    ).toMatchObject({ marker: "disposable" });
   });
 
   it("resets a disposable preview database through the repository wrapper, never the direct CLI", async () => {

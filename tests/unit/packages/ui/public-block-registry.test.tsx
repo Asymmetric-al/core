@@ -229,7 +229,8 @@ describe("public block registry", () => {
 
 // Council round 2, B6: stored hrefs are untrusted. The parse step keeps only
 // what `sanitizePublicCmsHref` accepts, so no surface, today's preview or
-// WP7's public renderer, is ever handed a script or off-site link.
+// WP7's public renderer, is ever handed a script link, or a path that a
+// browser would resolve to another host. A full https address is allowed.
 describe("stored links", () => {
   function actionsFor(href: string) {
     const rendered = renderPublicBlocks(
@@ -251,6 +252,10 @@ describe("stored links", () => {
     ["a javascript: URL", "javascript:alert(1)"],
     ["a javascript: URL with spacing and case", "  JavaScript:alert(1)"],
     ["a protocol-relative URL", "//evil.example/give"],
+    [
+      "a protocol-relative URL written with a backslash",
+      "/\\evil.example/give",
+    ],
     ["a data: URL", "data:text/html,<script>alert(1)</script>"],
   ])("drops %s", (_label, href) => {
     expect(actionsFor(href)).toEqual([]);

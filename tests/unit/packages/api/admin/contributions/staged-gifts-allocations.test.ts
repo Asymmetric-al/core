@@ -90,6 +90,19 @@ describe("replaceStagedGiftAllocations", () => {
         },
       ],
     });
+    // Council round 3 (lens 1 I1): both signatures exist for this release, and
+    // this handler calls only the new one, which takes the checked status.
+    const calls = mock.rpc.mock.calls.filter(
+      ([name]) => name === "replace_staged_gift_allocations",
+    );
+    expect(calls).toHaveLength(1);
+    for (const [, args] of calls)
+      expect(Object.keys(args as object).sort()).toEqual([
+        "p_allocations",
+        "p_expected_status",
+        "p_staged_gift_id",
+        "p_tenant_id",
+      ]);
   });
 
   // Council round 2, B5: a refund, posting or approval that lands between
@@ -141,8 +154,16 @@ describe("replaceStagedGiftAllocations", () => {
     expect(others).toEqual([]);
     const migration = readFileSync(new URL(file!, directory), "utf8");
 
-    expect(migration).toContain(
-      "DROP FUNCTION IF EXISTS public.replace_staged_gift_allocations(UUID, UUID, JSONB);",
+    // Amended by council round 3 (lens 1 I1; record D-18): the migration
+    // expands and does not contract (plan 7.4). The three-argument function
+    // that the release already running calls stays, unchanged, and the
+    // package that retires the legacy review route drops it.
+    expect(migration).not.toMatch(
+      /DROP\s+FUNCTION[^;]*replace_staged_gift_allocations/i,
+    );
+    // The header, read as prose across its comment lines.
+    expect(migration.replace(/\n--\s*/g, " ")).toMatch(
+      /The three-argument function stays as 20260707220134_atomic_staged_gift_allocation_replace\.sql made it[\s\S]*It is dropped by the package that retires the legacy review route/,
     );
     expect(migration).toMatch(
       /SELECT sg\.status\s+INTO v_status\s+FROM public\.staged_gifts sg\s+WHERE sg\.id = p_staged_gift_id\s+AND sg\.tenant_id = p_tenant_id\s+FOR UPDATE;/,
