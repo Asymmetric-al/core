@@ -41,6 +41,12 @@ and none is ever cancelled.
    compared with source: a pending migration older than the database head is
    out of order, and an applied migration that source does not have is drift.
    Either stops the release before anything is migrated or deployed.
+   **So the order of migration dates must be the order of merge**
+   (`scripts/release/migration-heads.mjs`). A migration dated before the
+   database's head, merged after that head was applied, stops every release
+   at this step until it is re-dated. A branch whose migrations are dated
+   before those of a branch that merges first re-dates them before it merges;
+   WP2a's branch does so, with a guard test.
 3. **Migrate.** `supabase db push` (pinned CLI), then the two CMS role
    passwords are made those of the job's secrets (plan 7.5: after the role
    migration; see [The CMS role passwords](#the-cms-role-passwords)), then
