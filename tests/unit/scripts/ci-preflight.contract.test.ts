@@ -383,7 +383,6 @@ describe("fast pre-push profile", () => {
           "prettier",
           "--check",
           "--ignore-unknown",
-          "--no-error-on-unmatched-pattern",
           "apps/donor/app/page.tsx",
           "README.md",
         ],

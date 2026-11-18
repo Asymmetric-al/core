@@ -338,7 +338,6 @@ export function getFastStages({
                   "prettier",
                   "--check",
                   "--ignore-unknown",
-                  "--no-error-on-unmatched-pattern",
                   ...chunk,
                 ],
               })),
