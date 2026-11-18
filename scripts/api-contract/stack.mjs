@@ -123,8 +123,12 @@ export function containerAction({ name, existingId, recorded }) {
  * removed by that id. A name outside the prefix, an entry without an id, or a
  * name that now belongs to another resource is left alone and reported; a
  * resource that is already gone needs nothing.
+ *
+ * @param {{ prefix: string, recorded: unknown[], currentId: (name: string) => string | null }} options
+ * @returns {{ remove: { name: string, id: string }[], skipped: { name: string, reason: string }[] }}
  */
 export function planRemoval({ prefix, recorded, currentId }) {
+  /** @type {{ remove: { name: string, id: string }[], skipped: { name: string, reason: string }[] }} */
   const plan = { remove: [], skipped: [] };
   for (const { name, id } of recorded.map(recordedEntry)) {
     if (!name.startsWith(`${prefix}-`)) {
