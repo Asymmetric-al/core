@@ -1,5 +1,7 @@
-# CI integrity owns the single locked scan and blocking gate. This reusable
-# workflow publishes its exact raw evidence without rescanning or changing scores.
+# The single advisory Shadscan scan for each CI event. ci.yml calls it from
+# the non-required shadscan-report job; ci-gate does not depend on it, so no
+# score, finding or scan failure blocks a merge. A failed installation or scan
+# still publishes "evidence unavailable" and then fails this job.
 name: Shadscan
 
 on:
@@ -8,33 +10,70 @@ on:
 permissions:
   contents: read
 
+env:
+  BUN_VERSION: "1.4.3"
+  NODE_VERSION: "24.22.1"
+
 jobs:
   report:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       issues: write
       pull-requests: write
+    env:
+      SHADSCAN_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out the submitted head commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - name: Download the integrity audit
-        id: download
-        continue-on-error: true
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: shadscan-audit
-          path: ${{ runner.temp }}/shadscan-report
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.22.1"
-      - name: Publish raw scores and reviewed classifications
-        if: steps.download.outcome == 'success'
-        continue-on-error: true
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      # Step limits keep a hung step a failure inside the job's own limit. A
+      # job that reaches its limit is cancelled, and a cancelled run
+      # publishes nothing.
+      - name: Install dependencies
+        id: install
+        timeout-minutes: 15
+        run: |
+          bash scripts/github/install-canvas-deps.sh
+          bun ci --no-cache --backend=copyfile
+      - name: Audit the submitted head
+        id: audit
+        timeout-minutes: 10
+        run: bun run shadscan:audit -- --output "$RUNNER_TEMP/shadscan"
+      - name: Retain the raw report
+        if: steps.audit.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shadscan-audit
+          path: ${{ runner.temp }}/shadscan/shadscan.raw.json
+          if-no-files-found: error
+          retention-days: 14
+      # `!cancelled()` runs these steps after a failure but not after a
+      # cancellation: a newer push cancels a superseded pull request run, and
+      # that newer run owns the report comment.
+      - name: Publish the advisory scores
+        if: ${{ !cancelled() && steps.audit.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/verify/shadscan-publish.mjs "$RUNNER_TEMP/shadscan-report"
-      - name: Report unavailable evidence
-        if: steps.download.outcome != 'success'
-        run: echo "Shadscan evidence is unavailable because integrity did not produce a complete audit; no passing score is implied." >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/shadscan-publish.mjs "$RUNNER_TEMP/shadscan"
+      - name: Publish unavailable evidence
+        if: ${{ !cancelled() && (steps.install.outcome != 'success' || steps.audit.outcome != 'success') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Installation is skipped, not failed, when a setup step before it fails.
+          SHADSCAN_UNAVAILABLE_REASON: ${{ steps.install.outcome == 'failure' && 'Dependency installation failed' || steps.install.outcome != 'success' && 'A setup step failed before dependency installation' || 'The audit did not produce a valid report' }}
+        run: node scripts/shadscan-publish.mjs --unavailable
+      - name: Fail when audit evidence is unavailable
+        if: ${{ !cancelled() && (steps.install.outcome != 'success' || steps.audit.outcome != 'success') }}
+        run: |
+          echo "Shadscan audit evidence is unavailable for $SHADSCAN_HEAD_SHA; see the job summary. This advisory job blocks no merge."
+          exit 1

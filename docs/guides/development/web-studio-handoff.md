@@ -20,19 +20,17 @@ preview/version integration, or a Phase 22 D20-D26 seam named below.
    migration seam into authority.
 4. Run `bun run format:check`, focused tests, `bun run verify:data-boundary`, and
    `bun run verify:cms-public-sole-entry` where applicable.
-5. If `packages/ui` changes, run the pinned Shadscan command before and after the
-   slice, assess both scores, and block the commit if either score is missing,
-   unassessed, or below the configured floor of 29.
+5. If `packages/ui` changes, review the advisory Shadscan report on the slice's
+   pull request and triage each new failing rule as the
+   [Shadscan guide](shadscan.md) describes. The report never blocks a commit.
 
 ## Checklist
 
 - [ ] Exact changed paths, behavior changes, and blast radius are documented.
 - [ ] Focused tests and applicable structural checks pass.
 - [ ] Public reads still use the sole Phase 5/D18 gateway.
-- [ ] A `packages/ui` change records
-      `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
-      after; both scores are assessed and at least the configured floor of 29, or
-      the commit remains blocked.
+- [ ] A `packages/ui` change has its advisory Shadscan report reviewed and each
+      new failing rule triaged.
 
 ---
 

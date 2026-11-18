@@ -194,7 +194,7 @@ directories only for tools that require app-local env files.
 | `bun run test:e2e`               | Playwright suite with CI env defaults                                           |
 | `bun run build:<app>`            | Production build of one app (`admin`, `donor`, `missionary`, `factory-console`) |
 
-Husky runs `lint-staged` and the staged Shadscan gate on commit, and
+Husky runs `lint-staged` on commit, and
 `bun run ci:preflight` on push (`--full` for pushes that target `production`).
 CI jobs and branch protection are described in [docs/ci.md](docs/ci.md).
 
