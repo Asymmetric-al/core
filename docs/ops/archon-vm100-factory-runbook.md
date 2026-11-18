@@ -536,6 +536,71 @@ is pending. A round that resolves review threads answers WAIT and decides in
 the next round. A thread someone unresolves after the factory resolved it goes
 back to Samson, flagged reopened.
 
+## Merge queue on develop
+
+GitHub's merge queue replaces the "Require branches to be up to date before
+merging" rule. It is available here only while the repository is public and
+owned by an organization; a private repository needs GitHub Enterprise Cloud.
+The factory sees a queue only when a repository **ruleset** requires it: the
+REST branch-protection response has no merge-queue field, so do not use the
+classic rule's "Require merge queue" box. With a queue rule, readiness stops
+asking a branch that is only behind `develop` to update, and the merge lane
+adds the pull request to the queue instead of merging it (OpenSpec change
+`support-factory-merge-queue`). Without one, nothing changes.
+
+Check first:
+
+1. The installed release contains that change **and** the merge-lane wiring
+   (its task 3.1). Until both are installed, set `factory hold-merge`
+   while the queue is on; otherwise the factory's direct merge is refused and
+   the issue blocks `merge-refused` (it is never reported merged).
+2. Every required check reports on `merge_group`. `ci.yml` and
+   `ci-integration.yml` both trigger on it, and the #2201 acceptance test
+   (`tests/unit/acceptance/issue-2201/merge-group.acceptance.test.ts`) expects
+   all three apps to compile there and `test-e2e` to be skipped; `ci-gate`,
+   `migrate`, `smoke` and `e2e-smoke-gate` still report. No `merge_group` run
+   has happened yet, so the first queued pull request is the first real test.
+
+Turn it on (repository admin, in this order so `develop` is never unprotected):
+
+1. Settings → Rules → Rulesets → New ruleset → New branch ruleset. Name
+   `develop merge queue`, Enforcement status **Active**, empty bypass list,
+   Target branches → Add target → Include by pattern → `develop`.
+2. Tick **Require merge queue**: Merge method **Merge commit** (the repository
+   allows only merge commits), **Require all queue entries to pass required
+   checks** on, Status check timeout **120** minutes (the integration jobs
+   allow up to 50 + 10 + 25 minutes), other values as offered. Rules the form
+   pre-selects, such as blocking force pushes and deletions, repeat what the
+   classic rule already enforces. Create.
+3. Settings → Branches → edit the `develop` rule → untick **Require branches
+   to be up to date before merging**; keep the four required checks. Save.
+4. Read back: `gh api repos/Asymmetric-al/core/rules/branches/develop --jq '.[].type'`
+   lists `merge_queue`, and
+   `gh api repos/Asymmetric-al/core/branches/develop/protection --jq .required_status_checks.strict`
+   prints `false`.
+
+Watch the first factory merge: the pull request appears on the `develop` queue
+page and `merge_group` runs of both workflows start. If instead the issue stops
+at `PR_READY` with "Required human review pending (0/0)" and the round's
+`readiness-observation` shows `state: blocked`, GitHub reports queued-base pull
+requests as blocked and readiness cannot tell; turn the queue off and report
+it. People merge by hand with **Merge when ready**.
+
+Turn it off (restore the rule first, again so `develop` is never unprotected):
+
+1. Settings → Branches → edit the `develop` rule → tick **Require branches to
+   be up to date before merging**. Save.
+2. Empty the queue (remove each entry on the queue page, or let it drain);
+   GitHub's documentation does not say what happens to entries when the rule
+   goes away.
+3. Settings → Rules → Rulesets → `develop merge queue` → Enforcement status
+   **Disabled** (or delete it). Read back as in step 4 above: no
+   `merge_queue`, `strict` is `true`.
+
+The factory needs no release change to turn the queue off: without the rule
+it merges directly again. An issue it had queued may block for reconciliation;
+inspect the pull request, then `issue <n> retry`.
+
 ## Backups, restore and updates
 
 ### Backups
