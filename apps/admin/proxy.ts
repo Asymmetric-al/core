@@ -30,6 +30,9 @@ export const proxy = createAuthMiddleware({
 
 export const config = {
   matcher: [
+    // Every API path, whatever it ends in, so the proxy always fixes the
+    // role class (plan 5.1): a dynamic route answers `/api/x/y.json` too.
+    "/api/:path*",
     "/((?!_next/static|_next/image|_next/data|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

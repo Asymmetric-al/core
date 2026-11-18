@@ -6,7 +6,10 @@ import type { RoleClass } from "./principal/types";
  * - `x-asym-role-class`: the surface's role class. Each app's proxy sets it on
  *   every request it passes on, overwriting any value the client sent, from
  *   its own configuration: staff for Mission Control and Web Studio,
- *   missionary for the missionary workspace, donor for the donor portal.
+ *   missionary for the missionary workspace, donor for the donor portal. The
+ *   proxies run on every page and on every `/api` path whatever its
+ *   extension (their matchers skip only Next.js assets and static files), so
+ *   no route reads a class the client chose.
  * - `x-asym-assignment`: the membership row the request acts under, when the
  *   person chose one. The resolver accepts it only as a proposal and checks it
  *   against the caller's live rows; the database reads the same header

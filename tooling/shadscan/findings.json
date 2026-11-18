@@ -1253,7 +1253,7 @@
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "4547498558c6888eb6404f49002fcffa675cf0b3b243ac8ad1092a304aa79a83"
+          "sha256": "f42f464a9051acbbfe1f0510731645633289683c7faf361387dd8e7a05f29661"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
@@ -1319,7 +1319,7 @@
         },
         {
           "path": "apps/missionary/proxy.ts",
-          "sha256": "4547498558c6888eb6404f49002fcffa675cf0b3b243ac8ad1092a304aa79a83"
+          "sha256": "f42f464a9051acbbfe1f0510731645633289683c7faf361387dd8e7a05f29661"
         },
         {
           "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
