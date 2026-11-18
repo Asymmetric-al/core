@@ -16,10 +16,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const ver = (f: string) => f.slice(0, 14);
 const forward = (fs: string[]) => fs.filter((f) => /^\d{14}_.+\.sql$/.test(f));
@@ -34,7 +31,6 @@ const load = async <T>(m: keyof typeof H.MOD): Promise<T> => {
 const resolver = async () =>
   (await load<{ resolveActiveAssignment: H.Resolve }>("assignment"))
     .resolveActiveAssignment;
-const CII = ".github/workflows/ci-integration.yml";
 const STEP = "Verify tenant isolation (real stack)";
 
 /* ---------- DI fakes ---------- */
@@ -531,11 +527,8 @@ describe("#2258 pins (criteria 12, 13)", () => {
     ).toBe("./src/principal/index.ts");
   });
   it(`addendum 1 item 4: '${STEP}' runs ${H.REALSTACK}`, () => {
-    const step = (
-      workflowJobs(loadWorkflowDocument(CII)).migrate?.steps ?? []
-    ).find((s) => s.name === STEP);
-    expect(step, STEP).toBeDefined();
-    expect(String(step!.run).split(/\s+/)).toContain(H.REALSTACK);
+    // The path must be a vitest argument, not just a word on the line.
+    expectRealstackStep(STEP, [H.REALSTACK]);
   });
   it("13: the In 7 section sits before '## Key files' and names the required phrases; one Key-files line", () => {
     const doc = H.read(H.DOC);

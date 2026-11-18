@@ -329,7 +329,7 @@ describe("#2406 static contract", () => {
       expect(doc).toMatch(heading);
   });
   it("#2406 criterion 22: the tenant isolation migrate step runs the #2406 real-stack file", () => {
-    expect(existsSync(H.REALSTACK)).toBe(true);
+    // The shared check also fails, naming the step, when the file is missing.
     expectRealstackStep(STEP, [H.REALSTACK], {
       TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
     });

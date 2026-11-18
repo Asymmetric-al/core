@@ -122,6 +122,48 @@ describe("realstackStepProblems (fixtures)", () => {
         realstackStepProblems(stepsWith("bun x vitest run"), STEP, []),
       ).toEqual([expect.stringMatching(/names no test file/)]);
     });
+
+    // #2716 review: Bash runs each line as its own command, so a path on a
+    // later line is not a vitest argument.
+    it.each([`bun x vitest run\n${F2364}`, `${RUN}\n${F2250}`])(
+      "rejects a run spread over lines: %j",
+      (run) => {
+        expect(problems(run)).toContainEqual(
+          expect.stringMatching(/run spans several lines/),
+        );
+      },
+    );
+  });
+
+  // #2716 review: keys other than name, env and run change how the run line
+  // executes (its shell, its directory) without changing the line itself.
+  describe("the step carries nothing but name, env and run", () => {
+    it.each<[string, Partial<WorkflowStep>, RegExp]>([
+      ["a shell template", { shell: "bash {0} || true" }, /sets 'shell'/],
+      [
+        "a working directory",
+        { "working-directory": "apps/admin" },
+        /sets 'working-directory'/,
+      ],
+      ["a timeout", { "timeout-minutes": 1 }, /sets 'timeout-minutes'/],
+    ])("rejects %s", (_label, extra, message) => {
+      expect(problems(RUN, extra)).toEqual([expect.stringMatching(message)]);
+    });
+
+    it("rejects a step-level DATABASE_URL, which redirects the job's migrated database", () => {
+      expect(
+        problems(RUN, {
+          env: { ...ENV, DATABASE_URL: "postgres://elsewhere" },
+        }),
+      ).toEqual([expect.stringMatching(/sets DATABASE_URL/)]);
+    });
+
+    it("allows DATABASE_URL when the caller expects that exact value", () => {
+      const env = { DATABASE_URL: "${{ env.DATABASE_URL }}" };
+      expect(
+        realstackStepProblems(stepsWith(RUN, { env }), STEP, [F2364], env),
+      ).toEqual([]);
+    });
   });
 });
 

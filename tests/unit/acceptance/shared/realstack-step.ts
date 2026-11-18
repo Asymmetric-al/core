@@ -2,8 +2,9 @@
  * Semantic check for a real-stack verification step in ci-integration.yml's
  * required `migrate` job (#2706). It replaces exact step indexes, exact `run:`
  * strings and relative-order pins: the step exists once, cannot be skipped or
- * made non-blocking, runs after the database is migrated, and runs the named
- * files with vitest, with nothing but plain test paths after the command.
+ * made non-blocking, carries no key but `name`, `env` and `run`, runs after
+ * the database is migrated, and runs the named files with vitest, on one line
+ * with nothing but plain test paths after the command.
  * Which other files share the `run:` line and the step's position among
  * sibling verification steps are not asserted.
  */
@@ -27,6 +28,14 @@ export const VITEST_RUN = ["bun", "x", "vitest", "run"] as const;
 /** A repository-relative test file path and nothing else. */
 const TEST_PATH = /^[\w./-]+\.test\.tsx?$/;
 
+/**
+ * The only keys a real-stack step may carry. Any other key (`shell`,
+ * `working-directory`, `timeout-minutes`, ...) changes how the run line
+ * executes without changing the line. `if` and `continue-on-error` are
+ * reported on their own below.
+ */
+const STEP_KEYS = new Set(["name", "env", "run", "if", "continue-on-error"]);
+
 export function migrateJob(): WorkflowJob | undefined {
   return workflowJobs(loadWorkflowDocument(CII), CII).migrate;
 }
@@ -44,7 +53,9 @@ export function runWords(step: WorkflowStep): string[] {
 
 /**
  * Problems with the real-stack step `name` among `steps` (a `migrate` job's
- * steps). `env` entries must be present with these values.
+ * steps). `env` entries must be present with these values. The job's
+ * `DATABASE_URL` is the migrated database, so the step may set it only when
+ * `env` expects it.
  */
 export function realstackStepProblems(
   steps: readonly WorkflowStep[],
@@ -60,6 +71,13 @@ export function realstackStepProblems(
   }
   const step = matches[0]!;
   const problems: string[] = [];
+  for (const key of Object.keys(step)) {
+    if (!STEP_KEYS.has(key)) {
+      problems.push(
+        `${name}: sets '${key}', which can change how run executes`,
+      );
+    }
+  }
   if (step["continue-on-error"] !== undefined) {
     problems.push(`${name}: sets continue-on-error, so it is not blocking`);
   }
@@ -70,6 +88,17 @@ export function realstackStepProblems(
   if (migrated < 0) problems.push("migrate has no 'Apply migrations' step");
   else if (steps.indexOf(step) < migrated) {
     problems.push(`${name}: runs before Apply migrations`);
+  }
+  // Bash runs each line as its own command, so a path on a later line is
+  // not a vitest argument.
+  if (
+    String(step.run ?? "")
+      .trim()
+      .includes("\n")
+  ) {
+    problems.push(
+      `${name}: run spans several lines, so Bash runs more than one command`,
+    );
   }
   const words = runWords(step);
   if (words.slice(0, VITEST_RUN.length).join(" ") !== VITEST_RUN.join(" ")) {
@@ -97,6 +126,15 @@ export function realstackStepProblems(
         `${name}: env ${key} is ${JSON.stringify(step.env?.[key])}, expected ${JSON.stringify(value)}`,
       );
     }
+  }
+  if (
+    step.env &&
+    "DATABASE_URL" in step.env &&
+    !(env && "DATABASE_URL" in env)
+  ) {
+    problems.push(
+      `${name}: sets DATABASE_URL, which redirects tests that read the job's migrated database`,
+    );
   }
   return problems;
 }

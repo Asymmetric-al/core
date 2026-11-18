@@ -12,10 +12,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const sha256 = (b: string | Buffer) =>
   createHash("sha256").update(b).digest("hex");
@@ -33,7 +30,6 @@ const topLevel = () => sql().replace(DOLLAR, "$$$$");
 const doBodies = () => sql().match(DOLLAR) ?? [];
 const T5 = H.TABLES.join("|");
 const STEP = "Verify tenant isolation (real stack)";
-const CII = ".github/workflows/ci-integration.yml";
 
 /**
  * Criterion 5: forward-guard findings in one migration's SQL. A CREATE POLICY
@@ -296,11 +292,8 @@ describe("#2312 unchanged (criterion 8)", () => {
     expect(a.length).toBeLessThanOrEqual(117);
   });
   it(`8 (addendum 1 item 4): '${STEP}' runs ${H.REALSTACK}`, () => {
-    const step = (
-      workflowJobs(loadWorkflowDocument(CII)).migrate?.steps ?? []
-    ).find((s) => s.name === STEP);
-    expect(step, STEP).toBeDefined();
-    expect(String(step!.run).split(/\s+/)).toContain(H.REALSTACK);
+    // The path must be a vitest argument, not just a word on the line.
+    expectRealstackStep(STEP, [H.REALSTACK]);
   });
   it.todo(
     "8: the PR body contains `Closes #2312` (review check; not visible in the tree)",
