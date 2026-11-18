@@ -14,7 +14,6 @@
  * Builder owns C13 (sniffer), C14 (key/extension), C15 (bearer factory).
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -71,17 +70,15 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  // Re-frozen after develop d99a1fc4 shrank the table-preferences entry,
-  // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites),
-  // in the admin hill-climb round 12, which shrank dashboard-stats.ts from
-  // 2 sites to 1 (the CRM tags read reuses crm/index.ts's one site; no new
-  // sites), and at #2419, which shrank scripts/verify-money-units.ts from 3
-  // sites to 1 (the anon-key fallback was removed).
-  it("C12: frozen service-role allowlist is byte-unchanged since the #2419 verify-money-units shrink", () => {
-    expect(
-      createHash("sha256")
-        .update(read("docs/security/service-role-client-allowlist.json"))
-        .digest("hex"),
-    ).toBe("2ca1e6c193601bb9c1d6ccf0380b1ccc10833a410a47fea82ecb1f9ec74bc13c");
+  // #2706: the byte hash became the invariant it stood for. The allowlist may
+  // shrink or move `lines`, never grow: at the #2419 shrink it held 117
+  // entries and 181 service-role sites.
+  it("C12: frozen service-role allowlist does not grow past the #2419 shrink", () => {
+    const { entries } = JSON.parse(
+      read("docs/security/service-role-client-allowlist.json"),
+    ) as { entries: { count: number; lines: unknown[] }[] };
+    expect(entries.length).toBeLessThanOrEqual(117);
+    expect(entries.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(181);
+    for (const e of entries) expect(e.lines).toHaveLength(e.count);
   });
 });

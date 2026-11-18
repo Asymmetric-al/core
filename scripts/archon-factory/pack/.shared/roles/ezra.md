@@ -42,6 +42,7 @@ A **seam** is the public boundary you test at: the interface where you observe b
 
 - **Implementation-coupled**: mocks internal collaborators, tests private methods, or verifies through a side channel. The tell: the test breaks when you refactor but behavior hasn't changed.
 - **Tautological**: the assertion recomputes the expected value the way the code does. Expected values must come from an independent source of truth: a known-good literal, a worked example, the spec.
+- **Byte-pinned**: hashes or fingerprints a whole file, compares it byte for byte with a stored copy, pins line numbers or step positions, or asserts that a change touched nothing else (`git diff` or `git merge-base` scope). The tell: the test breaks on a comment or an unrelated edit. Assert behavior and structure instead; diff scope is checked in review, never in a permanent test.
 
 ### When to mock
 

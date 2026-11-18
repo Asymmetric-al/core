@@ -71,6 +71,25 @@ refund, a published update), name the acceptance criteria or journey it belongs
 to and the surfaces you observed. An isolated local edit does not need all
 three apps.
 
+## Acceptance tests assert behavior, not bytes
+
+An acceptance or regression test fails when behavior or a structural invariant
+breaks, never because a file's bytes changed. The owner retired byte pins on
+2026-11-18 (#2706).
+
+- Do not hash or fingerprint a whole file, compare a file byte for byte with a
+  stored copy or prefix, keep a list of "reviewed" fingerprints, or pin line
+  numbers or step positions.
+- Do not assert that a merged change touched nothing else. Diff scope
+  (`git diff`, `git merge-base`, declared-edit lists) is checked in review of
+  the pull request, not in a permanent test.
+- Assert the meaning instead. For a CI step: it exists in the required job, is
+  not `continue-on-error` or conditional, and runs the named command or files
+  (`tests/unit/acceptance/shared/realstack-step.ts`). For a document: the
+  section exists and says what the criterion requires.
+- A hash is fine when the hash is the behavior under test, for example a
+  provenance chain or an applied migration that must never change.
+
 ## Working in parallel checkouts
 
 Several agents may run in separate worktrees on one machine. Local Playwright
@@ -254,6 +273,11 @@ npx playwright show-report
 
 ## Unit and gate regression guards (required)
 
+- `tests/unit/workflows/required-ci-checks.test.ts` fails when a required
+  check on `develop` (`ci-gate`, `e2e-smoke-gate`, `migrate`, `smoke`) or a job
+  it needs becomes non-blocking (`continue-on-error`, a run line ending in
+  `|| true`), when a gate stops needing or reading a job it gates or can be
+  skipped, or when a required job id disappears.
 - `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage
   order against `docs/ci.md` and ensures deployment discipline stays out of
   preflight.

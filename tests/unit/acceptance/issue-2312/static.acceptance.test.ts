@@ -1,13 +1,11 @@
 /**
  * #2312 static acceptance, no database. Spec r2 (comment 6390700741) plus pins
  * addendum 1 (6419302687, approved 6419379494): criteria 4, 5, 6 (acceptance
- * view of the Builder's smoke change), 7 and 8, plus opt-in criterion 8 (base
- * version, diff scope, the one workflow run: line): set ACCEPTANCE_2312_SCOPE=1
- * (base: git merge-base origin/develop HEAD) or ACCEPTANCE_2312_BASE=<ref>.
+ * view of the Builder's smoke change), 7 and 8. The opt-in base-version,
+ * diff-scope and run:-line checks were retired by #2706.
  * Criteria 1-3 are in public-reads.realstack.acceptance.test.ts.
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 
@@ -34,19 +32,6 @@ const topLevel = () => sql().replace(DOLLAR, "$$$$");
 /** DO-block bodies (pre/post-asserts and the catalog-driven drop). */
 const doBodies = () => sql().match(DOLLAR) ?? [];
 const T5 = H.TABLES.join("|");
-/** Reviewed docs/ci.md prefixes, one entry per reviewed file. */
-const CI_BASES = [
-  // Reviewed hosted-only R1 pointer amendment to #2250's CI-doc prefix.
-  {
-    bytes: 40204,
-    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-  },
-  // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-  {
-    bytes: 40426,
-    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-  },
-];
 const STEP = "Verify tenant isolation (real stack)";
 const CII = ".github/workflows/ci-integration.yml";
 
@@ -298,16 +283,6 @@ describe("#2312 doc (criterion 7)", () => {
 });
 
 describe("#2312 unchanged (criterion 8)", () => {
-  it("8: docs/ci.md keeps develop's bytes as a prefix; nothing #2312 after it", () => {
-    const bytes = readFileSync("docs/ci.md");
-    const base = CI_BASES.find(
-      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
-    );
-    expect(base, "docs/ci.md prefix").toBeDefined();
-    expect(bytes.subarray(base!.bytes).toString("utf8")).not.toMatch(
-      /2312|tenant[- ]read[- ]floor|close_public_reads/i,
-    );
-  });
   it.each(Object.entries(H.LEGACY_MIGRATIONS))(
     "8: legacy migration %s is byte-unchanged",
     (f, hash) => expect(sha256(readFileSync(`${H.MIG}/${f}`))).toBe(hash),
@@ -334,69 +309,3 @@ describe("#2312 unchanged (criterion 8)", () => {
     "9 (Handback): read-only development-project catalog check (pg_policies, has_table_privilege, schema_migrations); reviewed in the handback, not testable here",
   );
 });
-
-const BASE = process.env.ACCEPTANCE_2312_BASE?.trim() ?? "";
-const ON = process.env.ACCEPTANCE_2312_SCOPE?.trim() === "1" || BASE !== "";
-const git = (...args: string[]) => {
-  const r = spawnSync("git", args, { encoding: "utf8" });
-  expect(r.status, `git ${args.join(" ")}: ${r.stderr}`).toBe(0);
-  return r.stdout.trim();
-};
-/** §6 paths (Builder + Acceptance) plus addendum 1 item 4's CI edits and fingerprint appends. */
-const DECLARED = [H.MIGRATION, H.SMOKE, H.SMOKE_TEST, H.DOC, CII].concat(
-  `helpers/workflow-yaml.ts acceptance/issue-2250/static.acceptance.test.ts
-  acceptance/issue-2155/postgres-ecr-gates.acceptance.test.ts acceptance/issue-2201/merge-group.acceptance.test.ts`
-    .split(/\s+/)
-    .map((p) => `tests/unit/${p}`),
-);
-
-describe.skipIf(!ON)(
-  "#2312 opt-in (PR base; ACCEPTANCE_2312_SCOPE=1 or ACCEPTANCE_2312_BASE)",
-  () => {
-    const base = () => BASE || git("merge-base", "origin/develop", "HEAD");
-    it("8 (OQ5): the version is greater than every migration on the PR base", () => {
-      const onBase = forward(
-        git("ls-tree", "--name-only", `${base()}:${H.MIG}`).split("\n"),
-      );
-      expect(
-        onBase.filter((f) => ver(f) >= ver(H.MIGRATION_NAME)),
-        `base ${base()}`,
-      ).toEqual([]);
-    });
-    it("8: the PR diff touches only §6 paths, addendum 1 item 4's files and tests/unit/acceptance/issue-2312/; one migration added", () => {
-      const changed = [
-        ...git("diff", "--name-only", "--no-renames", base()).split("\n"),
-        ...git("ls-files", "--others", "--exclude-standard").split("\n"),
-      ].filter(Boolean);
-      const outside = changed.filter(
-        (f) =>
-          !DECLARED.includes(f) &&
-          !f.startsWith("tests/unit/acceptance/issue-2312/"),
-      );
-      expect(outside, `diff against ${base()}`).toEqual([]);
-      expect(changed.filter((f) => f.startsWith(`${H.MIG}/`))).toEqual([
-        H.MIGRATION,
-      ]);
-      expect(changed).toContain(H.REALSTACK);
-    });
-    it(`8 (addendum 1 item 4): in ${CII} only the '${STEP}' run: line changes, by appending ${H.REALSTACK}`, () => {
-      const diff = git("diff", "-U0", "--no-color", base(), "--", CII)
-        .split("\n")
-        .filter((l) => /^[-+](?![-+]{2} )/.test(l));
-      if (diff.length === 0) return;
-      const [minus, plus] = [
-        diff.filter((l) => l.startsWith("-")),
-        diff.filter((l) => l.startsWith("+")),
-      ];
-      expect([minus.length, plus.length]).toEqual([1, 1]);
-      const words = (l: string) => l.slice(1).trim().split(/\s+/);
-      expect(words(minus[0]!).slice(0, 4)).toEqual([
-        "run:",
-        "bun",
-        "x",
-        "vitest",
-      ]);
-      expect(words(plus[0]!)).toEqual([...words(minus[0]!), H.REALSTACK]);
-    });
-  },
-);
