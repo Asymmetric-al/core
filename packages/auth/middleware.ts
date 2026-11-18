@@ -408,7 +408,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     // Payload's REST routes under `/web-studio/api` (plan 5.2): the session
     // is refreshed and nothing else. Never inside the tenant segment.
     if (webStudio && isWebStudioApiPath(pathname)) {
-      if (address) return new NextResponse(null, { status: 404 });
+      if (address) return refusedAddress();
       return refreshWebStudioApiSession(request, pathname, roleClass);
     }
 

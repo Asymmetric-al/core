@@ -1,3 +1,4 @@
+import { safeNextParam } from "./demo-login";
 import { selectAssignment } from "./principal/assignment";
 
 import type { ActiveAssignment, RoleClass } from "./principal/types";
@@ -77,27 +78,17 @@ export function isWebStudioApiPath(pathname: string): boolean {
 
 /**
  * Where a choice of organization returns: a Web Studio page the caller named,
- * with its query, or Web Studio's home. Never another origin, a page outside
- * Web Studio, one of its REST routes or the chooser itself.
+ * with its query, or Web Studio's home. It passes the same refusal as every
+ * other return address (`safeNextParam`: another origin, an empty path
+ * segment or a backslash, as written or decoded), and then must be a Web
+ * Studio page: not a page outside Web Studio, one of its REST routes or the
+ * chooser itself.
  */
 export function safeWebStudioNext(next: string | null | undefined): string {
-  // Protocol-relative forms, `//host` and `/\host`, name another origin.
+  const safe = safeNextParam(next ?? null);
+  if (!safe) return WEB_STUDIO_PATH;
+  const url = new URL(safe, "http://web-studio.invalid");
   if (
-    !next ||
-    !next.startsWith("/") ||
-    next.startsWith("//") ||
-    next.startsWith("/\\")
-  ) {
-    return WEB_STUDIO_PATH;
-  }
-  let url: URL;
-  try {
-    url = new URL(next, "http://web-studio.invalid");
-  } catch {
-    return WEB_STUDIO_PATH;
-  }
-  if (
-    url.origin !== "http://web-studio.invalid" ||
     !isWebStudioPath(url.pathname) ||
     isWebStudioApiPath(url.pathname) ||
     url.pathname === WEB_STUDIO_CHOOSER_PATH

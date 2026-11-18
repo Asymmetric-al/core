@@ -138,6 +138,8 @@ describe("choosing an organization inside Web Studio", () => {
       "/\\/evil.example/web-studio",
       "\\\\evil.example/web-studio",
       "/%2F%2Fevil.example/web-studio",
+      "/web-studio//evil.example",
+      "/web-studio/%5Cevil.example",
       "/",
       "/api/admin/missionaries",
       "/web-studio/api/pages",
