@@ -120,3 +120,5 @@
       NUL-separated reader output. Then read the diff with `-z`.
 - [x] 10.5 Make the two runner assertions for "every test runs" able to fail,
       and show them failing under a fail-open mutation.
+- [x] 10.6 Red first: arguments that merely contain "acceptance" keep the
+      exclusion. Then drop it only for a path inside `tests/unit/acceptance`.

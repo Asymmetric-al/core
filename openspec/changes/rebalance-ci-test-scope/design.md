@@ -47,10 +47,13 @@ branch protection.
 
 `scripts/verify/unit-tests.mjs` appends `--exclude tests/unit/acceptance/**`
 (Vitest's CLI `--exclude` adds to the configured excludes). It does not add
-the exclusion when any argument mentions `acceptance`, so
-`bun run test:unit -- tests/unit/acceptance/<file>` (the factory check tool's
-documented form) still runs the file. Over-inclusion on an unrelated filter
-that happens to contain the word is harmless.
+the exclusion when an argument is a path inside `tests/unit/acceptance`
+(relative, with or without `./`, either slash, or absolute under the
+repository), so `bun run test:unit -- tests/unit/acceptance/<file>` (the
+factory check tool's documented form) still runs the file. Options, test-name
+patterns and other filters that merely contain the word keep the exclusion; a
+first draft dropped it for any argument containing "acceptance" (review round
+6, c1.5).
 
 The `acceptance-tests` job stays: it has no `if` and no secrets, so it runs on
 fork pull requests, and `issue-2153` pins its id and `ci-gate` wiring. Its

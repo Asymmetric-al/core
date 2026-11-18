@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
@@ -16,15 +17,43 @@ const bunVersionScript = fileURLToPath(
 
 // The acceptance directory runs once, in the dedicated acceptance-tests CI job
 // (scripts/verify/acceptance-tests.mjs), not again inside test:unit.
-export const ACCEPTANCE_EXCLUDE = "tests/unit/acceptance/**";
+const ACCEPTANCE_DIRECTORY = "tests/unit/acceptance";
+export const ACCEPTANCE_EXCLUDE = `${ACCEPTANCE_DIRECTORY}/**`;
+const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url))
+  .replaceAll("\\", "/")
+  .replace(/\/+$/, "");
 
 /**
- * Excludes the acceptance directory unless an argument names it: a filter
- * such as `bun run test:unit -- tests/unit/acceptance/<file>` must still run
- * that file. Over-inclusion on an unrelated filter is harmless.
+ * Whether an argument is a path inside the acceptance directory: relative to
+ * the repository root (with or without `./`, either slash) or absolute under
+ * it. Options, test-name patterns and words that merely contain
+ * "acceptance" are not.
+ */
+export function namesAcceptancePath(argument) {
+  if (argument.startsWith("-")) return false;
+  let candidate = argument.replaceAll("\\", "/");
+  if (candidate.startsWith("/") || /^[a-z]:\//i.test(candidate)) {
+    const prefix = `${REPO_ROOT}/`;
+    if (!candidate.toLowerCase().startsWith(prefix.toLowerCase())) return false;
+    candidate = candidate.slice(prefix.length);
+  }
+  const normal = path.posix
+    .normalize(candidate)
+    .replace(/^\.\//, "")
+    .replace(/\/+$/, "");
+  return (
+    normal === ACCEPTANCE_DIRECTORY ||
+    normal.startsWith(`${ACCEPTANCE_DIRECTORY}/`)
+  );
+}
+
+/**
+ * Excludes the acceptance directory unless an argument is a path inside it:
+ * `bun run test:unit -- tests/unit/acceptance/<file>` (the factory check
+ * tool's documented form) must still run that file.
  */
 export function acceptanceExclusion(args) {
-  return args.some((argument) => /acceptance/i.test(argument))
+  return args.some(namesAcceptancePath)
     ? []
     : ["--exclude", ACCEPTANCE_EXCLUDE];
 }

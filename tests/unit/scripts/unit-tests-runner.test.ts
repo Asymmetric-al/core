@@ -205,7 +205,9 @@ describe("acceptance tests run once", () => {
       "tests/unit/acceptance/issue-2153/ci-workflow.acceptance.test.ts",
     ],
     ["win32", "tests\\unit\\acceptance\\issue-2153"],
-    ["linux", "acceptance"],
+    ["linux", "./tests/unit/acceptance/"],
+    ["linux", "tests/unit/acceptance"],
+    ["linux", path.resolve("tests/unit/acceptance/issue-2153")],
   ])(
     "still runs acceptance files an argument names on %s (%s)",
     (platform, filter) => {
@@ -218,6 +220,26 @@ describe("acceptance tests run once", () => {
       expect(args).toContain(filter);
     },
   );
+
+  // Review round 6 (c1.5): only a path inside the acceptance directory turns
+  // the exclusion off, not any argument that contains the word.
+  it.each([
+    [["acceptance"]],
+    [["issue-2153"]],
+    [["tests/unit/scripts/acceptance-tests.test.ts"]],
+    [["tests/unit/acceptance-helpers/x.test.ts"]],
+    [["-t", "acceptance"]],
+    [["--testNamePattern=acceptance criteria"]],
+  ])("keeps the acceptance directory excluded for %j", (filters) => {
+    const spawn = vi.fn((_command: string, _args: string[]) => ({
+      status: 0,
+    }));
+    runUnitTests("linux", spawn, ["--", ...filters], LOCAL);
+    const args = spawn.mock.calls.at(-1)?.[1] ?? [];
+    const index = args.indexOf(ACCEPTANCE_EXCLUDE);
+    expect(index).toBeGreaterThan(0);
+    expect(args[index - 1]).toBe("--exclude");
+  });
 });
 
 describe("input-scoped selection", () => {
