@@ -106,6 +106,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Full history, as the migrate job: the field-policy census in
+          # "Apply migrations" reads a pinned base commit with git show.
+          fetch-depth: 0
           persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
