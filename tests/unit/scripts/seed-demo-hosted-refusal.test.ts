@@ -129,6 +129,26 @@ describe.runIf(bashAvailable())("seed-demo.sh hosted refusal (NA-03)", () => {
     expect(run.calls).toEqual([]);
   });
 
+  // PR #2714 review: seed verify asks the repository's one local-database
+  // decision (isLoopbackDatabaseUrl) instead of parsing the URL in bash, so a
+  // routing override in the query and any loopback address but 127.0.0.1,
+  // localhost and [::1] are refused before psql runs.
+  it.each([
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?host=db.abcdefghijklmnopqrst.supabase.co",
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres?hostaddr=10.0.0.5",
+    "postgresql://postgres:postgres@localhost:54322/postgres?user=postgres.abcdefghijklmnopqrst",
+    "postgresql://postgres:postgres@127.0.0.2:54322/postgres",
+    "postgresql://postgres:postgres@LOCALHOST:54322/postgres",
+  ])(
+    "refuses to verify against %s, which the one decision does not admit",
+    (url) => {
+      const run = runSeed("verify", { SUPABASE_DB_URL: url });
+      expect(run.status).not.toBe(0);
+      expect(run.calls).toEqual([]);
+      expect(run.stderr).toMatch(/refusing/i);
+    },
+  );
+
   it.each([
     "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
     "postgresql://postgres:postgres@localhost:54322/postgres",

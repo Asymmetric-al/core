@@ -220,6 +220,35 @@ describe("runPsqlQuery", () => {
   });
 });
 
+// PR #2714 review: one decision says that a database is on this machine.
+// Every other place that decides it calls that decision, and none keeps a
+// host list or a host pattern of its own.
+describe("every local-database decision calls the one helper", () => {
+  it.each([
+    "apps/admin/src/cms/payload-schema-push.ts",
+    "scripts/cms/lib/migration-connection.mjs",
+    "scripts/cms/lib/migration-target.mjs",
+    "scripts/release/lib/database-target.mjs",
+  ])("%s calls isLoopbackDatabaseUrl and lists no host", (file) => {
+    const source = readFileSync(file, "utf8");
+    expect(source).toMatch(/\bisLoopbackDatabaseUrl\(/);
+    expect(source).not.toMatch(/["'](?:localhost|127\.0\.0\.1|\[?::1\]?)["']/);
+    expect(source).not.toMatch(/127\\\./);
+  });
+
+  it("scripts/seed-demo.sh asks the JavaScript decision instead of parsing the URL", () => {
+    const source = readFileSync("scripts/seed-demo.sh", "utf8");
+    expect(source).toMatch(/node "[^"]*lib\/local-database\.mjs" admit /);
+    expect(source).not.toMatch(/127\\\.|BASH_REMATCH/);
+  });
+
+  it("the helper is the routing rule's own function", async () => {
+    const shared = await import("../../../packages/env/src/database-url.mjs");
+    expect(isLoopbackDatabaseUrl).toBe(shared.isLoopbackDatabaseUrl);
+    expect([...LOOPBACK_HOSTS]).toEqual([...shared.LOOPBACK_DATABASE_HOSTS]);
+  });
+});
+
 describe("the three callers use the shared runner", () => {
   it.each([
     "scripts/verify/tenant-rls-catalog.mjs",

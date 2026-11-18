@@ -1,4 +1,7 @@
-import { databaseUrlRoutingOverrides } from "../../../packages/env/src/database-url.mjs";
+import {
+  databaseUrlRoutingOverrides,
+  isLoopbackDatabaseUrl,
+} from "../../../packages/env/src/database-url.mjs";
 import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
 
 export function assertCmsMigrationTarget({
@@ -27,8 +30,8 @@ export function assertCmsMigrationTarget({
     throw new Error("CMS migration does not allow database routing overrides.");
   }
 
+  if (isLoopbackDatabaseUrl(database)) return;
   const hostname = database.hostname.replace(/^\[|\]$/g, "");
-  if (["localhost", "127.0.0.1", "::1"].includes(hostname)) return;
 
   let ref;
   try {
