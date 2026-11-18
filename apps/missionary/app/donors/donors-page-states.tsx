@@ -42,12 +42,14 @@ export function DonorListSkeleton() {
 }
 
 export function ErrorState({
+  ref,
   message,
   onRetry,
   retrying = false,
   retryRef,
   failedRetries = 0,
 }: {
+  ref?: React.Ref<HTMLDivElement>;
   message: string;
   onRetry: () => void;
   retrying?: boolean;
@@ -56,6 +58,7 @@ export function ErrorState({
 }) {
   return (
     <motion.div
+      ref={ref}
       initial={fadeInUp.initial}
       animate={fadeInUp.animate}
       exit={fadeInUp.exit}

@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-2690: Unit test of the donor app's own focus helper at its app boundary.
 import {
   focusHeadingIfLost,
   focusIsLost,
-} from "../../../../apps/donor/features/donor/focus-recovery";
+  pageHeading,
+} from "../../../../packages/ui/hooks/load-retry";
 
 function page() {
   const container = document.createElement("div");
@@ -53,4 +53,15 @@ it("says focus is still lost without a container or a heading", () => {
   expect(focusHeadingIfLost(null)).toBe(false);
   expect(focusHeadingIfLost(undefined)).toBe(false);
   expect(document.activeElement).toBe(document.body);
+});
+
+it("finds the heading of the page an element is in, or of the document once it has left", () => {
+  document.body.innerHTML = `<header><h1>Asymmetric</h1></header><main><h1>Partners</h1><section><p>Row</p></section></main>`;
+  const row = document.querySelector("p")!;
+  expect(pageHeading(row)?.textContent).toBe("Partners");
+
+  // A view whose container was replaced has no page left to search.
+  row.closest("section")!.remove();
+  expect(pageHeading(row)?.textContent).toBe("Asymmetric");
+  expect(pageHeading(null)?.textContent).toBe("Asymmetric");
 });

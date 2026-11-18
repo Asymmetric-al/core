@@ -1,7 +1,6 @@
 "use client";
 
 import { TimeAgo } from "@asym/lib/hooks";
-import { useLoadRetry } from "@asym/missionary/hooks/use-load-retry";
 import {
   Avatar,
   AvatarFallback,
@@ -17,6 +16,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { useLoadRetry } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useId, useRef, useState } from "react";
@@ -122,9 +122,9 @@ export function FollowerRequestsCard({
   // so the toggle and the collapse are phone-only CSS.
   const [expanded, setExpanded] = useState(false);
   const loadRetryButton = useRef<HTMLButtonElement>(null);
-  const loadRetry = useLoadRetry({
+  const { failureView, ...loadRetry } = useLoadRetry({
     retryRef: loadRetryButton,
-    error: loadFailed && !isLoadingRequests ? true : null,
+    error: loadFailed && !isLoadingRequests,
     loading: isLoadingRequests,
     onRetry,
     landing: () => headingRef.current,
@@ -201,7 +201,10 @@ export function FollowerRequestsCard({
         >
           <CardContent>
             {loadRetry.error ? (
-              <div className="flex flex-col items-start gap-3">
+              <div
+                ref={failureView}
+                className="flex flex-col items-start gap-3"
+              >
                 <p
                   key={loadRetry.failedRetries}
                   role="alert"

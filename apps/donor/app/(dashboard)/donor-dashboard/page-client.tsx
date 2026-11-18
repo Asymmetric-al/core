@@ -2,50 +2,37 @@
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { pageHeading, useLoadRetry } from "@asym/ui/hooks";
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
 
 import { useDonorDashboardBootstrap } from "./use-donor-dashboard-bootstrap";
 import { DashboardSkeleton } from "../../../features/donor/components/dashboard-ui";
 import { DonorDashboardMainBody } from "../../../features/donor/components/donor-dashboard-main-body";
-import {
-  focusHeadingIfLost,
-  useFocusHandoff,
-  useLoadRetry,
-} from "../../../features/donor/focus-recovery";
 
 const mainBody = <DonorDashboardMainBody />;
 
 export default function DonorDashboardPage() {
   const bootstrap = useDonorDashboardBootstrap();
-  // A retry that works removes the focused button, and the loaded dashboard
-  // takes the error view's place in the same parent.
-  const errorParent = useRef<HTMLElement | null>(null);
-  const retry = useLoadRetry(errorParent, bootstrap.isError, bootstrap.refetch);
+  // With nothing cached, a retry clears the error and is pending while it
+  // runs; the view keeps saying what went wrong until the retry answers.
   // However the dashboard recovers, focus on the error view moves to its
   // heading, once the dashboard has one.
-  const handOffFocus = useFocusHandoff(focusHeadingIfLost);
-  const errorView = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (node) errorParent.current = node.parentElement;
-      return handOffFocus(node);
-    },
-    [handOffFocus],
-  );
-  // With nothing cached, a retry clears the error while it runs; the view
-  // keeps saying what went wrong until the retry answers.
-  const [retriedMessage, setRetriedMessage] = useState("");
+  const { failureView, ...retry } = useLoadRetry({
+    error: bootstrap.error,
+    loading: bootstrap.isPending,
+    onRetry: bootstrap.refetch,
+    landing: pageHeading,
+  });
 
-  if (bootstrap.isError || retry.retrying) {
-    const message = !bootstrap.isError
-      ? retriedMessage
-      : bootstrap.error instanceof Error
-        ? bootstrap.error.message
+  if (retry.error) {
+    const message =
+      retry.error instanceof Error
+        ? retry.error.message
         : "Could not load the dashboard.";
 
     return (
       <div
-        ref={errorView}
+        ref={failureView}
         className="flex flex-col items-center justify-center rounded-xl border border-destructive/10 bg-destructive/10 py-16 text-center"
       >
         <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-destructive/10 bg-card">
@@ -70,10 +57,7 @@ export default function DonorDashboardPage() {
           className="mt-6"
           disabled={retry.retrying}
           focusableWhenDisabled
-          onClick={() => {
-            setRetriedMessage(message);
-            retry.retry();
-          }}
+          onClick={retry.retry}
         >
           <RefreshCw className="mr-2 size-3.5" data-icon="inline-start" />
           {retry.retrying ? "Trying again…" : "Try again"}

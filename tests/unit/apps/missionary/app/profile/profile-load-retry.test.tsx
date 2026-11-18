@@ -159,6 +159,29 @@ it("retries the profile request in place, then lands on the page heading", async
   expect(button.isConnected).toBe(false);
 });
 
+// The error view is a motion element, whose ref passes the hand-off's cleanup on.
+it("lands on the page heading when the profile recovers on its own while an unpressed Try again has focus", async () => {
+  fetchMock
+    .mockImplementationOnce(async () => failure())
+    .mockImplementationOnce(async () => json(200, apiProfile));
+  renderPage();
+  await screen.findByRole("alert");
+  const button = screen.getByRole("button", { name: "Try again" });
+  act(() => button.focus());
+
+  // A refetch on reconnect, not a press, loads the profile.
+  await act(async () => {
+    await getQueryClient().refetchQueries();
+  });
+  await screen.findByRole("textbox", { name: "Phone" });
+  expect(button.isConnected).toBe(false);
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { level: 1, name: "Giving page" }),
+    ),
+  );
+});
+
 it("announces a load failure once, in the page, on the first failure and on a failed retry", async () => {
   const { answer } = await failThenHoldRetry();
   // The inline alert speaks for the failure; no toast repeats it.
