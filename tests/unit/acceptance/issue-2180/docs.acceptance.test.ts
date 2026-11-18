@@ -131,7 +131,10 @@ describe("#2180 criterion 9: docs/ops/github-access.md native restrictions secti
 
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md runner-security pointer", () => {
-  /** The 'Self-hosted runner security' section, to the next ##-or-higher heading or EOF. */
+  /**
+   * The 'Self-hosted runner security' section, to the next heading of the
+   * same or a higher level, or EOF. Deeper headings stay inside it.
+   */
   const appended = () => {
     const text = read("docs/ci.md");
     const at = text.search(HEADING);
@@ -140,7 +143,10 @@ describe("#2180 criterion 10: docs/ci.md runner-security pointer", () => {
       "docs/ci.md has a 'Self-hosted runner security' section",
     ).toBeGreaterThanOrEqual(0);
     const body = text.slice(at).split("\n");
-    const end = body.findIndex((l, i) => i > 0 && /^#{1,2} /.test(l));
+    const level = body[0]!.indexOf(" ");
+    const end = body.findIndex(
+      (l, i) => i > 0 && new RegExp(`^#{1,${level}} `).test(l),
+    );
     return body.slice(0, end < 0 ? undefined : end).join("\n");
   };
   it("is one 'Self-hosted runner security' section of <= 8 lines", () => {

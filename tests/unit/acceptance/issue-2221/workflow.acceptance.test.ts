@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import * as H from "./harness";
 import * as E from "../../helpers/github-expression";
 import * as W from "../../helpers/workflow-yaml";
+import { expectPushBranches, triggerMap } from "../shared/workflow-triggers";
 
 const TRIGGERS = ["merge_group", "pull_request", "push", "workflow_dispatch"];
 /** Spec §1 job contract, verbatim (inside its `${{ }}`). */
@@ -288,14 +289,15 @@ describe("#2221 criterion 9: no repository or third-party code", () => {
 describe("#2221 criterion 11: threat model intact", () => {
   it("on: is still exactly the four triggers, with the same filters", () => {
     H.commentJob();
-    const on = H.ciDoc().on as Record<string, unknown>;
-    expect(Object.keys(on).sort()).toEqual(TRIGGERS);
+    const triggers = triggerMap(H.ciDoc().on);
+    expect(Object.keys(triggers).sort()).toEqual(TRIGGERS);
+    const { push, ...on } = triggers;
     expect(on).toStrictEqual({
       workflow_dispatch: null,
       pull_request: null,
-      push: { branches: ["develop", "production"] },
       merge_group: { types: ["checks_requested"] },
     });
+    expectPushBranches(push, ["develop", "production"]);
     expect([...W.MODELED_TRIGGER_EVENTS]).toEqual(TRIGGERS);
   });
   it("negative: ci.yml gains no pull_request_target, workflow_run or issue_comment", () => {

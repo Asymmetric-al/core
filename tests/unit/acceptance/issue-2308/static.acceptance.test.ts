@@ -25,6 +25,19 @@ const read = (file: string) => {
   return readFileSync(path, "utf8");
 };
 
+/** An allowlist row: a whole `count` and exactly that many line numbers. */
+const isAllowlistEntry = (
+  e: unknown,
+): e is { count: number; lines: number[] } =>
+  typeof e === "object" &&
+  e !== null &&
+  "count" in e &&
+  "lines" in e &&
+  Number.isInteger(e.count) &&
+  Array.isArray(e.lines) &&
+  e.lines.length === e.count &&
+  e.lines.every((line) => Number.isInteger(line) && line > 0);
+
 describe("#2308 static contracts (A)", () => {
   it.each(["missionary", "donor"])(
     "C11: %s route is exactly the shared one-line re-export",
@@ -76,11 +89,24 @@ describe("#2308 static contracts (A)", () => {
   // frozen count) lives in CEILING_ROWS of
   // scripts/verify/service-role-client-gate.mjs, which the C12 test above runs.
   it("C12: frozen service-role allowlist does not grow past the #2419 shrink", () => {
-    const { entries } = JSON.parse(
+    const doc: unknown = JSON.parse(
       read("docs/security/service-role-client-allowlist.json"),
-    ) as { entries: { count: number; lines: unknown[] }[] };
-    expect(entries.length).toBeLessThanOrEqual(117);
-    expect(entries.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(181);
-    for (const e of entries) expect(e.lines).toHaveLength(e.count);
+    );
+    const entries: unknown[] =
+      typeof doc === "object" &&
+      doc !== null &&
+      "entries" in doc &&
+      Array.isArray(doc.entries)
+        ? doc.entries
+        : [];
+    expect(entries.length, "allowlist entries").toBeGreaterThan(0);
+    // Each row holds `count` line numbers; a malformed row cannot be counted.
+    expect(
+      entries.filter((e) => !isAllowlistEntry(e)),
+      "entries without a whole count and a lines array of that many line numbers",
+    ).toEqual([]);
+    const rows = entries.filter(isAllowlistEntry);
+    expect(rows.length).toBeLessThanOrEqual(117);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(181);
   });
 });

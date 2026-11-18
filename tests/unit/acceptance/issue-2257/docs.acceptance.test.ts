@@ -43,10 +43,10 @@ describe("#2257 criterion 10: ADR-0001 Phase 9 re-confirm", () => {
   // PRD and re-pinned the hash three times so a revert of its corrections
   // would fail. Those corrections are asserted directly instead.
   it("the Phase 9 PRD keeps the AL-2645 Twenty-retirement corrections", () => {
-    const prd = read(`${PRD}9-full-crm-depth-relationship-graph.md`).replace(
-      /\s+/g,
-      " ",
-    );
+    // Visible text only: a correction moved into an HTML comment is gone.
+    const prd = read(`${PRD}9-full-crm-depth-relationship-graph.md`)
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/\s+/g, " ");
     for (const correction of [
       "re-groom #603 completed 2026-07-07",
       "the store is `donor_merge_candidates`, and the Twenty-era `crm_merge_candidates` is not extended",

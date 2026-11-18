@@ -109,11 +109,19 @@ describe("#2221 criterion 12: one Live required checks bullet saying it is not r
 describe("#2221 criterion 12 negatives: overview table and ci-gate bullet unchanged (I6, #2153)", () => {
   it("overview table does not list ci-gate-comment", () => {
     const all = lines();
-    const start = all.findIndex((l) => l.startsWith("| Workflow"));
+    const start = all.findIndex((l) => /^\|?\s*Workflow\s*\|/.test(l));
     expect(start, "overview table").toBeGreaterThanOrEqual(0);
-    const table: string[] = [];
-    for (let i = start; i < all.length && all[i]!.startsWith("|"); i++)
-      table.push(all[i]!);
+    // A GFM row may omit its leading pipe; the table ends at a blank line.
+    const end = all.findIndex((l, i) => i > start && l.trim() === "");
+    const table = all.slice(start, end < 0 ? undefined : end);
+    for (const row of [
+      /^\|?\s*Fast checks\s*\|/,
+      /^\|?\s*Integration \+ E2E\s*\|/,
+    ])
+      expect(
+        table.some((l) => row.test(l)),
+        `overview row ${row}`,
+      ).toBe(true);
     expect(table.join("\n")).not.toContain("ci-gate-comment");
   });
 

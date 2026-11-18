@@ -1,4 +1,4 @@
-/** #2406 spec r2 static contract (no database): criterion 1 (version, rollback
+/** #2406 spec r2 static contract (no database): criterion 1 (version, base order, rollback
  * header), 9 (migration text: GRANT-free, single REVOKE target, policy names,
  * string_to_array, (SELECT auth.uid())), 10 (rollback text), §2.3 bootstrap
  * columns, 19/20 (Builder tests present), 21 (doc), 22 (CI step), 23
@@ -14,6 +14,11 @@ import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
 import { DEMO_TENANT_ID } from "../../../../packages/auth/constants";
+import {
+  ciBaseCommit,
+  migrationsAt,
+  outOfOrderMigrations,
+} from "../shared/migration-order";
 import { expectRealstackStep } from "../shared/realstack-step";
 
 const fwd = () => H.code(H.read(H.FORWARD));
@@ -135,6 +140,20 @@ describe("#2406 static contract", () => {
     expect(H.VERSION > "20261026171000", "above every §10 reservation").toBe(
       true,
     );
+  });
+  // #2706 removed the merge-base comparison, not the rule: every forward
+  // migration a pull request adds sorts above every one on its base. The base
+  // is the commit CI names for the run; with none, the test says so.
+  it("#2406 criterion 1: every forward migration the pull request adds sorts above every forward migration on its base", (ctx) => {
+    const base = ciBaseCommit();
+    if (!base) {
+      ctx.skip("no pull_request or merge_group base commit in this run");
+      return;
+    }
+    expect(
+      outOfOrderMigrations(migrationsAt(base), readdirSync(H.MIG)),
+      `forward migrations that do not sort above every one on base ${base}`,
+    ).toEqual([]);
   });
   it("#2406 criterion 1: no other forward migration shares the version", () => {
     const local = readdirSync(H.MIG).filter(

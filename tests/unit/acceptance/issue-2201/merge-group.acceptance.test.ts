@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { resolveCompilation } from "../../../../scripts/verify/ci-build-policy.mjs";
 import * as E from "../../helpers/github-expression";
 import * as W from "../issue-2158/workflow-yaml";
+import { expectPushBranches, triggerMap } from "../shared/workflow-triggers";
 
 type Job = W.WorkflowJob;
 type Scenario = W.EventScenario;
@@ -60,15 +61,15 @@ const runs = (job: Job, res?: Record<string, string>, s = MG) =>
 describe("#2201 criteria 1-3, 13: on: triggers", () => {
   for (const file of [CI, CII]) {
     it(`${file}: on: is exactly the four triggers; merge_group unfiltered`, () => {
-      const on = doc(file).on as Record<string, unknown>;
+      const on = triggerMap(doc(file).on);
       expect(Object.keys(on).sort()).toEqual(TRIGGERS);
       expect(on.merge_group).toStrictEqual({ types: ["checks_requested"] });
     });
-    it(`${file}: other triggers unfiltered; push.branches unchanged`, () => {
-      const on = doc(file).on as Record<string, unknown>;
+    it(`${file}: other triggers unfiltered; push runs on develop and production only`, () => {
+      const on = triggerMap(doc(file).on);
       expect(on.workflow_dispatch).toBeNull();
       expect(on.pull_request).toBeNull();
-      expect(on.push).toStrictEqual({ branches: ["develop", "production"] });
+      expectPushBranches(on.push, ["develop", "production"]);
     });
   }
 });
