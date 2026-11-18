@@ -115,8 +115,14 @@ tests, is:
     `super_admin`. The `super_admin` demo fallback mirrors `getAuthContext`
     and is tracked in #2267; if #2267 removes or moves it, these two policies
     change in the same PR.
-- Functions (SECURITY DEFINER unless marked INVOKER). Most bind an actor or
+- Functions (SECURITY DEFINER unless marked INVOKER). Most bound an actor or
   referenced profile to a tenant by requiring `profiles.tenant_id` to match.
+  Since council round 2 on WP2a (R1), the five that check an actor the
+  application hands them test a live membership in the tenant instead, as the
+  application does; their `super_admin` branch keeps the profile check until
+  WP2c (`20261118093000_eve_actor_checks_read_membership.sql`; the decision
+  table's section 7 lists every one). They still name profiles beside
+  `authz.memberships.tenant_id`, so the lexical scan keeps them.
   Since AL-2675 (WP2a, NR-49) `enforce_contribution_operation_tenant_refs` and
   `enforce_contribution_notification_tenant_refs` test a live membership in the
   row's tenant instead (`private.profile_in_tenant`) and are no longer readers;
@@ -132,21 +138,32 @@ tests, is:
     (AL-2675 sweep, NR-68).
   - `profile_in_tenant` (`private`, INVOKER): whether a profile's login holds
     a live membership in a tenant.
-  - `assert_eve_retention_actor`
-  - `assert_eve_admin_memory_owner`
-  - `validate_eve_notification_recipient`
-  - `assert_eve_launch_profile`
-  - `assert_eve_policy_actor_tenant`
-  - `enforce_eve_policy_permission_tenant` (INVOKER)
-  - `enforce_eve_ai_settings_grant_tenant` (INVOKER)
-  - `atomic_update_profile_with_audit` (INVOKER)
+  - `assert_eve_retention_actor`: a live flagged staff row for `admin`
+    since R1; the `super_admin` branch reads the profile's tenant.
+  - `assert_eve_admin_memory_owner`: a live row in the tenant since R1.
+  - `validate_eve_notification_recipient`: a `super_admin` profile of the
+    tenant; unchanged until WP2c, behind the closed recipient PATCH.
+  - `assert_eve_launch_profile`: a live row of the role's kind since R1; the
+    `super_admin` branch reads the profile's role and tenant.
+  - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1; a
+    `super_admin` profile with no tenant still passes until WP2c.
+  - `enforce_eve_policy_permission_tenant` (INVOKER): the profiles' tenant;
+    no application code writes its table.
+  - `enforce_eve_ai_settings_grant_tenant` (INVOKER): the profile's tenant;
+    no application code writes its table.
+  - `atomic_update_profile_with_audit` (INVOKER): the profile's login holds a
+    live row in the tenant since R1.
   - `atomic_update_user_role_with_audit`: since WP2a joined stage 1, DEFINER;
     it judges the caller's tenant-administrator membership and finds the
     target by membership, and reads no profile's tenant.
   - `set_eve_retention_hold`
   - `expire_eve_retention_records`
-  - `handle_new_user`: the writer. Since AL-2675 it writes NULL there and gives
-    the new login a donor membership instead (WP2 "Interim rules").
+  - `handle_new_user`: the writer. Since AL-2675 it gives the new login a
+    donor membership (WP2 "Interim rules"), and since council round 1 on WP2a
+    (F3) it writes that membership's tenant to the profile's tenant column
+    too, because the release already running reads it there (plan 7.4). The
+    column grants nothing under WP2a; the migration that drops it (WP5) ends
+    the write.
 - App code that uses `profile.tenant_id` to pick or check the tenant: none.
   AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
   and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's
