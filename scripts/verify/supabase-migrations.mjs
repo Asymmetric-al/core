@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { buildPostgresUpgradeProbe } from "../lib/postgres-upgrade-preflight.mjs";
-import { isLoopbackDatabaseUrl } from "../lib/psql.mjs";
+import { isLoopbackDatabaseUrl, spawnPsql } from "../lib/psql.mjs";
 import {
   formatTenantRlsCatalogSummary,
   runTenantRlsCatalogGate,
@@ -38,13 +38,17 @@ if (!isLoopbackDatabaseUrl(parsedDatabaseUrl.href)) {
   process.exit(1);
 }
 
+// Every psql below runs through psqlConnection: the URL is the whole target,
+// so an ambient PGHOSTADDR, PGHOST, PGSERVICE or PGOPTIONS cannot redirect
+// it, and the password travels in PGPASSWORD, not in the arguments.
 function runPsql(label, args, input) {
   console.log(`==> ${label}`);
-  const result = spawnSync(psqlBin, args, {
+  const result = spawnPsql({
+    databaseUrl,
+    args,
+    input,
+    psqlBin,
     cwd: repoRoot,
-    env: process.env,
-    stdio: input === undefined ? "inherit" : ["pipe", "inherit", "inherit"],
-    ...(input === undefined ? {} : { input }),
   });
 
   if (result.error) {
@@ -69,7 +73,6 @@ const migrationFiles = readdirSync(migrationsRoot)
   .sort();
 
 runPsql("bootstrap Supabase compatibility schemas", [
-  databaseUrl,
   "-v",
   "ON_ERROR_STOP=1",
   "-f",
@@ -78,10 +81,10 @@ runPsql("bootstrap Supabase compatibility schemas", [
 
 for (const fileName of migrationFiles) {
   const migrationPath = path.join(migrationsRoot, fileName);
-  const args = [databaseUrl, "-v", "ON_ERROR_STOP=1", "-f", migrationPath];
+  const args = ["-v", "ON_ERROR_STOP=1", "-f", migrationPath];
 
   if (fileName === foundationMigration) {
-    args.splice(1, 0, "--single-transaction");
+    args.unshift("--single-transaction");
   }
 
   runPsql(`apply ${fileName}`, args);
@@ -89,7 +92,7 @@ for (const fileName of migrationFiles) {
 
 runPsql(
   "verify PostgreSQL upgrade preflight detects mixed-case callers",
-  [databaseUrl, "-v", "ON_ERROR_STOP=1"],
+  ["-v", "ON_ERROR_STOP=1"],
   buildPostgresUpgradeProbe(),
 );
 

@@ -47,6 +47,29 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
 }
 
 /**
+ * Starts psql on `databaseUrl` through psqlConnection, with `args` after the
+ * connection argument and this process's standard output and error. `input`,
+ * when given, is written to psql's standard input. Returns spawnSync's result.
+ */
+export function spawnPsql({
+  databaseUrl,
+  args,
+  input,
+  psqlBin = "psql",
+  cwd,
+  baseEnv = process.env,
+}) {
+  const { connection, env } = psqlConnection(databaseUrl, baseEnv);
+  return spawnSync(psqlBin, [connection, ...args], {
+    cwd,
+    env,
+    shell: false,
+    stdio: input === undefined ? "inherit" : ["pipe", "inherit", "inherit"],
+    ...(input === undefined ? {} : { input }),
+  });
+}
+
+/**
  * Runs one SQL command with psql in unaligned, tuples-only mode and returns
  * its standard output. Throws with psql's error output when it fails.
  */
