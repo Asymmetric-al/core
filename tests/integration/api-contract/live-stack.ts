@@ -15,7 +15,12 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import pg from "pg";
 import { describe } from "vitest";
 
-import { claimsForAuthUser, mintToken, type AuthUserRow } from "./tokens";
+import {
+  claimsForAuthUser,
+  mintToken,
+  type AuthUserRow,
+  type JwtClaims,
+} from "./tokens";
 
 export type LiveStack = {
   postgrestUrl: string;
@@ -74,21 +79,30 @@ export const serviceClient = (stack: LiveStack) =>
 export const anonClient = (stack: LiveStack) =>
   dataApiClient(stack, mintToken({ role: "anon" }, stack.jwtSecret));
 
+/** The access-token claims GoTrue would issue for `userId`. */
+export async function claimsOfUser(
+  db: pg.Client,
+  userId: string,
+): Promise<JwtClaims> {
+  const { rows } = await db.query<AuthUserRow>(
+    "select id::text, email, raw_app_meta_data, raw_user_meta_data from auth.users where id = $1",
+    [userId],
+  );
+  if (!rows[0]) throw new Error(`auth.users has no row ${userId}`);
+  return claimsForAuthUser(rows[0]);
+}
+
+/** A client whose token carries exactly `claims`. */
+export const claimsClient = (stack: LiveStack, claims: JwtClaims) =>
+  dataApiClient(stack, mintToken(claims, stack.jwtSecret));
+
 /** A client signed in as `userId`, with the claims GoTrue would issue. */
 export async function userClient(
   stack: LiveStack,
   db: pg.Client,
   userId: string,
 ): Promise<SupabaseClient> {
-  const { rows } = await db.query<AuthUserRow>(
-    "select id::text, email, raw_app_meta_data, raw_user_meta_data from auth.users where id = $1",
-    [userId],
-  );
-  if (!rows[0]) throw new Error(`auth.users has no row ${userId}`);
-  return dataApiClient(
-    stack,
-    mintToken(claimsForAuthUser(rows[0]), stack.jwtSecret),
-  );
+  return claimsClient(stack, await claimsOfUser(db, userId));
 }
 
 export async function adminDatabase(stack: LiveStack): Promise<pg.Client> {

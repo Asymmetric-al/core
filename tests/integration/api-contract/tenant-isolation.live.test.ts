@@ -16,6 +16,7 @@
  * (so its token reached the database as that user), and a table only counts
  * as evidence when the service role sees rows the caller must not.
  */
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -28,10 +29,12 @@ import {
   TENANT_A,
   type TenantFixture,
 } from "./fixtures";
-import { isRefusalOf } from "./isolation-probe";
+import { isRefusalOf, qualifiedName } from "./isolation-probe";
 import {
   adminDatabase,
   anonClient,
+  claimsClient,
+  claimsOfUser,
   describeLive,
   serviceClient,
   userClient,
@@ -90,7 +93,7 @@ describeLive("tenant isolation through the Data API", (stack) => {
   let tables: { schema: string; table: string }[];
   const callers: Record<
     string,
-    { client: SupabaseClient; tenantId: string | null }
+    { client: SupabaseClient; tenantId: string | null; userId: string | null }
   > = {};
 
   beforeAll(async () => {
@@ -108,12 +111,14 @@ describeLive("tenant isolation through the Data API", (stack) => {
     callers.A = {
       client: await userClient(stack, db, SEED_USER_A),
       tenantId: TENANT_A,
+      userId: SEED_USER_A,
     };
     callers.B = {
       client: await userClient(stack, db, b.userId),
       tenantId: b.tenantId,
+      userId: b.userId,
     };
-    callers.anon = { client: anonClient(stack), tenantId: null };
+    callers.anon = { client: anonClient(stack), tenantId: null, userId: null };
   });
 
   afterAll(async () => {
@@ -136,22 +141,66 @@ describeLive("tenant isolation through the Data API", (stack) => {
     );
   });
 
+  /**
+   * Why `client` cannot be shown to read as `userId` of `tenantId`; empty when
+   * it can. Two reads only that identity passes: the user's own profiles row
+   * by id (the profile policies admit it to the user or to staff of its
+   * tenant, never to an unresolved token), and some row of its own tenant in a
+   * table outside the ruled public reads (a published post is readable by
+   * any token, so it proves nothing).
+   */
+  async function identityProblems(
+    client: SupabaseClient,
+    userId: string,
+    tenantId: string,
+  ): Promise<string[]> {
+    const problems: string[] = [];
+    const profile = await client.from("profiles").select("id").eq("id", userId);
+    if (profile.error)
+      problems.push(
+        `its own profiles row: ${profile.error.code}: ${profile.error.message}`,
+      );
+    else if ((profile.data ?? []).length !== 1)
+      problems.push(`its own profiles row ${userId} is not visible`);
+
+    let own = 0;
+    for (const relation of tables) {
+      if (RULED_PUBLIC_READS.has(qualifiedName(relation))) continue;
+      const from =
+        relation.schema === "public" ? client : client.schema(relation.schema);
+      const { count } = await from
+        .from(relation.table)
+        .select("tenant_id", { count: "exact", head: true })
+        .eq("tenant_id", tenantId);
+      own += count ?? 0;
+    }
+    if (own === 0)
+      problems.push(
+        `no row of tenant ${tenantId} outside the ruled public reads is visible`,
+      );
+    return problems;
+  }
+
+  it("a token whose subject is not the user does not pass the identity guard", async () => {
+    const claims = await claimsOfUser(db, SEED_USER_A);
+    const stranger = claimsClient(stack, { ...claims, sub: randomUUID() });
+    const problems = await identityProblems(stranger, SEED_USER_A, TENANT_A);
+    console.info(
+      `API contract: a token for an unknown subject with tenant A's claims fails the identity guard: ${problems.join("; ")}.`,
+    );
+    expect(
+      problems,
+      "a token for an unknown subject with tenant A's claims",
+    ).toContain(`its own profiles row ${SEED_USER_A} is not visible`);
+  });
+
   for (const caller of ["A", "B"] as const) {
     it(`a user of tenant ${caller} sees its own tenant, so its token reached the database`, async () => {
-      const { client, tenantId } = callers[caller]!;
-      let own = 0;
-      for (const { schema, table } of tables) {
-        const from = schema === "public" ? client : client.schema(schema);
-        const { count } = await from
-          .from(table)
-          .select("tenant_id", { count: "exact", head: true })
-          .eq("tenant_id", tenantId!);
-        own += count ?? 0;
-      }
+      const { client, tenantId, userId } = callers[caller]!;
       expect(
-        own,
-        `rows of its own tenant visible to ${caller}`,
-      ).toBeGreaterThan(0);
+        await identityProblems(client, userId!, tenantId!),
+        `caller ${caller}`,
+      ).toEqual([]);
     });
 
     it(`a user of tenant ${caller} reads no row of another tenant`, async () => {
