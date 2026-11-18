@@ -219,7 +219,7 @@ export async function warmUpAuthMailer(env: AuthMailEnv) {
   const userId = await createConfirmedUser(env, {
     email,
     password: "warm up phrase",
-    profileRole: "donor",
+    membership: { role: "donor" },
   });
   try {
     for (let attempt = 0; attempt < 3; attempt += 1) {
