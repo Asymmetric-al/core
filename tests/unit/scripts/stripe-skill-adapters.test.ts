@@ -81,11 +81,7 @@ describe("current official Stripe bundle adapters", () => {
     const result = run();
     expect(result.status, result.stdout + result.stderr).toBe(0);
     for (const runtime of [".agents", ".cursor", ".claude"]) {
-      for (const name of [
-        "stripe-best-practices",
-        "stripe-projects",
-        "upgrade-stripe",
-      ]) {
+      for (const name of ["stripe-best-practices", "upgrade-stripe"]) {
         const content = await readFile(
           path.join(root, runtime, "skills", name, "SKILL.md"),
           "utf8",
@@ -122,46 +118,6 @@ describe("current official Stripe bundle adapters", () => {
         "utf8",
       ),
     ).toBe(before);
-  });
-  it("restores the credential and provisioning boundary for a stripe-projects-only install", async () => {
-    const root = await fixture();
-    for (const name of ["stripe-best-practices", "upgrade-stripe"])
-      await rm(path.join(root, ".agents/skills", name), { recursive: true });
-    await cp(
-      path.join(repo, "scripts/sync-agent-skills.mjs"),
-      path.join(root, "scripts/sync-agent-skills.mjs"),
-    );
-    await cp(path.join(repo, "scripts/lib"), path.join(root, "scripts/lib"), {
-      recursive: true,
-    });
-    await mkdir(path.join(root, "docs/ai/skills/fixture"), { recursive: true });
-    await writeFile(
-      path.join(root, "docs/ai/skills/fixture/SKILL.md"),
-      "---\\nname: fixture\\ndescription: Fixture\\n---\\n",
-    );
-    const result = spawnSync(
-      process.execPath,
-      ["scripts/sync-agent-skills.mjs"],
-      { cwd: root, encoding: "utf8" },
-    );
-    expect(result.status, result.stdout + result.stderr).toBe(0);
-    for (const runtime of [".agents", ".cursor", ".claude"]) {
-      const text = await readFile(
-        path.join(root, runtime, "skills/stripe-projects/SKILL.md"),
-        "utf8",
-      );
-      expect(text).toContain("<!-- CORE-OVERLAY-START -->");
-      expect(text).toContain("Never print, copy, commit or rotate credentials");
-      expect(text).toContain(
-        "Product provisioning, CLI/plugin installs, terms acceptance",
-      );
-      expect(text).toContain("require the corresponding explicit task scope");
-      await expect(
-        readFile(
-          path.join(root, runtime, "skills/stripe-best-practices/SKILL.md"),
-        ),
-      ).rejects.toMatchObject({ code: "ENOENT" });
-    }
   });
   it("rejects source drift before writing any Stripe file", async () => {
     const root = await fixture();

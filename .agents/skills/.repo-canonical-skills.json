@@ -156,7 +156,6 @@
     "security-audit",
     "setup-matt-pocock-skills",
     "setup-p3",
-    "setup-pre-commit",
     "show-me-your-work",
     "supabase",
     "supabase-postgres-best-practices",
@@ -1393,12 +1392,6 @@
       "LICENSE",
       "SKILL.md",
       "agents/openai.yaml",
-      "references/upstream.md"
-    ],
-    "setup-pre-commit": [
-      "SKILL.md",
-      "agents/openai.yaml",
-      "references/UPSTREAM-LICENSE",
       "references/upstream.md"
     ],
     "show-me-your-work": [

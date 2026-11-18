@@ -11,7 +11,6 @@ const runtimeRoots = [
   ".claude/skills",
 ] as const;
 const retainedSnapshots = new Set([
-  "better-forms",
   "clean-code",
   "remotion-best-practices",
   "pdf",
@@ -20,6 +19,11 @@ const retainedSnapshots = new Set([
 // Retired 2026-11-17 (AL-2695). Their upstream deleted them as superseded or
 // personal, or their guidance conflicts with Core's stack. The maintenance
 // log records each source, last hash and replacement.
+// Retired 2026-11-18 (AL-2715) after the owner reviewed a skill-quality pass:
+// tooling for things Core does not have, unsafe deploy and provisioning
+// recipes, a hook installer that overwrites Core's hooks, and recipes that
+// contradict Core's Stripe and forms rules. The maintenance log records each
+// source, last hash and what covers the need instead.
 const retiredSkillNames = new Set([
   "design-an-interface",
   "edit-article",
@@ -28,6 +32,14 @@ const retiredSkillNames = new Set([
   "request-refactor-plan",
   "tailwind-v4-shadcn",
   "ubiquitous-language",
+  "better-forms",
+  "deploy-to-vercel",
+  "scaffold-exercises",
+  "setup-pre-commit",
+  "stripe-integration",
+  "stripe-projects",
+  "vercel-cli-with-tokens",
+  "webapp-testing",
 ]);
 
 // Skills at reviewed baseline c4d36cb029121641b8882237632d0d6da434049e.
@@ -350,18 +362,6 @@ const reviewedEcosystemSkills = [
     reviewedCommit: "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
     computedHash:
       "6a210b15be01bc6f76a74ec1e46302dee310ddf79d2def63fc9b7c54221fe329",
-    licenses: {
-      "references/LICENSE.md":
-        "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",
-    },
-  },
-  {
-    name: "stripe-integration",
-    source: "wshobson/agents",
-    skillPath: "plugins/payment-processing/skills/stripe-integration/SKILL.md",
-    reviewedCommit: "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
-    computedHash:
-      "32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6",
     licenses: {
       "references/LICENSE.md":
         "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1",

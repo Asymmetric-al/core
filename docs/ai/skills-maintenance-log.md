@@ -2,6 +2,65 @@
 
 Last updated: 2026-11-18
 
+## Skill quality pass - 2026-11-18 (AL-2715)
+
+A research pass read every installed skill and listed low-quality candidates.
+The owner reviewed the list on 2026-11-18 and ruled: "just cut those 8 and
+repair the others. disregard the pdf thing, we can keep copies, i checked."
+Skills are pruned for quality, never for low use, so nothing else was cut and
+`pdf` is unchanged.
+
+### Retired skills
+
+Removed eight skills from their sources, the three runtime mirrors, the skills
+lock and the source audit together, the same way the 2026-11-17 entry below
+retired seven:
+
+- `scaffold-exercises` is course-authoring tooling: it lints with
+  `pnpm ai-hero-cli internal lint` and writes an `exercises/` tree, neither of
+  which Core has.
+- `webapp-testing` writes Python Playwright scripts, starts servers with
+  `npm run dev` and waits with `networkidle` and `page.wait_for_timeout()`,
+  against `docs/ai/rules/testing.md`. Use `playwright-best-practices`,
+  `playwright-cli` and `playwright-skill`.
+- `vercel-cli-with-tokens` printed `VERCEL_TOKEN` and grepped `.env` into the
+  transcript, and ran `vercel deploy --prod` and `vercel env add … production`
+  outside `bun run release:production`.
+- `deploy-to-vercel` deployed with `git add .`, commit and push, and on a CLI
+  authentication failure fell back to `resources/deploy.sh`, which uploads a
+  tarball of the project to `claude-skills-deploy.vercel.com`. Production
+  ships only through `docs/ops/production-release.md`.
+- `stripe-projects` triggered on "I need a database", "set up auth", "add
+  email sending" and similar, and provisioned new third-party services and
+  `.env` files. Core's stack is fixed. Its Core overlay, the adapter path and
+  the sync check for it, its fixture and the test that existed only for a
+  `stripe-projects`-only install are removed.
+- `stripe-integration` taught Python recipes with `sk_test_` keys next to the
+  official `stripe-best-practices` skill on the money path. Its reviewed
+  ecosystem overlay is removed with it.
+- `setup-pre-commit` looked for `bun.lockb` (Core has `bun.lock`), fell back to
+  npm, would overwrite `.husky/pre-commit` and create a second lint-staged
+  config. Edit the existing hooks and the `package.json` lint-staged config.
+- `better-forms` taught react-hook-form throughout, which contradicts the
+  TanStack Form + Zod rule in `docs/ai/rules/frontend.md`. It had no lock entry
+  and an unresolved licence.
+
+Counts moved from 182 to 181 canonical skills, 240 to 232 runtime skills per
+client, 200 to 193 lock entries and 4 to 3 retained snapshots in the inventory
+test. The last commit containing the payloads is `2985c05b7`. Earlier entries
+below still name these skills; they are history.
+
+| Skill                  | Source                                     | Historical path                                                 | Last lock hash                                                     | Last installed tree hash                                           |
+| ---------------------- | ------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| better-forms           | unverified, no licence                     | none                                                            | none (not lock-managed)                                            | `72bdcc2776b9474415812a397d71aa5d5d628149922830bda80e68f64932e1a1` |
+| deploy-to-vercel       | vercel-labs/agent-skills                   | `skills/deploy-to-vercel/SKILL.md`                              | `03e0eaaa9bf13ba1e7ffa387f5893de6f324c0868c627001f179395a8feaa7c9` | `8e95b408c650467aef6ea3b82d25814ffe53f3de2564b63e1f8b341ca402021c` |
+| scaffold-exercises     | mattpocock/skills                          | `skills/misc/scaffold-exercises/SKILL.md`                       | `1127f69a77b48cb855067db4c9c42e7638e6672f1cb3fafb0ffd61a1ecdfae70` | `2d3917d55e81ce1db16bbc4db74b683a84f5a317d3901affaf94984b2df78553` |
+| setup-pre-commit       | mattpocock/skills                          | `skills/misc/setup-pre-commit/SKILL.md`                         | `f2ce8663857d919cf7e4146cd716b0aee1757b85123b758e6e7d98fcbaf14054` | `a628adb90c1725a8dc0701228ed168970bc973e15559593ac9f619420b6b4297` |
+| stripe-integration     | wshobson/agents                            | `plugins/payment-processing/skills/stripe-integration/SKILL.md` | `32b5a60d3f6cad896b3dc468ee7b81e55afa61adf740512e95a411efdb4ae0f6` | `6364f73af4316a377d7a607b1b0a7d60cf168fa645d86c0f20456e3d1f8a7bea` |
+| stripe-projects        | docs.stripe.com `.well-known/skills` index | `stripe-projects/SKILL.md`                                      | `3f6f72b6fe29418f2740977f2d4bc5c6e7675562df41b94e4da4ad34fd590bd7` | `c0c71a95ada5f3663acde40e3a582555c793cf9bb76be90954aa30a12676d7f1` |
+| vercel-cli-with-tokens | vercel-labs/agent-skills                   | `skills/vercel-cli-with-tokens/SKILL.md`                        | `eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0` | `eb16b20dcbe6ce51e0372083d624e0847af1b09487ec99249227d5a8eddebfc0` |
+| webapp-testing         | anthropics/skills                          | `skills/webapp-testing/SKILL.md`                                | `3f14af7f5690695209c22fbf8c8d133769a86d64892602c09bb13f135e14e857` | `abfaf4cc6cf572346e22fed42dc0cfaacd2f64c5d9667f44a94b02ea0d3b1342` |
+
 ## Next.js skill import - 2026-11-18 (AL-2713)
 
 Imported the three official Next.js skills that Core lacked, so all six skills
