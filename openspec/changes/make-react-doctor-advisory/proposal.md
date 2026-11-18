@@ -102,7 +102,15 @@ The owner replied: "Do #2". Pull request #2705 is the one that merged this
 proposal. Asked later that day whether the ratification should be passed on
 for this change, the owner replied: "sure, pass, do what you think is best."
 
-Scope of that ruling for `make-react-doctor-advisory`:
+The owner's words name "the React Doctor ledger (PR #2705)". They do not name
+this change ID, design decisions D1 to D8 or AL-1958. The scope below is
+therefore the quality program's reading of the ruling, made under the
+discretion the owner gave ("do what you think is best"), and it rests on one
+fact: pull request #2705 is the pull request that merged this proposal, so a
+ruling that retires the ledger by naming it points at this change. The owner's
+confirmation of this reading is requested on the implementing pull request.
+
+Scope of that ruling for `make-react-doctor-advisory`, on that reading:
 
 - **Ratified:** the whole change, meaning this proposal, design decisions D1
   to D8, the `react-source-audits` spec delta and every task. The limitation
