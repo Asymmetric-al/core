@@ -525,10 +525,31 @@ test.describe("production build", () => {
       .click();
     await page.waitForURL(/\/web-studio(\/|$)/);
     await page.waitForLoadState("networkidle");
+    const toWebStudio = documents.slice(signedIn.length);
     test.info().annotations.push({
       type: "documents",
-      description: `after sign-in: ${signedIn.join(" ")}; after Web Studio: ${documents.slice(signedIn.length).join(" ") || "(none: a soft navigation)"}`,
+      description: `after sign-in: ${signedIn.join(" ")}; after Web Studio: ${toWebStudio.join(" ") || "(none: a soft navigation)"}`,
     });
+    // Council round 2, AR2: each crossing of the tenant segment's boundary is
+    // a document load. The sign-in loads the tenant's address (A10), so the
+    // document that renders Mission Control is not the one loaded at /login;
+    // the link loads /web-studio, outside the segment.
+    expect.soft(signedIn).toContain(`/${DEMO}`);
+    expect.soft(toWebStudio[0]).toBe("/web-studio");
+    // Web Studio's own page, not Mission Control's and not an error page. The
+    // stub's person has no Web Studio (Payload) account, so Web Studio shows
+    // its sign-in view, whose one mark is the Web Studio brand (it has no
+    // heading or landmark); a person with an account sees the native shell.
+    // Mission Control's chrome, which also names Web Studio, is gone.
+    await expect(
+      page
+        .getByTestId("web-studio-native-shell")
+        .or(page.getByText("Web Studio", { exact: true }))
+        .first(),
+    ).toBeVisible({ timeout: 60_000 });
+    await expect(
+      page.getByRole("button", { name: /open profile menu/i }),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Something went wrong" }),
     ).toHaveCount(0);
