@@ -4,6 +4,8 @@ import {
   evaluateExpression,
   parseExpression,
   truthy,
+  unwrapExpression,
+  usesStatusFunction,
   type ExprValue,
 } from "../helpers/github-expression";
 import {
@@ -66,20 +68,42 @@ function evaluate(source: string, outcomes: Record<string, string>) {
   return evaluateExpression(parseExpression(source), context(outcomes));
 }
 
-// Walks the job in order: a step without `if` runs only while every earlier
-// step succeeded, `always()` ignores earlier failures, and a step that runs
-// fails when the scenario says so (or, for this job, when it ends in exit 1).
-function simulate(failing: string[]) {
+const stepName = (step: WorkflowStep) => text(step.name) || uses(step);
+const matches = (step: WorkflowStep, key: string) =>
+  step.id === key || stepName(step) === key;
+
+// The runner's reading of a step condition: one without a status function
+// runs only while every earlier step succeeded, as if it began `success() &&`.
+function stepCondition(step: WorkflowStep): string {
+  if (step.if === undefined) return "success()";
+  const source = unwrapExpression(String(step.if));
+  return usesStatusFunction(parseExpression(source))
+    ? source
+    : `success() && (${source})`;
+}
+
+// Walks the job in order: `always()` ignores earlier failures and
+// cancellation, and `!cancelled()` ignores failures but not cancellation. A
+// step that runs fails when the scenario says so (or, for this job, when it
+// ends in exit 1). `cancelledDuring` cancels the run, as a newer push to the
+// pull request does, while that step runs: its outcome is `cancelled` and
+// later steps see a cancelled job.
+function simulate(failing: string[], cancelledDuring?: string) {
   const outcomes: Record<string, string> = {};
   const ran: string[] = [];
   let failed = false;
+  let cancelled = false;
   for (const step of steps()) {
-    const name = text(step.name) || uses(step);
-    const condition = step.if === undefined ? "success()" : String(step.if);
+    const name = stepName(step);
+    const condition = stepCondition(step);
     const shouldRun = truthy(
       evaluateExpression(parseExpression(condition), {
         ...context(outcomes),
-        status: { success: !failed, failure: failed, cancelled: false },
+        status: {
+          success: !failed && !cancelled,
+          failure: failed && !cancelled,
+          cancelled,
+        },
       }),
     );
     const id = typeof step.id === "string" ? step.id : null;
@@ -88,12 +112,17 @@ function simulate(failing: string[]) {
       continue;
     }
     ran.push(name);
+    if (cancelledDuring !== undefined && matches(step, cancelledDuring)) {
+      if (id) outcomes[id] = "cancelled";
+      cancelled = true;
+      continue;
+    }
     const fails =
-      (id !== null && failing.includes(id)) || /\bexit 1\b/.test(run(step));
+      failing.some((key) => matches(step, key)) || /\bexit 1\b/.test(run(step));
     if (id) outcomes[id] = fails ? "failure" : "success";
     if (fails) failed = true;
   }
-  return { ran, failed };
+  return { ran, failed, cancelled, outcomes };
 }
 
 const publishScores = (step: WorkflowStep) =>
@@ -171,11 +200,58 @@ describe("Shadscan reporting workflow", () => {
       // The final step is what turns the job red after publishing.
       const last = steps().at(-1)!;
       expect(ran.at(-1)).toBe(text(last.name));
-      expect(String(last.if)).toMatch(/always\(\)/);
+      // `!cancelled()` still runs after a failed step; unlike `always()`, it
+      // does not run once the run is cancelled.
+      expect(String(last.if)).toMatch(/!\s*cancelled\(\)/);
       expect(steps().indexOf(unavailable)).toBeLessThan(steps().indexOf(last));
-      expect(text(unavailable.if)).toMatch(/always\(\)/);
+      expect(text(unavailable.if)).toMatch(/!\s*cancelled\(\)/);
     },
   );
+
+  it("publishes unavailable evidence and fails the job when a setup step fails before installation", () => {
+    const setupBun = stepWith((step) =>
+      uses(step).startsWith("oven-sh/setup-bun@"),
+    );
+    const { ran, failed, outcomes } = simulate([stepName(setupBun)]);
+    expect(outcomes).toMatchObject({ install: "skipped", audit: "skipped" });
+    const unavailable = stepWith(publishUnavailable);
+    expect(ran).toContain(text(unavailable.name));
+    expect(ran).not.toContain(text(stepWith(publishScores).name));
+    expect(ran.at(-1)).toBe(text(steps().at(-1)!.name));
+    expect(failed).toBe(true);
+  });
+
+  it.each([["install"], ["audit"], ["Retain the raw report"]])(
+    "publishes nothing and adds no failing step when the run is cancelled during %s",
+    (cancelledDuring) => {
+      // ci.yml cancels a superseded pull request run when a newer push
+      // arrives; the newer run owns the report comment.
+      const { ran, failed, cancelled } = simulate([], cancelledDuring);
+      expect(cancelled).toBe(true);
+      expect(failed).toBe(false);
+      expect(ran.at(-1)).toBe(
+        stepName(stepWith((step) => matches(step, cancelledDuring))),
+      );
+      expect(ran).not.toContain(text(stepWith(publishUnavailable).name));
+      expect(ran).not.toContain(text(stepWith(publishScores).name));
+      expect(ran).not.toContain(text(steps().at(-1)!.name));
+      for (const step of steps())
+        expect(String(step.if ?? "")).not.toMatch(/\balways\(\)/);
+    },
+  );
+
+  it("stops a hung installation as a failed step inside the job time limit", () => {
+    // A job that reaches its own time limit is cancelled, and a cancelled
+    // job publishes nothing. Step limits keep a hung step a failure, so
+    // unavailable evidence is still published.
+    const job = reportJob();
+    const install = stepWith((step) => step.id === "install");
+    const audit = stepWith((step) => step.id === "audit");
+    expect(install["timeout-minutes"]).toBe(15);
+    expect(
+      Number(install["timeout-minutes"]) + Number(audit["timeout-minutes"]),
+    ).toBeLessThan(Number(job["timeout-minutes"]));
+  });
 
   it("gives both publishers the reporting token and the head commit", () => {
     const job = reportJob();
@@ -207,6 +283,12 @@ describe("Shadscan reporting workflow", () => {
     expect(evaluate(reason, { install: "success", audit: "failure" })).toMatch(
       /audit/i,
     );
+    // A failed setup step skips installation; it did not fail.
+    const skipped = String(
+      evaluate(reason, { install: "skipped", audit: "skipped" }),
+    );
+    expect(skipped).toMatch(/setup/i);
+    expect(skipped).not.toMatch(/installation failed/i);
   });
 });
 

@@ -36,8 +36,12 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      # Step limits keep a hung step a failure inside the job's own limit. A
+      # job that reaches its limit is cancelled, and a cancelled run
+      # publishes nothing.
       - name: Install dependencies
         id: install
+        timeout-minutes: 15
         run: |
           bash scripts/github/install-canvas-deps.sh
           bun ci --no-cache --backend=copyfile
@@ -53,19 +57,23 @@ jobs:
           path: ${{ runner.temp }}/shadscan/shadscan.raw.json
           if-no-files-found: error
           retention-days: 14
+      # `!cancelled()` runs these steps after a failure but not after a
+      # cancellation: a newer push cancels a superseded pull request run, and
+      # that newer run owns the report comment.
       - name: Publish the advisory scores
-        if: always() && steps.audit.outcome == 'success'
+        if: ${{ !cancelled() && steps.audit.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/shadscan-publish.mjs "$RUNNER_TEMP/shadscan"
       - name: Publish unavailable evidence
-        if: always() && (steps.install.outcome != 'success' || steps.audit.outcome != 'success')
+        if: ${{ !cancelled() && (steps.install.outcome != 'success' || steps.audit.outcome != 'success') }}
         env:
           GH_TOKEN: ${{ github.token }}
-          SHADSCAN_UNAVAILABLE_REASON: ${{ steps.install.outcome != 'success' && 'Dependency installation failed' || 'The audit did not produce a valid report' }}
+          # Installation is skipped, not failed, when a setup step before it fails.
+          SHADSCAN_UNAVAILABLE_REASON: ${{ steps.install.outcome == 'failure' && 'Dependency installation failed' || steps.install.outcome != 'success' && 'A setup step failed before dependency installation' || 'The audit did not produce a valid report' }}
         run: node scripts/shadscan-publish.mjs --unavailable
       - name: Fail when audit evidence is unavailable
-        if: always() && (steps.install.outcome != 'success' || steps.audit.outcome != 'success')
+        if: ${{ !cancelled() && (steps.install.outcome != 'success' || steps.audit.outcome != 'success') }}
         run: |
           echo "Shadscan audit evidence is unavailable for $SHADSCAN_HEAD_SHA; see the job summary. This advisory job blocks no merge."
           exit 1
