@@ -712,3 +712,42 @@ The query is read as libpq's URI parser reads it: `%XX` decoded, `+` kept as `+`
 - `preflight`, to 19:39:33, with the new refusal of open defaults in `public` passing: 0 pending on both ledgers, marked `disposable`.
 
 No rebuild was run in this phase.
+
+## 21. The fourth review's fixes (phase 9)
+
+The round 3 reviewer read phase 8 (6/10, accept after fixes). K1 held: every query-key attack it tried is refused. It found one blocking hole beside K1, older than phase 8, and three other items. One commit each:
+
+| Item         | Commit      | What changed                                                                                                                                            | What failed first                                      |
+| ------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| L1, blocking | `57e95ee1d` | One host rule for every address; the pooler host pinned to Supabase's shape; no builder decodes the host; every hosted libpq connection requires SCRAM  | 22 cases across five test files                        |
+| L2           | `a73e49a61` | One check, `databaseUrlProblem`, judges every address, and every builder and target check refuses on it; the texts name the three files that start psql | 21 cases, and one more for the session role's encoding |
+| L3           | `036eebb0b` | `sslcert`, `sslkey`, `sslcrl` and `sslcrldir` dropped; `connect_timeout` a whole number from 1 to 300                                                   | 12 cases                                               |
+| L4           | `14ba8f0db` | The fingerprint (version 3) reads every role's default privileges but `supabase_admin`'s                                                                | 2 real-stack and 2 unit cases                          |
+| L5           | `8a675aac8` | The runbook's table of reset stops gains its two missing cases                                                                                          | Documents only                                         |
+
+**L1, the hole.** On a `postgres://` address WHATWG URL keeps a comma, a percent-escape and upper case in the host, and the pooled check asked only `endsWith(".pooler.supabase.com")`. So `postgres://postgres.<ref>:PW@evil.example,aws-0-us-east-1.pooler.supabase.com:6543/postgres` passed the release target check, and libpq, which reads a comma as a list of hosts, tried `evil.example` first. The escaped forms passed too, because the builders decoded the host.
+
+**L1, the fix.**
+
+- One host rule (`databaseUrlHostProblem`): an exact loopback form, or lower-case labels of letters, digits and hyphens joined by dots.
+- The pooled host is `^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$`. Supabase gives the shape as `aws-[INDEX]-[REGION].pooler.supabase.com` ("Connect to your database", read on 18 November 2026), and both projects' hosts fit it. The direct host stays exact.
+- **SCRAM.** A `preflight` run on the preview project with `PGREQUIREAUTH=scram-sha-256` passed (20:03:24-20:03:43 UTC). So every hosted libpq connection the job opens requires SCRAM: the release builder, `psqlConnection` (the reset wrapper's marker read) and the CMS runner. The Supabase CLI (Go) and Payload (node-postgres) do not use libpq, so this setting does not reach them; they answer whatever the server asks.
+- **`sslmode`, reported and not changed.** The preview project's release address uses `sslmode=require`, which does not verify the certificate. Payload verifies it against the project's CA, and the CMS runner's psql gets the CA as `PGSSLROOTCERT`, with which libpq's `require` also verifies the chain. Development's address is a GitHub secret this machine does not hold; the runbook prescribes `require`. So the two addresses do not both verify today. Whether the hosted check keeps accepting plain `require` is the coordinator's ruling.
+
+**L2.** `databaseUrlProblem` checks, in turn, the scheme, the shape libpq would read otherwise, the host, the query allowlist, and `options` only on a loopback address. The loopback decision, `psqlConnection`, the release target check, the release builder, the CMS builder and the CMS target check all call it. One map turns each allowed key into its libpq variable for both builders. Three files start psql: `scripts/lib/psql.mjs`, `scripts/release/lib/postgres.mjs` and `scripts/cms/lib/postgres.mjs`. The CMS runner no longer maps a query host, passes nothing to libpq unread, and keeps only two ambient `PG*` settings: `PGSSLROOTCERT`, how the release job hands it the CA, and `PGPASSWORD`.
+
+**L2, a defect found and folded in.** The local CMS session address was written with `URLSearchParams`, which writes a space as `+`. libpq keeps `+`, so with the query read the libpq way the CMS runner sent `-c+role=cms_owner`, and Payload's migrations failed on a fresh replay. The address is now written with `%20`, which both read alike. The replay caught it before any commit went further; the fix and the older cases that pinned the `+` form are in the L2 commit.
+
+**L4, the excluded role.** `EXCLUDED_DEFAULT_ACL_ROLES` names one role: `supabase_admin`, the platform's own. Hosted Supabase gives it default privileges in `public` that grant `anon` and `authenticated` (read on the preview project and on development on 18 November 2026). It runs no migration of the chain, and a plain replay has no such role. A unit case pins the list. On the preview project, the rows of the covered schemas belonged to `postgres` and `cms_owner`, which the chain writes, and to `supabase_admin`. The version moved from 2 to 3. A version 3 replay equals a read-only version 3 capture of the preview project: `4f39a0198b87a996eec590c586be04dcabff1f9a5d3458c2dfccd69eeeb3c76c`, 5,898 objects, two more than before, both `cms_owner`'s. So no rebuild was needed.
+
+**Checks.**
+
+- At `2e725eff2`: Prettier and ESLint on the 20 files changed in the phase, clean; `typecheck` 16 of 16, not cached; CI's `migrate` job, its whole sequence on the operator's own Postgres, every step passing, the release, fingerprint and CMS roles step 43 passed and 4 skipped. `tests/unit/scripts`, `tests/unit/workflows` and `tests/unit/docs`: five failures in one file, `cms-payload-command.test.ts`, the same alone, pinning the session address's `+` form. Updated, and folded into L2.
+- At `8a675aac8`, which differs from `2e725eff2` in that test file only: the same unit suites, 266 files passed and 1 skipped, 6,619 tests passed and 27 skipped.
+
+**On the preview project.**
+
+- 20:03 UTC: a read-only read of the default-privilege rows; `preflight` with `PGREQUIREAUTH=scram-sha-256`, 20:03:24-20:03:43.
+- Read-only version 3 captures of the schema, compared with the replay.
+- At `8a675aac8`, against a fresh flagged replay on the operator's own Postgres 17.11 (`4f39a019…`, 5,898 objects): `gates` 21:08:28-21:08:39, "Schema fingerprints match", 0 differing; `record-heads` to 21:08:58; `preflight` to 21:09:17. These ran with SCRAM required by the code.
+- No rebuild.
