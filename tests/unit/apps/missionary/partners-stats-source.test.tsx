@@ -19,6 +19,7 @@ vi.mock("@asym/database/hooks", () => ({
 }));
 vi.mock("../../../../apps/missionary/app/donors/use-donors-page-view", () => ({
   useDonorsPageViewFields: () => ({
+    status: { isLoading: false, error: null },
     donors: { all: new Array(15).fill({}), hasMore: false },
     filters: { statusFilter: "All", pledgeFilter: "All" },
     actions: { applyStatFilter: vi.fn() },
@@ -34,6 +35,7 @@ vi.mock("../../../../apps/missionary/app/donors/use-donors-page-view", () => ({
   }),
 }));
 
+// eslint-disable-next-line no-restricted-imports -- AL-2697: The partner totals are the unit under test.
 import { DonorsPageStats } from "../../../../apps/missionary/app/donors/donors-page-stats";
 
 afterEach(cleanup);

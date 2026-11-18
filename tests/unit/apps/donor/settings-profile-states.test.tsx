@@ -332,6 +332,21 @@ it("returns to Try again and says so again when the retry fails", async () => {
   expect(document.activeElement).toBe(profilePanel());
 });
 
+it("moves focus into the tab once a tapped Try again loads the settings", async () => {
+  const pending = deferred<unknown>();
+  fixture.refetch.mockReturnValue(pending.promise);
+  failToLoad({ cached: true });
+  // A tap on Safari does not focus the button; nothing holds focus.
+  act(() => (document.activeElement as HTMLElement).blur());
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(document.activeElement).toBe(document.body);
+
+  fixture.error = null;
+  await act(async () => pending.resolve({ isError: false }));
+  expect(textbox("First name")).toBeTruthy();
+  expect(document.activeElement).toBe(profilePanel());
+});
+
 it("leaves focus alone when the settings recover on their own after a retry that failed again", async () => {
   const pending = deferred<unknown>();
   fixture.refetch.mockReturnValue(pending.promise);

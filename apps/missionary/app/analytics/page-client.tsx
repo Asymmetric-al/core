@@ -3,10 +3,6 @@
 import { useAuth, useDonationMetrics } from "@asym/lib/hooks";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { MONEY_UNAVAILABLE } from "@asym/missionary/components/money-units";
-import {
-  pageHeading,
-  useLoadRetry,
-} from "@asym/missionary/hooks/use-load-retry";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -17,6 +13,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { pageHeading, useLoadRetry } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 import dynamic from "next/dynamic";
 import * as React from "react";
@@ -335,7 +332,7 @@ export default function AnalyticsPage() {
   const metrics = useDonationMetrics(loading ? "" : (profile?.id ?? ""));
   const gifts = metrics.gifts ?? [];
   const loadRetryButton = React.useRef<HTMLButtonElement>(null);
-  const loadRetry = useLoadRetry({
+  const { failureView, ...loadRetry } = useLoadRetry({
     retryRef: loadRetryButton,
     error: metrics.error,
     loading: loading || metrics.isLoading,
@@ -356,7 +353,7 @@ export default function AnalyticsPage() {
       />
       {/* The error view stays up while Try again runs, keeping its focus. */}
       {loadRetry.error ? (
-        <Card>
+        <Card ref={failureView}>
           <CardContent className="flex flex-col items-start gap-3">
             <p
               key={loadRetry.failedRetries}

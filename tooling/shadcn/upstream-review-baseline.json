@@ -1169,9 +1169,9 @@
       "path": "components/shadcn/popover.tsx",
       "diffComponent": "popover",
       "owners": ["popover"],
-      "localSha256": "585fbe08ffbb34cf684fd173bf05f4c7bbfa9140757d9b34273db6fd30a02a38",
-      "diffSha256": "adc45e259deef162a95a1be3639645d8b9123a2dfff168736d70edbc8bd51f0d",
-      "reason": "Preserve Base UI positioner/portal state callbacks and Core motion/popup parts; upstream changes styling rather than a verified behavior defect. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "125809a4e76e42623740eda1fe53af51a1ac4a2cb55354dd64c4da6cbe081e04",
+      "diffSha256": "1c49b31adb31c012577768823d98ac38529fffad7ad1da79d62eb29bbee6a9a7",
+      "reason": "Preserve Base UI positioner/portal state callbacks and Core motion/popup parts; upstream changes styling rather than a verified behavior defect. Core preserves functional className state callbacks through mergeBaseUIClassName. Popover's root also cancels an outside press that lands inside the open Shift+? help (isPressInShortcutHelp), which opens over a popover outside its floating tree; every other change reaches the caller's onOpenChange unchanged.",
       "proofs": [
         "packages/ui/components/shadcn/popover.tsx",
         "docs/ai/rules/frontend.md"
@@ -2169,7 +2169,7 @@
   "proofSources": [
     {
       "path": "docs/ai/rules/frontend.md",
-      "sha256": "31650bb8ab0f5b587facb22d27e49e9513864e81ce1fec286f859f8c9aeae826"
+      "sha256": "4a88af7cbdd79e9f4439e003d7f1bcee178f91c8366483391138233ad57f4bb0"
     },
     {
       "path": "packages/lib/hooks/use-mobile.ts",
@@ -2177,7 +2177,7 @@
     },
     {
       "path": "packages/ui/AGENTS.md",
-      "sha256": "47569c48058bd047f4d4ed2d4208b2b1d30f98bd08a1badce5bb0a2ee6a56a0d"
+      "sha256": "9d3da85768d99cf907309487a4e2c59ec981c1f7ccd16f3d224504fdf8d1c015"
     },
     {
       "path": "packages/ui/components/primitives/RichTextEditor.tsx",
@@ -2433,7 +2433,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/popover.tsx",
-      "sha256": "585fbe08ffbb34cf684fd173bf05f4c7bbfa9140757d9b34273db6fd30a02a38"
+      "sha256": "125809a4e76e42623740eda1fe53af51a1ac4a2cb55354dd64c4da6cbe081e04"
     },
     {
       "path": "packages/ui/components/shadcn/progress.tsx",

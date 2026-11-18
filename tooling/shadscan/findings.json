@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "84a0bb9aeb38455f465bb4dbed17d8408190dc070a2f9cda8ff26df90f5b8c2e"
+          "sha256": "af0e1d1ff4469db7cbd0fd52e89842d39612e3ca724affcd680bcb83007628b6"
         }
       ]
     },
@@ -809,7 +809,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
-          "sha256": "5051fae294f52cb0a74ff188fcacb3a2bba3dbc98b5493b64fc7a7c8d5d5a792"
+          "sha256": "f9cb6a187c7e17f81c11db62100f44023d531f22b8aa37006412d3da63227389"
         },
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
@@ -1393,7 +1393,7 @@
         },
         {
           "path": "apps/missionary/app/profile/profile-page-client.tsx",
-          "sha256": "3dfaa4ab1cf02cc9bac25cc1eb4b509570f165f2b4d8f3a75e55913ea2c33c07"
+          "sha256": "9892c1429bf8a69cd29556e537c87bfc5755533f3fb397f726210e969ffb6110"
         }
       ]
     },
@@ -2778,11 +2778,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donors-page-roster.tsx",
-          "sha256": "398252192c2aef346e7e78df2167f2c1d1a758d2b67ecd537947250b53b883c6"
+          "sha256": "bc07e6ea19f62c1ab17cafb7e17c39852c7937da65a8b299eba119f0096a4e51"
         },
         {
           "path": "apps/missionary/app/donors/donors-page-states.tsx",
-          "sha256": "12fdf78b833a807fb3704024579bc3aaf6715062993f549aa04ce8458b850827"
+          "sha256": "cb60577d33fe532a1680295052a0a153eaed816bcfe5a81b38b85ceaae91c02b"
         },
         {
           "path": "tests/unit/apps/missionary/donors-page-module-shape.test.ts",

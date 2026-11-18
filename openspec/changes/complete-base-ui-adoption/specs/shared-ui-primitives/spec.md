@@ -28,7 +28,7 @@ Base UI adoption reviews SHALL cover the current official documentation index an
 
 ### Requirement: Shared accessible primitive ownership
 
-Core SHALL implement ordinary behavior-heavy product controls through shared Base UI primitives using the existing base-maia design system. Application compositions SHALL preserve accessible names, keyboard selection, focus management, and controlled values. Specialized libraries MAY retain distinct documented responsibilities.
+Core SHALL implement ordinary behavior-heavy product controls through shared `@asym/ui` components, built on Base UI or on UI SDK where the UI SDK requirement admits it, using the existing base-maia design system. Application compositions SHALL preserve accessible names, keyboard selection, focus management, and controlled values. Specialized libraries MAY retain distinct documented responsibilities.
 
 #### Scenario: Keyboard selection in product controls
 
