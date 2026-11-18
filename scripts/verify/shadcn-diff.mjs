@@ -584,6 +584,96 @@ function approvedProxyEnvironment() {
   return proxies;
 }
 
+const TLS_DIAGNOSTIC =
+  /\b(?:TLS|SSL|certificates?|self[- ]signed|unable to verify|ERR_TLS_[A-Z_]+|CERT_[A-Z_]+|UNABLE_TO_VERIFY_[A-Z_]+)\b/i;
+const PUBLIC_REGISTRY_URL = /^https:\/\/ui\.shadcn\.com\/r\/[A-Za-z0-9._/-]+$/;
+// What the pinned CLI prints on stdout (its logger writes errors there) when
+// a registry request fails below HTTP (@shadcn/registry's fetcher).
+const REQUEST_FAILURE = /^(?:Error: )?Request to (\S+) failed, reason: (.+)$/gm;
+const CLI_BOILERPLATE =
+  /^(?:Something went wrong\b|If the problem persists\b|You can also try a previous version\b|(?:npx|bunx|pnpm dlx|yarn dlx) shadcn@|(?:Message|Error|Suggestion):$)/;
+
+/** The kind of a connect-level failure worth one more attempt, or null. */
+function connectFailureKind(reason) {
+  if (/\bConnect Timeout Error\b|\bUND_ERR_CONNECT_TIMEOUT\b/.test(reason))
+    return "connect timeout";
+  return /\b(ECONNRESET|ETIMEDOUT|EAI_AGAIN)\b/.exec(reason)?.[1] ?? null;
+}
+
+/**
+ * One line of CLI output safe to print: URL userinfo (proxy credentials),
+ * query strings and fragments, and Bearer or Basic values are redacted, and
+ * the line is capped.
+ */
+export function redactCliLine(line) {
+  return line
+    .replace(/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/?#@]*@/gi, "$1<redacted>@")
+    .replace(/(\b[a-z][a-z0-9+.-]*:\/\/[^\s?#]*)[?#]\S*/gi, "$1?<redacted>")
+    .replace(/\b(Bearer|Basic)\s+\S+/gi, "$1 <redacted>")
+    .slice(0, 300);
+}
+
+/**
+ * The CLI's own reason for a failed run: its request failure, else its
+ * registry error, else the first line of its error report. The rest of its
+ * output, and all of stderr, stays hidden.
+ */
+function cliFailureReason(output) {
+  const lines = output
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const request = lines.find((line) =>
+    /^(?:Error: )?Request to \S+ failed, reason: /.test(line),
+  );
+  const line =
+    request?.replace(/^Error: /, "") ??
+    lines.find((candidate) =>
+      /^Failed to fetch from registry\b/.test(candidate),
+    ) ??
+    lines.find((candidate) => !CLI_BOILERPLATE.test(candidate));
+  return line ? redactCliLine(line) : null;
+}
+
+function cliLabel(args) {
+  if (args[0] === "add" && typeof args[1] === "string")
+    return args[2] === "--diff" && args[3]
+      ? `${args[1]} (diff ${args[3]})`
+      : args[1];
+  return args.join(" ");
+}
+
+/**
+ * Whether a failed read is worth one more attempt: exactly one public
+ * registry error, either an HTTP 502/503/504 or a connect-level failure
+ * (connect timeout, ECONNRESET, ETIMEDOUT, EAI_AGAIN), and no TLS or
+ * contradictory diagnostic. Returns how to name it, or null.
+ */
+function transientFailure(output) {
+  if (TLS_DIAGNOSTIC.test(output)) return null;
+  const registryErrors =
+    output.match(/^Failed to fetch from registry.*$/gm) ?? [];
+  const requests = [...output.matchAll(REQUEST_FAILURE)];
+  if (registryErrors.length === 1 && requests.length === 0) {
+    const status = registryErrors[0].match(
+      /^Failed to fetch from registry \((502|503|504)\): (\S+)$/,
+    );
+    return status && PUBLIC_REGISTRY_URL.test(status[2])
+      ? { retry: `HTTP ${status[1]}`, final: `HTTP ${status[1]}` }
+      : null;
+  }
+  if (registryErrors.length === 0 && requests.length === 1) {
+    const [, url, reason] = requests[0];
+    const kind = PUBLIC_REGISTRY_URL.test(url)
+      ? connectFailureKind(reason)
+      : null;
+    return kind
+      ? { retry: `connect failure (${kind})`, final: "connect failure" }
+      : null;
+  }
+  return null;
+}
+
 export function createCliRunner({
   cwd,
   root = fileURLToPath(new URL("../..", import.meta.url)),
@@ -701,33 +791,24 @@ export function createCliRunner({
               /\r\n/g,
               "\n",
             );
-            const registryErrors =
-              output.match(/^Failed to fetch from registry.*$/gm) ?? [];
             // Contradictory registry or TLS diagnostics fail closed. Only one
             // unambiguous anonymous public transient error may be retried.
             const transient =
-              code === 1 &&
-              readOnly &&
-              registryErrors.length === 1 &&
-              !/\b(?:TLS|SSL|certificates?|self[- ]signed|unable to verify|ERR_TLS_[A-Z_]+|CERT_[A-Z_]+|UNABLE_TO_VERIFY_[A-Z_]+)\b/i.test(
-                output,
-              )
-                ? registryErrors[0].match(
-                    /^Failed to fetch from registry \((502|503|504)\): https:\/\/ui\.shadcn\.com\/r\/[A-Za-z0-9._/-]+$/,
-                  )
-                : undefined;
+              code === 1 && readOnly ? transientFailure(output) : null;
             if (transient && attempts < 3) {
               console.warn(
-                `[shadcn-diff] public registry HTTP ${transient[1]}; retry ${attempts + 1}/3 within the existing CLI coverage deadline.`,
+                `[shadcn-diff] public registry ${transient.retry}; retry ${attempts + 1}/3 within the existing CLI coverage deadline.`,
               );
               backoff = setTimeout(launch, 100 * attempts);
             } else {
               const cause = transient
-                ? `; public registry HTTP ${transient[1]} after ${attempts} attempts`
+                ? `; public registry ${transient.final} after ${attempts} attempts`
                 : "";
+              const reason = cliFailureReason(output);
+              // One line: which read failed and the CLI's own reason.
               settle(
                 new Error(
-                  `shadcn CLI coverage failed (exit ${code ?? "unknown"}${cause})`,
+                  `shadcn CLI coverage failed (exit ${code ?? "unknown"}${cause}) for ${cliLabel(cliArgs)}: ${reason ?? "the CLI printed no reason"}`,
                 ),
               );
             }
