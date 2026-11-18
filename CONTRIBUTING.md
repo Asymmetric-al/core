@@ -45,9 +45,10 @@ without repairing it. Setup does not start an issue trial.
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
   for raw findings, shared-consumer checks, exceptions, and legacy debt.
-- **UI audit:** `bun run verify:shadscan` uses the locked scanner across all three
-  apps. CI and pre-commit require honest app floors and current reviewed evidence;
-  see the [Shadscan guide](docs/guides/development/shadscan.md).
+- **UI audit:** `bun run shadscan:audit` runs the locked scanner across the
+  workspace and writes an advisory report. Its scores never block a commit,
+  push or required check; CI publishes them on each pull request for review.
+  See the [Shadscan guide](docs/guides/development/shadscan.md).
 - **React diagnostics:** `bun run react-doctor:check` enforces the pinned,
   all-applicable-rule local profile across eight targets. Preserve the raw
   inventory and exact source/test-bound exceptions; advisory helper exits do not

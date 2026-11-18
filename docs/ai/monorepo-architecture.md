@@ -30,7 +30,6 @@ This repository uses Bun workspaces for package management and Turborepo for tas
 `- tooling/
    |- eslint-config
    |- shadcn (review baseline data, not a workspace package)
-   |- shadscan (findings ledger and policy, not a workspace package)
    `- typescript-config
 ```
 
