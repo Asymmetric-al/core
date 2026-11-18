@@ -130,6 +130,51 @@ describe.skipIf(!ADMIN_URL)("AL-2675 membership core (real stack)", () => {
         expect(byStamp.revoked_at).toBeInstanceOf(Date);
       }));
 
+    // Council round 2 on WP2a, R3: the trigger clears the flag on
+    // revocation; a check constraint keeps that true for a writer that runs
+    // with triggers off (a load with session_replication_role = replica).
+    it("refuses a row that is not live and carries the flag, even with triggers off", () =>
+      tx(async () => {
+        await db.query("set local session_replication_role = replica");
+        const attempt = async (sql: string, params: unknown[]) => {
+          await db.query("savepoint r3");
+          try {
+            await db.query(sql, params);
+            await db.query("release savepoint r3");
+            return null;
+          } catch (error) {
+            await db.query("rollback to savepoint r3");
+            const { code, constraint } = error as {
+              code?: string;
+              constraint?: string;
+            };
+            return { code, constraint };
+          }
+        };
+        expect(
+          await attempt(
+            "insert into authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active, revoked_at) values ($1, $2, 'staff', 'hr', true, false, now())",
+            [id.UDEV, id.TB],
+          ),
+        ).toEqual({
+          code: "23514",
+          constraint: "authz_memberships_tenant_admin_live_chk",
+        });
+        expect(
+          await attempt(
+            "update authz.memberships set is_active = false, revoked_at = now() where id = $1",
+            [id.mAdm],
+          ),
+        ).toEqual({
+          code: "23514",
+          constraint: "authz_memberships_tenant_admin_live_chk",
+        });
+        expect(await membership("mAdm")).toMatchObject({
+          is_active: true,
+          is_tenant_admin: true,
+        });
+      }));
+
     it("granting a role held before revives the same row, clears revoked_at and records the new granted_by", () =>
       tx(async () => {
         const before = await membership("mRev");

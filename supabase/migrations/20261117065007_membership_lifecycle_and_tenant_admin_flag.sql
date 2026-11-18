@@ -14,7 +14,9 @@
 --    A row that is not live never carries the tenant-administrator flag: the
 --    trigger clears it on revocation, so a re-grant brings no administration
 --    back unless the re-granting statement sets the flag itself (council
---    round 1 on WP2a, F1).
+--    round 1 on WP2a, F1). A check constraint keeps the same rule for a
+--    writer that runs with triggers off, such as a load with
+--    session_replication_role = replica (council round 2 on WP2a, R3).
 -- 3. The active-membership index (plan 9.4) covers the lookups every helper
 --    makes: the caller's live rows in a tenant, by class and sub-role.
 -- 4. Data. No staff row keeps the member-care sub-role by default: each such
@@ -42,7 +44,8 @@
 -- authz_memberships_user_tenant_active_idx ON authz.memberships (user_id,
 -- tenant_id) WHERE is_active = true; ALTER TABLE authz.memberships DROP
 -- CONSTRAINT authz_memberships_live_chk, DROP CONSTRAINT
--- authz_memberships_tenant_admin_staff_chk, DROP COLUMN is_tenant_admin, DROP
+-- authz_memberships_tenant_admin_staff_chk, DROP CONSTRAINT
+-- authz_memberships_tenant_admin_live_chk, DROP COLUMN is_tenant_admin, DROP
 -- COLUMN revoked_at, DROP COLUMN granted_by. The data step is not reversed:
 -- the sub-role change and the added rows are what the decision table records.
 
@@ -71,7 +74,9 @@ ALTER TABLE authz.memberships
   ADD CONSTRAINT authz_memberships_live_chk
     CHECK (is_active = (revoked_at IS NULL)),
   ADD CONSTRAINT authz_memberships_tenant_admin_staff_chk
-    CHECK (NOT is_tenant_admin OR role = 'staff');
+    CHECK (NOT is_tenant_admin OR role = 'staff'),
+  ADD CONSTRAINT authz_memberships_tenant_admin_live_chk
+    CHECK (is_active OR NOT is_tenant_admin);
 
 -- 2. The lifecycle rule. Owned by postgres, invoker rights: it only reshapes
 -- the row its writer is already allowed to write.
