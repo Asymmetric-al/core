@@ -305,10 +305,11 @@ describe("#2256 seams, readers and writers", () => {
       /\.rpc\("missionary_own_record_write",\s*\{\s*\.\.\.missionaryArgs\(scope\),\s*p_patch: missionaryUpdate,?\s*\}\)/,
     );
     // AL-2675 moves the profile write into SQL. Pin its target columns as well as the route payload.
-    const authority = readFileSync(
-      path.join(DIR, "20261119135000_missionary_handler_authority.sql"),
-      "utf8",
+    const authorityFiles = readdirSync(DIR).filter((name) =>
+      name.endsWith("_missionary_handler_authority.sql"),
     );
+    expect(authorityFiles).toHaveLength(1);
+    const authority = readFileSync(path.join(DIR, authorityFiles[0]!), "utf8");
     const writer =
       /CREATE FUNCTION public\.missionary_own_record_write\([\s\S]*?AS \$\$([\s\S]*?)\$\$;/i.exec(
         authority,
