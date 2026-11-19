@@ -179,21 +179,147 @@ describe("Eve governance admin route", () => {
     );
   });
 
-  // Rewritten by AL-2675 (WP2c, part 1): the global audit history was the
-  // `super_admin` role name's, which no membership holds since WP2a. It is a
-  // platform operator's now, confirmed by the shared check in the database.
-  it("loads global audit history for a confirmed platform operator (WP2c)", async () => {
-    operatorRpcMock.mockResolvedValue(AN_OPERATOR);
-    const { GET } =
-      await import("../../../../packages/api/src/eve/governance/route");
+  // Rewritten by AL-2675 (WP2c, part 1), and again by its review (WC1). The
+  // global audit history was the `super_admin` role name's, which no
+  // membership holds since WP2a; part 1 gave it to a confirmed operator. The
+  // plan says an operator "sees a tenant's data only through an ordinary
+  // membership", so an operator working in tenant A reads tenant A's history,
+  // as a tenant administrator does, on GET and after a PATCH, and never an
+  // event of tenant B. The audit reader runs for real here, over a table that
+  // holds both tenants' events, the operator's own among them.
+  describe("an operator working in one tenant (WC1)", () => {
+    const TENANT_A = "00000000-0000-4000-8000-00000000000a";
+    const TENANT_B = "00000000-0000-4000-8000-00000000000b";
+    const OPERATOR_PROFILE = "00000000-0000-4000-8000-0000000000c1";
+    const OTHER_PROFILE = "00000000-0000-4000-8000-0000000000c2";
 
-    const response = await GET(createRequest());
+    function auditRow(id: string, tenantId: string, profileId: string) {
+      return {
+        id,
+        run_id: null,
+        tenant_id: tenantId,
+        actor_id: `admin:${profileId}`,
+        actor_profile_id: profileId,
+        actor_role: "admin",
+        identity_mode: "admin",
+        initiator_type: "admin",
+        initiator_id: profileId,
+        policy_id: "eve-governance-kernel",
+        policy_status: "not_configured",
+        governance_state_version: 1,
+        action: "audit.tracer.verify",
+        target: "eve:global",
+        result: "succeeded",
+        tool_name: null,
+        subagent_name: null,
+        model_role: "none",
+        evidence_summary: "{}",
+        change_summary: "{}",
+        decision_summary: "{}",
+        debug_metadata: { tenant: tenantId },
+        redaction_version: "eve-audit-v1",
+        created_at: "2026-11-19T00:00:00.000Z",
+      };
+    }
 
-    expect(response.status).toBe(200);
-    expect(operatorRpcMock).toHaveBeenCalledWith("platform_operator_session");
-    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
-      supabaseAdmin: { from: expect.any(Function) },
-      tenantId: null,
+    const ROWS = [
+      auditRow(
+        "00000000-0000-4000-8000-0000000000e1",
+        TENANT_A,
+        OPERATOR_PROFILE,
+      ),
+      auditRow(
+        "00000000-0000-4000-8000-0000000000e2",
+        TENANT_B,
+        OPERATOR_PROFILE,
+      ),
+      auditRow("00000000-0000-4000-8000-0000000000e3", TENANT_B, OTHER_PROFILE),
+    ];
+
+    /** `eve_audit_events` holding both tenants' rows, filtered as PostgREST would. */
+    function auditTable() {
+      return {
+        from: vi.fn((table: string) => {
+          expect(table).toBe("eve_audit_events");
+          let rows: Array<Record<string, unknown>> = [...ROWS];
+          const builder = {
+            select: () => builder,
+            eq: (column: string, value: unknown) => {
+              rows = rows.filter((row) => row[column] === value);
+              return builder;
+            },
+            order: () => builder,
+            limit: async (count: number) => ({
+              data: rows.slice(0, count),
+              error: null,
+            }),
+          };
+          return builder;
+        }),
+      };
+    }
+
+    beforeEach(async () => {
+      const actual = await vi.importActual<
+        typeof import("../../../../packages/api/src/eve/audit/store")
+      >("../../../../packages/api/src/eve/audit/store");
+      loadRecentEveAuditEventsMock.mockImplementation(
+        actual.loadRecentEveAuditEvents,
+      );
+      getAdminClientMock.mockReturnValue({ client: auditTable(), error: null });
+      getAuthContextMock.mockResolvedValue({
+        userId: "user_1",
+        email: "operator@example.com",
+        tenantId: TENANT_A,
+        role: "admin",
+        memberships: [],
+        profileId: OPERATOR_PROFILE,
+        isAuthenticated: true,
+      });
+      operatorRpcMock.mockResolvedValue(AN_OPERATOR);
+    });
+
+    it("GET returns tenant A's history and no event of tenant B, without asking the operator check", async () => {
+      const { GET } =
+        await import("../../../../packages/api/src/eve/governance/route");
+
+      const response = await GET(createRequest());
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        auditHistory: Array<{ id: string; tenantId?: string }>;
+      };
+      expect(
+        body.auditHistory.map((event) => [event.id, event.tenantId]),
+      ).toEqual([["00000000-0000-4000-8000-0000000000e1", TENANT_A]]);
+      expect(JSON.stringify(body)).not.toContain(TENANT_B);
+      // The GET no longer needs the fact, so it does not ask for it.
+      expect(operatorRpcMock).not.toHaveBeenCalled();
+    });
+
+    it("PATCH by a confirmed operator returns tenant A's history and no event of tenant B", async () => {
+      const { PATCH } =
+        await import("../../../../packages/api/src/eve/governance/route");
+
+      const response = await PATCH(
+        createRequest("PATCH", {
+          switchKey: "github_actions",
+          enabled: true,
+          expectedStateVersion: 1,
+          reason: "Pause GitHub effects during incident review.",
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(operatorRpcMock).toHaveBeenCalledWith("platform_operator_session");
+      expect(setEveKillSwitchMock).toHaveBeenCalledTimes(1);
+      const body = (await response.json()) as {
+        auditHistory: Array<{ id: string; tenantId?: string }>;
+      };
+      expect(
+        body.auditHistory.map((event) => [event.id, event.tenantId]),
+      ).toEqual([["00000000-0000-4000-8000-0000000000e1", TENANT_A]]);
+      expect(JSON.stringify(body)).not.toContain(TENANT_B);
     });
   });
 
