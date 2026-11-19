@@ -1,6 +1,15 @@
 -- AL-491 acceptance-v1. Disposable local database only; all fixtures roll back.
 -- Run as the local database owner after applying candidate migrations.
 -- Uses actual authz functions, profiles and memberships; never mocks RLS.
+-- Amended by AL-2675 (WP2b, second release; record D-18): a signed-in request
+-- acts in the tenant its x-asym-tenant header names, with a live membership
+-- there, and no longer in the token's tenant claim, so each caller below also
+-- names that tenant in the request, as the Data API carries it. The claim
+-- stays in the token and grants nothing: the unaffiliated case still proves
+-- it. Signed-in users no longer hold INSERT, UPDATE or DELETE on
+-- field_policies, and its super-admin write policies are dropped with them
+-- (plan WP2b; activation review Q7), so the last case asserts that a
+-- super_admin profile's baseline write is refused at the privilege.
 BEGIN;
 INSERT INTO public.tenants(id,name,slug) VALUES
   ('f4910000-0000-4000-8000-000000000001','Field policy acceptance A','field-policy-acceptance-a'),
@@ -44,6 +53,7 @@ RESET ROLE;
 
 SELECT set_config('request.jwt.claim.sub','f4910000-0000-4000-8000-000000000011',true);
 SELECT set_config('request.jwt.claims','{"sub":"f4910000-0000-4000-8000-000000000011","role":"authenticated","app_metadata":{"tenant_id":"f4910000-0000-4000-8000-000000000001"}}',true);
+SELECT set_config('request.headers','{"x-asym-tenant":"f4910000-0000-4000-8000-000000000001"}',true);
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE n integer; BEGIN
   SELECT count(*) INTO n FROM public.field_policies WHERE tenant_id IS NULL;
@@ -71,6 +81,7 @@ RESET ROLE;
 
 SELECT set_config('request.jwt.claim.sub','f4910000-0000-4000-8000-000000000012',true);
 SELECT set_config('request.jwt.claims','{"sub":"f4910000-0000-4000-8000-000000000012","role":"authenticated","app_metadata":{"tenant_id":"f4910000-0000-4000-8000-000000000001"}}',true);
+SELECT set_config('request.headers','{"x-asym-tenant":"f4910000-0000-4000-8000-000000000001"}',true);
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE n integer; BEGIN
   BEGIN
@@ -95,6 +106,7 @@ RESET ROLE;
 -- A tenant claim without an active membership cannot unlock the global baseline.
 SELECT set_config('request.jwt.claim.sub','f4910000-0000-4000-8000-000000000014',true);
 SELECT set_config('request.jwt.claims','{"sub":"f4910000-0000-4000-8000-000000000014","role":"authenticated","app_metadata":{"tenant_id":"f4910000-0000-4000-8000-000000000001"}}',true);
+SELECT set_config('request.headers','{"x-asym-tenant":"f4910000-0000-4000-8000-000000000001"}',true);
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE n integer; BEGIN
   SELECT count(*) INTO n FROM public.field_policies;
@@ -106,6 +118,7 @@ RESET ROLE;
 UPDATE authz.memberships SET is_active=false WHERE user_id='f4910000-0000-4000-8000-000000000011';
 SELECT set_config('request.jwt.claim.sub','f4910000-0000-4000-8000-000000000011',true);
 SELECT set_config('request.jwt.claims','{"sub":"f4910000-0000-4000-8000-000000000011","role":"authenticated","app_metadata":{"tenant_id":"f4910000-0000-4000-8000-000000000001"}}',true);
+SELECT set_config('request.headers','{"x-asym-tenant":"f4910000-0000-4000-8000-000000000001"}',true);
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE n integer; BEGIN
   SELECT count(*) INTO n FROM public.field_policies;
@@ -116,17 +129,23 @@ RESET ROLE;
 
 SELECT set_config('request.jwt.claim.sub','f4910000-0000-4000-8000-000000000013',true);
 SELECT set_config('request.jwt.claims','{"sub":"f4910000-0000-4000-8000-000000000013","role":"authenticated","app_metadata":{}}',true);
+SELECT set_config('request.headers','',true);
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE n integer; BEGIN
-  INSERT INTO public.field_policies(record_type,field_key,surface,tenant_id,visible,editable,exportable,sensitivity_category)
-  VALUES ('donors','acceptance491','mission_control',NULL,false,false,false,'internal');
-  UPDATE public.field_policies SET visible=true WHERE record_type='donors' AND field_key='acceptance491' AND tenant_id IS NULL;
-  GET DIAGNOSTICS n=ROW_COUNT;
-  IF n<>1 THEN RAISE EXCEPTION 'C3: super-admin cannot update inserted baseline'; END IF;
-  DELETE FROM public.field_policies WHERE record_type='donors' AND field_key='acceptance491' AND tenant_id IS NULL;
-  GET DIAGNOSTICS n=ROW_COUNT;
-  IF n<>1 THEN RAISE EXCEPTION 'C3: super-admin cannot delete inserted baseline'; END IF;
-  RAISE NOTICE 'C3: super-admin baseline insert/update/delete succeeds';
+  BEGIN
+    INSERT INTO public.field_policies(record_type,field_key,surface,tenant_id,visible,editable,exportable,sensitivity_category)
+    VALUES ('donors','acceptance491','mission_control',NULL,false,false,false,'internal');
+    RAISE EXCEPTION 'C3: super-admin can insert baseline on a signed-in token';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+  BEGIN
+    UPDATE public.field_policies SET visible=NOT visible WHERE tenant_id IS NULL;
+    RAISE EXCEPTION 'C3: super-admin can update baseline on a signed-in token';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+  BEGIN
+    DELETE FROM public.field_policies WHERE tenant_id IS NULL;
+    RAISE EXCEPTION 'C3: super-admin can delete baseline on a signed-in token';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+  RAISE NOTICE 'C3: super-admin baseline insert/update/delete refused on a signed-in token';
 END $$;
 RESET ROLE;
 ROLLBACK;

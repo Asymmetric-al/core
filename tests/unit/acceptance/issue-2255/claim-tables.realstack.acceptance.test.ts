@@ -63,20 +63,31 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
   const one = async (sql: string, p: unknown[] = []) =>
     Object.values((await rows(sql, p))[0] ?? {})[0];
 
-  /** Runs `sql` in a savepoint (optionally as `role` with `sub`), always rolled back; returns rows or the SQLSTATE. */
+  /**
+   * Runs `sql` in a savepoint (optionally as `role` with `sub`), always rolled back; returns rows or the SQLSTATE.
+   * Amended by AL-2675 (WP2b, second release; record D-18): a signed-in
+   * request acts in the tenant its `x-asym-tenant` header names, where the
+   * caller holds a live membership, so `tenant` is sent as that header, as
+   * the Data API carries it. Each staff case names its own tenant.
+   */
   async function run(
     sql: string,
     p: unknown[] = [],
     role?: string,
     sub?: string,
+    tenant?: string,
   ) {
     await db.query("SAVEPOINT s");
     try {
       if (role) {
         await db.query(`SET LOCAL ROLE ${role}`);
         await db.query(
-          "SELECT set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claims', $2, true)",
-          [sub ?? "", JSON.stringify({ sub: sub ?? null, role })],
+          "SELECT set_config('request.jwt.claim.sub', $1, true), set_config('request.jwt.claims', $2, true), set_config('request.headers', $3, true)",
+          [
+            sub ?? "",
+            JSON.stringify({ sub: sub ?? null, role }),
+            tenant ? JSON.stringify({ "x-asym-tenant": tenant }) : "",
+          ],
         );
       }
       const r = await db.query(sql, p);
@@ -87,8 +98,16 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       await db.query("ROLLBACK TO SAVEPOINT s");
     }
   }
+  /** The tenant each fixture person's requests name: their own. r2 holds no membership. */
+  const TENANT_OF: Record<keyof typeof U, string | undefined> = {
+    staffA: A,
+    staffA_off: A,
+    staffB: B,
+    r1: A,
+    r2: undefined,
+  };
   const as = (who: keyof typeof U, sql: string, p: unknown[] = []) =>
-    run(sql, p, "authenticated", U[who]);
+    run(sql, p, "authenticated", U[who], TENANT_OF[who]);
   const ids = async (who: keyof typeof U, table: string) =>
     (await as(who, `SELECT id FROM public.${table} ORDER BY id`)).rows.map(
       (r) => r.id as string,
@@ -433,6 +452,11 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       const REQ =
         /^\(requested_by = \( SELECT auth\.uid\(\) AS uid\)\)$|^\(\( SELECT auth\.uid\(\) AS uid\) = requested_by\)$/;
       for (const p of pols) p.qual = String(p.qual).replace(REQ, "requester");
+      // Amended by AL-2675 (WP2b, second release; record D-18): the staff
+      // policies keep their names, roles and command and read the request's
+      // tenant and the staff class of its one assignment, as whole
+      // sub-selects. The requester's own read is a named exception that ends
+      // in WP5 (activation review Q4), unchanged. As exact as before.
       expect(pols).toEqual(
         POLICIES.map(([t, n]) => ({
           tablename: t,
@@ -441,9 +465,7 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
           roles: ["authenticated"],
           permissive: "PERMISSIVE",
           with_check: null,
-          qual: n.endsWith("_requester_select")
-            ? "requester"
-            : "authz.has_staff_membership(tenant_id, NULL::authz.staff_role[])",
+          qual: n.endsWith("_requester_select") ? "requester" : STAFF_NOW,
         })),
       );
       if (existsSync(EXCEPTIONS))
@@ -522,19 +544,44 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
       .sort();
   const ours = (v: string) =>
     /account_claim_requests|legacy_account_invitations/.test(v);
+  /**
+   * Amended by AL-2675 (WP2b, second release; record D-18): a later
+   * migration rewrites the two staff policies this file creates, so applying
+   * this file again restores its own text for those two and for nothing
+   * else. The catalog rows the file changes are exactly those two.
+   */
+  const STAFF_NOW =
+    "((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is))";
+  const rewrittenLater = (v: string) =>
+    /^pol public\.(account_claim_requests account_claim_requests_staff_select|legacy_account_invitations legacy_account_invitations_staff_select) /.test(
+      v,
+    );
 
   tx(
-    "12: re-applying the forward file succeeds twice and changes no catalog row",
+    "12: re-applying the forward file succeeds twice; the second changes nothing, the first only restores its own text of the two staff policies a later migration rewrote",
     async () => {
       const before = await catalog();
       await db.query(body(MIGRATION));
+      const once = await catalog();
       await db.query(body(MIGRATION));
-      expect(await catalog()).toEqual(before);
+      expect(await catalog()).toEqual(once);
+      expect(
+        once
+          .filter((v) => !before.includes(v))
+          .map((v) => v.split(" ").slice(0, 3).join(" "))
+          .sort(),
+      ).toEqual([
+        "pol public.account_claim_requests account_claim_requests_staff_select",
+        "pol public.legacy_account_invitations legacy_account_invitations_staff_select",
+      ]);
+      expect(once.filter((v) => !rewrittenLater(v))).toEqual(
+        before.filter((v) => !rewrittenLater(v)),
+      );
     },
   );
 
   tx(
-    "13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them",
+    "13: rollback removes both tables and nothing else; #2254 survives; forward re-creates them (the two staff policies in this file text)",
     async () => {
       await db.query(
         "DELETE FROM public.legacy_account_invitations; DELETE FROM public.account_claim_requests",
@@ -565,7 +612,9 @@ describe.skipIf(!ADMIN_URL)("#2255 claim tables on the real stack", () => {
         ),
       ).toBe(2);
       await db.query(body(MIGRATION));
-      expect(await catalog()).toEqual(before);
+      expect((await catalog()).filter((v) => !rewrittenLater(v))).toEqual(
+        before.filter((v) => !rewrittenLater(v)),
+      );
     },
   );
 });

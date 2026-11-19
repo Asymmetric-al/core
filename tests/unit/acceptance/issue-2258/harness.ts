@@ -51,12 +51,18 @@ export const UNEDITED: Record<string, string> = {
     "596a3626eb8f864bd56cb8baf367b8f8f110e73b",
   // AL-2674 (plan 5.4, NR-13) adds tenant_guard to the expected EXECUTE
   // grantees of the two authz membership helpers, and nothing else.
+  // AL-2675 (WP2b, second release; record D-18) re-pins two files: the real
+  // stack suite sends the request's tenant and assignment, drops the three
+  // write policies its migration body no longer alters (activation review
+  // Q7, Q8) and checks the standing ones' new predicates exactly; the static
+  // suite lists the three authz definers the policy migration adds. Each file
+  // records its reason beside the change.
   "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
-    "d8d167fc3f6a764836d5e7bca8bada29b35be72d",
+    "7b6fa766466dd15f8f47cbff562144a507b0dd2e",
   "tests/unit/acceptance/issue-2270/harness.ts":
     "e9e7201350e5d1f90f85c266f762d450ca3637d5",
   "tests/unit/acceptance/issue-2270/static.acceptance.test.ts":
-    "dba22b6452fc7f51a6345cef502acb195e622902",
+    "15513fbf12b7a2051f6b7187b2b5fd9d62dc524e",
   /** c2: projection/types.ts is not edited. */
   "packages/api/src/projection/types.ts":
     "bb325e269ee9ec18689717f7fbbdeaad9a924998",

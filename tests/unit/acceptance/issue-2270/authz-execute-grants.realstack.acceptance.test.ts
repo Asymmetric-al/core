@@ -49,13 +49,45 @@ const PRED =
   "(authz.is_super_admin() OR authz.has_staff_membership(tenant_id, NULL::authz.staff_role[]))";
 const LOG_INSERT =
   "(authz.is_super_admin() OR ((auth.uid() = actor_user_id) AND authz.has_staff_membership(tenant_id, NULL::authz.staff_role[])))";
+/** The predicate the second release of WP2b gives the standing policies (AL-2675). */
+const PRED_NOW =
+  "(( SELECT authz.is_super_admin() AS is_super_admin) OR ((tenant_id = ( SELECT authz.current_tenant_id() AS current_tenant_id)) AND ( SELECT authz.assignment_is('staff'::authz.membership_role) AS assignment_is)))";
+void PRED;
+void LOG_INSERT;
 
-/** The new migration's statements between BEGIN; and COMMIT;. */
+/**
+ * Amended by AL-2675 (WP2b, second release; record D-18; activation review
+ * Q7 and Q8): the write grants on crm_command_logs and crm_merge_candidates
+ * are revoked, and their insert and update policies dropped with them, so an
+ * accidental re-grant fails the catalog gate. Those three policies no longer
+ * exist to be altered.
+ */
+const DROPPED_LATER = [
+  "authz staff tenant insert crm_command_logs",
+  "authz staff tenant insert crm_merge_candidates",
+  "authz staff tenant update crm_merge_candidates",
+];
+/** The policies of POLICIES that stand on this chain. */
+const STANDING = POLICIES.filter(
+  ([t, c]) => !DROPPED_LATER.includes(`authz staff tenant ${c} ${t}`),
+);
+
+/**
+ * The new migration's statements between BEGIN; and COMMIT;, less the
+ * ALTER POLICY statements of the three policies a later migration dropped
+ * (amended by AL-2675; every other statement runs as before).
+ */
 function migrationBody() {
   expect(existsSync(MIGRATION), `${MIGRATION} must exist (spec §6)`).toBe(true);
   const m = /^\s*BEGIN;\s*$([\s\S]*)^\s*COMMIT;\s*$/m.exec(read(MIGRATION));
   expect(m, "migration wraps its body in BEGIN; ... COMMIT;").not.toBeNull();
-  return m![1]!;
+  return m![1]!
+    .split("\n")
+    .filter(
+      (line) =>
+        !DROPPED_LATER.some((p) => line.includes(`ALTER POLICY "${p}"`)),
+    )
+    .join("\n");
 }
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
@@ -66,6 +98,8 @@ it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)(
 describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   const [TA, TB, U] = [randomUUID(), randomUUID(), randomUUID()];
+  /** U's live staff row in TA (set by the fixture). */
+  let staffRow = "";
 
   beforeAll(() => db.connect());
   afterAll(() => db.end());
@@ -86,12 +120,25 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
           (_m, i: string) => `'${[TA, TB, U][Number(i) - 1]}'`,
         ),
       );
+      staffRow = (
+        await db.query(
+          "select id from authz.memberships where user_id = $1 and tenant_id = $2 and role = 'staff' and is_active",
+          [U, TA],
+        )
+      ).rows[0]!.id as string;
       await fn();
     } finally {
       await db.query("rollback");
     }
   }
-  /** Run one query as `role` (optionally with a JWT sub); the role never leaks. */
+  /**
+   * Run one query as `role` (optionally with a JWT sub); the role never leaks.
+   * Amended by AL-2675 (WP2b, second release; record D-18): the membership
+   * helpers judge the one assignment the request names, so a signed-in
+   * request names tenant TA and U's live staff row there, as the Data API
+   * carries them. U holds three live rows in TA, so with no assignment named
+   * U would hold no assignment at all (plan 5.1).
+   */
   async function as(
     role: string,
     sub: string | null,
@@ -101,9 +148,18 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
     await db.query("savepoint q");
     try {
       await db.query(`set local role ${role}`);
-      await db.query("select set_config('request.jwt.claim.sub', $1, true)", [
-        sub ?? "",
-      ]);
+      await db.query(
+        "select set_config('request.jwt.claim.sub', $1, true), set_config('request.headers', $2, true)",
+        [
+          sub ?? "",
+          role === "authenticated" && sub
+            ? JSON.stringify({
+                "x-asym-tenant": TA,
+                "x-asym-assignment": staffRow,
+              })
+            : "",
+        ],
+      );
       const r = await db.query(sql, sql.includes("$1") ? args : []);
       return { rows: r.rows as Record<string, unknown>[], code: null };
     } catch (e) {
@@ -256,9 +312,33 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
           ).toEqual({ code: null, rows: [{ n: 0 }] });
     }));
 
-  it("C8: the 8 policies are TO authenticated with their predicates unchanged", () =>
+  // Amended by AL-2675 (WP2b, second release; record D-18): the five
+  // policies that stand are TO authenticated with the predicates of this
+  // chain, the tenant condition and the staff class of the request's one
+  // assignment beside the super-admin branch; the three write policies whose
+  // grants went are gone, and so are those grants (activation review Q7, Q8).
+  it("C8: the standing policies are TO authenticated with this chain's predicates; the dropped ones are gone with their grants", () =>
     tx(async () => {
-      for (const [t, c] of POLICIES) {
+      const gone = await db.query(
+        "select policyname from pg_policies where schemaname = 'public' and policyname = any($1)",
+        [DROPPED_LATER],
+      );
+      expect(gone.rows).toEqual([]);
+      for (const [t, privilege] of [
+        ["crm_command_logs", "INSERT"],
+        ["crm_merge_candidates", "INSERT"],
+        ["crm_merge_candidates", "UPDATE"],
+      ])
+        expect(
+          (
+            await db.query(
+              "select has_table_privilege('authenticated', $1, $2) ok",
+              [`public.${t}`, privilege],
+            )
+          ).rows[0].ok,
+          `${t} ${privilege}`,
+        ).toBe(false);
+      for (const [t, c] of STANDING) {
         const p = await db.query(
           `select cmd, roles::text[] roles, permissive, qual, with_check from pg_policies
            where schemaname = 'public' and tablename = $1 and policyname = $2`,
@@ -270,13 +350,8 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
             cmd: c.toUpperCase(),
             roles: ["authenticated"],
             permissive: "PERMISSIVE",
-            qual: insert ? null : PRED,
-            with_check:
-              c === "select"
-                ? null
-                : t === "crm_command_logs"
-                  ? LOG_INSERT
-                  : PRED,
+            qual: insert ? null : PRED_NOW,
+            with_check: c === "select" ? null : PRED_NOW,
           },
         ]);
       }

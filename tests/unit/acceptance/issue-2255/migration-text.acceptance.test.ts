@@ -180,10 +180,26 @@ describe("#2255 forward migration text", () => {
 
   it("no other forward migration creates or alters these tables (redefinition scan, all forward files)", () => {
     const re = new RegExp(`\\b(${TABLES.join("|")})\\b`, "i");
+    // Amended by AL-2675 (WP2b, second release; record D-18): the policy
+    // migration rewrites the two staff policies in place, by ALTER POLICY,
+    // and touches nothing else of these tables. Any other statement there,
+    // and any other migration, still fails.
+    const POLICY_MIGRATION = /^\d{14}_request_tenant_policies\.sql$/;
     const hits = readdirSync(DIR)
       .filter((f) => /^\d{14}_.*\.sql$/.test(f) && f !== OWN)
+      .filter((f) => !POLICY_MIGRATION.test(f))
       .filter((f) => re.test(code(readFileSync(path.join(DIR, f), "utf8"))));
     expect(hits).toEqual([]);
+    const policyMigration = readdirSync(DIR).find((f) =>
+      POLICY_MIGRATION.test(f),
+    );
+    const naming = code(readFileSync(path.join(DIR, policyMigration!), "utf8"))
+      .split("\n")
+      .filter((line) => re.test(line));
+    expect(naming).toEqual([
+      'ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests',
+      'ALTER POLICY "legacy_account_invitations_staff_select" ON public.legacy_account_invitations',
+    ]);
   });
 });
 

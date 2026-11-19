@@ -98,8 +98,15 @@ const pairs = (r: Result) =>
 const NOBYPASS = "create role acc2253_nobypass nosuperuser nobypassrls;";
 const TENANT = (t: string, extra = "") =>
   `create table public.${t} (id int, tenant_id uuid)${extra};`;
+/**
+ * Amended by AL-2675 (WP2b, second release; record D-18): the gate now also
+ * fails a signed-in policy of a tenant table that admits a row without the
+ * request's tenant (TENANT_CONDITION_MISSING), so the planted policy is the
+ * tenant condition itself. Each case still plants exactly the one violation
+ * it names, and the gate must name exactly that one.
+ */
 const POLICY = (t: string) =>
-  `create policy acc2253 on public.${t} using (true);`;
+  `create policy acc2253 on public.${t} using (tenant_id = (select authz.current_tenant_id()));`;
 const CASES: [string, string, string[][]][] = [
   [
     "RLS_DISABLED (forced, with policy, not enabled)",

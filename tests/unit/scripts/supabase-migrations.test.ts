@@ -123,6 +123,40 @@ function runVerifier(
     commands: [],
     wrappers: [],
     grants: [],
+    // AL-2675 (WP2b, second release; record D-18): the gate also reads every
+    // signed-in policy in public, the request-tenant helpers and the published
+    // tables. The fake catalog holds the reviewed exceptions as they stand and
+    // the four helpers, so a clean run stays clean.
+    policies: JSON.parse(
+      readFileSync(
+        path.join(root, "docs/security/tenant-policy-exceptions.json"),
+        "utf8",
+      ),
+    ).entries.map(
+      (entry: {
+        table: string;
+        policy: string;
+        using: string;
+        check: string;
+      }) => ({
+        table: entry.table,
+        policy: entry.policy,
+        cmd: "SELECT",
+        roles: ["authenticated"],
+        using: entry.using,
+        check: entry.check,
+      }),
+    ),
+    tenant_helpers: [
+      "current_tenant_id",
+      "request_tenant_id",
+      "request_assignment_id",
+      "request_assignment",
+    ].map((name) => ({
+      function: `authz.${name}()`,
+      body: "SELECT a.tenant_id FROM authz.request_assignment() AS a",
+    })),
+    published: [],
   };
   const psql = path.join(temporary, "psql.cjs");
   const calls = path.join(temporary, "calls.jsonl");
