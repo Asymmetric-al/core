@@ -143,7 +143,11 @@ test("a deep link to a tenant the person does not belong to is refused before th
   expect((await documentScope(page)).prefix).toBe(`/${DEMO}`);
 });
 
-test("a signed-in person with no membership in the address's tenant is stopped by the proxy", async ({
+// Council on the joined release, JB8: on a real session the proxy's own
+// membership decision refuses (/no-access); under the development bypass a
+// role the app does not allow is never admitted (packages/auth/middleware.ts),
+// so the request reads as signed out (/login). Each mode asserts its answer.
+test("a signed-in person with only a missionary row is refused by the proxy, or under the bypass never admitted", async ({
   page,
 }) => {
   await signInAs(page, "admin", "missionary", baseURL());
@@ -155,7 +159,9 @@ test("a signed-in person with no membership in the address's tenant is stopped b
   // A missionary row is not a staff row: the proxy refuses, or, in
   // development, never admits the bypass role at all.
   expect(raw.status()).toBe(307);
-  expect(raw.headers()["location"]).toMatch(/\/(no-access|login)/);
+  expect(new URL(raw.headers()["location"]!, baseURL()).pathname).toBe(
+    signsInThroughStub ? "/no-access" : "/login",
+  );
   expect(await raw.text()).not.toMatch(/data-tenant-scope/);
 });
 
