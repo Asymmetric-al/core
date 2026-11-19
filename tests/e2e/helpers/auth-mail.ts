@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 import pg from "pg";
 
 import { DEMO_TENANT_ID } from "../../../packages/auth/constants";
+import { isLoopbackDatabaseUrl } from "../../../packages/env/src/database-url.mjs";
 import { isLocalHostname } from "../playwright-shared";
 
 /**
@@ -9,7 +10,10 @@ import { isLocalHostname } from "../playwright-shared";
  * Supabase stack (`supabase start`) and its mail catcher (Mailpit).
  *
  * They create and delete Auth users with the service-role key, so they refuse
- * any Supabase URL that is not on this machine.
+ * any Supabase URL that is not on this machine. The database, which they
+ * write memberships to through node-postgres, is judged by
+ * isLoopbackDatabaseUrl, as every local-only tool judges one: node-postgres
+ * follows a host in the URL's query over the one the URL shows (AL-2674).
  */
 export interface AuthMailEnv {
   supabaseUrl: string;
@@ -39,15 +43,25 @@ export function readAuthMailEnv(
     return null;
   }
 
-  for (const url of [supabaseUrl, mailUrl, ...(dbUrl ? [dbUrl] : [])]) {
+  for (const url of [supabaseUrl, mailUrl]) {
     if (!isLocalHostname(new URL(url).hostname)) {
       throw new Error(
         `Auth mail e2e runs only against a local Supabase stack, not ${new URL(url).host}.`,
       );
     }
   }
+  if (dbUrl) assertLocalDatabase(dbUrl);
 
   return { supabaseUrl, anonKey, serviceRoleKey, mailUrl, dbUrl };
+}
+
+/** Throws, naming no part of the URL, unless it names a database on this machine. */
+function assertLocalDatabase(dbUrl: string) {
+  if (!isLoopbackDatabaseUrl(dbUrl)) {
+    throw new Error(
+      "Auth mail e2e runs only against a local Supabase stack, and E2E_AUTH_MAIL_DB_URL does not name a database on this machine.",
+    );
+  }
 }
 
 /** A unique address on a reserved domain, so no real mailbox is involved. */
@@ -119,6 +133,8 @@ async function grantMembership(
       "A missionary or staff journey needs the stack's database: run it with `bun run test:e2e:auth-mail`.",
     );
   }
+  // An AuthMailEnv can be built by hand, so the write checks again.
+  assertLocalDatabase(env.dbUrl);
   const db = new pg.Client({ connectionString: env.dbUrl });
   await db.connect();
   try {
