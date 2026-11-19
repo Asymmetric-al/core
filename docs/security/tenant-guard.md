@@ -107,9 +107,11 @@ EXECUTE besides the owner, on the migrated chain:
 | `public.platform_health()`                                                                                                                               | `postgres`     | INVOKER  | `service_role`  |
 | `platform.require_operator()`                                                                                                                            | `postgres`     | INVOKER  | none            |
 | `platform.caller_on_operator_list()`                                                                                                                     | `postgres`     | INVOKER  | none            |
+| `platform.operator_session()`                                                                                                                            | `postgres`     | DEFINER  | `authenticated` |
+| `public.platform_operator_session()`                                                                                                                     | `postgres`     | INVOKER  | `authenticated` |
 | `platform.environment_kind()`, `advance_environment(text)`, `record_migration_head(text, text)`, `holds_people_or_gifts()`, `guard_environment_marker()` | `postgres`     | INVOKER  | none            |
 
-`resolve_command_assignment` is the one human entry point so far. It exists so that one human command can be proved on a signed-in token; no application code calls it, and WP2b decides whether the organization chooser uses it or it is dropped. There is no platform command yet; WP3 ships the first.
+`resolve_command_assignment` is the one human entry point so far. It exists so that one human command can be proved on a signed-in token; no application code calls it, and WP2b decides whether the organization chooser uses it or it is dropped. The one platform command so far is `platform.operator_session()` (WP2c, AL-2675), whose whole body is the shared operator check: server code that acts for an operator outside the database runs the check through it on the operator's own token. WP3 ships the first platform command that changes anything.
 
 ### Adding a human entry point
 
@@ -143,7 +145,7 @@ CREATE FUNCTION platform.<command>(...) RETURNS jsonb
   END $$;
 ```
 
-The operator check initialises a variable in the function's outer `DECLARE` section, where no handler of the function can catch its refusal. It refuses with `42501` a call with no signed-in caller, a caller not on the operator list, or a session without a second factor (`aal2`). Until WP2c supplies the list, `platform.caller_on_operator_list()` returns false, so every platform command refuses everyone. Each command is owned by `postgres`, revokes `ALL` from `PUBLIC`, `anon`, `authenticated` and `service_role`, grants EXECUTE to `authenticated`, and has a `public` wrapper with EXECUTE for `authenticated` only.
+The operator check initialises a variable in the function's outer `DECLARE` section, where no handler of the function can catch its refusal. It refuses with `42501` a call with no signed-in caller, a caller not on the operator list, or a session without a second factor (`aal2`). The list is `authz.platform_operators` (WP2c, AL-2675): row security forced, no policy and no privilege for signed-in, anonymous or service users, and one writer, the operator script (`docs/ops/platform-operators.md`). `platform.caller_on_operator_list()` reads it for the session caller through `authz.is_platform_operator(uuid)`, the one test of the list, a `postgres`-owned definer that only `tenant_guard` may also execute. The admin proxy learns whether a person is on the list, without the second factor and without a refusal, from `public.caller_is_platform_operator()`, a `postgres`-owned definer in `public` for `authenticated`: it cannot live in `platform`, where every function signed-in users may execute must begin with the operator check (`PLATFORM_COMMAND_NO_OPERATOR_CHECK`), nor call into `platform`, which would make it a wrapper of a function that is not a command (`WRAPPER_GRANTS_WORKER`). Each command is owned by `postgres`, revokes `ALL` from `PUBLIC`, `anon`, `authenticated` and `service_role`, grants EXECUTE to `authenticated`, and has a `public` wrapper with EXECUTE for `authenticated` only.
 
 ### `public` wrappers
 
