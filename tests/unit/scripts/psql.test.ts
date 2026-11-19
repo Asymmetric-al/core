@@ -726,14 +726,37 @@ describe("the ambient libpq settings a builder may keep (review M3)", () => {
       "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Fjob%2Froot.crt",
       { ...HOSTILE_PG_ENV, KEEP: "1" },
     );
+    // Review N5: psqlConnection keeps PGPASSWORD alone of the shared list.
     expect(pgOnly(env)).toEqual({
       PGPASSWORD: "pw",
-      PGSSLROOTCERT: "/ambient/ca.crt",
       PGREQUIREAUTH: "scram-sha-256",
     });
     expect(env.KEEP).toBe("1");
-    // The address's CA file is a keyword, which wins over the ambient one.
     expect(connection).toContain("sslrootcert='/job/root.crt'");
+  });
+
+  // Review N5: with PGSSLROOTCERT=system in the environment, a hand-run hosted
+  // address that names no CA would trust the system store.
+  it("never hands psql an ambient PGSSLROOTCERT, so system cannot reach an address that names no CA", () => {
+    const { connection, env } = psqlConnection(
+      "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full",
+      { PGSSLROOTCERT: "system", PGPASSWORD: "ambient" },
+    );
+    expect(env.PGSSLROOTCERT).toBeUndefined();
+    expect(connection).not.toContain("sslrootcert");
+  });
+
+  it("lets a builder keep less than the shared list, never more", async () => {
+    const shared = await import("../../../packages/env/src/database-url.mjs");
+    expect(
+      shared.keptAmbientLibpqEnv(
+        { PGPASSWORD: "p", PGSSLROOTCERT: "/ca", PGHOST: "x" },
+        ["PGPASSWORD"],
+      ),
+    ).toEqual({ PGPASSWORD: "p" });
+    expect(() =>
+      shared.keptAmbientLibpqEnv({ PGSSLKEY: "k" }, ["PGSSLKEY" as never]),
+    ).toThrow(/PGSSLKEY is not on KEPT_AMBIENT_LIBPQ_ENV/);
   });
 });
 

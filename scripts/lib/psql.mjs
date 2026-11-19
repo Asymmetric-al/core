@@ -7,7 +7,8 @@
 //
 // Six files under scripts/ start psql. Three build the connection from an
 // address, refuse what the check refuses, and keep no ambient PG* setting but
-// the shared list KEPT_AMBIENT_LIBPQ_ENV (PGPASSWORD, PGSSLROOTCERT):
+// the shared list KEPT_AMBIENT_LIBPQ_ENV (PGPASSWORD, PGSSLROOTCERT), of
+// which this file keeps PGPASSWORD alone (review N5):
 // - scripts/lib/psql.mjs, this file (runPsqlQuery, spawnPsql, or
 //   psqlConnection for a caller's own spawn: the parsed parts as libpq
 //   keywords, never the raw string, -X, the password in PGPASSWORD). The
@@ -63,12 +64,11 @@ const conninfoValue = (value) =>
  * quoted, so no value can add a keyword. Every other PG* setting is dropped: the URL is the whole target,
  * and an ambient PGHOSTADDR (which overrides the URL's host), PGSERVICE,
  * PGOPTIONS or a default for a part the URL leaves out could otherwise send
- * the connection, or the role it runs as, somewhere else. Only the shared
- * list KEPT_AMBIENT_LIBPQ_ENV survives (review M3): an ambient PGPASSWORD,
- * for a URL that carries none, so a caller can keep the password out of the
- * URL as well (a password in the URL, in its login or its query, wins and
- * never reaches the argument); and an ambient PGSSLROOTCERT, which the URL's
- * own sslrootcert keyword overrides.
+ * the connection, or the role it runs as, somewhere else. Of the shared list
+ * KEPT_AMBIENT_LIBPQ_ENV only an ambient PGPASSWORD survives (reviews M3 and
+ * N5), for a URL that carries none, so a caller can keep the password out of
+ * the URL as well; a password in the URL, in its login or its query, wins and
+ * never reaches the argument.
  */
 export function psqlConnection(databaseUrl, baseEnv = process.env) {
   let url;
@@ -87,8 +87,13 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   const problem = databaseUrlProblem(databaseUrl, { forPsql: true });
   if (problem !== null)
     throw new Error(`the database URL is refused for psql: ${problem}`);
-  // Review M3: the shared list of ambient settings a builder may keep.
-  const env = keptAmbientLibpqEnv(baseEnv);
+  // Reviews M3 and N5: of the shared list, PGPASSWORD alone. No caller needs
+  // the CA from the environment: the release job's addresses name their CA
+  // file as sslrootcert (release-database.mjs, withDatabaseCaFile), and the
+  // CMS runner's psql goes through scripts/cms/lib/postgres.mjs. An ambient
+  // PGSSLROOTCERT=system would make a hand-run hosted address that names no
+  // CA trust the system store.
+  const env = keptAmbientLibpqEnv(baseEnv, ["PGPASSWORD"]);
   const query = libpqQueryEntries(databaseUrl);
   const settings = query.filter(([key]) => key !== "password");
   const queryPassword = query.find(([key]) => key === "password");

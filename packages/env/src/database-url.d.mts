@@ -30,6 +30,7 @@ export declare const KEPT_AMBIENT_LIBPQ_ENV: Readonly<{
 
 export declare function keptAmbientLibpqEnv(
   env: Record<string, string | undefined>,
+  keep?: ReadonlyArray<"PGPASSWORD" | "PGSSLROOTCERT">,
 ): Record<string, string | undefined>;
 
 export declare function databaseUrlHostProblem(

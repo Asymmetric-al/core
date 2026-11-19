@@ -255,12 +255,21 @@ export const KEPT_AMBIENT_LIBPQ_ENV = Object.freeze({
     "the CA file the release job hands the CMS runner's psql (release-database.mjs, payloadMigrate); an address's own sslrootcert wins where a builder takes one",
 });
 
-/** `env` without any PG* variable but those KEPT_AMBIENT_LIBPQ_ENV names. */
-export function keptAmbientLibpqEnv(env) {
+/**
+ * `env` without any PG* variable but those `keep` names. `keep` defaults to
+ * the whole of KEPT_AMBIENT_LIBPQ_ENV; a builder may keep less (review N5),
+ * never a setting the list does not name.
+ */
+export function keptAmbientLibpqEnv(
+  env,
+  keep = Object.keys(KEPT_AMBIENT_LIBPQ_ENV),
+) {
+  for (const key of keep)
+    if (!Object.hasOwn(KEPT_AMBIENT_LIBPQ_ENV, key))
+      throw new Error(`${key} is not on KEPT_AMBIENT_LIBPQ_ENV.`);
   return Object.fromEntries(
     Object.entries(env).filter(
-      ([key]) =>
-        !key.startsWith("PG") || Object.hasOwn(KEPT_AMBIENT_LIBPQ_ENV, key),
+      ([key]) => !key.startsWith("PG") || keep.includes(key),
     ),
   );
 }
