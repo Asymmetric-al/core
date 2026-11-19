@@ -656,11 +656,10 @@ describe.skipIf(!adminDatabaseUrl)(
             target.username !== "cms_runtime"
           )
             return queryJson(request);
-          const local = new URL(url);
-          local.searchParams.set("options", `-c role=${target.username}`);
           return queryJson({
             ...request,
-            databaseUrl: local.toString().replaceAll("+", "%20"),
+            databaseUrl: url,
+            sql: `BEGIN;\nSET LOCAL ROLE ${target.username};\n${request.sql}\nCOMMIT;`,
           });
         };
         let seedEnabled = open;
