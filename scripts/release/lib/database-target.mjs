@@ -4,6 +4,7 @@
 import {
   SUPABASE_POOLER_HOST,
   databaseUrlProblem,
+  assertHostedDatabaseTls,
   databaseUrlRoutingOverrides,
   isLoopbackDatabaseUrl,
   libpqQueryEntries,
@@ -96,10 +97,5 @@ export function assertDatabaseTarget({
   // against the project's CA, which it writes from RELEASE_DATABASE_SSL_CA
   // (release-database.mjs, withDatabaseCaFile). sslmode=require verifies
   // nothing without a CA file, and verify-ca never checks the name.
-  const sslmodes = url.searchParams.getAll("sslmode");
-  if (sslmodes.length !== 1 || sslmodes[0] !== "verify-full") {
-    throw new Error(
-      "A hosted release database connection must set sslmode=verify-full in RELEASE_DATABASE_URL; the job verifies it against the project's CA in RELEASE_DATABASE_SSL_CA. sslmode=require and verify-ca do not check the server's host name.",
-    );
-  }
+  assertHostedDatabaseTls(url);
 }

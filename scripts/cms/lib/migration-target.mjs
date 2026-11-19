@@ -3,6 +3,7 @@ import { X509Certificate } from "node:crypto";
 import {
   SUPABASE_POOLER_HOST,
   databaseUrlProblem,
+  assertHostedDatabaseTls,
   isLoopbackDatabaseUrl,
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
@@ -93,12 +94,7 @@ export function assertCmsMigrationTarget({
   // itself says verify-full, once: no-verify, require and verify-ca do not
   // check both the certificate and the host name, and PGSSLMODE never reaches
   // the runner's psql (lib/postgres.mjs drops it) or Payload.
-  const sslmodes = database.searchParams.getAll("sslmode");
-  if (sslmodes.length !== 1 || sslmodes[0] !== "verify-full") {
-    throw new Error(
-      "A hosted CMS migration address must set sslmode=verify-full, once, in the address itself; PGSSLMODE does not count. no-verify, require and verify-ca are refused: they do not check both the server's certificate and its host name.",
-    );
-  }
+  assertHostedDatabaseTls(database);
   // Review M3: one CA route. An address's sslrootcert would override
   // PGSSLROOTCERT for the runner's psql (lib/postgres.mjs), while Payload
   // refuses it beside PAYLOAD_DATABASE_SSL_CA; sslrootcert=system would trust

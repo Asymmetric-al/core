@@ -23,6 +23,8 @@ export declare const SUPABASE_POOLER_HOST: RegExp;
 
 export declare const HOSTED_LIBPQ_ENV: Readonly<{ PGREQUIREAUTH: string }>;
 
+export declare function assertHostedDatabaseTls(url: URL): void;
+
 export declare const KEPT_AMBIENT_LIBPQ_ENV: Readonly<{
   PGPASSWORD: string;
   PGSSLROOTCERT: string;

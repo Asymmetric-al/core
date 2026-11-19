@@ -38,6 +38,7 @@ import { spawnSync } from "node:child_process";
 import {
   LOOPBACK_DATABASE_HOSTS,
   HOSTED_LIBPQ_ENV,
+  assertHostedDatabaseTls,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
   keptAmbientLibpqEnv,
@@ -105,7 +106,10 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   const queryPassword = query.find(([key]) => key === "password");
   if (queryPassword) env.PGPASSWORD = queryPassword[1];
   if (url.password) env.PGPASSWORD = decodeURIComponent(url.password);
-  if (!isLoopbackDatabaseUrl(url)) Object.assign(env, HOSTED_LIBPQ_ENV);
+  if (!isLoopbackDatabaseUrl(url)) {
+    assertHostedDatabaseTls(url);
+    Object.assign(env, HOSTED_LIBPQ_ENV);
+  }
   const keywords = [
     ["host", url.hostname.replace(/^\[(.*)\]$/, "$1")],
     ["port", url.port],

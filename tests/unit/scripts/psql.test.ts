@@ -143,14 +143,37 @@ describe("isLoopbackDatabaseUrl", () => {
 });
 
 describe("psqlConnection", () => {
+  it.each(["", "?sslmode=require", "?sslmode=disable"])(
+    "requires verified hosted TLS for query %j",
+    (query) => {
+      expect(() =>
+        psqlConnection(
+          `postgres://unit:fixture@db.invalid/private${query}`,
+          {},
+        ),
+      ).toThrow(/db\.invalid.*sslmode=verify-full/);
+    },
+  );
+
+  it.each([
+    "postgres://fixture%00name@localhost/unit",
+    "postgres://unit:fixture%00value@localhost/unit",
+    "postgres://localhost/fixture%00db",
+    "postgres://localhost/unit?fixture%00key=x",
+    "postgres://localhost/unit?password=fixture%00value",
+  ])("rejects a decoded NUL without displaying the field", (address) => {
+    expect(() => psqlConnection(address, {})).toThrow(/NUL/);
+    expect(() => psqlConnection(address, {})).not.toThrow(/fixture/);
+    expect(isLoopbackDatabaseUrl(address)).toBe(false);
+  });
   it("moves a percent-encoded password into PGPASSWORD and keeps the rest of the URL", () => {
     const { connection, env } = psqlConnection(
-      "postgresql://postgres:p%40ss%2Fw0rd@db.example:6543/postgres?sslmode=require",
+      "postgresql://postgres:p%40ss%2Fw0rd@db.example:6543/postgres?sslmode=verify-full",
       { PGSERVICE: "prod", KEEP: "1" },
     );
     // H11: libpq gets the parsed parts as keywords, never the raw string.
     expect(connection).toBe(
-      "host='db.example' port='6543' dbname='postgres' user='postgres' sslmode='require'",
+      "host='db.example' port='6543' dbname='postgres' user='postgres' sslmode='verify-full'",
     );
     // A hosted address also requires SCRAM (review L1).
     expect(env).toEqual({
@@ -581,7 +604,7 @@ describe("the host an address may name (review L1)", () => {
   it("requires SCRAM for a hosted address and leaves a loopback one alone", () => {
     expect(
       psqlConnection(
-        "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require",
+        "postgresql://postgres.abcdefghijklmnopqrst@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full",
         {},
       ).env.PGREQUIREAUTH,
     ).toBe("scram-sha-256");

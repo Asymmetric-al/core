@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   DATABASE_URL_QUERY_ENV,
   HOSTED_LIBPQ_ENV,
+  assertHostedDatabaseTls,
   databaseUrlProblem,
   isLoopbackDatabaseUrl,
   keptAmbientLibpqEnv,
@@ -89,6 +90,7 @@ function getPsqlConnection(databaseUrl) {
       key === "sslmode" && value === "no-verify" ? "require" : value;
   }
   if (!isLoopbackDatabaseUrl(connection)) {
+    assertHostedDatabaseTls(connection);
     // Review L1: a hosted server may never ask for the password in clear text.
     Object.assign(env, HOSTED_LIBPQ_ENV);
     // The last check's P3: a CA file psql is handed for a hosted address,
