@@ -10,8 +10,10 @@
 --    measured (docs/audits/core-crm-cms-database-proofs/tp1-caller-token-crm-read.md,
 --    section 8). All STABLE and PARALLEL SAFE; none takes a column of a row.
 --    - authz.request_tenant_id(): the `x-asym-tenant` header the Data API puts
---      in `request.headers`. NULL when absent; 22P02 unless a canonical
---      lower-case UUID.
+--      in `request.headers`. Absent or blank is no value; a hyphenated UUID
+--      in any letter case is compared as a uuid; anything else raises 22P02.
+--      That is the command lane's rule (tenant_guard.request_assignment_id),
+--      so both lanes read a header the same way (review Q11).
 --    - authz.request_assignment_id(): the `x-asym-assignment` header, the same
 --      way.
 --    - authz.request_assignment(): the one membership row the request acts
@@ -34,6 +36,11 @@
 --      branches written as an uncorrelated set.
 --    - authz.caller_tenant_ids(): the tenants where the caller holds any live
 --      row, for Storage, which cannot carry the headers.
+--    - authz.caller_assignment(tenant, class), behind the member directory and
+--      the CRM table-preference functions, follows plan 5.1 with no header:
+--      it counts every live row of the caller in the tenant, so a person with
+--      a staff and a donor row there passes its staff check only when the
+--      request names the staff row (review defect 9).
 -- 2. Every signed-in policy on a tenant table requires the row's tenant to
 --    equal authz.current_tenant_id(), plus its role-class or own-row condition,
 --    each a whole sub-select so that it runs once for a statement. An own-row
@@ -49,13 +56,24 @@
 -- 3. The governed write grants are revoked in this migration, beside the
 --    repoint: audit_logs (insert), the four member-care tables, field_policies,
 --    notification_queue, the 19 Support Hub tables, support_contacts,
---    support_tickets, the six pdf_template_* child tables, crm_command_logs
---    and the six finance tables 20260513173739 opened to the Data API. Only
---    server code writes them (review section 4). The write policies stay,
---    rewritten, and admit nothing without a grant (review Q7).
--- 4. Storage: the upload and replace checks of the profiles bucket and of the
---    editor images in document-uploads move from profiles.tenant_id to any
---    live membership of the caller in the tenant the object path names.
+--    support_tickets, the six pdf_template_* child tables, crm_command_logs,
+--    crm_merge_candidates (insert, update; review Q8) and the six finance
+--    tables 20260513173739 opened to the Data API. Only server code writes
+--    them (review section 4). Their write policies are dropped with the
+--    grants, so an accidental re-grant fails the catalog gate (review Q7).
+--    Two Support Hub tables are narrowed further: another agent's
+--    notification preferences and personal saved views are read only under
+--    the tenant-administrator flag (review Q1). The crm_notes insert binds its
+--    author to the caller, and a signed-in insert has its author name and
+--    timestamps stamped (review defect 2). public.post_comment_authors(post)
+--    gives the display name and avatar of the people who commented on a
+--    published public post, and nothing else of their profiles, now that a
+--    profile is readable by its owner only (review Q9).
+-- 4. Storage: every policy of the profiles bucket and of the editor images in
+--    document-uploads that signed-in users reach (upload, replace, read and
+--    delete) tests a live membership of the caller in the tenant the object
+--    path names, in place of profiles.tenant_id or the owner alone (plan 5.2;
+--    review Q10).
 -- 5. Realtime: funds, locations, posts and the four post-reaction and comment
 --    tables leave the supabase_realtime publication where they are in it.
 --
@@ -70,9 +88,14 @@
 -- the expression the activation review's appendix query prints on the
 -- previous chain; CREATE POLICY "profiles staff tenant select" as in
 -- 20260625002117_canonical_tanstack_db_realtime_rls.sql; GRANT the revoked
--- privileges back; restore the four Storage policies from
--- 20261027100000_profiles_bucket_owner_folders.sql and
--- 20261028100000_editor_image_storage.sql; DROP the new authz functions.
+-- privileges back and CREATE the dropped write policies from the migrations
+-- that first created them; restore the eight Storage policies from
+-- 20250101000000_init_schema.sql, 20261027100000_profiles_bucket_owner_folders.sql
+-- and 20261028100000_editor_image_storage.sql; restore
+-- authz.caller_assignment from
+-- 20261117160200_membership_readers_and_member_directory.sql; DROP TRIGGER
+-- crm_notes_stamp_signed_in_author and its function; DROP FUNCTION
+-- public.post_comment_authors(UUID); DROP the new authz functions.
 
 BEGIN;
 
@@ -97,8 +120,8 @@ BEGIN
   IF v_value IS NULL THEN
     RETURN NULL;
   END IF;
-  IF v_value !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
-    RAISE EXCEPTION 'authz: the tenant header is not a canonical lower-case UUID'
+  IF v_value !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+    RAISE EXCEPTION 'authz: the tenant header is not a UUID'
       USING ERRCODE = '22P02';
   END IF;
   RETURN v_value::UUID;
@@ -124,8 +147,8 @@ BEGIN
   IF v_value IS NULL THEN
     RETURN NULL;
   END IF;
-  IF v_value !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
-    RAISE EXCEPTION 'authz: the assignment header is not a canonical lower-case UUID'
+  IF v_value !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+    RAISE EXCEPTION 'authz: the assignment header is not a UUID'
       USING ERRCODE = '22P02';
   END IF;
   RETURN v_value::UUID;
@@ -362,7 +385,128 @@ GRANT EXECUTE ON FUNCTION authz.caller_tenant_ids() TO authenticated, service_ro
 -- assignment_holds reads authz.assignment_capabilities as its owner.
 -- The guard role keeps EXECUTE on the two membership helpers (AL-2674).
 
--- 2. The policies. ALTER POLICY keeps each name, command and role list.
+-- The caller's selected live row of one class in a tenant (plan 5.1): the row
+-- the assignment header names, when it is the caller's, live, in that tenant
+-- and of that class; or, with no header, the caller's one live row there,
+-- when it is of that class. A caller with several live rows there, of any
+-- classes, and none named has no assignment (review defect 9). Signature,
+-- owner and grants as WP2a created them.
+CREATE OR REPLACE FUNCTION authz.caller_assignment(
+  p_tenant_id UUID,
+  p_role authz.membership_role
+)
+RETURNS UUID
+LANGUAGE plpgsql
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_user UUID := auth.uid();
+  v_named UUID := tenant_guard.request_assignment_id();
+  v_id UUID;
+  v_role authz.membership_role;
+  v_rows BIGINT;
+BEGIN
+  IF v_user IS NULL OR p_tenant_id IS NULL OR p_role IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT m.id, m.role, pg_catalog.count(*) OVER ()
+    INTO v_id, v_role, v_rows
+    FROM authz.memberships AS m
+   WHERE m.user_id = v_user
+     AND m.tenant_id = p_tenant_id
+     AND m.is_active
+     AND m.revoked_at IS NULL
+     AND (v_named IS NULL OR m.id = v_named)
+   LIMIT 1;
+
+  IF v_rows IS DISTINCT FROM 1 OR v_role IS DISTINCT FROM p_role THEN
+    RETURN NULL;
+  END IF;
+  RETURN v_id;
+END;
+$$;
+
+-- Commenters' names (review Q9). A profile is readable by its owner only
+-- after this migration, so the comments of a published public post name
+-- their authors through this read: display name and avatar, nothing else.
+CREATE OR REPLACE FUNCTION public.post_comment_authors(p_post_id UUID)
+RETURNS TABLE (
+  user_id UUID,
+  display_name TEXT,
+  avatar_url TEXT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT DISTINCT
+    c.user_id,
+    COALESCE(
+      NULLIF(pg_catalog.btrim(p.display_name), ''),
+      NULLIF(pg_catalog.btrim(p.full_name), ''),
+      NULLIF(pg_catalog.btrim(pg_catalog.concat_ws(' ', p.first_name, p.last_name)), '')
+    ),
+    p.avatar_url
+  FROM public.posts AS post
+  JOIN public.post_comments AS c ON c.post_id = post.id
+  JOIN public.profiles AS p ON p.id = c.user_id
+  WHERE post.id = p_post_id
+    AND post.status = 'published'
+    AND post.visibility = 'public'
+  ORDER BY 1;
+$$;
+
+COMMENT ON FUNCTION public.post_comment_authors(UUID) IS
+  'The display name and avatar of each person who commented on a published '
+  'public post, and nothing else of their profiles (AL-2675, review Q9).';
+
+ALTER FUNCTION public.post_comment_authors(UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.post_comment_authors(UUID) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.post_comment_authors(UUID) TO authenticated;
+
+-- A signed-in insert into crm_notes is stamped with its author's name and the
+-- time; the insert policy binds the author to the caller (review defect 2).
+-- Server code on the service key writes these fields itself and is left as
+-- it is.
+CREATE OR REPLACE FUNCTION public.crm_notes_stamp_signed_in_author()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+BEGIN
+  IF CURRENT_USER = 'authenticated' THEN
+    NEW.author_name := COALESCE(
+      (SELECT COALESCE(
+                NULLIF(pg_catalog.btrim(p.display_name), ''),
+                NULLIF(pg_catalog.btrim(p.full_name), ''),
+                NULLIF(pg_catalog.btrim(pg_catalog.concat_ws(' ', p.first_name, p.last_name)), '')
+              )
+         FROM public.profiles AS p
+        WHERE p.id = NEW.author_profile_id),
+      'Mission Control'
+    );
+    NEW.created_at := pg_catalog.now();
+    NEW.updated_at := pg_catalog.now();
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.crm_notes_stamp_signed_in_author() OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.crm_notes_stamp_signed_in_author() FROM PUBLIC, anon, authenticated, service_role;
+
+DROP TRIGGER IF EXISTS crm_notes_stamp_signed_in_author ON public.crm_notes;
+CREATE TRIGGER crm_notes_stamp_signed_in_author
+  BEFORE INSERT ON public.crm_notes
+  FOR EACH ROW EXECUTE FUNCTION public.crm_notes_stamp_signed_in_author();
+
+-- 2. The policies. ALTER POLICY keeps each name, command and role list; the
+-- write policies of tables whose grants go are dropped.
 
 -- support_agents
 ALTER POLICY "support hub staff select" ON public.support_agents
@@ -370,25 +514,9 @@ ALTER POLICY "support hub staff select" ON public.support_agents
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_agents
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_agents
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_agents
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_agents;
+DROP POLICY "support hub staff update" ON public.support_agents;
+DROP POLICY "support hub staff delete" ON public.support_agents;
 
 -- support_assignments
 ALTER POLICY "support hub staff select" ON public.support_assignments
@@ -396,25 +524,9 @@ ALTER POLICY "support hub staff select" ON public.support_assignments
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_assignments
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_assignments
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_assignments
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_assignments;
+DROP POLICY "support hub staff update" ON public.support_assignments;
+DROP POLICY "support hub staff delete" ON public.support_assignments;
 
 -- support_audit_log
 ALTER POLICY "support hub staff select" ON public.support_audit_log
@@ -422,25 +534,9 @@ ALTER POLICY "support hub staff select" ON public.support_audit_log
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_audit_log
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_audit_log
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_audit_log
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_audit_log;
+DROP POLICY "support hub staff update" ON public.support_audit_log;
+DROP POLICY "support hub staff delete" ON public.support_audit_log;
 
 -- support_automation_rules
 ALTER POLICY "support hub staff select" ON public.support_automation_rules
@@ -448,25 +544,9 @@ ALTER POLICY "support hub staff select" ON public.support_automation_rules
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_automation_rules
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_automation_rules
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_automation_rules
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_automation_rules;
+DROP POLICY "support hub staff update" ON public.support_automation_rules;
+DROP POLICY "support hub staff delete" ON public.support_automation_rules;
 
 -- support_business_hours
 ALTER POLICY "support hub staff select" ON public.support_business_hours
@@ -474,25 +554,9 @@ ALTER POLICY "support hub staff select" ON public.support_business_hours
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_business_hours
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_business_hours
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_business_hours
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_business_hours;
+DROP POLICY "support hub staff update" ON public.support_business_hours;
+DROP POLICY "support hub staff delete" ON public.support_business_hours;
 
 -- support_canned_responses
 ALTER POLICY "support hub staff select" ON public.support_canned_responses
@@ -500,25 +564,9 @@ ALTER POLICY "support hub staff select" ON public.support_canned_responses
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_canned_responses
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_canned_responses
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_canned_responses
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_canned_responses;
+DROP POLICY "support hub staff update" ON public.support_canned_responses;
+DROP POLICY "support hub staff delete" ON public.support_canned_responses;
 
 -- support_conversation_labels
 ALTER POLICY "support hub staff select" ON public.support_conversation_labels
@@ -526,25 +574,9 @@ ALTER POLICY "support hub staff select" ON public.support_conversation_labels
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_conversation_labels
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_conversation_labels
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_conversation_labels
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_conversation_labels;
+DROP POLICY "support hub staff update" ON public.support_conversation_labels;
+DROP POLICY "support hub staff delete" ON public.support_conversation_labels;
 
 -- support_conversations
 ALTER POLICY "support hub staff select" ON public.support_conversations
@@ -552,25 +584,9 @@ ALTER POLICY "support hub staff select" ON public.support_conversations
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_conversations
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_conversations
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_conversations
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_conversations;
+DROP POLICY "support hub staff update" ON public.support_conversations;
+DROP POLICY "support hub staff delete" ON public.support_conversations;
 
 -- support_inbox_settings
 ALTER POLICY "support hub staff select" ON public.support_inbox_settings
@@ -578,25 +594,9 @@ ALTER POLICY "support hub staff select" ON public.support_inbox_settings
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_inbox_settings
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_inbox_settings
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_inbox_settings
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_inbox_settings;
+DROP POLICY "support hub staff update" ON public.support_inbox_settings;
+DROP POLICY "support hub staff delete" ON public.support_inbox_settings;
 
 -- support_inboxes
 ALTER POLICY "support hub staff select" ON public.support_inboxes
@@ -604,25 +604,9 @@ ALTER POLICY "support hub staff select" ON public.support_inboxes
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_inboxes
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_inboxes
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_inboxes
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_inboxes;
+DROP POLICY "support hub staff update" ON public.support_inboxes;
+DROP POLICY "support hub staff delete" ON public.support_inboxes;
 
 -- support_labels
 ALTER POLICY "support hub staff select" ON public.support_labels
@@ -630,25 +614,9 @@ ALTER POLICY "support hub staff select" ON public.support_labels
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_labels
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_labels
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_labels
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_labels;
+DROP POLICY "support hub staff update" ON public.support_labels;
+DROP POLICY "support hub staff delete" ON public.support_labels;
 
 -- support_macros
 ALTER POLICY "support hub staff select" ON public.support_macros
@@ -656,25 +624,9 @@ ALTER POLICY "support hub staff select" ON public.support_macros
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_macros
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_macros
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_macros
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_macros;
+DROP POLICY "support hub staff update" ON public.support_macros;
+DROP POLICY "support hub staff delete" ON public.support_macros;
 
 -- support_message_attachments
 ALTER POLICY "support hub staff select" ON public.support_message_attachments
@@ -682,25 +634,9 @@ ALTER POLICY "support hub staff select" ON public.support_message_attachments
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_message_attachments
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_message_attachments
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_message_attachments
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_message_attachments;
+DROP POLICY "support hub staff update" ON public.support_message_attachments;
+DROP POLICY "support hub staff delete" ON public.support_message_attachments;
 
 -- support_messages
 ALTER POLICY "support hub staff select" ON public.support_messages
@@ -708,77 +644,42 @@ ALTER POLICY "support hub staff select" ON public.support_messages
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_messages
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_messages
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_messages
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_messages;
+DROP POLICY "support hub staff update" ON public.support_messages;
+DROP POLICY "support hub staff delete" ON public.support_messages;
 
 -- support_notification_preferences
 ALTER POLICY "support hub staff select" ON public.support_notification_preferences
   USING (
     (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
+    OR (
+      tenant_id = (SELECT authz.current_tenant_id())
+      AND (SELECT authz.assignment_is('staff'))
+      AND ((SELECT authz.assignment_is_tenant_admin()) OR agent_id IN (SELECT a.id FROM public.support_agents AS a WHERE a.user_id = (SELECT auth.uid())))
+    )
   );
-ALTER POLICY "support hub staff insert" ON public.support_notification_preferences
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_notification_preferences
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_notification_preferences
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_notification_preferences;
+DROP POLICY "support hub staff update" ON public.support_notification_preferences;
+DROP POLICY "support hub staff delete" ON public.support_notification_preferences;
 
 -- support_saved_views
 ALTER POLICY "support hub staff select" ON public.support_saved_views
   USING (
     (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
+    OR (
+      tenant_id = (SELECT authz.current_tenant_id())
+      AND (SELECT authz.assignment_is('staff'))
+      AND (
+        scope <> 'personal'
+        OR owner_agent_id IS NULL
+        OR (SELECT authz.assignment_is_tenant_admin())
+        OR owner_agent_id IN (SELECT a.id FROM public.support_agents AS a WHERE a.user_id = (SELECT auth.uid()))
+      )
+    )
   );
-ALTER POLICY "support hub staff insert" ON public.support_saved_views
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_saved_views
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_saved_views
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_saved_views;
+DROP POLICY "support hub staff update" ON public.support_saved_views;
+DROP POLICY "support hub staff delete" ON public.support_saved_views;
 
 -- support_signatures
 ALTER POLICY "support hub staff select" ON public.support_signatures
@@ -786,25 +687,9 @@ ALTER POLICY "support hub staff select" ON public.support_signatures
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_signatures
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_signatures
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_signatures
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_signatures;
+DROP POLICY "support hub staff update" ON public.support_signatures;
+DROP POLICY "support hub staff delete" ON public.support_signatures;
 
 -- support_sla_policies
 ALTER POLICY "support hub staff select" ON public.support_sla_policies
@@ -812,25 +697,9 @@ ALTER POLICY "support hub staff select" ON public.support_sla_policies
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_sla_policies
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_sla_policies
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_sla_policies
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_sla_policies;
+DROP POLICY "support hub staff update" ON public.support_sla_policies;
+DROP POLICY "support hub staff delete" ON public.support_sla_policies;
 
 -- support_teams
 ALTER POLICY "support hub staff select" ON public.support_teams
@@ -838,25 +707,9 @@ ALTER POLICY "support hub staff select" ON public.support_teams
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support hub staff insert" ON public.support_teams
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff update" ON public.support_teams
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support hub staff delete" ON public.support_teams
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support hub staff insert" ON public.support_teams;
+DROP POLICY "support hub staff update" ON public.support_teams;
+DROP POLICY "support hub staff delete" ON public.support_teams;
 
 -- notification_queue
 ALTER POLICY "authz staff tenant select notification_queue" ON public.notification_queue
@@ -864,25 +717,9 @@ ALTER POLICY "authz staff tenant select notification_queue" ON public.notificati
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "authz staff tenant insert notification_queue" ON public.notification_queue
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "authz staff tenant update notification_queue" ON public.notification_queue
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "authz staff tenant delete notification_queue" ON public.notification_queue
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "authz staff tenant insert notification_queue" ON public.notification_queue;
+DROP POLICY "authz staff tenant update notification_queue" ON public.notification_queue;
+DROP POLICY "authz staff tenant delete notification_queue" ON public.notification_queue;
 
 -- pdf_templates
 ALTER POLICY "authz staff tenant select pdf_templates" ON public.pdf_templates
@@ -916,11 +753,7 @@ ALTER POLICY "authz staff tenant select audit_logs" ON public.audit_logs
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "authz staff tenant insert audit_logs" ON public.audit_logs
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "authz staff tenant insert audit_logs" ON public.audit_logs;
 
 -- crm_command_logs
 ALTER POLICY "authz staff tenant select crm_command_logs" ON public.crm_command_logs
@@ -928,11 +761,7 @@ ALTER POLICY "authz staff tenant select crm_command_logs" ON public.crm_command_
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "authz staff tenant insert crm_command_logs" ON public.crm_command_logs
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND actor_user_id = (SELECT auth.uid()))
-  );
+DROP POLICY "authz staff tenant insert crm_command_logs" ON public.crm_command_logs;
 
 -- crm_merge_candidates
 ALTER POLICY "authz staff tenant select crm_merge_candidates" ON public.crm_merge_candidates
@@ -940,20 +769,8 @@ ALTER POLICY "authz staff tenant select crm_merge_candidates" ON public.crm_merg
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "authz staff tenant insert crm_merge_candidates" ON public.crm_merge_candidates
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "authz staff tenant update crm_merge_candidates" ON public.crm_merge_candidates
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "authz staff tenant insert crm_merge_candidates" ON public.crm_merge_candidates;
+DROP POLICY "authz staff tenant update crm_merge_candidates" ON public.crm_merge_candidates;
 
 -- crm_record_links
 ALTER POLICY "authz staff tenant select crm_record_links" ON public.crm_record_links
@@ -982,11 +799,7 @@ ALTER POLICY "pdf template artifacts select" ON public.pdf_template_artifacts
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "pdf template artifacts insert" ON public.pdf_template_artifacts
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "pdf template artifacts insert" ON public.pdf_template_artifacts;
 
 -- pdf_template_audit_events
 ALTER POLICY "pdf template audit events select" ON public.pdf_template_audit_events
@@ -994,11 +807,7 @@ ALTER POLICY "pdf template audit events select" ON public.pdf_template_audit_eve
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "pdf template audit events insert" ON public.pdf_template_audit_events
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "pdf template audit events insert" ON public.pdf_template_audit_events;
 
 -- pdf_template_batch_jobs
 ALTER POLICY "pdf template batch jobs select" ON public.pdf_template_batch_jobs
@@ -1006,20 +815,8 @@ ALTER POLICY "pdf template batch jobs select" ON public.pdf_template_batch_jobs
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "pdf template batch jobs insert" ON public.pdf_template_batch_jobs
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "pdf template batch jobs update" ON public.pdf_template_batch_jobs
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "pdf template batch jobs insert" ON public.pdf_template_batch_jobs;
+DROP POLICY "pdf template batch jobs update" ON public.pdf_template_batch_jobs;
 
 -- pdf_template_batches
 ALTER POLICY "pdf template batches select" ON public.pdf_template_batches
@@ -1027,20 +824,8 @@ ALTER POLICY "pdf template batches select" ON public.pdf_template_batches
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "pdf template batches insert" ON public.pdf_template_batches
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "pdf template batches update" ON public.pdf_template_batches
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "pdf template batches insert" ON public.pdf_template_batches;
+DROP POLICY "pdf template batches update" ON public.pdf_template_batches;
 
 -- pdf_template_renders
 ALTER POLICY "pdf template renders select" ON public.pdf_template_renders
@@ -1048,20 +833,8 @@ ALTER POLICY "pdf template renders select" ON public.pdf_template_renders
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "pdf template renders insert" ON public.pdf_template_renders
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "pdf template renders update" ON public.pdf_template_renders
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "pdf template renders insert" ON public.pdf_template_renders;
+DROP POLICY "pdf template renders update" ON public.pdf_template_renders;
 
 -- pdf_template_versions
 ALTER POLICY "pdf template versions select" ON public.pdf_template_versions
@@ -1069,20 +842,8 @@ ALTER POLICY "pdf template versions select" ON public.pdf_template_versions
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "pdf template versions insert" ON public.pdf_template_versions
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "pdf template versions update" ON public.pdf_template_versions
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "pdf template versions insert" ON public.pdf_template_versions;
+DROP POLICY "pdf template versions update" ON public.pdf_template_versions;
 
 -- support_contacts
 ALTER POLICY "support contacts select" ON public.support_contacts
@@ -1090,25 +851,9 @@ ALTER POLICY "support contacts select" ON public.support_contacts
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support contacts insert" ON public.support_contacts
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support contacts update" ON public.support_contacts
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support contacts delete" ON public.support_contacts
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support contacts insert" ON public.support_contacts;
+DROP POLICY "support contacts update" ON public.support_contacts;
+DROP POLICY "support contacts delete" ON public.support_contacts;
 
 -- support_tickets
 ALTER POLICY "support tickets select" ON public.support_tickets
@@ -1116,25 +861,9 @@ ALTER POLICY "support tickets select" ON public.support_tickets
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "support tickets insert" ON public.support_tickets
-  WITH CHECK (
-    ((SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))))
-    AND created_by = (SELECT auth.uid())
-  );
-ALTER POLICY "support tickets update" ON public.support_tickets
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "support tickets delete" ON public.support_tickets
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "support tickets insert" ON public.support_tickets;
+DROP POLICY "support tickets update" ON public.support_tickets;
+DROP POLICY "support tickets delete" ON public.support_tickets;
 
 -- account_claim_requests
 ALTER POLICY "account_claim_requests_staff_select" ON public.account_claim_requests
@@ -1166,6 +895,7 @@ ALTER POLICY "crm_notes_tenant_insert" ON public.crm_notes
     tenant_id = (SELECT authz.current_tenant_id())
     AND (SELECT authz.assignment_is('staff'))
     AND (visibility <> 'restricted' OR (SELECT authz.assignment_is_tenant_admin()))
+    AND author_profile_id IN (SELECT authz.caller_profile_ids())
   );
 
 -- member_care_activities
@@ -1174,25 +904,9 @@ ALTER POLICY "member care activities select" ON public.member_care_activities
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "member care activities insert" ON public.member_care_activities
-  WITH CHECK (
-    ((SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))))
-    AND author_user_id = (SELECT auth.uid())
-  );
-ALTER POLICY "member care activities update" ON public.member_care_activities
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
-  );
-ALTER POLICY "member care activities delete" ON public.member_care_activities
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
-  );
+DROP POLICY "member care activities insert" ON public.member_care_activities;
+DROP POLICY "member care activities update" ON public.member_care_activities;
+DROP POLICY "member care activities delete" ON public.member_care_activities;
 
 -- member_care_goals
 ALTER POLICY "member care goals select" ON public.member_care_goals
@@ -1200,25 +914,9 @@ ALTER POLICY "member care goals select" ON public.member_care_goals
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "member care goals insert" ON public.member_care_goals
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND updated_by = (SELECT auth.uid()))
-  );
-ALTER POLICY "member care goals update" ON public.member_care_goals
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND updated_by = (SELECT auth.uid()))
-  );
-ALTER POLICY "member care goals delete" ON public.member_care_goals
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "member care goals insert" ON public.member_care_goals;
+DROP POLICY "member care goals update" ON public.member_care_goals;
+DROP POLICY "member care goals delete" ON public.member_care_goals;
 
 -- member_care_requirements
 ALTER POLICY "member care requirements select" ON public.member_care_requirements
@@ -1226,25 +924,9 @@ ALTER POLICY "member care requirements select" ON public.member_care_requirement
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "member care requirements insert" ON public.member_care_requirements
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND updated_by = (SELECT auth.uid()))
-  );
-ALTER POLICY "member care requirements update" ON public.member_care_requirements
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND updated_by = (SELECT auth.uid()))
-  );
-ALTER POLICY "member care requirements delete" ON public.member_care_requirements
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "member care requirements insert" ON public.member_care_requirements;
+DROP POLICY "member care requirements update" ON public.member_care_requirements;
+DROP POLICY "member care requirements delete" ON public.member_care_requirements;
 
 -- member_care_private_notes
 ALTER POLICY "member care private notes select" ON public.member_care_private_notes
@@ -1252,25 +934,9 @@ ALTER POLICY "member care private notes select" ON public.member_care_private_no
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
   );
-ALTER POLICY "member care private notes insert" ON public.member_care_private_notes
-  WITH CHECK (
-    author_user_id = (SELECT auth.uid())
-    AND ((SELECT authz.is_super_admin()) OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff'))))
-  );
-ALTER POLICY "member care private notes update" ON public.member_care_private_notes
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
-  );
-ALTER POLICY "member care private notes delete" ON public.member_care_private_notes
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')) AND author_user_id = (SELECT auth.uid()))
-  );
+DROP POLICY "member care private notes insert" ON public.member_care_private_notes;
+DROP POLICY "member care private notes update" ON public.member_care_private_notes;
+DROP POLICY "member care private notes delete" ON public.member_care_private_notes;
 
 -- donors
 ALTER POLICY "donors owner or staff select" ON public.donors
@@ -1404,6 +1070,9 @@ ALTER POLICY "field_policies_read" ON public.field_policies
       AND (SELECT authz.current_tenant_id()) IS NOT NULL
     )
   );
+DROP POLICY "field_policies_super_admin_insert" ON public.field_policies;
+DROP POLICY "field_policies_super_admin_update" ON public.field_policies;
+DROP POLICY "field_policies_super_admin_delete" ON public.field_policies;
 
 -- profiles: a profile is readable by its owner only (plan 5.1, NR-54). Staff
 -- read names through public.tenant_member_directory.
@@ -1411,6 +1080,7 @@ DROP POLICY "profiles staff tenant select" ON public.profiles;
 
 -- 3. The governed write grants, revoked beside the repoint.
 REVOKE INSERT ON TABLE public.audit_logs FROM authenticated;
+REVOKE INSERT, UPDATE ON TABLE public.crm_merge_candidates FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON TABLE public.member_care_activities FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON TABLE public.member_care_goals FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON TABLE public.member_care_private_notes FROM authenticated;
@@ -1505,9 +1175,50 @@ ALTER POLICY "editor images owner folder update" ON storage.objects
     AND (pg_catalog.string_to_array(name, '/'))[4] <> ''
   );
 
--- 5. Realtime. No hosted database publishes these tables and no screen
--- subscribes; a replayed chain does. A subscription would need a read policy
--- that ignores the active tenant (plan 5.2).
+-- Reads and deletes of one's own objects test the same membership (review
+-- Q10): a person whose membership in the tenant has ended no longer reads or
+-- deletes their images in that tenant's folder through the API.
+ALTER POLICY "profiles owner select" ON storage.objects
+  USING (
+    bucket_id = 'profiles'
+    AND owner = (SELECT auth.uid())
+    AND (pg_catalog.string_to_array(name, '/'))[1] = ANY (ARRAY['avatars', 'covers'])
+    AND (pg_catalog.string_to_array(name, '/'))[2] IN (
+      SELECT t::TEXT FROM authz.caller_tenant_ids() AS t
+    )
+  );
+ALTER POLICY "Owner delete profiles" ON storage.objects
+  USING (
+    bucket_id = 'profiles'
+    AND owner = (SELECT auth.uid())
+    AND (pg_catalog.string_to_array(name, '/'))[1] = ANY (ARRAY['avatars', 'covers'])
+    AND (pg_catalog.string_to_array(name, '/'))[2] IN (
+      SELECT t::TEXT FROM authz.caller_tenant_ids() AS t
+    )
+  );
+ALTER POLICY "editor images owner select" ON storage.objects
+  USING (
+    bucket_id = 'document-uploads'
+    AND owner = (SELECT auth.uid())
+    AND (pg_catalog.string_to_array(name, '/'))[1] = 'editor'
+    AND (pg_catalog.string_to_array(name, '/'))[2] IN (
+      SELECT t::TEXT FROM authz.caller_tenant_ids() AS t
+    )
+  );
+ALTER POLICY "Owner delete document-uploads" ON storage.objects
+  USING (
+    bucket_id = 'document-uploads'
+    AND owner = (SELECT auth.uid())
+    AND (pg_catalog.string_to_array(name, '/'))[1] = 'editor'
+    AND (pg_catalog.string_to_array(name, '/'))[2] IN (
+      SELECT t::TEXT FROM authz.caller_tenant_ids() AS t
+    )
+  );
+
+-- 5. Realtime. No hosted database publishes these tables; a replayed chain
+-- does. A subscription would need a read policy that ignores the active
+-- tenant (plan 5.2). The one screen that subscribes, the public map's
+-- locations collection, stops subscribing in the same release.
 DO $$
 DECLARE
   v_table TEXT;
@@ -1538,7 +1249,7 @@ BEGIN
   -- No signed-in write grant remains on a governed table.
   SELECT pg_catalog.string_agg(t || ' ' || p, ', ')
     INTO v_problem
-    FROM pg_catalog.unnest(ARRAY['audit_logs', 'member_care_activities', 'member_care_goals', 'member_care_private_notes', 'member_care_requirements', 'field_policies', 'notification_queue', 'support_agents', 'support_assignments', 'support_audit_log', 'support_automation_rules', 'support_business_hours', 'support_canned_responses', 'support_conversation_labels', 'support_conversations', 'support_inbox_settings', 'support_inboxes', 'support_labels', 'support_macros', 'support_message_attachments', 'support_messages', 'support_notification_preferences', 'support_saved_views', 'support_signatures', 'support_sla_policies', 'support_teams', 'support_contacts', 'support_tickets', 'pdf_template_artifacts', 'pdf_template_audit_events', 'pdf_template_batch_jobs', 'pdf_template_batches', 'pdf_template_renders', 'pdf_template_versions', 'crm_command_logs', 'stripe_raw_events', 'staged_gifts', 'staged_gift_allocations', 'staged_gift_audit_events', 'donation_crm_links', 'giving_reconciliation_runs']) AS t,
+    FROM pg_catalog.unnest(ARRAY['audit_logs', 'crm_merge_candidates', 'member_care_activities', 'member_care_goals', 'member_care_private_notes', 'member_care_requirements', 'field_policies', 'notification_queue', 'support_agents', 'support_assignments', 'support_audit_log', 'support_automation_rules', 'support_business_hours', 'support_canned_responses', 'support_conversation_labels', 'support_conversations', 'support_inbox_settings', 'support_inboxes', 'support_labels', 'support_macros', 'support_message_attachments', 'support_messages', 'support_notification_preferences', 'support_saved_views', 'support_signatures', 'support_sla_policies', 'support_teams', 'support_contacts', 'support_tickets', 'pdf_template_artifacts', 'pdf_template_audit_events', 'pdf_template_batch_jobs', 'pdf_template_batches', 'pdf_template_renders', 'pdf_template_versions', 'crm_command_logs', 'stripe_raw_events', 'staged_gifts', 'staged_gift_allocations', 'staged_gift_audit_events', 'donation_crm_links', 'giving_reconciliation_runs']) AS t,
          pg_catalog.unnest(ARRAY['INSERT', 'UPDATE', 'DELETE']) AS p
    WHERE pg_catalog.has_table_privilege('authenticated', ('public.' || t)::regclass, p);
   IF v_problem IS NOT NULL THEN
@@ -1560,6 +1271,39 @@ BEGIN
      ) ~ '(has_(staff_)?membership\(|auth\.jwt\(\)|app_metadata)';
   IF v_problem IS NOT NULL THEN
     RAISE EXCEPTION 'AL-2675: policies still judge the row''s own tenant or the token claim: %', v_problem;
+  END IF;
+
+  -- No signed-in write policy is left where the write grants went (Q7).
+  SELECT pg_catalog.string_agg(c.relname || ': ' || p.polname, ', ')
+    INTO v_problem
+    FROM pg_catalog.pg_policy AS p
+    JOIN pg_catalog.pg_class AS c ON c.oid = p.polrelid
+   WHERE c.relnamespace = 'public'::regnamespace
+     AND c.relname = ANY (ARRAY['audit_logs', 'crm_merge_candidates', 'member_care_activities', 'member_care_goals', 'member_care_private_notes', 'member_care_requirements', 'field_policies', 'notification_queue', 'support_agents', 'support_assignments', 'support_audit_log', 'support_automation_rules', 'support_business_hours', 'support_canned_responses', 'support_conversation_labels', 'support_conversations', 'support_inbox_settings', 'support_inboxes', 'support_labels', 'support_macros', 'support_message_attachments', 'support_messages', 'support_notification_preferences', 'support_saved_views', 'support_signatures', 'support_sla_policies', 'support_teams', 'support_contacts', 'support_tickets', 'pdf_template_artifacts', 'pdf_template_audit_events', 'pdf_template_batch_jobs', 'pdf_template_batches', 'pdf_template_renders', 'pdf_template_versions', 'crm_command_logs', 'stripe_raw_events', 'staged_gifts', 'staged_gift_allocations', 'staged_gift_audit_events', 'donation_crm_links', 'giving_reconciliation_runs'])
+     AND p.polcmd IN ('a', 'w', 'd')
+     AND p.polroles && ARRAY[0::OID, 'authenticated'::regrole::OID];
+  IF v_problem IS NOT NULL THEN
+    RAISE EXCEPTION 'AL-2675: write policies remain where the grants went: %', v_problem;
+  END IF;
+
+  -- Every policy of the two buckets tests a live membership in the path's
+  -- tenant (Q10).
+  SELECT pg_catalog.string_agg(p.polname, ', ')
+    INTO v_problem
+    FROM pg_catalog.pg_policy AS p
+   WHERE p.polrelid = 'storage.objects'::regclass
+     AND (
+       COALESCE(pg_catalog.pg_get_expr(p.polqual, p.polrelid), '') || ' ' ||
+       COALESCE(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid), '')
+     ) ~ '''(profiles|document-uploads)'''
+     AND NOT (
+       COALESCE(pg_catalog.pg_get_expr(p.polqual, p.polrelid), 'authz.caller_tenant_ids()') ~ 'authz\.caller_tenant_ids\(\)'
+       AND COALESCE(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid), 'authz.caller_tenant_ids()') ~ 'authz\.caller_tenant_ids\(\)'
+     )
+     AND p.polname <> 'profiles owner folder update'
+     AND p.polname <> 'editor images owner folder update';
+  IF v_problem IS NOT NULL THEN
+    RAISE EXCEPTION 'AL-2675: Storage policies without the membership test: %', v_problem;
   END IF;
 
   IF EXISTS (

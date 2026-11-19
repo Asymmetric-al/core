@@ -394,12 +394,15 @@ describe.skipIf(!ADMIN_URL)(
           expect(r[0]!.t).toBeNull();
         }));
 
-      it("refuses a tenant or assignment header that is not a canonical lower-case UUID (22P02), and is not an empty read", () =>
+      // Ruled on the activation review's Q11: a hyphenated UUID in any letter
+      // case is accepted, as the command lane accepts it; the upper-case case
+      // moved to the Q11 test below, which asserts that it works.
+      it("refuses a tenant or assignment header that is not a hyphenated UUID (22P02), and is not an empty read", () =>
         tx(async () => {
           for (const bad of [
             "not-a-uuid",
-            id.TA!.toUpperCase(),
             id.TA!.replaceAll("-", ""),
+            `{${id.TA!}}`,
           ]) {
             const r = await as(
               "authenticated",
@@ -1219,12 +1222,15 @@ describe.skipIf(!ADMIN_URL)(
             );
             expect(del.rows, bucket).toEqual([]);
           }
+          // Each call above runs in its own rolled-back savepoint, so the
+          // refused deletes left both objects in place: the superuser still
+          // sees all four.
           expect(
             await rows(
               "select count(*)::int n from storage.objects where owner = $1",
               [id.UP],
             ),
-          ).toEqual([{ n: 2 }]);
+          ).toEqual([{ n: 4 }]);
         }));
 
       it("Q11: an upper-case assignment header works on a Data API read, the member directory and a command; garbage raises 22P02 on all three; a blank header acts as absent", () =>
