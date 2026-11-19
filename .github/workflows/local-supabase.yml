@@ -67,6 +67,9 @@ on:
       - scripts/e2e/run-operator-mfa.mjs
       - scripts/platform/**
       - packages/api/src/shared/platform-operator.ts
+      - packages/api/src/shared/request-session-client.ts
+      - scripts/cms/lib/postgres.mjs
+      - scripts/release/release-database.mjs
       - tests/unit/acceptance/issue-2675/operator-mfa.localstack.test.ts
 
 permissions:
