@@ -285,7 +285,8 @@ describe.skipIf(!adminDatabaseUrl || !harnessAdminUrl)(
     let withDefaults = "";
 
     beforeAll(async () => {
-      platform = await new Replay(harnessAdminUrl, true).build();
+      platform = new Replay(harnessAdminUrl, true);
+      await platform.build();
       plain = replay("fp_plain");
       withDefaults = flaggedReplay();
     }, 600_000);

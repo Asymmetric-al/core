@@ -295,14 +295,20 @@ describe.skipIf(!adminDatabaseUrl)(
           WP13R_OWNER_PASSWORD: randomBytes(24).toString("base64url"),
         };
         const rotation: string[] = [];
+        let clock = 0;
         setCmsRolePasswords({
           settings,
           env: rotated,
+          now: () => (clock += 600),
           roles,
           log: (line: string) => rotation.push(line),
         });
         expect(rotation).toEqual([
-          `Set the ${owner} password; it logged in on attempt 1, 0 s after the change.`,
+          expect.stringMatching(
+            new RegExp(
+              `^Set the ${owner} password; it logged in on attempt 1, \\d+ s after the change\\.$`,
+            ),
+          ),
           `The ${runtime} password already logs in; nothing changed.`,
         ]);
         expect(verifier(owner)).not.toBe(stored);

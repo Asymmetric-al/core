@@ -360,6 +360,7 @@ describe("release database steps", () => {
         return { status: 0, stdout: `${pinnedSupabaseCliVersion()}\n` };
       if (command === "supabase") {
         fake.db.environment = "disposable";
+        fake.db.defaultsOpen = false;
         order.push("direct reset");
       } else {
         order.push(command === "bun" ? "payload" : command);
@@ -381,7 +382,7 @@ describe("release database steps", () => {
     expect(() =>
       preflight({
         settings: previewProject("preview"),
-        query: fakeDatabase({}).query,
+        query: fake.query,
         log: silent,
       }),
     ).not.toThrow();
@@ -505,8 +506,16 @@ describe("release database steps", () => {
       );
       expect(applied).toHaveLength(1);
       expect(applied[0]![0]).toMatchObject({ databaseUrl });
-      // Review H1.2: one transaction, so a failure part way applies nothing.
-      expect(applied[0]![0].sql).toMatch(/^BEGIN;\n[\s\S]*\nCOMMIT;\n?$/);
+      const sql = applied[0]![0].sql ?? "";
+      expect(sql.match(/^(?:BEGIN|ROLLBACK|COMMIT);$/gm)).toEqual([
+        "BEGIN;",
+        "ROLLBACK;",
+        "BEGIN;",
+        "COMMIT;",
+      ]);
+      expect(sql).toMatch(
+        /^BEGIN;[\s\S]+AS release_expected_defaults \\gset\nROLLBACK;\nBEGIN;[\s\S]+AS release_global_defaults \\gset[\s\S]+WHERE found.diff IS NOT NULL \\gexec\nCOMMIT;\n?$/,
+      );
     },
   );
 
@@ -1668,7 +1677,8 @@ describe("the CA file of a hosted release", () => {
       const file = decodeURIComponent(added!);
       expect(path.dirname(path.dirname(file))).toBe(root);
       expect(readFileSync(file, "utf8")).toBe(REAL_CA);
-      expect(statSync(file).mode & 0o777).toBe(0o600);
+      if (process.platform !== "win32")
+        expect(statSync(file).mode & 0o777).toBe(0o600);
       expect(ca.settings.cmsOwnerDatabaseUrl).toBe(base.cmsOwnerDatabaseUrl);
       ca.remove();
       expect(readdirSync(root)).toEqual([]);
