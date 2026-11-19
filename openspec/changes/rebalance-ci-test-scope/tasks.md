@@ -95,9 +95,9 @@
 
 - [ ] 9.1 Promote an axe spec only after a clean advisory run record (see
       `design.md` §4).
-- [ ] 9.2 Add an acceptance stage to the local preflight (pre-push
-      workstream, `scripts/verify/ci-preflight.mjs`), and update its comment
-      that `verify:shadcn-config` runs only locally.
+- [x] 9.2 Add an acceptance stage to the local preflight (pre-push
+      workstream, `scripts/verify/ci-preflight.mjs`), and record that CI
+      runs `verify:shadcn-config` in required lint.
 - [x] 9.3 Add a one-line pointer to this change's supersession (`design.md`
       §7) at the top of `reduce-development-builds/design.md`, as
       `complete-repository-modernization` did for its own.

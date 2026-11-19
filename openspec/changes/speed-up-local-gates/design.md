@@ -11,8 +11,8 @@ runs about twenty stages in series with inherited output and prints
 (`scripts/archon-factory/pack/.shared/publication.mjs`) pushes through the
 same hook and accepts the push only when the output contains that line.
 
-Required CI runs every preflight stage except `verify:shadcn-config` and
-`verify:shadcn-diff`. Lint and typecheck on pull requests use
+Required CI runs `verify:shadcn-config` in the `lint` job. The live
+`verify:shadcn-diff` registry comparison runs locally. Lint and typecheck on pull requests use
 `turbo --affected` against `origin/develop`. The pre-commit hook runs
 `node tooling/eslint-config/lint.mjs --fix` and `prettier --ignore-unknown
 --write` on staged files.
@@ -382,9 +382,9 @@ worktree without `node_modules` or network, the hook finds no tools and exits 0.
   `bun run ci:preflight` runs both.
 - [`turbo --affected` without a local `origin/develop`] → Turbo then treats
   every workspace as affected, which is slower but not weaker.
-- [Until workstream C removes `tests/unit/acceptance` from `test:unit`, the
-  full profile runs the acceptance tests twice] → Accepted: the full profile
-  is explicit, and C is scheduled next.
+- [The full profile runs both unit and acceptance checks] → The unit stage
+  excludes `tests/unit/acceptance/**`. The dedicated acceptance stage runs
+  that suite once.
 - [Codex on Windows: the shell that runs hook commands is not documented] →
   The command uses only `$(…)` inside double quotes, which POSIX shells and
   PowerShell both expand. Recorded as unverified.

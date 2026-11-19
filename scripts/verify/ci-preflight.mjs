@@ -52,10 +52,9 @@ const AFFECTED_FILTERS = [
  * -> verify:shadcn-diff
  * -> typecheck -> build -> test-unit -> acceptance
  */
-// Exceptions to the mirror: ci.yml has no step for verify:shadcn-config or
-// verify:shadcn-diff (they run only here), and getPreflightStages replaces
-// `build` with the selected compilation (none for routine development
-// changes).
+// Exceptions to the mirror: verify:shadcn-diff runs only here, and
+// getPreflightStages replaces `build` with the selected compilation (none
+// for routine development changes).
 const stages = [
   {
     id: "runtime",
