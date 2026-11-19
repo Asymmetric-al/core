@@ -327,7 +327,7 @@ const HEALTH_SQL = `SELECT ${RELEASE_DATABASE_CONTRACT.healthFunction}()::text;`
 const PUBLIC_DEFAULTS_OPEN = `EXISTS (
   SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
   WHERE d.defaclrole = 'postgres'::regrole
-    AND d.defaclnamespace = 'public'::regnamespace
+    AND d.defaclnamespace IN (0, 'public'::regnamespace)
     AND a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated')))`;
 const DEFAULTS_OPEN_SQL = `SELECT json_build_object('open', ${PUBLIC_DEFAULTS_OPEN})::text;`;
 /**
@@ -899,8 +899,8 @@ const POSTGRES_DEFAULT_ENTRIES = (
 ) => `(SELECT coalesce(string_agg(entry, ' ' ORDER BY entry), '') FROM (
   SELECT CASE d.defaclobjtype WHEN 'r' THEN 'tables' WHEN 'S' THEN 'sequences'
               WHEN 'f' THEN 'functions' WHEN 'T' THEN 'types' WHEN 'n' THEN 'schemas'
-              ELSE d.defaclobjtype::text END || ':' || item::text AS entry
-  FROM pg_default_acl d CROSS JOIN LATERAL unnest(d.defaclacl) AS item
+              ELSE d.defaclobjtype::text END || ':' || coalesce(item::text, '<empty>') AS entry
+  FROM pg_default_acl d LEFT JOIN LATERAL unnest(d.defaclacl) AS item ON true
   WHERE d.defaclrole = 'postgres'::regrole AND ${where}) AS entries)`;
 
 const CLEAR_PUBLIC_DEFAULTS_SQL = `DO $clear$

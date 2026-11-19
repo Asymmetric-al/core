@@ -502,6 +502,11 @@ describe.skipIf(!adminDatabaseUrl)(
         /unexpected in public tables:pg_monitor=r\/postgres/,
       ],
       [
+        "an empty global tables ACL",
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE ALL ON TABLES FROM postgres;",
+        /in every schema tables:<empty>/,
+      ],
+      [
         "a revoke from PUBLIC in every schema",
         "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;",
         /in every schema functions:postgres=X\/postgres/,
@@ -517,6 +522,8 @@ describe.skipIf(!adminDatabaseUrl)(
         );
         psql(db.url, plant);
         const before = psql(db.url, POSTGRES_DEFAULTS_SQL);
+        if (_case === "an empty global tables ACL")
+          expect(before).toContain("/r={}");
         expect(() =>
           restoreHostedDefaultPrivileges({
             settings: loopbackSettings(db.url),

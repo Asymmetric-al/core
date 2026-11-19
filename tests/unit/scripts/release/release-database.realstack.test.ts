@@ -111,6 +111,28 @@ describe.skipIf(!adminDatabaseUrl)(
       expect(result.output).toMatch(/open to anon and authenticated/);
     });
 
+    it("refuses a global grant inherited by new public tables without a schema default", () => {
+      const db = database("global_default");
+      applyLedgers(db.url, source.supabase, source.payload);
+      psql(db.url, OPEN_DEFAULTS_SQL.replace(" IN SCHEMA public", ""));
+      psql(db.url, "CREATE TABLE public.inherits_default (id integer)");
+      expect(
+        psql(
+          db.url,
+          "SELECT has_table_privilege('anon', 'public.inherits_default', 'SELECT')",
+        ),
+      ).toBe("t");
+      expect(
+        psql(
+          db.url,
+          "SELECT count(*) FROM pg_default_acl WHERE defaclnamespace = 'public'::regnamespace",
+        ),
+      ).toBe("0");
+      const result = step("preflight", db.url);
+      expect(result.status).toBe(1);
+      expect(result.output).toMatch(/open to anon and authenticated/);
+    });
+
     it("reads the marker and those defaults after a failed reset, with and without the platform schema", () => {
       const marked = database("after_reset_marked");
       expect(
