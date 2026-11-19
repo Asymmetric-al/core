@@ -12,6 +12,7 @@
  * Runs against TENANT_GUARD_IT_ADMIN_DATABASE_URL (see ./harness.ts).
  */
 import { randomUUID } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -1148,12 +1149,27 @@ describe.skipIf(!ADMIN_URL)(
             }
         }));
 
-      it("Q9: a donor reads another commenter's display name and avatar through the narrow read, and still cannot read that member's profile row", () =>
+      // Amended by council R1 (record D-18): the commenter read and the
+      // comments route's move onto it ship in the first release (slice B,
+      // JB11), because the release job migrates before it promotes the apps;
+      // this migration no longer defines public.post_comment_authors. What
+      // stays here is the policy drop: another member's profile row is not
+      // readable. Where the chain holds a migration that defines the read, it
+      // is asserted as the coordinator ruled it: a display name only, NULL
+      // when blank with no fallback to another name field, and a name and an
+      // avatar only for a caller with a live membership of any class in the
+      // post's organization; others get the rows with no name. The columns
+      // are assumed to be (user_id, display_name, avatar_url), as ruled.
+      it("Q9: a donor cannot read another member's profile row; where the chain defines the commenter read, it names an author by display name alone, to a member of the post's organization only", () =>
         tx(async () => {
           const post = randomUUID();
           await db.query(
-            "update public.profiles set display_name = 'Blair Admin', avatar_url = 'https://example.org/a.png', email = 'blair@example.org' where user_id = $1",
+            "update public.profiles set display_name = 'Blair Admin', full_name = 'Blair Full', avatar_url = 'https://example.org/a.png', email = 'blair@example.org' where user_id = $1",
             [id.UADM],
+          );
+          await db.query(
+            "update public.profiles set display_name = '  ', full_name = 'Pat Full' where user_id = $1",
+            [id.UP],
           );
           await replica(true);
           await insertRow("posts", {
@@ -1162,44 +1178,57 @@ describe.skipIf(!ADMIN_URL)(
             status: "'published'",
             visibility: "'public'",
           });
-          await insertRow("post_comments", {
-            post_id: `'${post}'`,
-            user_id: q("UADM"),
-            content: "'hello'",
-          });
+          for (const u of ["UADM", "UP"])
+            await insertRow("post_comments", {
+              post_id: `'${post}'`,
+              user_id: q(u),
+              content: "'hello'",
+            });
           await replica(false);
-          for (const headers of [under("mDon"), undefined]) {
-            const r = await as(
-              "authenticated",
-              { sub: "UDON", headers },
-              `select * from public.post_comment_authors('${post}')`,
-            );
-            expect(r.code, r.message).toBeNull();
-            expect(r.rows).toEqual([
-              {
-                user_id: id.UADM,
-                display_name: "Blair Admin",
-                avatar_url: "https://example.org/a.png",
-              },
-            ]);
-          }
           const profile = await as(
             "authenticated",
             { sub: "UDON", headers: under("mDon") },
-            `select id from public.profiles where id = ${q("UADM")}`,
+            `select id from public.profiles where id in (${q("UADM")}, ${q("UP")})`,
           );
+          expect(profile.code, profile.message).toBeNull();
           expect(profile.rows).toEqual([]);
-          // A post that is not published and public gives no names.
-          await db.query(
-            "update public.posts set visibility = 'followers' where id = $1",
-            [post],
+
+          const defines = (file: string) =>
+            readFileSync(`supabase/migrations/${file}`, "utf8").includes(
+              "FUNCTION public.post_comment_authors",
+            );
+          const shipped = readdirSync("supabase/migrations").some(
+            (f) => /^\d{14}_.+\.sql$/.test(f) && defines(f),
           );
-          const hidden = await as(
-            "authenticated",
-            { sub: "UDON", headers: under("mDon") },
-            `select * from public.post_comment_authors('${post}')`,
-          );
-          expect(hidden.rows).toEqual([]);
+          const [{ defined }] = (await rows(
+            "select to_regprocedure('public.post_comment_authors(uuid)') is not null defined",
+          )) as [{ defined: boolean }];
+          expect(defined).toBe(shipped);
+          if (!defined) return;
+          const authors = async (u: User, m?: string) => {
+            const r = await as(
+              "authenticated",
+              { sub: u, headers: m ? under(m) : undefined },
+              `select user_id, display_name, avatar_url from public.post_comment_authors('${post}') order by user_id`,
+            );
+            expect(r.code, r.message).toBeNull();
+            return Object.fromEntries(
+              r.rows.map((row) => [
+                Object.keys(id).find((k) => id[k] === row.user_id),
+                [row.display_name, row.avatar_url],
+              ]),
+            );
+          };
+          // A member of the post's organization, of any class.
+          expect(await authors("UDON", "mDon")).toEqual({
+            UADM: ["Blair Admin", "https://example.org/a.png"],
+            UP: [null, null],
+          });
+          // A signed-in person with no row there: the rows, no names.
+          expect(await authors("UB", "mB")).toEqual({
+            UADM: [null, null],
+            UP: [null, null],
+          });
           const anon = await as(
             "anon",
             {},
@@ -1428,6 +1457,345 @@ describe.skipIf(!ADMIN_URL)(
             { author_name: "acc2675r2", fresh: true, fresh_update: true },
           ]);
         }));
+    });
+
+    describe("the council's findings", () => {
+      const replica = (on: boolean) =>
+        db.query(
+          `set local session_replication_role = ${on ? "replica" : "origin"}`,
+        );
+
+      // R7: the sweep of "a request that names no tenant receives none", as
+      // the staff-only case is swept: every public table with a tenant column
+      // and a signed-in read policy, less the reviewed exceptions.
+      it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions", () =>
+        tx(async () => {
+          const pinned = new Set(
+            (
+              JSON.parse(
+                readFileSync(
+                  "docs/security/tenant-policy-exceptions.json",
+                  "utf8",
+                ),
+              ) as { entries: { table: string }[] }
+            ).entries.map((e) => e.table),
+          );
+          const tables = (
+            await rows(
+              `select c.relname::text t
+                 from pg_class c
+                where c.relnamespace = 'public'::regnamespace and c.relkind in ('r', 'p')
+                  and exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname = 'tenant_id' and not a.attisdropped)
+                  and exists (select 1 from pg_policy p where p.polrelid = c.oid and p.polcmd in ('r', '*')
+                                and p.polroles && array[0::oid, 'authenticated'::regrole::oid])
+                  and has_table_privilege('authenticated', c.oid, 'SELECT')
+                order by 1`,
+            )
+          )
+            .map((r) => r.t as string)
+            .filter((t) => !pinned.has(t));
+          expect(tables.length).toBeGreaterThan(40);
+          await replica(true);
+          for (const t of tables)
+            await insertRow(t, {
+              tenant_id: q("TA"),
+              ...(t === "member_care_private_notes"
+                ? { author_user_id: q("UADM") }
+                : {}),
+            });
+          await replica(false);
+          for (const t of tables) {
+            const there = await rows(
+              `select count(*)::int n from public.${t} where tenant_id = $1`,
+              [id.TA],
+            );
+            expect(there[0]!.n, t).toBeGreaterThan(0);
+            // UADM holds one live row, in TA; UP holds one in each tenant.
+            for (const [u, headers] of [
+              ["UADM", undefined],
+              ["UADM", { "x-asym-assignment": id.mAdm! }],
+              ["UP", undefined],
+              ["UP", { "x-asym-assignment": id.mPA! }],
+            ] as [User, Record<string, string> | undefined][]) {
+              const r = await as(
+                "authenticated",
+                { sub: u, headers },
+                `select count(*)::int n from public.${t}`,
+              );
+              expect(r.code, `${t} ${u}: ${r.message}`).toBeNull();
+              expect(r.rows[0]!.n, `${t} ${u} ${JSON.stringify(headers)}`).toBe(
+                0,
+              );
+            }
+          }
+        }));
+
+      // R8: the member directory answers only for the tenant the request
+      // selected.
+      it("R8: the member directory refuses a tenant header that names another tenant than the one asked about, and keeps the one-row fallback without a header", () =>
+        tx(async () => {
+          const directory = (tenant: string) =>
+            `select membership_id from public.tenant_member_directory('${id[tenant]}')`;
+          // UP's request names TA, while the argument and the row say TB.
+          const conflict = await as(
+            "authenticated",
+            {
+              sub: "UP",
+              headers: {
+                "x-asym-tenant": id.TA!,
+                "x-asym-assignment": id.mPB!,
+              },
+            },
+            directory("TB"),
+          );
+          expect(conflict.code, JSON.stringify(conflict.rows)).toBe("42501");
+          expect(conflict.rows).toEqual([]);
+          // The same call naming TB is answered.
+          const own = await as(
+            "authenticated",
+            { sub: "UP", headers: under("mPB") },
+            directory("TB"),
+          );
+          expect(own.code, own.message).toBeNull();
+          const members = own.rows.map(
+            (r) =>
+              Object.keys(id).find((k) => id[k] === r.membership_id) ??
+              r.membership_id,
+          );
+          expect(sorted(members)).toEqual(sorted(["mPB", "mB"]));
+          // UB's one live row, in TB, serves with no header at all.
+          const fallback = await as(
+            "authenticated",
+            { sub: "UB" },
+            directory("TB"),
+          );
+          expect(fallback.code, fallback.message).toBeNull();
+          expect(fallback.rows.length).toBe(2);
+        }));
+
+      // R11: an own-row sub-select carries the request's tenant itself, so a
+      // super administrator who is a donor in two organizations cannot link a
+      // row of one to their donor record in the other.
+      it("R11: a super administrator who is a donor in both tenants cannot set feed preferences in one tenant for their donor record in the other", () =>
+        tx(async () => {
+          const user = randomUUID();
+          const row = randomUUID();
+          const [mine, theirs] = [randomUUID(), randomUUID()];
+          id.USA = user;
+          await db.query("insert into auth.users (id) values ($1)", [user]);
+          await db.query("delete from authz.memberships where user_id = $1", [
+            user,
+          ]);
+          await db.query(
+            "update public.profiles set role = 'super_admin' where user_id = $1",
+            [user],
+          );
+          await db.query(
+            `insert into authz.memberships (id, user_id, tenant_id, role, is_active)
+             values ($1, $2, $3, 'donor', true)`,
+            [row, user, id.TA],
+          );
+          await replica(true);
+          for (const [donor, tenant] of [
+            [mine, "TA"],
+            [theirs, "TB"],
+          ] as const)
+            await insertRow("donors", {
+              id: `'${donor}'`,
+              tenant_id: q(tenant),
+              profile_id: `'${user}'`,
+              email: `'${donor}@example.org'`,
+            });
+          await replica(false);
+          const headers = { "x-asym-tenant": id.TA!, "x-asym-assignment": row };
+          const across = await as(
+            "authenticated",
+            { sub: "USA", headers },
+            `insert into public.donor_feed_preferences (donor_id, tenant_id) values ('${theirs}', ${q("TA")}) returning id`,
+          );
+          expect(across.code, JSON.stringify(across.rows)).toBe("42501");
+          const own = await as(
+            "authenticated",
+            { sub: "USA", headers },
+            `insert into public.donor_feed_preferences (donor_id, tenant_id) values ('${mine}', ${q("TA")}) returning id`,
+          );
+          expect(own.code, own.message).toBeNull();
+          expect(own.rows).toHaveLength(1);
+          // Every own-row sub-select the migration writes carries the tenant.
+          const leaning = await rows(
+            `select c.relname || ': ' || p.polname n
+               from pg_policy p join pg_class c on c.oid = p.polrelid
+              where c.relnamespace = 'public'::regnamespace
+                and coalesce(pg_get_expr(p.polqual, p.polrelid), '') || ' ' || coalesce(pg_get_expr(p.polwithcheck, p.polrelid), '')
+                    ~ 'FROM (donors d|missionaries m|support_agents a)\\s+WHERE \\(+(d|m|a)\\.(profile_id|user_id)'
+              order by 1`,
+          );
+          expect(leaning).toEqual([]);
+        }));
+
+      // R12 (b): the policies compare the caller through the parallel-safe
+      // caller-id helper, not auth.uid().
+      it("R12: the Support Hub reads and the private-notes read compare the caller through authz.current_user_id(), which is PARALLEL SAFE", () =>
+        tx(async () => {
+          const policies = await rows(
+            `select c.relname || ': ' || p.polname n,
+                    coalesce(pg_get_expr(p.polqual, p.polrelid), '') q
+               from pg_policy p join pg_class c on c.oid = p.polrelid
+              where c.relnamespace = 'public'::regnamespace
+                and (c.relname, p.polname) in (
+                  ('support_notification_preferences', 'support hub staff select'),
+                  ('support_saved_views', 'support hub staff select'),
+                  ('member_care_private_notes', 'member care private notes select'))
+              order by 1`,
+          );
+          expect(policies).toHaveLength(3);
+          for (const p of policies) {
+            expect(p.q, p.n as string).toContain(
+              "SELECT authz.current_user_id() AS current_user_id",
+            );
+            expect(p.q, p.n as string).not.toMatch(/auth\.uid\(\)/);
+          }
+          expect(
+            await rows(
+              "select proparallel::text p from pg_proc where oid = 'authz.current_user_id()'::regprocedure",
+            ),
+          ).toEqual([{ p: "s" }]);
+        }));
+
+      // R13: a malformed header is an error only where a policy's lookup runs.
+      it("R13: a malformed header on a read whose lookup never runs gives an empty answer, not an error", () =>
+        tx(async () => {
+          const headers = {
+            "x-asym-tenant": "not-a-uuid",
+            "x-asym-assignment": id.mPA!,
+          };
+          for (const sql of [
+            `select id from public.donors where id = '${randomUUID()}'`,
+            "select id from public.donors where false",
+          ]) {
+            const r = await as("authenticated", { sub: "UP", headers }, sql);
+            expect(r.code, `${sql}: ${r.message}`).toBeNull();
+            expect(r.rows, sql).toEqual([]);
+          }
+          // Where rows are there to judge, the lookup runs and raises.
+          const judged = await as(
+            "authenticated",
+            { sub: "UP", headers },
+            "select id from public.donors",
+          );
+          expect(judged.code).toBe("22P02");
+        }));
+
+      // R15: "refused" on the Data API is an empty answer; the resolving
+      // function returns one all-null record, not an empty set.
+      it("R15: authz.request_assignment() returns exactly one record, all null when nothing resolves", () =>
+        tx(async () => {
+          // USG holds two live rows in TA, so the tenant alone selects none.
+          const shape = (headers?: Record<string, string>) =>
+            as(
+              "authenticated",
+              { sub: "USG", headers },
+              `select count(*)::int n,
+                      bool_and(membership_id is null and tenant_id is null and role is null) all_null
+                 from authz.request_assignment()`,
+            );
+          const unresolved: (Record<string, string> | undefined)[] = [
+            undefined,
+            { "x-asym-tenant": id.TA! },
+            { "x-asym-tenant": id.TA!, "x-asym-assignment": id.mPB! },
+            { "x-asym-tenant": id.TB! },
+          ];
+          for (const headers of unresolved) {
+            const r = await shape(headers);
+            expect(r.code, r.message).toBeNull();
+            expect(r.rows, JSON.stringify(headers)).toEqual([
+              { n: 1, all_null: true },
+            ]);
+          }
+          const resolved = await shape(under("mSGs"));
+          expect(resolved.rows).toEqual([{ n: 1, all_null: false }]);
+        }));
+
+      // R5: a replace tests the membership on the object as it stands, too.
+      // A statement whose WHERE or RETURNING reads the row also needs the
+      // select policy, which tests the membership since Q10; a statement that
+      // does not read it (no WHERE, no RETURNING) was held by the update
+      // policy's USING alone, which tested the bucket and the owner. The case
+      // sends that statement, as the caller, and counts the moved objects as
+      // the superuser before the savepoint is rolled back.
+      it("R5: a person revoked in one tenant and live in another cannot move an object under the first, however the statement is phrased", () =>
+        tx(async () => {
+          await db.query(
+            "grant usage on schema storage to authenticated; grant select, insert, update, delete on storage.objects to authenticated",
+          );
+          const objects = [
+            ["profiles", "avatars"],
+            ["document-uploads", "editor"],
+          ].map(([bucket, folder]) => ({
+            bucket: bucket!,
+            from: `${folder}/${id.TA}/${id.UP}/r5.png`,
+            to: `${folder}/${id.TB}/${id.UP}/r5.png`,
+          }));
+          /**
+           * With UP's one object of the bucket under TA, sends, as UP, an
+           * update that reads no column of the row (a constant name, no
+           * WHERE, no RETURNING), and returns whether the object moved to
+           * TB's folder.
+           */
+          const moved = async (o: (typeof objects)[number]) => {
+            await db.query("savepoint r5");
+            try {
+              await db.query(
+                "insert into storage.objects (bucket_id, name, owner) values ($1, $2, $3)",
+                [o.bucket, o.from, id.UP],
+              );
+              await db.query("set local role authenticated");
+              await db.query(
+                `select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', '', true)`,
+                [JSON.stringify({ sub: id.UP, role: "authenticated" })],
+              );
+              await db.query(`update storage.objects set name = '${o.to}'`);
+              await db.query("reset role");
+              const [{ n }] = (await rows(
+                "select count(*)::int n from storage.objects where name = $1",
+                [o.to],
+              )) as [{ n: number }];
+              return n === 1;
+            } finally {
+              await db.query("rollback to savepoint r5");
+            }
+          };
+          // With UP's row in TA live, the object moves.
+          for (const o of objects) expect(await moved(o), o.bucket).toBe(true);
+          await db.query(
+            "update authz.memberships set revoked_at = now() where id = $1",
+            [id.mPA],
+          );
+          // Revoked in TA and live in TB: it does not.
+          for (const o of objects) expect(await moved(o), o.bucket).toBe(false);
+          // And both update policies test the path's tenant in USING.
+          const using = await rows(
+            `select polname n, pg_get_expr(polqual, polrelid) q from pg_policy
+              where polrelid = 'storage.objects'::regclass
+                and polname in ('profiles owner folder update', 'editor images owner folder update')`,
+          );
+          expect(using).toHaveLength(2);
+          for (const p of using)
+            expect(p.q, p.n as string).toContain("authz.caller_tenant_ids()");
+        }));
+    });
+
+    // R19: "own profile" matches p.user_id or p.id; the schema allows a row
+    // whose id is one login and whose user_id another, which WP5 resolves.
+    // The seeded chain holds none.
+    it("R19: no profile row has an id that is one login and a user_id that is another", async () => {
+      expect(
+        await rows(
+          `select count(*)::int n from public.profiles p
+            where p.id in (select u.id from auth.users u)
+              and p.user_id is distinct from p.id`,
+        ),
+      ).toEqual([{ n: 0 }]);
     });
 
     describe("reads that carry no tenant header still work", () => {
