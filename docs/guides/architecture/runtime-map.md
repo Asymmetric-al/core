@@ -295,8 +295,8 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
 | missionary | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
 | missionary | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                               |
-| missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client       |
+| missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | Selected missionary RPC, service-role client       |
 | missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | missionary | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client             |
