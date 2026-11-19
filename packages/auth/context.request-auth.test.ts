@@ -29,6 +29,7 @@ function row(
 }
 
 const mocks = vi.hoisted(() => ({
+  connection: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   getUser: vi.fn(),
   profile: vi.fn(),
   profileSelect: vi.fn(),
@@ -63,6 +64,7 @@ function requestClient() {
   };
 }
 
+vi.mock("next/server", () => ({ connection: mocks.connection }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ getAll: () => [], set: vi.fn() }),
   headers: async () => ({
@@ -79,7 +81,7 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: mocks.admin,
 }));
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => requestClient(),
+  createServerClient: vi.fn(requestClient),
   parseCookieHeader: () => [],
 }));
 vi.mock("@supabase/supabase-js", () => ({
@@ -92,6 +94,7 @@ vi.mock("@supabase/supabase-js", () => ({
 import {
   contextCapabilities,
   getAuthContext,
+  getSignedInAssignments,
   hasContextCapability,
   hasContextRole,
 } from "./context";
@@ -114,6 +117,28 @@ describe("getAuthContext: the one assignment of the surface's role class", () =>
     });
     rows(row(TA, "donor"));
   });
+
+  it.each([
+    ["the protected shell", () => getAuthContext()],
+    ["the organization chooser", () => getSignedInAssignments()],
+  ] as const)(
+    "waits for the request before creating the session client for %s",
+    async (_, readSession) => {
+      const { createServerClient } = await import("@supabase/ssr");
+      let releaseRequest!: () => void;
+      const request = new Promise<void>((resolve) => {
+        releaseRequest = resolve;
+      });
+      mocks.connection.mockReturnValueOnce(request);
+
+      const result = readSession();
+      await vi.waitFor(() => expect(mocks.connection).toHaveBeenCalledOnce());
+      expect(createServerClient).not.toHaveBeenCalled();
+      releaseRequest();
+      await result;
+      expect(createServerClient).toHaveBeenCalledOnce();
+    },
+  );
 
   it("resolves a signed-in donor's one donor membership, with its tenant, through the assignments RPC", async () => {
     const context = await getAuthContext();
