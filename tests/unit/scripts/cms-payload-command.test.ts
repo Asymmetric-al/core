@@ -267,6 +267,24 @@ describe("Payload CLI migration preflight", () => {
     },
   );
 
+  // Review N3: a command that is neither a migration nor a status read works
+  // on this machine's database. Refused on a hosted address, it names the
+  // local fix rather than the hosted gate.
+  it.each([["generate:importmap"], ["migrate:create"]])(
+    "tells a developer whose address is hosted to point %s at the local database",
+    (command) => {
+      const result = runCommand([command], {
+        PAYLOAD_MIGRATION_DATABASE_URI: "",
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        "Point PAYLOAD_DATABASE_URI at the local database",
+      );
+      expect(result.stderr).not.toContain("CMS_HOSTED_MIGRATION_REF");
+      expect(result.childSpawned).toBe(false);
+    },
+  );
+
   it("reads hosted status only through the checked cms_owner connection", () => {
     const result = runCommand(["migrate:status"], {
       ...CA_ENV,

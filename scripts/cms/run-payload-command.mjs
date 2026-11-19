@@ -46,6 +46,9 @@ const MIGRATION_WRITE_COMMANDS = [
   "migrate:refresh",
 ];
 const isMigrationWrite = MIGRATION_WRITE_COMMANDS.includes(command);
+// Review N3: only a migration and a status read are ever run against a hosted
+// database (by the release job); every other command works on this machine's.
+const runsOnHostedDatabase = isMigrationWrite || command === "migrate:status";
 
 // Migrations run on the cms_owner connection; a status check may read through
 // the run-time one. Payload's child process receives exactly one connection,
@@ -143,9 +146,11 @@ if (isMigrationWrite || !isLoopbackDatabaseUrl(databaseUrl)) {
       });
   } catch (cause) {
     console.error(
-      cause instanceof Error
-        ? cause.message
-        : "CMS migration preflight failed.",
+      !runsOnHostedDatabase && !isLoopbackDatabaseUrl(databaseUrl)
+        ? `payload ${command} works on a database on this machine, and PAYLOAD_DATABASE_URI names one that is not. Point PAYLOAD_DATABASE_URI at the local database (bun run cms:local:reset -- --force-env writes the local values).`
+        : cause instanceof Error
+          ? cause.message
+          : "CMS migration preflight failed.",
     );
     process.exit(1);
   }
