@@ -89,7 +89,7 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   set_eve_retention_hold: true,
   expire_eve_retention_records: true,
   handle_new_user: true,
-  // DEFINER since AL-2675 (JB11, 20261119053722_post_comment_authors.sql):
+  // DEFINER since AL-2675 (JB11, 20261119135200_post_comment_authors.sql):
   // the commenters' display names and avatars, joined to profiles, for a
   // caller with a live membership in the post's tenant. It names profiles
   // beside posts.tenant_id and authz.memberships.tenant_id and reads no

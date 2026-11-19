@@ -50,7 +50,7 @@ After the migration, on any database whatever its default privileges:
   tenant-administrator flag. AL-2675 drops and recreates both (their result
   types changed) with the same grants.
 - `public.current_user_organizations()` (AL-2675,
-  `20261118130052_current_user_organizations.sql`) names the organization
+  `20261119135100_current_user_organizations.sql`) names the organization
   chooser's organizations: the id and name of each tenant in which the session
   caller holds a live membership row, and nothing else. Signed-in users have
   no privilege on `public.tenants`, so it runs as its owner. Its migration
@@ -60,7 +60,7 @@ After the migration, on any database whatever its default privileges:
   checks who sees which name and the grantee set, also after simulating the
   hosted defaults.
 - `public.post_comment_authors(uuid)` (AL-2675, JB11,
-  `20261119053722_post_comment_authors.sql`) gives one row for each person
+  `20261119135200_post_comment_authors.sql`) gives one row for each person
   who commented on a published public post: the display name (NULL when blank)
   and the avatar, only to a caller with a live membership in the post's
   organization, and NULL to anyone else. It runs as its owner because those
