@@ -544,6 +544,8 @@ For the coordinator:
 
 ## 15. How to repeat
 
+This block records the 18 November 2026 proof; for a rebuild, follow the [release runbook](../../ops/release-job.md) instead.
+
 From the clone, with the pinned CLI and Node 24.22.3 on the PATH and the release values in the environment (names in `docs/ops/release-job.md`, "Secrets and variables"; `RELEASE_ENVIRONMENT=preview`):
 
 ```bash

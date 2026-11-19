@@ -17,7 +17,8 @@ no environment marker) and deploys nothing.
 manual dispatch from `production`. One release runs at a time per database
 and none is ever cancelled.
 
-1. **Replay.** Every migration is applied to an empty Postgres in the job
+1. **Replay.** The workflow sets `REPLAY_DATABASE_URL` explicitly to the job's empty local `release_replay` database. Both migration runners and the fingerprint capture use that address. If any of these steps fails, the workflow skips the first rebuild; do not run it separately after a failed replay.
+   Every migration is applied to an empty Postgres in the job
    (`scripts/verify/supabase-migrations.mjs --hosted-defaults`, then the
    Payload migrations), and its schema fingerprint is captured
    (`scripts/release/schema-fingerprint.mjs`). Before the first migration the
@@ -789,9 +790,8 @@ below follow those decisions.
    census sign-off (D-15), not `empty-project`: dispatch **Release** with
    operation `first-rebuild`, environment `preview`, `census_signoff` the
    sign-off link, confirmation `rebuild btewedpsxwsjczvmegby`, and approve
-   its `owner-approval` job; or run that rebuild directly with
-   `scripts/release/release-database.mjs first-rebuild` and the same
-   inputs, as the owner allowed on 18 November 2026. Take a logical backup
+   its `owner-approval` job. Use the workflow so the rebuild cannot start if
+   either replay migration step or fingerprint capture fails. Take a logical backup
    of the project first, and remove what the reset leaves behind
    ([What the first rebuild does not remove](#what-the-first-rebuild-does-not-remove)).
    Done on 18 November 2026: the first rebuild ran directly, the legacy
