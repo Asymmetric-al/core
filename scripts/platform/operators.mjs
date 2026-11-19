@@ -36,7 +36,13 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { isLoopbackDatabaseUrl, spawnPsql } from "../lib/psql.mjs";
+import { libpqQueryEntries } from "../../packages/env/src/database-url.mjs";
+import { assertProjectCaFile } from "../cms/lib/postgres.mjs";
+import {
+  MIN_PSQL_MAJOR,
+  isLoopbackDatabaseUrl,
+  spawnPsql,
+} from "../lib/psql.mjs";
 import { assertDatabaseTarget } from "../release/lib/database-target.mjs";
 
 export const ACTIONS = Object.freeze(["add", "remove", "list"]);
@@ -55,7 +61,8 @@ export const PSQL_INPUTS = Object.freeze({
 
 const USAGE =
   "usage: node scripts/platform/operators.mjs add|remove --user <login id or email> --actor <who runs this> --reason <why>\n" +
-  "       node scripts/platform/operators.mjs list";
+  "       node scripts/platform/operators.mjs list\n" +
+  "Hosted: set OPERATORS_SUPABASE_PROJECT_REF and OPERATORS_DATABASE_URL with sslmode=verify-full and sslrootcert set to the absolute path of the project CA file (not system).";
 
 function text(value, name) {
   const v = String(value ?? "").trim();
@@ -116,13 +123,15 @@ export function admitDatabase(env = process.env) {
       "OPERATORS_DATABASE_URL is not on this machine; set OPERATORS_SUPABASE_PROJECT_REF to the hosted project it must address.",
     );
   const targetError =
-    "OPERATORS_DATABASE_URL must address OPERATORS_SUPABASE_PROJECT_REF as postgres with exactly one sslmode=verify-full and sslrootcert naming the project's CA file.";
+    "OPERATORS_DATABASE_URL must address OPERATORS_SUPABASE_PROJECT_REF as postgres with exactly one sslmode=verify-full and sslrootcert naming the absolute path of the project's readable CA certificate file (not system).";
   try {
     assertDatabaseTarget({ databaseUrl, projectRef, role: "postgres" });
+    const certificates = libpqQueryEntries(databaseUrl).filter(
+      ([key]) => key === "sslrootcert",
+    );
+    if (certificates.length !== 1) throw new Error(targetError);
+    assertProjectCaFile(certificates[0][1]);
   } catch {
-    throw new Error(targetError);
-  }
-  if (!new URL(databaseUrl).searchParams.get("sslrootcert")?.trim()) {
     throw new Error(targetError);
   }
   return databaseUrl;
@@ -278,18 +287,22 @@ export function main(argv = process.argv.slice(2), env = process.env) {
     console.error(`error: ${error instanceof Error ? error.message : error}`);
     return 2;
   }
-  const result = spawnPsql({
-    databaseUrl,
-    args: [...PSQL_ARGS],
-    input: operatorScript(parsed.action),
-    baseEnv: { ...env, ...psqlInputs(parsed) },
-    psqlBin: env.PSQL_BIN?.trim() || "psql",
-  });
-  if (result.error) {
-    console.error(`error: could not run psql (${result.error.message}).`);
+  try {
+    const result = spawnPsql({
+      databaseUrl,
+      args: [...PSQL_ARGS],
+      input: operatorScript(parsed.action),
+      baseEnv: { ...env, ...psqlInputs(parsed) },
+      psqlBin: env.PSQL_BIN?.trim() || "psql",
+    });
+    if (result.error) throw result.error;
+    return result.status ?? 1;
+  } catch {
+    console.error(
+      `error: could not start the database client. Install postgresql-client ${MIN_PSQL_MAJOR} or later and check PSQL_BIN.`,
+    );
     return 1;
   }
-  return result.status ?? 1;
 }
 
 const invokedDirectly =

@@ -5,6 +5,8 @@
 // proved in tests/unit/acceptance/issue-2675/platform-operator-script.realstack.acceptance.test.ts.
 import { spawnSync } from "node:child_process";
 
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -77,7 +79,10 @@ describe("operator script arguments", () => {
 
 describe("operator script target (the release job's one address check)", () => {
   const local = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
-  const pooled = `postgresql://postgres.${REF}:secret-value@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=/certs/project.crt`;
+  const ca = fileURLToPath(
+    new URL("./release/fixtures/ca/ca.crt", import.meta.url),
+  );
+  const pooled = `postgresql://postgres.${REF}:secret-value@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=${encodeURIComponent(ca)}`;
 
   it("admits a database on this machine without a project ref", () => {
     expect(admitDatabase({ OPERATORS_DATABASE_URL: local })).toBe(local);
@@ -95,7 +100,10 @@ describe("operator script target (the release job's one address check)", () => {
   it.each([
     pooled.replace("verify-full", "require"),
     `${pooled}&sslmode=verify-full`,
-    pooled.replace("&sslrootcert=/certs/project.crt", ""),
+    pooled.split("&sslrootcert=")[0] as string,
+    pooled.replace(encodeURIComponent(ca), "system"),
+    pooled.replace(encodeURIComponent(ca), encodeURIComponent(`${ca}.missing`)),
+    `${pooled}&sslrootcert=system`,
   ])("requires exactly one verify-full mode and the project CA", (url) => {
     expect(() =>
       admitDatabase({
@@ -151,6 +159,27 @@ describe("operator script target (the release job's one address check)", () => {
     expect(message).not.toContain("pooler.supabase.com");
   });
 
+  it("reports a missing hosted client without exposing the address or stack", () => {
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/platform/operators.mjs", "list"],
+      {
+        encoding: "utf8",
+        timeout: 30_000,
+        env: {
+          ...process.env,
+          OPERATORS_DATABASE_URL: pooled,
+          OPERATORS_SUPABASE_PROJECT_REF: REF,
+          PSQL_BIN: `${ca}.missing`,
+        },
+      },
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(/install postgresql-client 16 or later/i);
+    expect(result.stderr).not.toMatch(
+      /secret-value|pooler\.supabase\.com|\n\s+at /,
+    );
+  });
   it("refuses a hosted address with no project ref before it starts psql", () => {
     const r = spawnSync(
       process.execPath,
