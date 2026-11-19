@@ -164,6 +164,11 @@ tests, is:
     too, because the release already running reads it there (plan 7.4). The
     column grants nothing under WP2a; the migration that drops it (WP5) ends
     the write.
+  - `post_comment_authors` (AL-2675, JB11): the commenters' display names and
+    avatars, given only to a caller with a live membership in the post's
+    tenant. It names profiles beside `posts.tenant_id` and
+    `authz.memberships.tenant_id`, so the lexical scan keeps it, and reads no
+    profile's tenant.
 - App code that uses `profile.tenant_id` to pick or check the tenant: none.
   AL-2675 moved `packages/auth/context.ts`, `packages/auth/resolve-user-role.ts`
   and `apps/admin/src/cms/auth/supabase-strategy.ts` to the caller's
