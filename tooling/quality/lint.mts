@@ -96,10 +96,9 @@ function checkFixScope(paths: string[]) {
       const name = untracked
         ? entry.slice(2).replace(/\/$/, "")
         : entry.slice(entry.indexOf("\t") + 1);
-      let candidate =
-        untracked || entry.slice(2).startsWith("120000 ")
-          ? name
-          : path.posix.dirname(name);
+      // Start at the entry itself: a tracked file replaced by a link keeps its index mode, so only
+      // its working-tree type shows the link.
+      let candidate = name;
       while (candidate !== "." && !inspected.has(candidate)) {
         inspected.add(candidate);
         const target = directoryLinkTarget(candidate);
