@@ -518,6 +518,15 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
           });
           expect(outcome.code, outcome.message ?? "").toBeNull();
           const m = asMembership(role);
+          const liveStaff = await db.query(
+            `select staff_role, is_tenant_admin from authz.memberships
+             where user_id = $1 and tenant_id = $2 and role = 'staff'
+               and is_active and revoked_at is null`,
+            [people.staffA, tenantA],
+          );
+          expect(liveStaff.rows).toEqual([
+            { staff_role: m.staff, is_tenant_admin: m.admin },
+          ]);
           expect(await roleChangeAudits("staffA")).toEqual([
             {
               tenant_id: tenantA,
