@@ -3,7 +3,7 @@
 -- that still read `profiles.role` move to the operator list or to membership.
 --
 -- WP2a (20261118093000_eve_actor_checks_read_membership.sql) moved five
--- checks to membership and left four things for WP2c:
+-- checks to membership. This migration covers five remaining rules:
 --
 -- 1. The `super_admin` actor of `public.assert_eve_launch_profile` (from the
 --    launch review, activation, canary close and launch-permission grant,
@@ -34,14 +34,16 @@
 -- 4. `public.enforce_eve_ai_settings_grant_tenant` and
 --    `public.enforce_eve_policy_permission_tenant`, the triggers on the two
 --    Eve grant tables, tested the grantee's (and the granter's) profile tenant.
---    They test a live row in the tenant. As WP2a's contribution triggers do
---    (NR-49), a reference an update leaves unchanged, in an unchanged tenant,
---    is not judged again, so a grant of a person revoked since can still be
---    switched off.
+--    Inserts, tenant changes and reactivation recheck live membership. A
+--    permission change also rechecks both people. Otherwise only a changed
+--    person is rechecked, so a stale grant can still be disabled. The
+--    recipient trigger similarly rechecks eligibility on enable or opt-in.
+-- 5. public.has_eve_policy_permission checks the operator list for the
+--    super_admin shortcut; ordinary permissions still require a live grant.
+--    Its SECURITY DEFINER body uses qualified names and an empty search path.
 --
--- Each function keeps its signature, security mode, search path, owner,
--- grants and error names; only the test changes. The error names stay as the
--- application and the incident guide know them, though
+-- Signatures, owners, security modes and grants are unchanged. Error names
+-- stay as the application and the incident guide know them, though
 -- `eve_notification_platform_owner_required` now means "not a live
 -- administrator of the tenant with an email".
 --
@@ -50,6 +52,9 @@
 -- trigger functions from 20260718093000_eve_email_discord_notifications.sql,
 -- 20260718005737_eve_model_policy_tracer.sql and
 -- 20260718015747_eve_approval_budget_policy.sql, with CREATE OR REPLACE.
+-- Also restore public.has_eve_policy_permission from 20260718015747 in this
+-- transaction, including its original search path, before rolling back
+-- 20261119135500 and removing private.is_platform_operator in 20261119135400.
 
 BEGIN;
 
