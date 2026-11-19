@@ -287,6 +287,43 @@ describe("missionary handler delegation", () => {
       expect(fake.from).not.toHaveBeenCalled();
     },
   );
+  it.each([
+    ["task create", () => tasks.POST(request("POST", {}))],
+    [
+      "task update",
+      () => task.PATCH(request("PATCH", { priority: "invalid" }), args),
+    ],
+    [
+      "follower decision",
+      () => follower.PATCH(request("PATCH", { status: "invalid" }), args),
+    ],
+    [
+      "donor edit",
+      () =>
+        patchDonor(request("PATCH", {}), {
+          params: Promise.resolve({ donorId: "invalid" }),
+        }),
+    ],
+    [
+      "donor activity",
+      () =>
+        POST_ACTIVITY(request("POST", {}), {
+          params: Promise.resolve({ donorId: "invalid" }),
+        }),
+    ],
+  ] as const)(
+    "requires an assignment before validating %s",
+    async (_name, invoke) => {
+      fake.assigned = false;
+      const response = await invoke();
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({
+        error: "A selected missionary membership is required",
+      });
+      expect(fake.rpc).not.toHaveBeenCalled();
+      expect(fake.from).not.toHaveBeenCalled();
+    },
+  );
   it("preserves a database permission refusal", async () => {
     fake.rpc.mockReturnValue(
       query(null, { code: "42501", message: "permission denied" }),

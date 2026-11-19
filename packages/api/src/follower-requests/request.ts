@@ -27,6 +27,7 @@ function decide(
   return runMissionaryPortalOperation(
     request,
     async ({ auth, supabaseAdmin }) => {
+      const scope = missionaryScope(auth);
       const { requestId } = await params.params;
       const input =
         operation === "update"
@@ -35,7 +36,7 @@ function decide(
       const level = input?.access_level;
       const { data, error } = await supabaseAdmin
         .rpc("missionary_follower_request_write", {
-          ...missionaryArgs(missionaryScope(auth)),
+          ...missionaryArgs(scope),
           p_operation: operation,
           p_id: requireRouteUuid(requestId),
           p_status: input?.status ?? null,

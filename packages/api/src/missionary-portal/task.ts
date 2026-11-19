@@ -69,10 +69,11 @@ export async function PATCH(
   return runMissionaryPortalOperation(
     request,
     async ({ supabaseAdmin, auth }) => {
+      const scope = missionaryScope(auth);
       const input = updateTaskSchema.parse(await ensureJsonBody(request));
 
       const task = await writeMissionaryTask(
-        { supabaseAdmin, ...missionaryScope(auth) },
+        { supabaseAdmin, ...scope },
         "update",
         requireRouteUuid(taskId),
         taskUpdateFromInput(input),

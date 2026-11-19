@@ -205,8 +205,8 @@ export async function PATCH(
   return runMissionaryPortalOperation(
     request,
     async ({ supabaseAdmin, auth }) => {
-      requireRouteUuid(donorId);
       const scope = missionaryScope(auth);
+      requireRouteUuid(donorId);
       const input = donorPatchSchema.parse(await ensureJsonBody(request));
 
       if ("tags" in input) {
@@ -241,13 +241,14 @@ export async function POST_ACTIVITY(
   return runMissionaryPortalOperation(
     request,
     async ({ supabaseAdmin, auth }) => {
+      const scope = missionaryScope(auth);
       requireRouteUuid(donorId);
       const input = donorActivitySchema.parse(await ensureJsonBody(request));
 
       await recordMissionaryDonorActivity({
         supabaseAdmin,
         donorId,
-        ...missionaryScope(auth),
+        ...scope,
         activityType: input.activityType,
         note: input.note,
       });

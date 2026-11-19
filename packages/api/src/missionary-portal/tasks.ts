@@ -57,10 +57,11 @@ export const GET = withOperation(
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
+    const scope = missionaryScope(ctx);
     const input = createTaskSchema.parse(await ensureJsonBody(request));
 
     const task = await writeMissionaryTask(
-      { supabaseAdmin, ...missionaryScope(ctx) },
+      { supabaseAdmin, ...scope },
       "create",
       null,
       {
