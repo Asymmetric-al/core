@@ -651,7 +651,7 @@ jobs:
   # smoke it, as one job in one repository-wide group that never cancels. The
   # next pull request's rebuild waits until this smoke run ends. Development
   # is never touched: the job holds only the preview project's credentials,
-  # and the scripts refuse the development and production-named projects.
+  # and the scripts refuse the development project.
   preview-database:
     name: preview-database-smoke
     needs: deploy
@@ -728,10 +728,14 @@ jobs:
         with:
           version: ${{ steps.supabase-pin.outputs.version }}
 
+      # Hosted Supabase gives `postgres` default privileges in `public` before
+      # any migration runs; the replay applies the same ones first, or its
+      # access lists never equal the target's and the fingerprint gate stops
+      # every hosted release (WP1.6; scripts/sql/hosted-default-privileges.sql).
       - name: Replay every migration on a fresh database
         env:
           DATABASE_URL: ${{ env.REPLAY_DATABASE_URL }}
-        run: node scripts/verify/supabase-migrations.mjs
+        run: node scripts/verify/supabase-migrations.mjs --hosted-defaults
       - name: Replay Payload migrations on the fresh database
         env:
           PAYLOAD_DATABASE_URI: ${{ env.REPLAY_DATABASE_URL }}
@@ -757,11 +761,13 @@ jobs:
       - name: Catalog gates and schema fingerprint against the replay
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
           RELEASE_REPLAY_FINGERPRINT: ${{ runner.temp }}/replay-fingerprint.json
         run: node scripts/release/release-database.mjs gates
       - name: Record the expected migration heads
         env:
           RELEASE_DATABASE_URL: ${{ secrets.RELEASE_DATABASE_URL }}
+          RELEASE_DATABASE_SSL_CA: ${{ secrets.RELEASE_DATABASE_SSL_CA }}
         run: node scripts/release/release-database.mjs record-heads
 
       - name: Deploy previews on the preview database and check each reads it
