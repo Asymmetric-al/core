@@ -194,10 +194,15 @@ const CASES: [string, string, string[][]][] = [
       ["GRANT_WITHOUT_POLICY", "donors"],
     ],
   ],
+  // Amended by AL-2675's fixcheck F4 (record D-18): the gate now reads a
+  // policy addressed to anon alone too, and fails one on a tenant table that
+  // admits a row without the request's tenant, so the planted anon policy is
+  // the tenant condition itself. The case still plants only a grant that a
+  // policy admits for that role and command, and expects nothing.
   [
     "nothing for a table grant that a policy admits for that role and command",
     `${TENANT("acc2253_read")} alter table public.acc2253_read enable row level security, force row level security;
-     create policy acc2253 on public.acc2253_read for select to anon using (true);
+     create policy acc2253 on public.acc2253_read for select to anon using (tenant_id = (select authz.current_tenant_id()));
      grant select on public.acc2253_read to anon;`,
     [],
   ],
