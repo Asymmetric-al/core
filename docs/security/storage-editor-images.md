@@ -62,7 +62,7 @@ has none.
   sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
 
 **Since the second release of WP2b (AL-2675,
-`20261119022102_request_tenant_policies.sql`).** The upload, replace, read and
+`20261119135300_request_tenant_policies.sql`).** The upload, replace, read and
 delete policies of the editor images all test a live membership of the caller
 in the tenant the `editor/{tenantId}/...` path names, through
 `authz.caller_tenant_ids()`, with no assignment, because Storage cannot carry

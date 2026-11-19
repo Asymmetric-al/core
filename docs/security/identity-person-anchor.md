@@ -97,7 +97,7 @@ today. Per spec In 3, this is escalated in the PR and tracked in #2267; this
 slice changes no behavior.
 
 **Since the second release of WP2b (AL-2675,
-`20261119022102_request_tenant_policies.sql`), no RLS policy reads
+`20261119135300_request_tenant_policies.sql`), no RLS policy reads
 `profiles.tenant_id`.** The staff profile read is dropped (plan 5.1), and the
 four Storage policies below test a live membership in the path's tenant
 (`authz.caller_tenant_ids()`). The #2256 real-stack suite now expects an empty

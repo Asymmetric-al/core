@@ -48,7 +48,7 @@ has none.
   sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
 
 **Since the second release of WP2b (AL-2675,
-`20261119022102_request_tenant_policies.sql`).** All four policies test a
+`20261119135300_request_tenant_policies.sql`).** All four policies test a
 live membership of the caller in the tenant the path names, through
 `authz.caller_tenant_ids()`, which takes no assignment because Storage cannot
 carry the request headers (plan 5.2; activation review Q10). The `tenantId`

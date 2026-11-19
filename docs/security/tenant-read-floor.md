@@ -10,7 +10,7 @@ None of these five tables is public. Before #2312, the public anon key could rea
 
 Re-opening any of these reads, or making any part of them public, needs a new ruling from Blake.
 
-**Since the second release of WP2b (AL-2675, 19 November 2026).** The policies below keep their names and gain a class term (`supabase/migrations/20261119022102_request_tenant_policies.sql`; `docs/security/tenant-policy-activation-review.md`). `funds`, `campaigns` and `assets` are staff-only: the plan's owner table keeps donor-class reads of funds and campaigns "staff-only until" decided, and the coordinator ruled the same for `assets` (activation review, Q2). A donor or missionary assignment reads none of the three in this release; a package that needs such a read brings the column list to the owner. `follows` admits its own rows under a donor assignment, or staff. The missionary's own key read names the request's tenant and needs a missionary assignment.
+**Since the second release of WP2b (AL-2675, 19 November 2026).** The policies below keep their names and gain a class term (`supabase/migrations/20261119135300_request_tenant_policies.sql`; `docs/security/tenant-policy-activation-review.md`). `funds`, `campaigns` and `assets` are staff-only: the plan's owner table keeps donor-class reads of funds and campaigns "staff-only until" decided, and the coordinator ruled the same for `assets` (activation review, Q2). A donor or missionary assignment reads none of the three in this release; a package that needs such a read brings the column list to the owner. `follows` admits its own rows under a donor assignment, or staff. The missionary's own key read names the request's tenant and needs a missionary assignment.
 
 ## What the migration replaces
 

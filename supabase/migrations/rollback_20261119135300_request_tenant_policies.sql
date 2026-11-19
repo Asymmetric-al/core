@@ -1,8 +1,8 @@
--- Rollback of 20261119022102_request_tenant_policies.sql (WP2b, second release;
+-- Rollback of 20261119135300_request_tenant_policies.sql (WP2b, second release;
 -- AL-2675). Run by hand, in one transaction, only to go back to the chain
 -- before it; the apps of the first release keep working on either side.
 --
--- It stops, changing nothing, unless 20261119022102 is the newest version in
+-- It stops, changing nothing, unless 20261119135300 is the newest version in
 -- the migration ledger (supabase_migrations.schema_migrations): it replaces
 -- policies, functions and grants by name, so over a later migration it would
 -- undo what that migration changed. Reverse every later migration first. It
@@ -18,7 +18,7 @@
 --
 -- Proven on a disposable database built by replaying the chain
 -- (scripts/verify/supabase-migrations.mjs), with a ledger whose newest version
--- is 20261119022102: the chain, then this file with the marked block run, has
+-- is 20261119135300: the chain, then this file with the marked block run, has
 -- the schema fingerprint (scripts/release/schema-fingerprint.mjs) of the chain
 -- without the migration. Without the block, the two differ in those
 -- publication members alone. The proof covers what the fingerprint covers;
@@ -34,15 +34,15 @@ DECLARE
   v_newest TEXT;
 BEGIN
   IF pg_catalog.to_regclass('supabase_migrations.schema_migrations') IS NULL THEN
-    RAISE EXCEPTION 'rollback_20261119022102: this database has no migration ledger (supabase_migrations.schema_migrations), so it cannot show that 20261119022102 is its newest migration; nothing was changed';
+    RAISE EXCEPTION 'rollback_20261119135300: this database has no migration ledger (supabase_migrations.schema_migrations), so it cannot show that 20261119135300 is its newest migration; nothing was changed';
   END IF;
   SELECT pg_catalog.max(version) INTO v_newest FROM supabase_migrations.schema_migrations;
-  IF v_newest IS DISTINCT FROM '20261119022102' THEN
-    RAISE EXCEPTION 'rollback_20261119022102: the newest migration recorded is %, not 20261119022102. Reverse every later migration first, newest first, then run this file; nothing was changed', COALESCE(v_newest, 'none');
+  IF v_newest IS DISTINCT FROM '20261119135300' THEN
+    RAISE EXCEPTION 'rollback_20261119135300: the newest migration recorded is %, not 20261119135300. Reverse every later migration first, newest first, then run this file; nothing was changed', COALESCE(v_newest, 'none');
   END IF;
 END $$;
 
--- 1. Policies: every policy as the chain before 20261119022102 held it.
+-- 1. Policies: every policy as the chain before 20261119135300 held it.
 DROP POLICY account_claim_requests_staff_select ON public.account_claim_requests;
 CREATE POLICY account_claim_requests_staff_select ON public.account_claim_requests
   AS PERMISSIVE FOR SELECT TO authenticated

@@ -50,7 +50,7 @@ After the migration, on any database whatever its default privileges:
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - Since the second release of WP2b (AL-2675,
-  `20261119022102_request_tenant_policies.sql`), `has_membership` and
+  `20261119135300_request_tenant_policies.sql`), `has_membership` and
   `has_staff_membership` keep these grants and judge the request's one
   assignment, through `authz.request_assignment()`. The request-tenant helpers
   it adds (`authz.request_tenant_id()`, `request_assignment_id()`,
@@ -140,7 +140,7 @@ There is no rollback migration: reverting restores `PUBLIC` EXECUTE on the
 anyway, this restores the state the earlier migrations defined. It does not
 re-grant `anon` or `service_role` on `current_user_memberships`, which no
 migration intended. On a chain that has
-`20261119022102_request_tenant_policies.sql`, the five write policies it
+`20261119135300_request_tenant_policies.sql`, the five write policies it
 dropped do not exist: leave out their `ALTER POLICY` lines.
 
 ```sql

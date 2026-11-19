@@ -1887,7 +1887,7 @@ describe.skipIf(!ADMIN_URL)(
     // the case's own transaction, which is always rolled back.
     describe("the rollback", () => {
       const file = readFileSync(
-        "supabase/migrations/rollback_20261119022102_request_tenant_policies.sql",
+        "supabase/migrations/rollback_20261119135300_request_tenant_policies.sql",
         "utf8",
       );
       const body = file.slice(
@@ -1927,7 +1927,7 @@ describe.skipIf(!ADMIN_URL)(
           "create table if not exists supabase_migrations.schema_migrations (version text primary key, statements text[], name text)",
         );
         await db.query(
-          "delete from supabase_migrations.schema_migrations where version >= '20261119022102'",
+          "delete from supabase_migrations.schema_migrations where version >= '20261119135300'",
         );
         for (const v of versions)
           await db.query(
@@ -1946,13 +1946,13 @@ describe.skipIf(!ADMIN_URL)(
         inTx(async () => {
           await db.query("drop schema if exists supabase_migrations cascade");
           const refused = await run(body);
-          expect(refused).toMatch(/^rollback_20261119022102: /);
+          expect(refused).toMatch(/^rollback_20261119135300: /);
           expect(refused).toMatch(/nothing was changed/);
         }));
 
       it("refuses, changing nothing, while a later migration is recorded, and says to reverse it first", () =>
         inTx(async () => {
-          await ledger(["20261119022102", "20991231000000"]);
+          await ledger(["20261119135300", "20991231000000"]);
           const refused = await run(body);
           expect(refused).toMatch(/20991231000000/);
           expect(refused).toMatch(/reverse/i);
@@ -1971,9 +1971,9 @@ describe.skipIf(!ADMIN_URL)(
           const tail = body.slice(
             body.indexOf("\n-- 6. The Realtime publication"),
           );
-          expect(guard).toMatch(/RAISE EXCEPTION 'rollback_20261119022102: /);
+          expect(guard).toMatch(/RAISE EXCEPTION 'rollback_20261119135300: /);
           expect(tail).toMatch(/^\n-- 6\. /);
-          await ledger(["20261119022102"]);
+          await ledger(["20261119135300"]);
           await db.query("drop publication if exists supabase_realtime");
           await db.query("create publication supabase_realtime");
           expect(await run(`${guard}\n${tail}`)).toBeNull();

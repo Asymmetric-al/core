@@ -102,7 +102,7 @@
 -- the database enforces the order: a rebuild from source applies the whole
 -- chain to a database with no recorded heads, and a guard would stop it.
 --
--- Down: supabase/migrations/rollback_20261119022102_request_tenant_policies.sql,
+-- Down: supabase/migrations/rollback_20261119135300_request_tenant_policies.sql,
 -- run by hand in one transaction. It restores the chain before this
 -- migration exactly: every policy, grant, function, parallel mark and
 -- publication member this migration changed, and only the privileges each

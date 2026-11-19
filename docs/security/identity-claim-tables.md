@@ -78,7 +78,7 @@ The policies are `account_claim_requests_staff_select`,
 `legacy_account_invitations_staff_select`.
 
 Since the second release of WP2b (AL-2675,
-`20261119022102_request_tenant_policies.sql`), the two staff policies read
+`20261119135300_request_tenant_policies.sql`), the two staff policies read
 `tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT
 authz.assignment_is('staff'))`: staff see a tenant's rows only when the request
 names that tenant and its one assignment there is a staff row. The requester's

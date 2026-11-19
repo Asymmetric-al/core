@@ -477,7 +477,7 @@ ends. The job holds only the preview project's credentials.
 
 ### The request-tenant policies: after the first release's apps, never below them
 
-`20261119022102_request_tenant_policies.sql` (WP2b's second release,
+`20261119135300_request_tenant_policies.sql` (WP2b's second release,
 AL-2675) makes the database read the tenant and the assignment from the
 `x-asym-tenant` and `x-asym-assignment` request headers, which only the apps
 of WP2b's first release send. An app that sends neither gets no row of a
@@ -491,8 +491,8 @@ tenant table. So:
 The database does not enforce the order: a rebuild from source applies the
 whole chain to a database with no recorded heads, and a guard in the
 migration would stop it (council R6). Its rollback, run by hand, is
-`supabase/migrations/rollback_20261119022102_request_tenant_policies.sql`.
-It stops, changing nothing, unless 20261119022102 is the newest version in
+`supabase/migrations/rollback_20261119135300_request_tenant_policies.sql`.
+It stops, changing nothing, unless 20261119135300 is the newest version in
 the migration ledger: reverse every later migration first. It leaves the
 ledger as it is, so the next release does not apply the migration again, and
 leaves the Realtime publication alone unless its marked block is run, which
@@ -541,7 +541,7 @@ the released commit, and then dispatches the release again (council R9):
    settings:
 
    ```sh
-   bun run supabase -- migration repair --status applied 20261119022102 --db-url "$DB" --yes
+   bun run supabase -- migration repair --status applied 20261119135300 --db-url "$DB" --yes
    unset PGPASSWORD PGREQUIREAUTH
    ```
 
