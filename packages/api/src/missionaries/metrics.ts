@@ -350,6 +350,9 @@ export async function GET(
       .from("missionaries")
       .select("id, tenant_id, profile_id")
       .or(`id.eq.${missionaryId},profile_id.eq.${missionaryId}`)
+      // The resolved tenant's record only, before one row is taken: a person
+      // with a missionary record in two organizations has two (JB14).
+      .eq("tenant_id", auth.tenantId)
       .maybeSingle();
 
     if (missionaryError) {
