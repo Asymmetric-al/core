@@ -170,7 +170,7 @@ describe("evaluateTenantRlsCatalog", () => {
       ...{ wrappers: 2, tenantPolicies: 0, policyExceptions: 0 },
     });
     expect(formatTenantRlsCatalogSummary(result)).toBe(
-      "PASS: tenant RLS catalog gate: 2 tenant tables enabled and forced (1 with policies, 1 listed deny-by-default, 0 stale), 1 SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (0 anon-allowlisted); command lanes: 1 human entry points, 0 platform commands, 2 wrappers; no table grant in public outside a policy; 0 signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (0 reviewed exceptions), none reads the token claim, and no tenant table is published.",
+      "PASS: tenant RLS catalog gate: 2 tenant tables enabled and forced (1 with policies, 1 listed deny-by-default, 0 stale), 1 SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (0 anon-allowlisted); command lanes: 1 human entry points, 0 platform commands, 2 wrappers; no table grant in public outside a policy; 0 signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (0 reviewed exceptions), none reads the token claim, no signed-in write policy stands without the grant for its command, and no tenant table is published.",
     );
   });
 

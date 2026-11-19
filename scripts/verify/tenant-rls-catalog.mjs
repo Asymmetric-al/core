@@ -90,6 +90,8 @@ const UNSAFE_TABLE_PRIVILEGES = [
   "TRIGGER",
   "MAINTAIN",
 ];
+/** Policy commands that only write; a signed-in one needs the grant for it. */
+const WRITE_COMMANDS = ["INSERT", "UPDATE", "DELETE"];
 
 const quoted = (names) => names.map((s) => `'${s}'`).join(", ");
 const PUBLIC_EXECUTE = `exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
@@ -233,7 +235,10 @@ select jsonb_build_object(
     from (${UNADMITTED_TABLE_GRANTS_SQL}) g), '[]'::jsonb),
   -- AL-2675 (WP2b, second release): every policy signed-in users reach in
   -- public, as Postgres deparses it, the bodies of the request-tenant
-  -- helpers, and the public tables in the Realtime publication.
+  -- helpers, and the public tables in the Realtime publication. 'granted'
+  -- says whether a signed-in role the policy names (authenticated, and anon
+  -- too when it is TO public) holds the privilege its command needs, on the
+  -- table or on any column of it, directly, through PUBLIC or a membership.
   'policies', coalesce((
     select jsonb_agg(jsonb_build_object(
       'table', c.relname,
@@ -243,7 +248,18 @@ select jsonb_build_object(
       'roles', (select jsonb_agg(case r when 0 then 'public' else r::regrole::text end order by 1)
                   from unnest(p.polroles) r),
       'using', pg_get_expr(p.polqual, p.polrelid),
-      'check', pg_get_expr(p.polwithcheck, p.polrelid)) order by c.relname, p.polname)
+      'check', pg_get_expr(p.polwithcheck, p.polrelid),
+      'granted', exists (
+        select 1
+        from unnest(array['authenticated'] || case when p.polroles @> array[0::oid]
+                                                   then array['anon'] else array[]::text[] end) g(r)
+        where case p.polcmd
+                when 'r' then has_any_column_privilege(g.r, c.oid, 'SELECT')
+                when 'a' then has_any_column_privilege(g.r, c.oid, 'INSERT')
+                when 'w' then has_any_column_privilege(g.r, c.oid, 'UPDATE')
+                when 'd' then has_table_privilege(g.r, c.oid, 'DELETE')
+                else has_any_column_privilege(g.r, c.oid, 'SELECT, INSERT, UPDATE')
+                  or has_table_privilege(g.r, c.oid, 'DELETE') end)) order by c.relname, p.polname)
     from pg_policy p
     join pg_class c on c.oid = p.polrelid
     join pg_namespace n on n.oid = c.relnamespace
@@ -934,6 +950,18 @@ export function evaluateTenantRlsCatalog(
         p.table,
         `policy "${p.policy}" reads the token's claims; the request's tenant comes from authz.current_tenant_id()`,
       );
+    // Activation review Q7, as the coordinator widened it: no signed-in
+    // write policy where no signed-in role holds the privilege its command
+    // needs. Such a policy admits nothing today and would admit every role
+    // it names the day a grant came back, unreviewed. It holds on every
+    // table in public, a tenant table or not, listed or not. A FOR ALL policy
+    // also governs reads and is held to the rules below instead.
+    if (WRITE_COMMANDS.includes(p.cmd) && p.granted === false)
+      fail(
+        "WRITE_POLICY_WITHOUT_GRANT",
+        p.table,
+        `policy "${p.policy}" (${p.cmd}) stands where no signed-in role it names holds ${p.cmd}: drop the policy, or grant the privilege and review the policy with it`,
+      );
     // A listed exception is pinned to its text on any table in public, a
     // tenant table or not (the post tables have no tenant column).
     const listedEntry = policyExceptions.listed.get(key);
@@ -1030,7 +1058,7 @@ export function evaluateTenantRlsCatalog(
 
 /** One-line summary printed by the verifier. */
 export const formatTenantRlsCatalogSummary = ({ counts: c }) =>
-  `PASS: tenant RLS catalog gate: ${c.tenant} tenant tables enabled and forced (${c.withPolicy} with policies, ${c.listed} listed deny-by-default, ${c.stale} stale), ${c.definers} SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (${c.anonAllowed ?? 0} anon-allowlisted); command lanes: ${c.humanEntryPoints ?? 0} human entry points, ${c.platformCommands ?? 0} platform commands, ${c.wrappers ?? 0} wrappers; no table grant in public outside a policy; ${c.tenantPolicies ?? 0} signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (${c.policyExceptions ?? 0} reviewed exceptions), none reads the token claim, and no tenant table is published.`;
+  `PASS: tenant RLS catalog gate: ${c.tenant} tenant tables enabled and forced (${c.withPolicy} with policies, ${c.listed} listed deny-by-default, ${c.stale} stale), ${c.definers} SECURITY DEFINER functions with RLS-bypassing owners, a fixed search path and no PUBLIC EXECUTE (${c.anonAllowed ?? 0} anon-allowlisted); command lanes: ${c.humanEntryPoints ?? 0} human entry points, ${c.platformCommands ?? 0} platform commands, ${c.wrappers ?? 0} wrappers; no table grant in public outside a policy; ${c.tenantPolicies ?? 0} signed-in policies of tenant tables carry the request's tenant with each lookup once a statement (${c.policyExceptions ?? 0} reviewed exceptions), none reads the token claim, no signed-in write policy stands without the grant for its command, and no tenant table is published.`;
 
 function readJson(root, relativePath) {
   try {
@@ -1096,7 +1124,8 @@ function assertSnapshotShape(snapshot) {
       ![p?.table, p?.policy, p?.cmd].every(isText) ||
       !Array.isArray(p.roles) ||
       !textOrNull(p.using) ||
-      !textOrNull(p.check)
+      !textOrNull(p.check) ||
+      !isBool(p.granted)
     )
       throw incomplete("policy", { relation: `${p?.table} ${p?.policy}` });
   for (const h of snapshot.tenant_helpers)

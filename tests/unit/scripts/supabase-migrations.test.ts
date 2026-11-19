@@ -145,6 +145,8 @@ function runVerifier(
         roles: ["authenticated"],
         using: entry.using,
         check: entry.check,
+        // Signed-in users hold SELECT on each excepted table.
+        granted: true,
       }),
     ),
     tenant_helpers: [
