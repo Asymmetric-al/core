@@ -210,6 +210,35 @@ describe.skipIf(!ADMIN_URL)(
       return r.rows as Array<Record<string, unknown>>;
     }
 
+    it("keeps membership audit writes exclusive to the commands on the joined chain", () =>
+      tx(async () => {
+        for (const action of [
+          "membership_role_changed",
+          "membership_revoked",
+        ]) {
+          const direct = await call(
+            "UDEV",
+            `insert into public.audit_logs (tenant_id,user_id,action,resource_type,resource_id,details)
+          values ('${id.TA}','${id.UDEV}','${action}','membership','${id.mDev}','{}')`,
+            { "x-asym-assignment": id.mDev },
+          );
+          expect(direct.code, direct.message).toBe("42501");
+        }
+        expect(await audits()).toEqual([]);
+        const changed = await change("UADM", "mDev", {
+          role: "staff",
+          staff: "development",
+          admin: true,
+        });
+        expect(changed.code, changed.message).toBeNull();
+        const revoked = await revoke("UADM", "mDev");
+        expect(revoked.code, revoked.message).toBeNull();
+        expect((await audits()).map((row) => row.action).sort()).toEqual([
+          "membership_revoked",
+          "membership_role_changed",
+        ]);
+      }));
+
     describe("a tenant administrator", () => {
       // Review of WP2c part 1, WC5: the command changes a staff row only. A
       // change of class (a donor made staff, a staff member made a donor) is
