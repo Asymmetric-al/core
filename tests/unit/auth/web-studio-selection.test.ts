@@ -167,6 +167,9 @@ describe("Web Studio paths", () => {
     for (const other of [
       "/web-studio/organization",
       "/web-studio/organization/anything",
+      // Read decoded, as the routes and the proxy read them (JR5).
+      "/web-studio/%6Frganization",
+      "/web-studio/organization%2Fx",
       "/web-studio/api/pages",
       "/web-studio-old",
       "/",

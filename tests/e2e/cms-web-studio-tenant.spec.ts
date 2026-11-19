@@ -1319,3 +1319,36 @@ test("@cms Log out in Web Studio ends the session as Mission Control's sign-out 
   await page.waitForURL((url) => url.pathname === "/login");
   expect(new URL(page.url()).searchParams.get("next")).toBe(target);
 });
+
+// Check of the fix lists, JR5: an address under the chooser passed the gate
+// as a Web Studio page, and its document, outside its own segment, reloaded
+// without end. The proxy now sends it to the chooser before the gate.
+test("@cms an address under the chooser lands on the chooser in one document load, and stays there", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+
+  const loads: string[] = [];
+  page.on("response", (response) => {
+    const request = response.request();
+    if (
+      request.resourceType() === "document" &&
+      request.frame() === page.mainFrame() &&
+      response.status() < 300
+    ) {
+      loads.push(new URL(response.url()).pathname);
+    }
+  });
+  await page.goto(`${base}/web-studio/organization/anything`);
+  await page.waitForURL((url) => url.pathname === "/web-studio/organization");
+  await expect(
+    page.getByRole("button", { name: /^Open / }).first(),
+  ).toBeVisible();
+
+  // The same document after one of its own round trips: no reload began.
+  await markDocument(page);
+  await page.evaluate(() => fetch("/api/health").then((r) => r.status));
+  expect(await sameDocument(page)).toBe(true);
+  expect(loads).toEqual(["/web-studio/organization"]);
+});

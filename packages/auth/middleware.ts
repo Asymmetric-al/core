@@ -43,6 +43,7 @@ import {
 import { decideLanding, decideTenantAddress } from "./tenant-address-decisions";
 import {
   decideWebStudioAccess,
+  isStrayWebStudioChooserPath,
   isWebStudioApiPath,
   isWebStudioPath,
   WEB_STUDIO_CHOOSER_PATH,
@@ -456,6 +457,18 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     if (webStudio && isWebStudioApiPath(pathname)) {
       if (address) return refusedAddress();
       return refreshWebStudioApiSession(request, pathname, roleClass);
+    }
+
+    // Under the chooser but not the chooser (check of the fix lists, JR5):
+    // no page lives there, and the gate below would take it for a Web Studio
+    // page whose document, outside its own segment, reloads without end. To
+    // the chooser, with the query kept, before the gate.
+    if (webStudio && !address && isStrayWebStudioChooserPath(pathname)) {
+      const target = ownOriginUrl(
+        request,
+        withSearch(request, WEB_STUDIO_CHOOSER_PATH),
+      );
+      return target ? NextResponse.redirect(target) : refusedAddress();
     }
 
     const config = getSupabasePublicConfig();

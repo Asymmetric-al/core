@@ -83,6 +83,43 @@ export function isWebStudioApiPath(pathname: string): boolean {
 }
 
 /**
+ * `pathname` with each segment percent-decoded, as the app's routes match
+ * it; a segment that does not decode stays as it is. The proxy is handed
+ * the path undecoded (`NextURL` keeps `%6F`), so the chooser's addresses
+ * are read through this (check of the fix lists, JR5).
+ */
+function decodedPathname(pathname: string): string {
+  return pathname
+    .split("/")
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment);
+      } catch {
+        return segment;
+      }
+    })
+    .join("/");
+}
+
+/** The chooser's address or one below it, read decoded. */
+function isUnderWebStudioChooser(pathname: string): boolean {
+  return hasPathPrefix(decodedPathname(pathname), WEB_STUDIO_CHOOSER_PATH);
+}
+
+/**
+ * An address under the chooser that is not the chooser's own address: one
+ * below it (`/web-studio/organization/x`), or the chooser's spelt another
+ * way (`/web-studio/%6Frganization`). No page lives there; the proxy sends
+ * it to the chooser before the gate, so no Web Studio document is ever
+ * rendered outside its own segment (check of the fix lists, JR5).
+ */
+export function isStrayWebStudioChooserPath(pathname: string): boolean {
+  return (
+    pathname !== WEB_STUDIO_CHOOSER_PATH && isUnderWebStudioChooser(pathname)
+  );
+}
+
+/**
  * A Web Studio page: under `/web-studio`, but neither one of its REST routes
  * nor its organization chooser. The one definition that the admin app's
  * tenant boundary, Web Studio's document scope and Payload's router adapter
@@ -95,7 +132,7 @@ export function isWebStudioPagePath(pathname: string): boolean {
   return (
     isWebStudioPath(pathname) &&
     !isWebStudioApiPath(pathname) &&
-    !hasPathPrefix(pathname, WEB_STUDIO_CHOOSER_PATH)
+    !isUnderWebStudioChooser(pathname)
   );
 }
 

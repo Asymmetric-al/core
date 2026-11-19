@@ -290,6 +290,37 @@ describe("Web Studio's pages", () => {
     expect(location(response)).toBe("/no-access");
   });
 
+  // Check of the fix lists, JR5: the proxy took only the exact chooser
+  // address for the chooser, while isWebStudioPagePath leaves out everything
+  // under it, so /web-studio/organization/x passed the gate as a Web Studio
+  // page and its document, outside its own segment, reloaded without end.
+  // The proxy reads the next path undecoded (NextURL keeps %6F), so an
+  // encoded segment is read decoded here, as the routes see it.
+  it.each([
+    ["/web-studio/organization/x", "/web-studio/organization"],
+    [
+      "/web-studio/organization/x/y?next=%2Fweb-studio",
+      "/web-studio/organization?next=%2Fweb-studio",
+    ],
+    ["/web-studio/organization/", "/web-studio/organization"],
+    ["/web-studio/%6Frganization", "/web-studio/organization"],
+    ["/web-studio/%6Frganization/x", "/web-studio/organization"],
+    ["/web-studio/organization%2Fx", "/web-studio/organization"],
+  ])(
+    "send %s, under the chooser but not the chooser, to the chooser before the gate",
+    async (path, target) => {
+      const b = row(TB, "staff", "finance");
+      state.rows = [row(TA, "staff", "development"), b];
+
+      const response = await adminProxy()(
+        request(path, { cookie: await cookieFor(TB, b.id) }),
+      );
+
+      expect(response.status).toBe(307);
+      expect(location(response)).toBe(target);
+    },
+  );
+
   it("serve the chooser to any signed-in person, and send a signed-out one to sign in", async () => {
     state.rows = [
       row(TA, "staff", "development"),
