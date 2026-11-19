@@ -26,6 +26,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
 import {
   ArrowLeftRight,
+  Building2,
   ChevronLeft,
   LogOut,
   UserRound,
@@ -53,6 +54,23 @@ function resolveUserLabel(user: unknown): string | null {
     return String(user.email);
   }
   return null;
+}
+
+/**
+ * The organization Web Studio works in, in the bar itself (council on the
+ * joined release, JC3): a person in two organizations sees which one every
+ * save goes to without opening the account menu.
+ */
+function StudioOrganizationName() {
+  const organization = useWebStudioOrganization();
+  if (!organization) return null;
+  return (
+    <p className="flex min-w-0 max-w-28 items-center gap-1.5 text-sm text-muted-foreground sm:max-w-56">
+      <Building2 aria-hidden="true" className="size-4 shrink-0" />
+      <span className="sr-only">Working in </span>
+      <span className="truncate">{organization.name}</span>
+    </p>
+  );
 }
 
 function StudioUserMenu() {
@@ -263,6 +281,7 @@ export function StudioTopBar({
         </div>
       </div>
 
+      <StudioOrganizationName />
       <Badge variant="outline">Staff only</Badge>
       <StudioUserMenu />
     </header>

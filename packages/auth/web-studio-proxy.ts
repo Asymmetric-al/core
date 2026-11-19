@@ -7,7 +7,13 @@ import {
   ROLE_CLASS_HEADER,
   TENANT_REWRITE_HEADER,
 } from "./request-headers";
-import { WEB_STUDIO_CHOOSER_PATH } from "./web-studio";
+import {
+  WEB_STUDIO_CHOOSER_PATH,
+  WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM,
+  WEB_STUDIO_ENTRY_TENANT_PARAM,
+  WEB_STUDIO_FROM_PARAM,
+  type WebStudioDecision,
+} from "./web-studio";
 
 /**
  * Web Studio's two rules in the admin proxy (plan 5.2, "One stated exception:
@@ -43,6 +49,10 @@ export async function refreshWebStudioApiSession(
   requestHeaders.delete(TENANT_REWRITE_HEADER);
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
+  // Every cache header any write of the session asked for, as the main
+  // proxy keeps them: each write rebuilds the response (council on the
+  // joined release, JC9).
+  const refreshHeaders = new Headers();
   const { url, key } = getSupabasePublicConfig();
   if (!url || !key) return response;
 
@@ -72,6 +82,9 @@ export async function refreshWebStudioApiSession(
           response.cookies.set(name, value, options);
         });
         Object.entries(cacheHeaders).forEach(([name, value]) => {
+          refreshHeaders.set(name, value);
+        });
+        refreshHeaders.forEach((value, name) => {
           response.headers.set(name, value);
         });
       },
@@ -81,9 +94,71 @@ export async function refreshWebStudioApiSession(
   return response;
 }
 
-/** The Web Studio chooser, returning to `next` (a Web Studio page and query). */
-export function webStudioChooserUrl(request: NextRequest, next: string): URL {
+/**
+ * The Web Studio chooser, returning to `next` (a Web Studio page and query),
+ * offering first the organization `from` names, if any (JC3).
+ */
+export function webStudioChooserUrl(
+  request: NextRequest,
+  next: string,
+  from?: string | null,
+): URL {
   const url = new URL(WEB_STUDIO_CHOOSER_PATH, request.nextUrl.origin);
   url.searchParams.set("next", next);
+  if (from) url.searchParams.set(WEB_STUDIO_FROM_PARAM, from);
   return url;
+}
+
+const CANONICAL_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/**
+ * A link into Web Studio from a tenant's page in Mission Control (council on
+ * the joined release, JC3). Web Studio keeps its organization in a cookie
+ * that lasts thirty days, so the link names the page's tenant and row
+ * (`withWebStudioEntry`), and the proxy compares them with the cookie's
+ * choice before Web Studio renders:
+ *
+ * - they agree: the same address without them, so a later reload of the
+ *   page never asks again;
+ * - they do not, or nothing is chosen: the Web Studio chooser, offering the
+ *   linked organization first, and returning to the address without them.
+ *   A link never sets the cookie; only the chooser's form does, after its
+ *   own check against the person's live rows;
+ * - a person with no staff row: `null`, the proxy's refusal stands.
+ *
+ * `null` too for an address that names no organization. A value that is not
+ * a tenant id is never offered.
+ */
+export function webStudioEntryRedirect(
+  request: NextRequest,
+  pathname: string,
+  decision: WebStudioDecision,
+): URL | null {
+  const search = new URLSearchParams(request.nextUrl.search);
+  if (
+    !search.has(WEB_STUDIO_ENTRY_TENANT_PARAM) &&
+    !search.has(WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM)
+  ) {
+    return null;
+  }
+  if (decision.kind === "refuse") return null;
+  const tenantId = search.get(WEB_STUDIO_ENTRY_TENANT_PARAM) ?? "";
+  const assignmentId = search.get(WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM) ?? "";
+  search.delete(WEB_STUDIO_ENTRY_TENANT_PARAM);
+  search.delete(WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM);
+  const query = search.toString();
+  const address = query ? `${pathname}?${query}` : pathname;
+  if (
+    decision.kind === "allow" &&
+    decision.assignment.tenantId === tenantId &&
+    decision.assignment.assignmentId === assignmentId
+  ) {
+    return new URL(address, request.nextUrl.origin);
+  }
+  return webStudioChooserUrl(
+    request,
+    address,
+    CANONICAL_ID.test(tenantId) ? tenantId : null,
+  );
 }

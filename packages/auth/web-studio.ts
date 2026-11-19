@@ -2,6 +2,7 @@ import { safeNextParam } from "./demo-login";
 import { selectAssignment } from "./principal/assignment";
 
 import type { ActiveAssignment, RoleClass } from "./principal/types";
+import type { DocumentSegment } from "@asym/database/document-scope";
 
 /**
  * Web Studio's organization (plan 5.2, "One stated exception: Web Studio";
@@ -82,6 +83,89 @@ export function isWebStudioApiPath(pathname: string): boolean {
 }
 
 /**
+ * A Web Studio page: under `/web-studio`, but neither one of its REST routes
+ * nor its organization chooser. The one definition that the admin app's
+ * tenant boundary, Web Studio's document scope and Payload's router adapter
+ * share (council on the joined release, JC1), so crossing into or out of Web
+ * Studio's pages is a document load wherever the navigation starts: the
+ * chooser never renders on a Web Studio document, and no Web Studio page
+ * renders on another one.
+ */
+export function isWebStudioPagePath(pathname: string): boolean {
+  return (
+    isWebStudioPath(pathname) &&
+    !isWebStudioApiPath(pathname) &&
+    !hasPathPrefix(pathname, WEB_STUDIO_CHOOSER_PATH)
+  );
+}
+
+/**
+ * Web Studio's pages as the segment a Web Studio document's scope is valid
+ * in (`DocumentScopeProvider`): named by Web Studio's path, bounded by
+ * `isWebStudioPagePath`. Pass this constant, from client code; a function
+ * cannot cross from a server component to a client one.
+ */
+export const WEB_STUDIO_SEGMENT: DocumentSegment = {
+  name: WEB_STUDIO_PATH,
+  contains: isWebStudioPagePath,
+};
+
+/**
+ * The query names with which a link from a tenant's page into Web Studio
+ * names that page's tenant and row (council on the joined release, JC3).
+ * Web Studio keeps its organization in a cookie that lasts thirty days, so
+ * the proxy compares them with the cookie's choice and asks before Web
+ * Studio works in another organization; a link never sets the cookie.
+ */
+export const WEB_STUDIO_ENTRY_TENANT_PARAM = "organization";
+export const WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM = "assignment";
+
+/** The chooser's flag: the organization a link came from, offered first. */
+export const WEB_STUDIO_FROM_PARAM = "from";
+
+/** The query a link into Web Studio adds for a tenant's document, or `null` for any other document. */
+export function webStudioEntryQuery(
+  scope: {
+    tenantId: string;
+    assignmentId: string;
+    addressPrefix: string;
+  } | null,
+): Record<string, string> | null {
+  // Only a document whose address names its tenant: Web Studio's own pages
+  // and the donor portal name none, and add nothing.
+  if (!scope || scope.addressPrefix === "") return null;
+  return {
+    [WEB_STUDIO_ENTRY_TENANT_PARAM]: scope.tenantId,
+    [WEB_STUDIO_ENTRY_ASSIGNMENT_PARAM]: scope.assignmentId,
+  };
+}
+
+/**
+ * A link into Web Studio from a tenant's document: the address of a Web
+ * Studio page with that document's tenant and row added to its query, before
+ * any fragment. Any other address, and any link from a document whose
+ * address names no tenant, is returned as it is.
+ */
+export function withWebStudioEntry(
+  href: string,
+  scope: Parameters<typeof webStudioEntryQuery>[0],
+): string {
+  const entry = webStudioEntryQuery(scope);
+  if (!entry || !href.startsWith("/") || href.startsWith("//")) return href;
+  const hashAt = href.indexOf("#");
+  const beforeHash = hashAt === -1 ? href : href.slice(0, hashAt);
+  const hash = hashAt === -1 ? "" : href.slice(hashAt);
+  const queryAt = beforeHash.indexOf("?");
+  const pathname = queryAt === -1 ? beforeHash : beforeHash.slice(0, queryAt);
+  if (!isWebStudioPagePath(pathname)) return href;
+  const query = new URLSearchParams(
+    queryAt === -1 ? "" : beforeHash.slice(queryAt + 1),
+  );
+  for (const [name, value] of Object.entries(entry)) query.set(name, value);
+  return `${pathname}?${query.toString()}${hash}`;
+}
+
+/**
  * Where a choice of organization returns: a Web Studio page the caller named,
  * with its query, or Web Studio's home. It passes the same refusal as every
  * other return address (`safeNextParam`: another origin, an empty path
@@ -93,13 +177,7 @@ export function safeWebStudioNext(next: string | null | undefined): string {
   const safe = safeNextParam(next ?? null);
   if (!safe) return WEB_STUDIO_PATH;
   const url = new URL(safe, "http://web-studio.invalid");
-  if (
-    !isWebStudioPath(url.pathname) ||
-    isWebStudioApiPath(url.pathname) ||
-    url.pathname === WEB_STUDIO_CHOOSER_PATH
-  ) {
-    return WEB_STUDIO_PATH;
-  }
+  if (!isWebStudioPagePath(url.pathname)) return WEB_STUDIO_PATH;
   return `${url.pathname}${url.search}`;
 }
 
@@ -109,15 +187,18 @@ export const WEB_STUDIO_REFUSED_PARAM = "refused";
 /**
  * The chooser's own address: where Web Studio returns after the choice
  * (`next`, made safe by `safeWebStudioNext`) and, when the last choice was
- * refused, the flag that has the chooser say so. Sign-in returns here too,
- * so a person who signs in again still lands on the page they were on.
+ * refused, the flag that has the chooser say so; when a link from Mission
+ * Control named an organization, that one, which the chooser offers first
+ * (JC3). Sign-in returns here too, so a person who signs in again still
+ * lands on the page they were on.
  */
 export function webStudioChooserAddress(
   next: string | null | undefined,
-  options: { refused?: boolean } = {},
+  options: { refused?: boolean; from?: string | null } = {},
 ): string {
   const params = new URLSearchParams({ next: safeWebStudioNext(next) });
   if (options.refused) params.set(WEB_STUDIO_REFUSED_PARAM, "1");
+  if (options.from) params.set(WEB_STUDIO_FROM_PARAM, options.from);
   return `${WEB_STUDIO_CHOOSER_PATH}?${params.toString()}`;
 }
 

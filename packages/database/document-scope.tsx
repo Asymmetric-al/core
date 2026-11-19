@@ -35,7 +35,10 @@ import type { ReactNode } from "react";
  * slice A's A8, slice B's SB2, record D-41). The segment is a tenant's address
  * segment (`<prefix>` or `<prefix>/…`) for Mission Control and the missionary
  * workspace, the portal's path `/donor-dashboard` for the donor portal, and
- * `/web-studio` for Web Studio, whose addresses name no tenant. So:
+ * Web Studio's pages for Web Studio, whose addresses name no tenant: every
+ * address under `/web-studio` except its organization chooser and its REST
+ * routes (`WEB_STUDIO_SEGMENT` and `isWebStudioPagePath` in
+ * `@asym/auth/web-studio`; council on the joined release, JC1). So:
  * - `useDocumentScope()` returns the scope only inside the provider that fixed
  *   it (`TenantDocument`, `PortalDocument`, or Web Studio's document), so
  *   `null` on every page outside the segment.
@@ -43,7 +46,9 @@ import type { ReactNode } from "react";
  *   signed-in page has fixed it, and only while the address is inside its
  *   segment. It is `null` on the server, before a scope is fixed, and on any
  *   address outside the segment: another tenant's or another sub-role's, for
- *   the portal the public site, and for Web Studio Mission Control.
+ *   the portal the public site, and for Web Studio both Mission Control and
+ *   Web Studio's own chooser, which a gate redirect can reach softly before
+ *   the document reloads.
  * Neither ever returns a scope other than the one the document was loaded
  * with.
  *
@@ -65,11 +70,15 @@ import type { ReactNode } from "react";
  * - At the source, the helpers in `@asym/auth/tenant-navigation`
  *   (`TenantLink`, `useTenantRouter`) load a document for a navigation that
  *   crosses the boundary, so the usual way across never renders on the old
- *   document. In Web Studio, Payload navigates through its router adapter
- *   (`apps/admin/src/cms/payload-next-router-adapter.tsx`), which loads a
- *   document for every address that is not a Web Studio page, its chooser
- *   and `/web-studio/api` included, and its link to Mission Control is a
- *   document load (`mission-control-link.tsx`).
+ *   document. Mission Control's boundary (`TenantSegmentBoundary`) gives Web
+ *   Studio's pages a segment of their own, so sign-in's way into Web Studio
+ *   and a Web Studio link to its chooser are document loads at the source.
+ *   In Web Studio, Payload navigates through its router adapter
+ *   (`apps/admin/src/cms/payload-next-router-adapter.tsx`), whose router and
+ *   links load a document for every address that is not a Web Studio page,
+ *   its chooser and `/web-studio/api` included, by the same test of a Web
+ *   Studio page; its link to Mission Control is a document load
+ *   (`mission-control-link.tsx`).
  * - As the fallback, for a crossing that bypassed them, the document's own
  *   guard reloads. Which guard depends on where the segment is written:
  *   - A tenant's segment is in the address itself (`/<tenant>[~<sub-role>]`),
@@ -83,8 +92,11 @@ import type { ReactNode } from "react";
  *     when the document was loaded outside the segment (entered softly). A
  *     reload at an address inside the segment gives a document loaded inside
  *     it, so this never loops. `PortalDocument` passes `/donor-dashboard`;
- *     Web Studio's document (slice C) passes `/web-studio` with an empty
- *     prefix and inherits the same guard.
+ *     Web Studio's document (slice C) and its page renders pass
+ *     `WEB_STUDIO_SEGMENT`, with an empty prefix, and inherit the same
+ *     guard: a gate redirect that lands softly on the chooser unmounts the
+ *     provider at an address outside its segment, and so loads a new
+ *     document (JC1).
  *   Do not merge the two: a tenant's guard also checks which tenant the
  *   address names, which a path segment cannot.
  */
@@ -106,13 +118,44 @@ export interface DocumentScope {
   readonly addressPrefix: string;
 }
 
+/**
+ * A segment of the page address that bounds a scope whose address names no
+ * tenant: a `name`, which identifies it (two providers given the same name
+ * bound the same segment), and the test of a page path. A plain path given as
+ * a segment, such as the donor portal's `/donor-dashboard`, is that path and
+ * every page below it. Web Studio's is `WEB_STUDIO_SEGMENT` in
+ * `@asym/auth/web-studio`, which leaves out its chooser and REST routes
+ * (council on the joined release, JC1). Pass a module constant: the provider
+ * keeps the object it was given.
+ */
+export interface DocumentSegment {
+  readonly name: string;
+  readonly contains: (pathname: string) => boolean;
+}
+
+const pathSegments = new Map<string, DocumentSegment>();
+
+/** The segment of a plain path: the path itself and every page below it. One object for each path. */
+function pathSegment(path: string): DocumentSegment {
+  let segment = pathSegments.get(path);
+  if (!segment) {
+    segment = {
+      name: path,
+      contains: (pathname) =>
+        pathname === path || pathname.startsWith(`${path}/`),
+    };
+    pathSegments.set(path, segment);
+  }
+  return segment;
+}
+
 const DocumentScopeContext = createContext<DocumentScope | null>(null);
 
 /** Browser only: the scope this document was loaded with, once fixed. */
 let fixedScope: DocumentScope | null = null;
 
 /** Browser only: the address segment the fixed scope is valid in. */
-let fixedSegment = "";
+let fixedSegment: DocumentSegment | null = null;
 
 function sameScope(a: DocumentScope, b: DocumentScope): boolean {
   return (
@@ -129,14 +172,17 @@ function sameScope(a: DocumentScope, b: DocumentScope): boolean {
  * same scope under another segment is another scope (BR1). A no-op on the
  * server, where module state would be shared by every request.
  */
-function fixDocumentScope(scope: DocumentScope, segment: string): boolean {
+function fixDocumentScope(
+  scope: DocumentScope,
+  segment: DocumentSegment,
+): boolean {
   if (typeof window === "undefined") return true;
   if (fixedScope === null) {
     fixedScope = Object.freeze({ ...scope });
     fixedSegment = segment;
     return true;
   }
-  return sameScope(fixedScope, scope) && fixedSegment === segment;
+  return sameScope(fixedScope, scope) && fixedSegment?.name === segment.name;
 }
 
 /** A scope given no segment it can be bounded by: a programming error. */
@@ -153,12 +199,12 @@ export class DocumentScopeSegmentError extends Error {
  * document was loaded at whatever the client router did since. `false` on
  * the server and where the browser cannot say.
  */
-function loadedOutside(segment: string): boolean {
+function loadedOutside(segment: DocumentSegment): boolean {
   if (typeof window === "undefined") return false;
   try {
     const [entry] = performance.getEntriesByType("navigation");
     if (!entry) return false;
-    return !inSegment(new URL(entry.name).pathname, segment);
+    return !segment.contains(new URL(entry.name).pathname);
   } catch {
     return false;
   }
@@ -178,7 +224,7 @@ function loadedOutside(segment: string): boolean {
  * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation`, which
  * guards the tenant's segment in the page address, by `PortalDocument` in
  * `@asym/auth/portal-document`, with the portal's path as `segment`, and by
- * Web Studio, with `/web-studio` as `segment`: its document
+ * Web Studio, with `WEB_STUDIO_SEGMENT` as `segment`: its document
  * (`web-studio-document.tsx`) and each of its page renders (Payload's
  * catch-all page and the draft preview), which repeat the document's scope
  * under the same segment so that a page rendered for another organization
@@ -192,16 +238,16 @@ export function DocumentScopeProvider({
   scope: DocumentScope;
   /**
    * The address segment the scope is valid in and bounded by, for a
-   * document whose address names no tenant (the donor portal's
-   * `/donor-dashboard`, Web Studio's `/web-studio`). Required when the
-   * scope's `addressPrefix` is empty; never empty. Without it the scope's
-   * own address prefix is its segment, a tenant's, guarded by
-   * `TenantDocument`.
+   * document whose address names no tenant: a path (the donor portal's
+   * `/donor-dashboard`), or a segment that carries its own test of an
+   * address (Web Studio's `WEB_STUDIO_SEGMENT`). Required when the scope's
+   * `addressPrefix` is empty; never empty. Without it the scope's own address
+   * prefix is its segment, a tenant's, guarded by `TenantDocument`.
    */
-  segment?: string;
+  segment?: string | DocumentSegment;
   children: ReactNode;
 }) {
-  if (segment === "") {
+  if (segment === "" || (typeof segment === "object" && segment.name === "")) {
     throw new DocumentScopeSegmentError(
       "A document scope's segment is never empty: pass the path that bounds it, such as /donor-dashboard.",
     );
@@ -211,7 +257,8 @@ export function DocumentScopeProvider({
       "A document scope whose address names no tenant needs the segment that bounds it, such as /donor-dashboard.",
     );
   }
-  const validIn = segment ?? scope.addressPrefix;
+  const given = segment ?? scope.addressPrefix;
+  const validIn = typeof given === "string" ? pathSegment(given) : given;
   const guarded = segment !== undefined;
   // Entered without a document load: never fix the scope here (BR1).
   const enteredSoftly =
@@ -230,7 +277,10 @@ export function DocumentScopeProvider({
   useEffect(() => {
     if (!guarded || !fixed) return;
     return () => {
-      if (!inSegment(window.location.pathname, validIn)) reloadDocument();
+      // Next writes the new address in an insertion effect, before this
+      // clean-up runs, so a soft navigation that unmounts the provider is
+      // read at its target (council on the joined release, JC11).
+      if (!validIn.contains(window.location.pathname)) reloadDocument();
     };
   }, [guarded, fixed, validIn]);
 
@@ -247,11 +297,6 @@ export function useDocumentScope(): DocumentScope | null {
   return useContext(DocumentScopeContext);
 }
 
-/** Whether `pathname` is in `segment`: the segment itself or below it. */
-function inSegment(pathname: string, segment: string): boolean {
-  return pathname === segment || pathname.startsWith(`${segment}/`);
-}
-
 /**
  * The document's scope for code outside React, such as the browser client
  * and the fetch wrapper. Browser only: always `null` on the server, `null`
@@ -262,7 +307,7 @@ function inSegment(pathname: string, segment: string): boolean {
  */
 export function getDocumentScope(): DocumentScope | null {
   if (typeof window === "undefined" || fixedScope === null) return null;
-  return inSegment(window.location.pathname, fixedSegment) ? fixedScope : null;
+  return fixedSegment?.contains(window.location.pathname) ? fixedScope : null;
 }
 
 /**

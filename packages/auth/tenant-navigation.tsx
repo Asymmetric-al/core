@@ -25,6 +25,12 @@ import {
   stripTenantAddress,
   withTenantAddress,
 } from "./tenant-address";
+import {
+  isWebStudioPagePath,
+  WEB_STUDIO_SEGMENT,
+  webStudioEntryQuery,
+  withWebStudioEntry,
+} from "./web-studio";
 
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
 
@@ -85,13 +91,40 @@ const SegmentContext = createContext<{
   segmentOf: (pathname: string) => string | null;
 } | null>(null);
 
-/** A page path's tenant segment: its prefix, "unprefixed", or null outside. */
+/**
+ * A page path's tenant segment: Web Studio's pages, its prefix, "unprefixed",
+ * or null outside.
+ *
+ * Web Studio's pages are outside every tenant's segment, but a segment of
+ * their own (council on the joined release, JC1): a document scoped to Web
+ * Studio's organization lives there, and neither sign-in nor Web Studio's
+ * own chooser, which share the outside segment, may render on it, nor it on
+ * them. Only the admin app serves them; elsewhere no address is one.
+ */
 function tenantSegmentOf(pathname: string): string | null {
+  if (isWebStudioPagePath(pathname)) return WEB_STUDIO_SEGMENT.name;
   const address = parseTenantAddress(pathname);
   if (address) return address.prefix;
   // An unprefixed page address inside the segment: the proxy puts it under
   // the person's prefix, so it is in a segment other than "outside".
   return isOutsideTenantSegment(pathname) ? null : "unprefixed";
+}
+
+/**
+ * The segment an address is in, for a document and for the boundary's
+ * watcher: Web Studio's pages, a tenant prefix, or null for every other
+ * address, an unprefixed one included (the guard of the signed-in pages,
+ * `TenantDocument`, handles that one).
+ */
+function addressSegmentOf(pathname: string): string | null {
+  if (isWebStudioPagePath(pathname)) return WEB_STUDIO_SEGMENT.name;
+  return parseTenantAddress(pathname)?.prefix ?? null;
+}
+
+/** The segment the document was loaded in; `undefined` where the browser cannot say. */
+function loadedAddressSegment(): string | null | undefined {
+  const pathname = loadedPathname();
+  return pathname === undefined ? undefined : addressSegmentOf(pathname);
 }
 
 /**
@@ -101,8 +134,10 @@ function tenantSegmentOf(pathname: string): string | null {
  * root layouts render it around the whole app.
  *
  * Crossing means: into the segment from outside, out of it, and from one
- * tenant or sub-role to another. Inside one tenant's segment, and between two
- * pages outside it, navigation stays soft. Three things hold the rule:
+ * tenant or sub-role to another; and, in the admin app, into or out of Web
+ * Studio's pages, a segment of their own (JC1). Inside one tenant's segment,
+ * among Web Studio's pages, and between two pages outside every segment
+ * (sign-in, the choosers), navigation stays soft. Three things hold the rule:
  *
  * - `TenantLink` and `useTenantRouter` load a crossing's address as a new
  *   document instead of a client-side transition, so the usual way across
@@ -120,7 +155,10 @@ function tenantSegmentOf(pathname: string): string | null {
  */
 export function TenantSegmentBoundary({ children }: { children: ReactNode }) {
   const value = useMemo(
-    () => ({ documentSegment: loadedSegment(), segmentOf: tenantSegmentOf }),
+    () => ({
+      documentSegment: loadedAddressSegment(),
+      segmentOf: tenantSegmentOf,
+    }),
     [],
   );
   return (
@@ -138,8 +176,7 @@ function SegmentCrossingWatcher({
 }: {
   documentSegment: string | null | undefined;
 }) {
-  const addressSegment =
-    parseTenantAddress(usePathname() ?? "/")?.prefix ?? null;
+  const addressSegment = addressSegmentOf(usePathname() ?? "/");
   const crossed =
     documentSegment !== undefined && addressSegment !== documentSegment;
   useEffect(() => {
@@ -407,13 +444,36 @@ function loadedElsewhere(prefix: string): boolean {
   return loaded !== undefined && loaded !== prefix;
 }
 
-/** Adds the document's tenant prefix to an internal page address. */
+/**
+ * Adds the document's tenant prefix to an internal page address. A link from
+ * a tenant's document into Web Studio, which keeps its organization in a
+ * cookie, names that document's tenant and row instead, so the proxy can ask
+ * before Web Studio works in another organization (`withWebStudioEntry`;
+ * council on the joined release, JC3).
+ */
 export function useTenantHref(): (href: string) => string {
-  const prefix = useDocumentScope()?.addressPrefix ?? null;
+  const scope = useDocumentScope();
   return useCallback(
-    (href: string) => withTenantAddress(prefix, href),
-    [prefix],
+    (href: string) =>
+      withWebStudioEntry(
+        withTenantAddress(scope?.addressPrefix ?? null, href),
+        scope,
+      ),
+    [scope],
   );
+}
+
+/** A URL object's query with the tenant document's Web Studio entry added. */
+function withEntryQuery(
+  query: Exclude<LinkHref, string>["query"],
+  entry: Record<string, string>,
+): Exclude<LinkHref, string>["query"] {
+  if (typeof query === "string") {
+    const params = new URLSearchParams(query);
+    for (const [name, value] of Object.entries(entry)) params.set(name, value);
+    return params.toString();
+  }
+  return { ...(query ?? {}), ...entry };
 }
 
 type LinkHref = ComponentProps<typeof Link>["href"];
@@ -431,6 +491,7 @@ export type TenantLinkHref =
 function prefixLinkHref(
   href: LinkHref,
   toHref: (href: string) => string,
+  scope: DocumentScope | null,
 ): LinkHref {
   if (typeof href === "string") return toHref(href);
   if (href instanceof URL) {
@@ -439,7 +500,27 @@ function prefixLinkHref(
     );
   }
   if (typeof href.pathname !== "string") return href;
-  return { ...href, pathname: toHref(href.pathname) };
+  const pathname = withTenantAddress(
+    scope?.addressPrefix ?? null,
+    href.pathname,
+  );
+  // Into Web Studio on this site only: an object that names a host or a
+  // protocol leaves it (JC3).
+  const entry =
+    !href.host &&
+    !href.hostname &&
+    !href.protocol &&
+    isWebStudioPagePath(pathname)
+      ? webStudioEntryQuery(scope)
+      : null;
+  if (!entry) return { ...href, pathname };
+  // next/link prefers a `search` to a `query`.
+  if (typeof href.search === "string") {
+    const search = new URLSearchParams(href.search);
+    for (const [name, value] of Object.entries(entry)) search.set(name, value);
+    return { ...href, pathname, search: `?${search.toString()}` };
+  }
+  return { ...href, pathname, query: withEntryQuery(href.query, entry) };
 }
 
 /**
@@ -478,7 +559,15 @@ function anchorAddress(anchor: HTMLAnchorElement): string | null {
  */
 let crossingLoadBegun = false;
 
-function loadCrossing(address: string, replace: boolean): void {
+/**
+ * Loads `address` as a new document for a crossing, and marks the current
+ * task so that `useTenantRouter`'s `refresh` does nothing in it. Exported for
+ * the one other router that begins crossings, Payload's router adapter in
+ * Web Studio, whose `push(outside); refresh()` must not render the current
+ * page again on the document that is going away (council on the joined
+ * release, JC8).
+ */
+export function loadCrossing(address: string, replace: boolean): void {
   if (!crossingLoadBegun) {
     crossingLoadBegun = true;
     setTimeout(() => {
@@ -504,8 +593,9 @@ export function TenantLink({
   ...props
 }: Omit<ComponentProps<typeof Link>, "href"> & { href: TenantLinkHref }) {
   const toHref = useTenantHref();
+  const scope = useDocumentScope();
   const crosses = useCrossesSegment();
-  const prefixed = prefixLinkHref(href, toHref);
+  const prefixed = prefixLinkHref(href, toHref, scope);
   const pathname = linkPathname(prefixed);
   const crossing = pathname !== null && crosses(pathname);
   return (

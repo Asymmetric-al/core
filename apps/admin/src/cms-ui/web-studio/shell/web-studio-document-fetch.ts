@@ -1,9 +1,14 @@
 import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
-import { isWebStudioApiPath } from "@asym/auth/web-studio";
+import { isWebStudioApiPath, isWebStudioPagePath } from "@asym/auth/web-studio";
 import { getDocumentScope } from "@asym/database/document-scope";
 
 import { noticeWebStudioRefusal } from "./web-studio-refusal-notice";
-import { WEB_STUDIO_REFUSAL_HEADER } from "../../../cms/auth/web-studio-refusal";
+import {
+  readWebStudioRefusalDigest,
+  WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER,
+  WEB_STUDIO_CLAIM_TENANT_HEADER,
+  WEB_STUDIO_REFUSAL_HEADER,
+} from "../../../cms/auth/web-studio-refusal";
 
 /**
  * Every call a Web Studio document makes to Payload's REST routes names the
@@ -19,10 +24,27 @@ import { WEB_STUDIO_REFUSAL_HEADER } from "../../../cms/auth/web-studio-refusal"
  * `fetch` once. Only same-origin calls under `/web-studio/api` change; Mission
  * Control's own `/api` routes are scoped by slice B's shared fetch wrapper.
  *
+ * Payload's server functions are server actions, which Next posts with the
+ * global `fetch` to the page's own address (`next-action` header). On a Web
+ * Studio page they name the same tenant and row, in Web Studio's own claim
+ * headers, because the proxy deletes the REST pair from a page request; the
+ * Payload layout compares them with the cookie's choice before Payload runs
+ * (council on the joined release, JC2). The chooser's own action, under
+ * `/web-studio` but not a Web Studio page, names nothing.
+ *
+ * None of these calls asks the browser to bypass its cache, as slice B's
+ * own-API wrapper does: Payload's REST answers carry no `Cache-Control`,
+ * `ETag`, `Last-Modified` or `Expires`, so the browser stores none of them
+ * to reuse, and a server action is a POST (council on the joined release,
+ * JC9, checked against the answers a development server gives).
+ *
  * A response the server marks as a Web Studio refusal is reported to the
  * document, which asks the person to reload once (council C2); the response
  * itself reaches Payload unchanged, except a later refused autosave, which
- * reaches it without a message (council r2 CR5).
+ * reaches it without a message (council r2 CR5). A server action cannot
+ * set a header, so a refused server function names its refusal in the
+ * digest of the error its answer carries; the hook reads a copy of that
+ * answer, and Next reads the answer itself.
  */
 
 const WRAPPED = Symbol.for("asym.webStudio.documentFetch");
@@ -47,6 +69,28 @@ function withoutMessage(response: Response): Response {
   });
 }
 
+/** The method a call is made with: its init's, else its request's, else GET. */
+function requestMethod(input: RequestInfo | URL, init?: RequestInit): string {
+  return (
+    init?.method ?? (input instanceof Request ? input.method : "GET")
+  ).toUpperCase();
+}
+
+/**
+ * Reads a refused server function's answer, from a copy, and asks the person
+ * to reload when it names a Web Studio refusal. Next reads the answer itself.
+ */
+function noticeRefusedServerFunction(response: Response): void {
+  if (response.ok) return;
+  void response
+    .clone()
+    .text()
+    .then((body) => noticeWebStudioRefusal(readWebStudioRefusalDigest(body)))
+    .catch(() => {
+      // An answer that cannot be read names no refusal.
+    });
+}
+
 export function installWebStudioDocumentFetch(
   target: WrappableWindow = window,
 ): void {
@@ -62,15 +106,24 @@ export function installWebStudioDocumentFetch(
     } catch {
       return original(input, init);
     }
-    if (
-      url.origin !== target.location.origin ||
-      !isWebStudioApiPath(url.pathname)
-    ) {
-      return original(input, init);
-    }
+    if (url.origin !== target.location.origin) return original(input, init);
     const headers = new Headers(
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
+    // A server function of Payload's, posted from a Web Studio page (JC2).
+    if (
+      isWebStudioPagePath(url.pathname) &&
+      requestMethod(input, init) === "POST" &&
+      headers.has("next-action")
+    ) {
+      headers.set(WEB_STUDIO_CLAIM_TENANT_HEADER, scope.tenantId);
+      headers.set(WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER, scope.assignmentId);
+      return original(input, { ...init, headers }).then((response) => {
+        noticeRefusedServerFunction(response);
+        return response;
+      });
+    }
+    if (!isWebStudioApiPath(url.pathname)) return original(input, init);
     headers.set(TENANT_HEADER, scope.tenantId);
     headers.set(ASSIGNMENT_HEADER, scope.assignmentId);
     return original(input, { ...init, headers }).then((response) => {

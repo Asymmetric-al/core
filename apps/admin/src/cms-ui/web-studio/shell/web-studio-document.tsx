@@ -1,6 +1,6 @@
 "use client";
 
-import { WEB_STUDIO_PATH } from "@asym/auth/web-studio";
+import { WEB_STUDIO_SEGMENT } from "@asym/auth/web-studio";
 import {
   DocumentScopeProvider,
   type DocumentScope,
@@ -16,6 +16,11 @@ import type { ReactNode } from "react";
 export interface WebStudioOrganization {
   name: string;
   canSwitch: boolean;
+  /**
+   * The selected organization's home in Mission Control, under its tenant
+   * address (council on the joined release, JC3).
+   */
+  missionControlHref: string;
 }
 
 const WebStudioOrganizationContext =
@@ -51,9 +56,10 @@ export function WebStudioDocument({
   }
 
   return (
-    // Valid inside Web Studio only: its address names no tenant, so the
-    // prefix is empty and the segment bounds the scope (slice B, D-41).
-    <DocumentScopeProvider scope={scope} segment={WEB_STUDIO_PATH}>
+    // Valid on Web Studio's pages only: its address names no tenant, so the
+    // prefix is empty and the segment bounds the scope (slice B, D-41). The
+    // chooser and the REST routes are not among them (JC1).
+    <DocumentScopeProvider scope={scope} segment={WEB_STUDIO_SEGMENT}>
       <WebStudioOrganizationContext.Provider value={organization}>
         {/* What the end-to-end suites read; it renders nothing visible. */}
         <span
@@ -64,6 +70,27 @@ export function WebStudioDocument({
         {children}
         <WebStudioRefusalDialog />
       </WebStudioOrganizationContext.Provider>
+    </DocumentScopeProvider>
+  );
+}
+
+/**
+ * A Web Studio page render's own copy of the document's scope (Payload's
+ * catch-all page and the draft preview): the same scope under the same
+ * segment, so a page rendered for another organization reloads (council C1).
+ * A client component, because the segment's test of an address is a
+ * function, which cannot pass from a server component.
+ */
+export function WebStudioPageScope({
+  scope,
+  children,
+}: {
+  scope: DocumentScope;
+  children: ReactNode;
+}) {
+  return (
+    <DocumentScopeProvider scope={scope} segment={WEB_STUDIO_SEGMENT}>
+      {children}
     </DocumentScopeProvider>
   );
 }

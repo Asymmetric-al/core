@@ -1,5 +1,3 @@
-import { WEB_STUDIO_PATH } from "@asym/auth/web-studio";
-import { DocumentScopeProvider } from "@asym/database/document-scope";
 import config from "@payload-config";
 import { RootPage, generatePageMetadata } from "@payloadcms/next/views";
 import { connection } from "next/server";
@@ -9,6 +7,7 @@ import { importMap } from "../importMap";
 import type { Metadata } from "next";
 
 import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { WebStudioPageScope } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
 /** Block: sibling of the preview route, and the Payload admin cannot prerender (see `(payload)/layout.tsx`). */
 export const instant = false;
@@ -42,9 +41,9 @@ const Page = async ({ params, searchParams }: Args) => {
     ["/web-studio", ...path.map(encodeURIComponent)].join("/"),
   );
   return (
-    <DocumentScopeProvider scope={access.scope} segment={WEB_STUDIO_PATH}>
+    <WebStudioPageScope scope={access.scope}>
       {await RootPage({ config, importMap, params, searchParams })}
-    </DocumentScopeProvider>
+    </WebStudioPageScope>
   );
 };
 

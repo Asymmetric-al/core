@@ -1,4 +1,6 @@
 import { getSignedInAssignments } from "@asym/auth/context";
+import { buildTenantPrefix } from "@asym/auth/tenant-address";
+import { listAddressChoices } from "@asym/auth/tenant-address-decisions";
 import { redirectInTenant } from "@asym/auth/tenant-server";
 import {
   decideWebStudioAccess,
@@ -18,7 +20,26 @@ export interface WebStudioOrganization {
   name: string;
   /** Whether the person holds staff rows in more than one place to switch to. */
   canSwitch: boolean;
+  /**
+   * The selected row's home in Mission Control, under the tenant address the
+   * proxy admits it at (`/<tenant>`, or `/<tenant>~<sub-role>` for a person
+   * with several staff rows there). The way back from Web Studio goes there,
+   * not to `/`, which sends a person in two organizations to the chooser
+   * (council on the joined release, JC3).
+   */
+  missionControlHref: string;
 }
+
+/**
+ * The row the Web Studio cookie selects now, for a server function of
+ * Payload's (council on the joined release, JC2), or why there is none: no
+ * session, or no usable choice (none made, one the person no longer holds,
+ * rows that cannot be read).
+ */
+export type WebStudioSelectionState =
+  | { kind: "selected"; tenantId: string; assignmentId: string }
+  | { kind: "signed_out" }
+  | { kind: "none" };
 
 export interface WebStudioAccess {
   /** What the document was rendered for; Web Studio's REST calls send it back. */
@@ -89,6 +110,14 @@ export async function requireWebStudioAccess(
   const staffRows = signedIn.assignments.filter(
     (row) => row.membershipRole === WEB_STUDIO_ROLE_CLASS,
   );
+  // The address Mission Control's chooser would give this row.
+  const home =
+    listAddressChoices({
+      assignments: signedIn.assignments,
+      roleClass: WEB_STUDIO_ROLE_CLASS,
+      tenantId: assignment.tenantId,
+    }).find((choice) => choice.assignmentId === assignment.assignmentId)
+      ?.prefix ?? buildTenantPrefix(assignment.tenantId, null);
   return {
     scope: {
       userId: signedIn.userId,
@@ -101,6 +130,23 @@ export async function requireWebStudioAccess(
         signedIn.organizationNames.get(assignment.tenantId) ??
         fallbackName(assignment.tenantId),
       canSwitch: staffRows.length > 1,
+      missionControlHref: home,
     },
+  };
+}
+
+/**
+ * The row the Web Studio cookie selects now, judged as the gate judges it:
+ * what a server function of Payload's must have been rendered for (council
+ * on the joined release, JC2).
+ */
+export async function readWebStudioSelection(): Promise<WebStudioSelectionState> {
+  const { signedIn, decision } = await decideWebStudioRequest();
+  if (signedIn.kind === "signed_out") return { kind: "signed_out" };
+  if (decision?.kind !== "allow") return { kind: "none" };
+  return {
+    kind: "selected",
+    tenantId: decision.assignment.tenantId,
+    assignmentId: decision.assignment.assignmentId,
   };
 }

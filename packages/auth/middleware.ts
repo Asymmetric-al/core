@@ -52,6 +52,7 @@ import {
 import {
   refreshWebStudioApiSession,
   webStudioChooserUrl,
+  webStudioEntryRedirect,
 } from "./web-studio-proxy";
 
 import type { AssignmentRpcClient } from "./principal/reader";
@@ -671,6 +672,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             ),
           })
         : ({ kind: "refuse" } as const);
+      // A link from Mission Control names the organization it came from
+      // (council on the joined release, JC3).
+      const entry = webStudioEntryRedirect(request, pathname, decision);
+      if (entry) return redirectWithCookies(entry, supabaseResponse);
       if (decision.kind === "allow") return supabaseResponse;
       if (decision.kind === "refuse" && assignments) {
         reportAccessDiagnostic("no_assignment");

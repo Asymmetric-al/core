@@ -437,11 +437,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "59e08dd812d57634dac9bf3279068674b554af86d566850e4545ae333dc99d7b"
+          "sha256": "298d03a0da505fa1ad92876616b05b7b88674f9cdd5319ec695462f64e3ff05f"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "79d5c5eefef9ceef0d5ab9ee45c47a029ee1ad7fd48eaea228070f44e185c161"
+          "sha256": "2c44266f57cb2c1b77036a2d52adc47d2970af126fb77a3ace1571f5a99c9966"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -1789,7 +1789,7 @@
       "proof": [
         {
           "path": "packages/auth/tenant-navigation.tsx",
-          "sha256": "7bb87c98f49c865161672575850134af9f9c8e25be8c37c879b181e81654c9f8"
+          "sha256": "d8e23d3b6d8170ab35dd3a71bfb3ad0574594cbc36e907a74aa05b0149bdeb47"
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",

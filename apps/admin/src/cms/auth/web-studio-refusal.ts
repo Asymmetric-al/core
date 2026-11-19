@@ -38,6 +38,45 @@ export function isWebStudioRefusal(value: unknown): value is WebStudioRefusal {
   );
 }
 
+/**
+ * The tenant and row a Web Studio document names on a server function of
+ * Payload's (council on the joined release, JC2). A server function is a
+ * server action posted to the page's own address, and the proxy deletes the
+ * REST pair (`x-asym-tenant`, `x-asym-assignment`) from every page request,
+ * where only its own decision may set one. So the document sends the same
+ * claim under Web Studio's own names, which nothing reads as a choice: the
+ * Payload layout only compares them with the cookie's
+ * (`web-studio-server-function.ts`).
+ */
+export const WEB_STUDIO_CLAIM_TENANT_HEADER = "x-asym-web-studio-tenant";
+export const WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER =
+  "x-asym-web-studio-assignment";
+
+/**
+ * A server action cannot set a response header, so a refused server function
+ * names its refusal in its error's digest, which Next keeps and sends in the
+ * action's answer (`next/dist/server/app-render/create-error-handler.js`
+ * respects an error's own digest). The document's fetch hook reads it there
+ * and asks the person to reload, as it does for a refused REST call.
+ */
+const REFUSAL_DIGEST_PREFIX = "ASYM_WEB_STUDIO_REFUSAL;";
+
+export function webStudioRefusalDigest(refusal: WebStudioRefusal): string {
+  return `${REFUSAL_DIGEST_PREFIX}${refusal}`;
+}
+
+/** The refusal a server action's answer names in its error digest, if any. */
+export function readWebStudioRefusalDigest(
+  body: string,
+): WebStudioRefusal | null {
+  const at = body.indexOf(REFUSAL_DIGEST_PREFIX);
+  if (at === -1) return null;
+  const named = /^[a-z_]+/.exec(
+    body.slice(at + REFUSAL_DIGEST_PREFIX.length),
+  )?.[0];
+  return isWebStudioRefusal(named) ? named : null;
+}
+
 type RequestWithContext = {
   context?: Record<string, unknown> | null;
   responseHeaders?: Headers;

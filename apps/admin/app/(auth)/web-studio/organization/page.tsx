@@ -2,6 +2,7 @@ import { loadWebStudioOrganizationChoices } from "@asym/api/auth/organization-ch
 import { redirectInTenant } from "@asym/auth/tenant-server";
 import {
   safeWebStudioNext,
+  WEB_STUDIO_FROM_PARAM,
   WEB_STUDIO_REFUSED_PARAM,
   webStudioChooserAddress,
 } from "@asym/auth/web-studio";
@@ -79,16 +80,27 @@ async function Choices({ searchParams }: WebStudioOrganizationPageProps) {
     );
   }
   if (choices.organizations.length === 0) return redirectInTenant("/no-access");
+  // A link from Mission Control named this organization, and Web Studio
+  // works in another or in none yet (JC3): offered first, and said why. Only
+  // one the person holds a staff row in; the link chose nothing.
+  const cameFrom = choices.organizations.find(
+    (organization) =>
+      organization.tenantId === first(params[WEB_STUDIO_FROM_PARAM]),
+  );
+  const organizations = cameFrom
+    ? [cameFrom, ...choices.organizations.filter((o) => o !== cameFrom)]
+    : choices.organizations;
   // Shown even with one option: a person whose earlier choice no longer
   // holds confirms the one that is left, so nothing is ever picked for them.
   return (
     <OrganizationChooser
-      organizations={choices.organizations}
+      organizations={organizations}
       choose={{
         action: chooseWebStudioOrganization,
         next,
         // The action refused the last choice (council C11).
         refused: first(params[WEB_STUDIO_REFUSED_PARAM]) === "1",
+        ...(cameFrom ? { cameFrom: cameFrom.name } : {}),
       }}
     />
   );

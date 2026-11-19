@@ -1,7 +1,5 @@
 import { TenantLink as Link } from "@asym/auth/tenant-navigation";
 import { redirectInTenant } from "@asym/auth/tenant-server";
-import { WEB_STUDIO_PATH } from "@asym/auth/web-studio";
-import { DocumentScopeProvider } from "@asym/database/document-scope";
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
 import {
   renderPublicBlocks,
@@ -29,6 +27,7 @@ import {
   isWebStudioPreviewCollection,
 } from "@/src/cms/preview/authenticated-preview";
 import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { WebStudioPageScope } from "@/src/cms-ui/web-studio/shell/web-studio-document";
 
 type PageProps = {
   params: Promise<{
@@ -119,7 +118,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
         : null;
 
   return (
-    <DocumentScopeProvider scope={access.scope} segment={WEB_STUDIO_PATH}>
+    <WebStudioPageScope scope={access.scope}>
       <main className="min-h-dvh bg-background text-foreground">
         <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
           <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -183,7 +182,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
           </div>
         </article>
       </main>
-    </DocumentScopeProvider>
+    </WebStudioPageScope>
   );
 }
 

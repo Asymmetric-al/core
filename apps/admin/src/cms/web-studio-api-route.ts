@@ -24,7 +24,10 @@ export const CROSS_ORIGIN_WRITE_MESSAGE =
 function originOf(value: string | null): string | null {
   if (!value || value === "null") return null;
   try {
-    return new URL(value).origin;
+    const { origin } = new URL(value);
+    // An opaque origin (a `data:` or sandboxed document) serializes as the
+    // string "null": no origin at all (council on the joined release, JC7).
+    return origin === "null" ? null : origin;
   } catch {
     return null;
   }

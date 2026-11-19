@@ -57,6 +57,12 @@ type OrganizationChooserProps =
         next: string;
         /** The last choice posted was refused: the chooser says so. */
         refused?: boolean;
+        /**
+         * The organization a link from Mission Control named, when Web Studio
+         * works in another or in none yet (council on the joined release,
+         * JC3). The caller offers it first; the chooser says why it asks.
+         */
+        cameFrom?: string;
       };
     };
 
@@ -111,6 +117,12 @@ export function OrganizationChooser(props: OrganizationChooserProps) {
             <AlertDescription>
               You may no longer hold that role, or it changed after this page
               opened. Choose again from the list below.
+            </AlertDescription>
+          </Alert>
+        ) : props.choose?.cameFrom ? (
+          <Alert>
+            <AlertDescription>
+              {`You came from ${props.choose.cameFrom} in Mission Control, and Web Studio asks before it works in another organization.`}
             </AlertDescription>
           </Alert>
         ) : null}

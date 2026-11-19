@@ -5,11 +5,7 @@ import {
   useRoutePathname,
   useTenantRouter,
 } from "@asym/auth/tenant-navigation";
-import {
-  isWebStudioApiPath,
-  isWebStudioPath,
-  WEB_STUDIO_CHOOSER_PATH,
-} from "@asym/auth/web-studio";
+import { isWebStudioPagePath } from "@asym/auth/web-studio";
 import { RouterAdapterContext } from "@payloadcms/ui";
 import {
   useParams as useNextParams,
@@ -34,6 +30,9 @@ import type { LinkAdapterProps } from "payload";
  * `href` is resolved against the live address, as the browser resolves it:
  * Payload's list search, sort and paging and its bulk actions replace the
  * query alone (`?page=2`), which stays on the page (council round 2, CR1).
+ * A Web Studio page is `isWebStudioPagePath`'s, the one test the tenant
+ * boundary and the document's scope use too (council on the joined release,
+ * JC1).
  */
 export function isWebStudioPageAddress(href: string, current: string): boolean {
   let url: URL;
@@ -44,18 +43,38 @@ export function isWebStudioPageAddress(href: string, current: string): boolean {
   } catch {
     return false;
   }
+  return url.origin === here.origin && isWebStudioPagePath(url.pathname);
+}
+
+/**
+ * A left click with no modifier on a link that opens in this window and is
+ * not a download: the click the browser would otherwise follow in this tab,
+ * as next/link itself decides.
+ */
+function isPlainClick(event: React.MouseEvent<HTMLAnchorElement>): boolean {
+  const target = event.currentTarget.getAttribute("target");
   return (
-    url.origin === here.origin &&
-    isWebStudioPath(url.pathname) &&
-    !isWebStudioApiPath(url.pathname) &&
-    url.pathname !== WEB_STUDIO_CHOOSER_PATH &&
-    !url.pathname.startsWith(`${WEB_STUDIO_CHOOSER_PATH}/`)
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    (!target || target === "_self") &&
+    !event.currentTarget.hasAttribute("download")
   );
 }
 
+/**
+ * Payload's links. They load a document wherever its router does (council on
+ * the joined release, JC1): a link to the organization chooser, to Mission
+ * Control or to a REST route is never a client navigation, whatever the
+ * address looks like, because the decision is the router's own test of the
+ * address the anchor resolved. A link to another origin is the browser's.
+ */
 const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
   children,
   href,
+  onClick,
   prefetch,
   ref,
   replace,
@@ -69,6 +88,17 @@ const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
       ref={ref}
       replace={replace}
       scroll={scroll}
+      onClick={(event) => {
+        onClick?.(event);
+        if (event.defaultPrevented || !isPlainClick(event)) return;
+        const url = new URL(event.currentTarget.href);
+        if (url.origin !== window.location.origin) return;
+        if (isWebStudioPageAddress(url.href, window.location.href)) return;
+        event.preventDefault();
+        loadDocument(`${url.pathname}${url.search}${url.hash}`, {
+          replace: replace === true,
+        });
+      }}
       {...rest}
     >
       {children}

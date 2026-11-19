@@ -36,6 +36,7 @@ import {
 } from "@/src/cms/payload-database-config";
 import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
 import { requireWebStudioAccess } from "@/src/cms/web-studio-access";
+import { runForWebStudioDocument } from "@/src/cms/web-studio-server-function";
 import { webStudioServerFunctions } from "@/src/cms/web-studio-server-functions";
 import { WEB_STUDIO_AGENT_PERMISSIONS } from "@/src/cms-ui/web-studio/agent-permissions";
 import { MissionControlLink } from "@/src/cms-ui/web-studio/shell/mission-control-link";
@@ -51,13 +52,17 @@ const serverFunction: ServerFunctionClient = async (args) => {
   "use server";
 
   try {
-    return await handleServerFunctions({
-      ...args,
-      config,
-      importMap,
-      // form-state without document locks (council C3; document-locks.ts).
-      serverFunctions: webStudioServerFunctions,
-    });
+    // Only for the document rendered for the organization the cookie selects
+    // now; any other is refused before Payload runs (JC2).
+    return await runForWebStudioDocument(() =>
+      handleServerFunctions({
+        ...args,
+        config,
+        importMap,
+        // form-state without document locks (council C3; document-locks.ts).
+        serverFunctions: webStudioServerFunctions,
+      }),
+    );
   } catch (cause: unknown) {
     const name =
       typeof args === "object" &&
