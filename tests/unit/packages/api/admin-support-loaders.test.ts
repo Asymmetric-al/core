@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 const {
   getAdminClientMock,
@@ -22,7 +23,8 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireRole: vi.fn((context, roles: string[]) => {
     if (!context?.isAuthenticated || !context.userId || !context.tenantId) {
@@ -52,9 +54,9 @@ import {
 
 const authContext = {
   isAuthenticated: true,
-  memberships: [],
+  // AL-2675: authority is the membership the request acts under.
+  memberships: membershipsForRole("staff", "tenant-1"),
   profileId: "profile-1",
-  profileRole: "staff",
   role: "staff",
   tenantId: "tenant-1",
   userId: "user-1",
@@ -104,7 +106,11 @@ describe("admin support server loaders", () => {
     );
   });
   it("does not read contacts or intake for an unauthorized role", async () => {
-    getAuthContextMock.mockResolvedValue({ ...authContext, role: "donor" });
+    getAuthContextMock.mockResolvedValue({
+      ...authContext,
+      role: "donor",
+      memberships: membershipsForRole("donor", "tenant-1"),
+    });
     await expect(loadSupportContacts()).rejects.toThrow("Forbidden");
     await expect(loadSupportTicketIntake()).rejects.toThrow("Forbidden");
     expect(listSupportContactsMock).not.toHaveBeenCalled();

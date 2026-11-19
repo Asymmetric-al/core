@@ -70,20 +70,34 @@ vi.mock("@supabase/ssr", () => ({
   },
 }));
 
-vi.mock("@asym/auth/context", () => {
+vi.mock("@asym/auth/context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@asym/auth/context")>();
   const auth = {
     isAuthenticated: true,
     userId: "user-1",
     tenantId: AUTH_TENANT_ID,
     profileId: AUTH_PROFILE_ID,
     role: "admin",
-    profileRole: "admin",
-    memberships: [],
+    // AL-2675: an administrator is a flagged staff membership.
+    memberships: [
+      {
+        tenantId: AUTH_TENANT_ID,
+        role: "staff",
+        staffRole: "development",
+        isActive: true,
+        isTenantAdmin: true,
+      },
+    ],
   };
   return {
+    ...actual,
     getAuthContext: async () => auth,
     requireAuth: () => {},
     requireRole: () => {},
+    // AL-2675: the gates that replaced requireRole, stubbed alike.
+    requireCapability: () => {},
+    requireTenantAdministrator: () => {},
+    requireRoleClass: () => {},
   };
 });
 

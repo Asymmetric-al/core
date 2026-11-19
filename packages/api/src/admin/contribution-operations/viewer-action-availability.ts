@@ -1,15 +1,15 @@
-import { correctionRequiresApproval } from "./approval-policy";
 import {
   REQUEST_CORRECTION_CAPABILITY,
   directContributionCapabilityForAction,
   isProviderGranularContributionAction,
   requiredCapabilitiesForContributionAction,
-} from "./permissions";
+} from "./action-capabilities";
+import { correctionRequiresApproval } from "./approval-policy";
 import { getContributionActionRiskLevel } from "./policy";
 
 import type { ContributionActionAvailability } from "./action-availability";
+import type { ContributionCapability } from "./action-capabilities";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
-import type { ContributionCapability } from "./permissions";
 import type {
   CrmGiftInlineActionEntry,
   CrmGiftInlineActionType,

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import {
   createCorePdfSecurityContext,
@@ -11,6 +12,9 @@ import {
 import { starterPdfTemplateFixtureByCategory } from "@asym/pdf-template-schema";
 
 const auth = {
+  isAuthenticated: true as const,
+  // AL-2675: the PDF studio is the tenant administrator's.
+  memberships: membershipsForRole("admin", "tenant_1"),
   profileId: "profile_1",
   role: "admin" as const,
   tenantId: "tenant_1",

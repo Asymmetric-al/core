@@ -118,7 +118,11 @@ describe("#2364 static [A][S]", () => {
           source.indexOf("export async function GET"),
         ),
       ),
-    ).toBe("8ce4bff1f5180014b9dde3904ec379c381634079e4724ecce5b9f968d22abf77");
+      // Re-pinned by the WP2a sweep (AL-2675): the one changed line is the
+      // gate, `{ roles: ["donor", "admin", "staff", "super_admin"] }` ->
+      // `{ roleClasses: ["donor", "staff"] }` (the classes it served; no role
+      // name authorizes). The rest of POST is byte-identical to 8ce4bff1….
+    ).toBe("174e2cb632f1048ef61c8f357f046c7a85dab2dfa632d615b97d6968835dfec5");
     // Baseline byte pins from 2b028084, one protected file per row.
     // prettier-ignore
     for (const [file, hash] of [

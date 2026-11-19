@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -66,7 +66,7 @@ async function requireStaffContext(
   request?: Request,
 ): Promise<AuthenticatedContext> {
   const auth = await getAuthContext(request);
-  requireRole(auth, ["staff", "admin", "super_admin"]);
+  requireCapability(auth, "admin.dashboard.access");
   return auth as AuthenticatedContext;
 }
 
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const body = locationMutationSchema.parse(await ensureJsonBody(request));
     const payload = normalizeLocationMutation(body, ctx.tenantId);
@@ -196,7 +196,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const body = deleteLocationSchema.parse(await ensureJsonBody(request));
 

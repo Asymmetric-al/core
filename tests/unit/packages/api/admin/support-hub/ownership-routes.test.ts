@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../../fixtures/auth-memberships";
 
 const getAuthContextMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
-  hasAnyContextRole: (auth: { role?: string }, roles: string[]) =>
-    roles.includes(auth.role ?? ""),
 }));
 
 vi.mock(
@@ -49,8 +49,8 @@ function signIn(email: string, role: "staff" | "admin") {
     email,
     tenantId: SUPPORT_HUB_DEMO_TENANT_ID,
     role,
-    profileRole: role,
-    memberships: [],
+    // AL-2675: authority is the membership the request acts under.
+    memberships: membershipsForRole(role, SUPPORT_HUB_DEMO_TENANT_ID),
     profileId: `profile-${email}`,
     isAuthenticated: true,
   });

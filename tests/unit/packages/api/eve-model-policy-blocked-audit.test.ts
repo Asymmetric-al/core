@@ -51,7 +51,6 @@ const auth = {
   email: "admin@example.com",
   tenantId: "00000000-0000-4000-8000-000000000003",
   role: "super_admin",
-  profileRole: "super_admin",
   memberships: [],
   profileId: "00000000-0000-4000-8000-000000000002",
   isAuthenticated: true,
@@ -168,7 +167,7 @@ describe("Eve model-policy blocked mutation sentinels", () => {
     dependencyMocks.createIdentity.mockReturnValue({
       actorId: auth.userId,
       actorProfileId: auth.profileId,
-      actorRole: auth.profileRole,
+      actorRole: auth.role,
       tenantId: auth.tenantId,
       initiatorType: "user",
       initiatorId: auth.userId,

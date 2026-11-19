@@ -53,5 +53,5 @@ export const GET = withOperation(
       ),
     });
   },
-  { roles: ["admin", "staff", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );

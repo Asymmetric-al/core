@@ -12,39 +12,22 @@ type AdminShellProfile = {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  role: string | null;
-  tenant_id: string | null;
-  tenants:
-    | {
-        id: string;
-        name: string;
-        slug: string;
-      }
-    | {
-        id: string;
-        name: string;
-        slug: string;
-      }[]
-    | null;
 };
 
-function normalizeTenant(
-  tenant: AdminShellProfile["tenants"],
-  tenantId: string | null,
-) {
-  const resolvedTenant = Array.isArray(tenant) ? tenant[0] : tenant;
+type AdminShellTenant = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
+function normalizeTenant(tenant: AdminShellTenant | null, tenantId: string) {
   if (
-    resolvedTenant &&
-    typeof resolvedTenant.id === "string" &&
-    typeof resolvedTenant.name === "string" &&
-    typeof resolvedTenant.slug === "string"
+    tenant &&
+    typeof tenant.id === "string" &&
+    typeof tenant.name === "string" &&
+    typeof tenant.slug === "string"
   ) {
-    return resolvedTenant;
-  }
-
-  if (!tenantId) {
-    return null;
+    return tenant;
   }
 
   return {
@@ -54,20 +37,22 @@ function normalizeTenant(
   };
 }
 
-const ADMIN_ALLOWED_ROLES = ["staff", "admin", "super_admin"] as const;
+const ADMIN_ALLOWED_ROLES = ["staff", "admin"] as const;
 
 /**
- * The admin layouts' role gate: a signed-in user with a tenant and a staff,
- * admin or super_admin role passes; anyone else goes to /login or /no-access.
+ * The admin layouts' role gate: a signed-in user whose one live staff
+ * membership resolves passes; anyone else goes to /login or /no-access.
  *
- * `apps/admin/proxy.ts` rejects wrong-app sessions at the edge. The (app)
- * and (payload) layouts still call this defense-in-depth gate to establish
- * the tenant-scoped auth context used by admin data reads. API routes and
- * narrower areas (for example the admin-only Eve workspace) check access
- * themselves.
+ * Mission Control acts on staff rows (plan 5.1), so the context resolves with
+ * the staff class, and its tenant is that membership's. The profile's tenant
+ * and role are not read. `apps/admin/proxy.ts` rejects wrong-app sessions at
+ * the edge. The (app) and (payload) layouts still call this defense-in-depth
+ * gate to establish the tenant-scoped auth context used by admin data reads.
+ * API routes and narrower areas (for example the admin-only Eve workspace)
+ * check access themselves.
  */
 export async function requireAdminAccess(pathname: string) {
-  const auth = await getAuthContext();
+  const auth = await getAuthContext(undefined, { roleClass: "staff" });
 
   if (!auth.isAuthenticated || !auth.userId) {
     redirect(`/login?next=${encodeURIComponent(pathname)}`);
@@ -86,14 +71,19 @@ export async function getProtectedShellState(
   const { auth, tenantId, userId } = await requireAdminAccess(pathname);
 
   const serverClient = await createClient();
-  const profileReader = getAdminClient().client ?? serverClient;
-  const { data: profile } = await profileReader
-    .from("profiles")
-    .select(
-      "email, first_name, last_name, avatar_url, role, tenant_id, tenants!profiles_tenant_id_fkey(id, name, slug)",
-    )
-    .eq("user_id", userId)
-    .maybeSingle<AdminShellProfile>();
+  const shellReader = getAdminClient().client ?? serverClient;
+  const [{ data: profile }, { data: tenant }] = await Promise.all([
+    shellReader
+      .from("profiles")
+      .select("email, first_name, last_name, avatar_url")
+      .eq("user_id", userId)
+      .maybeSingle<AdminShellProfile>(),
+    shellReader
+      .from("tenants")
+      .select("id, name, slug")
+      .eq("id", tenantId)
+      .maybeSingle<AdminShellTenant>(),
+  ]);
 
   return createMCBootstrapState({
     userId,
@@ -101,11 +91,8 @@ export async function getProtectedShellState(
     firstName: profile?.first_name,
     lastName: profile?.last_name,
     avatarUrl: profile?.avatar_url,
-    profileRole:
-      auth.profileRole ??
-      auth.role ??
-      (typeof profile?.role === "string" ? profile.role : null),
+    role: auth.role,
     tenantId,
-    tenant: normalizeTenant(profile?.tenants ?? null, tenantId),
+    tenant: normalizeTenant(tenant ?? null, tenantId),
   });
 }

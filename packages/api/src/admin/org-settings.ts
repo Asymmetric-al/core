@@ -1,4 +1,4 @@
-import { getAuthContext, requireRole } from "@asym/auth/context";
+import { getAuthContext, requireTenantAdministrator } from "@asym/auth/context";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -50,7 +50,7 @@ export async function PATCH(request: Request) {
     // Explicit admin role gate — this mutates a tenant-wide setting; do not
     // rely on RLS alone. (finding 06 Gap 2) Maps Unauthorized→401, Forbidden→403.
     const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+    requireTenantAdministrator(auth);
 
     const supabase = await createClient();
     const body = await request.json();

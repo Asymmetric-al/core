@@ -68,7 +68,7 @@ const donorBilling = withOperation(
       stripeManaged: true,
     });
   },
-  { roles: ["donor"] },
+  { roleClasses: ["donor"] },
 );
 
 export const GET = donorBilling;

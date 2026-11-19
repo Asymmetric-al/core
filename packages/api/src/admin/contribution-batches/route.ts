@@ -436,7 +436,7 @@ export const POST = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );
 
 export const POST_PROCESS_BATCH = withOperation(
@@ -507,5 +507,5 @@ export const POST_PROCESS_BATCH = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );

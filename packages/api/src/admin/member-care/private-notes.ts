@@ -30,5 +30,5 @@ export const POST = withOperation(
       return toErrorResponse(error, "Failed to create private note.");
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );

@@ -2,6 +2,13 @@
  * #2258 shared fixtures (spec r2 = issue comment 6388953289, plus pins
  * addendum 1 = 6419311427, approved in 6419380148).
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2675 (WP2a, plan 5.1): the resolver is wired and moved to
+ * `packages/auth/principal`, where `getAuthContext` can use it; it takes the
+ * surface's role class, its rows carry the tenant-administrator flag, and the
+ * staff-over-donor default is gone. `tests/unit/auth/membership-rpc-contract.test.ts`
+ * leaves the unedited list: the proxies' role check moved to the assignments
+ * function, which that test now pins.
  */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -19,12 +26,15 @@ export const ROLLBACK = `${MIG}/${ROLLBACK_NAME}`;
 /** Newest forward migration on develop 88eefbd9 (addendum 1 item 1). */
 export const DEVELOP_LATEST = "20261025120000";
 export const FN = "public.current_user_assignments()";
-export const PRINCIPAL_DIR = "packages/api/src/principal";
+/** The resolver's home (AL-2675). */
+export const PRINCIPAL_DIR = "packages/auth/principal";
+/** The principal union, the projection mapper and the re-exports. */
+export const API_PRINCIPAL_DIR = "packages/api/src/principal";
 /** Module specifiers are strings, loaded with import(), so each test fails on its own while the module is missing. */
 export const MOD = {
-  assignment: "../../../../packages/api/src/principal/assignment",
+  assignment: "../../../../packages/auth/principal/assignment",
   projection: "../../../../packages/api/src/principal/projection",
-  reader: "../../../../packages/api/src/principal/reader",
+  reader: "../../../../packages/auth/principal/reader",
 } as const;
 export const DOC = "docs/guides/architecture/authz-memberships.md";
 export const REALSTACK =
@@ -34,8 +44,6 @@ export const REALSTACK =
  * blob id at develop 88eefbd9 (`git ls-tree 88eefbd9 <path>`).
  */
 export const UNEDITED: Record<string, string> = {
-  "tests/unit/auth/membership-rpc-contract.test.ts":
-    "6553ce80839e496930b425679ad659e3e56e68c6",
   "tests/unit/packages/api/auth/get-auth-context-request-propagation.test.ts":
     "83cc87dcfb0af9840e8bde281a62fc04a357262e",
   // #2402 27cd6961 adds the REVOKE ALL ON SCHEMA private expectation.
@@ -88,12 +96,14 @@ export type Row = {
   tenant_id: string;
   role: string;
   staff_role: string | null;
+  is_tenant_admin: boolean;
   updated_at: string;
 };
 export type Reader = { listActiveAssignments(): Promise<ReadonlyArray<Row>> };
 export type Resolve = (
   input: {
     userId: string;
+    roleClass: "donor" | "missionary" | "staff";
     proposedAssignmentId?: string;
     expectedTenantId?: string;
   },
@@ -110,4 +120,5 @@ export const asAssignment = (r: Row) => ({
   revision: r.updated_at,
   membershipRole: r.role,
   staffRole: r.staff_role,
+  isTenantAdmin: r.is_tenant_admin,
 });

@@ -10,10 +10,8 @@ export async function canManageEveModelPolicy(input: {
   auth: AuthenticatedContext;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<boolean> {
-  if (
-    input.auth.role === "super_admin" ||
-    input.auth.profileRole === "super_admin"
-  ) {
+  // WP2c moves this platform gate to the operator list.
+  if (input.auth.role === "super_admin") {
     return true;
   }
 

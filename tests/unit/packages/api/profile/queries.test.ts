@@ -11,40 +11,40 @@ function createSingleChainMock<T>(result: {
   const select = vi.fn().mockReturnThis();
   const query = { select, eq, single };
   const from = vi.fn().mockReturnValue(query);
-  const supabase = { from };
-  return { supabase, from, select, eq };
+  const rpc = vi.fn();
+  const supabase = { from, rpc } as never;
+  return { supabase, from, select, eq, rpc };
 }
 
+/**
+ * Council round 1 on WP2a, F12: the one caller passes the signed-in person's
+ * profile, whose membership in the request's tenant the resolver has checked,
+ * so the lookup reads no membership again (it used to read
+ * tenant_member_profiles first). Profiles are read by id, never by the
+ * profile's tenant column (AL-2675, NR-68).
+ */
 describe("api/profile/queries", () => {
-  it("returns full profile row for tenant (happy path)", async () => {
+  it("returns the signed-in person's full profile by id, reading no membership again", async () => {
     const result = {
       data: { id: "profile-1", tenant_id: "tenant-1" },
       error: null,
     };
     const mock = createSingleChainMock(result);
 
-    const response = await findFullProfileById(
-      mock.supabase,
-      "profile-1",
-      "tenant-1",
-    );
+    const response = await findFullProfileById(mock.supabase, "profile-1");
 
     expect(response).toEqual(result);
+    expect(mock.rpc).not.toHaveBeenCalled();
     expect(mock.from).toHaveBeenCalledWith("profiles");
     expect(mock.select).toHaveBeenCalledWith("*");
-    expect(mock.eq).toHaveBeenNthCalledWith(1, "id", "profile-1");
-    expect(mock.eq).toHaveBeenNthCalledWith(2, "tenant_id", "tenant-1");
+    expect(mock.eq.mock.calls).toEqual([["id", "profile-1"]]);
   });
 
   it("returns null data for missing profile", async () => {
     const result = { data: null, error: { message: "No rows found" } };
     const mock = createSingleChainMock(result);
 
-    const response = await findFullProfileById(
-      mock.supabase,
-      "missing-profile",
-      "tenant-1",
-    );
+    const response = await findFullProfileById(mock.supabase, "profile-1");
 
     expect(response).toEqual(result);
   });
@@ -53,11 +53,7 @@ describe("api/profile/queries", () => {
     const result = { data: null, error: { message: "database timeout" } };
     const mock = createSingleChainMock(result);
 
-    const response = await findFullProfileById(
-      mock.supabase,
-      "profile-1",
-      "tenant-1",
-    );
+    const response = await findFullProfileById(mock.supabase, "profile-1");
 
     expect(response).toEqual(result);
   });

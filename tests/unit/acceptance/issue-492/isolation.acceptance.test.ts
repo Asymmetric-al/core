@@ -14,8 +14,8 @@ const git = (cmd: string) =>
 const SPEC =
   /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|^\s*import\s+)["']([^"']+)["']/gm;
 
-describe("#492 criterion 13: not wired", () => {
-  it("criterion 13: nothing in packages/** or apps/** outside packages/auth/capabilities imports it", () => {
+describe("#492 criterion 13: wired only through the auth context (amended by AL-2675)", () => {
+  it("criterion 13: outside packages/auth/capabilities, only packages/auth/context.ts imports it", () => {
     expect(existsSync(CAP_DIR), `${CAP_DIR} must exist`).toBe(true);
     const files = git("ls-files -co --exclude-standard packages apps").filter(
       (f) => /\.(m|c)?[jt]sx?$/.test(f) && !f.startsWith(`${CAP_DIR}/`),
@@ -28,7 +28,9 @@ describe("#492 criterion 13: not wired", () => {
           : /^@asym\/auth\/capabilities(\/|$)/.test(s!),
       ),
     );
-    expect(wired).toEqual([]);
+    // AL-2675 (WP2a) wires the registry behind getAuthContext:
+    // contextCapabilities judges the request's one assignment.
+    expect(wired).toEqual(["packages/auth/context.ts"]);
   });
 });
 
@@ -51,7 +53,8 @@ describe("#492 criterion 14: names never authorize", () => {
 describe("#492 criterion 15: no capability tables", () => {
   it("criterion 15: the registry is code; the table names appear only in docs", async () => {
     const { CAPABILITY_REGISTRY } = await load("registry");
-    expect(Object.keys(CAPABILITY_REGISTRY)).toHaveLength(18);
+    // 18 at #492; AL-2675 adds the ten capabilities of plan 5.4.
+    expect(Object.keys(CAPABILITY_REGISTRY)).toHaveLength(28);
     const tables = "permission_capabilities|role_capability_grants";
     const self = ":!tests/unit/acceptance/issue-492/**";
     const hits = git(`grep --untracked -lE ${tables} -- . :!docs/** ${self}`);
