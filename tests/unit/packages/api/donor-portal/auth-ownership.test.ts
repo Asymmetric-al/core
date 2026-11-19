@@ -16,6 +16,10 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   requireAuth: vi.fn(),
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
 }));
 
 import {
@@ -89,7 +93,6 @@ describe("donor portal auth and ownership", () => {
       userId: "user-1",
       tenantId: "tenant-1",
       role: "donor",
-      profileRole: "donor",
       memberships: [],
       profileId: "profile-1",
       email: "donor@example.com",
@@ -123,7 +126,6 @@ describe("donor portal auth and ownership", () => {
       userId: "e2e-donor-user",
       tenantId: "00000000-0000-0000-0000-000000000001",
       role: "donor",
-      profileRole: "donor",
       memberships: [],
       profileId: "11111111-1111-1111-1111-111111111111",
       email: null,

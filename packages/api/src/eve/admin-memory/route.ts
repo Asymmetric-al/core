@@ -15,6 +15,7 @@ import {
 import { loadEveAdminMemoryAdminView } from "./store";
 import { ApiHttpError } from "../../shared/api-http-error";
 import { toErrorResponse } from "../../shared/http-errors";
+import { listTenantMembers } from "../../shared/tenant-members";
 import { withOperation } from "../../shared/with-operation";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
@@ -24,18 +25,22 @@ async function requireVerifiedMemoryTenant(input: {
   auth: AuthenticatedContext;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
-  const { data: profile, error } = await input.supabaseAdmin
-    .from("profiles")
-    .select("tenant_id")
-    .eq("id", input.auth.profileId)
-    .eq("user_id", input.auth.userId)
-    .single();
+  // AL-2675 (NR-68): the profile must be the caller's own and their login a
+  // live member of the request's tenant; the profile's tenant column is no authority.
+  let bound = false;
+  try {
+    bound =
+      (
+        await listTenantMembers(input.supabaseAdmin, input.auth.tenantId, {
+          profileIds: [input.auth.profileId],
+          userIds: [input.auth.userId],
+        })
+      ).length > 0;
+  } catch {
+    bound = false;
+  }
 
-  if (
-    error ||
-    typeof profile?.tenant_id !== "string" ||
-    profile.tenant_id !== input.auth.tenantId
-  ) {
+  if (!bound) {
     throw new ApiHttpError(
       403,
       "Private memory requires a tenant-bound profile matching the authenticated tenant.",
@@ -81,7 +86,7 @@ export const GET = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 export const POST = withOperation(
@@ -106,7 +111,7 @@ export const POST = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 export const PATCH = withOperation(
@@ -135,7 +140,7 @@ export const PATCH = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 export const DELETE = withOperation(
@@ -157,5 +162,5 @@ export const DELETE = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

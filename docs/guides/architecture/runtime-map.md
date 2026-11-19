@@ -243,6 +243,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | admin      | `/api/cms/public/pages/[...slug]`                              | Node.js (no `runtime` segment export) | CMS public pages                                   |
 | admin      | `/api/cms/public/project-pages/[slug]`                         | Node.js (no `runtime` segment export) | CMS public project pages                           |
 | admin      | `/api/cms/public/updates`                                      | Node.js (no `runtime` segment export) | CMS public updates                                 |
+| admin      | `/api/donate/outbox`                                           | Node.js (no `runtime` segment export) | Donation outbox processing                         |
 | admin      | `/api/email/connect`                                           | Node.js (no `runtime` segment export) | Resend admin integration                           |
 | admin      | `/api/email/assets/upload`                                     | Node.js (no `runtime` segment export) | Email Studio asset upload                          |
 | admin      | `/api/email/test-send`                                         | Node.js (no `runtime` segment export) | Resend admin integration                           |
@@ -272,7 +273,6 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                               |
 | donor      | `/api/donate`                                                  | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
-| donor      | `/api/donate/outbox`                                           | Node.js (no `runtime` segment export) | Donation outbox processing                         |
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client                |
 | donor      | `/api/donor/feed-preferences`                                  | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |

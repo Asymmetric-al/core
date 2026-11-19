@@ -80,7 +80,6 @@ const authenticatedAdmin: TestAuthContext = {
   role: "admin",
   profileId: "profile-1",
   isAuthenticated: true,
-  profileRole: "admin",
   memberships: [],
 };
 
@@ -131,7 +130,6 @@ describe("withOperation", () => {
       role: null,
       profileId: null,
       isAuthenticated: false,
-      profileRole: null,
       memberships: [],
     });
 

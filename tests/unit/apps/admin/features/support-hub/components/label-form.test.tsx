@@ -87,6 +87,14 @@ it("resets the editor when switching labels without closing the dialog", async (
 });
 it("returns focus to the edited label's Edit button, or to New label, when the inline form closes", async () => {
   render(<LabelManagerDialog open onOpenChange={vi.fn()} />);
+  // The dialog focuses its first control one animation frame after it opens.
+  // Let it finish opening first: a frame that is still pending would move
+  // focus to Edit Receipts after a later step had returned it.
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Edit Receipts" }),
+    ),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Edit Care" }));
   const cancel = screen.getByRole("button", { name: "Cancel" });
   cancel.focus();

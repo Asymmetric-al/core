@@ -4,6 +4,7 @@ import { supportHubReadModel } from "@asym/database/collections/support-workspac
 import { z } from "zod";
 
 import { ApiHttpError } from "../../shared/http-errors";
+import { tenantMemberProfileIds } from "../../shared/tenant-members";
 
 import type {
   CreateSupportTicketInput,
@@ -205,12 +206,21 @@ export async function getSupportTicket(
   if (!data) return null;
   const ticket = mapTicketRow(data as SupportTicketRow);
   if (!ticket.assignedTo) return ticket;
-  const { data: profile, error: profileError } = await supabaseAdmin
-    .from("profiles")
-    .select("first_name, last_name")
-    .eq("tenant_id", tenantId)
-    .eq("id", ticket.assignedTo)
-    .maybeSingle();
+  // The assignee is named when their login holds a membership in this
+  // tenant, a revoked one included (AL-2675, NR-68).
+  const [assignee] = await tenantMemberProfileIds(
+    supabaseAdmin,
+    tenantId,
+    [ticket.assignedTo],
+    { includeRevoked: true },
+  );
+  const { data: profile, error: profileError } = assignee
+    ? await supabaseAdmin
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", assignee)
+        .maybeSingle()
+    : { data: null, error: null };
   const assignedToName =
     profileError || !profile
       ? undefined

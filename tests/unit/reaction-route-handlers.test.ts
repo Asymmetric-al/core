@@ -1,13 +1,29 @@
 import { type NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createClientMock, getAdminClientMock, revalidateTagMock } = vi.hoisted(
-  () => ({
-    createClientMock: vi.fn(),
-    getAdminClientMock: vi.fn(),
-    revalidateTagMock: vi.fn(),
-  }),
-);
+/**
+ * Rewritten by the WP2a sweep (AL-2675; plan 7.1, NR-68): the routes took
+ * their tenant from the caller's `profiles.tenant_id`; they now take the
+ * tenant of the request's resolved assignment and read no profile. The old
+ * "missing profile" denial is now "no resolved assignment" (401 before any
+ * lookup); the others keep their meaning.
+ */
+const {
+  createClientMock,
+  getAdminClientMock,
+  getAuthContextMock,
+  revalidateTagMock,
+} = vi.hoisted(() => ({
+  createClientMock: vi.fn(),
+  getAdminClientMock: vi.fn(),
+  getAuthContextMock: vi.fn(),
+  revalidateTagMock: vi.fn(),
+}));
+
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
+  getAuthContext: getAuthContextMock,
+}));
 
 vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
@@ -50,9 +66,8 @@ type LookupResult = {
 };
 
 interface RequestClientOptions {
-  user?: { id: string } | null;
-  userError?: unknown;
-  profile?: LookupResult;
+  /** The resolved request: a donor assignment in TENANT_ID, or none. */
+  session?: "donor" | "signed-out" | "no-assignment";
   post?: LookupResult;
 }
 
@@ -66,22 +81,31 @@ function createLookupMock(result: LookupResult) {
 }
 
 function mockRequestClient({
-  user = { id: USER_ID },
-  userError = null,
-  profile = { data: { tenant_id: TENANT_ID }, error: null },
+  session = "donor",
   post = { data: { tenant_id: TENANT_ID }, error: null },
 }: RequestClientOptions = {}) {
-  const getUser = vi.fn().mockResolvedValue({
-    data: { user },
-    error: userError,
+  getAuthContextMock.mockResolvedValue({
+    userId: session === "signed-out" ? null : USER_ID,
+    email: null,
+    tenantId: session === "donor" ? TENANT_ID : null,
+    role: session === "donor" ? "donor" : null,
+    memberships:
+      session === "donor"
+        ? [
+            {
+              tenantId: TENANT_ID,
+              role: "donor",
+              staffRole: null,
+              isActive: true,
+            },
+          ]
+        : [],
+    profileId: session === "signed-out" ? null : "profile-1",
+    isAuthenticated: session === "donor",
   });
-  const profileLookup = createLookupMock(profile);
   const postLookup = createLookupMock(post);
   const requestRpc = vi.fn();
   const from = vi.fn((table: string) => {
-    if (table === "profiles") {
-      return { select: profileLookup.select };
-    }
     if (table === "posts") {
       return { select: postLookup.select };
     }
@@ -89,15 +113,12 @@ function mockRequestClient({
   });
 
   createClientMock.mockResolvedValue({
-    auth: { getUser },
     from,
     rpc: requestRpc,
   });
 
   return {
-    getUser,
     from,
-    profileLookup,
     postLookup,
     requestRpc,
   };
@@ -174,17 +195,15 @@ const deniedCases: Array<{
 }> = [
   {
     label: "unauthenticated",
-    options: { user: null },
+    options: { session: "signed-out" },
     status: 401,
     error: "Unauthorized",
   },
   {
-    label: "missing profile",
-    options: {
-      profile: { data: null, error: { code: "PGRST116" } },
-    },
-    status: 404,
-    error: "Profile not found",
+    label: "no resolved assignment",
+    options: { session: "no-assignment" },
+    status: 401,
+    error: "Unauthorized",
   },
   {
     label: "cross-tenant post",
@@ -217,13 +236,8 @@ describe("donor reaction route handlers", () => {
         applied: true,
       });
       expect(response.status).toBe(200);
-      expect(requestClient.getUser).toHaveBeenCalledOnce();
-      expect(requestClient.from).toHaveBeenNthCalledWith(1, "profiles");
-      expect(requestClient.profileLookup.eq).toHaveBeenCalledWith(
-        "user_id",
-        USER_ID,
-      );
-      expect(requestClient.from).toHaveBeenNthCalledWith(2, "posts");
+      expect(getAuthContextMock).toHaveBeenCalledOnce();
+      expect(requestClient.from.mock.calls).toEqual([["posts"]]);
       expect(requestClient.postLookup.eq).toHaveBeenNthCalledWith(
         1,
         "id",

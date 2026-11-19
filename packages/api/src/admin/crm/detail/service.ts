@@ -10,7 +10,6 @@ import type {
   CrmDonorDetailResponse,
   SharedContributionPaymentStatus,
   SharedContributionRefundState,
-  UserRole,
 } from "@asym/database/types";
 
 type SupabaseAdmin = AdminSupabaseClient;
@@ -254,7 +253,8 @@ export async function getAdminCrmDonorDetail(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   donorId: string;
-  role: UserRole;
+  /** The staff row the request acts under carries the flag (AL-2675). */
+  isTenantAdministrator: boolean;
   crmWritesEnabled?: boolean;
   /** Filters which contribution operations surface inline on gift rows (#270). */
   viewerCapabilities?: string[];
@@ -550,12 +550,8 @@ export async function getAdminCrmDonorDetail(input: {
     giftHistoryTruncated,
     privacy: {
       missionaryContactDataExposed: false,
-      restrictedNotesVisible:
-        input.role === "admin" || input.role === "super_admin",
-      roleGate:
-        input.role === "admin" || input.role === "super_admin"
-          ? "admin"
-          : "staff",
+      restrictedNotesVisible: input.isTenantAdministrator,
+      roleGate: input.isTenantAdministrator ? "admin" : "staff",
     },
     reconciliation: {
       crmWriteMode: input.crmWritesEnabled === false ? "disabled" : "enabled",

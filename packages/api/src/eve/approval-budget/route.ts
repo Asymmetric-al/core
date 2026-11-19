@@ -29,7 +29,7 @@ export const GET = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 export const POST = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
@@ -79,5 +79,5 @@ export const POST = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

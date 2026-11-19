@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
+    requireRoleClass(auth, ["donor", "staff"]);
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
+    requireRoleClass(auth, ["donor", "staff"]);
     const ctx = auth as AuthenticatedContext;
 
     const body = (await ensureJsonBody(request)) as Record<string, unknown>;

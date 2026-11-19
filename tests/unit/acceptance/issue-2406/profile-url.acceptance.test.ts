@@ -14,6 +14,7 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEMO } from "./harness";
+import { membershipsForRole } from "../../../fixtures/auth-memberships";
 
 import type * as AuthContext from "@asym/auth/context";
 
@@ -192,12 +193,12 @@ async function send(route: "profile" | "donor", actor: Actor, body: Row) {
   m.auth = {
     isAuthenticated: true,
     email: null,
-    memberships: [],
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole(A[actor].role, A[actor].tenantId),
     userId: A[actor].userId,
     tenantId: A[actor].tenantId,
     profileId: PROFILE[actor],
     role: A[actor].role,
-    profileRole: A[actor].role,
   };
   const mod =
     route === "profile"
@@ -266,7 +267,12 @@ describe("#2406 PATCH /api/profile", () => {
     expect(profile.avatar_url).toBe(STORED.external);
     expect(wrote("avatar_url")).toBe(false);
   });
-  it("#2406 criterion 11: a new avatar is not stored while profiles.tenant_id is null", async () => {
+  // Rewritten by the WP2a sweep (AL-2675; plan 7.1, NR-68): the update was
+  // filtered on the profile's tenant column, so a tenantless profile matched
+  // no row and the avatar was silently not stored. The caller's own profile
+  // is now updated by id, and the tenant is the resolved assignment's, so an
+  // avatar in the caller's own folder for that tenant is stored exactly.
+  it("#2406 criterion 11: a new avatar in the caller's own folder is stored when the profile's tenant column is null", async () => {
     const profile = row("profiles", "id", PROFILE.SA);
     profile.tenant_id = null;
     profile.avatar_url = null;
@@ -274,7 +280,7 @@ describe("#2406 PATCH /api/profile", () => {
       avatarUrl: own("avatars", "SA"),
     });
     expect(response.status, JSON.stringify(response.body)).toBe(200);
-    expect(profile.avatar_url).toBeNull();
+    expect(profile.avatar_url).toBe(own("avatars", "SA"));
   });
   it("#2406 criterion 11 (addendum 1, validator-only): isOwnProfileImageUrl accepts avatars/<DEMO_TENANT_ID>/U/ for a tenant-less super_admin resolved to DEMO", async () => {
     const { isOwnProfileImageUrl } =
