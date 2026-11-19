@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 
 import {
   DATABASE_URL_QUERY_ENV,
@@ -17,16 +18,22 @@ import { LOCAL_DATABASE_URL } from "./local-data.mjs";
  * Throws unless `file` holds the project's CA (the last check's P3, phase
  * 15): the CA file a hosted connection's psql reads, as PGSSLROOTCERT. libpq
  * reads `system` as the machine's whole certificate store, so that is refused
- * by name. Otherwise the file must be readable and pass the release job's own
- * check of its CA (readDatabaseCa): exactly one certificate and nothing else,
- * a CA, valid now. The release job hands the runner such a file; a hand-run
- * hosted command must too. Messages name what was found, never the content.
- * Returns the one certificate as a PEM block.
+ * by name. The path must be absolute (phase 16, Q5): this check would read a
+ * relative one against Node's working directory, and psql against the one it
+ * is started in. Otherwise the file must be readable and pass the release
+ * job's own check of its CA (readDatabaseCa): exactly one certificate and
+ * nothing else, a CA, valid now. The release job hands the runner such a
+ * file; a hand-run hosted command must too. Messages name what was found,
+ * never the content. Returns the one certificate as a PEM block.
  */
 export function assertProjectCaFile(file) {
   if (file === "system")
     throw new Error(
       "PGSSLROOTCERT=system would make psql trust every certificate authority this machine trusts. Set PGSSLROOTCERT to a file holding the project's CA certificate, the PEM from its Database settings.",
+    );
+  if (!path.isAbsolute(file))
+    throw new Error(
+      "PGSSLROOTCERT names a relative path, which psql would resolve against its own working directory rather than this check's. Set it to the absolute path of a file holding the project's CA certificate.",
     );
   let pem;
   try {

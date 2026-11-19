@@ -315,6 +315,20 @@ describe("the CA file the CMS builder hands psql (phase 15, P3)", () => {
       hosted,
       /cannot be read \(ENOENT\)/,
     ],
+    // Phase 16, Q5: psql would resolve a relative path against its own
+    // working directory, not this check's.
+    [
+      "a relative path, even to the project's CA",
+      { PGSSLROOTCERT: "tests/unit/scripts/release/fixtures/ca/ca.crt" },
+      hosted,
+      /PGSSLROOTCERT names a relative path/,
+    ],
+    [
+      "the address's sslrootcert as a relative path",
+      {},
+      `${hosted}&sslrootcert=tests%2Funit%2Fscripts%2Frelease%2Ffixtures%2Fca%2Fca.crt`,
+      /PGSSLROOTCERT names a relative path/,
+    ],
     [
       "a file of two certificates",
       { PGSSLROOTCERT: caFixture("two-cas.crt") },

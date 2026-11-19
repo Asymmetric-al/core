@@ -429,6 +429,14 @@ describe("the CA file the CMS runner's psql reads (phase 15, P3)", () => {
     );
   });
 
+  // Phase 16, Q5: this check reads a relative path against Node's working
+  // directory, psql against its own; only an absolute path is one file.
+  it("refuses a relative path, even to the project's CA", () => {
+    expect(withCaFile("tests/unit/scripts/release/fixtures/ca/ca.crt")).toThrow(
+      /PGSSLROOTCERT names a relative path.*absolute path/,
+    );
+  });
+
   it("refuses a file that cannot be read", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "p3-ca-"));
     roots.push(root);
