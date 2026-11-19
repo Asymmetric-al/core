@@ -482,7 +482,12 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     describe("what a person can and cannot read", () => {
-      it("a person in both tenants who reads with no filter receives one tenant's rows; a request that names no tenant receives none", () =>
+      // A request that names no tenant receives no row of a tenant table,
+      // outside the named exceptions of the activation review's section 3:
+      // the public reads of posts, locations and the post tables (WP7), the
+      // claimant's own claims (WP5), the caller's own profile and the global
+      // field_policies rows. This case reads donors and donations.
+      it("a person in both tenants who reads with no filter receives one tenant's rows; a request that names no tenant receives none (outside the named exceptions)", () =>
         tx(async () => {
           const ta = await as(
             "authenticated",
@@ -881,6 +886,503 @@ describe.skipIf(!ADMIN_URL)(
             [SEVEN_REALTIME],
           );
           expect(published).toEqual([]);
+        }));
+    });
+
+    /**
+     * The coordinator's rulings of 19 November 2026 on the activation
+     * review's questions (docs/security/tenant-policy-activation-review.md,
+     * section 8), each with the test the ruling names.
+     */
+    describe("the rulings on the activation review", () => {
+      /** As `as`, with extra token claims (the seed writes app_metadata.tenant_id). */
+      async function asClaims(
+        sub: User,
+        headers: Record<string, string> | undefined,
+        extra: Record<string, unknown>,
+        sql: string,
+      ) {
+        await db.query("savepoint claims");
+        try {
+          await db.query("set local role authenticated");
+          await db.query(
+            "select set_config('request.jwt.claims', $1, true), set_config('request.jwt.claim.sub', '', true), set_config('request.headers', $2, true)",
+            [
+              JSON.stringify({ sub: id[sub], role: "authenticated", ...extra }),
+              headers ? JSON.stringify(headers) : "",
+            ],
+          );
+          const r = await db.query(sql);
+          return {
+            rows: r.rows as Record<string, unknown>[],
+            code: null as string | null,
+          };
+        } catch (e) {
+          return { rows: [], code: (e as { code?: string }).code ?? "?" };
+        } finally {
+          await db.query("rollback to savepoint claims");
+        }
+      }
+      const replica = (on: boolean) =>
+        db.query(
+          `set local session_replication_role = ${on ? "replica" : "origin"}`,
+        );
+
+      it("Q2: assets, campaigns and funds are staff-only: a donor or missionary assignment reads no row, even with the tenant claim; staff read their own tenant's rows only", () =>
+        tx(async () => {
+          await replica(true);
+          for (const t of ["assets", "campaigns", "funds"])
+            for (const tenant of ["TA", "TB"])
+              await insertRow(t, { tenant_id: q(tenant) });
+          await replica(false);
+          for (const t of ["assets", "campaigns", "funds"]) {
+            for (const [u, m] of [
+              ["UDON", "mDon"],
+              ["UMIS", "mMis"],
+              ["USG", "mSGd"],
+              ["UMG", "mMGm"],
+            ] as [User, string][]) {
+              const r = await asClaims(
+                u,
+                under(m),
+                { app_metadata: { tenant_id: id.TA } },
+                `select count(*)::int n from public.${t}`,
+              );
+              expect(r.code, `${t} ${m}`).toBeNull();
+              expect(r.rows[0]!.n, `${t} ${m}`).toBe(0);
+            }
+            const staff = await as(
+              "authenticated",
+              { sub: "UP", headers: under("mPA") },
+              `select distinct tenant_id from public.${t}`,
+            );
+            expect(
+              staff.rows.map((r) => r.tenant_id),
+              t,
+            ).toEqual([id.TA]);
+            const policy = await rows(
+              "select pg_get_expr(polqual, polrelid) q from pg_policy where polrelid = $1::regclass and polname = 'tenant scoped read'",
+              [`public.${t}`],
+            );
+            expect(policy[0]!.q, t).toContain(
+              "authz.assignment_is('staff'::authz.membership_role)",
+            );
+          }
+        }));
+
+      it("Q1: a staff member without the flag reads no row of another agent's notification preferences or personal saved views; the tenant administrator reads them", () =>
+        tx(async () => {
+          await replica(true);
+          for (const [agent, user] of [
+            ["aADM", "UADM"],
+            ["aFIN", "UFC"],
+          ] as const) {
+            await insertRow("support_agents", {
+              tenant_id: q("TA"),
+              id: `'${agent}'`,
+              user_id: q(user),
+              email: `'${agent}@example.org'`,
+            });
+            await insertRow("support_notification_preferences", {
+              tenant_id: q("TA"),
+              id: `'np-${agent}'`,
+              agent_id: `'${agent}'`,
+            });
+            await insertRow("support_saved_views", {
+              tenant_id: q("TA"),
+              id: `'sv-${agent}'`,
+              owner_agent_id: `'${agent}'`,
+              scope: "'personal'",
+              slug: `'${agent}'`,
+            });
+          }
+          await insertRow("support_saved_views", {
+            tenant_id: q("TA"),
+            id: "'sv-shared'",
+            owner_agent_id: "null",
+            scope: "'workspace'",
+            slug: "'shared'",
+          });
+          await replica(false);
+          const read = (u: User, m: string, t: string) =>
+            as(
+              "authenticated",
+              { sub: u, headers: under(m) },
+              `select id from public.${t} order by id`,
+            );
+          expect(
+            (await read("UFC", "mFin", "support_notification_preferences"))
+              .rows,
+          ).toEqual([{ id: "np-aFIN" }]);
+          expect(
+            (await read("UFC", "mFin", "support_saved_views")).rows,
+          ).toEqual([{ id: "sv-aFIN" }, { id: "sv-shared" }]);
+          expect(
+            (await read("UADM", "mAdm", "support_notification_preferences"))
+              .rows,
+          ).toEqual([{ id: "np-aADM" }, { id: "np-aFIN" }]);
+          expect(
+            (await read("UADM", "mAdm", "support_saved_views")).rows,
+          ).toEqual([
+            { id: "sv-aADM" },
+            { id: "sv-aFIN" },
+            { id: "sv-shared" },
+          ]);
+          // Signatures and the other tables stay staff-wide.
+          expect((await read("UFC", "mFin", "support_agents")).rows).toEqual([
+            { id: "aADM" },
+            { id: "aFIN" },
+          ]);
+        }));
+
+      it("Q3: a signed-in unfiltered read of posts returns published public rows only, under any assignment or none", () =>
+        tx(async () => {
+          await replica(true);
+          for (const [status, visibility] of [
+            ["published", "public"],
+            ["draft", "public"],
+            ["published", "followers"],
+          ])
+            await insertRow("posts", {
+              tenant_id: q("TA"),
+              status: `'${status}'`,
+              visibility: `'${visibility}'`,
+            });
+          await replica(false);
+          for (const [sub, headers] of [
+            ["UP", under("mPA")],
+            ["UDON", under("mDon")],
+            ["UX", undefined],
+          ] as [User, Record<string, string> | undefined][]) {
+            const r = await as(
+              "authenticated",
+              { sub, headers },
+              `select distinct status, visibility from public.posts where tenant_id = ${q("TA")}`,
+            );
+            expect(r.code, sub).toBeNull();
+            expect(r.rows, sub).toEqual([
+              { status: "published", visibility: "public" },
+            ]);
+          }
+        }));
+
+      it("Q7, Q8: no signed-in write policy remains on a table whose write grants went, and a staff member's direct insert or update of crm_merge_candidates is refused", () =>
+        tx(async () => {
+          const left = await rows(
+            `select c.relname::text t, p.polname::text p from pg_policy p join pg_class c on c.oid = p.polrelid
+              where c.relnamespace = 'public'::regnamespace and p.polcmd in ('a', 'w', 'd', '*')
+                and p.polroles && array[0::oid, 'authenticated'::regrole::oid]
+                and pg_get_expr(p.polqual, p.polrelid) is distinct from 'false'
+                and c.relname = any($1) order by 1, 2`,
+            [
+              [
+                ...STAFF_ONLY.filter(
+                  (t) =>
+                    ![
+                      "crm_notes",
+                      "account_claim_requests",
+                      "crm_record_links",
+                      "legacy_account_invitations",
+                      "persons",
+                    ].includes(t),
+                ),
+                "field_policies",
+              ],
+            ],
+          );
+          expect(left).toEqual([]);
+          for (const sql of [
+            `insert into public.crm_merge_candidates (tenant_id) values (${q("TA")})`,
+            `update public.crm_merge_candidates set tenant_id = tenant_id where tenant_id = ${q("TA")}`,
+          ]) {
+            const r = await as(
+              "authenticated",
+              { sub: "UADM", headers: under("mAdm") },
+              sql,
+            );
+            expect(r.code, sql).toBe("42501");
+            expect(r.message, sql).toMatch(
+              /permission denied for table crm_merge_candidates/,
+            );
+          }
+        }));
+
+      it("Q9: a donor reads another commenter's display name and avatar through the narrow read, and still cannot read that member's profile row", () =>
+        tx(async () => {
+          const post = randomUUID();
+          await db.query(
+            "update public.profiles set display_name = 'Blair Admin', avatar_url = 'https://example.org/a.png', email = 'blair@example.org' where user_id = $1",
+            [id.UADM],
+          );
+          await replica(true);
+          await insertRow("posts", {
+            id: `'${post}'`,
+            tenant_id: q("TA"),
+            status: "'published'",
+            visibility: "'public'",
+          });
+          await insertRow("post_comments", {
+            post_id: `'${post}'`,
+            user_id: q("UADM"),
+            content: "'hello'",
+          });
+          await replica(false);
+          for (const headers of [under("mDon"), undefined]) {
+            const r = await as(
+              "authenticated",
+              { sub: "UDON", headers },
+              `select * from public.post_comment_authors('${post}')`,
+            );
+            expect(r.code, r.message).toBeNull();
+            expect(r.rows).toEqual([
+              {
+                user_id: id.UADM,
+                display_name: "Blair Admin",
+                avatar_url: "https://example.org/a.png",
+              },
+            ]);
+          }
+          const profile = await as(
+            "authenticated",
+            { sub: "UDON", headers: under("mDon") },
+            `select id from public.profiles where id = ${q("UADM")}`,
+          );
+          expect(profile.rows).toEqual([]);
+          // A post that is not published and public gives no names.
+          await db.query(
+            "update public.posts set visibility = 'followers' where id = $1",
+            [post],
+          );
+          const hidden = await as(
+            "authenticated",
+            { sub: "UDON", headers: under("mDon") },
+            `select * from public.post_comment_authors('${post}')`,
+          );
+          expect(hidden.rows).toEqual([]);
+          const anon = await as(
+            "anon",
+            {},
+            `select * from public.post_comment_authors('${post}')`,
+          );
+          expect(anon.code).toBe("42501");
+        }));
+
+      it("Q10: after a revoke, a person's delete or read of their own image in that tenant's folder is refused; with a live row it works", () =>
+        tx(async () => {
+          await db.query(
+            "grant usage on schema storage to authenticated; grant select, insert, update, delete on storage.objects to authenticated",
+          );
+          const paths = {
+            profiles: [
+              `avatars/${id.TA}/${id.UP}/one.png`,
+              `avatars/${id.TA}/${id.UP}/two.png`,
+            ],
+            "document-uploads": [
+              `editor/${id.TA}/${id.UP}/one.png`,
+              `editor/${id.TA}/${id.UP}/two.png`,
+            ],
+          };
+          for (const [bucket, [a, b]] of Object.entries(paths))
+            await db.query(
+              "insert into storage.objects (bucket_id, name, owner) values ($1, $2, $4), ($1, $3, $4)",
+              [bucket, a, b, id.UP],
+            );
+          for (const [bucket, [a]] of Object.entries(paths)) {
+            const read = await as(
+              "authenticated",
+              { sub: "UP" },
+              `select name from storage.objects where bucket_id = '${bucket}' and name = '${a}'`,
+            );
+            expect(read.rows, bucket).toHaveLength(1);
+            const del = await as(
+              "authenticated",
+              { sub: "UP" },
+              `delete from storage.objects where bucket_id = '${bucket}' and name = '${a}' returning name`,
+            );
+            expect(del.rows, bucket).toHaveLength(1);
+          }
+          await db.query(
+            "update authz.memberships set revoked_at = now() where id = $1",
+            [id.mPA],
+          );
+          for (const [bucket, [, b]] of Object.entries(paths)) {
+            const read = await as(
+              "authenticated",
+              { sub: "UP" },
+              `select name from storage.objects where bucket_id = '${bucket}' and name = '${b}'`,
+            );
+            expect(read.rows, bucket).toEqual([]);
+            const del = await as(
+              "authenticated",
+              { sub: "UP" },
+              `delete from storage.objects where bucket_id = '${bucket}' and name = '${b}' returning name`,
+            );
+            expect(del.rows, bucket).toEqual([]);
+          }
+          expect(
+            await rows(
+              "select count(*)::int n from storage.objects where owner = $1",
+              [id.UP],
+            ),
+          ).toEqual([{ n: 2 }]);
+        }));
+
+      it("Q11: an upper-case assignment header works on a Data API read, the member directory and a command; garbage raises 22P02 on all three; a blank header acts as absent", () =>
+        tx(async () => {
+          const upper = {
+            "x-asym-tenant": id.TA!.toUpperCase(),
+            "x-asym-assignment": id.mPA!.toUpperCase(),
+          };
+          const calls = [
+            "select count(*)::int n from public.donors",
+            `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
+            `select (public.resolve_command_assignment(${q("TA")}))::text n`,
+          ];
+          for (const sql of calls) {
+            const ok = await as(
+              "authenticated",
+              { sub: "UP", headers: upper },
+              sql,
+            );
+            expect(ok.code, `${sql}: ${ok.message}`).toBeNull();
+            const bad = await as(
+              "authenticated",
+              {
+                sub: "UP",
+                headers: {
+                  "x-asym-tenant": id.TA!,
+                  "x-asym-assignment": "garbage",
+                },
+              },
+              sql,
+            );
+            expect(bad.code, sql).toBe("22P02");
+            const blank = await as(
+              "authenticated",
+              {
+                sub: "UP",
+                headers: {
+                  "x-asym-tenant": id.TA!,
+                  "x-asym-assignment": "   ",
+                },
+              },
+              sql,
+            );
+            expect(blank.code, `${sql}: ${blank.message}`).toBeNull();
+          }
+          const donors = await as(
+            "authenticated",
+            { sub: "UP", headers: upper },
+            "select count(*)::int n from public.donors",
+          );
+          expect(donors.rows[0]!.n).toBe(4);
+          const badTenant = await as(
+            "authenticated",
+            { sub: "UP", headers: { "x-asym-tenant": "garbage" } },
+            "select count(*)::int n from public.donors",
+          );
+          expect(badTenant.code).toBe("22P02");
+          const blankTenant = await as(
+            "authenticated",
+            { sub: "UP", headers: { "x-asym-tenant": " " } },
+            "select count(*)::int n from public.donors",
+          );
+          expect(blankTenant.rows[0]!.n).toBe(0);
+        }));
+
+      it("defect 9: with no assignment header, a person with a staff and a donor row in the tenant passes no staff check of the member directory; naming the staff row does", () =>
+        tx(async () => {
+          const dir = (headers?: Record<string, string>) =>
+            as(
+              "authenticated",
+              { sub: "USG", headers },
+              `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
+            );
+          expect((await dir()).code).toBe("42501");
+          expect((await dir({ "x-asym-tenant": id.TA! })).code).toBe("42501");
+          expect((await dir(under("mSGd"))).code).toBe("42501");
+          const named = await dir(under("mSGs"));
+          expect(named.code, named.message).toBeNull();
+          // One live row there and no header: still that row.
+          const one = await as(
+            "authenticated",
+            { sub: "UADM" },
+            `select count(*)::int n from public.tenant_member_directory(${q("TA")})`,
+          );
+          expect(one.code, one.message).toBeNull();
+        }));
+
+      it("defect 10: both own-row branches of donor_pledges read on a signed-in token: given under the donor assignment, received under the missionary one", () =>
+        tx(async () => {
+          await replica(true);
+          await insertRow("donor_pledges", {
+            id: "'7e000000-0000-4000-8000-000000000001'",
+            tenant_id: q("TA"),
+            donor_id: q("dMG"),
+            missionary_id: q("misMIS"),
+          });
+          await insertRow("donor_pledges", {
+            id: "'7e000000-0000-4000-8000-000000000002'",
+            tenant_id: q("TA"),
+            donor_id: q("dOther"),
+            missionary_id: q("misMG"),
+          });
+          await replica(false);
+          const pledges = (m: string) =>
+            as(
+              "authenticated",
+              { sub: "UMG", headers: under(m) },
+              "select id::text from public.donor_pledges order by id",
+            );
+          const gave = await pledges("mMGd");
+          expect(gave.code, gave.message).toBeNull();
+          expect(gave.rows).toEqual([
+            { id: "7e000000-0000-4000-8000-000000000001" },
+          ]);
+          const received = await pledges("mMGm");
+          expect(received.code, received.message).toBeNull();
+          expect(received.rows).toEqual([
+            { id: "7e000000-0000-4000-8000-000000000002" },
+          ]);
+        }));
+
+      it("Q13, defect 2: a super_admin profile with an unflagged staff row reads no restricted note there; a staff member cannot insert a note in another's name, and a signed-in insert gets its author name and timestamps stamped", () =>
+        tx(async () => {
+          await db.query(
+            "update public.profiles set role = 'super_admin' where user_id = $1",
+            [id.UB],
+          );
+          await replica(true);
+          await insertRow("crm_notes", {
+            tenant_id: q("TB"),
+            visibility: "'restricted'",
+            title: "'restricted'",
+          });
+          await replica(false);
+          const notes = await as(
+            "authenticated",
+            { sub: "UB", headers: under("mB") },
+            "select title from public.crm_notes",
+          );
+          expect(notes.code, notes.message).toBeNull();
+          expect(notes.rows).toEqual([]);
+          const foreign = await as(
+            "authenticated",
+            { sub: "UADM", headers: under("mAdm") },
+            `insert into public.crm_notes (tenant_id, title, body, visibility, author_profile_id) values (${q("TA")}, 't', 'b', 'standard', ${q("UFC")})`,
+          );
+          expect(foreign.code).toBe("42501");
+          const own = await as(
+            "authenticated",
+            { sub: "UADM", headers: under("mAdm") },
+            `insert into public.crm_notes (tenant_id, title, body, visibility, author_profile_id, author_name, created_at, updated_at)
+             values (${q("TA")}, 't', 'b', 'standard', ${q("UADM")}, 'Someone Else', '2000-01-01', '2000-01-01')
+             returning author_name, created_at = now() fresh, updated_at = now() fresh_update`,
+          );
+          expect(own.code, own.message).toBeNull();
+          expect(own.rows).toEqual([
+            { author_name: "acc2675r2", fresh: true, fresh_update: true },
+          ]);
         }));
     });
 
