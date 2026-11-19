@@ -8,6 +8,7 @@ import {
   keptAmbientLibpqEnv,
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
+import { requirePsqlHonoursRequireAuth } from "../../lib/psql.mjs";
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
 
 function getPsqlConnection(databaseUrl) {
@@ -63,9 +64,23 @@ export function getLocalDatabaseUrl() {
   return process.env.PAYLOAD_DATABASE_URI || LOCAL_DATABASE_URL;
 }
 
+/**
+ * Review N6: before psql starts on a hosted address, which takes
+ * PGREQUIREAUTH, the psql it would run must be 16 or later.
+ */
+function requireFloor(connection) {
+  if (connection.env.PGREQUIREAUTH)
+    requirePsqlHonoursRequireAuth({
+      psqlBin: process.env.PSQL_BIN || "psql",
+      run: spawnSync,
+      env: keptAmbientLibpqEnv(connection.env, []),
+    });
+}
+
 export function runPsql(sql, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
+  requireFloor(connection);
   const args = [
     "--no-psqlrc",
     ...connection.args,
@@ -120,6 +135,7 @@ export function executeSql(sql, options = {}) {
 export function runPsqlFile(filePath, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
+  requireFloor(connection);
   const args = [
     "--no-psqlrc",
     ...connection.args,

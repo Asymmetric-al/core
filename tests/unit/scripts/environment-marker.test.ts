@@ -99,6 +99,8 @@ function fakeMarkerPsql(state: "missing" | "unset" | "unreadable" | string) {
   writeFileSync(
     bin,
     `#!${process.execPath}
+// Review N6: answer the version check like a psql 16 or later, unlogged.
+if (process.argv[2] === "--version") { console.log("psql (PostgreSQL) 17.11"); process.exit(0); }
 const fs = require("node:fs");
 const args = process.argv.slice(2);
 fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify({ args, password: process.env.PGPASSWORD ?? null }) + "\\n");

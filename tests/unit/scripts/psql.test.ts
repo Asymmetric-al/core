@@ -7,6 +7,7 @@
  */
 import {
   chmodSync,
+  existsSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -49,6 +50,8 @@ function fakePsql(out: string, status = 0) {
   writeFileSync(
     bin,
     `#!${process.execPath}
+// Review N6: answer the version check like a psql 16 or later, unlogged.
+if (process.argv[2] === "--version") { console.log("psql (PostgreSQL) 17.11"); process.exit(0); }
 require("node:fs").writeFileSync(${JSON.stringify(log)}, JSON.stringify({ args: process.argv.slice(2), password: process.env.PGPASSWORD ?? null, service: process.env.PGSERVICE ?? null }));
 if (${status}) { process.stderr.write("FATAL: injected failure\\n"); process.exit(${status}); }
 process.stdout.write(${JSON.stringify(out)});
@@ -768,8 +771,6 @@ const PSQL_STARTERS = [
   "scripts/lib/psql.mjs",
   "scripts/release/lib/postgres.mjs",
   "scripts/cms/lib/postgres.mjs",
-  // psql --version only, for the floor of review M3.
-  "scripts/release/release-database.mjs",
   // psql, pg_dump and pg_restore inside a Docker container it starts.
   "scripts/verify/backup-restore-proof.mjs",
   // A check and a builder of its own, left as they are (review M4).
@@ -949,3 +950,70 @@ describe("the outliers' operator documents (review N2)", () => {
     }
   });
 });
+
+// Review N6: PGREQUIREAUTH, which a hosted address gets, arrived in libpq 16.
+// The shared runner stops before it starts psql on a hosted address unless
+// psql reports 16 or later; a loopback address is not asked.
+describe.skipIf(process.platform === "win32")(
+  "the shared runner on an older psql (review N6)",
+  () => {
+    const hosted =
+      "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Fjob%2Froot.crt";
+    function oldPsql() {
+      const root = mkdtempSync(path.join(os.tmpdir(), "n6-psql-"));
+      const bin = path.join(root, "psql");
+      const ran = path.join(root, "ran");
+      writeFileSync(
+        bin,
+        `#!/bin/sh\nif [ "$1" = "--version" ]; then echo "psql (PostgreSQL) 15.8"; exit 0; fi\ntouch "${ran}"\necho 1\n`,
+        { mode: 0o755 },
+      );
+      return { root, bin, ran };
+    }
+
+    it.each([
+      [
+        "runPsqlQuery",
+        (bin: string) =>
+          runPsqlQuery({ databaseUrl: hosted, sql: "select 1", psqlBin: bin }),
+      ],
+      [
+        "spawnPsql",
+        (bin: string) =>
+          spawnPsql({
+            databaseUrl: hosted,
+            args: ["-c", "select 1"],
+            psqlBin: bin,
+          }),
+      ],
+    ])(
+      "%s stops on psql 15 for a hosted address, before psql connects",
+      (_name, call) => {
+        const { root, bin, ran } = oldPsql();
+        try {
+          expect(() => call(bin)).toThrow(
+            /psql 15\.8.*16 or later.*PGREQUIREAUTH/,
+          );
+          expect(existsSync(ran)).toBe(false);
+        } finally {
+          rmSync(root, { recursive: true, force: true });
+        }
+      },
+    );
+
+    it("asks nothing of psql for a loopback address", () => {
+      const { root, bin, ran } = oldPsql();
+      try {
+        runPsqlQuery({
+          databaseUrl:
+            "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+          sql: "select 1",
+          psqlBin: bin,
+        });
+        expect(existsSync(ran)).toBe(true);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+  },
+);

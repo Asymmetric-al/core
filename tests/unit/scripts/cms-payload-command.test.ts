@@ -57,6 +57,8 @@ const realSpawnSync=childProcess.spawnSync;
 childProcess.spawnSync=(command,args=[],options={})=>{
   // A test's fake psql runs for real, so the marker it reports is read.
   if(process.env.PSQL_BIN&&command===process.env.PSQL_BIN)return realSpawnSync(command,args,options);
+  // Review N6: a hosted address makes the CMS builder ask psql's version first.
+  if(args[0]==='--version')return {status:0,stdout:'psql (PostgreSQL) 17.11\\n',stderr:''};
   const env=options.env??{};
   appendFileSync(process.env.CORE_CLI_SPAWN_MARKER,JSON.stringify({
     command,

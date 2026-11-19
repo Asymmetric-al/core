@@ -485,7 +485,9 @@ that Supabase rotates, or that expires, is set again without a release of ours
 (see [If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires)). A
 hosted step
 also stops unless its `psql` is version 16 or later, because an older libpq
-ignores `PGREQUIREAUTH` without a word. The workflow installs Ubuntu's
+ignores `PGREQUIREAUTH` without a word. The same floor holds wherever a hosted
+address is used, the CMS runner and the reset guard included (review N6). The
+workflow installs Ubuntu's
 `postgresql-client` on `ubuntu-latest`, whose image carries PostgreSQL 16.
 Each client checks the chain to that CA and the host name:
 

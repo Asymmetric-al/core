@@ -42,6 +42,7 @@ import {
   parseReleaseHealth,
 } from "../../packages/api/src/health/release-contract.mjs";
 import { isLoopbackDatabaseUrl } from "../../packages/env/src/database-url.mjs";
+import { requirePsqlHonoursRequireAuth } from "../lib/psql.mjs";
 import { publishedLoginPasswords } from "../lib/published-passwords.mjs";
 import { runCatalogGates } from "./catalog-gates.mjs";
 import {
@@ -1417,41 +1418,25 @@ const STEPS = {
     repairSeededLoginPasswords({ settings, env }),
 };
 
-/** Review M3: the oldest psql whose libpq honours PGREQUIREAUTH. */
-export const MIN_PSQL_MAJOR = 16;
-
 /**
- * Review M3: every hosted libpq connection the job opens requires SCRAM
- * through PGREQUIREAUTH (HOSTED_LIBPQ_ENV), which a libpq older than 16
- * ignores without a word. A hosted step stops, before it connects, unless the
- * psql it runs reports 16 or later. The release workflow installs Ubuntu's
+ * Reviews M3 and N6: a hosted step stops, before it connects, unless the psql
+ * it runs reports 16 or later; PGREQUIREAUTH, which every hosted libpq
+ * connection takes, is ignored by an older libpq without a word. The check is
+ * the shared one in scripts/lib/psql.mjs, which each builder also runs before
+ * it starts psql on a hosted address. The release workflow installs Ubuntu's
  * postgresql-client (scripts/github/install-postgresql-client.sh) on
  * ubuntu-latest, whose image carries PostgreSQL 16.
  */
-export function requirePsqlForHostedRelease({
-  psqlBin = process.env.PSQL_BIN?.trim() || "psql",
-  run = spawnSync,
-} = {}) {
-  const result = run(psqlBin, ["--version"], {
-    encoding: "utf8",
-    shell: false,
-    env: childEnvironment(),
-  });
-  if (result.error)
-    stop(
-      `psql version check: could not run psql (${result.error.code ?? "error"}).`,
-    );
-  const version = /PostgreSQL\)\s+(\d+)((?:\.\d+)*)/.exec(
-    String(result.stdout ?? ""),
-  );
-  if (result.status !== 0 || !version)
-    stop(
-      `The release job could not read the version of psql (psql --version). A hosted release needs psql ${MIN_PSQL_MAJOR} or later.`,
-    );
-  if (Number(version[1]) < MIN_PSQL_MAJOR)
-    stop(
-      `The release job found psql ${version[1]}${version[2]}; a hosted release needs psql ${MIN_PSQL_MAJOR} or later, whose libpq honours PGREQUIREAUTH. An older libpq ignores it, and a server could then ask for the password in clear text. Install postgresql-client ${MIN_PSQL_MAJOR} or later.`,
-    );
+export function requirePsqlForHostedRelease({ psqlBin, run } = {}) {
+  try {
+    requirePsqlHonoursRequireAuth({
+      ...(psqlBin ? { psqlBin } : {}),
+      ...(run ? { run } : {}),
+      env: childEnvironment(),
+    });
+  } catch (error) {
+    stop(error.message);
+  }
 }
 
 export async function runStep(step, env = process.env) {

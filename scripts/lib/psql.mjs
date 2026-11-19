@@ -5,7 +5,7 @@
 // here, is the only test that an address names this machine (127.0.0.1,
 // localhost or [::1]), and it calls that check.
 //
-// Six files under scripts/ start psql. Three build the connection from an
+// Five files under scripts/ start psql. Three build the connection from an
 // address, refuse what the check refuses, and keep no ambient PG* setting but
 // the shared list KEPT_AMBIENT_LIBPQ_ENV (PGPASSWORD, PGSSLROOTCERT), of
 // which this file keeps PGPASSWORD alone (review N5):
@@ -18,9 +18,11 @@
 // - scripts/release/lib/postgres.mjs, the release job's own SQL, through PG*
 //   variables built from the parsed address;
 // - scripts/cms/lib/postgres.mjs, the CMS runner, the same way.
-// The other three are outside this seam:
-// - scripts/release/release-database.mjs runs psql --version only, to require
-//   16 or later (review M3);
+// Before each starts psql on a hosted address, which takes PGREQUIREAUTH, it
+// runs psql --version through requirePsqlHonoursRequireAuth here, and stops
+// below version 16 (reviews M3 and N6); the release job also calls that at
+// the start of every hosted step.
+// The other two are outside this seam:
 // - scripts/verify/backup-restore-proof.mjs runs psql, pg_dump and pg_restore
 //   inside a Docker container it starts, with no address;
 // - scripts/verify/stripe-data-pipeline.mjs runs psql on a hosted
@@ -115,6 +117,46 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   };
 }
 
+/** Reviews M3 and N6: the oldest psql whose libpq honours PGREQUIREAUTH. */
+export const MIN_PSQL_MAJOR = 16;
+
+/**
+ * Throws unless `psqlBin --version` reports 16 or later (reviews M3 and N6).
+ * PGREQUIREAUTH, which every hosted libpq connection takes
+ * (HOSTED_LIBPQ_ENV), arrived in libpq 16, and an older libpq ignores it
+ * without a word. Each of the three builders calls this before it starts
+ * psql on an environment that carries PGREQUIREAUTH, so the floor holds
+ * wherever a hosted address is used: the release job's steps, the CMS runner
+ * and the reset guard alike. `env` should carry no PG* setting: the check
+ * connects to nothing.
+ */
+export function requirePsqlHonoursRequireAuth({
+  psqlBin = process.env.PSQL_BIN?.trim() || "psql",
+  run = spawnSync,
+  env = keptAmbientLibpqEnv(process.env, []),
+} = {}) {
+  const result = run(psqlBin, ["--version"], {
+    encoding: "utf8",
+    shell: false,
+    env,
+  });
+  if (result.error)
+    throw new Error(
+      `psql version check: could not run psql (${result.error.code ?? "error"}).`,
+    );
+  const version = /PostgreSQL\)\s+(\d+)((?:\.\d+)*)/.exec(
+    String(result.stdout ?? ""),
+  );
+  if (result.status !== 0 || !version)
+    throw new Error(
+      `could not read the version of psql (psql --version); a hosted connection needs psql ${MIN_PSQL_MAJOR} or later.`,
+    );
+  if (Number(version[1]) < MIN_PSQL_MAJOR)
+    throw new Error(
+      `found psql ${version[1]}${version[2]}; a hosted connection needs psql ${MIN_PSQL_MAJOR} or later, whose libpq honours PGREQUIREAUTH. An older libpq ignores it, and a server could then ask for the password in clear text. Install postgresql-client ${MIN_PSQL_MAJOR} or later.`,
+    );
+}
+
 /**
  * Starts psql on `databaseUrl` through psqlConnection, with `args` after the
  * connection argument and this process's standard output and error. `input`,
@@ -129,6 +171,11 @@ export function spawnPsql({
   baseEnv = process.env,
 }) {
   const { connection, env } = psqlConnection(databaseUrl, baseEnv);
+  if (env.PGREQUIREAUTH)
+    requirePsqlHonoursRequireAuth({
+      psqlBin,
+      env: keptAmbientLibpqEnv(env, []),
+    });
   // -X: a ~/.psqlrc or a PSQLRC file could otherwise \connect elsewhere (H11).
   return spawnSync(psqlBin, [connection, "-X", ...args], {
     cwd,
@@ -145,6 +192,11 @@ export function spawnPsql({
  */
 export function runPsqlQuery({ databaseUrl, sql, psqlBin = "psql", cwd }) {
   const { connection, env } = psqlConnection(databaseUrl);
+  if (env.PGREQUIREAUTH)
+    requirePsqlHonoursRequireAuth({
+      psqlBin,
+      env: keptAmbientLibpqEnv(env, []),
+    });
   const result = spawnSync(
     psqlBin,
     [connection, "-X", "-q", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql],

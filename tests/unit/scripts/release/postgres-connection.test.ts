@@ -1,8 +1,11 @@
 // The release job's own psql connection (scripts/release/lib/postgres.mjs):
 // libpq takes the target from PG* variables built from the parsed address.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { connectionEnvironment } from "../../../../scripts/release/lib/postgres.mjs";
+import {
+  connectionEnvironment,
+  runPsql,
+} from "../../../../scripts/release/lib/postgres.mjs";
 
 const hosted =
   "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
@@ -136,5 +139,49 @@ describe("the release builder's ambient settings (review M3)", () => {
     });
     expect(env.DATABASE_URL).toBeUndefined();
     expect(env.KEEP).toBe("1");
+  });
+});
+
+// Review N6: the release builder asks psql's version for a hosted address,
+// wherever it runs, not only inside the release job's steps.
+describe("the release builder on an older psql (review N6)", () => {
+  const fake = (version: string) =>
+    vi.fn((_bin: string, args: string[]) =>
+      args[0] === "--version"
+        ? { status: 0, stdout: version, stderr: "" }
+        : { status: 0, stdout: "1\n", stderr: "" },
+    );
+
+  it("stops on psql 15 for a hosted address, before the query", () => {
+    const run = fake("psql (PostgreSQL) 15.8\n");
+    expect(() =>
+      runPsql({
+        databaseUrl:
+          "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Fjob%2Froot.crt",
+        sql: "select 1",
+        run,
+        label: "probe",
+      }),
+    ).toThrow(/probe: .*psql 15\.8.*16 or later/);
+    expect(run.mock.calls.map((c) => c[1][0])).toEqual(["--version"]);
+  });
+
+  it("runs on psql 16, and asks nothing for a loopback address", () => {
+    const hosted = fake("psql (PostgreSQL) 16.4\n");
+    expect(
+      runPsql({
+        databaseUrl:
+          "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=%2Fjob%2Froot.crt",
+        sql: "select 1",
+        run: hosted,
+      }),
+    ).toBe("1\n");
+    const loopback = fake("psql (PostgreSQL) 15.8\n");
+    runPsql({
+      databaseUrl: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      sql: "select 1",
+      run: loopback,
+    });
+    expect(loopback.mock.calls.map((c) => c[1][0])).not.toContain("--version");
   });
 });

@@ -5,6 +5,20 @@ vi.mock("node:child_process", () => ({ spawnSync }));
 
 import { runPsql, runPsqlFile } from "../../../scripts/cms/lib/postgres.mjs";
 
+/**
+ * Review N6: a hosted address makes the builder ask `psql --version` first.
+ * The fake answers it with a version, and every other call with `value`.
+ */
+const answer = (
+  value: Record<string, unknown>,
+  version = "psql (PostgreSQL) 17.11\n",
+) =>
+  spawnSync.mockImplementation((_command: string, args: string[] = []) =>
+    args[0] === "--version"
+      ? { status: 0, stdout: version, stderr: "" }
+      : value,
+  );
+
 const databaseUrl =
   "postgresql://postgres.example:fake%3Apassword@pooler.example.com:5432/postgres?sslmode=no-verify&connect_timeout=15";
 
@@ -14,7 +28,7 @@ afterEach(() => {
 
 describe("CMS PostgreSQL command connection", () => {
   it("uses encrypted libpq-compatible settings without putting credentials in argv", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1\n", stderr: "" });
+    answer({ status: 0, stdout: "1\n", stderr: "" });
 
     expect(runPsql("SELECT 1;", { databaseUrl })).toBe("1");
     const [, args, options] = spawnSync.mock.calls.at(-1)!;
@@ -35,7 +49,7 @@ describe("CMS PostgreSQL command connection", () => {
 
   it("uses the same connection handling for transactional SQL files", () => {
     vi.stubEnv("PAYLOAD_DATABASE_URI", databaseUrl);
-    spawnSync.mockReturnValue({ status: 0 });
+    answer({ status: 0 });
 
     runPsqlFile("reviewed-migration.sql", { singleTransaction: true });
     const [, args, options] = spawnSync.mock.calls.at(-1)!;
@@ -47,7 +61,7 @@ describe("CMS PostgreSQL command connection", () => {
   });
 
   it("preserves certificate verification when the URL requests it", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl: databaseUrl.replace("no-verify", "verify-full"),
     });
@@ -73,7 +87,7 @@ describe("CMS PostgreSQL command connection", () => {
       PGPASSWORD: "ambient-password",
     }))
       vi.stubEnv(key, value);
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", { databaseUrl: "postgresql://db.example/postgres" });
     const env = spawnSync.mock.calls.at(-1)![2].env;
     expect(env.PGHOST).toBe("db.example");
@@ -107,7 +121,7 @@ describe("CMS PostgreSQL command connection", () => {
   });
 
   it("hands the local CMS session role to psql as PGOPTIONS, for a loopback address only", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl:
         "postgresql://postgres:postgres@127.0.0.1:54322/postgres?options=-c%20role%3Dcms_owner",
@@ -128,7 +142,7 @@ describe("CMS PostgreSQL command connection", () => {
   it("does not let an ambient service replace an explicit database target", () => {
     vi.stubEnv("PGSERVICE", "another-database");
     vi.stubEnv("PGSERVICEFILE", "custom-services.conf");
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
 
     runPsql("SELECT 1;", { databaseUrl });
     expect(spawnSync.mock.calls.at(-1)![2].env.PGSERVICE).toBeUndefined();
@@ -157,7 +171,7 @@ describe("CMS PostgreSQL command connection", () => {
 
   // Review L2: the query is read as libpq reads it: %XX decoded, + kept.
   it("reads the query as libpq does", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl: `${databaseUrl}&application_name=core%20local+cms`,
     });
@@ -169,7 +183,7 @@ describe("CMS PostgreSQL command connection", () => {
   // Review L1: the builder never decodes the host, and requires SCRAM for a
   // hosted address.
   it("never decodes the host, and requires SCRAM for a hosted address", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl:
         "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
@@ -238,7 +252,7 @@ describe("the CMS builder's ambient settings (review M3)", () => {
   it("keeps nothing of a hostile environment but the shared list", () => {
     for (const [key, value] of Object.entries(HOSTILE_PG_ENV))
       vi.stubEnv(key, value);
-    spawnSync.mockReturnValue({ status: 0, stdout: "1\n", stderr: "" });
+    answer({ status: 0, stdout: "1\n", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl:
         "postgresql://cms_owner.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full",
@@ -254,5 +268,42 @@ describe("the CMS builder's ambient settings (review M3)", () => {
       PGSSLROOTCERT: "/ambient/ca.crt",
       PGREQUIREAUTH: "scram-sha-256",
     });
+  });
+});
+
+// Review N6: PGREQUIREAUTH, which a hosted address gets, arrived in libpq 16;
+// an older psql would ignore it. The builder stops before it runs anything.
+describe("the CMS builder on an older psql (review N6)", () => {
+  const hosted =
+    "postgresql://cms_owner.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full";
+
+  it.each([
+    ["runPsql", () => runPsql("SELECT 1;", { databaseUrl: hosted })],
+    ["runPsqlFile", () => runPsqlFile("x.sql", { databaseUrl: hosted })],
+  ])(
+    "%s stops on psql 15 for a hosted address, before any query",
+    (_name, call) => {
+      spawnSync.mockReset();
+      answer(
+        { status: 0, stdout: "1\n", stderr: "" },
+        "psql (PostgreSQL) 15.8\n",
+      );
+      expect(call).toThrow(/psql 15\.8.*16 or later.*PGREQUIREAUTH/);
+      expect(spawnSync.mock.calls.map((c) => c[1]?.[0])).toEqual(["--version"]);
+    },
+  );
+
+  it("asks nothing of psql for a loopback address", () => {
+    spawnSync.mockReset();
+    answer(
+      { status: 0, stdout: "1\n", stderr: "" },
+      "psql (PostgreSQL) 15.8\n",
+    );
+    runPsql("SELECT 1;", {
+      databaseUrl: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+    expect(spawnSync.mock.calls.map((c) => c[1]?.[0])).not.toContain(
+      "--version",
+    );
   });
 });

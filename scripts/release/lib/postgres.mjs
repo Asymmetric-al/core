@@ -11,6 +11,7 @@ import {
   keptAmbientLibpqEnv,
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
+import { requirePsqlHonoursRequireAuth } from "../../lib/psql.mjs";
 
 const URL_FIELDS = {
   // Never decoded (review L1): an escaped comma or slash stays inert.
@@ -79,6 +80,19 @@ export function runPsql({
   label = "psql",
 }) {
   const env = connectionEnvironment(databaseUrl);
+  // Review N6: a hosted address takes PGREQUIREAUTH, which a psql older than
+  // 16 ignores; the floor holds wherever this builder runs.
+  if (env.PGREQUIREAUTH) {
+    try {
+      requirePsqlHonoursRequireAuth({
+        psqlBin,
+        run,
+        env: keptAmbientLibpqEnv(env, []),
+      });
+    } catch (error) {
+      throw new Error(`${label}: ${error.message}`);
+    }
+  }
   for (const [key, value] of Object.entries(variables)) env[key] = value;
   const result = run(
     psqlBin,
