@@ -88,21 +88,23 @@ describe("missionary portal auth and ownership", () => {
       },
       error: null,
     });
-    const supabase = { from: vi.fn(() => query) };
+    const supabase = { rpc: vi.fn(() => query) };
 
     const task = await getMissionaryTask({
       supabaseAdmin: supabase as never,
+      tenantId: "tenant-1",
+      assignmentId: "assignment-1",
       taskId: "task-1",
       profileId: "missionary-profile-1",
     });
 
     expect(task.id).toBe("task-1");
-    expect(supabase.from).toHaveBeenCalledWith("missionary_tasks");
+    expect(supabase.rpc).toHaveBeenCalledWith("missionary_owned_tasks", {
+      p_tenant_id: "tenant-1",
+      p_profile_id: "missionary-profile-1",
+      p_assignment_id: "assignment-1",
+    });
     expect(query.eq).toHaveBeenCalledWith("id", "task-1");
-    expect(query.eq).toHaveBeenCalledWith(
-      "missionary_id",
-      "missionary-profile-1",
-    );
   });
 
   it("denies task access for another missionary", async () => {
@@ -113,7 +115,9 @@ describe("missionary portal auth and ownership", () => {
 
     await expect(
       getMissionaryTask({
-        supabaseAdmin: { from: vi.fn(() => query) } as never,
+        supabaseAdmin: { rpc: vi.fn(() => query) } as never,
+        tenantId: "tenant-1",
+        assignmentId: "assignment-1",
         taskId: "task-1",
         profileId: "other-missionary-profile",
       }),

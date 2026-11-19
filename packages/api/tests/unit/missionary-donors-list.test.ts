@@ -608,6 +608,15 @@ function createFakeSupabaseAdmin(results: Record<string, FakeQueryResult>) {
   return {
     queries,
     client: {
+      rpc(name: string, args: Record<string, unknown>) {
+        expect(name).toBe("missionary_activities");
+        expect(args).toEqual({
+          p_profile_id: missionaryProfileId,
+          p_tenant_id: "tenant-1",
+          p_assignment_id: "assignment-1",
+        });
+        return this.from("donor_activities");
+      },
       from(table: string) {
         const query = new FakeSupabaseQuery(table, results[table]!);
         queries[table] = query;
@@ -671,6 +680,7 @@ describe("getMissionaryDonorRows", () => {
 
     const page = await getMissionaryDonorRows({
       supabaseAdmin: fake.client as never,
+      assignmentId: "assignment-1",
       profileId: missionaryProfileId,
       tenantId: "tenant-1",
       limit: 2,
@@ -758,6 +768,7 @@ describe("getMissionaryDonorRows", () => {
     await expect(
       getMissionaryDonorRows({
         supabaseAdmin: fake.client as never,
+        assignmentId: "assignment-1",
         profileId: missionaryProfileId,
         tenantId: "tenant-1",
         limit: 25,

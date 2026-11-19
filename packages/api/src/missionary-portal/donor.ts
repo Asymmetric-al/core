@@ -2,8 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
 import { runMissionaryPortalOperation } from "./route-helpers";
-import { assertMissionaryDonorAccess } from "./service";
 import { ApiHttpError, ensureJsonBody } from "../shared/http-errors";
+import {
+  missionaryArgs,
+  missionaryScope,
+} from "../shared/missionary-authority";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -119,6 +122,7 @@ function assertMutationSucceeded(
 
 export async function recordMissionaryDonorActivity(input: {
   supabaseAdmin: AdminSupabaseClient;
+  assignmentId: string | null;
   donorId: string;
   profileId: string;
   tenantId: string;
@@ -126,24 +130,18 @@ export async function recordMissionaryDonorActivity(input: {
   note: string;
   now?: Date;
 }) {
-  await assertMissionaryDonorAccess({
-    supabaseAdmin: input.supabaseAdmin,
-    donorId: input.donorId,
-    profileId: input.profileId,
-    tenantId: input.tenantId,
-  });
-
-  const { error } = await input.supabaseAdmin.from("donor_activities").insert({
-    donor_id: input.donorId,
-    type: input.activityType,
-    title: DONOR_ACTIVITY_TITLES[input.activityType],
-    description: input.note,
-    date: (input.now ?? new Date()).toISOString(),
-  });
-
-  if (error) {
-    throw new ApiHttpError(500, error.message || "Unable to record activity");
-  }
+  const result = await input.supabaseAdmin
+    .rpc("missionary_activity_create", {
+      ...missionaryArgs(input),
+      p_donor_id: input.donorId,
+      p_type: input.activityType,
+      p_title: DONOR_ACTIVITY_TITLES[input.activityType],
+      p_note: input.note,
+      p_date: (input.now ?? new Date()).toISOString(),
+    })
+    .select("id")
+    .single();
+  assertMutationSucceeded(result, "Unable to record activity");
 }
 
 export async function updateMissionaryDonorTags(input: {
@@ -241,8 +239,7 @@ export async function POST_ACTIVITY(
       await recordMissionaryDonorActivity({
         supabaseAdmin,
         donorId,
-        profileId: auth.profileId,
-        tenantId: auth.tenantId,
+        ...missionaryScope(auth),
         activityType: input.activityType,
         note: input.note,
       });

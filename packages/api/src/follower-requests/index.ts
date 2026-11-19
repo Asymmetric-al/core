@@ -1,13 +1,12 @@
-import {
-  getAuthContext,
-  requireAuth,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
+import { getAuthContext, requireRoleClass } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { toErrorResponse } from "../shared/http-errors";
-import { findProfileByUserId } from "../shared/queries";
+import {
+  missionaryArgs,
+  missionaryScope,
+} from "../shared/missionary-authority";
 
 interface FollowerRequestRow {
   id: string;
@@ -48,23 +47,16 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext(request);
-    requireAuth(auth);
-    const ctx = auth as AuthenticatedContext;
+    requireRoleClass(auth, ["missionary"]);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "pending";
 
-    const { data: profile } = await findProfileByUserId(
-      supabaseAdmin,
-      ctx.userId,
-    );
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
     const { data: requests, error } = await supabaseAdmin
-      .from("follower_requests")
+      .rpc(
+        "missionary_follower_requests",
+        missionaryArgs(missionaryScope(auth)),
+      )
       .select(
         `
         id,
@@ -83,7 +75,6 @@ export async function GET(request: NextRequest) {
         )
       `,
       )
-      .eq("missionary_id", profile.id)
       .eq("status", status)
       .order("created_at", { ascending: false });
 

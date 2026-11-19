@@ -12,6 +12,33 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
   beforeAll(() => db.connect());
   afterAll(() => db.end());
 
+  it("exposes the statement guards to the service role only, without definer rights", async () => {
+    const guards = [
+      "authz.selected_missionary",
+      "public.missionary_owned_tasks",
+      "public.missionary_task_write",
+      "public.missionary_follower_requests",
+      "public.missionary_follower_request_write",
+      "public.missionary_own_record",
+      "public.missionary_own_record_write",
+      "public.missionary_directory",
+      "public.missionary_activities",
+      "public.missionary_activity_create",
+      "public.crm_donor_activities",
+    ];
+    const result = await db.query(
+      `select name, not proc.prosecdef and
+         has_function_privilege('service_role', proc.oid, 'execute') and
+         not has_function_privilege('anon', proc.oid, 'execute') and
+         not has_function_privilege('authenticated', proc.oid, 'execute') as restricted
+       from unnest($1::text[]) as guard(name)
+       join pg_proc as proc on proc.oid = to_regproc(guard.name)`,
+      [guards],
+    );
+    expect(result.rows).toHaveLength(guards.length);
+    for (const row of result.rows) expect(row.restricted, row.name).toBe(true);
+  });
+
   it("applies the selected live missionary row to reads, both sides of reassignment, and every mutation", async () => {
     const profile = randomUUID();
     const org = () => ({
@@ -26,6 +53,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
     const second = org();
     const orphan = randomUUID();
     const donorHat = randomUUID();
+    const staffHat = randomUUID();
     await db.query("begin");
     try {
       await db.query("insert into auth.users (id) values ($1)", [profile]);
@@ -60,11 +88,15 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         [donorHat, first.tenant, profile],
       );
       await db.query(
+        "insert into authz.memberships (id,tenant_id,user_id,role,staff_role) values ($1,$2,$3,'staff','development')",
+        [staffHat, first.tenant, profile],
+      );
+      await db.query(
         "insert into public.missionary_tasks (id,missionary_id,title) values ($1,$2,'unplaced')",
         [orphan, profile],
       );
       await db.query(
-        "grant insert,update,delete on public.missionary_tasks,public.follower_requests,public.missionaries to service_role",
+        "grant insert,update,delete on public.missionary_tasks,public.follower_requests,public.missionaries,public.donor_activities to service_role",
       );
       await db.query("set local role service_role");
       const call = async (
@@ -80,14 +112,41 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           )
         ).rows.map((row) => row.id);
       };
-      const reads = async (scope: typeof first) =>
-        Promise.all(
-          [
-            "missionary_owned_tasks",
-            "missionary_follower_requests",
-            "missionary_own_record",
-          ].map((fn) => call(fn, scope)),
+      const reads = async (scope: typeof first) => [
+        await call("missionary_owned_tasks", scope),
+        await call("missionary_follower_requests", scope),
+        await call("missionary_own_record", scope),
+      ];
+      const activity = (scope: typeof first, donor: string) =>
+        call(
+          "missionary_activity_create",
+          scope,
+          donor,
+          "note",
+          "Note",
+          "called",
+          new Date().toISOString(),
         );
+      expect(await activity(first, second.donor)).toEqual([]);
+      const activities = await activity(first, first.donor);
+      expect(activities).toHaveLength(1);
+      const staffActivities = (scope: typeof first, donor: string) =>
+        call("crm_donor_activities", scope, donor);
+      expect(
+        await staffActivities({ ...first, assignment: staffHat }, first.donor),
+      ).toEqual(activities);
+      expect(
+        await staffActivities({ ...first, assignment: staffHat }, second.donor),
+      ).toEqual([]);
+      expect(await staffActivities(first, first.donor)).toEqual([]);
+      expect(await call("missionary_activities", first)).toEqual(activities);
+      expect(await call("missionary_activities", second)).toEqual([]);
+      expect(await call("missionary_directory", first)).toEqual([
+        first.missionary,
+      ]);
+      expect(await call("missionary_directory", second)).toEqual([
+        second.missionary,
+      ]);
       const task = (
         scope: typeof first,
         op: string,
@@ -139,10 +198,17 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         first.request,
       ]);
       expect(await edit(first)).toEqual([first.missionary]);
+      const wrongHat = { ...first, assignment: donorHat };
+      expect(await reads(wrongHat)).toEqual([[], [], []]);
+      expect(await task(wrongHat, "delete", first.task)).toEqual([]);
+      expect(await follow(wrongHat, "delete", first.request)).toEqual([]);
+      expect(await edit(wrongHat)).toEqual([]);
+      expect(await activity(wrongHat, first.donor)).toEqual([]);
+      expect(await call("missionary_directory", wrongHat)).toEqual([]);
       await db.query("reset role");
       await db.query(
-        "update authz.memberships set is_active=false where id=$1",
-        [first.assignment],
+        "update authz.memberships set is_active=false,revoked_at=now() where id in ($1,$2)",
+        [first.assignment, staffHat],
       );
       await db.query("set local role service_role");
       for (const scope of [
@@ -151,6 +217,9 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         { ...first, assignment: second.assignment },
       ]) {
         expect(await reads(scope)).toEqual([[], [], []]);
+        expect(await activity(scope, first.donor)).toEqual([]);
+        expect(await call("missionary_activities", scope)).toEqual([]);
+        expect(await call("missionary_directory", scope)).toEqual([]);
         expect(
           await task(scope, "create", null, {
             title: "denied",
@@ -165,6 +234,9 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         }
         expect(await edit(scope)).toEqual([]);
       }
+      expect(
+        await staffActivities({ ...first, assignment: staffHat }, first.donor),
+      ).toEqual([]);
       expect(await reads(second)).toEqual([
         [second.task],
         [second.request],

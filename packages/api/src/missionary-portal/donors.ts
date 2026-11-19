@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 import { knownCurrency } from "./currency";
 import { isAnonymousToRecipient, type GivingPreferences } from "./redaction";
 import { ApiHttpError } from "../shared/http-errors";
+import {
+  missionaryArgs,
+  missionaryScope,
+} from "../shared/missionary-authority";
 import { withOperation } from "../shared/with-operation";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -529,6 +533,7 @@ function readDonorRowsPagination(searchParams: URLSearchParams) {
 
 /** Fetch + build the redacted donor rows for the authenticated missionary. */
 export async function getMissionaryDonorRows(input: {
+  assignmentId: string | null;
   supabaseAdmin: AdminSupabaseClient;
   profileId: string;
   tenantId: string;
@@ -572,7 +577,7 @@ export async function getMissionaryDonorRows(input: {
 
   const [activitiesRes, pledgesRes] = await Promise.all([
     input.supabaseAdmin
-      .from("donor_activities")
+      .rpc("missionary_activities", missionaryArgs(input))
       .select(
         "id, donor_id, type, date, created_at, title, description, amount, status, gift_type, note",
       )
@@ -631,8 +636,7 @@ export const GET = withOperation(
     const pagination = readDonorRowsPagination(request.nextUrl.searchParams);
     const page = await getMissionaryDonorRows({
       supabaseAdmin,
-      profileId: ctx.profileId,
-      tenantId: ctx.tenantId,
+      ...missionaryScope(ctx),
       ...pagination,
     });
     return NextResponse.json(page);

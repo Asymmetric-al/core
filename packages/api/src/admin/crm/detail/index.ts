@@ -28,6 +28,8 @@ export const GET = withOperation(
 
     try {
       const response = await getAdminCrmDonorDetail({
+        profileId: auth.profileId,
+        assignmentId: auth.assignment?.assignmentId ?? null,
         crmWritesEnabled: true,
         donorId: getRecordIdFromPath(request),
         isTenantAdministrator: actor.isTenantAdministrator,

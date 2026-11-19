@@ -6,6 +6,8 @@ import * as task from "../../../../../packages/api/src/missionary-portal/task";
 import * as followers from "../../../../../packages/api/src/follower-requests";
 import * as follower from "../../../../../packages/api/src/follower-requests/request";
 import * as profile from "../../../../../packages/api/src/profile";
+import * as directory from "../../../../../packages/api/src/missionaries";
+import { POST_ACTIVITY } from "../../../../../packages/api/src/missionary-portal/donor";
 
 const fake = vi.hoisted(() => ({
   rpc: vi.fn(),
@@ -41,6 +43,7 @@ function query(data: unknown) {
     select: () => chain,
     eq: () => chain,
     order: () => chain,
+    range: () => chain,
     limit: () => chain,
     single: async () => result,
     maybeSingle: async () => result,
@@ -56,6 +59,15 @@ function request(method: string, body?: unknown) {
 }
 const args = { params: Promise.resolve({ taskId: id, requestId: id }) };
 const routes = [
+  ["directory", "missionary_directory", () => directory.GET(request("GET"))],
+  [
+    "activity create",
+    "missionary_activity_create",
+    () =>
+      POST_ACTIVITY(request("POST", { activityType: "note", note: "called" }), {
+        params: Promise.resolve({ donorId: id }),
+      }),
+  ],
   ["task list", "missionary_owned_tasks", () => tasks.GET(request("GET"))],
   [
     "task create",

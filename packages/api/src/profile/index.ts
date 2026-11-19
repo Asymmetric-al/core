@@ -15,6 +15,10 @@ import {
   ensureJsonBody,
   toErrorResponse,
 } from "../shared/http-errors";
+import {
+  missionaryScope,
+  missionaryArgs,
+} from "../shared/missionary-authority";
 import { findMissionaryByProfileId } from "../shared/queries";
 
 const profilePatchSchema = z
@@ -66,10 +70,11 @@ export async function GET(request: NextRequest) {
     let profileData = { ...profile };
 
     if (hasContextRoleClass(ctx, "missionary")) {
-      const { data: missionary } = await findMissionaryByProfileId(
+      const { data: missionary, error } = await findMissionaryByProfileId(
         supabaseAdmin,
-        ctx.profileId,
+        missionaryScope(ctx),
       );
+      if (error) throw new ApiHttpError(500, error.message);
 
       if (missionary) {
         profileData = { ...profileData, missionary };
@@ -101,12 +106,11 @@ export async function PATCH(request: NextRequest) {
             .eq("id", ctx.profileId)
             .maybeSingle()
         : null,
-      typeof patch.coverUrl === "string"
+      typeof patch.coverUrl === "string" &&
+      hasContextRoleClass(ctx, "missionary")
         ? supabaseAdmin
-            .from("missionaries")
+            .rpc("missionary_own_record", missionaryArgs(missionaryScope(ctx)))
             .select("cover_url")
-            .eq("profile_id", ctx.profileId)
-            .eq("tenant_id", ctx.tenantId)
             .maybeSingle()
         : null,
     ]);
@@ -169,6 +173,23 @@ export async function PATCH(request: NextRequest) {
       missionaryUpdate.social_links = patch.socialLinks;
     }
 
+    if (Object.keys(missionaryUpdate).length > 0) {
+      if (!hasContextRoleClass(ctx, "missionary"))
+        throw new ApiHttpError(
+          403,
+          "Missionary profile fields require missionary access",
+        );
+      const { data, error } = await supabaseAdmin
+        .rpc("missionary_own_record_write", {
+          ...missionaryArgs(missionaryScope(ctx)),
+          p_patch: missionaryUpdate,
+        })
+        .select("id")
+        .maybeSingle();
+      if (error) throw new ApiHttpError(500, error.message);
+      if (!data) throw new ApiHttpError(404, "Missionary record not found");
+    }
+
     if (Object.keys(profileUpdate).length > 0) {
       const { error } = await supabaseAdmin
         .from("profiles")
@@ -176,25 +197,6 @@ export async function PATCH(request: NextRequest) {
         // The caller's own profile; the tenant is the resolved assignment's.
         // A profile's tenant column is no authority (AL-2675, NR-68).
         .eq("id", ctx.profileId);
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-    }
-
-    if (Object.keys(missionaryUpdate).length > 0) {
-      if (!hasContextRoleClass(ctx, "missionary")) {
-        return NextResponse.json(
-          { error: "Missionary profile fields require missionary access" },
-          { status: 403 },
-        );
-      }
-
-      const { error } = await supabaseAdmin
-        .from("missionaries")
-        .update({ ...missionaryUpdate, updated_at: now })
-        .eq("profile_id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId);
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -219,10 +221,11 @@ export async function PATCH(request: NextRequest) {
     let profileData = { ...profile };
 
     if (hasContextRoleClass(ctx, "missionary")) {
-      const { data: missionary } = await findMissionaryByProfileId(
+      const { data: missionary, error } = await findMissionaryByProfileId(
         supabaseAdmin,
-        ctx.profileId,
+        missionaryScope(ctx),
       );
+      if (error) throw new ApiHttpError(500, error.message);
 
       if (missionary) {
         profileData = { ...profileData, missionary };

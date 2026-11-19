@@ -113,14 +113,19 @@ describe("api/shared/queries", () => {
     const result = { data: { id: "missionary-1" }, error: null };
     const mock = createSingleChainMock(result);
 
-    const response = await findMissionaryByProfileId(
-      mock.supabase,
-      "profile-1",
-    );
+    mock.rpc.mockReturnValue({ ...mock.query, maybeSingle: mock.single });
+    const response = await findMissionaryByProfileId(mock.supabase, {
+      profileId: "profile-1",
+      tenantId: "tenant-1",
+      assignmentId: "assignment-1",
+    });
 
     expect(response).toEqual(result);
-    expect(mock.from).toHaveBeenCalledWith("missionaries");
+    expect(mock.rpc).toHaveBeenCalledWith("missionary_own_record", {
+      p_profile_id: "profile-1",
+      p_tenant_id: "tenant-1",
+      p_assignment_id: "assignment-1",
+    });
     expect(mock.select).toHaveBeenCalledWith("*");
-    expect(mock.eq).toHaveBeenCalledWith("profile_id", "profile-1");
   });
 });

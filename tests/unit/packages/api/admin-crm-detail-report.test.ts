@@ -106,6 +106,14 @@ class QueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
 
 function createSupabaseFixture(tables: Record<string, Row[]>) {
   return {
+    rpc(name: string, args: Record<string, unknown>) {
+      expect(name).toBe("crm_donor_activities");
+      expect(args.p_profile_id).toBe("staff-profile");
+      expect(args.p_assignment_id).toBe("staff-assignment");
+      return new QueryBuilder(tables.donor_activities ?? [])
+        .eq("owner.tenant_id", args.p_tenant_id)
+        .eq("donor_id", args.p_donor_id);
+    },
     from(table: string) {
       return new QueryBuilder(tables[table] ?? []);
     },
@@ -153,6 +161,7 @@ const baseTables: Record<string, Row[]> = {
   ],
   donor_activities: [
     {
+      "owner.tenant_id": "tenant-1",
       amount: null,
       created_at: "2026-05-11T00:00:00.000Z",
       date: "2026-05-11T00:00:00.000Z",
@@ -194,9 +203,10 @@ const baseTables: Record<string, Row[]> = {
       type: "individual",
     },
   ],
-  funds: [{ id: "fund-1", name: "General Fund" }],
+  funds: [{ id: "fund-1", tenant_id: "tenant-1", name: "General Fund" }],
   missionaries: [
     {
+      tenant_id: "tenant-1",
       id: "missionary-1",
       profile: {
         display_name: "Mina Missionary",
@@ -221,8 +231,30 @@ const baseTables: Record<string, Row[]> = {
 };
 
 describe("Phase 5 CRM donor detail and reports", () => {
+  it("does not read old activities when the donor no longer belongs to the selected tenant", async () => {
+    const tables = {
+      ...baseTables,
+      donor_activities: baseTables.donor_activities.map((row) => ({
+        ...row,
+        "owner.tenant_id": "tenant-2",
+      })),
+    };
+    const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
+      tenantId: "tenant-1",
+      donorId: "donor-1",
+      isTenantAdministrator: false,
+      supabaseAdmin: createSupabaseFixture(tables) as never,
+    });
+    expect(detail.timeline.some((entry) => entry.kind === "activity")).toBe(
+      false,
+    );
+  });
   it("builds donor care detail without making Twenty payment truth", async () => {
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
@@ -259,6 +291,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
   it("says not found only when the tenant has no such record", async () => {
     const read = (supabaseAdmin: unknown) =>
       getAdminCrmDonorDetail({
+        profileId: "staff-profile",
+        assignmentId: "staff-assignment",
         donorId: "donor-missing",
         role: "staff",
         supabaseAdmin: supabaseAdmin as never,
@@ -311,6 +345,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
       status,
     });
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       donorId: "donor-1",
       role: "staff",
       supabaseAdmin: createSupabaseFixture({
@@ -339,6 +375,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
       ...extra,
     });
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       donorId: "donor-1",
       role: "staff",
       supabaseAdmin: createSupabaseFixture({
@@ -382,6 +420,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
       missionary_id: "profile-owner",
     };
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       donorId: "donor-1",
       role: "staff",
       supabaseAdmin: createSupabaseFixture({
@@ -401,6 +441,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
 
   it("leaves the owner unnamed when the record has none", async () => {
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       donorId: "donor-1",
       role: "staff",
       supabaseAdmin: createSupabaseFixture({
@@ -415,6 +457,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
 
   it("exposes historical provider record ids only to provider operators", async () => {
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "admin",
@@ -437,6 +481,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     let policyLoads = 0;
     const fixture = createSupabaseFixture(baseTables);
     const countingSupabase = {
+      rpc: fixture.rpc,
       from(table: string) {
         if (table === "contribution_approval_policies") {
           policyLoads += 1;
@@ -445,6 +490,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
       },
     };
     const conservative = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
@@ -465,6 +512,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
     // A no_approval_required tenant must not offer request-only affordances
     // the operations route would reject with 403 (#270 gap 2).
     const relaxed = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
@@ -493,6 +542,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
 
   it("keeps a legacy aggregate failure blocked after the gift is posted", async () => {
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
@@ -524,6 +575,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
 
   it("keeps paused staged-gift posting state historical and non-executable", async () => {
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
@@ -566,6 +619,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
     }));
 
     const detail = await getAdminCrmDonorDetail({
+      profileId: "staff-profile",
+      assignmentId: "staff-assignment",
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
@@ -613,6 +668,31 @@ describe("Phase 5 CRM donor detail and reports", () => {
     ]);
     expect(serializeAdminCrmReportCsv(report)).toContain('"General Fund"');
   });
+
+  it.each(["donors", "missionaries", "funds"] as const)(
+    "does not label %s from another tenant",
+    async (slice) => {
+      const tables = {
+        ...baseTables,
+        [slice]: baseTables[slice].map((row) => ({
+          ...row,
+          tenant_id: "other",
+        })),
+      };
+      const report = await buildAdminCrmReport({
+        tenantId: "tenant-1",
+        supabaseAdmin: createSupabaseFixture(tables) as never,
+        params: {
+          slice,
+          filters: { dateFrom: null, dateTo: null, search: null },
+        },
+      });
+      expect(report.rows).toHaveLength(1);
+      expect(report.rows[0]?.label).not.toMatch(
+        /Ada Donor|Mina Missionary|General Fund/,
+      );
+    },
+  );
 
   it("reports leftover CRM gift-link rows that still need reconciliation", async () => {
     const report = await buildAdminCrmReport({

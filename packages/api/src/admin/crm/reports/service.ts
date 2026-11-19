@@ -245,6 +245,7 @@ async function fetchAppliedAdjustments(
 
 async function fetchFundLabels(
   supabaseAdmin: SupabaseAdmin,
+  tenantId: string,
   ids: string[],
 ): Promise<Map<string, LabelRow>> {
   if (ids.length === 0) {
@@ -254,6 +255,7 @@ async function fetchFundLabels(
   const { data, error } = await supabaseAdmin
     .from("funds")
     .select("id, name")
+    .eq("tenant_id", tenantId)
     .in("id", ids);
   assertNoError(error, "Failed to load fund labels.");
   return new Map(((data ?? []) as LabelRow[]).map((row) => [row.id, row]));
@@ -261,6 +263,7 @@ async function fetchFundLabels(
 
 async function fetchMissionaryLabels(
   supabaseAdmin: SupabaseAdmin,
+  tenantId: string,
   ids: string[],
 ): Promise<Map<string, LabelRow>> {
   if (ids.length === 0) {
@@ -272,6 +275,7 @@ async function fetchMissionaryLabels(
     .select(
       "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
     )
+    .eq("tenant_id", tenantId)
     .in("id", ids);
   assertNoError(error, "Failed to load missionary labels.");
   return new Map(((data ?? []) as LabelRow[]).map((row) => [row.id, row]));
@@ -279,6 +283,7 @@ async function fetchMissionaryLabels(
 
 async function fetchDonors(
   supabaseAdmin: SupabaseAdmin,
+  tenantId: string,
   ids: string[],
 ): Promise<Map<string, DonorRow>> {
   if (ids.length === 0) {
@@ -288,6 +293,7 @@ async function fetchDonors(
   const { data, error } = await supabaseAdmin
     .from("donors")
     .select("id, name, organization, status")
+    .eq("tenant_id", tenantId)
     .in("id", ids);
   assertNoError(error, "Failed to load donor labels.");
   return new Map(((data ?? []) as DonorRow[]).map((row) => [row.id, row]));
@@ -544,6 +550,7 @@ export async function buildAdminCrmReport(input: {
   if (input.params.slice === "funds") {
     const labels = await fetchFundLabels(
       input.supabaseAdmin,
+      input.tenantId,
       uniq(lines.map((line) => line.fundId)),
     );
     return respond(
@@ -560,6 +567,7 @@ export async function buildAdminCrmReport(input: {
   if (input.params.slice === "missionaries") {
     const labels = await fetchMissionaryLabels(
       input.supabaseAdmin,
+      input.tenantId,
       uniq(lines.map((line) => line.missionaryId)),
     );
     return respond(
@@ -575,6 +583,7 @@ export async function buildAdminCrmReport(input: {
 
   const donors = await fetchDonors(
     input.supabaseAdmin,
+    input.tenantId,
     uniq(gifts.map((gift) => gift.donorId)),
   );
   return respond(
