@@ -514,6 +514,15 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       changesDuringClaim: false,
     },
     {
+      label: "foreign donor with a cached customer",
+      amountCents: 10000,
+      paymentMethod: "card",
+      coverFees: false,
+      quoted: false,
+      missingCustomer: false,
+      changesDuringClaim: false,
+    },
+    {
       label: "legacy cover-card",
       amountCents: 10330,
       paymentMethod: "card",
