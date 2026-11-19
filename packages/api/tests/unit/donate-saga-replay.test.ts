@@ -1,3 +1,5 @@
+import "./donate-checkout.mocks";
+
 import { isDeepStrictEqual } from "node:util";
 
 import { getAuthContext } from "@asym/auth/context";
