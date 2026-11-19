@@ -161,11 +161,12 @@ upstream release passes VR-1.
 The launcher binds the backend (L3). The proof that TSRS is what executes (VR-2), run on Windows and Ubuntu when the
 launcher lands and again at completion:
 
-1. a finding that only a typed rule can produce appears through the launcher;
-2. the same run with `OXLINT_TSGOLINT_PATH` pointing at a missing file fails with exit 2;
-3. with the variable pointing at a ten-line shim that records its invocation and then starts `tsrs-lint`, the record
-   shows the call, through every entry point that runs typed lint (the root script, the CI job's command and a
-   workspace `lint` script), and from a directory outside the repository;
+1. with an invalid inherited `OXLINT_TSGOLINT_PATH`, the launcher ignores it, runs the pinned backend and reports a
+   finding that only a typed rule can produce;
+2. the same run with a missing file supplied through the trusted `run(argv, { backendPath })` option exits 2;
+3. through that same option, supply a shim that records its invocation and starts the pinned `tsrs-lint`. Verify
+   that the root script, CI and workspace `lint` call this launcher; check the shim's record for each invocation
+   and for a call from outside the repository;
 4. `tsrs --version` reports the pinned version;
 5. `oxlint-tsgolint` and `@oxlint-tsgolint/*` are not installed.
 
@@ -299,15 +300,13 @@ Arbiter ruling of 2026-11-20 (E79). TS-3 inventories every authored TypeScript s
 
 ### L11. Staging, hooks and editors
 
-- **Pre-commit is a read-only check.** `lint-staged` stays, run as
-  `lint-staged --concurrent false --no-stash --fail-on-changes`, with check-only commands: `oxfmt --check` for every
-  staged file Oxfmt supports and the untyped launcher for staged JS and TS files in the lint scope. A commit whose
-  staged content is unformatted or has a finding fails and names `bun run format` or `bun run fix`; the author stages
-  again. Measured on the installed lint-staged 17.6.0 (E79): with today's flags and a writing command the hook
-  commits a file's unstaged lines, and every re-staging mode also stages an unrelated file an editor saves while the
-  hook runs; with these flags and read-only commands neither happens, and a partially staged file is checked as
-  staged. Writing moves to the edit hook, the editor and the explicit commands. VR-9 exercises a partial stage, a
-  rename, a deletion, an empty stage and a failing tool.
+- **Pre-commit is a read-only check.** Refuse and name any staged, lint- or format-eligible file with unstaged
+  changes. Run `lint-staged --concurrent false --no-stash --fail-on-changes --no-hide-partially-staged` with
+  `oxfmt --check` for supported staged files and the untyped launcher for staged JS and TS in scope. Recheck for
+  unstaged changes to those files before accepting the commit. Do not hide or restore edits or write to the index.
+  A format or lint finding names `bun run format` or `bun run fix`; the author stages again. VR-9 checks that a
+  partially staged eligible file is refused by name and that an editor save between patch capture and checking is
+  neither lost nor staged. It also exercises a rename, a deletion, an empty stage and a failing tool.
 - **Agent edit hook.** One edit hook per harness: the one pull request #2726 adds. This change swaps its two tool
   calls to Oxfmt and the untyped launcher, corrects its message about pre-commit applying fixes, and keeps its
   rules: layout only, never blocking, bounded in time. It calls only installed binaries; it never installs or fetches. #2726 registers the hook for Cursor twice over (Cursor also
@@ -329,7 +328,7 @@ Arbiter ruling of 2026-11-20 (E79). TS-3 inventories every authored TypeScript s
 - The React Doctor ledger is never edited by this change (owner ruling of 2026-11-18).
 - The formatter and linter cutovers edit files the open stack also edits (`ci.yml`, `.husky/pre-commit`, hook
   registrations, three contract tests). They wait for that stack for up to two working days, then proceed; a later
-  conflict resolves to develop's version with this change's edits re-applied (arbiter ruling of 2026-11-19).
+  conflict keeps the applicable edits from develop, each lower pull request and this change.
 - This change never re-creates what develop retired.
 
 ### L13. Delivery and ownership
@@ -433,8 +432,9 @@ guard, helper and `SAFETY:` comment in the diff. A lint rule is added only if a 
 being done; Oxlint 1.94.0 has no `no-restricted-syntax`, so such a rule would be `no-restricted-properties`,
 `vitest/no-restricted-vi-methods` or a small JS-plugin rule.
 
-**Behavior-relevant repairs are made test-first.** A repair whose emitted JavaScript would differ needs a test that
-fails before it and passes after. The rules whose repairs usually change behavior: `strict-boolean-expressions`,
+**Behavior-relevant repairs are made test-first.** When emitted JavaScript changes but behavior must not, write a
+preservation test that passes before and after the repair and fails for a deliberately wrong variant. Only an
+established defect needs a test that fails before the fix and passes after. Rules to watch: `strict-boolean-expressions`,
 `no-floating-promises`, `no-misused-promises`, `return-await`, `no-runtime-typeof`,
 `no-conditional-empty-object-spread`, `prefer-template`, `prefer-number-properties`, `require-array-sort-compare`,
 `no-non-null-assertion`, `switch-exhaustiveness-check`, `only-throw-error`, `eqeqeq`.

@@ -167,8 +167,8 @@ not stage. It SHALL apply no format and no lint fix.
 
 #### Scenario: A file is partially staged
 
-- **WHEN** a commit includes only some of a file's changes
-- **THEN** the hook checks the staged content and the unstaged changes are not part of the commit
+- **WHEN** a commit includes only some of the changes to a file the hook formats or lints
+- **THEN** the hook refuses the commit, names the file and leaves the index and the working tree unchanged
 
 #### Scenario: Staged content is not formatted
 

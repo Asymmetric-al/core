@@ -1,7 +1,11 @@
+import { execFileSync } from "node:child_process";
 import {
+  chmodSync,
+  closeSync,
   copyFileSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readFileSync,
   symlinkSync,
   unlinkSync,
@@ -29,8 +33,12 @@ const config = (source: string) =>
   writeFileSync(join(repo, "oxlint.config.mts"), source);
 const sample = (source: string) =>
   writeFileSync(join(repo, "sample.js"), source);
+const git = (args: string[], input?: string) =>
+  execFileSync("git", args, { cwd: repo, encoding: "utf8", input });
 beforeEach(() => {
   repo = mkdtempSync(join(tmpdir(), "quality-launcher-"));
+  git(["init", "--quiet"]);
+  writeFileSync(join(repo, ".gitignore"), "node_modules/\n");
   script = join(repo, "tooling/quality/lint.mts");
   mkdirSync(join(repo, "tooling/quality"), { recursive: true });
   copyFileSync(launcher, script);
@@ -103,6 +111,51 @@ it.each(["warn", "error"])(
     const result = run("sample.js");
     expect(result.status, result.output).toBe(1);
     expect(result.stdout).toContain("no-debugger");
+  },
+);
+it.for(["default", "json"])(
+  "returns 2 for a failed fix write (%s)",
+  { timeout },
+  (format, { skip }) => {
+    const file = join(repo, "sample.js");
+    config('export default { rules: { "object-shorthand": "error" } };');
+    sample("export function test(value) { return { value: value }; }\n");
+    chmodSync(file, 0o444);
+    try {
+      let writable = true;
+      try {
+        closeSync(openSync(file, "r+"));
+      } catch (error) {
+        if (!(
+          error instanceof Error &&
+          "code" in error &&
+          ["EACCES", "EPERM"].includes(String(error.code))
+        ))
+          throw error;
+        writable = false;
+      }
+      if (writable)
+        skip("This user can still open a read-only file for writing");
+      const result = run(
+        "--fix",
+        ...(format === "json" ? ["--format", "json"] : []),
+        "sample.js",
+      );
+      expect(result.output).toContain("Failed to write file");
+      expect(result.status, result.output).toBe(2);
+    } finally {
+      chmodSync(file, 0o644);
+    }
+  },
+);
+it(
+  "does not classify a quoted plugin error in a source snippet as a crash",
+  { timeout },
+  () => {
+    sample("debugger; // Error running JS plugin\n");
+    const result = run("sample.js");
+    expect(result.stdout).toContain("Error running JS plugin");
+    expect(result.status, result.output).toBe(1);
   },
 );
 it.each([
@@ -185,6 +238,65 @@ it(
     const result = run("--fix", "external/would-create.js");
     expect(result.status, result.output).toBe(2);
     expect(result.stderr).toMatch(/outside/i);
+  },
+);
+it.each([
+  { tracked: false, paths: ["parent"] },
+  { tracked: true, paths: ["."] },
+  { tracked: false, paths: [] },
+])(
+  "refuses an external directory link before starting a fix ($tracked, $paths)",
+  { timeout },
+  ({ tracked, paths }) => {
+    const outside = mkdtempSync(join(tmpdir(), "quality-link-target-"));
+    try {
+      mkdirSync(join(repo, "parent"));
+      symlinkSync(outside, join(repo, "parent/external"), "junction");
+      if (tracked) {
+        const blob = git(["hash-object", "-w", "--stdin"], outside).trim();
+        git([
+          "update-index",
+          "--add",
+          "--cacheinfo",
+          `120000,${blob},parent/external`,
+        ]);
+      }
+      unlinkSync(join(repo, "node_modules/.bin", bin("oxlint")));
+      const result = run("--fix", ...paths);
+      expect(result.status, result.output).toBe(2);
+      expect(result.stderr).toMatch(/outside.*parent[/\\]external/i);
+    } finally {
+      removeFixture(tmpdir(), outside);
+    }
+  },
+);
+it(
+  "fixes a selected directory without rejecting ignored or out-of-scope links",
+  { timeout },
+  () => {
+    const outside = mkdtempSync(join(tmpdir(), "quality-link-target-"));
+    try {
+      mkdirSync(join(repo, "selected"));
+      writeFileSync(
+        join(repo, ".gitignore"),
+        "node_modules/\nselected/ignored/\n",
+      );
+      mkdirSync(join(repo, "selected/ignored"));
+      symlinkSync(outside, join(repo, "selected/ignored/link"), "junction");
+      symlinkSync(outside, join(repo, "unselected"), "junction");
+      config('export default { rules: { "object-shorthand": "error" } };');
+      const file = join(repo, "selected/example.js");
+      const original =
+        "export function test(value) { return { value: value }; }\n";
+      writeFileSync(file, original);
+      const result = run("--fix", "selected");
+      expect(result.status, result.output).toBe(0);
+      expect(readFileSync(file, "utf8")).toBe(
+        original.replace("value: value", "value"),
+      );
+    } finally {
+      removeFixture(tmpdir(), outside);
+    }
   },
 );
 it(
