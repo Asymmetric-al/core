@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { toErrorResponse } from "../shared/http-errors";
 import { withOperation } from "../shared/with-operation";
 
 export const GET = withOperation(
@@ -22,7 +23,7 @@ export const GET = withOperation(
     const { data: rows, error } = await query;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return toErrorResponse(error, error.message);
     }
 
     const profileIds = Array.from(
@@ -45,10 +46,7 @@ export const GET = withOperation(
         .in("id", profileIds);
 
       if (profileError) {
-        return NextResponse.json(
-          { error: profileError.message },
-          { status: 500 },
-        );
+        return toErrorResponse(profileError, profileError.message);
       }
 
       profilesById = Object.fromEntries(

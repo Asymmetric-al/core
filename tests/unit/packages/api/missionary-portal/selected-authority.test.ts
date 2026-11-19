@@ -4,6 +4,7 @@ import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 import * as portal from "../../../../../packages/api/src/missionary-portal";
 import * as donors from "../../../../../packages/api/src/missionary-portal/donors";
 import * as crm from "../../../../../packages/api/src/admin/crm/detail";
+import * as adminDirectory from "../../../../../packages/api/src/admin/missionary-directory";
 import * as tasks from "../../../../../packages/api/src/missionary-portal/tasks";
 import * as task from "../../../../../packages/api/src/missionary-portal/task";
 import * as followers from "../../../../../packages/api/src/follower-requests";
@@ -224,6 +225,34 @@ describe("missionary handler delegation", () => {
       expect(fake.rpc).not.toHaveBeenCalled();
     });
   });
+  it.each(["donor_activities", "missionaries"])(
+    "preserves staff read refusal on %s",
+    async (table) => {
+      fake.role = "staff";
+      fake.from.mockImplementation((name: string) =>
+        name === table
+          ? query(null, { code: "42501", message: "Insufficient privilege" })
+          : query(
+              name === "donors"
+                ? { id }
+                : name === "contribution_approval_policies"
+                  ? null
+                  : [],
+            ),
+      );
+      const response =
+        table === "missionaries"
+          ? await adminDirectory.GET(request("GET"))
+          : await crm.GET(
+              new NextRequest("https://app.test/api/admin/crm/records/" + id),
+            );
+      expect(fake.from).toHaveBeenCalledWith(table);
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({
+        error: "Insufficient privilege",
+      });
+    },
+  );
   it.each(["missionary", "donor", "staff"])(
     "enforces CRM record read access for %s",
     async (role) => {
