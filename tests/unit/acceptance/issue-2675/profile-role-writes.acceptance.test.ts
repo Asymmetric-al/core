@@ -3,7 +3,8 @@
  * updateUserRole remains, and no code path writes profiles.role to grant
  * access." Membership is the only authority since WP2a; the role-change and
  * revoke commands write the membership. This scans the application, package
- * and script code for a write of a `role` into `profiles` and for the retired
+ * and script code for literal writes of `role` into `profiles` (not computed
+ * table names or payloads constructed elsewhere) and for the retired
  * mutation's names. The SQL side (no function in the chain sets
  * `profiles.role`) is proved on the migrated database in
  * membership-role-commands.realstack.acceptance.test.ts.
