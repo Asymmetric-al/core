@@ -803,3 +803,51 @@ describe("the files under scripts/ that start psql (review M4)", () => {
     },
   );
 });
+
+// Review N2: the two outliers keep their own checks for now, so the documents
+// an operator reads say the check is weaker than the release job's and what
+// to set by hand on a hosted address.
+describe("the outliers' operator documents (review N2)", () => {
+  it.each([
+    ["docs/guides/operations/stripe-data-pipeline.md", /sslrootcert=/],
+    ["docs/ops/document-cutover/reset-rebuild.md", /NODE_EXTRA_CA_CERTS/],
+    [
+      "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
+      /NODE_EXTRA_CA_CERTS/,
+    ],
+  ])("%s warns, and says what to set", (file, ca) => {
+    const text = readFileSync(file, "utf8");
+    expect(text).toMatch(/weaker than the release job's/);
+    expect(text).toContain("release-job.md");
+    expect(text).toContain("sslmode=verify-full");
+    expect(text).toMatch(ca);
+  });
+
+  // The gate pins each procedure's version and digest; an edit must move both.
+  it("leaves the document gate's pinned procedures equal to the committed documents", async () => {
+    const { createHash } = await import("node:crypto");
+    const gate = readFileSync(
+      "scripts/document-cutover/assess-document-cutover.ts",
+      "utf8",
+    );
+    for (const [name, file] of [
+      ["RESET_PROCEDURE", "docs/ops/document-cutover/reset-rebuild.md"],
+      [
+        "ROLLBACK_PROCEDURE",
+        "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
+      ],
+    ]) {
+      const block = gate.slice(
+        gate.indexOf(`const ${name} = {`),
+        gate.indexOf("};", gate.indexOf(`const ${name} = {`)),
+      );
+      const text = readFileSync(file, "utf8");
+      const digest = createHash("sha256")
+        .update(JSON.stringify(text), "utf8")
+        .digest("hex");
+      expect(block, name).toContain(`"${digest}"`);
+      const version = /\*\*Procedure version:\*\* (\d+)/.exec(text)?.[1];
+      expect(block, name).toContain(`pinnedVersion: "${version}"`);
+    }
+  });
+});

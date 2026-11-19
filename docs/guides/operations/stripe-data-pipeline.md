@@ -135,6 +135,8 @@ The only other accepted query options are `sslrootcert`, `sslcert`, `sslkey`,
 `sslcrl`, and `sslcrldir`. Duplicate options and routing overrides such as
 `host`, `hostaddr`, `service`, `user`, `dbname`, or `options` are rejected.
 
+**Address check.** This script's own check of `SUPABASE_DB_URL` is weaker than the release job's ([`docs/ops/release-job.md`](../../ops/release-job.md), "The database's certificate") until it moves onto the shared one. It accepts `require`, `verify-ca` and `no-verify`, which do not check both the certificate and the host name; it allows the client-key options above; it matches any `<label>.pooler.supabase.com` host; and it sets no `PGREQUIREAUTH`. On a hosted address, set `sslmode=verify-full&sslrootcert=<the project's CA file>` yourself.
+
 Create a local, uncommitted JSON expectations file using actual observed values:
 
 ```json
