@@ -11,7 +11,7 @@ import {
   type MissionaryPortalTask,
   type MissionaryPortalTaskRow,
 } from "./model";
-import { ApiHttpError } from "../shared/http-errors";
+import { ApiHttpError, toApiHttpError } from "../shared/http-errors";
 import {
   missionaryArgs,
   type MissionaryScope,
@@ -130,7 +130,7 @@ function assertResult<T>(
   }
 
   if (result.error) {
-    throw new ApiHttpError(500, result.error.message || fallbackMessage);
+    throw toApiHttpError(result.error, result.error.message || fallbackMessage);
   }
 
   if (!result.data) {
@@ -145,7 +145,7 @@ function assertArrayResult<T>(
   fallbackMessage: string,
 ): T[] {
   if (result.error) {
-    throw new ApiHttpError(500, result.error.message || fallbackMessage);
+    throw toApiHttpError(result.error, result.error.message || fallbackMessage);
   }
 
   return result.data ?? [];
@@ -322,40 +322,6 @@ export async function listMissionaryTasks(
   return rows.map(mapMissionaryTask);
 }
 
-export async function assertMissionaryDonorAccess(input: {
-  supabaseAdmin: AdminSupabaseClient;
-  donorId: string;
-  profileId: string;
-  tenantId: string;
-}) {
-  const result = (await input.supabaseAdmin
-    .from("donors")
-    .select("id")
-    .eq("id", input.donorId)
-    .eq("tenant_id", input.tenantId)
-    .eq("missionary_id", input.profileId)
-    .single()) as SupabaseResult<{ id: string }>;
-
-  assertResult(result, "Donor relationship not found");
-}
-
-export async function getMissionaryTask(
-  input: ScopedClient & { taskId: string },
-): Promise<MissionaryPortalTask> {
-  const row = assertResult(
-    (await input.supabaseAdmin
-      .rpc("missionary_owned_tasks", missionaryArgs(input))
-      .select(TASK_SELECT)
-      .eq("id", input.taskId)
-      .single()) as SupabaseResult<MissionaryPortalTaskRow>,
-    "Missionary task not found",
-  );
-
-  return mapMissionaryTask(
-    normalizeTaskRows([row])[0] as MissionaryPortalTaskRow,
-  );
-}
-
 export async function writeMissionaryTask(
   input: ScopedClient,
   operation: "create" | "update" | "delete",
@@ -370,9 +336,10 @@ export async function writeMissionaryTask(
         p_id: id,
         p_patch: patch,
       })
-      .select(TASK_SELECT)
+      .select(operation === "delete" ? "id" : TASK_SELECT)
       .single()) as SupabaseResult<MissionaryPortalTaskRow>,
     "Missionary task or donor relationship not found",
   );
+  if (operation === "delete") return;
   return mapMissionaryTask({ ...row, donor: normalizeJoinedOne(row.donor) });
 }

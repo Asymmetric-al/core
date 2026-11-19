@@ -2,7 +2,7 @@ import { getAuthContext, requireRoleClass } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { toErrorResponse } from "../shared/http-errors";
+import { toErrorResponse, toApiHttpError } from "../shared/http-errors";
 import {
   missionaryArgs,
   missionaryScope,
@@ -30,8 +30,7 @@ export async function GET(request: NextRequest) {
       .select("*, profile:profiles!profile_id(*)")
       .range(offset, offset + limit - 1);
 
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) throw toApiHttpError(error, error.message);
     return NextResponse.json({ missionaries: data });
   } catch (e) {
     return toErrorResponse(e);

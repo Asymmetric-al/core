@@ -280,8 +280,6 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/donor/portal`                                            | Node.js (no `runtime` segment export) | Donor self-service BFF, admin client               |
 | donor      | `/api/donor/receipts/[donationId]`                             | Node.js (no `runtime` segment export) | Owned donor receipt download, admin client         |
 | donor      | `/api/donor/statements/[year]`                                 | Node.js (no `runtime` segment export) | Owned donor statement download                     |
-| donor      | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()             |
 | donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | donor      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |

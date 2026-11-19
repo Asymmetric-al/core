@@ -284,7 +284,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         expect(
           (
             await db.query(
-              "select * from public.missionary_owned_tasks($1,$2,$3)",
+              "select id from public.missionary_directory($1,$2,$3)",
               [person, first.tenant, assignment],
             )
           ).rows,

@@ -2,11 +2,16 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { runMissionaryPortalOperation } from "../missionary-portal/route-helpers";
-import { ApiHttpError, ensureJsonBody } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toApiHttpError,
+} from "../shared/http-errors";
 import {
   missionaryArgs,
   missionaryScope,
 } from "../shared/missionary-authority";
+import { requireRouteUuid } from "../shared/route-uuid";
 
 type RequestParams = { params: Promise<{ requestId: string }> };
 const decision = z.object({
@@ -32,7 +37,7 @@ function decide(
         .rpc("missionary_follower_request_write", {
           ...missionaryArgs(missionaryScope(auth)),
           p_operation: operation,
-          p_id: requestId,
+          p_id: requireRouteUuid(requestId),
           p_status: input?.status ?? null,
           p_access_level:
             level === "comment" || level === "view" ? level : null,
@@ -46,7 +51,7 @@ function decide(
     `,
         )
         .maybeSingle();
-      if (error) throw new ApiHttpError(500, error.message);
+      if (error) throw toApiHttpError(error, error.message);
       if (!data) throw new ApiHttpError(404, "Request not found");
       if (operation === "delete") return NextResponse.json({ success: true });
       const row = data as unknown as { donor: { name?: string | null } | null };

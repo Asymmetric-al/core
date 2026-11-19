@@ -250,8 +250,6 @@ function buildSupportSummary(input: {
 }
 
 export async function getAdminCrmDonorDetail(input: {
-  assignmentId: string | null;
-  profileId: string;
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   donorId: string;
@@ -322,13 +320,9 @@ export async function getAdminCrmDonorDetail(input: {
           .in("donation_id", donationIds)
       : Promise.resolve({ data: [], error: null }),
     input.supabaseAdmin
-      .rpc("crm_donor_activities", {
-        p_profile_id: input.profileId,
-        p_tenant_id: input.tenantId,
-        p_assignment_id: input.assignmentId,
-        p_donor_id: donor.id,
-      })
+      .from("donor_activities")
       .select("id, type, title, description, amount, date, created_at")
+      .eq("donor_id", donor.id)
       .order("date", { ascending: false })
       .limit(50),
     input.supabaseAdmin

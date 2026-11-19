@@ -10,7 +10,10 @@ import * as followers from "../../../../../packages/api/src/follower-requests";
 import * as follower from "../../../../../packages/api/src/follower-requests/request";
 import * as profile from "../../../../../packages/api/src/profile";
 import * as directory from "../../../../../packages/api/src/missionaries";
-import { POST_ACTIVITY } from "../../../../../packages/api/src/missionary-portal/donor";
+import {
+  POST_ACTIVITY,
+  PATCH as patchDonor,
+} from "../../../../../packages/api/src/missionary-portal/donor";
 
 const fake = vi.hoisted(() => ({
   rpc: vi.fn(),
@@ -309,7 +312,27 @@ describe("missionary handler delegation", () => {
       donorId: "invalid",
     }),
   };
+  it("rejects a malformed CRM donor id before its lookup", async () => {
+    fake.role = "staff";
+    const response = await crm.GET(
+      new NextRequest("https://app.test/api/admin/crm/records/invalid"),
+    );
+    expect(response.status).toBe(404);
+    expect(fake.from).not.toHaveBeenCalled();
+  });
+  it("refuses a donor update without a selected missionary row", async () => {
+    fake.assigned = false;
+    expect(
+      (
+        await patchDonor(request("PATCH", { tags: [] }), {
+          params: Promise.resolve({ donorId: id }),
+        })
+      ).status,
+    ).toBe(403);
+    expect(fake.from).not.toHaveBeenCalled();
+  });
   it.each([
+    () => patchDonor(request("PATCH", { tags: [] }), invalid),
     () =>
       tasks.GET(
         new NextRequest(

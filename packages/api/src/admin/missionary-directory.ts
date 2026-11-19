@@ -12,15 +12,12 @@ export const GET = withOperation(
       : Math.min(Math.max(limitParam, 1), 200);
     const offset = Number.isNaN(offsetParam) ? 0 : Math.max(offsetParam, 0);
 
-    let query = supabaseAdmin
+    const query = supabaseAdmin
       .from("missionaries")
       .select("id, tenant_id, profile_id, location, mission_field")
+      .eq("tenant_id", ctx.tenantId)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
-
-    if (ctx.role !== "super_admin") {
-      query = query.eq("tenant_id", ctx.tenantId);
-    }
 
     const { data: rows, error } = await query;
 

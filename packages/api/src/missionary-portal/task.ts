@@ -5,6 +5,7 @@ import { runMissionaryPortalOperation } from "./route-helpers";
 import { writeMissionaryTask } from "./service";
 import { ensureJsonBody } from "../shared/http-errors";
 import { missionaryScope } from "../shared/missionary-authority";
+import { requireRouteUuid } from "../shared/route-uuid";
 
 const taskStatusSchema = z.enum([
   "not_started",
@@ -32,7 +33,7 @@ const updateTaskSchema = z
     priority: taskPrioritySchema.optional(),
     due_date: z.string().datetime().nullable().optional(),
     donor_id: z.string().uuid().nullable().optional(),
-    sort_key: z.number().finite().optional(),
+    sort_key: z.number().finite().transform(Math.round).optional(),
   })
   .strict();
 
@@ -73,7 +74,7 @@ export async function PATCH(
       const task = await writeMissionaryTask(
         { supabaseAdmin, ...missionaryScope(auth) },
         "update",
-        taskId,
+        requireRouteUuid(taskId),
         taskUpdateFromInput(input),
       );
 
@@ -94,7 +95,7 @@ export async function DELETE(
       await writeMissionaryTask(
         { supabaseAdmin, ...missionaryScope(auth) },
         "delete",
-        taskId,
+        requireRouteUuid(taskId),
       );
 
       return NextResponse.json({ success: true });

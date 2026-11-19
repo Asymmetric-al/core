@@ -5,6 +5,7 @@ import { z } from "zod";
 import { writeMissionaryTask, listMissionaryTasks } from "./service";
 import { ensureJsonBody } from "../shared/http-errors";
 import { missionaryScope } from "../shared/missionary-authority";
+import { requireRouteUuid } from "../shared/route-uuid";
 import { withOperation } from "../shared/with-operation";
 
 const taskStatusSchema = z.enum([
@@ -33,7 +34,7 @@ const createTaskSchema = z
     priority: taskPrioritySchema.default("none"),
     due_date: z.string().datetime().nullable().optional(),
     donor_id: z.string().uuid().nullable().optional(),
-    sort_key: z.number().finite().optional(),
+    sort_key: z.number().finite().transform(Math.round).optional(),
   })
   .strict();
 
@@ -45,7 +46,7 @@ export const GET = withOperation(
     const tasks = await listMissionaryTasks({
       supabaseAdmin,
       ...missionaryScope(ctx),
-      donorId,
+      donorId: donorId === null ? null : requireRouteUuid(donorId),
     });
 
     return NextResponse.json({ tasks });

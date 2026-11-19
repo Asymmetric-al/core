@@ -2,7 +2,7 @@ import { getAuthContext, requireRoleClass } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { toErrorResponse } from "../shared/http-errors";
+import { toErrorResponse, toApiHttpError } from "../shared/http-errors";
 import {
   missionaryArgs,
   missionaryScope,
@@ -78,10 +78,7 @@ export async function GET(request: NextRequest) {
       .eq("status", status)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching follower requests:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw toApiHttpError(error, error.message);
 
     const requestRows = (requests || []) as FollowerRequestRow[];
     const formattedRequests = requestRows.map((req) => {

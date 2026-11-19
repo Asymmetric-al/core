@@ -110,7 +110,8 @@ BEGIN
     )
     SELECT
       p_profile_id, patch.donor_id, patch.title, patch.description, patch.task_type,
-      patch.status, patch.priority, patch.sort_key, patch.due_date, patch.completed_at
+      COALESCE(patch.status, 'pending'), COALESCE(patch.priority, 'medium'),
+      COALESCE(patch.sort_key, 0), patch.due_date, patch.completed_at
     FROM jsonb_populate_record(NULL::public.missionary_tasks, p_patch) AS patch
     LEFT JOIN public.donors AS donor
       ON donor.id = patch.donor_id
@@ -333,7 +334,8 @@ $$;
 CREATE FUNCTION public.missionary_activities(
   p_profile_id uuid,
   p_tenant_id uuid,
-  p_assignment_id uuid
+  p_assignment_id uuid,
+  p_donor_ids uuid[]
 )
 RETURNS SETOF public.donor_activities
 LANGUAGE sql
@@ -346,6 +348,7 @@ AS $$
   JOIN public.donors AS donor
     ON donor.id = activity.donor_id
   WHERE donor.tenant_id = p_tenant_id
+    AND activity.donor_id = ANY(p_donor_ids)
     AND donor.missionary_id = p_profile_id
     AND authz.selected_missionary(p_profile_id, p_tenant_id, p_assignment_id);
 $$;
@@ -377,67 +380,32 @@ AS $$
   RETURNING activity.*;
 $$;
 
--- Service role only: read a donor's activities for a live staff member of that donor's organization.
-CREATE FUNCTION public.crm_donor_activities(
-  p_profile_id uuid,
-  p_tenant_id uuid,
-  p_assignment_id uuid,
-  p_donor_id uuid
-)
-RETURNS SETOF public.donor_activities
-LANGUAGE sql
-STABLE
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-  SELECT activity.*
-  FROM public.donor_activities AS activity
-  JOIN public.donors AS donor
-    ON donor.id = activity.donor_id
-  WHERE donor.id = p_donor_id
-    AND donor.tenant_id = p_tenant_id
-    AND EXISTS (
-      SELECT 1
-      FROM authz.memberships AS membership
-      JOIN public.profiles AS profile
-        ON profile.user_id = membership.user_id
-      WHERE membership.id = p_assignment_id
-        AND membership.tenant_id = p_tenant_id
-        AND membership.role = 'staff'
-        AND membership.is_active
-        AND membership.revoked_at IS NULL
-        AND profile.id = p_profile_id
-    );
-$$;
-
 REVOKE ALL ON FUNCTION
-  authz.selected_missionary,
-  authz.missionary_task_single_tenant,
-  public.missionary_owned_tasks,
-  public.missionary_task_write,
-  public.missionary_follower_requests,
-  public.missionary_follower_request_write,
-  public.missionary_own_record,
-  public.missionary_own_record_write,
-  public.missionary_directory,
-  public.missionary_activities,
-  public.missionary_activity_create,
-  public.crm_donor_activities
+  authz.selected_missionary(uuid, uuid, uuid),
+  authz.missionary_task_single_tenant(uuid, uuid),
+  public.missionary_owned_tasks(uuid, uuid, uuid),
+  public.missionary_task_write(uuid, uuid, uuid, text, uuid, jsonb),
+  public.missionary_follower_requests(uuid, uuid, uuid),
+  public.missionary_follower_request_write(uuid, uuid, uuid, text, uuid, text, text),
+  public.missionary_own_record(uuid, uuid, uuid),
+  public.missionary_own_record_write(uuid, uuid, uuid, jsonb),
+  public.missionary_directory(uuid, uuid, uuid),
+  public.missionary_activities(uuid, uuid, uuid, uuid[]),
+  public.missionary_activity_create(uuid, uuid, uuid, uuid, text, text, text, timestamptz)
 FROM PUBLIC, anon, authenticated, service_role;
 
 GRANT EXECUTE ON FUNCTION
-  authz.selected_missionary,
-  authz.missionary_task_single_tenant,
-  public.missionary_owned_tasks,
-  public.missionary_task_write,
-  public.missionary_follower_requests,
-  public.missionary_follower_request_write,
-  public.missionary_own_record,
-  public.missionary_own_record_write,
-  public.missionary_directory,
-  public.missionary_activities,
-  public.missionary_activity_create,
-  public.crm_donor_activities
+  authz.selected_missionary(uuid, uuid, uuid),
+  authz.missionary_task_single_tenant(uuid, uuid),
+  public.missionary_owned_tasks(uuid, uuid, uuid),
+  public.missionary_task_write(uuid, uuid, uuid, text, uuid, jsonb),
+  public.missionary_follower_requests(uuid, uuid, uuid),
+  public.missionary_follower_request_write(uuid, uuid, uuid, text, uuid, text, text),
+  public.missionary_own_record(uuid, uuid, uuid),
+  public.missionary_own_record_write(uuid, uuid, uuid, jsonb),
+  public.missionary_directory(uuid, uuid, uuid),
+  public.missionary_activities(uuid, uuid, uuid, uuid[]),
+  public.missionary_activity_create(uuid, uuid, uuid, uuid, text, text, text, timestamptz)
 TO service_role;
 
 NOTIFY pgrst, 'reload schema';
