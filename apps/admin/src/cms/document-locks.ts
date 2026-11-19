@@ -127,6 +127,16 @@ export async function canLockDocument(
  * document the person can read in the organization they selected. Live
  * locks last five minutes, so the rows are few; they are read directly, as
  * Payload's own lock check reads them.
+ *
+ * Payload evaluates this access once per operation on the lock collection,
+ * so a request that makes several (the edit view's `form-state`, a list with
+ * `includeLockStatus`) reads the rows and their documents each time. That is
+ * left as it is. If it ever matters, the memo goes here, at the top of this
+ * function: keyed on the request (`req.context`, or a `WeakMap` keyed on
+ * `req`), holding the resolved constraint for that request only, never across
+ * requests or people. It must be dropped when the same request writes a lock
+ * row, because `form-state` reads the lock and then creates one with
+ * `req.payload.db.create`.
  */
 export const lockAccessInOrganization: Access = async ({ req }) => {
   if (!req.user) return false;
