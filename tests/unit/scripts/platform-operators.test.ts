@@ -77,7 +77,7 @@ describe("operator script arguments", () => {
 
 describe("operator script target (the release job's one address check)", () => {
   const local = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
-  const pooled = `postgresql://postgres.${REF}:secret-value@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require`;
+  const pooled = `postgresql://postgres.${REF}:secret-value@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=/certs/project.crt`;
 
   it("admits a database on this machine without a project ref", () => {
     expect(admitDatabase({ OPERATORS_DATABASE_URL: local })).toBe(local);
@@ -90,6 +90,19 @@ describe("operator script target (the release job's one address check)", () => {
         OPERATORS_SUPABASE_PROJECT_REF: REF,
       }),
     ).toBe(pooled);
+  });
+
+  it.each([
+    pooled.replace("verify-full", "require"),
+    `${pooled}&sslmode=verify-full`,
+    pooled.replace("&sslrootcert=/certs/project.crt", ""),
+  ])("requires exactly one verify-full mode and the project CA", (url) => {
+    expect(() =>
+      admitDatabase({
+        OPERATORS_DATABASE_URL: url,
+        OPERATORS_SUPABASE_PROJECT_REF: REF,
+      }),
+    ).toThrow(/OPERATORS_DATABASE_URL.*sslmode=verify-full.*project.*CA/i);
   });
 
   it.each([
@@ -108,7 +121,7 @@ describe("operator script target (the release job's one address check)", () => {
     [
       "a hosted address without TLS",
       {
-        OPERATORS_DATABASE_URL: pooled.replace("?sslmode=require", ""),
+        OPERATORS_DATABASE_URL: pooled.replace("sslmode=verify-full&", ""),
         OPERATORS_SUPABASE_PROJECT_REF: REF,
       },
     ],

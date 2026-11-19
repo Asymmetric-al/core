@@ -10,7 +10,7 @@
 // Inputs are environment variables (names only; values never print):
 //   OPERATORS_DATABASE_URL          the database's `postgres` connection: a
 //                                   local database, or a hosted project's
-//                                   (session pooler or direct, sslmode=require)
+//                                   (session pooler or direct, sslmode=verify-full and the project CA)
 //   OPERATORS_SUPABASE_PROJECT_REF  for a hosted address only: the project the
 //                                   address must name, checked by the release
 //                                   job's one address check before anything
@@ -103,8 +103,8 @@ export function parseArguments(argv) {
 /**
  * The database URL the script may connect to, after the one address check.
  * A local database passes `isLoopbackDatabaseUrl`; anything else must address
- * `OPERATORS_SUPABASE_PROJECT_REF` as `postgres`, with sslmode=require or
- * stronger, as the release job requires. Errors never repeat the URL.
+ * `OPERATORS_SUPABASE_PROJECT_REF` as `postgres`, with exactly one sslmode=verify-full and the
+ * project CA, as the release job requires. Errors never repeat the URL.
  */
 export function admitDatabase(env = process.env) {
   const databaseUrl = env.OPERATORS_DATABASE_URL?.trim();
@@ -115,7 +115,16 @@ export function admitDatabase(env = process.env) {
     throw new Error(
       "OPERATORS_DATABASE_URL is not on this machine; set OPERATORS_SUPABASE_PROJECT_REF to the hosted project it must address.",
     );
-  assertDatabaseTarget({ databaseUrl, projectRef, role: "postgres" });
+  const targetError =
+    "OPERATORS_DATABASE_URL must address OPERATORS_SUPABASE_PROJECT_REF as postgres with exactly one sslmode=verify-full and sslrootcert naming the project's CA file.";
+  try {
+    assertDatabaseTarget({ databaseUrl, projectRef, role: "postgres" });
+  } catch {
+    throw new Error(targetError);
+  }
+  if (!new URL(databaseUrl).searchParams.get("sslrootcert")?.trim()) {
+    throw new Error(targetError);
+  }
   return databaseUrl;
 }
 

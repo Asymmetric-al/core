@@ -60,6 +60,45 @@ const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
  * sorted as psqlLines gives them, duplicates kept.
  */
 const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
+  "scripts/platform/operators.mjs": {
+    reason:
+      "imports the shared connection checker and calls the shared runner with transaction inputs",
+    lines: [
+      "/** The environment psql reads the inputs from. */",
+      "/** The environment variables psql reads the inputs from (\\getenv). */",
+      "/** The psql arguments after the connection: quiet, unaligned, stop on error, SQL on stdin. */",
+      "/** The whole psql input for one action: one transaction. */",
+      "/** psql statements that put the matching login's id in `asym.operator_user`, or refuse. */",
+      "// output, the result; psql's error on standard error and a non-zero exit when",
+      "// psql as environment variables read with \\getenv, so they appear neither in",
+      "// runner (scripts/lib/psql.mjs), which drops every ambient PG* setting and",
+      "// this machine (`isLoopbackDatabaseUrl`). psql starts only through the shared",
+      "[PSQL_INPUTS.actor]: parsed.actor,",
+      '[PSQL_INPUTS.email]: parsed.email ?? "",',
+      "[PSQL_INPUTS.reason]: parsed.reason,",
+      '[PSQL_INPUTS.userId]: parsed.userId ?? "",',
+      "\\\\getenv op_email ${PSQL_INPUTS.email}",
+      "\\\\getenv op_reason ${PSQL_INPUTS.reason}",
+      "args: [...PSQL_ARGS],",
+      "baseEnv: { ...env, ...psqlInputs(parsed) },",
+      "console.error(`error: could not run psql (${result.error.message}).`);",
+      "const FIND_USER = `\\\\getenv op_user_id ${PSQL_INPUTS.userId}",
+      "const READ_ACTOR = `\\\\getenv op_actor ${PSQL_INPUTS.actor}",
+      "const result = spawnPsql({",
+      "export const PSQL_ARGS = Object.freeze([",
+      "export const PSQL_INPUTS = Object.freeze({",
+      "export function psqlInputs(parsed) {",
+      'import { isLoopbackDatabaseUrl, spawnPsql } from "../lib/psql.mjs";',
+      'psqlBin: env.PSQL_BIN?.trim() || "psql",',
+    ],
+  },
+  "scripts/e2e/run-operator-mfa.mjs": {
+    reason:
+      "imports the loopback checks for the local stack; starts no database client",
+    lines: [
+      'import { LOOPBACK_HOSTS, isLoopbackDatabaseUrl } from "../lib/psql.mjs";',
+    ],
+  },
   "scripts/cms/lib/migration-target.mjs": {
     reason:
       "comments and two messages that name the CMS runner's psql and the CA file it reads",
