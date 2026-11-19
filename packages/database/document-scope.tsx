@@ -52,18 +52,35 @@ import type { ReactNode } from "react";
  * including the auth and public links of `@asym/ui`) add the scope's prefix,
  * and an empty one adds nothing, so they keep their plain addresses. The
  * `segment` bounds the scope instead: outside it both functions return
- * nothing. A provider given an empty prefix and no segment holds a scope
- * valid on every path of its document, so such a document passes its
- * segment.
+ * nothing. Such a scope needs its segment, and a segment is never empty:
+ * the provider throws `DocumentScopeSegmentError` on either, as on any other
+ * programming error (council round 2, BR1).
  *
  * Crossing a segment's boundary is always a document load: into it from
- * outside, out of it, and from one tenant or sub-role to another. The helpers
- * in `@asym/auth/tenant-navigation` load a document for such a navigation;
- * `TenantSegmentBoundary` reloads when one happens softly anyway;
- * `TenantDocument` reloads a document that entered the segment without a
- * load; `PortalDocument` reloads when the portal unmounts at an address
- * outside it. So a scope always starts in a new document, with an empty query
- * cache. Inside one segment navigation stays soft.
+ * outside, out of it, and from one tenant or sub-role to another. So a scope
+ * always starts in a new document, with an empty query cache. Inside one
+ * segment navigation stays soft. Two things hold it, for every scope:
+ * - At the source, the helpers in `@asym/auth/tenant-navigation`
+ *   (`TenantLink`, `useTenantRouter`) load a document for a navigation that
+ *   crosses the boundary, so the usual way across never renders on the old
+ *   document.
+ * - As the fallback, for a crossing that bypassed them, the document's own
+ *   guard reloads. Which guard depends on where the segment is written:
+ *   - A tenant's segment is in the address itself (`/<tenant>[~<sub-role>]`),
+ *     so `TenantDocument` and `TenantSegmentBoundary` guard it from the
+ *     address, and `TenantDocument` passes no `segment` here: the scope's
+ *     prefix is its segment.
+ *   - A segment whose address names no tenant is known only to its provider,
+ *     so `DocumentScopeProvider` guards it itself whenever it is given a
+ *     `segment`: it loads a new document when it unmounts at an address
+ *     outside the segment, and it renders nothing and loads a new document
+ *     when the document was loaded outside the segment (entered softly). A
+ *     reload at an address inside the segment gives a document loaded inside
+ *     it, so this never loops. `PortalDocument` passes `/donor-dashboard`;
+ *     Web Studio's document (slice C) passes `/web-studio` with an empty
+ *     prefix and inherits the same guard.
+ *   Do not merge the two: a tenant's guard also checks which tenant the
+ *   address names, which a path segment cannot.
  */
 export interface DocumentScope {
   /** The signed-in person: their Supabase user id. */
@@ -102,8 +119,9 @@ function sameScope(a: DocumentScope, b: DocumentScope): boolean {
 
 /**
  * Fixes `scope` as the document's on its first call in the browser, valid in
- * `segment`. `false` when the document already holds another scope. A no-op
- * on the server, where module state would be shared by every request.
+ * `segment`. `false` when the document already holds another scope, and the
+ * same scope under another segment is another scope (BR1). A no-op on the
+ * server, where module state would be shared by every request.
  */
 function fixDocumentScope(scope: DocumentScope, segment: string): boolean {
   if (typeof window === "undefined") return true;
@@ -112,7 +130,32 @@ function fixDocumentScope(scope: DocumentScope, segment: string): boolean {
     fixedSegment = segment;
     return true;
   }
-  return sameScope(fixedScope, scope);
+  return sameScope(fixedScope, scope) && fixedSegment === segment;
+}
+
+/** A scope given no segment it can be bounded by: a programming error. */
+export class DocumentScopeSegmentError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DocumentScopeSegmentError";
+  }
+}
+
+/**
+ * Whether the browser knows this document was loaded at an address outside
+ * `segment`, from the navigation timing entry, which names the address the
+ * document was loaded at whatever the client router did since. `false` on
+ * the server and where the browser cannot say.
+ */
+function loadedOutside(segment: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const [entry] = performance.getEntriesByType("navigation");
+    if (!entry) return false;
+    return !inSegment(new URL(entry.name).pathname, segment);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -122,10 +165,14 @@ function fixDocumentScope(scope: DocumentScope, segment: string): boolean {
  * same document, which a soft navigation between two organizations or a
  * change of signed-in person could cause, it renders nothing and reloads.
  *
- * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation`, which also
- * guards the page address, and by `PortalDocument` in
- * `@asym/auth/portal-document`, with the portal's path as `segment`; apps do
- * not render it directly.
+ * Given a `segment`, it also holds that segment's boundary (BR1): it renders
+ * nothing and reloads in a document loaded outside the segment, and reloads
+ * when it unmounts at an address outside it.
+ *
+ * Rendered by `TenantDocument` in `@asym/auth/tenant-navigation`, which
+ * guards the tenant's segment in the page address, and by `PortalDocument`
+ * in `@asym/auth/portal-document`, with the portal's path as `segment`; apps
+ * do not render it directly.
  */
 export function DocumentScopeProvider({
   scope,
@@ -134,14 +181,31 @@ export function DocumentScopeProvider({
 }: {
   scope: DocumentScope;
   /**
-   * The address segment the scope is valid in, for a document whose address
-   * names no tenant (the donor portal's `/donor-dashboard`). By default the
-   * scope's own address prefix, a tenant's segment.
+   * The address segment the scope is valid in and bounded by, for a
+   * document whose address names no tenant (the donor portal's
+   * `/donor-dashboard`). Required when the scope's `addressPrefix` is empty;
+   * never empty. Without it the scope's own address prefix is its segment,
+   * a tenant's, guarded by `TenantDocument`.
    */
   segment?: string;
   children: ReactNode;
 }) {
-  const fixed = fixDocumentScope(scope, segment ?? scope.addressPrefix);
+  if (segment === "") {
+    throw new DocumentScopeSegmentError(
+      "A document scope's segment is never empty: pass the path that bounds it, such as /donor-dashboard.",
+    );
+  }
+  if (segment === undefined && scope.addressPrefix === "") {
+    throw new DocumentScopeSegmentError(
+      "A document scope whose address names no tenant needs the segment that bounds it, such as /donor-dashboard.",
+    );
+  }
+  const validIn = segment ?? scope.addressPrefix;
+  const guarded = segment !== undefined;
+  // Entered without a document load: never fix the scope here (BR1).
+  const enteredSoftly =
+    guarded && !isDocumentScopeFixed() && loadedOutside(validIn);
+  const fixed = !enteredSoftly && fixDocumentScope(scope, validIn);
 
   useEffect(() => {
     if (!fixed) reloadDocument();
@@ -150,6 +214,14 @@ export function DocumentScopeProvider({
   useLayoutEffect(() => {
     if (fixed) fixedScopeListeners.forEach((listener) => listener());
   }, [fixed]);
+  // Leaving the segment softly loads the new address as a document (BR1).
+  // (A provider that did not fix its scope has already asked for a reload.)
+  useEffect(() => {
+    if (!guarded || !fixed) return;
+    return () => {
+      if (!inSegment(window.location.pathname, validIn)) reloadDocument();
+    };
+  }, [guarded, fixed, validIn]);
 
   if (!fixed) return null;
   return (

@@ -114,6 +114,20 @@ browser query cache keys every query by the document's person, tenant and
 assignment, and keys in browser storage carry the person and the tenant
 (`documentStorageKey` in `@asym/database/document-storage`).
 
+A document's scope is valid inside its segment and nowhere else, and crossing
+the segment's boundary, in or out, is a document load
+(`packages/database/document-scope.tsx`). A tenant's segment is its address
+prefix, which `TenantDocument` guards from the address. A document whose
+address names no tenant gives its scope an empty prefix and passes its
+`segment` to `DocumentScopeProvider`, which then holds the boundary itself: it
+renders nothing and loads a new document when the document was loaded outside
+the segment, and loads a new document when it unmounts at an address outside
+it. The provider refuses an empty prefix without a segment, and an empty
+segment. The donor portal passes `/donor-dashboard`. Web Studio (slice C)
+passes `segment="/web-studio"` with an empty prefix, and so inherits the same:
+no scope outside `/web-studio`, a new document when it is left or entered
+without one, and shared links that keep their plain addresses.
+
 ESLint enforces the first rule: `own-api/no-direct-call`
 (`tooling/eslint-config/own-api.mjs`) refuses a direct `fetch`, beacon, event
 source, socket, request object, XMLHttpRequest, axios, ky or ofetch call, or

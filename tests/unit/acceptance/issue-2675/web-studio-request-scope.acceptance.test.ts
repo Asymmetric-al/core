@@ -59,11 +59,16 @@ function missionControlApi(path: string, init: RequestInit = {}) {
   return Response.json({ error: "Not found" }, { status: 404 });
 }
 
-/** A new Web Studio document showing `tenant`, as slice C will render it. */
+/**
+ * A new Web Studio document showing `tenant`, as slice C will render it: its
+ * address names no tenant, so the scope has an empty prefix and is bounded by
+ * Web Studio's path (council round 2, BR1).
+ */
 async function loadStudioDocument(tenant: TenantId) {
   cleanup();
   vi.resetModules();
   vi.stubGlobal("fetch", vi.fn(missionControlApi));
+  window.history.replaceState(null, "", "/web-studio/pages");
   const { DocumentScopeProvider } =
     await import("../../../../packages/database/document-scope");
   render(
@@ -76,6 +81,7 @@ async function loadStudioDocument(tenant: TenantId) {
           assignmentId: ORGANIZATIONS[tenant].assignmentId,
           addressPrefix: "",
         },
+        segment: "/web-studio",
       },
       null,
     ),
