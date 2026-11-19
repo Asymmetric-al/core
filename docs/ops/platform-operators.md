@@ -20,14 +20,16 @@ node scripts/platform/operators.mjs remove --user <login id or email> --actor "<
 node scripts/platform/operators.mjs list
 ```
 
-It reads two environment variables. Their values never print.
+Install `psql` 16 or later on the machine running the script. It reads two environment variables. Their values never print.
 
 | Variable                         | What                                                                                                                                      |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPERATORS_DATABASE_URL`         | The database's `postgres` connection: a local database, or a hosted project's (session pooler or direct, `sslmode=require` or stronger)   |
+| `OPERATORS_DATABASE_URL`         | The local `postgres` connection, or the hosted session pooler with `sslmode=verify-full` and the project's CA file                        |
 | `OPERATORS_SUPABASE_PROJECT_REF` | Only for a hosted address: the project the address must name. The script refuses an address that does not name this project as `postgres` |
 
 It connects as the release job does ([release job](release-job.md)): a hosted address passes the release job's one address check, `assertDatabaseTarget`, and anything else must be on this machine (`isLoopbackDatabaseUrl`). `psql` starts through the shared runner (`scripts/lib/psql.mjs`), and the person, the actor and the reason reach it as environment variables, never in its arguments or the SQL text.
+
+For a hosted project, copy its **session pooler** address from Connect and use the CA certificate downloaded from Database Settings. The URL has this shape: `postgresql://postgres.PROJECT_REF:PASSWORD@POOLER_HOST:5432/postgres?sslmode=verify-full&sslrootcert=/absolute/path/to/project-ca.crt`. Use placeholders only in documentation. The default direct host is IPv6-only; the pooler works over IPv4 without buying the IPv4 add-on. Do not enable paid add-ons for this procedure. TOTP is included; leave phone factors off.
 
 What it does, in one transaction that locks the list against any other run:
 
@@ -50,4 +52,8 @@ Each is the owner's, by hand, once per hosted project, and none runs in CI:
 
 1. Switch on TOTP enrolment and verification in the project's Auth settings (Authentication, Multi-Factor). The repository's `supabase/config.toml` switches them on for local stacks only; `supabase config push` is not part of any job.
 2. Add the first operator: the owner's own login, with the project's `postgres` connection in `OPERATORS_DATABASE_URL` and its ref in `OPERATORS_SUPABASE_PROJECT_REF`.
-3. Sign in as that operator and enrol a TOTP factor (the operator area, WP2c part 2). Until then every platform command refuses the operator for want of the second factor.
+3. **Not available in part 1:** sign in and enrol a TOTP factor once part 2 ships the operator area. Until then the product has no hosted enrolment screen; adding a login does not raise its session to `aal2`. Every platform gate stays closed to that session.
+
+## Recovery
+
+For a lost device, remove the lost factor from the user's Auth dashboard page or through the Auth admin API. The operator must enrol and verify a replacement; removing a factor does not satisfy the gate. If the last operator is locked out or compromised, the release owner first adds a trusted replacement with the database script, which does not need an MFA session. Then remove the old operator before deleting the login from Auth.
