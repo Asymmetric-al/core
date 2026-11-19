@@ -152,12 +152,17 @@ tests, is:
   - `assert_eve_policy_actor_tenant`: a live row in the tenant since R1;
     WP2c removed the branch that passed a `super_admin` profile with no
     tenant.
+  - `has_eve_policy_permission`: checks the profile's login against the
+    operator list, or checks an active permission grant in the requested
+    tenant. The lexical scan matches the grant's `tenant_id`; the function
+    does not read `profiles.tenant_id`.
   - `enforce_eve_policy_permission_tenant` (INVOKER): since WP2c, live
-    rows of the grantee and the granter in the tenant, judged again only
-    when an update changes them; no application code writes its table.
+    rows of the grantee and the granter in the tenant, checked again when
+    either changes, the grant is reactivated, or its permission changes;
+    no application code writes its table.
   - `enforce_eve_ai_settings_grant_tenant` (INVOKER): since WP2c, a live row
-    of the grantee in the tenant, judged again only when an update changes
-    it; no application code writes its table.
+    of the grantee in the tenant, checked again when the grantee or tenant
+    changes or the grant is reactivated; no application code writes its table.
   - `atomic_update_profile_with_audit` (INVOKER): the profile's login holds a
     live row in the tenant since R1.
   - `atomic_update_user_role_with_audit`: dropped by WP2c (AL-2675) with

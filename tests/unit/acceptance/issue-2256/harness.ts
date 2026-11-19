@@ -79,6 +79,8 @@ export const READER_FUNCTIONS: Record<string, boolean> = {
   validate_eve_notification_recipient: true,
   assert_eve_launch_profile: true,
   assert_eve_policy_actor_tenant: true,
+  // WP2c verifies the operator's login from profiles; tenant_id belongs to the grant.
+  has_eve_policy_permission: true,
   enforce_eve_policy_permission_tenant: false,
   enforce_eve_ai_settings_grant_tenant: false,
   atomic_update_profile_with_audit: false,
