@@ -495,7 +495,13 @@ export function createSupabaseAuthStrategy(
       createRpcAssignmentReader(supabase as unknown as AssignmentRpcClient),
     );
     if (!resolution.ok) {
-      return refused("no_selection");
+      // Rows that could not be read are an ordinary failure, unmarked, which
+      // the person can retry; only the resolver's own refusal of the row is
+      // "choose an organization" (JR2's rule; last read of the first
+      // release, L3).
+      return refused(
+        resolution.reason === "reader_error" ? null : "no_selection",
+      );
     }
     const { assignment } = resolution;
     if (!isFromCurrentDocument({ headers, req, isGraphQL }, assignment)) {

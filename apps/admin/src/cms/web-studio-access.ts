@@ -39,7 +39,9 @@ export interface WebStudioOrganization {
 export type WebStudioSelectionState =
   | { kind: "selected"; tenantId: string; assignmentId: string }
   | { kind: "signed_out" }
-  | { kind: "none" };
+  | { kind: "none" }
+  /** The person's rows, or their organizations' names, could not be read (L3). */
+  | { kind: "unavailable" };
 
 export interface WebStudioAccess {
   /** What the document was rendered for; Web Studio's REST calls send it back. */
@@ -143,6 +145,7 @@ export async function requireWebStudioAccess(
 export async function readWebStudioSelection(): Promise<WebStudioSelectionState> {
   const { signedIn, decision } = await decideWebStudioRequest();
   if (signedIn.kind === "signed_out") return { kind: "signed_out" };
+  if (signedIn.kind === "unavailable") return { kind: "unavailable" };
   if (decision?.kind !== "allow") return { kind: "none" };
   return {
     kind: "selected",

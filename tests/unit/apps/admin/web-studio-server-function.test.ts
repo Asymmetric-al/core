@@ -23,7 +23,8 @@ const access = vi.hoisted(() => ({
   selection: { kind: "selected", tenantId: "", assignmentId: "" } as
     | { kind: "selected"; tenantId: string; assignmentId: string }
     | { kind: "signed_out" }
-    | { kind: "none" },
+    | { kind: "none" }
+    | { kind: "unavailable" },
 }));
 
 vi.mock("next/headers", () => ({
@@ -49,6 +50,23 @@ beforeEach(() => {
 });
 
 describe("which server function a Web Studio document may run", () => {
+  // Last read of the first release, L3: rows that could not be read are an
+  // ordinary failure, which the person can retry, never a refusal that asks
+  // them to choose an organization again.
+  it("fails, unrefused, when the person's rows cannot be read: no handler runs", async () => {
+    access.selection = { kind: "unavailable" };
+    const handler = vi.fn();
+    const failed = await runForWebStudioDocument(handler).catch(
+      (error: unknown) => error,
+    );
+    expect(handler).not.toHaveBeenCalled();
+    expect(failed).toBeInstanceOf(Error);
+    expect(
+      String((failed as Error & { digest?: string }).digest ?? ""),
+    ).not.toMatch(/ASYM_WEB_STUDIO_REFUSAL/);
+    expect((failed as Error).message).toMatch(/try again/i);
+  });
+
   it("runs one from a document rendered for the row the cookie selects", async () => {
     const handler = vi.fn(async () => ({ state: "ok" }));
     await expect(runForWebStudioDocument(handler)).resolves.toEqual({

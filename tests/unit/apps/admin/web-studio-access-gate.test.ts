@@ -202,8 +202,13 @@ describe("requireWebStudioAccess", () => {
       await import("../../../../apps/admin/src/cms/web-studio-access");
     await expect(readWebStudioSelection()).resolves.toEqual({ kind: "none" });
 
+    // Last read of the first release, L3 (JR2's rule in Web Studio): rows
+    // that could not be read are not "no choice"; the call fails as any
+    // other, and the person can try again.
     state.signedIn = { kind: "unavailable" };
-    await expect(readWebStudioSelection()).resolves.toEqual({ kind: "none" });
+    await expect(readWebStudioSelection()).resolves.toEqual({
+      kind: "unavailable",
+    });
 
     state.signedIn = { kind: "signed_out" };
     await expect(readWebStudioSelection()).resolves.toEqual({

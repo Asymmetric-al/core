@@ -41,10 +41,24 @@ export class WebStudioServerFunctionRefusal extends Error {
   }
 }
 
+/**
+ * The person's rows could not be read: an ordinary failure, with no refusal
+ * in its digest, so the document asks nobody to choose again and the person
+ * can retry (JR2's rule; last read of the first release, L3).
+ */
+export class WebStudioServerFunctionUnavailable extends Error {
+  constructor() {
+    super(
+      "Web Studio could not check your organization just now. Please try again.",
+    );
+    this.name = "WebStudioServerFunctionUnavailable";
+  }
+}
+
 /** Why a server function with these claims may not run, or `null` when it may. */
 export function webStudioServerFunctionRefusal(
   claims: Headers,
-  selection: WebStudioSelectionState,
+  selection: Exclude<WebStudioSelectionState, { kind: "unavailable" }>,
 ): WebStudioRefusal | null {
   if (selection.kind === "signed_out") return "no_session";
   if (selection.kind === "none") return "no_selection";
@@ -63,10 +77,11 @@ export function webStudioServerFunctionRefusal(
 export async function runForWebStudioDocument<T>(
   run: () => Promise<T>,
 ): Promise<T> {
-  const refusal = webStudioServerFunctionRefusal(
-    await headers(),
-    await readWebStudioSelection(),
-  );
+  const selection = await readWebStudioSelection();
+  if (selection.kind === "unavailable") {
+    throw new WebStudioServerFunctionUnavailable();
+  }
+  const refusal = webStudioServerFunctionRefusal(await headers(), selection);
   if (refusal) throw new WebStudioServerFunctionRefusal(refusal);
   return run();
 }

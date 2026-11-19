@@ -58,9 +58,11 @@ beforeAll(async () => {
 function fakes({
   rows,
   signedIn = true,
+  readFails = false,
 }: {
   rows: ReturnType<typeof row>[];
   signedIn?: boolean;
+  readFails?: boolean;
 }) {
   const reads = { assignments: 0 };
   const client = {
@@ -72,7 +74,9 @@ function fakes({
     rpc: vi.fn(async (fn: string) => {
       if (fn !== "current_user_assignments") throw new Error(fn);
       reads.assignments += 1;
-      return { data: rows, error: null };
+      return readFails
+        ? { data: null, error: { message: "connection reset" } }
+        : { data: rows, error: null };
     }),
     from: vi.fn(),
   };
@@ -240,6 +244,26 @@ describe("the organization a Web Studio request acts in", () => {
       expect(user).toBeNull();
       expect(readWebStudioRefusal(request)).toBe("no_selection");
     }
+  });
+
+  // Last read of the first release, L3 (JR2's rule in Web Studio): rows
+  // that could not be read are an ordinary failure, unmarked, never "choose
+  // an organization", which would ask a valid editor to choose again.
+  it("is nothing, unmarked, when the person's rows cannot be read", async () => {
+    const a = row(TA);
+    const { strategy, payload } = fakes({ rows: [a], readFails: true });
+    const request = req("GET");
+
+    const { user } = await strategy.authenticate({
+      headers: new Headers({
+        cookie: `sb=1; ${await webStudioCookie(TA, a.id)}`,
+      }),
+      payload,
+      req: request,
+    });
+
+    expect(user).toBeNull();
+    expect(readWebStudioRefusal(request)).toBeNull();
   });
 
   it("is read from live rows on every request, so a revoked row stops working at the next one", async () => {
