@@ -268,6 +268,12 @@ The database does not enforce the order: a rebuild from source applies the
 whole chain to a database with no recorded heads, and a guard in the
 migration would stop it (council R6). Its rollback, run by hand, is
 `supabase/migrations/rollback_20261119022102_request_tenant_policies.sql`.
+It stops, changing nothing, unless 20261119022102 is the newest version in
+the migration ledger: reverse every later migration first. It leaves the
+ledger as it is, so the next release does not apply the migration again, and
+leaves the Realtime publication alone unless its marked block is run, which
+is only for a database built by replaying the chain. It ends with PostgREST's
+schema reload.
 
 The migration sets `lock_timeout` to 5s. If a long reader holds one of the
 fifty tables it alters, it fails fast with `55P03` and nothing is applied;

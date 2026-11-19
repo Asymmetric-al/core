@@ -2,18 +2,45 @@
 -- AL-2675). Run by hand, in one transaction, only to go back to the chain
 -- before it; the apps of the first release keep working on either side.
 --
+-- It stops, changing nothing, unless 20261119022102 is the newest version in
+-- the migration ledger (supabase_migrations.schema_migrations): it replaces
+-- policies, functions and grants by name, so over a later migration it would
+-- undo what that migration changed. Reverse every later migration first. It
+-- leaves the ledger as it is, and the Realtime publication too unless the
+-- marked block in section 6 is run (see there). It ends with PostgREST's
+-- schema reload.
+--
 -- Generated from the catalog of the chain with and without the migration
--- (council R10): every policy, function (definition, owner, EXECUTE grants
--- and parallel mark), relation and column privilege, trigger and publication
--- member that the migration changed, and only the privileges each relation
--- held before. Proven on a disposable database: the chain, then this file,
--- has the schema fingerprint (scripts/release/schema-fingerprint.mjs) of the
--- chain without the migration. Counts: 63 policies restored, 101 policies recreated, 6 functions restored, 1 triggers dropped, 9 functions dropped, 42 relations' privileges restored, 7 publication members restored.
+-- (council R10): every policy, function (definition, owner, EXECUTE grants,
+-- parallel mark and comment), relation and column privilege, trigger and
+-- publication member that the migration changed, and only the privileges
+-- each relation held before. Counts: 63 policies restored, 101 policies recreated, 6 functions restored, 1 function comments restored, 1 triggers dropped, 9 functions dropped, 42 relations' privileges restored, 7 publication members in the marked block.
+--
+-- Proven on a disposable database built by replaying the chain
+-- (scripts/verify/supabase-migrations.mjs), with a ledger whose newest version
+-- is 20261119022102: the chain, then this file with the marked block run, has
+-- the schema fingerprint (scripts/release/schema-fingerprint.mjs) of the chain
+-- without the migration. Without the block, the two differ in those
+-- publication members alone. The proof covers what the fingerprint covers;
+-- comments are not in it, and the restored comments were compared apart.
 
 BEGIN;
 
 SET LOCAL lock_timeout = '5s';
 SET LOCAL search_path = public;
+
+DO $$
+DECLARE
+  v_newest TEXT;
+BEGIN
+  IF pg_catalog.to_regclass('supabase_migrations.schema_migrations') IS NULL THEN
+    RAISE EXCEPTION 'rollback_20261119022102: this database has no migration ledger (supabase_migrations.schema_migrations), so it cannot show that 20261119022102 is its newest migration; nothing was changed';
+  END IF;
+  SELECT pg_catalog.max(version) INTO v_newest FROM supabase_migrations.schema_migrations;
+  IF v_newest IS DISTINCT FROM '20261119022102' THEN
+    RAISE EXCEPTION 'rollback_20261119022102: the newest migration recorded is %, not 20261119022102. Reverse every later migration first, newest first, then run this file; nothing was changed', COALESCE(v_newest, 'none');
+  END IF;
+END $$;
 
 -- 1. Policies: every policy as the chain before 20261119022102 held it.
 DROP POLICY account_claim_requests_staff_select ON public.account_claim_requests;
@@ -715,6 +742,7 @@ AS $function$
     ELSE NULL
   END;
 $function$;
+COMMENT ON FUNCTION authz.current_tenant_id() IS NULL;
 CREATE OR REPLACE FUNCTION authz.current_user_id()
  RETURNS uuid
  LANGUAGE sql
@@ -896,13 +924,24 @@ GRANT INSERT ON TABLE public.support_tickets TO authenticated;
 GRANT UPDATE ON TABLE public.support_tickets TO authenticated;
 GRANT DELETE ON TABLE public.support_tickets TO authenticated;
 
--- 6. Publication members.
-ALTER PUBLICATION supabase_realtime ADD TABLE public.funds;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.locations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.post_comments;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.post_fires;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.post_likes;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.post_prayers;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.posts;
+-- 6. The Realtime publication: left alone unless you run the marked block.
+-- The migration removed these tables from supabase_realtime only where it
+-- found them there. Run the block only if they were members before the
+-- cutover, which is true of a database built by replaying the chain
+-- (20260625002117_canonical_tanstack_db_realtime_rls.sql adds them) and of no
+-- hosted database: remove the leading "-- " of its 7 statements, then run
+-- the file. Restoring them publishes tenant rows to Realtime subscribers.
+-- BEGIN marked block: replayed chain only
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.funds;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.locations;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.post_comments;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.post_fires;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.post_likes;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.post_prayers;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.posts;
+-- END marked block
+
+-- 7. PostgREST reloads its schema cache.
+SELECT pg_notify('pgrst', 'reload schema');
 
 COMMIT;

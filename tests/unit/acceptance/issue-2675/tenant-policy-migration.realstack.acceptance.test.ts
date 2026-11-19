@@ -1801,6 +1801,108 @@ describe.skipIf(!ADMIN_URL)(
       ).toEqual([{ n: 0 }]);
     });
 
+    // Fixcheck F1: the rollback is run by hand. Its statements run here inside
+    // the case's own transaction, which is always rolled back.
+    describe("the rollback", () => {
+      const file = readFileSync(
+        "supabase/migrations/rollback_20261119022102_request_tenant_policies.sql",
+        "utf8",
+      );
+      const body = file.slice(
+        file.indexOf("\nBEGIN;\n") + "\nBEGIN;\n".length,
+        file.lastIndexOf("\nCOMMIT;"),
+      );
+      /** The marked block, run only on a database built by replaying the chain. */
+      const block = [
+        ...body.matchAll(
+          /^-- (ALTER PUBLICATION supabase_realtime ADD TABLE public\.\w+;)$/gm,
+        ),
+      ].map((m) => m[1]!);
+      const inTx = async (fn: () => Promise<void>) => {
+        await db.query("begin");
+        try {
+          await fn();
+        } finally {
+          await db.query("rollback");
+        }
+      };
+      /** Runs SQL under a savepoint; the error message, or null. */
+      const run = async (sql: string) => {
+        await db.query("savepoint rollback_case");
+        try {
+          await db.query(sql);
+          await db.query("release savepoint rollback_case");
+          return null;
+        } catch (error) {
+          await db.query("rollback to savepoint rollback_case");
+          return (error as Error).message;
+        }
+      };
+      /** A migration ledger whose versions from this migration on are `versions`. */
+      const ledger = async (versions: string[]) => {
+        await db.query("create schema if not exists supabase_migrations");
+        await db.query(
+          "create table if not exists supabase_migrations.schema_migrations (version text primary key, statements text[], name text)",
+        );
+        await db.query(
+          "delete from supabase_migrations.schema_migrations where version >= '20261119022102'",
+        );
+        for (const v of versions)
+          await db.query(
+            "insert into supabase_migrations.schema_migrations (version, name) values ($1, 'acc2675')",
+            [v],
+          );
+      };
+      const members = async () =>
+        (
+          await rows(
+            "select tablename::text t from pg_publication_tables where pubname = 'supabase_realtime' order by 1",
+          )
+        ).map((r) => r.t);
+
+      it("refuses, changing nothing, on a database with no migration ledger", () =>
+        inTx(async () => {
+          await db.query("drop schema if exists supabase_migrations cascade");
+          const refused = await run(body);
+          expect(refused).toMatch(/^rollback_20261119022102: /);
+          expect(refused).toMatch(/nothing was changed/);
+        }));
+
+      it("refuses, changing nothing, while a later migration is recorded, and says to reverse it first", () =>
+        inTx(async () => {
+          await ledger(["20261119022102", "20991231000000"]);
+          const refused = await run(body);
+          expect(refused).toMatch(/20991231000000/);
+          expect(refused).toMatch(/reverse/i);
+          expect(refused).toMatch(/nothing was changed/);
+        }));
+
+      it("by default leaves an empty publication empty; its marked block restores the seven members; it restores the helper's comment and ends with the schema reload", () =>
+        inTx(async () => {
+          await ledger(["20261119022102"]);
+          await db.query("drop publication if exists supabase_realtime");
+          await db.query("create publication supabase_realtime");
+          expect(await run(body)).toBeNull();
+          expect(await members()).toEqual([]);
+          // The claim-reading body is back, and with it not the comment of
+          // the lookup that reads no claim.
+          const helper = await rows(
+            `select pg_get_functiondef('authz.current_tenant_id()'::regprocedure) def,
+                    obj_description('authz.current_tenant_id()'::regprocedure, 'pg_proc') note`,
+          );
+          expect(helper[0]!.def).toMatch(/app_metadata|jwt/);
+          expect(String(helper[0]!.note ?? "")).not.toMatch(
+            /reads no token claim/i,
+          );
+          expect(body.trimEnd()).toMatch(
+            /SELECT pg_notify\('pgrst', 'reload schema'\);$/,
+          );
+          expect(block).toHaveLength(SEVEN_REALTIME.length);
+          expect(await run(block.join("\n"))).toBeNull();
+          expect(await members()).toEqual([...SEVEN_REALTIME].sort());
+        }));
+    });
+
     describe("reads that carry no tenant header still work", () => {
       it("the caller's assignments and own profile row", () =>
         tx(async () => {
