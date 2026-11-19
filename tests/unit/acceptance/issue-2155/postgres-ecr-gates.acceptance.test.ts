@@ -371,9 +371,15 @@ describe("#2155 criterion 9: nothing else in ci-integration.yml changes", () => 
     // an earlier failure; the upload runs on failure or cancellation. The
     // job keeps its 30 minutes. Pinned in the same contract test; the entry
     // before this one was the joined branch's, which develop never held.
+    // Check of the fix lists, JR12: each step that needs a server runs after
+    // an earlier failure only when that server's health check passed (ids
+    // donor-ready, admin-ready and missionary-ready), and the CMS step runs on
+    // the Web Studio step's condition, so the Web Studio step never runs
+    // cold. Pinned in the same contract test, which now also lists the CMS
+    // step's selection to show it leaves the Web Studio spec out.
     {
       ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "82f987c9557f1bbe",
+      hash: "ff10faadba7ea045",
     },
   ] as const;
   it("triggers, permissions, concurrency, runs-on, if:, needs, services, steps match a reviewed ci-integration.yml", () => {

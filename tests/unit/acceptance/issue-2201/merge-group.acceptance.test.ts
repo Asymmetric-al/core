@@ -253,9 +253,15 @@ describe("#2201 criteria 9-12: threat-model invariants pinned at b17ce79e", () =
     // an earlier failure; the upload runs on failure or cancellation. The
     // job keeps its 30 minutes. Pinned in the same contract test; the entry
     // before this one was the joined branch's, which develop never held.
+    // Check of the fix lists, JR12: each step that needs a server runs after
+    // an earlier failure only when that server's health check passed (ids
+    // donor-ready, admin-ready and missionary-ready), and the CMS step runs on
+    // the Web Studio step's condition, so the Web Studio step never runs
+    // cold. Pinned in the same contract test, which now also lists the CMS
+    // step's selection to show it leaves the Web Studio spec out.
     {
       ref: "AL-2675 tenant address and request scope in test-e2e",
-      hash: "3a0266cc84924a99",
+      hash: "e324361ee00091db",
     },
   ] as const;
   it("non-trigger content matches an individually reviewed fingerprint", () => {

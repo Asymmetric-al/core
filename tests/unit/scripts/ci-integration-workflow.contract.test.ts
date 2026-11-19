@@ -63,6 +63,17 @@ function listPlaywrightTests(args: string[]): string {
   return output;
 }
 
+// Check of the fix lists, JR12: a step that needs a server runs after an
+// earlier failure only when that server answered its health check.
+const ADMIN_READY =
+  "if: ${{ !cancelled() && steps.admin-ready.outcome == 'success' }}";
+const MISSIONARY_READY =
+  "if: ${{ !cancelled() && steps.missionary-ready.outcome == 'success' }}";
+const DONOR_READY =
+  "if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' }}";
+const BOTH_READY =
+  "if: ${{ !cancelled() && steps.donor-ready.outcome == 'success' && steps.admin-ready.outcome == 'success' }}";
+
 describe("ci-integration workflow contract", () => {
   const workflow = readWorkflow();
   const scripts = readPackageScripts();
@@ -305,29 +316,33 @@ describe("ci-integration workflow contract", () => {
       return testE2e.slice(start, next === -1 ? undefined : next);
     };
     const folders = new Map<string, string>();
-    for (const [step, script, output] of [
+    for (const [step, script, output, condition] of [
       [
         "Tenant address (admin app)",
         "test:e2e:tenant-address:admin",
         "test-results/tenant-address-admin",
+        ADMIN_READY,
       ],
       [
         "Request scope (admin app)",
         "test:e2e:request-scope:admin",
         "test-results/request-scope-admin",
+        ADMIN_READY,
       ],
       [
         "Tenant address (missionary app)",
         "test:e2e:tenant-address:missionary",
         "test-results/tenant-address-missionary",
+        MISSIONARY_READY,
       ],
       [
         "Request scope (missionary app)",
         "test:e2e:request-scope:missionary",
         "test-results/request-scope-missionary",
+        MISSIONARY_READY,
       ],
     ] as const) {
-      expect(stepBlock(step), step).toContain("if: ${{ !cancelled() }}");
+      expect(stepBlock(step), step).toContain(condition);
       expect(scripts[script], script).toContain(` --output=${output}`);
       folders.set(output, step);
     }
@@ -336,7 +351,7 @@ describe("ci-integration workflow contract", () => {
     // own with the same rules; it runs the default config, so its report
     // folder names its output folder too, and its script says so.
     const webStudio = stepBlock("Web Studio tenant (admin app)");
-    expect(webStudio).toContain("if: ${{ !cancelled() }}");
+    expect(webStudio).toContain(BOTH_READY);
     expect(webStudio).toContain(
       'PLAYWRIGHT_REPORT_DIR: "playwright-report/web-studio-tenant"',
     );
@@ -349,7 +364,7 @@ describe("ci-integration workflow contract", () => {
     );
 
     const donor = stepBlock("Request scope (donor app)");
-    expect(donor).toContain("if: ${{ !cancelled() }}");
+    expect(donor).toContain(DONOR_READY);
     expect(donor).toContain(
       'PLAYWRIGHT_REPORT_DIR: "playwright-report/request-scope-donor"',
     );
@@ -428,6 +443,58 @@ describe("ci-integration workflow contract", () => {
       '--grep-invert "@manual|@cms-local|cms-web-studio-tenant\\.spec"',
     );
   });
+
+  // Check of the fix lists, JR12. The Web Studio step counts on the CMS step
+  // to have compiled Web Studio's views, so the two run on one condition: an
+  // earlier failure skips neither, and the Web Studio step never runs cold.
+  // Each server's health check is the step every later step of that server
+  // waits on.
+  it("guards each step that needs a server on that server's health check, and runs the CMS and Web Studio steps on one condition", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    const stepBlock = (name: string) => {
+      const start = testE2e.indexOf(`      - name: ${name}
+`);
+      expect(start, name).toBeGreaterThanOrEqual(0);
+      const next = testE2e.indexOf("      - name: ", start + 1);
+      return testE2e.slice(start, next === -1 ? undefined : next);
+    };
+    for (const [step, id] of [
+      ["Wait for donor health endpoint", "donor-ready"],
+      ["Wait for admin health endpoint", "admin-ready"],
+      ["Wait for missionary health endpoint", "missionary-ready"],
+    ] as const) {
+      expect(stepBlock(step), step).toContain(`id: ${id}
+`);
+    }
+    expect(stepBlock("Run Playwright CMS E2E")).toContain(BOTH_READY);
+    expect(stepBlock("Web Studio tenant (admin app)")).toContain(BOTH_READY);
+  });
+
+  // JR12: the CMS step's selection leaves the Web Studio spec out, shown by
+  // listing what it runs, not by reading its pattern; the Web Studio step's
+  // own selection lists it.
+  it("leaves the Web Studio tenant spec out of the CMS step, by listing", () => {
+    const cms = listPlaywrightTests([
+      "--grep",
+      "@cms",
+      "--grep-invert",
+      "@manual|@cms-local|cms-web-studio-tenant\.spec",
+      "--project=chromium",
+      "--list",
+    ]);
+    expect(cms).toContain("@cms");
+    expect(cms).not.toContain("cms-web-studio-tenant.spec.ts");
+    const own = listPlaywrightTests([
+      "tests/e2e/cms-web-studio-tenant.spec.ts",
+      "--project=chromium",
+      "--grep",
+      "@cms",
+      "--grep-invert",
+      "@manual|@cms-local",
+      "--list",
+    ]);
+    expect(own).toContain("cms-web-studio-tenant.spec.ts");
+  }, 60_000);
 
   // Council on the joined release, JB5: the missionary steps run after an
   // earlier failure, so the server they use must be started then too, or
