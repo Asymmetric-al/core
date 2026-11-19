@@ -117,6 +117,12 @@ export function runOperatorMfa(args, spawn = spawnSync) {
       timeout: 480_000,
     },
   );
+  if (run.error) {
+    console.error(
+      `error: the operator MFA suite failed to run (${run.error.code ?? "spawn error"}).`,
+    );
+    return 1;
+  }
   return run.status ?? 1;
 }
 

@@ -33,6 +33,25 @@ describe("run-operator-mfa", () => {
     expect(timeouts[0] + timeouts[1]).toBeLessThan(600_000);
   });
 
+  it("reports a suite startup error without logging stack credentials", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const spawn = vi
+        .fn()
+        .mockReturnValueOnce({ status: 0, stdout: STATUS })
+        .mockReturnValueOnce({
+          status: null,
+          error: { code: "ETIMEDOUT", message: STATUS },
+        });
+      expect(runOperatorMfa([], spawn)).toBe(1);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining("ETIMEDOUT"));
+      expect(error.mock.calls.flat().join(" ")).not.toContain(
+        "service-fixture",
+      );
+    } finally {
+      error.mockRestore();
+    }
+  });
   it("hands the suite the stack's values and requires them", () => {
     expect(operatorMfaEnvFromStatus(STATUS)).toEqual({
       OPERATOR_MFA_API_URL: "http://127.0.0.1:26321",

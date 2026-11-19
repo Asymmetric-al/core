@@ -27,7 +27,7 @@ import { spawnSync } from "node:child_process";
 import { createHmac, randomUUID } from "node:crypto";
 
 import pg from "pg";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 const API = process.env.OPERATOR_MFA_API_URL ?? "";
 const ANON = process.env.OPERATOR_MFA_ANON_KEY ?? "";
@@ -89,7 +89,10 @@ function claims(token: string): Record<string, unknown> {
 type Reply = { status: number; json: Record<string, unknown> | null };
 
 async function call(url: string, init: RequestInit): Promise<Reply> {
-  const response = await fetch(url, init);
+  const response = await fetch(url, {
+    ...init,
+    signal: AbortSignal.timeout(15_000),
+  });
   const text = await response.text();
   return {
     status: response.status,
@@ -97,6 +100,28 @@ async function call(url: string, init: RequestInit): Promise<Reply> {
   };
 }
 
+it("aborts stalled stack HTTP calls", async () => {
+  const expired = AbortSignal.abort(
+    new DOMException("deadline", "TimeoutError"),
+  );
+  const deadline = vi.spyOn(AbortSignal, "timeout").mockReturnValue(expired);
+  const request = vi
+    .spyOn(globalThis, "fetch")
+    .mockImplementation(async (_url, init) => {
+      init?.signal?.throwIfAborted();
+      return new Response("{}");
+    });
+  try {
+    await expect(call("http://localhost", {})).rejects.toMatchObject({
+      name: "TimeoutError",
+    });
+    expect(deadline.mock.calls[0]?.[0]).toBeGreaterThan(0);
+    expect(deadline.mock.calls[0]?.[0]).toBeLessThanOrEqual(30_000);
+  } finally {
+    request.mockRestore();
+    deadline.mockRestore();
+  }
+});
 /** The Auth API, as the person (their token) or as the service key. */
 function auth(path: string, body: unknown, token?: string, service = false) {
   return call(`${API}/auth/v1${path}`, {
@@ -187,7 +212,12 @@ it("recovers an unrecorded login and attempts every cleanup after a failed opera
 describe.skipIf(!READY)(
   "AL-2675 WP2c: the operators' second factor on a real Supabase stack",
   () => {
-    const db = new pg.Client({ connectionString: DB_URL });
+    const db = new pg.Client({
+      connectionString: DB_URL,
+      connectionTimeoutMillis: 10_000,
+      query_timeout: 15_000,
+      statement_timeout: 15_000,
+    });
     const password = `wp2c-${randomUUID()}`;
     const operator = {
       email: `wp2c-operator-${randomUUID()}@example.invalid`,
