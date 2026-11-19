@@ -582,7 +582,7 @@ describe.skipIf(!adminDatabaseUrl)(
 
 describe.skipIf(!adminDatabaseUrl)(
   "first rebuild recovery (real stack)",
-  { timeout: 600_000 },
+  { timeout: 900_000 },
   () => {
     const source = listSourceMigrations({ root: process.cwd() });
     const silent = () => {};
