@@ -1,8 +1,4 @@
-import {
-  defaultRouteForRole,
-  isAppRole,
-  routeForProfileRole,
-} from "@asym/auth/roles";
+import { defaultRouteForRole, isAppRole, routeForRole } from "@asym/auth/roles";
 import { describe, expect, it } from "vitest";
 
 describe("auth/roles", () => {
@@ -19,10 +15,10 @@ describe("auth/roles", () => {
   });
 
   it("maps profile role aliases to home routes", () => {
-    expect(routeForProfileRole("admin")).toBe("/");
-    expect(routeForProfileRole("staff")).toBe("/");
-    expect(routeForProfileRole("super_admin")).toBe("/");
-    expect(routeForProfileRole("donor")).toBe("/donor-dashboard");
-    expect(routeForProfileRole("unknown_role")).toBeNull();
+    expect(routeForRole("admin")).toBe("/");
+    expect(routeForRole("staff")).toBe("/");
+    expect(routeForRole("super_admin")).toBe("/");
+    expect(routeForRole("donor")).toBe("/donor-dashboard");
+    expect(routeForRole("unknown_role")).toBeNull();
   });
 });

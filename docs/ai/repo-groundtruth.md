@@ -183,7 +183,7 @@ Summary of what is repo-visible:
   Whether GitHub _requires_ code-owner review is **Unknown** (platform).
 - **Generated/mirrored, do-not-hand-edit:** `.claude/skills/`, `.cursor/skills/`,
   `.agents/skills/` (mirrors of `docs/ai/skills/`), `apps/admin/payload-types.ts`
-  (prettier-ignored generated types), `.next-docs/`, `vendor/payload-upstream`,
+  (prettier-ignored generated types), `.next-docs/`,
   `vendor/react-pdf-packages`.
 - **Import-path protection:** the data-access boundary (§4.2) is enforced on
   specific import paths by ESLint + `verify:data-boundary`.

@@ -4,6 +4,11 @@
  * UNSPECIALIZED_ASSIGNMENT_BUNDLES and NAMED_SUBJECTS are deep-frozen at module
  * load. The two private maps are checked from source (OQ3). Owned by
  * Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2675 (WP2a): the tables gain plan 5.4's capabilities, one
+ * bundle per staff sub-role and the tenant administrator's bundle, and lose
+ * `platform_admin`; ROWS_SHA pins the new rows and the truncation case uses
+ * `tenant_admin`.
  */
 import { createHash } from "node:crypto";
 
@@ -12,9 +17,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import * as H from "../issue-492/harness";
 
-/** sha256 of JSON.stringify(capabilityRegistryRows()) at develop 88eefbd9 (18 capabilities, 71 grants). */
+/** sha256 of JSON.stringify(capabilityRegistryRows()) after AL-2675 (28 capabilities, 74 grants). */
 const ROWS_SHA =
-  "33cad873dfc95994e65d030bc75d6102600b3e65d4dea4745901a9a4a8409b71";
+  "39838b467bb97863fdaff45fef3378f740b65d1067d4fcbc0be6741a5d0163bb";
 const UNIT = "tests/unit/auth/capabilities/effective-capabilities.test.ts";
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 const file = (m: string) => `${H.CAP_DIR}/${m}.ts`;
@@ -224,7 +229,7 @@ describe("#2303 criterion 9: the exported tables are deep-frozen at module load"
       (t) => t.RDB["member:missionary"].push("contribution_admin"),
     ],
     ["delete a subject", (t) => delete t.RDB.tenant_admin],
-    ["truncate a subject's bundles", (t) => (t.RDB.platform_admin.length = 0)],
+    ["truncate a subject's bundles", (t) => (t.RDB.tenant_admin.length = 0)],
   ];
   it.each(MUTATIONS)(
     "criterion 9: a strict-mode attempt to %s throws TypeError and leaves tables and resolution unchanged",

@@ -1,8 +1,8 @@
 import {
   getAuthContext,
-  hasAnyContextRole,
+  hasContextRoleClass,
   requireAuth,
-  requireRole,
+  requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -111,7 +111,10 @@ export async function GET(request: NextRequest) {
     // any client-supplied id for drafts.
     let effectiveMissionaryId = missionaryId ?? null;
     if (status !== "published") {
-      if (!hasAnyContextRole(ctx, ["missionary", "staff"])) {
+      if (!(
+        hasContextRoleClass(ctx, "missionary") ||
+        hasContextRoleClass(ctx, "staff")
+      )) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       effectiveMissionaryId = ctx.profileId;
@@ -155,7 +158,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await getAuthContext(request);
-    requireRole(auth, ["missionary"]);
+    requireRoleClass(auth, ["missionary"]);
     const ctx = auth as AuthenticatedContext;
 
     const parsed = postWriteSchema.safeParse(

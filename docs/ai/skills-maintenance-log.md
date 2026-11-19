@@ -1058,17 +1058,24 @@ bun run skills:sync
 bun run skills:verify
 ```
 
-For a failed upstream refresh, restore every changed source and its records
-together from the commit before the refresh: canonical skill directories under
-`docs/ai/skills/`, ecosystem skill directories under `.agents/skills/` (never
-the generated `.claude/skills/` or `.cursor/skills/` mirrors),
-`skills-lock.json`, `docs/ai/skill-source-audit.json`, `AGENTS.md`,
-`README.md`, and `docs/AI_AGENT_PLAYBOOK.md`. Only then rerun
-`bun run skills:sync` and `bun run skills:verify`: a sync run before an
-ecosystem source and its audit record are restored republishes the failed copy
-to every mirror. See
-[Recovery and future refresh](#recovery-and-future-refresh) for the
-transactional rule.
+For a failed upstream refresh, restore the changed inputs together to their
+pre-refresh state. Use any recovery copies reported by an incomplete rollback.
+For paths still needing recovery, use the prior commit only if those paths
+were clean before the refresh. If pre-refresh edits are missing and no copy
+contains them, stop before syncing and recover those edits separately.
+
+The restore set includes changed canonical skill directories under
+`docs/ai/skills/`, ecosystem skill directories under `.agents/skills/`,
+`skills-lock.json`, `docs/ai/skill-source-audit.json`, and any changed adapter
+configs, including `scripts/refresh-overlays/ecosystem-core-overlays.json`
+and `scripts/refresh-overlays/ecosystem-core-guidance.json`. It also includes
+changed companion files such as `AGENTS.md`, `README.md`, and
+`docs/AI_AGENT_PLAYBOOK.md`.
+
+Once the inputs agree, run `bun run skills:sync` and `bun run skills:verify`.
+Sync rebuilds the `.claude/skills/` and `.cursor/skills/` mirrors from those
+inputs. See [Recovery and future refresh](#recovery-and-future-refresh) for
+the transactional rule.
 
 ## 2026-10-22 — Payload public-v4 adapters
 

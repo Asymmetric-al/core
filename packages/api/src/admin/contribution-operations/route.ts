@@ -194,7 +194,7 @@ export const GET = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );
 
 export const POST = withOperation(
@@ -250,7 +250,7 @@ export const POST = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );
 
 export const decisionRequestSchema = z.object({
@@ -344,7 +344,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );
 
 /**
@@ -399,5 +399,5 @@ export const GET_RECEIPT_SNAPSHOT_PDF = withOperation(
       );
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "admin.gifts.manage" },
 );

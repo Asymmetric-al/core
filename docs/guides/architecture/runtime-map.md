@@ -123,6 +123,13 @@ environment, runtime, and Supabase probe latency. The production readiness
 verifier reads that metadata to confirm the live release matches the target
 commit when the deployment exposes a non-`unknown` commit.
 
+Each app also serves `/api/health/migrations` through
+`@asym/api/health/db` (`createMigrationHealthRoute`): it compares the migration heads its build
+carries with the heads the release job recorded, read through
+`public.platform_health()` with the service key, and answers 200 only when the
+database holds them. The release job promotes a staged deployment only on that
+answer; see [the release job runbook](../../ops/release-job.md).
+
 ## Route Inventory
 
 > **Note (2026-08-18):** Twenty CRM is retired
@@ -236,6 +243,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/cms/public/pages/[...slug]`                              | Node.js (no `runtime` segment export) | CMS public pages                                   |
 | admin      | `/api/cms/public/project-pages/[slug]`                         | Node.js (no `runtime` segment export) | CMS public project pages                           |
 | admin      | `/api/cms/public/updates`                                      | Node.js (no `runtime` segment export) | CMS public updates                                 |
+| admin      | `/api/donate/outbox`                                           | Node.js (no `runtime` segment export) | Donation outbox processing                         |
 | admin      | `/api/email/connect`                                           | Node.js (no `runtime` segment export) | Resend admin integration                           |
 | admin      | `/api/email/assets/upload`                                     | Node.js (no `runtime` segment export) | Email Studio asset upload                          |
 | admin      | `/api/email/test-send`                                         | Node.js (no `runtime` segment export) | Resend admin integration                           |
@@ -250,6 +258,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                            |
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                              |
+| admin      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
 | admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving                  |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                          |
@@ -264,7 +273,6 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                               |
 | donor      | `/api/donate`                                                  | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
-| donor      | `/api/donate/outbox`                                           | Node.js (no `runtime` segment export) | Donation outbox processing                         |
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                                       |
 | donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client                |
 | donor      | `/api/donor/feed-preferences`                                  | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
@@ -276,6 +284,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()             |
 | donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
+| donor      | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
 | donor      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe          |
 | donor      | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/posts/[postId]`                                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
@@ -291,6 +300,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                        |
+| missionary | `/api/health/migrations`                                       | Node.js (no `runtime` segment export) | Migration-head check for the release job           |
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client             |
 | missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client                 |
 | missionary | `/api/missionary/tasks/[taskId]`                               | Node.js (no `runtime` segment export) | Missionary-owned task mutation                     |

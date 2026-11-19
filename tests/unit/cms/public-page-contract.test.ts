@@ -63,6 +63,10 @@ describe("public CMS page contract", () => {
     );
     expect(sanitizePublicCmsHref("javascript:alert(1)")).toBeNull();
     expect(sanitizePublicCmsHref("//evil.example")).toBeNull();
+    // Browsers read a backslash after the first slash as a second slash, so
+    // this is the same protocol-relative address.
+    expect(sanitizePublicCmsHref("/\\evil.example")).toBeNull();
+    expect(sanitizePublicCmsHref("/give\\monthly")).toBe("/give\\monthly");
   });
 
   it("builds giving checkout URLs from CMS references instead of payment facts", () => {

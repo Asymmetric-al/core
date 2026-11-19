@@ -13,6 +13,8 @@ import {
   parseVercelEnvKeys,
   parseVercelProjectDetails,
   summarizeProjectReadiness,
+  FORBIDDEN_RUNTIME_ENV_NAMES,
+  PROJECTS,
 } from "../../../scripts/verify/vercel-production-readiness.mjs";
 
 const project = {
@@ -272,7 +274,7 @@ export RESEND_API_KEY='re_hidden'
       commit: "abc123",
       health: { url: project.healthUrl, status: 200 },
       productionBranch: "main",
-      productionBranchEnabled: true,
+      productionGitDeployments: false,
     });
 
     expect(report.ready).toBe(true);
@@ -308,7 +310,7 @@ export RESEND_API_KEY='re_hidden'
         releaseEnvironment: "production",
       },
       productionBranch: "production",
-      productionBranchEnabled: true,
+      productionGitDeployments: false,
     });
 
     const formatted = formatReadinessReport({
@@ -322,7 +324,7 @@ export RESEND_API_KEY='re_hidden'
     expect(formatted).toContain("Overall: BLOCKED (donor)");
   });
 
-  it("blocks when the Vercel production branch is disabled locally", () => {
+  it("blocks while Vercel's Git integration still deploys the production branch", () => {
     const report = summarizeProjectReadiness({
       project,
       envValues: {
@@ -342,12 +344,91 @@ export RESEND_API_KEY='re_hidden'
       commit: "abc123",
       health: { url: project.healthUrl, status: 200 },
       productionBranch: "production",
-      productionBranchEnabled: false,
+      productionGitDeployments: true,
     });
 
     expect(report.ready).toBe(false);
     expect(
       formatReadinessReport({ commit: "abc123", reports: [report] }),
-    ).toContain("Production branch: `production` (disabled");
+    ).toContain("Git deployments ENABLED");
+  });
+
+  it("blocks an application environment that holds a Postgres connection string, naming it only", () => {
+    const report = summarizeProjectReadiness({
+      project,
+      envKeys: [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "STRIPE_SECRET_KEY",
+        "SUPABASE_DB_URL",
+        "POSTGRES_URL",
+      ],
+      envValues: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        STRIPE_SECRET_KEY: "sk_test_hidden",
+        SUPABASE_DB_URL:
+          "postgresql://postgres:secret-value@db.example.supabase.co/postgres",
+      },
+      deployments: [
+        {
+          url: "d.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 1,
+          commitSha: "abc123",
+          commitRef: "production",
+        },
+      ],
+      commit: "abc123",
+      health: { url: project.healthUrl, status: 200 },
+      productionBranch: "production",
+      productionGitDeployments: false,
+    });
+    const formatted = formatReadinessReport({
+      commit: "abc123",
+      reports: [report],
+    });
+    expect(report.ready).toBe(false);
+    expect(report.forbiddenEnv).toEqual(["POSTGRES_URL", "SUPABASE_DB_URL"]);
+    expect(formatted).toContain("`SUPABASE_DB_URL`");
+    expect(formatted).not.toContain("secret-value");
+  });
+
+  it("requires no migration connection string and a cms_runtime login for Payload", () => {
+    const admin = PROJECTS.find((item) => item.key === "admin")!;
+    const keys = admin.requiredEnv.map((item) =>
+      typeof item === "string" ? item : item.key,
+    );
+    expect(keys).not.toContain("SUPABASE_DB_URL");
+    for (const item of PROJECTS) {
+      for (const name of FORBIDDEN_RUNTIME_ENV_NAMES) {
+        expect(
+          item.requiredEnv.map((r) => (typeof r === "string" ? r : r.key)),
+        ).not.toContain(name);
+      }
+    }
+    const payload = admin.requiredEnv.find(
+      (item) => typeof item !== "string" && item.key === "PAYLOAD_DATABASE_URI",
+    ) as { validate: (value: string) => boolean };
+    const ref = "abcdefghijklmnopqrst";
+    expect(
+      payload.validate(
+        `postgresql://cms_runtime.${ref}:x@aws-0-us-east-1.pooler.supabase.com:5432/postgres`,
+      ),
+    ).toBe(true);
+    expect(
+      payload.validate(
+        `postgresql://cms_runtime:x@db.${ref}.supabase.co:5432/postgres`,
+      ),
+    ).toBe(true);
+    expect(
+      payload.validate(
+        `postgresql://postgres.${ref}:x@aws-0-us-east-1.pooler.supabase.com:5432/postgres`,
+      ),
+    ).toBe(false);
+    expect(
+      payload.validate(
+        `postgresql://cms_owner:x@db.${ref}.supabase.co:5432/postgres`,
+      ),
+    ).toBe(false);
   });
 });

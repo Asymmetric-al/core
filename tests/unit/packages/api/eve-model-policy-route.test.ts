@@ -19,10 +19,15 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireAuth: vi.fn(),
   requireRole: requireRoleMock,
+  // AL-2675: the gates that replaced requireRole, stubbed alike.
+  requireCapability: requireRoleMock,
+  requireTenantAdministrator: requireRoleMock,
+  requireRoleClass: requireRoleMock,
 }));
 
 vi.mock("@asym/lib/audit/logger", () => ({
@@ -67,7 +72,6 @@ describe("Eve model-policy admin route", () => {
       email: "admin@example.com",
       tenantId: "tenant_1",
       role: "admin",
-      profileRole: "admin",
       memberships: [],
       profileId: "profile_1",
       isAuthenticated: true,
@@ -85,10 +89,9 @@ describe("Eve model-policy admin route", () => {
     const response = await GET(request());
 
     expect(response.status).toBe(200);
-    expect(requireRoleMock).toHaveBeenCalledWith(expect.anything(), [
-      "admin",
-      "super_admin",
-    ]);
+    // AL-2675: the route asks for the tenant administrator.
+    expect(requireRoleMock).toHaveBeenCalledWith(expect.anything());
+    expect(requireRoleMock.mock.calls[0]).toHaveLength(1);
     expect(await response.json()).toEqual({
       canManage: true,
       policies: [],

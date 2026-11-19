@@ -1,0 +1,97 @@
+// psql for the release job. The connection travels in PG* environment
+// variables, never in argv, and SQL travels on stdin. Errors carry psql's exit
+// status and a redacted message, never the connection string.
+import { spawnSync } from "node:child_process";
+
+const URL_FIELDS = {
+  PGHOST: (url) => decodeURIComponent(url.hostname).replace(/^\[|\]$/g, ""),
+  PGPORT: (url) => url.port,
+  PGDATABASE: (url) => decodeURIComponent(url.pathname.slice(1)),
+  PGUSER: (url) => decodeURIComponent(url.username),
+  PGPASSWORD: (url) => decodeURIComponent(url.password),
+  PGSSLMODE: (url) => url.searchParams.get("sslmode") ?? "",
+};
+// Ambient libpq settings that could redirect the connection.
+const AMBIENT = [
+  "PGSERVICE",
+  "PGSERVICEFILE",
+  "PGHOSTADDR",
+  "PGPASSFILE",
+  "PGOPTIONS",
+  "DATABASE_URL",
+];
+
+export function redact(text) {
+  return String(text ?? "")
+    .replace(/\b(?:postgres(?:ql)?):\/\/\S+/gi, "[redacted-connection]")
+    .replace(/(password[^\n]{0,20}?)(["'][^"'\n]*["'])/gi, "$1[redacted]")
+    .replace(/SCRAM-SHA-256\$\S+/g, "[redacted-verifier]");
+}
+
+/** libpq environment for one connection string. */
+export function connectionEnvironment(databaseUrl, base = process.env) {
+  let url;
+  try {
+    url = new URL(databaseUrl);
+  } catch {
+    throw new Error("The database connection is not a valid URL.");
+  }
+  if (!["postgres:", "postgresql:"].includes(url.protocol)) {
+    throw new Error("The database connection is not a Postgres URL.");
+  }
+  const env = { ...base };
+  for (const key of AMBIENT) delete env[key];
+  for (const key of Object.keys(URL_FIELDS)) delete env[key];
+  for (const [key, read] of Object.entries(URL_FIELDS)) {
+    const value = read(url);
+    if (value) env[key] = value;
+  }
+  return env;
+}
+
+/**
+ * Runs SQL from stdin with ON_ERROR_STOP and returns stdout.
+ * `variables` are exported to psql's environment and read in SQL with
+ * `\getenv`, so their values appear neither in argv nor in the SQL text.
+ */
+export function runPsql({
+  databaseUrl,
+  sql,
+  variables = {},
+  psqlBin = process.env.PSQL_BIN?.trim() || "psql",
+  run = spawnSync,
+  label = "psql",
+}) {
+  const env = connectionEnvironment(databaseUrl);
+  for (const [key, value] of Object.entries(variables)) env[key] = value;
+  const result = run(
+    psqlBin,
+    ["-X", "-q", "-A", "-t", "-v", "ON_ERROR_STOP=1", "-f", "-"],
+    { input: sql, env, encoding: "utf8", shell: false, maxBuffer: 64 << 20 },
+  );
+  if (result.error) {
+    throw new Error(
+      `${label}: could not run psql (${result.error.code ?? "error"}).`,
+    );
+  }
+  if (result.status !== 0) {
+    const detail = redact(result.stderr).trim().split("\n").slice(-3).join(" ");
+    throw new Error(`${label}: psql exited ${result.status}. ${detail}`.trim());
+  }
+  return result.stdout ?? "";
+}
+
+/** Runs SQL whose last output line is one JSON value, and parses it. */
+export function queryJson(options) {
+  const output = runPsql(options).trim().split("\n").filter(Boolean).at(-1);
+  if (output === undefined) {
+    throw new Error(`${options.label ?? "psql"}: the query returned no rows.`);
+  }
+  try {
+    return JSON.parse(output);
+  } catch {
+    throw new Error(
+      `${options.label ?? "psql"}: the query did not return JSON.`,
+    );
+  }
+}

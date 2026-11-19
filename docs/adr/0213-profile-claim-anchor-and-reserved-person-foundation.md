@@ -1,6 +1,6 @@
 # ADR-0213: Profile claim anchor and reserved typed person foundation
 
-**Status:** Accepted (Phase 4 A2/A3/A6, with Phase 9 and Phase 25 amendments).
+**Status:** Accepted (Phase 4 A2/A3/A6, with Phase 9 and Phase 25 amendments; clarified 2026-11-17 for AL-2688).
 
 This records accepted target intent for AL-504, not installed schema,
 implementation, provider qualification or activation evidence.
@@ -55,6 +55,34 @@ records unresolved, and qualify exact atomic binding and protected-read denial.
 The typed reservation does not activate donor-person linkage, cross-role dedupe
 or a full identity-management product. Later Party owners govern their own
 population and financial/document invariants.
+
+## Amendments
+
+### 2026-11-17: The Party is populated through its CRM owner, not the reserved `persons` seam (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record: keep it, and record what follows. This records intent,
+  not implementation; the
+  [implementation record](../audits/core-crm-cms-database-implementation-record.md)
+  says what exists.
+- **Clarification.** The Party model is populated through its CRM owner. Each
+  donor and missionary gets a Party from evidence, not by matching names or
+  emails, in `public.parties`, with `donors.party_id` and ministry-assignment
+  keys that replace both meanings of `missionary_id` (plan WP5). Nothing is
+  populated through the reserved `persons` anchor.
+- **The reserved seam is retired.** The empty `persons` scaffold, with
+  `missionaries.person_id`, `profiles.person_id` and their field-policy rows, is
+  dropped, because nothing reads or writes them (plan WP5). The frozen
+  person-anchor acceptance suite under `tests/unit/acceptance/issue-2256/` is
+  rewritten or retired in the same package.
+- **Kept.** Profiles stay the authentication anchor and hold display data only.
+  A claim writes an account link from a login to a Party in one tenant, with
+  fresh single-use proof of the contact, and never a `profile_id`. A gift never
+  creates a link
+  ([ADR-0215](0215-guest-attribution-exact-claim-proof-and-current-access.md)).
+  Own-row access moves from `profile_id` to the account link.
 
 ## Related contracts
 

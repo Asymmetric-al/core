@@ -119,6 +119,12 @@ export function sortCrmNotes(
   });
 }
 
-export function canActorReadRestrictedNotes(role: string | null | undefined) {
-  return role === "admin" || role === "super_admin";
+/**
+ * Restricted notes are the tenant administrator's: both of their policies
+ * require the flag (plan 5.4 and 5.5; AL-2675).
+ */
+export function canActorReadRestrictedNotes(actor: {
+  isTenantAdministrator: boolean;
+}) {
+  return actor.isTenantAdministrator;
 }

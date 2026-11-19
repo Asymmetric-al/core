@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { memberRow } from "../../../../fixtures/fake-service-client";
+
 import {
   buildApprovalEmailContent,
   deliverApprovalEmailNotifications,
@@ -99,6 +101,7 @@ class QueryBuilder {
   private maybeSingleResult = false;
   private statusFilter: string | null = null;
   private idFilter: string | null = null;
+  private bounds: [number, number] | null = null;
 
   constructor(
     private readonly table: string,
@@ -138,6 +141,16 @@ class QueryBuilder {
   }
 
   in() {
+    return this;
+  }
+
+  order() {
+    return this;
+  }
+
+  /** The preferences read is paged to the end (round 2 on WP2a, R2). */
+  range(from: number, to: number) {
+    this.bounds = [from, to];
     return this;
   }
 
@@ -256,7 +269,13 @@ class QueryBuilder {
       if (this.maybeSingleResult) {
         return { data: this.state.preferences[0] ?? null, error: null };
       }
-      return { data: this.state.preferences, error: null };
+      const rows = this.state.preferences;
+      return {
+        data: this.bounds
+          ? rows.slice(this.bounds[0], this.bounds[1] + 1)
+          : rows,
+        error: null,
+      };
     }
 
     if (this.table === "contribution_approval_notifications") {
@@ -435,6 +454,23 @@ function createStub(state: StubState): AdminSupabaseClient {
       return new QueryBuilder(table, state);
     },
     rpc(name: string, params: Record<string, unknown>) {
+      // AL-2675 (WP2a sweep; NR-68): approvers and email recipients are
+      // members of the tenant, read through tenant_member_profiles. The
+      // stub's approvers are live tenant administrators there, the holders of
+      // contributions.approve_corrections; profiles are read by id.
+      if (name === "tenant_member_profiles") {
+        // The reader goes on until a page comes back empty (round 2, R2).
+        if (params.p_after_membership_id)
+          return Promise.resolve({ data: [], error: null });
+        const ids = params.p_profile_ids as string[] | null;
+        return Promise.resolve({
+          data: state.approvers
+            .map((row) => String(row.id))
+            .filter((id) => !ids || ids.includes(id))
+            .map((id) => memberRow({ profileId: id, isTenantAdmin: true })),
+          error: null,
+        });
+      }
       if (name === "ensure_contribution_approval_sla_notifications") {
         return Promise.resolve(
           resolveApprovalSlaNotificationsRpc(state, params),

@@ -4,6 +4,7 @@ import path from "node:path";
 
 import nextEnv from "@next/env";
 
+import { requireDisposableDatabase } from "../lib/environment-marker.mjs";
 import {
   DEMO_ADMIN_EMAIL,
   DEMO_ADMIN_USER_ID,
@@ -18,7 +19,7 @@ import {
   createLexicalRichText,
   createLocalPageLayout,
 } from "./lib/local-data.mjs";
-import { executeSql, queryJson } from "./lib/postgres.mjs";
+import { executeSql, getLocalDatabaseUrl, queryJson } from "./lib/postgres.mjs";
 import {
   adminAppDir,
   adminMediaDir,
@@ -599,6 +600,11 @@ async function seedCmsContent(payload, publicSeed) {
 }
 
 async function main() {
+  // Plan 7.5: reseed only a database marked disposable.
+  requireDisposableDatabase({
+    databaseUrl: getLocalDatabaseUrl(),
+    action: "seed local CMS content into",
+  });
   const publicSeed = await ensurePublicSeedRows();
 
   const originalCwd = process.cwd();

@@ -28,7 +28,6 @@ const auth: AuthContext = {
   role: "donor",
   email: "acceptance@example.test",
   isAuthenticated: true,
-  profileRole: "donor",
   memberships: [],
 };
 const from = vi.fn((table: string) => {

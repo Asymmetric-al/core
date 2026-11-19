@@ -163,10 +163,12 @@ it("keeps Try again busy while the retry waits offline, then lands on the page h
   expect(screen.queryByRole("region", { name: "Monthly support" })).toBeNull();
 
   setOnline(true);
-  await waitFor(() =>
+  // The retry moves focus to the heading as it ends; the error view and its
+  // Try again leave in the render after that. Wait for both.
+  await waitFor(() => {
     expect(document.activeElement).toBe(
       screen.getByRole("heading", { level: 1, name: "Welcome back, Jordan" }),
-    ),
-  );
-  expect(button.isConnected).toBe(false);
+    );
+    expect(button.isConnected).toBe(false);
+  });
 });

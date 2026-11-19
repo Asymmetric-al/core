@@ -89,12 +89,10 @@ function getPsqlConnection(databaseUrl) {
   return { env, args };
 }
 
+// Local CMS scripts read Payload's connection, never the Core migration
+// string (NA-04).
 export function getLocalDatabaseUrl() {
-  return (
-    process.env.PAYLOAD_DATABASE_URI ||
-    process.env.SUPABASE_DB_URL ||
-    LOCAL_DATABASE_URL
-  );
+  return process.env.PAYLOAD_DATABASE_URI || LOCAL_DATABASE_URL;
 }
 
 export function runPsql(sql, options = {}) {

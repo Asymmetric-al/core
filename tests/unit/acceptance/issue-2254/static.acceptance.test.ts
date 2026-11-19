@@ -49,6 +49,40 @@ const CI_BASES = [
     bytes: 40426,
     sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
   },
+  {
+    // Amended by AL-2674 (WP1 slice 1.3, plan 7.1): docs/ci.md documents the
+    // release workflow, the preview database job and the two new migrate
+    // steps, and its field-policy paragraph describes the classification
+    // manifest that replaced the AL-491 census. Pinned on that exact reviewed
+    // whole file.
+    ref: "AL-2674 release workflow",
+    bytes: 44177,
+    sha256: "97278ee9a0648442ac26f152b01acc8c16ae96f9478e5d7f4bdab556dc076118",
+  },
+  {
+    // Amended by AL-2674 (WP1.2 joined): docs/ci.md's Node line follows
+    // .node-version to 24.22.3, its migrate real-stack bullet describes the
+    // three AL-2674 steps (the program-wide suite glob, the release and CMS
+    // role suites, the Payload qualification), its migrate summary names the
+    // seed-count check and supabase/seed-expectations.json, and its release
+    // section names PAYLOAD_MIGRATION_DATABASE_URI. Pinned on that exact
+    // reviewed whole file, so nothing follows it.
+    ref: "AL-2674 Node 24.22.3 and program steps",
+    bytes: 45088,
+    sha256: "6cb39ed32ae6b0a6e7a57bb7b62ad8e6bf179086703cb32f9b4f6bb42d3a4ada",
+  },
+  {
+    // Amended by AL-2673 (council round 2, B4 and its follow-up): docs/ci.md
+    // gains one section, "Local Supabase stack workflow", after the release
+    // workflow section. It documents `.github/workflows/local-supabase.yml`,
+    // which applies the chain and the seed to the real Supabase image and runs
+    // the auth email round trips, a workflow of its own so that ci.yml and
+    // ci-integration.yml do not change. Nothing else in the file changes.
+    // Pinned on that exact reviewed whole file.
+    ref: "AL-2673 local Supabase stack workflow",
+    bytes: 46788,
+    sha256: "b83d66c4b3ccfc91c2ba86c7118eebff6e9e1b5fafcf748ad9996b1a4a3e006b",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
@@ -213,26 +247,45 @@ describe("#2254 criterion 9: census evidence", () => {
       "0ab1165501bf059ba12c71898cb9597725282be458ab0c71e6280c1064e4736a",
     );
   });
-  it("v1 artifact bytes and v1 census checks unchanged; v2 binds the new migration by working-tree hash", () => {
+  // AL-2674 (plan 7.1): the census script no longer reads the capture or the
+  // supplements; the manifest carries their classification and pins the v1
+  // and v2 source migrations by SHA-256. The v1 and v2 artifacts stay as
+  // unchanged historical evidence, and the manifest must agree with them.
+  it("v1 artifact bytes unchanged and pinned by the manifest; v2 binds the new migration by working-tree hash", () => {
     expect(sha256(readFileSync(`${FP}/repository-supplement-v1.json`))).toBe(
       "ca922ac896858c16597826e3f81e30f1c74f6903e466b5e053c891fd4b8b3296",
     );
-    const script = read("scripts/verify/field-policy-census.mjs");
+    const manifest = JSON.parse(read(`${FP}/manifest.json`));
+    const pins = Object.fromEntries(
+      (manifest.pinned_sources as { path: string; sha256: string }[]).map(
+        (p) => [p.path, p.sha256],
+      ),
+    );
     expect(
-      missing(script, [
-        "supabase/migrations/20260702090000_donation_stripe_refund_ids.sql",
-        "2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda",
-        '"git",',
-        'name: "stripe_refund_ids"',
-        'udt_name: "_text"',
-      ]),
-    ).toEqual([]);
-    expect(missing(script, [/reviewed supplements/i])).toEqual([]);
+      pins["supabase/migrations/20260702090000_donation_stripe_refund_ids.sql"],
+    ).toBe("2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda");
+    expect(manifest.record_types.donations.stripe_refund_ids).toEqual({
+      type: "text[]",
+      nullable: false,
+      default: "'{}'::text[]",
+      category: "financial",
+      processor_identifier: true,
+      mission_control: "v--",
+      donor: "---",
+      missionary: "---",
+      public: "---",
+      export: "---",
+    });
+    const script = read("scripts/verify/field-policy-census.mjs");
+    expect(missing(script, ["pinned_sources", "PINNED"])).toEqual([]);
     expect(
       /single source supplement|\b172\b|\b860\b/.test(script),
       "stale",
     ).toBe(false);
     const own = migrationFile();
+    expect(pins[`supabase/migrations/${own}`]).toBe(
+      sha256(readFileSync(`${MIGRATIONS}/${own}`)),
+    );
     const v2 = read(`${FP}/${V2}`);
     expect(
       missing(v2, [
@@ -244,11 +297,21 @@ describe("#2254 criterion 9: census evidence", () => {
       V2,
     ).toEqual([]);
   });
-  it("supabase/tests/field_policies_foundation.sql expects 176 columns and 880 rows", () => {
+  // AL-2674 (plan 7.1): the SQL test no longer holds a literal copy of the
+  // capture or its counts, which let no classified column be dropped. Exact
+  // parity, including the v2 columns' 10 rows, is the manifest gate's (the
+  // census suite and the real-stack criterion 9 run it); the SQL test keeps
+  // the checks that hold whatever columns are classified.
+  it("supabase/tests/field_policies_foundation.sql defers exact parity to the manifest gate and still checks five rows per classified column", () => {
     const sql = read("supabase/tests/field_policies_foundation.sql");
-    expect(sql).toMatch(/<>\s*176\b/);
-    expect(sql).toMatch(/<>\s*880\b/);
-    expect(sql).not.toMatch(/<>\s*(?:172|860)\b/);
+    expect(sql).not.toMatch(
+      /expected_field_policy_columns|<>\s*(?:172|176|860|880)\b/,
+    );
+    expect(sql).toContain("scripts/verify/field-policy-census.mjs");
+    expect(sql).toContain("HAVING count(*)<>5 OR count(DISTINCT surface)<>5");
+    expect(sql).toContain(
+      "C4: identity supplement must be generated TEXT email_normalized",
+    );
   });
 });
 

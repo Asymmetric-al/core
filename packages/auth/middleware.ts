@@ -15,12 +15,14 @@ import {
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
 import { hasAnyRole, type RoleSnapshot } from "./permissions";
+import { ROLE_CLASS_HEADER } from "./request-headers";
 import {
   isListedRouteMatch,
   matchesListedRoute,
   matchesProtectedPrefix,
 } from "./route-matching";
 
+import type { RoleClass } from "./principal/types";
 import type { UserRole } from "@asym/database/types";
 
 export interface AuthMiddlewareOptions {
@@ -32,6 +34,15 @@ export interface AuthMiddlewareOptions {
   redirectAuthenticatedTo?: string;
   unauthorizedRedirectTo?: string;
   allowedRoles?: readonly UserRole[];
+  /**
+   * The surface's role class (plan 5.1): staff for Mission Control and Web
+   * Studio, missionary for the missionary workspace, donor for the donor
+   * portal. The proxy sets it as the `x-asym-role-class` request header on
+   * every request it passes on, pages and API routes alike, overwriting any
+   * value the client sent, and hands it to `resolveUserRole`. Without it the
+   * proxy removes the header.
+   */
+  roleClass?: RoleClass;
   allowApi?: boolean;
   /**
    * Resolves the signed-in user's complete role snapshot so the edge can
@@ -45,6 +56,7 @@ export interface AuthMiddlewareOptions {
     userId: string;
     supabase: SupabaseUserRoleReader;
     request: NextRequest;
+    roleClass: RoleClass | null;
   }) => Promise<RoleSnapshot | null>;
 }
 
@@ -71,11 +83,31 @@ function isProtectedRoute(pathname: string, prefixes: string[]) {
   return isListedRouteMatch(pathname, prefixes, matchesProtectedPrefix);
 }
 
-function withPathHeader(request: NextRequest, pathname: string) {
+/**
+ * The request headers the proxy passes on: the pathname, and the surface's
+ * role class or nothing, never a value the client sent.
+ */
+function forwardedRequestHeaders(
+  request: NextRequest,
+  pathname: string,
+  roleClass: RoleClass | null,
+) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
+  if (roleClass) requestHeaders.set(ROLE_CLASS_HEADER, roleClass);
+  else requestHeaders.delete(ROLE_CLASS_HEADER);
+  return requestHeaders;
+}
+
+function withPathHeader(
+  request: NextRequest,
+  pathname: string,
+  roleClass: RoleClass | null,
+) {
   return NextResponse.next({
-    request: { headers: requestHeaders },
+    request: {
+      headers: forwardedRequestHeaders(request, pathname, roleClass),
+    },
   });
 }
 
@@ -179,6 +211,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const redirectAuthenticatedTo = options.redirectAuthenticatedTo;
   const unauthorizedRedirectTo = options.unauthorizedRedirectTo ?? loginPath;
   const resolveUserRole = options.resolveUserRole;
+  const roleClass = options.roleClass ?? null;
 
   // A role gate with no way to resolve a role fails closed on every request, so
   // the misconfiguration presents as "nobody can sign in anywhere" rather than
@@ -196,7 +229,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const pathname = request.nextUrl.pathname;
 
     if (allowApi && pathname.startsWith("/api/")) {
-      return withPathHeader(request, pathname);
+      return withPathHeader(request, pathname, roleClass);
     }
 
     const config = getSupabasePublicConfig();
@@ -225,11 +258,14 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         return NextResponse.redirect(redirectUrl);
       }
 
-      return withPathHeader(request, pathname);
+      return withPathHeader(request, pathname, roleClass);
     }
 
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-asym-pathname", pathname);
+    const requestHeaders = forwardedRequestHeaders(
+      request,
+      pathname,
+      roleClass,
+    );
     let supabaseResponse = NextResponse.next({
       request: { headers: requestHeaders },
     });
@@ -331,7 +367,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       if (user && redirectAuthenticatedTo) {
         if (allowedRoles && allowedRoles.length > 0) {
           const roleSnapshot = resolveUserRole
-            ? await resolveUserRole({ userId: user.id, supabase, request })
+            ? await resolveUserRole({
+                userId: user.id,
+                supabase,
+                request,
+                roleClass,
+              })
             : null;
 
           if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
@@ -380,7 +421,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     // Fails closed: an unresolved role is treated as not allowed.
     if (isProtectedPath && user && allowedRoles && allowedRoles.length > 0) {
       const roleSnapshot = resolveUserRole
-        ? await resolveUserRole({ userId: user.id, supabase, request })
+        ? await resolveUserRole({
+            userId: user.id,
+            supabase,
+            request,
+            roleClass,
+          })
         : null;
 
       if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {

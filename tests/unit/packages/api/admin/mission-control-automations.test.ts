@@ -174,8 +174,16 @@ function authContext(
     email: "admin@example.com",
     tenantId: "tenant_1",
     role: "admin",
-    profileRole: "admin",
-    memberships: [],
+    // AL-2675: an administrator is the flagged staff row.
+    memberships: [
+      {
+        tenantId: "tenant_1",
+        role: "staff",
+        staffRole: "development",
+        isActive: true,
+        isTenantAdmin: true,
+      },
+    ],
     profileId: "profile_1",
     isAuthenticated: true,
     ...overrides,
@@ -195,12 +203,34 @@ describe("mission control automation permissions", () => {
   it("blocks non-admin staff from managing automations", () => {
     expect(
       canManageAutomations(
-        authContext({ role: "staff", profileRole: "staff" }),
+        authContext({
+          role: "staff",
+          memberships: [
+            {
+              tenantId: "tenant_1",
+              role: "staff",
+              staffRole: "development",
+              isActive: true,
+              isTenantAdmin: false,
+            },
+          ],
+        }),
       ),
     ).toBe(false);
     expect(() =>
       assertAutomationPermission(
-        authContext({ role: "staff", profileRole: "staff" }),
+        authContext({
+          role: "staff",
+          memberships: [
+            {
+              tenantId: "tenant_1",
+              role: "staff",
+              staffRole: "development",
+              isActive: true,
+              isTenantAdmin: false,
+            },
+          ],
+        }),
       ),
     ).toThrow("automation:manage");
   });
