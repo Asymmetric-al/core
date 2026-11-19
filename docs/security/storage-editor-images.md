@@ -61,6 +61,20 @@ has none.
 - The two folder policies read `profiles.tenant_id`, so they are in the
   sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
 
+**Since the second release of WP2b (AL-2675,
+`20261119022102_request_tenant_policies.sql`).** The upload, replace, read and
+delete policies of the editor images all test a live membership of the caller
+in the tenant the `editor/{tenantId}/...` path names, through
+`authz.caller_tenant_ids()`, with no assignment, because Storage cannot carry
+the request headers (plan 5.2; activation review Q10). A person with two
+memberships, or two rows in one tenant, uploads in each; a person whose
+membership has ended no longer reads or deletes their images in that tenant's
+folder through the API. Reads and deletes now require the owner-folder layout,
+so the legacy `editor/<random>-<timestamp>.<ext>` objects above stay at their
+public URLs and are reachable through the API only by the server (the
+coordinator's no-legacy ruling). No policy reads `profiles.tenant_id` any
+more.
+
 ## Bucket limits
 
 | Column               | Value                                                |

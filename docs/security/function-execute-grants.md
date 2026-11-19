@@ -49,6 +49,17 @@ After the migration, on any database whatever its default privileges:
   types changed) with the same grants.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
+- Since the second release of WP2b (AL-2675,
+  `20261119022102_request_tenant_policies.sql`), `has_membership` and
+  `has_staff_membership` keep these grants and judge the request's one
+  assignment, through `authz.request_assignment()`. The request-tenant helpers
+  it adds (`authz.request_tenant_id()`, `request_assignment_id()`,
+  `request_assignment()`, `assignment_is(...)`, `assignment_is_tenant_admin()`,
+  `assignment_holds(text)`, `caller_profile_ids()`, `caller_tenant_ids()`) are
+  owned by `postgres` and executable by `authenticated` and `service_role`
+  only; so `anon` calling `current_tenant_id()` gets `42501`.
+  `public.post_comment_authors(uuid)` is a definer executable by
+  `authenticated` only.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,
   `crm_record_links` and `crm_merge_candidates` were `TO public` and call these
   helpers. They are now `TO authenticated`, with USING and WITH CHECK

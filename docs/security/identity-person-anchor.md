@@ -94,8 +94,15 @@ reading it for authz.
 
 **Finding: the repository contradicts the plan.** It is read as a tenant input
 today. Per spec In 3, this is escalated in the PR and tracked in #2267; this
-slice changes no behavior. The frozen reader set, pinned by the #2256 acceptance
-tests, is:
+slice changes no behavior.
+
+**Since the second release of WP2b (AL-2675,
+`20261119022102_request_tenant_policies.sql`), no RLS policy reads
+`profiles.tenant_id`.** The staff profile read is dropped (plan 5.1), and the
+four Storage policies below test a live membership in the path's tenant
+(`authz.caller_tenant_ids()`). The #2256 real-stack suite now expects an empty
+policy reader set; the function readers below are unchanged. The policy rows
+below record the set as #2256 froze it:
 
 - RLS policies:
   - `public.profiles` `profiles staff tenant select`. Staff of the profile's
