@@ -404,30 +404,37 @@ export function useDocumentScope(): DocumentScope | null {
  * address only withholds the scope; it never supplies one.
  */
 export function getDocumentScope(): DocumentScope | null {
-  if (typeof window === "undefined" || fixedScope === null) return null;
-  if (retired) return null;
-  // Another person signed in, or the person signed out, in another tab:
-  // never send the first person's scope with the second person's cookies
-  // (JB1).
-  if (sessionChanged()) {
-    retireDocumentScope();
-    return null;
-  }
-  return fixedSegment?.contains(window.location.pathname) ? fixedScope : null;
+  const state = readDocumentScopeForSend();
+  return state.kind === "scoped" ? state.scope : null;
 }
 
 /**
- * Whether this document's scope is retired: another person signed in, the
- * person signed out, or the server refused the scope (JB1). The signed-in
- * person is checked again first. A request from such a document is never
- * sent (check of the fix lists, JR1): with no scope the server would resolve
- * it to the person signed in now. `false` on the server, and in a document
- * that fixed no scope.
+ * What one send from this document carries, decided by one read (last read
+ * of the first release, L1): `"scoped"`, with the document's fixed scope;
+ * `"unscoped"`, when the document fixed none or the address is outside the
+ * scope's segment, so the request goes out with neither header; or
+ * `"retired"`, when another person signed in, the person signed out, or the
+ * server refused the scope (JB1), so the request is not sent at all (JR1):
+ * with no scope the server would resolve it to the person signed in now.
+ *
+ * The signed-in person is checked once, here. A wrapper takes this one
+ * answer and never asks again, so a session that changes between two reads
+ * cannot turn a scoped send into an unscoped one. `"unscoped"` on the server.
  */
-export function isDocumentScopeRetired(): boolean {
-  if (typeof window === "undefined" || fixedScope === null) return false;
+export type DocumentScopeForSend =
+  | { readonly kind: "scoped"; readonly scope: DocumentScope }
+  | { readonly kind: "unscoped" }
+  | { readonly kind: "retired" };
+
+export function readDocumentScopeForSend(): DocumentScopeForSend {
+  if (typeof window === "undefined" || fixedScope === null) {
+    return { kind: "unscoped" };
+  }
   checkSessionPerson();
-  return retired;
+  if (retired) return { kind: "retired" };
+  return fixedSegment?.contains(window.location.pathname)
+    ? { kind: "scoped", scope: fixedScope }
+    : { kind: "unscoped" };
 }
 
 /**

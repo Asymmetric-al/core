@@ -1,6 +1,5 @@
 import {
-  getDocumentScope,
-  isDocumentScopeRetired,
+  readDocumentScopeForSend,
   retireDocumentScope,
 } from "./document-scope";
 import {
@@ -14,8 +13,8 @@ import {
  * a page to the app's own API carry the tenant too"; WP2b, AL-2675).
  *
  * It sends the document's tenant and assignment as the `x-asym-tenant` and
- * `x-asym-assignment` request headers, read from `getDocumentScope()` when
- * each call is made, and from nothing else: never the live address, never a
+ * `x-asym-assignment` request headers, read once when each call is made
+ * (`readDocumentScopeForSend`), and from nothing else: never the live address, never a
  * remembered value. `getAuthContext` passes them to the resolver as the
  * expected tenant and the proposed assignment, which it checks against the
  * caller's own live rows; they are proposals and nothing on the server trusts
@@ -77,10 +76,12 @@ export function ownApiFetch(
 ): Promise<Response> {
   // Refused before any request, synchronously, so the headers never leave.
   assertOwnApiPath(path);
-  if (isDocumentScopeRetired()) {
+  // One decision for this send (L1).
+  const state = readDocumentScopeForSend();
+  if (state.kind === "retired") {
     return Promise.resolve(retiredScopeResponse({ error: "Unauthorized" }));
   }
-  const scope = getDocumentScope();
+  const scope = state.kind === "scoped" ? state.scope : null;
   const headers = applyRequestScopeHeaders(new Headers(init.headers), scope);
   const sent = fetch(path, {
     credentials: "same-origin",

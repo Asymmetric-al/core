@@ -1,9 +1,6 @@
 import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
 import { isWebStudioApiPath, isWebStudioPagePath } from "@asym/auth/web-studio";
-import {
-  getDocumentScope,
-  isDocumentScopeRetired,
-} from "@asym/database/document-scope";
+import { readDocumentScopeForSend } from "@asym/database/document-scope";
 import { retiredScopeResponse } from "@asym/database/request-scope-headers";
 
 import { noticeWebStudioRefusal } from "./web-studio-refusal-notice";
@@ -109,8 +106,10 @@ export function installWebStudioDocumentFetch(
   const original = target.fetch.bind(target);
 
   target.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-    const retired = isDocumentScopeRetired();
-    const scope = retired ? null : getDocumentScope();
+    // One decision for this call (L1).
+    const state = readDocumentScopeForSend();
+    const retired = state.kind === "retired";
+    const scope = state.kind === "scoped" ? state.scope : null;
     if (!scope && !retired) return original(input, init);
     let url: URL;
     try {

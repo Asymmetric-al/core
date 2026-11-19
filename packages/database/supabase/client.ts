@@ -1,8 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 import {
-  getDocumentScope,
-  isDocumentScopeRetired,
+  readDocumentScopeForSend,
   retireDocumentScope,
 } from "../document-scope";
 import {
@@ -41,7 +40,9 @@ function scopedDataApiFetch(dataApiPrefix: string): typeof fetch {
     if (!requestUrl(input).startsWith(dataApiPrefix)) {
       return fetch(input, init);
     }
-    if (isDocumentScopeRetired()) {
+    // One decision for this send (L1).
+    const state = readDocumentScopeForSend();
+    if (state.kind === "retired") {
       return retiredScopeResponse({
         message: "Unauthorized",
         code: "ASYM_SCOPE_RETIRED",
@@ -49,7 +50,7 @@ function scopedDataApiFetch(dataApiPrefix: string): typeof fetch {
         hint: null,
       });
     }
-    const scope = getDocumentScope();
+    const scope = state.kind === "scoped" ? state.scope : null;
     const headers = applyRequestScopeHeaders(
       new Headers(
         init?.headers ?? (input instanceof Request ? input.headers : undefined),
