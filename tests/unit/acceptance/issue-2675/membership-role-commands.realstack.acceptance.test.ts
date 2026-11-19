@@ -693,6 +693,18 @@ describe.skipIf(!ADMIN_URL)(
         expect(out.code, out.message).toBeNull();
       }));
 
+    it("leaves no function in the chain that sets profiles.role, the column that once granted access", () =>
+      tx(async () => {
+        const writers = await db.query(
+          `select n.nspname || '.' || p.proname as fn
+             from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname in ('public', 'authz', 'private', 'tenant_guard', 'platform')
+              and p.prosrc ~* 'update\\s+(public\\.)?profiles\\s+(as\\s+\\w+\\s+)?set\\s+[^;]*\\mrole\\s*='
+            order by 1`,
+        );
+        expect(writers.rows).toEqual([]);
+      }));
+
     it("is reached through postgres-owned invoker wrappers, runs as the guard, and the retired function is gone", () =>
       tx(async () => {
         const fns = await db.query(
