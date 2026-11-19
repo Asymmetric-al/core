@@ -38,7 +38,7 @@ export const GET = withOperation(
       })),
     });
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 /**
@@ -85,5 +85,5 @@ export const POST = withOperation(
 
     return NextResponse.json(result);
   },
-  { roles: ["admin", "staff", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );

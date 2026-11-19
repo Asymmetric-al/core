@@ -2,6 +2,7 @@ import { sendEmail } from "@asym/email";
 
 import { decryptResendApiKey } from "../../email/crypto";
 import { readTenantEmailSettings } from "../../email/settings-store";
+import { tenantMemberProfileIds } from "../../shared/tenant-members";
 
 import type { PlannedApprovalNotification } from "./approval-notifications";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -194,11 +195,19 @@ export async function deliverApprovalEmailNotifications(input: {
   );
   let profilesById: Map<string, ProfileEmailRow>;
   try {
-    const { data, error } = await input.supabaseAdmin
-      .from("profiles")
-      .select("id, email, display_name, first_name, last_name")
-      .eq("tenant_id", input.tenantId)
-      .in("id", recipientIds);
+    // A recipient is a live member of this tenant (AL-2675, NR-68).
+    const memberIds = await tenantMemberProfileIds(
+      input.supabaseAdmin,
+      input.tenantId,
+      recipientIds,
+    );
+    const { data, error } =
+      memberIds.length > 0
+        ? await input.supabaseAdmin
+            .from("profiles")
+            .select("id, email, display_name, first_name, last_name")
+            .in("id", memberIds)
+        : { data: [], error: null };
     if (error) {
       throw new Error(error.message);
     }

@@ -53,7 +53,7 @@ export const PATCH = withOperation<RouteParams>(
 
     return NextResponse.json({ updated: true });
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );
 
 /**
@@ -77,5 +77,5 @@ export const DELETE = withOperation<RouteParams>(
 
     return NextResponse.json({ deleted: true });
   },
-  { roles: ["admin", "super_admin"] },
+  { tenantAdministrator: true },
 );

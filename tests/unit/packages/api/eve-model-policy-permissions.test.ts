@@ -25,7 +25,6 @@ function auth(role: "admin" | "super_admin"): AuthenticatedContext {
     email: "admin@example.com",
     tenantId: "00000000-0000-4000-8000-000000000003",
     role,
-    profileRole: role,
     memberships: [],
     profileId: "00000000-0000-4000-8000-000000000002",
     isAuthenticated: true,

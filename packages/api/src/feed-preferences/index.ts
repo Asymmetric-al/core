@@ -1,15 +1,9 @@
+import { getAuthContext } from "@asym/auth/context";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import type { DonorFeedPreferences } from "@asym/database/types";
-
-/**
- * Same shape check as authz.current_tenant_id(): a tenant claim that the
- * database would read as NULL is refused here before any query.
- */
-const TENANT_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const feedPreferencesUpdateSchema = z.object({
   showOrgPosts: z.boolean().optional(),
@@ -51,29 +45,24 @@ type AuthenticatedDonorLookup =
   | { status: "multiple-donors" }
   | { status: "found"; donor: DonorIdentity; tenantId: string };
 
-function tenantIdFromClaim(value: unknown): string | null {
-  return typeof value === "string" && TENANT_ID_PATTERN.test(value)
-    ? value
-    : null;
-}
-
 /**
- * Resolves the caller's donor in their JWT tenant by profile ownership, with
- * the user-JWT client, mirroring the donor_feed_preferences own-row policies
- * (docs/security/donor-feed-preferences-rls.md). Lookup errors throw.
+ * Resolves the caller's donor in the tenant of the request's resolved donor
+ * assignment, by profile ownership, with the user-JWT client, mirroring the
+ * donor_feed_preferences own-row policies
+ * (docs/security/donor-feed-preferences-rls.md). The token's tenant claim is
+ * not read (AL-2675; plan 5.4 NX-03). Lookup errors throw.
  */
 async function findDonorByAuthenticatedUser(
   supabase: SupabaseServerClient,
+  request: Request,
 ): Promise<AuthenticatedDonorLookup> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const auth = await getAuthContext(request);
 
-  if (!user) {
+  if (!auth.userId) {
     return { status: "unauthenticated" };
   }
 
-  const tenantId = tenantIdFromClaim(user.app_metadata?.tenant_id);
+  const tenantId = auth.isAuthenticated ? auth.tenantId : null;
 
   if (!tenantId) {
     return { status: "missing-tenant" };
@@ -82,7 +71,7 @@ async function findDonorByAuthenticatedUser(
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
     .select("id")
-    .eq("user_id", user.id);
+    .eq("user_id", auth.userId);
 
   if (profilesError) {
     throw profilesError;
@@ -205,10 +194,10 @@ function toFeedPreferencesUpsert(
   return payload;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
-    const donorLookup = await findDonorByAuthenticatedUser(supabase);
+    const donorLookup = await findDonorByAuthenticatedUser(supabase, request);
     const failure = donorLookupFailure(donorLookup);
 
     if (failure) {
@@ -247,7 +236,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const donorLookup = await findDonorByAuthenticatedUser(supabase);
+    const donorLookup = await findDonorByAuthenticatedUser(supabase, request);
     const failure = donorLookupFailure(donorLookup);
 
     if (failure) {

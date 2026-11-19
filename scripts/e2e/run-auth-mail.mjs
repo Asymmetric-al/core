@@ -5,7 +5,7 @@
  * the donor portal) against a running local Supabase stack and its mail
  * catcher. `bun run test:e2e:auth-mail [-- <playwright args>]`.
  *
- * Reads the stack's URL, keys and mail catcher from `supabase status`, through
+ * Reads the stack's URL, keys, database and mail catcher from `supabase status`, through
  * the repository's CLI wrapper, and hands them to Playwright and the dev
  * servers it starts under the names they read. It fails when it cannot read
  * them, instead of letting every journey skip. Set AUTH_MAIL_SUPABASE_WORKDIR
@@ -28,6 +28,9 @@ const STATUS_NAMES = {
   ANON_KEY: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   SERVICE_ROLE_KEY: "SUPABASE_SERVICE_ROLE_KEY",
   MAILPIT_URL: "E2E_AUTH_MAIL_URL",
+  // The journeys give each person the membership its app needs (AL-2675);
+  // only the database holds memberships, and authz is not on the Data API.
+  DB_URL: "E2E_AUTH_MAIL_DB_URL",
 };
 
 const START_HINT =
@@ -54,7 +57,7 @@ export function authMailEnvFromStatus(output) {
     );
   }
 
-  for (const name of ["API_URL", "MAILPIT_URL"]) {
+  for (const name of ["API_URL", "MAILPIT_URL", "DB_URL"]) {
     const { hostname } = new URL(reported[name]);
     if (!LOOPBACK_HOSTS.has(hostname)) {
       throw new Error(

@@ -6,8 +6,11 @@ import {
 import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import {
   getAuthContext,
+  hasContextCapability,
+  hasContextRoleClass,
   requireAuth,
-  requireRole,
+  requireCapability,
+  requireRoleClass,
   type AuthContext,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -241,19 +244,20 @@ const resolvers = {
         .select("*")
         .eq("id", ctx.auth.profileId)
         .single();
-      return mapProfile(data);
+      return mapProfile(data, ctx.auth);
     },
 
     myProfile: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
+      // The caller's own profile; the tenant is the resolved assignment's
+      // (AL-2675, NR-68).
       const { data } = await ctx.supabaseAdmin
         .from("profiles")
         .select("*")
         .eq("id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
         .single();
-      return mapProfile(data);
+      return mapProfile(data, auth);
     },
 
     missionaries: async (
@@ -363,7 +367,7 @@ const resolvers = {
       args: { limit?: number; offset?: number },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["donor", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["donor", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
       const limit = args.limit || 20;
       const offset = args.offset || 0;
@@ -394,7 +398,7 @@ const resolvers = {
       args: { limit?: number; offset?: number },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["missionary", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
       const limit = args.limit || 20;
       const offset = args.offset || 0;
@@ -429,7 +433,7 @@ const resolvers = {
       args: { limit?: number; offset?: number },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["admin", "staff", "super_admin"]);
+      requireCapability(ctx.auth, "admin.dashboard.access");
       const auth = ctx.auth as AuthenticatedContext;
       const limit = args.limit || 50;
       const offset = args.offset || 0;
@@ -480,16 +484,16 @@ const resolvers = {
         throw new Error(rpcError.message);
       }
 
+      // The caller's own profile (AL-2675, NR-68).
       const { data, error } = await ctx.supabaseAdmin
         .from("profiles")
         .select()
         .eq("id", auth.profileId)
-        .eq("tenant_id", auth.tenantId)
         .single();
       if (error || !data)
         throw new Error(error?.message ?? "Profile not found");
 
-      return mapProfile(data);
+      return mapProfile(data, auth);
     },
 
     createPost: async (
@@ -507,7 +511,7 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary"]);
+      requireRoleClass(ctx.auth, ["missionary"]);
       const auth = ctx.auth as AuthenticatedContext;
 
       const { data: missionary } = await ctx.supabaseAdmin
@@ -555,7 +559,7 @@ const resolvers = {
       args: { id: string },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["missionary", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
 
       const { data: post } = await ctx.supabaseAdmin
@@ -567,9 +571,7 @@ const resolvers = {
 
       if (!post) throw new Error("Post not found");
       if (
-        auth.role !== "admin" &&
-        auth.role !== "staff" &&
-        auth.role !== "super_admin" &&
+        !hasContextRoleClass(auth, "staff") &&
         (post.missionary as { profile_id?: string })?.profile_id !==
           auth.profileId
       ) {
@@ -698,7 +700,7 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["donor", "admin", "staff", "super_admin"]);
+      requireRoleClass(ctx.auth, ["donor", "staff"]);
       const auth = ctx.auth as AuthenticatedContext;
       const idempotencyKey = parseRequiredIdempotencyKey(ctx.request.headers);
       if (!idempotencyKey) {
@@ -777,7 +779,7 @@ const resolvers = {
       },
       ctx: GraphQLContext,
     ) => {
-      requireRole(ctx.auth, ["missionary"]);
+      requireRoleClass(ctx.auth, ["missionary"]);
       const auth = ctx.auth as AuthenticatedContext;
 
       const updates: Record<string, unknown> = {
@@ -817,6 +819,14 @@ const resolvers = {
       return mapMissionary(data);
     },
 
+    // What the role-change command writes since WP2a: it changes the profile
+    // role, which the restricted-note policies and the release already running
+    // still read; it grants and revokes no application access, which membership
+    // alone decides. No person can reach it: GraphQL is mounted in the donor
+    // app only, whose proxy fixes the donor class, and a donor row never holds
+    // `people.manage_members`. WP2c deletes it and builds the membership
+    // command of plan 5.4.
+    // (PR #2720 review.)
     updateUserRole: async (
       _: unknown,
       args: { input: { userId: string; role: string } },
@@ -824,12 +834,13 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
-      // Only a tenant administrator changes roles. `requireRole(…, ["admin"])`
-      // would also admit any staff member (`hasRole` treats staff as admin),
-      // so this reads the profile role directly, as the SQL command does,
-      // until WP2 moves tenant administration to the staff membership. A
-      // platform operator is not a tenant administrator.
-      if (auth.profileRole !== "admin") {
+      // Only a tenant administrator changes roles (WP0, A01). Since WP2a
+      // (AL-2675) that is the membership the request acts under holding
+      // `people.manage_members` (plan 5.4), which the registry gives the
+      // tenant-administrator flag; the profile role is no authority. The SQL
+      // command checks the same in the database. A platform operator holds no
+      // membership as such and is refused.
+      if (!hasContextCapability(auth, "people.manage_members")) {
         throw new Error(
           "Forbidden: only an organization administrator can change roles",
         );
@@ -862,26 +873,40 @@ const resolvers = {
         throw new Error(rpcError.message);
       }
 
+      // The command found the target by membership in this tenant, or raised
+      // P0002 above (AL-2675, NR-68), so the profile is read back by id. The
+      // role returned is the one the command wrote to the profile.
       const { data, error } = await ctx.supabaseAdmin
         .from("profiles")
         .select()
         .eq("id", args.input.userId)
-        .eq("tenant_id", auth.tenantId)
         .single();
       if (error || !data) throw new Error(error?.message ?? "User not found");
 
-      return mapProfile(data);
+      return mapProfile(data, {
+        tenantId: auth.tenantId,
+        role: typeof data.role === "string" ? data.role : null,
+      });
     },
   },
 };
 
-function mapProfile(data: Record<string, unknown> | null) {
+/**
+ * A profile. Given a scope (the caller's own profile, or a member found by
+ * membership), the tenant and role are that membership's, never the
+ * profile's own columns, which are no authority since AL-2675. Nested
+ * display profiles keep the columns.
+ */
+function mapProfile(
+  data: Record<string, unknown> | null,
+  scope?: { tenantId: string | null; role: string | null },
+) {
   if (!data) return null;
   return {
     id: data.id,
-    tenantId: data.tenant_id,
+    tenantId: scope ? scope.tenantId : data.tenant_id,
     userId: data.user_id,
-    role: data.role,
+    role: scope ? scope.role : data.role,
     firstName: data.first_name,
     lastName: data.last_name,
     email: data.email,

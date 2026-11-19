@@ -205,5 +205,5 @@ export const POST = withOperation(
       return toErrorResponse(error, "Failed to replay giving item.", requestId);
     }
   },
-  { roles: ["staff", "admin", "super_admin"] },
+  { capability: "contributions.use_provider_actions" },
 );

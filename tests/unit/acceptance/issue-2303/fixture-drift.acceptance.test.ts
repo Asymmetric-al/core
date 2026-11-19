@@ -234,7 +234,6 @@ describe("#2303 criterion 8: the fixture fails on both drifts", () => {
       email: null,
       tenantId: H.T,
       role: "staff",
-      profileRole: "staff",
       memberships: [],
       profileId: "prf-2303",
       isAuthenticated: true,

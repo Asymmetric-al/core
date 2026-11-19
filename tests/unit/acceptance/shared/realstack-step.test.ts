@@ -252,6 +252,9 @@ const REAL_DATABASE_FILES = [
     "issue-2674/catalog-gate.realstack",
     "issue-2674/command-lane.realstack",
     "issue-2674/privileges-manifest.realstack",
+    "issue-2675/capability-parity.realstack",
+    "issue-2675/eve-actor-membership.realstack",
+    "issue-2675/membership-core.realstack",
   ].map((f) => `${A}/${f}.acceptance.test.ts`),
   // #2714: the release job's database suites and Payload's CMS roles.
   "tests/unit/cms/cms-database-roles.realstack.test.ts",
@@ -270,18 +273,25 @@ const discovered = (): string[] =>
     .filter((f) => REAL_DATABASE_NAME.test(f))
     .sort();
 
-/** A file's text and that of the `./` modules it imports (its harness). */
-const withLocalImports = (file: string): string[] => {
+/** Read relative test modules, including harness re-exports, once per suite. */
+const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
+  const normalized = path.normalize(file);
+  if (seen.has(normalized)) return [];
+  seen.add(normalized);
   const text = readFileSync(file, "utf8");
-  const local = [...text.matchAll(/from\s+"(\.\/[^"]+)"/g)]
-    .map((m) => path.join(path.dirname(file), `${m[1]!}.ts`))
-    .filter((f) => existsSync(f));
-  return [text, ...local.map((f) => readFileSync(f, "utf8"))];
+  const local = [...text.matchAll(/\bfrom\s+["'](\.\.?\/[^"']+)["']/g)]
+    .map((match) => path.join(path.dirname(file), `${match[1]!}.ts`))
+    .filter(
+      (target) =>
+        target.startsWith(`tests${path.sep}unit${path.sep}`) &&
+        existsSync(target),
+    );
+  return [text, ...local.flatMap((target) => withLocalImports(target, seen))];
 };
 
 /**
  * The `process.env.*DATABASE_URL` a real-database file needs to run at all,
- * read in the file or in a `./` module it imports.
+ * read in the suite or its test helpers.
  */
 const databaseUrlVariable = (file: string): string[] => [
   ...new Set(

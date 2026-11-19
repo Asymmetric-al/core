@@ -83,7 +83,7 @@ const ROLLBACK_CONTRACT = {
 } as const;
 
 function canCreateRestrictedNotes(actor: ActorContext) {
-  return actor.role === "admin" || actor.role === "super_admin";
+  return actor.isTenantAdministrator;
 }
 
 async function loadTenantNotes(
@@ -139,7 +139,7 @@ export async function listMissionControlCrmNotes(
     options.actor.tenantId,
     options.params.search,
     {
-      includeRestricted: canActorReadRestrictedNotes(options.actor.role),
+      includeRestricted: canActorReadRestrictedNotes(options.actor),
     },
   );
   const sorted = sortCrmNotes(filtered, options.params.sort);

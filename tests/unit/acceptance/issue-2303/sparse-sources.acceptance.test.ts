@@ -193,7 +193,7 @@ describe("#2303 criterion 7: the suspension mapping is documented", () => {
 
   it("criterion 7: one suspended source fails the whole context with inactive_source", async () => {
     const off = H.assignment("staff", "hr", { isActive: false });
-    const gone = H.named("platform_admin", { active: false });
+    const gone = H.named("tenant_admin", { active: false });
     expect((await H.thrown(H.ctx(admin, off))).code).toBe("inactive_source");
     expect((await H.thrown(H.ctx(fin, gone))).code).toBe("inactive_source");
   });

@@ -5,6 +5,7 @@ import type {
   HumanPrincipal,
   ResolveAssignmentInput,
   ResolveAssignmentResult,
+  RoleClass,
   SessionIdentity,
 } from "./types";
 import type { MembershipRole, StaffSubrole } from "@asym/database/types";
@@ -12,7 +13,7 @@ import type { MembershipRole, StaffSubrole } from "@asym/database/types";
 const CANONICAL_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-/** Whether a membership role must carry a staff sub-role (and no other may). */
+/** Whether a membership class must carry a staff sub-role (and no other may). */
 const STAFF_ROLE_REQUIRED: Readonly<Record<MembershipRole, boolean>> = {
   donor: false,
   missionary: false,
@@ -53,6 +54,7 @@ function toActiveAssignment(
     tenant_id: tenantId,
     role: membershipRole,
     staff_role: staffValue,
+    is_tenant_admin: isTenantAdmin,
     updated_at: revision,
   } = raw as Record<string, unknown>;
   if (!isCanonicalUuid(id) || !isCanonicalUuid(tenantId)) return null;
@@ -66,6 +68,9 @@ function toActiveAssignment(
         : undefined;
   if (staffRole === undefined) return null;
   if (STAFF_ROLE_REQUIRED[membershipRole] !== (staffRole !== null)) return null;
+  // The flag exists only on a staff row (authz_memberships_tenant_admin_staff_chk).
+  if (typeof isTenantAdmin !== "boolean") return null;
+  if (isTenantAdmin && staffRole === null) return null;
   if (typeof revision !== "string" || revision.length === 0) return null;
   return Object.freeze({
     assignmentId: id,
@@ -74,6 +79,7 @@ function toActiveAssignment(
     revision,
     membershipRole,
     staffRole,
+    isTenantAdmin,
   });
 }
 
@@ -95,39 +101,29 @@ function toActiveAssignments(
   return parsed;
 }
 
-/**
- * Default hat for two or more candidates that the caller has already narrowed.
- * Never picks a tenant: candidates spanning more than one tenant give `null`
- * (rule 5a). Within one tenant it prefers the single staff row over donor and
- * missionary rows (rule 5b), the order `derivePrimaryRole` already uses. It
- * never ranks staff sub-roles, so two staff rows give `null` (rule 5c). This is
- * selection, not authorization: the chosen hat still faces the PDP.
- */
-export function pickDefaultAssignment(
-  candidates: readonly ActiveAssignment[],
-): ActiveAssignment | null {
-  const tenants = new Set(candidates.map((c) => c.tenantId));
-  if (tenants.size !== 1) return null;
-  const staff = candidates.filter((c) => c.membershipRole === "staff"); // authz-exempt: default-selection
-  return staff.length === 1 ? staff[0]! : null;
-}
-
 function deny(reason: AssignmentDenyReason): ResolveAssignmentResult {
   return { ok: false, reason };
 }
 
 /**
- * Selects and validates the acting hat from live membership rows on every
- * call. Never throws, never caches, and never falls back to a default tenant:
- * a forged, foreign or inactive proposal, a missing or ambiguous hat, and any
- * reader failure or malformed row all deny.
+ * Selects and validates the acting assignment from live membership rows on
+ * every call (plan 5.1). The surface's role class comes first: only rows of
+ * that class are candidates, so a staff row is never preferred over a donor
+ * or missionary row. A proposed row (the chosen assignment) must be the
+ * caller's, live, of that class and, when a tenant is expected, in that
+ * tenant. With no proposal, the one candidate is the assignment; several
+ * candidates, in one tenant or across tenants, are refused: the resolver never
+ * guesses. Never throws, never caches, and never falls back to a default
+ * tenant: a forged, foreign or inactive proposal, a missing or ambiguous
+ * assignment, and any reader failure or malformed row all deny.
  */
 export async function resolveActiveAssignment(
   input: ResolveAssignmentInput,
   reader: AssignmentReader,
 ): Promise<ResolveAssignmentResult> {
-  const { userId, proposedAssignmentId, expectedTenantId } = input;
+  const { userId, roleClass, proposedAssignmentId, expectedTenantId } = input;
   if (!isCanonicalUuid(userId)) return deny("reader_error");
+  if (!isMembershipRole(roleClass)) return deny("no_assignment");
   if (
     proposedAssignmentId !== undefined &&
     !isCanonicalUuid(proposedAssignmentId)
@@ -149,6 +145,9 @@ export async function resolveActiveAssignment(
       (a) => a.assignmentId === proposedAssignmentId,
     );
     if (!proposed) return deny("not_owned_or_inactive");
+    if (proposed.membershipRole !== roleClass) {
+      return deny("role_class_mismatch");
+    }
     if (
       expectedTenantId !== undefined &&
       proposed.tenantId !== expectedTenantId
@@ -158,21 +157,17 @@ export async function resolveActiveAssignment(
     return { ok: true, assignment: proposed, selection: "proposed" };
   }
 
-  const candidates =
-    expectedTenantId === undefined
-      ? assignments
-      : assignments.filter((a) => a.tenantId === expectedTenantId);
+  const candidates = assignments.filter(
+    (a) =>
+      a.membershipRole === roleClass &&
+      (expectedTenantId === undefined || a.tenantId === expectedTenantId),
+  );
   if (candidates.length === 0) return deny("no_assignment");
-  if (candidates.length === 1) {
-    return { ok: true, assignment: candidates[0]!, selection: "sole" };
-  }
-  const picked = pickDefaultAssignment(candidates);
-  return picked
-    ? { ok: true, assignment: picked, selection: "default_staff" }
-    : deny("ambiguous");
+  if (candidates.length > 1) return deny("ambiguous");
+  return { ok: true, assignment: candidates[0]!, selection: "sole" };
 }
 
-/** Thrown by `resolveActivePrincipal` when no hat validates. */
+/** Thrown by `resolveActivePrincipal` when no assignment validates. */
 export class PrincipalDeniedError extends Error {
   readonly reason: AssignmentDenyReason;
 
@@ -183,16 +178,17 @@ export class PrincipalDeniedError extends Error {
   }
 }
 
-/** #669's membership-backed helper: a `HumanPrincipal`, or `PrincipalDeniedError`. */
+/** A `HumanPrincipal` for the surface's role class, or `PrincipalDeniedError`. */
 export async function resolveActivePrincipal(
   session: SessionIdentity,
+  roleClass: RoleClass,
   proposedAssignmentId: string | undefined,
   reader: AssignmentReader,
 ): Promise<HumanPrincipal> {
   const result = await resolveActiveAssignment(
     proposedAssignmentId === undefined
-      ? { userId: session.userId }
-      : { userId: session.userId, proposedAssignmentId },
+      ? { userId: session.userId, roleClass }
+      : { userId: session.userId, roleClass, proposedAssignmentId },
     reader,
   );
   if (!result.ok) throw new PrincipalDeniedError(result.reason);

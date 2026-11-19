@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.crm.manage");
     const ctx = auth as AuthenticatedContext;
 
     const params = parseAdminCrmParams(new URL(request.url).searchParams);
@@ -48,7 +48,7 @@ export async function GET_TAG_OPTIONS(request: NextRequest) {
   try {
     const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.crm.manage");
     const ctx = auth as AuthenticatedContext;
     const tags = await listAdminCrmTagOptions(supabaseAdmin, ctx.tenantId);
     return NextResponse.json({ tags });

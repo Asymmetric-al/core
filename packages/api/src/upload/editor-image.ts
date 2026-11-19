@@ -1,7 +1,7 @@
 import {
   createBearerSupabaseClient,
   getAuthContext,
-  hasAnyContextRole,
+  hasContextRoleClass,
   requireAuth,
 } from "@asym/auth/context";
 import { NextResponse } from "next/server";
@@ -15,12 +15,16 @@ import {
 import { editorImagePath, isEditorImagePurpose } from "../editor-images/key";
 import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
 
-import type { UserRole } from "@asym/database/types";
+import type { RoleClass } from "@asym/auth/context";
 
 /** Public bucket; its INSERT policy admits only editor/{own tenant}/{uid}/…. */
 const EDITOR_IMAGES_BUCKET = "document-uploads";
-const CARE_ROLES: UserRole[] = ["staff", "admin", "super_admin"];
-const FEED_ROLES: UserRole[] = ["missionary", ...CARE_ROLES];
+/**
+ * AL-2675: care purposes serve staff, the feed serves missionaries and
+ * staff. Classes, not role names: there is no `admin` class.
+ */
+const CARE_CLASSES: readonly RoleClass[] = ["staff"];
+const FEED_CLASSES: readonly RoleClass[] = ["missionary", "staff"];
 
 /**
  * POST /api/upload/editor-image (#2407): the rich-text editor's inline image
@@ -55,7 +59,11 @@ function editorImageUpload({ allowCare }: { allowCare: boolean }) {
       if (care && !allowCare) {
         throw new ApiHttpError(403, "Care images are not accepted here.");
       }
-      if (!hasAnyContextRole(ctx, care ? CARE_ROLES : FEED_ROLES)) {
+      if (
+        !(care ? CARE_CLASSES : FEED_CLASSES).some((roleClass) =>
+          hasContextRoleClass(ctx, roleClass),
+        )
+      ) {
         throw new ApiHttpError(403, "Forbidden");
       }
       const file = await validateImageFile(form.get("file"));

@@ -15,5 +15,5 @@ export const GET = withOperation(
 
     return NextResponse.json({ portal });
   },
-  { roles: ["missionary"] },
+  { roleClasses: ["missionary"] },
 );

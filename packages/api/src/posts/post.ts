@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireRoleClass,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -48,7 +48,7 @@ export async function PATCH(
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["missionary"]);
+    requireRoleClass(auth, ["missionary"]);
     const ctx = auth as AuthenticatedContext;
     const { postId } = postIdParamSchema.parse(await params);
 
@@ -68,7 +68,6 @@ export async function PATCH(
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
       ctx.userId,
-      ctx.tenantId,
     );
 
     if (!profile) {
@@ -168,14 +167,13 @@ export async function DELETE(
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["missionary"]);
+    requireRoleClass(auth, ["missionary"]);
     const ctx = auth as AuthenticatedContext;
     const { postId } = postIdParamSchema.parse(await params);
 
     const { data: profile } = await findProfileByUserId(
       supabaseAdmin,
       ctx.userId,
-      ctx.tenantId,
     );
 
     if (!profile) {

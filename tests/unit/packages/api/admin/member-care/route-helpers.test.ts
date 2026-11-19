@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../../fixtures/auth-memberships";
 
-const { getAuthContextMock, hasAnyContextRoleMock } = vi.hoisted(() => ({
+const { getAuthContextMock } = vi.hoisted(() => ({
   getAuthContextMock: vi.fn(),
-  hasAnyContextRoleMock: vi.fn(),
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
-  hasAnyContextRole: hasAnyContextRoleMock,
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -52,9 +52,10 @@ describe("member care route helpers", () => {
       isAuthenticated: true,
       userId: "user-1",
       tenantId: "tenant-1",
-      role: "viewer",
+      role: "donor",
+      // AL-2675: a donor membership lacks admin.dashboard.access.
+      memberships: membershipsForRole("donor", "tenant-1"),
     });
-    hasAnyContextRoleMock.mockReturnValue(false);
 
     const result = await requireMemberCareAccess(authRequest);
     expect(result.ok).toBe(false);
@@ -68,8 +69,8 @@ describe("member care route helpers", () => {
       userId: "user-1",
       tenantId: "tenant-1",
       role: "admin",
+      memberships: membershipsForRole("admin", "tenant-1"),
     });
-    hasAnyContextRoleMock.mockReturnValue(true);
 
     const result = await requireMemberCareAccess(authRequest);
     expect(result.ok).toBe(true);

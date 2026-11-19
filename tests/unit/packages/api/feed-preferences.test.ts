@@ -1,11 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createClientMock } = vi.hoisted(() => ({
+/**
+ * AL-2675 (WP2a sweep; plan 5.4 NX-03, WP2 exit "no route reads the token
+ * claim"): the route takes its tenant from the request's resolved donor
+ * assignment, not from the token's tenant claim. The old claim cases (no
+ * claim, no tenant key, a malformed or retired tenant) are one case now: no
+ * assignment resolved for a signed-in person, which still refuses with 403
+ * before any preferences query.
+ */
+const { createClientMock, getAuthContextMock } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
+  getAuthContextMock: vi.fn(),
 }));
 
 vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
+}));
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
+  getAuthContext: getAuthContextMock,
 }));
 
 import { GET, POST } from "../../../../packages/api/src/feed-preferences";
@@ -44,6 +57,10 @@ function createQuery<T>(
 
 const TENANT_ID = "3f6c1d2e-8a4b-4c5d-9e6f-7a8b9c0d1e2f";
 
+function createGetRequest() {
+  return new Request("http://localhost/api/donor/feed-preferences");
+}
+
 function createJsonRequest(body: unknown) {
   return new Request("http://localhost/api/donor/feed-preferences", {
     method: "POST",
@@ -56,12 +73,30 @@ function mockFeedPreferencesRoute(options?: {
   donors?: QueryResult<{ id: string }[]>;
   preferences?: QueryResult<Record<string, unknown>>;
   profiles?: QueryResult<{ id: string }[]>;
-  user?: { id: string; app_metadata?: Record<string, unknown> } | null;
+  /** The resolved request: signed out, signed in with no assignment, or the donor's. */
+  session?: "signed-out" | "no-assignment" | "donor";
 }) {
-  const user =
-    options && "user" in options
-      ? options.user
-      : { id: "user-1", app_metadata: { tenant_id: TENANT_ID } };
+  const session = options?.session ?? "donor";
+  getAuthContextMock.mockResolvedValue({
+    userId: session === "signed-out" ? null : "user-1",
+    email: null,
+    tenantId: session === "donor" ? TENANT_ID : null,
+    role: session === "donor" ? "donor" : null,
+    memberships:
+      session === "donor"
+        ? [
+            {
+              tenantId: TENANT_ID,
+              role: "donor",
+              staffRole: null,
+              isActive: true,
+            },
+          ]
+        : [],
+    profileId: session === "signed-out" ? null : "profile-1",
+    isAuthenticated: session === "donor",
+  });
+  const user = session === "signed-out" ? null : { id: "user-1" };
   const profilesQuery = createQuery(
     options?.profiles ?? { data: [{ id: "profile-1" }], error: null },
     "eq",
@@ -123,9 +158,9 @@ describe("feed preferences route", () => {
   });
 
   it("returns 401 on GET and POST when the caller is not authenticated", async () => {
-    const { from } = mockFeedPreferencesRoute({ user: null });
+    const { from } = mockFeedPreferencesRoute({ session: "signed-out" });
 
-    const getResponse = await GET();
+    const getResponse = await GET(createGetRequest());
     const postResponse = await POST(createJsonRequest({ followOrg: true }));
 
     expect(getResponse.status).toBe(401);
@@ -135,39 +170,26 @@ describe("feed preferences route", () => {
     expect(from).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ["no app_metadata", {}],
-    ["no tenant_id", { app_metadata: {} }],
-    ["a non-UUID tenant_id", { app_metadata: { tenant_id: "tenant-a" } }],
-    [
-      "the retired default tenant literal",
-      { app_metadata: { tenant_id: "00000000-0000-0000-0000-000000000001" } },
-    ],
-  ])(
-    "returns 403 on GET and POST for %s, before any preferences query",
-    async (_name, claims) => {
-      const { from } = mockFeedPreferencesRoute({
-        user: { id: "user-1", ...claims },
+  it("returns 403 on GET and POST when no assignment resolved, before any preferences query", async () => {
+    const { from } = mockFeedPreferencesRoute({ session: "no-assignment" });
+
+    const getResponse = await GET(createGetRequest());
+    const postResponse = await POST(createJsonRequest({ followOrg: true }));
+
+    for (const response of [getResponse, postResponse]) {
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({
+        error: "Tenant context required",
       });
+    }
+    expect(from).not.toHaveBeenCalledWith("donor_feed_preferences");
+  });
 
-      const getResponse = await GET();
-      const postResponse = await POST(createJsonRequest({ followOrg: true }));
-
-      for (const response of [getResponse, postResponse]) {
-        expect(response.status).toBe(403);
-        expect(await response.json()).toEqual({
-          error: "Tenant context required",
-        });
-      }
-      expect(from).not.toHaveBeenCalledWith("donor_feed_preferences");
-    },
-  );
-
-  it("finds the donor by profile ownership in the JWT tenant, never by email", async () => {
+  it("finds the donor by profile ownership in the assignment's tenant, never by email or claim", async () => {
     const { donorQuery, preferencesQuery, profilesQuery } =
       mockFeedPreferencesRoute();
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
 
     expect(response.status).toBe(200);
     expect(profilesQuery.select).toHaveBeenCalledWith("id");
@@ -192,7 +214,7 @@ describe("feed preferences route", () => {
       const { donorQuery, preferencesQuery } =
         mockFeedPreferencesRoute(options);
 
-      const getResponse = await GET();
+      const getResponse = await GET(createGetRequest());
       const postResponse = await POST(createJsonRequest({ followOrg: true }));
 
       expect(getResponse.status).toBe(200);
@@ -209,7 +231,7 @@ describe("feed preferences route", () => {
       donors: { data: [{ id: "donor-1" }, { id: "donor-2" }], error: null },
     });
 
-    const getResponse = await GET();
+    const getResponse = await GET(createGetRequest());
     const postResponse = await POST(createJsonRequest({ followOrg: true }));
 
     for (const response of [getResponse, postResponse]) {
@@ -230,7 +252,7 @@ describe("feed preferences route", () => {
     async (_name, options) => {
       const { preferencesQuery } = mockFeedPreferencesRoute(options);
 
-      const getResponse = await GET();
+      const getResponse = await GET(createGetRequest());
       const postResponse = await POST(createJsonRequest({ followOrg: true }));
 
       expect(getResponse.status).toBe(500);
@@ -250,7 +272,7 @@ describe("feed preferences route", () => {
       preferences: { data: null, error: { message: "permission denied" } },
     });
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
@@ -261,7 +283,7 @@ describe("feed preferences route", () => {
   it("returns the default GET response when the donor has no saved row yet", async () => {
     mockFeedPreferencesRoute({ preferences: { data: null, error: null } });
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(DEFAULT_RESPONSE);
@@ -270,7 +292,7 @@ describe("feed preferences route", () => {
   it("maps stored preference rows to the public response shape", async () => {
     mockFeedPreferencesRoute();
 
-    const response = await GET();
+    const response = await GET(createGetRequest());
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
@@ -296,7 +318,7 @@ describe("feed preferences route", () => {
     expect(preferencesQuery.upsert).not.toHaveBeenCalled();
   });
 
-  it("upserts valid POST payloads in the JWT tenant using the database column names", async () => {
+  it("upserts valid POST payloads in the assignment's tenant using the database column names", async () => {
     const { preferencesQuery } = mockFeedPreferencesRoute({
       preferences: {
         data: {

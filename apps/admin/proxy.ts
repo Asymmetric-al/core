@@ -22,12 +22,17 @@ export const proxy = createAuthMiddleware({
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
   unauthorizedRedirectTo: "/no-access",
-  allowedRoles: ["staff", "admin", "super_admin"],
+  // Mission Control and Web Studio act on staff rows (plan 5.1).
+  roleClass: "staff",
+  allowedRoles: ["staff", "admin"],
   resolveUserRole: resolveUserRoleFromDatabase,
 });
 
 export const config = {
   matcher: [
+    // Every API path, whatever it ends in, so the proxy always fixes the
+    // role class (plan 5.1): a dynamic route answers `/api/x/y.json` too.
+    "/api/:path*",
     "/((?!_next/static|_next/image|_next/data|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

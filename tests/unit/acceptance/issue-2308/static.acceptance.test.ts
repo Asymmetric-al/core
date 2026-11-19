@@ -83,12 +83,7 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  // #2706: the byte hash was retired. This test bounds only the totals: at
-  // the #2419 shrink the allowlist held 117 entries and 181 service-role
-  // sites. The per-entry shrink-only rule (no new entry, no entry above its
-  // frozen count) lives in CEILING_ROWS of
-  // scripts/verify/service-role-client-gate.mjs, which the C12 test above runs.
-  it("C12: frozen service-role allowlist does not grow past the #2419 shrink", () => {
+  it("C12: the service-role allowlist stays within the AL-2675 shrink and does not restore the admin users allowance", () => {
     const doc: unknown = JSON.parse(
       read("docs/security/service-role-client-allowlist.json"),
     );
@@ -106,7 +101,10 @@ describe("#2308 static contracts (A)", () => {
       "entries without a whole count and a lines array of that many line numbers",
     ).toEqual([]);
     const rows = entries.filter(isAllowlistEntry);
-    expect(rows.length).toBeLessThanOrEqual(117);
-    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(181);
+    expect(rows).not.toContainEqual(
+      expect.objectContaining({ file: "packages/api/src/admin/users.ts" }),
+    );
+    expect(rows.length).toBeLessThanOrEqual(116);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(180);
   });
 });

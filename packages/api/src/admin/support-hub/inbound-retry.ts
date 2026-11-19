@@ -61,5 +61,5 @@ export const POST = withOperation(
       throw error;
     }
   },
-  { roles: ["admin", "staff", "super_admin"] },
+  { capability: "admin.dashboard.access" },
 );

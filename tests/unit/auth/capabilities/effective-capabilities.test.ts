@@ -266,13 +266,14 @@ describe("deepFreeze", () => {
 });
 
 describe("capabilityRegistryRows", () => {
-  it("is byte-identical to the pre-freeze output", () => {
-    // sha256 of JSON.stringify(capabilityRegistryRows()) at develop 88eefbd9.
+  it("is byte-identical to the reviewed output", () => {
+    // sha256 of JSON.stringify(capabilityRegistryRows()) after AL-2675: plan
+    // 5.4's capabilities, one bundle per staff sub-role, platform_admin gone.
     const digest = createHash("sha256")
       .update(JSON.stringify(capabilityRegistryRows()))
       .digest("hex");
     expect(digest).toBe(
-      "33cad873dfc95994e65d030bc75d6102600b3e65d4dea4745901a9a4a8409b71",
+      "39838b467bb97863fdaff45fef3378f740b65d1067d4fcbc0be6741a5d0163bb",
     );
   });
 
@@ -280,7 +281,6 @@ describe("capabilityRegistryRows", () => {
     const { roleGrants } = capabilityRegistryRows();
     const subjects = new Set(roleGrants.map((row) => row.subject));
     expect([...subjects].sort()).toEqual([
-      "platform_admin",
       "staff:development",
       "staff:finance",
       "staff:hr",
