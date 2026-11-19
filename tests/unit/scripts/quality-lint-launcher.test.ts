@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, beforeEach, expect, it } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import {
   bin,
@@ -105,10 +105,16 @@ it.each(["warn", "error"])(
     expect(result.stdout).toContain("no-debugger");
   },
 );
-it.each([[], ["--format", "json"]].map((args) => ({ args })))(
-  "returns 2 for a throwing JS plugin ($args)",
+it.each([
+  { args: [], ci: false },
+  { args: ["--format", "json"], ci: false },
+  { args: [], ci: true },
+])(
+  "returns 2 for a throwing JS plugin ($args, GitHub Actions: $ci)",
   { timeout },
-  ({ args }) => {
+  ({ args, ci }) => {
+    // Under GitHub Actions Oxlint defaults to its `github` reporter; the launcher must still classify the crash.
+    if (ci) vi.stubEnv("GITHUB_ACTIONS", "true");
     copyFileSync(
       join(root, "tests/fixtures/quality/throwing-plugin.mjs"),
       join(repo, "throw.mjs"),

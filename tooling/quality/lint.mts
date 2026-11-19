@@ -103,7 +103,9 @@ export function run(argv: string[], { backendPath = bin("tsrs-lint") } = {}) {
     ];
     if (typed) args.push("--type-aware");
     if (fix) args.push("--fix");
-    if (json) args.push("--format", "json");
+    // Always name the format: under GitHub Actions Oxlint otherwise switches to its `github`
+    // reporter, which drops the tool-failure text classified below.
+    args.push("--format", json ? "json" : "default");
     if (paths.length) args.push("--no-error-on-unmatched-pattern");
     args.push("--", ...(paths.length ? paths : ["."]));
 
