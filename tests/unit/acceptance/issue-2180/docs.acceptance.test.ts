@@ -213,6 +213,31 @@ const CI_BASES = [
     bytes: 46168,
     sha256: "5d02d56a1a354e230b91199c0d9c7831d309414e6db6c8b7e75f8ef191a301e6",
   },
+  {
+    // Amended by AL-2674 (WP1.6, record D-18): docs/ci.md's "Local Supabase
+    // stack workflow" section gains one bullet, and its count of what it
+    // guards goes from two to three. The workflow now also replays the chain
+    // on plain Postgres as the release job does (`--hosted-defaults`) and
+    // fails unless that replay fingerprints exactly as the stack does, so a
+    // change of Supabase's default privileges fails a pull request rather
+    // than a release. Nothing else in the file changes.
+    // Pinned on that exact reviewed content. Ends before the EOF runner
+    // section, which is unchanged.
+    ref: "AL-2674 WP1.6 release replay against the image",
+    bytes: 46521,
+    sha256: "c6f883c9d971f8d213a07a7b460fc9b8ee80440a1d53c1f2314f8f9ed03fedf0",
+  },
+  {
+    // Amended by AL-2674 (WP1.6 review H7, record D-18): the WP1.6 bullet of
+    // docs/ci.md's "Local Supabase stack workflow" section no longer says
+    // that a change of Supabase's default privileges fails a pull request
+    // rather than a release. It says the job compares with the image the
+    // pinned CLI starts, not with hosted, and that the release's gates catch
+    // a change on hosted. Nothing else in the file changes. Pinned on that exact reviewed content. Ends before the EOF runner section, which is unchanged.
+    ref: "AL-2674 WP1.6 review H7, the drift guard's limits",
+    bytes: 46570,
+    sha256: "4a105c232e70ff91c6383159061222e3129f78e7b9c6fadad3a7321fe786b1c0",
+  },
 ] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
 describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {

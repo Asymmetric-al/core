@@ -91,6 +91,14 @@ export function resolveCmsMigrationDatabaseUrl(
     "options",
     [options.trim(), `-c role=${CMS_MIGRATION_ROLE}`].filter(Boolean).join(" "),
   );
+  // Review L2: written with %20 and never +, so libpq (which keeps a + as +)
+  // and WHATWG URL (which reads it as a space) read the same options.
+  runtime.search = [...runtime.searchParams]
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+    )
+    .join("&");
   return {
     databaseUrl: runtime.toString(),
     markerUrl: runtimeUrl,
