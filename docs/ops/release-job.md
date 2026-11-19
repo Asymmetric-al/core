@@ -251,6 +251,37 @@ deployment reads the preview project at the migrated heads, then the smoke
 run. The next such pull request starts its rebuild only after this smoke run
 ends. The job holds only the preview project's credentials.
 
+### The request-tenant policies: after the first release's apps, never below them
+
+`20261119022102_request_tenant_policies.sql` (WP2b's second release,
+AL-2675) makes the database read the tenant and the assignment from the
+`x-asym-tenant` and `x-asym-assignment` request headers, which only the apps
+of WP2b's first release send. An app that sends neither gets no row of a
+tenant table. So:
+
+- release this migration to an environment only after a release that carries
+  the first release's apps has completed there;
+- once it has shipped there, no application rollback goes below the first
+  release, whether by _Instant Rollback_ or by a release of an older commit.
+
+The database does not enforce the order: a rebuild from source applies the
+whole chain to a database with no recorded heads, and a guard in the
+migration would stop it (council R6). Its rollback, run by hand, is
+`supabase/migrations/rollback_20261119022102_request_tenant_policies.sql`.
+
+The migration sets `lock_timeout` to 5s. If a long reader holds one of the
+fifty tables it alters, it fails fast with `55P03` and nothing is applied;
+dispatch the release again when the database is quiet. If its SQL committed
+but the job stopped before the migration ledger recorded it, a second push
+runs the file again and fails at its first `DROP POLICY` (the policy is
+already gone). Do not edit the file. Confirm that it is applied: the catalog
+gate passes (`scripts/release/catalog-gates.mjs`),
+`to_regprocedure('authz.request_assignment()')` is not null and the policy
+"profiles staff tenant select" on `public.profiles` is gone. Then record the
+version with the pinned CLI, `bun run supabase -- migration repair --status
+applied 20261119022102`, against the same project, and dispatch the release
+again (council R9).
+
 ## Secrets and variables
 
 Names only. Values live in GitHub environments and never in the repository.

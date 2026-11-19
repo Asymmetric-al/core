@@ -102,11 +102,16 @@ read of a tenant table only for the tenant and the assignment the request
 names: the `x-asym-tenant` and `x-asym-assignment` headers, which the shared
 own-API wrapper, the browser client and the server's session clients send. A
 read on the caller's token that names no tenant returns nothing from a tenant
-table; the reads that need no tenant (the caller's own profile and
-assignments, Auth, Storage, the published public posts and locations) are the
-named exceptions of `docs/security/tenant-policy-exceptions.json`. Commenters'
-names on a public post come from `public.post_comment_authors(post)`, not from
-other people's `profiles` rows, which only their owner may read.
+table. The reads in `public` that need no tenant (the caller's own profile,
+the published public posts and locations, the comments and reactions of a
+public post, a claimant's own claims, and the global field-policy rows) are
+the reviewed exceptions of `docs/security/tenant-policy-exceptions.json`,
+which holds `public` policies only. The caller's own assignments come from
+`authz.memberships`, outside `public`; Auth and Storage keep their own
+policies, Storage's testing live membership in the tenant the object path
+names. Commenters' names on a public post come from the first release's
+`public.post_comment_authors(post)`, not from other people's `profiles` rows,
+which only their owner may read.
 
 `GET /api/donate` returns checkout config only, `{ "publishableKey": "<pk>" }`.
 It no longer returns designations or donor rows.

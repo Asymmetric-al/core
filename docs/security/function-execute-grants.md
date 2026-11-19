@@ -57,9 +57,13 @@ After the migration, on any database whatever its default privileges:
   `request_assignment()`, `assignment_is(...)`, `assignment_is_tenant_admin()`,
   `assignment_holds(text)`, `caller_profile_ids()`, `caller_tenant_ids()`) are
   owned by `postgres` and executable by `authenticated` and `service_role`
-  only; so `anon` calling `current_tenant_id()` gets `42501`.
-  `public.post_comment_authors(uuid)` is a definer executable by
-  `authenticated` only.
+  only; so `anon` calling `current_tenant_id()` gets `42501`. It marks
+  `authz.is_super_admin()` and `authz.current_user_id()` `PARALLEL SAFE`.
+  The commenter read, `public.post_comment_authors(uuid)`, ships with the
+  first release of WP2b, not this one (council R1). `tenant_guard` keeps its
+  `EXECUTE` on `has_membership` and `has_staff_membership` (AL-2674's
+  command-lane migration asserts it); nothing in `tenant_guard` or
+  `platform` calls them, and after this migration no policy in `public` does.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,
   `crm_record_links` and `crm_merge_candidates` were `TO public` and call these
   helpers. They are now `TO authenticated`, with USING and WITH CHECK
