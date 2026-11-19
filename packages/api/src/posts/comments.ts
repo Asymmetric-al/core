@@ -1,8 +1,8 @@
 import { getAuthContext, requestScopeOf } from "@asym/auth/context";
-import { createClient } from "@asym/database/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { CommentAuthorsReadError, readCommentAuthors } from "./comment-authors";
+import { createRequestSessionClient } from "../shared/request-session-client";
 
 /** A comment as the comment screens read it. */
 export interface PostCommentView {
@@ -37,8 +37,12 @@ export async function GET(
   }
 
   // The caller's own token, sending the tenant and assignment the resolver
-  // selected for this request (plan 5.4; AL-2675).
-  const supabase = await createClient(requestScopeOf(auth));
+  // selected for this request (plan 5.4; AL-2675): the bearer token first,
+  // as `getAuthContext` authenticated it, otherwise the cookies (JB13).
+  const supabase = await createRequestSessionClient(
+    request,
+    requestScopeOf(auth),
+  );
 
   const { postId } = await params;
 

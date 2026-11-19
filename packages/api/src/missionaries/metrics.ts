@@ -19,6 +19,7 @@ import {
 } from "../missionary-portal/currency";
 import { isAnonymousToRecipient } from "../missionary-portal/redaction";
 import { SETTLED_DONATION_STATUS_SET } from "../reads/settled-donation-statuses";
+import { createBearerSessionClient } from "../shared/request-session-client";
 
 export function projectMetricsMoney<
   T extends {
@@ -331,9 +332,12 @@ export async function GET(
     }
 
     // The service-key client when the environment has one; otherwise the
-    // caller's own session, under the row the resolver selected.
+    // caller's own session, under the row the resolver selected: the bearer
+    // token first, as `getAuthContext` authenticated it, otherwise the
+    // cookies, which this route refreshes itself (JB13).
     const dataReader =
       getAdminClient().client ??
+      createBearerSessionClient(request, requestScopeOf(auth)) ??
       createSessionReader(
         request,
         { url: supabaseUrl, anonKey: supabaseAnonKey },

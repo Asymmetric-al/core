@@ -36,9 +36,24 @@ export async function createRequestSessionClient(
   request: Request,
   scope: RequestScope | null,
 ): Promise<RequestSessionClient> {
+  return createBearerSessionClient(request, scope) ?? createClient(scope);
+}
+
+/**
+ * The bearer half of `createRequestSessionClient`: a client acting as the
+ * request's `Authorization: Bearer` token, or `null` when the request has
+ * none. For a handler that keeps a cookie client of its own (the missionary
+ * metrics route refreshes its cookies itself), so a bearer request still
+ * reads as the credential `getAuthContext` authenticated (council on the
+ * joined release, JB13).
+ */
+export function createBearerSessionClient(
+  request: Request,
+  scope: RequestScope | null,
+): RequestSessionClient | null {
   const bearerToken = getBearerToken(request);
   if (!bearerToken) {
-    return createClient(scope);
+    return null;
   }
 
   const { url, key } = getSupabasePublicConfig();
