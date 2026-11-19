@@ -255,7 +255,11 @@ function fixDocumentScope(
   if (fixedScope === null) {
     fixedScope = Object.freeze({ ...scope });
     fixedSegment = segment;
-    fixedSessionUser = readBrowserSessionUserId();
+    // The baseline is the scope's own person whenever the browser can see a
+    // session, so a sign-in between the server's render and hydration is a
+    // change too (JR1); an identity the browser cannot see keeps none.
+    const seen = readBrowserSessionUserId();
+    fixedSessionUser = typeof seen === "string" ? scope.userId : seen;
     watchSessionPerson();
     return true;
   }
@@ -406,6 +410,20 @@ export function getDocumentScope(): DocumentScope | null {
     return null;
   }
   return fixedSegment?.contains(window.location.pathname) ? fixedScope : null;
+}
+
+/**
+ * Whether this document's scope is retired: another person signed in, the
+ * person signed out, or the server refused the scope (JB1). The signed-in
+ * person is checked again first. A request from such a document is never
+ * sent (check of the fix lists, JR1): with no scope the server would resolve
+ * it to the person signed in now. `false` on the server, and in a document
+ * that fixed no scope.
+ */
+export function isDocumentScopeRetired(): boolean {
+  if (typeof window === "undefined" || fixedScope === null) return false;
+  checkSessionPerson();
+  return retired;
 }
 
 /**

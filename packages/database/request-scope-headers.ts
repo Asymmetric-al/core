@@ -22,6 +22,33 @@ export const ASSIGNMENT_HEADER = "x-asym-assignment";
  */
 export const SCOPE_REFUSED_HEADER = "x-asym-scope-refused";
 
+/**
+ * The reason the browser gives, in `x-asym-scope-refused`, for a request it
+ * refused itself: the document's scope is retired (JB1), so the request was
+ * never sent (check of the fix lists, JR1).
+ */
+export const RETIRED_SCOPE_REASON = "retired";
+
+/**
+ * The answer to a request from a document whose scope is retired, made in
+ * the browser and never sent: the 401 marked `x-asym-scope-refused` that the
+ * server gives a refused scope, with `body` in the shape the caller reads
+ * errors in. A request with no scope would be resolved to the signed-in
+ * person's only row, so a delayed save or a poll of a document rendered for
+ * one person would otherwise run as the next, in the next person's
+ * organization (JR1).
+ */
+export function retiredScopeResponse(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status: 401,
+    statusText: "Unauthorized",
+    headers: {
+      "content-type": "application/json",
+      [SCOPE_REFUSED_HEADER]: RETIRED_SCOPE_REASON,
+    },
+  });
+}
+
 /** What a request acts under: a tenant and one membership row in it. */
 export interface RequestScope {
   readonly tenantId: string;

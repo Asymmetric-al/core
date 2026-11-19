@@ -1,6 +1,11 @@
-import { getDocumentScope, retireDocumentScope } from "./document-scope";
+import {
+  getDocumentScope,
+  isDocumentScopeRetired,
+  retireDocumentScope,
+} from "./document-scope";
 import {
   applyRequestScopeHeaders,
+  retiredScopeResponse,
   SCOPE_REFUSED_HEADER,
 } from "./request-scope-headers";
 
@@ -21,7 +26,9 @@ import {
  * When the document has no scope (sign-in, the chooser, the public website,
  * any page outside the tenant segment that renders no scope of its own) the
  * call sends neither header. A value the caller set for either header is
- * always removed.
+ * always removed. When the document's scope is retired, the call is not sent
+ * at all (JR1): it answers the server's refusal, made in the browser
+ * (`retiredScopeResponse`).
  *
  * It lives in `@asym/database`, beside the document scope it reads, because
  * this is the lowest workspace package and every caller (the three apps,
@@ -70,6 +77,9 @@ export function ownApiFetch(
 ): Promise<Response> {
   // Refused before any request, synchronously, so the headers never leave.
   assertOwnApiPath(path);
+  if (isDocumentScopeRetired()) {
+    return Promise.resolve(retiredScopeResponse({ error: "Unauthorized" }));
+  }
   const scope = getDocumentScope();
   const headers = applyRequestScopeHeaders(new Headers(init.headers), scope);
   const sent = fetch(path, {

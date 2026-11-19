@@ -1,8 +1,13 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-import { getDocumentScope, retireDocumentScope } from "../document-scope";
+import {
+  getDocumentScope,
+  isDocumentScopeRetired,
+  retireDocumentScope,
+} from "../document-scope";
 import {
   applyRequestScopeHeaders,
+  retiredScopeResponse,
   SCOPE_REFUSED_HEADER,
 } from "../request-scope-headers";
 import { getSupabasePublicConfig } from "./config";
@@ -26,11 +31,23 @@ function requestUrl(input: RequestInfo | URL): string {
  * answers a row it refuses with its own error, so no Data API response
  * carries the mark yet; the second release's policies can set it through
  * PostgREST's `response.headers`, and the browser already obeys it.
+ *
+ * From a document whose scope is retired, a Data API request is not sent at
+ * all (JR1): it answers the same refusal, made in the browser, with a body
+ * in PostgREST's error shape.
  */
 function scopedDataApiFetch(dataApiPrefix: string): typeof fetch {
   return async (input, init) => {
     if (!requestUrl(input).startsWith(dataApiPrefix)) {
       return fetch(input, init);
+    }
+    if (isDocumentScopeRetired()) {
+      return retiredScopeResponse({
+        message: "Unauthorized",
+        code: "ASYM_SCOPE_RETIRED",
+        details: null,
+        hint: null,
+      });
     }
     const scope = getDocumentScope();
     const headers = applyRequestScopeHeaders(

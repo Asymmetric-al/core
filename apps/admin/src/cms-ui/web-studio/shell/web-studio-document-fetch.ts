@@ -1,6 +1,10 @@
 import { ASSIGNMENT_HEADER, TENANT_HEADER } from "@asym/auth/request-headers";
 import { isWebStudioApiPath, isWebStudioPagePath } from "@asym/auth/web-studio";
-import { getDocumentScope } from "@asym/database/document-scope";
+import {
+  getDocumentScope,
+  isDocumentScopeRetired,
+} from "@asym/database/document-scope";
+import { retiredScopeResponse } from "@asym/database/request-scope-headers";
 
 import { noticeWebStudioRefusal } from "./web-studio-refusal-notice";
 import {
@@ -45,6 +49,13 @@ import {
  * set a header, so a refused server function names its refusal in the
  * digest of the error its answer carries; the hook reads a copy of that
  * answer, and Next reads the answer itself.
+ *
+ * Once the document's scope is retired (another person signed in, the
+ * person signed out, or a scope was refused; JB1), neither kind of call is
+ * sent (check of the fix lists, JR1): without the document's claims the
+ * server would act for whoever is signed in now. Each answers the refusal
+ * the platform's wrappers give, made in the browser, while the document
+ * shows the reload notice in place of Payload's view and reloads.
  */
 
 const WRAPPED = Symbol.for("asym.webStudio.documentFetch");
@@ -98,8 +109,9 @@ export function installWebStudioDocumentFetch(
   const original = target.fetch.bind(target);
 
   target.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-    const scope = getDocumentScope();
-    if (!scope) return original(input, init);
+    const retired = isDocumentScopeRetired();
+    const scope = retired ? null : getDocumentScope();
+    if (!scope && !retired) return original(input, init);
     let url: URL;
     try {
       url = new URL(requestUrl(input), target.location.href);
@@ -111,11 +123,19 @@ export function installWebStudioDocumentFetch(
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
     // A server function of Payload's, posted from a Web Studio page (JC2).
-    if (
+    const serverFunction =
       isWebStudioPagePath(url.pathname) &&
       requestMethod(input, init) === "POST" &&
-      headers.has("next-action")
-    ) {
+      headers.has("next-action");
+    if (!scope) {
+      // Retired (JR1): a call that would carry the claims is not sent.
+      return serverFunction || isWebStudioApiPath(url.pathname)
+        ? Promise.resolve(
+            retiredScopeResponse({ errors: [{ message: "Unauthorized" }] }),
+          )
+        : original(input, init);
+    }
+    if (serverFunction) {
       headers.set(WEB_STUDIO_CLAIM_TENANT_HEADER, scope.tenantId);
       headers.set(WEB_STUDIO_CLAIM_ASSIGNMENT_HEADER, scope.assignmentId);
       return original(input, { ...init, headers }).then((response) => {
