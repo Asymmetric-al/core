@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 import {
   DATABASE_URL_QUERY_ENV,
@@ -9,7 +10,33 @@ import {
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
 import { requirePsqlHonoursRequireAuth } from "../../lib/psql.mjs";
+import { readDatabaseCa } from "../../release/release-database.mjs";
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
+
+/**
+ * Throws unless `file` holds the project's CA (the last check's P3, phase
+ * 15): the CA file a hosted connection's psql reads, as PGSSLROOTCERT. libpq
+ * reads `system` as the machine's whole certificate store, so that is refused
+ * by name. Otherwise the file must be readable and pass the release job's own
+ * check of its CA (readDatabaseCa): exactly one certificate and nothing else,
+ * a CA, valid now. The release job hands the runner such a file; a hand-run
+ * hosted command must too. Messages name what was found, never the content.
+ */
+export function assertProjectCaFile(file) {
+  if (file === "system")
+    throw new Error(
+      "PGSSLROOTCERT=system would make psql trust every certificate authority this machine trusts. Set PGSSLROOTCERT to a file holding the project's CA certificate, the PEM from its Database settings.",
+    );
+  let pem;
+  try {
+    pem = readFileSync(file, "utf8");
+  } catch (error) {
+    throw new Error(
+      `PGSSLROOTCERT names a file that cannot be read (${error?.code ?? "error"}). Set it to a file holding the project's CA certificate, the PEM from its Database settings.`,
+    );
+  }
+  readDatabaseCa(pem, { name: "PGSSLROOTCERT's file" });
+}
 
 function getPsqlConnection(databaseUrl) {
   let connection;
@@ -53,8 +80,20 @@ function getPsqlConnection(databaseUrl) {
     env[DATABASE_URL_QUERY_ENV[key]] =
       key === "sslmode" && value === "no-verify" ? "require" : value;
   }
-  // Review L1: a hosted server may never ask for the password in clear text.
-  if (!isLoopbackDatabaseUrl(connection)) Object.assign(env, HOSTED_LIBPQ_ENV);
+  if (!isLoopbackDatabaseUrl(connection)) {
+    // Review L1: a hosted server may never ask for the password in clear text.
+    Object.assign(env, HOSTED_LIBPQ_ENV);
+    // The last check's P3: a CA file psql is handed for a hosted address,
+    // ambient or from the address, is the project's CA. The local CMS
+    // scripts reach this builder without the hosted target check.
+    if (env.PGSSLROOTCERT) {
+      try {
+        assertProjectCaFile(env.PGSSLROOTCERT);
+      } catch (error) {
+        throw new Error(`CMS database connection is refused: ${error.message}`);
+      }
+    }
+  }
   return { env, args: [] };
 }
 

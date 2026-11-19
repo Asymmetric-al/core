@@ -510,7 +510,10 @@ project. In the migrate step the job turns its secret into what the CMS runner
 needs: `PAYLOAD_DATABASE_SSL_CA` for Payload, and `PGSSLROOTCERT`, a file
 holding the same PEM, for the runner's own psql. The runner refuses a hosted
 migration without both, or whose address does not say `sslmode=verify-full`
-(review L7).
+(review L7). It reads that file with the job's own check of the CA (one
+certificate, a CA, valid now), and refuses `PGSSLROOTCERT=system`, which
+libpq reads as the machine's whole certificate store; its `psql` builder does
+the same for any hosted address (phase 15).
 
 Until review L6 the address said `sslmode=require`. The job's psql and the CLI
 then encrypted the connection without checking the certificate; only Payload

@@ -5,6 +5,7 @@ import {
   libpqQueryEntries,
 } from "../../../packages/env/src/database-url.mjs";
 import { CMS_MIGRATION_ROLE } from "./migration-connection.mjs";
+import { assertProjectCaFile } from "./postgres.mjs";
 
 export function assertCmsMigrationTarget({
   databaseUrl,
@@ -115,4 +116,8 @@ export function assertCmsMigrationTarget({
       "A hosted CMS migration needs the project's CA: set PAYLOAD_DATABASE_SSL_CA to its PEM, for Payload, and PGSSLROOTCERT to a file holding the same certificate, for the runner's psql. The release job sets both from RELEASE_DATABASE_SSL_CA.",
     );
   }
+  // The last check's P3 (phase 15): set is not enough. PGSSLROOTCERT=system
+  // would trust the machine's whole store, so the file must hold the
+  // project's CA, read by the release job's own check.
+  assertProjectCaFile(environment.PGSSLROOTCERT);
 }

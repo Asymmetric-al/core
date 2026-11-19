@@ -1126,6 +1126,10 @@ describe("release database steps", () => {
 
   it("migrates Supabase, sets the CMS role passwords, then runs Payload as cms_owner, and checks nothing is left pending", () => {
     const { query, run, events } = fakeDatabase({});
+    // The runner's check below reads the CA file the job writes, and the job
+    // writes only a CA its own check passed (runStep, withDatabaseCaFile), so
+    // these settings carry a real one (phase 15, P3).
+    const withRealCa = { ...settings(), databaseCa: REAL_CA };
     const calls: string[][] = [];
     const runCommand = vi.fn(
       (
@@ -1166,7 +1170,7 @@ describe("release database steps", () => {
       },
     );
     migrate({
-      settings: settings(),
+      settings: withRealCa,
       env: passwords,
       query,
       run,
