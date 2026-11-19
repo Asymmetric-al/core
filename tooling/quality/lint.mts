@@ -1,5 +1,11 @@
-import { spawnSync } from "node:child_process";
-import { existsSync, realpathSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+  existsSync,
+  lstatSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+} from "node:fs";
 import { cpus } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,23 +45,119 @@ function repoPath(input: string) {
   return path.relative(root, absolute).split(path.sep).join("/") || ".";
 }
 
-function hasFindings(stdout: string, json: boolean) {
+function gitFixEntries(scope: string[]) {
+  return execFileSync(
+    "git",
+    [
+      "--literal-pathspecs",
+      "ls-files",
+      "-z",
+      "-t",
+      "--stage",
+      "--others",
+      "--directory",
+      "--exclude-standard",
+      "--",
+      ...scope,
+    ],
+    { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+  ).split("\0");
+}
+
+function directoryLinkTarget(name: string) {
+  const absolute = path.join(root, name);
+  if (
+    !lstatSync(absolute, { throwIfNoEntry: false })?.isSymbolicLink() ||
+    !statSync(absolute, { throwIfNoEntry: false })?.isDirectory()
+  )
+    return;
+  const target = realpathSync(absolute);
+  if (isOutside(target))
+    throw new Error(`Directory link outside repository: ${name}`);
+  return path.relative(root, target).split(path.sep).join("/") || ".";
+}
+
+function checkFixScope(paths: string[]) {
+  const inspected = new Set<string>();
+  const expanded = new Set<string>();
+  let pending = paths.map((name) => {
+    const absolute = path.join(root, name);
+    return existsSync(absolute) ? repoPath(realpathSync(absolute)) : name;
+  });
+  while (pending.length) {
+    const entries = gitFixEntries([...new Set(pending)]);
+    pending = [];
+    for (const entry of entries) {
+      if (!entry) continue;
+      const untracked = entry.startsWith("? ");
+      const name = untracked
+        ? entry.slice(2).replace(/\/$/, "")
+        : entry.slice(entry.indexOf("\t") + 1);
+      let candidate =
+        untracked || entry.slice(2).startsWith("120000 ")
+          ? name
+          : path.posix.dirname(name);
+      while (candidate !== "." && !inspected.has(candidate)) {
+        inspected.add(candidate);
+        const target = directoryLinkTarget(candidate);
+        if (target) pending.push(target);
+        candidate = path.posix.dirname(candidate);
+      }
+      if (
+        untracked &&
+        entry.endsWith("/") &&
+        !expanded.has(name) &&
+        !lstatSync(path.join(root, name)).isSymbolicLink()
+      ) {
+        expanded.add(name);
+        for (const child of readdirSync(path.join(root, name), {
+          withFileTypes: true,
+        })) {
+          if (
+            child.name !== ".git" &&
+            (child.isDirectory() || child.isSymbolicLink())
+          )
+            pending.push(`${name}/${child.name}`);
+        }
+      }
+    }
+  }
+}
+
+const toolFailure =
+  /^[ \t]*(?:[x×!⚠][ \t]+)?(?:Error running JS plugin|Failed to (?:parse oxlint configuration file|load config|find tsgolint executable|write file)|Error running tsgolint|typescript\(tsconfig-error\))/im;
+
+function classifyOutput(stdout: string, json: boolean) {
+  const plain = stripVTControlCharacters(stdout);
+  if (toolFailure.test(plain)) return 2;
   if (!json)
     return /: (?:warning|error) [\w@/-]+\([\w-]+\)|:\d+:\d+: (?:warning|error)\b|\bFound (?:[1-9]\d* warnings?|\d+ warnings? and [1-9]\d* errors?)\b/i.test(
-      stripVTControlCharacters(stdout),
-    );
+      plain,
+    )
+      ? 1
+      : 0;
   try {
     const report: unknown = JSON.parse(stdout);
-    return (
+    if (
       typeof report === "object" &&
       report !== null &&
       "diagnostics" in report &&
-      Array.isArray(report.diagnostics) &&
-      report.diagnostics.length > 0
-    );
+      Array.isArray(report.diagnostics)
+    ) {
+      if (
+        report.diagnostics.some(
+          (diagnostic) =>
+            toolFailure.test(diagnostic.message) ||
+            diagnostic.code === "typescript(tsconfig-error)",
+        )
+      )
+        return 2;
+      if (report.diagnostics.length) return 1;
+    }
   } catch {
-    return false;
+    return 0;
   }
+  return 0;
 }
 
 export function run(argv: string[], { backendPath = bin("tsrs-lint") } = {}) {
@@ -102,7 +204,10 @@ export function run(argv: string[], { backendPath = bin("tsrs-lint") } = {}) {
       threads.argument,
     ];
     if (typed) args.push("--type-aware");
-    if (fix) args.push("--fix");
+    if (fix) {
+      checkFixScope(paths.length ? paths : ["."]);
+      args.push("--fix");
+    }
     // Always name the format: under GitHub Actions Oxlint otherwise switches to its `github`
     // reporter, which drops the tool-failure text classified below.
     args.push("--format", json ? "json" : "default");
@@ -119,13 +224,14 @@ export function run(argv: string[], { backendPath = bin("tsrs-lint") } = {}) {
     if (result.stderr) process.stderr.write(result.stderr);
     if (result.error) throw result.error;
     if (result.signal) throw new Error(`Oxlint terminated by ${result.signal}`);
-    const failure =
-      /Error running JS plugin|Failed to (?:parse oxlint configuration file|load config|find tsgolint executable)|Error running tsgolint|typescript\(tsconfig-error\)/i;
-    const stdout = result.stdout.toString();
-    if (failure.test(stdout) || failure.test(result.stderr.toString()))
+    const classification = classifyOutput(result.stdout.toString(), json);
+    if (
+      classification === 2 ||
+      toolFailure.test(stripVTControlCharacters(result.stderr.toString()))
+    )
       return 2;
     if (result.status === 0) return 0;
-    if (result.status === 1 && hasFindings(stdout, json)) return 1;
+    if (result.status === 1 && classification === 1) return 1;
     throw new Error(`Oxlint failed (exit ${result.status})`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));

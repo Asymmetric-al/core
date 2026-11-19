@@ -54,7 +54,8 @@ Each of these has cost a full gate run before.
 9. **`verify:shadcn-diff` contacts `ui.shadcn.com`**, which rate-limits this machine. Wait and retry later; a skipped
    run is reported as skipped.
 10. **Typed lint under parallel agents:** set `CORE_LINT_PARALLEL=1`; at most four typed lints or typechecks at once.
-11. **Read a pipeline's log, not its exit code,** when a command's output was piped.
+11. **Preserve a logged check's exit status.** Use `set -o pipefail` before piping through `tee`, or capture and
+    propagate the check's own status. A silent nonzero exit still fails the gate.
 
 ## 3. Every pull request
 
@@ -97,6 +98,6 @@ the message lists may differ. A second pass must change nothing. Then typecheck 
 | A compiler regression blocks a gate after remedies | The rollback of design L8, in one reviewed commit |
 | The pre-commit hook rejects a commit as "Stale evidence" | A file the Shadscan ledger cites changed: re-check the entry's claim and refresh its hash in the same commit |
 | A pinned acceptance test fails after formatting | Re-check what the pin protects; update the pin with a comment naming this change, keeping the check |
-| A hook or workflow file conflicts with the open stack | Resolve to develop's version and re-apply this change's edits |
+| A hook or workflow file conflicts with the open stack | Keep applicable edits from develop, every lower pull request and this change; never take develop's side wholesale |
 | A gate dies with SIGTERM in WSL | Another session's kill or load; check before retrying |
 | A fact contradicts the design | Record it in `evidence.md`, update the affected decision and task, and get a focused independent review of that change before continuing |
