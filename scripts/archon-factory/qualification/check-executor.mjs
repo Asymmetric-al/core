@@ -35,7 +35,7 @@ const successful = await executeCandidateCheck({
     assert.equal(process.getuid(), 1000);
     assert.equal(process.env.HOME, '/tmp');
     assert.equal(process.env.CI, '1');
-    assert.equal(process.version, 'v24.22.1');
+    assert.equal(process.version, 'v24.22.3');
     assert.equal(require('node:child_process').execFileSync('bun', ['--version'], {encoding:'utf8'}).trim(), '1.4.3');
     assert.deepEqual(Object.keys(require('node:os').networkInterfaces()), ['lo']);
     assert.equal(process.env.ANTHROPIC_API_KEY, undefined);
