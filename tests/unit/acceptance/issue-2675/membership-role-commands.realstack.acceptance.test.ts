@@ -47,6 +47,8 @@ const NOT_GRANTABLE =
   "This role cannot be granted by an organization administrator";
 const NOT_FOUND = "No live membership with that id in this organization";
 const REASON = "A reason is required";
+const ALREADY_HELD =
+  "This person already holds that role in this organization; change or revoke that row instead";
 const LAST_ADMIN =
   "This is the organization's last administrator; make someone else an administrator first";
 const NO_CAPABILITY =
@@ -560,6 +562,25 @@ describe.skipIf(!ADMIN_URL)(
           expect(await membership(id.mDonA)).toMatchObject({
             role: "donor",
             is_active: true,
+          });
+          await unchanged();
+        }));
+
+      it("refuses to change a row into a role the person already holds live in another row, which would rewrite that row's flag", () =>
+        tx(async () => {
+          // UFC holds live finance and member-care rows in TA.
+          for (const admin of [false, true]) {
+            const out = await change("UADM", "mCare", {
+              role: "staff",
+              staff: "finance",
+              admin,
+            });
+            expect([out.code, out.message]).toEqual(["23505", ALREADY_HELD]);
+          }
+          expect(await membership(id.mCare)).toMatchObject({ is_active: true });
+          expect(await membership(id.mFin)).toMatchObject({
+            is_active: true,
+            is_tenant_admin: false,
           });
           await unchanged();
         }));

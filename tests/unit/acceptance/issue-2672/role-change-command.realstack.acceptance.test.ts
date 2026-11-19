@@ -248,6 +248,19 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
     );
   }
 
+  /**
+   * Revokes a person's row of a class in tenant A. Each fixture person holds a
+   * live donor row, and the command refuses a change into a role already held
+   * live (23505), so granting `donor` to someone first revokes that row; the
+   * change then revives it.
+   */
+  async function revokeRow(person: Person, kind: "donor" | "staff") {
+    await db.query(
+      "update authz.memberships set is_active = false where user_id = $1 and tenant_id = $2 and role = $3::authz.membership_role",
+      [people[person], tenantA, kind],
+    );
+  }
+
   /** The person's live rows in a tenant, as `role` names: admin, staff, donor or missionary. */
   async function rolesOf(person: Person, tenant = tenantA) {
     const r = await db.query(
@@ -381,6 +394,7 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
     "lets an admin of the tenant grant the tenant role %s to someone else, with an audit row",
     (role) =>
       tx(async () => {
+        if (role === "donor") await revokeRow("staffA", "donor");
         const outcome = await changeRole({
           actor: "adminA",
           target: "staffA",
@@ -474,6 +488,7 @@ describe.skipIf(!ADMIN_URL)("WP0 role-change command (A01)", () => {
             [people.staffA],
           );
           expect(tenants.rows).toEqual([{ tenant_id: tenantA }]);
+          if (role === "donor") await revokeRow("staffA", "donor");
           const outcome = await changeRole({
             actor: "adminA",
             target: "staffA",

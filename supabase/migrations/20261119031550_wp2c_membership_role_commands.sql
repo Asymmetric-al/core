@@ -46,7 +46,10 @@
 --      exposure where it is today. It goes when those policies move. A
 --      revocation only takes access away in this tenant, so it is not refused
 --      for this: revoking must stay possible;
---    - removing the tenant's last administrator (plan 5.4).
+--    - removing the tenant's last administrator (plan 5.4);
+--    - changing a row into a class and sub-role the person already holds in
+--      another live row (23505), which would rewrite that row's flag behind
+--      this row's audit entry; that row is changed or revoked itself.
 --
 --    After the preamble each command locks the tenant's live administrator
 --    rows, the caller's assignment and the target row, in one order, and then
@@ -249,6 +252,22 @@ BEGIN
     );
   END IF;
 
+  -- A change into a role the person already holds live in another row would
+  -- rewrite that row's flag behind this row's audit entry: refused.
+  IF (v_target.role <> v_role OR v_target.staff_role IS DISTINCT FROM v_staff)
+     AND EXISTS (
+       SELECT 1
+         FROM authz.memberships AS m
+        WHERE m.user_id = v_target.user_id
+          AND m.tenant_id = v_ctx.tenant_id
+          AND m.role = v_role
+          AND m.staff_role IS NOT DISTINCT FROM v_staff
+          AND m.is_active
+     ) THEN
+    RAISE EXCEPTION 'This person already holds that role in this organization; change or revoke that row instead'
+      USING ERRCODE = '23505';
+  END IF;
+
   IF v_target.is_tenant_admin AND NOT v_admin THEN
     SELECT pg_catalog.array_agg(m.id)
       INTO v_admins
@@ -278,7 +297,9 @@ BEGIN
            updated_at = pg_catalog.now()
      WHERE m.id = v_target.id;
 
-    SELECT m.id, m.is_active
+    -- The row of the new class and sub-role, if the person held it before;
+    -- a live one was refused above.
+    SELECT m.id
       INTO v_existing
       FROM authz.memberships AS m
      WHERE m.user_id = v_target.user_id
@@ -288,19 +309,12 @@ BEGIN
      FOR UPDATE;
 
     IF FOUND THEN
-      IF v_existing.is_active THEN
-        UPDATE authz.memberships AS m
-           SET is_tenant_admin = v_admin,
-               updated_at = pg_catalog.now()
-         WHERE m.id = v_existing.id;
-      ELSE
-        UPDATE authz.memberships AS m
-           SET is_active = true,
-               is_tenant_admin = v_admin,
-               granted_by = v_ctx.actor_id,
-               updated_at = pg_catalog.now()
-         WHERE m.id = v_existing.id;
-      END IF;
+      UPDATE authz.memberships AS m
+         SET is_active = true,
+             is_tenant_admin = v_admin,
+             granted_by = v_ctx.actor_id,
+             updated_at = pg_catalog.now()
+       WHERE m.id = v_existing.id;
       v_result := v_existing.id;
     ELSE
       INSERT INTO authz.memberships (user_id, tenant_id, role, staff_role, is_tenant_admin, is_active, granted_by)
