@@ -554,9 +554,12 @@ the released commit, and then dispatches the release again (council R9):
    fingerprint of the replay the job builds in the same run. If the gates
    fail, nothing is recorded or deployed.
 
-Steps 2 and 3 were run in this form with the pinned CLI (2.121.0) against a
-local Postgres holding the migration but not its ledger row: the query read
-`t` twice and the repair recorded the version.
+Steps 1 to 3 were run in this form, with `psql` 17 and the pinned CLI
+(2.121.0), against a local Postgres that served TLS with a certificate a test
+CA signed and held the objects the query reads but not the ledger row. With
+that CA as `sslrootcert` the query read `t` twice and the repair recorded the
+version. With another CA, `psql` and the CLI both refused the server's
+certificate, and nothing was recorded.
 
 ### The database's certificate
 
