@@ -348,8 +348,14 @@ describe("donation saga helpers", () => {
       },
       error: null,
     });
-    const donorEq = vi.fn().mockReturnValue({ single: donorSingle });
-    const donorSelect = vi.fn().mockReturnValue({ eq: donorEq });
+    const donorEq = vi.fn().mockReturnThis();
+    const donorSelect = vi.fn().mockReturnValue({
+      eq: donorEq,
+      single: () => {
+        expect(donorEq).toHaveBeenCalledWith("tenant_id", "ten-dup");
+        return donorSingle();
+      },
+    });
 
     const profileSingle = vi.fn().mockResolvedValue({
       data: {

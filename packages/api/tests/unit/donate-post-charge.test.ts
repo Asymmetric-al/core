@@ -632,14 +632,20 @@ describe("POST /api/donate Gift processing-fee policy", () => {
         if (table === "donors")
           return {
             select: () => ({
-              eq: () => ({
-                single: async () => ({
-                  data: {
-                    id: "donor-1",
-                    profile_id: "profile-1",
-                    stripe_customer_id: null,
-                  },
-                  error: null,
+              eq: (column: string, value: string) => ({
+                eq: () => ({
+                  single: async () => ({
+                    data:
+                      column === "tenant_id" &&
+                      value === authenticatedDonor.tenantId
+                        ? {
+                            id: "donor-1",
+                            profile_id: "profile-1",
+                            stripe_customer_id: null,
+                          }
+                        : null,
+                    error: null,
+                  }),
                 }),
               }),
             }),

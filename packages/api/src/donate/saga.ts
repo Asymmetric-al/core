@@ -213,6 +213,7 @@ async function ensureStripeCustomerId(params: {
   const { data: donor, error: donorError } = await params.supabaseAdmin
     .from("donors")
     .select("id, profile_id, stripe_customer_id")
+    .eq("tenant_id", params.tenantId)
     .eq("id", params.donorId)
     .single();
   if (donorError || !donor) {
