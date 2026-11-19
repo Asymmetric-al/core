@@ -1,9 +1,21 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { StudioTopBar } from "../../../../apps/admin/src/cms-ui/web-studio/shell/studio-top-bar";
+
+const session = vi.hoisted(() => ({ signOut: vi.fn() }));
+vi.mock("@asym/auth/client-session", () => ({
+  signOutClientSession: session.signOut,
+}));
 
 const organization = vi.hoisted(() => ({
   current: null as null | {
@@ -38,7 +50,10 @@ vi.mock("../../../../apps/admin/src/cms-ui/web-studio/routing", () => ({
   ),
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  session.signOut.mockReset();
+});
 
 // The bar renders each width's form; CSS shows one per breakpoint.
 function byClass(container: HTMLElement, selector: string) {
@@ -101,4 +116,24 @@ it("names the organization Web Studio works in in the bar itself, and leads back
       .getByRole("link", { name: "Mission Control" })
       .getAttribute("href"),
   ).toBe("/00000000-0000-0000-0000-000000000002");
+});
+
+// Payload's own logout only ends Payload's side: with its local strategy
+// off it runs the collection's afterLogout hook and leaves the Supabase
+// session signed in, which a shared computer would keep (coordinator's
+// ruling on the joined release). Web Studio's "Log out" is Mission
+// Control's own sign-out: the server ends the session, and the login page
+// loads as a new document.
+it("logs out through Mission Control's sign-out, not Payload's logout page", async () => {
+  organization.current = null;
+  render(<StudioTopBar sectionLabel="Pages" />);
+  fireEvent.click(screen.getByRole("button", { name: /account menu/ }));
+  const logOut = await screen.findByRole("menuitem", { name: "Log out" });
+  expect(logOut.getAttribute("href")).toBeNull();
+  expect(logOut.closest("a")).toBeNull();
+  fireEvent.click(logOut);
+  await waitFor(() => expect(session.signOut).toHaveBeenCalledTimes(1));
+  // Its default: the server's sign-out first, then the login page as a
+  // document.
+  expect(session.signOut).toHaveBeenCalledWith();
 });

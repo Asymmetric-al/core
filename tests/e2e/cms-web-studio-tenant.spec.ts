@@ -1277,3 +1277,45 @@ test("@cms Web Studio's missionary and fund pickers list only the selected organ
     expect(seen.every(([, named]) => named === tenant)).toBe(true);
   }
 });
+
+// Coordinator's ruling on the joined release: Payload's own logout, with
+// its local strategy off, only runs the collection's afterLogout hook and
+// leaves the Supabase session signed in, which a shared computer keeps.
+// Web Studio's "Log out" is Mission Control's own sign-out.
+test("@cms Log out in Web Studio ends the session as Mission Control's sign-out does, lands on the login page, and a Web Studio page then asks to sign in", async ({
+  page,
+}) => {
+  await signIn(page);
+  await enter(page, DEMO);
+
+  const signOut = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/auth/signout" &&
+      response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: /account menu/ }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
+  expect((await signOut).status()).toBe(200);
+
+  // The login page, as a new document, and it stays there: a signed-in
+  // person who opens /login is sent on.
+  await page.waitForURL((url) => url.pathname === "/login");
+  await page.waitForLoadState("load");
+  expect(new URL(page.url()).pathname).toBe("/login");
+
+  // Nothing signs this browser in to the admin app any more: no Supabase
+  // session cookie, no bypass cookie, and no Web Studio organization.
+  const left = (await page.context().cookies(base))
+    .filter((cookie) => cookie.value !== "")
+    .map((cookie) => cookie.name);
+  expect(
+    left.filter((name) => /^sb-.+-auth-token(\.\d+)?$/.test(name)),
+  ).toEqual([]);
+  expect(left).not.toContain(E2E_AUTH_COOKIE_NAMES.admin);
+  expect(left).not.toContain(WEB_STUDIO_COOKIE);
+
+  const target = "/web-studio/collections/pages";
+  await page.goto(`${base}${target}`);
+  await page.waitForURL((url) => url.pathname === "/login");
+  expect(new URL(page.url()).searchParams.get("next")).toBe(target);
+});
