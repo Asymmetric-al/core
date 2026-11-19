@@ -289,19 +289,38 @@ const withLocalImports = (file: string, seen = new Set<string>()): string[] => {
   return [text, ...local.flatMap((target) => withLocalImports(target, seen))];
 };
 
-/**
- * The `process.env.*DATABASE_URL` inputs a real-database file reads in the
- * suite or its test helpers.
- */
+/** The database URL inputs read by one suite or helper module. */
+const readDatabaseUrlVariables = (text: string): string[] => {
+  const envAccess =
+    /\bprocess\.env(?:\.([A-Z_]*DATABASE_URL)\b|\[\s*(["'])([A-Z_]*DATABASE_URL)\2\s*\])/g;
+  return [...text.matchAll(envAccess)].map((match) => match[1] ?? match[3]!);
+};
+
 const databaseUrlVariables = (file: string): string[] => [
-  ...new Set(
-    withLocalImports(file).flatMap((text) =>
-      [...text.matchAll(/process\.env\.([A-Z_]*DATABASE_URL)\b/g)].map(
-        (m) => m[1]!,
-      ),
-    ),
-  ),
+  ...new Set(withLocalImports(file).flatMap(readDatabaseUrlVariables)),
 ];
+
+describe("database URL inputs", () => {
+  it.each([
+    "process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    'process.env["TENANT_GUARD_IT_ADMIN_DATABASE_URL"]',
+    "process.env['TENANT_GUARD_IT_ADMIN_DATABASE_URL']",
+  ])("recognizes %s", (source) => {
+    expect(readDatabaseUrlVariables(source)).toEqual([
+      "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+    ]);
+  });
+
+  it("ignores unrelated variables and longer names", () => {
+    expect(
+      readDatabaseUrlVariables(`
+        process.env.API_URL;
+        process.env.DATABASE_URL_BACKUP;
+        process.env["DATABASE_URL_BACKUP"];
+      `),
+    ).toEqual([]);
+  });
+});
 
 describe("every real-database test file runs in a blocking migrate step (#2706)", () => {
   it("the named files are exactly the real-database files on disk", () => {
