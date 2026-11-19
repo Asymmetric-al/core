@@ -1471,10 +1471,17 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "loop-on-ci",
     relativePath: "SKILL.md",
+    search: "gh pr view --json number,url,headRefName\n",
+    replace: "gh pr view --json number,url,headRefName,baseRefName\n",
+    required: true,
+  },
+  {
+    skillName: "loop-on-ci",
+    relativePath: "SKILL.md",
     search:
       "- If the failure is clearly unrelated to the PR and appears fixed on main, merge latest main instead of bloating the PR with unrelated fixes.",
     replace:
-      "- If the failure is clearly unrelated to the PR and appears fixed on the base branch (`develop` in Core), merge the latest `origin/develop` instead of bloating the PR with unrelated fixes.",
+      "- If the failure comes from the base branch and is already fixed there, fetch and merge the PR's `baseRefName` from its base repository. Core PRs usually target `develop`; a stacked PR can target another branch.",
     required: true,
   },
   {

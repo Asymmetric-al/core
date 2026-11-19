@@ -83,39 +83,31 @@ Write `agent/EVE-BRIEF.md` using the template in [reference.md](reference.md#eve
 
 Before scaffolding, inspect the repo:
 
-| Situation                      | Action                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| No `agent/` directory anywhere | From `packages/eve-runtime`: `bunx eve init <dir>`, which runs the installed, pinned eve CLI     |
-| One existing eve agent         | Mirror its project structure (package.json scripts, tsconfig, env pattern)                       |
-| Multiple eve agents (monorepo) | Inventory siblings; mirror naming, workspace deps, and folder conventions from the nearest agent |
+| Situation                           | Action                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| No `agent/` in the selected project | Use the pinned Core CLI with the selected project as the target, as shown below.                 |
+| One existing eve agent              | Mirror its project structure (package.json scripts, tsconfig, env pattern)                       |
+| Multiple eve agents (monorepo)      | Inventory siblings; mirror naming, workspace deps, and folder conventions from the nearest agent |
 
 Do not assume a specific monorepo shape. Discover conventions from the codebase. See [reference.md](reference.md#repo-layouts).
 
 ### 2. Install / scaffold
 
-**No eve project yet:**
+Set `project_dir` to the absolute path agreed in Phase 1. From the Core repository root, run its pinned CLI against that path for a new project or an existing project with no `agent/` directory.
 
 ```bash
-cd packages/eve-runtime
-bunx eve init <agent-dir>
+(cd packages/eve-runtime && bunx eve init "$project_dir")
 ```
 
-`init` installs deps and may start the dev server — run in a controllable process and **stop the server** before editing files.
+`init` installs deps and may start the dev server. Run it in a controllable process and stop the server before editing files.
 
-**Existing project, no `agent/` directory:**
-
-```bash
-cd packages/eve-runtime
-bunx eve init .
-```
-
-**eve already present:** skip init; ensure `agent/agent.ts` and `agent/instructions.md` exist.
+If the selected project already has `agent/`, skip init and locate its `agent/agent.ts` and `agent/instructions.md`.
 
 Optional: `--channel-web-nextjs` only when the user asked for Web Chat and they are using Next.js.
 
 ### 3. Place EVE-BRIEF.md
 
-Write or move `agent/EVE-BRIEF.md` into the scaffolded `agent/` directory.
+Write or move `EVE-BRIEF.md` into the selected project’s `agent/` directory. Implement from that project directory.
 
 ### 4. Implement from the brief
 
@@ -165,12 +157,12 @@ Skip this step for standalone projects.
 ### 6. Verify
 
 ```bash
-bun install --frozen-lockfile   # bun install when you changed a manifest
-bun run --cwd packages/eve-runtime typecheck
-bun run --cwd packages/eve-runtime build
+bun install --cwd "$project_dir" --frozen-lockfile   # bun install when you changed a manifest
+bun run --cwd "$project_dir" typecheck
+bun run --cwd "$project_dir" build
 ```
 
-Tell the user how to run the agent with `bunx eve` from `packages/eve-runtime`, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
+Tell the user how to run the agent with `bunx eve` from the selected project directory, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
 
 ---
 

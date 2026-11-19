@@ -160,6 +160,25 @@ describe("skill-quality repairs", () => {
     }
   });
 
+  it("scaffolds and verifies the selected Eve project", () => {
+    const skill = read("docs/ai/skills/create-agent/SKILL.md");
+
+    expect(skill).toContain('bunx eve init "$project_dir"');
+    expect(skill).not.toMatch(/bunx eve init \.(?:\s|$)/);
+    expect(skill).toContain('bun run --cwd "$project_dir" typecheck');
+    expect(skill).toContain('bun run --cwd "$project_dir" build');
+  });
+
+  it("uses the actual base of a stacked PR when recovering from CI failures", () => {
+    const skill = read("docs/ai/skills/loop-on-ci/SKILL.md");
+
+    expect(skill).toContain(
+      "gh pr view --json number,url,headRefName,baseRefName",
+    );
+    expect(skill).toContain("the PR's `baseRefName`");
+    expect(skill).not.toContain("merge the latest `origin/develop`");
+  });
+
   it("runs the pinned shadcn info command in moai-library-shadcn", () => {
     const skill = read("docs/ai/skills/moai-library-shadcn/SKILL.md");
 

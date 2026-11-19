@@ -2110,8 +2110,8 @@
       "sourcePath": "skills/create-agent/SKILL.md",
       "rawSkillHash": null,
       "lockHash": "c8575147679edca4064025fe922032a00732b6bb208ae2a8f51a7b2d783df6da",
-      "entrypointHash": "97cbd077b6aa63afed208ff7c5a54ae31915378d0fd44a843ce2c85c01c99141",
-      "treeHash": "9c01a7f412ddc72a91b9630eca02164e4c42867353eed3dfcea44c4dbf86925a",
+      "entrypointHash": "7ae1c95d0c218cec71ccec945c40f1c977e2a7a95c69aaaac57b73a43dd97652",
+      "treeHash": "4ac1c9c899cec35c8f557a8cfc71f453053d4d8bc499dcfd435ab5e3a1a945eb",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -4708,9 +4708,9 @@
       "examinedRef": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
       "sourcePath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
       "rawSkillHash": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
-      "lockHash": "3cedc36803d90b2f0977facb9f6e44b490cd106af2f1e12a99324dc09d90a58f",
-      "entrypointHash": "3cedc36803d90b2f0977facb9f6e44b490cd106af2f1e12a99324dc09d90a58f",
-      "treeHash": "14da7413f067c5428f7e4276f7b08c505e28ba59c8ed56ee3121c97ac92b8963",
+      "lockHash": "839666f5dd10735032f5c8f3abb5bc02db09c32c4c001b718185cb609368ef94",
+      "entrypointHash": "839666f5dd10735032f5c8f3abb5bc02db09c32c4c001b718185cb609368ef94",
+      "treeHash": "ae63a0b3d29f273c3faef6dda06fb6f5d36ca422bbb9139030e747d65017a4ea",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",

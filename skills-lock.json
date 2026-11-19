@@ -472,8 +472,8 @@
       "source": "cursor/plugins",
       "sourceType": "github",
       "skillPath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
-      "computedHash": "3cedc36803d90b2f0977facb9f6e44b490cd106af2f1e12a99324dc09d90a58f",
-      "treeHash": "4810973a1be3ed61ef3e33ff77eef5d68bfcf58fc9ab6c7be18f169a73ff7db2"
+      "computedHash": "839666f5dd10735032f5c8f3abb5bc02db09c32c4c001b718185cb609368ef94",
+      "treeHash": "d5a0336256f8081c472e4e2aaa6dc037c2161c697e69f07bf70354735165eb56"
     },
     "maintain-verification-skill": {
       "source": "uzairansaruzi/p3-stack",
