@@ -83,6 +83,8 @@ export function operatorMfaEnvFromStatus(output) {
   };
 }
 
+// The deadlines signal the direct child, not its descendants. After a timeout,
+// check this proof's stack and workers before retrying or removing its volume.
 export function runOperatorMfa(args, spawn = spawnSync) {
   const status = spawn(
     process.execPath,

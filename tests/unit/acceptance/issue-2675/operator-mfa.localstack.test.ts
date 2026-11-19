@@ -123,6 +123,67 @@ function rpc(fn: string, token: string) {
   });
 }
 
+async function cleanupProofUsers(
+  users: { email: string; id: string }[],
+  steps: {
+    findIds(emails: string[]): Promise<string[]>;
+    removeOperators(ids: string[]): Promise<void>;
+    removeAudit(ids: string[]): Promise<void>;
+    removeLogin(id: string): Promise<void>;
+    close(): Promise<void>;
+  },
+) {
+  const ids = new Set(users.map((user) => user.id).filter(Boolean));
+  const errors: unknown[] = [];
+  async function attempt(step: () => Promise<void>) {
+    try {
+      await step();
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  const missing = users.filter((user) => !user.id).map((user) => user.email);
+  if (missing.length)
+    await attempt(async () => {
+      for (const id of await steps.findIds(missing)) ids.add(id);
+    });
+  await attempt(() => steps.removeOperators([...ids]));
+  await attempt(() => steps.removeAudit([...ids]));
+  for (const id of ids) await attempt(() => steps.removeLogin(id));
+  await attempt(steps.close);
+  if (errors.length)
+    throw new AggregateError(errors, "the stack proof's cleanup failed");
+}
+
+it("recovers an unrecorded login and attempts every cleanup after a failed operator deletion", async () => {
+  const removed: string[] = [];
+  const cleanup = cleanupProofUsers(
+    [{ id: "", email: "run@example.invalid" }],
+    {
+      findIds: async (emails) => {
+        expect(emails).toEqual(["run@example.invalid"]);
+        return ["recovered"];
+      },
+      removeOperators: async () => {
+        throw new Error("operator cleanup failed");
+      },
+      removeAudit: async (ids) => {
+        removed.push(`audit:${ids.join()}`);
+      },
+      removeLogin: async (id) => {
+        removed.push(`login:${id}`);
+      },
+      close: async () => {
+        removed.push("closed");
+      },
+    },
+  );
+  await expect(cleanup).rejects.toMatchObject({
+    errors: [new Error("operator cleanup failed")],
+  });
+  expect(removed).toEqual(["audit:recovered", "login:recovered", "closed"]);
+});
+
 describe.skipIf(!READY)(
   "AL-2675 WP2c: the operators' second factor on a real Supabase stack",
   () => {
@@ -216,42 +277,40 @@ describe.skipIf(!READY)(
     // Review of WP2c part 1, WC14: the database client always closes, every
     // step runs, and a step that fails fails the suite instead of passing
     // unseen. The logins go last: a listed login cannot be deleted from Auth.
-    afterAll(async () => {
-      const ids = [operator.id, person.id].filter(Boolean);
-      const failures: unknown[] = [];
-      try {
-        await db.query(
-          "delete from authz.platform_operators where user_id = any($1::uuid[])",
-          [ids],
-        );
-        await db.query(
-          "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
-          [ids],
-        );
-      } catch (error) {
-        failures.push(error);
-      } finally {
-        await db.end().catch((error: unknown) => failures.push(error));
-      }
-      for (const id of ids) {
-        try {
+    afterAll(() =>
+      cleanupProofUsers([operator, person], {
+        findIds: async (emails) =>
+          (
+            await db.query<{ id: string }>(
+              "select id from auth.users where email = any($1::text[])",
+              [emails],
+            )
+          ).rows.map((user) => user.id),
+        removeOperators: async (ids) => {
+          await db.query(
+            "delete from authz.platform_operators where user_id = any($1::uuid[])",
+            [ids],
+          );
+        },
+        removeAudit: async (ids) => {
+          await db.query(
+            "delete from public.audit_logs where resource_type = 'platform_operator' and resource_id = any($1::text[])",
+            [ids],
+          );
+        },
+        removeLogin: async (id) => {
           const removed = await call(`${API}/auth/v1/admin/users/${id}`, {
             method: "DELETE",
             headers: { apikey: SERVICE, authorization: `Bearer ${SERVICE}` },
           });
           if (removed.status !== 200)
-            failures.push(
-              new Error(
-                `deleting login ${id} answered ${removed.status}: ${JSON.stringify(removed.json)}`,
-              ),
+            throw new Error(
+              `deleting proof login ${id} answered ${removed.status}`,
             );
-        } catch (error) {
-          failures.push(error);
-        }
-      }
-      if (failures.length > 0)
-        throw new AggregateError(failures, "the stack proof's cleanup failed");
-    });
+        },
+        close: () => db.end(),
+      }),
+    );
 
     // Review of WP2c part 1, WC3: what a real PostgREST answers when the
     // shared check is called with no session, as `anon`, to whom the function
