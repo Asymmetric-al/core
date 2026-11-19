@@ -1,4 +1,9 @@
-import { expect as baseExpect, test, type Page } from "@playwright/test";
+import {
+  expect as baseExpect,
+  test,
+  type Page,
+  type Request,
+} from "@playwright/test";
 
 import { adminBaseURL } from "./base-urls";
 import { organizationLabel, TENANTS } from "./helpers/tenant-address";
@@ -171,6 +176,49 @@ async function acknowledgeStaleNotice(page: Page) {
  * refused first), and its autosaves fail at once (a held autosave would keep
  * the Save button disabled).
  */
+/**
+ * Opens `url` and waits until Payload has started in the browser: its own
+ * session read (`cms-users/me`, made once the page has hydrated) has been
+ * answered, and no call to `/web-studio/api` has been in flight for a second.
+ * A stale-tab case holds the page's calls and switches the other tab only
+ * after that: on a cold server the page hydrates late, a field's value can
+ * be on screen from the server's HTML before then, and start-up calls that
+ * are held leave Payload's form half started, while those made after the
+ * switch are refused and open the notice before the action under test.
+ */
+async function openStarted(page: Page, url: string) {
+  const inFlight = new Set<Request>();
+  let lastChange = Date.now();
+  const started = (request: Request) => {
+    if (!new URL(request.url()).pathname.startsWith("/web-studio/api/")) return;
+    inFlight.add(request);
+    lastChange = Date.now();
+  };
+  const ended = (request: Request) => {
+    if (inFlight.delete(request)) lastChange = Date.now();
+  };
+  page.on("request", started);
+  page.on("requestfinished", ended);
+  page.on("requestfailed", ended);
+  try {
+    const session = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/web-studio/api/cms-users/me",
+    );
+    await page.goto(url);
+    await session;
+    await expect
+      .poll(() => inFlight.size === 0 && Date.now() - lastChange >= 1_000, {
+        intervals: [250],
+      })
+      .toBe(true);
+  } finally {
+    page.off("request", started);
+    page.off("requestfinished", ended);
+    page.off("requestfailed", ended);
+  }
+}
+
 async function holdOwnCalls(page: Page) {
   await page.route(
     (url) => url.pathname.startsWith("/web-studio/api/"),
@@ -303,8 +351,11 @@ test("@cms once the person no longer holds the selected membership, the next pag
   // falls back to the organization that is left.
   await page.goto(`${base}/web-studio/collections/pages`);
   await expect(page).toHaveURL(/\/web-studio\/organization\?next=/);
-  // Only the organizations' options, not the development tools' buttons.
-  await expect(page.getByRole("button", { name: /^Open / })).toHaveCount(1);
+  // Only the organizations' options, in the chooser's main region: since the
+  // join, development tools add their own "Open …" buttons beside it.
+  await expect(
+    page.getByRole("main").getByRole("button", { name: /^Open / }),
+  ).toHaveCount(1);
 });
 
 test("@cms stub only: the admin proxy refreshes an expired session on a Web Studio REST call", async ({
@@ -472,7 +523,7 @@ test("@cms Save in a page opened for one organization, after another tab switche
 
   try {
     // Tab one keeps the document open for the demo organization.
-    await page.goto(`${base}/web-studio/collections/pages/${id}`);
+    await openStarted(page, `${base}/web-studio/collections/pages/${id}`);
     const title = page.getByRole("textbox", { name: /^Title/ }).first();
     await expect(title).toHaveValue(`Form ${stamp}`);
     // Tab two switches Web Studio to the second organization.
@@ -546,7 +597,8 @@ test("@cms bulk delete in a list opened for one organization, after another tab 
   const id = await createDraftPage(page, base, `Bulk ${stamp}`);
 
   try {
-    await page.goto(
+    await openStarted(
+      page,
       `${base}/web-studio/collections/pages?search=${encodeURIComponent(stamp)}`,
     );
     const row = page.getByRole("checkbox", { name: `Select Bulk ${stamp}` });
