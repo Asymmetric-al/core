@@ -174,12 +174,25 @@ test("leaving the portal for the public checkout loads one new document, whose o
   // twice in one document, the first cancelled by its own cleanup. Leaving
   // the portal must cost exactly that, and nothing from the portal's
   // document.
+  // A quiet network is no sign that the checkout has mounted: its config
+  // request comes from an effect after hydration, which a loaded machine can
+  // delay past the network going idle (the trace of the joined release's
+  // false red). So each leg waits for that request's successful answer,
+  // armed before the navigation or the click that causes it.
+  const configAnswered = () =>
+    page.waitForResponse(
+      (response) =>
+        response.request().method() === "GET" &&
+        new URL(response.url()).pathname === "/api/donate" &&
+        response.status() === 200,
+    );
   let from = log.length;
+  const directConfigAnswered = configAnswered();
   await page.goto(`/checkout?missionary_id=${missionary.id}`, {
     waitUntil: "domcontentloaded",
     timeout: 120_000,
   });
-  await page.waitForLoadState("networkidle");
+  await directConfigAnswered;
   const direct = log.slice(from);
   const directConfigRequests = ofPath(direct, "/api/donate").filter(
     (entry) => entry.method === "GET",
@@ -200,6 +213,7 @@ test("leaving the portal for the public checkout loads one new document, whose o
   });
   from = log.length;
   const configFrom = configHeaders.length;
+  const leavingConfigAnswered = configAnswered();
 
   await giveAgain.click();
 
@@ -210,7 +224,7 @@ test("leaving the portal for the public checkout loads one new document, whose o
     undefined,
     { timeout: 60_000 },
   );
-  await page.waitForLoadState("networkidle");
+  await leavingConfigAnswered;
   const leaving = log.slice(from);
   // Once, as a document, and first: the checkout never rendered on the
   // portal's document (which would have asked for it as a router request,
