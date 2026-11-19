@@ -155,7 +155,10 @@ function useCrossesSegment(): (href: string) => boolean {
   );
 }
 
-/** A left click with no modifier on a link that opens in this window. */
+/**
+ * A left click with no modifier on a link that opens in this window and is
+ * not a download, as next/link itself decides (council round 3, AR14).
+ */
 function isPlainClick(event: MouseEvent<HTMLAnchorElement>): boolean {
   const target = event.currentTarget.getAttribute("target");
   return (
@@ -164,7 +167,8 @@ function isPlainClick(event: MouseEvent<HTMLAnchorElement>): boolean {
     !event.ctrlKey &&
     !event.shiftKey &&
     !event.altKey &&
-    (!target || target === "_self")
+    (!target || target === "_self") &&
+    !event.currentTarget.hasAttribute("download")
   );
 }
 
@@ -390,25 +394,24 @@ function anchorAddress(anchor: HTMLAnchorElement): string | null {
 }
 
 /**
- * Whether this document has begun loading another for a crossing. Until that
- * load replaces it, a `refresh()` would render the old address again on the
- * old document: on a sign-in screen, a soft redirect into the segment that
- * the guard blanks, and server renders for nothing (council round 2, AR3).
- * Over when the browser shows this document again from its back-forward
- * cache.
+ * Whether the current task has begun loading another document for a
+ * crossing. In that task a `refresh()` would render the old address again
+ * on the old document: on a sign-in screen, a soft redirect into the segment
+ * that the guard blanks, and server renders for nothing (council round 2,
+ * AR3). Every caller calls `replace(target); refresh();` in one task, so the
+ * mark lasts only that task and is cleared by the next: a document that is
+ * still here afterwards (a cancelled `beforeunload` prompt, Stop, a 204 or a
+ * download, a back-forward cache restore) keeps a working `refresh()`
+ * (council round 3, AR14).
  */
 let crossingLoadBegun = false;
 
 function loadCrossing(address: string, replace: boolean): void {
   if (!crossingLoadBegun) {
     crossingLoadBegun = true;
-    window.addEventListener(
-      "pageshow",
-      (event) => {
-        if (event.persisted) crossingLoadBegun = false;
-      },
-      { once: true },
-    );
+    setTimeout(() => {
+      crossingLoadBegun = false;
+    }, 0);
   }
   loadDocument(address, { replace });
 }
