@@ -900,6 +900,65 @@ test("@cms two editors of one organization on a document with no versions: the s
   }
 });
 
+test('@cms the overview\'s "Your documents" card lists what the person viewed, in the organization selected only', async ({
+  page,
+}) => {
+  // The card reads the person's recently viewed documents through one of
+  // Payload's server functions. The name it was written with, beta.3's, is
+  // not one Payload 4.0.0-beta.9 registers: every call answered 500, and the
+  // card showed only "Couldn't load documents" (AL-2675).
+  await signIn(page);
+  await enter(page, DEMO);
+  const stamp = `wsdash-${Date.now()}`;
+  const created: Array<[string, string]> = [];
+  const title = page.getByRole("textbox", { name: /^Title/ }).first();
+
+  try {
+    // Viewing a document records it in the person's recently viewed list.
+    const alpha = await createDraftPage(page, base, `Alpha ${stamp}`);
+    created.push([DEMO, alpha]);
+    await page.goto(`${base}/web-studio/collections/pages/${alpha}`);
+    await expect(title).toHaveValue(`Alpha ${stamp}`);
+    await switchOrganization(page, base, SECOND);
+    const bravo = await createDraftPage(page, base, `Bravo ${stamp}`);
+    created.push([SECOND, bravo]);
+    await page.goto(`${base}/web-studio/collections/pages/${bravo}`);
+    await expect(title).toHaveValue(`Bravo ${stamp}`);
+
+    for (const [tenant, own, other] of [
+      [SECOND, "Bravo", "Alpha"],
+      [DEMO, "Alpha", "Bravo"],
+    ] as const) {
+      // The chooser lands on the overview, as it does for the person.
+      await switchOrganization(page, base, tenant);
+      const card = page.getByRole("region", { name: "Your documents" });
+      await card.getByRole("tab", { name: "Recently viewed" }).click();
+      const viewed = card.getByRole("list", {
+        name: "Recently viewed documents",
+      });
+      await expect(
+        viewed.getByRole("link", { name: new RegExp(`^${own} ${stamp}`) }),
+      ).toBeVisible();
+      await expect(
+        viewed.getByRole("link", { name: new RegExp(`^${other} ${stamp}`) }),
+      ).toHaveCount(0);
+      await expect(card.getByRole("alert")).toHaveCount(0);
+    }
+  } finally {
+    const tab = await page.context().newPage();
+    // Each page is deleted in its own organization.
+    for (const [tenant, id] of created) {
+      try {
+        await switchOrganization(tab, base, tenant);
+        await deleteDocument(tab, base, "pages", id);
+      } catch (error) {
+        console.warn(`cleanup of pages ${id} failed:`, error);
+      }
+    }
+    await tab.close();
+  }
+});
+
 test("@cms nothing of Payload's answers under /api, old media links are sent to the new route for this release, and Mission Control's /api answers as before", async ({
   page,
   request,
