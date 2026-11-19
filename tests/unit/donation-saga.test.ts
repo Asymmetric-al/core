@@ -24,6 +24,24 @@ function createStripeMock() {
   } as unknown as Stripe;
 }
 
+function claimedDonor(tenantId: string, donorId: string) {
+  const filters = new Map<string, string>();
+  const query = {
+    eq(column: string, value: string) {
+      filters.set(column, value);
+      return query;
+    },
+    single: async () => ({
+      data:
+        filters.get("tenant_id") === tenantId && filters.get("id") === donorId
+          ? { id: donorId }
+          : null,
+      error: null,
+    }),
+  };
+  return { select: () => query };
+}
+
 function emptyOutboxFeeExtrasSelect() {
   const maybeSingle = vi.fn().mockResolvedValue({
     data: { fee_extras: {} },
@@ -58,6 +76,7 @@ describe("donation saga helpers", () => {
       return Promise.resolve({ data: null, error: null });
     });
     const from = vi.fn((table: string) => {
+      if (table === "donors") return claimedDonor("ten-1", "dor-1");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
@@ -149,6 +168,7 @@ describe("donation saga helpers", () => {
     const persistEq = vi.fn().mockResolvedValue({ data: null, error: null });
     const persistUpdate = vi.fn().mockReturnValue({ eq: persistEq });
     const from = vi.fn((table: string) => {
+      if (table === "donors") return claimedDonor("tenant-fee", "donor-fee");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
@@ -268,6 +288,7 @@ describe("donation saga helpers", () => {
       return Promise.resolve({ data: null, error: null });
     });
     const from = vi.fn((table: string) => {
+      if (table === "donors") return claimedDonor("ten-3", "dor-3");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
@@ -506,6 +527,8 @@ describe("donation saga helpers", () => {
     const selectEq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq: selectEq });
     const from = vi.fn((table: string) => {
+      if (table === "donors")
+        return claimedDonor("tenant-recover", "donor-recover");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
@@ -674,6 +697,8 @@ describe("donation saga helpers", () => {
     const selectEq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq: selectEq });
     const from = vi.fn((table: string) => {
+      if (table === "donors")
+        return claimedDonor("tenant-persist", "donor-persist");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
@@ -790,6 +815,8 @@ describe("donation saga helpers", () => {
     const selectEq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq: selectEq });
     const from = vi.fn((table: string) => {
+      if (table === "donors")
+        return claimedDonor("tenant-match", "donor-match");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
@@ -993,6 +1020,7 @@ describe("donation saga helpers", () => {
     const selectEq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq: selectEq });
     const from = vi.fn((table: string) => {
+      if (table === "donors") return claimedDonor("tenant-due", "donor-due");
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
