@@ -1,5 +1,6 @@
 "use client";
 
+import { signOutClientSession } from "@asym/auth/client-session";
 import { useRoutePathname } from "@asym/auth/tenant-navigation";
 import { WEB_STUDIO_CHOOSER_PATH } from "@asym/auth/web-studio";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -88,7 +89,6 @@ function StudioUserMenu() {
   const pathname = useRoutePathname();
   const switchHref = `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`;
   const accountHref = formatAdminURL({ adminRoute, path: routes.account });
-  const logoutHref = formatAdminURL({ adminRoute, path: routes.logout });
 
   return (
     <DropdownMenu>
@@ -133,7 +133,12 @@ function StudioUserMenu() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link href={logoutHref} />}>
+          {/* Mission Control's own sign-out: the server ends the Supabase
+              session (and clears the Web Studio cookie), then the login page
+              loads as a new document. Payload's logout page, with its local
+              strategy off, ends only Payload's side and would leave the
+              person signed in (coordinator's ruling on the joined release). */}
+          <DropdownMenuItem onClick={() => void signOutClientSession()}>
             <LogOut aria-hidden="true" />
             Log out
           </DropdownMenuItem>
