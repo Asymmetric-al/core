@@ -5,6 +5,9 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
 import * as tasks from "../../../../packages/api/src/missionary-portal/tasks";
+import * as portal from "../../../../packages/api/src/missionary-portal";
+import * as donors from "../../../../packages/api/src/missionary-portal/donors";
+import * as follower from "../../../../packages/api/src/follower-requests/request";
 import * as task from "../../../../packages/api/src/missionary-portal/task";
 import * as followers from "../../../../packages/api/src/follower-requests";
 import * as directory from "../../../../packages/api/src/missionaries";
@@ -296,6 +299,117 @@ describe.skipIf(!configured)(
             { params: Promise.resolve({ donorId: org.donor }) },
           );
         await json(await activity(), 201);
+        expect(
+          (
+            await json(
+              await donors.GET(request("GET", "/api/missionary/donors")),
+              200,
+            )
+          ).donors,
+        ).toMatchObject([
+          { id: org.donor, activities: [{ title: expect.any(String) }] },
+        ]);
+        expect(
+          (
+            await json(
+              await portal.GET(request("GET", "/api/missionary/portal")),
+              200,
+            )
+          ).portal,
+        ).toMatchObject({
+          profile: { id: person },
+          publicPage: { missionaryId: org.missionary },
+        });
+        const taskPath = "/api/missionary/tasks";
+        const created = (
+          await json(
+            await tasks.POST(
+              request("POST", taskPath, { title: "Call", donor_id: org.donor }),
+            ),
+            201,
+          )
+        ).task;
+        expect(created).toMatchObject({
+          title: "Call",
+          donor: { id: org.donor },
+        });
+        const wrongArgs = { ...args, p_assignment_id: org.wrong };
+        for (const [fn, extra] of [
+          [
+            "missionary_task_write",
+            { p_operation: "delete", p_id: created.id, p_patch: {} },
+          ],
+          ["missionary_follower_requests", {}],
+          [
+            "missionary_follower_request_write",
+            {
+              p_operation: "delete",
+              p_id: org.follower,
+              p_status: null,
+              p_access_level: null,
+            },
+          ],
+          ["missionary_own_record", {}],
+          ["missionary_own_record_write", { p_patch: { bio: "wrong" } }],
+          ["missionary_directory", {}],
+          ["missionary_activities", { p_donor_ids: [org.donor] }],
+          [
+            "missionary_activity_create",
+            {
+              p_donor_id: org.donor,
+              p_type: "note",
+              p_title: "wrong",
+              p_note: "wrong",
+              p_date: new Date().toISOString(),
+            },
+          ],
+        ] as const) {
+          const result = await client
+            .rpc(fn, { ...wrongArgs, ...extra })
+            .select("id");
+          expect(result.error, fn).toBeNull();
+          expect(result.data, fn).toEqual([]);
+        }
+        expect(
+          await json(
+            await task.DELETE(request("DELETE", taskPath + "/" + created.id), {
+              params: Promise.resolve({ taskId: created.id }),
+            }),
+            200,
+          ),
+        ).toEqual({ success: true });
+        const followerPath = "/api/follower-requests/" + org.follower;
+        const followerParams = {
+          params: Promise.resolve({ requestId: org.follower }),
+        };
+        expect(
+          (
+            await json(
+              await follower.PATCH(
+                request("PATCH", followerPath, {
+                  status: "approved",
+                  access_level: "comment",
+                }),
+                followerParams,
+              ),
+              200,
+            )
+          ).request,
+        ).toMatchObject({
+          id: org.follower,
+          status: "approved",
+          access_level: "comment",
+          donor: { id: org.donor, name: org.donor },
+        });
+        expect(
+          await json(
+            await follower.DELETE(
+              request("DELETE", followerPath),
+              followerParams,
+            ),
+            200,
+          ),
+        ).toEqual({ success: true });
         role = "donor";
         const wrong = await client
           .rpc("missionary_owned_tasks", {

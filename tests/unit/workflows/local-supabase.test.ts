@@ -63,6 +63,35 @@ describe("Local Supabase Stack workflow: the replay matches the platform's image
     expect(compare).toBeLessThan(roundTrips);
   });
 
+  it("exercises the missionary handlers against the stack after fingerprinting", () => {
+    const suite =
+      "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts";
+    const run = step("bunx vitest run --maxWorkers=1 " + suite);
+    expect(run).toBeDefined();
+    expect(run).not.toMatch(/continue-on-error|^\s*if:/m);
+    expect(run).toContain("MISSIONARY_IT_SUPABASE_URL: http://127.0.0.1:54321");
+    expect(run).toContain(
+      "MISSIONARY_IT_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    );
+    expect(run).toContain("export MISSIONARY_IT_SERVICE_ROLE_KEY");
+    expect(run).toContain("supabase -- status -o json");
+    expect(at("schema-fingerprint.mjs compare")).toBeLessThan(
+      at("bunx vitest run --maxWorkers=1 " + suite),
+    );
+    for (const path of [
+      "packages/api/src/missionary-portal/**",
+      "packages/api/src/follower-requests/**",
+      "packages/api/src/missionaries/**",
+      "packages/api/src/profile/**",
+      "packages/api/src/shared/**",
+      "packages/database/**",
+      "tests/fixtures/auth-memberships.ts",
+      "tests/unit/acceptance/issue-2675/missionary-handler-authority.postgrest.acceptance.test.ts",
+      "tests/unit/workflows/local-supabase.test.ts",
+    ])
+      expect(workflow).toContain(`      - ${path}\n`);
+  });
+
   it("runs when the defaults, the replay or the fingerprint change", () => {
     for (const path of [
       "scripts/sql/hosted-default-privileges.sql",

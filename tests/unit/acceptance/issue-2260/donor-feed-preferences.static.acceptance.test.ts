@@ -95,6 +95,12 @@ const CI_BASES = [
     bytes: 47190,
     sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
   },
+  // D-18: WP2H documents the missionary PostgREST check in the local-stack workflow.
+  // This pin accepts only the reviewed file bytes, as before.
+  {
+    bytes: 47634,
+    sha256: "5185ed293e0b6f0c0273b5cc5fa9c064672a56162a8084014837ec88d9d0fff4",
+  },
 ];
 /** Criterion 20 doc rules, " ~ "-separated regexes. */
 const DOC_RULES = String.raw`anon ~ authenticated ~ service_role ~ SELECT, INSERT, UPDATE ~ auth\.uid\(\) ~ authz\.current_tenant_id\(\) ~ cross[- ]tenant ~ default (privileges|grants) ~ DELETE ~ #2251 ~ #668 ~ Down`;

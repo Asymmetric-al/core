@@ -107,6 +107,13 @@ const CI_BASES = [
     bytes: 47190,
     sha256: "74852f931758754843fbd50e41d432fbd40375f06f002c99f3524417f2b8782e",
   },
+  // D-18: WP2H documents the missionary PostgREST check in the local-stack workflow.
+  // This pin accepts only the reviewed file bytes, as before.
+  {
+    ref: "AL-2675 WP2H PostgREST proof",
+    bytes: 47634,
+    sha256: "5185ed293e0b6f0c0273b5cc5fa9c064672a56162a8084014837ec88d9d0fff4",
+  },
 ] as const;
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
