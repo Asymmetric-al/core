@@ -61,6 +61,10 @@
 --    tables 20260513173739 opened to the Data API. Only server code writes
 --    them (review section 4). Their write policies are dropped with the
 --    grants, so an accidental re-grant fails the catalog gate (review Q7).
+--    The write policies of pdf_templates and crm_record_links are dropped
+--    too: signed-in users never held a write grant on either, and no
+--    signed-in write policy stands without the grant for its command (the
+--    coordinator's follow-up on Q7; the gate's WRITE_POLICY_WITHOUT_GRANT).
 --    Two Support Hub tables are narrowed further: another agent's
 --    notification preferences and personal saved views are read only under
 --    the tenant-administrator flag (review Q1). The crm_notes insert binds its
@@ -386,7 +390,21 @@ GRANT EXECUTE ON FUNCTION authz.caller_tenant_ids() TO authenticated, service_ro
 -- authz.is_super_admin(). Its meaning is unchanged (review Q6); it is marked
 -- PARALLEL SAFE, as the other helpers are, because a policy that names a
 -- parallel-unsafe function denies every caller-token read a parallel plan
--- (caller-token proof, section 6.2). It reads one table and writes nothing.
+-- (caller-token proof, section 6.2).
+--
+-- Why the mark is true. The function (20260226113000, lines 143-156) is one
+-- STABLE SQL statement, SECURITY DEFINER owned by postgres:
+--   SELECT EXISTS (SELECT 1 FROM public.profiles p
+--                   WHERE p.user_id = auth.uid() AND p.role = 'super_admin')
+-- It reads one permanent table, public.profiles, which a parallel worker
+-- reads as the leader does. It calls auth.uid(), which reads two settings,
+-- request.jwt.claim.sub and request.jwt.claims; a parallel worker starts
+-- with the leader's settings, so it reads the same caller. auth.uid() is
+-- marked parallel-unsafe only by default; the request-tenant helpers above
+-- call it too. The function writes nothing: no insert, update or delete, no
+-- sequence, no temporary table, no cursor, no prepared statement, no lock
+-- beyond the read, and no setting change other than its own search_path for
+-- the call, which Postgres allows in a worker because it ends with the call.
 ALTER FUNCTION authz.is_super_admin() PARALLEL SAFE;
 
 -- assignment_holds reads authz.assignment_capabilities as its owner.
@@ -513,7 +531,8 @@ CREATE TRIGGER crm_notes_stamp_signed_in_author
   FOR EACH ROW EXECUTE FUNCTION public.crm_notes_stamp_signed_in_author();
 
 -- 2. The policies. ALTER POLICY keeps each name, command and role list; the
--- write policies of tables whose grants go are dropped.
+-- write policies of tables whose grants go are dropped, and so are those of
+-- pdf_templates and crm_record_links, where no signed-in write grant stands.
 
 -- support_agents
 ALTER POLICY "support hub staff select" ON public.support_agents
@@ -734,25 +753,9 @@ ALTER POLICY "authz staff tenant select pdf_templates" ON public.pdf_templates
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "authz staff tenant insert pdf_templates" ON public.pdf_templates
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "authz staff tenant update pdf_templates" ON public.pdf_templates
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "authz staff tenant delete pdf_templates" ON public.pdf_templates
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "authz staff tenant insert pdf_templates" ON public.pdf_templates;
+DROP POLICY "authz staff tenant update pdf_templates" ON public.pdf_templates;
+DROP POLICY "authz staff tenant delete pdf_templates" ON public.pdf_templates;
 
 -- audit_logs
 ALTER POLICY "authz staff tenant select audit_logs" ON public.audit_logs
@@ -785,20 +788,8 @@ ALTER POLICY "authz staff tenant select crm_record_links" ON public.crm_record_l
     (SELECT authz.is_super_admin())
     OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
   );
-ALTER POLICY "authz staff tenant insert crm_record_links" ON public.crm_record_links
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
-ALTER POLICY "authz staff tenant update crm_record_links" ON public.crm_record_links
-  USING (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  )
-  WITH CHECK (
-    (SELECT authz.is_super_admin())
-    OR (tenant_id = (SELECT authz.current_tenant_id()) AND (SELECT authz.assignment_is('staff')))
-  );
+DROP POLICY "authz staff tenant insert crm_record_links" ON public.crm_record_links;
+DROP POLICY "authz staff tenant update crm_record_links" ON public.crm_record_links;
 
 -- pdf_template_artifacts
 ALTER POLICY "pdf template artifacts select" ON public.pdf_template_artifacts
@@ -1280,17 +1271,30 @@ BEGIN
     RAISE EXCEPTION 'AL-2675: policies still judge the row''s own tenant or the token claim: %', v_problem;
   END IF;
 
-  -- No signed-in write policy is left where the write grants went (Q7).
+  -- No signed-in INSERT, UPDATE or DELETE policy stands, on any table in
+  -- public, where no signed-in role it names holds the privilege its command
+  -- needs (Q7, as the coordinator widened it; the catalog gate's
+  -- WRITE_POLICY_WITHOUT_GRANT holds the same rule after this release).
   SELECT pg_catalog.string_agg(c.relname || ': ' || p.polname, ', ')
     INTO v_problem
     FROM pg_catalog.pg_policy AS p
     JOIN pg_catalog.pg_class AS c ON c.oid = p.polrelid
    WHERE c.relnamespace = 'public'::regnamespace
-     AND c.relname = ANY (ARRAY['audit_logs', 'crm_merge_candidates', 'member_care_activities', 'member_care_goals', 'member_care_private_notes', 'member_care_requirements', 'field_policies', 'notification_queue', 'support_agents', 'support_assignments', 'support_audit_log', 'support_automation_rules', 'support_business_hours', 'support_canned_responses', 'support_conversation_labels', 'support_conversations', 'support_inbox_settings', 'support_inboxes', 'support_labels', 'support_macros', 'support_message_attachments', 'support_messages', 'support_notification_preferences', 'support_saved_views', 'support_signatures', 'support_sla_policies', 'support_teams', 'support_contacts', 'support_tickets', 'pdf_template_artifacts', 'pdf_template_audit_events', 'pdf_template_batch_jobs', 'pdf_template_batches', 'pdf_template_renders', 'pdf_template_versions', 'crm_command_logs', 'stripe_raw_events', 'staged_gifts', 'staged_gift_allocations', 'staged_gift_audit_events', 'donation_crm_links', 'giving_reconciliation_runs'])
      AND p.polcmd IN ('a', 'w', 'd')
-     AND p.polroles && ARRAY[0::OID, 'authenticated'::regrole::OID];
+     AND p.polroles && ARRAY[0::OID, 'authenticated'::regrole::OID]
+     AND NOT EXISTS (
+       SELECT 1
+         FROM pg_catalog.unnest(
+                ARRAY['authenticated'] ||
+                CASE WHEN p.polroles @> ARRAY[0::OID] THEN ARRAY['anon'] ELSE ARRAY[]::TEXT[] END
+              ) AS g(r)
+        WHERE CASE p.polcmd
+                WHEN 'a' THEN pg_catalog.has_any_column_privilege(g.r, c.oid, 'INSERT')
+                WHEN 'w' THEN pg_catalog.has_any_column_privilege(g.r, c.oid, 'UPDATE')
+                ELSE pg_catalog.has_table_privilege(g.r, c.oid, 'DELETE')
+              END);
   IF v_problem IS NOT NULL THEN
-    RAISE EXCEPTION 'AL-2675: write policies remain where the grants went: %', v_problem;
+    RAISE EXCEPTION 'AL-2675: write policies stand where no signed-in write grant does: %', v_problem;
   END IF;
 
   -- Every policy of the two buckets tests a live membership in the path's

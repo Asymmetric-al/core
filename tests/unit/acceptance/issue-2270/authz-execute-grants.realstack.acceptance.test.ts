@@ -59,13 +59,19 @@ void LOG_INSERT;
  * Amended by AL-2675 (WP2b, second release; record D-18; activation review
  * Q7 and Q8): the write grants on crm_command_logs and crm_merge_candidates
  * are revoked, and their insert and update policies dropped with them, so an
- * accidental re-grant fails the catalog gate. Those three policies no longer
- * exist to be altered.
+ * accidental re-grant fails the catalog gate. crm_record_links never held a
+ * write grant for signed-in users, so its insert and update policies admitted
+ * nothing; they are dropped too, under the rule that no signed-in write
+ * policy stands without the grant for its command (the catalog gate's
+ * WRITE_POLICY_WITHOUT_GRANT). Those five policies no longer exist to be
+ * altered.
  */
 const DROPPED_LATER = [
   "authz staff tenant insert crm_command_logs",
   "authz staff tenant insert crm_merge_candidates",
   "authz staff tenant update crm_merge_candidates",
+  "authz staff tenant insert crm_record_links",
+  "authz staff tenant update crm_record_links",
 ];
 /** The policies of POLICIES that stand on this chain. */
 const STANDING = POLICIES.filter(
@@ -74,7 +80,7 @@ const STANDING = POLICIES.filter(
 
 /**
  * The new migration's statements between BEGIN; and COMMIT;, less the
- * ALTER POLICY statements of the three policies a later migration dropped
+ * ALTER POLICY statements of the five policies a later migration dropped
  * (amended by AL-2675; every other statement runs as before).
  */
 function migrationBody() {
@@ -312,11 +318,12 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
           ).toEqual({ code: null, rows: [{ n: 0 }] });
     }));
 
-  // Amended by AL-2675 (WP2b, second release; record D-18): the five
-  // policies that stand are TO authenticated with the predicates of this
-  // chain, the tenant condition and the staff class of the request's one
-  // assignment beside the super-admin branch; the three write policies whose
-  // grants went are gone, and so are those grants (activation review Q7, Q8).
+  // Amended by AL-2675 (WP2b, second release; record D-18): the three
+  // policies that stand, the read policy of each table, are TO authenticated
+  // with the predicates of this chain, the tenant condition and the staff
+  // class of the request's one assignment beside the super-admin branch; the
+  // five write policies are gone, and no write grant stands behind any of
+  // them (activation review Q7, Q8, and the coordinator's follow-up on Q7).
   it("C8: the standing policies are TO authenticated with this chain's predicates; the dropped ones are gone with their grants", () =>
     tx(async () => {
       const gone = await db.query(
@@ -328,6 +335,8 @@ describe.skipIf(!ADMIN_URL)("#2270 authz EXECUTE grants (R)", () => {
         ["crm_command_logs", "INSERT"],
         ["crm_merge_candidates", "INSERT"],
         ["crm_merge_candidates", "UPDATE"],
+        ["crm_record_links", "INSERT"],
+        ["crm_record_links", "UPDATE"],
       ])
         expect(
           (

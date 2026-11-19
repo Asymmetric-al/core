@@ -55,13 +55,14 @@ export const UNEDITED: Record<string, string> = {
   // AL-2674 (plan 5.4, NR-13) adds tenant_guard to the expected EXECUTE
   // grantees of the two authz membership helpers, and nothing else.
   // AL-2675 (WP2b, second release; record D-18) re-pins two files: the real
-  // stack suite sends the request's tenant and assignment, drops the three
+  // stack suite sends the request's tenant and assignment, drops the five
   // write policies its migration body no longer alters (activation review
-  // Q7, Q8) and checks the standing ones' new predicates exactly; the static
-  // suite lists the three authz definers the policy migration adds. Each file
-  // records its reason beside the change.
+  // Q7, Q8: three whose grants were revoked, and the two of crm_record_links,
+  // which never had one) and checks the standing ones' new predicates
+  // exactly; the static suite lists the three authz definers the policy
+  // migration adds. Each file records its reason beside the change.
   "tests/unit/acceptance/issue-2270/authz-execute-grants.realstack.acceptance.test.ts":
-    "7b6fa766466dd15f8f47cbff562144a507b0dd2e",
+    "5e63e439a20ad2d6f2408b18ea4687532d0b3dbd",
   "tests/unit/acceptance/issue-2270/harness.ts":
     "e9e7201350e5d1f90f85c266f762d450ca3637d5",
   "tests/unit/acceptance/issue-2270/static.acceptance.test.ts":
