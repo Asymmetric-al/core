@@ -168,6 +168,89 @@ const answers: Array<[string, Answer]> = [
       );
     },
   ],
+  // Check of the fix lists, JR8: the comments route tested only for a user
+  // id, so a refused scope went on with none, and the donor's feed
+  // preferences answered it as a 403 "Tenant context required"; neither
+  // marked it.
+  [
+    "the post comments route",
+    async () => {
+      const { GET } =
+        await import("../../../../packages/api/src/posts/comments");
+      return GET(
+        request("/api/posts/11111111-2222-4333-8444-555555555555/comments"),
+        {
+          params: Promise.resolve({
+            postId: "11111111-2222-4333-8444-555555555555",
+          }),
+        },
+      );
+    },
+  ],
+  [
+    "the donor's feed preferences, read",
+    async () => {
+      const { GET } =
+        await import("../../../../packages/api/src/feed-preferences");
+      return GET(request("/api/donor/feed-preferences"));
+    },
+  ],
+  // JR8's sweep: three routes threw the shared refusal from their guard and
+  // then answered every error by hand as a 500 with no mark.
+  [
+    "the admin post read",
+    async () => {
+      const { GET } =
+        await import("../../../../packages/api/src/admin/posts/post");
+      return GET(request("/api/admin/posts/p-1"), {
+        params: Promise.resolve({ postId: "p-1" }),
+      });
+    },
+  ],
+  [
+    "the admin comment edit",
+    async () => {
+      const { PATCH } =
+        await import("../../../../packages/api/src/admin/comments/comment");
+      return PATCH(
+        request("/api/admin/comments/c-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ content: "text" }),
+        }),
+        { params: Promise.resolve({ commentId: "c-1" }) },
+      );
+    },
+  ],
+  [
+    "the follower request answer",
+    async () => {
+      const { PATCH } =
+        await import("../../../../packages/api/src/follower-requests/request");
+      return PATCH(
+        request("/api/follower-requests/r-1", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ status: "approved" }),
+        }),
+        { params: Promise.resolve({ requestId: "r-1" }) },
+      );
+    },
+  ],
+  [
+    "the donor's feed preferences, saved",
+    async () => {
+      const { POST } =
+        await import("../../../../packages/api/src/feed-preferences");
+      return POST(
+        request("/api/donor/feed-preferences", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ followOrg: true }),
+        }),
+      );
+    },
+  ],
 ];
 
 beforeEach(() => {

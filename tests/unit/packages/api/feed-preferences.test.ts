@@ -184,18 +184,21 @@ describe("feed preferences route", () => {
     expect(from).not.toHaveBeenCalled();
   });
 
-  it("returns 403 on GET and POST when no assignment resolved, before any preferences query", async () => {
+  // Check of the fix lists, JR8: a person with no resolved donor assignment
+  // is refused as every route refuses them, 401 Unauthorized, before any
+  // session is opened (it was a 403 "Tenant context required"); a refused
+  // scope carries its mark (scope-refused-answers.test.ts).
+  it("returns 401 on GET and POST when no assignment resolved, before any session or preferences query", async () => {
     const { from } = mockFeedPreferencesRoute({ session: "no-assignment" });
 
     const getResponse = await GET(createGetRequest());
     const postResponse = await POST(createJsonRequest({ followOrg: true }));
 
     for (const response of [getResponse, postResponse]) {
-      expect(response.status).toBe(403);
-      expect(await response.json()).toEqual({
-        error: "Tenant context required",
-      });
+      expect(response.status).toBe(401);
+      expect(await response.json()).toEqual({ error: "Unauthorized" });
     }
+    expect(createClientMock).not.toHaveBeenCalled();
     expect(from).not.toHaveBeenCalledWith("donor_feed_preferences");
   });
 

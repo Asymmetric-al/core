@@ -1,6 +1,7 @@
 import {
   getAuthContext,
   requestScopeOf,
+  scopeRefusedHeaders,
   type AuthContext,
 } from "@asym/auth/context";
 import { NextResponse } from "next/server";
@@ -60,13 +61,25 @@ type AuthenticatedDonorLookup =
  */
 async function openDonorSession(request: Request) {
   const auth = await getAuthContext(request);
+  // No resolved donor assignment: refused before any session is opened,
+  // with the scope-refused mark when the resolver refused the scope the page
+  // proposed, so the page retires its document (JB1; check of the fix
+  // lists, JR8), not as a 403 "Tenant context required".
+  if (!auth.isAuthenticated) {
+    return {
+      refusal: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: scopeRefusedHeaders(auth) },
+      ),
+    } as const;
+  }
   // The credential the request was authenticated with: its bearer token
   // first, otherwise its cookies (council on the joined release, JB13).
   const supabase = await createRequestSessionClient(
     request,
     requestScopeOf(auth),
   );
-  return { auth, supabase };
+  return { auth, supabase } as const;
 }
 
 /**
@@ -218,7 +231,9 @@ function toFeedPreferencesUpsert(
 
 export async function GET(request: Request) {
   try {
-    const { auth, supabase } = await openDonorSession(request);
+    const session = await openDonorSession(request);
+    if ("refusal" in session) return session.refusal;
+    const { auth, supabase } = session;
     const donorLookup = await findDonorByAuthenticatedUser(supabase, auth);
     const failure = donorLookupFailure(donorLookup);
 
@@ -257,7 +272,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { auth, supabase } = await openDonorSession(request);
+    const session = await openDonorSession(request);
+    if ("refusal" in session) return session.refusal;
+    const { auth, supabase } = session;
     const donorLookup = await findDonorByAuthenticatedUser(supabase, auth);
     const failure = donorLookupFailure(donorLookup);
 

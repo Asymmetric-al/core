@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { toErrorResponse } from "../shared/http-errors";
 import { findProfileByUserId } from "../shared/queries";
 
 interface FollowerRequestWithDonor {
@@ -112,8 +113,10 @@ export async function PATCH(
       },
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // The shared answer: the guard's refusal of a proposed scope keeps its
+    // 401 and its mark, any other error its status (check of the fix lists,
+    // JR8).
+    return toErrorResponse(e);
   }
 }
 
@@ -169,8 +172,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // The shared answer: the guard's refusal of a proposed scope keeps its
+    // 401 and its mark, any other error its status (check of the fix lists,
+    // JR8).
+    return toErrorResponse(e);
   }
 }
 

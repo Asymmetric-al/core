@@ -1,4 +1,8 @@
-import { getAuthContext, requestScopeOf } from "@asym/auth/context";
+import {
+  getAuthContext,
+  requestScopeOf,
+  scopeRefusedHeaders,
+} from "@asym/auth/context";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { CommentAuthorsReadError, readCommentAuthors } from "./comment-authors";
@@ -32,8 +36,14 @@ export async function GET(
 ) {
   // Explicit auth check — do not rely on RLS alone. (finding 06 Gap 3)
   const auth = await getAuthContext(request);
-  if (!auth.userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Not `!auth.userId`: a person whose proposed scope the resolver refused
+  // keeps their user id and has no scope (check of the fix lists, JR8). The
+  // refusal carries its mark, so the page retires its document (JB1).
+  if (!auth.isAuthenticated) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401, headers: scopeRefusedHeaders(auth) },
+    );
   }
 
   // The caller's own token, sending the tenant and assignment the resolver
