@@ -1,4 +1,4 @@
-# Evidence record: Core quality-toolchain migration (E1–E77)
+# Evidence record: Core quality-toolchain migration (E1–E80)
 
 This file joins the evidence notes the coordinator wrote during the council rounds of 2026-11-19: the round-0 snapshot and the addenda that followed. The notes are unedited except that machine-local paths and subscription labels are replaced by placeholders (`SCRATCH`, `<coordinator worktree>`, `<reviewer worktree>`, `<research handoff>`, `<home>`).
 
@@ -90,6 +90,9 @@ Later entries sometimes correct earlier ones (for example E26 corrects the sizin
 | E75 | The guard reaches a child whose environment was replaced [X] | `evidence-r11-addendum.md` |
 | E76 | Port-qualified `NO_PROXY` entries: Bun honors them, curl and git do not [X] | `evidence-r11-addendum.md` |
 | E77 | Batch A1 staffing: delegated tool drafts, by an arbiter's ruling [I] | added in batch A1 |
+| E78 | Ultracite 8.3.1 ships the same anti-slop plugin; each rule crashes on its own [X] | added during implementation |
+| E79 | The simplification review, the skeptic's measurements and the scope ruling [X/I] | added during implementation |
+| E80 | `vitest list` on Linux, before and after the two repairs [X] | added during implementation |
 
 ---
 
@@ -1293,7 +1296,9 @@ variables point at a closed port.
 
 # Part: Implementation evidence, batch A1 (added in the repository)
 
-Entries from here on were written during implementation, in the batch each one names.
+Entries from here on were written during implementation. Plan v11 replaced plan v10 on 2026-11-20 (E79); entries
+E1 to E77 were written against earlier plans and are kept as written, including those about mechanisms plan v11
+removed. Plan v11 cites the entries it relies on.
 
 ## E77. Batch A1 staffing: delegated tool drafts, by an arbiter's ruling [I]
 
@@ -1327,3 +1332,87 @@ reserves every registry to the coordinator, not only those two tasks share.
 
 **Effect.** Design sections 0d, 8.2 (the A1 row) and 8.4, the guide's section 1 and the A1 heading of `tasks.md` carry
 the amendment. No decision D1 to D13 changes.
+
+## E78. Ultracite 8.3.1 ships the same anti-slop plugin; each rule crashes on its own [X]
+
+- `ultracite@8.3.1` was published on 2026-11-19. Its `config/oxlint/anti-slop/plugin.mjs` is byte-identical to
+  8.3.0's (SHA-256 `9bfb19ea9e86908fdf930103d3f1ee0825e0e0eabdf016ac54bc96ab871884c4`, 108,313 bytes), so the alias
+  defect is not fixed upstream. 8.3.1 changes the core Oxlint preset and raises peer ranges, which would need the
+  qualification repeated. The pin stays at 8.3.0 with Core's patch.
+- With the unpatched plugin and one rule enabled at a time (Oxlint 1.94.0, `--format json`), both crash inputs exit 1
+  with a diagnostic whose message begins `Error running JS plugin` and contains
+  `RangeError: Maximum call stack size exceeded`, and report nothing for the genuinely unsafe line in the same file:
+  `type ReadonlyBox<T> = Box<Readonly<T>>` with `no-unsafe-dictionary-type`, and
+  `type Wrap<T> = Id<Readonly<T>>` with `no-known-value-widening`.
+- With the patch, the same inputs report the unsafe line (`ReadonlyBox<unknown>`, and a
+  `Wrap<Record<string, number>>` initializer) and nothing else, and the plugin Bun installs is byte-identical to the
+  patched copy (SHA-256 `ce97104bb4e558e0f3572b1c630e1d14dd1e8ae1a8991dce52ca5d7b16845ebb`). These are the cases of
+  `tests/unit/scripts/quality-antislop-patch.test.ts`.
+
+## E79. The simplification review, the skeptic's measurements and the scope ruling [X/I]
+
+**Why.** On 2026-11-19 the owner said the plan might be over-engineered. The plan had grown from 50 KB (v1) to 79 KB
+(v5), 134 KB (v9) and 277 KB (v10), while the council's mean stayed between 8.4 and 8.8 from round 3 to round 10.
+Every round had asked reviewers for gaps; none had asked what could be removed.
+
+**Three reviews,** each read-only, each told to look only for what could go, each with a different lens:
+
+<!-- prettier-ignore -->
+| Lens | Model | Result |
+|---|---|---|
+| A zero-based plan written from the assignment alone, then compared | GPT 6.2 Astra, xhigh | about half of v10's mechanisms and 25 to 35% of its effort removable; four integration boundaries, no new registries, no new lint rules |
+| An inventory of every mechanism, temporary or permanent | Claude Opus 5.5, xhigh | 300 mechanisms, 106 of them council additions; cut or defer 69, simplify 77; about 27% of the effort; 24 mechanisms had no stated retirement |
+| What a maintainer inherits, fit with the owner's other open changes, and scope | Gemini 4 Neon, xhigh | of 32 mechanism groups keep 2, simplify 14, cut 12, defer 4; 60 to 70% of the effort; the plan built new ledgers while the owner's open pull requests retire ledgers and pins |
+
+All three agreed on dropping the fault-patch library, the child-process network guard, the pin, proof and rebind
+tooling, the custom staged runner, the second edit hook, the exception taxonomy and owner registries and the replay
+verifier, and on fewer batches and shorter documents.
+
+**The skeptic** (Claude Opus 5.5, xhigh) was then asked to show that each of 17 proposed decisions does harm or
+breaks a clause of the assignment. It refuted none and attached a condition to twelve; all twelve are in plan v11.
+What it measured or read:
+
+- **`lint-staged` 17.6.0 with Core's current flags** (`--no-stash --no-hide-partially-staged`) and a writing command:
+  in a scratch repository with one staged hunk and one unstaged hunk in the same file, the unstaged hunk went into
+  the index. In every mode that re-stages, an unrelated file written while the hook ran was staged too, the default
+  stash mode included. With `--no-stash --fail-on-changes` and a read-only command, neither happened: a clean staged
+  content passed with an unformatted unstaged hunk present, an unformatted staged content failed, and the index and
+  working tree were unchanged in both cases.
+- **Parity of the incumbent rules.** Sampling the effective ESLint config in eight workspaces: 69 rules at `error` in
+  apps, 25 in packages, 31 in `packages/ui`. Every rule name has an Oxlint 1.94.0 counterpart except
+  `react-hooks/config` and `react-hooks/gating`, two rules that report nothing, and the six shadcn rules.
+- **Directives.** A disable directive for a rule that is switched off is reported as unused.
+  `unicorn/no-abusive-eslint-disable` reports a directive that names no rule. Oxlint 1.94.0 has no
+  `no-restricted-syntax`.
+- **CI.** Pull-request CI runs `turbo run lint --affected`, and `turbo.json` caches `lint` with no global
+  dependencies, so a change to a root lint config would neither re-key the cache nor select a workspace.
+- **Backend.** The pinned `tsrs` launcher runs whatever `TSRS_BINARY` names.
+
+**The scope ruling** (an independent arbiter, GPT 6.2 Astra at xhigh; its first run returned without doing the task
+and was run again):
+
+- **Policy scope:** the full policy on product code and tailored profiles for tests and scripts, with a rule exempt
+  from a profile only if its reason would hold in a new, clean file. **Module mocking is enforced here**, against the
+  coordinator's recommendation to defer it: 1,008 of its 1,273 findings replace one of Core's own modules. A mock
+  that isolates an external boundary may stay with a narrow reviewed reason.
+- **Central tests:** root configuration, scripts and tooling are compiled now; central tests get strict lint-only
+  programs, each with a failing and a passing control; their compile gate is a named follow-up with no error
+  ceiling in the meantime.
+- **Shadcn:** the six rules stay on the ESLint bridge; the legacy repair and the ledger's retirement stay with
+  `integrate-design-system-lint`; the handoff reports the raw count.
+
+The arbiter also corrected the brief: the 77% figure of E14 is a raw inventory, not a share of repairs; 57,601 (E27)
+is after spacing and formatting only; and the 1,000 to 1,500 central-test errors were an extrapolation from 172
+errors in one probe (E17).
+
+**The owner's instruction:** "update the plan and proceed." Plan v11 is the result. It was not scored.
+
+## E80. `vitest list` on Linux, before and after the two repairs [X]
+
+At the implementation base on Ubuntu, `vitest list --json` over the repository exited 1 with no output: "No test
+suite found" for `tests/unit/packages/api/missionary-directory.test.ts` and for
+`tests/unit/scripts/supabase-migrations.test.ts` (E67 had recorded this on Windows). After deleting the first and
+wrapping the second in one `describe`, the listing exits 0 (13,137 tests in 1,596 files, 31 s) and the 16 migration
+tests run and pass with the same names. The listing names fewer tests than the unit run executes (20,314 at that
+revision) and none for the migrations file itself, so a before-and-after comparison uses the test names in the
+run's JSON report.

@@ -1,5 +1,7 @@
 # Council record: Core quality-toolchain migration plan
 
+**Note (2026-11-20).** Plan v10, where this record's first nine sections end, has been replaced by the leaner plan v11. Section 10 records how. Sections 1 to 9 are kept as written.
+
 This is the record of the council that reviewed the migration plan between 18 and 19 November 2026. It lists who reviewed, what they scored, what they found, and how each finding was answered. The plan it ends in is plan v10, the design document of this change.
 
 ## 1. What the council was
@@ -1026,3 +1028,78 @@ None of these blocks batch A1.
 - **The owner's documents.** The research handoff and the assignment are not copied into this public repository. The plan identifies the handoff by its digest. The owner may add them.
 - **The live Stripe suites.** They run only with a test-mode credential that the owner authorizes for CI. Without one, each run is recorded as not having taken place.
 - **A product follow-up.** Showing a `$0` gift amount where the interface shows nothing today is a product change; the plan keeps today's output and files the question as a follow-up.
+
+## 10. The simplification review and plan v11 (19 to 20 November)
+
+Sections 1 to 9 above are kept as written. They record the council on plans v1 to v10. This section records what
+happened next. Plan v10 is no longer the design of this change; it remains in the change's git history.
+
+**What prompted it.** After ratifying plan v10, the owner said it might be over-engineered or needlessly complex and
+asked for a review. The record supported the concern before any reviewer read a line: the plan had grown from 50 KB
+to 277 KB, the mean score had not moved since round 3, every round had rewarded finding a gap, and the last
+doubling, from v9 to v10, came from an audit that restored 253 items and was never scored.
+
+**Who reviewed, and what they were asked.** Nobody was asked for gaps. Three reviewers were each asked only what
+could be removed without losing something the assignment requires. A fourth was asked the opposite. A fifth ruled
+on scope.
+
+<!-- prettier-ignore -->
+| Role | Asked to | Model, effort | Result |
+|---|---|---|---|
+| Lean plan | write the smallest plan from the assignment alone, then compare it with v10 | GPT 6.2 Astra, xhigh | about half the mechanisms and 25 to 35% of the effort removable |
+| Inventory | list every mechanism v10 creates and mark it temporary or permanent | Claude Opus 5.5, xhigh | 300 mechanisms, 106 added by the council; cut or defer 69, simplify 77 |
+| End state | describe what a maintainer inherits, the fit with the owner's other open changes, and scope | Gemini 4 Neon, xhigh, on Antigravity | of 32 groups keep 2, simplify 14, cut 12, defer 4 |
+| Skeptic | show that each of 17 proposed decisions does harm or breaks a clause of the assignment | Claude Opus 5.5, xhigh | none refuted; a condition on twelve |
+| Arbiter | rule on three questions of scope | GPT 6.2 Astra, xhigh | below |
+
+The coordinator (Claude Fable 5.2) wrote the proposed decisions and plan v11. It did not rule on the scope questions.
+
+**Interruptions, all recovered.** One Claude subscription reached its weekly limit and stopped the inventory review
+before it wrote anything; it was run again on another subscription with the same brief. The arbiter's first run
+returned an acknowledgement and no ruling; it was run again with the same brief.
+
+**The skeptic's conditions,** all adopted in plan v11:
+
+- the pre-commit hook becomes a read-only check, because with Core's current flags it commits lines the author did
+  not stage (measured; evidence E79);
+- the lint gate is one uncached run from the root, because pull-request CI selects and caches lint by workspace;
+- a rule the repository enforces today is never switched off, and each one is shown to fail through Oxlint before
+  ESLint is retired;
+- the pending list has an owner, cannot grow, and an entry leaves it only with a seeded violation that fails;
+- a mechanical commit is replayed once by its reviewer, because the formatting commit refreshes pins that exist to
+  show security tests were not edited;
+- the one backend comparison is run while there are still findings to compare;
+- unused-directive errors come from the command line on the typed run, after the pending list is empty;
+- the proof that TSRS runs goes through every entry point that runs typed lint, and the launcher clears inherited
+  backend variables;
+- typecheck stays cached, with one demonstration that it reruns after four kinds of change;
+- the config smoke test also checks that every tracked source file is linted or ignored with a reason;
+- the requirement map, the per-rule policy, the list of accepted, rejected and deferred recommendations and the
+  score history stay, and the evidence and council records are only appended to;
+- test names, and the Playwright list for changed specs, are compared before and after on one platform.
+
+**The arbiter's ruling** (design L6, L9, L10):
+
+1. The full policy on product code; profiles for tests and scripts, with an exemption only where its reason would
+   hold in a new, clean file. Module mocking is enforced in this change. The coordinator had recommended deferring
+   it and was overruled.
+2. Root configuration, scripts and tooling are compiled now. Central tests get strict lint-only programs with
+   controls; compiling them is the named follow-up "Central test compiler coverage".
+3. The six shadcn rules stay on the ESLint bridge. The legacy repair and the ledger's retirement stay with
+   `integrate-design-system-lint`.
+
+**The owner's instruction:** "update the plan and proceed."
+
+**What plan v11 is.** A design of about 56 KB in place of 277 KB; section 11 of the design lists each removal and
+what stands in its place. It keeps the tools and versions, the crash patch, TSRS, the compiler upgrade, the
+Prettier-compatible formatter, the formatter consumers, the Query bridge, the per-rule policy and a zero-debt end
+state. Plan v11 was not scored by the council, and no claim is made that it would pass the assignment's rule.
+
+**What this record does not establish.** The reviewers' estimates of removable effort are judgments, not
+measurements, and they differ by a factor of two. The skeptic ran small experiments, not the gates. The conditions
+it attached are written into the plan and are checked only when the tasks that carry them are done.
+
+**Decisions left for the owner** (replacing the list in section 9): the unratified `enforce-jsx-a11y-lint` proposal,
+which targets the ESLint configuration this change retires; whether the research handoff and the assignment are
+added to this public repository; and the product follow-up on showing a `$0` gift amount. The live Stripe suites of
+section 9 no longer arise: plan v11 adds no such suites.
