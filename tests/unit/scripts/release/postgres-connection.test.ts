@@ -11,6 +11,17 @@ const hosted =
   "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full";
 
 describe("the release job's psql connection", () => {
+  it.each([null, "require", "disable", "verify-ca"])(
+    "refuses a hosted address with sslmode=%j even when the environment verifies TLS",
+    (mode) => {
+      const address = new URL(hosted);
+      if (mode === null) address.searchParams.delete("sslmode");
+      else address.searchParams.set("sslmode", mode);
+      expect(() =>
+        connectionEnvironment(address.href, { PGSSLMODE: "verify-full" }),
+      ).toThrow(/must set sslmode=verify-full/);
+    },
+  );
   it("honours the query password over the login part", () => {
     expect(
       connectionEnvironment(

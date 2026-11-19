@@ -254,6 +254,31 @@ describe.skipIf(!adminDatabaseUrl)(
       },
     );
 
+    it.each([false, true])(
+      "empty-project without any ledger: marker present=%s",
+      (marked) => {
+        const db = createDatabase("empty_guard");
+        created.push(db.name);
+        if (marked)
+          psql(
+            db.url,
+            "CREATE SCHEMA platform; CREATE TABLE platform.environment(kind text); INSERT INTO platform.environment VALUES ('disposable')",
+          );
+        const result = step("first-rebuild", db.url, {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_CONFIRMATION: `rebuild ${ref}`,
+          RELEASE_CENSUS_SIGNOFF: "empty-project",
+          RELEASE_SEED_LOGIN_PASSWORD: "",
+        });
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(
+          marked
+            ? /not empty.*census sign-off link/i
+            : /RELEASE_SEED_LOGIN_PASSWORD.*nothing was reset/s,
+        );
+      },
+    );
+
     it("the missing Payload ledger is pending; first-only preflight refuses until the first head is recorded", () => {
       const db = database("before_payload");
       applyLedgers(db.url, source.supabase, []);

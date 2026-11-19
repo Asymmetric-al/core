@@ -164,6 +164,13 @@ describe("psqlConnection", () => {
     expect(() => psqlConnection(address, {})).not.toThrow(/fixture/);
     expect(isLoopbackDatabaseUrl(address)).toBe(false);
   });
+  it("refuses a literal NUL without including any address field in the error", () => {
+    const address =
+      "postgres://fixture-user:fixture-password@fixture.invalid/fixture-db\0";
+    expect(() => psqlConnection(address, {})).toThrow(
+      /^the database URL is refused for psql: a database address cannot contain a decoded NUL$/,
+    );
+  });
   it("moves a percent-encoded password into PGPASSWORD and keeps the rest of the URL", () => {
     const { connection, env } = psqlConnection(
       "postgresql://postgres:p%40ss%2Fw0rd@db.example:6543/postgres?sslmode=verify-full",
