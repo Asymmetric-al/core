@@ -1,6 +1,24 @@
+import { getSupabasePublicConfig } from "./supabase/config";
+
 /**
- * Who the browser is signed in as now, read synchronously from the Supabase
- * session cookie the browser client keeps (`sb-<ref>-auth-token`, possibly in
+ * The configured project's session cookie, as supabase-js names it:
+ * `sb-<first label of the project's host>-auth-token`. `null` when no project
+ * is configured. Another project's cookie on the same host says nothing about
+ * who is signed in here (last read of the first release, L2).
+ */
+export function browserSessionCookieName(): string | null {
+  const { url } = getSupabasePublicConfig();
+  if (!url) return null;
+  try {
+    return `sb-${new URL(url).hostname.split(".")[0]}-auth-token`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Who the browser is signed in as now, read synchronously from this
+ * project's Supabase session cookie (`browserSessionCookieName`, possibly in
  * `.0`, `.1` … chunks, possibly `base64-` encoded), with no lock and no
  * network (AL-2675, JB1). Another tab's sign-in or sign-out rewrites that
  * cookie, so a document compares it with the person it was loaded for before
@@ -9,10 +27,13 @@
  * - a user id: a session for that person;
  * - `null`: no session cookie (signed out, or an identity the browser cannot
  *   see, such as the E2E bypass's httpOnly cookie);
- * - `undefined`: no document, or a cookie this reader cannot parse.
+ * - `undefined`: cannot tell: no document, no configured project, or a
+ *   cookie this reader cannot parse.
  */
 export function readBrowserSessionUserId(): string | null | undefined {
   if (typeof document === "undefined") return undefined;
+  const base = browserSessionCookieName();
+  if (!base) return undefined;
   try {
     const jar = new Map<string, string>();
     for (const part of document.cookie.split(";")) {
@@ -22,15 +43,6 @@ export function readBrowserSessionUserId(): string | null | undefined {
       if (eq <= 0) continue;
       jar.set(pair.slice(0, eq), decodeURIComponent(pair.slice(eq + 1)));
     }
-    let base: string | undefined;
-    for (const name of jar.keys()) {
-      const match = /^(sb-.+-auth-token)(?:\.\d+)?$/.exec(name);
-      if (match) {
-        base = match[1];
-        break;
-      }
-    }
-    if (!base) return null;
     let raw = jar.get(base);
     if (raw === undefined) {
       const chunks: string[] = [];

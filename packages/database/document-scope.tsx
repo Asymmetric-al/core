@@ -179,11 +179,33 @@ let fixedSessionUser: string | null | undefined;
 let retired = false;
 const retiredListeners = new Set<() => void>();
 
-/** Whether the browser's signed-in person differs from the scope's baseline. */
+/**
+ * Whether the browser's signed-in person differs from the scope's baseline.
+ * A cookie that cannot be read now changes nothing. When it could not be
+ * read as the scope was fixed, the baseline is taken at this check instead,
+ * by the same rule, so the check is not blind for the document's life (last
+ * read of the first release, L2).
+ */
 function sessionChanged(): boolean {
-  if (fixedSessionUser === undefined) return false;
   const now = readBrowserSessionUserId();
-  return now !== undefined && now !== fixedSessionUser;
+  if (now === undefined || fixedScope === null) return false;
+  if (fixedSessionUser === undefined) {
+    fixedSessionUser = sessionBaseline(fixedScope, now);
+  }
+  return now !== fixedSessionUser;
+}
+
+/**
+ * The person a scope's document is judged against: the scope's own person
+ * whenever the browser can see a session (so a sign-in between the server's
+ * render and hydration is a change too; JR1), and what the browser saw
+ * otherwise (no session cookie, as for the E2E bypass's identity).
+ */
+function sessionBaseline(
+  scope: DocumentScope,
+  seen: string | null | undefined,
+): string | null | undefined {
+  return typeof seen === "string" ? scope.userId : seen;
 }
 
 /**
@@ -255,11 +277,9 @@ function fixDocumentScope(
   if (fixedScope === null) {
     fixedScope = Object.freeze({ ...scope });
     fixedSegment = segment;
-    // The baseline is the scope's own person whenever the browser can see a
-    // session, so a sign-in between the server's render and hydration is a
-    // change too (JR1); an identity the browser cannot see keeps none.
-    const seen = readBrowserSessionUserId();
-    fixedSessionUser = typeof seen === "string" ? scope.userId : seen;
+    // The baseline (JR1); a cookie that cannot be read leaves it to the
+    // next check (L2).
+    fixedSessionUser = sessionBaseline(fixedScope, readBrowserSessionUserId());
     watchSessionPerson();
     return true;
   }

@@ -33,13 +33,20 @@ const SCOPE = {
 const PERSON_A = SCOPE.userId;
 const PERSON_B = "00000000-0000-4000-8000-0000000000b2";
 
+/**
+ * The configured project's session cookie, named as supabase-js names it
+ * (`sb-<first label of the project's host>-auth-token`); only this one says
+ * who is signed in (last read of the first release, L2).
+ */
+const SESSION_COOKIE = `sb-${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split(".")[0]}-auth-token`;
+
 /** The browser client's session cookie for `userId`, as @supabase/ssr writes it. */
 function signInBrowserAs(userId: string | null) {
-  document.cookie = "sb-test-auth-token=; max-age=0; path=/";
+  document.cookie = `${SESSION_COOKIE}=; max-age=0; path=/`;
   if (userId === null) return;
   const json = JSON.stringify({ access_token: "t", user: { id: userId } });
   const value = `base64-${Buffer.from(json).toString("base64url")}`;
-  document.cookie = `sb-test-auth-token=${value}; path=/`;
+  document.cookie = `${SESSION_COOKIE}=${value}; path=/`;
 }
 
 async function load() {
@@ -138,6 +145,51 @@ afterEach(() => {
 });
 
 describe("a change of signed-in person", () => {
+  // Last read of the first release, L2: only this project's cookie names the
+  // person. Another project's on the same host must not retire the scope.
+  it("reads only this project's cookie: another project's beside it retires nothing", async () => {
+    const json = JSON.stringify({ access_token: "t", user: { id: PERSON_B } });
+    // Set first, so a reader taking the first sb-…-auth-token finds it.
+    document.cookie = `sb-otherproject-auth-token=base64-${Buffer.from(json).toString("base64url")}; path=/`;
+    signInBrowserAs(PERSON_A);
+    try {
+      const mod = await load();
+      await renderCarePage(mod);
+      act(() => {
+        window.dispatchEvent(new Event("focus"));
+      });
+      await act(async () => {
+        await mod.ownApiFetch("/api/admin/member-care/dashboard");
+      });
+
+      expect(reloadDocument).not.toHaveBeenCalled();
+      expect(sent(0).get("x-asym-assignment")).toBe(SCOPE.assignmentId);
+    } finally {
+      document.cookie = "sb-otherproject-auth-token=; max-age=0; path=/";
+    }
+  });
+
+  // L2: a cookie that cannot be read at hydration leaves no baseline; the
+  // next check tries again, so the check is not blind for the page's life.
+  it.each([
+    [PERSON_B, true],
+    [PERSON_A, false],
+  ] as const)(
+    "takes the baseline at the next check when the cookie was unreadable at hydration (later %s)",
+    async (later, retires) => {
+      document.cookie = `${SESSION_COOKIE}=base64-%%%not-base64%%%; path=/`;
+      const mod = await load();
+      await renderCarePage(mod);
+
+      signInBrowserAs(later);
+      act(() => {
+        window.dispatchEvent(new Event("focus"));
+      });
+
+      expect(reloadDocument).toHaveBeenCalledTimes(retires ? 1 : 0);
+    },
+  );
+
   it("retires the scope: the next request is never sent, the page gives way to the notice, and the document reloads once", async () => {
     signInBrowserAs(PERSON_A);
     const mod = await load();

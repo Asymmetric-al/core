@@ -26,11 +26,18 @@ const SCOPE = {
   addressPrefix: "",
 };
 
+/**
+ * The configured project's session cookie, named as supabase-js names it
+ * (`sb-<first label of the project's host>-auth-token`); only this one says
+ * who is signed in (last read of the first release, L2).
+ */
+const SESSION_COOKIE = `sb-${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split(".")[0]}-auth-token`;
+
 /** The browser client's session cookie for `userId`, as @supabase/ssr writes it. */
 function signInBrowserAs(userId: string) {
   const json = JSON.stringify({ access_token: "t", user: { id: userId } });
   const value = `base64-${Buffer.from(json).toString("base64url")}`;
-  document.cookie = `sb-test-auth-token=${value}; path=/`;
+  document.cookie = `${SESSION_COOKIE}=${value}; path=/`;
 }
 
 const sent: string[] = [];
@@ -54,7 +61,7 @@ beforeAll(() => {
 afterAll(() => {
   cleanup();
   window.fetch = originalFetch;
-  document.cookie = "sb-test-auth-token=; max-age=0; path=/";
+  document.cookie = `${SESSION_COOKIE}=; max-age=0; path=/`;
 });
 
 it("sends no REST call and no server function once another person signed in, and answers the refusal in the browser", async () => {
