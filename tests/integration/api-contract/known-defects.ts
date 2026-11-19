@@ -46,4 +46,13 @@ export const KNOWN_SELECT_DEFECTS: readonly KnownSelectDefect[] = [
     defect:
       "the admin comment update returns the same profiles!user_id embed, so PostgREST refuses the PATCH before it runs and the route answers 500",
   },
+  {
+    file: "packages/api/src/admin/contributions/service.ts",
+    table: "donors",
+    code: "PGRST201",
+    match: "profiles!inner(id)",
+    message: "more than one relationship was found for 'donors' and 'profiles'",
+    defect:
+      "embeds profiles!inner(id), but donors has both profile_id and missionary_id relationships to profiles, so PostgREST cannot choose the join for donor profile search",
+  },
 ];
