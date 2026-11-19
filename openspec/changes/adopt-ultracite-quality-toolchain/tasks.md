@@ -13,6 +13,9 @@ the batch gate of design section 8.1.
 
 ## 2. Batch A1: records, tools and the inactive toolchain
 
+Staffing: by the amendment of 2026-11-19 (design section 8.4, evidence E77), delegates draft the named tools of this
+batch in their own worktrees. The coordinator makes every shared edit, integrates one tool at a time and verifies.
+
 - [ ] 2.1 **TID-1** Delete the duplicate one-line test file and wrap `supabase-migrations.test.ts` in a `describe`; add `scripts/quality/test-ids.mts`. Verify: whole-repository `vitest list --json` exits 0 on Windows and Ubuntu
 - [ ] 2.2 **SD-1** Add the three `shadcn-diff.mjs` modes with path-root normalization, test-first
 - [ ] 2.3 **AP-1** Add the content-pin inventory (five kinds), amendment lists and `pin-amend-proof.mts`, test-first

@@ -1,4 +1,4 @@
-# Evidence record: Core quality-toolchain migration (E1–E76)
+# Evidence record: Core quality-toolchain migration (E1–E77)
 
 This file joins the evidence notes the coordinator wrote during the council rounds of 2026-11-19: the round-0 snapshot and the addenda that followed. The notes are unedited except that machine-local paths and subscription labels are replaced by placeholders (`SCRATCH`, `<coordinator worktree>`, `<reviewer worktree>`, `<research handoff>`, `<home>`).
 
@@ -89,6 +89,7 @@ Later entries sometimes correct earlier ones (for example E26 corrects the sizin
 | E74 | Formatting the staged bytes closes the staging race [X] | `evidence-r11-addendum.md` |
 | E75 | The guard reaches a child whose environment was replaced [X] | `evidence-r11-addendum.md` |
 | E76 | Port-qualified `NO_PROXY` entries: Bun honors them, curl and git do not [X] | `evidence-r11-addendum.md` |
+| E77 | Batch A1 staffing: delegated tool drafts, by an arbiter's ruling [I] | added in batch A1 |
 
 ---
 
@@ -1289,3 +1290,40 @@ variables point at a closed port.
 - With the blanket `NO_PROXY=127.0.0.1`: `curl` reaches the unregistered server.
   Consequence: a blanket loopback exemption lets a proxy-aware child reach any local listener, for example a local
   database API. Port-qualified entries for the registered recorder ports keep Bun exact and keep curl and git closed.
+
+# Part: Implementation evidence, batch A1 (added in the repository)
+
+Entries from here on were written during implementation, in the batch each one names.
+
+## E77. Batch A1 staffing: delegated tool drafts, by an arbiter's ruling [I]
+
+**The flaw.** Plan section 8.2 gives batch A1 to the coordinator, and section 8.4 as ratified made the coordinator the
+only writer under `tooling/quality/**`. A1 holds about a dozen separate tools, each with its tests. The coordinator is
+one agent on one subscription. Twice during the ratification work a burst of work on that subscription ended in a
+five-hour usage limit, which stopped the coordinator and every delegate it was waiting for. The guide's section 1
+already says to keep heavy work off that subscription; as written, the plan put its heaviest tool batch there.
+
+**The ruling** (2026-11-19). An independent arbiter (GPT 6.2 Astra at xhigh) was given sections 8.1, 8.2 and 8.4 and
+the A1 rows of section 10.1 of the plan, section 1 and the A1 section of the guide, and the coordinator's
+recommendation. Three options were put: the coordinator writes every A1 file; delegates draft named tools under the
+shape of the existing PL-2 and FP-1 exception; delegates also edit shared files. The arbiter chose the second, for
+batch A1 only, with these conditions:
+
+- A delegate gets a packet naming its base commit, its dependencies and its disjoint paths. It writes only the tool's
+  new files and new tests or fixtures. `scripts/verify/shadcn-diff.mjs` (SD-1) is the only existing file a delegate
+  edits. No delegate commits to the integration branch or pushes.
+- The coordinator keeps TC-1 in full; every manifest and lockfile edit, including the TC-2 patch registration and the
+  VQ-1 root script; the root configs, including those of TC-3 and FM-1; `turbo.json`; `.prettierignore`; workflows
+  and hooks; every registry; the UI-bridge ledger; every hash-bound record; TID-1's two test repairs with
+  `test-moves/A1.json`; VM-1's `derived-records.json`; and the AP-1 inventory run before the root manifest edit.
+- The coordinator reviews each contribution, has it reviewed by a model other than its author, integrates and commits
+  one tool at a time in dependency order, and reruns the task's checks on the integrated tree before marking it
+  verified. Controls that belong to a later batch are not A1 passes.
+- The amendment is recorded here before any delegated write, and in design section 8.4, the guide's section 1 and
+  `tasks.md`.
+
+The arbiter also corrected the coordinator's brief: the ruling covers batch A1, not every Phase A tool, and the guide
+reserves every registry to the coordinator, not only those two tasks share.
+
+**Effect.** Design sections 0d, 8.2 (the A1 row) and 8.4, the guide's section 1 and the A1 heading of `tasks.md` carry
+the amendment. No decision D1 to D13 changes.

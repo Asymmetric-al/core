@@ -3,7 +3,7 @@
 This is the runbook for plan v10 (`design.md` in this change). The plan decides what is built and why; this guide puts the
 work in order and says what to run, what must pass, and what to write down. If the two disagree, the plan wins and this
 guide is corrected in the same commit. Section and decision numbers (§4.7, D12) and task IDs (TC-1, CT-0a) are the
-plan's. Evidence numbers (E1–E76) are in `evidence.md`.
+plan's. Evidence numbers (E1–E77) are in `evidence.md`.
 
 ## 1. Who does what
 
@@ -19,7 +19,9 @@ plan's. Evidence numbers (E1–E76) are in `evidence.md`.
 (A4's formatter consumers, PL-2, FP-1). A delegate never edits the files above, except that a slice prunes the UI-bridge ledger for
 its owned paths through the ledger transaction (D12); it never pushes and never starts its own
 delegates, with one exception: PL-2 and FP-1 write their files under `tooling/quality/**` in their own worktrees, and the
-coordinator reviews and commits them. Each one receives: this guide, the plan with its version, its packet (owned paths, pinned files, registry entries,
+coordinator reviews and commits them. In batch A1 only, a delegate may also draft a named tool's new files and tests in
+its own worktree under the conditions of plan §8.4 (E77): the coordinator keeps every manifest, root config, registry
+and record, TID-1's test repairs and the AP-1 inventory, and integrates one tool at a time. Each one receives: this guide, the plan with its version, its packet (owned paths, pinned files, registry entries,
 counts, the base commit its worktree starts from, the tasks it depends on), the commands it must pass, and what to
 return.
 

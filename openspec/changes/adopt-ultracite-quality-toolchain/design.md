@@ -6,7 +6,7 @@
 
 **Owner:** the coordinator, the agent session that ran the council and holds the write ownership of §8.4.
 
-**Evidence:** E1–E76, in the evidence record that ships with this plan.
+**Evidence:** E1–E76 from the council, and the entries added during implementation (E77 onward), in the evidence record that ships with this plan.
 
 **Companions:** the implementation guide (the runbook for every batch), the evidence record, and the council record.
 
@@ -71,6 +71,12 @@ After round 10 the coordinator made five kinds of change that no reviewer scored
 - **New evidence, E70 to E76:** the quality pull requests opened on 19 November, the socket guard's coverage, Oxlint's native suppression file, the formatting of this change's own documents, the staged-bytes prototype, a guard that reaches a child whose environment was replaced, and port-qualified proxy exemptions.
 - **Editor settings** land at the cutover instead of at the end (D11).
 - **A final consistency check.** Five independent readers looked for the defects that a merge of about 200 edits leaves behind: unresolved round-10 findings, contradictions between sections, companion documents that disagreed with the plan, false repository facts, and assignment clauses with no mapping. Each finding was fixed; the council record lists them. Among the fixes: the first batches can now be executed as written, the staged runner never writes a working-tree file, and the numeric-truthiness check works per finding instead of per file.
+
+### 0d. Amendments during implementation
+
+Each amendment follows the rule of §8.1: the flaw is recorded in the evidence record, the affected text is updated, and the change gets a focused independent review before the affected batch continues.
+
+- **A1 staffing (2026-11-19, E77).** As ratified, §8.4 made the coordinator the writer of every file of batch A1, the heaviest tool batch, on the one subscription whose usage limit stops the whole program. An independent arbiter ruled that, for batch A1 only, a delegate may draft a named tool's new files and tests in its own worktree, under the conditions now in §8.4. The coordinator still makes every shared edit, integrates one tool at a time and verifies. No decision of §3 changes.
 
 ---
 
@@ -1123,7 +1129,7 @@ Phase 25 stays byte-exact.
 <!-- prettier-ignore -->
 | # | Batch | Owner | Gate at end |
 |---|---|---|---|
-| A1 | IN-0 (branch from current develop; record the base); TID-1 (repair the two uncollectable test files; the test-ID tool); SD-1, AP-1 (five kinds), VM-1 (tools + tests first); VQ-1 (`verify:quality` with the A1 checks of §7.1); SR-1 only if the Shadscan ledger still exists when TC-1 edits the root manifest (D13); FM-1 (written, inactive until CT-0a); OS-1 (link `integrate-design-system-lint` 5.4–5.10); TC-1 (inactive Oxfmt); TC-2; TC-3; TC-4 (Windows + Ubuntu identity); TC-6 (qualification only) | coordinator | §8.1 |
+| A1 | IN-0 (branch from current develop; record the base); TID-1 (repair the two uncollectable test files; the test-ID tool); SD-1, AP-1 (five kinds), VM-1 (tools + tests first); VQ-1 (`verify:quality` with the A1 checks of §7.1); SR-1 only if the Shadscan ledger still exists when TC-1 edits the root manifest (D13); FM-1 (written, inactive until CT-0a); OS-1 (link `integrate-design-system-lint` 5.4–5.10); TC-1 (inactive Oxfmt); TC-2; TC-3; TC-4 (Windows + Ubuntu identity); TC-6 (qualification only) | coordinator (named tools drafted by delegates, §8.4) | §8.1 |
 | A2 | TS-1 (including app `next typegen`, E58), RB-1, GEN-1a, strict-build per platform | coordinator | §8.1 + strict builds |
 | A3 | PL-0..PL-5, FIX-1, MI-1 (with the numeric-truthiness inventory), TA-1, FP-1 (the fault-patch library), GH-1, PO-1, RD-1 (with the handler inventory), RD-2 (PL-2 and FP-1 delegated) | coordinator | §8.1 + composition + sentinels through each root entry + golden tests + every library patch fails at base |
 | A4 | FM-2, FM-3 (worktree delegate) | delegate → coordinator | consumer tests |
@@ -1255,6 +1261,7 @@ Failing files are reverted for that rule.
   - the UI-bridge ledger and the registries;
   - the mechanical batches (sole writer in A7–A8);
   - integration.
+- **A1 tool drafts** (amendment of 2026-11-19, E77; batch A1 only): a delegate may write a named A1 tool's new files and its new tests and fixtures in its own worktree, from a packet that names its base commit, the tasks it depends on and its disjoint paths. `scripts/verify/shadcn-diff.mjs` (SD-1) is the only existing file a delegate edits. The coordinator keeps TC-1 in full; every manifest and lockfile edit, including the registration of the TC-2 patch and the VQ-1 root script; the root configs, including TC-3's `oxlint.config.mts` and FM-1's `oxfmt.config.mts`; `turbo.json`; `.prettierignore`; workflows and hooks; every registry, including VM-1's `derived-records.json`; the UI-bridge ledger; every hash-bound record; TID-1's two test repairs and `test-moves/A1.json`; and the AP-1 inventory run before the root manifest edit. No delegate commits to the integration branch or pushes. The coordinator reviews each contribution, has it reviewed by a model other than its author, integrates and commits one tool at a time in dependency order, and reruns the task's "Verified by" checks on the integrated tree before marking it verified.
 - **Slices:** each works in its own worktree, created from the base commit its packet names, on a disjoint generated set of paths. Rebinds (with notes), ratchet updates, pin amendments and SD-1 `--amend` touch only the slice's own files. Slices never edit workflows; network tests are named `*.network.integration.test.ts` and run by the coordinator-owned glob step (§4.7). Slices prune the UI ledger for their owned paths through the ledger transaction (D12); moves into the integration tier are coordinator-approved registry entries (§4.7).
 - **W-UI:** runs alone after CT-1. Delegates may repair assigned UI files in W-UI-a; the coordinator makes W-UI-b, including all root, workflow and dependency changes.
 - **Delegates:** implementation, qualification and review delegates are a mix of Codex GPT 6.2 Astra at xhigh, Gemini 4 Neon at xhigh through Antigravity, and Claude Opus 5.5 at xhigh or high. None runs at low effort, and a review uses a different model from the work's author. When a provider refuses a model, the work moves to another authorized Claude Code or Codex subscription and the change is recorded in the checkpoint; no other model is substituted on that provider without the owner.
