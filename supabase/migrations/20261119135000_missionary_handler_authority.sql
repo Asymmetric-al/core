@@ -130,13 +130,20 @@ BEGIN
 
   ELSIF p_operation = 'update' THEN
     RETURN QUERY
+    WITH hidden_donors AS NOT MATERIALIZED (
+      SELECT donor.id
+      FROM public.donors AS donor
+      WHERE donor.tenant_id = p_tenant_id
+        AND donor.missionary_id IS DISTINCT FROM p_profile_id
+    )
     UPDATE public.missionary_tasks AS task
     SET (
       donor_id, title, description, task_type, status,
       priority, sort_key, due_date, completed_at
     ) = (
       SELECT
-        patch.donor_id, patch.title, patch.description, patch.task_type, patch.status,
+        COALESCE(patch.donor_id, (SELECT id FROM hidden_donors WHERE id = task.donor_id)),
+        patch.title, patch.description, patch.task_type, patch.status,
         patch.priority, patch.sort_key, patch.due_date, patch.completed_at
       FROM jsonb_populate_record(task, p_patch) AS patch
     ),
@@ -157,7 +164,10 @@ BEGIN
         NOT (p_patch ? 'donor_id')
         OR (
           (p_patch->>'donor_id') IS NULL
-          AND authz.missionary_task_single_tenant(p_assignment_id, p_tenant_id)
+          AND (
+            EXISTS (SELECT 1 FROM hidden_donors WHERE id = task.donor_id)
+            OR authz.missionary_task_single_tenant(p_assignment_id, p_tenant_id)
+          )
         )
         OR EXISTS (
           SELECT 1

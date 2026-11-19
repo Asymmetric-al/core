@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { membershipsForRole } from "../../../fixtures/auth-memberships";
+import { exerciseMovedDonorPatch } from "../../../fixtures/missionary-task-patch";
 import * as tasks from "../../../../packages/api/src/missionary-portal/tasks";
 import * as portal from "../../../../packages/api/src/missionary-portal";
 import * as donors from "../../../../packages/api/src/missionary-portal/donors";
@@ -29,6 +30,7 @@ const orgs = Array.from({ length: 2 }, () => ({
   follower: randomUUID(),
 }));
 let selected = orgs[0]!;
+let caller = person;
 let role: "donor" | "missionary" = "missionary";
 let client: ReturnType<typeof createClient>;
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -37,14 +39,14 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/auth/context", async (original) => ({
   ...(await original<typeof import("@asym/auth/context")>()),
   getAuthContext: async () => ({
-    userId: person,
-    profileId: person,
+    userId: caller,
+    profileId: caller,
     tenantId: selected.tenant,
     isAuthenticated: true,
     role,
     memberships: membershipsForRole(role, selected.tenant),
     assignment: {
-      userId: person,
+      userId: caller,
       tenantId: selected.tenant,
       membershipRole: role,
       assignmentId:
@@ -154,6 +156,39 @@ describe.skipIf(!configured)(
         await db.end();
       }
     });
+    it.each([false, true])(
+      "PATCH preserves the masked donor link (other tenant: %s)",
+      async (elsewhere) => {
+        const previous = selected;
+        try {
+          await exerciseMovedDonorPatch(
+            db,
+            elsewhere,
+            "http",
+            async (scope, patch) => {
+              caller = scope.person;
+              selected = { ...previous, ...scope };
+              const body = await json(
+                await task.PATCH(
+                  request(
+                    "PATCH",
+                    "/api/missionary/tasks/" + scope.task,
+                    patch,
+                  ),
+                  { params: Promise.resolve({ taskId: scope.task }) },
+                ),
+                200,
+              );
+              expect(body.task.donor?.id ?? null).toBe(body.task.donor_id);
+              return body.task;
+            },
+          );
+        } finally {
+          selected = previous;
+          caller = person;
+        }
+      },
+    );
     it("keeps the task but not its former donor after reassignment within the tenant", async () => {
       const org = orgs[0]!;
       selected = org;

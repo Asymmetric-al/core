@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ADMIN_URL, IN_MIGRATE_JOB } from "./harness";
+import { exerciseMovedDonorPatch } from "../../../fixtures/missionary-task-patch";
 
 it.runIf(IN_MIGRATE_JOB && !ADMIN_URL)("requires the migrate database", () =>
   expect(ADMIN_URL).not.toBe(""),
@@ -11,6 +12,30 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
   const db = new pg.Client({ connectionString: ADMIN_URL });
   beforeAll(() => db.connect());
   afterAll(() => db.end());
+
+  it.each([false, true])(
+    "edits a moved donor's task without echoing away its link (other tenant: %s)",
+    async (elsewhere) => {
+      await exerciseMovedDonorPatch(
+        db,
+        elsewhere,
+        "sql",
+        async (scope, patch) => {
+          await db.query(
+            "grant update on public.missionary_tasks to service_role",
+          );
+          await db.query("set local role service_role");
+          const result = await db.query(
+            "select title, donor_id from public.missionary_task_write($1,$2,$3,'update',$4,$5)",
+            [scope.person, scope.tenant, scope.assignment, scope.task, patch],
+          );
+          await db.query("reset role");
+          expect(result.rows).toHaveLength(1);
+          return result.rows[0];
+        },
+      );
+    },
+  );
 
   it("exposes the statement guards to the service role only, without definer rights", async () => {
     const guards = [

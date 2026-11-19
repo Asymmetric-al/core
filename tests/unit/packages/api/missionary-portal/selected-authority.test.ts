@@ -410,6 +410,24 @@ describe("missionary handler delegation", () => {
       );
     },
   );
+  it("passes an echoed null donor and the title to the scoped task update", async () => {
+    const patch = { donor_id: null, title: "edited" };
+    fake.rpc.mockReturnValue(query({ id, ...patch }));
+    const response = await task.PATCH(request("PATCH", patch), args);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      task: { id, ...patch, donor: null },
+    });
+    expect(fake.rpc).toHaveBeenCalledWith(
+      "missionary_task_write",
+      expect.objectContaining({
+        p_operation: "update",
+        p_id: id,
+        p_assignment_id: assignment,
+        p_patch: expect.objectContaining(patch),
+      }),
+    );
+  });
   it("selects only the deleted task id", async () => {
     fake.rpc.mockReturnValue(query({ id }));
     expect((await task.DELETE(request("DELETE"), args)).status).toBe(200);
