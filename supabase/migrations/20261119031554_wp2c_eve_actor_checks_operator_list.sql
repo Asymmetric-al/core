@@ -184,7 +184,9 @@ AS $$
 BEGIN
   IF TG_OP = 'UPDATE'
      AND NEW.tenant_id = OLD.tenant_id
-     AND NEW.profile_id = OLD.profile_id THEN
+     AND NEW.profile_id = OLD.profile_id
+     AND NOT (NEW.enabled AND NOT OLD.enabled)
+     AND NOT (OLD.opted_out AND NOT NEW.opted_out) THEN
     RETURN NEW;
   END IF;
 
@@ -193,7 +195,7 @@ BEGIN
       FROM public.profiles AS p
       JOIN authz.memberships AS m ON m.user_id = p.user_id
      WHERE p.id = NEW.profile_id
-       AND p.email IS NOT NULL
+       AND p.email ~ '[^[:space:]]'
        AND m.tenant_id = NEW.tenant_id
        AND m.role = 'staff'::authz.membership_role
        AND m.is_tenant_admin
@@ -215,7 +217,8 @@ AS $$
 BEGIN
     IF (TG_OP = 'INSERT'
         OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id
-        OR NEW.profile_id IS DISTINCT FROM OLD.profile_id)
+        OR NEW.profile_id IS DISTINCT FROM OLD.profile_id
+        OR (NEW.is_active AND NOT OLD.is_active))
        AND NOT EXISTS (
         SELECT 1
           FROM public.profiles AS p
@@ -238,9 +241,13 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 SET search_path = public, pg_temp
 AS $$
+DECLARE
+    recheck_both boolean := TG_OP = 'INSERT'
+        OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id
+        OR NEW.permission IS DISTINCT FROM OLD.permission
+        OR (NEW.is_active AND NOT OLD.is_active);
 BEGIN
-    IF ((TG_OP = 'INSERT'
-         OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id
+    IF ((recheck_both
          OR NEW.profile_id IS DISTINCT FROM OLD.profile_id)
         AND NOT EXISTS (
           SELECT 1
@@ -251,8 +258,7 @@ BEGIN
              AND m.is_active
              AND m.revoked_at IS NULL
         ))
-       OR ((TG_OP = 'INSERT'
-            OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id
+       OR ((recheck_both
             OR NEW.granted_by_profile_id IS DISTINCT FROM OLD.granted_by_profile_id)
            AND NOT EXISTS (
              SELECT 1

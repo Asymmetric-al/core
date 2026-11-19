@@ -432,6 +432,94 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
           ]);
       }));
 
+    async function triggerFixture(table: string, validate: string) {
+      await db.query(
+        `create temp table checked_row (like public.${table} including defaults) on commit drop`,
+      );
+      await db.query(
+        `create trigger validate before insert or update on checked_row for each row execute function public.${validate}()`,
+      );
+    }
+
+    it.each(["enabled = true", "opted_out = false"])(
+      "rechecks the notification recipient for %s",
+      (change) =>
+        tx(async () => {
+          await triggerFixture(
+            "eve_notification_recipient_configs",
+            "validate_eve_notification_recipient",
+          );
+          await db.query(
+            "insert into checked_row (tenant_id, profile_id) values ($1, $2)",
+            [TA, people.staffProfileFlagged],
+          );
+          await db.query(
+            "update authz.memberships set is_tenant_admin = false where user_id = $1",
+            [people.staffProfileFlagged],
+          );
+          expect(await write(`update checked_row set ${change}`, [])).toMatch(
+            /eve_notification_platform_owner_required/,
+          );
+        }),
+    );
+
+    it("requires a nonblank recipient email", () =>
+      tx(async () => {
+        await db.query(
+          "update public.profiles set email = '   ' where id = $1",
+          [people.staffProfileFlagged],
+        );
+        expect(await recipient("staffProfileFlagged")).toMatch(
+          /eve_notification_platform_owner_required/,
+        );
+      }));
+
+    it("rechecks membership before enabling AI settings", () =>
+      tx(async () => {
+        await triggerFixture(
+          "eve_ai_settings_grants",
+          "enforce_eve_ai_settings_grant_tenant",
+        );
+        await db.query(
+          "insert into checked_row (tenant_id, profile_id, is_active) values ($1, $2, false)",
+          [TA, people.unflagged],
+        );
+        await db.query(
+          "update authz.memberships set is_active = false where user_id = $1",
+          [people.unflagged],
+        );
+        expect(
+          await write("update checked_row set is_active = true", []),
+        ).toMatch(/eve_ai_settings_grant_profile_tenant_mismatch/);
+      }));
+
+    it.each(["unflagged", "staffProfileFlagged"] as const)(
+      "rechecks policy activation and permission changes after %s leaves",
+      (person) =>
+        tx(async () => {
+          await triggerFixture(
+            "eve_policy_permission_grants",
+            "enforce_eve_policy_permission_tenant",
+          );
+          await db.query(
+            "insert into checked_row (tenant_id, profile_id, granted_by_profile_id, permission, is_active) values ($1, $2, $3, 'approval.policy.manage', false)",
+            [TA, people.unflagged, people.staffProfileFlagged],
+          );
+          await db.query(
+            "update authz.memberships set is_active = false where user_id = $1",
+            [people[person]],
+          );
+          for (const change of [
+            "is_active = true",
+            "permission = 'budget.emergency_override'",
+          ]) {
+            expect(await write(`update checked_row set ${change}`, [])).toMatch(
+              /eve_policy_permission_profile_tenant_mismatch/,
+            );
+          }
+        }),
+    );
+
     /** Revokes every row of the `revoked` person, whose donor row the sign-up trigger left live. */
     const revokeAll = () =>
       db.query(
