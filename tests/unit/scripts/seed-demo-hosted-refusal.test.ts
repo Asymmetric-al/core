@@ -175,7 +175,9 @@ describe.runIf(bashAvailable())("seed-demo.sh hosted refusal (NA-03)", () => {
     const run = runSeed("verify", { SUPABASE_DB_URL: url });
     expect(run.status, run.stderr).toBe(0);
     expect(run.calls).toHaveLength(2);
-    const target = url.replace("postgres:postgres@", "postgres@");
+    // H11: psql gets the URL's parsed parts as libpq keywords, then -X.
+    const host = new URL(url).hostname.replace(/^\[(.*)\]$/, "$1");
+    const target = `host='${host}' port='54322' dbname='postgres' user='postgres' -X`;
     expect(run.calls.every((call) => call.startsWith(`psql ${target} `))).toBe(
       true,
     );
@@ -209,7 +211,7 @@ describe.runIf(bashAvailable())("seed-demo.sh hosted refusal (NA-03)", () => {
       for (const call of run.calls) {
         expect(
           call.startsWith(
-            "psql postgresql://postgres@127.0.0.1:54322/postgres ",
+            "psql host='127.0.0.1' port='54322' dbname='postgres' user='postgres' -X ",
           ),
         ).toBe(true);
         expect(call).not.toContain("s3cret-seed");

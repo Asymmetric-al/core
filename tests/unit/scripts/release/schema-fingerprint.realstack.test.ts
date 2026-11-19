@@ -3,18 +3,18 @@
 // fingerprint equality between CI's replay and development"). Needs
 // RELEASE_IT_ADMIN_DATABASE_URL; see support/test-database.ts.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
-import {
-  captureFingerprint,
-  diffFingerprints,
-  formatFingerprintDiff,
-} from "../../../../scripts/release/schema-fingerprint.mjs";
 import {
   IN_MIGRATE_JOB,
   adminDatabaseUrl,
@@ -22,32 +22,65 @@ import {
   dropDatabase,
   psql,
 } from "./support/test-database";
+import { runCatalogGates } from "../../../../scripts/release/catalog-gates.mjs";
+import {
+  HOSTED_DEFAULT_PRIVILEGES,
+  pinnedSupabaseCliVersion,
+  readReleaseSettings,
+  restoreHostedDefaultPrivileges,
+} from "../../../../scripts/release/release-database.mjs";
+import {
+  captureFingerprint,
+  diffFingerprints,
+  formatFingerprintDiff,
+} from "../../../../scripts/release/schema-fingerprint.mjs";
+import { Replay } from "../../acceptance/issue-2674/privileges-harness";
 
 const created: string[] = [];
+/** A throwaway role of review L4's cases; dropped once its databases are. */
+const FP_ROLE = "wp13r_fp_owner";
 let first = "";
 let second = "";
 const scratch = mkdtempSync(path.join(tmpdir(), "release-fingerprint-"));
+const harnessAdminUrl =
+  process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL?.trim() ?? "";
 
-function replay(label: string) {
-  const db = createDatabase(label);
-  created.push(db.name);
+/** The compatibility bootstrap, then every migration, on `url`. */
+function applyChain(url: string, args: string[] = []) {
   const result = spawnSync(
     process.execPath,
-    ["scripts/verify/supabase-migrations.mjs"],
+    ["scripts/verify/supabase-migrations.mjs", ...args],
     {
       encoding: "utf8",
       shell: false,
-      env: { ...process.env, DATABASE_URL: db.url },
+      env: { ...process.env, DATABASE_URL: url },
     },
   );
   if (result.status !== 0) {
     throw new Error(`replay failed: ${result.stderr.slice(-2000)}`);
   }
+}
+
+function replay(label: string, args: string[] = []) {
+  const db = createDatabase(label);
+  created.push(db.name);
+  applyChain(db.url, args);
   return db.url;
+}
+
+// One fresh replay with the hosted defaults, as the release job makes it,
+// shared by the suites below.
+let flagged = "";
+function flaggedReplay() {
+  if (!flagged) flagged = replay("fp_hosted", ["--hosted-defaults"]);
+  return flagged;
 }
 
 afterAll(() => {
   for (const name of created) dropDatabase(name);
+  // The throwaway role of review L4's cases, once its databases are gone.
+  if (adminDatabaseUrl)
+    psql(adminDatabaseUrl, `DROP ROLE IF EXISTS ${FP_ROLE};`);
   rmSync(scratch, { recursive: true, force: true });
 });
 
@@ -78,7 +111,8 @@ describe.skipIf(!adminDatabaseUrl)(
         second,
         `ALTER TABLE public.tenants ADD COLUMN fingerprint_planted integer;
        ALTER TABLE public.tenants ALTER COLUMN name DROP NOT NULL;
-       CREATE POLICY fingerprint_planted ON public.tenants FOR SELECT TO anon USING (true);`,
+       CREATE POLICY fingerprint_planted ON public.tenants FOR SELECT TO anon USING (true);
+       ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE ON TYPES TO anon;`,
       );
       const a = captureFingerprint({ databaseUrl: first });
       const b = captureFingerprint({ databaseUrl: second });
@@ -91,6 +125,11 @@ describe.skipIf(!adminDatabaseUrl)(
         ]),
       );
       expect(diff.changed).toContain("column public.tenants.name");
+      // Review H1.4: the gate sees the default privileges of postgres, which
+      // decide the access lists of what a later migration creates.
+      expect([...diff.unexpected, ...diff.changed]).toContain(
+        "default privileges postgres in public on types",
+      );
       expect(
         formatFingerprintDiff(diff, {
           expectedLabel: "replay",
@@ -113,6 +152,77 @@ describe.skipIf(!adminDatabaseUrl)(
       );
     });
 
+    // Review K2: a default privilege of postgres for every schema
+    // (defaclnamespace 0) decides the access list of everything it creates
+    // anywhere, so the fingerprint holds it too.
+    // Review L4: the chain writes defaults for cms_owner in cms, and Payload
+    // creates cms objects as cms_owner, so the fingerprint holds every role's
+    // default privileges, not only those of postgres. A throwaway role stands
+    // in for cms_owner, in a schema the fingerprint covers.
+    it.each([
+      [
+        "in a schema the fingerprint covers",
+        `CREATE SCHEMA IF NOT EXISTS fpcase;
+         ALTER DEFAULT PRIVILEGES FOR ROLE ${FP_ROLE} IN SCHEMA fpcase GRANT SELECT ON TABLES TO anon;`,
+        `default privileges ${FP_ROLE} in fpcase on tables`,
+      ],
+      [
+        "for every schema",
+        `ALTER DEFAULT PRIVILEGES FOR ROLE ${FP_ROLE} GRANT SELECT ON TABLES TO anon;`,
+        `default privileges ${FP_ROLE} in every schema on tables`,
+      ],
+    ])(
+      "tells apart two databases that differ only in another role's default privilege %s",
+      (_case, plant, key) => {
+        psql(
+          adminDatabaseUrl,
+          `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${FP_ROLE}') THEN CREATE ROLE ${FP_ROLE} NOLOGIN; END IF; END $$;`,
+        );
+        const pair = ["fp_role_a", "fp_role_b"].map((label) => {
+          const db = createDatabase(label);
+          created.push(db.name);
+          psql(
+            db.url,
+            `${readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8")}
+             CREATE SCHEMA IF NOT EXISTS fpcase;`,
+          );
+          return db;
+        });
+        psql(pair[1]!.url, plant);
+        const diff = diffFingerprints(
+          captureFingerprint({ databaseUrl: pair[0]!.url }),
+          captureFingerprint({ databaseUrl: pair[1]!.url }),
+        );
+        expect([...diff.missing, ...diff.unexpected, ...diff.changed]).toEqual([
+          key,
+        ]);
+      },
+    );
+
+    it("tells apart two databases that differ only in a default privilege for every schema", () => {
+      const pair = ["fp_global_a", "fp_global_b"].map((label) => {
+        const db = createDatabase(label);
+        created.push(db.name);
+        psql(
+          db.url,
+          readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+        );
+        return db;
+      });
+      psql(
+        pair[1]!.url,
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT SELECT ON TABLES TO anon;",
+      );
+      const diff = diffFingerprints(
+        captureFingerprint({ databaseUrl: pair[0]!.url }),
+        captureFingerprint({ databaseUrl: pair[1]!.url }),
+      );
+      expect(diff.equal).toBe(false);
+      expect([...diff.missing, ...diff.unexpected, ...diff.changed]).toEqual([
+        "default privileges postgres in every schema on tables",
+      ]);
+    });
+
     it("passes the catalog gates on a fresh replay, and fails a new cross-schema name collision", () => {
       // Payload's migrations create cms.tenants, the one recorded exception;
       // this replay ran the Supabase chain only, so stand in for it.
@@ -127,3 +237,316 @@ describe.skipIf(!adminDatabaseUrl)(
     });
   },
 );
+
+// WP1.6's first hosted run (docs/audits/core-crm-cms-database-proofs/
+// wp16-hosted-proofs.md, section 5): hosted Supabase gives `postgres` default
+// privileges in `public` before any migration runs, so the access lists of a
+// plain replay never equal a hosted database's, and every hosted release
+// stopped at its fingerprint. The release job's replay now applies the same
+// defaults first, from scripts/sql/hosted-default-privileges.sql. The
+// privileges harness, which applies that file before the chain as the
+// platform does, stands in for the platform here. That stand-in is itself a
+// replay that applies the same file (privileges-harness.ts), so this suite
+// proves the file is applied at the same point, not that the file equals the
+// platform (review H7). What proves the file right is the comparison with
+// Supabase's image on a local stack and the hosted gates of 18 November 2026
+// (report, sections 5 and 10).
+it.runIf(IN_MIGRATE_JOB && !harnessAdminUrl)(
+  "the migrate job sets TENANT_GUARD_IT_ADMIN_DATABASE_URL for the release suite (fails, never skips)",
+  () => expect(harnessAdminUrl).not.toBe(""),
+);
+
+/** The keys of `changed` whose definitions differ in anything but the ACL. */
+function beyondAcl(
+  a: { entries: [string, string][] },
+  b: { entries: [string, string][] },
+  changed: string[],
+) {
+  const ma = new Map(a.entries);
+  const mb = new Map(b.entries);
+  const strip = (def: string | undefined) => {
+    try {
+      const parsed = JSON.parse(def ?? "") as Record<string, unknown>;
+      delete parsed.acl;
+      return JSON.stringify(parsed);
+    } catch {
+      return def;
+    }
+  };
+  return changed.filter((key) => strip(ma.get(key)) !== strip(mb.get(key)));
+}
+
+describe.skipIf(!adminDatabaseUrl || !harnessAdminUrl)(
+  "schema fingerprint against a database with the platform's default privileges (real stack)",
+  { timeout: 240_000 },
+  () => {
+    let platform: Replay | undefined;
+    let plain = "";
+    let withDefaults = "";
+
+    beforeAll(async () => {
+      platform = await new Replay(harnessAdminUrl, true).build();
+      plain = replay("fp_plain");
+      withDefaults = flaggedReplay();
+    }, 600_000);
+
+    afterAll(async () => {
+      await platform?.close();
+    });
+
+    it("differs from a plain replay in access lists only, and equals a replay made with the hosted defaults", () => {
+      const target = captureFingerprint({ databaseUrl: platform!.url });
+      const oldWay = captureFingerprint({ databaseUrl: plain });
+      const before = diffFingerprints(oldWay, target);
+      expect(before.equal).toBe(false);
+      // Since review H1.4 the fingerprint holds postgres's default privileges,
+      // which the plain replay lacks; everything else differs in access only.
+      const objects = (keys: string[]) =>
+        keys.filter((key) => !key.startsWith("default privileges "));
+      expect(objects(before.missing)).toEqual([]);
+      expect(objects(before.unexpected)).toEqual([]);
+      expect(before.changed.length).toBeGreaterThan(0);
+      expect(beyondAcl(oldWay, target, before.changed)).toEqual([]);
+
+      const newWay = captureFingerprint({ databaseUrl: withDefaults });
+      expect(diffFingerprints(newWay, target)).toMatchObject({ equal: true });
+      expect(newWay.digest).toBe(target.digest);
+    });
+
+    it("refuses an argument it does not know, rather than replaying without the defaults", () => {
+      const db = createDatabase("fp_badarg");
+      created.push(db.name);
+      const result = spawnSync(
+        process.execPath,
+        ["scripts/verify/supabase-migrations.mjs", "--hosted-default"],
+        {
+          encoding: "utf8",
+          shell: false,
+          env: { ...process.env, DATABASE_URL: db.url },
+        },
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("--hosted-default");
+    });
+  },
+);
+
+// WP1.6, the second rebuild of the preview project (docs/audits/
+// core-crm-cms-database-proofs/wp16-hosted-proofs.md): the reset of a hosted
+// database keeps the default privileges `postgres` holds in `public`, and the
+// chain changes them (stage 1 closes them for anon and authenticated). So a
+// rebuild of a rebuilt project started from the chain's end state, not where
+// a fresh project starts, and the functions made before that change lost the
+// grants a fresh project gives them: the fingerprint gate stopped the
+// recovery. The rebuild now puts the platform's defaults back before it
+// resets, from the one file the replay applies.
+
+// A model of what the pinned Supabase CLI's `db reset` does to a hosted
+// database: a hand copy of its drop script (pkg/migration/queries/drop.sql)
+// as CLI 2.121.0 ships it. It drops the extensions and schemas the chain made
+// and every object in `public`, but not `public` itself, so the default
+// privileges held there survive. The platform's own schemas survive too; here
+// the compatibility bootstrap makes them again, as it does for a fresh replay.
+//
+// It is a model, and it cannot show (review H6):
+// - a drop.sql that recreates `public`, which would drop the defaults held
+//   there with it;
+// - default privileges in the schemas hosted keeps (`extensions`, `vault`,
+//   `auth`, `storage`): the model drops those schemas and the bootstrap makes
+//   them again without any;
+// - objects the real drop leaves in `public`: it drops routines, views,
+//   materialized views, tables, sequences and types there, and the model
+//   assumes nothing else is left;
+// - a role that is not a superuser: the model runs as the container's
+//   superuser `postgres`, and hosted's `postgres` is not one.
+//
+// The copy is tied to the pin: when scripts/supabase-cli.mjs pins another
+// CLI, the case below fails until someone has read that CLI's drop.sql and
+// brought the model and RESET_MODEL_CLI up to it.
+const RESET_MODEL_CLI = "2.121.0";
+
+it("models the reset of the pinned Supabase CLI, and fails when the pin moves", () => {
+  expect(pinnedSupabaseCliVersion()).toBe(RESET_MODEL_CLI);
+});
+
+const HOSTED_RESET_SQL = String.raw`
+DO $reset$
+DECLARE
+  statement text;
+BEGIN
+  FOREACH statement IN ARRAY ARRAY(
+    SELECT format('DROP EXTENSION IF EXISTS %I CASCADE', extname)
+    FROM pg_extension WHERE extname <> 'plpgsql'
+  ) LOOP EXECUTE statement; END LOOP;
+  FOREACH statement IN ARRAY ARRAY(
+    SELECT format('DROP SCHEMA IF EXISTS %I CASCADE', nspname)
+    FROM pg_namespace
+    WHERE nspname NOT LIKE 'pg\_%'
+      AND nspname NOT IN ('information_schema', 'public')
+  ) LOOP EXECUTE statement; END LOOP;
+  FOREACH statement IN ARRAY ARRAY(
+    SELECT format('DROP ROUTINE IF EXISTS public.%I(%s) CASCADE', proname,
+                  pg_get_function_identity_arguments(oid))
+    FROM pg_proc WHERE pronamespace = 'public'::regnamespace
+  ) LOOP EXECUTE statement; END LOOP;
+  FOREACH statement IN ARRAY ARRAY(
+    SELECT format(CASE relkind WHEN 'v' THEN 'DROP VIEW IF EXISTS public.%I CASCADE'
+                               WHEN 'm' THEN 'DROP MATERIALIZED VIEW IF EXISTS public.%I CASCADE'
+                               WHEN 'S' THEN 'DROP SEQUENCE IF EXISTS public.%I CASCADE'
+                               ELSE 'DROP TABLE IF EXISTS public.%I CASCADE' END, relname)
+    FROM pg_class
+    WHERE relnamespace = 'public'::regnamespace AND relkind IN ('r', 'p', 'f', 'v', 'm', 'S')
+    ORDER BY relkind = 'S', relkind DESC
+  ) LOOP EXECUTE statement; END LOOP;
+  FOREACH statement IN ARRAY ARRAY(
+    SELECT format('DROP TYPE IF EXISTS public.%I CASCADE', typname)
+    FROM pg_type
+    WHERE typnamespace = 'public'::regnamespace AND typtype <> 'b'
+  ) LOOP EXECUTE statement; END LOOP;
+END
+$reset$;`;
+
+function loopbackSettings(url: string) {
+  return readReleaseSettings({
+    RELEASE_ENVIRONMENT: "preview",
+    RELEASE_SUPABASE_PROJECT_REF: "wp16rebuildtestrefxx",
+    RELEASE_DATABASE_URL: url,
+    RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+  });
+}
+
+const PUBLIC_DEFAULTS_SQL = `SELECT coalesce(string_agg(defaclobjtype::text || '=' || defaclacl::text, ';' ORDER BY defaclobjtype), '')
+FROM pg_default_acl
+WHERE defaclrole = 'postgres'::regrole AND defaclnamespace = 'public'::regnamespace;`;
+
+describe.skipIf(!adminDatabaseUrl)(
+  "a rebuild of a rebuilt database (real stack)",
+  { timeout: 900_000 },
+  () => {
+    it("starts where a fresh project starts, so it fingerprints equal to a fresh replay with the hosted defaults", () => {
+      const fresh = captureFingerprint({ databaseUrl: flaggedReplay() });
+      // A project after its first rebuild: it carries the chain's end state,
+      // default privileges included.
+      const rebuilt = replay("fp_rebuilt", ["--hosted-defaults"]);
+      // The rebuild, as the release job runs it: the platform's defaults
+      // back first...
+      restoreHostedDefaultPrivileges({
+        settings: loopbackSettings(rebuilt),
+        log: () => {},
+      });
+      // ...then the reset, which keeps them...
+      const restored = psql(rebuilt, PUBLIC_DEFAULTS_SQL);
+      psql(rebuilt, HOSTED_RESET_SQL);
+      expect(psql(rebuilt, PUBLIC_DEFAULTS_SQL)).toBe(restored);
+      // ...and applies the chain without the platform's defaults.
+      applyChain(rebuilt);
+      const diff = diffFingerprints(
+        fresh,
+        captureFingerprint({ databaseUrl: rebuilt }),
+      );
+      expect(
+        diff.equal,
+        formatFingerprintDiff(diff, {
+          expectedLabel: "fresh replay",
+          actualLabel: "rebuild",
+        }),
+      ).toBe(true);
+    });
+  },
+);
+
+// Review H1.2: the restore runs in one transaction, so a defaults file that
+// fails part way changes nothing.
+describe.skipIf(!adminDatabaseUrl)(
+  "putting the platform's default privileges back (real stack)",
+  { timeout: 300_000 },
+  () => {
+    it("applies nothing when the defaults file fails part way", () => {
+      const db = createDatabase("defaults_tx");
+      created.push(db.name);
+      psql(
+        db.url,
+        readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+      );
+      const before = psql(db.url, PUBLIC_DEFAULTS_SQL);
+      const root = mkdtempSync(path.join(tmpdir(), "defaults-root-"));
+      try {
+        mkdirSync(path.join(root, "scripts", "sql"), { recursive: true });
+        writeFileSync(
+          path.join(root, HOSTED_DEFAULT_PRIVILEGES),
+          `${readFileSync(HOSTED_DEFAULT_PRIVILEGES, "utf8")}\nSELECT 1 / 0;\n`,
+        );
+        expect(() =>
+          restoreHostedDefaultPrivileges({
+            settings: loopbackSettings(db.url),
+            root,
+            log: () => {},
+          }),
+        ).toThrow(
+          /could not be put back.*division by zero.*nothing was reset/s,
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+      expect(psql(db.url, PUBLIC_DEFAULTS_SQL)).toBe(before);
+    });
+
+    // Review H5: the restore only grants, so any other default privilege of
+    // postgres in public, or one in every schema, would survive it and the
+    // reset, and the gates would fail only after the reset. The rebuild stops
+    // before the reset instead, naming each entry, and changes nothing.
+    it.each([
+      [
+        "a grant to another role in public",
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO pg_monitor;",
+        /unexpected in public tables:pg_monitor=r\/postgres/,
+      ],
+      [
+        "a revoke from PUBLIC in every schema",
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;",
+        /in every schema functions:postgres=X\/postgres/,
+      ],
+    ])(
+      "stops before the reset, naming it, when postgres holds %s",
+      (_case, plant, named) => {
+        const db = createDatabase("defaults_extra");
+        created.push(db.name);
+        psql(
+          db.url,
+          readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+        );
+        psql(db.url, plant);
+        const before = psql(db.url, POSTGRES_DEFAULTS_SQL);
+        expect(() =>
+          restoreHostedDefaultPrivileges({
+            settings: loopbackSettings(db.url),
+            log: () => {},
+          }),
+        ).toThrow(named);
+        expect(psql(db.url, POSTGRES_DEFAULTS_SQL)).toBe(before);
+      },
+    );
+
+    it("passes, and leaves exactly the platform's defaults, on a database that holds only the bootstrap's", () => {
+      const db = createDatabase("defaults_plain");
+      created.push(db.name);
+      psql(
+        db.url,
+        readFileSync("scripts/sql/supabase-compat-bootstrap.sql", "utf8"),
+      );
+      restoreHostedDefaultPrivileges({
+        settings: loopbackSettings(db.url),
+        log: () => {},
+      });
+      expect(psql(db.url, POSTGRES_DEFAULTS_SQL)).toMatch(
+        /^public\/S=\{.*\};public\/f=\{.*\};public\/r=\{.*\}$/,
+      );
+    });
+  },
+);
+
+/** Every default privilege postgres holds, in one schema or in all of them. */
+const POSTGRES_DEFAULTS_SQL = `SELECT coalesce(string_agg(entry, ';' ORDER BY entry), '') FROM (
+  SELECT CASE WHEN defaclnamespace = 0 THEN '*' ELSE defaclnamespace::regnamespace::text END
+         || '/' || defaclobjtype::text || '=' || defaclacl::text AS entry
+  FROM pg_default_acl WHERE defaclrole = 'postgres'::regrole) AS entries;`;

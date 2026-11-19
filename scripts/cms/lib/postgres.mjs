@@ -1,37 +1,37 @@
 import { spawnSync } from "node:child_process";
 
+import {
+  DATABASE_URL_QUERY_ENV,
+  HOSTED_LIBPQ_ENV,
+  databaseUrlProblem,
+  isLoopbackDatabaseUrl,
+  keptAmbientLibpqEnv,
+  libpqQueryEntries,
+} from "../../../packages/env/src/database-url.mjs";
+import { requirePsqlHonoursRequireAuth } from "../../lib/psql.mjs";
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
-
-const CONNECTION_ENV_KEYS = {
-  application_name: "PGAPPNAME",
-  channel_binding: "PGCHANNELBINDING",
-  client_encoding: "PGCLIENTENCODING",
-  connect_timeout: "PGCONNECT_TIMEOUT",
-  dbname: "PGDATABASE",
-  gssencmode: "PGGSSENCMODE",
-  host: "PGHOST",
-  hostaddr: "PGHOSTADDR",
-  options: "PGOPTIONS",
-  passfile: "PGPASSFILE",
-  password: "PGPASSWORD",
-  port: "PGPORT",
-  sslcert: "PGSSLCERT",
-  sslcrl: "PGSSLCRL",
-  sslcrldir: "PGSSLCRLDIR",
-  sslkey: "PGSSLKEY",
-  sslmode: "PGSSLMODE",
-  sslrootcert: "PGSSLROOTCERT",
-  target_session_attrs: "PGTARGETSESSIONATTRS",
-  user: "PGUSER",
-};
 
 function getPsqlConnection(databaseUrl) {
   let connection;
-  let fields;
   try {
     connection = new URL(databaseUrl);
+  } catch {
+    throw new Error("CMS database connection must be a valid Postgres URL.");
+  }
+  if (!["postgres:", "postgresql:"].includes(connection.protocol)) {
+    throw new Error("CMS database connection must use Postgres.");
+  }
+  // Review L2: the one check judges every address, and nothing in the query
+  // passes to libpq unread; a query host is never a target.
+  const problem = databaseUrlProblem(databaseUrl);
+  if (problem !== null) {
+    throw new Error(`CMS database connection is refused: ${problem}.`);
+  }
+  let fields;
+  try {
     fields = {
-      PGHOST: decodeURIComponent(connection.hostname).replace(/^\[|\]$/g, ""),
+      // Never decoded (review L1).
+      PGHOST: connection.hostname.replace(/^\[|\]$/g, ""),
       PGPORT: connection.port,
       PGDATABASE: decodeURIComponent(connection.pathname.slice(1)),
       PGUSER: decodeURIComponent(connection.username),
@@ -40,53 +40,22 @@ function getPsqlConnection(databaseUrl) {
   } catch {
     throw new Error("CMS database connection must be a valid Postgres URL.");
   }
-  if (!["postgres:", "postgresql:"].includes(connection.protocol)) {
-    throw new Error("CMS database connection must use Postgres.");
-  }
-  if (connection.searchParams.has("service")) {
-    throw new Error(
-      "CMS psql does not allow service routing; supply an explicit database URL.",
-    );
-  }
-
-  // Match libpq precedence: only explicit URI values replace ambient defaults.
-  const env = { ...process.env };
-  // A libpq service is expanded before environment defaults. Do not let an
-  // ambient service replace the target supplied by the explicit database URL.
-  delete env.PGSERVICE;
+  // Reviews L2 and M3: the address is the whole target. The runner keeps
+  // only the shared list of ambient settings: the CA file the release job
+  // hands it as PGSSLROOTCERT, and a password kept out of the address.
+  const env = keptAmbientLibpqEnv(process.env);
   for (const [key, value] of Object.entries(fields)) {
     if (value) env[key] = value;
   }
-
-  const remaining = new URLSearchParams();
-
-  for (const [key, value] of connection.searchParams) {
-    const envKey = Object.hasOwn(CONNECTION_ENV_KEYS, key)
-      ? CONNECTION_ENV_KEYS[key]
-      : null;
-    if (!envKey) {
-      if (/password|secret|token/i.test(key)) {
-        throw new Error(
-          "CMS psql cannot pass this credential parameter securely through the environment.",
-        );
-      }
-      remaining.append(key, value);
-      continue;
-    }
+  for (const [key, value] of libpqQueryEntries(databaseUrl)) {
+    if (key === "password" && fields.PGPASSWORD) continue;
     // Node pg's encrypted, non-verifying mode is named `require` in libpq.
-    env[envKey] =
+    env[DATABASE_URL_QUERY_ENV[key]] =
       key === "sslmode" && value === "no-verify" ? "require" : value;
   }
-
-  // Leave options without PG* equivalents (e.g. TCP keepalives) to libpq.
-  // The URI contains no host, database, user, password, or mapped options.
-  const args = remaining.size
-    ? [
-        "--dbname",
-        `postgresql:///?${remaining.toString().replace(/\+/g, "%20")}`,
-      ]
-    : [];
-  return { env, args };
+  // Review L1: a hosted server may never ask for the password in clear text.
+  if (!isLoopbackDatabaseUrl(connection)) Object.assign(env, HOSTED_LIBPQ_ENV);
+  return { env, args: [] };
 }
 
 // Local CMS scripts read Payload's connection, never the Core migration
@@ -95,9 +64,23 @@ export function getLocalDatabaseUrl() {
   return process.env.PAYLOAD_DATABASE_URI || LOCAL_DATABASE_URL;
 }
 
+/**
+ * Review N6: before psql starts on a hosted address, which takes
+ * PGREQUIREAUTH, the psql it would run must be 16 or later.
+ */
+function requireFloor(connection) {
+  if (connection.env.PGREQUIREAUTH)
+    requirePsqlHonoursRequireAuth({
+      psqlBin: process.env.PSQL_BIN || "psql",
+      run: spawnSync,
+      env: keptAmbientLibpqEnv(connection.env, []),
+    });
+}
+
 export function runPsql(sql, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
+  requireFloor(connection);
   const args = [
     "--no-psqlrc",
     ...connection.args,
@@ -152,6 +135,7 @@ export function executeSql(sql, options = {}) {
 export function runPsqlFile(filePath, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const connection = getPsqlConnection(databaseUrl);
+  requireFloor(connection);
   const args = [
     "--no-psqlrc",
     ...connection.args,

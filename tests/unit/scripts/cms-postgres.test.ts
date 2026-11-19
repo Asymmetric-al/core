@@ -5,6 +5,20 @@ vi.mock("node:child_process", () => ({ spawnSync }));
 
 import { runPsql, runPsqlFile } from "../../../scripts/cms/lib/postgres.mjs";
 
+/**
+ * Review N6: a hosted address makes the builder ask `psql --version` first.
+ * The fake answers it with a version, and every other call with `value`.
+ */
+const answer = (
+  value: Record<string, unknown>,
+  version = "psql (PostgreSQL) 17.11\n",
+) =>
+  spawnSync.mockImplementation((_command: string, args: string[] = []) =>
+    args[0] === "--version"
+      ? { status: 0, stdout: version, stderr: "" }
+      : value,
+  );
+
 const databaseUrl =
   "postgresql://postgres.example:fake%3Apassword@pooler.example.com:5432/postgres?sslmode=no-verify&connect_timeout=15";
 
@@ -14,7 +28,7 @@ afterEach(() => {
 
 describe("CMS PostgreSQL command connection", () => {
   it("uses encrypted libpq-compatible settings without putting credentials in argv", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1\n", stderr: "" });
+    answer({ status: 0, stdout: "1\n", stderr: "" });
 
     expect(runPsql("SELECT 1;", { databaseUrl })).toBe("1");
     const [, args, options] = spawnSync.mock.calls.at(-1)!;
@@ -35,7 +49,7 @@ describe("CMS PostgreSQL command connection", () => {
 
   it("uses the same connection handling for transactional SQL files", () => {
     vi.stubEnv("PAYLOAD_DATABASE_URI", databaseUrl);
-    spawnSync.mockReturnValue({ status: 0 });
+    answer({ status: 0 });
 
     runPsqlFile("reviewed-migration.sql", { singleTransaction: true });
     const [, args, options] = spawnSync.mock.calls.at(-1)!;
@@ -47,7 +61,7 @@ describe("CMS PostgreSQL command connection", () => {
   });
 
   it("preserves certificate verification when the URL requests it", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
       databaseUrl: databaseUrl.replace("no-verify", "verify-full"),
     });
@@ -55,33 +69,66 @@ describe("CMS PostgreSQL command connection", () => {
     expect(spawnSync.mock.calls.at(-1)![2].env.PGSSLMODE).toBe("verify-full");
   });
 
-  it("preserves libpq defaults when the URL omits connection fields", () => {
-    vi.stubEnv("PGPORT", "6543");
-    vi.stubEnv("PGSSLMODE", "verify-full");
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
-    runPsql("SELECT 1;", { databaseUrl: "postgresql://db.example/postgres" });
-
-    expect(spawnSync.mock.calls.at(-1)![2].env).toMatchObject({
-      PGHOST: "db.example",
+  // Review L2: the address is the whole target. Of the ambient PG*
+  // settings only the CA file (the release job hands it to the runner as
+  // PGSSLROOTCERT) and the password (a caller may keep it out of the address)
+  // survive; any other could fill in or change the target or the login.
+  it("drops every ambient PG* setting but the CA file and the password", () => {
+    for (const [key, value] of Object.entries({
+      PGHOST: "elsewhere.example",
+      PGHOSTADDR: "203.0.113.9",
       PGPORT: "6543",
-      PGSSLMODE: "verify-full",
-    });
+      PGUSER: "postgres",
+      PGDATABASE: "other",
+      PGOPTIONS: "-c role=postgres",
+      PGSSLMODE: "disable",
+      PGTARGETSESSIONATTRS: "read-write",
+      PGSSLROOTCERT: "/run/ca.pem",
+      PGPASSWORD: "ambient-password",
+    }))
+      vi.stubEnv(key, value);
+    answer({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", { databaseUrl: "postgresql://db.example/postgres" });
+    const env = spawnSync.mock.calls.at(-1)![2].env;
+    expect(env.PGHOST).toBe("db.example");
+    expect(env.PGDATABASE).toBe("postgres");
+    for (const key of [
+      "PGHOSTADDR",
+      "PGPORT",
+      "PGUSER",
+      "PGOPTIONS",
+      "PGSSLMODE",
+      "PGTARGETSESSIONATTRS",
+    ])
+      expect(env[key], key).toBeUndefined();
+    expect(env.PGSSLROOTCERT).toBe("/run/ca.pem");
+    expect(env.PGPASSWORD).toBe("ambient-password");
   });
 
-  it("preserves libpq URI options without exposing URL credentials", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
-    runPsql("SELECT 1;", {
-      databaseUrl: `${databaseUrl}&keepalives_idle=30&ssl=true`,
-    });
-    const [, args, options] = spawnSync.mock.calls.at(-1)!;
-    const connection = new URL(args[args.indexOf("--dbname") + 1]);
+  // Review L2: only the shared allowlist of query keys; nothing passes
+  // through to libpq unread, and a query host is never a target.
+  it.each([
+    ["an unknown key", "&keepalives_idle=30"],
+    ["a query host", "&host=evil.example"],
+    ["a key with a blank", "&%20host=evil.example"],
+    ["options on a hosted address", "&options=-c%20role%3Dpostgres"],
+  ])("refuses %s before starting psql", (_case, extra) => {
+    const priorCalls = spawnSync.mock.calls.length;
+    expect(() =>
+      runPsql("SELECT 1;", { databaseUrl: `${databaseUrl}${extra}` }),
+    ).toThrow(/refused/);
+    expect(spawnSync.mock.calls).toHaveLength(priorCalls);
+  });
 
-    expect(connection.searchParams.get("keepalives_idle")).toBe("30");
-    expect(connection.searchParams.get("ssl")).toBe("true");
-    expect(connection.username).toBe("");
-    expect(connection.password).toBe("");
-    expect(JSON.stringify(args)).not.toContain("password");
-    expect(options.env.PGPASSWORD).toBe("fake:password");
+  it("hands the local CMS session role to psql as PGOPTIONS, for a loopback address only", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl:
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?options=-c%20role%3Dcms_owner",
+    });
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGOPTIONS).toBe(
+      "-c role=cms_owner",
+    );
   });
 
   it("reports malformed credential encoding without leaking the URL", () => {
@@ -95,7 +142,7 @@ describe("CMS PostgreSQL command connection", () => {
   it("does not let an ambient service replace an explicit database target", () => {
     vi.stubEnv("PGSERVICE", "another-database");
     vi.stubEnv("PGSERVICEFILE", "custom-services.conf");
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    answer({ status: 0, stdout: "1", stderr: "" });
 
     runPsql("SELECT 1;", { databaseUrl });
     expect(spawnSync.mock.calls.at(-1)![2].env.PGSERVICE).toBeUndefined();
@@ -122,15 +169,141 @@ describe("CMS PostgreSQL command connection", () => {
     expect(spawnSync.mock.calls).toHaveLength(priorCalls);
   });
 
-  it("preserves spaces in libpq URI options", () => {
-    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+  // Review L2: the query is read as libpq reads it: %XX decoded, + kept.
+  it("reads the query as libpq does", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
-      databaseUrl: `${databaseUrl}&fallback_application_name=core%20local`,
+      databaseUrl: `${databaseUrl}&application_name=core%20local+cms`,
     });
-    const args = spawnSync.mock.calls.at(-1)![1];
-    const forwarded = new URL(args[args.indexOf("--dbname") + 1]);
-    const value = forwarded.search.slice(1).split("=")[1];
-    // libpq percent-decodes URI values; it does not use form '+' decoding.
-    expect(decodeURIComponent(value)).toBe("core local");
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGAPPNAME).toBe(
+      "core local+cms",
+    );
+  });
+
+  // Review L1: the builder never decodes the host, and requires SCRAM for a
+  // hosted address.
+  it("never decodes the host, and requires SCRAM for a hosted address", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl:
+        "postgresql://cms_owner.fixture:fake-password@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+    });
+    const env = spawnSync.mock.calls.at(-1)![2].env;
+    expect(env.PGHOST).toBe("aws-0-us-east-1.pooler.supabase.com");
+    expect(env.PGREQUIREAUTH).toBe("scram-sha-256");
+    expect(() =>
+      runPsql("SELECT 1;", {
+        databaseUrl:
+          "postgresql://cms_owner.fixture:fake-password@evil.example%2Caws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
+      }),
+    ).toThrow(/host/);
+  });
+});
+
+/**
+ * Review M3: every ambient libpq setting a hostile environment could hold.
+ * Only PGPASSWORD and PGSSLROOTCERT may survive a builder, and a builder that
+ * sets either from the address overrides the ambient one.
+ */
+const HOSTILE_PG_ENV = {
+  PGHOST: "evil.example",
+  PGHOSTADDR: "203.0.113.9",
+  PGPORT: "1",
+  PGDATABASE: "evil",
+  PGUSER: "evil",
+  PGSERVICE: "evil",
+  PGSERVICEFILE: "/evil/pg_service.conf",
+  PGSYSCONFDIR: "/evil",
+  PGPASSFILE: "/evil/pgpass",
+  PGOPTIONS: "-c role=postgres",
+  PGSSLMODE: "disable",
+  PGSSLKEY: "engine:evil:key",
+  PGSSLCERT: "/evil/client.crt",
+  PGSSLCRL: "/evil/crl.pem",
+  PGSSLCRLDIR: "/evil/crls",
+  PGSSLSNI: "0",
+  PGSSLNEGOTIATION: "direct",
+  PGSSLCOMPRESSION: "1",
+  PGSSLMINPROTOCOLVERSION: "TLSv1",
+  PGSSLMAXPROTOCOLVERSION: "TLSv1",
+  PGCHANNELBINDING: "disable",
+  PGGSSENCMODE: "require",
+  PGGSSLIB: "sspi",
+  PGKRBSRVNAME: "evil",
+  PGREQUIREAUTH: "password",
+  PGTARGETSESSIONATTRS: "read-only",
+  PGLOADBALANCEHOSTS: "random",
+  PGAPPNAME: "evil",
+  PGCONNECT_TIMEOUT: "999",
+  PGCLIENTENCODING: "SQL_ASCII",
+  PGDATESTYLE: "evil",
+  PGTZ: "evil",
+  PGGEQO: "off",
+  PGLOCALEDIR: "/evil",
+  PGPASSWORD: "ambient-password",
+  PGSSLROOTCERT: "/ambient/ca.crt",
+};
+const pgOnly = (env: Record<string, string | undefined>) =>
+  Object.fromEntries(
+    Object.entries(env).filter(([key]) => key.startsWith("PG")),
+  );
+
+describe("the CMS builder's ambient settings (review M3)", () => {
+  it("keeps nothing of a hostile environment but the shared list", () => {
+    for (const [key, value] of Object.entries(HOSTILE_PG_ENV))
+      vi.stubEnv(key, value);
+    answer({ status: 0, stdout: "1\n", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl:
+        "postgresql://cms_owner.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full",
+    });
+    const [, , options] = spawnSync.mock.calls.at(-1)!;
+    expect(pgOnly(options.env)).toEqual({
+      PGHOST: "aws-0-us-west-2.pooler.supabase.com",
+      PGPORT: "5432",
+      PGDATABASE: "postgres",
+      PGUSER: "cms_owner.abcdefghijklmnopqrst",
+      PGPASSWORD: "pw",
+      PGSSLMODE: "verify-full",
+      PGSSLROOTCERT: "/ambient/ca.crt",
+      PGREQUIREAUTH: "scram-sha-256",
+    });
+  });
+});
+
+// Review N6: PGREQUIREAUTH, which a hosted address gets, arrived in libpq 16;
+// an older psql would ignore it. The builder stops before it runs anything.
+describe("the CMS builder on an older psql (review N6)", () => {
+  const hosted =
+    "postgresql://cms_owner.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full";
+
+  it.each([
+    ["runPsql", () => runPsql("SELECT 1;", { databaseUrl: hosted })],
+    ["runPsqlFile", () => runPsqlFile("x.sql", { databaseUrl: hosted })],
+  ])(
+    "%s stops on psql 15 for a hosted address, before any query",
+    (_name, call) => {
+      spawnSync.mockReset();
+      answer(
+        { status: 0, stdout: "1\n", stderr: "" },
+        "psql (PostgreSQL) 15.8\n",
+      );
+      expect(call).toThrow(/psql 15\.8.*16 or later.*PGREQUIREAUTH/);
+      expect(spawnSync.mock.calls.map((c) => c[1]?.[0])).toEqual(["--version"]);
+    },
+  );
+
+  it("asks nothing of psql for a loopback address", () => {
+    spawnSync.mockReset();
+    answer(
+      { status: 0, stdout: "1\n", stderr: "" },
+      "psql (PostgreSQL) 15.8\n",
+    );
+    runPsql("SELECT 1;", {
+      databaseUrl: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+    expect(spawnSync.mock.calls.map((c) => c[1]?.[0])).not.toContain(
+      "--version",
+    );
   });
 });

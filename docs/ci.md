@@ -436,7 +436,7 @@ the secrets it needs by name and the owner's steps to switch it on, is
 
 Starts a local Supabase stack from source and runs the Supabase Auth email
 round trips against it. A workflow of its own, so `ci.yml` and
-`ci-integration.yml` do not change. Not a required check. It guards two
+`ci-integration.yml` do not change. Not a required check. It guards three
 things:
 
 - _The migration chain and the seed on the real Supabase image._ It is the
@@ -453,6 +453,12 @@ things:
   packages (`packages/auth/**`, `packages/api/src/auth/**`), the three proxies,
   the missionary route policy or the suite itself run them too, and so does
   manual dispatch.
+- _The release job's replay against the image (WP1.6):_ the job replays the
+  chain on plain Postgres as the release job does
+  (`scripts/verify/supabase-migrations.mjs --hosted-defaults`) and fails
+  unless that replay fingerprints exactly as the stack does. It compares
+  with the image the pinned CLI starts, not with hosted; a change of the
+  defaults on hosted is caught by the release's gates.
 - _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
   pins, starts the stack with `bun run supabase -- start` (every migration and
   the seed, then Auth, PostgREST and Mailpit), then runs

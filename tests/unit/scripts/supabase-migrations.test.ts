@@ -44,6 +44,7 @@ function runVerifier(
   databaseUrl = "postgresql://postgres@127.0.0.1:5432/disposable_test",
   allowNonlocal = false,
   ambient: Record<string, string> = {},
+  cliArgs: string[] = [],
 ) {
   const temporary = mkdtempSync(path.join(os.tmpdir(), "migration-census-"));
   roots.push(temporary);
@@ -178,7 +179,7 @@ else if (sql.startsWith("-- field-policy-manifest-gate:v1")) {
   }
   const result = spawnSync(
     process.execPath,
-    [path.join(repo, "scripts/verify/supabase-migrations.mjs")],
+    [path.join(repo, "scripts/verify/supabase-migrations.mjs"), ...cliArgs],
     {
       cwd: repo,
       encoding: "utf8",
@@ -271,7 +272,9 @@ itPosix(
     expect(
       result.calls.every(
         (args: string[]) =>
-          args[0] === "postgresql://postgres@127.0.0.1:5432/disposable_test",
+          args[0] ===
+            "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'" &&
+          args[1] === "-X",
       ),
     ).toBe(true);
   },
@@ -373,11 +376,54 @@ itPosix(
       expect(result.environments[index]).toEqual({
         PGPASSWORD: "s3cret-verify",
       });
+      // H11: the URL's parsed parts, never the raw string.
       expect(args[0]).toBe(
-        "postgresql://postgres@127.0.0.1:5432/disposable_test",
+        "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
       );
       expect(JSON.stringify(args)).not.toContain("s3cret-verify");
     }
+  },
+);
+
+// WP1.6, joined with PR #2714's review: the hosted-defaults step of the
+// release replay starts psql like every other step, the URL first and once,
+// the password in PGPASSWORD only, after the bootstrap and before the first
+// migration.
+itPosix(
+  "applies the hosted default privileges after the bootstrap and before the first migration, through the same psql start",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres:s3cret-verify@127.0.0.1:5432/disposable_test",
+      false,
+      {},
+      ["--hosted-defaults"],
+    );
+    expect(result.status, result.stderr).toBe(0);
+    const files = result.calls.map((args) =>
+      args.includes("-f") ? args[args.indexOf("-f") + 1]! : "",
+    );
+    const bootstrap = files.findIndex((file) =>
+      file.endsWith("scripts/sql/supabase-compat-bootstrap.sql"),
+    );
+    const defaults = files.findIndex((file) =>
+      file.endsWith("scripts/sql/hosted-default-privileges.sql"),
+    );
+    const firstMigration = files.findIndex((file) =>
+      /supabase\/migrations\/\d{14}_/.test(file),
+    );
+    expect(bootstrap).toBeGreaterThanOrEqual(0);
+    expect(defaults).toBe(bootstrap + 1);
+    expect(firstMigration).toBe(defaults + 1);
+    const call = result.calls[defaults]!;
+    expect(call[0]).toBe(
+      "host='127.0.0.1' port='5432' dbname='disposable_test' user='postgres'",
+    );
+    expect(call.filter((arg) => arg.startsWith("host="))).toHaveLength(1);
+    expect(JSON.stringify(call)).not.toContain("s3cret-verify");
+    expect(result.environments[defaults]).toEqual({
+      PGPASSWORD: "s3cret-verify",
+    });
   },
 );
 

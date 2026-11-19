@@ -3,23 +3,24 @@
 // status and a redacted message, never the connection string.
 import { spawnSync } from "node:child_process";
 
+import {
+  DATABASE_URL_QUERY_ENV,
+  HOSTED_LIBPQ_ENV,
+  databaseUrlProblem,
+  isLoopbackDatabaseUrl,
+  keptAmbientLibpqEnv,
+  libpqQueryEntries,
+} from "../../../packages/env/src/database-url.mjs";
+import { requirePsqlHonoursRequireAuth } from "../../lib/psql.mjs";
+
 const URL_FIELDS = {
-  PGHOST: (url) => decodeURIComponent(url.hostname).replace(/^\[|\]$/g, ""),
+  // Never decoded (review L1): an escaped comma or slash stays inert.
+  PGHOST: (url) => url.hostname.replace(/^\[|\]$/g, ""),
   PGPORT: (url) => url.port,
   PGDATABASE: (url) => decodeURIComponent(url.pathname.slice(1)),
   PGUSER: (url) => decodeURIComponent(url.username),
   PGPASSWORD: (url) => decodeURIComponent(url.password),
-  PGSSLMODE: (url) => url.searchParams.get("sslmode") ?? "",
 };
-// Ambient libpq settings that could redirect the connection.
-const AMBIENT = [
-  "PGSERVICE",
-  "PGSERVICEFILE",
-  "PGHOSTADDR",
-  "PGPASSFILE",
-  "PGOPTIONS",
-  "DATABASE_URL",
-];
 
 export function redact(text) {
   return String(text ?? "")
@@ -39,13 +40,29 @@ export function connectionEnvironment(databaseUrl, base = process.env) {
   if (!["postgres:", "postgresql:"].includes(url.protocol)) {
     throw new Error("The database connection is not a Postgres URL.");
   }
-  const env = { ...base };
-  for (const key of AMBIENT) delete env[key];
+  // Review L2: the one check judges the address, and the query is read as
+  // libpq reads it, through the same map as the CMS runner.
+  const problem = databaseUrlProblem(databaseUrl, { forPsql: true });
+  if (problem !== null)
+    throw new Error(`The database connection is refused: ${problem}.`);
+  // Review M3: the shared allow-list, not a deny-list; then the address's
+  // own parts and query replace even the kept ones, so this builder keeps no
+  // ambient PG* setting at all.
+  const env = keptAmbientLibpqEnv(base);
+  delete env.DATABASE_URL;
   for (const key of Object.keys(URL_FIELDS)) delete env[key];
+  for (const key of Object.values(DATABASE_URL_QUERY_ENV)) delete env[key];
   for (const [key, read] of Object.entries(URL_FIELDS)) {
     const value = read(url);
     if (value) env[key] = value;
   }
+  for (const [key, value] of libpqQueryEntries(databaseUrl)) {
+    if (key === "password" && env.PGPASSWORD) continue;
+    env[DATABASE_URL_QUERY_ENV[key]] = value;
+  }
+  // Review L1: a hosted server may never ask for the password in clear text.
+  delete env.PGREQUIREAUTH;
+  if (!isLoopbackDatabaseUrl(url)) Object.assign(env, HOSTED_LIBPQ_ENV);
   return env;
 }
 
@@ -63,6 +80,19 @@ export function runPsql({
   label = "psql",
 }) {
   const env = connectionEnvironment(databaseUrl);
+  // Review N6: a hosted address takes PGREQUIREAUTH, which a psql older than
+  // 16 ignores; the floor holds wherever this builder runs.
+  if (env.PGREQUIREAUTH) {
+    try {
+      requirePsqlHonoursRequireAuth({
+        psqlBin,
+        run,
+        env: keptAmbientLibpqEnv(env, []),
+      });
+    } catch (error) {
+      throw new Error(`${label}: ${error.message}`);
+    }
+  }
   for (const [key, value] of Object.entries(variables)) env[key] = value;
   const result = run(
     psqlBin,

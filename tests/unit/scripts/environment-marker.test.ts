@@ -99,6 +99,8 @@ function fakeMarkerPsql(state: "missing" | "unset" | "unreadable" | string) {
   writeFileSync(
     bin,
     `#!${process.execPath}
+// Review N6: answer the version check like a psql 16 or later, unlogged.
+if (process.argv[2] === "--version") { console.log("psql (PostgreSQL) 17.11"); process.exit(0); }
 const fs = require("node:fs");
 const args = process.argv.slice(2);
 fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify({ args, password: process.env.PGPASSWORD ?? null }) + "\\n");
@@ -281,7 +283,9 @@ describe("every reset and reseed script checks the marker first", () => {
   it("Payload down, reset, fresh and refresh check before they run", () => {
     const src = read("scripts/cms/run-payload-command.mjs");
     expect(src).toMatch(
-      /if \(command !== "migrate"\)\s*requireDisposableDatabase\(\{\s*databaseUrl: markerUrl,/,
+      // Review M2: the hosted check now runs for every command on a hosted
+      // address, so the disposable-marker check names the writes it is for.
+      /if \(isMigrationWrite && command !== "migrate"\)\s*requireDisposableDatabase\(\{\s*databaseUrl: markerUrl,/,
     );
   });
 
