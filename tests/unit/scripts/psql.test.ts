@@ -763,19 +763,94 @@ function scriptsFiles(dir = "scripts"): string[] {
   });
 }
 
+/** Source without its comments, so a comment can neither pass nor fail it. */
+function withoutComments(source: string, shell: boolean): string {
+  return shell
+    ? source.replace(/(^|\s)#(?!!).*$/gm, "$1")
+    : source
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
+}
+/** psql in a shell command's place: line start, after ; & | ( ` { or $(, after then/do/else/exec/sudo/time/command/xargs/env, and after VAR=value prefixes. */
+const SHELL_PSQL =
+  /(?:^|[;&|(`{]|\$\(|\b(?:then|do|else|exec|sudo|time|command|xargs|env))[ \t]*(?:[A-Za-z_]\w*=\S*[ \t]+)*psql(?=[ \t]|$|[;)|&])/m;
+/** A child-process call whose program is psql. */
+const DIRECT_PSQL =
+  /\b(?:spawn|spawnSync|execFile|execFileSync|exec|execSync)\s*\(\s*(?:["'`]psql["'`]|psqlBin\b|process\.env\.PSQL_BIN)/;
+/** A real import of scripts/lib/psql.mjs, static or dynamic. */
+const IMPORTS_PSQL =
+  /\bfrom\s+["'][^"']*\/psql\.mjs["']|\bimport\(\s*["'][^"']*\/psql\.mjs["']\s*\)/;
+
+/**
+ * Why a file under scripts/ breaks the rule of reviews M4 and N4, or null. A
+ * file that is not a listed starter never starts psql itself: a shell file
+ * goes through scripts/lib/local-database.mjs, and a JavaScript file names
+ * psql only to hand it to scripts/lib/psql.mjs, which it really imports.
+ */
+function psqlProblem(file: string, source: string): string | null {
+  if (PSQL_STARTERS.includes(file)) return null;
+  const shell = file.endsWith(".sh");
+  const code = withoutComments(source, shell);
+  if (shell)
+    return SHELL_PSQL.test(code)
+      ? `${file} starts psql itself; go through scripts/lib/local-database.mjs`
+      : null;
+  if (DIRECT_PSQL.test(code)) return `${file} starts psql itself`;
+  if (/["'`]psql["'`]|PSQL_BIN/.test(code) && !IMPORTS_PSQL.test(code))
+    return `${file} names psql but does not import scripts/lib/psql.mjs`;
+  return null;
+}
+
 describe("the files under scripts/ that start psql (review M4)", () => {
   it("every file that names psql is a listed starter or goes through a shared builder", () => {
-    for (const file of scriptsFiles()) {
-      const source = readFileSync(file, "utf8");
-      const namesPsql = file.endsWith(".sh")
-        ? /^\s*(?:sudo\s+)?psql\s/m.test(source)
-        : /["'`]psql["'`]|PSQL_BIN/.test(source);
-      if (!namesPsql || PSQL_STARTERS.includes(file)) continue;
-      expect(
-        /(?:lib\/psql|\.\/psql)\.mjs/.test(source),
-        `${file} names psql but is neither listed nor a user of scripts/lib/psql.mjs`,
-      ).toBe(true);
-    }
+    for (const file of scriptsFiles())
+      expect(psqlProblem(file, readFileSync(file, "utf8"))).toBeNull();
+  });
+
+  // Review N4: the rule holds on code, not on what a comment says.
+  it.each([
+    [
+      "a comment that names the runner, and a direct start",
+      "scripts/x/comment.mjs",
+      '// goes through scripts/lib/psql.mjs\nimport { spawnSync } from "node:child_process";\nspawnSync("psql", ["-c", "select 1"]);\n',
+    ],
+    [
+      "a real import, and a direct start beside it",
+      "scripts/x/both.mjs",
+      'import { runPsqlQuery } from "../lib/psql.mjs";\nimport { spawnSync } from "node:child_process";\nspawnSync(process.env.PSQL_BIN || "psql", ["-c", "select 1"]);\n',
+    ],
+    [
+      "a shell psql after &&",
+      "scripts/x/and.sh",
+      '#!/usr/bin/env bash\ncd /tmp && psql -c "select 1"\n',
+    ],
+    [
+      "a shell psql in a command substitution",
+      "scripts/x/sub.sh",
+      '#!/usr/bin/env bash\ncount=$(psql -tAc "select 1")\n',
+    ],
+    [
+      "a shell psql after an assignment",
+      "scripts/x/env.sh",
+      '#!/usr/bin/env bash\nPGHOST=elsewhere psql -c "select 1"\n',
+    ],
+  ])("refuses %s", (_case, file, source) => {
+    expect(psqlProblem(file, source)).not.toBeNull();
+  });
+
+  it.each([
+    [
+      "a real import that hands psql to the runner",
+      "scripts/x/ok.mjs",
+      'import { runPsqlQuery } from "../lib/psql.mjs";\nconst psqlBin = process.env.PSQL_BIN?.trim() || "psql";\nrunPsqlQuery({ databaseUrl, sql: "select 1", psqlBin });\n',
+    ],
+    [
+      "a shell script that goes through the local-database helper",
+      "scripts/x/ok.sh",
+      '#!/usr/bin/env bash\n# Runs psql through the shared runner.\nrequire_cmd psql\nlocal_psql() {\n  node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"\n}\nlocal_psql -c "select 1"\n',
+    ],
+  ])("accepts %s", (_case, file, source) => {
+    expect(psqlProblem(file, source)).toBeNull();
   });
 
   it("the three shared builders call the one check and keep the one list", () => {
