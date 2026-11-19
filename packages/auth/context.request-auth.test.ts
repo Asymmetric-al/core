@@ -467,6 +467,100 @@ describe("getAuthContext: the tenant and assignment the request names", () => {
     mocks.headers.set("x-asym-assignment", inB.id);
     expect((await getAuthContext()).assignmentDenial).toBe("tenant_mismatch");
   });
+
+  // Check of the fix lists, JR2: the browser retires its document on the
+  // mark, so only the resolver's own refusal of the row a request proposed
+  // carries it, never a failed read (council's rule for JB1: "the resolver's
+  // own refusal, never any other 401 or 403").
+  describe("the scope-refused mark", () => {
+    const NOT_THEIRS = "00000000-0000-4000-8000-0000000000ff";
+
+    it.each([
+      [
+        "not_owned_or_inactive",
+        "a row that is not the caller's, or revoked",
+        () => {
+          rows(row(TA, "staff", "finance"));
+          mocks.headers.set("x-asym-tenant", TA);
+          mocks.headers.set("x-asym-assignment", NOT_THEIRS);
+        },
+      ],
+      [
+        "role_class_mismatch",
+        "a row of another class than the surface's",
+        () => {
+          const donor = row(TA, "donor");
+          rows(row(TA, "staff", "finance"), donor);
+          mocks.headers.set("x-asym-tenant", TA);
+          mocks.headers.set("x-asym-assignment", donor.id);
+        },
+      ],
+      [
+        "tenant_mismatch",
+        "a row in another tenant than the one named",
+        () => {
+          const inB = row(TB, "staff", "development");
+          rows(row(TA, "staff", "finance"), inB);
+          mocks.headers.set("x-asym-tenant", TA);
+          mocks.headers.set("x-asym-assignment", inB.id);
+        },
+      ],
+      [
+        "ambiguous",
+        "a tenant named in which the caller holds two rows, and no row",
+        () => {
+          rows(row(TA, "staff", "finance"), row(TA, "staff", "member_care"));
+          mocks.headers.set("x-asym-tenant", TA);
+        },
+      ],
+      [
+        "no_assignment",
+        "a tenant named in which the caller's last row was revoked",
+        () => {
+          rows(row(TB, "staff", "development"));
+          mocks.headers.set("x-asym-tenant", TA);
+        },
+      ],
+    ] as const)("marks %s: %s", async (reason, _what, arrange) => {
+      arrange();
+      const context = await getAuthContext();
+      expect(context.isAuthenticated).toBe(false);
+      expect(context.assignmentDenial).toBe(reason);
+      expect(context.scopeRefused).toBe(true);
+    });
+
+    it.each([
+      [
+        "a failed read",
+        () =>
+          mocks.rpc.mockResolvedValue({ data: null, error: { code: "57014" } }),
+      ],
+      [
+        "a malformed row",
+        () =>
+          mocks.rpc.mockResolvedValue({
+            data: [{ ...row(TA, "staff", "finance"), tenant_id: "not-a-uuid" }],
+            error: null,
+          }),
+      ],
+      [
+        "a reader that throws",
+        () => mocks.rpc.mockRejectedValue(new Error("connection reset")),
+      ],
+    ] as const)(
+      "does not mark a reader_error (%s): the request fails as any other",
+      async (_what, arrange) => {
+        const finance = row(TA, "staff", "finance");
+        arrange();
+        mocks.headers.set("x-asym-tenant", TA);
+        mocks.headers.set("x-asym-assignment", finance.id);
+        const context = await getAuthContext();
+        expect(context.isAuthenticated).toBe(false);
+        expect(context.assignmentDenial).toBe("reader_error");
+        expect(context.scopeRefused).not.toBe(true);
+      },
+    );
+  });
 });
 
 /**

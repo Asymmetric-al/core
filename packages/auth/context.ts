@@ -308,7 +308,7 @@ async function getE2EAuthBypassContext(
       ? {
           ...createUnauthenticatedContext(),
           assignmentDenial: denial,
-          scopeRefused: true,
+          scopeRefused: refusesProposedScope(narrowing, denial),
         }
       : null;
   }
@@ -371,6 +371,30 @@ function proposesScope(narrowing: AssignmentNarrowing): boolean {
     narrowing.proposedAssignmentId !== undefined ||
     narrowing.expectedTenantId !== undefined
   );
+}
+
+/**
+ * The resolver's own refusals of a row: a proposal that is not the caller's
+ * live row, of another class or in another tenant than the one named, or a
+ * tenant named in which the caller holds no row, or several and chose none.
+ * Not `reader_error` (a thrown or failed read, a malformed row): that is an
+ * ordinary failure, and marking it would retire the document and reload it
+ * on one passing database error (check of the fix lists, JR2).
+ */
+const SCOPE_REFUSALS: ReadonlySet<AssignmentDenyReason> = new Set([
+  "not_owned_or_inactive",
+  "role_class_mismatch",
+  "tenant_mismatch",
+  "ambiguous",
+  "no_assignment",
+]);
+
+/** Whether a denial is the resolver refusing the scope the request proposed. */
+function refusesProposedScope(
+  narrowing: AssignmentNarrowing,
+  reason: AssignmentDenyReason,
+): boolean {
+  return proposesScope(narrowing) && SCOPE_REFUSALS.has(reason);
 }
 
 /** The options, each falling back to its request header; blank values are absent. */
@@ -475,7 +499,7 @@ export async function getAuthContext(
   if (!result.ok) {
     return {
       ...denied(profile.id, result.reason),
-      scopeRefused: proposesScope(narrowing),
+      scopeRefused: refusesProposedScope(narrowing, result.reason),
     };
   }
 
