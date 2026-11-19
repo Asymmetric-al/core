@@ -290,7 +290,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | donor      | `/api/posts/[postId]/fire`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | donor      | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| donor      | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| donor      | `/api/profile`                                                 | Node.js (no `runtime` segment export) | Service role; selected-assignment missionary RPCs  |
 | donor      | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client |
 | donor      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
 | missionary | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                            |
@@ -313,7 +313,7 @@ answer; see [the release job runbook](../../ops/release-job.md).
 | missionary | `/api/posts/[postId]/fire`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
-| missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client            |
+| missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | Service role; selected-assignment missionary RPCs  |
 | missionary | `/api/upload/editor-image`                                     | Node.js (no `runtime` segment export) | Shared editor-image upload, request-scoped client  |
 | missionary | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Shared profile-photo upload, request-scoped client |
 | missionary | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                           |
