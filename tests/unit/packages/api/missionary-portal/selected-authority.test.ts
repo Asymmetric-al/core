@@ -126,6 +126,30 @@ beforeEach(() => {
   );
 });
 describe("missionary handler delegation", () => {
+  it.each([
+    ["POST", { title: "General task" }, "create", 201],
+    ["POST", { title: "General task", donor_id: null }, "create", 201],
+    ["PATCH", { donor_id: null }, "update", 200],
+  ] as const)(
+    "%s delegates %j to the database history check",
+    async (method, body, operation, status) => {
+      fake.rpc.mockReturnValue(query({ id, donor_id: null }));
+      const response =
+        method === "POST"
+          ? await tasks.POST(request(method, body))
+          : await task.PATCH(request(method, body), args);
+      expect(response.status).toBe(status);
+      expect(fake.rpc).toHaveBeenCalledWith("missionary_task_write", {
+        p_profile_id: id,
+        p_tenant_id: tenant,
+        p_assignment_id: assignment,
+        p_operation: operation,
+        p_id: method === "POST" ? null : id,
+        p_patch: expect.objectContaining(body),
+      });
+    },
+  );
+
   it.each(routes)(
     "%s sends the resolved tenant, profile and exact assignment",
     async (_name, fn, invoke) => {

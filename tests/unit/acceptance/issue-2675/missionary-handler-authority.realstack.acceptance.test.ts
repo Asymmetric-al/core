@@ -15,6 +15,7 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
   it("exposes the statement guards to the service role only, without definer rights", async () => {
     const guards = [
       "authz.selected_missionary",
+      "authz.missionary_task_single_tenant",
       "public.missionary_owned_tasks",
       "public.missionary_task_write",
       "public.missionary_follower_requests",
@@ -38,6 +39,127 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
     expect(result.rows).toHaveLength(guards.length);
     for (const row of result.rows) expect(row.restricted, row.name).toBe(true);
   });
+
+  it.each(["none", "live", "revoked"] as const)(
+    "places general tasks with a live selected missionary row and %s elsewhere",
+    async (elsewhere) => {
+      const user = randomUUID();
+      const tenant = randomUUID();
+      const otherTenant = randomUUID();
+      const assignment = randomUUID();
+      const donor = randomUUID();
+      const original = randomUUID();
+      const scope = [user, tenant, assignment];
+      const list = async (id: string | null = null) =>
+        (
+          await db.query(
+            "select id, title, donor_id from public.missionary_owned_tasks($1,$2,$3) where $4::uuid is null or id=$4",
+            [...scope, id],
+          )
+        ).rows;
+      const write = async (op: string, id: string | null, patch = {}) =>
+        (
+          await db.query(
+            "select id, title, donor_id from public.missionary_task_write($1,$2,$3,$4,$5,$6)",
+            [...scope, op, id, patch],
+          )
+        ).rows;
+
+      await db.query("begin");
+      try {
+        for (const org of [tenant, otherTenant]) {
+          await db.query(
+            "insert into public.tenants (id,name,slug) values ($1::uuid,'WP2H',$1::uuid::text)",
+            [org],
+          );
+        }
+        await db.query(
+          "insert into auth.users (id,raw_app_meta_data) values ($1,$2)",
+          [user, { tenant_id: tenant }],
+        );
+        await db.query(
+          "insert into authz.memberships (id,tenant_id,user_id,role) values ($1,$2,$3,'missionary')",
+          [assignment, tenant, user],
+        );
+        await db.query(
+          "insert into public.donors (id,tenant_id,missionary_id) values ($1,$2,$3)",
+          [donor, tenant, user],
+        );
+        await db.query(
+          "insert into public.missionary_tasks (id,missionary_id,title) values ($1,$2,'Original')",
+          [original, user],
+        );
+        if (elsewhere !== "none") {
+          await db.query(
+            "insert into authz.memberships (tenant_id,user_id,role) values ($1,$2,'donor')",
+            [otherTenant, user],
+          );
+          if (elsewhere === "revoked") {
+            await db.query(
+              "update authz.memberships set is_active=false where tenant_id=$1 and user_id=$2",
+              [otherTenant, user],
+            );
+          }
+        }
+        await db.query(
+          "grant insert,update,delete on public.missionary_tasks to service_role",
+        );
+        await db.query("set local role service_role");
+        const originalRow = { id: original, title: "Original", donor_id: null };
+        if (elsewhere === "none") {
+          const [created] = await write("create", null, { title: "General" });
+          expect(created).toEqual({
+            id: expect.any(String),
+            title: "General",
+            donor_id: null,
+          });
+          expect(await list()).toEqual(
+            expect.arrayContaining([created, originalRow]),
+          );
+          expect(await list(created.id)).toEqual([created]);
+          expect(
+            await write("update", created.id, { title: "Edited" }),
+          ).toEqual([{ ...created, title: "Edited" }]);
+          expect(await write("delete", created.id)).toEqual([
+            { ...created, title: "Edited" },
+          ]);
+          expect(await list(created.id)).toEqual([]);
+          expect(await write("update", original, { donor_id: donor })).toEqual([
+            { ...originalRow, donor_id: donor },
+          ]);
+          expect(await write("update", original, { donor_id: null })).toEqual([
+            originalRow,
+          ]);
+          await db.query("reset role");
+          await db.query(
+            "update authz.memberships set is_active=false where id=$1",
+            [assignment],
+          );
+          await db.query("set local role service_role");
+        }
+        expect(await list()).toEqual([]);
+        expect(await list(original)).toEqual([]);
+        expect(await write("create", null, { title: "Denied" })).toEqual([]);
+        expect(await write("update", original, { title: "Denied" })).toEqual(
+          [],
+        );
+        expect(await write("update", original, { donor_id: donor })).toEqual(
+          [],
+        );
+        expect(await write("delete", original)).toEqual([]);
+        expect(
+          (
+            await db.query(
+              "select id, title, donor_id from public.missionary_tasks where missionary_id=$1",
+              [user],
+            )
+          ).rows,
+        ).toEqual([originalRow]);
+      } finally {
+        await db.query("rollback");
+      }
+    },
+  );
 
   it("applies the selected live missionary row to reads, both sides of reassignment, and every mutation", async () => {
     const profile = randomUUID();
