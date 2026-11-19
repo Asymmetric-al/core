@@ -11,6 +11,14 @@ const hosted =
   "postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=verify-full";
 
 describe("the release job's psql connection", () => {
+  it("honours the query password over the login part", () => {
+    expect(
+      connectionEnvironment(
+        "postgres://unit:login-fixture@localhost/unit?password=query-fixture",
+        {},
+      ).PGPASSWORD,
+    ).toBe("query-fixture");
+  });
   // Review L1: the builder never decodes the host, so an escaped comma or
   // slash can never become a host list or a socket directory.
   it("never decodes the host: an escaped comma is refused, not turned into a list", () => {

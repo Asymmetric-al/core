@@ -104,8 +104,8 @@ export function psqlConnection(databaseUrl, baseEnv = process.env) {
   const query = libpqQueryEntries(databaseUrl);
   const settings = query.filter(([key]) => key !== "password");
   const queryPassword = query.find(([key]) => key === "password");
-  if (queryPassword) env.PGPASSWORD = queryPassword[1];
   if (url.password) env.PGPASSWORD = decodeURIComponent(url.password);
+  if (queryPassword) env.PGPASSWORD = queryPassword[1];
   if (!isLoopbackDatabaseUrl(url)) {
     assertHostedDatabaseTls(url);
     Object.assign(env, HOSTED_LIBPQ_ENV);

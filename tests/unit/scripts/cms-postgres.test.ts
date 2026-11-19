@@ -42,6 +42,16 @@ afterEach(() => {
 });
 
 describe("CMS PostgreSQL command connection", () => {
+  it("honours the query password over the login part without passing either in argv", () => {
+    answer({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1", {
+      databaseUrl:
+        "postgres://unit:login-fixture@localhost/unit?password=query-fixture",
+    });
+    const [, args, options] = spawnSync.mock.calls.at(-1)!;
+    expect(options.env.PGPASSWORD).toBe("query-fixture");
+    expect(args.join(" ")).not.toMatch(/login-fixture|query-fixture/);
+  });
   it.each(["", "?sslmode=require", "?sslmode=disable"])(
     "requires verified hosted TLS for query %j before starting psql",
     (query) => {

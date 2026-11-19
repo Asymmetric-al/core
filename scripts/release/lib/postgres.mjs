@@ -58,7 +58,6 @@ export function connectionEnvironment(databaseUrl, base = process.env) {
     if (value) env[key] = value;
   }
   for (const [key, value] of libpqQueryEntries(databaseUrl)) {
-    if (key === "password" && env.PGPASSWORD) continue;
     env[DATABASE_URL_QUERY_ENV[key]] = value;
   }
   // Review L1: a hosted server may never ask for the password in clear text.

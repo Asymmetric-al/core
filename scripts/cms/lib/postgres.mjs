@@ -84,7 +84,6 @@ function getPsqlConnection(databaseUrl) {
     if (value) env[key] = value;
   }
   for (const [key, value] of libpqQueryEntries(databaseUrl)) {
-    if (key === "password" && fields.PGPASSWORD) continue;
     // Node pg's encrypted, non-verifying mode is named `require` in libpq.
     env[DATABASE_URL_QUERY_ENV[key]] =
       key === "sslmode" && value === "no-verify" ? "require" : value;

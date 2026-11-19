@@ -247,10 +247,11 @@ describe("psqlConnection", () => {
 
   it("moves a password from the query into PGPASSWORD too", () => {
     const { connection, env } = psqlConnection(
-      "postgresql://postgres@127.0.0.1:5432/d?password=s3cret&sslmode=disable",
+      "postgresql://postgres:login-fixture@127.0.0.1:5432/d?password=s3cret&sslmode=disable",
       {},
     );
     expect(connection).not.toContain("s3cret");
+    expect(connection).not.toContain("login-fixture");
     expect(connection).toContain("sslmode='disable'");
     expect(env.PGPASSWORD).toBe("s3cret");
   });
