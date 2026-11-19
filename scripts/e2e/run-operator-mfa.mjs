@@ -83,11 +83,11 @@ export function operatorMfaEnvFromStatus(output) {
   };
 }
 
-function main(args) {
-  const status = spawnSync(
+export function runOperatorMfa(args, spawn = spawnSync) {
+  const status = spawn(
     process.execPath,
     ["scripts/supabase-cli.mjs", ...statusArguments()],
-    { cwd: repoRoot, encoding: "utf8", shell: false },
+    { cwd: repoRoot, encoding: "utf8", shell: false, timeout: 60_000 },
   );
   if (status.error || status.status !== 0) {
     console.error(
@@ -104,7 +104,7 @@ function main(args) {
     return 1;
   }
 
-  const run = spawnSync(
+  const run = spawn(
     process.execPath,
     ["node_modules/vitest/vitest.mjs", "run", SUITE, ...args],
     {
@@ -112,6 +112,7 @@ function main(args) {
       env: { ...process.env, ...suiteEnv },
       stdio: "inherit",
       shell: false,
+      timeout: 480_000,
     },
   );
   return run.status ?? 1;
@@ -121,4 +122,4 @@ const invokedDirectly =
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-if (invokedDirectly) process.exit(main(process.argv.slice(2)));
+if (invokedDirectly) process.exit(runOperatorMfa(process.argv.slice(2)));

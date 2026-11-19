@@ -3,11 +3,12 @@
 // not on this machine, and makes the suite fail rather than skip.
 import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   SUITE,
   operatorMfaEnvFromStatus,
+  runOperatorMfa,
   statusArguments,
 } from "../../../scripts/e2e/run-operator-mfa.mjs";
 
@@ -20,6 +21,18 @@ const STATUS = [
 ].join("\n");
 
 describe("run-operator-mfa", () => {
+  it("bounds both child processes within the ten-minute job step", () => {
+    const spawn = vi
+      .fn()
+      .mockReturnValueOnce({ status: 0, stdout: STATUS })
+      .mockReturnValueOnce({ status: 0 });
+    expect(runOperatorMfa([], spawn)).toBe(0);
+    const timeouts = spawn.mock.calls.map(([, , options]) => options.timeout);
+    expect(timeouts).toHaveLength(2);
+    for (const timeout of timeouts) expect(timeout).toBeGreaterThan(0);
+    expect(timeouts[0] + timeouts[1]).toBeLessThan(600_000);
+  });
+
   it("hands the suite the stack's values and requires them", () => {
     expect(operatorMfaEnvFromStatus(STATUS)).toEqual({
       OPERATOR_MFA_API_URL: "http://127.0.0.1:26321",
