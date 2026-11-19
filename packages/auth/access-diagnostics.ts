@@ -4,12 +4,12 @@ import {
 } from "@asym/env/target-env";
 
 const DIAGNOSTICS = {
-  profile_query_failed: { stage: "profile_read", outcome: "query_failed" },
-  no_visible_profile: { stage: "profile_read", outcome: "no_visible_profile" },
+  no_role_class: { stage: "surface", outcome: "no_role_class" },
   membership_query_failed: {
     stage: "membership_read",
     outcome: "query_failed",
   },
+  no_assignment: { stage: "membership_read", outcome: "no_assignment" },
   resolver_exception: { stage: "resolver", outcome: "exception" },
   role_denied: { stage: "role_gate", outcome: "role_denied" },
 } as const;

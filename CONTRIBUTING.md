@@ -45,9 +45,10 @@ without repairing it. Setup does not start an issue trial.
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
   for raw findings, shared-consumer checks, exceptions, and legacy debt.
-- **UI audit:** `bun run verify:shadscan` uses the locked scanner across all three
-  apps. CI and pre-commit require honest app floors and current reviewed evidence;
-  see the [Shadscan guide](docs/guides/development/shadscan.md).
+- **UI audit:** `bun run shadscan:audit` runs the locked scanner across the
+  workspace and writes an advisory report. Its scores never block a commit,
+  push or required check; CI publishes them on each pull request for review.
+  See the [Shadscan guide](docs/guides/development/shadscan.md).
 - **React diagnostics:** `bun run react-doctor:check` enforces the pinned,
   all-applicable-rule local profile across eight targets. Preserve the raw
   inventory and exact source/test-bound exceptions; advisory helper exits do not
@@ -91,6 +92,6 @@ By contributing, you agree that we will release your contributions under the sam
 
 ## Development-phase build policy
 
-Routine `develop` PRs retain formatting, integrity, lint, type checking, unit tests, migration and smoke feedback. Dependency/build-configuration changes compile affected apps; ordinary source/docs changes may merge without a full release build. Merges into `develop` do not automatically deploy. Request `qa:smoke` for a ready preview; GitHub builds and uploads prebuilt output. Use `bun run ci:preflight -- --full` for full QA. Production releases and production-targeting pushes always require full preflight. See [CI reference](docs/ci.md).
+Routine `develop` PRs retain formatting, integrity, lint, type checking, unit tests, migration and smoke feedback. Dependency/build-configuration changes compile affected apps; ordinary source/docs changes may merge without a full release build. Merges into `develop` do not automatically deploy. Request `qa:smoke` for a ready preview; GitHub builds and uploads prebuilt output. Use `bun run ci:preflight -- --full` for full QA. Production releases and production-targeting pushes always require full preflight. A push to `production` starts the Release workflow, which migrates the database and stages, checks and promotes the apps; Vercel's Git integration deploys nothing. A migration must be safe for the application release already running (expand first, contract in a later release). See [CI reference](docs/ci.md) and [the release job runbook](docs/ops/release-job.md).
 
 Imported PDF updates follow the [source and artifact refresh workflow](docs/maintenance/modernization/pdf-packages.md). `bun run verify:pdf-package-provenance` checks the frozen archives and extracted files offline and runs in normal preflight.

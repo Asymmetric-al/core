@@ -26,7 +26,6 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "verify-eslint", script: "verify:eslint" },
   { id: "verify-shadcn-config", script: "verify:shadcn-config" },
   { id: "verify-shadcn-diff", script: "verify:shadcn-diff" },
-  { id: "verify-shadscan", script: "verify:shadscan" },
   { id: "typecheck", script: "typecheck" },
   { id: "build", script: "build" },
   { id: "test-unit", script: "test:unit" },
@@ -141,26 +140,12 @@ describe("ci-preflight contract", () => {
     expect(scripts["verify:phase28-spec"]).not.toContain("--write");
   });
 
-  it("audits the primary workspace before any auxiliary checkout can duplicate its projects", () => {
+  // The advisory Shadscan scan runs in its own reporting job, which makes no
+  // auxiliary checkout (tests/unit/scripts/shadscan-workflow.test.ts).
+  it("keeps the advisory Shadscan audit out of the blocking integrity job", () => {
     const steps = integritySteps();
-    const audit = steps.findIndex((step) =>
-      step.includes("run: bun run verify:shadscan -- --output"),
-    );
-    const retainedEvidence = steps.findIndex((step) =>
-      step.includes("name: shadscan-audit"),
-    );
-    const auxiliaryCheckouts = steps.flatMap((step, index) =>
-      /(?:^|\n)\s*uses: actions\/checkout@/.test(step) &&
-      /(?:^|\n)\s*path:\s*\S/.test(step)
-        ? [index]
-        : [],
-    );
-    expect(audit).toBeGreaterThanOrEqual(0);
-    expect(retainedEvidence).toBe(audit + 1);
-    expect(auxiliaryCheckouts.length).toBeGreaterThan(0);
-    expect(auxiliaryCheckouts.every((index) => index > retainedEvidence)).toBe(
-      true,
-    );
+    expect(steps.length).toBeGreaterThan(0);
+    expect(steps.filter((step) => /shadscan/i.test(step))).toEqual([]);
   });
 
   it("does not run deployment-discipline inside preflight", () => {

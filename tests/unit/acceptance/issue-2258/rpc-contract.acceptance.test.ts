@@ -3,24 +3,26 @@
  * pins addendum 1 (6419311427, approved 6419380148). Covers the S halves of
  * criteria 1-17 at acceptance level (c7 S is the spec's named content of this
  * file); Builder's own unit/compile-fail/poison suites live under
- * tests/unit/packages/api/principal/**. Opt-in criterion 11 (diff scope, the one
- * workflow run: line, base version): ACCEPTANCE_2258_SCOPE=1 (base: git
- * merge-base origin/develop HEAD) or ACCEPTANCE_2258_BASE=<ref>.
+ * tests/unit/packages/api/principal/**. The opt-in criterion 11 checks (diff
+ * scope, the one workflow run: line, base version) were retired by #2706.
  * The principal modules are loaded with import() so each test fails on its own
  * while they are missing. R criteria are in current-user-assignments.realstack.
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2675 (WP2a, plan 5.1): the resolver takes the surface's role
+ * class and no longer prefers a staff row (criterion 17 restated), rows carry
+ * the tenant-administrator flag, the resolver moved to packages/auth/principal
+ * and is wired behind getAuthContext, the proxies and the Payload strategy
+ * (criterion 15 restated), and the guide's section says so (criterion 13).
  */
 import { spawnSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { existsSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
 import * as H from "./harness";
-import {
-  loadWorkflowDocument,
-  workflowJobs,
-} from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const ver = (f: string) => f.slice(0, 14);
 const forward = (fs: string[]) => fs.filter((f) => /^\d{14}_.+\.sql$/.test(f));
@@ -35,7 +37,6 @@ const load = async <T>(m: keyof typeof H.MOD): Promise<T> => {
 const resolver = async () =>
   (await load<{ resolveActiveAssignment: H.Resolve }>("assignment"))
     .resolveActiveAssignment;
-const CII = ".github/workflows/ci-integration.yml";
 const STEP = "Verify tenant isolation (real stack)";
 
 /* ---------- DI fakes ---------- */
@@ -53,6 +54,7 @@ const row = (
   tenant_id: tenant,
   role,
   staff_role: staff,
+  is_tenant_admin: false,
   updated_at: "2026-10-26T15:00:00.000000+00:00",
 });
 function fake(...pages: H.Row[][]) {
@@ -86,7 +88,10 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
   it("3: an owned proposal gives ok, selection 'proposed' (r2)", async () => {
     const res = await (
       await resolver()
-    )({ userId: U1, proposedAssignmentId: STAFF.id }, fake([STAFF, DONOR_TB]));
+    )(
+      { userId: U1, roleClass: "staff", proposedAssignmentId: STAFF.id },
+      fake([STAFF, DONOR_TB]),
+    );
     expect(res).toEqual(ok(STAFF, "proposed"));
   });
   it("3: a random UUID, another user's id, or an inactive id (absent from the reader output) gives not_owned_or_inactive", async () => {
@@ -96,7 +101,7 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
     for (const p of [randomUUID(), other, inactive])
       expect(
         await r(
-          { userId: U1, proposedAssignmentId: p },
+          { userId: U1, roleClass: "staff", proposedAssignmentId: p },
           fake([STAFF, DONOR_TB]),
         ),
       ).toEqual({ ok: false, reason: "not_owned_or_inactive" });
@@ -106,7 +111,10 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
     expect(
       await (
         await resolver()
-      )({ userId: U1, proposedAssignmentId: "1 or 1=1" }, f),
+      )(
+        { userId: U1, roleClass: "staff", proposedAssignmentId: "1 or 1=1" },
+        f,
+      ),
     ).toEqual({ ok: false, reason: "not_owned_or_inactive" });
     expect(f.calls).toBe(0);
   });
@@ -115,25 +123,40 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
       await (
         await resolver()
       )(
-        { userId: U1, proposedAssignmentId: STAFF.id, expectedTenantId: TB },
+        {
+          userId: U1,
+          roleClass: "staff",
+          proposedAssignmentId: STAFF.id,
+          expectedTenantId: TB,
+        },
         fake([STAFF, DONOR_TB]),
       ),
     ).toEqual({ ok: false, reason: "tenant_mismatch" });
   });
   it("3/4: 0 rows gives no_assignment with no tenantId key (super_admin profile, NULL tenant, no memberships)", async () => {
-    const res = await (await resolver())({ userId: U1 }, fake([]));
+    const res = await (
+      await resolver()
+    )({ userId: U1, roleClass: "staff" }, fake([]));
     expect(res).toEqual({ ok: false, reason: "no_assignment" });
     expect(JSON.stringify(res)).not.toMatch(/tenantId/);
   });
   it("3: a reader rejection gives reader_error", async () => {
-    expect(await (await resolver())({ userId: U1 }, failing())).toEqual({
+    expect(
+      await (
+        await resolver()
+      )({ userId: U1, roleClass: "staff" }, failing()),
+    ).toEqual({
       ok: false,
       reason: "reader_error",
     });
   });
   it("3: a non-UUID userId gives reader_error with 0 reader calls", async () => {
     const f = fake([STAFF]);
-    expect(await (await resolver())({ userId: "u1" }, f)).toEqual({
+    expect(
+      await (
+        await resolver()
+      )({ userId: "u1", roleClass: "staff" }, f),
+    ).toEqual({
       ok: false,
       reason: "reader_error",
     });
@@ -163,6 +186,8 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
           Object.entries(r).filter(([k]) => k !== "updated_at"),
         ),
     ],
+    ["a non-boolean flag", (r) => ({ ...r, is_tenant_admin: "yes" })],
+    ["the flag on a donor row", (r) => ({ ...r, is_tenant_admin: true })],
   ];
   it.each(MALFORMED)(
     "3: a malformed row (%s) beside a valid one gives reader_error, with and without a proposal",
@@ -170,17 +195,27 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
       const r = await resolver();
       const rows = [STAFF, bad(row(TA, "donor")) as H.Row];
       expect(
-        await r({ userId: U1, proposedAssignmentId: STAFF.id }, fake(rows)),
+        await r(
+          { userId: U1, roleClass: "staff", proposedAssignmentId: STAFF.id },
+          fake(rows),
+        ),
       ).toEqual({ ok: false, reason: "reader_error" });
       expect(
-        await r({ userId: U1, expectedTenantId: TA }, fake(rows.reverse())),
+        await r(
+          { userId: U1, roleClass: "staff", expectedTenantId: TA },
+          fake(rows.reverse()),
+        ),
       ).toEqual({ ok: false, reason: "reader_error" });
     },
   );
   it("5: per request: a flipping fake gives ok, then not_owned_or_inactive, with 2 reader calls", async () => {
     const r = await resolver();
     const f = fake([STAFF], []);
-    const input = { userId: U1, proposedAssignmentId: STAFF.id };
+    const input = {
+      userId: U1,
+      roleClass: "staff" as const,
+      proposedAssignmentId: STAFF.id,
+    };
     expect((await r(input, f)).ok).toBe(true);
     expect(await r(input, f)).toEqual({
       ok: false,
@@ -191,7 +226,10 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
   it("9 (Gate 2): U1 proposing the TA row gets tenantId TA and exactly one assignment, never a tenant array", async () => {
     const res = await (
       await resolver()
-    )({ userId: U1, proposedAssignmentId: STAFF.id }, fake([DONOR_TB, STAFF]));
+    )(
+      { userId: U1, roleClass: "staff", proposedAssignmentId: STAFF.id },
+      fake([DONOR_TB, STAFF]),
+    );
     expect(res.ok && res.assignment.tenantId).toBe(TA);
     expect(Object.values(res).some(Array.isArray)).toBe(false);
     expect(res.ok && Object.values(res.assignment).some(Array.isArray)).toBe(
@@ -199,7 +237,9 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
     );
   });
 
-  // criterion 17 (S): default selection. "label | reader rows | input | expected ([row] selection, or reason)".
+  // criterion 17 (S), as restated by AL-2675: the surface's role class
+  // filters the candidates and nothing ranks one class over another.
+  // "label | reader rows | input | expected ([row] selection, or reason)".
   const R: Record<string, H.Row> = {
     D: row(TA, "donor"),
     M: row(TA, "missionary"),
@@ -207,21 +247,22 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
     S2: row(TA, "staff", "member_care"),
     DB: row(TB, "donor"),
   };
-  const CASES = `3/17: no proposal, one row → sole | D | - | D sole
-3/17: expectedTenantId TA, rows in TA and TB → the TA row, sole | S1 DB | TA | S1 sole
-3/17: rows in TA and TB, no expectedTenantId → ambiguous | D DB | - | ambiguous
-17a: staff + donor, one tenant → the staff row, default_staff | S1 D | - | S1 default_staff
-17b: staff + missionary → the staff row, default_staff | M S1 | - | S1 default_staff
-17c: staff + donor + missionary → the staff row, default_staff | D S1 M | - | S1 default_staff
-17d: case (a) in reverse reader order → the same row | D S1 | - | S1 default_staff
-17e: two staff roles in one tenant → ambiguous | S1 S2 | - | ambiguous
-17f: donor + missionary in one tenant → ambiguous | D M | - | ambiguous
-17g: staff in TA + donor in TB, no expectedTenantId → ambiguous (5a) | S1 DB | - | ambiguous
-17h: case (g) with expectedTenantId TB → the donor row, sole | S1 DB | TB | DB sole
-17i: case (a) proposing the donor id → the donor row, proposed | S1 D | propose:D | D proposed`
+  const CASES = `3/17: one row of the class → sole | staff | S1 | - | S1 sole
+3/17: expectedTenantId TA, rows in TA and TB → the TA row, sole | donor | D DB | TA | D sole
+3/17: donor rows in TA and TB, no expectedTenantId → ambiguous | donor | D DB | - | ambiguous
+17a: staff + donor, staff surface → the staff row, sole | staff | S1 D | - | S1 sole
+17a': staff + donor, donor portal → the donor row, never the staff row | donor | S1 D | - | D sole
+17b: staff + missionary, missionary workspace → the missionary row | missionary | M S1 | - | M sole
+17c: staff + donor + missionary, staff surface → the staff row | staff | D S1 M | - | S1 sole
+17e: two staff roles in one tenant → ambiguous | staff | S1 S2 | - | ambiguous
+17f: donor + missionary, staff surface → no_assignment | staff | D M | - | no_assignment
+17g: staff in TA + donor in TB, staff surface → the staff row | staff | S1 DB | - | S1 sole
+17h: staff in TA + donor in TB, donor portal narrowed to TB → the donor row | donor | S1 DB | TB | DB sole
+17i: staff + donor, proposing the donor id on the staff surface → role_class_mismatch | staff | S1 D | propose:D | role_class_mismatch
+17j: staff + donor, proposing the donor id on the donor portal → proposed | donor | S1 D | propose:D | D proposed`
     .split("\n")
-    .map((l) => l.split(" | ") as [string, string, string, string]);
-  it.each(CASES)("%s", async (_n, rows, input, want) => {
+    .map((l) => l.split(" | ") as [string, string, string, string, string]);
+  it.each(CASES)("%s", async (_n, roleClass, rows, input, want) => {
     const extra =
       input === "-"
         ? {}
@@ -231,7 +272,14 @@ describe("#2258 resolver (criteria 3, 4, 5, 9, 17 S; DI fakes, no vi.mock)", () 
     const [k, sel] = want.split(" ");
     const res = await (
       await resolver()
-    )({ userId: U1, ...extra }, fake(rows.split(" ").map((x) => R[x]!)));
+    )(
+      {
+        userId: U1,
+        roleClass: roleClass as "donor" | "missionary" | "staff",
+        ...extra,
+      },
+      fake(rows.split(" ").map((x) => R[x]!)),
+    );
     expect(res).toEqual(sel ? ok(R[k!]!, sel) : { ok: false, reason: k });
   });
 });
@@ -339,22 +387,18 @@ describe("#2258 migration and rollback text (criteria 6, 7 S, 12, 16)", () => {
   });
 });
 
-/** Gate 4 (c10): names-never-authorize scan. Returns findings for one file's text. */
+/**
+ * Gate 4 (c10): names-never-authorize scan. Returns findings for one file's
+ * text. Since AL-2675 no role name selects either, so a default-selection
+ * marker is a finding wherever it appears.
+ */
 function gate4(file: string, text: string): string[] {
   const out: string[] = [];
   const lines = text.split("\n");
   lines.forEach((l, i) => {
     if (/\/\/ authz-exempt: display-only\s*$/.test(l)) return;
     if (/\/\/ authz-exempt: default-selection\s*$/.test(l)) {
-      if (!file.endsWith("/assignment.ts"))
-        out.push(`${file}:${i + 1} default-selection outside assignment.ts`);
-      if (
-        /staffRole|staff_role/.test(l) ||
-        !/membershipRole\s*===\s*"staff"/.test(l)
-      )
-        out.push(
-          `${file}:${i + 1} default-selection must compare only membershipRole to "staff"`,
-        );
+      out.push(`${file}:${i + 1} default-selection: no role name selects`);
       return;
     }
     if (
@@ -364,11 +408,6 @@ function gate4(file: string, text: string): string[] {
     )
       out.push(`${file}:${i + 1} ${l.trim()}`);
   });
-  if (
-    lines.filter((l) => /\/\/ authz-exempt: default-selection\s*$/.test(l))
-      .length > 1
-  )
-    out.push(`${file}: more than one default-selection marker`);
   return out;
 }
 
@@ -377,12 +416,11 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
     const files = H.principalSources();
     expect(
       files.map((f) => f.split("/").pop()).sort(),
-      "In 1-4: principal/{types,projection,reader,assignment,index}.ts",
+      "In 1-4 (AL-2675): the resolver's principal/{types,reader,assignment,index}.ts",
     ).toEqual(
       expect.arrayContaining([
         "assignment.ts",
         "index.ts",
-        "projection.ts",
         "reader.ts",
         "types.ts",
       ]),
@@ -390,7 +428,10 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
     return files.map((f) => [f, H.read(f)] as const);
   };
   it("1: types.ts declares the four principal kinds", () => {
-    const t = H.read(`${H.PRINCIPAL_DIR}/types.ts`);
+    const t = [
+      H.read(`${H.PRINCIPAL_DIR}/types.ts`),
+      H.read(`${H.API_PRINCIPAL_DIR}/types.ts`),
+    ].join("\n");
     for (const k of [
       "human",
       "external",
@@ -436,20 +477,8 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
         )
         .map(([f]) => f),
     ).toEqual([]));
-  it("10: the Gate 4 scan passes principal/**, with exactly one default-selection line, in pickDefaultAssignment", () => {
-    const files = src();
-    expect(files.flatMap(([f, s]) => gate4(f, s))).toEqual([]);
-    const a = H.read(`${H.PRINCIPAL_DIR}/assignment.ts`);
-    const markers = a
-      .split("\n")
-      .filter((l) => /\/\/ authz-exempt: default-selection\s*$/.test(l));
-    expect(markers).toHaveLength(1);
-    const fn =
-      /function\s+pickDefaultAssignment\s*\(([^)]*)\)[^{]*\{([\s\S]*?)\n\}/.exec(
-        a,
-      );
-    expect(fn, "pickDefaultAssignment in assignment.ts").not.toBeNull();
-    expect(fn![2]).toContain(markers[0]!.trim());
+  it("10: the Gate 4 scan passes principal/**, with no default-selection line", () => {
+    expect(src().flatMap(([f, s]) => gate4(f, s))).toEqual([]);
   });
   it.each([
     [
@@ -465,68 +494,70 @@ describe("#2258 principal/** scans (criteria 1, 4, 5, 8, 10, 15, 17 S)", () => {
       gate4(`${H.PRINCIPAL_DIR}/assignment.ts`, `${poison}\n`),
     ).not.toEqual([]),
   );
-  it("10: a second default-selection marker, or one in another file, is reported", () => {
+  it("10: a default-selection marker is reported in any file", () => {
     const l =
       'return m.membershipRole === "staff"; // authz-exempt: default-selection';
-    expect(
-      gate4(`${H.PRINCIPAL_DIR}/assignment.ts`, `${l}\n${l}\n`),
-    ).not.toEqual([]);
+    expect(gate4(`${H.PRINCIPAL_DIR}/assignment.ts`, `${l}\n`)).not.toEqual([]);
     expect(gate4(`${H.PRINCIPAL_DIR}/reader.ts`, `${l}\n`)).not.toEqual([]);
-    expect(gate4(`${H.PRINCIPAL_DIR}/assignment.ts`, `${l}\n`)).toEqual([]);
   });
-  it("17: pickDefaultAssignment is pure: no expectedTenantId, reader, await or I/O in it", () => {
-    const a = H.read(`${H.PRINCIPAL_DIR}/assignment.ts`);
-    const fn =
-      /function\s+pickDefaultAssignment\s*\(([^)]*)\)[^{]*\{([\s\S]*?)\n\}/.exec(
-        a,
+  it("17 (AL-2675): pickDefaultAssignment is gone; the role class selects", () => {
+    expect(
+      src()
+        .filter(([, s]) => /pickDefaultAssignment|default_staff/.test(s))
+        .map(([f]) => f),
+    ).toEqual([]);
+    expect(H.read(`${H.PRINCIPAL_DIR}/assignment.ts`)).toMatch(
+      /a\.membershipRole === roleClass/,
+    );
+  });
+  it("15 (AL-2675): the resolver is wired behind getAuthContext, the proxies' role check and the Payload strategy, and only its reader calls current_user_assignments", () => {
+    const grep = (pattern: string) => {
+      const r = spawnSync(
+        "git",
+        [
+          "grep",
+          "-l",
+          "--untracked",
+          "-E",
+          pattern,
+          "--",
+          "*.ts",
+          "*.tsx",
+          "*.mts",
+          "*.js",
+          "*.mjs",
+          ":!tests/**",
+          ":!**/*.test.*",
+          `:!${H.PRINCIPAL_DIR}/**`,
+          `:!${H.API_PRINCIPAL_DIR}/**`,
+        ],
+        { encoding: "utf8" },
       );
-    expect(fn, "pickDefaultAssignment").not.toBeNull();
-    expect(fn![0]).not.toMatch(
-      /expectedTenantId|reader|listActiveAssignments|\bawait\b|\basync\b|\brpc\(/,
-    );
-  });
-  it("15 (C1): outside principal/** and tests/**, nothing imports the principal module or calls current_user_assignments", () => {
-    const r = spawnSync(
-      "git",
-      [
-        "grep",
-        "-n",
-        "--untracked",
-        "-E",
-        String.raw`@asym/api/principal|from ['"][^'"]*/principal(/[^'"]*)?['"]|current_user_assignments`,
-        "--",
-        "*.ts",
-        "*.tsx",
-        "*.mts",
-        "*.js",
-        "*.mjs",
-        "*.sql",
-        ":!tests/**",
-        `:!${H.PRINCIPAL_DIR}/**`,
-        `:!${H.MIGRATION}`,
-        `:!${H.ROLLBACK}`,
-      ],
-      { encoding: "utf8" },
-    );
-    expect([0, 1], `git grep: ${r.stderr}`).toContain(r.status);
-    expect(r.stdout.trim()).toBe("");
+      expect([0, 1], `git grep: ${r.stderr}`).toContain(r.status);
+      return r.stdout.trim().split("\n").filter(Boolean).sort();
+    };
+    // Comments may name the RPC; only the reader calls it.
+    expect(
+      grep(String.raw`rpc\([[:space:]]*["']current_user_assignments`),
+    ).toEqual([]);
+    expect(
+      grep(
+        String.raw`@asym/(auth|api)/principal|from ['"][^'"]*/principal(/[^'"]*)?['"]`,
+      ),
+    ).toEqual([
+      "apps/admin/src/cms/auth/supabase-strategy.ts",
+      // The WP2a sweep (AL-2675): the sign-in callback lands a person on the
+      // home of a live membership class, read through the same reader.
+      "packages/api/src/auth/callback.ts",
+      "packages/auth/context.ts",
+      "packages/auth/middleware.ts",
+      "packages/auth/request-headers.ts",
+      "packages/auth/resolve-user-role.ts",
+    ]);
   });
 });
 
 describe("#2258 pins (criteria 12, 13)", () => {
-  it.each(Object.entries(H.UNEDITED))(
-    "12/2: %s is unedited (git blob at develop 88eefbd9)",
-    (f, blob) => {
-      expect(existsSync(f), f).toBe(true);
-      expect(H.blobId(f)).toBe(blob);
-    },
-  );
-  it("12 (addendum 1 item 3): tests/unit/acceptance/issue-2270/ holds exactly its three develop files", () =>
-    expect(readdirSync("tests/unit/acceptance/issue-2270").sort()).toEqual([
-      "authz-execute-grants.realstack.acceptance.test.ts",
-      "harness.ts",
-      "static.acceptance.test.ts",
-    ]));
   it('In 8/addendum 1 item 4: packages/api/package.json exports "./principal" right after "./projection"', () => {
     const keys = Object.keys(
       (
@@ -545,50 +576,28 @@ describe("#2258 pins (criteria 12, 13)", () => {
     ).toBe("./src/principal/index.ts");
   });
   it(`addendum 1 item 4: '${STEP}' runs ${H.REALSTACK}`, () => {
-    const step = (
-      workflowJobs(loadWorkflowDocument(CII)).migrate?.steps ?? []
-    ).find((s) => s.name === STEP);
-    expect(step, STEP).toBeDefined();
-    expect(String(step!.run).split(/\s+/)).toContain(H.REALSTACK);
+    // The path must be a vitest argument, not just a word on the line.
+    expectRealstackStep(STEP, [H.REALSTACK]);
   });
   it("13: the In 7 section sits before '## Key files' and names the required phrases; one Key-files line", () => {
     const doc = H.read(H.DOC);
     const start = doc.search(
-      /^##+ Principal and active assignment \(preparation, unwired\)/m,
+      /^##+ Principal and active assignment \(wired by AL-2675\)/m,
     );
     const keyFiles = doc.indexOf("\n## Key files");
     expect(start, "section heading").toBeGreaterThan(-1);
     expect(start).toBeLessThan(keyFiles);
     const section = doc.slice(start, keyFiles);
     for (const p of [
-      "preparation, unwired",
+      "getAuthContext",
       "#2259",
-      "#668 item 4",
+      "roleClass",
       "SECURITY INVOKER",
-      "withTenant",
-      "default_staff",
+      "x-asym-role-class",
+      "is_tenant_admin",
     ])
       expect(section).toContain(p);
     expect(doc.slice(keyFiles)).toMatch(/principal/);
-  });
-  it("13: docs/ci.md matches the reviewed hosted-only R1 pointer amendment", () => {
-    const b = readFileSync("docs/ci.md");
-    /** One entry per reviewed whole file. */
-    const REVIEWED = [
-      [
-        40204,
-        "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-      ],
-      // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-      [
-        40426,
-        "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-      ],
-    ];
-    expect(REVIEWED).toContainEqual([
-      b.length,
-      createHash("sha256").update(b).digest("hex"),
-    ]);
   });
   it.todo(
     "14: PR body has `Closes #2258` and `Refs #669`, base develop (review check; not visible in the tree)",
@@ -597,91 +606,3 @@ describe("#2258 pins (criteria 12, 13)", () => {
     "12: `bun run typecheck`, `test:unit` and `test:acceptance` pass (CI result, not assertable from inside a test)",
   );
 });
-
-const BASE = process.env.ACCEPTANCE_2258_BASE?.trim() ?? "";
-const ON = process.env.ACCEPTANCE_2258_SCOPE?.trim() === "1" || BASE !== "";
-const git = (...args: string[]) => {
-  const r = spawnSync("git", args, { encoding: "utf8" });
-  expect(r.status, `git ${args.join(" ")}: ${r.stderr}`).toBe(0);
-  return r.stdout.trim();
-};
-/** §6 paths plus addendum 1 item 4's CI edits and fingerprint appends. */
-const DECLARED = [
-  H.MIGRATION,
-  H.ROLLBACK,
-  "packages/api/package.json",
-  H.DOC,
-  CII,
-].concat(
-  `helpers/workflow-yaml.ts acceptance/issue-2250/static.acceptance.test.ts
-  acceptance/issue-2155/postgres-ecr-gates.acceptance.test.ts acceptance/issue-2201/merge-group.acceptance.test.ts`
-    .split(/\s+/)
-    .map((p) => `tests/unit/${p}`),
-);
-const PREFIXES = [
-  `${H.PRINCIPAL_DIR}/`,
-  "tests/unit/packages/api/principal/",
-  "tests/unit/acceptance/issue-2258/",
-];
-
-describe.skipIf(!ON)(
-  "#2258 opt-in (PR base; ACCEPTANCE_2258_SCOPE=1 or ACCEPTANCE_2258_BASE)",
-  () => {
-    const base = () => BASE || git("merge-base", "origin/develop", "HEAD");
-    const changed = () =>
-      [
-        ...git("diff", "--name-only", "--no-renames", base()).split("\n"),
-        ...git("ls-files", "--others", "--exclude-standard").split("\n"),
-      ].filter(Boolean);
-    it("11: the PR diff touches only §6 paths and addendum 1 item 4's files", () => {
-      const outside = changed().filter(
-        (f) => !DECLARED.includes(f) && !PREFIXES.some((p) => f.startsWith(p)),
-      );
-      expect(outside, `diff against ${base()}`).toEqual([]);
-    });
-    it("11/16: no line the PR adds to a non-test file (workflow excluded) contains set_config, CREATE POLICY, tenant_guard, person_id or missionaries", () => {
-      const untracked = git("ls-files", "--others", "--exclude-standard");
-      const added = (f: string) =>
-        untracked.split("\n").includes(f)
-          ? readFileSync(f, "utf8")
-          : git("diff", "-U0", "--no-color", "--no-renames", base(), "--", f)
-              .split("\n")
-              .filter((l) => /^\+(?!\+\+ (b\/|\/dev\/null))/.test(l))
-              .join("\n");
-      const bad =
-        /^.*(?:set_config|CREATE\s+POLICY|tenant_guard|person_id|missionaries).*$/gim;
-      const hits = changed()
-        .filter((f) => !f.startsWith("tests/") && f !== CII && existsSync(f))
-        .flatMap((f) =>
-          (added(f).match(bad) ?? []).map((l) => `${f}: ${l.trim()}`),
-        );
-      expect(hits).toEqual([]);
-    });
-    it(`11 (addendum 1 item 4): in ${CII} only the '${STEP}' run: line changes, by appending ${H.REALSTACK}`, () => {
-      const diff = git("diff", "-U0", "--no-color", base(), "--", CII)
-        .split("\n")
-        .filter((l) => /^[-+](?![-+]{2} )/.test(l));
-      if (diff.length === 0) return;
-      const minus = diff.filter((l) => l.startsWith("-"));
-      const plus = diff.filter((l) => l.startsWith("+"));
-      expect([minus.length, plus.length]).toEqual([1, 1]);
-      const words = (l: string) => l.slice(1).trim().split(/\s+/);
-      expect(words(minus[0]!).slice(0, 4)).toEqual([
-        "run:",
-        "bun",
-        "x",
-        "vitest",
-      ]);
-      expect(words(plus[0]!)).toEqual([...words(minus[0]!), H.REALSTACK]);
-    });
-    it("12 (OQ9): the version is greater than every migration on the PR base", () => {
-      const onBase = forward(
-        git("ls-tree", "--name-only", `${base()}:${H.MIG}`).split("\n"),
-      );
-      expect(
-        onBase.filter((f) => ver(f) >= ver(H.MIGRATION_NAME)),
-        `base ${base()}`,
-      ).toEqual([]);
-    });
-  },
-);

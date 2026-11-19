@@ -29,17 +29,24 @@ not call the function) by name, then grant the exact list.
 
 After the migration, on any database whatever its default privileges:
 
-| Function                                               | Security | EXECUTE grantees (exact)                            |
-| ------------------------------------------------------ | -------- | --------------------------------------------------- |
-| `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                 |
-| `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role` |
-| `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role` |
-| `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role` |
+| Function                                               | Security | EXECUTE grantees (exact)                                            |
+| ------------------------------------------------------ | -------- | ------------------------------------------------------------------- |
+| `public.current_user_memberships(uuid)`                | DEFINER  | `postgres` (owner), `authenticated`                                 |
+| `authz.is_super_admin()`                               | DEFINER  | `postgres` (owner), `authenticated`, `service_role`                 |
+| `authz.has_membership(uuid, authz.membership_role[])`  | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
+| `authz.has_staff_membership(uuid, authz.staff_role[])` | DEFINER  | `postgres` (owner), `authenticated`, `service_role`, `tenant_guard` |
 
 - No row has a `PUBLIC` or an `anon` entry.
-- `service_role` has no EXECUTE on `current_user_memberships`. Both callers
-  (`packages/auth/resolve-user-role.ts`, `packages/auth/context.ts`) use the
-  request's session client, and for `service_role` `auth.uid()` is NULL.
+- `tenant_guard` gained EXECUTE on the two membership helpers in AL-2674
+  (`20261117034638_command_lane_human_entry_points.sql`), for the human-command
+  preamble. Its other grants are listed in `docs/security/tenant-guard.md`,
+  "Command lane".
+- `service_role` has no EXECUTE on `current_user_memberships`; for
+  `service_role` `auth.uid()` is NULL. Since AL-2675 the application resolves
+  through `public.current_user_assignments()` instead (the principal resolver
+  in `packages/auth/principal`), and both functions return the
+  tenant-administrator flag. AL-2675 drops and recreates both (their result
+  types changed) with the same grants.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,
@@ -157,15 +164,17 @@ wrappers have no profile or actor arguments: they take the acting user from
   helper `private.crm_table_preference_actor(uuid, text)` are EXECUTE for
   `postgres` only. `PUBLIC`, `anon`, `authenticated` and `service_role` are
   revoked by name, because `ALTER FUNCTION … SET SCHEMA` keeps the old ACL.
-- Tenant rule. A super admin (`profiles.role = 'super_admin'`) may act in any
-  existing tenant it passes. Anyone else must pass its profile's `tenant_id`
-  and hold a CRM role there: `profiles.role` staff, admin or super_admin, or an
-  active `staff` membership in `authz.memberships`. No `auth.uid()`, no
-  profile, a different tenant or no CRM role fails with `42501` before the
-  body runs, so nothing is written.
-- Tenant defaults. Super admins may save them and change
-  `delegatedManagerProfileIds`. A profile listed there may save but not change
-  the list. Anyone else gets `42501`. The audit row's `actor_profile_id` and
+- Tenant rule (since AL-2675, NR-55). The caller must have a profile and a
+  selected live `staff` membership in the tenant it passes: the row the
+  `x-asym-assignment` header names, or its one live staff row there
+  (`authz.caller_assignment`). No `auth.uid()`, no profile, no such row, or
+  several staff rows there and no header fails with `42501` before the body
+  runs, so nothing is written. `profiles.role`, `profiles.tenant_id` and
+  `super_admin` are not read.
+- Tenant defaults. A caller whose selected row holds
+  `crm.gift_history.manage_view_defaults` (the tenant administrator) may save
+  them and change `delegatedManagerProfileIds`. A profile listed there may save
+  but not change the list. Anyone else gets `42501`. The audit row's `actor_profile_id` and
   the record's `updated_by` are the caller's profile.
 - `authenticated` can now call these through the Data API without the route's
   zod checks, so the wrappers also reject a table id other than
@@ -209,18 +218,24 @@ need the service-role caller.
 
 ## Same pattern, not fixed here
 
-Under hosted default privileges, 20 of the `public` functions gain EXECUTE for
-`anon` and/or `service_role` because their migrations revoke only `PUBLIC` (or
-`PUBLIC`, `anon` and `authenticated`). They are outside #2270. (#2402 fixed
-the five SECURITY DEFINER CRM table-preference writes; see above.)
+Under hosted default privileges, 20 of the `public` functions gained EXECUTE
+for `anon` and/or `service_role` because their migrations revoked only `PUBLIC`
+(or `PUBLIC`, `anon` and `authenticated`). They were outside #2270. (#2402
+fixed the five SECURITY DEFINER CRM table-preference writes; see above.)
 
-`anon` widened, beyond `current_user_memberships`:
+`anon` widened, beyond `current_user_memberships`, and fixed since by AL-2674:
 
 - SECURITY INVOKER: `apply_crm_view_settings_patch`
   (`20260611160000_crm_table_preferences.sql`), `normalize_currency_code`,
   `normalize_money_currency` (`20261003051630_currency_foundation.sql`).
+  `20261117034926_close_default_privileges_and_demo_grants.sql` revokes
+  `PUBLIC`, `anon` and `authenticated` on all three by name, and asserts that
+  neither `anon` nor `authenticated` can execute them. The same migration
+  removes `postgres`'s default privileges in `public` for `anon` and
+  `authenticated`, so new functions there get no grant to either by default.
 
-`service_role` widened only (low risk, since `service_role` bypasses RLS), from
+`service_role` widened only (low risk, since `service_role` bypasses RLS), and
+still open, from
 `20260718013531_eve_admin_memory_tracer.sql`,
 `20260718015747_eve_approval_budget_policy.sql`,
 `20260718093000_eve_email_discord_notifications.sql` and
@@ -237,3 +252,25 @@ the five SECURITY DEFINER CRM table-preference writes; see above.)
 Also noted and left unchanged: `authz.is_super_admin()` uses
 `SET search_path = public` rather than `''`, and `20260226113000` grants
 `CREATE ON SCHEMA authz TO service_role`.
+
+## Membership functions added by AL-2675 (WP2a)
+
+| Function                                                                                     | Security | EXECUTE grantees (exact)            |
+| -------------------------------------------------------------------------------------------- | -------- | ----------------------------------- |
+| `public.tenant_member_directory(uuid)`                                                       | DEFINER  | `postgres` (owner), `authenticated` |
+| `authz.assignment_capabilities(uuid)`                                                        | INVOKER  | `postgres` (owner), `tenant_guard`  |
+| `tenant_guard.begin_human_command(uuid, text)`                                               | INVOKER  | `postgres` (owner), `tenant_guard`  |
+| `authz.caller_assignment(uuid, authz.membership_role)`                                       | INVOKER  | `postgres` (owner)                  |
+| `private.profile_in_tenant(uuid, uuid)`                                                      | INVOKER  | `postgres` (owner)                  |
+| `authz.memberships_lifecycle()` (trigger)                                                    | INVOKER  | `postgres` (owner)                  |
+| `public.tenant_member_profiles(uuid, uuid[], uuid[], boolean, text, boolean, uuid, integer)` | INVOKER  | `postgres` (owner), `service_role`  |
+
+Each revokes `PUBLIC`, `anon`, `authenticated` and `service_role` by name
+before granting. `tenant_member_profiles`, added by the WP2a sweep, is the
+service-key reader of a tenant's memberships joined to profiles: the server
+code that needs a tenant's members, approvers or notification recipients
+reads them there, never by filtering `profiles` on `tenant_id` or `role`
+(NR-68). It returns named columns and serves the server's own notification,
+approval and history work. Mission Control's users list reads the member
+directory instead, on the caller's own token (council round 1 on WP2a, F8). `begin_human_command` replaces the one-argument function of
+AL-2674; its second argument, the capability, defaults to NULL.

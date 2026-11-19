@@ -159,7 +159,8 @@ export function pinnedIfProblems(job: WorkflowJob): string[] {
   // isolation (real stack)" (16), "Verify authz EXECUTE grants (real stack)"
   // (17), "Verify tenant table RLS posture (real stack)" (18), "Verify claim
   // tables (real stack)" (19), "Verify donor spine composite FKs (real
-  // stack)" (20) and "Verify RLS catalog gate (real stack)" (21) — is pinned
+  // stack)" (20), "Verify RLS catalog gate (real stack)" (21) and the three
+  // AL-2674 steps (22 to 24) — is pinned
   // to no `if:`, so none can run after the fork reject at step 0 has failed
   // the job.
   allSteps(job).forEach((step, index) =>
@@ -359,6 +360,22 @@ export const MODELLED_KEYS_BY_JOB: Record<
         "run",
       ],
       "name:Verify RLS catalog gate (real stack)": ["name", "env", "run"],
+      // AL-2674 (WP1): the real-stack suites of every package of the AL-2671
+      // program (one glob over issues 2670-2689), the release job's database
+      // steps and schema fingerprint with Payload's database roles, and the
+      // Payload qualification run (plan 6.7).
+      "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)": [
+        "name",
+        "env",
+        "run",
+      ],
+      "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)":
+        ["name", "env", "run"],
+      "name:Qualify the pinned Payload release (cms:qualify)": [
+        "name",
+        "env",
+        "run",
+      ],
     },
   },
   smoke: {
@@ -428,6 +445,13 @@ export const MODELLED_KEYS_BY_JOB: Record<
  * composite FKs (real stack)" (#2252, one explicit test path) and the last
  * step, "Verify RLS catalog gate (real stack)" (#2253, one explicit test
  * path), each pin TENANT_GUARD_IT_ADMIN_DATABASE_URL to exactly
+ * `${{ env.DATABASE_URL }}`. AL-2674 pins "Verify seed counts" (13) to
+ * `node scripts/verify/seed-counts.mjs`, which reads the expected counts from
+ * supabase/seed-expectations.json, and adds three after #2253's: the AL-2671
+ * program's real-stack suites (22, one glob, pinned as text, so it holds
+ * however many suites the glob finds), the release job's suites with
+ * Payload's database roles (23, two keys) and the Payload qualification run
+ * (24, PAYLOAD_QUALIFICATION_ADMIN_URL); each key is pinned to exactly
  * `${{ env.DATABASE_URL }}`.
  */
 export const PINNED_STEP_BODIES: Record<
@@ -438,6 +462,14 @@ export const PINNED_STEP_BODIES: Record<
   >
 > = {
   migrate: {
+    // AL-2674: the seed-count check reads its expectation from
+    // supabase/seed-expectations.json, so this text holds when the seed
+    // changes; only that file does.
+    "name:Verify seed counts": {
+      index: 13,
+      run: "node scripts/verify/seed-counts.mjs",
+      env: {},
+    },
     "name:Verify document-cutover reader role (real stack)": {
       index: 14,
       run: "bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts",
@@ -479,6 +511,25 @@ export const PINNED_STEP_BODIES: Record<
       index: 21,
       run: "bun x vitest run tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts",
       env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+    },
+    "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)": {
+      index: 22,
+      run: "bun x vitest run tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts",
+      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
+    },
+    "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)":
+      {
+        index: 23,
+        run: "bun x vitest run tests/unit/scripts/release/release-database.realstack.test.ts tests/unit/scripts/release/schema-fingerprint.realstack.test.ts tests/unit/cms/cms-database-roles.realstack.test.ts",
+        env: {
+          RELEASE_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
+          TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
+        },
+      },
+    "name:Qualify the pinned Payload release (cms:qualify)": {
+      index: 24,
+      run: "bun run cms:qualify -- --database=payload_qualification",
+      env: { PAYLOAD_QUALIFICATION_ADMIN_URL: "${{ env.DATABASE_URL }}" },
     },
   },
 };
@@ -764,6 +815,14 @@ export const MODELLED_ENV_KEYS_BY_JOB: Record<
       ],
       "name:Verify RLS catalog gate (real stack)": [
         "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+      ],
+      "name:Verify AL-2671 program suites, issues 2670-2689 (real stack)": [
+        "TENANT_GUARD_IT_ADMIN_DATABASE_URL",
+      ],
+      "name:Verify release job database steps, schema fingerprint and CMS roles (real stack)":
+        ["RELEASE_IT_ADMIN_DATABASE_URL", "TENANT_GUARD_IT_ADMIN_DATABASE_URL"],
+      "name:Qualify the pinned Payload release (cms:qualify)": [
+        "PAYLOAD_QUALIFICATION_ADMIN_URL",
       ],
     },
   },

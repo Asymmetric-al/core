@@ -47,10 +47,9 @@ Only `ui-sdk` was imported. The repository's maintainer skills under
 `ui-sdk-write-code`, `ui-sdk-write-docs`) are for developing UI SDK itself and
 are deliberately excluded.
 
-The skill fills a narrow catalog gap. Core's Base UI skills cover ordinary
-controls; `ui-sdk` covers interactions Base UI does not ship (rating, token
-input, shortcuts, reordering, custom primitives) and the installed-version
-docs bundled with the packages.
+Core's Base UI skills cover Base UI components. `ui-sdk` covers UI SDK code,
+which Core approves alongside Base UI for shared components, and the
+installed-version docs bundled with the packages.
 
 ## Upstream files
 
@@ -71,15 +70,16 @@ otherwise rewrite the upstream code samples.
 
 ## Core adaptations
 
-- `SKILL.md` keeps the upstream body. Core changed the description so the skill
-  routes only to gaps in Core's Base UI components, added a short Core note under
-  the title, and appended the marked Core overlay. The overlay pins the
-  installed-docs path under `packages/ui/node_modules/@ui-sdk/`, keeps Base UI
-  the default, places wrappers in `packages/ui/components/primitives/`, forbids
-  the optional `web.css`, app-level SDK imports and `test.fails`, names Core's
-  shared UI SDK owners (the shortcut owner, the sortable list, the single agent
-  bridge and the pattern checks), names Core's test and verification commands,
-  and points at the reference Rating implementation. Its first paragraph is the
+- `SKILL.md` keeps the upstream body. Core rewrote the description so the skill
+  loads for UI SDK evaluation and SDK code rather than whenever the package is
+  installed, added a short Core note under the title, and appended the marked
+  Core overlay. The overlay pins the installed-docs path under
+  `packages/ui/node_modules/@ui-sdk/`, keeps shared reuse the starting point,
+  places wrappers in `packages/ui/components/primitives/`, forbids the optional
+  `web.css`, app-level SDK imports and `test.fails`, names Core's shared UI SDK
+  owners (the shortcut owner, the sortable list, the single agent bridge and
+  the pattern checks), names Core's test and verification commands, and points
+  at the reference Rating implementation. Its first paragraph is the
   Apache-2.0 §4(b) change notice.
 - `bun run skills:sync` appends the secret scanner's allowlist HTML comment to
   Markdown lines that name credential fields, and

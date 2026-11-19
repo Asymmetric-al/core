@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -17,7 +17,7 @@ export async function PATCH(
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const { commentId } = await params;
 
@@ -84,7 +84,7 @@ export async function DELETE(
     }
 
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.dashboard.access");
     const ctx = auth as AuthenticatedContext;
     const { commentId } = await params;
 

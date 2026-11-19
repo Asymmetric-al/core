@@ -1,6 +1,6 @@
 import {
   getAuthContext,
-  requireRole,
+  requireCapability,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
-    requireRole(auth, ["staff", "admin", "super_admin"]);
+    requireCapability(auth, "admin.gifts.manage");
     const ctx = auth as AuthenticatedContext;
 
     const params = parseAdminContributionsParams(

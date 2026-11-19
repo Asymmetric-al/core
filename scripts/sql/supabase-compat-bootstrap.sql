@@ -105,12 +105,19 @@ CREATE TABLE IF NOT EXISTS auth.identities (
   UNIQUE (provider_id, provider)
 );
 
+-- As Supabase Auth defines it (supabase/auth migration
+-- 20220224000811_update_auth_functions): the single-claim setting first, then
+-- `sub` of the JSON claims setting, which is the one PostgREST sets.
+-- tenant_guard.caller_id() reads the caller the same way (AL-2674).
 CREATE OR REPLACE FUNCTION auth.uid()
 RETURNS UUID
 LANGUAGE sql
 STABLE
 AS $$
-  SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid;
+  SELECT COALESCE(
+    NULLIF(current_setting('request.jwt.claim.sub', true), ''),
+    (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
+  )::uuid;
 $$;
 
 CREATE OR REPLACE FUNCTION auth.role()

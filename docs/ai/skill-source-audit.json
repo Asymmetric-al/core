@@ -3,15 +3,15 @@
   "reviewedAt": "2026-10-22",
   "baselineCommit": "c4d36cb029121641b8882237632d0d6da434049e",
   "counts": {
-    "canonical": 188,
-    "runtimePerClient": 244,
-    "lockEntries": 203,
+    "canonical": 182,
+    "runtimePerClient": 240,
+    "lockEntries": 200,
     "outcomes": {
       "current": 89,
       "excluded": 1,
-      "retained-snapshot": 12,
+      "retained-snapshot": 5,
       "unresolved": 8,
-      "updated": 134
+      "updated": 137
     }
   },
   "treeHashAlgorithm": "SHA-256 of sorted POSIX relative path, NUL, file bytes, NUL; symlinks rejected.",
@@ -1818,8 +1818,8 @@
       "sourcePath": "skills/components-build/SKILL.md",
       "rawSkillHash": "55c76ed69a72f69b9e0a19ac08422f64bf88624f4f5f4069903f418883efba97",
       "lockHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c",
-      "entrypointHash": "cd87c94efebbd163471f207ff395ea52568aac234572a134026ccfd24b227342",
-      "treeHash": "32ca3f3e438fb9997fb4d16a89ccf23e47c7f94bcf8e61ae19a2ea36c4a72f9c",
+      "entrypointHash": "f276ebedabd49f315bf0f4b554e360aad895082aaf729f4212a412284451ddb3",
+      "treeHash": "4e39a410053bbc76193977a8ab489e72ff5b1450b50cfaa145e88ce853c67231",
       "license": {
         "identifier": null,
         "status": "unresolved-applicable-license",
@@ -2286,51 +2286,6 @@
       ]
     },
     {
-      "name": "design-an-interface",
-      "status": "retained-snapshot",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/deprecated/design-an-interface/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": "f3f225914515407b8224e8ec6187db337c5e65bad0703936a0acb3f802947a7d",
-      "entrypointHash": "a2596e9fa2d50e23ba014f64a5b8f9df4eb56b846a52cad152899ef5eb97b085",
-      "treeHash": "edcaa2f63a29d74189803e799a4ed88a2c5a85bfe0611aa95d9fbd1892cddf3c",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Removed upstream; retain compatibility snapshot.",
-        "Installed source path is absent from current upstream tree; retain existing snapshot without a freshness claim."
-      ],
-      "evidence": "docs/ai/skills/design-an-interface/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "removed-upstream-path",
-          "url": "https://github.com/mattpocock/skills/tree/5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "path": "skills/deprecated/design-an-interface/SKILL.md",
-          "finding": "Source path absent; no successor adopted."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/design-an-interface/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-        }
-      ]
-    },
-    {
       "name": "design-system-patterns",
       "status": "updated",
       "ownership": "ecosystem",
@@ -2612,8 +2567,8 @@
       "sourcePath": "docs/ai/skills/domain-model/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "709f15eefe569e817eada2354acfd8b30f4251461e0e64e7f446ff798c5c03e3",
-      "treeHash": "8c0a888b0dc0b10405f0d29bdfaf430ca61716ff8ebf3967ff94928e0334c820",
+      "entrypointHash": "8a3191b8ad6e4e28a92aec92db85df30e0a455cad21d691ac9fcb4315941d582",
+      "treeHash": "d6ec72be6790a154e8fe1aded01cf67c2d7fbfef9f72265afa2713a7cc840b62",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -2627,7 +2582,7 @@
         {
           "kind": "Core-source-owned-contract",
           "path": "docs/ai/skills/domain-model/SKILL.md",
-          "entrypointSha256": "709f15eefe569e817eada2354acfd8b30f4251461e0e64e7f446ff798c5c03e3",
+          "entrypointSha256": "8a3191b8ad6e4e28a92aec92db85df30e0a455cad21d691ac9fcb4315941d582",
           "authority": [
             "AGENTS.md",
             "docs/ai/stack-registry.md",
@@ -2694,51 +2649,6 @@
             "references/upstream.md": "bd4e01f732fc47294282592b33aa129a5dbfe586075ef0d54aed80ab21333c04"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
-        }
-      ]
-    },
-    {
-      "name": "edit-article",
-      "status": "retained-snapshot",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/personal/edit-article/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": "9a96975e2eaf1ce5c69c14429aea7d2039e2f6f5a73938520b653de84841d9e3",
-      "entrypointHash": "e10fba546f45357fe0aaa7494b9e186910d4525818d19f9b2ad6f28cc506aa5e",
-      "treeHash": "bcb1bf9ddd38271f6c63561985af16b44b861443841d4ade0d839cced9d09cd8",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Removed upstream; retain compatibility snapshot.",
-        "Installed source path is absent from current upstream tree; retain existing snapshot without a freshness claim."
-      ],
-      "evidence": "docs/ai/skills/edit-article/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "removed-upstream-path",
-          "url": "https://github.com/mattpocock/skills/tree/5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "path": "skills/personal/edit-article/SKILL.md",
-          "finding": "Source path absent; no successor adopted."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/edit-article/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
         }
       ]
     },
@@ -5068,8 +4978,8 @@
       "sourcePath": "docs/ai/skills/moai-library-shadcn/SKILL.md",
       "rawSkillHash": null,
       "lockHash": null,
-      "entrypointHash": "ec9018616f85ac2bfdf113a26f9c346bf3fa610376551ef439dd0ff6bc38a756",
-      "treeHash": "06f82bb52430bc867eebed9b1696df136e1e29de23c3750738f9259f00b36824",
+      "entrypointHash": "b7175a50a0874b05994a7961b7e929f550bde89544271a72a73133719e598f39",
+      "treeHash": "24fec74432f9ef3b14402164cc8a9c01b738ee7f9fd73627cf2758375dfb0a23",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -5084,7 +4994,7 @@
         {
           "kind": "Core-source-owned-contract",
           "path": "docs/ai/skills/moai-library-shadcn/SKILL.md",
-          "entrypointSha256": "7188477b97ecf9685c96f66170c50bf7e5f531e0a4c06e3bdd4a5bbc5b1fc219",
+          "entrypointSha256": "b7175a50a0874b05994a7961b7e929f550bde89544271a72a73133719e598f39",
           "authority": [
             "AGENTS.md",
             "docs/ai/stack-registry.md",
@@ -5472,6 +5382,57 @@
       ]
     },
     {
+      "name": "next-bundle-optimizer",
+      "status": "updated",
+      "ownership": "ecosystem",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel/next.js",
+      "importedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "sourcePath": "skills/next-bundle-optimizer",
+      "rawSkillHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+      "lockHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+      "entrypointHash": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
+      "treeHash": "6e9e68967211c913f10ade996faaeab692bd78bd5e64cd2c52752c1e8408a1ce",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/UPSTREAM-license.md",
+            "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+          }
+        ]
+      },
+      "adaptations": [
+        "Marked Core overlay after the frontmatter: Turbopack apps only (not apps/factory-console, which builds with webpack), Bun commands for next analyze and bun why, analyzer output kept outside the repository, sandbox escapes only through the client's permission request, and fix-mode dependency and UI changes routed through Core skills and rulebooks. Upstream text unchanged."
+      ],
+      "evidence": ".agents/skills/next-bundle-optimizer/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "reviewed-source-import-record",
+          "source": "vercel/next.js",
+          "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+          "releaseTag": "v16.4.5",
+          "upstreamTree": "cbd1253f81a7a2c4ecbd56fb4d39cd1f27cf13b1",
+          "rawSkillHash": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+          "sourceFileHashes": {
+            "SKILL.md": "250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c",
+            "references/fix-patterns.md": "c805ff1f56678dcc906bd66990c553c9087f13215d1c426d387ca1d96ff4d0aa",
+            "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242"
+          },
+          "adaptedFileHashes": {
+            "SKILL.md": "baf65ec7211b04873d555da55e2a42aca5669fcf68e978e9e3152c073f2f8d79",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+            "references/fix-patterns.md": "c805ff1f56678dcc906bd66990c553c9087f13215d1c426d387ca1d96ff4d0aa",
+            "references/graph-methods.md": "e636d046190ebff651dbd74d6fa9999a9bc3c1882ec315ac8303ff8be1bdc242",
+            "references/upstream.md": "8cb6fb0b272be821f58edb7b9a2c6dbc30ad7e1026605fafff8e9adba372e6aa"
+          },
+          "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
+        }
+      ]
+    },
+    {
       "name": "next-cache-components-adoption",
       "status": "updated",
       "ownership": "ecosystem",
@@ -5606,6 +5567,106 @@
       ]
     },
     {
+      "name": "next-partial-prefetching-adoption",
+      "status": "updated",
+      "ownership": "ecosystem",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel/next.js",
+      "importedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "sourcePath": "skills/next-partial-prefetching-adoption",
+      "rawSkillHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+      "lockHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+      "entrypointHash": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
+      "treeHash": "78dec92c19c2184204a07420cb13b77c197619b985a5cf4278a6461520f3b700",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/UPSTREAM-license.md",
+            "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+          }
+        ]
+      },
+      "adaptations": [
+        "Marked Core overlay after the frontmatter: Partial Prefetching already adopted in every app, installed skills instead of canary links and npx skills add, no unpinned @next/codemod commands, --force or git stash, reuse of the root instant-nav.rig.md, and commit and pull-request authority under docs/ai/rules/general.md. Upstream text unchanged."
+      ],
+      "evidence": ".agents/skills/next-partial-prefetching-adoption/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "reviewed-source-import-record",
+          "source": "vercel/next.js",
+          "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+          "releaseTag": "v16.4.5",
+          "upstreamTree": "ae20d672e38bcd4ab6c5e9b348e98e6872a9231d",
+          "rawSkillHash": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+          "sourceFileHashes": {
+            "SKILL.md": "258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b",
+            "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
+          },
+          "adaptedFileHashes": {
+            "SKILL.md": "88b1bbf5a283a7eb3f36fbe8b79f0a668f01bc621ac23362b14d6f3b7d27a338",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+            "references/upstream.md": "6435ff6f84fc699a99018ea8ae648d7765bd982b78b1b77857b46e91d4f36ad1",
+            "rig-template.md": "d3f296e1e29d93086f89fbfd0997b688c494513ccfc731cb06f2c67aef2ec3e6"
+          },
+          "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
+        }
+      ]
+    },
+    {
+      "name": "next-partial-prefetching-optimizer",
+      "status": "updated",
+      "ownership": "ecosystem",
+      "authorship": "upstream with Core adaptations",
+      "source": "vercel/next.js",
+      "importedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "sourcePath": "skills/next-partial-prefetching-optimizer",
+      "rawSkillHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+      "lockHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+      "entrypointHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+      "treeHash": "2daef65e50d36e2e872a9aa0d9185db39c9afcf4e28fa9977ce796197681e054",
+      "license": {
+        "identifier": "MIT",
+        "status": "notice-preserved",
+        "noticeFiles": [
+          {
+            "path": "references/UPSTREAM-license.md",
+            "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+          }
+        ]
+      },
+      "adaptations": [
+        "None. Complete upstream subtree imported unchanged; provenance and the licence notice added under references/."
+      ],
+      "evidence": ".agents/skills/next-partial-prefetching-optimizer/references/upstream.md",
+      "reviewEvidence": [
+        {
+          "kind": "reviewed-source-import-record",
+          "source": "vercel/next.js",
+          "examinedRef": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+          "releaseTag": "v16.4.5",
+          "upstreamTree": "a3818456a2fa20adf76d7c08ab088a2e8efcb8dd",
+          "rawSkillHash": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+          "sourceFileHashes": {
+            "SKILL.md": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+            "reference/red-test-robustness.md": "dd70265f32a5ecf1b798d98fa047420ca71f1897ae1399fb2e4a4805f49a9f1d",
+            "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
+          },
+          "adaptedFileHashes": {
+            "SKILL.md": "876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345",
+            "reference/red-test-robustness.md": "dd70265f32a5ecf1b798d98fa047420ca71f1897ae1399fb2e4a4805f49a9f1d",
+            "references/UPSTREAM-license.md": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224",
+            "references/upstream.md": "bb89e001fbf01171324b23bcf7e7be2ad3a7d7e332d1465fe1a66d4ee90994a6",
+            "rig-template.md": "031c73bb10e9fe1966b2eaaa546f421de9b0633dc29979cf43c2d2313b2ea775"
+          },
+          "claim": "Imported with skills@1.5.7 from a reviewed local checkout of the release tag matching the installed Next.js; imported code was not executed."
+        }
+      ]
+    },
+    {
       "name": "nextjs-app-architecture",
       "status": "updated",
       "ownership": "canonical",
@@ -5616,8 +5677,8 @@
       "sourcePath": "SKILL.md",
       "rawSkillHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
       "lockHash": "0e13161f7f5b43d6dcd3d0f991f2d854abe01779d97fe7b53dfd5b4cca07354b",
-      "entrypointHash": "4a44f8226294d9992a9596e9785633216e85791d4e71a0ee58622c7a8fc8dbec",
-      "treeHash": "4f74ed27812631b0a7df895346f3f71d219a54eeb26fecba13279041d1f9613a",
+      "entrypointHash": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
+      "treeHash": "ce5ab71c87e3daa1e02361520198e42b7101954219186164bcedbaa0c59152d8",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5629,7 +5690,8 @@
         ]
       },
       "adaptations": [
-        "Three-way merge preserves all Core ownership and installed-version corrections; new references carry marked Core compatibility overlay"
+        "Three-way merge preserves all Core ownership and installed-version corrections; new references carry marked Core compatibility overlay",
+        "Use the prefetch() and navigation() names the installed Next.js 16.4 exports in place of the unstable_ names upstream still prints at the reviewed pin."
       ],
       "evidence": "docs/ai/skills/nextjs-app-architecture/references/upstream.md",
       "reviewEvidence": [
@@ -5642,18 +5704,18 @@
           "adaptedFileHashes": {
             "LICENSE": "d42cf83743ad90ec916292b1498b5572e1e892ad7924096fd1e6a336db8ed2be",
             "README.md": "5a5e868941b28e69f9293492c541469c5c893c7682885ec18031037115802dd8",
-            "SKILL.md": "4a44f8226294d9992a9596e9785633216e85791d4e71a0ee58622c7a8fc8dbec",
+            "SKILL.md": "b3b6924d79bf0b685c5d50525612885a17c8afb1f3f83a2a1792dfd144bc96bc",
             "metadata.json": "c6074064b7b7793e7a246a5ea5d5bed62adc0276af52769968c9d06c17be527e",
             "references/cache-components.md": "9609fb375c1414fff0f6337630a41824c08b408079690a82ab6506f97f33fe51",
             "references/components.md": "b647bd9a76cd2346511dc477a003d486da2d61c7f5756861e3c972ce7a8cebaf",
             "references/example.md": "6ffb1ab6783dc592ceb4be80434afdaeb2ce6c6c9e837413254e5fba38337798",
             "references/feature-folders.md": "26c9e10e081d4ac62f3dc4680b00e4024df6c1f3164b9053d5778cb2a316286a",
-            "references/instant-navigation.md": "d692ed2c4b9efe0b23d6612a1a40c3f68651dddb4463d48afa3247436798cd8d",
+            "references/instant-navigation.md": "d887381717d9ca8321d1aefa084caa68b54097c2e3ed116bd74799cf773988ca",
             "references/pages-suspense.md": "b3220dbfac22be2b242dc352e79b0a80723c86de1ab97a238466ac210e103ac8",
             "references/queries-actions.md": "980c7e7004b49fa8e2d2306da03b564344579e50b8c6b77e8cfd09ea758b9486",
             "references/single-page-applications.md": "4b2a20cd803edcbeeac6f966927458e01d4a21ec8e0fb48902ba207a1b4d042e",
-            "references/testing.md": "96a1ac54d780da2f61b658b8431afa7755b77b7785fb69af356588287c1a4a94",
-            "references/upstream.md": "18c54655a3ef045d2be9f5a20eeb113d6c090cae13b100242b635d19196b163e",
+            "references/testing.md": "40b457c0a6c2a9af20cc095cfef9d618f152b8253ee71e0da43b39702a772301",
+            "references/upstream.md": "bd46d4dc6baa83cac5707299d9e4d5eebebb782156520dc2fcb8725c1f2bd2a6",
             "references/ux-patterns.md": "83b8b4a1503c269c9452162348f6f17d81f0228451b1c76063beff13923e553f"
           },
           "claim": "Per-skill immutable source review and compatibility/import record; imported code was not executed by refresh."
@@ -5743,8 +5805,8 @@
       "sourcePath": "skills/no-comments/SKILL.md",
       "rawSkillHash": "41c9b4e2a85f295ff96329736faf5c3af53579aa38c606d5139568d11662d2f7",
       "lockHash": "13acb25431f0285d427900bb0b86380911d43314a989ede51cfabf7f51bee0cd",
-      "entrypointHash": "b5930b0a2a9d2242dd75c3d007fa96dd34adc9bb8e802d653eb3a4ca9cfd168a",
-      "treeHash": "7f007bfcf3315b2326327f63e679bd228577f2f6ecb82e8da5e970559d50056a",
+      "entrypointHash": "1feea259ea93acc5429002a5a6f3a9f4d159eb7fe4350b77b4945dce7c26b723",
+      "treeHash": "52cb62c5058b99fb61e5e264bc5042f5e9c0a41dee6ed641ce0fa2789575412a",
       "license": {
         "identifier": "MIT",
         "status": "notice-preserved",
@@ -5862,51 +5924,6 @@
           "kind": "permission-gap",
           "url": "https://github.com/anthonyshew/dotfiles/tree/2bbb01dc69493e0ed584e8641f0406fa21ab706d",
           "finding": "No applicable license/notice found in reviewed source tree; this does not establish prohibition. Existing payload retained; no new source payload imported."
-        }
-      ]
-    },
-    {
-      "name": "obsidian-vault",
-      "status": "retained-snapshot",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/personal/obsidian-vault/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": "a5dd44e7af2bfeb2cb2e3f421fdccef62dd334038ad06e18767b0ddcf0e75c13",
-      "entrypointHash": "7bed1d552aa5e9345e493cd62cb13e65c5d829d153c349afdb2cb91c809fa6c4",
-      "treeHash": "6e17a91ad4ee6beb567fd348840e462a743f8e19dadd7667ed0ef67db0a35b31",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Removed upstream; retain compatibility snapshot.",
-        "Installed source path is absent from current upstream tree; retain existing snapshot without a freshness claim."
-      ],
-      "evidence": "docs/ai/skills/obsidian-vault/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "removed-upstream-path",
-          "url": "https://github.com/mattpocock/skills/tree/5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "path": "skills/personal/obsidian-vault/SKILL.md",
-          "finding": "Source path absent; no successor adopted."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/obsidian-vault/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
         }
       ]
     },
@@ -6365,8 +6382,8 @@
       "sourcePath": "skills/payload/SKILL.md",
       "rawSkillHash": "050fc66234ef54906e34a1c0f5209ad7558f9adc59a7a0efd4db342f81427e20",
       "lockHash": "4a17a9529d4533545edb8191159c9134120774acdd042172877291a25929e7a1",
-      "entrypointHash": "905d5493386d591f4258fe04bad48b21950c5a78501acb0623d0850893ff2bab",
-      "treeHash": "923cdea86e600bc9a284fcee051687b20d6bb1e7cb21930e7054a0b1a5ae0fb5",
+      "entrypointHash": "bcf9c058bfc5bb32b2c74580c0d46f854f438461e02c34ed875df11115d52c02",
+      "treeHash": "cd20b2e2884b4b3cb727363638b426e7dd77bf355349bcf67f69a759f77ade82",
       "license": {
         "identifier": null,
         "status": "not-established-in-this-review",
@@ -8074,51 +8091,6 @@
       ]
     },
     {
-      "name": "qa",
-      "status": "retained-snapshot",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/deprecated/qa/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": "a608d889794ef7f21a5dd31d96ca502b5e6f27b466ada759a3bf9846a2e6b236",
-      "entrypointHash": "d9727aac6503981bf69bdd8b37e0d85b32b8fbd353a57528c252dac1337ab761",
-      "treeHash": "74722ab2538bb68efadfe384884b6c29719655e7b784d0b1d8ab63c5c977ebd7",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Removed upstream; retain compatibility snapshot.",
-        "Installed source path is absent from current upstream tree; retain existing snapshot without a freshness claim."
-      ],
-      "evidence": "docs/ai/skills/qa/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "removed-upstream-path",
-          "url": "https://github.com/mattpocock/skills/tree/5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "path": "skills/deprecated/qa/SKILL.md",
-          "finding": "Source path absent; no successor adopted."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/qa/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-        }
-      ]
-    },
-    {
       "name": "react-component-dev",
       "status": "current",
       "ownership": "canonical",
@@ -8552,51 +8524,6 @@
             "package.json"
           ],
           "claim": "Source ownership and installed-contract retention; no external freshness claim."
-        }
-      ]
-    },
-    {
-      "name": "request-refactor-plan",
-      "status": "retained-snapshot",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/deprecated/request-refactor-plan/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": "6811250488d1dafcb111e7ef0dc1124211369c5f6f47ce820b7527c255489178",
-      "entrypointHash": "d59de4ba6cc1fe2dd267e8b9b5a1fd88e3e739e2130bc9dd78061d2a072830b8",
-      "treeHash": "ec2263c71249780b13ad7d6b0448501ed4bf5442172cd7a8433e1ca0cc4ac316",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Removed upstream; retain compatibility snapshot.",
-        "Installed source path is absent from current upstream tree; retain existing snapshot without a freshness claim."
-      ],
-      "evidence": "docs/ai/skills/request-refactor-plan/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "removed-upstream-path",
-          "url": "https://github.com/mattpocock/skills/tree/5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "path": "skills/deprecated/request-refactor-plan/SKILL.md",
-          "finding": "Source path absent; no successor adopted."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/request-refactor-plan/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
         }
       ]
     },
@@ -10001,38 +9928,6 @@
       ]
     },
     {
-      "name": "tailwind-v4-shadcn",
-      "status": "retained-snapshot",
-      "ownership": "ecosystem",
-      "authorship": "upstream with Core adaptations",
-      "source": "jezweb/claude-skills",
-      "importedRef": "10a1f16679a5aab8e0c2f4d04e8560402f34d04b",
-      "examinedRef": null,
-      "sourcePath": "skills/tailwind-v4-shadcn/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": null,
-      "entrypointHash": "ff5d5d802dd4ed5e24d1d1ce89fb040137a9228016dcdf03ce13a5c5d4b9e562",
-      "treeHash": "428d57afc3eb8e9ddcd79ba8319c5fab02f9b5086a89bed3c6e54f5c96c16e25",
-      "license": {
-        "identifier": "MIT",
-        "status": "historical-attribution-only",
-        "noticeFiles": []
-      },
-      "adaptations": [
-        "Verified discontinued snapshot; no fork substituted.",
-        "Verified discontinued upstream snapshot retained; no unrelated fork substituted.",
-        "Align the local class-helper guidance with installed cn@0.4.0 and shared @asym/ui ownership; retain historical upstream classification."
-      ],
-      "evidence": ".agents/skills/tailwind-v4-shadcn/SKILL.md",
-      "reviewEvidence": [
-        {
-          "kind": "historical-origin-review",
-          "url": "https://github.com/jezweb/claude-skills/tree/10a1f16679a5aab8e0c2f4d04e8560402f34d04b/skills/tailwind-v4-shadcn",
-          "claim": "Historical source attribution only; current path discontinued."
-        }
-      ]
-    },
-    {
       "name": "tdd",
       "status": "updated",
       "ownership": "canonical",
@@ -10672,51 +10567,6 @@
       ]
     },
     {
-      "name": "ubiquitous-language",
-      "status": "retained-snapshot",
-      "ownership": "canonical",
-      "authorship": "upstream with Core adaptations",
-      "source": "mattpocock/skills",
-      "importedRef": null,
-      "examinedRef": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-      "sourcePath": "skills/deprecated/ubiquitous-language/SKILL.md",
-      "rawSkillHash": null,
-      "lockHash": "4828c4957014e7d9c1fd62d65e92264d6d46808089953e14d1bbba5a92dfff4d",
-      "entrypointHash": "2449e2345b96b9f1e861c697b5eab50d03ae1254481a4306b6f815684e523b3a",
-      "treeHash": "e202eaefed2ce3bdf0ae2a2f813fd72b4d76a7d703721ab82ec33de229bf230b",
-      "license": {
-        "identifier": "MIT",
-        "status": "notice-preserved",
-        "noticeFiles": [
-          {
-            "path": "references/UPSTREAM-LICENSE",
-            "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-          }
-        ]
-      },
-      "adaptations": [
-        "Removed upstream; retain compatibility snapshot.",
-        "Installed source path is absent from current upstream tree; retain existing snapshot without a freshness claim."
-      ],
-      "evidence": "docs/ai/skills/ubiquitous-language/references/upstream.md",
-      "reviewEvidence": [
-        {
-          "kind": "removed-upstream-path",
-          "url": "https://github.com/mattpocock/skills/tree/5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "path": "skills/deprecated/ubiquitous-language/SKILL.md",
-          "finding": "Source path absent; no successor adopted."
-        },
-        {
-          "kind": "exact-upstream-notice-import",
-          "source": "mattpocock/skills",
-          "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
-          "upstreamPath": "LICENSE",
-          "target": "docs/ai/skills/ubiquitous-language/references/UPSTREAM-LICENSE",
-          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
-        }
-      ]
-    },
-    {
       "name": "ui-sdk",
       "status": "updated",
       "ownership": "canonical",
@@ -10727,8 +10577,8 @@
       "sourcePath": "packages/core/skills/ui-sdk/SKILL.md",
       "rawSkillHash": "bbcb19f944023dd8f36f895378852c325b811ced38fdd7dae234825c3d9c858a",
       "lockHash": "76946872dfa4db3d144c1629ce2fe8a44b1cd4442ef70eeb82f3da4cb5f68f07",
-      "entrypointHash": "719823c666ea2dc0579b3f7ea8be26d7c02df2c83db77605150773ca0e81aae9",
-      "treeHash": "65b4d7b5a8b5e169aafcd237c5aef5b78115d860b5744245ec1e68d696894f4d",
+      "entrypointHash": "6ac1100f40fd20b879a9838ce16bed173c14a6ad1d8ea5b99d41e0189d88869b",
+      "treeHash": "2172b439f5491cf5649dc5796b67df55c3263d3ad21a626b4bc8fb631a4b1307",
       "license": {
         "identifier": "Apache-2.0",
         "status": "notice-preserved",
@@ -10740,7 +10590,7 @@
         ]
       },
       "adaptations": [
-        "Pinned the @ui-sdk/core 0.1.0-beta.2 skill with a Base UI-first description, a Core overlay for installed-docs paths, packages/ui wrappers, Maia styling, opt-in agent bridges and Core tests, and marked scanner comments with Apache-2.0 change notices."
+        "Pinned the @ui-sdk/core 0.1.0-beta.2 skill with a Core description that approves UI SDK alongside Base UI, a Core overlay for installed-docs paths, packages/ui wrappers, Maia styling, opt-in agent bridges and Core tests, and marked scanner comments with Apache-2.0 change notices."
       ],
       "evidence": "docs/ai/skills/ui-sdk/references/upstream.md",
       "reviewEvidence": [

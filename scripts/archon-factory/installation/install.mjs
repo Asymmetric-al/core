@@ -94,13 +94,13 @@ const CONTROL = `${ROOT}/control`;
 const OPT = "/opt/core-archon-factory";
 const ARCHON = `/opt/archon/${ARCHON_VERSION}/archon`;
 const PLUGIN = `${OPT}/plugins/standard-webhooks.mjs`;
-const NODE = "/opt/node-v24.22.1-linux-x64/bin/node";
+const NODE = "/opt/node-v24.22.3-linux-x64/bin/node";
 const BUN_DIR = "/opt/bun-1.4.3";
 const CLAUDE = "/home/admin/.local/share/claude/versions/2.1.317";
 const PORT = 39190;
 const HOST_ID = "core-dev";
 const USER_ID = "core-factory";
-const IMAGE_TAG = "core-archon-checks:node24.22.1-bun1.4.3-jq";
+const IMAGE_TAG = "core-archon-checks:node24.22.3-bun1.4.3-jq";
 
 const log = (message) => console.log(`[install] ${message}`);
 const fail = (message) => {

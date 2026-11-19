@@ -1,6 +1,6 @@
 # ADR-0171: Tenant-wide Public Media Catalog with Site-use qualification and immutable custody
 
-**Status:** Accepted (founder-ratified Phase 23 D27 C-prime-R, 2026-08-23)
+**Status:** Accepted (founder-ratified Phase 23 D27 C-prime-R, 2026-08-23; first-release scope amended 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -440,6 +440,12 @@ ACL engine, storage-provider concepts, or an enterprise creative-workflow suite.
 >     mutable writers are disabled in the same cutover. D10's Site Presentation
 >     activation is not reused or widened.
 
+_Amended 2026-11-17 for the first release (see the first-release scope
+amendment below): decoding is in process within pixel limits, with a
+re-read after encoding that asserts no metadata remains; sandboxed decoding
+and a malware disposition are deferred with the sanitizing worker. The
+decision above is the target, kept as ratified._
+
 ## Consequences
 
 - D27 is one bounded Tenant-wide DAM for reusable public still imagery, not a
@@ -579,6 +585,46 @@ Tenant × environment Media cutover; D10 is not widened. Partial migration,
 legacy mutable writers, missing bytes, stale references, unqualified providers,
 unresolved exceptions, incomplete accessibility, or unproven adverse/cache/
 expiry behavior blocks activation.
+
+## First-release scope amendment — 2026-11-17 (AL-2688)
+
+**Authority.** The owner's instruction of 17 November 2026 to implement the CRM,
+CMS and database plan ratifies the disposition its
+[section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+lists for ADR-0126 and ADR-0171 together. This amendment records intent, not
+implementation.
+
+**First-release media safety.** Decoding is in process, within limits on bytes,
+pixel count and type (proposed: 15 MB, 25 megapixels; JPEG, PNG or WebP). The
+finalize step applies orientation, re-encodes deterministically without metadata
+or source filename, hashes the sanitized bytes, writes each object once under an
+immutable content-addressed key prefixed by tenant, produces each bounded variant
+the same way, and re-reads every stored object to assert that no metadata
+remains. **Sandboxed decoding and a malware disposition are deferred** with the
+separate sanitizing worker and derivative pipeline, until uploads need more than
+this; if finalize cannot fit a function's time and memory limits at the admitted
+sizes, the worker comes forward. The plan's launch table records that deferral
+(plan section 12).
+
+**Custody.** Core owns the bytes, in a private bucket, and a custody record,
+`public.media_assets`, holding tenant, content hash and status. Payload's `media`
+collection keeps editorial metadata only, under the same ID. Processing state,
+containment and where an asset is used are three separate facts
+([ADR-0231](0231-core-media-custody-and-derived-live-use.md)).
+
+**Where-used evidence.** A media use is an append-only where-used fact naming the
+asset, the kind of use and the release, profile revision, update, care note or
+care-thread message that uses it. It is written once and never updated or ended.
+Whether a use is live is derived on each request by one SQL predicate shared by
+the media route, the delete check and the purge. **An approved operational
+revision is a live use:** a missionary's approved profile revision or approved
+update is live while it is the one its own read serves now, exactly as a release
+use is live while its release is the live head.
+
+**Unchanged.** Private originals, no public provider URLs, no source filename in
+any identity, key or delivery surface, bounded derivatives produced by Core,
+remove-from-this-page as a normal draft, remove-everywhere as containment, and a
+resolver that rechecks current release and safety on every request.
 
 ## References
 

@@ -1145,6 +1145,40 @@ describe("CheckoutPageClient live card confirmation", () => {
     ).toBeNull();
   });
 
+  // WP0 (#2672), audit finding NC-07: no receipt is sent when a card payment
+  // succeeds, so neither screen may claim or promise one.
+  it("says the payment was accepted and makes no receipt claim on the success screen", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    renderCheckout();
+    advanceToPayment();
+    confirmPayment();
+
+    expect(
+      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+    expect(document.body.textContent ?? "").not.toMatch(/receipt/i);
+    expect(screen.getByText(/your payment was accepted/i)).toBeTruthy();
+  });
+
+  it("makes no receipt promise while Stripe is still processing the payment", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "processing" },
+    });
+
+    renderCheckout();
+    advanceToPayment();
+    confirmPayment();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toMatch(/still processing/i);
+    expect(alert.textContent).not.toMatch(/receipt/i);
+  });
+
   it("coerces monthly input to one-time request behavior and one-time success copy", async () => {
     fetchMock().mockImplementation(initializedDonationResponse);
     stripeState.stripe.confirmCardPayment.mockResolvedValue({

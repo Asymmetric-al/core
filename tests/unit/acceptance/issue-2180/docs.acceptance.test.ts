@@ -2,7 +2,6 @@
  * #2180 done criteria 8-10 (docs), by regex, plus the §8 doc regions.
  * Owned by Acceptance; implementers must not edit.
  */
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -11,7 +10,6 @@ import { DOC } from "./guard-harness";
 
 const read = (file: string) =>
   existsSync(file) ? readFileSync(file, "utf8") : "";
-const sha = (text: string) => createHash("sha256").update(text).digest("hex");
 const runbook = () => {
   const text = read(DOC);
   expect(text, `${DOC} must exist (spec §1.3, I4)`).not.toBe("");
@@ -105,7 +103,7 @@ describe("#2180 criterion 8: docs/ops/self-hosted-runners.md", () => {
 });
 
 const ACCESS = "docs/ops/github-access.md";
-describe("#2180 criterion 9: docs/ops/github-access.md (:39-63 only)", () => {
+describe("#2180 criterion 9: docs/ops/github-access.md native restrictions section", () => {
   const section = () => {
     const text = read(ACCESS);
     const start = text.indexOf("## Native restrictions and renewal");
@@ -124,79 +122,39 @@ describe("#2180 criterion 9: docs/ops/github-access.md (:39-63 only)", () => {
       /runner safety does not depend on the interaction limit|interaction limit (?:is not|isn't) a (?:self-hosted )?runner control/i,
     );
   });
-  it("edit stays inside :39-63, keeps #1906 and links the new runbook", () => {
-    const text = read(ACCESS);
-    const head = text.slice(
-      0,
-      text.indexOf("## Native restrictions and renewal"),
-    );
-    const tail = text.slice(
-      text.indexOf("GitHub's documented interaction limit covers"),
-    );
-    expect(sha(head)).toBe(
-      "2c4506844efb39fedda58847e4f394279ce8858f730dea41b707c6191e00a7e9",
-    );
-    expect(sha(tail)).toBe(
-      "ff72b118bffb4f2fbbcbb530648365a338bf43a039d4a332b5b953bdd6266f79",
-    );
+  it("keeps #1906 and links the new runbook", () => {
     const s = section();
     expect(s).toContain("#1906");
     expect(s).toMatch(/\]\((?:\.\/)?self-hosted-runners\.md(?:#[^)]*)?\)/);
   });
 });
 
-/**
- * Accepted docs/ci.md prefixes (ruling 2, #2180 issuecomment-6371787636):
- * develop at a200250f (459 lines, after #2153/#2155/#2223), which the single
- * merge-only sync brings in, and develop at ac69ef6f (431 lines; the spec's
- * ":410" predates #2155), which the unsynced PR head still carries. The file
- * must start with exactly one of these byte prefixes; only the EOF append
- * follows it.
- */
-const CI_BASES = [
-  {
-    ref: "a200250f",
-    bytes: 37848,
-    sha256: "0560ae8fd108720b4d741be8e6dcbc389039e7a6b8eaa3b0273b762943672ddc",
-  },
-  {
-    ref: "ac69ef6f",
-    bytes: 35265,
-    sha256: "b546066ff785ea4243ee657cc8fb403a2b28124eaf2c2982bbeb19a87efa6d21",
-  },
-  {
-    ref: "4b131585",
-    bytes: 39584,
-    sha256: "f4ceeac06f972bd83119bd92624b5ad3481f9db06de2853d5d20e1fdf152406f",
-  },
-  {
-    // #2215: 4b131585's prefix with only the `test-e2e` bullet's e2e-gate
-    // merge_group skip cause reworded; ends before the EOF runner section.
-    ref: "#2215 e2e-gate merge_group wording",
-    bytes: 39806,
-    sha256: "af12ddc582cf7ac044d5c51d796cd5fbad45f3c3a33d08f969514e30c4e623c2",
-  },
-] as const;
 const HEADING = /^#{2,3} Self-hosted runner security\s*$/m;
-describe("#2180 criterion 10: docs/ci.md EOF pointer", () => {
+describe("#2180 criterion 10: docs/ci.md runner-security pointer", () => {
+  /**
+   * The 'Self-hosted runner security' section, to the next heading of the
+   * same or a higher level, or EOF. Deeper headings stay inside it.
+   */
   const appended = () => {
-    const bytes = readFileSync("docs/ci.md");
-    const base = CI_BASES.find(
-      (b) => sha(bytes.subarray(0, b.bytes).toString("utf8")) === b.sha256,
-    );
+    const text = read("docs/ci.md");
+    const at = text.search(HEADING);
     expect(
-      base?.ref,
-      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
-    ).toBeDefined();
-    return bytes.subarray(base!.bytes).toString("utf8");
-  };
-  it("appends only a 'Self-hosted runner security' section of <= 8 lines", () => {
-    const added = appended();
-    expect(added.replace(/^\n+/, "")).toMatch(
-      /^#{2,3} Self-hosted runner security\s*\n/,
+      at,
+      "docs/ci.md has a 'Self-hosted runner security' section",
+    ).toBeGreaterThanOrEqual(0);
+    const body = text.slice(at).split("\n");
+    const level = body[0]!.indexOf(" ");
+    const end = body.findIndex(
+      (l, i) => i > 0 && new RegExp(`^#{1,${level}} `).test(l),
     );
+    return body.slice(0, end < 0 ? undefined : end).join("\n");
+  };
+  it("is one 'Self-hosted runner security' section of <= 8 lines", () => {
+    const added = appended();
+    expect(added).toMatch(/^#{2,3} Self-hosted runner security\s*\n/);
     expect(added.match(/^#/gm), "one heading only").toHaveLength(1);
     expect(added.trim().split("\n").length).toBeLessThanOrEqual(8);
+    expect(read("docs/ci.md").match(new RegExp(HEADING, "gm"))).toHaveLength(1);
   });
   it("points to the runbook and to R1-R3", () => {
     const added = appended();

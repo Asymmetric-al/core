@@ -4,6 +4,7 @@ import * as publicApi from "../../packages/graphql";
 
 import type * as AuthModule from "../../packages/auth/context";
 import type { AuthContext } from "../../packages/auth/context";
+import { membershipsForRole } from "../fixtures/auth-memberships";
 
 const seams = vi.hoisted(() => ({
   getAuthContext: vi.fn(),
@@ -54,8 +55,8 @@ function authContext(): AuthContext {
     email: profile.email,
     tenantId: "tenant-a",
     role: "donor",
-    profileRole: "donor",
-    memberships: [],
+    // AL-2675: the role is read from the membership the request acts under.
+    memberships: membershipsForRole("donor", "tenant-a"),
     profileId: "profile-a",
     isAuthenticated: true,
   };
@@ -67,7 +68,6 @@ function anonymousContext(): AuthContext {
     email: null,
     tenantId: null,
     role: null,
-    profileRole: null,
     memberships: [],
     profileId: null,
     isAuthenticated: false,
@@ -192,7 +192,10 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.rpc).not.toHaveBeenCalled();
   });
 
-  it("passes the original request to auth and scopes the profile query to its tenant", async () => {
+  // Rewritten by the WP2a sweep (AL-2675; NR-68): the profile is the
+  // caller's own, read by id; the tenant is the resolved assignment's, and
+  // the response reports it, never a filter on the profile's tenant column.
+  it("passes the original request to auth and answers in the assignment's tenant", async () => {
     const incoming = request(
       "{ myProfile { id tenantId createdAt } }",
       undefined,
@@ -210,10 +213,7 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(seams.getAuthContext).toHaveBeenCalledWith(incoming);
     expect(queries).toContainEqual({
       table: "profiles",
-      filters: [
-        ["id", "profile-a"],
-        ["tenant_id", "tenant-a"],
-      ],
+      filters: [["id", "profile-a"]],
     });
   });
 
@@ -233,6 +233,160 @@ describe("product GraphQL HTTP contract with the actual Yoga runtime", () => {
     expect(body.errors).toHaveLength(1);
     expect(seams.rpc).not.toHaveBeenCalled();
     expect(seams.from).not.toHaveBeenCalled();
+  });
+
+  describe("updateUserRole (WP0, audit finding A01)", () => {
+    const roleMutation = (role: string, userId = "profile-b") =>
+      `mutation { updateUserRole(input: { userId: "${userId}", role: ${role} }) { id role } }`;
+
+    /**
+     * Rewritten when WP2a joined stage 1 (AL-2675; plan WP0 and WP2a): the
+     * caller was described by a profile role; the resolver now judges the
+     * membership the request acts under (`people.manage_members`, the
+     * tenant-administrator flag), so each caller holds the membership its
+     * role means. A platform operator holds none. The refusals and the
+     * admitted call are asserted as before.
+     */
+    function callerWith(
+      role: AuthContext["role"],
+      memberships: AuthContext["memberships"] = membershipsForRole(
+        role,
+        "tenant-a",
+      ),
+    ): AuthContext {
+      return {
+        ...authContext(),
+        role,
+        memberships,
+      };
+    }
+
+    const staffMembership = {
+      tenantId: "tenant-a",
+      role: "staff" as const,
+      staffRole: "finance" as const,
+      isActive: true,
+    };
+
+    beforeEach(() => {
+      tables.get("profiles")?.push({
+        ...profile,
+        id: "profile-b",
+        user_id: "user-b",
+        role: "staff",
+      });
+      seams.rpc.mockResolvedValue({ data: null, error: null });
+    });
+
+    it.each([
+      ["a staff profile", callerWith("staff")],
+      ["a staff membership", callerWith("donor", [staffMembership])],
+      ["a missionary", callerWith("missionary")],
+      ["a platform operator", callerWith("super_admin", [])],
+      [
+        "an admin role name on an unflagged staff row (WP2a)",
+        callerWith("admin", [{ ...staffMembership, isTenantAdmin: false }]),
+      ],
+    ])(
+      "rejects %s before RPC transport, so no role changes",
+      async (_label, caller) => {
+        seams.getAuthContext.mockResolvedValue(caller);
+        const { body } = await execute(roleMutation("admin"));
+        expect(body.errors).toHaveLength(1);
+        expect(body.data).toBeNull();
+        expect(seams.rpc).not.toHaveBeenCalled();
+        expect(seams.from).not.toHaveBeenCalled();
+      },
+    );
+
+    it("rejects a staff caller promoting themselves to super_admin", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("staff"));
+      const { body } = await execute(roleMutation("super_admin", "profile-a"));
+      expect(body.errors?.length).toBeGreaterThan(0);
+      expect(seams.rpc).not.toHaveBeenCalled();
+    });
+
+    it("rejects a platform role written in the query before execution", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      const { body } = await execute(roleMutation("super_admin"));
+      expect(body.data).toBeUndefined();
+      expect(body.errors?.[0]?.message).toMatch(/AssignableUserRole/);
+      expect(seams.rpc).not.toHaveBeenCalled();
+      expect(seams.from).not.toHaveBeenCalled();
+    });
+
+    it("rejects a platform role passed as a variable before execution", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      const { response, body } = await execute(
+        "mutation Change($input: UpdateUserRoleInput!) { updateUserRole(input: $input) { id } }",
+        { input: { userId: "profile-b", role: "super_admin" } },
+      );
+      expect(response.status).toBe(400);
+      expect(body.errors?.length).toBeGreaterThan(0);
+      expect(seams.rpc).not.toHaveBeenCalled();
+      expect(seams.from).not.toHaveBeenCalled();
+    });
+
+    it("rejects an admin targeting their own profile", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      const { body } = await execute(roleMutation("donor", "profile-a"));
+      expect(body.errors).toHaveLength(1);
+      expect(seams.rpc).not.toHaveBeenCalled();
+    });
+
+    it("passes an admin's change of another profile to the command, scoped to the caller's tenant", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      const { body } = await execute(roleMutation("missionary"), undefined, {
+        "user-agent": "wp0-test",
+      });
+      expect(body.errors).toBeUndefined();
+      expect(seams.rpc).toHaveBeenCalledTimes(1);
+      expect(seams.rpc).toHaveBeenCalledWith(
+        "atomic_update_user_role_with_audit",
+        {
+          p_profile_id: "profile-b",
+          p_tenant_id: "tenant-a",
+          p_actor_user_id: "user-a",
+          p_new_role: "missionary",
+          p_ip_address: null,
+          p_user_agent: "wp0-test",
+        },
+      );
+    });
+
+    it("reports the command's own refusal as an error, not a changed role", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      seams.rpc.mockResolvedValue({
+        data: null,
+        error: { code: "42501", message: "Forbidden" },
+      });
+      const { body } = await execute(roleMutation("staff"));
+      expect(body.errors).toHaveLength(1);
+      expect(body.data).toBeNull();
+      expect(seams.from).not.toHaveBeenCalled();
+    });
+
+    // PR #2714 review: the command refuses (42501) a person who also holds an
+    // active membership in another organization, because profiles.role is
+    // that person's one role everywhere. The caller reports that refusal as
+    // an error, returns no profile and reads none. (The endpoint masks a
+    // resolver's own message, so the reason is not asserted here.)
+    it("reports the refusal for a person who also belongs to another organization", async () => {
+      seams.getAuthContext.mockResolvedValue(callerWith("admin"));
+      seams.rpc.mockResolvedValue({
+        data: null,
+        error: {
+          code: "42501",
+          message:
+            "This person also belongs to another organization; their role cannot be changed here",
+        },
+      });
+      const { body } = await execute(roleMutation("admin"));
+      expect(body.data).toBeNull();
+      expect(body.errors).toHaveLength(1);
+      expect(seams.rpc).toHaveBeenCalledTimes(1);
+      expect(seams.from).not.toHaveBeenCalled();
+    });
   });
 
   it("returns no foreign missionary and filters lists by the authenticated tenant", async () => {

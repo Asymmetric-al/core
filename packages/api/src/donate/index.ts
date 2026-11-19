@@ -256,7 +256,7 @@ export const POST = withOperation(
       publishableKey,
     });
   },
-  { roles: ["donor", "admin", "staff", "super_admin"] },
+  { roleClasses: ["donor", "staff"] },
 );
 
 export async function GET(request: NextRequest) {

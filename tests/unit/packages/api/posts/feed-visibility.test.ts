@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { membershipsForRole } from "../../../../fixtures/auth-memberships";
 
 const { getAdminClientMock, getAuthContextMock, eqCalls, orCalls } = vi.hoisted(
   () => ({
@@ -11,11 +12,10 @@ const { getAdminClientMock, getAuthContextMock, eqCalls, orCalls } = vi.hoisted(
 );
 
 vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: getAuthContextMock,
   requireAuth: vi.fn(),
-  hasAnyContextRole: (ctx: { roles: string[] }, roles: string[]) =>
-    roles.some((role) => ctx.roles.includes(role)),
 }));
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -67,7 +67,9 @@ beforeEach(() => {
     userId: "user-1",
     profileId: PROFILE_ID,
     tenantId: "tenant-1",
-    roles: ["donor"],
+    isAuthenticated: true,
+    // AL-2675: the class is read from the membership the request acts under.
+    memberships: membershipsForRole("donor", "tenant-1"),
   });
 });
 
@@ -101,7 +103,8 @@ describe("GET /api/posts audience boundary", () => {
       userId: "user-1",
       profileId: PROFILE_ID,
       tenantId: "tenant-1",
-      roles: ["missionary"],
+      isAuthenticated: true,
+      memberships: membershipsForRole("missionary", "tenant-1"),
     });
 
     await GET(request("?status=draft"));

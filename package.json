@@ -53,6 +53,9 @@
     "test": "bun run test:unit",
     "test:unit": "node scripts/verify/unit-tests.mjs",
     "test:acceptance": "node scripts/verify/acceptance-tests.mjs",
+    "test:api-contract": "node scripts/api-contract/stack.mjs test",
+    "test:api-contract:up": "node scripts/api-contract/stack.mjs up",
+    "test:api-contract:down": "node scripts/api-contract/stack.mjs down",
     "test:unit:feedback": "node scripts/verify/unit-feedback.mjs",
     "test:unit:cms": "vitest run tests/unit/cms",
     "test:e2e": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test --grep-invert \"@perf|@manual|@cms\"",
@@ -66,6 +69,7 @@
     "test:e2e:smoke": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/demo-auth-preflight.spec.ts tests/e2e/usability-smoke.spec.ts tests/e2e/donate.spec.ts tests/e2e/support-hub.smoke.spec.ts --project=chromium --workers=1 && node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/upload-crop.spec.ts --project=chromium-donor --workers=1",
     "test:e2e:smoke:cms": "CMS_WEB_STUDIO_NATIVE_PAGES=true node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/cms-admin-redirect.spec.ts tests/e2e/cms-publish-flow.spec.ts tests/e2e/cms-tenant-isolation.spec.ts tests/e2e/cms-ministry-updates.spec.ts tests/e2e/cms-web-studio-native.spec.ts tests/e2e/cms-templates-gallery.spec.ts",
     "test:e2e:cms:local": "node scripts/cms/run-local-e2e.mjs",
+    "test:e2e:auth-mail": "node scripts/e2e/run-auth-mail.mjs",
     "test:e2e:ui": "node node_modules/@playwright/test/cli.js test --ui",
     "test:e2e:auth:donor": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/auth-demo-donor.spec.ts --project=chromium",
     "test:e2e:auth:admin": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.admin.config.ts tests/e2e/auth-demo-admin.spec.ts tests/e2e/admin-table-pages-smoke.spec.ts --project=admin-boneyard",
@@ -97,13 +101,14 @@
     "verify:backup-restore": "node scripts/verify/backup-restore-proof.mjs",
     "verify:sentry-release": "node scripts/verify/sentry-release-sourcemaps.mjs",
     "verify:vercel-env-inventory": "node scripts/verify/vercel-env-inventory.mjs",
+    "verify:runtime-connection-strings": "node scripts/verify/runtime-connection-strings.mjs",
     "verify:vercel-affected-projects": "node scripts/vercel/affected-projects.mjs --check",
     "verify:vercel-build-controls": "node scripts/verify/vercel-build-controls.mjs",
     "verify:vercel-production": "node scripts/verify/vercel-production-readiness.mjs",
     "verify:deployment-discipline": "node scripts/verify/deployment-discipline.mjs",
     "verify:shadcn-config": "node scripts/verify/shadcn-config-guardrails.mjs",
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",
-    "verify:shadscan": "node scripts/verify/shadscan.mjs",
+    "shadscan:audit": "node scripts/shadscan-audit.mjs",
     "verify:shadcn-registries": "node scripts/verify/shadcn-registry-smoke.mjs",
     "verify:reui": "node scripts/verify/reui.mjs",
     "verify:shadcn-token-drift": "node scripts/verify/shadcn-token-drift.mjs",
@@ -146,11 +151,11 @@
     "cms:local:seed": "bun scripts/cms/seed-local.mjs",
     "cms:local:verify": "bun scripts/cms/verify-local.mjs",
     "cms:local:dev": "node scripts/cms/local-dev.mjs",
+    "cms:qualify": "node scripts/cms/qualify-payload-pin.mjs",
     "site-studio:walkthrough:cloud": "bash ./scripts/dev/site-studio-cloud-walkthrough.sh",
-    "db:migrate:local": "bun run supabase -- db reset --local --no-seed",
+    "db:migrate:local": "node scripts/db/require-disposable-database.mjs --local && bun run supabase -- db reset --local --no-seed",
     "db:migrate:hosted": "node scripts/db-migrate-hosted.mjs",
     "seed:demo:local": "bash ./scripts/seed-demo.sh local",
-    "seed:demo:hosted": "bash ./scripts/seed-demo.sh hosted",
     "seed:demo:verify": "bash ./scripts/seed-demo.sh verify",
     "seed:demo:users": "bun run --cwd packages/database seed:demo-users",
     "verify": "node scripts/verify/index.mjs",
@@ -281,6 +286,6 @@
     "@shadcn/lint@0.2.3": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch"
   },
   "engines": {
-    "node": ">=24.22.1 <25"
+    "node": ">=24.22.3 <25"
   }
 }

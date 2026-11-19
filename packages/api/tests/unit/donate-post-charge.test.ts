@@ -28,7 +28,8 @@ vi.mock("@asym/lib/audit/logger", () => ({
   })),
 }));
 
-vi.mock("@asym/auth/context", () => ({
+vi.mock("@asym/auth/context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/auth/context")>()),
   getAuthContext: vi.fn(),
   requireAuth: vi.fn(),
   requireRole: vi.fn(
@@ -85,8 +86,10 @@ const authenticatedDonor: AuthContext = {
   role: "donor",
   profileId: "profile-1",
   isAuthenticated: true,
-  profileRole: "donor",
-  memberships: [],
+  // AL-2675: the donor class is read from the membership the request acts under.
+  memberships: [
+    { tenantId: "tenant-1", role: "donor", staffRole: null, isActive: true },
+  ],
 };
 
 const beginRpcResult = {

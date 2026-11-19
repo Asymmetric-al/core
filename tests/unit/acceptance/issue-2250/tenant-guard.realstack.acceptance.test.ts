@@ -5,11 +5,49 @@
  * emulate PostgREST (BEGIN; SET LOCAL ROLE ...). Skips locally without the URL.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
+ *
+ * Amended by AL-2674 (WP1 slice 1.1a, plan 5.4; NR-13): the command schema
+ * gains its first human entry point (tenant_guard.resolve_command_assignment,
+ * EXECUTE for authenticated) and three postgres-owned invoker helpers that only
+ * tenant_guard may execute (caller_id, request_assignment_id,
+ * begin_human_command), and the guard role gains USAGE on auth and authz,
+ * EXECUTE on auth.uid(), auth.jwt() and the two authz membership helpers, and
+ * SELECT on authz.memberships behind a select-own policy. Criteria 4, 14, 15
+ * and 17 below pin the widened inventory; everything else is unchanged.
+ *
+ * Amended by AL-2674 council round 2 (A4; plan 7.1): criteria 4, 14, 15 and
+ * 17 pinned the command schema's functions and the guard's table grants as
+ * exact lists, so the first command of a later package failed them. Each is
+ * now asserted by lane, for every function the schema holds and every public
+ * wrapper into it: a guard-owned function is a SECURITY DEFINER with an empty
+ * search path executable by exactly one lane (authenticated or service_role);
+ * a postgres-owned helper is an invoker only tenant_guard may execute; a
+ * wrapper is a postgres-owned invoker granted to its target's lane. The
+ * guard's table privileges are each admitted by a policy for tenant_guard and
+ * are never TRUNCATE, REFERENCES, TRIGGER or MAINTAIN. #2250's own four
+ * functions keep their exact rows, and what the guard may use or execute
+ * outside its tables keeps its exact list: that list is the point of
+ * criterion 17, and a package that widens it edits it (see "Tests a package
+ * still touches" in docs/security/tenant-guard.md).
+ *
+ * Amended by AL-2674 A9 (plan 15.2): on Supabase's own image the migration
+ * role cannot grant anything on `auth`, so the guard holds nothing there. It
+ * reads the caller and the claims from the request's settings through two
+ * more invoker helpers, caller_id and request_claims; criterion 17 drops USAGE
+ * on auth and EXECUTE on auth.uid() and auth.jwt() and gains request_claims().
+ *
+ * Amended by AL-2675 (WP2a, plan 5.4 "How a command runs"), joined to the
+ * list above: the guard role may execute the SQL capability function
+ * authz.assignment_capabilities(uuid), which begin_human_command calls, and
+ * begin_human_command takes the capability a command requires as a defaulted
+ * second argument, so its signature is (uuid, text). Criterion 17 lists both.
  */
 import { randomUUID } from "node:crypto";
 
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import { callsIntoCommandSchemas } from "../../../../scripts/verify/tenant-rls-catalog.mjs";
 
 const ADMIN_URL = process.env.TENANT_GUARD_IT_ADMIN_DATABASE_URL ?? "";
 const IN_MIGRATE_JOB =
@@ -23,13 +61,35 @@ const rel = (t: string, id: string) =>
 const ins = (t: string, s: string) =>
   `insert into public.workflow_work_claims (tenant_id, subject_type, subject_id, claimed_by, expires_at) values (${t}, 'acc2250', '${s}', 'acc', pg_catalog.now() + interval '1 hour')`;
 const CLAIMS = "public.workflow_work_claims";
-/** The 6 functions of criteria 14/15 (no overloads allowed). */
-const FN = `select n.nspname || '.' || p.proname f, p.* from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'tenant_guard' or (n.nspname = 'public' and p.proname in ('acquire_workflow_work_claim', 'release_workflow_work_claim'))`;
+/**
+ * The candidates for criteria 14/15: every function in tenant_guard and every
+ * public function whose text mentions it (no overloads allowed). Which public
+ * ones are wrappers is decided on their text with comments removed
+ * (`isGuardFunction`): amended by council round 3 (lens 1 A4; record D-18),
+ * because a raw-text match made a public function whose comment names
+ * `tenant_guard.x(` fail this suite for no safety reason. The candidate set is
+ * wider than before, so a call with a comment inside its qualified name is
+ * still found.
+ */
+const FN = `select n.nspname || '.' || p.proname f, p.*, p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '') body
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'tenant_guard'
+     or (n.nspname = 'public' and (p.prosrc || coalesce(pg_get_function_sqlbody(p.oid), '')) ~ 'tenant_guard')`;
+/** A function of criteria 14/15: in tenant_guard, or a public function whose code calls into it. */
+const isGuardFunction = (fn: { f: string; body: string }) =>
+  fn.f.startsWith("tenant_guard.") ||
+  callsIntoCommandSchemas(fn.body).some((t: string) =>
+    t.startsWith("tenant_guard."),
+  );
 const SP_OK = `(proconfig && array['search_path=""', 'search_path=pg_catalog', 'search_path=pg_catalog, public'])`;
 const TG_ACQ = "tenant_guard.acquire_workflow_work_claim";
 const TG_REL = "tenant_guard.release_workflow_work_claim";
 const TG = "'tenant_guard'::regrole";
+/** #2250's own functions: the claim pair and its public wrappers. */
+const CLAIM_FNS = `'${TG_ACQ}', '${TG_REL}', 'public.acquire_workflow_work_claim', 'public.release_workflow_work_claim'`;
+/** EXECUTE grantees besides the owner, or '-' for none. */
+const GRANTEES = `(select coalesce(string_agg(distinct case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end, '+'), '-')
+   from aclexplode(proacl) a where a.privilege_type = 'EXECUTE' and a.grantee <> proowner)`;
 
 /**
  * Catalog checks, one block each: "title" line, SQL returning one column `v`,
@@ -40,9 +100,11 @@ const CATALOG = `
 select concat_ws(',', rolcanlogin, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb, rolinherit) v from pg_roles where rolname = 'tenant_guard'
 => f,f,f,f,f,f
 
-4: tenant_guard owns no relation and exactly the 2 guarded functions
-select (select count(*) from pg_class where relowner = ${TG}) || ' ' || (select string_agg(oid::regproc::text, ',' order by oid::regproc::text) from pg_proc where proowner = ${TG}) v
-=> 0 ${TG_ACQ},${TG_REL}
+4: tenant_guard owns no relation, owns only SECURITY DEFINER functions in its own schema, and owns the claim pair
+select (select count(*) from pg_class where relowner = ${TG})
+  || ' ' || (select count(*) from pg_proc where proowner = ${TG} and (pronamespace <> 'tenant_guard'::regnamespace or not prosecdef))
+  || ' ' || (select string_agg(oid::regproc::text, ',' order by oid::regproc::text) from pg_proc where proowner = ${TG} and oid::regproc::text in ('${TG_ACQ}', '${TG_REL}')) v
+=> 0 0 ${TG_ACQ},${TG_REL}
 
 4: tenant_guard has CREATE on no schema
 select coalesce(string_agg(nspname, ','), 'none') v from pg_namespace where has_schema_privilege('tenant_guard', oid, 'CREATE')
@@ -58,14 +120,22 @@ select concat_ws(' | ', polcmd, polroles::regrole[]::text, pg_get_expr(polqual, 
   from pg_policy where polrelid = 'public.workflow_work_claims'::regclass and polname = 'tenant_guard_isolation'
 => * | {tenant_guard} | (tenant_id = tenant_guard.current_tenant_id()) | (tenant_id = tenant_guard.current_tenant_id())
 
-17: every ACL entry granted to tenant_guard (relations, columns, schemas, functions, databases) equals the inventory
+17: every relation or column privilege of tenant_guard is SELECT, INSERT, UPDATE or DELETE on a table whose row security admits the guard for that command; the claims grants are among them
+select (select count(*) from (
+    select c.oid, c.relkind, c.relrowsecurity, a.privilege_type, a.grantee from pg_class c, aclexplode(c.relacl) a where a.grantee = ${TG}
+    union all select c.oid, c.relkind, c.relrowsecurity, a.privilege_type, a.grantee from pg_attribute t join pg_class c on c.oid = t.attrelid, aclexplode(t.attacl) a where a.grantee = ${TG}) g
+  where g.relkind not in ('r', 'p') or not g.relrowsecurity or g.privilege_type not in ('SELECT', 'INSERT', 'UPDATE', 'DELETE')
+     or not exists (select 1 from pg_policy p where p.polrelid = g.oid and p.polroles @> array[g.grantee]
+                      and p.polcmd in ('*', case g.privilege_type when 'SELECT' then 'r' when 'INSERT' then 'a' when 'UPDATE' then 'w' when 'DELETE' then 'd' end::"char")))
+  || ' ' || (select string_agg(a.privilege_type, ',' order by a.privilege_type) from aclexplode((select relacl from pg_class where oid = '${CLAIMS}'::regclass)) a where a.grantee = ${TG}) v
+=> 0 INSERT,SELECT,UPDATE
+
+17: everything else granted to tenant_guard (schemas, functions it does not own, databases) equals the inventory
 select string_agg(e, ', ' order by e) v from (
-  select c.oid::regclass || ' ' || a.privilege_type e from pg_class c, aclexplode(c.relacl) a where a.grantee = ${TG}
-  union all select attrelid::regclass || '.' || attname from pg_attribute, aclexplode(attacl) a where a.grantee = ${TG}
-  union all select 'schema ' || nspname || ' ' || a.privilege_type from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
+  select 'schema ' || nspname || ' ' || a.privilege_type e from pg_namespace, aclexplode(nspacl) a where a.grantee = ${TG}
   union all select p.oid::regprocedure || ' ' || a.privilege_type from pg_proc p, aclexplode(p.proacl) a where a.grantee = ${TG} and p.proowner <> a.grantee
   union all select 'database ' || datname from pg_database, aclexplode(datacl) a where a.grantee = ${TG}) s
-=> public.workflow_work_claims INSERT, public.workflow_work_claims SELECT, public.workflow_work_claims UPDATE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE
+=> authz.assignment_capabilities(uuid) EXECUTE, authz.has_membership(uuid,authz.membership_role[]) EXECUTE, authz.has_staff_membership(uuid,authz.staff_role[]) EXECUTE, schema authz USAGE, schema public USAGE, schema tenant_guard USAGE, tenant_guard.begin_human_command(uuid,text) EXECUTE, tenant_guard.caller_id() EXECUTE, tenant_guard.current_tenant_id() EXECUTE, tenant_guard.enter(uuid) EXECUTE, tenant_guard.request_assignment_id() EXECUTE, tenant_guard.request_claims() EXECUTE
 
 17: no DELETE/TRUNCATE on claims; no SELECT on tenants, profiles, donation_saga_outbox
 select concat_ws(',', has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'DELETE'), has_table_privilege('tenant_guard', 'public.workflow_work_claims', 'TRUNCATE'),
@@ -78,15 +148,15 @@ select concat_ws(' ', coalesce(to_regprocedure('public.release_workflow_work_cla
   pg_get_function_result(to_regprocedure('public.acquire_workflow_work_claim(uuid,text,text,text,integer)'))) v
 => gone jsonb jsonb
 
-14: exactly 2 tenant_guard-owned SECURITY DEFINER functions, each SET search_path = '' (or pg_catalog[, public])
-select string_agg(oid::regproc || ' ' || ${SP_OK}, ', ' order by oid::regproc::text) v from pg_proc where proowner = ${TG} and prosecdef
-=> ${TG_ACQ} true, ${TG_REL} true
+14: every tenant_guard-owned function is SECURITY DEFINER with SET search_path = '' (or pg_catalog[, public]), the claim pair among them
+select (select count(*) from pg_proc where proowner = ${TG} and not (prosecdef and coalesce(${SP_OK}, false)))
+  || ' ' || (select string_agg(oid::regproc || ' ' || ${SP_OK}, ', ' order by oid::regproc::text) from pg_proc where proowner = ${TG} and prosecdef and oid::regproc::text in ('${TG_ACQ}', '${TG_REL}')) v
+=> 0 ${TG_ACQ} true, ${TG_REL} true
 
-14/15: the 6 functions: owner, DEFINER, search_path pinned, explicit ACL (not NULL), exact EXECUTE grantees besides the owner
-select string_agg(concat_ws(' ', f, pg_get_userbyid(proowner), prosecdef, coalesce(${SP_OK}, false), proacl is not null,
-  (select coalesce(string_agg(distinct case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end, '+'), '-')
-   from aclexplode(proacl) a where a.privilege_type = 'EXECUTE' and a.grantee <> proowner)), ', ' order by f) v from (${FN}) x
-=> public.acquire_workflow_work_claim postgres f t t service_role, public.release_workflow_work_claim postgres f t t service_role, ${TG_ACQ} tenant_guard t t t service_role, tenant_guard.current_tenant_id postgres f t t tenant_guard, tenant_guard.enter postgres f t t tenant_guard, ${TG_REL} tenant_guard t t t service_role
+14/15: #2250's four functions: owner, DEFINER, search_path pinned, explicit ACL (not NULL), exact EXECUTE grantees besides the owner
+select string_agg(concat_ws(' ', f, pg_get_userbyid(proowner), prosecdef, coalesce(${SP_OK}, false), proacl is not null, ${GRANTEES}), ', ' order by f) v
+  from (${FN}) x where f in (${CLAIM_FNS})
+=> public.acquire_workflow_work_claim postgres f t t service_role, public.release_workflow_work_claim postgres f t t service_role, ${TG_ACQ} tenant_guard t t t service_role, ${TG_REL} tenant_guard t t t service_role
 `
   .trim()
   .split("\n\n")
@@ -177,19 +247,122 @@ describe.skipIf(!ADMIN_URL)("#2250 tenant_guard on the real stack", () => {
     expect(await v(sql)).toBe(want),
   );
 
-  it("14: function bodies are schema-qualified under the empty search_path", async () => {
+  /**
+   * Each function of criteria 14/15 that does not keep the invariants of its
+   * lane, as "name: shape", and the names checked.
+   */
+  async function laneProblems() {
+    const fns = (
+      (
+        await db.query(
+          `select f, pg_get_userbyid(proowner) owner, prosecdef definer, coalesce(${SP_OK}, false) sp,
+                  proacl is not null acl, ${GRANTEES} grantees, body
+             from (${FN}) x order by f`,
+        )
+      ).rows as {
+        f: string;
+        owner: string;
+        definer: boolean;
+        sp: boolean;
+        acl: boolean;
+        grantees: string;
+        body: string;
+      }[]
+    ).filter(isGuardFunction);
+    const lane = new Map(fns.map((fn) => [fn.f, fn.grantees]));
+    const shape = (fn: (typeof fns)[number]) =>
+      `${fn.owner} ${fn.definer ? "definer" : "invoker"} sp=${fn.sp} acl=${fn.acl} ${fn.grantees}`;
+    const problems: string[] = [];
+    for (const fn of fns) {
+      let expected: string[];
+      if (fn.f.startsWith("tenant_guard.") && fn.owner === "tenant_guard")
+        // An entry point: one lane, never both, never PUBLIC or anon.
+        expected = ["authenticated", "service_role"].map(
+          (g) => `tenant_guard definer sp=true acl=true ${g}`,
+        );
+      else if (fn.f.startsWith("tenant_guard."))
+        // A helper: only the guard runs it.
+        expected = ["postgres invoker sp=true acl=true tenant_guard"];
+      else {
+        // A wrapper: the lane of what it calls in tenant_guard, read from
+        // its code with comments removed.
+        const targets = callsIntoCommandSchemas(fn.body).filter((t: string) =>
+          t.startsWith("tenant_guard."),
+        );
+        const human = targets.every(
+          (t: string) => lane.get(t) === "authenticated",
+        );
+        expected = [
+          `postgres invoker sp=true acl=true ${human ? "authenticated" : "service_role"}`,
+        ];
+      }
+      if (!expected.includes(shape(fn))) problems.push(`${fn.f}: ${shape(fn)}`);
+    }
+    return { problems, names: fns.map((fn) => fn.f) };
+  }
+
+  it("14/15: every function in tenant_guard, and every public wrapper into it, keeps the invariants of its lane", async () => {
+    const { problems, names } = await laneProblems();
+    expect(problems).toEqual([]);
+    // The derivation is not vacuous: #2250's four functions are among them.
+    expect(names).toEqual(
+      expect.arrayContaining(CLAIM_FNS.replaceAll("'", "").split(", ")),
+    );
+  });
+
+  // Council round 3, lens 1 A4: the suite matches code, not comments.
+  it("14/15: a public function whose comment names a guard function is not a wrapper; one that calls it still is", async () => {
+    await db.query("begin");
+    try {
+      await db.query(
+        `create function public.acc2250_comment_only() returns int language plpgsql set search_path = ''
+           as $$ begin -- tenant_guard.acquire_workflow_work_claim(...) is not called here
+           return 1; end $$;
+         create function public.acc2250_definer_call(p_tenant_id uuid) returns jsonb language sql security definer set search_path = ''
+           as $$ select tenant_guard/**/.acquire_workflow_work_claim(p_tenant_id, 'x', 'y', 'z', 60) $$;
+         revoke all on function public.acc2250_definer_call(uuid) from public, anon, authenticated, service_role;
+         grant execute on function public.acc2250_definer_call(uuid) to authenticated;`,
+      );
+      const { problems, names } = await laneProblems();
+      expect(names).not.toContain("public.acc2250_comment_only");
+      expect(problems).toEqual([
+        "public.acc2250_definer_call: postgres definer sp=true acl=true authenticated",
+      ]);
+      const bodies = await schemaQualifiedProblems();
+      expect(bodies.names).not.toContain("public.acc2250_comment_only");
+      expect(bodies.names).toContain("public.acc2250_definer_call");
+    } finally {
+      await db.query("rollback");
+    }
+  });
+
+  /** The functions of criteria 14/15 whose bodies are not schema-qualified. */
+  async function schemaQualifiedProblems() {
     const fns = (
       await db.query(
-        `select f, prosrc, coalesce(proargnames, '{}') a from (${FN}) x`,
+        `select f, prosrc, body, coalesce(proargnames, '{}') a from (${FN}) x`,
       )
-    ).rows;
-    expect(fns.length).toBe(6);
+    ).rows.filter(isGuardFunction);
+    const problems: string[] = [];
     for (const f of fns) {
-      expect(bareTargets(f.prosrc, f.a), f.f).toEqual([]);
-      expect(f.prosrc, f.f).not.toMatch(
-        /(?<![\w.])(enter|current_tenant_id|set_config|current_setting)\s*\(/i,
-      );
+      for (const target of bareTargets(f.prosrc, f.a))
+        problems.push(`${f.f}: bare ${target}`);
+      if (
+        /(?<![\w.])(enter|current_tenant_id|set_config|current_setting)\s*\(/i.test(
+          f.prosrc,
+        )
+      )
+        problems.push(`${f.f}: unqualified guard helper or setting`);
     }
+    return { problems, names: fns.map((f) => f.f as string) };
+  }
+
+  it("14: function bodies are schema-qualified under the empty search_path", async () => {
+    const { problems, names } = await schemaQualifiedProblems();
+    expect(problems).toEqual([]);
+    expect(names).toEqual(
+      expect.arrayContaining(CLAIM_FNS.replaceAll("'", "").split(", ")),
+    );
   });
 
   it("1: after enter(A) an unfiltered read sees only A; with the GUC unset it sees 0 rows", async () => {

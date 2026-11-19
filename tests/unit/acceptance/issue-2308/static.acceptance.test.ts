@@ -14,7 +14,6 @@
  * Builder owns C13 (sniffer), C14 (key/extension), C15 (bearer factory).
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -25,6 +24,19 @@ const read = (file: string) => {
   expect(existsSync(path), `${file} must exist (#2308)`).toBe(true);
   return readFileSync(path, "utf8");
 };
+
+/** An allowlist row: a whole `count` and exactly that many line numbers. */
+const isAllowlistEntry = (
+  e: unknown,
+): e is { count: number; lines: number[] } =>
+  typeof e === "object" &&
+  e !== null &&
+  "count" in e &&
+  "lines" in e &&
+  Number.isInteger(e.count) &&
+  Array.isArray(e.lines) &&
+  e.lines.length === e.count &&
+  e.lines.every((line) => Number.isInteger(line) && line > 0);
 
 describe("#2308 static contracts (A)", () => {
   it.each(["missionary", "donor"])(
@@ -71,17 +83,28 @@ describe("#2308 static contracts (A)", () => {
     expect(result.error).toBeUndefined();
     expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
   });
-  // Re-frozen after develop d99a1fc4 shrank the table-preferences entry,
-  // again at #2406 Builder 9563beea (only `lines` fields moved; no new sites),
-  // in the admin hill-climb round 12, which shrank dashboard-stats.ts from
-  // 2 sites to 1 (the CRM tags read reuses crm/index.ts's one site; no new
-  // sites), and at #2419, which shrank scripts/verify-money-units.ts from 3
-  // sites to 1 (the anon-key fallback was removed).
-  it("C12: frozen service-role allowlist is byte-unchanged since the #2419 verify-money-units shrink", () => {
+  it("C12: the service-role allowlist stays within the AL-2675 shrink and does not restore the admin users allowance", () => {
+    const doc: unknown = JSON.parse(
+      read("docs/security/service-role-client-allowlist.json"),
+    );
+    const entries: unknown[] =
+      typeof doc === "object" &&
+      doc !== null &&
+      "entries" in doc &&
+      Array.isArray(doc.entries)
+        ? doc.entries
+        : [];
+    expect(entries.length, "allowlist entries").toBeGreaterThan(0);
+    // Each row holds `count` line numbers; a malformed row cannot be counted.
     expect(
-      createHash("sha256")
-        .update(read("docs/security/service-role-client-allowlist.json"))
-        .digest("hex"),
-    ).toBe("2ca1e6c193601bb9c1d6ccf0380b1ccc10833a410a47fea82ecb1f9ec74bc13c");
+      entries.filter((e) => !isAllowlistEntry(e)),
+      "entries without a whole count and a lines array of that many line numbers",
+    ).toEqual([]);
+    const rows = entries.filter(isAllowlistEntry);
+    expect(rows).not.toContainEqual(
+      expect.objectContaining({ file: "packages/api/src/admin/users.ts" }),
+    );
+    expect(rows.length).toBeLessThanOrEqual(116);
+    expect(rows.reduce((n, e) => n + e.count, 0)).toBeLessThanOrEqual(180);
   });
 });

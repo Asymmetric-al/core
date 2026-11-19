@@ -21,7 +21,6 @@ type AuthContextShape = {
   isAuthenticated: boolean;
   memberships: unknown[];
   profileId: string | null;
-  profileRole: string | null;
   role: string | null;
   tenantId: string | null;
   userId: string | null;
@@ -36,7 +35,6 @@ function unauthenticatedContext(): AuthContextShape {
     isAuthenticated: false,
     memberships: [],
     profileId: null,
-    profileRole: null,
     role: null,
     tenantId: null,
     userId: null,
@@ -49,7 +47,6 @@ function authenticatedContext(): AuthContextShape {
     isAuthenticated: true,
     memberships: [],
     profileId: "profile_1",
-    profileRole: "admin",
     role: "admin",
     tenantId: "tenant_1",
     userId: "user_1",

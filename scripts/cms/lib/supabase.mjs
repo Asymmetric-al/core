@@ -1,10 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { requireDisposableDatabase } from "../../lib/environment-marker.mjs";
 import { captureCommand, commandExists, runCommand } from "./process.mjs";
 import { parseSupabaseStatusOutput } from "./env.mjs";
 import { repoRoot } from "./paths.mjs";
-import { executeSql, queryJson, runPsqlFile } from "./postgres.mjs";
+import {
+  executeSql,
+  getLocalDatabaseUrl,
+  queryJson,
+  runPsqlFile,
+} from "./postgres.mjs";
 
 const supabaseDir = path.join(repoRoot, "supabase");
 const migrationsDir = path.join(supabaseDir, "migrations");
@@ -179,6 +185,16 @@ export function ensureSupabaseRunning() {
 }
 
 export function resetLocalSupabase() {
+  // Plan 7.5: reset only databases marked disposable, both the one this
+  // workflow writes and the local stack the CLI resets.
+  const targets = new Set([
+    getLocalDatabaseUrl(),
+    getSupabaseStatusEnv()?.DB_URL,
+  ]);
+  for (const databaseUrl of targets)
+    if (databaseUrl)
+      requireDisposableDatabase({ databaseUrl, action: "reset" });
+
   const stagedMigrationFiles = getTimestampedMigrationFiles().filter(
     (fileName) => fileName !== baseMigrationFile,
   );

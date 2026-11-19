@@ -59,7 +59,9 @@ on:
       - scripts/verify/tenant-rls-catalog.mjs
       - scripts/verify/field-policy-census.mjs
       - scripts/lib/postgres-upgrade-preflight.mjs
+      - scripts/lib/psql.mjs
       - tests/integration/supabase/postgres17-upgrade-readiness-verification.sql
+      - docs/security/anon-definer-allowlist.json
       - docs/security/rls-deny-by-default-exceptions.json
       - docs/security/field-policies/**
       - scripts/github/install-canvas-deps.sh
@@ -79,7 +81,7 @@ permissions:
 
 env:
   BUN_VERSION: "1.4.3"
-  NODE_VERSION: "24.22.1"
+  NODE_VERSION: "24.22.3"
 
 concurrency:
   group: api-contract-${{ github.event.pull_request.number || github.ref }}

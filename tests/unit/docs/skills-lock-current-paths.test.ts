@@ -21,7 +21,7 @@ function readLock() {
 
 describe("skills lock current upstream paths", () => {
   it("keeps the current lockfile skill names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(203);
+    expect(Object.keys(readLock().skills)).toHaveLength(200);
   });
 
   it("pins the reviewed vercel-labs/ui ui-sdk skill without its maintainer skills", () => {
@@ -245,15 +245,15 @@ describe("skills lock current upstream paths", () => {
     expect(upstream).toContain("last_reviewed: 2026-09-16");
   });
 
-  it("keeps Matt Pocock removed skills as documented snapshots", () => {
-    const snapshots = [
+  it("keeps the Matt Pocock skill-authoring snapshot and drops the retired ones", () => {
+    const snapshots = ["writing-great-skills"] as const;
+    const retired = [
       "design-an-interface",
       "edit-article",
       "obsidian-vault",
       "qa",
       "request-refactor-plan",
       "ubiquitous-language",
-      "writing-great-skills",
     ] as const;
     const { skills } = readLock();
     const routing = readRepoFile("docs/ai/rules/agent-skill-routing.md");
@@ -270,6 +270,15 @@ describe("skills lock current upstream paths", () => {
       expect(upstream, name).toContain("kept snapshot");
       expect(upstream, name).toContain(skills[name]!.computedHash);
       expect(routing, name).toContain(`docs/ai/skills/${name}/SKILL.md`);
+    }
+
+    for (const name of retired) {
+      expect(skills[name], name).toBeUndefined();
+      expect(
+        existsSync(path.join(repoRoot, "docs/ai/skills", name)),
+        name,
+      ).toBe(false);
+      expect(routing, name).not.toContain(`docs/ai/skills/${name}/SKILL.md`);
     }
 
     expect(

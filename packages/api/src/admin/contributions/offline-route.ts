@@ -61,5 +61,5 @@ export async function handleOfflineContribution(
 }
 
 export const POST = withOperation((ctx) => handleOfflineContribution(ctx), {
-  roles: ["staff", "admin", "super_admin"],
+  capability: "contributions.apply_corrections",
 });

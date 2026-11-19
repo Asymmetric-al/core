@@ -59,7 +59,108 @@ Grant matrix (EXECUTE besides the owner):
 | `tenant_guard.enter(uuid)`                 | postgres     | tenant_guard |
 | `tenant_guard.current_tenant_id()`         | postgres     | tenant_guard |
 
-The migration also runs `ALTER DEFAULT PRIVILEGES IN SCHEMA tenant_guard REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`. `tenant_guard` holds exactly: `SELECT, INSERT, UPDATE` on `public.workflow_work_claims`, `USAGE` on schemas `public` and `tenant_guard`, and EXECUTE on `enter` and `current_tenant_id`.
+The migration also runs `ALTER DEFAULT PRIVILEGES IN SCHEMA tenant_guard REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`. The P1 functions are worker entry points of the command lane below, which lists everything `tenant_guard` holds today.
+
+## Command lane
+
+AL-2674 (plan sections 5.4 and 7.2 of [the CRM, CMS and database plan](../audits/core-crm-cms-database-target-architecture.md)) widens the guard from one worker path to the lane every tenant command runs in. Migrations `20261117034638_command_lane_human_entry_points.sql` and `20261117034650_platform_schema_marker_and_health.sql` build it; later packages add the commands, each with the table privilege and guard policy it needs. Entry points live in two schemas and never mix:
+
+| Kind                    | Schema         | Caller                                   | Owner                   | EXECUTE         |
+| ----------------------- | -------------- | ---------------------------------------- | ----------------------- | --------------- |
+| Human entry point       | `tenant_guard` | a signed-in person, on their token       | `tenant_guard`, DEFINER | `authenticated` |
+| Worker entry point      | `tenant_guard` | the service key (jobs, webhooks, intake) | `tenant_guard`, DEFINER | `service_role`  |
+| Platform command        | `platform`     | a platform operator, on their token      | `postgres`, DEFINER     | `authenticated` |
+| Wrapper (one per entry) | `public`       | the same caller, through the Data API    | `postgres`, INVOKER     | that caller     |
+
+Signed-in users have USAGE on both schemas, so that a `public` invoker wrapper can reach the function it wraps, and EXECUTE on human entry points and platform commands only. `anon` has no USAGE on either.
+
+### What the guard role holds
+
+`tenant_guard` stays NOLOGIN, NOBYPASSRLS, NOSUPERUSER and NOINHERIT (contract item 7). It holds:
+
+- USAGE on schemas `public`, `tenant_guard` and `authz`;
+- EXECUTE on `authz.has_membership(uuid, authz.membership_role[])` and `authz.has_staff_membership(uuid, authz.staff_role[])`, and on the `tenant_guard` helpers below. `authz.is_super_admin()` is deliberately not granted: a command never takes a platform-role branch. Both membership helpers are SECURITY DEFINER functions owned by `postgres`, so they read `auth.uid()` as `postgres`, never as the guard. Since WP2a (AL-2675) it also holds EXECUTE on `authz.assignment_capabilities(uuid)`, which `begin_human_command(uuid, text)` calls to check the capability a command requires: an invoker owned by `postgres` that reads only `authz.memberships`, through the policy below, and names nothing in `auth`;
+- SELECT on `authz.memberships`, through the policy `tenant_guard_own_assignments`, which shows the guard only the session caller's own rows (`user_id = tenant_guard.caller_id()`; a worker call, with no session caller, sees none);
+- `SELECT, INSERT, UPDATE` on `public.workflow_work_claims`, through `tenant_guard_isolation`.
+
+It holds nothing on `auth`. On Supabase's own Postgres image `auth` belongs to `supabase_auth_admin`, and `postgres`, which runs the migrations and is not a superuser there, holds USAGE on it and EXECUTE on `auth.uid()` and `auth.jwt()` without the grant option: a `GRANT` of them to the guard only warns ("no privileges were granted") and grants nothing. That settled plan 15.2's row "Definer functions owned by a non-bypass role on hosted Supabase" with the fallback the plan names: a command reads the caller from the request's claims settings. `tenant_guard.caller_id()` reads them with the precedence and the result of the installed `auth.uid()` (the single-claim setting `request.jwt.claim.sub` first, then `sub` of the JSON setting `request.jwt.claims`, which is the one PostgREST sets; an empty or absent setting is NULL, a value that is not a UUID raises), and `tenant_guard.request_claims()` returns the claims as the installed `auth.jwt()` does, for a command that reads the assurance level or another claim. The platform operator check uses the same two helpers. Nothing in `tenant_guard` or `platform` may name `auth` (gate code `COMMAND_READS_AUTH`), and the policy above calls the guard's helper, not `auth.uid()`. The command-lane migration ends with a post-assert that raises unless the guard holds each `authz` privilege above, because a refused grant only warns and the migration would otherwise commit.
+
+### Function inventory and grant matrix
+
+EXECUTE besides the owner, on the migrated chain:
+
+| Function                                                                                                                                                 | Owner          | Security | EXECUTE         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------- | --------------- |
+| `tenant_guard.enter(uuid)`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.current_tenant_id()`                                                                                                                       | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.caller_id()`                                                                                                                               | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.request_claims()`                                                                                                                          | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.request_assignment_id()`                                                                                                                   | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.begin_human_command(uuid, text)`                                                                                                           | `postgres`     | INVOKER  | `tenant_guard`  |
+| `tenant_guard.resolve_command_assignment(uuid)`                                                                                                          | `tenant_guard` | DEFINER  | `authenticated` |
+| `tenant_guard.acquire_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`  |
+| `tenant_guard.release_workflow_work_claim(...)`                                                                                                          | `tenant_guard` | DEFINER  | `service_role`  |
+| `public.resolve_command_assignment(uuid)`                                                                                                                | `postgres`     | INVOKER  | `authenticated` |
+| `public.acquire_workflow_work_claim(...)`                                                                                                                | `postgres`     | INVOKER  | `service_role`  |
+| `public.release_workflow_work_claim(...)`                                                                                                                | `postgres`     | INVOKER  | `service_role`  |
+| `platform.health()`                                                                                                                                      | `postgres`     | DEFINER  | `service_role`  |
+| `public.platform_health()`                                                                                                                               | `postgres`     | INVOKER  | `service_role`  |
+| `platform.require_operator()`                                                                                                                            | `postgres`     | INVOKER  | none            |
+| `platform.caller_on_operator_list()`                                                                                                                     | `postgres`     | INVOKER  | none            |
+| `platform.environment_kind()`, `advance_environment(text)`, `record_migration_head(text, text)`, `holds_people_or_gifts()`, `guard_environment_marker()` | `postgres`     | INVOKER  | none            |
+
+`resolve_command_assignment` is the one human entry point so far. It exists so that one human command can be proved on a signed-in token; no application code calls it, and WP2b decides whether the organization chooser uses it or it is dropped. There is no platform command yet; WP3 ships the first.
+
+### Adding a human entry point
+
+In one forward migration:
+
+1. Create `tenant_guard.<command>(p_tenant_id uuid, ...) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''`. Its first statement is `v_ctx := tenant_guard.begin_human_command(p_tenant_id);` (or `PERFORM ...`), and the function's outer block has no `EXCEPTION` section: a handler that encloses the preamble could swallow its refusal.
+2. The preamble reads the caller from the session and the assignment from the request's `x-asym-assignment` header. It refuses with `42501` unless the named row is the caller's live row in that tenant, or, when no row is named, the caller holds exactly one live row there. Only then does it enter the tenant for the transaction. It returns `tenant_guard.command_context` (`actor_id`, `tenant_id`, `assignment_id`, `role`, `staff_role`). WP2a puts the capability check and the `revoked_at` test inside it and WP3 the tenant-status check, so a command relies on the preamble for those and repeats none of them.
+
+   A human command called with no `x-asym-assignment` header refuses a person who holds more than one live row in the tenant, whatever the classes: the preamble counts every live row there, while the application's resolver counts only the rows of the surface's class. The seeded demo owner, with a staff, a donor and a missionary row in the demo tenant, is such a person. The request names its row with `x-asym-assignment`, which every page request does from WP2b's first release. (PR #2720 review; pinned in `tests/unit/acceptance/issue-2675/membership-core.realstack.acceptance.test.ts`.)
+
+3. The command writes only in the tenant it passed to the preamble, and takes its actor and assignment from the context the preamble returns, never from another argument. It never calls `tenant_guard.enter` itself (which refuses a second tenant in one transaction anyway).
+4. Grant `tenant_guard` the least table privilege the command needs, with a `tenant_guard_isolation` policy on each table it touches ("Adding a guarded function", steps 2 and 3).
+5. `REVOKE ALL ON FUNCTION ... FROM PUBLIC, anon, authenticated, service_role`, then `GRANT EXECUTE ... TO authenticated`. Change the owner in three steps: `GRANT CREATE ON SCHEMA tenant_guard TO tenant_guard`, `ALTER FUNCTION ... OWNER TO tenant_guard`, `REVOKE CREATE ON SCHEMA tenant_guard FROM tenant_guard`.
+6. Add its `public` wrapper (below), with EXECUTE for `authenticated` only.
+
+### Worker entry points
+
+A worker entry point is executable by `service_role` only; signed-in and anonymous users cannot call it. It derives its tenant from a stored anchor (plan 5.4): a `public` invoker wrapper that only the service key may call finds the tenant from the anchor it is given (the provider event's account, the gift, the publish intent, the import batch, or the Site or donor-portal host record for intake), takes no tenant from its caller and writes nothing; the guard function enters that tenant, reads the anchor again under the guard's policy and refuses if the two disagree. Owner change and revokes as for a human entry point, with `GRANT EXECUTE ... TO service_role`. The workflow claim pair (P1) is a worker entry point by its grants but predates this rule: it enters the `p_tenant_id` its caller passes.
+
+### Platform commands
+
+Commands that cross tenants or act before a tenant exists (provisioning, tenant status, support grants, an administrator invitation for a tenant that has none, a domain's attachment steps, the tenant export) live in `platform`:
+
+```sql
+CREATE FUNCTION platform.<command>(...) RETURNS jsonb
+  LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+  DECLARE
+    v_operator uuid := platform.require_operator();
+  BEGIN
+    ...
+  END $$;
+```
+
+The operator check initialises a variable in the function's outer `DECLARE` section, where no handler of the function can catch its refusal. It refuses with `42501` a call with no signed-in caller, a caller not on the operator list, or a session without a second factor (`aal2`). Until WP2c supplies the list, `platform.caller_on_operator_list()` returns false, so every platform command refuses everyone. Each command is owned by `postgres`, revokes `ALL` from `PUBLIC`, `anon`, `authenticated` and `service_role`, grants EXECUTE to `authenticated`, and has a `public` wrapper with EXECUTE for `authenticated` only.
+
+### `public` wrappers
+
+The Data API exposes only `public`, so every entry point and platform command is reached through a wrapper there. A function outside `tenant_guard` and `platform` that calls into either schema is a wrapper, and it:
+
+- is SECURITY INVOKER, owned by `postgres`. A definer wrapper would run the call with its owner's rights and hand the entry point to whoever may call the wrapper;
+- has `SET search_path = ''` (the gate accepts any set path that does not name `"$user"`);
+- gives no EXECUTE to `PUBLIC` or `anon`;
+- gives EXECUTE to `authenticated` only when every function it calls is a human entry point or a platform command, and otherwise to `service_role` only.
+
+### Tests a package still touches
+
+A package that adds a human entry point, a worker entry point or a platform command by the steps above, with the table privilege and guard policy each needs, edits no existing test. The real-stack suites derive the command inventory from the catalog: `issue-2250` asserts each function in `tenant_guard`, and each `public` wrapper into it, by its lane (owner, definer or invoker, search path, exact grantees for that lane) and each of the guard's table privileges by the policy that admits it; the `issue-2674` command-lane suite requires what signed-in users may execute in `tenant_guard` and `platform` to equal what follows each lane's convention, and calls every other function there as a signed-in user; its catalog-gate suite compares the gate's counts with the catalog. A package still edits:
+
+- criterion 17 of `tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts` ("everything else granted to tenant_guard") when it widens what the guard role may use or execute outside its own functions and its tables: USAGE on another schema, EXECUTE on another helper (an `authz` function, say), or a new signature for a `tenant_guard` helper. That list is the guard's reach outside its tables and stays exact on purpose;
+- the same file's rows for #2250's own four functions, or proof 1 of the command-lane suite, when it changes the workflow claim pair or `tenant_guard.resolve_command_assignment` (WP2b may drop the latter, and then drops proof 1 with it);
+- the inventory table above, which records WP1's functions.
 
 ## Paths that must use the guard later
 
@@ -212,9 +313,35 @@ It fails with a stable code when:
 - a tenant table has no policy and is not in `docs/security/rls-deny-by-default-exceptions.json` (`NO_POLICY_UNLISTED`);
 - a listed table has gained a policy, no longer exists, or no longer has `tenant_id` (`STALE_HAS_POLICY`, `STALE_MISSING_TABLE`, `STALE_NOT_TENANT`);
 - the list is missing, is not JSON, repeats a table or has an entry without `table` (`EXCEPTIONS_MALFORMED`);
-- a tenant table's owner, or the owner of a SECURITY DEFINER function in `public`, `authz`, `document_cutover` or `private`, has neither `rolsuper` nor `rolbypassrls` (`OWNER_NO_BYPASS`, `DEFINER_OWNER_NO_BYPASS`). `tenant_guard`-owned functions are exempt. This re-checks the owner invariant above on every PR, on top of #2251's one-time precondition.
+- a tenant table's owner, or the owner of a SECURITY DEFINER function in `public`, `authz`, `document_cutover`, `private`, `tenant_guard` or `platform`, has neither `rolsuper` nor `rolbypassrls` (`OWNER_NO_BYPASS`, `DEFINER_OWNER_NO_BYPASS`). Functions `tenant_guard` owns in the `tenant_guard` schema are exempt, and nowhere else. This re-checks the owner invariant above on every PR, on top of #2251's one-time precondition.
 
-To comply, follow "Adding a tenant table" above. The `migrate` job step `Verify RLS catalog gate (real stack)` runs `tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts` against the migrated database, with `TENANT_GUARD_IT_ADMIN_DATABASE_URL` set from `DATABASE_URL`. It plants each violation in a rolled-back transaction and checks the gate names it.
+Since AL-2674 it also fails, for the command lane and the privileges of `public`:
+
+- `tenant_guard` owns a function outside the `tenant_guard` schema, in any schema, definer or not (`GUARD_OWNED_OUTSIDE_SCHEMA`);
+- a SECURITY DEFINER function in `platform` is not owned by `postgres` (`PLATFORM_DEFINER_OWNER`);
+- a SECURITY DEFINER function in those six schemas has no `search_path` setting (`DEFINER_SEARCH_PATH_UNSET`), or has one that is not exactly empty in `tenant_guard` or `platform`, or that names `"$user"` elsewhere (`DEFINER_SEARCH_PATH_UNSAFE`);
+- `PUBLIC` may execute one (`DEFINER_PUBLIC_EXECUTE`), or `anon` may execute one that is not in `docs/security/anon-definer-allowlist.json` (`DEFINER_ANON_EXECUTE`); that list is malformed (`ANON_ALLOWLIST_MALFORMED`), names a function that is no longer a definer (`ANON_ALLOWLIST_STALE`), or names one that is volatile or has a non-empty search path (`ANON_ALLOWLISTED_UNSAFE`);
+- `PUBLIC` or `anon` may execute any function in `tenant_guard` or `platform` (`COMMAND_PUBLIC_EXECUTE`), or both `authenticated` and `service_role` may execute one there (`COMMAND_LANE_MIXED`);
+- a function in `tenant_guard` or `platform` names the `auth` schema, outside a comment (`COMMAND_READS_AUTH`): the guard holds nothing on `auth`, and reads the caller and the claims through `tenant_guard.caller_id()` and `tenant_guard.request_claims()` ("What the guard role holds");
+- a `tenant_guard` function `authenticated` may execute is not a PL/pgSQL SECURITY DEFINER owned by `tenant_guard` whose first statement calls `tenant_guard.begin_human_command(...)` and ends right after the call's closing parenthesis, outside any `EXCEPTION` section of its outer block (`COMMAND_HUMAN_NO_PREAMBLE`). `PERFORM tenant_guard.begin_human_command(p) WHERE false`, which never calls it, fails;
+- a `platform` function `authenticated` may execute is not a PL/pgSQL SECURITY DEFINER whose outer `DECLARE` section initialises a variable with an initialiser that ends right after `platform.require_operator()` (`PLATFORM_COMMAND_NO_OPERATOR_CHECK`). Both lane checks read the body with comments and string contents removed;
+- a function outside the command schemas that calls into one is SECURITY DEFINER (`WRAPPER_DEFINER`), has no fixed search path (`WRAPPER_SEARCH_PATH`), lets `PUBLIC` or `anon` execute it (`WRAPPER_PUBLIC_EXECUTE`), or lets `authenticated` execute it while it calls a function that is not a human entry point or a platform command (`WRAPPER_GRANTS_WORKER`). "Calls into one" means that its text, with comments removed and string literals kept, names `tenant_guard.` or `platform.` as a qualifier: a call written out in dynamic SQL counts, and so does a name no call in it parses (a call the function assembles, a `regproc`), which is held to the first three rules though its targets are unknown. A name that appears only in a comment does not count, and neither does a comment inside a qualified name (`tenant_guard/**/.x(...)` is read as a call);
+- a function outside the command schemas has `tenant_guard` or `platform` on its search path, which would let it call into them unqualified (`COMMAND_SCHEMA_ON_SEARCH_PATH`);
+- in `public`, `PUBLIC` holds any privilege on a relation or one of its columns (`GRANT_TO_PUBLIC`), `anon` or `authenticated` holds `TRUNCATE`, `REFERENCES`, `TRIGGER` or `MAINTAIN` (`GRANT_UNSAFE_PRIVILEGE`), holds any privilege on a view, materialized view or foreign table, which row security does not bind (`GRANT_ON_VIEW`), or holds a table or column `SELECT`, `INSERT`, `UPDATE` or `DELETE` that no row-security policy admits for that role and command (`GRANT_WITHOUT_POLICY`). The table-level part is the end state that `20261117034926_close_default_privileges_and_demo_grants.sql` asserted once, kept on every chain; council round 2 added views and column grants. The two columns of `missionaries` that signed-in users may read are a column grant with a policy, and pass. New objects in `public` get no default grant, so each migration grants what it needs.
+
+Wherever the gate reads a function's text, it reads `prosrc` together with `pg_get_function_sqlbody`, so a SQL-standard body (`BEGIN ATOMIC ... END`, or `RETURN ...`), whose `prosrc` is empty, is read too. The deparse qualifies a name that the gate's session cannot see unqualified; `tenant_guard` and `platform` are never on that session's search path.
+
+The gate reads function text with a scanner, not a parser. The lane checks blank every quoted identifier first, so a quoted `"begin ..."`, `"end"` or `"case"` can neither fake the start of a body nor hide an outer `EXCEPTION` section. These deliberate defeats remain known limits:
+
+1. An unquoted `begin` used as a label or alias, which the lane check can take for the start of the body.
+2. In a platform command, an initialiser that compares with the operator check after a constant that decides the result (`v boolean := false AND 1 = platform.require_operator();`), which the planner folds away without calling it.
+3. Two hops: a function outside the command schemas that calls a `public` wrapper (`public.acquire_workflow_work_claim(...)`) names no command schema, so the wrapper rules do not see it. A `postgres`-owned definer written so could hand a worker entry point to signed-in users, where `postgres` reaches the guard function (a superuser in CI; on hosted Supabase, through any role it holds).
+4. A command schema's name assembled at run time, such as `format('%I.%I', 'tenant' || '_guard', v)`, which the function's text never names as a qualifier.
+5. A search path set at run time: the search-path rule reads only the function's own `search_path` setting, so `set_config('search_path', 'tenant_guard', true)` followed by an unqualified call is not seen.
+
+Each needs a function written on purpose to fool the gate, and every one of them, but the label in limit 1, needs a `postgres`-owned definer, which is all-powerful already. Code review of the migration stays the control for them. Council round 3 closed three more of this kind: a call no scanner reads (now held to the wrapper rules), a comment inside a qualified name, and a quoted identifier that unbalanced the lane check.
+
+To comply, follow "Adding a tenant table" and "Command lane" above. The `migrate` job step `Verify RLS catalog gate (real stack)` runs `tests/unit/acceptance/issue-2253/rls-catalog-gate.realstack.acceptance.test.ts` against the migrated database, with `TENANT_GUARD_IT_ADMIN_DATABASE_URL` set from `DATABASE_URL`. It plants each violation in a rolled-back transaction and checks the gate names it.
 
 ### Service-role client gate
 

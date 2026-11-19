@@ -105,7 +105,18 @@ describe("getAuthContext E2E bypass", () => {
     expect(ctx.isAuthenticated).toBe(true);
     expect(ctx.userId).toBe("e2e-donor-user");
     expect(ctx.role).toBe("donor");
-    expect(ctx.profileRole).toBe("donor");
+    // AL-2675: a bypass identity acts under a membership built from its
+    // cookie's role; the context has no profile role at all.
+    expect("profileRole" in ctx).toBe(false);
+    expect(ctx.memberships).toEqual([
+      {
+        tenantId: DEMO_TENANT_ID,
+        role: "donor",
+        staffRole: null,
+        isActive: true,
+        isTenantAdmin: false,
+      },
+    ]);
     expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
     expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
@@ -318,10 +329,11 @@ describe("getAuthContext E2E bypass", () => {
       tenantId: "00000000-0000-0000-0000-000000000099",
     });
 
+    const realUser = "00000000-0000-4000-8000-0000000000a1";
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: "real-supabase-user" } },
+          data: { user: { id: realUser } },
         }),
       },
       from: () => ({
@@ -329,17 +341,31 @@ describe("getAuthContext E2E bypass", () => {
           eq: () => ({
             single: () =>
               Promise.resolve({
-                data: {
-                  id: "profile-real",
-                  tenant_id: "00000000-0000-0000-0000-000000000001",
-                  role: "staff",
-                },
+                data: { id: "profile-real" },
               }),
           }),
         }),
       }),
-      rpc: () => Promise.resolve({ data: [], error: null }),
+      rpc: () =>
+        Promise.resolve({
+          data: [
+            {
+              id: "00000000-0000-4000-8000-000000000101",
+              user_id: realUser,
+              tenant_id: "00000000-0000-0000-0000-000000000001",
+              role: "staff",
+              staff_role: "development",
+              is_tenant_admin: false,
+              updated_at: "2026-11-17T09:00:00.000000+00:00",
+            },
+          ],
+          error: null,
+        }),
     });
+    const { headers } = await import("next/headers");
+    vi.mocked(headers).mockResolvedValue({
+      get: (name: string) => (name === "x-asym-role-class" ? "staff" : null),
+    } as never);
 
     const { cookies } = await import("next/headers");
     vi.mocked(cookies).mockResolvedValue({
@@ -352,7 +378,7 @@ describe("getAuthContext E2E bypass", () => {
     const { getAuthContext } = await import("./context");
     const ctx = await getAuthContext();
 
-    expect(ctx.userId).toBe("real-supabase-user");
+    expect(ctx.userId).toBe(realUser);
     expect(ctx.profileId).toBe("profile-real");
     expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
     expect(ctx.role).toBe("staff");

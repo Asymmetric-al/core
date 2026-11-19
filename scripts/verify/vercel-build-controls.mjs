@@ -236,9 +236,10 @@ export function validateLocalVercelConfig({ project, config }) {
     checks,
     branchGate?.["*"] === false &&
       branchGate?.develop === false &&
-      branchGate?.production === true &&
+      // Production deploys only through the release job (plan 7.4).
+      branchGate?.production === false &&
       branchGate?.main === false,
-    `${project.key} vercel.json branch deployment gate preserved`,
+    `${project.key} vercel.json branch deployment gate disables every Git deployment`,
     JSON.stringify(branchGate ?? null),
   );
 

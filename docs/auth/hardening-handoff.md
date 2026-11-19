@@ -103,8 +103,9 @@ Implemented artifacts:
 
 Rollout runbook (hosted):
 
-1. Apply migrations (repo standard):
-   - `bun run db:migrate:hosted`
+1. Apply migrations (repo standard): through the release job only, a push to
+   `production` or the Release workflow's dispatched `release` operation
+   (`docs/ops/release-job.md`). `bun run db:migrate:hosted` now refuses.
 2. Verify role integrity:
    - ensure no invalid/null roles remain
    - ensure `profiles_role_check` exists

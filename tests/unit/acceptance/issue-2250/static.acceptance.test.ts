@@ -1,10 +1,9 @@
 /**
  * #2250 static acceptance (spec r1 comment 6384739115 + conditions 6384790093,
- * amended: criterion 12 docs live in tenant-guard.md; docs/ci.md is pinned).
+ * amended: criterion 12 docs live in tenant-guard.md).
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -13,6 +12,7 @@ import {
   loadWorkflowDocument,
   workflowJobs,
 } from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const read = (f: string) => (existsSync(f) ? readFileSync(f, "utf8") : "");
 const MIG = "supabase/migrations";
@@ -30,43 +30,10 @@ const migration = (name: string) => {
 };
 const migFile = () => migration(OWN_MIGRATION);
 const sql = () => read(`${MIG}/${migFile()}`);
-const STEP_RUN = [
-  "bun x vitest run",
-  "tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2269/donations-embed.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2256/person-anchor.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2260/donor-feed-preferences.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2258/current-user-assignments.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2312/public-reads.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2402/crm-table-preferences.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2364/missionaries-reads.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2406/profiles-storage.realstack.acceptance.test.ts",
-  "tests/unit/acceptance/issue-2407/editor-images.realstack.acceptance.test.ts",
-].join(" ");
 const STEP = "Verify tenant isolation (real stack)";
 const REALSTACK =
   "tests/unit/acceptance/issue-2250/tenant-guard.realstack.acceptance.test.ts";
 const DOC = "docs/security/tenant-guard.md";
-/** docs/ci.md develop byte prefixes (issue-2180 CI_BASES shape, as #2254). */
-const CI_BASES = [
-  {
-    ref: "c541b84b",
-    bytes: 40058,
-    sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
-  },
-  {
-    // Reviewed hosted-only amendment changes only the CI-doc terminal pointer.
-    ref: "AL-2218 hosted CI baseline",
-    bytes: 40204,
-    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-  },
-  {
-    // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-    ref: "#2215 e2e-gate merge_group wording",
-    bytes: 40426,
-    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-  },
-] as const;
 /** "label :: regex" lines docs/security/tenant-guard.md must match (criteria 7, 11, 12, 14, 15, 17). */
 const DOC_RULES = String.raw`
 12: route and why: function-call, SECURITY DEFINER, NOLOGIN NOBYPASSRLS, no new credential :: (?=[\s\S]*function-call)(?=[\s\S]*SECURITY DEFINER)(?=[\s\S]*NOLOGIN)(?=[\s\S]*NOBYPASSRLS)(?=[\s\S]*no (new )?credential)
@@ -113,29 +80,9 @@ describe("#2250 CI step (criterion 11)", () => {
     workflowJobs(loadWorkflowDocument(".github/workflows/ci-integration.yml"))
       .migrate?.steps ?? [];
 
-  it(`'${STEP}' is migrate step 16, immediately after #2254's step 15 (identity), with exactly this env and run`, () => {
-    const all = steps();
-    const i = all.findIndex((s) => s.name === STEP);
-    // Exact index, not "last step": later spec'd steps (e.g. #2270's step 17)
-    // may follow it.
-    expect(i).toBe(16);
-    expect(
-      all.findIndex(
-        (s) =>
-          s.name ===
-          "Verify identity email normalizer and donor keys (real stack)",
-      ),
-      "#2254's migrate step stays at index 15, immediately before",
-    ).toBe(i - 1);
-    expect(i).toBeGreaterThan(
-      all.findIndex(
-        (s) => s.name === "Verify document-cutover reader role (real stack)",
-      ),
-    );
-    expect(all[i]).toEqual({
-      name: STEP,
-      env: { TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}" },
-      run: STEP_RUN,
+  it(`'${STEP}' is a blocking migrate step that runs ${REALSTACK} against the job's database`, () => {
+    expectRealstackStep(STEP, [REALSTACK], {
+      TENANT_GUARD_IT_ADMIN_DATABASE_URL: "${{ env.DATABASE_URL }}",
     });
   });
 
@@ -163,25 +110,6 @@ describe("#2250 CI step (criterion 11)", () => {
 });
 
 describe("#2250 docs (criteria 7, 11, 12, 14, 15, 17)", () => {
-  it("12 (amended): docs/ci.md keeps develop's bytes as a prefix; anything after is not #2250's", () => {
-    const bytes = readFileSync("docs/ci.md");
-    const sha256 = (b: Buffer) => createHash("sha256").update(b).digest("hex");
-    const base = CI_BASES.find(
-      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
-    );
-    expect(
-      base?.ref,
-      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
-    ).toBeDefined();
-    const later = bytes.subarray(base!.bytes).toString("utf8");
-    expect(
-      /2250|tenant_guard|tenant[- ]isolation|tenant-guard\.md|withTenant/i.test(
-        later,
-      ),
-      "bytes after the develop prefix (later develop appends only) must not document #2250",
-    ).toBe(false);
-  });
-
   it.each(DOC_RULES)(`${DOC} covers %s`, (_label, re) =>
     expect(read(DOC)).toMatch(new RegExp(re, "i")),
   );

@@ -2,6 +2,12 @@
  * #492 shared fixtures (spec r1, issue comment 6386501770; approved in
  * 6386521560). Owned by Acceptance. Modules are imported lazily so each test
  * fails for its own reason while the slice is missing.
+ *
+ * Amended by AL-2675 (WP2a; plan 5.1, 5.4; ADR-0210 amendment of
+ * 2026-11-17): ten new capabilities with their default holders, one bundle
+ * per staff sub-role (B05), the tenant administrator's bundle, and
+ * `platform_admin` retired: its contribution-settings bundle moves to
+ * `tenant_admin`, and approving a widening has no holder until Phase 12.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
@@ -33,7 +39,13 @@ export const [VIEW, PROPOSE, APPROVE] = words(
   "permissions.view permissions.propose_widening permissions.approve_widening",
 ) as [string, string, string];
 export const PERMS = [VIEW, PROPOSE, APPROVE];
-export const ALL = [...CONTRIB, ...STAFF, ...PERMS];
+/** AL-2675: plan 5.4's new capabilities. */
+export const STAFF_CONTENT = words("web_studio.edit updates.review");
+export const TENANT_ADMINISTRATION = words(`people.manage_members people.erase
+  sites.manage payments.manage_account web_studio.publish
+  safety.restrict_publication imports.commit`);
+export const NEW = [...STAFF_CONTENT, ...TENANT_ADMINISTRATION, "care.access"];
+export const ALL = [...CONTRIB, ...STAFF, ...PERMS, ...NEW];
 export const SUBROLES = words("finance mobilizer development hr member_care");
 export const CODES = words(`missing_context foreign_tenant inactive_source
   multiple_assignments unknown_subject tenant_overrides_dormant`);
@@ -45,6 +57,16 @@ export const BUNDLES: Record<string, string[]> = {
   finance_staff: CONTRIB.slice(0, 6),
   finance_approver: CONTRIB.slice(0, 9),
   contribution_admin: CONTRIB,
+  staff_finance: [...STAFF_CONTENT, ...CONTRIB.slice(0, 6)],
+  staff_mobilizer: [...STAFF_CONTENT, ...CONTRIB.slice(0, 3)],
+  staff_development: [
+    ...STAFF_CONTENT,
+    ...CONTRIB.slice(0, 3),
+    "web_studio.publish",
+  ],
+  staff_hr: [...STAFF_CONTENT, ...CONTRIB.slice(0, 3)],
+  staff_member_care: [...STAFF_CONTENT, ...CONTRIB.slice(0, 3), "care.access"],
+  tenant_administration: TENANT_ADMINISTRATION,
   permissions_viewer: [VIEW],
   permissions_proposer: [VIEW, PROPOSE],
   permissions_approver: PERMS,
@@ -53,13 +75,14 @@ export const DEFAULTS: Record<string, string[]> = {
   "member:donor": [],
   "member:missionary": [],
   ...Object.fromEntries(
-    SUBROLES.map((s) => [
-      `staff:${s}`,
-      ["staff_base", s === "finance" ? "finance_staff" : "donor_care"],
-    ]),
+    SUBROLES.map((s) => [`staff:${s}`, ["staff_base", `staff_${s}`]]),
   ),
-  tenant_admin: ["staff_base", "finance_approver", "permissions_proposer"],
-  platform_admin: ["staff_base", "contribution_admin", "permissions_approver"],
+  tenant_admin: [
+    "staff_base",
+    "contribution_admin",
+    "permissions_proposer",
+    "tenant_administration",
+  ],
 };
 export const SUBJECTS = Object.keys(DEFAULTS);
 export const expected = (subject: string) =>

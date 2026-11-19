@@ -1,6 +1,100 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-11-17
+Last updated: 2026-11-18
+
+## Next.js skill import - 2026-11-18 (AL-2713)
+
+Imported the three official Next.js skills that Core lacked, so all six skills
+the Next.js AI-agents guide names are installed:
+`next-partial-prefetching-optimizer`, `next-partial-prefetching-adoption` and
+`next-bundle-optimizer`. The source is `vercel/next.js` tag `v16.4.5`
+(`4e5335a00314be7fbb2aace5e9be56a88e64e5a8`), which matches the `next@16.4.5`
+installed in every app. `skills@1.5.7` staged each skill from a sparse local
+checkout of that commit in a scratch directory; each staged tree is
+byte-identical to the checkout. All files are mode 100644 and the import ran
+no upstream code. The three skills already installed from `684cf7ea` are
+file-for-file identical to the same tag, so all six now match the installed
+release; they were not refreshed.
+
+| Skill                              | Upstream tree | Raw `SKILL.md` / lock hash                                         | Core overlay |
+| ---------------------------------- | ------------- | ------------------------------------------------------------------ | ------------ |
+| next-partial-prefetching-optimizer | `a3818456`    | `876634c57c5cfbace95edcbe6c7e9bdea199fa53c09cd177990dc936876db345` | none         |
+| next-partial-prefetching-adoption  | `ae20d672`    | `258989169e683a33512ce0c7078314a82cd0ad6aa721f0207753773088d8902b` | yes          |
+| next-bundle-optimizer              | `cbd1253f`    | `250f8c9a2ee0934c8d572cd3869e29f085c11ae9bb444181b08b2f67770bfb2c` | yes          |
+
+The installed `next-cache-components-optimizer` hands off to
+`next-partial-prefetching-optimizer`, and `next-cache-components-adoption`
+names `next-partial-prefetching-adoption` as its follow-up; both now resolve
+to installed skills. The adoption overlay records that every app already runs
+`partialPrefetching: true` and rules out the skill's unpinned
+`@next/codemod@latest` and `@canary` commands, `npx skills add` from `canary`,
+`--force` and `git stash`. The bundle overlay limits `next analyze` to the
+three Turbopack apps (`apps/factory-console` builds with webpack), maps its
+`pnpm` commands to Bun, and keeps analyzer output out of the repository. No
+upstream sentence was edited. All three stay model-invocable, like the other
+three Next.js skills: the bundle optimizer defaults to audit mode, and the
+other two act only on a named navigation or on a Partial Prefetching task.
+
+The Skills CLI wrote `local` lock entries with the scratch path and its folder
+hash. The lock instead records the GitHub source, upstream path and raw
+`SKILL.md` hash, the same form as the other `vercel/next.js` entries. Counts
+moved from 237 to 240 runtime skills per client and from 197 to 200 lock
+entries.
+
+## Agent guidance modernization - 2026-11-17 (AL-2695)
+
+### Retired skills
+
+Removed seven installed skills from their sources, the three runtime mirrors,
+the skills lock and the source audit together. `mattpocock/skills` deleted six
+of them in `c66bdeee` (2026-08-05). Its changeset names the replacements, all
+already canonical in Core: `ubiquitous-language` became `domain-modeling`;
+`design-an-interface` became `codebase-design`, whose `DESIGN-IT-TWICE.md`
+carries the technique; `qa` became `triage` and `to-tickets`;
+`request-refactor-plan` became `to-spec` and `improve-codebase-architecture`.
+`edit-article` and `obsidian-vault` were the author's personal skills, and
+`obsidian-vault` hardcoded his vault path while being model-invocable. `qa` and
+`request-refactor-plan` also filed GitHub issues without Core's required
+labels. `tailwind-v4-shadcn` (jezweb, upstream path discontinued) taught pnpm,
+Vite and a slate base, and had no licence file; use `tailwind-design-system`,
+the official `shadcn` skill and `docs/ai/rules/frontend.md`.
+
+The `domain-model` alias now points only at `domain-modeling`. Counts moved
+from 188 to 182 canonical skills, 244 to 237 runtime skills per client, 203 to
+197 lock entries and 12 to 5 retained snapshots. The last commit containing the
+payloads is `4ab4054c8`. `writing-great-skills`,
+`resolving-merge-conflicts`, `create-agent`, `redesign-existing-projects` and
+`emil-design-engineering` remain kept snapshots. Earlier entries below still
+name the retired skills; they are history.
+
+| Skill                 | Source                                                             | Historical path                                    | Last lock hash                                                     | Last installed tree hash                                           |
+| --------------------- | ------------------------------------------------------------------ | -------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| design-an-interface   | mattpocock/skills                                                  | `skills/deprecated/design-an-interface/SKILL.md`   | `f3f225914515407b8224e8ec6187db337c5e65bad0703936a0acb3f802947a7d` | `edcaa2f63a29d74189803e799a4ed88a2c5a85bfe0611aa95d9fbd1892cddf3c` |
+| edit-article          | mattpocock/skills                                                  | `skills/personal/edit-article/SKILL.md`            | `9a96975e2eaf1ce5c69c14429aea7d2039e2f6f5a73938520b653de84841d9e3` | `bcb1bf9ddd38271f6c63561985af16b44b861443841d4ade0d839cced9d09cd8` |
+| obsidian-vault        | mattpocock/skills                                                  | `skills/personal/obsidian-vault/SKILL.md`          | `a5dd44e7af2bfeb2cb2e3f421fdccef62dd334038ad06e18767b0ddcf0e75c13` | `6e17a91ad4ee6beb567fd348840e462a743f8e19dadd7667ed0ef67db0a35b31` |
+| qa                    | mattpocock/skills                                                  | `skills/deprecated/qa/SKILL.md`                    | `a608d889794ef7f21a5dd31d96ca502b5e6f27b466ada759a3bf9846a2e6b236` | `74722ab2538bb68efadfe384884b6c29719655e7b784d0b1d8ab63c5c977ebd7` |
+| request-refactor-plan | mattpocock/skills                                                  | `skills/deprecated/request-refactor-plan/SKILL.md` | `6811250488d1dafcb111e7ef0dc1124211369c5f6f47ce820b7527c255489178` | `ec2263c71249780b13ad7d6b0448501ed4bf5442172cd7a8433e1ca0cc4ac316` |
+| ubiquitous-language   | mattpocock/skills                                                  | `skills/deprecated/ubiquitous-language/SKILL.md`   | `4828c4957014e7d9c1fd62d65e92264d6d46808089953e14d1bbba5a92dfff4d` | `e202eaefed2ce3bdf0ae2a2f813fd72b4d76a7d703721ab82ec33de229bf230b` |
+| tailwind-v4-shadcn    | jezweb/claude-skills at `10a1f16679a5aab8e0c2f4d04e8560402f34d04b` | `skills/tailwind-v4-shadcn/SKILL.md`               | none (not lock-managed)                                            | `428d57afc3eb8e9ddcd79ba8319c5fab02f9b5086a89bed3c6e54f5c96c16e25` |
+
+### UI SDK alongside Base UI
+
+Core now approves UI SDK alongside Base UI for shared components. The `ui-sdk`
+description, Core note and overlay say to reuse existing `@asym/ui` components
+first, to choose UI SDK for a concrete benefit, and that its implementation
+rules apply to UI SDK code only. The upstream body and references are
+unchanged, so the lock hash and the byte-match check against the installed
+package still hold. `moai-library-shadcn` and `components-build` point at
+"Choosing a library" in `packages/ui/AGENTS.md`. The 2026-11-14 import entry
+below describes the earlier gaps-only wording and stays as history.
+
+### Next.js function names
+
+`nextjs-app-architecture` printed `unstable_prefetch()` and
+`unstable_navigation()`. Next.js 16.4.0 renamed them and the installed 16.4.5
+exports only `prefetch()` and `navigation()` from `next/cache`. Core's copy now
+uses the installed names. Upstream at the reviewed pin has not changed, so this
+is a Core adaptation recorded in that skill's `references/upstream.md`.
 
 ## OpenSpec skill refresh to v2.1.0 - 2026-11-17 (AL-2693)
 
@@ -770,9 +864,24 @@ bun run skills:sync
 bun run skills:verify
 ```
 
-For a failed upstream refresh, revert the changed canonical skill directories,
-`skills-lock.json`, `AGENTS.md`, `README.md`, and `docs/AI_AGENT_PLAYBOOK.md`,
-then rerun `bun run skills:sync`.
+For a failed upstream refresh, restore the changed inputs together to their
+pre-refresh state. Use any recovery copies reported by an incomplete rollback.
+For paths still needing recovery, use the prior commit only if those paths
+were clean before the refresh. If pre-refresh edits are missing and no copy
+contains them, stop before syncing and recover those edits separately.
+
+The restore set includes changed canonical skill directories under
+`docs/ai/skills/`, ecosystem skill directories under `.agents/skills/`,
+`skills-lock.json`, `docs/ai/skill-source-audit.json`, and any changed adapter
+configs, including `scripts/refresh-overlays/ecosystem-core-overlays.json`
+and `scripts/refresh-overlays/ecosystem-core-guidance.json`. It also includes
+changed companion files such as `AGENTS.md`, `README.md`, and
+`docs/AI_AGENT_PLAYBOOK.md`.
+
+Once the inputs agree, run `bun run skills:sync` and `bun run skills:verify`.
+Sync rebuilds the `.claude/skills/` and `.cursor/skills/` mirrors from those
+inputs. See [Recovery and future refresh](#recovery-and-future-refresh) for
+the transactional rule.
 
 ## 2026-10-22 — Payload public-v4 adapters
 

@@ -1,4 +1,17 @@
-/** #492 done criteria 4, 5: parity with the incumbent resolvers (spec r1). Owned by Acceptance. */
+/** #492 done criteria 4, 5: parity with the incumbent resolvers (spec r1). Owned by Acceptance.
+ * Amended by AL-2675 (WP2a): `platform_admin` is retired with `super_admin`, and
+ * the incumbent table gives an administrator the contribution-settings set the
+ * registry's `tenant_admin` now holds. The WP2a sweep (AL-2675) retired the
+ * incumbent table: `resolveContributionCapabilities` reads the registry by the
+ * one selected membership. Criterion 4 therefore pins that the contribution
+ * projection of each selected row equals its registry subject's, and the
+ * administrator fixture is the flagged staff row (a role name alone resolves
+ * nothing), so the comparison stays exact per fixture.
+ * Amended by AL-2675 (council round 1 on WP2a, F12): `STAFF_SUBROLE_CAPABILITIES`
+ * is retired, because nothing but tests used it and plan 5.1 allows one
+ * capability vocabulary. Criterion 5 compares each sub-role's `staff_base`
+ * projection with the incumbent set itself, the harness's `STAFF` (the four
+ * `admin.*` capabilities the map gave every sub-role), as strictly as before. */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -14,13 +27,18 @@ import {
   sorted,
 } from "./harness";
 import { resolveContributionCapabilities } from "../../../../packages/api/src/admin/contribution-operations/permissions";
-import { STAFF_SUBROLE_CAPABILITIES } from "../../../../packages/auth/permissions";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
 
 type Membership = AuthenticatedContext["memberships"][number];
 const m = (role: string, staffRole: string | null = null) =>
-  ({ tenantId: T, role, staffRole, isActive: true }) as Membership;
+  ({
+    tenantId: T,
+    role,
+    staffRole,
+    isActive: true,
+    isTenantAdmin: false,
+  }) as Membership;
 const auth = (
   role: AuthenticatedContext["role"],
   ...memberships: Membership[]
@@ -31,7 +49,6 @@ const auth = (
     tenantId: T,
     profileId: "p",
     role,
-    profileRole: role,
     memberships,
     isAuthenticated: true,
   }) as AuthenticatedContext;
@@ -43,8 +60,11 @@ const FIXTURES: [string, AuthenticatedContext, string][] = [
     auth("staff", m("staff", s)),
     `staff:${s}`,
   ]),
-  ["profileRole admin", auth("admin"), "tenant_admin"],
-  ["profileRole super_admin", auth("super_admin"), "platform_admin"],
+  [
+    "tenant administrator (flagged staff row)",
+    auth("admin", { ...m("staff", "development"), isTenantAdmin: true }),
+    "tenant_admin",
+  ],
   ["donor", auth("donor", m("donor")), "member:donor"],
   ["missionary", auth("missionary", m("missionary")), "member:missionary"],
 ];
@@ -66,15 +86,12 @@ describe("#492 criterion 4: contribution parity for single-hat fixtures", () => 
   });
 });
 
-describe("#492 criterion 5: staff_base parity with STAFF_SUBROLE_CAPABILITIES", () => {
+describe("#492 criterion 5: staff_base parity with the incumbent staff set", () => {
   it.each(SUBROLES)("criterion 5: staff:%s", async (s) => {
     const { CAPABILITY_BUNDLES: B } = await load("bundles");
     const mine = (await resolveFor(`staff:${s}`)).filter((c) =>
       B.staff_base.includes(c),
     );
-    const incumbent =
-      STAFF_SUBROLE_CAPABILITIES[s as keyof typeof STAFF_SUBROLE_CAPABILITIES];
-    expect(new Set(mine)).toEqual(new Set(incumbent));
-    expect(new Set(incumbent)).toEqual(new Set(STAFF));
+    expect(new Set(mine)).toEqual(new Set(STAFF));
   });
 });

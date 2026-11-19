@@ -20,7 +20,7 @@ Current workflow semantics:
 - `instant-nav` compiles donor only for production PRs/pushes or explicit manual integration QA. Required migration, smoke, and development smoke gates continue running.
 - Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
-- `integrity` runs the locked workspace Shadscan audit on every CI event. The reusable `.github/workflows/shadscan.yml` publishes its retained report; audit failures block `ci-gate`. See [Shadscan](guides/development/shadscan.md) for discovery, per-app floors and evidence review.
+- `shadscan-report` calls the reusable `.github/workflows/shadscan.yml`, which runs the locked workspace Shadscan audit once on the submitted head commit, uploads the raw report and publishes advisory scores. It is not required: `ci-gate` does not need it, and no score, finding or scan failure blocks a merge. See [Shadscan](guides/development/shadscan.md) for reading and triaging the report.
 - `e2e-smoke-gate` needs `migrate`, `smoke`, and `test-e2e-smoke` and passes
   only when all three succeeded; `integration-gate` summarizes `migrate`,
   `smoke`, and that gate. A skipped need never passes either gate (fail closed).
@@ -45,12 +45,17 @@ Current workflow semantics:
 - The canonical repository has no `main` branch. Legacy deny-only configuration
   may still mention it.
 
+Production deployment is not a Git deployment. A push to `production` starts
+`.github/workflows/release.yml`, which migrates, gates and records the
+migration heads, then stages, health-checks and promotes each affected app; see
+[Release workflow](#release-workflow-releaseyml).
+
 The exact live required-check sets are recorded only in § Branch protection.
 
 ### Bun toolchain
 
 - **Pinned version:** root `package.json` `packageManager` and `.bun-version` (currently `bun@1.4.3`, stable only — never canary).
-- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`; GitHub Actions pins Node `24.22.1`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
+- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`; GitHub Actions pins Node `24.22.3`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
 - **Vercel Functions Bun 1.4 is a separate runtime:** [Vercel's Bun 1.4 changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions) documents opting **Functions and Middleware** onto Bun via `"bunVersion": "1.4.x"`. That is not how you pin the package manager. `"1.x"` still selects Bun 1.3.14 on Functions. Next.js on the Bun runtime also requires `bun run --bun next dev|build` ([runtime docs](https://vercel.com/docs/functions/runtimes/bun)). Core stays on the Node path (`next dev` / `next build` / `next start`) because Payload, Stripe, Supabase SSR, and eve-runtime are validated there; Vercel treats the Bun Functions runtime as an explicit breaking-change opt-in.
 - **Vercel install vs GitHub install:** App `installCommand` is `bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile` (workspace root, pinned package manager, frozen lockfile), following [Vercel's documented build pin](https://vercel.com/kb/guide/how-to-pin-a-specific-bun-version-for-vercel-builds). Preview deployment `dpl_8p7c7tAFVzvdLZY5t4FB8NuTxdCx` proved that the build image's Bun 1.3.14 cannot install the current lockfile without drift. Pinning installation does not opt Functions into the Bun runtime. GitHub Actions keeps `bun ci --no-cache --backend=copyfile` for the portable file-copy backend. Corepack does **not** pin Bun (it is for pnpm/Yarn).
 - **GitHub Actions:** `ci.yml`, `ci-integration.yml`, and `qa-smoke-preview-deploy.yml` set `env.BUN_VERSION` to that exact version; every first-party `oven-sh/setup-bun` step is pinned to the reviewed `v2.2.0` commit and uses `bun-version: ${{ env.BUN_VERSION }}`.
@@ -96,10 +101,9 @@ bun run ci:preflight
 14. `verify:eslint`
 15. `verify:shadcn-config`
 16. `verify:shadcn-diff`
-17. `verify:shadscan`
-18. `typecheck`
-19. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-20. `test:unit`
+17. `typecheck`
+18. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+19. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
@@ -136,7 +140,9 @@ bun run release:production
 
 The release command checks deployment discipline, full local CI preflight, and that
 `HEAD` is already reachable from fetched `develop`, then summarizes deployment
-impact before pushing to `origin/production`.
+impact before pushing to `origin/production`. The push starts the Release
+workflow, which is the only thing that deploys production; Vercel's Git
+integration deploys no branch (`apps/*/vercel.json`).
 Emergency bypasses require an explicit reason:
 
 ```bash
@@ -316,10 +322,11 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
 
 ### `migrate`
 
-- _What it does:_ Spins up a fresh Postgres 17 service container (see § Service container images), runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
-- The SQL verifier requires the reviewed field-policy census after all forward migrations and before reporting success. Policy-flag drift, uncensused columns and census execution failures block the job. Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. Migration and unit-test jobs fetch full Git history so the census can verify its recorded source revision.
+- _What it does:_ Spins up a fresh Postgres 17 service container (see § Service container images), runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Then checks the seeded row counts with `node scripts/verify/seed-counts.mjs`, which reads them from `supabase/seed-expectations.json` (today one row in `public.profiles`) and fails, naming the count it found, on any difference. A change to the seed updates that file; the workflow step does not change.
+- The SQL verifier runs the field-policy classification gate (`scripts/verify/field-policy-census.mjs`) after all forward migrations and before reporting success. Its record is the manifest `docs/security/field-policies/manifest.json` (AL-2674), which lists every column of each classified record type with its type, nullability, category and flags on the five surfaces. It replaced the AL-491 census, a checksummed capture of the hosted schema that let no classified column be added or dropped; the census files stay in that folder as history that no gate reads. The gate fails, naming every problem, when the manifest is malformed, a column of a classified table has no entry, an entry names a column that no longer exists, a column's type, nullability, generation or pinned default differs from its entry, a classified record type has no relation, `public.receipts` exists, or `public.field_policies` does not equal the manifest's rows. A change that adds or drops a column of a classified table updates its manifest entry and its `public.field_policies` rows in the same change (`docs/security/field-policies/README.md`). Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. The gate reads no Git history.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
+- _Real-stack steps:_ after the seed, the job runs real-stack suites against the migrated database, each step pinned in `tests/unit/helpers/workflow-yaml.ts`. The last three are AL-2674's. `Verify AL-2671 program suites, issues 2670-2689 (real stack)` runs every `tests/unit/acceptance/issue-26[78][0-9]/*.realstack.acceptance.test.ts` suite (`TENANT_GUARD_IT_ADMIN_DATABASE_URL`): one glob over the AL-2671 program's issue numbers, so a package adds a real-stack suite under its own issue without a workflow change, and the step fails, never passes empty, when the glob matches nothing. `Verify release job database steps, schema fingerprint and CMS roles (real stack)` runs the release job's database steps against a stub of the platform contract, checks that two fresh replays fingerprint identically (`RELEASE_IT_ADMIN_DATABASE_URL`) and runs Payload's database-role suite (`TENANT_GUARD_IT_ADMIN_DATABASE_URL`). `Qualify the pinned Payload release (cms:qualify)` runs the Payload qualification of plan 6.7, fourteen checks on a database of its own on the same server (`PAYLOAD_QUALIFICATION_ADMIN_URL`), and drops that database.
 
 ### `smoke` (needs: `migrate`)
 
@@ -390,6 +397,86 @@ Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs u
   `docker manifest inspect public.ecr.aws/docker/library/postgres@sha256:<digest>`).
 
 ---
+
+## API Contract workflow (`api-contract.yml`)
+
+This advisory workflow runs on pull requests that change API contract inputs,
+pushes to `develop`, and manual dispatch. It starts PostgREST on a fresh
+Postgres service after applying the same migrations and demo seed as `migrate`.
+The tests exercise statically resolvable `packages/api` selects, real missionary
+portal reads, the configured row cap, and tenant isolation. The isolation sweep
+verifies each fixture caller's subject and tenant claim, then reports which
+tables produced isolation evidence, lacked fixture evidence, or refused access.
+The required unit job also runs the pure tests under `tests/unit/api-contract/`.
+
+For a local run on a disposable Docker stack:
+
+```bash
+bun run test:api-contract:up
+bun run test:api-contract
+bun run test:api-contract:down
+```
+
+## Release workflow (`release.yml`)
+
+The one release job per environment of plan 7.4 and 7.5. The runbook, with
+the secrets it needs by name and the owner's steps to switch it on, is
+[docs/ops/release-job.md](ops/release-job.md).
+
+- _Triggers:_ a push to `production`, and manual dispatch from `production`
+  (`release`, `set-environment-marker`, `first-rebuild`,
+  `set-cms-role-passwords`). One run per database at a time; never cancelled.
+- _`release-database`:_ replays every migration on an empty Postgres and
+  fingerprints it; preflight (target project, environment marker, migration
+  order); `supabase db push`; the CMS role passwords; Payload migrations as
+  `cms_owner`, whose login only this step holds, in
+  `PAYLOAD_MIGRATION_DATABASE_URI`; catalog gates and fingerprint equality
+  with the replay; then
+  records the expected heads. An out-of-order migration stops the run before
+  anything is migrated or deployed.
+- _`release-deploy`:_ stages a production-target deployment of each affected
+  app through Vercel's API (no production domain until promotion), checks each
+  one's `/api/health/migrations`, and promotes them all only when every check
+  passes. A database behind the build blocks promotion; one that is ahead
+  passes.
+- _Credentials:_ the GitHub environments `release-production` and
+  `release-preview` are the only holders of a migration connection string. No
+  application environment holds one (`bun run verify:runtime-connection-strings`),
+  and Web Studio refuses to start on a protected deployment that holds
+  `PAYLOAD_MIGRATION_DATABASE_URI`.
+- _Pull requests that carry a migration:_ `qa-smoke-preview-deploy.yml` runs
+  them in its `preview-database` job, in one repository-wide concurrency group
+  that never cancels and queues the rest (`queue: max`): rebuild the disposable
+  `preview` Supabase project, deploy into the `preview-database` custom
+  environment, check, smoke. Other pull requests keep the per-PR group.
+
+## Local Supabase stack workflow (`local-supabase.yml`)
+
+Starts a local Supabase stack from source and runs the Supabase Auth email
+round trips against it. A workflow of its own, so `ci.yml` and
+`ci-integration.yml` do not change. Not a required check. It guards two
+things:
+
+- _The migration chain and the seed on the real Supabase image._ It is the
+  only job that applies them with Supabase's roles and grants and a `postgres`
+  that is not a superuser. Every other job applies them to plain Postgres as a
+  superuser, which hid two stage 1 migrations that the real image refuses
+  (council round 2). So every pull request that changes
+  `supabase/migrations/**`, `supabase/seed.sql`, `supabase/config.toml` or the
+  CLI pin in `scripts/supabase-cli.mjs` starts the stack.
+- _The email round trips of WP0b and WP1.4:_ a password recovery email in each
+  app, and a sign-up confirmation that lands signed in on the host it was asked
+  from, on two hosts of the donor portal. Pull requests that change the auth
+  screens (`packages/ui/components/auth/**`, the apps' auth routes), the auth
+  packages (`packages/auth/**`, `packages/api/src/auth/**`), the three proxies,
+  the missionary route policy or the suite itself run them too, and so does
+  manual dispatch.
+- _Job:_ installs the Supabase CLI at the version `scripts/supabase-cli.mjs`
+  pins, starts the stack with `bun run supabase -- start` (every migration and
+  the seed, then Auth, PostgREST and Mailpit), then runs
+  `bun run test:e2e:auth-mail` with Playwright's dev servers. A chain or seed
+  the real image refuses fails the "Start the local Supabase stack" step.
+- _Run it locally:_ `tests/e2e/README.md`, "Auth email round trips".
 
 ## Branch protection
 
@@ -466,7 +553,7 @@ subject to the retired Twenty runtime guard.
 
 ## Development deployment checkpoints (AL-1921)
 
-Automatic Git deployment is enabled only for `production` in all three app configs. Development hosts remain on their last successful deployment until an explicit checkpoint refreshes them. This is deliberate during active development; compile-time integration errors may be discovered at the next QA checkpoint. Dependency and build-configuration PRs still request compilation.
+Vercel's Git integration deploys no branch in any of the three app configs; production deploys only through the Release workflow. Development hosts remain on their last successful deployment until an explicit checkpoint refreshes them. This is deliberate during active development; compile-time integration errors may be discovered at the next QA checkpoint. Dependency and build-configuration PRs still request compilation.
 
 The existing same-repository, non-draft, `qa:smoke` gate is retained. The preview helper pins Vercel CLI, checks the selected Core app/team, pulls preview settings from the monorepo root, builds locally, and uploads prebuilt output. It removes local `.vercel` state before each app and in a finalizer, and suppresses raw CLI output that could contain environment values. Build output and downloaded environment files must never become diagnostic artifacts.
 

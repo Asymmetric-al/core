@@ -1,7 +1,7 @@
 import {
   createBearerSupabaseClient,
   getAuthContext,
-  hasContextRole,
+  hasContextRoleClass,
   requireAuth,
 } from "@asym/auth/context";
 import { NextResponse } from "next/server";
@@ -226,7 +226,7 @@ export async function POST(request: Request) {
     const form = await readForm(request);
     const purpose = parseUploadPurpose(form.get("path"));
     assertProfilesBucket(form.get("bucket"));
-    if (purpose === "covers" && !hasContextRole(ctx, "missionary")) {
+    if (purpose === "covers" && !hasContextRoleClass(ctx, "missionary")) {
       throw new ApiHttpError(403, "Cover photos require missionary access.");
     }
     const file = await validateImageFile(form.get("file"));

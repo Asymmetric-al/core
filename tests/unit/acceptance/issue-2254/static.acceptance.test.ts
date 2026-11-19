@@ -19,37 +19,12 @@ import {
   read,
   sha256,
 } from "./harness";
-import {
-  MODELLED_KEYS_BY_JOB,
-  PINNED_STEP_BODIES,
-  loadWorkflowDocument,
-} from "../../helpers/workflow-yaml";
+import { loadWorkflowDocument } from "../../helpers/workflow-yaml";
+import { expectRealstackStep } from "../shared/realstack-step";
 
 const STEP_DOC = "docs/database/email-normalization.md";
-/**
- * Accepted docs/ci.md prefixes, #2180-style (Samson on #2250 Q11, applied to
- * #2254): develop at c541b84b. Later develop appends keep passing; extend
- * this list (as #2246 did for #2180) if develop rewrites earlier bytes.
- */
-const CI_BASES = [
-  {
-    ref: "c541b84b",
-    bytes: 40058,
-    sha256: "f636ef0f0127f1159db711fb005a212aaf0cb3c9ceb9fe64bb308305c55d4e4b",
-  },
-  {
-    // Reviewed hosted-only amendment changes only the CI-doc terminal pointer.
-    ref: "AL-2218 hosted CI baseline",
-    bytes: 40204,
-    sha256: "8a5c648f445c05f600b568a754e9b5caa84c969c8e3747bac4b941d3508a40ed",
-  },
-  {
-    // #2215: only the `test-e2e` bullet's e2e-gate merge_group skip cause changes.
-    ref: "#2215 e2e-gate merge_group wording",
-    bytes: 40426,
-    sha256: "b3522e382167e183488bae59835785bde27aa4f7a1bef28fad6b99b5eecea544",
-  },
-] as const;
+const REALSTACK =
+  "tests/unit/acceptance/issue-2254/identity.realstack.acceptance.test.ts";
 const flat = (s: string) => s.replace(/\s+/g, " ");
 /** Lists the patterns missing from text (keeps failure output short). */
 const missing = (text: string, pats: (string | RegExp)[]) =>
@@ -213,26 +188,45 @@ describe("#2254 criterion 9: census evidence", () => {
       "0ab1165501bf059ba12c71898cb9597725282be458ab0c71e6280c1064e4736a",
     );
   });
-  it("v1 artifact bytes and v1 census checks unchanged; v2 binds the new migration by working-tree hash", () => {
+  // AL-2674 (plan 7.1): the census script no longer reads the capture or the
+  // supplements; the manifest carries their classification and pins the v1
+  // and v2 source migrations by SHA-256. The v1 and v2 artifacts stay as
+  // unchanged historical evidence, and the manifest must agree with them.
+  it("v1 artifact bytes unchanged and pinned by the manifest; v2 binds the new migration by working-tree hash", () => {
     expect(sha256(readFileSync(`${FP}/repository-supplement-v1.json`))).toBe(
       "ca922ac896858c16597826e3f81e30f1c74f6903e466b5e053c891fd4b8b3296",
     );
-    const script = read("scripts/verify/field-policy-census.mjs");
+    const manifest = JSON.parse(read(`${FP}/manifest.json`));
+    const pins = Object.fromEntries(
+      (manifest.pinned_sources as { path: string; sha256: string }[]).map(
+        (p) => [p.path, p.sha256],
+      ),
+    );
     expect(
-      missing(script, [
-        "supabase/migrations/20260702090000_donation_stripe_refund_ids.sql",
-        "2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda",
-        '"git",',
-        'name: "stripe_refund_ids"',
-        'udt_name: "_text"',
-      ]),
-    ).toEqual([]);
-    expect(missing(script, [/reviewed supplements/i])).toEqual([]);
+      pins["supabase/migrations/20260702090000_donation_stripe_refund_ids.sql"],
+    ).toBe("2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda");
+    expect(manifest.record_types.donations.stripe_refund_ids).toEqual({
+      type: "text[]",
+      nullable: false,
+      default: "'{}'::text[]",
+      category: "financial",
+      processor_identifier: true,
+      mission_control: "v--",
+      donor: "---",
+      missionary: "---",
+      public: "---",
+      export: "---",
+    });
+    const script = read("scripts/verify/field-policy-census.mjs");
+    expect(missing(script, ["pinned_sources", "PINNED"])).toEqual([]);
     expect(
       /single source supplement|\b172\b|\b860\b/.test(script),
       "stale",
     ).toBe(false);
     const own = migrationFile();
+    expect(pins[`supabase/migrations/${own}`]).toBe(
+      sha256(readFileSync(`${MIGRATIONS}/${own}`)),
+    );
     const v2 = read(`${FP}/${V2}`);
     expect(
       missing(v2, [
@@ -244,11 +238,21 @@ describe("#2254 criterion 9: census evidence", () => {
       V2,
     ).toEqual([]);
   });
-  it("supabase/tests/field_policies_foundation.sql expects 176 columns and 880 rows", () => {
+  // AL-2674 (plan 7.1): the SQL test no longer holds a literal copy of the
+  // capture or its counts, which let no classified column be dropped. Exact
+  // parity, including the v2 columns' 10 rows, is the manifest gate's (the
+  // census suite and the real-stack criterion 9 run it); the SQL test keeps
+  // the checks that hold whatever columns are classified.
+  it("supabase/tests/field_policies_foundation.sql defers exact parity to the manifest gate and still checks five rows per classified column", () => {
     const sql = read("supabase/tests/field_policies_foundation.sql");
-    expect(sql).toMatch(/<>\s*176\b/);
-    expect(sql).toMatch(/<>\s*880\b/);
-    expect(sql).not.toMatch(/<>\s*(?:172|860)\b/);
+    expect(sql).not.toMatch(
+      /expected_field_policy_columns|<>\s*(?:172|176|860|880)\b/,
+    );
+    expect(sql).toContain("scripts/verify/field-policy-census.mjs");
+    expect(sql).toContain("HAVING count(*)<>5 OR count(DISTINCT surface)<>5");
+    expect(sql).toContain(
+      "C4: identity supplement must be generated TEXT email_normalized",
+    );
   });
 });
 
@@ -256,28 +260,10 @@ describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
   const steps = () =>
     loadWorkflowDocument(".github/workflows/ci-integration.yml").jobs!.migrate!
       .steps as Record<string, string>[];
-  it("one name+run step after the reader-role step runs the issue-2254 real-stack file(s)", () => {
-    const all = steps();
-    const reader = all.findIndex(
-      (s) => s.name === "Verify document-cutover reader role (real stack)",
-    );
-    const index = all.findIndex((s) =>
-      /tests\/unit\/acceptance\/issue-2254\//.test(s.run ?? ""),
-    );
-    expect(reader).toBe(14);
-    expect(index).toBeGreaterThan(reader);
-    const step = all[index]!;
-    expect(Object.keys(step).sort()).toEqual(["name", "run"]);
-    expect(step.run).toMatch(
-      /^bun x vitest run tests\/unit\/acceptance\/issue-2254\//,
-    );
-    expect(MODELLED_KEYS_BY_JOB.migrate!.steps[`name:${step.name}`]).toEqual([
-      "name",
-      "run",
-    ]);
-    const pin = PINNED_STEP_BODIES.migrate![`name:${step.name}`];
-    expect(pin?.index).toBe(index);
-    expect(pin?.run).toBe(step.run!.trim());
+  it("one blocking migrate step runs the issue-2254 real-stack file", () => {
+    const step = steps().find((s) => (s.run ?? "").includes(REALSTACK));
+    expect(step, "a migrate step runs issue-2254 files").toBeDefined();
+    expectRealstackStep(step!.name!, [REALSTACK]);
   });
   it("amendment 6384990496: docs/database/email-normalization.md documents the step's name, check and failure", () => {
     const step = steps().find((s) =>
@@ -297,23 +283,6 @@ describe("#2254 criterion 8: CI migrate step (Samson clarification)", () => {
         /ids[- ]only|donor ids|no (?:email|PII)|without (?:email|PII)/i,
       ]),
     ).toEqual([]);
-  });
-  it("amendment 6384990496: docs/ci.md keeps develop's bytes as a prefix; anything after is not #2254's", () => {
-    const bytes = readFileSync("docs/ci.md");
-    const base = CI_BASES.find(
-      (b) => sha256(bytes.subarray(0, b.bytes)) === b.sha256,
-    );
-    expect(
-      base?.ref,
-      `existing docs/ci.md bytes unchanged (prefix of develop ${CI_BASES.map((b) => b.ref).join(" or ")})`,
-    ).toBeDefined();
-    const later = bytes.subarray(base!.bytes).toString("utf8");
-    expect(
-      /2254|email[- _]normali[sz]|normalize_email|email-normalization\.md/i.test(
-        later,
-      ),
-      "bytes after the develop prefix (later develop appends only) must not document #2254",
-    ).toBe(false);
   });
 });
 

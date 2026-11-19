@@ -1,6 +1,6 @@
 # ADR-0178: Payload v4 major-line commitment and release-bound production admission
 
-**Status:** Accepted (founder-ratified Phase 23 D34 B-prime-R, 2026-08-24)
+**Status:** Accepted (founder-ratified Phase 23 D34 B-prime-R, 2026-08-24; qualification suite contents added 2026-11-17 for AL-2688)
 
 ## Context
 
@@ -60,3 +60,34 @@ and its
 - Core adds only the smallest deterministic release-time discovery and offline
   verification seams; it does not build a runtime upgrade service, permanent
   multi-version abstraction, or second health dashboard.
+
+## Amendments
+
+### 2026-11-17: The qualification suite's contents (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record: keep it, and record what follows. This records intent,
+  not implementation; the
+  [implementation record](../audits/core-crm-cms-database-implementation-record.md)
+  says what exists.
+- **Next pin.** The plan stays on the Payload v4 line and moves in WP1 to a
+  patched pre-release, 4.0.0-beta.9 or newer, with the Node floor raised to
+  match, because three published advisories apply to the current pin (audit
+  C01). It moves to stable v4 when stable ships and qualifies.
+- **The suite every version bump runs, as one script:** Local API access
+  defaults; version-read access; migrations up from an empty database; no
+  same-named tables or enums across schemas; hand-written constraints surviving
+  the next generated migration; UUID and supplied-ID behaviour; start-up as
+  `cms_runtime` with no schema-changing statement; the REST mount under
+  `/web-studio/api`; a media record created with a supplied ID and no upload; a
+  REST write to a document's status that makes nothing public; pooling mode;
+  and, if JSON blocks are adopted, JSON block round-trips with a media reference
+  and one block schema change (plan section 6.7).
+- **JSON blocks are conditional.** `blocksAsJSON` is adopted only if the suite
+  passes; otherwise blocks stay relational.
+- **Production admission.** WP11 requires the suite to have passed on the
+  Payload version pinned for the production database, which is the release
+  freeze this record names. Whether a real organization may start on a
+  pre-release remains the owner's call (council record C.8, reservation 8).

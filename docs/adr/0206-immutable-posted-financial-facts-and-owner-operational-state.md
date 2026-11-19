@@ -1,6 +1,6 @@
 # ADR-0206: Immutable posted financial facts and owner operational state
 
-**Status:** Accepted by Conrad on 2026-09-23, resolving audit decision C-02.
+**Status:** Accepted by Conrad on 2026-09-23, resolving audit decision C-02. Physical layout recorded 2026-11-17 for AL-2688.
 
 The founder selected: “Separate operational records; keep posted rows immutable.”
 This is an accepted target contract, not implementation or release evidence.
@@ -88,6 +88,36 @@ Reconcile the actual target schema, migrations, grants, RLS, writers, readers,
 constraints and tests before activation. This record does not create a runtime
 table, approve a destructive migration, or satisfy that qualification. C-01's
 staff-correction approval policy remains a separate unresolved decision.
+
+## Amendments
+
+### 2026-11-17: The physical layout of posted facts (AL-2688)
+
+- **Authority.** The owner's instruction of 17 November 2026 to implement the
+  CRM, CMS and database plan ratifies the disposition its
+  [section 14](../audits/core-crm-cms-database-target-architecture.md#14-required-future-documentation-decisions)
+  lists for this record: keep it, and record what follows. This records intent,
+  not implementation; the
+  [implementation record](../audits/core-crm-cms-database-implementation-record.md)
+  says what exists.
+- **Write-once tables of their own.** Posted rows are written once by the
+  posting command into separate tables: a gift header, its lines, and appended
+  entries for corrections, refunds, dispute effects and voids. A trigger refuses
+  update and delete for every role, with no exception. This record allows no
+  column allowlist, so posted rows do not share a table with mutable state.
+  Physical names are settled in WP8b.
+- **Links.** The header carries a link to the intake donation, unique when
+  present and empty for an imported gift. Everything appended after posting
+  refers to the posted gift; what happens before posting refers to the intake
+  donation. The correction, adjustment and operation-audit keys move to the
+  posted gift. Refund attempts and approval requests accept either reference,
+  with exactly one set. The cascades from a donation become `RESTRICT`.
+- **Mutable state elsewhere.** Review status, deposit assignment and delivery
+  status live in separate operational rows. Receipt status moves off
+  `staged_gifts` to delivery rows, and refund totals off `donations` to appended
+  adjustments. Receipt facts are immutable rows keyed to the posted gift.
+- **Nothing this plan builds deletes a posted row.** Whether a later tenant
+  purge ever may is for that package to settle under the accepted disposal rules.
 
 ## Related contracts
 
