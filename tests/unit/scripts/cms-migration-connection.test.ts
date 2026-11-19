@@ -1,4 +1,5 @@
 import pg from "pg";
+import { libpqQueryEntries } from "../../../packages/env/src/database-url.mjs";
 import { describe, expect, it } from "vitest";
 
 import { LOCAL_DATABASE_URL } from "../../../scripts/cms/lib/local-data.mjs";
@@ -66,6 +67,25 @@ describe("CMS migration connection (plan 7.2)", () => {
     expect(parsed.options).toBe("-c role=cms_owner");
     // The marker is read as the login itself (council round 2, A7c).
     expect(resolved.markerUrl).toBe(local);
+  });
+
+  // Review L2: the session role is written so that libpq, which keeps a +
+  // as +, and WHATWG, which reads it as a space, read the same value. With +
+  // the CMS runner's psql sent "-c+role=cms_owner" and the server refused it.
+  it("writes the session role so that libpq and WHATWG read the same options", () => {
+    const resolved = resolveCmsMigrationDatabaseUrl({
+      PAYLOAD_DATABASE_URI:
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?options=-c%20statement_timeout%3D0",
+    });
+    const query = resolved.databaseUrl.slice(
+      resolved.databaseUrl.indexOf("?") + 1,
+    );
+    expect(query).not.toContain("+");
+    const libpq = Object.fromEntries(libpqQueryEntries(resolved.databaseUrl));
+    expect(libpq.options).toBe("-c statement_timeout=0 -c role=cms_owner");
+    expect(new URL(resolved.databaseUrl).searchParams.get("options")).toBe(
+      libpq.options,
+    );
   });
 
   it("keeps other loopback startup options beside the session role", () => {

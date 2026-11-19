@@ -144,18 +144,23 @@ const RESET_PROCEDURE = {
   // Version 3 (AL-2674, council round 2, B8): the local reset goes through
   // the repository runner, which refuses a database not marked disposable,
   // and the rebuild no longer offers the retired hosted seed.
-  pinnedVersion: "3",
+  // Version 4 (AL-2674, review N2): a warning that this gate's own address
+  // check is weaker than the release job's, and what to set by hand on a
+  // hosted address. No step of the procedure changes.
+  pinnedVersion: "4",
   // Trusted digest of the committed procedure document at this pin. Editing
-  // the markdown while leaving Procedure version: 3 must stop the line.
+  // the markdown while leaving Procedure version: 4 must stop the line.
   expectedDigest:
-    "83258d8bbb68fe6220347209a7d173d9527e172a60d1cb3a2c57f2ccb9f871a9",
+    "9f1ba1687f2ae61e3ac25980780763a9821105e1e1b0b589925d15df4dac6c37",
 };
 const ROLLBACK_PROCEDURE = {
   reference:
     "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
-  pinnedVersion: "1",
+  // Version 2 (AL-2674, review N2): the same warning as the reset procedure's
+  // version 4. No step of the procedure changes.
+  pinnedVersion: "2",
   expectedDigest:
-    "f33970631c86629179d4a188bfa560574a01b7322af15e5c1d513d0cdb933042",
+    "762c746762258a4fce5c2ab40028286089f45ce324accce44424020bd787793e",
 };
 
 /** Flags removed by #2067; passing one is rejected rather than ignored. */

@@ -13,6 +13,7 @@ import {
   readReleaseHealth,
   readReleaseSettings,
   replaceSeededLoginPasswords,
+  readStateAfterFailedReset,
   setCmsRolePasswords,
 } from "../../../../scripts/release/release-database.mjs";
 import {
@@ -87,12 +88,220 @@ describe.skipIf(!adminDatabaseUrl)(
   // Each test spawns node and psql several times; slow on loaded hosts.
   { timeout: 180_000 },
   () => {
+    // Review K3: while postgres's defaults in public grant anon or
+    // authenticated, migrate would create everything new there open to both.
+    const OPEN_DEFAULTS_SQL = `DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+    END $$;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO anon;`;
+    const settingsFor = (url: string) =>
+      readReleaseSettings({
+        RELEASE_ENVIRONMENT: "preview",
+        RELEASE_SUPABASE_PROJECT_REF: ref,
+        RELEASE_DATABASE_URL: url,
+        RELEASE_ALLOW_LOOPBACK_DATABASE: "1",
+      });
+
+    it("refuses at preflight a database whose postgres defaults in public are open to anon", () => {
+      const db = database("defaults_open");
+      applyLedgers(db.url, source.supabase, source.payload);
+      psql(db.url, OPEN_DEFAULTS_SQL);
+      const result = step("preflight", db.url);
+      expect(result.status).toBe(1);
+      expect(result.output).toMatch(/default privileges.*anon/i);
+    });
+
+    it("refuses a global grant inherited by new public tables without a schema default", () => {
+      const db = database("global_default");
+      applyLedgers(db.url, source.supabase, source.payload);
+      psql(db.url, "SELECT platform.advance_environment('production')");
+      for (const ledger of ["supabase", "payload"] as const)
+        psql(
+          db.url,
+          `SELECT platform.record_migration_head('${ledger}', '${source[ledger].at(-1)}')`,
+        );
+      psql(db.url, OPEN_DEFAULTS_SQL.replace(" IN SCHEMA public", ""));
+      psql(db.url, "CREATE TABLE public.inherits_default (id integer)");
+      expect(
+        psql(
+          db.url,
+          "SELECT has_table_privilege('anon', 'public.inherits_default', 'SELECT')",
+        ),
+      ).toBe("t");
+      expect(
+        psql(
+          db.url,
+          "SELECT count(*) FROM pg_default_acl WHERE defaclnamespace = 'public'::regnamespace",
+        ),
+      ).toBe("0");
+      const policy = { RELEASE_ENVIRONMENT: "production" };
+      const result = step("preflight", db.url, policy);
+      expect(result.status).toBe(1);
+      expect(result.output).toMatch(/global.*IN SCHEMA public/is);
+      expect(result.output).toMatch(
+        /ALTER DEFAULT PRIVILEGES FOR ROLE postgres.*REVOKE/is,
+      );
+      expect(result.output).toMatch(/first-rebuild.*only.*no head/is);
+      expect(result.output).not.toMatch(
+        /a rebuild stopped|rebuild the database/i,
+      );
+      psql(
+        db.url,
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE SELECT ON TABLES FROM anon",
+      );
+      expect(step("preflight", db.url, policy).status).toBe(0);
+    });
+
+    it.each(["", "IN SCHEMA public"])(
+      "refuses a default table grant to PUBLIC (scope: %j)",
+      (scope) => {
+        const db = database("public_grantee");
+        applyLedgers(db.url, source.supabase, source.payload);
+        const defaults = `ALTER DEFAULT PRIVILEGES FOR ROLE postgres ${scope}`;
+        psql(db.url, `${defaults} GRANT SELECT ON TABLES TO PUBLIC`);
+        const result = step("preflight", db.url);
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(/anon, authenticated, or PUBLIC/);
+        psql(db.url, `${defaults} REVOKE SELECT ON TABLES FROM PUBLIC`);
+        expect(step("preflight", db.url).status).toBe(0);
+      },
+    );
+
+    it("reads the marker and those defaults after a failed reset, with and without the platform schema", () => {
+      const marked = database("after_reset_marked");
+      expect(
+        readStateAfterFailedReset({ settings: settingsFor(marked.url) }),
+      ).toEqual({ marker: "disposable", open: false });
+      const bare = database("after_reset_bare", { contract: false });
+      psql(bare.url, OPEN_DEFAULTS_SQL);
+      expect(
+        readStateAfterFailedReset({ settings: settingsFor(bare.url) }),
+      ).toEqual({ marker: null, open: true });
+    });
+
+    it("missing health does not erase a recorded head or a protected marker", () => {
+      for (const marker of ["shared", null]) {
+        const db = database("partial_contract", { marker: false });
+        psql(db.url, "DROP FUNCTION public.platform_health()");
+        if (marker)
+          psql(
+            db.url,
+            "INSERT INTO platform.environment(kind) VALUES ('shared')",
+          );
+        else
+          psql(
+            db.url,
+            `SELECT platform.record_migration_head('supabase','${source.supabase.at(-1)}')`,
+          );
+        const result = step("first-rebuild", db.url, {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_CENSUS_SIGNOFF:
+            "https://github.com/Asymmetric-al/core/issues/2671",
+          RELEASE_CONFIRMATION: `rebuild ${ref}`,
+          RELEASE_SEED_LOGIN_PASSWORD: "",
+        });
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(
+          marker ? /marked shared/ : /recorded head/i,
+        );
+      }
+    });
+
     it("passes preflight on an up-to-date disposable database", () => {
       const db = database("preflight_ok");
       applyLedgers(db.url, source.supabase, source.payload);
       const result = step("preflight", db.url);
       expect(result.output).toContain("is marked disposable");
       expect(result.status).toBe(0);
+    });
+
+    it.each([
+      ["disposable", ["supabase", "payload"], "census", /recorded head/i],
+      ["disposable", ["supabase"], "census", /recorded head/i],
+      ["disposable", ["payload"], "census", /recorded head/i],
+      [null, ["payload"], "census", /recorded head/i],
+      ["shared", [], "census", /marked shared/],
+      ["production", [], "census", /marked production/],
+      ["disposable", [], "empty-project", /census.*link/i],
+      [null, [], "empty-project", /census.*link/i],
+      [null, [], "census", /RELEASE_SEED_LOGIN_PASSWORD/],
+      ["disposable", [], "census", /RELEASE_SEED_LOGIN_PASSWORD/],
+    ] as const)(
+      "first-rebuild guard: marker=%s heads=%j signoff=%s",
+      (marker, ledgers, signoff, expected) => {
+        const db = database("first_guard", { marker: false });
+        if (marker)
+          psql(
+            db.url,
+            `INSERT INTO platform.environment (kind) VALUES ('${marker}')`,
+          );
+        for (const ledger of ledgers)
+          psql(
+            db.url,
+            `SELECT platform.record_migration_head('${ledger}', '${source[ledger].at(-1)}')`,
+          );
+        const result = step("first-rebuild", db.url, {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_SEED_LOGIN_PASSWORD: "",
+          RELEASE_CONFIRMATION: `rebuild ${ref}`,
+          RELEASE_CENSUS_SIGNOFF:
+            signoff === "census"
+              ? "https://github.com/Asymmetric-al/core/issues/2671"
+              : signoff,
+        });
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(expected);
+      },
+    );
+
+    it.each([false, true])(
+      "empty-project without any ledger: marker present=%s",
+      (marked) => {
+        const db = createDatabase("empty_guard");
+        created.push(db.name);
+        if (marked)
+          psql(
+            db.url,
+            "CREATE SCHEMA platform; CREATE TABLE platform.environment(kind text); INSERT INTO platform.environment VALUES ('disposable')",
+          );
+        const result = step("first-rebuild", db.url, {
+          RELEASE_ENVIRONMENT: "production",
+          RELEASE_CONFIRMATION: `rebuild ${ref}`,
+          RELEASE_CENSUS_SIGNOFF: "empty-project",
+          RELEASE_SEED_LOGIN_PASSWORD: "",
+        });
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(
+          marked
+            ? /not empty.*census sign-off link/i
+            : /RELEASE_SEED_LOGIN_PASSWORD.*nothing was reset/s,
+        );
+      },
+    );
+
+    it("the missing Payload ledger is pending; first-only preflight refuses until the first head is recorded", () => {
+      const db = database("before_payload");
+      applyLedgers(db.url, source.supabase, []);
+      psql(db.url, "DROP TABLE cms.payload_migrations;");
+      expect(
+        readStateAfterFailedReset({ settings: settingsFor(db.url) }),
+      ).toEqual({ marker: "disposable", open: false });
+      const refused = step("preflight", db.url, {
+        RELEASE_ENVIRONMENT: "production",
+      });
+      expect(refused.status).toBe(1);
+      expect(refused.output).toMatch(/no recorded head.*first-rebuild/s);
+      psql(
+        db.url,
+        `SELECT platform.record_migration_head('supabase', '${source.supabase.at(-1)}')`,
+      );
+      const result = step("preflight", db.url, {
+        RELEASE_ENVIRONMENT: "production",
+      });
+      expect(result.status).toBe(0);
+      expect(result.output).toContain(
+        `payload: ${source.payload.length} pending, database head none`,
+      );
     });
 
     it("stops a release that carries an out-of-order migration, naming it", () => {
@@ -186,12 +395,59 @@ describe.skipIf(!adminDatabaseUrl)(
           log: (line: string) => log.push(line),
         });
         expect(log).toHaveLength(2);
-        const stored = psql(
-          adminDatabaseUrl,
-          `SELECT rolpassword FROM pg_authid WHERE rolname = '${owner}';`,
-        );
+        const verifier = (role: string) =>
+          psql(
+            adminDatabaseUrl,
+            `SELECT rolpassword FROM pg_authid WHERE rolname = '${role}';`,
+          );
+        const stored = verifier(owner);
         expect(stored.startsWith("SCRAM-SHA-256$4096:")).toBe(true);
         expect(stored).not.toContain(env.WP13R_OWNER_PASSWORD);
+
+        // WP1.6: a secret that already logs in changes nothing, so a hosted
+        // pooler never holds a stale verifier; a rotated secret is set once.
+        const roles = {
+          [owner]: "WP13R_OWNER_PASSWORD",
+          [runtime]: "WP13R_RUNTIME_PASSWORD",
+        };
+        const runtimeStored = verifier(runtime);
+        const again: string[] = [];
+        setCmsRolePasswords({
+          settings,
+          env,
+          roles,
+          log: (line: string) => again.push(line),
+        });
+        expect(again).toEqual([
+          `The ${owner} password already logs in; nothing changed.`,
+          `The ${runtime} password already logs in; nothing changed.`,
+        ]);
+        expect(verifier(owner)).toBe(stored);
+        expect(verifier(runtime)).toBe(runtimeStored);
+
+        const rotated = {
+          ...env,
+          WP13R_OWNER_PASSWORD: randomBytes(24).toString("base64url"),
+        };
+        const rotation: string[] = [];
+        let clock = 0;
+        setCmsRolePasswords({
+          settings,
+          env: rotated,
+          now: () => (clock += 600),
+          roles,
+          log: (line: string) => rotation.push(line),
+        });
+        expect(rotation).toEqual([
+          expect.stringMatching(
+            new RegExp(
+              `^Set the ${owner} password; it logged in on attempt 1, \\d+ s after the change\\.$`,
+            ),
+          ),
+          `The ${runtime} password already logs in; nothing changed.`,
+        ]);
+        expect(verifier(owner)).not.toBe(stored);
+        expect(verifier(runtime)).toBe(runtimeStored);
       } finally {
         psql(
           adminDatabaseUrl,
