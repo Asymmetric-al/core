@@ -33,6 +33,10 @@ vi.mock("next/headers", () => ({
         ? { name, value: state.cookie }
         : undefined,
   }),
+  // A Web Studio request carries no tenant address prefix (the proxy sets
+  // one only inside the tenant segment), so slice A's redirectInTenant sends
+  // each address unchanged.
+  headers: async () => new Headers(),
 }));
 
 class RedirectError extends Error {

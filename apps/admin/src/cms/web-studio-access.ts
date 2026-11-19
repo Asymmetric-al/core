@@ -1,4 +1,5 @@
 import { getSignedInAssignments } from "@asym/auth/context";
+import { redirectInTenant } from "@asym/auth/tenant-server";
 import {
   decideWebStudioAccess,
   WEB_STUDIO_CHOOSER_PATH,
@@ -6,7 +7,6 @@ import {
   WEB_STUDIO_TENANT_COOKIE,
 } from "@asym/auth/web-studio";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { readWebStudioTenantCookie } from "./web-studio-tenant-cookie";
@@ -67,18 +67,22 @@ export async function requireWebStudioAccess(
   pathname: string,
 ): Promise<WebStudioAccess> {
   const { signedIn, decision } = await decideWebStudioRequest();
+  // Slice A's tenant-safe redirect: Web Studio's addresses carry no tenant
+  // prefix, so each one is sent unchanged.
   if (signedIn.kind === "signed_out") {
-    redirect(`/login?next=${encodeURIComponent(pathname)}`);
+    return redirectInTenant(`/login?next=${encodeURIComponent(pathname)}`);
   }
   if (signedIn.kind === "unavailable" || decision === null) {
-    redirect("/no-access");
+    return redirectInTenant("/no-access");
   }
 
   if (decision.kind === "choose") {
-    redirect(`${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`);
+    return redirectInTenant(
+      `${WEB_STUDIO_CHOOSER_PATH}?next=${encodeURIComponent(pathname)}`,
+    );
   }
   if (decision.kind === "refuse") {
-    redirect("/no-access");
+    return redirectInTenant("/no-access");
   }
 
   const { assignment } = decision;

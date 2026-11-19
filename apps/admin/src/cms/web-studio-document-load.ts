@@ -10,6 +10,8 @@
  * time. The leave guard stops it for this load.
  */
 
+import { loadDocument as loadNewDocument } from "@asym/database/document-reload";
+
 const GUARD = Symbol.for("asym.webStudio.leaveGuard");
 
 type GuardedWindow = Window & { [GUARD]?: true };
@@ -51,6 +53,7 @@ export function loadDocument(
 ): void {
   installWebStudioLeaveGuard();
   leaving = true;
-  if (replace) window.location.replace(href);
-  else window.location.assign(href);
+  // The shared document load (slice B), which the tenant navigation rule
+  // requires for every write of the address.
+  loadNewDocument(href, { replace });
 }
