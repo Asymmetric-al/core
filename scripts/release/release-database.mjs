@@ -342,16 +342,14 @@ const HEALTH_EXISTS_SQL = `SELECT json_build_object('exists',
 const HEALTH_SQL = `SELECT ${RELEASE_DATABASE_CONTRACT.healthFunction}()::text;`;
 
 /**
- * Whether the default privileges of postgres in public grant anon or
- * authenticated anything (review K3). A rebuild reopens them before its reset
- * and the chain closes them again; while they are open, anything a migration
- * creates in public is open to both, so preflight refuses migrate.
+ * Explicit global and public-schema defaults that grant client roles access
+ * to new objects, either directly or through PUBLIC (grantee OID zero).
  */
 const PUBLIC_DEFAULTS_OPEN = `EXISTS (
   SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) AS a
   WHERE d.defaclrole = 'postgres'::regrole
     AND d.defaclnamespace IN (0, 'public'::regnamespace)
-    AND a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated')))`;
+    AND (a.grantee = 0 OR a.grantee IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon', 'authenticated'))))`;
 const DEFAULTS_OPEN_SQL = `SELECT json_build_object('open', ${PUBLIC_DEFAULTS_OPEN})::text;`;
 /**
  * After a failed reset: the marker and those defaults in one query. The
@@ -459,7 +457,7 @@ export function preflight({
   });
   if (defaults?.open) {
     stop(
-      `The default privileges of postgres in public are open to anon and authenticated: a rebuild stopped after it put the platform's back and before the chain closed them again. migrate would create everything new there open to both, so nothing was migrated or deployed. Rebuild the database (docs/ops/release-job.md, "If the reset fails after this step").`,
+      "The default privileges of postgres grant access to anon, authenticated, or PUBLIC, globally or in schema public; nothing was migrated or deployed. Inspect the grants with psql's \\ddp. Revoke each offending grant with ALTER DEFAULT PRIVILEGES FOR ROLE postgres [IN SCHEMA public] REVOKE <privileges> ON <object type> FROM <grantee>, then rerun the release. Omit IN SCHEMA public for a global grant. First-rebuild is an option only when no head is recorded and the marker is absent or disposable.",
     );
   }
   const published = countPublishedLogins({ settings, root, query });

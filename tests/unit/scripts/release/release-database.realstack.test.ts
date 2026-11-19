@@ -108,12 +108,18 @@ describe.skipIf(!adminDatabaseUrl)(
       psql(db.url, OPEN_DEFAULTS_SQL);
       const result = step("preflight", db.url);
       expect(result.status).toBe(1);
-      expect(result.output).toMatch(/open to anon and authenticated/);
+      expect(result.output).toMatch(/default privileges.*anon/i);
     });
 
     it("refuses a global grant inherited by new public tables without a schema default", () => {
       const db = database("global_default");
       applyLedgers(db.url, source.supabase, source.payload);
+      psql(db.url, "SELECT platform.advance_environment('production')");
+      for (const ledger of ["supabase", "payload"] as const)
+        psql(
+          db.url,
+          `SELECT platform.record_migration_head('${ledger}', '${source[ledger].at(-1)}')`,
+        );
       psql(db.url, OPEN_DEFAULTS_SQL.replace(" IN SCHEMA public", ""));
       psql(db.url, "CREATE TABLE public.inherits_default (id integer)");
       expect(
@@ -128,10 +134,38 @@ describe.skipIf(!adminDatabaseUrl)(
           "SELECT count(*) FROM pg_default_acl WHERE defaclnamespace = 'public'::regnamespace",
         ),
       ).toBe("0");
-      const result = step("preflight", db.url);
+      const policy = { RELEASE_ENVIRONMENT: "production" };
+      const result = step("preflight", db.url, policy);
       expect(result.status).toBe(1);
-      expect(result.output).toMatch(/open to anon and authenticated/);
+      expect(result.output).toMatch(/global.*IN SCHEMA public/is);
+      expect(result.output).toMatch(
+        /ALTER DEFAULT PRIVILEGES FOR ROLE postgres.*REVOKE/is,
+      );
+      expect(result.output).toMatch(/first-rebuild.*only.*no head/is);
+      expect(result.output).not.toMatch(
+        /a rebuild stopped|rebuild the database/i,
+      );
+      psql(
+        db.url,
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE SELECT ON TABLES FROM anon",
+      );
+      expect(step("preflight", db.url, policy).status).toBe(0);
     });
+
+    it.each(["", "IN SCHEMA public"])(
+      "refuses a default table grant to PUBLIC (scope: %j)",
+      (scope) => {
+        const db = database("public_grantee");
+        applyLedgers(db.url, source.supabase, source.payload);
+        const defaults = `ALTER DEFAULT PRIVILEGES FOR ROLE postgres ${scope}`;
+        psql(db.url, `${defaults} GRANT SELECT ON TABLES TO PUBLIC`);
+        const result = step("preflight", db.url);
+        expect(result.status).toBe(1);
+        expect(result.output).toMatch(/anon, authenticated, or PUBLIC/);
+        psql(db.url, `${defaults} REVOKE SELECT ON TABLES FROM PUBLIC`);
+        expect(step("preflight", db.url).status).toBe(0);
+      },
+    );
 
     it("reads the marker and those defaults after a failed reset, with and without the platform schema", () => {
       const marked = database("after_reset_marked");

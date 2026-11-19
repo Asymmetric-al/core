@@ -437,9 +437,18 @@ whether those defaults are still open, and its stop names the case:
 | `shared`, `production`, or any recorded head         | Not eligible for first rebuild                      | Stop. Do not remove the marker or heads; investigate with the owner.                                            |
 | Database unreadable                                  | Unknown                                             | Restore connectivity and inspect its marker, heads and defaults before choosing a guarded operation.            |
 
-While the defaults are open, anything created in `public` would be open to
-both roles, so `preflight`, the first step of `migrate`, refuses such a
-database and migrates nothing (review K3). Since review H1 the gate also
+Preflight also stops if `postgres` grants default privileges to `anon`,
+`authenticated`, or `PUBLIC`, globally or in schema `public`. This does not
+mean a rebuild failed. In `psql`, use `\ddp` to find the object type, grantee
+and scope. Revoke the offending grant at the same scope, then rerun the
+release. For example, for a global table grant use
+`ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE SELECT ON TABLES FROM PUBLIC;`.
+For a schema grant add `IN SCHEMA public` before `REVOKE`. Use the privileges,
+object type and grantee actually listed. A revoke changes defaults for future
+objects, not grants on existing ones. `first-rebuild` is an option only if
+neither head is recorded and the marker is absent or `disposable`.
+
+Since review H1 the gate also
 reads these default privileges, and those of `postgres` for every schema
 (the schema fingerprint, version 2), so a release would stop at its gates
 rather than deploy over them.

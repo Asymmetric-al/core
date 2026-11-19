@@ -767,7 +767,9 @@ describe("release database steps", () => {
         runCommand,
         log: silent,
       }),
-    ).toThrow(/open to anon and authenticated.*nothing was migrated/s);
+    ).toThrow(
+      /default privileges.*anon, authenticated, or PUBLIC.*nothing was migrated/is,
+    );
     expect(runCommand).not.toHaveBeenCalled();
   });
 
