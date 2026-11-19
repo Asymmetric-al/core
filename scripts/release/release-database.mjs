@@ -226,7 +226,7 @@ export function readDatabaseCa(pem, { now = new Date() } = {}) {
     );
   if (now > new Date(certificate.validTo))
     stop(
-      `RELEASE_DATABASE_SSL_CA's CA expired on ${certificate.validTo} (${found}). Supabase may have rotated it: take the current one from the project's Database settings and compare its fingerprint with the runbook's.`,
+      `RELEASE_DATABASE_SSL_CA's CA expired on ${certificate.validTo} (${found}). Take the current CA from the project's Database settings and follow "If the CA is rotated or expires" in docs/ops/release-job.md.`,
     );
   return `${blocks[0]}\n`;
 }

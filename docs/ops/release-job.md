@@ -481,7 +481,9 @@ must hold exactly one PEM certificate and nothing else, a CA, valid now. A
 stop says what it found (how many certificates, the subject, the dates, the
 SHA-256 fingerprint), never the content. The job pins no fingerprint: the
 owner compares it with the one in the step that sets the secrets, and a CA
-that Supabase rotates is set again without a release of ours. A hosted step
+that Supabase rotates, or that expires, is set again without a release of ours
+(see [If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires)). A
+hosted step
 also stops unless its `psql` is version 16 or later, because an older libpq
 ignores `PGREQUIREAUTH` without a word. The workflow installs Ubuntu's
 `postgresql-client` on `ubuntu-latest`, whose image carries PostgreSQL 16.
@@ -517,6 +519,36 @@ The pooler's certificate names `*.pooler.supabase.com` and
 Supabase Root 2021 CA. That is true on both projects' pooler hosts (TLS
 handshakes on 18 November 2026). The direct host was not checked: it has an
 IPv6 address only.
+
+### If the CA is rotated or expires
+
+The project's CA today is Supabase Root 2021 CA, self-signed, valid from
+28 April 2021 to 26 April 2031 (10:56:53 UTC), SHA-256 fingerprint
+`80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`.
+On that date, or when Supabase rotates it sooner, every step stops at its
+start with "RELEASE_DATABASE_SSL_CA's CA expired on ..." or fails to verify
+the pooler, and nothing connects. The new CA has a new fingerprint, so the
+recorded one cannot confirm it. Then:
+
+1. Take the new CA from the project's Database settings (SSL configuration),
+   signed in to Supabase with your own account. Never take it from a message,
+   a link or a file someone sends: this certificate decides which server the
+   job trusts.
+2. Check it:
+   `openssl x509 -noout -subject -issuer -startdate -enddate -fingerprint -sha256 -ext basicConstraints -in <file>`.
+   The subject and the issuer name Supabase Inc (a root CA names itself as
+   its issuer), `basicConstraints` says `CA:TRUE`, and today lies between its
+   two dates. Then check that the project's pooler chains to it, with a TLS
+   handshake and no login:
+   `openssl s_client -starttls postgres -connect <pooler host>:5432 -servername <pooler host> -CAfile <file> -verify_hostname <pooler host> -verify_return_error </dev/null`
+   must end with `Verification: OK`.
+3. Set it as `RELEASE_DATABASE_SSL_CA` in both `release-production` and
+   `release-preview`, and as `PAYLOAD_DATABASE_SSL_CA` on the admin app; then
+   redeploy the admin app.
+4. In the same pull request as a document change, record the new CA's name,
+   dates and fingerprint here and in step 2 of
+   [Switching it on](#switching-it-on). No code changes: the job pins no
+   fingerprint.
 
 ## Secrets and variables
 
@@ -613,9 +645,13 @@ below follow those decisions.
    settings offer under SSL configuration, which Supabase's guide calls
    `prod-ca-2021.crt`. Before you add it, run
    `openssl x509 -noout -subject -fingerprint -sha256 -in prod-ca-2021.crt`.
-   It must print `CN = Supabase Root 2021 CA` and the fingerprint
-   `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`.
-   That is the CA both projects' poolers chain to. If `RELEASE_DATABASE_URL`
+   Until Supabase rotates its CA (this one expires on 26 April 2031) it
+   prints `CN = Supabase Root 2021 CA` and the fingerprint
+   `80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA`,
+   the CA both projects' poolers chain to. If it prints another name or
+   fingerprint, follow
+   [If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires)
+   instead. If `RELEASE_DATABASE_URL`
    is already set, edit it in both `release-production` and
    `release-preview`: it must end in `?sslmode=verify-full`, with the password
    in its login part. Until then every release stops at its target check,

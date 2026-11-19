@@ -1857,3 +1857,59 @@ describe("the psql a hosted release needs", () => {
     },
   );
 });
+
+// Review N1: the job pins no fingerprint, so a CA that Supabase rotates, or
+// that expires, must be set again by hand. The stop points at the runbook's
+// step for that, which says where the new CA comes from and how to check it;
+// it never asks for a comparison the new CA cannot pass.
+describe("an expired or rotated CA", () => {
+  const RUNBOOK = readFileSync("docs/ops/release-job.md", "utf8");
+  const STEP = "If the CA is rotated or expires";
+
+  it("stops with a pointer to the runbook's step, not to a fingerprint comparison", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "n1-ca-"));
+    try {
+      let message = "";
+      try {
+        withDatabaseCaFile(
+          readReleaseSettings({
+            RELEASE_ENVIRONMENT: "production",
+            RELEASE_SUPABASE_PROJECT_REF: ref,
+            RELEASE_DATABASE_URL: databaseUrl,
+            RELEASE_DATABASE_SSL_CA: REAL_CA,
+          }),
+          { tempRoot: root, now: new Date("2200-01-01T00:00:00Z") },
+        );
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).toContain(`"${STEP}"`);
+      expect(message).toContain("docs/ops/release-job.md");
+      expect(message).not.toMatch(/compare its fingerprint/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("has that step in the runbook: where the new CA comes from, how to check it, and the date the current root expires", () => {
+    const start = RUNBOOK.indexOf(`### ${STEP}`);
+    expect(start).toBeGreaterThan(0);
+    const step = RUNBOOK.slice(start, RUNBOOK.indexOf("\n## ", start));
+    expect(step).toMatch(/Database settings/);
+    expect(step).toMatch(/signed in/);
+    expect(step).toMatch(/-subject -issuer -startdate -enddate/);
+    expect(step).toMatch(/26 April 2031/);
+    expect(step).toMatch(/same pull request/);
+  });
+
+  it("sends an owner whose CA does not print the recorded fingerprint to that step", () => {
+    const owner = RUNBOOK.slice(
+      RUNBOOK.indexOf(
+        "2. **Add the secrets and the variable of `release-production`**",
+      ),
+    );
+    const until = owner.slice(0, owner.indexOf("\n3. "));
+    expect(until).toContain("80:70:25:AD");
+    expect(until).toContain("#if-the-ca-is-rotated-or-expires");
+  });
+});
