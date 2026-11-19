@@ -1347,8 +1347,9 @@ function tryRoleLogin({ settings, role, password, query }) {
  * stale to hold. Only a login refused for the password (a rotation, a restore
  * from backup, a role just made) sets it, from a SCRAM verifier computed here,
  * and then the step logs in again within ROLE_LOGIN_VERIFICATION's bound. A
- * login refused for any other reason stops the step and changes nothing. No
- * password or verifier reaches an argument list, a log line or an error.
+ * login refused for any other reason leaves that role's password unchanged
+ * and stops the step. An earlier role may already have its new password.
+ * No password or verifier reaches an argument list, a log line or an error.
  */
 export function setCmsRolePasswords({
   settings,

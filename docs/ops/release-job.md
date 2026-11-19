@@ -217,7 +217,8 @@ So the step first logs in as each role with its secret.
 - The login is refused for any other reason: any other EAUTHQUERY reason,
   such as a failed or timed-out auth query; a refusal naming another user; no
   route; TLS; the role's connection limit; the circuit breaker. The step stops
-  at once and changes nothing.
+  at once. The refused role's password is unchanged; an earlier role may
+  already have its new password.
 
 Runs close together are the one case the step cannot tell apart. A run that
 starts within minutes of another run's password change can meet a pooler
@@ -254,9 +255,10 @@ next step as in the list above. A TLS refusal that is a certificate
 verification error (`certificate verify failed`) leads to
 [If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires): Supabase
 may have rotated the project's CA, and step 2 there checks that the pooler
-chains to the new one. In a first rebuild this comes after the
-migrations have marked the database `disposable`, so it too continues with
-`set-cms-role-passwords` and the release (review K3).
+chains to the new one. After fixing TLS for an unfinished first rebuild,
+dispatch `first-rebuild` again with the census link, typed confirmation and
+fresh owner approval. A `disposable` marker alone does not admit an ordinary
+release on a first-only database with no recorded head.
 
 ### Seeded logins on a hosted rebuild
 
@@ -302,9 +304,13 @@ repository".
    Check: the run's log says "Replaced the published password of N seeded
    login(s)", and signing in as `demo-owner@givehope.test` with
    `demo-password` fails.
-4. Release again (a push to `production`, or the `release` operation); its
-   preflight passes. A preview database can instead be rebuilt again by the
-   preview workflow, which repeats the replacement.
+4. Resume the operation that stopped:
+   - Unfinished first rebuild, no recorded head: dispatch `first-rebuild` again
+     with the census link, typed confirmation and fresh owner approval. The
+     password repair did not complete the reset, migrations or gates.
+   - Ordinary release with recorded heads: rerun `release` after the repair.
+   - Ordinary disposable preview rebuild: rerun the preview workflow, which
+     repeats the replacement.
 
 ### Why the first rebuild alone may reset an unmarked database
 
