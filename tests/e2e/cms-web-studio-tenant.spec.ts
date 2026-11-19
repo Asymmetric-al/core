@@ -774,16 +774,32 @@ test("@cms two editors of one organization on a document with no versions: the s
     await expect(
       other.getByRole("button", { name: "Take over" }),
     ).toBeVisible();
-    // A save from the second editor's page is refused, as Payload refuses it.
+    // A save from the second editor's page meets the lock itself: Payload's
+    // `Locked` error (HTTP 423) with the message its update operation gives,
+    // not a refusal of Web Studio's own (council r3 CR7).
     const save = await other.evaluate(async (doc) => {
       const response = await fetch(`/web-studio/api/navigation/${doc}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ label: "Second editor" }),
       });
-      return response.status;
+      return {
+        status: response.status,
+        refusal: response.headers.get("x-asym-web-studio-refusal"),
+        body: (await response.json()) as unknown,
+      };
     }, id);
-    expect(save).toBeGreaterThanOrEqual(400);
+    expect(save).toEqual({
+      status: 423,
+      refusal: null,
+      body: {
+        errors: [
+          {
+            message: `Document with ID ${id} is currently locked by another user and cannot be updated.`,
+          },
+        ],
+      },
+    });
     const stored = await (
       await page.request.get(`${base}/web-studio/api/navigation/${id}`)
     ).json();
