@@ -135,12 +135,17 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
     }
   }
 
-  async function emergencyOff(person: Person, tenant: string, role = "admin") {
+  async function safetyControl(
+    person: Person,
+    tenant: string,
+    role: string,
+    mode: "disable" | "clear_emergency" | "emergency_off",
+  ) {
     const state = await db.query(
       "select state_version from public.eve_governance_state where id = 'global'",
     );
     return asService(
-      `select public.set_eve_release_safety_control($1::uuid, 'emergency_off', $2::bigint,
+      `select public.set_eve_release_safety_control($1::uuid, $6::text, $2::bigint,
          'incident drill', gen_random_uuid(), $3::text, $4::uuid, $5::text,
          'authenticated_admin', $3::text)`,
       [
@@ -149,9 +154,12 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
         people[person],
         people[person],
         role,
+        mode,
       ],
     );
   }
+  const emergencyOff = (person: Person, tenant: string, role = "admin") =>
+    safetyControl(person, tenant, role, "emergency_off");
   const emergencyIsOff = async () =>
     (
       await db.query(
@@ -211,6 +219,75 @@ describe.skipIf(!ADMIN_URL)("Eve actor checks read membership (R1)", () => {
           expect(await emergencyIsOff()).toBe(false);
         }),
     );
+
+    it("requires a second-factor operator for disable and clear, independent of profile role", () =>
+      tx(async () => {
+        const state = async () =>
+          (
+            await db.query(
+              "select state_version::int as version, release_enabled, emergency_off from public.eve_governance_state where id = 'global'",
+            )
+          ).rows[0]!;
+        const session = async (person: Person, aal: string) => {
+          await db.query("savepoint operator_session");
+          try {
+            await db.query("set local role authenticated");
+            await db.query(
+              "select set_config('request.jwt.claims', $1, true)",
+              [
+                JSON.stringify({
+                  role: "authenticated",
+                  sub: people[person],
+                  aal,
+                }),
+              ],
+            );
+            return (
+              await db.query(
+                "select public.platform_operator_session() as session",
+              )
+            ).rows[0]!.session;
+          } finally {
+            await db.query("rollback to savepoint operator_session");
+            await db.query("release savepoint operator_session");
+          }
+        };
+        await onList("staffProfileFlagged");
+        expect(await emergencyOff("superAdminFlagged", TA)).toBeNull();
+        for (const mode of ["disable", "clear_emergency"] as const) {
+          const before = await state();
+          await expect(
+            session("superAdminFlagged", "aal2"),
+          ).rejects.toMatchObject({
+            code: "42501",
+            message: expect.stringContaining("not a platform operator"),
+          });
+          expect(
+            await safetyControl("superAdminFlagged", TA, "super_admin", mode),
+          ).toMatch(/eve_launch_profile_tenant_mismatch/);
+          await expect(
+            session("staffProfileFlagged", "aal1"),
+          ).rejects.toMatchObject({
+            code: "42501",
+            message: expect.stringContaining("second factor"),
+          });
+          expect(
+            await safetyControl("staffProfileFlagged", TA, "admin", mode),
+          ).toMatch(/eve_launch_safety_permission_required/);
+          expect(await state()).toEqual(before);
+          expect(await session("staffProfileFlagged", "aal2")).toEqual({
+            operator_id: people.staffProfileFlagged,
+          });
+          expect(
+            await safetyControl("staffProfileFlagged", TA, "super_admin", mode),
+          ).toBeNull();
+          expect(await state()).toEqual({
+            version: before.version + 1,
+            release_enabled: false,
+            emergency_off: mode === "disable",
+          });
+        }
+      }));
 
     // Rewritten by AL-2675 (WP2c, part 1; record section 9 and D-18): the
     // super_admin actor role is a platform operator now. WP2a kept it on the
