@@ -47,6 +47,20 @@ has none.
 - The two folder policies read `profiles.tenant_id`, so they are in the
   sanctioned reader set in `docs/security/identity-person-anchor.md` (#2267).
 
+**Since the second release of WP2b (AL-2675,
+`20261119135300_request_tenant_policies.sql`).** All four policies test a
+live membership of the caller in the tenant the path names, through
+`authz.caller_tenant_ids()`, which takes no assignment because Storage cannot
+carry the request headers (plan 5.2; activation review Q10). The `tenantId`
+segment is any tenant where the caller holds a live row, so a person with two
+memberships, or two rows in one tenant, uploads in each. The reads and deletes
+also require the `avatars|covers/{tenantId}` layout: a person whose membership
+in a tenant has ended no longer reads or deletes their images in that tenant's
+folder through the API, and an object outside the layout is reachable only by
+the server. No policy reads `profiles.tenant_id` any more, and the
+`super_admin` fallback to the demo tenant is gone: WP2a gave such a profile a
+staff row in its tenant.
+
 ## Bucket limits
 
 | Column               | Value                                                |

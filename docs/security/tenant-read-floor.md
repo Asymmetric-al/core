@@ -10,6 +10,8 @@ None of these five tables is public. Before #2312, the public anon key could rea
 
 Re-opening any of these reads, or making any part of them public, needs a new ruling from Blake.
 
+**Since the second release of WP2b (AL-2675, 19 November 2026).** The policies below keep their names and gain a class term (`supabase/migrations/20261119135300_request_tenant_policies.sql`; `docs/security/tenant-policy-activation-review.md`). `funds`, `campaigns` and `assets` are staff-only: the plan's owner table keeps donor-class reads of funds and campaigns "staff-only until" decided, and the coordinator ruled the same for `assets` (activation review, Q2). A donor or missionary assignment reads none of the three in this release; a package that needs such a read brings the column list to the owner. `follows` admits its own rows under a donor assignment, or staff. The missionary's own key read names the request's tenant and needs a missionary assignment.
+
 ## What the migration replaces
 
 | Table          | Legacy policy (dropped)                       | New policy (`TO authenticated`, `FOR SELECT`) |
@@ -34,6 +36,25 @@ Re-opening any of these reads, or making any part of them public, needs a new ru
 `REVOKE ALL ... FROM PUBLIC, anon, authenticated` runs before the `GRANT SELECT`, so hosted default privileges and any column-level privileges are cleared as well. RLS stays enabled and forced on all five (#2251, `20261025070000_force_rls_tenant_tables.sql`); this migration adds no FORCE statement.
 
 ## Policy shapes
+
+As written by #2312. Since the second release of WP2b each policy reads, as whole sub-selects (record D-25):
+
+```sql
+-- funds, assets, campaigns (tenant scoped read)
+tenant_id = (SELECT authz.current_tenant_id()) AND ((SELECT authz.assignment_is('staff')))
+-- follows (tenant scoped own or staff read)
+tenant_id = (SELECT authz.current_tenant_id())
+AND ((SELECT authz.assignment_is('staff'))
+     OR ((SELECT authz.assignment_is('donor'))
+         AND donor_id IN (SELECT d.id FROM public.donors AS d
+                           WHERE d.profile_id IN (SELECT authz.caller_profile_ids()))))
+-- missionaries (missionaries own row key read, #2364)
+tenant_id = (SELECT authz.current_tenant_id())
+AND (SELECT authz.assignment_is('missionary'))
+AND profile_id IN (SELECT authz.caller_profile_ids())
+```
+
+The #2312 shapes, which the static acceptance suite checks against that migration's text:
 
 `missionaries`, `funds`, `assets`, `campaigns` (`tenant scoped read`):
 
@@ -67,9 +88,9 @@ NULL-tenant rows are hidden from every user JWT. With no tenant context, or a ma
 
 Every product read goes through the service-role admin client and is unchanged. The TanStack collections for these tables (including `followsCollection`) are defined but nothing instantiates them. The only anon reader was `scripts/supabase-env-smoke.mjs`; its anon probe of `campaigns` now expects permission denied (42501) and fails when rows come back.
 
-Signed-in reads follow `authz.current_tenant_id()`. Today it reads the JWT `app_metadata.tenant_id` claim, so user-JWT reads mostly return 0 rows; after #2298 it follows the request tenant GUC with no edit here.
+Signed-in reads follow `authz.current_tenant_id()`. Since the second release of WP2b (AL-2675) it no longer reads the JWT `app_metadata.tenant_id` claim: it returns the tenant the request's `x-asym-tenant` header names, when the request's one assignment resolves there (the row `x-asym-assignment` names, or the caller's one live row), and NULL otherwise. A request that names no tenant reads nothing. This is the repoint #2298 planned, carried by a request header in place of a GUC.
 
-**Realtime:** `funds` stays in `supabase_realtime`. Realtime applies RLS per subscriber, so anon receives nothing and an authenticated subscriber only gets its tenant's rows.
+**Realtime:** since the second release of WP2b no tenant table is in `supabase_realtime`, `funds` included (plan 5.2): a subscription would need a read policy that ignores the active tenant. The catalog gate fails a published tenant table.
 
 ## Live names and the pre-assert
 

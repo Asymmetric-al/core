@@ -292,11 +292,13 @@ describe.skipIf(!ADMIN_URL)(
         bucket === "profiles"
           ? "((string_to_array(name, '/'::text))[1] = ANY (ARRAY['avatars'::text, 'covers'::text]))"
           : "((string_to_array(name, '/'::text))[1] = 'editor'::text)";
+      // Amended by AL-2675 (WP2b, second release; record D-18; plan 5.2;
+      // activation review Q10): the folder's tenant is any tenant where the
+      // caller holds a live membership, no longer profiles.tenant_id with a
+      // super_admin fallback; and the deletes test the same tenant and the
+      // layout, beside the owner. Each expression is still compared whole.
       const FOLDER_IS_CALLERS_TENANT =
-        "((string_to_array(name, '/'::text))[2] IN ( SELECT COALESCE((p.tenant_id)::text, " +
-        "CASE WHEN (p.role = 'super_admin'::text) THEN '00000000-0000-0000-0000-000000000001'::text " +
-        'ELSE NULL::text END) AS "coalesce" FROM profiles p ' +
-        "WHERE (p.user_id = ( SELECT auth.uid() AS uid))))";
+        "((string_to_array(name, '/'::text))[2] IN ( SELECT (t.t)::text AS t FROM authz.caller_tenant_ids() t(t)))";
       const FILE_IS_NAMED =
         "((string_to_array(name, '/'::text))[4] <> ''::text)";
       const collapse = (sql: unknown) => String(sql).replace(/\s+/g, " ");
@@ -337,11 +339,19 @@ describe.skipIf(!ADMIN_URL)(
               `(${[bucketIs, ...inCallersFolder].join(" AND ")})`,
             );
             expect(insert.qual).toBe("");
-            expect(update.qual).toBe(`(${bucketIs} AND ${ownerIs})`);
+            // Amended by the council's R5 on WP2b's second release (record
+            // D-18): a replace tests the caller's folder and its tenant on the
+            // object as it stands (USING) too, not the bucket and owner alone,
+            // so it holds however the Storage server phrases its statement.
+            expect(collapse(update.qual), `${bucket} update using`).toBe(
+              `(${[bucketIs, ownerIs, ...inCallersFolder].join(" AND ")})`,
+            );
             expect(collapse(update.checks), `${bucket} update`).toBe(
               `(${[bucketIs, ownerIs, ...inCallersFolder].join(" AND ")})`,
             );
-            expect(remove.qual).toBe(`(${bucketIs} AND (auth.uid() = owner))`);
+            expect(collapse(remove.qual), `${bucket} delete`).toBe(
+              `(${[bucketIs, ownerIs, PATH_SEGMENT(bucket), FOLDER_IS_CALLERS_TENANT].join(" AND ")})`,
+            );
           }
         },
       );

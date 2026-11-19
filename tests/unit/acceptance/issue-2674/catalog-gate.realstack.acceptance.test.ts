@@ -26,6 +26,7 @@ import { ADMIN_URL, IN_MIGRATE_JOB } from "./harness";
 import {
   ANON_DEFINER_ALLOWLIST_PATH,
   TENANT_RLS_CATALOG_SQL,
+  TENANT_POLICY_EXCEPTIONS_PATH,
   TENANT_RLS_EXCEPTIONS_PATH,
   evaluateTenantRlsCatalog,
   runTenantRlsCatalogGate,
@@ -345,10 +346,14 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
       const snapshot = JSON.parse(
         Object.values(r.rows[0] as object)[0] as string,
       );
+      // Amended by AL-2675 (WP2b, second release; record D-18): the gate
+      // reads a fourth list, the reviewed policy exceptions, as its runner
+      // does, so each case still sees exactly the violations it plants.
       return evaluateTenantRlsCatalog(
         snapshot,
         json(TENANT_RLS_EXCEPTIONS_PATH),
         allowlist,
+        json(TENANT_POLICY_EXCEPTIONS_PATH),
       );
     } finally {
       await db.query("rollback");
@@ -429,6 +434,7 @@ describe.skipIf(!ADMIN_URL)("AL-2674 catalog gate (real stack)", () => {
         JSON.parse(Object.values(r.rows[0] as object)[0] as string),
         json(TENANT_RLS_EXCEPTIONS_PATH),
         json(ANON_DEFINER_ALLOWLIST_PATH),
+        json(TENANT_POLICY_EXCEPTIONS_PATH),
       );
       expect(gate.failures).toEqual([]);
       expect(gate.counts.wrappers).toBe(after.wrappers);

@@ -475,6 +475,92 @@ deployment reads the preview project at the migrated heads, then the smoke
 run. The next such pull request starts its rebuild only after this smoke run
 ends. The job holds only the preview project's credentials.
 
+### The request-tenant policies: after the first release's apps, never below them
+
+`20261119135300_request_tenant_policies.sql` (WP2b's second release,
+AL-2675) makes the database read the tenant and the assignment from the
+`x-asym-tenant` and `x-asym-assignment` request headers, which only the apps
+of WP2b's first release send. An app that sends neither gets no row of a
+tenant table. So:
+
+- release this migration to an environment only after a release that carries
+  the first release's apps has completed there;
+- once it has shipped there, no application rollback goes below the first
+  release, whether by _Instant Rollback_ or by a release of an older commit.
+
+The database does not enforce the order: a rebuild from source applies the
+whole chain to a database with no recorded heads, and a guard in the
+migration would stop it (council R6). Its rollback, run by hand, is
+`supabase/migrations/rollback_20261119135300_request_tenant_policies.sql`.
+It stops, changing nothing, unless 20261119135300 is the newest version in
+the migration ledger: reverse every later migration first. It leaves the
+ledger as it is, so the next release does not apply the migration again, and
+leaves the Realtime publication alone unless its marked block is run, which
+is only for a database built by replaying the chain. It ends with PostgREST's
+schema reload.
+
+The migration sets `lock_timeout` to 5s. If a long reader holds one of the
+fifty tables it alters, it fails fast with `55P03` and nothing is applied;
+dispatch the release again when the database is quiet. If its SQL committed
+but the job stopped before the migration ledger recorded it, a second push
+runs the file again and fails at its first `DROP POLICY` (the policy is
+already gone). Do not edit the file. No dispatched operation repairs the
+ledger, so the operator runs two commands by hand, in bash, from a checkout of
+the released commit, and then dispatches the release again (council R9):
+
+1. Connect as the job does. The address is the one the environment's
+   `RELEASE_DATABASE_URL` holds, without its password: `postgres.<ref>` on
+   the project's session pooler, with `sslmode=verify-full` once, and the
+   project's CA as `sslrootcert`, a file you take and check as steps 1 and 2
+   of [If the CA is rotated or expires](#if-the-ca-is-rotated-or-expires)
+   say ([The database's certificate](#the-databases-certificate)). The
+   password is the project's database password, which the owner holds
+   (GitHub never shows a secret's value). As in the job, it goes in
+   `PGPASSWORD`, never on a command line; type it at a prompt that does not
+   echo it. Set `PGREQUIREAUTH` as the job does for every hosted connection,
+   and use `psql` 16 or later, whose libpq honours it:
+
+   ```sh
+   DB='postgresql://postgres.<ref>@<pooler host>:5432/postgres?sslmode=verify-full&sslrootcert=<CA file>'
+   read -rs PGPASSWORD && export PGPASSWORD
+   export PGREQUIREAUTH=scram-sha-256
+   psql --version
+   ```
+
+2. Confirm that the SQL committed. Both columns must read `t`; if either
+   reads `f`, nothing was applied: stop here and dispatch the release again,
+   which applies the file.
+
+   ```sh
+   psql "$DB" -X -c "select to_regprocedure('authz.request_assignment()') is not null as helper_present, not exists (select 1 from pg_policy where polrelid = 'public.profiles'::regclass and polname = 'profiles staff tenant select') as old_policy_gone"
+   ```
+
+3. Record the version with the pinned CLI, which reads the password from
+   `PGPASSWORD` for a `--db-url` that carries none and the CA from the
+   address's `sslrootcert`, as the job's `db push` does, then drop both
+   settings:
+
+   ```sh
+   bun run supabase -- migration repair --status applied 20261119135300 --db-url "$DB" --yes
+   unset PGPASSWORD PGREQUIREAUTH
+   ```
+
+4. Dispatch **Release**, branch `production`, operation `release`. Its
+   `gates` step (`node scripts/release/release-database.mjs gates`) runs the
+   catalog gates and compares the database's schema fingerprint with the
+   replay the job builds, before it records the heads or deploys anything.
+   Nothing is run by hand for this: `scripts/release/catalog-gates.mjs` is a
+   module the step calls, with no command of its own, and the step needs the
+   fingerprint of the replay the job builds in the same run. If the gates
+   fail, nothing is recorded or deployed.
+
+Steps 1 to 3 were run in this form, with `psql` 17 and the pinned CLI
+(2.121.0), against a local Postgres that served TLS with a certificate a test
+CA signed and held the objects the query reads but not the ledger row. With
+that CA as `sslrootcert` the query read `t` twice and the repair recorded the
+version. With another CA, `psql` and the CLI both refused the server's
+certificate, and nothing was recorded.
+
 ### The database's certificate
 
 Every connection the job opens to a hosted database checks the server's

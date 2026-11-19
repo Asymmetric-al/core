@@ -49,12 +49,32 @@ After the migration, on any database whatever its default privileges:
   types changed) with the same grants.
 - The `authz` INVOKER helpers `current_user_id()` and `current_tenant_id()`
   keep `PUBLIC` EXECUTE; they run with the caller's privileges and gain nothing.
+- Since the second release of WP2b (AL-2675,
+  `20261119135300_request_tenant_policies.sql`), `has_membership` and
+  `has_staff_membership` keep these grants and judge the request's one
+  assignment, through `authz.request_assignment()`. The request-tenant helpers
+  it adds (`authz.request_tenant_id()`, `request_assignment_id()`,
+  `request_assignment()`, `assignment_is(...)`, `assignment_is_tenant_admin()`,
+  `assignment_holds(text)`, `caller_profile_ids()`, `caller_tenant_ids()`) are
+  owned by `postgres` and executable by `authenticated` and `service_role`
+  only; so `anon` calling `current_tenant_id()` gets `42501`. It marks
+  `authz.is_super_admin()` and `authz.current_user_id()` `PARALLEL SAFE`.
+  The commenter read, `public.post_comment_authors(uuid)`, ships with the
+  first release of WP2b, not this one (council R1). `tenant_guard` keeps its
+  `EXECUTE` on `has_membership` and `has_staff_membership` (AL-2674's
+  command-lane migration asserts it); nothing in `tenant_guard` or
+  `platform` calls them, and after this migration no policy in `public` does.
 - The 8 `authz staff tenant …` policies on `crm_command_logs`,
   `crm_record_links` and `crm_merge_candidates` were `TO public` and call these
   helpers. They are now `TO authenticated`, with USING and WITH CHECK
   unchanged. Hosted defaults give `anon` table privileges, so without this
   `anon` would get `permission denied for function is_super_admin` instead of
-  0 rows.
+  0 rows. Since the second release of WP2b (AL-2675) five of them are
+  dropped: the insert of `crm_command_logs` and the insert and update of
+  `crm_merge_candidates` with their write grants, and the insert and update of
+  `crm_record_links`, where signed-in users never held a write grant. The
+  three read policies that stand carry the request's tenant
+  (`tenant-policy-activation-review.md`, Q7 and Q8).
 
 `tests/unit/security/authz-definer-execute-grants.test.ts` fails the build if
 a forward migration defines an `authz` SECURITY DEFINER function that is not in
@@ -119,7 +139,9 @@ There is no rollback migration: reverting restores `PUBLIC` EXECUTE on the
 `authz` helpers and re-opens the gaps described above. If a revert is needed
 anyway, this restores the state the earlier migrations defined. It does not
 re-grant `anon` or `service_role` on `current_user_memberships`, which no
-migration intended.
+migration intended. On a chain that has
+`20261119135300_request_tenant_policies.sql`, the five write policies it
+dropped do not exist: leave out their `ALTER POLICY` lines.
 
 ```sql
 BEGIN;
