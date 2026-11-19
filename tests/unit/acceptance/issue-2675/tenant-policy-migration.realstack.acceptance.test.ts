@@ -1466,8 +1466,17 @@ describe.skipIf(!ADMIN_URL)(
         );
 
       // R7: the sweep of "a request that names no tenant receives none", as
-      // the staff-only case is swept: every public table with a tenant column
-      // and a signed-in read policy, less the reviewed exceptions.
+      // the staff-only case is swept: every public table with a tenant column,
+      // a signed-in read policy and a signed-in read grant on the table or on
+      // any column of it (missionaries holds column grants only), less the
+      // reviewed exceptions. The tables the exceptions name are swept too,
+      // through a row whose subject is none of the callers and which is not
+      // public: they admit a row with no header only to its subject
+      // (profiles, account_claim_requests), to anyone when it is published
+      // (locations, posts) or to a super admin (field_policies, swept whole).
+      // Callers include a donor and a missionary whose own rows the sweep
+      // holds, with a positive control each, so a table whose rows only their
+      // subject reads can fail the sweep (fixcheck F3).
       it("R7: no row of any tenant table without the headers, nor with the assignment header alone, outside the reviewed exceptions", () =>
         tx(async () => {
           const pinned = new Set(
@@ -1480,7 +1489,7 @@ describe.skipIf(!ADMIN_URL)(
               ) as { entries: { table: string }[] }
             ).entries.map((e) => e.table),
           );
-          const tables = (
+          const candidates = (
             await rows(
               `select c.relname::text t
                  from pg_class c
@@ -1488,46 +1497,107 @@ describe.skipIf(!ADMIN_URL)(
                   and exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname = 'tenant_id' and not a.attisdropped)
                   and exists (select 1 from pg_policy p where p.polrelid = c.oid and p.polcmd in ('r', '*')
                                 and p.polroles && array[0::oid, 'authenticated'::regrole::oid])
-                  and has_table_privilege('authenticated', c.oid, 'SELECT')
+                  and has_any_column_privilege('authenticated', c.oid, 'SELECT')
                 order by 1`,
             )
-          )
-            .map((r) => r.t as string)
-            .filter((t) => !pinned.has(t));
+          ).map((r) => r.t as string);
+          const tables = candidates.filter((t) => !pinned.has(t));
           expect(tables.length).toBeGreaterThan(40);
+          expect(tables).toEqual(
+            expect.arrayContaining(["missionaries", "donor_feed_preferences"]),
+          );
+          // A row of each pinned table that no caller below may read.
+          const pinnedRow: Record<string, Record<string, string>> = {
+            account_claim_requests: { requested_by: q("UB") },
+            locations: { status: "'draft'" },
+            posts: { status: "'draft'", visibility: "'private'" },
+            profiles: { user_id: "gen_random_uuid()" },
+          };
+          expect(candidates.filter((t) => pinned.has(t))).toEqual(
+            [...Object.keys(pinnedRow).sort(), "field_policies"].sort(),
+          );
+          const subject: Record<string, Record<string, string>> = {
+            member_care_private_notes: { author_user_id: q("UADM") },
+            donor_feed_preferences: { donor_id: q("dDON") },
+          };
+          const only: Record<string, string> = {};
           await replica(true);
           for (const t of tables)
+            await insertRow(t, { tenant_id: q("TA"), ...(subject[t] ?? {}) });
+          for (const [t, given] of Object.entries(pinnedRow)) {
+            only[t] = randomUUID();
             await insertRow(t, {
+              id: `'${only[t]}'`,
               tenant_id: q("TA"),
-              ...(t === "member_care_private_notes"
-                ? { author_user_id: q("UADM") }
-                : {}),
+              ...given,
             });
+          }
           await replica(false);
-          for (const t of tables) {
+          /** A pinned table counts only its swept row; field_policies whole. */
+          const scope = (t: string) =>
+            only[t] ? ` where id = '${only[t]}'` : "";
+          const count = async (
+            u: User,
+            headers: Record<string, string> | undefined,
+            t: string,
+            where = scope(t),
+          ) => {
+            const r = await as(
+              "authenticated",
+              { sub: u, headers },
+              `select count(*)::int n from public.${t}${where}`,
+            );
+            expect(r.code, `${t} ${u}: ${r.message}`).toBeNull();
+            return r.rows[0]!.n as number;
+          };
+          // UADM holds one live row, in TA; UP one in each tenant; UDON a
+          // donor row and UMIS a missionary row, in TA.
+          const callers: [User, Record<string, string> | undefined][] = [
+            ["UADM", undefined],
+            ["UADM", { "x-asym-assignment": id.mAdm! }],
+            ["UP", undefined],
+            ["UP", { "x-asym-assignment": id.mPA! }],
+            ["UDON", undefined],
+            ["UDON", { "x-asym-assignment": id.mDon! }],
+            ["UMIS", undefined],
+            ["UMIS", { "x-asym-assignment": id.mMis! }],
+          ];
+          for (const t of [...tables, ...Object.keys(only), "field_policies"]) {
             const there = await rows(
-              `select count(*)::int n from public.${t} where tenant_id = $1`,
-              [id.TA],
+              t === "field_policies" || only[t]
+                ? `select count(*)::int n from public.${t}${scope(t)}`
+                : `select count(*)::int n from public.${t} where tenant_id = $1`,
+              t === "field_policies" || only[t] ? [] : [id.TA],
             );
             expect(there[0]!.n, t).toBeGreaterThan(0);
-            // UADM holds one live row, in TA; UP holds one in each tenant.
-            for (const [u, headers] of [
-              ["UADM", undefined],
-              ["UADM", { "x-asym-assignment": id.mAdm! }],
-              ["UP", undefined],
-              ["UP", { "x-asym-assignment": id.mPA! }],
-            ] as [User, Record<string, string> | undefined][]) {
-              const r = await as(
-                "authenticated",
-                { sub: u, headers },
-                `select count(*)::int n from public.${t}`,
-              );
-              expect(r.code, `${t} ${u}: ${r.message}`).toBeNull();
-              expect(r.rows[0]!.n, `${t} ${u} ${JSON.stringify(headers)}`).toBe(
-                0,
-              );
-            }
+            for (const [u, headers] of callers)
+              expect(
+                await count(u, headers, t),
+                `${t} ${u} ${JSON.stringify(headers)}`,
+              ).toBe(0);
           }
+          // Positive controls: with both headers the subject's rows come back.
+          expect(
+            await count("UDON", under("mDon"), "donor_feed_preferences"),
+          ).toBeGreaterThan(0);
+          expect(
+            await count("UMIS", under("mMis"), "missionaries"),
+          ).toBeGreaterThan(0);
+          expect(
+            await count("UADM", under("mAdm"), "field_policies"),
+          ).toBeGreaterThan(0);
+          expect(
+            await count("UADM", under("mAdm"), "account_claim_requests"),
+          ).toBeGreaterThan(0);
+          // And the reviewed exceptions: the requester reads their own claim
+          // with no header, and anyone a published location.
+          expect(
+            await count("UB", undefined, "account_claim_requests"),
+          ).toBeGreaterThan(0);
+          await db.query(
+            `update public.locations set status = 'published' where id = '${only.locations}'`,
+          );
+          expect(await count("UADM", undefined, "locations")).toBe(1);
         }));
 
       // R8: the member directory answers only for the tenant the request
