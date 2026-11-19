@@ -63,10 +63,12 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
     expect(
       (
         await db.query(
-          "select to_regproc('public.crm_donor_activities') as stale",
+          `select proc.oid from pg_catalog.pg_proc as proc
+           join pg_catalog.pg_namespace as ns on ns.oid = proc.pronamespace
+           where ns.nspname = 'public' and proc.proname = 'crm_donor_activities'`,
         )
-      ).rows[0].stale,
-    ).toBeNull();
+      ).rows,
+    ).toHaveLength(0);
     expect(result.rows).toHaveLength(guards.length);
     for (const row of result.rows) expect(row.restricted, row.name).toBe(true);
   });
@@ -327,7 +329,16 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         ).rows,
       ).toEqual([{ id: first.task, donor_id: null }]);
       await db.query("rollback to savepoint move_donor");
+      const activityIds = async () =>
+        (
+          await db.query(
+            "select id from public.donor_activities where donor_id = any($1::uuid[]) order by id",
+            [[first.donor, second.donor, otherDonor]],
+          )
+        ).rows;
+      const initialActivities = await activityIds();
       expect(await activity(first, second.donor)).toEqual([]);
+      expect(await activityIds()).toEqual(initialActivities);
       const activities = await activity(first, first.donor);
       expect(activities).toHaveLength(1);
       const otherActivities = await activity(first, otherDonor);
@@ -366,13 +377,18 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         id: string | null,
         patch = {},
       ) => call("missionary_task_write", scope, op, id, patch);
-      const follow = (scope: typeof first, op: string, id: string) =>
+      const follow = (
+        scope: typeof first,
+        op: string,
+        id: string,
+        status = "approved",
+      ) =>
         call(
           "missionary_follower_request_write",
           scope,
           op,
           id,
-          "approved",
+          status,
           "comment",
         );
       const edit = (scope: typeof first) =>
@@ -411,6 +427,15 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         first.request,
       ]);
       expect(await edit(first)).toEqual([first.missionary]);
+      const followerRow = async () =>
+        (
+          await db.query("select * from public.follower_requests where id=$1", [
+            first.request,
+          ])
+        ).rows;
+      const originalFollower = await followerRow();
+      expect(originalFollower).toHaveLength(1);
+      const originalActivities = await activityIds();
       const wrongHat = { ...first, assignment: donorHat };
       expect(await reads(wrongHat)).toEqual([[], [], []]);
       expect(await task(wrongHat, "delete", first.task)).toEqual([]);
@@ -445,7 +470,9 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
           expect(
             await task(scope, op, first.task, { title: "denied" }),
           ).toEqual([]);
-          expect(await follow(scope, op, first.request)).toEqual([]);
+          expect(await follow(scope, op, first.request, "rejected")).toEqual(
+            [],
+          );
         }
         expect(await edit(scope)).toEqual([]);
       }
@@ -454,6 +481,8 @@ describe.skipIf(!ADMIN_URL)("missionary handler statement authority", () => {
         [second.request],
         [second.missionary],
       ]);
+      expect(await activityIds()).toEqual(originalActivities);
+      expect(await followerRow()).toEqual(originalFollower);
       expect(await follow(second, "delete", second.request)).toEqual([
         second.request,
       ]);
