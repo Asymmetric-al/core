@@ -99,23 +99,30 @@ Set `project_dir` to the absolute path agreed in Phase 1. From the Core reposito
 eve_cli="$(pwd -P)/packages/eve-runtime/node_modules/.bin/eve"
 ```
 
-For a new project, run from its existing parent directory. `init` accepts the directory name as its argument.
+For a new project, run from its existing parent directory. `init` accepts the directory name as its argument. Eve uses the parent workspace's package manager when it finds one. The Bun user-agent gives standalone projects a Bun default.
 
 ```bash
-(cd "$(dirname -- "$project_dir")" && "$eve_cli" init "$(basename -- "$project_dir")")
+(
+  cd "$(dirname -- "$project_dir")" &&
+    AI_AGENT=1 npm_config_user_agent="bun/$(bun --version)" "$eve_cli" init "$(basename -- "$project_dir")"
+)
 ```
 
 For an existing project with a `package.json` and no `agent/` directory, run from that project. Eve uses the selected project's package manager.
 
 ```bash
-(cd "$project_dir" && "$eve_cli" init .)
+(cd "$project_dir" && AI_AGENT=1 "$eve_cli" init .)
 ```
 
-`init` installs deps and may start the dev server. Run it in a controllable process and stop the server before editing files.
+`AI_AGENT=1` tells Eve to print the next steps after installation, including in shells that the CLI cannot identify as coding-agent sessions. If installation fails after `agent/agent.ts` is written, inspect the generated files and retry dependency installation from the project directory with its package manager.
 
 If the selected project already has `agent/`, skip init and locate its `agent/agent.ts` and `agent/instructions.md`.
 
-Optional: `--channel-web-nextjs` only when the user asked for Web Chat and they are using Next.js.
+Use `--channel-web-nextjs` for new projects only, when the brief calls for the Next.js Web Chat app. In an existing project, `channels add web` also attempts to link and deploy the project on Vercel. Run it after init when the user has authorized that deployment.
+
+```bash
+(cd "$project_dir" && "$eve_cli" channels add web)
+```
 
 ### 3. Place EVE-BRIEF.md
 
@@ -168,14 +175,14 @@ Skip this step for standalone projects.
 
 ### 6. Verify
 
-For a new Bun scaffold, run the generated checks from the selected project:
+For a new scaffold that uses Bun, run the generated checks from the selected project:
 
 ```bash
 bun run --cwd "$project_dir" typecheck
 bun run --cwd "$project_dir" build
 ```
 
-For an existing project, use its declared typecheck and build commands. If implementation changed dependencies, update the lockfile with the project's package manager before verifying.
+For an existing project or a scaffold that inherits another package manager, use the project's declared typecheck and build commands with that manager. If implementation changed dependencies, update the lockfile with the project's package manager before verifying.
 
 Tell the user how to run the agent with `bunx eve` from the selected project directory, what to ask in the TUI, and how to exercise the agent over HTTP per the eve docs. Point them to the most-commented files as the learning path. Do not commit unless asked.
 

@@ -166,7 +166,14 @@ describe("skill-quality repairs", () => {
     expect(skill).toContain("packages/eve-runtime/node_modules/.bin/eve");
     expect(skill).toContain('cd "$(dirname -- "$project_dir")"');
     expect(skill).toContain('init "$(basename -- "$project_dir")"');
-    expect(skill).toContain('cd "$project_dir" && "$eve_cli" init .');
+    expect(skill).toMatch(
+      /AI_AGENT=1 npm_config_user_agent="bun\/[^"\n]+"[^\n]*\n?\s*"\$eve_cli" init/,
+    );
+    expect(skill).toContain(
+      'cd "$project_dir" && AI_AGENT=1 "$eve_cli" init .',
+    );
+    expect(skill).toMatch(/--channel-web-nextjs[^\n]*new projects only/i);
+    expect(skill).toContain("channels add web");
     expect(skill).not.toContain('init "$project_dir"');
     expect(skill).toContain('bun run --cwd "$project_dir" typecheck');
     expect(skill).toContain('bun run --cwd "$project_dir" build');
