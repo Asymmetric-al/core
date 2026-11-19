@@ -453,7 +453,6 @@ describe("Phase 5 CRM donor detail and reports", () => {
     let policyLoads = 0;
     const fixture = createSupabaseFixture(baseTables);
     const countingSupabase = {
-      rpc: fixture.rpc,
       from(table: string) {
         if (table === "contribution_approval_policies") {
           policyLoads += 1;
