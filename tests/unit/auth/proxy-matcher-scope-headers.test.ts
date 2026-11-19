@@ -1,4 +1,5 @@
-import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
@@ -127,6 +128,42 @@ const NO_SUCH_FOLDER: Record<keyof typeof PROXIES, string[]> = {
   ],
 };
 
+/**
+ * The public folders an app declares: the folders git tracks under its
+ * `public`, and the one its own `next.config.ts` creates when it loads
+ * (`copyMaplibreWorkerAssetsForApp`, which writes the folder the copy
+ * script names). Read from git and the sources, never from the disk: the
+ * created folder is gitignored and exists only once a config has loaded,
+ * which CI's unit job never does (council round 3, AR13).
+ */
+function declaredPublicFolders(app: keyof typeof PROXIES): Set<string> {
+  const publicDir = `apps/${app}/public/`;
+  const tracked = execFileSync("git", ["ls-files", "--", publicDir], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .filter((file) => file.startsWith(publicDir))
+    .map((file) => file.slice(publicDir.length))
+    .filter((rest) => rest.includes("/"))
+    .map((rest) => rest.split("/")[0]!);
+  const config = readFileSync(`apps/${app}/next.config.ts`, "utf8");
+  const copied = readFileSync(
+    "scripts/copy-maplibre-worker-assets.mjs",
+    "utf8",
+  ).match(/path\.join\(publicDir, "([\w-]+)"\)/)?.[1];
+  expect(copied, "the folder the copy script writes").toBeDefined();
+  const created = /\bcopyMaplibreWorkerAssetsForApp\s*\(/.test(config)
+    ? [copied!]
+    : [];
+  return new Set([...tracked, ...created]);
+}
+
+it("reads each app's declared public folders from git and its own config", () => {
+  expect(declaredPublicFolders("admin")).toEqual(new Set(["maplibre"]));
+  expect(declaredPublicFolders("donor")).toEqual(new Set(["maplibre"]));
+  expect(declaredPublicFolders("missionary")).toEqual(new Set());
+});
+
 describe.each(Object.keys(PROXIES) as Array<keyof typeof PROXIES>)(
   "the %s proxy's matcher",
   (app) => {
@@ -151,15 +188,16 @@ describe.each(Object.keys(PROXIES) as Array<keyof typeof PROXIES>)(
       },
     );
 
-    it("skips no folder that is not in the app's public directory", async () => {
+    it("skips no folder the app does not declare in its public directory", async () => {
       const { config } = await PROXIES[app]();
       const folders = [
         ...config.matcher.join("\n").matchAll(/(?:\(\?!|\|)([\w-]+)\//g),
       ]
         .map((match) => match[1]!)
         .filter((folder) => folder !== "_next");
+      const declared = declaredPublicFolders(app);
       for (const folder of folders) {
-        expect(existsSync(`apps/${app}/public/${folder}`), folder).toBe(true);
+        expect(declared.has(folder), folder).toBe(true);
       }
     });
   },
