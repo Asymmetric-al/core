@@ -1783,17 +1783,17 @@
       "project": "packages/auth",
       "rule": "suspense-fallback-useful",
       "classification": "product-decision",
-      "rationale": "The flagged null fallback surrounds only SegmentCrossingWatcher inside TenantSegmentBoundary, which itself renders nothing: it reads the page address and loads a new document when a client-side navigation crosses the tenant segment (AL-2675, council round 1). The app renders beside that boundary, never beneath its fallback. The boundary exists so the root layouts of Mission Control and the missionary workspace read no request data outside Suspense and every route keeps its prerendered shell; a visible placeholder would show something where the watcher never shows anything. The cited unit suite verifies the watcher's document loads and that the app still renders; no browser verification is claimed.",
+      "rationale": "The flagged null fallback surrounds only SegmentCrossingWatcher inside TenantSegmentBoundary, which itself renders nothing: it reads the page address and, when a client-side navigation crosses the tenant segment, tells the boundary, which then shows the reload notice in place of the app; the notice asks for the new document and offers a way out if it does not come (AL-2675, council round 1; check of the fix lists, JR10). The app renders beside that Suspense boundary, never beneath its fallback. The boundary exists so the root layouts of Mission Control and the missionary workspace read no request data outside Suspense and every route keeps its prerendered shell; a visible placeholder would show something where the watcher never shows anything. The cited unit suite verifies the watcher's crossing, the notice in place of the app, one reload with the document guard, and that the app still renders otherwise; no browser verification is claimed.",
       "verificationTests": ["tests/unit/auth/tenant-navigation.test.tsx"],
       "evidenceFingerprint": "c42e841d54e48e09e98d0377c8a1c203c53aeadd2ffcb844237beab1b9d7c18e",
       "proof": [
         {
           "path": "packages/auth/tenant-navigation.tsx",
-          "sha256": "f37ab3d11c5018c66f8589998460d69d6ab20a69a9fdb7357d5cf6cd1ac4da18"
+          "sha256": "a1cd9d0ba1f2cb66940de6bf1aed474592460f4fc080ad0fba6677b5724c5350"
         },
         {
           "path": "tests/unit/auth/tenant-navigation.test.tsx",
-          "sha256": "1131c0435d4758399e92ff1f4a49afa877aef25b1b99a4994ed0254c569eba61"
+          "sha256": "c7832d390433e83c43ebd17cf7dd8bb75550d6e97396b4726dd4a9bac480510b"
         }
       ]
     },

@@ -53,12 +53,22 @@ export function claimDocumentReload(): boolean {
   }
 }
 
+/** Whether this document has begun its reload: one per document. */
+let reloadBegun = false;
+
 /**
  * Reloads the document if this tab may (`claimDocumentReload`); `false`
  * when the bound is reached, and the caller then offers a way out.
+ *
+ * The one owner of the claim (check of the fix lists, JR10): a document
+ * claims and begins at most one reload, and every guard that asks again,
+ * such as `TenantDocument` after the segment's watcher on the same
+ * crossing, is told it is under way instead of finding the claim taken.
  */
 export function requestDocumentReload(): boolean {
+  if (reloadBegun) return true;
   if (!claimDocumentReload()) return false;
+  reloadBegun = true;
   reloadDocument();
   return true;
 }

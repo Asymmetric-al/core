@@ -1052,9 +1052,11 @@ describe("one bounded reload for every guard, with a status in place of the page
     );
     expect(reloadDocument).toHaveBeenCalledTimes(1);
 
-    // The new document lands on the same page again.
+    // The new document (fresh modules, the same tab) lands on the same page
+    // again.
     cleanup();
-    render(<ReloadAcrossSegment />);
+    const second = await load();
+    render(<second.ReloadAcrossSegment />);
 
     expect(reloadDocument).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status").textContent).toBe(
@@ -1068,7 +1070,45 @@ describe("one bounded reload for every guard, with a status in place of the page
     ).toBe("/");
   });
 
-  it("shares the one claim between guards: a reload the watcher tried bounds TenantDocument's", async () => {
+  // Check of the fix lists, JR10: the watcher's crossing replaces the
+  // boundary's children with the notice, so no page of the wrong segment
+  // stays mounted, and once the bound is reached the notice offers its way
+  // out.
+  it("the watcher's crossing: the boundary shows the notice in place of the app, and the way out once the bound is reached", async () => {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      cleanup();
+      const mod = await load();
+      nav.pathname = `/${TA}/tasks`;
+      loadDocumentAt(nav.pathname);
+      const page = () => (
+        <mod.TenantSegmentBoundary>
+          <p>app</p>
+        </mod.TenantSegmentBoundary>
+      );
+      const view = render(page());
+      expect(screen.getByText("app")).toBeTruthy();
+      nav.pathname = `/${TB}/tasks`;
+      view.rerender(page());
+
+      expect(screen.queryByText("app")).toBeNull();
+      expect(screen.getByRole("status").textContent).toBe(
+        attempt === 0
+          ? "Loading this page again…"
+          : "This page could not load again.",
+      );
+    }
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Reload" })).toBeTruthy();
+  });
+
+  // JR10: the watcher precedes the app in the tree, so its effect runs
+  // before TenantDocument's on the same crossing. When each consumed the
+  // one claim, the watcher's came first and the guard's then failed and
+  // threw TenantScopeMismatchError on a first crossing. One owner: the
+  // document begins one reload, and every guard that asks again is told it
+  // is under way.
+  it("watcher and document guard see the same crossing: one reload, the notice, and no error", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     const mod = await load();
     nav.pathname = `/${TA}~finance/contributions`;
     loadDocumentAt(nav.pathname);
@@ -1087,7 +1127,12 @@ describe("one bounded reload for every guard, with a status in place of the page
     nav.pathname = `/${TB}/contributions`;
     view.rerender(page());
 
-    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.queryByText("page")).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe(
+      "Loading this page again…",
+    );
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    errors.mockRestore();
   });
 });

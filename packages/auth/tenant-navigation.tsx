@@ -1,10 +1,7 @@
 "use client";
 
-import { loadDocument, reloadDocument } from "@asym/database/document-reload";
-import {
-  claimDocumentReload,
-  requestDocumentReload,
-} from "@asym/database/document-reload-claim";
+import { loadDocument } from "@asym/database/document-reload";
+import { requestDocumentReload } from "@asym/database/document-reload-claim";
 import {
   DocumentScopeProvider,
   isDocumentScopeFixed,
@@ -166,27 +163,37 @@ export function TenantSegmentBoundary({ children }: { children: ReactNode }) {
     }),
     [],
   );
+  // A crossing the watcher saw: the app gives way to the notice, which asks
+  // for the reload and offers a way out if it does not happen, so no page of
+  // the wrong segment stays mounted (check of the fix lists, JR10).
+  const [crossed, setCrossed] = useState(false);
   return (
     <SegmentContext.Provider value={value}>
       <Suspense fallback={null}>
-        <SegmentCrossingWatcher documentSegment={value.documentSegment} />
+        <SegmentCrossingWatcher
+          documentSegment={value.documentSegment}
+          onCrossed={setCrossed}
+        />
       </Suspense>
-      {children}
+      {crossed ? <ScopeReloadNotice /> : children}
     </SegmentContext.Provider>
   );
 }
 
+/** Reads the address and reports a crossing of the document's segment. It renders nothing. */
 function SegmentCrossingWatcher({
   documentSegment,
+  onCrossed,
 }: {
   documentSegment: string | null | undefined;
+  onCrossed: (crossed: true) => void;
 }) {
   const addressSegment = addressSegmentOf(usePathname() ?? "/");
   const crossed =
     documentSegment !== undefined && addressSegment !== documentSegment;
   useEffect(() => {
-    if (crossed) requestDocumentReload();
-  }, [crossed]);
+    if (crossed) onCrossed(true);
+  }, [crossed, onCrossed]);
   return null;
 }
 
@@ -341,9 +348,9 @@ export function TenantDocument({
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    if (!reload) return;
-    if (claimDocumentReload()) reloadDocument();
-    else setStuck(true);
+    // The document's one reload (JR10): under way already if another guard,
+    // such as the segment's watcher, asked first on the same crossing.
+    if (reload && !requestDocumentReload()) setStuck(true);
   }, [reload]);
 
   if (stuck) {
