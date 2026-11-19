@@ -9,6 +9,7 @@ import {
   type EveNotificationRecipient,
   type EveNotificationRecord,
 } from "./types";
+import { readAllPages } from "../../shared/read-all-pages";
 import { listTenantMembers } from "../../shared/tenant-members";
 import {
   EVE_ENGINEERING_FINDING_SEVERITIES,
@@ -151,32 +152,6 @@ export async function loadEveNotificationChannels(input: {
   return (data ?? []).map(toChannel);
 }
 
-/** Rows per page of recipient preferences, below the Data API's `max_rows`. */
-const RECIPIENT_PREFERENCE_PAGE_SIZE = 500;
-
-/**
- * Every recipient preference row of a tenant, page by page in profile order.
- * It reads until a page comes back empty, so a server cap below the page size
- * (`max_rows` is a dashboard setting on hosted Supabase) cannot cut it.
- */
-async function readRecipientPreferences(
-  supabaseAdmin: AdminSupabaseClient,
-  tenantId: string,
-): Promise<{ data: unknown[] | null; error: { message: string } | null }> {
-  const rows: unknown[] = [];
-  for (;;) {
-    const { data, error } = await supabaseAdmin
-      .from("eve_notification_recipient_configs")
-      .select("profile_id, enabled, opted_out")
-      .eq("tenant_id", tenantId)
-      .order("profile_id")
-      .range(rows.length, rows.length + RECIPIENT_PREFERENCE_PAGE_SIZE - 1);
-    if (error) return { data: null, error };
-    if (!data || data.length === 0) return { data: rows, error: null };
-    rows.push(...data);
-  }
-}
-
 export async function listEveNotificationRecipients(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
@@ -206,10 +181,16 @@ export async function listEveNotificationRecipients(input: {
     // operators, and its trigger admits every live administrator of the
     // tenant, so the rows are no longer a handful (council round 2 on WP2a,
     // R2, asked for this when WP2c opened them).
-    readRecipientPreferences(input.supabaseAdmin, input.tenantId),
+    readAllPages((from, to) =>
+      input.supabaseAdmin
+        .from("eve_notification_recipient_configs")
+        .select("profile_id, enabled, opted_out")
+        .eq("tenant_id", input.tenantId)
+        .order("profile_id")
+        .range(from, to),
+    ),
   ]);
-  const error = profiles.error ?? preferences.error;
-  if (error) throw new Error(error.message);
+  if (profiles.error) throw new Error(profiles.error.message);
   const preferenceMap = new Map(
     z
       .array(
@@ -219,7 +200,7 @@ export async function listEveNotificationRecipients(input: {
           opted_out: z.boolean(),
         }),
       )
-      .parse(preferences.data ?? [])
+      .parse(preferences)
       .map((value) => [value.profile_id, value]),
   );
   return z
