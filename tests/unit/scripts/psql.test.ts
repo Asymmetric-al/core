@@ -776,17 +776,18 @@ describe("the ambient libpq settings a builder may keep (review M3)", () => {
  * /usr/bin/psql, an import of scripts/lib/psql.mjs). Nothing is stripped, so
  * no comment or string can hide them. A file that holds them is a listed
  * starter (PSQL_STARTERS), or is listed by name in PSQL_NAMERS with the
- * reason it needs the word and how many times it holds it. Any other file
- * that holds them fails, and so does a listed file whose count changes: a
- * new mention in a listed file is reviewed, then counted.
+ * reason it needs the word and every line that holds it, trimmed and sorted
+ * (phase 16, Q2: a count could not see one mention swapped for another). Any
+ * other file that holds them fails, and so does a listed file whose lines
+ * change: a new or changed line shows in this file's diff for a reviewer.
  *
  * What this cannot see:
  * - a program name built at run time from parts ("ps" + "ql", a character
  *   code, a decoded string) in a file that otherwise never names psql;
+ * - in a listed file, a new line without the word that starts psql through a
+ *   value a pinned line already holds under a name without it;
  * - a helper outside scripts/ (packages/, tests/) that starts psql for a
- *   script, or anything under a node_modules directory, which the walk skips;
- * - in a listed file, a new mention that replaces an old one one for one, so
- *   the count stays the same;
+ *   script, or a file git does not track, which the walk skips;
  * - what a listed starter does: the tests of the three shared builders and
  *   the starters' own tests judge that.
  */
@@ -804,77 +805,187 @@ const PSQL_STARTERS = [
 const SHARED_BUILDERS = PSQL_STARTERS.slice(0, 3);
 
 /**
- * The files that name psql and start none, each with how many times it holds
- * the letters (in any case, comments included) and why.
+ * The files that name psql and start none, each with why, and every line
+ * that holds the letters (in any case, comments included), trimmed and
+ * sorted as psqlLines gives them, duplicates kept.
  */
-const PSQL_NAMERS: Record<string, { count: number; reason: string }> = {
+const PSQL_NAMERS: Record<string, { reason: string; lines: string[] }> = {
   "scripts/cms/lib/migration-target.mjs": {
-    count: 5,
     reason:
       "comments and two messages that name the CMS runner's psql and the CA file it reads",
+    lines: [
+      '"A hosted CMS migration address names its own CA (sslrootcert). Leave it out: Payload reads the CA from PAYLOAD_DATABASE_SSL_CA and the runner\'s psql from PGSSLROOTCERT.",',
+      "\"A hosted CMS migration needs the project's CA: set PAYLOAD_DATABASE_SSL_CA to its PEM, for Payload, and PGSSLROOTCERT to a file holding the same certificate, for the runner's psql. The release job sets both from RELEASE_DATABASE_SSL_CA.\",",
+      "// PGSSLROOTCERT for the runner's psql (lib/postgres.mjs), while Payload",
+      "// and the runner's psql against the file PGSSLROOTCERT names.",
+      "// the runner's psql (lib/postgres.mjs drops it) or Payload.",
+    ],
   },
   "scripts/cms/lib/supabase.mjs": {
-    count: 3,
     reason: "imports and calls runPsqlFile from the CMS builder",
+    lines: [
+      "runPsqlFile(filePath);",
+      "runPsqlFile(seedSqlPath);",
+      "runPsqlFile,",
+    ],
   },
   "scripts/cms/qualify-payload-pin.mjs": {
-    count: 1,
     reason: "imports isLoopbackDatabaseUrl from scripts/lib/psql.mjs",
+    lines: ['import { isLoopbackDatabaseUrl } from "../lib/psql.mjs";'],
   },
   "scripts/cms/verify-local.mjs": {
-    count: 2,
     reason: "imports and calls runPsql from the CMS builder",
+    lines: [
+      'import { queryJson, runPsql } from "./lib/postgres.mjs";',
+      'runPsql("select 1;");',
+    ],
   },
   "scripts/lib/environment-marker.mjs": {
-    count: 12,
     reason:
       "reads the marker through runPsqlQuery, handing on psqlBin from PSQL_BIN",
+    lines: [
+      "function query(databaseUrl, sql, psqlBin) {",
+      'import { isLoopbackDatabaseUrl, runPsqlQuery } from "./psql.mjs";',
+      'psqlBin = process.env.PSQL_BIN?.trim() || "psql",',
+      "psqlBin,",
+      "psqlBin,",
+      "psqlBin,",
+      "readKind: () => readEnvironmentMarker({ databaseUrl, psqlBin }),",
+      "return runPsqlQuery({ databaseUrl, sql, psqlBin }).trim();",
+    ],
   },
   "scripts/lib/local-database.mjs": {
-    count: 16,
     reason:
       "the `local-database.mjs psql` entry: shell scripts run psql through spawnPsql here, and its usage and messages name it",
+    lines: [
+      '"usage: node scripts/lib/local-database.mjs admit|psql <ENV_VARIABLE> [psql arguments]\\n",',
+      "//     psql's status.",
+      "//     refuses (1) a URL the decision does not admit; otherwise runs psql on it",
+      "//     through spawnPsql (the URL is the whole target, every ambient PG*",
+      "//   node scripts/lib/local-database.mjs psql SUPABASE_DB_URL [psql arguments]",
+      "// The repository's one local-database decision and psql runner for shell",
+      "`Refusing to run psql: ${variable} does not name a database on this machine.\\n`,",
+      "args: psqlArgs,",
+      'const COMMANDS = new Set(["admit", "psql"]);',
+      "const [command, variable, ...psqlArgs] = argv;",
+      "const result = spawnPsql({",
+      'import { isLoopbackDatabaseUrl, spawnPsql } from "./psql.mjs";',
+      "process.stderr.write(`could not run psql: ${result.error.message}\\n`);",
+    ],
   },
   "scripts/release/lib/database-target.mjs": {
-    count: 4,
     reason:
       "a comment, and the shared check's forPsql option for an address the reset guard hands psql",
+    lines: [
+      "// Review K1: the URL also reaches psql (the reset wrapper reads the marker",
+      "// through scripts/lib/psql.mjs), so it must be one libpq reads as `URL` does,",
+      "// with only the query keys psql may take.",
+      "const libpqProblem = databaseUrlProblem(databaseUrl, { forPsql: true });",
+    ],
   },
   "scripts/release/lib/scram.mjs": {
-    count: 1,
     reason: "a comment comparing the verifier with psql's \\password",
+    lines: [
+      "// reaches the server, its statement log or argv (what psql's \\password does).",
+    ],
   },
   "scripts/release/release-database.mjs": {
-    count: 24,
     reason:
       "calls runPsql from the release builder and requirePsqlHonoursRequireAuth from scripts/lib/psql.mjs, hands on a psqlBin, and comments",
+    lines: [
+      "* (lib/postgres.mjs), the reset guard (scripts/lib/psql.mjs) and the Supabase",
+      "* (scripts/lib/psql.mjs keeps an ambient PGPASSWORD). SUPABASE_CLI_FORCE_PINNED",
+      "* Reviews M3 and N6: a hosted step stops, before it connects, unless the psql",
+      "* from PAYLOAD_DATABASE_SSL_CA, and the runner's own psql check from the file",
+      "* it starts psql on a hosted address. The release workflow installs Ubuntu's",
+      "* published passwords in the psql variable :'published' (a JSON array). Only",
+      "* the address names it as `sslrootcert`, which the job's own psql",
+      "* the shared one in scripts/lib/psql.mjs, which each builder also runs before",
+      "...(psqlBin ? { psqlBin } : {}),",
+      "// command line. The job's own psql queries (lib/postgres.mjs) take the",
+      "export function requirePsqlForHostedRelease({ psqlBin, run } = {}) {",
+      'import { queryJson, runPsql } from "./lib/postgres.mjs";',
+      'import { requirePsqlHonoursRequireAuth } from "../lib/psql.mjs";',
+      "requirePsqlForHostedRelease();",
+      "requirePsqlHonoursRequireAuth({",
+      "run = runPsql,",
+      "run = runPsql,",
+      "run = runPsql,",
+      "run = runPsql,",
+      "run = runPsql,",
+      "run = runPsql,",
+    ],
   },
   "scripts/seed-demo.sh": {
-    count: 9,
     reason:
       "`require_cmd psql`, and local_psql, which runs the `local-database.mjs psql` entry",
+    lines: [
+      "# (spawnPsql, scripts/lib/psql.mjs): the URL is the whole target, every",
+      "# Runs psql on SUPABASE_DB_URL through the repository's one psql runner",
+      'local_psql -v ON_ERROR_STOP=1 -P pager=off -c "',
+      'local_psql -v ON_ERROR_STOP=1 -P pager=off -c "',
+      "local_psql() {",
+      'node "$SCRIPT_DIR/lib/local-database.mjs" psql SUPABASE_DB_URL "$@"',
+      "require_cmd psql",
+    ],
   },
   "scripts/supabase-cli.mjs": {
-    count: 1,
     reason: "a comment on how the reset guard reads the marker",
+    lines: [
+      "// AL-2674): the `--db-url` value and the local stack through psql, a linked",
+    ],
   },
   "scripts/verify/field-policy-census.mjs": {
-    count: 9,
     reason: "runs its catalog query through runPsqlQuery, handing on PSQL_BIN",
+    lines: [
+      "function readCatalog(manifest, { databaseUrl, psqlBin }) {",
+      'import { isLoopbackDatabaseUrl, runPsqlQuery } from "../lib/psql.mjs";',
+      'psqlBin = process.env.PSQL_BIN || "psql",',
+      "readCatalog(manifest, { databaseUrl, psqlBin }),",
+      "runPsqlQuery({ databaseUrl, sql: catalogSql(manifest), psqlBin }).trim(),",
+    ],
   },
   "scripts/verify/seed-counts.mjs": {
-    count: 12,
     reason:
       "counts rows through runPsqlQuery, handing on PSQL_BIN, and a message",
+    lines: [
+      "* Counts rows through the shared psql runner (scripts/lib/psql.mjs), which",
+      "`psql could not count ${table}: ${error instanceof Error ? error.message : error}`,",
+      "count: count ?? ((table) => psqlCount({ databaseUrl, table })),",
+      "export function psqlCount({",
+      'import { runPsqlQuery } from "../lib/psql.mjs";',
+      'psqlBin = process.env.PSQL_BIN?.trim() || "psql",',
+      'return runPsqlQuery({ databaseUrl, sql, psqlBin }).replace(/\\s/g, "");',
+    ],
   },
   "scripts/verify/supabase-migrations.mjs": {
-    count: 16,
     reason:
       "runs each file through spawnPsql, handing on PSQL_BIN, and its messages",
+    lines: [
+      "// Every psql below runs through psqlConnection: the URL is the whole target,",
+      "catalogGate = runTenantRlsCatalogGate({ databaseUrl, psqlBin });",
+      "console.error(`error: Failed to run psql: ${result.error.message}`);",
+      'const psqlBin = process.env.PSQL_BIN?.trim() || "psql";',
+      "const result = spawnPsql({",
+      "function runPsql(label, args, input) {",
+      'import { isLoopbackDatabaseUrl, spawnPsql } from "../lib/psql.mjs";',
+      "psqlBin,",
+      "runPsql(",
+      'runPsql("bootstrap Supabase compatibility schemas", [',
+      "runPsql(`apply ${fileName}`, args);",
+      "runPsql(`apply hosted Supabase default privileges (${HOSTED_DEFAULTS})`, [",
+    ],
   },
   "scripts/verify/tenant-rls-catalog.mjs": {
-    count: 8,
     reason: "runs its catalog query through runPsqlQuery, handing on psqlBin",
+    lines: [
+      "* Runs the catalog query through psql (the census pattern) and evaluates it",
+      "* against the exception list and the anon allowlist. Throws when psql fails",
+      "const stdout = runPsqlQuery({",
+      'import { runPsqlQuery } from "../lib/psql.mjs";',
+      'psqlBin = "psql",',
+      "psqlBin,",
+    ],
   },
 };
 
@@ -891,6 +1002,14 @@ function scriptsFiles(dir = "scripts"): string[] {
 /** How many times `source` holds the letters psql, in any case. */
 const psqlCount = (source: string) => source.match(/psql/gi)?.length ?? 0;
 
+/** Every line of `source` that holds the letters psql, trimmed and sorted. */
+const psqlLines = (source: string) =>
+  source
+    .split("\n")
+    .filter((line) => /psql/i.test(line))
+    .map((line) => line.trim())
+    .sort();
+
 /** Why a file under scripts/ breaks the rule above, or null. */
 function psqlProblem(file: string, source: string): string | null {
   if (file.endsWith(".md")) return null;
@@ -898,10 +1017,13 @@ function psqlProblem(file: string, source: string): string | null {
   if (count === 0 || PSQL_STARTERS.includes(file)) return null;
   const listed = PSQL_NAMERS[file];
   if (!listed)
-    return `${file} names psql ${count} time(s) and is neither a listed starter nor listed in PSQL_NAMERS. A script runs psql through scripts/lib/psql.mjs, or a shell script through scripts/lib/local-database.mjs; list a file that only names it, with the reason and the count.`;
-  if (listed.count !== count)
-    return `${file} names psql ${count} time(s), and PSQL_NAMERS says ${listed.count}. Check that the change starts no psql, then update the count and the reason.`;
-  return null;
+    return `${file} names psql ${count} time(s) and is neither a listed starter nor listed in PSQL_NAMERS. A script runs psql through scripts/lib/psql.mjs, or a shell script through scripts/lib/local-database.mjs; list a file that only names it, with the reason and its lines.`;
+  const lines = psqlLines(source);
+  if (JSON.stringify(lines) === JSON.stringify([...listed.lines].sort()))
+    return null;
+  const unpinned = lines.filter((line) => !listed.lines.includes(line));
+  const gone = listed.lines.filter((line) => !lines.includes(line));
+  return `${file}'s lines that name psql differ from PSQL_NAMERS (not pinned: ${JSON.stringify(unpinned)}; pinned but gone: ${JSON.stringify(gone)}; ${lines.length} line(s) against ${listed.lines.length} pinned). Check that the change starts no psql, then pin the lines and update the reason.`;
 }
 
 /** The forms the last check (phase 15, P2) found passing the patterns. */
@@ -1006,20 +1128,21 @@ const REVIEWER_FORMS: Array<[string, string, string]> = [
 ];
 
 describe("the files under scripts/ that start psql (review M4)", () => {
-  it("every file that names psql is a listed starter, or is listed by name at its count", () => {
-    const counts = new Map<string, number>();
+  it("every file that names psql is a listed starter, or is listed by name with its lines", () => {
+    const lines = new Map<string, string[]>();
     for (const file of scriptsFiles()) {
       const source = readFileSync(file, "utf8");
       expect(psqlProblem(file, source)).toBeNull();
-      counts.set(file, psqlCount(source));
+      lines.set(file, psqlLines(source));
     }
     // No entry outlives its file, or the need for the word.
-    for (const [file, { count, reason }] of Object.entries(PSQL_NAMERS)) {
-      expect(counts.get(file), file).toBe(count);
-      expect(reason.length, file).toBeGreaterThan(20);
+    for (const [file, entry] of Object.entries(PSQL_NAMERS)) {
+      expect(lines.get(file), file).toEqual(entry.lines);
+      expect(entry.lines, file).toEqual([...entry.lines].sort());
+      expect(entry.reason.length, file).toBeGreaterThan(20);
     }
     for (const file of PSQL_STARTERS)
-      expect(counts.get(file), file).toBeGreaterThan(0);
+      expect(lines.get(file)?.length, file).toBeGreaterThan(0);
   });
 
   // Review N4: the rule holds on code, not on what a comment says.
@@ -1095,12 +1218,46 @@ describe("the files under scripts/ that start psql (review M4)", () => {
     expect(psqlProblem(file, source)).toMatch(/not.*listed|neither/);
   });
 
-  it("refuses a listed file that names psql once more than its count", () => {
+  // Phase 16, Q2: a count cannot see a swap. Reword the one comment that
+  // names psql in a listed file, add a direct start, and the count is the
+  // same; the pinned lines are not.
+  it("refuses a listed file whose comment loses the word while a start gains it", () => {
+    const file = "scripts/release/lib/scram.mjs";
+    const original = readFileSync(file, "utf8");
+    expect(psqlCount(original)).toBe(1);
+    const swapped = `${original.replace(/psql's/i, "the client's")}\nspawnSync("psql", ["-c", "select 1"]);\n`;
+    expect(psqlCount(swapped)).toBe(1);
+    expect(psqlProblem(file, swapped)).toMatch(
+      /not pinned: \["spawnSync\(\\"psql\\".*pinned but gone: \["\/\/ reaches the server/,
+    );
+  });
+
+  it("refuses a listed file with one more line that names psql", () => {
     const file = "scripts/lib/environment-marker.mjs";
     const source = `${readFileSync(file, "utf8")}\nspawnSync(psqlBin, ["-c", "select 1"]);\n`;
     expect(psqlProblem(file, source)).toMatch(
-      /names psql 13 time\(s\), and PSQL_NAMERS says 12/,
+      /not pinned: \["spawnSync\(psqlBin.*9 line\(s\) against 8 pinned/,
     );
+  });
+
+  it("refuses a listed file with the same line once more", () => {
+    const file = "scripts/lib/environment-marker.mjs";
+    const source = `${readFileSync(file, "utf8")}\n    psqlBin,\n`;
+    expect(psqlProblem(file, source)).toMatch(/9 line\(s\) against 8 pinned/);
+  });
+
+  // The same lines and the same number of them, but one repeated line traded
+  // for another: still a change.
+  it("refuses a listed file that trades one repeated line for another", () => {
+    const file = "scripts/lib/environment-marker.mjs";
+    const source = readFileSync(file, "utf8").replace(
+      /^\s*psqlBin,$/m,
+      "function query(databaseUrl, sql, psqlBin) {",
+    );
+    const lines = psqlLines(source);
+    expect(new Set(lines)).toEqual(new Set(PSQL_NAMERS[file]!.lines));
+    expect(lines.length).toBe(PSQL_NAMERS[file]!.lines.length);
+    expect(psqlProblem(file, source)).not.toBeNull();
   });
 
   it.each([
