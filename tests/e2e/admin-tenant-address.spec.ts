@@ -9,6 +9,8 @@ import {
   fixturePerson,
   signInAs,
   organizationLabel,
+  restoreRevokedMemberships,
+  revokeMembership,
   signsInThroughStub,
   softNavigate,
   TENANTS,
@@ -594,6 +596,114 @@ test.describe("production build", () => {
     }
     for (const body of served) {
       expect(body.startsWith(shell)).toBe(true);
+    }
+  });
+
+  // Council on the joined release, JB7. With Cache Components and Partial
+  // Prefetching a link prefetches its route's App Shell, which the client
+  // router keeps for up to five minutes and which can carry session content
+  // (next/dist/docs: 02-guides/prefetching.md, "Client cache";
+  // adopting-partial-prefetching.md, "Session content"). So: prefetch, revoke
+  // the person's only row, click. No row of the organization may render from
+  // anything cached or prerendered, and the navigation ends on the refusal
+  // page.
+  test("a link prefetched before the person's row is revoked renders no row of the organization, and the click ends on the refusal page", async ({
+    page,
+  }) => {
+    const [only] = fixturePerson("demoAdmin").memberships;
+    let revoked = false;
+    // Member care answers as the resolver does: the rows while the row is
+    // live, the scope's refusal once it is revoked.
+    await page.route("**/api/admin/member-care/**", (route) =>
+      revoked
+        ? route.fulfill({
+            status: 401,
+            json: { error: "Unauthorized" },
+            headers: { "x-asym-scope-refused": "not_owned_or_inactive" },
+          })
+        : route.fulfill({
+            json: {
+              lastContacts: {},
+              personnelTotal: PERSONNEL.length,
+              personnel: PERSONNEL,
+              activities: [],
+              goals: [],
+              requirements: [],
+            },
+          }),
+    );
+    const prefetches: Array<{ path: string; body: Promise<string> }> = [];
+    page.on("response", (response) => {
+      const request = response.request();
+      if (!request.headers()["next-router-prefetch"]) return;
+      prefetches.push({
+        path: new URL(request.url()).pathname,
+        body: response.text().catch(() => ""),
+      });
+    });
+    await signInAs(page, "admin", "demoAdmin", baseURL());
+    try {
+      await page.goto(tenantPath(DEMO, "/"));
+      const memberCare = page
+        .getByRole("link", { name: "Member Care", exact: true })
+        .first();
+      await expect(memberCare).toBeVisible();
+      await expect
+        .poll(() => prefetches.some(({ path }) => path === `/${DEMO}/care`))
+        .toBe(true);
+      await page.waitForLoadState("networkidle");
+
+      // Every care row that appears from here on, in this document or any
+      // document the click leads to, is reported to the test.
+      const recorded: string[] = [];
+      await page.exposeBinding("__reportCareRow", (_source, text: string) => {
+        recorded.push(text);
+      });
+      const watchCareRows = () => {
+        const report = (
+          window as unknown as { __reportCareRow(text: string): void }
+        ).__reportCareRow;
+        const check = () => {
+          const text = document.documentElement.innerText ?? "";
+          const row = /Person \d\d/.exec(text);
+          if (row) report(row[0]);
+        };
+        new MutationObserver(check).observe(document.documentElement, {
+          subtree: true,
+          childList: true,
+          characterData: true,
+        });
+      };
+      await page.addInitScript(watchCareRows);
+      await page.evaluate(watchCareRows);
+      await revokeMembership(page, "admin", "demoAdmin", only!.id, baseURL());
+      revoked = true;
+
+      await memberCare.click();
+      await expect(page).toHaveURL(/\/no-access$/);
+      await expect(page.getByText(/Person \d\d/)).toHaveCount(0);
+      expect(recorded).toEqual([]);
+
+      // Nothing the router prefetched holds the organization or its rows.
+      const names = Object.values(TENANTS).map(organizationLabel);
+      for (const { path: prefetched, body } of prefetches) {
+        const text = await body;
+        expect
+          .soft(
+            [
+              ...names.filter((name) => text.includes(name)),
+              ...(text.match(/Person \d\d/g) ?? []),
+            ],
+            `prefetch of ${prefetched}`,
+          )
+          .toEqual([]);
+      }
+      test.info().annotations.push({
+        type: "prefetches",
+        description: prefetches.map(({ path: p }) => p).join(" "),
+      });
+    } finally {
+      await restoreRevokedMemberships();
     }
   });
 
